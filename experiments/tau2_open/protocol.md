@@ -570,7 +570,7 @@ Issue #2 (open/local-model replication)
   sha256 `8b515c3b1590178144b28475240dd574a65dd3fa426ee6951ca41b0c6144ea9d`,
   config sha256 `347b7bbdd8b24ef73f8e7f4047625a7d5cd7ec56d7a9e054c6efbdc605122c58`,
   task list sha256 `ce69ae4bffd2fb06c43d3cbbf08c121bee4f13baa93b6b85b4a14e73acf5d310`.
-- Harness frozen at commit: `<FREEZE_COMMIT_ID>` (to be filled by the
+- Harness frozen at commit: `696fe5775d0c42b912be4ee379b3c17e0fbc512f` (to be filled by the
   coordinator after committing `experiments/tau2_open/` and
   `results/tau2_open/design.*`; this sandbox runs no git command). The
   sha256 of every harness file is recorded by each invocation
