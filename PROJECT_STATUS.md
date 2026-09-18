@@ -2,7 +2,7 @@
 
 Active objective: a complete, reproducible ICLR submission package for hierarchical win statistics in agent evaluation, with online continuously monitored randomized comparisons as the main setting.
 
-This directory is a development package, not a certified submission-ready paper. The active goal must stay open until the scientific and submission checks below are satisfied. No paper has been submitted and no authorship decisions have been made.
+This directory is a development package, not a certified submission-ready paper. The active goal must stay open until the scientific and submission checks below are satisfied. No paper has been submitted. The user has specified a single author; private submission metadata records the supplied details, while review materials remain anonymous.
 
 ## Completion criteria
 
@@ -31,4 +31,4 @@ Official author guidelines verified 2026-09-17: abstract deadline September 18, 
 - The narrow protocol has rigorous derivations, but incremental combination of established methods may not meet the desired contribution standard. Independent novelty review remains consequential.
 - Existing runs support retrospective benchmark analysis. Prospective online experimental performance is not established.
 - Empirical tolerances/noninferiority margins are illustrative engineering choices and require application-owner justification for an actual deployment.
-- Actual author list, OpenReview records, reciprocal-review eligibility, and human verification are not known.
+- The author list is supplied. OpenReview profile status, reciprocal-review eligibility, and human verification remain unverified.

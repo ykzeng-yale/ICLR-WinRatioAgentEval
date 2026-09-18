@@ -1,0 +1,59 @@
+\section{Experimental details and full numerical outputs}
+\label{app:experiments}
+The executable sources and CSV files accompanying this paper are the
+canonical numerical record. The primary synthetic data-generating
+parameters are listed below. Each pair independently draws two agents'
+compliance and success indicators; costs have log standard deviation
+0.45, with the indicated A/B scale ratio. The cost tie threshold is 5\%
+of the larger cost. Success and compliance are distinct measurements:
+an episode can complete the task while violating policy.
+\begin{center}\small
+\begin{tabular}{lrrrrr}\toprule
+Scenario & Compliance A & Compliance B & Success A & Success B & Cost A/B\\\midrule
+Identical & .995 & .995 & .75 & .75 & 1.00\\
+Efficiency gain & .995 & .995 & .75 & .75 & .55\\
+Success regression & .995 & .995 & .65 & .75 & .40\\
+Compliance regression & .975 & .995 & .75 & .75 & .45\\
+Joint gain & .995 & .995 & .84 & .75 & .75\\
+Weak gain & .995 & .995 & .76 & .75 & 1.00\\\bottomrule
+\end{tabular}\end{center}
+The initial simulation uses seed 20260917 with separate scenario streams.
+Each gate uses an equal mixture of 40 bets geometrically spaced from
+$10^{-4}$ to $0.99/(1+c)$, where $c$ is its threshold; no bet is selected
+by looking at the results. Normal-mixture bounds fix $\rho=100$.
+Unadjusted and fixed-horizon Wald comparisons use one-sided 0.05 cutoffs.
+The ten-look group comparator uses a one-sided 0.005 cutoff at each
+look. It is a simple multiplicity-adjusted asymptotic baseline, not an
+implementation of a particular published group-sequential win-ratio
+covariance estimator. A capped stopping time equals 10,000 when no
+deployment occurs; conditional stopping times among deployments are
+reported separately in the CSV and must not be conflated with expected
+sample use.
+
+The boundary, dependence, and adaptive-order extensions use seed
+20260918. Boundary compliance and success are set to 0.985 versus 0.995
+and 0.72 versus 0.75, respectively, with cost ratio 0.4. The dependence
+experiment generates a normal task-specific A--B contrast with standard
+deviation 1.2 and four independent unit-normal run errors per arm; its
+unconditional signed preference is zero by symmetry. Task-level standard
+errors use 39 degrees of freedom; the naive comparator divides the
+standard deviation of all pair scores by the square root of 640.
+
+The adaptive-order experiment sets potential score means to 0.8 and
+$-0.8$ for the two assignment orientations. At pair $i$, the order
+probability is $0.1+0.8\operatorname{expit}(1+S_{i-1}/\sqrt i)$, where
+$S_{i-1}$ sums past unweighted scores. This is predictable and obeys
+positivity. The inverse-probability score has symmetric target zero and
+lies in $[-5,5]$; betting and normal-mixture bounds use the appropriate
+range. It has 1,000 repetitions, at most 3,000 pairs, and looks every ten
+pairs after pair 100.
+
+\begin{figure}[h]\centering
+\includegraphics[width=\linewidth]{../results/simulation_operating.pdf}
+\caption{Observed deployment rates and capped mean sample use. Bars are
+Monte Carlo summaries, not evidence of universal ordering. Error bars
+are 95\% Wilson intervals for rates and 1.96 Monte Carlo standard errors
+for mean pair counts. The nominal horizontal line applies to false
+deployment under the composite deployment null.}
+\end{figure}
+\IfFileExists{public_appendix.tex}{\input{public_appendix.tex}}{}

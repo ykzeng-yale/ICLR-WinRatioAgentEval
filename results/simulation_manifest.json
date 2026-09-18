@@ -256,10 +256,10 @@
       1.0
     ]
   },
-  "seconds": 13.682889938354492,
+  "seconds": 13.181284666061401,
   "python": "3.14.4",
   "numpy": "2.4.1",
   "source_sha256": "b3d51d15f707855db19b52f206b7b3362fb8f9a3f4a42df138b4a18840f63c9c",
-  "core_sha256": "f0e4a78d1c316184acb7f762b9ebb29cff7a4ace4d23412a3f84a255c7813072",
+  "core_sha256": "3053f8a14e033b02b514135d7043624ca34c1a1f9da9c622365d35aa7f927fd9",
   "interpretation": "Synthetic independent-pair online streams; not live A/B experiment results."
 }

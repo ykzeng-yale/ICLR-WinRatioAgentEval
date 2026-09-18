@@ -8,6 +8,7 @@
 *.pem
 *.key
 private/
+submission/author_metadata.json
 .DS_Store
 __pycache__/
 *.py[cod]

@@ -2,6 +2,10 @@
 
 Version: 2026-09-18 UTC. Status: prospective analysis specification written after source/schema inspection and before analysis of hierarchical pairwise results. This is not an external preregistration. Implemented scenarios, deviations, seeds, run counts, and actual results must be recorded separately; a proposed scenario is not an executed experiment.
 
+## Protocol amendment: independent replicate target
+
+The initial coordination decision was to use all 4×4 within-task pairs as primary. Before either the coordinating author or empirical analyst inspected computed hierarchical comparison values, independent theory review identified that its four same-seed diagonal pairs can be coupled. On 2026-09-18 UTC, the primary τ² estimator was changed to the **12 off-diagonal pairs** per task. The 16-pair empirical V-statistic and four paired-seed comparisons are retained as sensitivity estimands. Distinct-seed independence remains an assumption. An initial analysis process had been dispatched; any resulting preliminary numerical files were preserved privately under `work/empirical_sources/pre_amendment_unreviewed`, and final artifacts were regenerated after this amendment. This is a transparent design correction, not an external preregistration. SWE has only one run per task/system and retains a historical task-paired target.
+
 ## Objectives and estimands
 
 Primary objective: evaluate whether a formally specified hierarchical comparison supports interpretable, statistically calibrated continuous evaluation of agent systems under optional stopping. Secondary objective: show what success, cost, and trace-efficiency disagreements the framework exposes in real agent logs. Do not assume that a new metric automatically improves system quality or that a novel name establishes a methodological contribution.
@@ -16,7 +20,7 @@ The paper must state which target the theorem and the empirical estimator addres
 
 ## Hierarchy and fixed choices
 
-Analysis choices finalized by the coordinating author before computed win outcomes: primary cost margin 5%, absorbing joint failure, all 4×4 within-task comparisons, same-seed and off-diagonal sensitivities, and 3-percentage-point illustrative success noninferiority margin.
+Analysis choices finalized by the coordinating author before computed win outcomes: primary cost margin 5%, absorbing joint failure, 12 off-diagonal within-task comparisons, same-seed and 16-pair sensitivities (amended as documented above), and 3-percentage-point illustrative success noninferiority margin.
 
 Primary benchmark hierarchy: (1) recorded task success, (2) historical agent inference cost, (3) assistant tool-call count. Use an absorbing failure rule in the primary version: when both systems fail, record a tie rather than reward a cheaper failure. Report ordinary lexicographic comparison, which can rank two failures by cost, as sensitivity. If the implemented theory uses ordinary lexicographic comparison as primary, reverse these labels explicitly before computing results and explain why.
 
@@ -80,7 +84,7 @@ Every method must have the same one-sided/two-sided error budget, opportunities 
 
 Use GPT-4.1, o4-mini, and Claude 3.7 Sonnet with exact source provenance from the feasibility report. Analyze three domains separately. The main contrast is o4-mini versus GPT-4.1, fixed for its interpretable reasoning-versus-general-model comparison; Claude comparisons are additional, with multiplicity adjustment if inferential claims are made. Task-weighted pooling across domains must state weights; equal-domain weighting differs from weighting all 278 tasks equally.
 
-For each task with four runs per system, a common-seed matched statistic averages its four paired win outcomes. A cross-run statistic averages all 16 comparisons and targets independent within-task run draws only if the coupling/independence assumptions justify it. Because common seeds are shared, include the 12 off-diagonal comparisons as sensitivity when estimating the independent-run target. Do not treat these comparisons as independent; summarize at task level, then bootstrap tasks within domain. Use 10,000 bootstrap replicates for descriptive percentile intervals; report the interval method and finite-task limitation. Report raw per-model success/cost/call summaries alongside win statistics. Include GPT-4.1-mini only as explicitly marked harness-version sensitivity until audited.
+For each task with four runs per system, the primary statistic averages the 12 off-diagonal comparisons and targets independent within-task run draws under independence of distinct-seed runs. The four same-seed pairs estimate a coupled preference and are a distinct sensitivity estimand. The all-16 V-statistic combines three quarters off-diagonal and one quarter same-seed comparisons and is another sensitivity, not an unbiased substitute for the independent-run target. Do not treat these comparisons as independent; summarize at task level, then bootstrap tasks within domain. Use 10,000 bootstrap replicates for descriptive percentile intervals; report the interval method and finite-task limitation. Report raw per-model success/cost/call summaries alongside win statistics. Include GPT-4.1-mini only as explicitly marked harness-version sensitivity until audited.
 
 ### SWE-bench Lite supplementary
 

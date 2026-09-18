@@ -40,5 +40,5 @@
   "adaptive_symmetric_truth": 0,
   "adaptive_position_interpretation": "abstract bounded pair-score model, not generated agent traces",
   "source_sha256": "92b668753bef59415a87cabbcc13ec61212e4f5cdf63a377293329e3ffb0a041",
-  "core_sha256": "f0e4a78d1c316184acb7f762b9ebb29cff7a4ace4d23412a3f84a255c7813072"
+  "core_sha256": "3053f8a14e033b02b514135d7043624ca34c1a1f9da9c622365d35aa7f927fd9"
 }

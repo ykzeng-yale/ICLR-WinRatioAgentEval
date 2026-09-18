@@ -21,6 +21,10 @@ def main():
     try: compare([[np.nan,1]],[[1,1]],tiers)
     except ValueError: pass
     else: raise AssertionError('Missing observations silently accepted')
+    for value in [-.1,np.nan,np.inf]:
+        try: Tier('invalid',absolute_tolerance=value)
+        except ValueError: pass
+        else: raise AssertionError('Invalid tolerance silently accepted')
     # Check mixture formula against product over the literal observations.
     z=np.array([1,0,-1,1,1,0,-1]); c=-.03
     lam=np.geomspace(1e-4,.99/(1+c),40)

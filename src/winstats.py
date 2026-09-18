@@ -15,6 +15,12 @@ class Tier:
     absolute_tolerance: float = 0.0
     relative_tolerance: float = 0.0
 
+    def __post_init__(self):
+        if any(not np.isfinite(t) or t < 0 for t in (self.absolute_tolerance, self.relative_tolerance)):
+            raise ValueError('Tier tolerances must be finite and nonnegative')
+        if not isinstance(self.higher_better, bool):
+            raise ValueError('higher_better must be a boolean')
+
 
 def compare(a, b, tiers, eligible=None):
     """Broadcast arrays (..., tiers); ties include exact threshold equality.
@@ -22,7 +28,11 @@ def compare(a, b, tiers, eligible=None):
     eligible is an optional (..., tiers) mask, fixed by the outcome protocol.
     Returns signed preference and zero-based decisive tier (-1 for tie).
     """
+    if not tiers:
+        raise ValueError('At least one comparison tier is required')
     a, b = np.broadcast_arrays(np.asarray(a, float), np.asarray(b, float))
+    if a.ndim == 0:
+        raise ValueError('Outcomes need a final tier dimension')
     if a.shape[-1] != len(tiers) or not np.isfinite(a).all() or not np.isfinite(b).all():
         raise ValueError('Expected complete finite outcomes and one column per tier')
     result = np.zeros(a.shape[:-1], dtype=np.int8)

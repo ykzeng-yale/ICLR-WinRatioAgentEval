@@ -4,7 +4,7 @@ Prepared September 17, 2026. This is an internal methodological record, not a cl
 
 ## Scientific target
 
-The core design is disjoint pairs of online arrivals, optionally in a prespecified baseline stratum, randomized AB versus BA. It identifies a symmetric cross-arrival potential-outcome contrast. Conditional independent identically distributed arrivals identify an independent-draw stratum win net benefit. It does not identify the same-task cross-world hierarchical preference. Component difference scores do identify the pair average component treatment effect by algebra.
+The core design is disjoint pairs of online arrivals, optionally in a prespecified baseline stratum, randomized AB versus BA. It identifies a symmetric cross-arrival potential-outcome contrast. Conditional independent identically distributed arrivals identify an independent-draw stratum win net benefit. It does not identify the individual live-episode cross-world hierarchical preference. This is distinct from the same-observed-task independent-copy functional, which is identified by conditional arm laws under overlap and is directly measurable with independent offline clone runs. Component difference scores do identify the pair average component treatment effect by algebra.
 
 Default: q=1/2, one episode per system per pair. Hierarchy and component scores lie in [-1,1]. Adaptive orientation probabilities have an inverse-probability score with known bound 1/(2 epsilon). This is not arbitrary adaptive traffic routing: the design still forces one A and one B per pair.
 
@@ -14,7 +14,7 @@ Offline target: task-weighted average preference of independent replicate sets c
 
 1. Definitions: measurable antisymmetric tiers, meaningful tie thresholds, symmetric eligibility rules, tier decomposition, net benefit, win ratio, win odds.
 2. Population-priority obstruction: B always succeeds, A fails with epsilon and otherwise wins on cost. Success difference is -epsilon but hierarchical NB is 1-2 epsilon. Near-perfect preference is compatible with a strictly worse primary component.
-3. Identification obstruction: uniform {0,1,2} arm marginals permit cyclic same-task couplings with NB +1/3 and -1/3, while the cross-arrival NB is zero in both.
+3. Identification obstruction: uniform {0,1,2} arm marginals permit cyclic live-episode latent potential-outcome couplings with NB +1/3 and -1/3, while both the same-observed-context independent-copy target and cross-arrival NB are zero. This is an instructional example of an established identification obstruction, not a novelty claim.
 4. Pair-randomization unbiasedness, including adaptive orientation HT extension and exact component-effect identity.
 5. Complete normal-mixture CS proof with predictable bounds: V_n=sum(range_i squared)/4; radius sqrt((V+rho) log((V+rho)/(rho alpha squared)))/n. Under drift it covers a running average conditional effect. For balanced ternary scores V=n. Fixed rho is precommitted. Its rate is sqrt(log n/n), not LIL-optimal.
 6. Complete finite-mixture betting validity proof and explicit finite-grid power limitation. Positive stakes must satisfy lambda<1/(1+c) for score range [-1,1] and gate threshold c. A fixed finite positive grid is not universally consistent arbitrarily close to the null. A countable positive-weight grid accumulating at zero is consistent for iid alternatives with positive mean gap.
@@ -25,6 +25,7 @@ Offline target: task-weighted average preference of independent replicate sets c
 11. Offline unbiased task statistic, task-level variance/CLT and finite-sample CS. Ratio uncertainty only bounded above when the loss-probability lower bound is positive.
 12. Gate stopping tail bound plus elementary sequential information lower bound: a narrow guardrail margin can dominate sample size.
 13. Comparator sensitivity bound |theta_h-theta_g| <= E|h-g| <= 2 P(h differs from g). Prespecified sensitivity families require simultaneous inference if selected.
+14. Shared-seed replication lemma: for R conditionally iid seed clusters (A_r,B_r), off-diagonal comparisons estimate independent-copy preference; all R squared pairs target (1-1/R) theta_ind + (1/R) theta_coupled, with bias bounded by 2/R. For R=4, the diagonal contributes one quarter. The primary empirical contrast was amended to the 12 off-diagonal comparisons per task before the parent inspected the resulting estimates; four diagonal and all 16 comparisons remain sensitivity analyses. This amendment addresses the design assumption, not an observed favorable result.
 
 ## Theorems versus novelty
 
@@ -42,7 +43,7 @@ None of the normal-mixture, betting, intersection-union, Horvitz-Thompson, bound
 | Karampatziakis, Mineiro, Ramdas. *Off-Policy Confidence Sequences*. ICML 2021. https://proceedings.mlr.press/v139/karampatziakis21a.html | Nonparametric, nonasymptotic arbitrary-stopping CSs and explicitly a gated deployment application. Proceedings page/abstract inspected. | Guarded deployment with confidence sequences is already in ML literature. |
 | Shekhar, Ramdas. *Nonparametric Two-Sample Testing by Betting*. IEEE Transactions on Information Theory (2024). https://arxiv.org/abs/2112.09162 | General sequential two-sample betting, nonexchangeable/time-varying extensions, regret/power links. Abstract inspected. | Distinguish testing distributional equality from estimating a prespecified hierarchy preference, while acknowledging sequential comparison machinery. |
 | Podkopaev, Ramdas. *Sequential Predictive Two-Sample and Independence Testing*. NeurIPS 2023. https://arxiv.org/abs/2305.00143 | Predictive betting two-sample tests with drift applications. Abstract inspected. | Adaptive sequential comparison and drift are not new themselves. |
-| Even, Josse. *Rethinking the Win Ratio: A Causal Framework for Hierarchical Outcome Analysis*. (2025 preprint). https://arxiv.org/abs/2501.16933 ; HTML https://arxiv.org/html/2501.16933v2 | Marginal/covariate-conditional causal win target distinctions. Full HTML accessed. | Explicitly cite the causal estimand predecessor; do not claim first recognition of marginal versus conditional win differences. |
+| Even, Josse. *Rethinking the Win Ratio: A Causal Framework for Hierarchical Outcome Analysis*. (2025 preprint, v4 March 23, 2026). https://arxiv.org/abs/2501.16933 ; HTML https://arxiv.org/html/2501.16933v4 | Individual-counterfactual nonidentifiability; identified same-covariate independent-copy and population-copy win targets; matching, distributional regression and semiparametric efficient estimation. Latest HTML inspected after initial v2 access. | Explicitly cite the causal estimand predecessor. The nonidentification example is explanatory, not a newly discovered boundary. |
 
 BibTeX keys expected by theory.tex: howard2021confidence; waudbysmith2024betting; zhang2024sequential; bergemann2026group; cai2026ustatistics; karampatziakis2021offpolicy; shekhar2024betting; podkopaev2023predictive; even2025rethinking.
 
