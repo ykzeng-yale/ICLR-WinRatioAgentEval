@@ -20,3 +20,7 @@ paper/*.out
 paper/*.fls
 paper/*.fdb_latexmk
 paper/*.synctex.gz
+
+# Raw third-party data and large working files
+work/
+*.traj
