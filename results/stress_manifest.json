@@ -1,0 +1,44 @@
+{
+  "seed": 20260918,
+  "classification": "extensions designed after initial run; not preregistered",
+  "boundary_scenarios": {
+    "success_boundary": [
+      0.995,
+      0.995,
+      0.72,
+      0.75,
+      0.4
+    ],
+    "compliance_boundary": [
+      0.985,
+      0.995,
+      0.75,
+      0.75,
+      0.4
+    ]
+  },
+  "boundary_truths": {
+    "success_boundary": [
+      0.4240552181589537,
+      -0.030000000000000027,
+      0.0
+    ],
+    "compliance_boundary": [
+      0.45791286367940687,
+      0.0,
+      -0.010000000000000009
+    ]
+  },
+  "replicates": 2000,
+  "pairs": 10000,
+  "adaptive_replicates": 1000,
+  "adaptive_pairs": 3000,
+  "adaptive_position_means": [
+    0.8,
+    -0.8
+  ],
+  "adaptive_symmetric_truth": 0,
+  "adaptive_position_interpretation": "abstract bounded pair-score model, not generated agent traces",
+  "source_sha256": "92b668753bef59415a87cabbcc13ec61212e4f5cdf63a377293329e3ffb0a041",
+  "core_sha256": "f0e4a78d1c316184acb7f762b9ebb29cff7a4ace4d23412a3f84a255c7813072"
+}

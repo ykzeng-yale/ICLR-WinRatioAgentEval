@@ -1,0 +1,22 @@
+# Credentials must never enter source control or submission archives.
+.env
+.env.*
+*APIKEY*
+*apikey*
+*credentials*
+*.rtf
+*.pem
+*.key
+private/
+.DS_Store
+__pycache__/
+*.py[cod]
+.venv/
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.log
+paper/*.out
+paper/*.fls
+paper/*.fdb_latexmk
+paper/*.synctex.gz
