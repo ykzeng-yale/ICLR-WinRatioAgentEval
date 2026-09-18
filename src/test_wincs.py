@@ -148,3 +148,31 @@ def test_betting_cs():
 
 if __name__ == '__main__':
     test_betting_cs()
+
+
+def test_boundary_laws_issue4():
+    """Issue #4: deterministic boundary laws and constant functionals must be exact."""
+    from wincs import cs_threshold
+    lo, hi = MultinomialCS(1).net_benefit([0, 3, 0]); assert hi == 1.0 and -0.66 < lo < -0.65, (lo, hi)
+    assert linear_bound([2, 3, 4], [1, 1, 1], np.ones(3), .05, False) == 1.0
+    assert linear_bound([2, 3, 4], [1, 1, 1], np.ones(3), .05, True) == 1.0
+    lo, hi = MultinomialCS(1).net_benefit([5, 0, 0]); assert abs(lo + hi) < 1e-12 and 0 < hi < 1
+    lo, hi = MultinomialCS(1).net_benefit([0, 0, 7]); assert lo == -1.0 and hi < 0.3
+    wlo, whi = MultinomialCS(1).win_ratio([0, 3, 0]); assert np.isinf(whi) and 0 < wlo < 1
+    wlo, whi = MultinomialCS(1).win_ratio([0, 0, 7]); assert wlo == 0.0 and whi < 2
+    rng = np.random.default_rng(5); bad = 0
+    g = np.linspace(0, 1, 601); W, L = np.meshgrid(g, g, indexing='ij'); ok = W + L <= 1 + 1e-12; W, L = W[ok], L[ok]; T = 1 - W - L
+    P = np.stack([T, W, L], -1)
+    for t in range(200):
+        n = int(rng.integers(1, 80)); x = rng.multinomial(n, rng.dirichlet([.3, .3, .3])).astype(float)
+        inside = loglik(x, P) >= cs_threshold(x, np.ones(3), .05); nb = W - L
+        lo, hi = MultinomialCS(1, .05, 1.0).net_benefit(x)
+        # bounds must contain the grid set (conservative) and be within grid resolution of it
+        if not (lo <= nb[inside].min() + 1e-9 and hi >= nb[inside].max() - 1e-9 and lo >= nb[inside].min() - 4e-3 and hi <= nb[inside].max() + 4e-3):
+            bad += 1
+    assert bad == 0, bad
+    print('boundary-law and conservativeness checks ok (issue #4)')
+
+
+if __name__ == '__main__':
+    test_boundary_laws_issue4()
