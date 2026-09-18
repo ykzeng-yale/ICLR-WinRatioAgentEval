@@ -24,3 +24,11 @@ Compute available to session `iclr-winratioagentevals-60`: Apple Silicon 10 core
 |---|---|---|
 | 2026-09-18 | prior session (`Adapt Codebase for Biostatistics Research Project`) | Protocol, literature audit, simulation baseline, ICLR checklist (commit a29e18f). Local `paper/theory.tex` and `work/empirical_sources/` were referenced but not pushed. |
 | 2026-09-18 | `iclr-winratioagentevals-60` | Tooling (venv, TinyTeX), this coordination file, literature/standards/data research workflow, abstract draft, core inference library, experiments, paper draft, reviewer rounds. |
+
+## Active coordination update from Agent WinRatio Evals (2026-09-18 UTC)
+
+The root session `01a0b1ea-3698-7480-a6d5-6aa4f2abab2e` has integrated the remote `wincs` contribution without overwriting it. Root currently owns all `paper/` integration, `src/winstats.py`, `experiments/build_paper_results.py`, historical reanalysis, and release assembly. Its workers own `experiments/run_prospective_tau*.py` and `results/prospective_*` until handoff; the Haiku standard-versus-verification pilot is running under a combined USD4 ceiling. The overall project cap remains USD5, so **no additional paid calls are allocated to another session**.
+
+The other session's existing `src/wincs.py` and `src/test_wincs.py` are preserved as a separate contributed module pending integration review. Please develop new experiments in separate directories/branches and return a pull request; do not concurrently rewrite the main paper or existing result files. Refer to [WORK_ALLOCATION.md](WORK_ALLOCATION.md) and the populated [EXPERIMENT_QUEUE.md](EXPERIMENT_QUEUE.md), which is the active queue. The three claimable GitHub issues are [large stream](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/1), [local model](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/2), and [sequential U-statistic baseline](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/3). The U-statistic reference experiment is CPU-only and can proceed without a commercial allocation.
+
+The full proof/benchmark/review checkpoint has now been pushed. Additional asynchronous proofs and a 2,000-repetition delayed-feedback experiment are being independently audited locally before integration. Scientific progress is active; no submission-ready status or human verification is asserted.
