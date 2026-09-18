@@ -171,12 +171,29 @@ def save_name(arm: str) -> str:
     return 'tau2_open_arm%s' % arm
 
 
+AMENDMENT = None  # set by run() from config_amendment_1.json (post-freeze operational amendment; never used in dry runs)
+AMENDMENT_PATH = Path(__file__).resolve().parent / 'config_amendment_1.json'
+
+
+def load_amendment():
+    if not AMENDMENT_PATH.exists():
+        return None
+    a = json.loads(AMENDMENT_PATH.read_text()); a['_sha256'] = sha256_file(AMENDMENT_PATH)
+    return a
+
+
 def agent_llm_args(cfg: dict, arm: str) -> dict:
-    return dict(temperature=cfg['agent_temperature'], api_base='http://127.0.0.1:%d/v1' % cfg['arms'][arm]['port'])
+    d = dict(temperature=cfg['agent_temperature'], api_base='http://127.0.0.1:%d/v1' % cfg['arms'][arm]['port'])
+    if AMENDMENT:
+        d.update(AMENDMENT.get('agent_llm_args_extra', {}))
+    return d
 
 
 def user_llm_args(cfg: dict) -> dict:
-    return dict(temperature=cfg['user_temperature'], api_base='http://127.0.0.1:%d/v1' % cfg['user_port'])
+    d = dict(temperature=cfg['user_temperature'], api_base='http://127.0.0.1:%d/v1' % cfg['user_port'])
+    if AMENDMENT:
+        d.update(AMENDMENT.get('user_llm_args_extra', {}))
+    return d
 
 
 def tau2_command(cfg: dict, arm: str) -> list:
@@ -186,7 +203,7 @@ def tau2_command(cfg: dict, arm: str) -> list:
              '--user-llm-args', json.dumps(user_llm_args(cfg)), '--num-trials', str(cfg['num_trials']), '--task-ids'] + list(cfg['task_ids']) +
             ['--max-steps', str(cfg['max_steps']), '--max-errors', str(cfg['max_errors']), '--max-concurrency', str(cfg['max_concurrency']),
              '--hallucination-retries', str(cfg['hallucination_retries']), '--seed', str(cfg['tau2_seed']), '--save-to', save_name(arm),
-             '--auto-resume', '--log-level', 'WARNING'])
+             '--auto-resume', '--log-level', 'WARNING'] + (list(AMENDMENT.get('tau2_extra_flags', [])) if AMENDMENT else []))
 
 
 def tau2_results_path(cfg: dict, arm: str) -> Path:
@@ -432,6 +449,8 @@ def run(args) -> dict:
             else:
                 raise SystemExit('design.json missing: run design.py first (the design must be frozen before outcomes)')
         design = load_design(results_dir)
+        global AMENDMENT
+        AMENDMENT = None if args.dry_run else load_amendment()
         pre = preflight(cfg, design, results_dir, args)
         arms = list(ARMS) if args.arm == 'both' else [args.arm]
         env = dict(os.environ)
@@ -443,7 +462,7 @@ def run(args) -> dict:
                       execution_order_note='tau2 executes each arm as a batch, trial-major in task order; the prespecified arrival order/orientation (design.json) is used only by the analysis',
                       tau2_commands={arm: tau2_command(cfg, arm) for arm in arms}, server_commands={arm: server_command(cfg, cfg['arms'][arm]['alias'], cfg['arms'][arm]['port']) for arm in arms},
                       env_note='OPENAI_API_KEY placeholder if unset; OPENAI_API_BASE=user server; per-role api_base and temperature in --agent-llm-args/--user-llm-args',
-                      sampling_note=cfg.get('sampling_note'))
+                      sampling_note=cfg.get('sampling_note'), config_amendment=AMENDMENT)
         inv_id = append_invocation(results_dir, record)
         status = 'completed'; arm_records = []; server_records = {}; smokes = {}
         t0 = time.time()
