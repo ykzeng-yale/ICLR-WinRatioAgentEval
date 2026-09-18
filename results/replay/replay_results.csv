@@ -1,0 +1,10 @@
+label,A,B,domains,design,reps,max_pairs,deploy_rate,harm_rate,median_deploy_time,q25_deploy_time,q75_deploy_time,median_harm_time,mean_final_nb,sd_final_nb,mean_final_success_diff
+tau2_o4mini_vs_gpt41_all,o4-mini-2025-04-16,gpt-4.1-2025-04-14,airline+retail+telecom,paired,500,2000,0.962,0.0,846.0,563.0,1198.0,,0.10351099999999999,0.01771562527826777,0.027322000000000003
+tau2_o4mini_vs_gpt41_all,o4-mini-2025-04-16,gpt-4.1-2025-04-14,airline+retail+telecom,cross_arrival,500,2000,0.33,0.002,1157.0,759.0,1639.0,50.0,0.051367,0.018547501475940097,0.027020000000000002
+tau2_o4mini_vs_gpt41_retail,o4-mini-2025-04-16,gpt-4.1-2025-04-14,retail,paired,500,2000,0.014,0.0,1045.0,226.5,1388.5,,0.057262,0.020991625854135262,-0.026004000000000003
+tau2_o4mini_vs_gpt41_retail,o4-mini-2025-04-16,gpt-4.1-2025-04-14,retail,cross_arrival,500,2000,0.0,0.026,,,,471.0,-0.012426000000000001,0.02088847825955735,-0.025783
+tau2_claude37_vs_gpt41_all,claude-3-7-sonnet-20250219,gpt-4.1-2025-04-14,airline+retail+telecom,paired,500,2000,0.0,1.0,,,,53.0,-0.36176400000000003,0.01742671236923362,0.07005000000000002
+tau2_claude37_vs_gpt41_all,claude-3-7-sonnet-20250219,gpt-4.1-2025-04-14,airline+retail+telecom,cross_arrival,500,2000,0.0,1.0,,,,109.0,-0.261284,0.01975131246272004,0.07049899999999999
+self_null,gpt-4.1-2025-04-14,gpt-4.1-2025-04-14,airline+retail+telecom,paired_disjoint_trials,500,2000,0.0,0.006,,,,,,,
+completion_order_stress,gpt-4.1-2025-04-14,gpt-4.1-2025-04-14 (failures slowed x4),airline+retail+telecom,arrival_order,300,1500,0.0033333333333333335,0.006666666666666667,,,,,,,
+completion_order_stress,gpt-4.1-2025-04-14,gpt-4.1-2025-04-14 (failures slowed x4),airline+retail+telecom,completion_order,300,1500,0.0,0.013333333333333334,,,,,,,

@@ -53,7 +53,14 @@ def stream(rng, PA, PB, n, design):
     idx = rng.integers(0, len(keys), n)
     A = np.stack([PA[keys[i]][rng.integers(0, len(PA[keys[i]]))] for i in idx])
     if design == 'paired':
-        B = np.stack([PB[keys[i]][rng.integers(0, len(PB[keys[i]]))] for i in idx])
+        # avoid the same trial index (shared simulator seed) for A and B within a task
+        B = []
+        for i, a_row in zip(idx, A):
+            runsB = PB[keys[i]]; runsA = PA[keys[i]]
+            ia = int(np.where((runsA == a_row).all(1))[0][0]) if len(runsA) == len(runsB) else -1
+            choices = [j for j in range(len(runsB)) if j != ia] or list(range(len(runsB)))
+            B.append(runsB[choices[rng.integers(0, len(choices))]])
+        B = np.stack(B)
     else:
         jdx = rng.integers(0, len(keys), n)
         B = np.stack([PB[keys[j]][rng.integers(0, len(PB[keys[j]]))] for j in jdx])
