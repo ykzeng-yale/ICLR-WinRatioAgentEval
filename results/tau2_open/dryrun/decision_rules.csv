@@ -1,0 +1,15 @@
+rule,data,estimate,ci,decision,detail
+success_only,shadow,0.02040816326530612,"[-0.12308643006675529, 0.16390275659736753]",none,
+pareto_means,shadow,,"[None, None]",B,d_success=0.0204 d_tokens=-210.4 d_calls=-1.37
+utility_w=1.00/0.00/0.00,shadow,0.02040816326530612,"[None, None]",B,u = w1*d_success - w2*rel_d_tokens - w3*rel_d_calls (point estimate only)
+utility_w=0.80/0.10/0.10,shadow,0.08533253055775386,"[None, None]",B,u = w1*d_success - w2*rel_d_tokens - w3*rel_d_calls (point estimate only)
+utility_w=0.60/0.20/0.20,shadow,0.15025689785020158,"[None, None]",B,u = w1*d_success - w2*rel_d_tokens - w3*rel_d_calls (point estimate only)
+utility_w=0.50/0.25/0.25,shadow,0.18271908149642543,"[None, None]",B,u = w1*d_success - w2*rel_d_tokens - w3*rel_d_calls (point estimate only)
+utility_w=0.34/0.33/0.33,shadow,0.23465857533038365,"[None, None]",B,u = w1*d_success - w2*rel_d_tokens - w3*rel_d_calls (point estimate only)
+utility_w=0.20/0.40/0.40,shadow,0.280105632435097,"[None, None]",B,u = w1*d_success - w2*rel_d_tokens - w3*rel_d_calls (point estimate only)
+hierarchical_nb,shadow,0.020408163265306145,"[-0.12383312815500042, 0.1646494546856127]",none,
+guarded_hierarchical,shadow,0.020408163265306145,"[-0.12383312815500042, 0.1646494546856127]",none,NB CI > 0 and success CI lower > -0.03
+conjunction_all_components,shadow,,"[None, None]",none,success non-inferior AND tokens lower AND calls lower (all CIs)
+hierarchical_nb_betting_cs,online,0.08163265306122447,"[-0.28893188476562504, 0.44760925292968745]",none,
+guarded_anytime,online,0.08163265306122447,"[-0.28893188476562504, 0.44760925292968745]",none,first_deploy=None first_harm=None
+success_only_betting_cs,online,0.061224489795918366,"[-0.288787841796875, 0.40968078613281234]",none,
