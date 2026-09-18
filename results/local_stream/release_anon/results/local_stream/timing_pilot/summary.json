@@ -1,0 +1,121 @@
+{
+  "generated_at": "2026-09-18T14:51:56Z",
+  "dry_run": false,
+  "model": "mlx-community/Qwen2.5-Coder-7B-Instruct-4bit",
+  "config_hash": "2dfb51966780698be326a8897c9e384a5513a7c1a47505c42b8a15c6c5baaf5b",
+  "n_tasks": 6,
+  "pilot_task_ids": [
+    "mbpp_full/39",
+    "mbpp_full/122",
+    "mbpp_full/522",
+    "mbpp_full/547",
+    "mbpp_full/869",
+    "mbpp_full/966"
+  ],
+  "full_mbpp_download": {
+    "url": "https://raw.githubusercontent.com/google-research/google-research/master/mbpp/mbpp.jsonl",
+    "bytes": 563743,
+    "sha256": "ccf64ceae9c5403bf50a044cb6d505bfd2a2963ee58338ba268fd65beab92a9f",
+    "cached": false,
+    "n_rows": 974,
+    "fetched_at": "2026-09-18T14:49:28Z"
+  },
+  "model_snapshot": {
+    "model": "mlx-community/Qwen2.5-Coder-7B-Instruct-4bit",
+    "expected_revision": "019cc73c45c770444708a6dd8690c66243cc5c80",
+    "cache_dir": "<HOME>/.cache/huggingface/hub",
+    "repo_dir": "<HOME>/.cache/huggingface/hub/models--mlx-community--Qwen2.5-Coder-7B-Instruct-4bit",
+    "snapshots_present": [
+      "019cc73c45c770444708a6dd8690c66243cc5c80"
+    ],
+    "refs_main": "019cc73c45c770444708a6dd8690c66243cc5c80",
+    "revision": "019cc73c45c770444708a6dd8690c66243cc5c80",
+    "path": "<HOME>/.cache/huggingface/hub/models--mlx-community--Qwen2.5-Coder-7B-Instruct-4bit/snapshots/019cc73c45c770444708a6dd8690c66243cc5c80",
+    "total_bytes": 4295890004,
+    "ok": true,
+    "error": null,
+    "hashed_at": "2026-09-18T14:49:28Z"
+  },
+  "smoke_check": {
+    "kind": "smoke",
+    "prompt": "Reply with the single word: pong",
+    "response_model": "mlx-community/Qwen2.5-Coder-7B-Instruct-4bit",
+    "text": "Pong<|im_end|>\n",
+    "completion_tokens": 5,
+    "call_seconds": 0.5872045001015067,
+    "ok": true
+  },
+  "sandbox": {
+    "kind": "seatbelt",
+    "python": "<HOME>/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/bin/python3.12",
+    "base_dir": "<TMP>/ls_sbx",
+    "profile_sha256": "6370c169267c3f31d3df6321b8acd6b3a363619634835c70854a9bf3952ed900",
+    "nproc_limit": 64,
+    "exec_deny_dirs": [
+      "/bin",
+      "/usr/bin",
+      "/usr/local/bin",
+      "/opt",
+      "/sbin",
+      "/usr/sbin"
+    ]
+  },
+  "hardware": {
+    "platform": "macOS-26.5.2-arm64-arm-64bit",
+    "machine": "arm64",
+    "python": "3.12.13",
+    "cpu": "Apple M5",
+    "memory_bytes": "34359738368",
+    "n_cpu": "10",
+    "os_version": "26.5.2"
+  },
+  "harness_file_sha256": {
+    "common.py": "cdee8821250c315b183769806d84495f3055cad14e0e70809c33aab8a6458a42",
+    "data.py": "ae630675f43786bcf7483ff90d4c641ab9a6c7c16202de456d96b03f19321405",
+    "sandbox.py": "d461570937ddbe1fb241288721a1a06b44bd41dd72ccdc2e2ffa2f144184c6ff",
+    "verify.py": "7473678b1990ca2a5a1900b45251fddcd2882f2b371d76d3a59fe669a607dbb6",
+    "agent.py": "a193ed30931a4dff2be1cd5bcc3af75cd7518e698bd92a791d26c18e69184a49",
+    "design.py": "3cf14e9502d3c6135ef54e62ec5ffc4d9d65939fccc31c7996fef8ec3b5497ec",
+    "run_stream.py": "3c4e0782ade99c10e1ac9b063360bb2837d64d914255070fb46bd29cb5220417",
+    "analysis.py": "9014743a0a472763c599d13041cf5ec517b55ea197de5ce17adc310f320fc361",
+    "timing_pilot.py": "5e3312f67fcfdcf68b49ddab348a9d94c2b205aadc8668216198ed4b71e9cecf",
+    "tests_local_stream.py": "004d6a9ee35fd2fa55d7c1b001dd43909e9a4a0040c15abfa2457f7b6322d0f1",
+    "config.json": "0b40e6530ff70660116d409ad3887e0999ab5d73fa43af1f88fd93df032f4b73",
+    "protocol.md": "699c95595c877b6f813fc4197aee2143f6b6130d0f4bb6177e072854603ef08e",
+    "README.md": "e4fb625d525fe7e4179dc4c0b9739019a1f8209c028897acb8bce006662a2fc5"
+  },
+  "elapsed_s": 145.578928232193,
+  "per_variant": {
+    "single_shot": {
+      "n": 6,
+      "success": 1,
+      "latency_s_mean": 4.811078937258571,
+      "latency_s_max": 7.025670458562672,
+      "verify_seconds_mean": 0.017701493110507727,
+      "completion_tokens_mean": 128.83333333333334,
+      "prompt_tokens_mean": 90.33333333333333,
+      "n_llm_calls_mean": 1.0,
+      "repair_rounds_mean": 0.0,
+      "llm_seconds_mean": 4.810833333333334
+    },
+    "self_test_repair": {
+      "n": 6,
+      "success": 2,
+      "latency_s_mean": 19.412777062815923,
+      "latency_s_max": 32.453035834245384,
+      "verify_seconds_mean": 0.015131472299496332,
+      "completion_tokens_mean": 496.3333333333333,
+      "prompt_tokens_mean": 1347.8333333333333,
+      "n_llm_calls_mean": 3.6666666666666665,
+      "repair_rounds_mean": 1.6666666666666667,
+      "llm_seconds_mean": 19.347116666666665
+    }
+  },
+  "projection": {
+    "n_stream_tasks": 591,
+    "episodes": 1182,
+    "seconds_per_task_both_variants": 24.2566889654845,
+    "projected_hours": 3.9821397718337055,
+    "note": "mean latency (A+B) + mean verify time, times 591 tasks; monitoring/IO overhead excluded"
+  }
+}

@@ -28,8 +28,8 @@ Layout
 All commands from the repository root; `PY` is the project interpreter.
 
 ```bash
-PY=/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/.venv/bin/python
-cd /Users/yukangzengcmac/ICLR-WinRatioAgentEvals
+PY=<REPO>/.venv/bin/python
+cd <REPO>
 
 # 0. Data (once; ~300 KB download; writes work/local_stream/data/{sanitized-mbpp.json,HumanEval.jsonl.gz,tasks.json,data_manifest.json})
 $PY experiments/local_stream/data.py

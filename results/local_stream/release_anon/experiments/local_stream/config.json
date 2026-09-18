@@ -1,0 +1,31 @@
+{
+  "experiment": "local_stream",
+  "model": "mlx-community/Qwen2.5-Coder-7B-Instruct-4bit",
+  "model_revision_expected": "019cc73c45c770444708a6dd8690c66243cc5c80",
+  "base_url": "http://127.0.0.1:8080/v1",
+  "temperature": 0.7,
+  "top_p": 0.95,
+  "max_tokens": 1024,
+  "request_timeout_s": 300,
+  "max_connection_retries": 2,
+  "sandbox_timeout_s": 10.0,
+  "sandbox_cpu_s": 10,
+  "sandbox_mem_bytes": 2147483648,
+  "sandbox_output_cap_bytes": 65536,
+  "max_repair_rounds": 2,
+  "design_seed": 20260918,
+  "trial2_enabled": false,
+  "trial2_seed": 20260919,
+  "hierarchy": [
+    {"name": "success", "higher_better": true, "relative_tolerance": 0.0},
+    {"name": "latency_s", "higher_better": false, "relative_tolerance": 0.10},
+    {"name": "completion_tokens", "higher_better": false, "relative_tolerance": 0.10}
+  ],
+  "absorbing_rule": "lower tiers compared only when both episodes succeeded",
+  "alpha": 0.05,
+  "success_margin": 0.03,
+  "min_n_pairs": 20,
+  "benchmarks": ["mbpp", "humaneval"],
+  "mbpp_url": "https://raw.githubusercontent.com/google-research/google-research/master/mbpp/sanitized-mbpp.json",
+  "humaneval_url": "https://github.com/openai/human-eval/raw/master/data/HumanEval.jsonl.gz"
+}
