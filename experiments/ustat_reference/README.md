@@ -19,7 +19,8 @@ kept in `results/ustat_reference/previous_e1ea314/`.
 |---|---|
 | `ustat.py` | Library: exact re-draw of the paper's generator with raw runs (`generate_raw`), O(n log n) all-pairs hierarchical U-statistic and Hoeffding/Sen projection variance at many looks (`hierarchical_prefix_stats`), brute-force oracle (`kernel_matrix`, n <= 2000 only), analytic conditional means and Monte Carlo efficiency components (`efficiency_components`), Lan-DeMets alpha-spending boundaries by Armitage-McPherson-Rowe recursion (`gs_boundaries`, `gs_exit_probabilities`, `spending`), one-sided normal-mixture boundary (`one_sided_normal_mixture_boundary`). |
 | `run_ustat_reference.py` | Study: 8 scenarios of `run_online_methods.SCENARIOS`, seeds `SeedSequence([20260918, j])`, 10000 records per arm, 2000 replicates, 199 looks (100..10000 step 50) for the anytime rules, 10 planned looks (1000k) for group-sequential rules. `--calibration-only`: four null scenarios at 10000 replicates (see Calibration). |
-| `../../results/ustat_reference/` | `ustat_reference_results.csv` (deployment rates, Wilson CI, runs used, median stop; one row per method and convention), `ustat_reference_gate_rates.csv` (per-gate rejection rates, convention-free), `ustat_reference_efficiency.csv` (Var(h), zeta_10, zeta_01, ARE, predicted fixed-horizon power), `ustat_reference_estimator_check.csv` (empirical vs estimated variance at n = 10000), `ustat_reference_reproduction_check.json` (row-by-row comparison of the recomputed betting rows with `results/online_methods_results.csv`), `null_calibration.csv` + `calibration_manifest.json` (four nulls, 10000 replicates), `manifest.json` (seeds, hashes, boundaries, boundary validation, runtime, peak RSS, machine), `run.log`, `calibration_run.log`; `previous_e1ea314/` holds the audited version's outputs. |
+| `rare_event_diagnostic.py` | Round 9 archive of the report's Section 4.7 diagnostic: re-runs ONLY the `compliance_boundary` calibration scenario on the frozen stream `SeedSequence([20260918, 109])` (10000 replicates, batch 25, single process, about 8 s) and records every false rejection of the COMPONENT compliance gate (first-crossing look n, noncompliant runs per arm at that look, statistic, variance estimate) for each rule; asserts that its counts equal the `gate_compliance_*` rows of `null_calibration.csv`. Writes `rare_event_diagnostic.csv` and `rare_event_diagnostic_manifest.json` (seeds, code hashes, runtime, summary). |
+| `../../results/ustat_reference/` | `ustat_reference_results.csv` (deployment rates, Wilson CI, runs used, median stop; one row per method and convention), `ustat_reference_gate_rates.csv` (per-gate rejection rates, convention-free), `ustat_reference_efficiency.csv` (Var(h), zeta_10, zeta_01, ARE, predicted fixed-horizon power), `ustat_reference_estimator_check.csv` (empirical vs estimated variance at n = 10000), `ustat_reference_reproduction_check.json` (row-by-row comparison of the recomputed betting rows with `results/online_methods_results.csv`), `null_calibration.csv` + `calibration_manifest.json` (four nulls, 10000 replicates), `rare_event_diagnostic.csv` + `rare_event_diagnostic_manifest.json` (component compliance-gate false rejections at `compliance_boundary`, one row each), `manifest.json` (seeds, hashes, boundaries, boundary validation, runtime, peak RSS, machine), `run.log`, `calibration_run.log`; `previous_e1ea314/` holds the audited version's outputs. |
 | `../../evidence/ustat_reference_report.md` | Report: response to the pre-integration review, derivation-to-code correspondence, and the comparison tables. |
 
 ## Run
@@ -28,6 +29,7 @@ kept in `results/ustat_reference/previous_e1ea314/`.
 .venv/bin/python experiments/ustat_reference/run_ustat_reference.py            # full study (2000 replicates, 8 workers)
 .venv/bin/python experiments/ustat_reference/run_ustat_reference.py --replicates 50 --out /tmp/smoke
 .venv/bin/python experiments/ustat_reference/run_ustat_reference.py --calibration-only --replicates 10000   # null, tie_heavy_null, success_boundary, compliance_boundary
+.venv/bin/python experiments/ustat_reference/rare_event_diagnostic.py   # Round 9: compliance_boundary only, component compliance-gate first crossings (about 8 s)
 ```
 
 ## Execution accounting (root convention)
@@ -63,8 +65,15 @@ identical to the paper's `generate` and to `winstats.compare` with
   covariance identity Cov(U_k, U_l) = Var(U_l) for nested looks). Covariance
   alone is not finite-sample independence of the increments of the nonlinear
   statistic. The information fraction n_k/N is the first-order limit of
-  Var(U_N)/Var(U_{n_k}), not the exact finite-sample fraction (which carries the
-  residual 1/n^2 term).
+  Var(U_N)/Var(U_{n_k}), not the exact finite-sample fraction. The variance used
+  is the first-order term (zeta_10 + zeta_01)/n; the omitted finite-sample term
+  (Var(h) - zeta_10 - zeta_01)/n^2 is, from `ustat_reference_efficiency.csv`,
+  5.9e-6 to 2.5e-5 at n = 100 (0.13%-0.41% of the retained 4.4e-3 to 6.9e-3) and
+  5.9e-8 to 2.5e-7 at the first planned look n = 1000. For the additive success
+  and compliance kernels the all-pairs and disjoint point estimates are identical
+  (arm-mean difference), but identical component point estimates do not imply
+  identical finite-sample variance estimates or stopping times: the disjoint
+  variance estimate differs by the empirical cross-arm covariance.
 * `allpairs_asympcs_projection_gaussian`: projection-based Gaussian anytime
   monitoring of the all-pairs statistic at the paper's 199 looks, lower bound
   `U_n - sigma_hat_n u_alpha(n)/n`, `sigma_hat_n^2 = zeta10_hat + zeta01_hat`,
@@ -156,14 +165,44 @@ guarded rule at the named boundary. Seed indices: 0 and 6 for the two
 `SCENARIOS` members (unchanged from the first calibration run), 8 and 9 for the
 boundary scenarios.
 
-Outcome (report Section 4.6, 10000 replicates, simultaneous convention): at the
-net-benefit and success boundaries every rule holds its level or is
-conservative (asymptotic rules 0.048-0.054, AsympCS 0.019-0.025, betting
-0.004-0.006); at the rare-event compliance boundary no asymptotic rule holds
-its level at the gate level (fixed Wald 0.0551, OBF 0.0546, Pocock 0.0643,
-HSD 0.0567, disjoint OBF 0.0545, AsympCS 0.0725 [0.0676, 0.0777]) and only the
-exact betting rule does (0.0076); the AsympCS excess comes from the collapse of
-its plug-in variance at n <= 1000 (median first false crossing n = 400).
+Outcome (report Section 4.6; 10000 replicates per cell; pointwise 95% Wilson
+intervals; observed rates, not calibration verdicts; an interval containing 0.05
+means compatibility with 5% at this Monte Carlo precision, SE about 0.0022, and
+is not a proof of calibration for other sample sizes or outcome laws).
+
+* Net-benefit and success boundaries, component gate at its boundary: fixed
+  Wald, all-pairs OBF/Pocock/HSD and disjoint OBF observe 0.0483-0.0545 (every
+  interval contains 0.05 except Pocock in `tie_heavy_null`, 0.0545
+  [0.0502, 0.0591]); projection-Gaussian 0.0243-0.0309; betting 0.0080-0.0092.
+* Compliance boundary. Three different events are reported separately and are
+  never compared with each other:
+
+  | Rule | COMPONENT compliance-gate rejection | SIMULTANEOUS guarded deployment | RETAINED-crossing guarded deployment |
+  |---|---|---|---|
+  | allpairs_fixed_wald | 551: 5.51% [5.08%, 5.97%] | 550: 5.50% [5.07%, 5.96%] | single look |
+  | allpairs_gs_obf | 546: 5.46% [5.03%, 5.92%] | 540: 5.40% [4.97%, 5.86%] | 545: 5.45% [5.02%, 5.91%] |
+  | allpairs_gs_pocock | 643: 6.43% [5.97%, 6.93%] | 509: 5.09% [4.68%, 5.54%] | 643: 6.43% [5.97%, 6.93%] |
+  | allpairs_gs_hsd | 567: 5.67% [5.23%, 6.14%] | 523: 5.23% [4.81%, 5.68%] | 566: 5.66% [5.22%, 6.13%] |
+  | allpairs_asympcs_projection_gaussian | 725: 7.25% [6.76%, 7.77%] | 183: 1.83% [1.59%, 2.11%] | 711: 7.11% [6.62%, 7.63%] |
+  | disjoint_gs_obf | 545: 5.45% [5.02%, 5.91%] | 539: 5.39% [4.96%, 5.85%] | 544: 5.44% [5.01%, 5.90%] |
+  | disjoint_betting | 76: 0.76% [0.61%, 0.95%] | 31: 0.31% [0.22%, 0.44%] | 72: 0.72% [0.57%, 0.91%] |
+
+  The projection-Gaussian component compliance-gate error is 7.25%. Its
+  simultaneous guarded deployment rate is 1.83%. Its retained-crossing guarded
+  deployment rate is 7.11%. The 7.25% is not an error rate of the simultaneous
+  guarded rule, and the 1.83% does not certify the compliance test as calibrated.
+  Component-gate excess over 5% is clear for projection-Gaussian and Pocock
+  (exploratory Bonferroni-adjusted one-sided exact binomial p over the 28 gate
+  cells: 4.7e-21, 4.7e-9), borderline for HSD (0.038), and not retained for fixed
+  Wald and the two OBF rules (0.31, 0.54, 0.61); no blanket statement that all
+  asymptotic rules fail is made.
+* Archived diagnostic (`rare_event_diagnostic.csv`): of the 725 projection-Gaussian
+  false component-gate rejections, 410 (56.6%) first cross at n <= 500 and 540
+  (74.5%) at n <= 1000 (median 400); 239 have zero noncompliant arm-A runs at the
+  crossing look (median noncompliant counts 1 in A, 4 in B); the variance estimate
+  is below the true variance in 675 (93%). This is consistent with, but does not
+  by itself establish, underestimation of the plug-in variance of a rare-event
+  difference as the mechanism (no oracle-variance or delayed-start ablation was run).
 
 Validity classes: `disjoint_betting` is exact finite-sample for any stopping
 rule; `allpairs_asympcs_projection_gaussian` is an asymptotic confidence sequence
