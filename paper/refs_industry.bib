@@ -1,0 +1,670 @@
+% Industry-practice references for the ICLR 2027 win-statistics agent-evaluation paper.
+% All entries were opened on 2026-09-17 unless the note says otherwise.
+% Entries whose page could NOT be opened are marked "UNVERIFIED" in the note and
+% must not be cited for content. Web pages use @misc with url + urldate.
+
+% ---------- Agent / LLM evaluation platforms ----------
+
+@misc{langsmith2026pairwise,
+  author       = {{LangChain, Inc.}},
+  title        = {How to run a pairwise evaluation ({LangSmith} documentation)},
+  year         = {2026},
+  howpublished = {\url{https://docs.langchain.com/langsmith/evaluate-pairwise}},
+  note         = {Accessed 2026-09-17. Evaluator receives a two-item outputs list; example scores 0 (tie), 1, 2; randomize\_order for position bias.}
+}
+
+@misc{langsmith2026online,
+  author       = {{LangChain, Inc.}},
+  title        = {Online evaluations ({LangSmith} documentation)},
+  year         = {2026},
+  howpublished = {\url{https://docs.langchain.com/langsmith/online-evaluations}},
+  note         = {Accessed 2026-09-17. LLM-as-judge on production traces with a sampling rate.}
+}
+
+@misc{langchain2024pairwiseblog,
+  author       = {{LangChain, Inc.}},
+  title        = {Pairwise Evaluations with {LangSmith}},
+  year         = {2024},
+  month        = may,
+  howpublished = {\url{https://www.langchain.com/blog/pairwise-evaluations-with-langsmith}},
+  note         = {Blog post dated 2024-05-15. Accessed 2026-09-17.}
+}
+
+@misc{braintrust2026evaluate,
+  author       = {{Braintrust Data, Inc.}},
+  title        = {Evaluate systematically ({Braintrust} documentation)},
+  year         = {2026},
+  howpublished = {\url{https://www.braintrust.dev/docs/evaluate}},
+  note         = {Accessed 2026-09-17.}
+}
+
+@misc{braintrust2026online,
+  author       = {{Braintrust Data, Inc.}},
+  title        = {Score online ({Braintrust} documentation)},
+  year         = {2026},
+  howpublished = {\url{https://www.braintrust.dev/docs/evaluate/score-online}},
+  note         = {Accessed 2026-09-17.}
+}
+
+@misc{braintrust2026compare,
+  author       = {{Braintrust Data, Inc.}},
+  title        = {Compare experiments ({Braintrust} documentation)},
+  year         = {2026},
+  howpublished = {\url{https://www.braintrust.dev/docs/evaluate/compare-experiments}},
+  note         = {Accessed 2026-09-17. Pairwise score displayed as Average (percent base preferred), Wins/Losses, Count; no significance statement.}
+}
+
+@misc{arize2026handbook,
+  author       = {{Arize AI}},
+  title        = {Agent evaluation: How to evaluate {AI} agents in production ({AI} Agent Handbook)},
+  year         = {2026},
+  howpublished = {\url{https://arize.com/guides/ai-agent-handbook/agent-evaluation/}},
+  note         = {Accessed 2026-09-17.}
+}
+
+@misc{langfuse2026abtesting,
+  author       = {{Langfuse GmbH}},
+  title        = {A/B testing of {LLM} prompts ({Langfuse} documentation)},
+  year         = {2026},
+  howpublished = {\url{https://langfuse.com/docs/prompt-management/features/a-b-testing}},
+  note         = {Accessed 2026-09-17.}
+}
+
+@misc{weave2026monitors,
+  author       = {{Weights \& Biases}},
+  title        = {Monitors and signals ({W\&B Weave} documentation)},
+  year         = {2026},
+  howpublished = {\url{https://docs.wandb.ai/weave/guides/evaluation/guardrails_and_monitors}},
+  note         = {Accessed 2026-09-17.}
+}
+
+@misc{humanloop2026evaluators,
+  author       = {{Humanloop}},
+  title        = {Evaluators ({Humanloop} documentation)},
+  year         = {2026},
+  howpublished = {\url{https://humanloop.com/docs/explanation/evaluators}},
+  note         = {Accessed 2026-09-17.}
+}
+
+@misc{confidentai2026agentguide,
+  author       = {{Confident AI}},
+  title        = {{LLM} agent evaluation metrics in 2026: Tool calling, task completion, reasoning, and trace-based evals},
+  year         = {2026},
+  howpublished = {\url{https://www.confident-ai.com/blog/llm-agent-evaluation-complete-guide}},
+  note         = {Accessed 2026-09-17.}
+}
+
+@misc{galileo2025agentic,
+  author       = {{Galileo}},
+  title        = {Introducing Agentic Evaluations},
+  year         = {2025},
+  month        = jan,
+  howpublished = {\url{https://galileo.ai/blog/introducing-agentic-evaluations}},
+  note         = {Blog post dated 2025-01-22. Accessed 2026-09-17.}
+}
+
+@misc{galileo2026tsq,
+  author       = {{Galileo}},
+  title        = {Tool Selection Quality ({Galileo} documentation)},
+  year         = {2026},
+  howpublished = {\url{https://docs.galileo.ai/concepts/metrics/agentic/tool-selection-quality}},
+  note         = {Accessed 2026-09-17.}
+}
+
+@misc{patronus2025trail,
+  author       = {{Patronus AI}},
+  title        = {Introducing {TRAIL}: A benchmark for agentic evaluation},
+  year         = {2025},
+  howpublished = {\url{https://www.patronus.ai/blog/introducing-trail-a-benchmark-for-agentic-evaluation}},
+  note         = {Accessed 2026-09-17. Companion paper arXiv:2505.08638.}
+}
+
+@misc{openai2026graders,
+  author       = {{OpenAI}},
+  title        = {Graders ({OpenAI} {API} documentation)},
+  year         = {2026},
+  howpublished = {\url{https://developers.openai.com/api/docs/guides/graders}},
+  note         = {Accessed 2026-09-17.}
+}
+
+@misc{openai2026evals,
+  author       = {{OpenAI}},
+  title        = {Working with evals ({OpenAI} {API} documentation)},
+  year         = {2026},
+  howpublished = {\url{https://developers.openai.com/api/docs/guides/evals}},
+  note         = {Accessed 2026-09-17.}
+}
+
+@misc{openai2026agentevals,
+  author       = {{OpenAI}},
+  title        = {Evaluate agent workflows ({OpenAI} {API} documentation)},
+  year         = {2026},
+  howpublished = {\url{https://developers.openai.com/api/docs/guides/agent-evals}},
+  note         = {Accessed 2026-09-17.}
+}
+
+@misc{openai2026tracegrading,
+  author       = {{OpenAI}},
+  title        = {Trace grading ({OpenAI} {API} documentation)},
+  year         = {2026},
+  howpublished = {\url{https://developers.openai.com/api/docs/guides/trace-grading}},
+  note         = {Accessed 2026-09-17.}
+}
+
+@misc{google2026agentevals,
+  author       = {{Google Developers}},
+  title        = {Agent and model evaluations in {Gemini Enterprise Agent Platform} are now {GA}},
+  year         = {2026},
+  month        = jul,
+  howpublished = {\url{https://developers.googleblog.com/agent-and-model-evaluations-in-gemini-enterprise-agent-platform-are-now-ga/}},
+  note         = {Blog post dated 2026-07-31. Accessed 2026-09-17.}
+}
+
+@misc{databricks2026agenteval,
+  author       = {{Databricks}},
+  title        = {What is {AI} agent evaluation?},
+  year         = {2026},
+  howpublished = {\url{https://www.databricks.com/blog/what-is-agent-evaluation}},
+  note         = {Accessed 2026-09-17.}
+}
+
+@misc{statsig2026aievals,
+  author       = {{Statsig}},
+  title        = {{AI} Evals overview ({Statsig} documentation)},
+  year         = {2026},
+  howpublished = {\url{https://docs.statsig.com/ai-evals/overview}},
+  note         = {Accessed 2026-09-17. Early Access.}
+}
+
+@misc{statsig2026onlineevals,
+  author       = {{Statsig}},
+  title        = {Online evals ({Statsig} documentation)},
+  year         = {2026},
+  howpublished = {\url{https://docs.statsig.com/ai-evals/online-evals}},
+  note         = {Accessed 2026-09-17. Shadow-runs candidate prompt versions on live traffic.}
+}
+
+% ---------- Observability ----------
+
+@misc{datadog2026metrics,
+  author       = {{Datadog}},
+  title        = {Agent Observability metrics ({Datadog} documentation)},
+  year         = {2026},
+  howpublished = {\url{https://docs.datadoghq.com/llm_observability/monitoring/metrics/}},
+  note         = {Accessed 2026-09-17.}
+}
+
+@misc{otel2026genaimetrics,
+  author       = {{OpenTelemetry}},
+  title        = {Semantic conventions for generative {AI} metrics},
+  year         = {2026},
+  howpublished = {\url{https://github.com/open-telemetry/semantic-conventions-genai/blob/main/docs/gen-ai/gen-ai-metrics.md}},
+  note         = {Accessed 2026-09-17.}
+}
+
+@misc{datadog2026experiments,
+  author       = {{Datadog}},
+  title        = {{Datadog Experiments} launches to help teams connect every product change to business outcomes},
+  year         = {2026},
+  month        = apr,
+  howpublished = {\url{https://www.datadoghq.com/about/latest-news/press-releases/datadog-experiments-launches/}},
+  note         = {Press release dated 2026-04-02. Accessed 2026-09-17.}
+}
+
+@misc{datadog2026aiguard,
+  author       = {{Datadog}},
+  title        = {Evaluating our {AI Guard} application to improve quality and control cost},
+  year         = {2026},
+  month        = feb,
+  howpublished = {\url{https://www.datadoghq.com/blog/llm-observability-at-datadog-security/}},
+  note         = {Blog post dated 2026-02-23. Accessed 2026-09-17.}
+}
+
+% ---------- Vendor guidance on agent evaluation ----------
+
+@misc{anthropic2026demystifying,
+  author       = {{Anthropic}},
+  title        = {Demystifying evals for {AI} agents},
+  year         = {2026},
+  month        = jan,
+  howpublished = {\url{https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents}},
+  note         = {Engineering blog post dated 2026-01-09. Accessed 2026-09-17.}
+}
+
+@misc{anthropic2024statistical,
+  author       = {{Anthropic}},
+  title        = {A statistical approach to model evaluations},
+  year         = {2024},
+  month        = nov,
+  howpublished = {\url{https://www.anthropic.com/research/statistical-approach-to-model-evals}},
+  note         = {Research post dated 2024-11-19. Accessed 2026-09-17.}
+}
+
+@misc{miller2024errorbars,
+  author       = {Miller, Evan},
+  title        = {Adding Error Bars to Evals: A Statistical Approach to Language Model Evaluations},
+  year         = {2024},
+  eprint       = {2411.00640},
+  archivePrefix= {arXiv},
+  howpublished = {\url{https://arxiv.org/abs/2411.00640}},
+  note         = {Submitted 2024-11-01. Accessed 2026-09-17.}
+}
+
+@misc{sierra2024taubench,
+  author       = {{Sierra}},
+  title        = {$\tau$-Bench: Benchmarking {AI} agents for the real world},
+  year         = {2024},
+  month        = jun,
+  howpublished = {\url{https://sierra.ai/blog/benchmarking-ai-agents}},
+  note         = {Blog post dated 2024-06-20. Accessed 2026-09-17.}
+}
+
+@misc{sierra2026customers,
+  author       = {{Sierra}},
+  title        = {Let your customers shape your agents},
+  year         = {2026},
+  month        = jun,
+  howpublished = {\url{https://sierra.ai/blog/let-your-customers-shape-your-agents}},
+  note         = {Blog post dated 2026-06-30. Accessed 2026-09-17.}
+}
+
+@misc{sierra2024outcome,
+  author       = {Greenwald, Elliot},
+  title        = {Outcome-based pricing for {AI} agents},
+  year         = {2024},
+  month        = dec,
+  howpublished = {\url{https://sierra.ai/blog/outcome-based-pricing-for-ai-agents}},
+  note         = {Sierra blog post dated 2024-12-10. Accessed 2026-09-17.}
+}
+
+@misc{fin2026resolution,
+  author       = {{Intercom}},
+  title        = {Resolution vs.\ deflection rate: Measure {AI} agent success},
+  year         = {2026},
+  howpublished = {\url{https://fin.ai/learn/resolution-rate-vs-deflection-rate}},
+  note         = {Accessed 2026-09-17.}
+}
+
+@misc{microsoft2026agentsprod,
+  author       = {{Microsoft}},
+  title        = {{AI} agents in production: Observability and evaluation ({AI} Agents for Beginners, lesson 10)},
+  year         = {2026},
+  howpublished = {\url{https://microsoft.github.io/ai-agents-for-beginners/10-ai-agents-production/}},
+  note         = {Accessed 2026-09-17.}
+}
+
+@misc{launchdarkly2026agentcontrol,
+  author       = {{LaunchDarkly}},
+  title        = {{AgentControl} / {AI Configs} ({LaunchDarkly} documentation)},
+  year         = {2026},
+  howpublished = {\url{https://launchdarkly.com/docs/home/ai-configs}},
+  note         = {Accessed 2026-09-17.}
+}
+
+@misc{launchdarkly2025aiexperiments,
+  author       = {{LaunchDarkly}},
+  title        = {Introducing {AI} Experiments and {AI} Versioning},
+  year         = {2025},
+  month        = mar,
+  howpublished = {\url{https://launchdarkly.com/blog/introducing-ai-experiments-and-ai-versioning/}},
+  note         = {Blog post dated 2025-03-21. Accessed 2026-09-17.}
+}
+
+@misc{launchdarkly2025guardrailchangelog,
+  author       = {{LaunchDarkly}},
+  title        = {Guardrail metrics for guarded rollouts (changelog)},
+  year         = {2025},
+  month        = aug,
+  howpublished = {\url{https://launchdarkly.com/changelog/guardrail-metrics-for-guarded-rollouts/}},
+  note         = {Dated 2025-08-07. Accessed 2026-09-17.}
+}
+
+@misc{infoq2026doordash,
+  author       = {{InfoQ}},
+  title        = {{DoorDash} builds {LLM} conversation simulator to test customer support chatbots at scale},
+  year         = {2026},
+  month        = mar,
+  howpublished = {\url{https://www.infoq.com/news/2026/03/doordash-llm-chatbot-simulator/}},
+  note         = {News article dated 2026-03-13. Accessed 2026-09-17.}
+}
+
+% ---------- Human-expert evaluation and arenas ----------
+
+@misc{scale2024seal,
+  author       = {{Scale AI}},
+  title        = {Scale's {SEAL} leaderboards},
+  year         = {2024},
+  month        = may,
+  howpublished = {\url{https://scale.com/blog/leaderboard}},
+  note         = {Blog post dated 2024-05-29. Accessed 2026-09-17.}
+}
+
+@misc{mercor2026apex,
+  author       = {{Mercor}},
+  title        = {{APEX} benchmarks: {AI} Productivity Index leaderboards},
+  year         = {2026},
+  howpublished = {\url{https://www.mercor.com/apex/}},
+  note         = {Accessed 2026-09-17.}
+}
+
+@misc{chiang2024chatbotarena,
+  author       = {Chiang, Wei-Lin and Zheng, Lianmin and Sheng, Ying and Angelopoulos, Anastasios Nikolas and Li, Tianle and Li, Dacheng and Zhang, Hao and Zhu, Banghua and Jordan, Michael and Gonzalez, Joseph E. and Stoica, Ion},
+  title        = {Chatbot Arena: An Open Platform for Evaluating {LLMs} by Human Preference},
+  year         = {2024},
+  eprint       = {2403.04132},
+  archivePrefix= {arXiv},
+  howpublished = {\url{https://arxiv.org/abs/2403.04132}},
+  note         = {Submitted 2024-03-07. Accessed 2026-09-17.}
+}
+
+@misc{arena2026faq,
+  author       = {{Arena}},
+  title        = {Arena {FAQ}: {AI} leaderboards, benchmarks, and Arena explained},
+  year         = {2026},
+  howpublished = {\url{https://arena.ai/faq}},
+  note         = {Accessed 2026-09-17.}
+}
+
+@misc{arena2026agent,
+  author       = {{Arena}},
+  title        = {Agent Arena: {AI} agent performance leaderboard},
+  year         = {2026},
+  howpublished = {\url{https://arena.ai/leaderboard/agent}},
+  note         = {Accessed 2026-09-17; 1,850,083 sessions displayed on that date.}
+}
+
+@misc{kahng2024llmcomparator,
+  author       = {Kahng, Minsuk and Tenney, Ian and Pushkarna, Mahima and Liu, Michael Xieyang and Wexler, James and Reif, Emily and Kallarackal, Krystal and Chang, Minsuk and Terry, Michael and Dixon, Lucas},
+  title        = {{LLM} Comparator: Visual Analytics for Side-by-Side Evaluation of Large Language Models},
+  year         = {2024},
+  eprint       = {2402.10524},
+  archivePrefix= {arXiv},
+  howpublished = {\url{https://arxiv.org/abs/2402.10524}},
+  note         = {Submitted 2024-02-16. Accessed 2026-09-17.}
+}
+
+% ---------- Experimentation platforms ----------
+
+@misc{statsig2026sequential,
+  author       = {{Statsig}},
+  title        = {Sequential testing ({Statsig} documentation)},
+  year         = {2026},
+  howpublished = {\url{https://docs.statsig.com/experiments-plus/sequential-testing}},
+  note         = {Accessed 2026-09-17. mSPRT with always-valid confidence intervals.}
+}
+
+@misc{statsig2026create,
+  author       = {{Statsig}},
+  title        = {Create an experiment ({Statsig} documentation)},
+  year         = {2026},
+  howpublished = {\url{https://docs.statsig.com/experiments/create-new}},
+  note         = {Accessed 2026-09-17.}
+}
+
+@misc{statsig2025guardrails,
+  author       = {{Statsig}},
+  title        = {What are guardrail metrics in {A/B} tests?},
+  year         = {2025},
+  month        = feb,
+  howpublished = {\url{https://www.statsig.com/blog/what-are-guardrail-metrics-in-ab-tests}},
+  note         = {Blog post dated 2025-02-26. Accessed 2026-09-17.}
+}
+
+@misc{eppo2026guardrails,
+  author       = {{Eppo}},
+  title        = {Guardrail cutoffs ({Eppo} documentation)},
+  year         = {2026},
+  howpublished = {\url{https://docs.geteppo.com/data-management/organizing-metrics/guardrails/}},
+  note         = {Accessed 2026-09-17.}
+}
+
+@misc{eppo2026noninferiority,
+  author       = {{Eppo}},
+  title        = {Running non-inferiority tests ({Eppo} documentation)},
+  year         = {2026},
+  howpublished = {\url{https://docs.geteppo.com/guides/advanced-experimentation/non-inferiority-tests/}},
+  note         = {Accessed 2026-09-17.}
+}
+
+@misc{eppo2026stats,
+  author       = {{Eppo}},
+  title        = {Statistical nitty-gritty ({Eppo} documentation)},
+  year         = {2026},
+  howpublished = {\url{https://docs.geteppo.com/statistics/confidence-intervals/statistical-nitty-gritty/}},
+  note         = {Accessed 2026-09-17. Sequential method based on Howard et al.\ confidence sequences.}
+}
+
+@misc{eppo2024guardrailblog,
+  author       = {{Eppo}},
+  title        = {What are guardrail metrics? With examples},
+  year         = {2024},
+  month        = may,
+  howpublished = {\url{https://www.geteppo.com/blog/what-are-guardrail-metrics-with-examples}},
+  note         = {Blog post dated 2024-05-22. Accessed 2026-09-17.}
+}
+
+@misc{optimizely2026methods,
+  author       = {{Optimizely}},
+  title        = {Statistical analysis methods overview ({Optimizely} support)},
+  year         = {2026},
+  howpublished = {\url{https://support.optimizely.com/hc/en-us/articles/39714777161229-Statistical-analysis-methods-overview}},
+  note         = {Accessed 2026-09-17.}
+}
+
+@misc{optimizely2026fdr,
+  author       = {{Optimizely}},
+  title        = {False discovery rate control ({Optimizely} support)},
+  year         = {2026},
+  howpublished = {\url{https://support.optimizely.com/hc/en-us/articles/4410283967245-False-discovery-rate-control}},
+  note         = {Accessed 2026-09-17.}
+}
+
+@misc{growthbook2026saferollouts,
+  author       = {{GrowthBook}},
+  title        = {Safe Rollouts ({GrowthBook} documentation)},
+  year         = {2026},
+  howpublished = {\url{https://docs.growthbook.io/features/safe-rollouts}},
+  note         = {Accessed 2026-09-17.}
+}
+
+@misc{growthbook2026sequential,
+  author       = {{GrowthBook}},
+  title        = {Sequential testing ({GrowthBook} documentation)},
+  year         = {2026},
+  howpublished = {\url{https://docs.growthbook.io/statistics/sequential}},
+  note         = {Accessed 2026-09-17. Asymptotic confidence sequences (Waudby-Smith et al.).}
+}
+
+@misc{launchdarkly2026regression,
+  author       = {{LaunchDarkly}},
+  title        = {Regression detection ({LaunchDarkly} documentation)},
+  year         = {2026},
+  howpublished = {\url{https://launchdarkly.com/docs/home/releases/regression-detection}},
+  note         = {Accessed 2026-09-17.}
+}
+
+@misc{spotify2023sequential,
+  author       = {Schultzberg, M{\aa}rten and Ankargren, Sebastian},
+  title        = {Choosing a sequential testing framework: Comparisons and discussions},
+  year         = {2023},
+  month        = mar,
+  howpublished = {\url{https://engineering.atspotify.com/2023/03/choosing-sequential-testing-framework-comparisons-and-discussions}},
+  note         = {Spotify Engineering blog, 2023-03-21. Accessed 2026-09-17.}
+}
+
+@misc{spotify2023peeking2,
+  author       = {Ankargren, Sebastian and Fr{\aa}nberg, Mattias and Schultzberg, M{\aa}rten},
+  title        = {Bringing sequential testing to experiments with longitudinal data (Part 1): The peeking problem 2.0},
+  year         = {2023},
+  month        = jul,
+  howpublished = {\url{https://engineering.atspotify.com/2023/07/bringing-sequential-testing-to-experiments-with-longitudinal-data-part-1-the-peeking-problem-2-0}},
+  note         = {Spotify Engineering blog, 2023-07-18. Accessed 2026-09-17.}
+}
+
+@misc{spotify2024riskaware,
+  author       = {Schultzberg, M{\aa}rten and Ankargren, Sebastian and Fr{\aa}nberg, Mattias},
+  title        = {Risk-aware product decisions in {A/B} tests with multiple metrics},
+  year         = {2024},
+  month        = mar,
+  howpublished = {\url{https://engineering.atspotify.com/2024/03/risk-aware-product-decisions-in-a-b-tests-with-multiple-metrics}},
+  note         = {Spotify Engineering blog, 2024-03-05. Accessed 2026-09-17.}
+}
+
+@misc{schultzberg2024riskaware,
+  author       = {Schultzberg, M{\aa}rten and Ankargren, Sebastian and Fr{\aa}nberg, Mattias},
+  title        = {Risk-aware product decisions in {A/B} tests with multiple metrics},
+  year         = {2024},
+  eprint       = {2402.11609},
+  archivePrefix= {arXiv},
+  howpublished = {\url{https://arxiv.org/abs/2402.11609}},
+  note         = {Submitted 2024-02-18. Accessed 2026-09-17.}
+}
+
+@misc{spotify2026llmevals,
+  author       = {Ankargren, Matilda and Schultzberg, M{\aa}rten},
+  title        = {Better experiments with {LLM} evals: A funnel, not a fork},
+  year         = {2026},
+  month        = may,
+  howpublished = {\url{https://engineering.atspotify.com/2026/5/better-experiments-with-llm-evals-a-funnel-not-a-fork}},
+  note         = {Spotify Engineering blog, 2026-05-18. Accessed 2026-09-17.}
+}
+
+@misc{confidence2026sequential,
+  author       = {{Spotify}},
+  title        = {Sequential tests ({Confidence} documentation)},
+  year         = {2026},
+  howpublished = {\url{https://confidence.spotify.com/docs/experiments/stats/sequential-tests}},
+  note         = {Accessed 2026-09-17.}
+}
+
+@misc{machmouchi2021during,
+  author       = {Machmouchi, Widad and Gupta, Somit and Zhang, Ruhan},
+  title        = {Patterns of trustworthy experimentation: During-experiment stage},
+  year         = {2021},
+  howpublished = {\url{https://www.microsoft.com/en-us/research/group/experimentation-platform-exp/articles/patterns-of-trustworthy-experimentation-during-experiment-stage/}},
+  note         = {Microsoft Experimentation Platform (ExP) article. Accessed 2026-09-17.}
+}
+
+@misc{machmouchi2021post,
+  author       = {Machmouchi, Widad and Gupta, Somit},
+  title        = {Patterns of trustworthy experimentation: Post-experiment stage},
+  year         = {2021},
+  howpublished = {\url{https://www.microsoft.com/en-us/research/group/experimentation-platform-exp/articles/patterns-of-trustworthy-experimentation-post-experiment-stage/}},
+  note         = {Microsoft Experimentation Platform (ExP) article. Accessed 2026-09-17.}
+}
+
+@book{kohavi2020trustworthy,
+  author       = {Kohavi, Ron and Tang, Diane and Xu, Ya},
+  title        = {Trustworthy Online Controlled Experiments: A Practical Guide to {A/B} Testing},
+  publisher    = {Cambridge University Press},
+  year         = {2020},
+  doi          = {10.1017/9781108653985},
+  isbn         = {9781108724265},
+  note         = {Bibliographic metadata verified on the Cambridge page 2026-09-17; book content not inspected in this audit.}
+}
+
+% ---------- Experimentation research (Netflix, Airbnb) ----------
+
+@inproceedings{lindon2022regression,
+  author       = {Lindon, Michael and Sanden, Chris and Shirikian, Vach{\'e}},
+  title        = {Rapid Regression Detection in Software Deployments through Sequential Testing},
+  booktitle    = {Proceedings of the 28th ACM SIGKDD Conference on Knowledge Discovery and Data Mining (KDD '22)},
+  year         = {2022},
+  note         = {arXiv:2205.14762. Netflix canary regression detection. Accessed 2026-09-17.},
+  url          = {https://arxiv.org/abs/2205.14762}
+}
+
+@misc{lindon2022anytime,
+  author       = {Lindon, Michael and Ham, Dae Woong and Tingley, Martin and Bojinov, Iavor},
+  title        = {Anytime-Valid Linear Models and Regression Adjusted Causal Inference in Randomized Experiments},
+  year         = {2022},
+  eprint       = {2210.08589},
+  archivePrefix= {arXiv},
+  howpublished = {\url{https://arxiv.org/abs/2210.08589}},
+  note         = {Submitted 2022-10-16; latest version 2025-07-07. Applications to Netflix A/B data. Accessed 2026-09-17.}
+}
+
+@misc{zhang2023surrogate,
+  author       = {Zhang, Vickie and Zhao, Michael and Dimakopoulou, Maria and Le, Anh and Kallus, Nathan},
+  title        = {Evaluating the Surrogate Index as a Decision-Making Tool Using 200 {A/B} Tests at {Netflix}},
+  year         = {2023},
+  eprint       = {2311.11922},
+  archivePrefix= {arXiv},
+  howpublished = {\url{https://arxiv.org/abs/2311.11922}},
+  note         = {Submitted 2023-11-20; revised 2024-01-30. Accessed 2026-09-17.}
+}
+
+@inproceedings{zhang2025interleaving,
+  author       = {Zhang, Qing and Deng, Alex and Du, Michelle and Gao, Huiji and He, Liwei and Katariya, Sanjeev},
+  title        = {Harnessing the Power of Interleaving and Counterfactual Evaluation for {Airbnb} Search Ranking},
+  booktitle    = {Proceedings of the 31st ACM SIGKDD Conference on Knowledge Discovery and Data Mining V.2 (KDD '25)},
+  year         = {2025},
+  note         = {arXiv:2508.00751. Accessed 2026-09-17.},
+  url          = {https://arxiv.org/abs/2508.00751}
+}
+
+@misc{netflix2020interleaving,
+  author       = {{Netflix Technology Blog}},
+  title        = {Innovating faster on personalization algorithms at {Netflix} using interleaving},
+  howpublished = {\url{https://netflixtechblog.com/using-interleaving-in-online-experiments-to-accelerate-algorithm-innovation-at-netflix-a04ee392ec55}},
+  note         = {UNVERIFIED: page returned HTTP 403 on 2026-09-17 and could not be read; year and content not confirmed. Do not cite for content.}
+}
+
+@misc{netflix2024sequential,
+  author       = {{Netflix Technology Blog}},
+  title        = {Sequential {A/B} testing keeps the world streaming {Netflix}, Part 1: Continuous data},
+  howpublished = {\url{https://netflixtechblog.com/sequential-a-b-testing-keeps-the-world-streaming-netflix-part-1-continuous-data-cba6c7ed49df}},
+  note         = {UNVERIFIED: page returned HTTP 403 on 2026-09-17; use lindon2022regression and lindon2022anytime instead.}
+}
+
+% ---------- Agent benchmarking with cost / production realism ----------
+
+@misc{kapoor2025hal,
+  author       = {Kapoor, Sayash and Stroebl, Benedikt and Kirgis, Peter and Nadgir, Nitya and Siegel, Zachary S. and others},
+  title        = {Holistic Agent Leaderboard: The Missing Infrastructure for {AI} Agent Evaluation},
+  year         = {2025},
+  eprint       = {2510.11977},
+  archivePrefix= {arXiv},
+  howpublished = {\url{https://arxiv.org/abs/2510.11977}},
+  note         = {Submitted 2025-10-13; 31 authors in total. Accessed 2026-09-17.}
+}
+
+@misc{mehta2025clear,
+  author       = {Mehta, Sushant},
+  title        = {Beyond Accuracy: A Multi-Dimensional Framework for Evaluating Enterprise Agentic {AI} Systems},
+  year         = {2025},
+  eprint       = {2511.14136},
+  archivePrefix= {arXiv},
+  howpublished = {\url{https://arxiv.org/abs/2511.14136}},
+  note         = {Submitted 2025-11-18. CLEAR framework. Accessed 2026-09-17.}
+}
+
+@misc{lu2026alphaeval,
+  author       = {Lu, Pengrui and Xu, Bingyu and Zhang, Wenjun and Hua, Shengjia and Gao, Xuanjian and others},
+  title        = {{AlphaEval}: Evaluating Agents in Production},
+  year         = {2026},
+  eprint       = {2604.12162},
+  archivePrefix= {arXiv},
+  howpublished = {\url{https://arxiv.org/abs/2604.12162}},
+  note         = {Submitted 2026-04-14. 94 tasks from seven companies. Accessed 2026-09-17.}
+}
+
+@misc{elfilali2026standardized,
+  author       = {El Filali, Ali and Bedar, In{\`e}s},
+  title        = {Towards More Standardized {AI} Evaluation: From Models to Agents},
+  year         = {2026},
+  eprint       = {2602.18029},
+  archivePrefix= {arXiv},
+  howpublished = {\url{https://arxiv.org/abs/2602.18029}},
+  note         = {Submitted 2026-02-20. Accessed 2026-09-17.}
+}
+
+@misc{lu2025agentab,
+  author       = {Lu, Yuxuan and Hsu, Ting-Yao and Gu, Hansu and Cui, Limeng and Xie, Yaochen and Headden, William and Yao, Bingsheng and Veeragouni, Akash and Liu, Jiapeng and Nag, Sreyashi and Wang, Jessie and Wang, Dakuo},
+  title        = {{AgentA/B}: Automated and Scalable Web {A/B} Testing with Interactive {LLM} Agents},
+  year         = {2025},
+  eprint       = {2504.09723},
+  archivePrefix= {arXiv},
+  howpublished = {\url{https://arxiv.org/abs/2504.09723}},
+  note         = {Submitted 2025-04-13; v4 2026-03-10. Accessed 2026-09-17.}
+}
