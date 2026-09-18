@@ -1,0 +1,14 @@
+{
+  "n_pairs": 25,
+  "pairs_where_rules_disagree": 19,
+  "pairs_success_vs_hierarchical_disagree": 11,
+  "pairs_success_decided": 15,
+  "pairs_hierarchical_decided": 19,
+  "pairs_guarded_decided": 10,
+  "pairs_pareto_neither": 14,
+  "priority_inversions": 9,
+  "inversions_with_nb_ci_excluding_zero": 4,
+  "sign_differs_star_vs_pop": 2,
+  "mean_abs_star_minus_pop": 0.05195380308268696,
+  "utility_flips_across_lambda": 16
+}
