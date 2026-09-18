@@ -146,23 +146,30 @@ def linear_bound(counts, coef, prior, delta, maximize=True, tol=1e-12, certify=T
     if not 0 < delta < 1:
         raise ValueError('delta must lie in (0,1)')
     sgn = 1.0 if maximize else -1.0
-    c = sgn * coef
+    c_orig = sgn * coef
     K = counts.size; n = counts.sum()
-    cmax = float(c.max())
+    cmax = float(c_orig.max())
+    # Work with the exactly shifted coefficients c = c_orig - cmax (max = 0, others <= 0).
+    # The optimum of a linear functional over the set is shift-equivariant, so the
+    # answer is cmax + (optimum for c). Ties are exact (no tolerance): an
+    # approximate tie surrogate would optimize a different objective and could
+    # return a non-conservative bound (PR #5 review).
+    c = c_orig - cmax
     if n == 0:
         return sgn * cmax
     cn = cs_threshold(counts, prior, delta)
     pos = counts > 0
-    top = c >= cmax - 1e-12 * max(1.0, abs(cmax))
+    top = c == 0.0
     # Exact boundary case: the supremum cmax is attained inside the closed set.
     if top[pos].all():
         p_face = np.zeros(K); p_face[pos] = counts[pos] / n
         if loglik(counts, p_face) >= cn:
             return sgn * cmax
-    d = np.where(top, 0.0, cmax - c)
+    d = -c                          # d_k = cmax - c_k >= 0 exactly
     free_top = top & ~pos          # zero-count cells at the top coefficient
     pos_top_exists = bool(top[pos].any())
     xs, ds = counts[pos], d[pos]
+    scale = max(1.0, float(d.max()))   # coefficient range, for the certificate
 
     def point(lam):
         """Return (p, objective, ell) for the Lagrangian maximizer at lam."""
@@ -211,9 +218,9 @@ def linear_bound(counts, coef, prior, delta, maximize=True, tol=1e-12, certify=T
     if certify:
         if not (ell_in >= cn - 1e-9 and abs(p_in.sum() - 1) < 1e-9 and (p_in >= 0).all()):
             raise RuntimeError('linear_bound: feasibility certificate failed')
-        if obj_out - obj_in > 1e-7 * max(1.0, abs(obj_out), float(np.abs(c).max())):
+        if obj_out - obj_in > 1e-7 * scale:
             raise RuntimeError('linear_bound: bound gap too large (%g)' % (obj_out - obj_in))
-    return sgn * obj_out
+    return sgn * (obj_out + cmax)
 
 
 def ratio_bound(counts, num, den, prior, delta, maximize=True, lo=1e-6, hi=1e6, iters=80):

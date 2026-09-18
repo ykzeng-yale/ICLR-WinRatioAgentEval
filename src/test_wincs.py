@@ -176,3 +176,32 @@ def test_boundary_laws_issue4():
 
 if __name__ == '__main__':
     test_boundary_laws_issue4()
+
+
+def test_shift_equivariance_pr5():
+    """PR #5 review: bounds must be shift-equivariant and conservative for huge offsets."""
+    from wincs import cs_threshold
+    x = np.array([2., 3., 4.]); c = 1e12 + np.array([0., 1., 2.]); prior = np.ones(3); p = np.array([.04, .12, .84])
+    upper = linear_bound(x, c, prior, .05)
+    assert abs(p.sum() - 1) < 1e-15 and loglik(x, p) > cs_threshold(x, prior, .05)
+    assert c @ p <= upper + 1e-3, (c @ p, upper)                      # feasible point never exceeds the bound
+    base_hi = linear_bound(x, c - 1e12, prior, .05); base_lo = linear_bound(x, c - 1e12, prior, .05, False)
+    assert abs(upper - (base_hi + 1e12)) < 1e-3 and abs(linear_bound(x, c, prior, .05, False) - (base_lo + 1e12)) < 1e-3
+    rng = np.random.default_rng(11)
+    for _ in range(300):
+        n = int(rng.integers(1, 200)); xx = rng.multinomial(n, rng.dirichlet([.5, .5, .5])).astype(float)
+        cc = rng.normal(size=3) * rng.choice([1, 1e3, 1e6]); K = rng.normal() * rng.choice([1, 1e6, 1e9])
+        for mx in (True, False):
+            a = linear_bound(xx, cc, prior, .05, mx); b = linear_bound(xx, cc + K, prior, .05, mx)
+            assert abs((b - K) - a) <= 1e-9 * max(1.0, abs(K), np.abs(cc).max()), (xx, cc, K, a, b)
+        # feasible random points never beat the bounds
+        for _ in range(20):
+            q = rng.dirichlet(xx + 0.5)
+            if loglik(xx, q) > cs_threshold(xx, prior, .05):
+                assert cc @ q <= linear_bound(xx, cc, prior, .05) + 1e-9 * max(1, np.abs(cc).max())
+                assert cc @ q >= linear_bound(xx, cc, prior, .05, False) - 1e-9 * max(1, np.abs(cc).max())
+    print('shift-equivariance and feasible-point conservativeness ok (PR #5 review)')
+
+
+if __name__ == '__main__':
+    test_shift_equivariance_pr5()
