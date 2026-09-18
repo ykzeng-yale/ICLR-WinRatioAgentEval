@@ -1,6 +1,8 @@
 # Author handoff: ICLR 2027
 
-**The complete review package is prepared. You have not submitted it, and your scientific review and submission attestations remain outstanding.** The project goal is therefore not marked complete. The sole-author name and institutional email you supplied are recorded in the excluded local author metadata; the review PDF and archives are anonymous.
+**A frozen review package is prepared; newly delivered experiments still require correction, validation and integration. The project is not yet declared submission-ready.** No paper has been submitted, and your scientific review and submission attestations remain outstanding. The sole-author name and institutional email you supplied are recorded in the excluded local author metadata; the review PDF and archives are anonymous.
+
+Latest check, September 18, 2026: PR 8 contains 1,182 completed open-weight coding episodes, while its airline extension has no final real results at audited head `ab24f1b`. The coding analysis needs statistical corrections before integration. PR 7 at `cfc1850` contains completed reference/boundary simulations; its Round 9 audit requires interpretation corrections. These findings are not yet in the PDF or archives listed below. The current [experiment queue](../EXPERIMENT_QUEUE.md) distinguishes necessary corrections from optional extensions.
 
 ## Files to review and upload
 
@@ -36,9 +38,9 @@ The [official author guidelines](https://iclr.cc/Conferences/2027/AuthorGuidelin
 
 ## Cost and work available to other agents
 
-All commercial calls have stopped. Total accounted project cost is **USD 3.9476608**, including uncertain reservations, below the USD 5 cap. It is usage-based accounting rather than a reconciled provider invoice. No additional commercial allocation has been given to other workers.
+All further commercial/proprietary-model experiment calls are now **prohibited by your explicit instruction**, including simulator, judge and fallback calls. The [current execution policy](../EXPERIMENT_POLICY.md) supersedes all earlier cheap-model budget allowances. Historical total accounted project cost is **USD 3.9476608**, including uncertain reservations; this is usage-based accounting rather than a reconciled provider invoice. No new spending was incurred by the Round 9 audit.
 
-Larger prospective streams, local-model replication and a competitive sequential U-statistic reference are separately specified in the [GitHub experiment queue](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/blob/main/EXPERIMENT_QUEUE.md). They are future work and support no current results. Workers must claim an issue, use a separate branch/worktree, and return a reviewed pull request. An independently identified defect in a contributed generic projection patch remains open; that module is excluded from this submission and does not affect the isolated reference results.
+Open-weight coding and the competitive sequential U-statistic reference have now been delivered in PRs 8 and 7; the interactive airline extension is pending final delivery. The [GitHub experiment queue](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/blob/main/EXPERIMENT_QUEUE.md) records independent audit findings and integration conditions. Existing workers retain ownership, use separate branches/worktrees and return reviewed pull requests. Generic contributed projections remain excluded from this frozen submission and do not affect its isolated reference results. Previously collected commercial observations are retained as historical evidence; their collection scripts are not authorized to run again.
 
 ## Optional ICLR automated feedback
 

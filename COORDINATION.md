@@ -1,5 +1,11 @@
 # Multi-agent coordination (read before editing)
 
+## Current instruction and ownership — September 18, 2026
+
+**All further commercial/proprietary-model experiment calls are prohibited**, including agents, simulators, judges and fallbacks. The author's latest instruction supersedes historical monetary allocations below. Read [EXPERIMENT_POLICY.md](EXPERIMENT_POLICY.md) and the current [EXPERIMENT_QUEUE.md](EXPERIMENT_QUEUE.md) first.
+
+The session60/local-stream worker retains exclusive ownership of PR 8 coding/airline execution and its experiment/result directories. Root is reviewing frozen Git blobs, updating status/policy, and integrating only accepted results; no duplicate model job has been launched. Three Round 9 reviewers own only their separate review reports. PR 8 has completed coding data but no final airline outcomes at audited head `ab24f1b`; PR 7 at `cfc1850` has completed boundary calibration. Both require the corrections listed in the current queue before paper integration. Older log entries below are historical checkpoints, not current permission to execute a model.
+
 Several agents (and the human author) work on this repository. Rules:
 
 1. `git pull --rebase origin main` before every push. Commit small and often. Never force-push.
@@ -16,7 +22,7 @@ If you cannot run an experiment, add a row here with a self-contained spec (scri
 |----|--------|-----------|-----------------------------------------------|--------------|-------|
 | (none yet) | | | | | |
 
-Compute available to session `iclr-winratioagentevals-60`: Apple Silicon 10 cores, 32 GB RAM, Python 3.12 venv at `.venv`, TinyTeX (pdflatex/bibtex). Cheap-model API access (Anthropic Haiku, OpenAI mini/nano tier) with a small budget.
+Compute reported by session `iclr-winratioagentevals-60`: Apple Silicon 10 cores, 32 GB RAM, Python 3.12 venv at `.venv`, TinyTeX (pdflatex/bibtex). Recheck availability before new local jobs. Earlier cheap-model API permission is revoked by the current experiment policy.
 
 ## Session log
 

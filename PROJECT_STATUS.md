@@ -1,5 +1,15 @@
 # Research status
 
+## Latest checkpoint — September 18, 2026, Round 9
+
+The author now prohibits further commercial/proprietary-model experiment calls; new agents, simulators, judges and fallbacks must use open weights/open-source systems. [EXPERIMENT_POLICY.md](EXPERIMENT_POLICY.md) supersedes older budget language. Existing observations remain preserved.
+
+PR 8 at `ab24f1b` contains 1,182 completed open-weight coding episodes across 591 tasks. The proposed repair workflow did not improve the observed success count (433/591 for each workflow) and used approximately 4.46 times the mean measured latency/tokens. Independent review found a two-sided confidence-sequence construction error and a mismatch between fixed-roster sampling and the claimed conditional-mean guarantee; these need analysis/claim repairs, not repeated model inference. Its separate airline study was reported running by its owner, but only design and mock dry-run results are present at that head. No live process status or final real airline outcome has been independently verified.
+
+PR 7 at `cfc1850` supplies eight 2,000-repetition scenarios plus four 10,000-repetition boundary calibrations. The Round 9 audit checked counts/intervals, source hashes, convention alignment and exact reproduction of 16 existing betting rows. Interpretation/provenance corrections remain; no full new simulation is required for narrow descriptive integration. The audit did not independently regenerate all 56,000 simulation replicates.
+
+Both PRs remain excluded from the frozen `f806aba` paper/archives. Scientific work remains: owner corrections, independent aggregate reproduction, paper integration and release verification. Finishing the already-owned airline study is high value; actual concurrent timestamped evidence is needed only for stronger operational-latency claims. See [current experiment queue](EXPERIMENT_QUEUE.md) and the three Round 9 reports. Historical checkpoints below should not be read as the current delivery status.
+
 Active objective: a complete, reproducible ICLR submission package for hierarchical win statistics in agent evaluation, with online continuously monitored randomized comparisons as the main setting.
 
 This directory is a development package, not a certified submission-ready paper. Goal completion remains unproven until the scientific and submission checks below are satisfied. No paper has been submitted. The user has specified a single author; private submission metadata records the supplied details, while review materials remain anonymous.
