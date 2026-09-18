@@ -1,0 +1,7 @@
+agent_name,agent_model,n_tasks,success,cost,steps,latency,harness_errors
+HAL Generalist Agent (claude-3-7-sonnet-20250219),claude-3-7-sonnet-20250219,50,0.56,0.80527812,21.38,172.84971212,2
+HAL Generalist Agent (gpt-4.1-2025-04-14),gpt-4.1-2025-04-14,50,0.16,0.10760403999999996,8.84,85.79185836,0
+HAL Generalist Agent (o4-mini-2025-04-16 high),o4-mini-2025-04-16,50,0.18,0.16379565399999996,11.98,145.18386548,0
+Taubench ToolCalling (claude-3.7-sonnet),anthropic/claude-3.7-sonnet,50,0.44,0.30890945999999997,15.62,54.03707404,3
+Taubench ToolCalling (gpt-4.1-2025-04-14),openai/gpt-4.1-2025-04-14,50,0.36,0.05803883999999995,16.56,38.8916448,0
+Taubench ToolCalling (o4-mini-2025-04-16 high),openai/o4-mini-2025-04-16,50,0.56,0.06951214599999998,13.84,135.53731628,0

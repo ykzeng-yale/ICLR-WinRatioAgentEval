@@ -1,0 +1,10 @@
+{
+  "sources": {
+    "tau2_runs.csv": "e3c2bc66f2b0fe9ebdb295da77675714703b2ab594cfc4be3285b8ca06bf73e5",
+    "swe_lite_runs.csv": "d858e1f55c2dba4fce0ac8ff522eac15fe695e1567362dc7e75834f24e57c482",
+    "hal_taubench_airline_runs.csv": "2fbfc84fd79d276ec33b91de69569a4f10cffebb8a3c497583114a035b9877d8"
+  },
+  "code_sha256": "e967b2a66e26978e6a7428c3672a37d6f2fd333af696c4058cb90f205994961b",
+  "hierarchy": "success > cost(5% rel) > steps, absorbing failure; sensitivities listed in script",
+  "note": "Historical offline benchmark runs; costs reflect historical pricing; not live experiments."
+}
