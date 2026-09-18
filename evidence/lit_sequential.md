@@ -95,7 +95,7 @@ None of these performs paired, hierarchical, multi-metric comparison of two agen
 
 ## 5. What is still open (our assessment)
 
-1. No published finite-sample CS for the win ratio / win odds / net benefit of a ternary stream; the Dirichlet-multinomial route (Lindon–Malek Theorem 2.4 plus functional optimization) is unexploited and would be a clean, citable derivation, though a reviewer will call it "immediate".
+1. Corrected in Round 7: absence of win-statistic terminology is not a methodological gap. Existing bounded-mean CSs already cover ternary net benefit, and Lindon–Malek's multinomial set supplies functional bounds by projection. Manole–Ramdas (2023), Section 4.2, also describes finite-sample time-uniform U-statistic inference through reverse martingales for symmetric kernels under i.i.d. sampling. Its displayed generic construction is one-sample; applying it to a two-arm win kernel needs a justified reduction or extension. None of these generic confidence-sequence ingredients is claimed as new in the current paper.
 2. No sequential IUT statement for guardrails that separates stationary from drifting gates, and no treatment of *which* gate is false changing over time; Spotify's papers are fixed-sample.
 3. Delay: Lindon–Kallus 2026 covers unit-level Bernoulli assignment with treatment-dependent delay; paired enrollment with a fixed outcome horizon (our setting) is not covered by them, but our result must be compared with their impossibility result for the difference error.
 4. Design-based sequential inference for AB/BA pairs is contained in Ham et al.'s framework; the paired-hierarchical-score instantiation and its variance is our contribution only if stated as such.

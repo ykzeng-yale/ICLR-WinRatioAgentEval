@@ -41,3 +41,7 @@ The historical notes above describe earlier checkpoints. The capped pilot, async
 ## Round 6 handoff
 
 Root integrated two source-verified close priors, direct causal-estimand attribution and a standard equal-budget variance identity. Independent source/theory reviews passed. The updated paper has 33 total pages with main content ending on page 9; numerical outputs/code are unchanged. The new archive passed a delta/rebuild audit against the preserved 31-page release. The external U-statistic comparison remains claimed by session iclr-winratioagentevals-60; this audit did not touch that worker's directories or run a duplicate experiment. All paid calls remain stopped.
+
+## Round 7 external-branch boundary
+
+Root reviewed incoming positioning critiques at `8c95ead` read-only and integrated verified attribution corrections into main, plus an existing-result comparator disclosure. The external worker still owns issue 3. Root posted a coordination handoff at https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/3#issuecomment-5724080472, specifying 2N-execution accounting, separate frozen result versions, and zero additional paid allocation. Proposed comparisons in an alternate abstract are not evidence of execution and are excluded from the released abstract.

@@ -7,6 +7,9 @@ def row(s,m):return next(r for r in rows if r['scenario']==s and r['method']==m)
 # Fail instead of emitting stale fixed-protocol prose if the source cohort changes.
 for key, expected in {("null","guardrails_only"):392,("null","guarded_win"):1,("safety_regression","weighted_utility"):163,("safety_regression","guarded_weighted_utility"):0,("harm_favorable_labels","measured_guarded_win"):489,("harm_favorable_labels","oracle_true_guarded_win"):0}.items():
     assert int(row(*key)['positive_decisions'])==expected, key
+for scenario in ['efficiency_gain','joint_gain']:
+    for field in ['positive_decisions','mean_pairs_capped']:
+        assert row(scenario,'guarded_win')[field]==row(scenario,'guarded_efficiency')[field], (scenario,field)
 # Names come from the archived results, whose complete tables remain supplied.
 print('Methods:', sorted({x['method'] for x in rows}))
 main=r'''\paragraph{Decision objectives and grader errors.}
@@ -19,7 +22,11 @@ preference improvement. The fixed utility $0.8S+0.1C+0.1/(1+\mathrm{cost})$
 approves the compliance-regression scenario in 32.6\% of runs, correctly
 reflecting its positive utility target; adding component requirements
 reduces this to zero. No rule is uniformly more powerful across different
-objectives. Appendix~\ref{app:ablations} explains the objectives; the supplementary
+objectives. Guarded bounded-efficiency superiority matches guarded win
+in both deployment rate and mean capped pair count in the efficiency-gain
+and joint-gain cases; these cases show no decision-speed advantage for
+the hierarchical objective over that component-based rule.
+Appendix~\ref{app:ablations} explains the objectives; the supplementary
 CSV tables retain all comparisons and population Pareto descriptions.
 
 Four additional cases perturb success grading. With 5\% false-positive

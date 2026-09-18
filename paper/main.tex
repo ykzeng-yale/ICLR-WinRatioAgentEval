@@ -357,7 +357,11 @@ construction. Clustered win-statistic inference is also developed
 not parallel-arm randomized clinical clusters. Sequential derived-win
 designs \citep{zhang2024sequential,bergemann2026group} and recent
 anytime-valid U-statistic methods \citep{cai2026ustatistics} are direct
-methodological precedents. Our disjoint-pair construction trades some
+methodological precedents. \citet[Section~4.2]{manole2023martingale}
+also describes a finite-sample confidence-sequence route for bounded symmetric
+U-statistics under i.i.d. sampling using reverse martingales. Its generic
+displayed construction is one-sample; it is not directly our two-arm
+antisymmetric kernel. Our disjoint-pair construction trades some
 information available to all-pairs estimators for a simple randomized
 score and explicit finite-sample monitoring. We do not establish its
 efficiency relative to every sequential U-statistic method.
@@ -377,7 +381,10 @@ in Appendix~\ref{app:pairing_efficiency}. We claim neither discovery of
 lower-tier dominance nor superiority to these different decision targets.
 
 Anytime off-policy confidence sequences already support deployment gates
-\citep{karampatziakis2021offpolicy}. Our use of those ideas is specific to
+\citep{karampatziakis2021offpolicy}. Combining superiority with
+noninferiority guardrails, including their intersection--union error
+logic, is established in product experimentation
+\citep{schultzberg2024riskaware}. Our use of those ideas is specific to
 prioritized episode comparisons and component constraints. The
 agent-evaluation contribution must therefore be judged by the clarity
 of the design, the empirical consequences it reveals, and the usefulness
@@ -388,6 +395,13 @@ whereas our bounds retain fixed-horizon enrollment-prefix outcomes.
 Historical benchmark outcomes remain measurements under their original
 harness and model configurations. A favorable comparison does not
 identify the module causing a gain or establish transport to production.
+
+\citet{huang2026leaderboard} already examines estimand-aware pairwise
+conclusions and utility-sensitive selections on public agent records,
+including SWE-bench and $\tau_2$-bench. Our additional focus is the
+hierarchical contrast under randomized observation, component constraints,
+and certified partial-outcome monitoring. We do not claim that
+target-dependent rankings or resource-sensitive selection are new.
 
 \paragraph{Limitations.}
 The primary synthetic model deliberately isolates compensation and
