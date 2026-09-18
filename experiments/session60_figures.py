@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 
-ROOT = Path('/Users/yukangzengcmac/ICLR-WinRatioAgentEvals')
+ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'src'))
 from wincs import ternary_log_eprocess_nb
 from winstats import betting_log_e_ternary
