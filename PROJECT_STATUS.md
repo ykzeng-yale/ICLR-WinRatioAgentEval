@@ -20,7 +20,7 @@ This directory is a development package, not a certified submission-ready paper.
 - Offline target: equal-task average preference over repeated runs on a common resettable task. Same-task pairing is not silently transported to single-exposure online A/B tests.
 - Statistical contribution must be distinguished from established win statistics, e-processes, and gated deployment. Standard probability inequalities are credited as such.
 - Primary simulation scenario definitions and the primary public-data hierarchy are fixed before inspection of their numerical results. This is a dated internal analysis plan, not a public preregistration.
-- New empirical resources default to public data and local compute. Paid model calls and live production experiments have not been performed.
+- New empirical resources default to public data and local compute. A capped Haiku laboratory workflow pilot is running; no production users are involved.
 
 ## ICLR 2027 time constraint
 
@@ -29,6 +29,6 @@ Official author guidelines verified 2026-09-17: abstract deadline September 18, 
 ## Scientific readiness blockers under investigation
 
 - The narrow protocol has rigorous derivations, but incremental combination of established methods may not meet the desired contribution standard. Independent novelty review remains consequential.
-- Existing runs support retrospective benchmark analysis. Prospective online experimental performance is not established.
+- Existing runs support retrospective benchmark analysis. A prospectively specified laboratory pilot is running; production-online performance is not established.
 - Empirical tolerances/noninferiority margins are illustrative engineering choices and require application-owner justification for an actual deployment.
 - The author list is supplied. OpenReview profile status, reciprocal-review eligibility, and human verification remain unverified.

@@ -295,7 +295,7 @@ def fetch_missing(raw_dir, source_manifest):
 
 def main():
     p=argparse.ArgumentParser()
-    p.add_argument('--raw-dir',type=Path,default=ROOT.parents[1]/'work/empirical_sources')
+    p.add_argument('--raw-dir',type=Path,default=ROOT/'work/empirical_sources')
     p.add_argument('--bootstrap',type=int,default=10000)
     p.add_argument('--seed',type=int,default=2026091801)
     p.add_argument('--fetch-missing',action='store_true',help='Fetch public data using archived result manifest URLs/hashes')

@@ -1,0 +1,3 @@
+scenario,replicates,partial_later_count,partial_strictly_earlier_count,partial_strictly_earlier_rate,mean_capped_calendar_gain,gain_mcse,mean_initiated_execution_reduction
+identical_outcomes,1000,0,0,0.0,0.0,0.0,0.0
+cheaper_equal_success,1000,0,997,0.997,18.922,0.033151395370557404,3671.2

@@ -17,27 +17,29 @@
 \maketitle
 
 \begin{abstract}
-Agent deployments must balance verified task completion, policy compliance,
-and resource use. A hierarchical win statistic makes these priorities
-explicit within each comparison, but a favorable aggregate can still
-conceal a population decline in a higher-priority outcome. We study a
-guarded evaluation protocol that combines prioritized comparisons with
-separate component requirements under continuous monitoring. The protocol
-distinguishes independent repetitions of the same benchmark task from
-randomized comparisons of separate online arrivals, and specifies which
-preference each design identifies. Specializing established martingale
-methods, we give finite-sample guarantees for randomized pair scores,
-stationary deployment gates, and drifting running-average targets, together
-with complete proofs and an explicit treatment of delayed outcomes and
-reused random seeds. In six synthetic scenarios with 2,000 repetitions
-each, the guarded betting procedure made false deployments in 0.45\% of
-identical-agent runs, compared with 31.05\% under repeatedly inspected
-ordinary Wald intervals. It deployed an equally successful, cheaper agent
-in 96.85\% of runs, while declining the constructed harmful alternatives.
-Historical agent trajectories provide complementary task-level case
-studies. The resulting framework supports an auditable decision about a
-specified workload and preference rule; it does not equate a composite
-win with universal agent quality or production safety.
+Agent evaluation combines verified completion, policy compliance, and
+resource use, often while trajectories are still arriving. A hierarchical
+win statistic makes outcome priorities explicit, but a favorable
+aggregate can conceal a decline in a higher-priority population outcome.
+We develop a guarded evaluation protocol that combines prioritized
+comparisons with separate component requirements. It distinguishes
+same-task benchmark repetitions from randomized cross-arrival online
+comparisons and gives finite-sample continuous-monitoring guarantees.
+For delayed outcomes, feasible completions of partial traces bound the
+final pair score. A prefix envelope transfers established full-data
+guarantees to these partial scores and cannot decide later than its
+matched completed-prefix comparator. Complete proofs identify the
+required enrollment-order assumptions and distinguish threshold error
+control from a calendar-time e-process. In 2,000-repetition stationary
+simulations, guarded betting made false deployments in 0.45\% of
+identical-agent runs versus 31.05\% for repeated ordinary Wald tests.
+In a separate informative-delay study, partial evidence reduced mean
+capped decision time from 41.285 to 22.363 ticks for an equally successful,
+cheaper alternative; both valid methods deployed in 99.7\% of runs and
+had 0.6\% null false deployments. Historical agent traces show why
+success-first aggregate wins still need success guardrails. These
+results support explicit decisions for a specified workload and
+preference rule, with unresolved outcomes retained in the analysis.
 \end{abstract}
 
 \section{Introduction}
@@ -79,8 +81,8 @@ confidence sequences and betting processes
 \citep{howard2021confidence,waudbysmith2024betting}. Our contribution is a
 design-specific treatment of prioritized agent evaluation: explicit
 targets for paired and online data; a guarded deployment rule with the
-appropriate stationary or drifting error guarantee; and reproducible
-experiments examining compensation, monitoring, and dependence. We give
+appropriate stationary or drifting error guarantee; partial-trace score bounds that retain pending episodes; and reproducible
+experiments examining compensation, informative delay, and dependence. We give
 complete derivations, including conditions under which the guarantees do
 not apply. We do not propose a new generic confidence-sequence inequality
 or claim that sequential win statistics are new.
@@ -194,7 +196,7 @@ adaptive allocation makes potential outcomes observable.
 
 \paragraph{Endpoint maturity.}
 Freeze an episode horizon $H$ and count budget exhaustion as its defined
-outcome. Process the largest completely matured prefix of enrolled pairs.
+outcome. A baseline processes the completely matured prefix of enrolled pairs.
 This can incur latency when a slow earlier pair blocks later completed
 pairs. It preserves the order defining the target. Selecting whichever
 runs finish first can preferentially include fast successes and change
@@ -262,6 +264,65 @@ candidates or repeated model revisions, further error allocation is
 necessary. Reusing the same data to choose the hierarchy, tolerances,
 or candidate invalidates a guarantee that assumes those choices frozen.
 
+\subsection{Using incomplete trajectories without selecting fast outcomes}
+\label{sec:partial}
+Let $N(t)$ denote the number of enrolled pairs at calendar time $t$.
+For each gate, the observed partial traces define bounds
+$\ell_i(t)\leq X_i\leq u_i(t)$ on the final fixed-horizon score,
+within the known score range, simultaneously for every pair and update.
+These bounds range over every
+feasible completion. For a success-then-cost hierarchy, a successful
+$A$ episode at cost 1 already defeats a pending $B$ episode that has
+irreversibly spent 2: $B$ either fails or succeeds at higher cost.
+An unresolved higher safety tier would prevent that certificate.
+An absence of observed violations alone cannot certify final compliance.
+
+Write $b_\alpha(V_n)$ for the numerator of the radius in
+Equation~\eqref{eq:main_cs}. For every enrolled prefix $n\leq N(t)$,
+\begin{equation}
+ \left[\frac{\sum_{i\leq n}\ell_i(t)-b_\alpha(V_n)}{n},
+       \frac{\sum_{i\leq n}u_i(t)+b_\alpha(V_n)}{n}\right]
+ \label{eq:main_partial_cs}
+\end{equation}
+covers the corresponding running conditional mean simultaneously over
+$n$ and $t$ with probability at least $1-\alpha$. On the event that
+the complete-score confidence sequence covers every prefix, replacing
+its score sum by lower and upper bounds preserves coverage pathwise.
+No outcome-independent reveal-time assumption is needed. Its width is
+the complete-data width plus $n^{-1}\sum_i(u_i-\ell_i)$, making the
+cost of unresolved information explicit. If the number enrolled tends to infinity and that average width vanishes,
+stationary means with strictly positive gate margins are eventually
+resolved (Appendix~\ref{app:asynchronous}).
+
+For stationary gates, positive betting factors similarly give
+\begin{equation}
+ \underline E_{n,t}(c)=\sum_k w_k\prod_{i\leq n}
+            \{1+\lambda_k(\ell_i(t)-c)\}\ \leq\ E_n(c).
+ \label{eq:main_partial_wealth}
+\end{equation}
+Thus a partial-score crossing at any time and prefix entails a crossing
+of the latent complete-score process, controlling its probability under
+the fixed conditional null. Retrospectively refining a pending factor
+uses new information about the original pair; it does not add a new
+observation. Under stationarity, deploy if one available prefix satisfies
+all gates. Evaluating every candidate prefix includes every completed
+prefix and therefore cannot decide later than a completed-prefix method
+using the same candidates, bets, and calendar looks. Using only the
+latest enrolled prefix lacks this dominance, because additional pending
+pairs can dilute its lower wealth.
+
+The argument assumes a valid complete-score enrollment filtration and
+guaranteed completion bounds. Shared infrastructure, candidate adaptation,
+or fallible interim labels can violate those premises. We prove
+threshold-crossing control, not that the partial wealth is an e-process
+in the richer calendar-time filtration. Worst-case pending-outcome
+stopping and time-uniform filtration transfer have direct precedents
+\citep{henzi2022forecast,henzi2022correction,choe2024filtrations}; our
+specialization uses hierarchy and component bounds in a deployment
+protocol. Under drift, each selected prefix retains its own target and
+requires simultaneous component coverage. A maximum of historical lower
+bounds is not a lower bound on the current drifting effect.
+
 \paragraph{Offline repeated runs.}
 With $R$ common-seed trials for each task, the $R^2$ cross-run scores are
 dependent. Under independent seed clusters, pairs with different seed
@@ -276,6 +337,7 @@ asymptotic variance, bounded-mean alternative, and coupling decomposition.
 \section{Experiments}
 \label{sec:experiments}
 \input{results_main.tex}
+\input{async_results.tex}
 
 \section{Related work and scope}
 Generalized pairwise comparisons \citep{buyse2010generalized} and the
@@ -308,7 +370,9 @@ current price quotes. An imperfect success or policy grader changes the
 measured target, and rare severe failures require separate monitoring.
 Our component margins are illustrative, not elicited from application
 owners. All-pairs methods may use data more efficiently than disjoint
-pairs. Completely matured prefixes may be operationally slow. Public
+pairs. Partial bounds can remain uninformative when outcomes cannot be
+certified early; our delay simulation uses one deliberately simple
+measurement pipeline and two outcome scenarios. Public
 retrospective traces and laboratory experiments do not constitute a
 randomized intervention among production users.
 
@@ -340,5 +404,7 @@ human verification of every result and citation has been completed.
 \bibliographystyle{iclr2027_conference}
 \appendix
 \input{theory.tex}
+\input{asynchronous.tex}
 \input{experiments_appendix.tex}
+\input{async_appendix.tex}
 \end{document}
