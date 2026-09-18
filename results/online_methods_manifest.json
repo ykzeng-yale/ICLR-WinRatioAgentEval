@@ -276,13 +276,13 @@
       0.55
     ]
   },
-  "seconds": 17.54958701133728,
+  "seconds": 17.417799949645996,
   "python": "3.12.13",
   "numpy": "2.4.1",
-  "source_sha256": "9c11a399a6215e089c523f14b1c3fb8b7d374a452c7c65d6457e936ebd787df7",
+  "source_sha256": "a9126633a055252d791947aaeff26edb76afcaaf0385c4a23dae21da941275bd",
   "core_sha256": {
-    "winstats.py": "f0e4a78d1c316184acb7f762b9ebb29cff7a4ace4d23412a3f84a255c7813072",
-    "wincs.py": "9455b476b403d9bb2e5caea85c1109660d0864b136f3773b31c822a9e67c0475"
+    "winstats.py": "3053f8a14e033b02b514135d7043624ca34c1a1f9da9c622365d35aa7f927fd9",
+    "wincs.py": "e3b9b5cbade1a32e9385fdb93bc626be1bd404304c2f6e7ca4486ff34e34631c"
   },
   "interpretation": "Synthetic independent-pair streams; not live A/B experiment results. tie_heavy_* scenarios were added 2026-09-18 after the first six were run."
 }

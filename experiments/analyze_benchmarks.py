@@ -4,7 +4,8 @@ Sources (raw files under work/empirical_sources/, see evidence/data_acquisition.
   * tau2-bench released trajectories (3 models x 3 domains x 4 trials/task)
   * SWE-bench Lite SWE-agent runs (GPT-4 vs Claude 3 Opus, 300 tasks, 1 run)
   * HAL taubench_airline runs (6 agent/model configurations, 50 tasks, latency)
-Primary hierarchy (fixed in experiments/protocol.md before inspection):
+Primary hierarchy (experiments/protocol.md, including the 2026-09-18 amendment
+making the 12 off-diagonal within-task pairs primary for tau2):
   success > agent cost (5% relative tolerance) > assistant tool calls,
   absorbing failure (both fail => tie). Sensitivities: lexicographic (non-
   absorbing), margins 0/10/20%, order success>steps>cost, diagonal pairing,
@@ -81,19 +82,19 @@ def tau2():
         for dom in ['airline', 'retail', 'telecom']:
             dA = main[(main.model == a) & (main.domain == dom)]; dB = main[(main.model == b) & (main.domain == dom)]
             # primary
-            r, s = contrast(dA, dB, cols, hierarchy(), True, 'all', label='primary'); r.update(A=a, B=b, domain=dom, source='tau2'); rows.append(r)
+            r, s = contrast(dA, dB, cols, hierarchy(), True, 'offdiagonal', label='primary'); r.update(A=a, B=b, domain=dom, source='tau2'); rows.append(r)
             task_scores[(a, b, dom)] = s
             # sensitivities
             for lab, tiers, absorb, pairing in [
-                ('lexicographic_nonabsorbing', hierarchy(), False, 'all'),
-                ('margin_0', hierarchy(cost_margin=0.0), True, 'all'),
-                ('margin_10', hierarchy(cost_margin=0.10), True, 'all'),
-                ('margin_20', hierarchy(cost_margin=0.20), True, 'all'),
-                ('order_success_steps_cost', hierarchy(('success', 'steps', 'cost')), True, 'all'),
-                ('success_only', hierarchy(('success',)), True, 'all'),
+                ('lexicographic_nonabsorbing', hierarchy(), False, 'offdiagonal'),
+                ('margin_0', hierarchy(cost_margin=0.0), True, 'offdiagonal'),
+                ('margin_10', hierarchy(cost_margin=0.10), True, 'offdiagonal'),
+                ('margin_20', hierarchy(cost_margin=0.20), True, 'offdiagonal'),
+                ('order_success_steps_cost', hierarchy(('success', 'steps', 'cost')), True, 'offdiagonal'),
+                ('success_only', hierarchy(('success',)), True, 'offdiagonal'),
                 ('diagonal_shared_seed', hierarchy(), True, 'diagonal'),
-                ('offdiagonal', hierarchy(), True, 'offdiagonal'),
-                ('with_duration_4th', hierarchy(('success', 'cost', 'steps', 'duration')), True, 'all'),
+                ('all_16_pairs', hierarchy(), True, 'all'),
+                ('with_duration_4th', hierarchy(('success', 'cost', 'steps', 'duration')), True, 'offdiagonal'),
             ]:
                 cc = [t.name for t in tiers]
                 r, _ = contrast(dA, dB, cc, tiers, absorb, pairing, n_boot=2000, label=lab); r.update(A=a, B=b, domain=dom, source='tau2'); rows.append(r)
@@ -106,7 +107,7 @@ def tau2():
                 weights = {t: 1.0 / cnt[t.split(':')[0]] for t in dA.task_id.unique()}
             else:
                 weights = None
-            r, _ = contrast(dA, dB, cols, hierarchy(), True, 'all', weights=weights, n_boot=2000, label=lab); r.update(A=a, B=b, domain='all', source='tau2'); rows.append(r)
+            r, _ = contrast(dA, dB, cols, hierarchy(), True, 'offdiagonal', weights=weights, n_boot=2000, label=lab); r.update(A=a, B=b, domain='all', source='tau2'); rows.append(r)
     out = pd.DataFrame(rows); out.to_csv(OUT / 'tau2_contrasts.csv', index=False)
     # Per-model marginal summaries (Pareto display)
     summ = main.groupby(['domain', 'model']).agg(n_tasks=('task_id', 'nunique'), n_runs=('task_id', 'size'), success=('success', 'mean'),
@@ -123,7 +124,7 @@ def tau2():
         nbsum = {m: 0.0 for m in models}
         for a, b in itertools.permutations(models, 2):
             dA = main[(main.model == a) & (main.domain == dom)]; dB = main[(main.model == b) & (main.domain == dom)]
-            r, _ = contrast(dA, dB, cols, hierarchy(), True, 'all', n_boot=200, label='rank'); nbsum[a] += r['net_benefit']
+            r, _ = contrast(dA, dB, cols, hierarchy(), True, 'offdiagonal', n_boot=200, label='rank'); nbsum[a] += r['net_benefit']
         sm = summ[summ.domain == dom].set_index('model')
         for m in models:
             ranks.append(dict(domain=dom, model=m, success=sm.loc[m, 'success'], cost=sm.loc[m, 'cost'], pass_all4=sm.loc[m, 'pass_all4'],

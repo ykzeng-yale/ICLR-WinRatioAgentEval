@@ -1,0 +1,265 @@
+{
+  "purpose": "Archive of the Section 4.7 first-crossing / rare-event diagnostic (component compliance gate, compliance_boundary only)",
+  "arguments": {
+    "replicates": 10000,
+    "pairs": 10000,
+    "batch": 25,
+    "seed": 20260918,
+    "out": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/wt-contrib/results/ustat_reference"
+  },
+  "scenario": "compliance_boundary",
+  "params": [
+    0.985,
+    0.995,
+    0.75,
+    0.75,
+    0.4
+  ],
+  "threshold": -0.01,
+  "alpha": 0.05,
+  "seeds": {
+    "convention": "numpy SeedSequence([seed, 100 + index]) as run_ustat_reference.py --calibration-only",
+    "seed": 20260918,
+    "index": 9,
+    "entropy": [
+      20260918,
+      109
+    ],
+    "batch": 25
+  },
+  "event": "component compliance-gate false rejection (convention-free); not a guarded deployment",
+  "counts_vs_null_calibration": {
+    "allpairs_asympcs_projection_gaussian": {
+      "diagnostic": 725,
+      "null_calibration_csv": 725,
+      "identical": true
+    },
+    "allpairs_fixed_wald": {
+      "diagnostic": 551,
+      "null_calibration_csv": 551,
+      "identical": true
+    },
+    "allpairs_gs_obf": {
+      "diagnostic": 546,
+      "null_calibration_csv": 546,
+      "identical": true
+    },
+    "allpairs_gs_pocock": {
+      "diagnostic": 643,
+      "null_calibration_csv": 643,
+      "identical": true
+    },
+    "allpairs_gs_hsd": {
+      "diagnostic": 567,
+      "null_calibration_csv": 567,
+      "identical": true
+    },
+    "disjoint_gs_obf": {
+      "diagnostic": 545,
+      "null_calibration_csv": 545,
+      "identical": true
+    },
+    "disjoint_betting": {
+      "diagnostic": 76,
+      "null_calibration_csv": 76,
+      "identical": true
+    }
+  },
+  "summary": {
+    "allpairs_asympcs_projection_gaussian": {
+      "false_rejections": 725,
+      "replicates": 10000,
+      "rate": 0.0725,
+      "wilson95": [
+        0.06758002331835347,
+        0.07774829528857499
+      ],
+      "first_crossing_quantiles_10_25_50_75_90": [
+        200.0,
+        250.0,
+        400.0,
+        1050.0,
+        3180.000000000001
+      ],
+      "count_first_crossing_le_500": 410,
+      "share_first_crossing_le_500": 0.5655172413793104,
+      "count_first_crossing_le_1000": 540,
+      "share_first_crossing_le_1000": 0.7448275862068966,
+      "count_zero_noncompliant_a": 239,
+      "count_zero_noncompliant_b": 28,
+      "median_noncompliant_a": 1.0,
+      "median_noncompliant_b": 4.0,
+      "median_variance_estimate": 1.884009080879993e-05
+    },
+    "allpairs_fixed_wald": {
+      "false_rejections": 551,
+      "replicates": 10000,
+      "rate": 0.0551,
+      "wilson95": [
+        0.05079628235660827,
+        0.05974539939361975
+      ],
+      "first_crossing_quantiles_10_25_50_75_90": [
+        10000.0,
+        10000.0,
+        10000.0,
+        10000.0,
+        10000.0
+      ],
+      "count_first_crossing_le_500": 0,
+      "share_first_crossing_le_500": 0.0,
+      "count_first_crossing_le_1000": 0,
+      "share_first_crossing_le_1000": 0.0,
+      "count_zero_noncompliant_a": 0,
+      "count_zero_noncompliant_b": 0,
+      "median_noncompliant_a": 129.0,
+      "median_noncompliant_b": 57.0,
+      "median_variance_estimate": 1.8399979997999678e-06
+    },
+    "allpairs_gs_obf": {
+      "false_rejections": 546,
+      "replicates": 10000,
+      "rate": 0.0546,
+      "wilson95": [
+        0.05031560891015105,
+        0.059226456838447655
+      ],
+      "first_crossing_quantiles_10_25_50_75_90": [
+        5000.0,
+        6000.0,
+        8000.0,
+        9000.0,
+        10000.0
+      ],
+      "count_first_crossing_le_500": 0,
+      "share_first_crossing_le_500": 0.0,
+      "count_first_crossing_le_1000": 0,
+      "share_first_crossing_le_1000": 0.0,
+      "count_zero_noncompliant_a": 0,
+      "count_zero_noncompliant_b": 0,
+      "median_noncompliant_a": 99.0,
+      "median_noncompliant_b": 45.0,
+      "median_variance_estimate": 2.303989170521306e-06
+    },
+    "allpairs_gs_pocock": {
+      "false_rejections": 643,
+      "replicates": 10000,
+      "rate": 0.0643,
+      "wilson95": [
+        0.05965779150234358,
+        0.069276824677864
+      ],
+      "first_crossing_quantiles_10_25_50_75_90": [
+        1000.0,
+        2000.0,
+        4000.0,
+        7000.0,
+        9000.0
+      ],
+      "count_first_crossing_le_500": 0,
+      "share_first_crossing_le_500": 0.0,
+      "count_first_crossing_le_1000": 141,
+      "share_first_crossing_le_1000": 0.2192846034214619,
+      "count_zero_noncompliant_a": 0,
+      "count_zero_noncompliant_b": 0,
+      "median_noncompliant_a": 41.0,
+      "median_noncompliant_b": 23.0,
+      "median_variance_estimate": 4.522803897595538e-06
+    },
+    "allpairs_gs_hsd": {
+      "false_rejections": 567,
+      "replicates": 10000,
+      "rate": 0.0567,
+      "wilson95": [
+        0.05233512205233271,
+        0.061405330903109144
+      ],
+      "first_crossing_quantiles_10_25_50_75_90": [
+        3000.0,
+        6000.0,
+        8000.0,
+        9000.0,
+        10000.0
+      ],
+      "count_first_crossing_le_500": 0,
+      "share_first_crossing_le_500": 0.0,
+      "count_first_crossing_le_1000": 34,
+      "share_first_crossing_le_1000": 0.059964726631393295,
+      "count_zero_noncompliant_a": 0,
+      "count_zero_noncompliant_b": 0,
+      "median_noncompliant_a": 97.0,
+      "median_noncompliant_b": 45.0,
+      "median_variance_estimate": 2.3041923209151183e-06
+    },
+    "disjoint_gs_obf": {
+      "false_rejections": 545,
+      "replicates": 10000,
+      "rate": 0.0545,
+      "wilson95": [
+        0.05021948667736563,
+        0.059122655870907204
+      ],
+      "first_crossing_quantiles_10_25_50_75_90": [
+        5000.0,
+        6000.0,
+        8000.0,
+        9000.0,
+        10000.0
+      ],
+      "count_first_crossing_le_500": 0,
+      "share_first_crossing_le_500": 0.0,
+      "count_first_crossing_le_1000": 0,
+      "share_first_crossing_le_1000": 0.0,
+      "count_zero_noncompliant_a": 0,
+      "count_zero_noncompliant_b": 0,
+      "median_noncompliant_a": 99.0,
+      "median_noncompliant_b": 45.0,
+      "median_variance_estimate": 2.2808972710387196e-06
+    },
+    "disjoint_betting": {
+      "false_rejections": 76,
+      "replicates": 10000,
+      "rate": 0.0076,
+      "wilson95": [
+        0.006076784264021832,
+        0.009501377331420478
+      ],
+      "first_crossing_quantiles_10_25_50_75_90": [
+        475.0,
+        850.0,
+        1825.0,
+        4025.0,
+        7550.0
+      ],
+      "count_first_crossing_le_500": 9,
+      "share_first_crossing_le_500": 0.11842105263157894,
+      "count_first_crossing_le_1000": 24,
+      "share_first_crossing_le_1000": 0.3157894736842105,
+      "count_zero_noncompliant_a": 8,
+      "count_zero_noncompliant_b": 0,
+      "median_noncompliant_a": 12.5,
+      "median_noncompliant_b": 12.0,
+      "median_variance_estimate": 7.501810674907401e-06
+    }
+  },
+  "rows_written": 3653,
+  "seconds": 8.283676862716675,
+  "workers": 1,
+  "peak_rss_bytes": 377159680,
+  "source_sha256": {
+    "rare_event_diagnostic.py": "65fbaaf93908eb2a94b5eab68dad58d710981811e0cfea2ba9f2acdc82952dae",
+    "ustat.py": "ee98a9b344a628fa1dc49d4c314ef9c52252de70aee74316f8d022b93ea58f5d",
+    "run_ustat_reference.py": "cb96f8a58577dc9980109b5ed6932a64deae1f73005e0adf5b5af703103809e8"
+  },
+  "upstream_sha256": {
+    "src/winstats.py": "3053f8a14e033b02b514135d7043624ca34c1a1f9da9c622365d35aa7f927fd9"
+  },
+  "output_sha256": {
+    "rare_event_diagnostic.csv": "017d47dbab2813e91f59c52c3810adfb2bcc1e448b7010581e574aef34616199"
+  },
+  "python": "3.12.13",
+  "numpy": "2.4.1",
+  "platform": "macOS-26.5.2-arm64-arm-64bit",
+  "cpu_count": 10,
+  "machine": "arm64"
+}

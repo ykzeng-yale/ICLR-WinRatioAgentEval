@@ -124,97 +124,122 @@ def _mle(counts):
     return counts / n if n > 0 else np.full(counts.shape, 1 / counts.size)
 
 
-def linear_bound(counts, coef, prior, delta, maximize=True, tol=1e-10):
-    """sup or inf of sum_k coef_k p_k over the CS (a convex set).
+def linear_bound(counts, coef, prior, delta, maximize=True, tol=1e-12, certify=True):
+    """sup (or inf) of sum_k coef_k p_k over the confidence set CS_n (convex).
 
-    Solves max c'p s.t. ell(p) >= c_n, p in simplex, by maximizing the
-    Lagrangian c'p + lam*ell(p) in closed form for each lam and bisecting on
-    lam so the constraint is active (ell is strictly concave where counts>0).
-    Zero-count cells receive mass only if they carry the extremal coefficient.
+    Let c = +/-coef and cmax = max_k c_k. If every positive-count cell carries
+    the maximal coefficient and the face MLE lies in CS_n, the supremum is
+    exactly cmax (attained at a boundary law such as the all-win law).
+    Otherwise the Lagrangian max_p c'p + lam*ell(p) has the closed form
+    p_k = lam*x_k/(g + d_k) with d_k = cmax - c_k >= 0 and g >= 0 the gap
+    to the top coefficient (zero-count top cells absorb any remaining mass
+    when g = 0); ell(p) increases and c'p decreases in lam, so lam is found
+    by bisection on ell(p(lam)) = c_n. The reported bound is taken from the
+    iterate just OUTSIDE the set (conservative: >= the true supremum), and a
+    certificate checks that an explicitly feasible point attains a value
+    within 1e-7 of it. This parametrization avoids the cancellation
+    (nu - c_k) that made near-vertex bounds inexact.
     """
     counts = np.asarray(counts, float); coef = np.asarray(coef, float)
+    if counts.shape != coef.shape or np.any(counts < 0) or not np.isfinite(counts).all():
+        raise ValueError('counts and coef must have the same shape; counts finite and nonnegative')
+    if not 0 < delta < 1:
+        raise ValueError('delta must lie in (0,1)')
     sgn = 1.0 if maximize else -1.0
-    c = sgn * coef
-    K = counts.size
+    c_orig = sgn * coef
+    K = counts.size; n = counts.sum()
+    cmax = float(c_orig.max())
+    # Work with the exactly shifted coefficients c = c_orig - cmax (max = 0, others <= 0).
+    # The optimum of a linear functional over the set is shift-equivariant, so the
+    # answer is cmax + (optimum for c). Ties are exact (no tolerance): an
+    # approximate tie surrogate would optimize a different objective and could
+    # return a non-conservative bound (PR #5 review).
+    c = c_orig - cmax
+    if n == 0:
+        return sgn * cmax
     cn = cs_threshold(counts, prior, delta)
-    n = counts.sum()
-    if n == 0:  # CS is (essentially) the whole simplex.
-        return sgn * c.max()
-    # Vertex candidate: all mass at a max-coefficient cell (feasible only if
-    # every positive-count cell shares that coefficient, i.e. ell finite).
-    cmax = c.max()
     pos = counts > 0
-    zero_top = (~pos) & (c >= cmax - 1e-15)
+    top = c == 0.0
+    # Exact boundary case: the supremum cmax is attained inside the closed set.
+    if top[pos].all():
+        p_face = np.zeros(K); p_face[pos] = counts[pos] / n
+        if loglik(counts, p_face) >= cn:
+            return sgn * cmax
+    d = -c                          # d_k = cmax - c_k >= 0 exactly
+    free_top = top & ~pos          # zero-count cells at the top coefficient
+    pos_top_exists = bool(top[pos].any())
+    xs, ds = counts[pos], d[pos]
+    scale = max(1.0, float(d.max()))   # coefficient range, for the certificate
 
-    def p_of(lam, nu):
-        # p_k = lam*x_k/(nu - c_k) for positive-count cells.
-        p = np.zeros(K)
-        p[pos] = lam * counts[pos] / (nu - c[pos])
-        return p
+    def point(lam):
+        """Return (p, objective, ell) for the Lagrangian maximizer at lam."""
+        g_hi = lam * xs.sum() + 1e-300
+        f = lambda g: (lam * xs / (g + ds)).sum() - 1.0
+        r = 0.0
+        if not pos_top_exists and free_top.any() and f(0.0) <= 0.0:
+            g = 0.0; r = -f(0.0)             # remaining mass to free top cells
+        else:
+            lo = 1e-300 if pos_top_exists else 0.0
+            if f(lo) <= 0:
+                g = lo
+            else:
+                while f(g_hi) > 0:
+                    g_hi *= 2
+                g = brentq(f, lo, g_hi, xtol=1e-300, rtol=4 * np.finfo(float).eps, maxiter=500)
+        p = np.zeros(K); p[pos] = lam * xs / (g + ds)
+        if r > 0:
+            p[free_top] = r / free_top.sum()
+        p = np.clip(p, 0.0, None); p /= p.sum()
+        return p, float((c * p).sum()), float(loglik(counts, p))
 
-    def solve_nu(lam):
-        # find nu > max c over positive cells s.t. sum over positive cells = 1 - m0
-        # where m0 = mass on zero-count top cells. Mass on those cells is a
-        # free variable r in [0,1): we treat nu = cmax exactly when zero_top
-        # exists (then r = 1 - sum p_pos with nu=cmax if that is < 1).
-        lo = c[pos].max()
-        if zero_top.any() and cmax > lo + 1e-15:
-            # nu is pinned at cmax if the positive cells fit under it.
-            s = (lam * counts[pos] / (cmax - c[pos])).sum()
-            if s <= 1:
-                return cmax, 1 - s
-        # otherwise find nu>lo with sum=1
-        f = lambda nu: (lam * counts[pos] / (nu - c[pos])).sum() - 1
-        hi = lo + max(lam * counts[pos].sum(), 1e-12) * 2 + 1
-        while f(hi) > 0:
-            hi = lo + (hi - lo) * 2
-        nu = brentq(f, lo + 1e-14 * max(1, abs(lo)), hi, xtol=1e-14)
-        return nu, 0.0
-
-    def ell_at(lam):
-        nu, r = solve_nu(lam)
-        p = p_of(lam, nu)
-        return loglik(counts, p), p, r
-
-    # ell increases with lam (more weight on likelihood); find lam s.t. ell = cn.
-    lam_lo, lam_hi = 1e-12, 1.0
-    e_lo = ell_at(lam_lo)[0]
-    if e_lo >= cn:  # even (almost) pure objective is inside CS: vertex optimum
-        _, p, r = ell_at(lam_lo)
-        val = (c * p).sum() + r * cmax
-        return sgn * val
-    while ell_at(lam_hi)[0] < cn:
-        lam_hi *= 4
-        if lam_hi > 1e12:
+    # bracket: ell(lam_lo) < cn <= ell(lam_hi)
+    lam_lo = 1e-6
+    for _ in range(60):
+        if point(lam_lo)[2] < cn:
             break
-    for _ in range(200):
+        lam_lo *= 0.1
+    else:  # ell never below cn: the vertex direction is inside; return cmax
+        return sgn * cmax
+    lam_hi = max(1.0, lam_lo * 10)
+    for _ in range(80):
+        if point(lam_hi)[2] >= cn:
+            break
+        lam_hi *= 4
+    for _ in range(300):
         mid = np.sqrt(lam_lo * lam_hi)
-        e = ell_at(mid)[0]
-        if e < cn:
+        if point(mid)[2] < cn:
             lam_lo = mid
         else:
             lam_hi = mid
         if lam_hi / lam_lo - 1 < tol:
             break
-    _, p, r = ell_at(lam_hi)
-    return sgn * ((c * p).sum() + r * cmax)
+    p_out, obj_out, ell_out = point(lam_lo)      # just outside: obj_out >= sup
+    p_in, obj_in, ell_in = point(lam_hi)         # feasible: obj_in <= sup
+    if certify:
+        if not (ell_in >= cn - 1e-9 and abs(p_in.sum() - 1) < 1e-9 and (p_in >= 0).all()):
+            raise RuntimeError('linear_bound: feasibility certificate failed')
+        if obj_out - obj_in > 1e-7 * scale:
+            raise RuntimeError('linear_bound: bound gap too large (%g)' % (obj_out - obj_in))
+    return sgn * (obj_out + cmax)
 
 
 def ratio_bound(counts, num, den, prior, delta, maximize=True, lo=1e-6, hi=1e6, iters=80):
     """sup/inf of (num'p)/(den'p) over the CS by bisection on r with linear
     sub-problems: (num'p)/(den'p) >= r for some p in CS iff max (num - r den)'p >= 0.
-    Returns inf when the ratio is unbounded above within the CS."""
+    Search caps: ratios are bracketed in [lo, hi] = [1e-6, 1e6]; a returned inf
+    means "a ratio above hi is attainable in the set" and a returned value equal
+    to a cap may be the cap. Both directions remain conservative."""
     counts = np.asarray(counts, float); num = np.asarray(num, float); den = np.asarray(den, float)
     if maximize:
         # check unbounded: is there p in CS with den'p == 0? -> inf of den'p over CS == 0
         if linear_bound(counts, den, prior, delta, maximize=False) <= 1e-12:
             return np.inf
         a, b = lo, hi
-        if linear_bound(counts, num - b * den, prior, delta, True) >= 0:
+        if linear_bound(counts, (num - b * den) / max(1.0, b), prior, delta, True) >= 0:
             return np.inf
         for _ in range(iters):
             m = np.sqrt(a * b)
-            if linear_bound(counts, num - m * den, prior, delta, True) >= 0:
+            if linear_bound(counts, (num - m * den) / max(1.0, m), prior, delta, True) >= 0:
                 a = m
             else:
                 b = m
@@ -223,12 +248,12 @@ def ratio_bound(counts, num, den, prior, delta, maximize=True, lo=1e-6, hi=1e6, 
         if linear_bound(counts, num, prior, delta, maximize=False) <= 1e-12:
             return 0.0
         a, b = lo, hi
-        if linear_bound(counts, num - a * den, prior, delta, False) <= 0:
+        if linear_bound(counts, (num - a * den) / max(1.0, a), prior, delta, False) <= 0:
             return 0.0
         for _ in range(iters):
             m = np.sqrt(a * b)
             # ratio <= m attainable iff min (num - m den)'p <= 0
-            if linear_bound(counts, num - m * den, prior, delta, False) <= 0:
+            if linear_bound(counts, (num - m * den) / max(1.0, m), prior, delta, False) <= 0:
                 b = m
             else:
                 a = m
@@ -249,7 +274,12 @@ class MultinomialCS:
 
     def _prior(self):
         K = 2 * self.n_tiers + 1
-        return np.full(K, self.prior, float) if np.isscalar(self.prior) else np.asarray(self.prior, float)
+        if not 0 < self.delta < 1:
+            raise ValueError('delta must lie in (0,1)')
+        pr = np.full(K, self.prior, float) if np.isscalar(self.prior) else np.asarray(self.prior, float)
+        if pr.shape != (K,) or not (np.isfinite(pr).all() and (pr > 0).all()):
+            raise ValueError('prior must be a positive vector of length 2*n_tiers+1')
+        return pr
 
     def net_benefit(self, counts):
         s = cell_signs(self.n_tiers); pr = self._prior()
@@ -380,6 +410,8 @@ def clustered_summary(win, loss, weights=None, alpha=0.05):
     Uses a t reference with T-1 df; log scale for ratios.
     """
     win = np.asarray(win, float); loss = np.asarray(loss, float); T = win.size
+    if weights is not None and ((np.asarray(weights, float) < 0).any() or np.sum(weights) <= 0):
+        raise ValueError('weights must be nonnegative with positive sum')
     w = np.ones(T) / T if weights is None else np.asarray(weights, float) / np.sum(weights)
     pw = float(np.sum(w * win)); pl = float(np.sum(w * loss)); pt = 1 - pw - pl
     # Weighted cluster covariance of the (win, loss) means: sum w_t^2 (x_t - mean)^2 * T/(T-1)
@@ -443,6 +475,8 @@ def compare_censored(t_a, done_a, t_b, done_b, margin=0.0, relative=False):
     for B. Otherwise the pair is a tie (indeterminate or within margin).
     """
     t_a = np.asarray(t_a, float); t_b = np.asarray(t_b, float)
+    if not (np.isfinite(t_a).all() and np.isfinite(t_b).all()):
+        raise ValueError('observed times must be finite (use the timeout as the censoring time)')
     done_a = np.asarray(done_a, bool); done_b = np.asarray(done_b, bool)
     m = margin * np.maximum(t_a, t_b) if relative else margin
     a_win = done_a & (t_a + m < t_b)
@@ -482,7 +516,7 @@ def default_stakes(n_bets=40, lo=1e-4, hi=0.5):
 
 def betting_log_capital_ternary(pos, tie, neg, m, stakes=None):
     """log of the hedged mixture capital for candidate mean m of a ternary
-    score z in {-1,0,1}: K(m) = max(K+(m), K-(m)) where K± mix over ±stakes.
+    score z in {-1,0,1}: K(m) = (K+(m) + K-(m))/2 where K± mix over ±stakes.
 
     pos, tie, neg: counts (broadcastable). m: candidate mean (scalar or array
     broadcastable with counts). Returns log K(m). Valid for any predictable
@@ -495,42 +529,61 @@ def betting_log_capital_ternary(pos, tie, neg, m, stakes=None):
             lk = pos * np.log1p(l * (1 - m)) + tie * np.log1p(-l * m) + neg * np.log1p(l * (-1 - m))
         lk = np.where(np.isnan(lk), -np.inf, lk)
         return logsumexp(lk, axis=-1) - np.log(lam.size)
-    return np.maximum(logk(lam), logk(-lam))
+    # Hedged capital of Waudby-Smith & Ramdas (theta = 1/2): the average of the
+    # two one-sided mixture capitals is itself a test martingale, so
+    # {m : capital < 1/delta} is a level-delta CS. max(K+,K-) alone gives 2*delta.
+    return np.logaddexp(logk(lam), logk(-lam)) - np.log(2)
 
 
-def _invert_capital(logcap, delta, lo0=-1.0, hi0=1.0, coarse=201, iters=14):
+def _invert_capital(logcap, delta, lo0=-1.0, hi0=1.0, center=None, iters=26, coarse=201):
     """Invert a quasi-convex capital process: CS = {m : logcap(m) < log(1/delta)}.
 
     logcap(m) must accept an array m broadcastable with the count arrays and
-    return log capital with the counts' shape. Coarse grid, then elementwise
-    bisection of both boundaries. Returns (lo, hi) with nan when empty."""
+    return log capital with the counts' shape. The set is an interval (K+ is
+    non-increasing and K- non-decreasing in m). `center` is a point known to
+    lie inside (the sample mean: by AM-GM the capital there is <= 1); if it is
+    not supplied a coarse grid locates an inside point. Both boundaries are
+    found by elementwise bisection between an outside point and the inside
+    point, and the OUTSIDE iterate is returned (conservative). Returns nan
+    only if no inside point can be found."""
     thr = np.log(1 / delta)
-    ms = np.linspace(lo0, hi0, coarse)
-    inside = np.stack([logcap(np.asarray(m)) < thr for m in ms], -1)
-    any_in = inside.any(-1)
-    first = np.argmax(inside, axis=-1); last = inside.shape[-1] - 1 - np.argmax(inside[..., ::-1], axis=-1)
-    # lower boundary between ms[first-1] (outside) and ms[first] (inside)
-    a = np.where(first > 0, ms[np.maximum(first - 1, 0)], lo0); b = ms[first]
+    if center is None:
+        ms = np.linspace(lo0, hi0, coarse)
+        inside = np.stack([logcap(np.asarray(m)) < thr for m in ms], -1)
+        any_in = inside.any(-1)
+        center = np.where(any_in, ms[np.argmax(inside, axis=-1)], (lo0 + hi0) / 2)
+    else:
+        center = np.clip(np.asarray(center, float), lo0, hi0)
+        any_in = logcap(center) < thr
+    center = np.array(np.broadcast_to(center, np.shape(any_in)), dtype=float)
+    out_lo = logcap(np.full_like(center, lo0)) >= thr
+    a = np.full_like(center, lo0); b = center.copy()
     for _ in range(iters):
         mid = (a + b) / 2
         ins = logcap(mid) < thr
         a = np.where(ins, a, mid); b = np.where(ins, mid, b)
-    lo = np.where(first > 0, b, lo0)
-    a = ms[last]; b = np.where(last < coarse - 1, ms[np.minimum(last + 1, coarse - 1)], hi0)
+    lo = np.where(out_lo, a, lo0)
+    out_hi = logcap(np.full_like(center, hi0)) >= thr
+    a = center.copy(); b = np.full_like(center, hi0)
     for _ in range(iters):
         mid = (a + b) / 2
         ins = logcap(mid) < thr
         a = np.where(ins, mid, a); b = np.where(ins, b, mid)
-    hi = np.where(last < coarse - 1, a, hi0)
+    hi = np.where(out_hi, b, hi0)
     return np.where(any_in, lo, np.nan), np.where(any_in, hi, np.nan)
 
 
-def betting_cs_ternary(pos, tie, neg, delta=0.05, stakes=None, coarse=201):
+def betting_cs_ternary(pos, tie, neg, delta=0.05, stakes=None):
     """Two-sided time-uniform CS for the mean of a ternary score by inverting
     the hedged mixture capital process (quasi-convex in m)."""
+    if not 0 < delta < 1:
+        raise ValueError('delta must lie in (0,1)')
     pos = np.asarray(pos, float); tie = np.asarray(tie, float); neg = np.asarray(neg, float)
+    if not (np.isfinite(pos).all() and np.isfinite(tie).all() and np.isfinite(neg).all()):
+        raise ValueError('counts must be finite')
+    n = pos + tie + neg
     f = lambda m: betting_log_capital_ternary(pos, tie, neg, np.broadcast_to(m, pos.shape), stakes)
-    return _invert_capital(f, delta, -1.0, 1.0, coarse)
+    return _invert_capital(f, delta, -1.0, 1.0, center=(pos - neg) / np.maximum(n, 1))
 
 
 def betting_log_capital_bernoulli(k, n, q, stakes=None):
@@ -543,19 +596,21 @@ def betting_log_capital_bernoulli(k, n, q, stakes=None):
             lk = k * np.log1p(l * (1 - q)) + (n - k) * np.log1p(-l * q)
         lk = np.where(np.isnan(lk), -np.inf, lk)
         return logsumexp(lk, axis=-1) - np.log(lam.size)
-    return np.maximum(logk(lam), logk(-lam))
+    return np.logaddexp(logk(lam), logk(-lam)) - np.log(2)  # hedged (theta = 1/2)
 
 
-def win_ratio_cs_decided(n_win, n_loss, delta=0.05, stakes=None, coarse=201):
+def win_ratio_cs_decided(n_win, n_loss, delta=0.05, stakes=None):
     """Time-uniform CS for the win ratio from decided (non-tied) pairs.
 
     Among decided pairs the win indicator is Bernoulli(q) with q = WR/(1+WR)
     (for iid pairs, conditioning on 'decided' preserves independence), so a
     betting CS for q over the decided subsequence maps to WR = q/(1-q).
     Returns (lower, upper); upper is inf if q=1 is not excluded."""
+    if not 0 < delta < 1:
+        raise ValueError('delta must lie in (0,1)')
     n_win = np.asarray(n_win, float); n_loss = np.asarray(n_loss, float); n = n_win + n_loss
     f = lambda q: betting_log_capital_bernoulli(n_win, n, np.broadcast_to(q, n_win.shape), stakes)
-    qlo, qhi = _invert_capital(f, delta, 0.0, 1.0, coarse)
+    qlo, qhi = _invert_capital(f, delta, 0.0, 1.0, center=np.where(n > 0, n_win / np.maximum(n, 1), 0.5))
     with np.errstate(divide='ignore', invalid='ignore'):
         return qlo / (1 - qlo), np.where(qhi >= 1 - 1e-12, np.inf, qhi / (1 - qhi))
 

@@ -148,3 +148,60 @@ def test_betting_cs():
 
 if __name__ == '__main__':
     test_betting_cs()
+
+
+def test_boundary_laws_issue4():
+    """Issue #4: deterministic boundary laws and constant functionals must be exact."""
+    from wincs import cs_threshold
+    lo, hi = MultinomialCS(1).net_benefit([0, 3, 0]); assert hi == 1.0 and -0.66 < lo < -0.65, (lo, hi)
+    assert linear_bound([2, 3, 4], [1, 1, 1], np.ones(3), .05, False) == 1.0
+    assert linear_bound([2, 3, 4], [1, 1, 1], np.ones(3), .05, True) == 1.0
+    lo, hi = MultinomialCS(1).net_benefit([5, 0, 0]); assert abs(lo + hi) < 1e-12 and 0 < hi < 1
+    lo, hi = MultinomialCS(1).net_benefit([0, 0, 7]); assert lo == -1.0 and hi < 0.3
+    wlo, whi = MultinomialCS(1).win_ratio([0, 3, 0]); assert np.isinf(whi) and 0 < wlo < 1
+    wlo, whi = MultinomialCS(1).win_ratio([0, 0, 7]); assert wlo == 0.0 and whi < 2
+    rng = np.random.default_rng(5); bad = 0
+    g = np.linspace(0, 1, 601); W, L = np.meshgrid(g, g, indexing='ij'); ok = W + L <= 1 + 1e-12; W, L = W[ok], L[ok]; T = 1 - W - L
+    P = np.stack([T, W, L], -1)
+    for t in range(200):
+        n = int(rng.integers(1, 80)); x = rng.multinomial(n, rng.dirichlet([.3, .3, .3])).astype(float)
+        inside = loglik(x, P) >= cs_threshold(x, np.ones(3), .05); nb = W - L
+        lo, hi = MultinomialCS(1, .05, 1.0).net_benefit(x)
+        # bounds must contain the grid set (conservative) and be within grid resolution of it
+        if not (lo <= nb[inside].min() + 1e-9 and hi >= nb[inside].max() - 1e-9 and lo >= nb[inside].min() - 4e-3 and hi <= nb[inside].max() + 4e-3):
+            bad += 1
+    assert bad == 0, bad
+    print('boundary-law and conservativeness checks ok (issue #4)')
+
+
+if __name__ == '__main__':
+    test_boundary_laws_issue4()
+
+
+def test_shift_equivariance_pr5():
+    """PR #5 review: bounds must be shift-equivariant and conservative for huge offsets."""
+    from wincs import cs_threshold
+    x = np.array([2., 3., 4.]); c = 1e12 + np.array([0., 1., 2.]); prior = np.ones(3); p = np.array([.04, .12, .84])
+    upper = linear_bound(x, c, prior, .05)
+    assert abs(p.sum() - 1) < 1e-15 and loglik(x, p) > cs_threshold(x, prior, .05)
+    assert c @ p <= upper + 1e-3, (c @ p, upper)                      # feasible point never exceeds the bound
+    base_hi = linear_bound(x, c - 1e12, prior, .05); base_lo = linear_bound(x, c - 1e12, prior, .05, False)
+    assert abs(upper - (base_hi + 1e12)) < 1e-3 and abs(linear_bound(x, c, prior, .05, False) - (base_lo + 1e12)) < 1e-3
+    rng = np.random.default_rng(11)
+    for _ in range(300):
+        n = int(rng.integers(1, 200)); xx = rng.multinomial(n, rng.dirichlet([.5, .5, .5])).astype(float)
+        cc = rng.normal(size=3) * rng.choice([1, 1e3, 1e6]); K = rng.normal() * rng.choice([1, 1e6, 1e9])
+        for mx in (True, False):
+            a = linear_bound(xx, cc, prior, .05, mx); b = linear_bound(xx, cc + K, prior, .05, mx)
+            assert abs((b - K) - a) <= 1e-9 * max(1.0, abs(K), np.abs(cc).max()), (xx, cc, K, a, b)
+        # feasible random points never beat the bounds
+        for _ in range(20):
+            q = rng.dirichlet(xx + 0.5)
+            if loglik(xx, q) > cs_threshold(xx, prior, .05):
+                assert cc @ q <= linear_bound(xx, cc, prior, .05) + 1e-9 * max(1, np.abs(cc).max())
+                assert cc @ q >= linear_bound(xx, cc, prior, .05, False) - 1e-9 * max(1, np.abs(cc).max())
+    print('shift-equivariance and feasible-point conservativeness ok (PR #5 review)')
+
+
+if __name__ == '__main__':
+    test_shift_equivariance_pr5()

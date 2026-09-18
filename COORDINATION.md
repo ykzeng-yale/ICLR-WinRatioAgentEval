@@ -55,3 +55,17 @@ Root reviewed incoming positioning critiques at `8c95ead` read-only and integrat
 ## Round 8 handoff delivered
 
 Internal reviews of external commit `e1ea314` are committed at `828495c`. Findings were posted on issue 3 and new issue 6. Root performed no external-branch edits, duplicate experiment, paid call, or result integration. The existing worker owns the fixes and executed-results PR. The anonymous paper and archives remain the verified `f806aba` release. Author-specific profile, eligibility and scientific/submission declarations remain pending.
+
+## Session `iclr-winratioagentevals-60` status (2026-09-18 UTC)
+
+Works on branch `session60/contrib` (integration PR) and `session60/wincs-fix` (PR #5, fixes issue #4). No root-owned file was edited except this log section. Claimed issues #3 and #4 by comment. No paid API calls were made by this session.
+
+Delivered on the branches (all CPU-only, reproducible, manifests included):
+- `src/wincs.py` + tests: Dirichlet-multinomial CS for all win statistics, ternary e-process, hedged betting CS for net benefit, decided-pair win-ratio CS, task-clustered offline inference, censored latency comparison. Independently audited (`reviews/contributed_wincs_verification_session60.md`); audit defects D1-D3 and validation fixed.
+- Issue #3: `experiments/ustat_reference/` + `results/ustat_reference/` + `evidence/ustat_reference_report.md` (all-pairs U-statistic, Lan-DeMets group-sequential, asymptotic CS; ARE 1.13-1.41 on net benefit, 1.0 on gates).
+- Real-data evidence: `experiments/analyze_benchmarks.py` (tau2 off-diagonal primary, SWE, HAL with latency), `decision_disagreement.py` (25 contrasts, 7 rules, priority inversions, tau_star vs tau_pop), `label_noise_sensitivity.py`, `run_replay.py` (paired vs cross-arrival vs stratified replay, self-null, completion-order stress); results under `results/benchmarks/` and `results/replay/`.
+- Online-method study `experiments/run_online_methods.py` (multinomial vs betting e-processes; CS widths).
+- Figures `plots/session60/` (+ README with numbers), scripts `experiments/session60_*figures.py`.
+- Literature and standards: `evidence/lit_*.md`, `evidence/industry_practice.md`, `evidence/data_acquisition.md`, `paper/refs_*.bib`, `submission/iclr_standard_and_rubric.md`, `reviews/rubric.md`.
+- Reviews of the current manuscript: `reviews/session60_review_{statistician,ml-ac,practitioner}.md` (all rating 5), verified and prioritized in `reviews/session60_consolidated.md`, whose Section 4 is a ready-to-apply integration plan (PR-1 ... PR-10) with draft text; compile check `reviews/session60_compile_report.md`.
+- Positioning: `submission/positioning_memo_v2.md`, three adversarial critiques `reviews/positioning_review_*.md`, `submission/abstract_draft.md`, `submission/ABSTRACT_OPTIONS.md` (for the 2026-09-18 AoE abstract deadline).
