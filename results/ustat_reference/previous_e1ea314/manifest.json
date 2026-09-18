@@ -6,8 +6,7 @@
     "seed": 20260918,
     "workers": 8,
     "mc_pairs": 1000000,
-    "out": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/results/ustat_reference",
-    "calibration_only": false
+    "out": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/results/ustat_reference"
   },
   "alpha": 0.05,
   "thresholds": [
@@ -343,9 +342,7 @@
     }
   },
   "asympcs": {
-    "method": "allpairs_asympcs_projection_gaussian",
-    "boundary": "one-sided normal mixture (Howard et al. 2021), V=n, rho2=100, sigma_hat=sqrt(zeta10_hat+zeta01_hat), monitored from n=100",
-    "guarantee": "asymptotic confidence sequence (Waudby-Smith et al. time-uniform CLT route) via the symmetric-kernel one-sample reduction k(X_i,X_j)={h(A_i,B_j)+h(A_j,B_i)}/2 (see ustat.py and README); not a finite-sample 5% crossing bound from n=100; not the Cai-Hu-Li delayed-start family",
+    "boundary": "one-sided normal mixture (Howard et al. 2021), V=n, rho2=100, sigma_hat=sqrt(zeta10_hat+zeta01_hat)",
     "u_over_n_at_looks": {
       "100": 0.32618,
       "1000": 0.08782,
@@ -353,15 +350,6 @@
       "5000": 0.04174,
       "10000": 0.03052
     }
-  },
-  "group_sequential": {
-    "covariance": "canonical Gaussian-limit covariance Cov(Z_k,Z_l)=sqrt(t_k/t_l) (asymptotic independent increments); information fraction t_k=n_k/N is the first-order limit, not the exact finite-sample fraction"
-  },
-  "conventions": {
-    "simultaneous": "deploy at the first look at which all three gate statistics are beyond their boundaries at that look (paper convention; used for all comparisons with results/online_methods_results.csv)",
-    "retained": "each gate keeps its first crossing; deploy at the first look by which all three have crossed",
-    "win_only": "single gate, convention-free",
-    "fixed_wald": "single look, conventions coincide"
   },
   "seeds": {
     "convention": "numpy SeedSequence([seed, scenario_index]); scenario_index = position in run_online_methods.SCENARIOS",
@@ -435,67 +423,54 @@
       0.55
     ]
   },
-  "seconds_total": 309.8622498512268,
-  "workers": 8,
+  "seconds_total": 411.5215129852295,
   "per_scenario": {
     "null": {
-      "seconds": 306.7429285412654,
-      "maxrss_bytes": 238157824,
-      "seed_index": 0
+      "seconds": 408.73856808338314,
+      "maxrss_bytes": 240484352
     },
     "efficiency_gain": {
-      "seconds": 293.4859039997682,
-      "maxrss_bytes": 240730112,
-      "seed_index": 1
+      "seconds": 390.7765700845048,
+      "maxrss_bytes": 237158400
     },
     "success_regression": {
-      "seconds": 278.0686961244792,
-      "maxrss_bytes": 228818944,
-      "seed_index": 2
+      "seconds": 369.046589916572,
+      "maxrss_bytes": 232128512
     },
     "safety_regression": {
-      "seconds": 285.68424908351153,
-      "maxrss_bytes": 234323968,
-      "seed_index": 3
+      "seconds": 377.0283212903887,
+      "maxrss_bytes": 234782720
     },
     "joint_gain": {
-      "seconds": 306.88993729185313,
-      "maxrss_bytes": 227459072,
-      "seed_index": 4
+      "seconds": 406.7838136246428,
+      "maxrss_bytes": 230096896
     },
     "weak_gain": {
-      "seconds": 307.5424218326807,
-      "maxrss_bytes": 234274816,
-      "seed_index": 5
+      "seconds": 407.19981229119,
+      "maxrss_bytes": 236552192
     },
     "tie_heavy_null": {
-      "seconds": 250.23473783303052,
-      "maxrss_bytes": 224198656,
-      "seed_index": 6
+      "seconds": 340.4205595413223,
+      "maxrss_bytes": 227966976
     },
     "tie_heavy_efficiency": {
-      "seconds": 243.18916008248925,
-      "maxrss_bytes": 229670912,
-      "seed_index": 7
+      "seconds": 334.72204887494445,
+      "maxrss_bytes": 244334592
     }
   },
-  "peak_rss_bytes_parent": 460128256,
-  "peak_rss_bytes_max_child": 240730112,
+  "peak_rss_bytes_parent": 456704000,
+  "peak_rss_bytes_max_child": 244334592,
   "python": "3.12.13",
   "numpy": "2.4.1",
   "platform": "macOS-26.5.2-arm64-arm-64bit",
-  "cpu_count": 10,
-  "machine": "arm64",
   "source_sha256": {
-    "ustat.py": "ee98a9b344a628fa1dc49d4c314ef9c52252de70aee74316f8d022b93ea58f5d",
-    "run_ustat_reference.py": "cb96f8a58577dc9980109b5ed6932a64deae1f73005e0adf5b5af703103809e8"
+    "ustat.py": "8be5638fb709992a4fd44f4eb4f9053296b57ce1348cec7e5a6ba2c22a35fd0a",
+    "run_ustat_reference.py": "ed7c1236c74bc109a4b34358a50cdcdd9f5d90d64dea0d82db04a2bb67337201"
   },
   "upstream_sha256": {
     "src/winstats.py": "3053f8a14e033b02b514135d7043624ca34c1a1f9da9c622365d35aa7f927fd9",
     "experiments/run_simulations.py": "b3d51d15f707855db19b52f206b7b3362fb8f9a3f4a42df138b4a18840f63c9c",
-    "experiments/run_online_methods.py": "a9126633a055252d791947aaeff26edb76afcaaf0385c4a23dae21da941275bd",
-    "results/online_methods_results.csv": "b12a41b3cb84501e50a92df623bdec459e762f46a5945a865d889a4b55f3fc54"
+    "experiments/run_online_methods.py": "9c11a399a6215e089c523f14b1c3fb8b7d374a452c7c65d6457e936ebd787df7"
   },
-  "reproduction_check_all_expected_rows_identical": true,
-  "interpretation": "Synthetic independent streams, not live A/B results. All-pairs, group-sequential and AsympCS rules are asymptotic; disjoint_betting is exact finite-sample. Group-sequential rules use only the 10 planned looks. Execution accounting: N records per arm = 2N executions = N disjoint pairs, so max_runs_per_arm = 10000 is the paper's max_pairs = 10000 and a look with n records per arm has consumed 2n executions for both designs."
+  "interpretation": "Synthetic independent streams, not live A/B results. All-pairs, group-sequential and AsympCS rules are asymptotic; disjoint_betting is exact finite-sample. Group-sequential rules use only the 10 planned looks. Runs used are per arm (1 run per arm = 1 disjoint pair), so max_runs_per_arm = 10000 is the same execution budget as max_pairs = 10000."
 }

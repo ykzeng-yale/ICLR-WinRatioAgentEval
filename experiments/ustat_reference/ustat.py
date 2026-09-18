@@ -29,18 +29,44 @@ sorted log-costs: A wins on cost against B iff cost_A < 0.95 cost_B, i.e.
 log cost_B > log cost_A - log 0.95.  No n_A x n_B matrix is ever formed except
 in the brute-force test oracle, which is restricted to n <= 2000.
 
-Sequential procedures:
+Sequential procedures (all asymptotic; the precise statements are in README.md):
   * group-sequential (K planned looks) with Lan-DeMets alpha spending; boundaries
     by the Armitage-McPherson-Rowe recursive numerical integration (one-sided).
-    Independent increments of the cumulative all-pairs statistic:
-    Bergemann & Hanson Prop. 1; Zhang & Wu (arXiv:2410.06281) Prop. 3.1/Thm 3.4.
-  * asymptotic anytime-valid CS in the sense of Waudby-Smith et al. (2024,
-    time-uniform CLT) for the two-sample U-statistic: the Hoeffding linear term
-    (1/n) sum_i {g_10(X_i) + g_01(Y_i)} (n_A = n_B = n) is an i.i.d. average
-    with variance zeta_10 + zeta_01, so U_n +/- sigma_hat_n * (one-sided normal
-    mixture boundary with V = n).  Cai, Hu & Li (2026, arXiv:2605.14692) state
-    the one-sample analogue U_n +/- 2 sigma_hat_n gamma(n); no two-sample
-    theorem is stated there, so this is the "standard AsympCS route".
+    The boundary recursion uses the canonical Gaussian-limit covariance
+    Cov(Z_k, Z_l) = sqrt(t_k / t_l) of the standardized cumulative all-pairs
+    statistics at the looks, i.e. asymptotically independent increments, with
+    information fraction t_k = n_k / N as the first-order limit of
+    Var(U_N) / Var(U_{n_k}).  This is the joint asymptotic normal law of
+    Zhang & Wu (arXiv:2410.06281, Thm 3.4) under converging stage fractions;
+    Bergemann & Hanson (arXiv:2601.22525) Prop. 1 is the exact finite-sample
+    covariance identity Cov(U_k, U_l) = Var(U_l) for nested looks with fixed
+    endpoints.  Covariance alone is not finite-sample independence of the
+    increments of the nonlinear statistic, and n_k / N is not the exact
+    finite-sample information fraction (the residual 1/n^2 term is dropped).
+  * projection-based Gaussian anytime monitoring of the all-pairs statistic
+    (method name allpairs_asympcs_projection_gaussian): the lower bound
+    U_n - sigma_hat_n u_alpha(n) / n with sigma_hat_n^2 = zeta10_hat + zeta01_hat
+    and u_alpha the one-sided normal-mixture boundary (rho^2 = 100) monitored
+    from the first look n = 100.  Guarantee: an asymptotic confidence sequence
+    (AsympCS) in the sense of Waudby-Smith et al. (2024, time-uniform CLT
+    route), obtained through the symmetric-kernel one-sample reduction.  With
+    X_i = (A_i, B_i) i.i.d. and k(X_i, X_j) = {h(A_i, B_j) + h(A_j, B_i)} / 2,
+    the one-sample order-2 U-statistic U_n^* of k has mean theta and
+        U_n = (1 - 1/n) U_n^* + D_n / n,     |U_n - U_n^*| <= 2 / n,
+    where D_n is the disjoint-pair mean; the first projection of k is
+    {a(A) + b(B)} / 2 with a(A) = E_B h(A,B) - theta, b(B) = E_A h(A,B) - theta,
+    so the Hoeffding linear term (1/n) sum_i {a(A_i) + b(B_i)} has variance
+    sigma_A^2 + sigma_B^2 = zeta10 + zeta01 under independent arms.  The bounded
+    kernel supplies the moment conditions of the strong Gaussian approximation,
+    nondegeneracy zeta10 + zeta01 > 0 is required (it holds in every frozen
+    scenario; the V > 0 check in the runner is a numerical convention, not a
+    theorem for degenerate kernels), and the row/column conditional-mean
+    variance estimator is strongly consistent (bounded multi-sample averages
+    with repeated-index terms of vanishing order).  It is NOT a finite-sample
+    5% crossing bound from n = 100, and it is NOT the delayed-start family of
+    Cai, Hu & Li (2026, arXiv:2605.14692, Thms 1-3), whose one-sample
+    statement U_n +/- 2 sigma_hat_n gamma(n) it parallels (their 2 sigma_hat is
+    our sqrt(zeta10_hat + zeta01_hat)); no two-sample theorem is stated there.
 
 All of these are asymptotic (CLT-based) procedures; the disjoint-pair betting
 and normal-mixture procedures in src/winstats.py are exact finite-sample.
