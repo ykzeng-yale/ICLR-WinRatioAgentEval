@@ -36,3 +36,8 @@ The full proof/benchmark/review checkpoint has now been pushed. Additional async
 ## Final release coordination update
 
 The historical notes above describe earlier checkpoints. The capped pilot, asynchronous studies, grader ablations, isolated reference and actual trace-prefix audit are now complete and handed back. All paid calls are stopped at USD3.9476608 total accounted cost; other sessions have zero additional allocation. Root owns the final paper, generated summaries and anonymous release archives. Fresh independent trace reconstruction passed all10,008 comparisons. PR5 has a posted blocking feasible-point counterexample and must not be treated as approved or merged; generic contributed projection/width routines remain excluded from submission results. Use the active EXPERIMENT_QUEUE.md and issue-specific branches for new work, preserve all frozen baselines, and return a pull request rather than rewriting main.
+
+
+## Round 6 handoff
+
+Root integrated two source-verified close priors, direct causal-estimand attribution and a standard equal-budget variance identity. Independent source/theory reviews passed. The updated paper has 33 total pages with main content ending on page 9; numerical outputs/code are unchanged. The new archive passed a delta/rebuild audit against the preserved 31-page release. The external U-statistic comparison remains claimed by session iclr-winratioagentevals-60; this audit did not touch that worker's directories or run a duplicate experiment. All paid calls remain stopped.

@@ -1,0 +1,24 @@
+{
+  "pages": 33,
+  "main_content_last_page": 9,
+  "statements_begin_page": 9,
+  "all_pages_visually_inspected": true,
+  "overfull_boxes": false,
+  "undefined_references_or_citations": false,
+  "pdf_author_field": "",
+  "identifying_pdf_text": false,
+  "paper_copy_matches": true,
+  "pdf_sha256": "95b1a8b972401111b376858a77caeeae0223eae091df4ba1e0a146881301630f",
+  "anonymous_code.zip": {
+    "members": 144,
+    "all_members_relative": true,
+    "pdf_present": true,
+    "sha256": "fc38286414a642d9145891c909c6f459a628e239902237ec3f2862e5a20e7a92"
+  },
+  "latex_source.zip": {
+    "members": 44,
+    "all_members_relative": true,
+    "pdf_present": true,
+    "sha256": "c2de905037363ea3fcca8553bb24796e0f20fb665921b58eecc8b267d66f4ba1"
+  }
+}

@@ -4,7 +4,7 @@
 
 ## Files to review and upload
 
-- **paper.pdf**: official ICLR 2027 review format, 31 pages total; main content ends on page 9. It contains the methods, experiments, full proofs, limitations, references, and reproducibility, ethics, and AI-use statements.
+- **paper.pdf**: official ICLR 2027 review format, 33 pages total; main content ends on page 9. It contains the methods, experiments, full proofs, limitations, references, and reproducibility, ethics, and AI-use statements.
 - **anonymous_code.zip**: portable code, complete numerical results, protocols, provenance, source-download instructions, and the paper sources. Its default verification and explicit full reproduction never call paid models.
 - **latex_source.zip**: editable LaTeX and required figures/style files.
 - **abstract.txt** and **form_draft.md**: the current genuine abstract, title, keywords and form-preparation notes.
@@ -13,7 +13,7 @@
 
 Use the anonymous archive as the code supplement. The public development GitHub repository identifies the author and should not be linked in anonymous review materials.
 
-The final archive passed clean extraction and full reproduction: all 23 numerical CSVs, prospective aggregate summary, generated LaTeX and rebuilt PDF text match. Default verification checks 73 archived output hashes. All PDF pages were visually inspected; no missing references, overfull text or detected author/credential leaks remain in the anonymous artifacts. The code archive SHA256 is `9ef791870c48f72b03a637f9f7d120cd1cad4beeea8a6a9b217f0305c041bb61`.
+The preceding numerical release passed clean extraction and full reproduction: all 23 numerical CSVs, prospective aggregate summary, generated LaTeX and rebuilt PDF text match. Default verification checks 73 archived output hashes. All PDF pages were visually inspected; no missing references, overfull text or detected author/credential leaks remain in the anonymous artifacts. The Round 6 release changes only attribution, an independently reviewed appendix and PDF; numerical code/results are unchanged. Its separate delta audit passed: 73 hashes, all 23 unchanged numerical CSVs, all 44 LaTeX-source members and the rebuilt 33-page PDF text match. The current code archive SHA256 is `fc38286414a642d9145891c909c6f459a628e239902237ec3f2862e5a20e7a92`.
 
 ## What has actually been done
 

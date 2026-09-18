@@ -132,6 +132,9 @@ cross-world quantity $\E h(Y^A,Y^B)$, which requires a joint
 potential-outcome law unobserved under single-system exposure.
 The distinction between marginal, individual, and same-covariate
 preferences is established in \citet{even2025rethinking}.
+Contrast functions averaged over the marginal potential-outcome laws,
+with inverse-probability and doubly robust estimation, are developed by
+\citet{mao2018causal}; this distributional causal target is not new here.
 
 For independent online arrivals in stratum $s$, the observable
 distributional comparison is
@@ -359,6 +362,20 @@ information available to all-pairs estimators for a simple randomized
 score and explicit finite-sample monitoring. We do not establish its
 efficiency relative to every sequential U-statistic method.
 
+Two recent win-statistic proposals address nearby concerns.
+\citet{li2026worstcase} tests benefit under every prespecified hierarchy
+or threshold rule using an intersection--union argument and asymptotic
+fixed-sample inference. Our conjunction uses separate outcome-component
+requirements and continuously monitored evidence; the intersection--union
+principle itself is established. \citet{mccoy2026psnb} replaces
+reach-weighted tier aggregation with prespecified weights on
+stage-conditional effects, explicitly limiting lower-tier influence.
+That changes the composite estimand; it does not impose our requirements
+on raw population success or compliance differences. A positive
+reweighted composite can still fail such a requirement, as illustrated
+in Appendix~\ref{app:pairing_efficiency}. We claim neither discovery of
+lower-tier dominance nor superiority to these different decision targets.
+
 Anytime off-policy confidence sequences already support deployment gates
 \citep{karampatziakis2021offpolicy}. Our use of those ideas is specific to
 prioritized episode comparisons and component constraints. The
@@ -423,4 +440,5 @@ human verification of every result and citation has been completed.
 \input{decision_ablation_appendix.tex}
 \input{prospective_appendix.tex}
 \input{dm_appendix.tex}
+\input{pairing_efficiency.tex}
 \end{document}

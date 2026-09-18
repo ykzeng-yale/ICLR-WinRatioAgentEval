@@ -11,6 +11,7 @@ required=['requirements.txt','reproduce.py','REPRODUCIBILITY.md','src/winstats.p
  'experiments/run_trace_certificates.py','experiments/build_trace_paper_results.py','evidence/trace_certificate_protocol.md',
  'experiments/verify_trace_certificates_independent.py',
  'paper/trace_certificate_results.tex','paper/trace_certificate_appendix.tex',
+ 'paper/pairing_efficiency.tex',
  'paper/main.tex','paper/theory.tex','paper/asynchronous.tex','paper/results_main.tex','paper/experiments_appendix.tex',
  'paper/public_results.tex','paper/public_appendix.tex','paper/async_results.tex','paper/async_appendix.tex',
  'paper/references.bib','paper/iclr2027_conference.sty','paper/iclr2027_conference.bst','paper/fancyhdr.sty','paper/natbib.sty',

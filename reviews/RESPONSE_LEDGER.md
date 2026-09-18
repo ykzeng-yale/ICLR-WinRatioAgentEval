@@ -34,7 +34,7 @@ The empirical reviewer independently reproduced every aggregate result and calen
 
 ## External contribution audit
 
-A separately contributed multinomial projection module was preserved during repository synchronization. Independent checks found a deterministic-boundary numerical defect; GitHub issue4 records the reproducer. It is not used in reported main-paper results. A separately audited complete-data ternary likelihood-ratio reference is under evaluation. No partial-score plug-in is authorized for that reference because it lacks the positive-betting monotonicity used by our asynchronous proof.
+A separately contributed multinomial projection module was preserved during repository synchronization. Independent checks found a deterministic-boundary numerical defect; GitHub issue4 records the reproducer. It is not used in reported main-paper results. The separately audited complete-data ternary likelihood-ratio reference was subsequently integrated and reproduced; see the Round 4 and Round 5 entries below. No partial-score plug-in is authorized for that reference because it lacks the positive-betting monotonicity used by our asynchronous proof.
 
 ## Round 4: fresh integrated review and standalone reproduction
 
@@ -55,3 +55,12 @@ The final extended archive passed a fresh extraction and the exact full reproduc
 ## Separate contributed-code PR 5
 
 An independent review of head 30fda600 found that the attempted boundary fix still underestimates an upper bound by 0.24365234375 for an explicitly feasible probability vector with a common coefficient offset. The exact reproducer and remedy were posted to PR 5. The patch is not merged, and the generic projection/width modules remain outside the submission archive and reported scientific results. This defect does not affect the isolated complete-data ternary DM reference. See pr5_projection_fix_review.md.
+
+
+## Round 6: close prior work and equal-budget comparison
+
+An independent source audit verified the original metadata and full HTML for Li, Fan and Yang (2026) and McCoy et al. (2026). Both are now explicitly cited: the former for fixed-sample asymptotic intersection–union inference over allowed comparison rules, the latter for replacing reach weights with a charter on stage-conditional effects. Mao (2018) is directly cited for marginal potential-outcome contrasts and IPW/doubly robust estimation. The manuscript no longer leaves these close connections implicit. The PSNB example establishes a difference in population requirements, not an invalid competing test or a comparative-power result.
+
+A separate theory review found a factor-of-two budget convention error in the development literature note, which began with N records per arm but assigned only N/2 disjoint pairs. The corrected comparison has N pairs for 2N executions. New Appendix J gives the complete standard projection proof and shows that raw component-difference point estimators are exactly equal on the same arm records, while the hierarchical score can benefit from all-pairs reuse. The report verifies the proof, degenerate cases and PSNB algebra. No simulation result used the erroneous literature-note expression. No new generic-method novelty or sequential stopping advantage is inferred from this identity.
+
+The Round 6 archive audit compared against the preserved Round 5 baseline: only main text, bibliography, the new appendix and manuscript PDF changed. All 23 numerical CSVs and other scientific payloads are unchanged. Default integrity verification plus PDF rebuild passed; all 44 LaTeX-source members match, the rebuilt 33-page PDF text matches, and all pages were visually checked with no overfull boxes or undefined references. The main text still ends on page 9. See round6_close_prior_source_audit.md, round6_pairing_efficiency_identity.md, round6_release_delta_audit.md and round6_visual_and_archive_qa.json.
