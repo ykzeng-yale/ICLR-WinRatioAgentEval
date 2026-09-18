@@ -1,5 +1,7 @@
 # Research status
 
+An hourly follow-up now checks GitHub and continues review/integration in the existing task. [READINESS_TRACKER.md](READINESS_TRACKER.md) defines a fixed 100-point checklist, currently **70% verified readiness**. New PR 7/8 fixes and PR 10 drift results received around 21:46 UTC on September 18 await validation; they have not yet earned additional credit. Airline progress is owner-reported at 27/196 episodes, not final delivery. This is package readiness, not an acceptance forecast or submission confirmation.
+
 ## Latest checkpoint — September 18, 2026, Round 9
 
 The author now prohibits further commercial/proprietary-model experiment calls; new agents, simulators, judges and fallbacks must use open weights/open-source systems. [EXPERIMENT_POLICY.md](EXPERIMENT_POLICY.md) supersedes older budget language. Existing observations remain preserved.

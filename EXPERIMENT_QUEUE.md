@@ -1,5 +1,7 @@
 # Experiment delivery and remaining work
 
+**Hourly-monitor update, September 18, 2026, 21:46 UTC:** new heads PR 7 `ac17f590`, PR 8 `e0610088`, and the CPU drift panel PR 10 `ae3f0a5` have been received and await independent root validation. The airline owner reports 27/196 episodes saved at 21:44 UTC under an amended second invocation. These newer deliveries supersede the receipt status below, but do not close the outstanding validation conditions. See [READINESS_TRACKER.md](READINESS_TRACKER.md) for the fixed readiness rubric (currently 70%), exact pending heads and hourly follow-up instructions. Do not duplicate the now-delivered drift panel.
+
 Last checked September 18, 2026, approximately 19:50 UTC. This is a delivery/validation ledger, not a claim that all original planned experiments or paper integration are complete.
 
 **No further commercial/proprietary-model calls are authorized.** All new experimental agents, simulators, graders and fallbacks must use open weights/open-source systems under [EXPERIMENT_POLICY.md](EXPERIMENT_POLICY.md). Earlier USD 5/4 allowances are historical and superseded. The closed pilot's accounted cost remains USD 3.9476608, including retained reservations; no spending was added by this audit.
