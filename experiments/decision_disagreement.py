@@ -72,13 +72,18 @@ def pair_rows(dA, dB, a, b, dom, source, cols):
                cost_diff=float(dA.cost.mean() - dB.cost.mean()), steps_diff=float(dA.steps.mean() - dB.steps.mean()))
     row['dec_success_only'] = decide(ds_lo, ds_hi)
     row['dec_hierarchical'] = decide(cs['nb_ci'][0], cs['nb_ci'][1])
-    row['dec_guarded'] = 'A' if (cs['nb_ci'][0] > 0 and ds_lo > -MARGIN) else ('B' if (cs['nb_ci'][1] < 0 and ds_hi < MARGIN) else 'undecided')
     # incumbent per-metric conjunction (experimentation-platform practice): success non-inferior AND cost superior
     dc, dc_lo, dc_hi = clustered_diff(dA, dB, 'cost')
     row['cost_diff_lo'], row['cost_diff_hi'] = dc_lo, dc_hi
-    row['dec_conjunction'] = 'A' if (ds_lo > -MARGIN and dc_hi < 0) else ('B' if (ds_hi < MARGIN and dc_lo > 0) else 'undecided')
+    def directional(pred_a, pred_b):
+        # Both directions are evaluated symmetrically; if both predicates hold the
+        # rule is internally inconsistent and we report 'conflict' rather than
+        # privileging the listed candidate direction (issue #6).
+        return 'conflict' if (pred_a and pred_b) else ('A' if pred_a else ('B' if pred_b else 'undecided'))
+    row['dec_conjunction'] = directional(ds_lo > -MARGIN and dc_hi < 0, ds_hi < MARGIN and dc_lo > 0)
     # success superiority alone OR (success non-inferior AND cost superior): a common two-branch launch rule
-    row['dec_launch_rule'] = 'A' if (ds_lo > 0 or (ds_lo > -MARGIN and dc_hi < 0)) else ('B' if (ds_hi < 0 or (ds_hi < MARGIN and dc_lo > 0)) else 'undecided')
+    row['dec_launch_rule'] = directional(ds_lo > 0 or (ds_lo > -MARGIN and dc_hi < 0), ds_hi < 0 or (ds_hi < MARGIN and dc_lo > 0))
+    row['dec_guarded'] = directional(cs['nb_ci'][0] > 0 and ds_lo > -MARGIN, cs['nb_ci'][1] < 0 and ds_hi < MARGIN)
     sa, sb = dA.success.mean(), dB.success.mean(); ca, cb = dA.cost.mean(), dB.cost.mean()
     row['dec_pareto'] = 'A' if (sa >= sb and ca <= cb and (sa > sb or ca < cb)) else ('B' if (sb >= sa and cb <= ca and (sb > sa or cb < ca)) else 'neither')
     for lam in LAMBDAS:
@@ -123,6 +128,7 @@ def main():
                    pairs_guarded_vs_conjunction_differ=int((out.dec_guarded != out.dec_conjunction).sum()),
                    pairs_guarded_vs_launch_differ=int((out.dec_guarded != out.dec_launch_rule).sum()),
                    pairs_pareto_neither=int((out.dec_pareto == 'neither').sum()),
+                   conflicts=int((out[dec_cols] == 'conflict').sum().sum()),
                    priority_inversions=int(out.priority_inversion.sum()),
                    inversions_with_nb_ci_excluding_zero=int((out.priority_inversion & (out.dec_hierarchical != 'undecided')).sum()),
                    sign_differs_star_vs_pop=int(out.sign_differs_star_vs_pop.sum()),

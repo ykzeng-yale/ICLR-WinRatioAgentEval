@@ -1,7 +1,7 @@
 {
   "inputs_sha256": {
-    "results/replay/replay_results.csv": "76cde0e73c926586a9f81c0e5340d0b4790d765cffa4e984a0b82515fa0f1e91",
-    "results/replay/example_stream_cs.csv": "8eaa47951c13a3ff85dae1f7cd8b7f2bec5db602ab83274ea19656b338f81bf5",
+    "results/replay/replay_results.csv": "4943c8de1c36a07df6a76a4b0b3e8c14710249724d9d61df8f22dc400560762b",
+    "results/replay/example_stream_cs.csv": "9d800419d9e7a66c77b52a56610c11d1b393dda22830cf6c6e2cb8cee560d5d3",
     "results/benchmarks/tau2_rankings.csv": "80ec94d09394e874de1d69123240a29914f86a1194c935c5026898d3d5f9da5d",
     "results/benchmarks/hal_contrasts.csv": "838b06de2c62c103ff2e0de3df7dd47e4b481f16afc5fa63ade5cee3f85b44a5",
     "results/cs_width.csv": "b8fd34eba63d31571232737227d213f76109c5e8ffbab54238c3e33f105b351f",
@@ -11,13 +11,13 @@
     "example_stream": {
       "n_final": 2000,
       "nb_hat": 0.097,
-      "nb_lo": 0.0370440673828125,
-      "nb_hi": 0.156383056640625,
+      "nb_lo": 0.0327104453593492,
+      "nb_hi": 0.1606386129558086,
       "succ_hat": 0.029,
-      "succ_lo": -0.0098712158203125,
-      "succ_hi": 0.0679217529296875,
-      "first_n_nb_lo_pos": 425,
-      "first_n_succ_lo_above": 775
+      "succ_lo": -0.0126855707615613,
+      "succ_hi": 0.0707420158088207,
+      "first_n_nb_lo_pos": 475,
+      "first_n_succ_lo_above": 1250
     },
     "top_by_domain": {
       "airline": [
@@ -234,20 +234,20 @@
     },
     "replay_csv": {
       "paired": {
-        "deploy_rate": 0.942,
-        "median": 852.0,
-        "q25": 588.0,
-        "q75": 1148.0,
+        "deploy_rate": 0.976,
+        "median": 838.5,
+        "q25": 566.75,
+        "q75": 1197.75,
         "harm_rate": 0.0
       },
       "cross_arrival": {
-        "deploy_rate": 0.354,
-        "median": 1204.0,
-        "q25": 734.0,
-        "q75": 1573.0,
+        "deploy_rate": 0.368,
+        "median": 1228.0,
+        "q25": 861.0,
+        "q75": 1646.25,
         "harm_rate": 0.002
       }
     }
   },
-  "seconds": 7.9850029945373535
+  "seconds": 8.099544763565063
 }

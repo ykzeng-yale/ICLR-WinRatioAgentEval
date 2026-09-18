@@ -16,8 +16,8 @@ All inputs are read-only; the script only re-reads them at the end and regenerat
   The CSV stores only summary quantiles, so the plotted cumulative "fraction deployed by n" curves come from an
   independent re-run of the same replay (functions imported from `experiments/run_replay.py`, same pools/scoring/rule,
   fresh seeds `[60, k]`); the canonical CSV numbers are printed under the plot.
-* Canonical CSV: paired design deploys in 94.2% of orders, median stop 852 pairs (IQR 563-1198), harm flags 0.0%;
-  cross-arrival design deploys in 35.4%, median stop 1157 (IQR 759-1639), harm flags 0.2%.
+* Canonical CSV: paired design deploys in 97.6% of orders, median stop 838 pairs (IQR 563-1198), harm flags 0.0%;
+  cross-arrival design deploys in 36.8%, median stop 1157 (IQR 759-1639), harm flags 0.2%.
   Re-run (curves): 95.2% / median 804 (paired) and 36.0% / median 1208.5 (cross-arrival); consistent within Monte-Carlo error
   (binomial SE ~1-2 points at 500 replicates).
 * Takeaway: pairing on the same task roughly triples the deployment rate (96% vs 33%) and shortens the median stopping time
