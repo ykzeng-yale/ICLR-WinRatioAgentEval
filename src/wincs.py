@@ -417,7 +417,7 @@ def task_bootstrap(win, loss, n_boot=10000, seed=0, weights=None):
         w = np.asarray(weights, float)[idx]; w = w / w.sum(1, keepdims=True)
         pw = (w * win[idx]).sum(1); pl = (w * loss[idx]).sum(1)
     nb = pw - pl
-    with np.errstate(divide='ignore'):
+    with np.errstate(divide='ignore', invalid='ignore'):
         lwr = np.log(pw) - np.log(pl)
     return dict(nb_ci=tuple(np.percentile(nb, [2.5, 97.5])),
                 wr_ci=tuple(np.exp(np.nanpercentile(lwr[np.isfinite(lwr)], [2.5, 97.5]))) if np.isfinite(lwr).any() else (np.nan, np.nan),
@@ -469,3 +469,99 @@ def nb_from_win_ratio(win_ratio, p_tie):
     """Net benefit implied by a win ratio and tie probability."""
     pl = (1 - p_tie) / (1 + win_ratio)
     return (1 - p_tie) - 2 * pl
+
+
+# ----------------------------------------------------------------------------
+# Betting confidence sequences on bounded projections (main online engine)
+# ----------------------------------------------------------------------------
+
+def default_stakes(n_bets=40, lo=1e-4, hi=0.5):
+    """Prespecified geometric stake grid for scores with range 2 (|z-m|<=2)."""
+    return np.geomspace(lo, hi, n_bets)
+
+
+def betting_log_capital_ternary(pos, tie, neg, m, stakes=None):
+    """log of the hedged mixture capital for candidate mean m of a ternary
+    score z in {-1,0,1}: K(m) = max(K+(m), K-(m)) where K± mix over ±stakes.
+
+    pos, tie, neg: counts (broadcastable). m: candidate mean (scalar or array
+    broadcastable with counts). Returns log K(m). Valid for any predictable
+    stake grid fixed in advance (Waudby-Smith & Ramdas, 2024)."""
+    lam = default_stakes() if stakes is None else np.asarray(stakes, float)
+    pos = np.asarray(pos, float)[..., None]; tie = np.asarray(tie, float)[..., None]; neg = np.asarray(neg, float)[..., None]
+    m = np.asarray(m, float)[..., None]
+    def logk(l):
+        with np.errstate(divide='ignore', invalid='ignore'):
+            lk = pos * np.log1p(l * (1 - m)) + tie * np.log1p(-l * m) + neg * np.log1p(l * (-1 - m))
+        lk = np.where(np.isnan(lk), -np.inf, lk)
+        return logsumexp(lk, axis=-1) - np.log(lam.size)
+    return np.maximum(logk(lam), logk(-lam))
+
+
+def _invert_capital(logcap, delta, lo0=-1.0, hi0=1.0, coarse=201, iters=14):
+    """Invert a quasi-convex capital process: CS = {m : logcap(m) < log(1/delta)}.
+
+    logcap(m) must accept an array m broadcastable with the count arrays and
+    return log capital with the counts' shape. Coarse grid, then elementwise
+    bisection of both boundaries. Returns (lo, hi) with nan when empty."""
+    thr = np.log(1 / delta)
+    ms = np.linspace(lo0, hi0, coarse)
+    inside = np.stack([logcap(np.asarray(m)) < thr for m in ms], -1)
+    any_in = inside.any(-1)
+    first = np.argmax(inside, axis=-1); last = inside.shape[-1] - 1 - np.argmax(inside[..., ::-1], axis=-1)
+    # lower boundary between ms[first-1] (outside) and ms[first] (inside)
+    a = np.where(first > 0, ms[np.maximum(first - 1, 0)], lo0); b = ms[first]
+    for _ in range(iters):
+        mid = (a + b) / 2
+        ins = logcap(mid) < thr
+        a = np.where(ins, a, mid); b = np.where(ins, mid, b)
+    lo = np.where(first > 0, b, lo0)
+    a = ms[last]; b = np.where(last < coarse - 1, ms[np.minimum(last + 1, coarse - 1)], hi0)
+    for _ in range(iters):
+        mid = (a + b) / 2
+        ins = logcap(mid) < thr
+        a = np.where(ins, mid, a); b = np.where(ins, b, mid)
+    hi = np.where(last < coarse - 1, a, hi0)
+    return np.where(any_in, lo, np.nan), np.where(any_in, hi, np.nan)
+
+
+def betting_cs_ternary(pos, tie, neg, delta=0.05, stakes=None, coarse=201):
+    """Two-sided time-uniform CS for the mean of a ternary score by inverting
+    the hedged mixture capital process (quasi-convex in m)."""
+    pos = np.asarray(pos, float); tie = np.asarray(tie, float); neg = np.asarray(neg, float)
+    f = lambda m: betting_log_capital_ternary(pos, tie, neg, np.broadcast_to(m, pos.shape), stakes)
+    return _invert_capital(f, delta, -1.0, 1.0, coarse)
+
+
+def betting_log_capital_bernoulli(k, n, q, stakes=None):
+    """log hedged capital for a Bernoulli mean q from k successes in n trials
+    (scores in {0,1}; stakes scaled to range 1)."""
+    lam = (default_stakes() if stakes is None else np.asarray(stakes, float)) * 2.0  # |x-q|<=1 => lam<1
+    k = np.asarray(k, float)[..., None]; n = np.asarray(n, float)[..., None]; q = np.asarray(q, float)[..., None]
+    def logk(l):
+        with np.errstate(divide='ignore', invalid='ignore'):
+            lk = k * np.log1p(l * (1 - q)) + (n - k) * np.log1p(-l * q)
+        lk = np.where(np.isnan(lk), -np.inf, lk)
+        return logsumexp(lk, axis=-1) - np.log(lam.size)
+    return np.maximum(logk(lam), logk(-lam))
+
+
+def win_ratio_cs_decided(n_win, n_loss, delta=0.05, stakes=None, coarse=201):
+    """Time-uniform CS for the win ratio from decided (non-tied) pairs.
+
+    Among decided pairs the win indicator is Bernoulli(q) with q = WR/(1+WR)
+    (for iid pairs, conditioning on 'decided' preserves independence), so a
+    betting CS for q over the decided subsequence maps to WR = q/(1-q).
+    Returns (lower, upper); upper is inf if q=1 is not excluded."""
+    n_win = np.asarray(n_win, float); n_loss = np.asarray(n_loss, float); n = n_win + n_loss
+    f = lambda q: betting_log_capital_bernoulli(n_win, n, np.broadcast_to(q, n_win.shape), stakes)
+    qlo, qhi = _invert_capital(f, delta, 0.0, 1.0, coarse)
+    with np.errstate(divide='ignore', invalid='ignore'):
+        return qlo / (1 - qlo), np.where(qhi >= 1 - 1e-12, np.inf, qhi / (1 - qhi))
+
+
+def win_odds_from_nb(nb):
+    """Win odds = (1+NB)/(1-NB); monotone, so CS bounds map directly."""
+    nb = np.asarray(nb, float)
+    with np.errstate(divide='ignore'):
+        return (1 + nb) / (1 - nb)

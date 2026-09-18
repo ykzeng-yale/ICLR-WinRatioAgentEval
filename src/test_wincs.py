@@ -128,3 +128,23 @@ if __name__ == '__main__':
     t0 = time.time()
     test_misc(); test_linear_and_ratio_bounds_vs_grid(); test_eprocess_matches_cs(); test_time_uniform_coverage(); test_offline_clustered_coverage()
     print(f'all wincs tests passed in {time.time()-t0:.1f}s')
+
+
+def test_betting_cs():
+    from wincs import betting_cs_ternary, win_ratio_cs_decided, betting_log_capital_ternary
+    rng = np.random.default_rng(7); delta = 0.1; reps = 1000; N = 2000
+    p = [0.35, 0.4, 0.25]; nb = p[0] - p[2]; wr = p[0] / p[2]
+    cells = rng.choice(3, size=(reps, N), p=p); oh = np.eye(3)[cells]; cnt = np.cumsum(oh, axis=1)
+    looks = np.arange(20, N + 1, 20)
+    pos = cnt[:, looks - 1, 0]; tie = cnt[:, looks - 1, 1]; neg = cnt[:, looks - 1, 2]
+    lo, hi = betting_cs_ternary(pos, tie, neg, delta)
+    miss = ((lo > nb) | (hi < nb)).any(1).mean()
+    assert miss <= delta + 3 * np.sqrt(delta * (1 - delta) / reps), miss
+    wlo, whi = win_ratio_cs_decided(pos, neg, delta)
+    missw = ((wlo > wr) | (whi < wr)).any(1).mean()
+    assert missw <= delta + 3 * np.sqrt(delta * (1 - delta) / reps), missw
+    print(f'betting CS ever-miss {miss:.3f}, WR CS ever-miss {missw:.3f} (delta {delta}); final widths nb {np.mean(hi[:,-1]-lo[:,-1]):.3f} wr [{np.mean(wlo[:,-1]):.2f},{np.mean(whi[:,-1]):.2f}] truth {wr:.2f}')
+
+
+if __name__ == '__main__':
+    test_betting_cs()
