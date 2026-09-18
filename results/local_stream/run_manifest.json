@@ -1,0 +1,275 @@
+{
+  "schema": "local_stream/run_manifest-v2 (append-only invocations)",
+  "experiment": "local_stream",
+  "created_at": "2026-09-18T15:05:50Z",
+  "invocations": [
+    {
+      "at": "2026-09-18T15:05:49Z",
+      "status": "completed",
+      "argv": [
+        "--results-dir",
+        "results/local_stream"
+      ],
+      "limit": null,
+      "only_pass": 0,
+      "trial": 1,
+      "dry_run": false,
+      "config_path": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/local_stream/config.json",
+      "config": {
+        "experiment": "local_stream",
+        "model": "mlx-community/Qwen2.5-Coder-7B-Instruct-4bit",
+        "model_revision_expected": "019cc73c45c770444708a6dd8690c66243cc5c80",
+        "base_url": "http://127.0.0.1:8080/v1",
+        "temperature": 0.7,
+        "top_p": 0.95,
+        "max_tokens": 1024,
+        "request_timeout_s": 300,
+        "max_connection_retries": 2,
+        "sandbox_timeout_s": 10.0,
+        "sandbox_cpu_s": 10,
+        "sandbox_mem_bytes": 2147483648,
+        "sandbox_output_cap_bytes": 65536,
+        "max_repair_rounds": 2,
+        "design_seed": 20260918,
+        "trial2_enabled": false,
+        "trial2_seed": 20260919,
+        "hierarchy": [
+          {
+            "name": "success",
+            "higher_better": true,
+            "relative_tolerance": 0.0
+          },
+          {
+            "name": "latency_s",
+            "higher_better": false,
+            "relative_tolerance": 0.1
+          },
+          {
+            "name": "completion_tokens",
+            "higher_better": false,
+            "relative_tolerance": 0.1
+          }
+        ],
+        "absorbing_rule": "lower tiers compared only when both episodes succeeded",
+        "alpha": 0.05,
+        "success_margin": 0.03,
+        "min_n_pairs": 20,
+        "benchmarks": [
+          "mbpp",
+          "humaneval"
+        ],
+        "mbpp_url": "https://raw.githubusercontent.com/google-research/google-research/master/mbpp/sanitized-mbpp.json",
+        "humaneval_url": "https://github.com/openai/human-eval/raw/master/data/HumanEval.jsonl.gz"
+      },
+      "config_hash": "2dfb51966780698be326a8897c9e384a5513a7c1a47505c42b8a15c6c5baaf5b",
+      "design_sha256": "6175b81562efe1b1c87b113050f70c5daab2143e272cba39fb9a796f0d645457",
+      "design_config_hash": "2dfb51966780698be326a8897c9e384a5513a7c1a47505c42b8a15c6c5baaf5b",
+      "task_list_sha256": "23727895971fa4a040198d8770173a4f0c3263a63a9cb1479abc4203bb01c2ce",
+      "n_tasks": 591,
+      "model": "mlx-community/Qwen2.5-Coder-7B-Instruct-4bit",
+      "model_kind": "openai_compat",
+      "endpoint": "http://127.0.0.1:8080/v1",
+      "server_info": {
+        "status": 200,
+        "body": {
+          "object": "list",
+          "data": [
+            {
+              "id": "mlx-community/Qwen2.5-Coder-7B-Instruct-4bit",
+              "object": "model",
+              "created": 1789743949
+            },
+            {
+              "id": "deepseek-ai/DeepSeek-Prover-V2-7B",
+              "object": "model",
+              "created": 1789743949
+            },
+            {
+              "id": "Qwen/Qwen3-4B-Instruct-2507",
+              "object": "model",
+              "created": 1789743949
+            },
+            {
+              "id": "mlx-community/DeepSeek-Prover-V2-7B-4bit",
+              "object": "model",
+              "created": 1789743949
+            }
+          ]
+        }
+      },
+      "model_snapshot": {
+        "model": "mlx-community/Qwen2.5-Coder-7B-Instruct-4bit",
+        "expected_revision": "019cc73c45c770444708a6dd8690c66243cc5c80",
+        "cache_dir": "/Users/yukangzengcmac/.cache/huggingface/hub",
+        "repo_dir": "/Users/yukangzengcmac/.cache/huggingface/hub/models--mlx-community--Qwen2.5-Coder-7B-Instruct-4bit",
+        "snapshots_present": [
+          "019cc73c45c770444708a6dd8690c66243cc5c80"
+        ],
+        "refs_main": "019cc73c45c770444708a6dd8690c66243cc5c80",
+        "revision": "019cc73c45c770444708a6dd8690c66243cc5c80",
+        "path": "/Users/yukangzengcmac/.cache/huggingface/hub/models--mlx-community--Qwen2.5-Coder-7B-Instruct-4bit/snapshots/019cc73c45c770444708a6dd8690c66243cc5c80",
+        "files": [
+          {
+            "name": ".gitattributes",
+            "bytes": 1519,
+            "sha256": "11ad7efa24975ee4b0c3c3a38ed18737f0658a5f75a0a96787b576a78a023361"
+          },
+          {
+            "name": "README.md",
+            "bytes": 847,
+            "sha256": "900637f68349b42803bd0779765ef87bd8ad54e4eba57991336911b3b1655e97"
+          },
+          {
+            "name": "added_tokens.json",
+            "bytes": 605,
+            "sha256": "58b54bbe36fc752f79a24a271ef66a0a0830054b4dfad94bde757d851968060b"
+          },
+          {
+            "name": "config.json",
+            "bytes": 787,
+            "sha256": "08762352ba9fded858f24bdd7b8d2fe61aabe7bce1dfdb663db242d574c3e678"
+          },
+          {
+            "name": "merges.txt",
+            "bytes": 1671853,
+            "sha256": "8831e4f1a044471340f7c0a83d7bd71306a5b867e95fd870f74d0c5308a904d5"
+          },
+          {
+            "name": "model.safetensors",
+            "bytes": 4284346255,
+            "sha256": "56a3d94706833f753e6c6b47ea57af8ef638cd8cc1d74eca1142ba640b26060e"
+          },
+          {
+            "name": "model.safetensors.index.json",
+            "bytes": 51711,
+            "sha256": "23cd562592dd96686d2e799eb02e4b578a4038b6045eaefe860d270cc060e24f"
+          },
+          {
+            "name": "special_tokens_map.json",
+            "bytes": 613,
+            "sha256": "76862e765266b85aa9459767e33cbaf13970f327a0e88d1c65846c2ddd3a1ecd"
+          },
+          {
+            "name": "tokenizer.json",
+            "bytes": 7031673,
+            "sha256": "a8506e7111b80c6d8635951a02eab0f4e1a8e4e5772da83846579e97b16f61bf"
+          },
+          {
+            "name": "tokenizer_config.json",
+            "bytes": 7308,
+            "sha256": "f7c61e32b7a17d19bf8e7037dcb74079a833e53ea9801f24008cac68458f03b7"
+          },
+          {
+            "name": "vocab.json",
+            "bytes": 2776833,
+            "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910"
+          }
+        ],
+        "total_bytes": 4295890004,
+        "ok": true,
+        "error": null,
+        "hashed_at": "2026-09-18T15:05:48Z"
+      },
+      "smoke_check": {
+        "kind": "smoke",
+        "prompt": "Reply with the single word: pong",
+        "response_model": "mlx-community/Qwen2.5-Coder-7B-Instruct-4bit",
+        "text": "Pong<|im_end|>\n",
+        "completion_tokens": 5,
+        "call_seconds": 0.3120279172435403,
+        "ok": true
+      },
+      "sandbox": {
+        "kind": "seatbelt",
+        "python": "/Users/yukangzengcmac/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/bin/python3.12",
+        "base_dir": "/private/var/folders/kh/6x1yvf7x44734pr6jcxt3lmh0000gn/T/ls_sbx",
+        "profile": "(version 1)\n(allow default)\n(deny network*)\n(deny file-read* (subpath \"/Users/yukangzengcmac\"))\n(allow file-read* (subpath \"/Users/yukangzengcmac/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none\"))\n(deny file-write* (subpath \"/Users/yukangzengcmac\"))\n(deny file-write* (subpath \"/private/var/folders/kh/6x1yvf7x44734pr6jcxt3lmh0000gn/T\") (subpath \"/tmp\") (subpath \"/private/tmp\") (subpath \"/var/tmp\") (subpath \"/private/var/tmp\"))\n(allow file-write* (subpath \"/private/var/folders/kh/6x1yvf7x44734pr6jcxt3lmh0000gn/T/ls_sbx\"))\n(allow file-write* (literal \"/dev/null\"))\n(deny process-exec (subpath \"/bin\") (subpath \"/usr/bin\") (subpath \"/usr/local/bin\") (subpath \"/opt\") (subpath \"/sbin\") (subpath \"/usr/sbin\"))\n",
+        "profile_sha256": "6370c169267c3f31d3df6321b8acd6b3a363619634835c70854a9bf3952ed900",
+        "nproc_limit": 64,
+        "exec_deny_dirs": [
+          "/bin",
+          "/usr/bin",
+          "/usr/local/bin",
+          "/opt",
+          "/sbin",
+          "/usr/sbin"
+        ]
+      },
+      "hardware": {
+        "platform": "macOS-26.5.2-arm64-arm-64bit",
+        "machine": "arm64",
+        "python": "3.12.13",
+        "cpu": "Apple M5",
+        "memory_bytes": "34359738368",
+        "n_cpu": "10",
+        "os_version": "26.5.2"
+      },
+      "packages": {
+        "numpy": "2.4.1",
+        "scipy": "1.17.0",
+        "pandas": "3.0.6",
+        "requests": "2.34.2",
+        "mlx": "unknown",
+        "mlx_lm": "0.31.3",
+        "transformers": "5.17.0"
+      },
+      "harness_git_hash": "526dff7b6d26f818964611b9ccbd8f61fae2e43c",
+      "harness_file_sha256": {
+        "common.py": "cdee8821250c315b183769806d84495f3055cad14e0e70809c33aab8a6458a42",
+        "data.py": "ae630675f43786bcf7483ff90d4c641ab9a6c7c16202de456d96b03f19321405",
+        "sandbox.py": "d461570937ddbe1fb241288721a1a06b44bd41dd72ccdc2e2ffa2f144184c6ff",
+        "verify.py": "7473678b1990ca2a5a1900b45251fddcd2882f2b371d76d3a59fe669a607dbb6",
+        "agent.py": "3cf2056330c72ebd5d2884f48d6ec2daa706fcc685ad67e3c2609d809ff75b64",
+        "design.py": "3cf14e9502d3c6135ef54e62ec5ffc4d9d65939fccc31c7996fef8ec3b5497ec",
+        "run_stream.py": "3c4e0782ade99c10e1ac9b063360bb2837d64d914255070fb46bd29cb5220417",
+        "analysis.py": "f1f0a05ff6d814252f1ec92cb218e51839ecc1154e75be24da9d6ef425ec3ca5",
+        "timing_pilot.py": "5e3312f67fcfdcf68b49ddab348a9d94c2b205aadc8668216198ed4b71e9cecf",
+        "tests_local_stream.py": "cdf1e0febdcb58d5079fb45d00bbb392ac0e9f7c0bd97ad269c804a4ee25a2cc",
+        "config.json": "0b40e6530ff70660116d409ad3887e0999ab5d73fa43af1f88fd93df032f4b73",
+        "protocol.md": "14a5a81a62fc3144135e463fb8138d2b11b3f1f19b1b9bafec723d49c52242d9",
+        "README.md": "71d94227b472ab22935431a53fb95b5d370e323d969cc315bf4f129c3572b3e7"
+      },
+      "python": "3.12.13 (main, May 10 2026, 19:20:41) [Clang 22.1.3 ]",
+      "server_rss_start": [
+        {
+          "pid": 49742,
+          "rss_bytes": 4504944640,
+          "command": ".venv/bin/python -m mlx_lm.server --model mlx-community/Qwen2.5-Coder-7B-Instruct-4bit --port 8080 --host 127.0.0.1"
+        }
+      ],
+      "invocation_id": "1ad0332505324a7590931734ec18538c",
+      "finished_at": "2026-09-18T17:37:01Z",
+      "summary": {
+        "ran": 1182,
+        "skipped_completed": 0,
+        "elapsed_s": 9071.223047733307,
+        "monitor": {
+          "trial": 1,
+          "n_pairs_monitored": 295,
+          "alpha": 0.05,
+          "success_margin": 0.03,
+          "min_n_pairs": 20,
+          "first_win_cross": null,
+          "first_gate_cross": null,
+          "first_deploy": null,
+          "first_harm": 24,
+          "note": "execution never stops early; crossings are recorded for the anytime-valid analysis",
+          "updated_at": "2026-09-18T17:37:01Z"
+        },
+        "episodes_total": 1182
+      },
+      "server_rss_end": [
+        {
+          "pid": 49742,
+          "rss_bytes": 4429938688,
+          "command": ".venv/bin/python -m mlx_lm.server --model mlx-community/Qwen2.5-Coder-7B-Instruct-4bit --port 8080 --host 127.0.0.1"
+        },
+        {
+          "pid": 77996,
+          "rss_bytes": 1933312,
+          "command": "bash -c while pgrep -f 'run_stream.py --results-dir results/local_stream' > /dev/null; do sleep 30; done; pkill -f 'mlx_lm.server'; sleep 5; echo 'MLX STOPPED, starting tau2_open'; cd /Users/yukangzen"
+        }
+      ]
+    }
+  ]
+}
