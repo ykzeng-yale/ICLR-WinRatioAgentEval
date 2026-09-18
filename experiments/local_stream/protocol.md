@@ -421,9 +421,7 @@ Issue #2 (local-model replication)
   sha256 `da84ff558deb2baf19d8728e3c50aea9e01e2411a5855cf07a2fac3594b8d4ad`,
   config sha256 `2dfb51966780698be326a8897c9e384a5513a7c1a47505c42b8a15c6c5baaf5b`
   (unchanged by the audit fixes; `config.json` was not edited).
-- Harness frozen at commit: `<FREEZE_COMMIT_ID: to be filled by the coordinator
-  after committing experiments/local_stream/ and results/local_stream/design.*;
-  no design task may be sent to the model before this line is filled>`.
+- Harness frozen at commit: `d9793d56430e65c600e241f325a7cd540d23a668`.
   The post-fix sha256 of every harness file is in
   `results/local_stream/dryrun/run_manifest.json` (invocation record,
   `harness_file_sha256`, incl. `protocol.md`) and will be re-recorded by the
