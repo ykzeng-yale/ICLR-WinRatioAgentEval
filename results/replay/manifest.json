@@ -2,6 +2,6 @@
   "alpha": 0.05,
   "margin": 0.03,
   "min_n": 50,
-  "code_sha256": "55d1f37a5f52e48f6b8a66d609b81b40de2231eb45ca061bc5a7241210a8355c",
+  "code_sha256": "074475ca155dc4f407a747e94852c4055ffdceb8c336b443022fd7933228a20c",
   "note": "Replay of historical tau2-bench runs; synthetic arrival process; not live A/B outcomes."
 }

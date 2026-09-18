@@ -8,7 +8,7 @@ from matplotlib.patches import Patch
 ROOT = Path(__file__).resolve().parents[1]
 d = pd.read_csv(ROOT / 'results/benchmarks/decision_matrix.csv')
 rules = [('dec_success_only', 'Success\nonly'), ('dec_pareto', 'Pareto'), ('dec_utility_lambda0.1', 'Utility\nλ=0.1'),
-         ('dec_utility_lambda1.0', 'Utility\nλ=1.0'), ('dec_hierarchical', 'Hier.\nNB'), ('dec_guarded', 'Guarded\nNB+gate')]
+         ('dec_utility_lambda1.0', 'Utility\nλ=1.0'), ('dec_conjunction', 'Conjunction\nNI+cost'), ('dec_hierarchical', 'Hier.\nNB'), ('dec_guarded', 'Guarded\nNB+gate')]
 short = {'gpt-4.1-2025-04-14': 'GPT-4.1', 'o4-mini-2025-04-16': 'o4-mini', 'claude-3-7-sonnet-20250219': 'Claude 3.7',
          'sweagent_claude3opus': 'SWE-agent Claude 3 Opus', 'sweagent_gpt4': 'SWE-agent GPT-4'}
 def name(s):
@@ -24,12 +24,12 @@ ax.set_yticks(range(len(d))); ax.set_yticklabels(d.pair, fontsize=7)
 for i, row in d.reset_index().iterrows():
     if row.priority_inversion:
         ax.text(len(rules) - 0.45, i, '⚑', va='center', ha='left', fontsize=8, color='black')
-    ax.text(4, i, f"{row.nb:+.2f}", va='center', ha='center', fontsize=6.5, color='white' if row.dec_hierarchical != 'undecided' else 'black')
+    ax.text(5, i, f"{row.nb:+.2f}", va='center', ha='center', fontsize=6.5, color='white' if row.dec_hierarchical != 'undecided' else 'black')
 ax.set_xlim(-0.5, len(rules) + 0.2)
 for x in range(1, len(rules)): ax.axvline(x - 0.5, color='white', lw=1.5)
 for y in [8.5, 9.5]: ax.axhline(y, color='black', lw=0.8)
 ax.legend(handles=[Patch(color='#0072B2', label='prefers A'), Patch(color='#D55E00', label='prefers B'), Patch(color='#EEEEEE', label='undecided / neither dominates')], loc='upper center', bbox_to_anchor=(0.5, -0.09), ncol=3, fontsize=8, frameon=False)
-ax.set_title('Decision under six rules for 25 system pairs\n(⚑ = hierarchical winner has the lower success rate; cell text = hierarchical net benefit)', fontsize=9, pad=30)
+ax.set_title('Decision under seven rules for 25 system pairs\n(⚑ = hierarchical winner has the lower success rate; cell text = hierarchical net benefit)', fontsize=9, pad=30)
 plt.tight_layout()
 for ext in ['pdf', 'png']:
     fig.savefig(ROOT / f'plots/session60/fig_decision_matrix.{ext}', dpi=200, bbox_inches='tight')

@@ -73,6 +73,12 @@ def pair_rows(dA, dB, a, b, dom, source, cols):
     row['dec_success_only'] = decide(ds_lo, ds_hi)
     row['dec_hierarchical'] = decide(cs['nb_ci'][0], cs['nb_ci'][1])
     row['dec_guarded'] = 'A' if (cs['nb_ci'][0] > 0 and ds_lo > -MARGIN) else ('B' if (cs['nb_ci'][1] < 0 and ds_hi < MARGIN) else 'undecided')
+    # incumbent per-metric conjunction (experimentation-platform practice): success non-inferior AND cost superior
+    dc, dc_lo, dc_hi = clustered_diff(dA, dB, 'cost')
+    row['cost_diff_lo'], row['cost_diff_hi'] = dc_lo, dc_hi
+    row['dec_conjunction'] = 'A' if (ds_lo > -MARGIN and dc_hi < 0) else ('B' if (ds_hi < MARGIN and dc_lo > 0) else 'undecided')
+    # success superiority alone OR (success non-inferior AND cost superior): a common two-branch launch rule
+    row['dec_launch_rule'] = 'A' if (ds_lo > 0 or (ds_lo > -MARGIN and dc_hi < 0)) else ('B' if (ds_hi < 0 or (ds_hi < MARGIN and dc_lo > 0)) else 'undecided')
     sa, sb = dA.success.mean(), dB.success.mean(); ca, cb = dA.cost.mean(), dB.cost.mean()
     row['dec_pareto'] = 'A' if (sa >= sb and ca <= cb and (sa > sb or ca < cb)) else ('B' if (sb >= sa and cb <= ca and (sb > sa or cb < ca)) else 'neither')
     for lam in LAMBDAS:
@@ -105,13 +111,17 @@ def main():
     for a, b in itertools.combinations(sorted(hal.agent_name.unique()), 2):
         rows.append(pair_rows(hal[hal.agent_name == a], hal[hal.agent_name == b], a, b, 'hal_airline', 'hal', cols))
     out = pd.DataFrame(rows); out.to_csv(OUT / 'decision_matrix.csv', index=False)
-    dec_cols = ['dec_success_only', 'dec_pareto', 'dec_hierarchical', 'dec_guarded'] + [f'dec_utility_lambda{l}' for l in LAMBDAS]
+    dec_cols = ['dec_success_only', 'dec_pareto', 'dec_hierarchical', 'dec_guarded', 'dec_conjunction', 'dec_launch_rule'] + [f'dec_utility_lambda{l}' for l in LAMBDAS]
     summary = dict(n_pairs=len(out),
                    pairs_where_rules_disagree=int((out[dec_cols].nunique(axis=1) > 1).sum()),
                    pairs_success_vs_hierarchical_disagree=int((out.dec_success_only != out.dec_hierarchical).sum()),
                    pairs_success_decided=int((out.dec_success_only != 'undecided').sum()),
                    pairs_hierarchical_decided=int((out.dec_hierarchical != 'undecided').sum()),
                    pairs_guarded_decided=int((out.dec_guarded != 'undecided').sum()),
+                   pairs_conjunction_decided=int((out.dec_conjunction != 'undecided').sum()),
+                   pairs_launch_rule_decided=int((out.dec_launch_rule != 'undecided').sum()),
+                   pairs_guarded_vs_conjunction_differ=int((out.dec_guarded != out.dec_conjunction).sum()),
+                   pairs_guarded_vs_launch_differ=int((out.dec_guarded != out.dec_launch_rule).sum()),
                    pairs_pareto_neither=int((out.dec_pareto == 'neither').sum()),
                    priority_inversions=int(out.priority_inversion.sum()),
                    inversions_with_nb_ci_excluding_zero=int((out.priority_inversion & (out.dec_hierarchical != 'undecided')).sum()),
@@ -120,7 +130,7 @@ def main():
                    utility_flips_across_lambda=int((out[[f'dec_utility_lambda{l}' for l in LAMBDAS]].nunique(axis=1) > 1).sum()))
     (OUT / 'decision_matrix_summary.json').write_text(json.dumps(summary, indent=2))
     pd.set_option('display.width', 250); pd.set_option('display.max_columns', 40)
-    print(out[['source', 'domain', 'A', 'B', 'nb', 'nb_lo', 'nb_hi', 'success_diff', 'dec_success_only', 'dec_pareto', 'dec_hierarchical', 'dec_guarded', 'dec_utility_lambda0.1', 'dec_utility_lambda1.0', 'priority_inversion', 'tau_pop_nb', 'sign_differs_star_vs_pop']].to_string(index=False))
+    print(out[['source', 'domain', 'A', 'B', 'nb', 'nb_lo', 'nb_hi', 'success_diff', 'dec_success_only', 'dec_pareto', 'dec_hierarchical', 'dec_guarded', 'dec_conjunction', 'dec_launch_rule', 'dec_utility_lambda0.1', 'dec_utility_lambda1.0', 'priority_inversion', 'tau_pop_nb', 'sign_differs_star_vs_pop']].to_string(index=False))
     print(json.dumps(summary, indent=1))
 
 

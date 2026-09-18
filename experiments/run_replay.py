@@ -61,6 +61,11 @@ def stream(rng, PA, PB, n, design):
             choices = [j for j in range(len(runsB)) if j != ia] or list(range(len(runsB)))
             B.append(runsB[choices[rng.integers(0, len(choices))]])
         B = np.stack(B)
+    elif design == 'cross_arrival_stratified':
+        # B's task drawn independently but from the SAME domain (prespecified stratum) as A's task
+        by_dom = {}
+        for j, k in enumerate(keys): by_dom.setdefault(k[0], []).append(j)
+        B = np.stack([PB[keys[rng.choice(by_dom[keys[i][0]])]][rng.integers(0, len(PB[keys[rng.choice(by_dom[keys[i][0]])]]))] for i in idx])
     else:
         jdx = rng.integers(0, len(keys), n)
         B = np.stack([PB[keys[j]][rng.integers(0, len(PB[keys[j]]))] for j in jdx])
@@ -84,7 +89,7 @@ def run_guarded(z, dq, alpha=ALPHA, margin=MARGIN, min_n=50):
 def replay(df, a, b, domains, n=2000, reps=500, seed=0, label=''):
     PA = pools(df, a, domains); PB = pools(df, b, domains)
     rows = []
-    for design in ['paired', 'cross_arrival']:
+    for design in ['paired', 'cross_arrival', 'cross_arrival_stratified']:
         rng = np.random.default_rng([seed, hash(design) % 1000])
         res = []
         for r in range(reps):
