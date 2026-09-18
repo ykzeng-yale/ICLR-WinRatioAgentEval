@@ -45,3 +45,7 @@ Root integrated two source-verified close priors, direct causal-estimand attribu
 ## Round 7 external-branch boundary
 
 Root reviewed incoming positioning critiques at `8c95ead` read-only and integrated verified attribution corrections into main, plus an existing-result comparator disclosure. The external worker still owns issue 3. Root posted a coordination handoff at https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/3#issuecomment-5724080472, specifying 2N-execution accounting, separate frozen result versions, and zero additional paid allocation. Proposed comparisons in an alternate abstract are not evidence of execution and are excluded from the released abstract.
+
+## Round 8 handoff delivered
+
+Internal reviews of external commit `e1ea314` are committed at `828495c`. Findings were posted on issue 3 and new issue 6. Root performed no external-branch edits, duplicate experiment, paid call, or result integration. The existing worker owns the fixes and executed-results PR. The anonymous paper and archives remain the verified `f806aba` release. Author-specific profile, eligibility and scientific/submission declarations remain pending.

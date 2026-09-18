@@ -16,3 +16,9 @@ The initial commercial-model budget is USD 5 across this project. The small pilo
 None of the queued experiments is needed to repair a fabricated result: the existing synthetic and historical outputs are real executed analyses. The queued studies address current scientific limitations, especially prospective precision and comparison with efficient prior methods. The readiness decision must continue to list them as unresolved where their absence limits a claim.
 
 Live issues: [large stream](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/1), [local model](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/2), [U-statistic reference](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/3), and [contributed projection correction](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/4).
+
+## Incoming-code corrections before integration
+
+[Issue 6: deterministic replay and stratified sampling](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/6) records two reproducible defects in the external contribution and a general directional-label ambiguity. The existing session60 worker retains ownership; no other agent should duplicate or rewrite its files without coordinating. Tiny checks, preserved baselines, and corrected regenerated replay are the requested handoff. These contributed results are not in the frozen submission package.
+
+The [Round 8 issue 3 handoff](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/3#issuecomment-5724252075) supplies the independently checked estimator findings and requests the precise asymptotic guarantee, matched crossing conventions, and guardrail-boundary calibration. The code has been published but no result PR or live local experiment process was verified at this audit. All paid calls remain halted.
