@@ -1,0 +1,11 @@
+{
+  "project_cap_usd": 5.0,
+  "pilot_combined_cap_usd": 4.0,
+  "pilot_accounted_usd": 3.9456258,
+  "provider_diagnostic_accounted_usd": 0.002035,
+  "total_accounted_usd": 3.9476608,
+  "usage_priced_list_cost_usd": 3.937802,
+  "uncertain_reservations_retained_usd": 0.009858800000000001,
+  "commercial_requests_halted": true,
+  "interpretation": "Accounted list-price cost and retained reservations; not a independently reconciled provider invoice. No extra budget allocated to external workers."
+}

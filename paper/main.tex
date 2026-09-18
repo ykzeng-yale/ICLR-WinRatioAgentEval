@@ -195,8 +195,9 @@ randomization identity (Theorem~\ref{thm:pair_id}), not an assumption that
 adaptive allocation makes potential outcomes observable.
 
 \paragraph{Endpoint maturity.}
-Freeze an episode horizon $H$ and count budget exhaustion as its defined
-outcome. A baseline processes the completely matured prefix of enrolled pairs.
+Freeze an episode horizon $H$. Prespecified per-episode limits define
+endpoint outcomes; exhaustion of a study-level monetary budget instead
+leaves unobserved endpoints requiring bounds. A baseline processes the completely matured prefix of enrolled pairs.
 This can incur latency when a slow earlier pair blocks later completed
 pairs. It preserves the order defining the target. Selecting whichever
 runs finish first can preferentially include fast successes and change
@@ -338,6 +339,8 @@ asymptotic variance, bounded-mean alternative, and coupling decomposition.
 \label{sec:experiments}
 \input{results_main.tex}
 \input{async_results.tex}
+\input{decision_ablations.tex}
+\input{dm_results.tex}
 
 \section{Related work and scope}
 Generalized pairwise comparisons \citep{buyse2010generalized} and the
@@ -358,6 +361,9 @@ prioritized episode comparisons and component constraints. The
 agent-evaluation contribution must therefore be judged by the clarity
 of the design, the empirical consequences it reveals, and the usefulness
 of the complete protocol, rather than novelty of e-processes themselves.
+Delayed-outcome inference also depends on the target:
+\citet{lindon2026delayed} studies calendar-time cumulative rewards,
+whereas our bounds retain fixed-horizon enrollment-prefix outcomes.
 Historical benchmark outcomes remain measurements under their original
 harness and model configurations. A favorable comparison does not
 identify the module causing a gain or establish transport to production.
@@ -372,7 +378,8 @@ Our component margins are illustrative, not elicited from application
 owners. All-pairs methods may use data more efficiently than disjoint
 pairs. Partial bounds can remain uninformative when outcomes cannot be
 certified early; our delay simulation uses one deliberately simple
-measurement pipeline and two outcome scenarios. Public
+measurement pipeline and two outcome scenarios. The practical value of
+accrued-cost early certificates from real traces remains unvalidated. Public
 retrospective traces and laboratory experiments do not constitute a
 randomized intervention among production users.
 
@@ -407,4 +414,7 @@ human verification of every result and citation has been completed.
 \input{asynchronous.tex}
 \input{experiments_appendix.tex}
 \input{async_appendix.tex}
+\input{decision_ablation_appendix.tex}
+\input{prospective_appendix.tex}
+\input{dm_appendix.tex}
 \end{document}

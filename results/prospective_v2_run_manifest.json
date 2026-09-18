@@ -1,0 +1,12 @@
+{
+  "started_utc": "2026-09-18T01:06:09.759254+00:00",
+  "script_sha256": "cf7eb0e6d7c34540cbb2c34d264bbc0c548b881edd241c0616822ed75fc609f7",
+  "shared_adapter_sha256": "995bde0902a72986eb24399c24d41095dbee112fbb211ac278541ade085f2ac1",
+  "frozen_plan_sha256": "1ab86f401d067bb3686fe2572eba0d812018bc91152bb91bd722c6f4e0124cd2",
+  "python": "3.13.11",
+  "tau_commit": "b7ea9074c1cba482b30687fecdb5c8425fd6f619",
+  "credentials_included": false,
+  "transport": "Direct HTTP POST; zero retries or redirects",
+  "original_ledger_sha256": "7455546d102b4e80cc809905816d88c4bc4a3dbd6c3d7cb31ffd6ed352e8fa3e",
+  "cost_interpretation": "Usage-priced upper list-cost; discounts ignored; uncertain requests retain reservation"
+}

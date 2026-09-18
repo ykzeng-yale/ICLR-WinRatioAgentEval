@@ -1,0 +1,10 @@
+task_id,win_verification_over_standard,decisive_tier,success_verification,success_standard,agent_cost_verification,agent_cost_standard
+[service_issue]airplane_mode_on|break_apn_settings|lock_sim_card_pin[PERSONA:None],-1,cost,1.0,1.0,0.12422100000000001,0.072212
+[mobile_data_issue]airplane_mode_on|bad_network_preference|data_usage_exceeded|user_abroad_roaming_disabled_off[PERSONA:Easy],0,tie,0.0,0.0,0.152609,0.130524
+[mms_issue]airplane_mode_on|bad_network_preference|bad_wifi_calling|break_apn_mms_setting|break_app_both_permissions|unseat_sim_card|user_abroad_roaming_enabled_off[PERSONA:Hard],0,tie,0.0,0.0,0.110275,0.12994899999999998
+[mms_issue]bad_wifi_calling|break_apn_mms_setting|unseat_sim_card|user_abroad_roaming_enabled_off[PERSONA:Easy],0,tie,0.0,0.0,0.112564,0.115084
+[mms_issue]airplane_mode_on|bad_network_preference|break_apn_mms_setting|data_usage_exceeded[PERSONA:Hard],0,tie,0.0,0.0,0.17067600000000002,0.11623700000000001
+[mms_issue]break_app_sms_permission|data_mode_off[PERSONA:None],0,tie,0.0,0.0,0.121649,0.09274099999999999
+[mms_issue]bad_network_preference|bad_wifi_calling|break_app_sms_permission|data_mode_off|data_usage_exceeded|unseat_sim_card|user_abroad_roaming_enabled_off[PERSONA:Easy],0,tie,0.0,0.0,0.11616500000000002,0.07008500000000001
+[service_issue]contract_end_suspension|unseat_sim_card[PERSONA:Hard],0,tie,0.0,0.0,0.23886000000000002,0.188877
+[service_issue]airplane_mode_on|lock_sim_card_pin|overdue_bill_suspension[PERSONA:Easy],-1,cost,1.0,1.0,0.06954600000000001,0.059666

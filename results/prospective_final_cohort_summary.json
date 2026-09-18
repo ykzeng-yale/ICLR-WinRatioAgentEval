@@ -1,0 +1,54 @@
+{
+  "planned_tasks": 12,
+  "planned_runs": 24,
+  "completed_pairs": 9,
+  "incomplete_pairs": 3,
+  "observed_pair_score_sum": -2,
+  "observed_success_difference_sum": 0.0,
+  "planned_cohort_net_preference_bounds": [
+    -0.4166666666666667,
+    0.08333333333333333
+  ],
+  "planned_cohort_success_difference_bounds": [
+    -0.25,
+    0.25
+  ],
+  "bound_interpretation": "Deterministic finite-cohort missing-outcome bounds over all 12 planned tasks; NOT sampling confidence intervals. Each unknown pair conservatively contributes anywhere in [-1,1]; known one-arm information is ignored.",
+  "complete_pair_net_preference_descriptive_only": -0.2222222222222222,
+  "variants": {
+    "standard": {
+      "planned_runs": 12,
+      "completed_runs": 9,
+      "successes": 2,
+      "failures": 7,
+      "unobserved_runs": 3,
+      "step_cap_terminations": 6,
+      "infrastructure_failures": 0,
+      "budget_stopped_runs": 1
+    },
+    "verification": {
+      "planned_runs": 12,
+      "completed_runs": 9,
+      "successes": 2,
+      "failures": 7,
+      "unobserved_runs": 3,
+      "step_cap_terminations": 6,
+      "infrastructure_failures": 0,
+      "budget_stopped_runs": 0
+    }
+  },
+  "combined_v1_v2_accounted_usd": 3.9456258,
+  "v1_retained_reservation_usd": 0.0078588,
+  "v2_usage_priced_upper_cost_usd": 3.937767,
+  "v2_uncertain_reservations_usd": 0,
+  "v2_requests": 484,
+  "separate_provider_diagnostics_accounted_usd": 0.002035,
+  "project_total_accounted_usd": 3.9476608,
+  "cost_interpretation": "Conservative list-price usage accounting plus held reservations, not a verified provider invoice. Provider diagnostics are outside the pilot four-dollar allocation.",
+  "qa": {
+    "original_v1_ledger_unchanged": true,
+    "all_24_planned_run_records_accounted": true,
+    "combined_budget_cap_respected": true,
+    "all_completed_token_usage_within_reserved_bounds": true
+  }
+}

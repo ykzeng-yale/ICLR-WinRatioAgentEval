@@ -1,0 +1,9 @@
+scenario,replicates,mean_dm_minus_betting_capped_pairs,paired_difference_mcse
+null,2000,34.675,11.36454018314367
+efficiency_gain,2000,3729.0,45.812868382745116
+success_regression,2000,0.0,0.0
+safety_regression,2000,0.0,0.0
+joint_gain,2000,2181.575,22.905855666169725
+weak_gain,2000,159.725,21.57237286027922
+tie_heavy_null,2000,45.85,12.957732832949018
+tie_heavy_efficiency,2000,3586.85,46.8954622638531

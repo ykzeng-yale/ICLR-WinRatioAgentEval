@@ -10,3 +10,9 @@ Only the primary agent integrates source changes, stages files, commits, or push
 | Asynchronous theory worker (former empirical reviewer) | `paper/asynchronous.tex`, `evidence/asynchronous_novelty.md` | Existing theory, source, manuscript, and results |
 
 Earlier literature, theory-development, and historical-data tasks have been handed back. Required changes discovered by a reviewer are sent to the primary agent instead of edited concurrently. Before each commit the primary agent checks the staged-file inventory, worker handoff status, credential exclusion, and repository status. Scientific assumptions and rejected claims are recorded in the review response ledger, not silently removed.
+
+## Latest handoffs
+
+The prospective pilot, grader/decision ablations, and isolated DM comparison have been handed back. Root owns their integration. The release reviewer writes only reviews/round4_release_reproduction.md and a separate work/ extraction; the trace-certificate worker owns only experiments/run_trace_certificates.py, evidence/trace_certificate_protocol.md, and results/trace_certificate_* until handoff. The fresh integrated reviewer writes only its review report.
+
+Contributed general wincs projections and width results are excluded from submission claims pending issue4. The isolated src/ternary_dm.py uses only audited complete-data formulas; it is not an asynchronous plug-in.

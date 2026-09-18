@@ -1,0 +1,28 @@
+{
+  "planned_tasks": 12,
+  "planned_runs": 24,
+  "finished_run_records": 24,
+  "completed_runs": 0,
+  "complete_pairs": 0,
+  "accounted_total_usd": 0.0078588,
+  "reported_usage_cost_usd": 0,
+  "uncertain_reserved_usd": 0.0078588,
+  "api_requests": 1,
+  "budget_cap_usd": 4.0,
+  "updated_utc": "2026-09-18T00:57:10.883130+00:00",
+  "models": {
+    "gpt-5.6-luna": {
+      "completed_runs": 0,
+      "successes": 0,
+      "mean_agent_cost_usd": null,
+      "mean_tool_calls": null
+    },
+    "claude-haiku-4-5-20251001": {
+      "completed_runs": 0,
+      "successes": 0,
+      "mean_agent_cost_usd": null,
+      "mean_tool_calls": null
+    }
+  },
+  "interpretation": "Prospective paired shadow laboratory pilot; no live production users or production A/B randomization"
+}

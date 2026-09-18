@@ -1,0 +1,7 @@
+{
+  "reference_sha256": "b12a41b3cb84501e50a92df623bdec459e762f46a5945a865d889a4b55f3fc54",
+  "rows_checked": 64,
+  "exact_or_roundoff_equivalent": true,
+  "max_absolute_numeric_difference": 0.0,
+  "differences": []
+}

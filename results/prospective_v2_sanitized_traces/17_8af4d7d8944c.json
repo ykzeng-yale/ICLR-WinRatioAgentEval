@@ -1,0 +1,252 @@
+{
+  "task_id": "[service_issue]airplane_mode_on|lock_sim_card_pin|overdue_bill_suspension[PERSONA:Easy]",
+  "agent_model": "claude-haiku-4-5-20251001",
+  "run_seed": 1540008637,
+  "simulation_id": "6a24e7df-69f0-4048-9f7c-3f4d9de4b6f9",
+  "termination_reason": "user_stop",
+  "duration_seconds": 22.383602083660662,
+  "reward": 1.0,
+  "reward_basis": [
+    "ENV_ASSERTION",
+    "ACTION"
+  ],
+  "reward_breakdown": {
+    "ENV_ASSERTION": 1.0,
+    "ACTION": 1.0
+  },
+  "messages": [
+    {
+      "role": "assistant",
+      "turn_idx": 0,
+      "text_sha256": "271973d4979a0bdfa021f64bf7cc98f77eeffd101b3d1fbcaaf178c4b061b62f",
+      "tool_names": [],
+      "cost_usd": 0.0,
+      "usage": null,
+      "error": null
+    },
+    {
+      "role": "user",
+      "turn_idx": 1,
+      "text_sha256": "b3576b97a4cd6e77a01639e55a31822830e25ea5f6bf361089d7beee57044384",
+      "tool_names": [],
+      "cost_usd": 0.0047989999999999994,
+      "usage": {
+        "completion_tokens": 90,
+        "prompt_tokens": 4349
+      },
+      "error": null
+    },
+    {
+      "role": "assistant",
+      "turn_idx": 2,
+      "text_sha256": "24f73afc423bd39e58f1d5bc74c913dbfe1a703e887b080b6a7e670af429d931",
+      "tool_names": [
+        "get_customer_by_phone"
+      ],
+      "cost_usd": 0.008988999999999999,
+      "usage": {
+        "completion_tokens": 105,
+        "prompt_tokens": 8464
+      },
+      "error": null
+    },
+    {
+      "role": "tool",
+      "turn_idx": 3,
+      "text_sha256": "4944126b63bde939132e434a0250d91ae966614acb6f1b84abeb8fb9531831a7",
+      "tool_names": [],
+      "cost_usd": null,
+      "usage": null,
+      "error": false
+    },
+    {
+      "role": "assistant",
+      "turn_idx": 4,
+      "text_sha256": "cb95847ab1b592890d2c96ef65a369a957432c69ded7a8941e0ec90f85f6e4a9",
+      "tool_names": [],
+      "cost_usd": 0.009531,
+      "usage": {
+        "completion_tokens": 143,
+        "prompt_tokens": 8816
+      },
+      "error": null
+    },
+    {
+      "role": "user",
+      "turn_idx": 5,
+      "text_sha256": null,
+      "tool_names": [
+        "check_status_bar"
+      ],
+      "cost_usd": 0.004777,
+      "usage": {
+        "completion_tokens": 39,
+        "prompt_tokens": 4582
+      },
+      "error": null
+    },
+    {
+      "role": "tool",
+      "turn_idx": 6,
+      "text_sha256": "60e216bbca4454c825ee593291d8727b1bfef85e9da3b3a0a5962cf2385d4b8c",
+      "tool_names": [],
+      "cost_usd": null,
+      "usage": null,
+      "error": false
+    },
+    {
+      "role": "user",
+      "turn_idx": 7,
+      "text_sha256": "3acbb617e741649c23292aa915b55e45f951b68a1a63dfdb01b04d037473786f",
+      "tool_names": [],
+      "cost_usd": 0.005192,
+      "usage": {
+        "completion_tokens": 108,
+        "prompt_tokens": 4652
+      },
+      "error": null
+    },
+    {
+      "role": "assistant",
+      "turn_idx": 8,
+      "text_sha256": "6efad714f17cf64dcdbcbffddf9d50a76e3433527ccf3595fa74026c40e3809f",
+      "tool_names": [],
+      "cost_usd": 0.009962,
+      "usage": {
+        "completion_tokens": 179,
+        "prompt_tokens": 9067
+      },
+      "error": null
+    },
+    {
+      "role": "user",
+      "turn_idx": 9,
+      "text_sha256": null,
+      "tool_names": [
+        "toggle_airplane_mode"
+      ],
+      "cost_usd": 0.005134,
+      "usage": {
+        "completion_tokens": 39,
+        "prompt_tokens": 4939
+      },
+      "error": null
+    },
+    {
+      "role": "tool",
+      "turn_idx": 10,
+      "text_sha256": "a2af0073bcf95e84ee8daa2084a375e42218140d0ea394a6ce76b8d886beaf5f",
+      "tool_names": [],
+      "cost_usd": null,
+      "usage": null,
+      "error": false
+    },
+    {
+      "role": "user",
+      "turn_idx": 11,
+      "text_sha256": "53727741a8d7730a87d5c8b36717721c9fa6084d8a6d8e77c19673e5f9e50751",
+      "tool_names": [],
+      "cost_usd": 0.005372999999999999,
+      "usage": {
+        "completion_tokens": 70,
+        "prompt_tokens": 5023
+      },
+      "error": null
+    },
+    {
+      "role": "assistant",
+      "turn_idx": 12,
+      "text_sha256": "10a04b405aae648aded940bd2f8831c37ffd8e4fbc43ab1775bd54edde5fd7b8",
+      "tool_names": [],
+      "cost_usd": 0.010315999999999999,
+      "usage": {
+        "completion_tokens": 200,
+        "prompt_tokens": 9316
+      },
+      "error": null
+    },
+    {
+      "role": "user",
+      "turn_idx": 13,
+      "text_sha256": null,
+      "tool_names": [
+        "check_sim_status"
+      ],
+      "cost_usd": 0.005488,
+      "usage": {
+        "completion_tokens": 39,
+        "prompt_tokens": 5293
+      },
+      "error": null
+    },
+    {
+      "role": "tool",
+      "turn_idx": 14,
+      "text_sha256": "10f37cdebdda2537b3679bdc765bdbf6c880a86f236e9444e7d8ba96417b7a67",
+      "tool_names": [],
+      "cost_usd": null,
+      "usage": null,
+      "error": false
+    },
+    {
+      "role": "user",
+      "turn_idx": 15,
+      "text_sha256": "921873bb6d98e306cc42aa8b8d4460202c73820a7b29a3d02aed6d981ee6c236",
+      "tool_names": [],
+      "cost_usd": 0.005644,
+      "usage": {
+        "completion_tokens": 58,
+        "prompt_tokens": 5354
+      },
+      "error": null
+    },
+    {
+      "role": "assistant",
+      "turn_idx": 16,
+      "text_sha256": "668bcf7100a59fd0d80747c43ca1436070ac3ebbfc0794d9b701b21ac8c7411f",
+      "tool_names": [
+        "transfer_to_human_agents"
+      ],
+      "cost_usd": 0.010903999999999999,
+      "usage": {
+        "completion_tokens": 266,
+        "prompt_tokens": 9574
+      },
+      "error": null
+    },
+    {
+      "role": "tool",
+      "turn_idx": 17,
+      "text_sha256": "bccdc18e7b6ac085553ef044cadec50c310dffd4a86277e0c5c3940aa0e9ce04",
+      "tool_names": [],
+      "cost_usd": null,
+      "usage": null,
+      "error": false
+    },
+    {
+      "role": "assistant",
+      "turn_idx": 18,
+      "text_sha256": "8f8a877f56789f251fccf0d86a11ea76b4b3e49fb1145a5557606114f99a4a70",
+      "tool_names": [],
+      "cost_usd": 0.009964,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 9854
+      },
+      "error": null
+    },
+    {
+      "role": "user",
+      "turn_idx": 19,
+      "text_sha256": "a1a411019a3a350b1aad486b100b8b66d39f2cb76f105d857a2ff967ec0cb0c5",
+      "tool_names": [],
+      "cost_usd": 0.005469,
+      "usage": {
+        "completion_tokens": 7,
+        "prompt_tokens": 5434
+      },
+      "error": null
+    }
+  ],
+  "workflow_variant": "standard"
+}

@@ -1,0 +1,36 @@
+{
+  "planned_tasks": 12,
+  "planned_runs": 24,
+  "registered_run_records": 24,
+  "completed_runs": 18,
+  "complete_pairs": 9,
+  "combined_accounted_usd": 3.9456258,
+  "v1_carry_usd": 0.0078588,
+  "v2_usage_priced_upper_cost_usd": 3.937767,
+  "v2_uncertain_reserved_usd": 0,
+  "v2_api_requests": 484,
+  "combined_cap_usd": 4.0,
+  "updated_utc": "2026-09-18T01:19:17.516415+00:00",
+  "interpretation": "Prospective paired workflow comparison with one fixed commercial model and simulated users; not production A/B or a model comparison",
+  "variants": {
+    "standard": {
+      "completed_runs": 9,
+      "successes": 2.0,
+      "mean_agent_cost_usd": 0.108375,
+      "mean_tool_calls": 3.111111111111111,
+      "max_steps_terminations": 6
+    },
+    "verification": {
+      "completed_runs": 9,
+      "successes": 2.0,
+      "mean_agent_cost_usd": 0.1351738888888889,
+      "mean_tool_calls": 4.333333333333333,
+      "max_steps_terminations": 6
+    }
+  },
+  "wins_verification": 0,
+  "losses_verification": 2,
+  "ties": 7,
+  "net_win": -0.2222222222222222,
+  "success_difference": 0.0
+}

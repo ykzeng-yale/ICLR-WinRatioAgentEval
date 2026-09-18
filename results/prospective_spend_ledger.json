@@ -1,0 +1,26 @@
+{
+  "cap_usd": 4.0,
+  "calls": [
+    {
+      "call_index": 0,
+      "started_utc": "2026-09-18T00:57:09.085536+00:00",
+      "model": "gpt-5.6-luna",
+      "context": {
+        "task_id": "[service_issue]airplane_mode_on|break_apn_settings|lock_sim_card_pin[PERSONA:None]",
+        "agent_model": "gpt-5.6-luna",
+        "execution_index": 0,
+        "participant": "user_simulator"
+      },
+      "prompt_token_bound": 38142,
+      "max_output_tokens": 192,
+      "reservation_usd": 0.0078588,
+      "status": "http_failure_reserved",
+      "request_sha256": "1dd9943dbe7fb67bdba20f1b4ddc4f9ef8c536c1a6de617ad92ba678a6a1a5f3",
+      "http_status": 429,
+      "ended_utc": "2026-09-18T00:57:10.879997+00:00"
+    }
+  ],
+  "created_utc": "2026-09-18T00:57:09.052991+00:00",
+  "accounted_total_usd": 0.0078588,
+  "updated_utc": "2026-09-18T00:57:10.880015+00:00"
+}

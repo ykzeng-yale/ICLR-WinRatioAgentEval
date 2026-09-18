@@ -1,0 +1,21 @@
+{
+  "started_utc": "2026-09-18T00:57:09.057929+00:00",
+  "script_sha256": "995bde0902a72986eb24399c24d41095dbee112fbb211ac278541ade085f2ac1",
+  "frozen_plan_sha256": "9afffbe1aebb8c08e572570eaf65c5d6984a3d575579f0bece5315a4c31b1092",
+  "python": "3.13.11",
+  "tau_commit": "b7ea9074c1cba482b30687fecdb5c8425fd6f619",
+  "transport": "httpx direct, no retry, no redirects",
+  "pre_call_adapter_fixes": [
+    "safe hashed filenames for long task identifiers",
+    "fail closed after any infrastructure exception"
+  ],
+  "credentials_included": false,
+  "provider_random_seeds": "No provider seed argument; run seeds govern harness only",
+  "usage_cost_interpretation": "Conservative list-price cost; prompt cache discounts ignored",
+  "source_hashes": {
+    "data/tau2/user_simulator/simulation_guidelines.md": "740a29dfa64d7bc08eea3bf7493575b914a63f744acbaf7f199ee07eddaf72d3",
+    "data/tau2/user_simulator/simulation_guidelines_tools.md": "cbf3d8a4d8642fd04e559862f1afef55d7dd4e6a7e727ca49e239023c599de0c",
+    "data/tau2/user_simulator/simulation_guidelines_voice.md": "2442aed36d303a55b3b933860a2de9c45310b783fe9c67cb48506c58709c725f",
+    "data/tau2/user_simulator/simulation_guidelines_voice_tools.md": "4a77374fb680181ffc40eda84c9810e10deb9e20c6585597a4a0256a70d40235"
+  }
+}

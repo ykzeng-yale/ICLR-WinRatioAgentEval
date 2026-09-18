@@ -22,7 +22,7 @@ These are model-assisted project reviews, not external human peer review. Scope 
 | Protocol suggestions exceed executed analyses | Executed configurations enumerated; unexecuted exploratory alternatives identified. | Reporting corrected |
 | Multiplicity and sensitivity selection | All configurations retained; intervals called pointwise; no simultaneous leaderboard or production claim. | Claim restricted |
 | Code hashes changed after input validation | Original commit preserves initial run; reviewer replayed all 36 initial and 17 stress rows exactly. Current scripts rerun and manifests refreshed. | Verified |
-| Prospective API unavailable | Initial exhausted-quota attempt is preserved. Frozen Haiku standard/verification amendment is executing with full monetary accounting and explicit capped-task failures. | Pilot running; descriptive scope |
+| Prospective API unavailable | Initial exhausted-quota attempt is preserved. Frozen Haiku standard/verification amendment completed 18 trajectories/9 pairs with full monetary accounting and explicit capped-task failures. Full 12-task missing-outcome bounds retained. | Completed feasibility pilot; limitation retained |
 
 Outstanding limitations are not closed merely because a PDF compiles. Human verification, a credible contribution, and final submission declarations remain required before the active goal can be marked complete.
 
@@ -35,3 +35,11 @@ The empirical reviewer independently reproduced every aggregate result and calen
 ## External contribution audit
 
 A separately contributed multinomial projection module was preserved during repository synchronization. Independent checks found a deterministic-boundary numerical defect; GitHub issue4 records the reproducer. It is not used in reported main-paper results. A separately audited complete-data ternary likelihood-ratio reference is under evaluation. No partial-score plug-in is authorized for that reference because it lacks the positive-betting monotonicity used by our asynchronous proof.
+
+## Round 4: fresh integrated review and standalone reproduction
+
+A reviewer uninvolved in development found no fatal error in the inspected probability arguments or grader-error proof, but judged ICLR competitiveness borderline to weak reject. The incremental nature of the contribution remains a disclosed scientific concern. The specific empirical gap around actual trace-derived certificates is receiving a separate frozen public-trace audit.
+
+Resolved: distinguishes per-episode caps from study-level missing outcomes; states every bound-aware grader case is a null case and no corrective power was demonstrated; directs Pareto/objective details to actual supplied tables; describes the shared-formula DM exercise as isolated reproduction. The appendix includes the full pilot cohort and explicit lack of a superiority claim.
+
+The archive reviewer independently matched all principal numeric outputs and the rebuilt PDF text. Two standalone defects were found: three generated prospective text files referenced by the QA manifest were missing, and DM provenance incorrectly required a Git checkout. The builder now includes those files and Git metadata is optional; source hashes remain available. The corrected archive is being retested from a fresh extraction. No scientific result was altered to repair those packaging problems.

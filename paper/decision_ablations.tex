@@ -1,0 +1,22 @@
+\paragraph{Decision objectives and grader errors.}
+A separate 500-repetition ablation on each of six scenarios compares
+success-only, component-only, guarded-win, and fixed weighted-utility
+rules. These test different objectives. With identical agents,
+component-only noninferiority qualifies 78.4\% of streams while guarded
+win qualifies 0.2\%: satisfying component margins does not establish a
+preference improvement. The fixed utility $0.8S+0.1C+0.1/(1+\mathrm{cost})$
+approves the compliance-regression scenario in 32.6\% of runs, correctly
+reflecting its positive utility target; adding component requirements
+reduces this to zero. No rule is uniformly more powerful across different
+objectives. Appendix~\ref{app:ablations} explains the objectives; the supplementary
+CSV tables retain all comparisons and population Pareto descriptions.
+
+Four additional cases perturb success grading. With 5\% false-positive
+errors for $A$ and 5\% false-negative errors for $B$, a true success
+contrast of $-0.04$ becomes $+0.012$ measured. Measured-label guarded
+inference approves 489/500 streams (97.8\%), while true-label inference
+approves none. A conservative rule using the specified error bounds also
+approves none. Conversely, adverse differential grading prevents detection
+of a genuine efficiency gain. Optional-stopping validity for measured
+outcomes cannot repair a biased definition of success. The error bounds
+are known simulation inputs, not empirically validated grader guarantees.

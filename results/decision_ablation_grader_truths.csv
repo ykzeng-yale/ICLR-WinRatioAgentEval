@@ -1,0 +1,5 @@
+scenario,fp_a,fn_a,fp_b,fn_b,true_success_a,true_success_b,measured_success_a,measured_success_b,actual_error_probability_a,actual_error_probability_b,assumed_error_probability_bound_sum,true_net_benefit,measured_net_benefit,true_success_difference,measured_success_difference,true_guarded_region,measured_guarded_region,bound_aware_objective_true
+identical_nondifferential,0.05,0.05,0.05,0.05,0.75,0.75,0.7249999999999999,0.7249999999999999,0.05,0.05,0.1,0.0,0.0,0.0,0.0,False,False,False
+harm_favorable_labels,0.05,0.0,0.0,0.05,0.71,0.75,0.7244999999999999,0.7124999999999999,0.014500000000000002,0.037500000000000006,0.1,0.40785254151785716,0.44564366276507483,-0.040000000000000036,0.01200000000000001,False,True,False
+gain_adverse_labels,0.0,0.05,0.05,0.0,0.75,0.75,0.7124999999999999,0.7625,0.037500000000000006,0.0125,0.1,0.36248777333180304,0.300600274409633,0.0,-0.050000000000000044,True,False,False
+larger_harm_nondifferential,0.05,0.05,0.05,0.05,0.65,0.75,0.6349999999999999,0.7249999999999999,0.05,0.05,0.1,0.3106364816712778,0.29774410948597835,-0.09999999999999998,-0.08999999999999997,False,False,False

@@ -1,0 +1,24 @@
+[
+  {
+    "provider": "openai",
+    "model": "gpt-5.6-luna",
+    "kind": "single minimal availability diagnostic",
+    "reservation_usd": 0.002,
+    "timestamp_utc": "2026-09-18T00:59:05.700125+00:00",
+    "status": "http_error_reservation_retained",
+    "http_status": 429,
+    "error_type": "insufficient_quota",
+    "error_code": "credit_balance_exhausted"
+  },
+  {
+    "provider": "anthropic",
+    "model": "claude-haiku-4-5-20251001",
+    "kind": "single minimal availability diagnostic",
+    "reservation_usd": 0.002,
+    "timestamp_utc": "2026-09-18T00:59:06.736761+00:00",
+    "status": "completed",
+    "input_tokens": 10,
+    "output_tokens": 5,
+    "usage_cost_usd": 3.5e-05
+  }
+]

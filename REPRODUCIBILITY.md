@@ -4,7 +4,7 @@ The paper combines synthetic score streams, historical public agent traces, and 
 
 ## Environment
 
-Install Python 3.11 or later with `python -m pip install -r requirements.txt` in a fresh virtual environment. The numerical outputs were generated on Python 3.14.4 with the four exact dependency versions in requirements.txt. PDF building requires a current TeX installation, pdflatex, bibtex, and latexmk; the official ICLR style dependencies are supplied in paper/. No GPU is needed for simulation or historical reanalysis. The prospective tau2 runner uses a separate pinned Python 3.12 environment; its runtime manifest accompanies its records.
+Install Python 3.11 or later with `python -m pip install -r requirements.txt` in a fresh virtual environment. The numerical outputs were generated on Python 3.14.4 with the four exact dependency versions in requirements.txt. PDF building requires a current TeX installation, pdflatex, bibtex, and latexmk; the official ICLR style dependencies are supplied in paper/. No GPU is needed for simulation or historical reanalysis. The prospective tau2 runner uses a separate pinned Python 3.13.11 environment; its runtime manifest accompanies its records.
 
 ## One-command entry points
 
