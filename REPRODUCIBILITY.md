@@ -8,7 +8,9 @@ Install Python 3.11 or later with `python -m pip install -r requirements.txt` in
 
 ## One-command entry points
 
-From this directory, `python reproduce.py` runs the core scientific checks and verifies available archived-output hashes. `python reproduce.py --mode simulate --build-pdf` reruns all synthetic studies and regenerates their paper outputs and the manuscript. `python reproduce.py --mode full --fetch-public --build-pdf` additionally downloads pinned public source files into work/empirical_sources and repeats historical analyses. An existing source folder can be supplied with `--public-raw-dir /path/to/sources`. These commands never call commercial models. Use a fresh unpacked copy for exact reproduction so regenerated manifests do not replace your only record of the delivered baseline.
+From this directory, `python reproduce.py` runs the core scientific checks and verifies available archived-output hashes. `python reproduce.py --mode simulate --build-pdf` reruns the original synthetic studies and regenerates their paper outputs and the manuscript. `python reproduce.py --mode full --fetch-public --build-pdf` additionally downloads pinned public source files into work/empirical_sources and repeats historical analyses. An existing source folder can be supplied with `--public-raw-dir /path/to/sources`. These commands never call commercial models. Use a fresh unpacked copy for exact reproduction so regenerated manifests do not replace your only record of the delivered baseline.
+
+Add `--extensions` to explicitly rerun the accepted sequential all-pairs comparison, its four 10,000-repetition boundary calibrations and rare-compliance diagnostic, and the twelve-scenario drift panel. These CPU-only runs require no model weights, benchmark inference, or API credentials. They use their documented separate seed suite, not the primary simulation table's seeds. Four workers are used by this entry point; recorded numerical CSVs are invariant to worker count. The comparator can take several minutes; the drift panel takes about a minute on the recorded machines. To rebuild only the new paper text from retained results, run `python experiments/build_sequential_extensions.py`.
 
 ## Expected resource use
 
@@ -24,7 +26,11 @@ Full mode also executes `experiments/run_trace_certificates.py --raw-dir /path/t
 
 ## Prospective model records
 
-The prospective runner is deliberately separate from reproduce.py. It requires explicitly supplied credential and private-output paths and may incur cost. Its frozen protocol, model, task order, token/step caps, amendments, sanitized trace summaries, and ledger are retained. The original OpenAI attempt returned exhausted quota before any completed run; a Haiku workflow amendment preserves that record. The combined pilot cap is USD4, within an overall project allocation of USD5. Repeating an API experiment can produce different model outputs and incurs a new bill; it is not required to inspect or reproduce the published aggregate calculations. No credentials or raw private transcripts are included.
+The historical commercial-model runner is retained only for provenance and is not authorized for further execution. Its frozen protocol, model, task order, token/step caps, amendments, sanitized trace summaries, and ledger are retained. The original OpenAI attempt returned exhausted quota before any completed run; a Haiku workflow amendment preserves that record. The combined pilot cap was USD4 within the historical USD5 allocation. The author's subsequent instruction prohibits all further commercial/proprietary experimental calls, including simulators, judges and fallbacks. Reproducing published aggregate calculations uses the archived observations and never requires model calls. No credentials or raw private transcripts are included.
+
+## Accepted extensions and immutable provenance
+
+The original contributed comparator and drift manifests are retained unchanged in the development tree. Their recorded core hash refers to the original `winstats.py`; the integrated core changes only its docstring to describe the independently reviewed running-mean guarantee. Executable-AST equality was verified. `results/sequential_extensions_integrity.json` records the original and integrated hashes and the retained result hashes. Anonymous release copies replace identifying output-directory strings only and record that transformation; numerical CSV bytes remain unchanged. The new proof does not retroactively change the declared analysis plan or claim that its guarantee was established before the drift simulations.
 
 ## Reuse and scope
 

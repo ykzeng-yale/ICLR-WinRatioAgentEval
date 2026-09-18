@@ -1,0 +1,17 @@
+{
+  "source_sha256": "48769df354d904016b213fc58cd2601739a26e9d4fdeb1bdbded64629d33996c",
+  "inputs": {
+    "results/ustat_reference/null_calibration.csv": "3335a82aa8b89ced5fac25ffd96d044c1a5edcc426d81e7401da9f88fa8d7dcc",
+    "results/ustat_reference/ustat_reference_results.csv": "18c81b5c6827647ca9bd89d79b88b5bd2175e8571f6c3c3f8391f8c1863e199d",
+    "results/ustat_reference/ustat_reference_efficiency.csv": "94579d4563e4be23f31b1c8e8c2018c516b17b510243170d60ce8bf4166cf529",
+    "results/drift_panel/results.csv": "c230d940e7de1526a744add5b45f35bb16381ccf1bcafd27847ce83d0320af95",
+    "results/drift_panel/permutation_results.csv": "cd8e472dbe6efc5c0d0a7c17d8e58ccf585ac8b2588ea6d76c1d53139769fb36",
+    "results/ustat_reference/rare_event_diagnostic.csv": "017d47dbab2813e91f59c52c3810adfb2bcc1e448b7010581e574aef34616199"
+  },
+  "outputs": {
+    "paper/sequential_extension_results.tex": "d36c2712da2d0fc267a2c2312921ceadeb90d2b0b966eed09dcdc9d15c74cfdf",
+    "paper/ustat_extension_appendix.tex": "570ee8ea1586e8cee8cfcc311bc8c1304db65feeb3fe0df10c2eaad07c58fb8f",
+    "paper/drift_extension_appendix.tex": "00e728cca72b2c79289b3f03ee1b9911c4fb2063422aa7afc94367de2980daef"
+  },
+  "interpretation": "Separate matched-comparison seed suite and drift extension; no new model inference."
+}

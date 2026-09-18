@@ -1,12 +1,12 @@
 # Author handoff: ICLR 2027
 
-**A frozen review package is prepared; newly delivered experiments still require correction, validation and integration. The project is not yet declared submission-ready.** No paper has been submitted, and your scientific review and submission attestations remain outstanding. The sole-author name and institutional email you supplied are recorded in the excluded local author metadata; the review PDF and archives are anonymous.
+**A revised review package is prepared, but the project is not yet declared submission-ready.** No paper has been submitted. Your scientific review and submission attestations remain outstanding. The sole-author name and institutional email you supplied are recorded in excluded local metadata; the PDF and archives are anonymous.
 
-Latest check, September 18, 2026: PR 8 contains 1,182 completed open-weight coding episodes, while its airline extension has no final real results at audited head `ab24f1b`. The coding analysis needs statistical corrections before integration. PR 7 at `cfc1850` contains completed reference/boundary simulations; its Round 9 audit requires interpretation corrections. These findings are not yet in the PDF or archives listed below. The current [experiment queue](../EXPERIMENT_QUEUE.md) distinguishes necessary corrections from optional extensions.
+Round 10 integrates the independently reviewed PR 7 sequential comparison and PR 10 drift study, with a checked fixed-stake running-conditional-mean proof. PR 8's 1,182 open-weight coding episodes have verified raw/aggregate provenance but unresolved uncertainty and endpoint corrections; they remain outside these archives. Its airline extension has no final real delivery (last owner report 27/196 saved at 21:44 UTC September 18). The [experiment queue](../EXPERIMENT_QUEUE.md) identifies the owner's remaining repairs and the optional versus required studies. Checklist readiness remains 70%, not an acceptance forecast.
 
 ## Files to review and upload
 
-- **paper.pdf**: official ICLR 2027 review format, 33 pages total; main content ends on page 9. It contains the methods, experiments, full proofs, limitations, references, and reproducibility, ethics, and AI-use statements.
+- **paper.pdf**: official ICLR 2027 review format, 36 pages total; main content ends on page 9. It contains the methods, experiments, full proofs, limitations, references, and reproducibility, ethics, and AI-use statements.
 - **anonymous_code.zip**: portable code, complete numerical results, protocols, provenance, source-download instructions, and the paper sources. Its default verification and explicit full reproduction never call paid models.
 - **latex_source.zip**: editable LaTeX and required figures/style files.
 - **abstract.txt** and **form_draft.md**: the current genuine abstract, title, keywords and form-preparation notes.
@@ -15,7 +15,16 @@ Latest check, September 18, 2026: PR 8 contains 1,182 completed open-weight codi
 
 Use the anonymous archive as the code supplement. The public development GitHub repository identifies the author and should not be linked in anonymous review materials.
 
-The preceding numerical release passed clean extraction and full reproduction: all 23 numerical CSVs, prospective aggregate summary, generated LaTeX and rebuilt PDF text match. Default verification checks 73 archived output hashes. All PDF pages were visually inspected; no missing references, overfull text or detected author/credential leaks remain in the anonymous artifacts. The Round 6 release changes only attribution, an independently reviewed appendix and PDF; numerical code/results are unchanged. Its separate delta audit passed: 73 hashes, all 23 unchanged numerical CSVs, all 44 LaTeX-source members and the rebuilt 33-page PDF text match. The Round 6 archive is preserved at commit `6dfc095`. The current Round 7 code archive SHA256 is `c2e8b7417fdb0c143046140268bd34036f6c461517b6cedab411253aa20f9235`. Round 7 adds explicit credit to three additional precedents and surfaces an already-executed guarded-efficiency comparison; no numerical engine or result changed. The final Round 7 audit passed: all 73 result files and 23 CSVs are unchanged, the updated text builder regenerates its supplied output, 73 integrity hashes match, and the rebuilt PDF text matches. All 33 current PDF pages were visually inspected, with main content ending on page 9.
+The preceding frozen numerical release is preserved at `f806aba`. The current package adds only accepted comparator/drift evidence and the scoped proof; it does not include unapproved generic projection code or PR 8 analyses. The original numerical engine is unchanged apart from its docstring; all original results remain intact. Default verification checks 104 hashes, and the new archive contains 188 hashed payload files plus its README and package manifest. The accepted drift study and rare-event diagnostic were independently reproduced; see the Round 10 review reports for the exact scope of the comparator audit. This is an intermediate release, pending final retained-result disposition and final author review.
+
+Current SHA-256 identifiers:
+
+- paper.pdf: `24db7d5d24d59d92b81359b72877b2583dc9064b0d01b574d882a6c3a42db95c`
+- anonymous_code.zip: `ae5edbd74eb81d2363685b633a3dc18d3ad023d0d8fa00c6ab499485a59edcf0`
+- latex_source.zip: `fc7e4804426add437aba3f7201bce5d1916c16b09f15ce6e9cf4e361904d67fa`
+
+
+Round 10 release verification passed on the exact hashes above: all 188 payload hashes, five anonymous-copy provenance mappings and 104 result checks match. Clean code-archive and LaTeX-only rebuilds both reproduce the 36-page PDF text. The new builder reproduces all three TeX sections and its manifest exactly; original numerical CSVs are unchanged. All PDF pages were visually inspected, with detailed checks of the new proof and tables. No remaining layout, reference or detected identity/credential leak was found. See [independent release audit](../reviews/round10_release_delta_audit.md) and [visual QA](../reviews/round10_visual_and_archive_qa.json). These checks certify this intermediate archive's reproducibility, not human signoff or final retained-result completion.
 
 ## What has actually been done
 
@@ -38,7 +47,7 @@ The [official author guidelines](https://iclr.cc/Conferences/2027/AuthorGuidelin
 
 ## Cost and work available to other agents
 
-All further commercial/proprietary-model experiment calls are now **prohibited by your explicit instruction**, including simulator, judge and fallback calls. The [current execution policy](../EXPERIMENT_POLICY.md) supersedes all earlier cheap-model budget allowances. Historical total accounted project cost is **USD 3.9476608**, including uncertain reservations; this is usage-based accounting rather than a reconciled provider invoice. No new spending was incurred by the Round 9 audit.
+All further commercial/proprietary-model experiment calls are now **prohibited by your explicit instruction**, including simulator, judge and fallback calls. The [current execution policy](../EXPERIMENT_POLICY.md) supersedes all earlier cheap-model budget allowances. Historical total accounted project cost is **USD 3.9476608**, including uncertain reservations; this is usage-based accounting rather than a reconciled provider invoice. No new spending or model calls occurred in the Round 9–10 audits.
 
 Open-weight coding and the competitive sequential U-statistic reference have now been delivered in PRs 8 and 7; the interactive airline extension is pending final delivery. The [GitHub experiment queue](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/blob/main/EXPERIMENT_QUEUE.md) records independent audit findings and integration conditions. Existing workers retain ownership, use separate branches/worktrees and return reviewed pull requests. Generic contributed projections remain excluded from this frozen submission and do not affect its isolated reference results. Previously collected commercial observations are retained as historical evidence; their collection scripts are not authorized to run again.
 

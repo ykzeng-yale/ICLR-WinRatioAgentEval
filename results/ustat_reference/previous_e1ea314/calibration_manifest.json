@@ -1,0 +1,29 @@
+{
+  "arguments": {
+    "replicates": 10000,
+    "pairs": 10000,
+    "batch": 25,
+    "seed": 20260918,
+    "workers": 8,
+    "mc_pairs": 1000000,
+    "out": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/results/ustat_reference",
+    "calibration_only": true
+  },
+  "seeds": "SeedSequence([seed, 100 + scenario_index])",
+  "seconds": 714.6313529014587,
+  "per_scenario": {
+    "null": {
+      "seconds": 713.5402591247112,
+      "maxrss_bytes": 339427328
+    },
+    "tie_heavy_null": {
+      "seconds": 566.3970013326034,
+      "maxrss_bytes": 235388928
+    }
+  },
+  "peak_rss_bytes_max_child": 339427328,
+  "source_sha256": {
+    "ustat.py": "8be5638fb709992a4fd44f4eb4f9053296b57ce1348cec7e5a6ba2c22a35fd0a",
+    "run_ustat_reference.py": "aaa91835f377ac54d2e4256c34ea42dd49272ead89c4e4d3faf05ded7dc6a392"
+  }
+}

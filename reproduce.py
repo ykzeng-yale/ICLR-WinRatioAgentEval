@@ -13,10 +13,10 @@ def call(*args):
 
 def verify():
     checks=0
-    for name in ['simulation_manifest.json','stress_manifest.json','public_manifest.json','async_manifest.json','reproducibility_manifest.json','dm_baseline_manifest.json','decision_ablation_manifest.json','prospective_final_qa_manifest.json','trace_certificate_manifest.json']:
+    for name in ['simulation_manifest.json','stress_manifest.json','public_manifest.json','async_manifest.json','reproducibility_manifest.json','dm_baseline_manifest.json','decision_ablation_manifest.json','prospective_final_qa_manifest.json','trace_certificate_manifest.json','sequential_extensions_integrity.json','sequential_extension_paper_manifest.json']:
         path=ROOT/'results'/name
         if not path.exists():
-            if name in ['reproducibility_manifest.json','dm_baseline_manifest.json','decision_ablation_manifest.json','prospective_final_qa_manifest.json']:continue
+            if name in ['reproducibility_manifest.json','dm_baseline_manifest.json','decision_ablation_manifest.json','prospective_final_qa_manifest.json','sequential_extensions_integrity.json','sequential_extension_paper_manifest.json']:continue
             raise FileNotFoundError(path)
         m=json.loads(path.read_text())
         outputs=m.get('outputs',m.get('output_sha256',m.get('file_hashes',[])))
@@ -39,6 +39,7 @@ def main():
     ap.add_argument('--public-raw-dir',type=Path,default=ROOT/'work/empirical_sources')
     ap.add_argument('--fetch-public',action='store_true',help='Download pinned public benchmark data, never paid APIs')
     ap.add_argument('--build-pdf',action='store_true')
+    ap.add_argument('--extensions',action='store_true',help='Explicitly rerun accepted CPU-only comparator and drift extensions')
     a=ap.parse_args()
     if a.mode=='verify':
         call('src/test_winstats.py');verify()
@@ -61,6 +62,13 @@ def main():
         if (ROOT/'experiments/build_ablation_paper_results.py').exists():call('experiments/build_ablation_paper_results.py')
         if (ROOT/'experiments/summarize_prospective_pilot.py').exists():call('experiments/summarize_prospective_pilot.py')
         call('experiments/build_trace_paper_results.py')
+    if a.extensions:
+        call('experiments/ustat_reference/run_ustat_reference.py','--workers','4')
+        call('experiments/ustat_reference/run_ustat_reference.py','--workers','4','--calibration-only','--replicates','10000')
+        call('experiments/ustat_reference/rare_event_diagnostic.py')
+        call('experiments/drift_panel/run_drift_panel.py','--workers','4','--protocol-sha256','bb497cbb7c58fd1578530748c9d5ef834dc079e8b14973bc0bee348ca5c276cc')
+    if a.extensions or a.mode != 'verify':
+        if (ROOT/'experiments/build_sequential_extensions.py').exists():call('experiments/build_sequential_extensions.py')
     if a.build_pdf:
         subprocess.run(['latexmk','-pdf','-jobname=manuscript','-interaction=nonstopmode','-halt-on-error','main.tex'],cwd=ROOT/'paper',check=True)
     print('Finished. No commercial requests were made. Prospective records are archived empirical observations.')

@@ -1,5 +1,21 @@
 # Completion audit against the research objective
 
+## Round 10 checkpoint — September 18, 2026, 23:15 UTC
+
+**Verified checklist readiness remains 70%.** PR 7's sequential-comparison subset at `ac17f5901bcf4efba6c71e970d3a4c1cf1ed06cb` and PR 10's drift panel at `ae3f0a5d4936855fc0b81f4a327254e932ea729b` passed independent numerical/scientific review and are integrated into a revised 36-page paper (main content through page 9). The fixed-stake running-conditional-mean crossing proof was independently checked. The previous 33-page release remains preserved in Git at `f806aba`. This is an intermediate accepted-results release, not final submission readiness.
+
+The PR 7 rare-event diagnostic reproduced byte-for-byte; prior comparison outputs remain unchanged. The PR 10 audit reran all 96,000 sequential and 14,000 permutation replicates and independently checked target calculations. Its two numerical CSVs reproduced byte-for-byte. The paper distinguishes finite-sample from asymptotic guarantees, component versus conjunction errors, fixed versus changing targets, and conditional-on-rejection diagnostics. See the three Round 10 scientific reports in `reviews/`.
+
+PR 8 at `c89b525cd8e51564ca8c23399201d9cfdf0431a3` remains outside the released paper and archives. Its CPU aggregate reproduction, raw-data preservation and pinned benchmark provenance passed. The two-sided hedge is repaired, but same-task uncertainty still assumes independence unsupported by the shared orientation/pass design; zero-count endpoint arithmetic, variance-growth assumptions and one anonymous-map path also need correction. These are analysis/claim repairs, not reasons to repeat completed model calls. The concrete handoff is the [Round 10 PR 8 comment](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/pull/8#issuecomment-5737168893).
+
+The airline owner's latest posted status remains 27/196 saved at 21:44 UTC, under an amended second invocation; no final real invocation artifacts are delivered. Do not infer current activity or completed outcomes from that old status. Keep the owner's job exclusive and audit all invocation failures, token caps, repeated-task/shared-seed dependence and replay construction on delivery. No new model calls or spending occurred in this review.
+
+The exact revised release passed independent extraction and code/source PDF rebuilds: 188 payload hashes, five anonymous provenance mappings, 104 result checks and all rebuilt PDF text agree. All 36 pages were visually inspected. The release audit found and then verified a correction to an identifying temporary-directory path in an anonymous manifest copy.
+
+The same fixed 20-milestone rubric remains in force. Partial closure of S6/E4/M4/Q4 does not earn an entire five-point milestone while retained incoming analyses and final package disposition remain unresolved. Human scientific review, profile/eligibility and truthful submission declarations also remain pending. No paper has been submitted.
+
+The requirement table and Round 6–9 narratives below are preserved historical assessments. They do not override the open Round 10 empirical/scientific blockers. Current release checks are recorded in `reviews/round10_release_delta_audit.md` and `reviews/round10_visual_and_archive_qa.json`.
+
 Audit date: September 18, 2026 UTC. This checks the stated objective against actual sources and results, rather than treating a compiled PDF as sufficient. The previous goal turn made progress: commit 6267012 delivered the independently reproduced 31-page package. This continuation also made progress by integrating two verified close priors, adding direct causal-estimand attribution, correcting a budget-normalization error in the literature ledger, and supplying an independently checked variance proof and decision-target example. No numerical result was changed.
 
 ## Requirement-by-requirement evidence

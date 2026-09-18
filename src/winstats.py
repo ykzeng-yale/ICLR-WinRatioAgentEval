@@ -65,8 +65,12 @@ def betting_log_e_ternary(positive, negative, n, threshold=0., bets=40):
     """Mixture of constant bets for Z in {-1,0,1}, H0:E[Z|past]<=threshold.
 
     Counts may have arbitrary broadcast shapes. Parameters are chosen ex ante.
-    This tests a stationary or pointwise conditional null; it does not test an
-    unrestricted drifting running-average null.
+    Under the pointwise conditional null the wealth is a supermartingale.
+    With this fixed nonnegative stake grid it also controls crossings at
+    prefixes whose running conditional mean is <= the fixed threshold,
+    by the normalization argument in paper/theory.tex (prop:bet_running).
+    This latter guarantee does not make the wealth a supermartingale under
+    arbitrary drift or justify retaining old gate crossings for a new target.
     """
     if not -1 < threshold < 1:
         raise ValueError('Threshold must lie in (-1,1)')

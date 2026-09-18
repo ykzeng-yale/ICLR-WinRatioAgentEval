@@ -1,0 +1,123 @@
+{
+  "study_heads": {
+    "ustat_reference": "ac17f5901bcf4efba6c71e970d3a4c1cf1ed06cb",
+    "drift_panel": "ae3f0a5d4936855fc0b81f4a327254e932ea729b"
+  },
+  "outputs": [
+    {
+      "path": "results/ustat_reference/calibration_manifest.json",
+      "sha256": "30b221fb4894d17f61826fea03ba4d473bd1a83424703c621831354eabfe179e"
+    },
+    {
+      "path": "results/ustat_reference/calibration_run.log",
+      "sha256": "01f7f55bb176409abb9c6dc8544a47301bddb1f56b7bb0e79a6e3e9600593b59"
+    },
+    {
+      "path": "results/ustat_reference/manifest.json",
+      "sha256": "e8ee0f2d452ac8a50c7272e3d3241581252c2619d298c05b11791fff762f361d"
+    },
+    {
+      "path": "results/ustat_reference/null_calibration.csv",
+      "sha256": "3335a82aa8b89ced5fac25ffd96d044c1a5edcc426d81e7401da9f88fa8d7dcc"
+    },
+    {
+      "path": "results/ustat_reference/previous_e1ea314/calibration_manifest.json",
+      "sha256": "73538d294657b5edf83bce0757da5049f49b64d675e0755a01da7bc85672e252"
+    },
+    {
+      "path": "results/ustat_reference/previous_e1ea314/calibration_run.log",
+      "sha256": "19bc9213345547de315a74f7a4453d2f436489ab5be01d44e94ee9b4745b901d"
+    },
+    {
+      "path": "results/ustat_reference/previous_e1ea314/manifest.json",
+      "sha256": "e3090e55b29de5063bae71b73cf284333b7cd079a60c629e94eb56d28c915db5"
+    },
+    {
+      "path": "results/ustat_reference/previous_e1ea314/null_calibration.csv",
+      "sha256": "da32f87cd7330bcd886ff3f02890b21959ccad4c20764c60223e63eebd28e1e3"
+    },
+    {
+      "path": "results/ustat_reference/previous_e1ea314/run.log",
+      "sha256": "8927fed48ad759e1980533613feb74aba2a2b5d3e7e3046074f58848250463cd"
+    },
+    {
+      "path": "results/ustat_reference/previous_e1ea314/ustat_reference_efficiency.csv",
+      "sha256": "94579d4563e4be23f31b1c8e8c2018c516b17b510243170d60ce8bf4166cf529"
+    },
+    {
+      "path": "results/ustat_reference/previous_e1ea314/ustat_reference_estimator_check.csv",
+      "sha256": "781f1e27409b8fd27350da83ca905eb60700a725cf25307f57dab8b0b7df7747"
+    },
+    {
+      "path": "results/ustat_reference/previous_e1ea314/ustat_reference_gate_rates.csv",
+      "sha256": "b759a010989adec263210fc7ff309081242efcbdf8c8e3c1e95e5dabae2d2e30"
+    },
+    {
+      "path": "results/ustat_reference/previous_e1ea314/ustat_reference_results.csv",
+      "sha256": "a8a88e7b81df824fbf2da8f636c2834f85a03c6dd083c0585721bb424e78c135"
+    },
+    {
+      "path": "results/ustat_reference/rare_event_diagnostic.csv",
+      "sha256": "017d47dbab2813e91f59c52c3810adfb2bcc1e448b7010581e574aef34616199"
+    },
+    {
+      "path": "results/ustat_reference/rare_event_diagnostic_manifest.json",
+      "sha256": "f9a35f3f87c1619fc716cbf3c7ba39b8d9b23e89b26d343384debb6cc11ff050"
+    },
+    {
+      "path": "results/ustat_reference/run.log",
+      "sha256": "c907f7ec90dbb8b7558a744e9700adba5ae3f97b8c2accfe197664257322930d"
+    },
+    {
+      "path": "results/ustat_reference/ustat_reference_efficiency.csv",
+      "sha256": "94579d4563e4be23f31b1c8e8c2018c516b17b510243170d60ce8bf4166cf529"
+    },
+    {
+      "path": "results/ustat_reference/ustat_reference_estimator_check.csv",
+      "sha256": "781f1e27409b8fd27350da83ca905eb60700a725cf25307f57dab8b0b7df7747"
+    },
+    {
+      "path": "results/ustat_reference/ustat_reference_gate_rates.csv",
+      "sha256": "422027bd9464d5aab72125d204afd8c5badc4368a71b3d4a62d11a17904e7c77"
+    },
+    {
+      "path": "results/ustat_reference/ustat_reference_reproduction_check.json",
+      "sha256": "53b1eca15f87b1db127439c786a1f549e9e1b6facd79288ea7a9fc0147df3cea"
+    },
+    {
+      "path": "results/ustat_reference/ustat_reference_results.csv",
+      "sha256": "18c81b5c6827647ca9bd89d79b88b5bd2175e8571f6c3c3f8391f8c1863e199d"
+    },
+    {
+      "path": "results/drift_panel/figures/fig1_design_running_targets.png",
+      "sha256": "75c4921e52f5247adc13dc351a17789d96d788923c5350fbd7c46d843bc922ae"
+    },
+    {
+      "path": "results/drift_panel/figures/fig2_error_rates.png",
+      "sha256": "029a94e1bbd1a2ea1521247f361339d354ff32f8e080d916365abc4eb3332e9e"
+    },
+    {
+      "path": "results/drift_panel/figures/fig3_power_sample_use.png",
+      "sha256": "3722eb17fafc0953e982597bc4495b007692210792da88da7ad14436234821d1"
+    },
+    {
+      "path": "results/drift_panel/manifest.json",
+      "sha256": "318a57ac332a9802471e85c3ddb379d3a18408cfd9046eb1a86ad9142c25b7bf"
+    },
+    {
+      "path": "results/drift_panel/permutation_results.csv",
+      "sha256": "cd8e472dbe6efc5c0d0a7c17d8e58ccf585ac8b2588ea6d76c1d53139769fb36"
+    },
+    {
+      "path": "results/drift_panel/results.csv",
+      "sha256": "c230d940e7de1526a744add5b45f35bb16381ccf1bcafd27847ce83d0320af95"
+    },
+    {
+      "path": "results/drift_panel/run.log",
+      "sha256": "1cde03d7207f64e38a3b58a405cf3cde66a8138d5445432e50c937b99194af25"
+    }
+  ],
+  "source_note": "Original contribution manifests remain immutable. The integrated winstats.py has a documentation-only change for the independently proved fixed-stake running-mean guarantee; its executable AST equals the original.",
+  "core_original_sha256": "3053f8a14e033b02b514135d7043624ca34c1a1f9da9c622365d35aa7f927fd9",
+  "core_integrated_sha256": "56955ce09a8ac7afb15f2bd251048537eabcc04ea75e7579bdb825594f41fc69"
+}

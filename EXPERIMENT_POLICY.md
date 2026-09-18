@@ -14,7 +14,7 @@ Effective September 18, 2026, following the author's explicit instruction. This 
 
 Previously collected commercial-model observations and public historical traces remain immutable provenance records. The author requested a ban on future use, not deletion of prior observations. Their historical collection scripts are retained for provenance and are **not authorized for execution**. Archived aggregate reproduction and CPU-only simulations may run without making model calls.
 
-The frozen anonymous package at `f806aba` remains unchanged while new contributions are reviewed. It must not be described as already containing PR 7 or PR 8 results. New release archives require their own numerical, source, anonymity, and PDF checks after integration.
+The previous frozen anonymous package is preserved at `f806aba`. Round 10 integrates the accepted PR 7 sequential-comparison subset and PR 10 drift study into new archives with separate numerical, source, anonymity and PDF checks. PR 8 coding/airline results remain excluded pending correction and validation. Never treat an observed contribution as integrated merely because it exists on GitHub.
 
 ## Concurrent ownership
 
