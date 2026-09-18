@@ -2,7 +2,7 @@
 
 Active objective: a complete, reproducible ICLR submission package for hierarchical win statistics in agent evaluation, with online continuously monitored randomized comparisons as the main setting.
 
-This directory is a development package, not a certified submission-ready paper. The active goal must stay open until the scientific and submission checks below are satisfied. No paper has been submitted. The user has specified a single author; private submission metadata records the supplied details, while review materials remain anonymous.
+This directory is a development package, not a certified submission-ready paper. Goal completion remains unproven until the scientific and submission checks below are satisfied. No paper has been submitted. The user has specified a single author; private submission metadata records the supplied details, while review materials remain anonymous.
 
 ## Completion criteria
 
@@ -41,7 +41,7 @@ A clean unpacked reproduction matched 16 regenerated numerical CSVs and 3 retain
 
 The trace extension independently reproduced 3,426 early certificates among 10,008 comparisons and all 195,171 prefixes from nine hashed archives. Of all comparisons, 2,595 resolve while actual assistant messages remain unseen. The main and appendix report all contrasts, the terminal-marker sensitivity, and the artificial ordinal schedule. No production latency, deployment saving, or independent-pair inference is asserted.
 
-The author handoff is submission/READ_ME_FOR_AUTHOR.md. Paid calls are halted at USD3.9476608 accounted project cost. The GitHub queue specifies unexecuted larger/local/comparator studies with separate branches and zero additional paid allocation. The active goal remains open for actual author scientific verification, profile/reciprocal-review checks and submission attestations; no agent claims those steps are done.
+The author handoff is submission/READ_ME_FOR_AUTHOR.md. Paid calls are halted at USD3.9476608 accounted project cost. The GitHub queue specifies unexecuted larger/local/comparator studies with separate branches and zero additional paid allocation. Goal completion awaits actual author scientific verification, profile/reciprocal-review checks and submission attestations; no agent claims those steps are done.
 
 ## Round 6 close-prior and normalization audit
 
@@ -54,3 +54,9 @@ The Round 6 archive delta audit passed with 142 payload files and 44 LaTeX-sourc
 The external positioning critiques at `8c95ead` were read against current main, without checking out or editing their branch. Most fatal points concerned an obsolete memo; the surviving citation gaps were independently verified and corrected. Current related work cites Huang's estimand-aware agent comparisons, Manole–Ramdas's finite-sample symmetric U-statistic route, and Schultzberg et al.'s superiority/guardrail decision logic. The existing ablation now explicitly reports that guarded bounded-efficiency and guarded win have equal deployment rates and mean capped sample use in two improvement scenarios; the result builder checks that equality against the archived CSV. No simulated output, raw observation, or scientific engine changed. The PDF remains 33 pages, main content through page 9. Issue 3 retains its external owner; its proposed unexecuted comparisons were not adopted into the released abstract.
 
 The final Round 7 archive delta audit passed against committed `6dfc095`: exactly five expected payload changes, all 73 result files and 23 CSVs byte-identical, modified text builder output identical, 73 integrity hashes matched, and rebuilt PDF text identical. All 44 LaTeX-source members resolve. The current 33-page PDF was visually inspected, with main content ending on page 9 and statements continuing onto page 10; no overfull text, undefined citations or detected identifier/credential leaks were found.
+
+## Round 8 incoming-code audit and completion boundary
+
+New external commit `e1ea314` supplies the claimed all-pairs comparator implementation and additional replay results. These were reviewed read-only before integration. The replay audit found a reproducibility defect in process-dependent hash seeding and a stratified sampler that can index one task using another task's replicate count; a toy example fails, although the balanced current tau2 pool is not shown wrong by that example. The bidirectional launch-rule label also needs explicit handling when both orientations qualify. The separate U-statistic audit addresses inferential assumptions and same-look versus retained-crossing semantics. These external artifacts are excluded from the frozen paper/supplement at `f806aba`; current scientific outputs are unchanged. The existing issue owner receives the reports and retains implementation ownership.
+
+The current requirement audit still lacks author scientific verification, a verified OpenReview profile, reciprocal-review qualification, and truthful originality/concurrent-submission declarations. These same author-only conditions were recorded at the earlier 31-page release, at the Round 6/7 release, and again now. No qualifying live local experiment process was found; a claim comment and committed code do not establish active execution. Further integration awaits a corrected, executed external handoff. The paper is prepared for author review, not declared ready for submission.

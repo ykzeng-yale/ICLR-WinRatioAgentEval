@@ -64,3 +64,7 @@ The [reviewer guidelines](https://iclr.cc/Conferences/2027/ReviewerGuidelines) a
 - Human validation and submission-form attestations.
 
 These inputs need not halt independent theory, public-data work or simulation. They do prevent honestly calling the entire package ready to upload if still unresolved.
+
+## Optional pre-submission feedback opportunity
+
+The [official ICLR PAT announcement](https://blog.iclr.cc/2026/09/10/making-googles-paper-assistant-tool-pat-available-to-iclr-submitters/) was verified September 18 UTC. This optional program and its account/upload requirements are described in READ_ME_FOR_AUTHOR.md; it is not a required release gate.

@@ -1,6 +1,6 @@
 # Author handoff: ICLR 2027
 
-**The complete review package is prepared. You have not submitted it, and your scientific review and submission attestations remain outstanding.** The active project goal is therefore not marked complete. The sole-author name and institutional email you supplied are recorded in the excluded local author metadata; the review PDF and archives are anonymous.
+**The complete review package is prepared. You have not submitted it, and your scientific review and submission attestations remain outstanding.** The project goal is therefore not marked complete. The sole-author name and institutional email you supplied are recorded in the excluded local author metadata; the review PDF and archives are anonymous.
 
 ## Files to review and upload
 
@@ -39,3 +39,7 @@ The [official author guidelines](https://iclr.cc/Conferences/2027/AuthorGuidelin
 All commercial calls have stopped. Total accounted project cost is **USD 3.9476608**, including uncertain reservations, below the USD 5 cap. It is usage-based accounting rather than a reconciled provider invoice. No additional commercial allocation has been given to other workers.
 
 Larger prospective streams, local-model replication and a competitive sequential U-statistic reference are separately specified in the [GitHub experiment queue](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/blob/main/EXPERIMENT_QUEUE.md). They are future work and support no current results. Workers must claim an issue, use a separate branch/worktree, and return a reviewed pull request. An independently identified defect in a contributed generic projection patch remains open; that module is excluded from this submission and does not affect the isolated reference results.
+
+## Optional ICLR automated feedback
+
+ICLR's [official PAT announcement](https://blog.iclr.cc/2026/09/10/making-googles-paper-assistant-tool-pat-available-to-iclr-submitters/) offers free private automated feedback through September 18, 2026, 23:59 AoE. It requires a valid OpenReview account and an uploaded submission PDF, followed by the feedback checkbox on the submission form. Each author has one voucher and each paper may be processed once. Feedback is separate from conference peer review and can take up to 12 hours. No voucher has been used and no PDF has been submitted by this agent.
