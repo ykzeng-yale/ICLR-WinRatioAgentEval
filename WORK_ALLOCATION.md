@@ -16,3 +16,7 @@ Earlier literature, theory-development, and historical-data tasks have been hand
 The prospective pilot, grader/decision ablations, and isolated DM comparison have been handed back. Root owns their integration. The release reviewer writes only reviews/round4_release_reproduction.md and a separate work/ extraction; the trace-certificate worker owns only experiments/run_trace_certificates.py, evidence/trace_certificate_protocol.md, and results/trace_certificate_* until handoff. The fresh integrated reviewer writes only its review report.
 
 Contributed general wincs projections and width results are excluded from submission claims pending issue4. The isolated src/ternary_dm.py uses only audited complete-data formulas; it is not an asynchronous plug-in.
+
+## Release handoffs
+
+The trace worker handed back the frozen protocol, implementation and all four output tables. The independent reviewer reconstructed every certificate and owns only its report and a separately saved verifier until final handoff. Root owns both generated trace manuscript sections and integration. The empirical reviewer handed back the PR5 report; the patch remains unmerged after a concrete feasible-point counterexample. A release worker may extract and test the finished archive only under a separate work/ directory and write its release report; it must not edit research sources or outputs. All commercial calls are halted.

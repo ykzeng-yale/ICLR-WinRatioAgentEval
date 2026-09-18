@@ -1,8 +1,8 @@
 # Guarded win statistics for continuous agent evaluation
 
-Research in progress toward an ICLR submission. **Not yet submission-ready.**
+An ICLR 2027 review package is prepared. **Author scientific review and submission attestations remain outstanding; no submission has been made.**
 
-This project studies prespecified hierarchical agent comparisons, the distinction between task-matched offline evaluation and cross-arrival online A/B evaluation, and continuously monitored deployment decisions that also require component safeguards. Established win-statistic and martingale methods are credited explicitly; scientific novelty remains under independent review.
+This project studies prespecified hierarchical agent comparisons, the distinction between task-matched offline evaluation and cross-arrival online A/B evaluation, and continuously monitored deployment decisions that also require component safeguards. Established win-statistic and martingale methods are credited explicitly. The latest independent AI review describes a credible focused methodology submission with borderline ICLR strength; it does not predict acceptance.
 
 See [PROJECT_STATUS.md](PROJECT_STATUS.md) for completion criteria, [evidence/venue_and_novelty.md](evidence/venue_and_novelty.md) for the current literature audit, and [submission/requirements.md](submission/requirements.md) for ICLR 2027 rules.
 
@@ -16,7 +16,9 @@ python experiments/run_simulations.py --replicates 2000 --pairs 10000
 python experiments/run_stress_tests.py
 ```
 
-The first study comprises six synthetic stationary scenarios. The separate stress tests examine boundary nulls, reused-run dependence, and adaptive randomized order. Monte Carlo rates and uncertainty are in `results/`; manifests record seeds, assumptions and source hashes. The executed package also includes 3,936 public agent trajectories, a 2,000-repetition delay study, decision/grader ablations, a complete-data Dirichlet-mixture reference, and an 18-trajectory prospective Haiku workflow pilot with three planned task pairs unobserved. No synthetic stream or historical replay is a live production A/B experiment.
+The first study comprises six synthetic stationary scenarios. The separate stress tests examine boundary nulls, reused-run dependence, and adaptive randomized order. Monte Carlo rates and uncertainty are in `results/`; manifests record seeds, assumptions and source hashes. The executed package also includes 3,936 public agent trajectories, a 2,000-repetition delay study, decision/grader ablations, a complete-data Dirichlet-mixture reference, and an 18-trajectory prospective Haiku workflow pilot with three planned task pairs unobserved. An independently reconstructed ordinal replay certifies 3,426 of 10,008 archived comparisons before the later terminal marker; 2,595 certify while actual assistant messages remain unseen. No synthetic stream or historical replay is a live production A/B experiment.
+
+The anonymous PDF, code/results archive and LaTeX sources are in [submission/](submission/); start with [the author handoff](submission/READ_ME_FOR_AUTHOR.md). The PDF contains nine main-text pages and complete appendices. Human checks, narrow scientific claims and the open experiment queue are listed explicitly.
 
 ## Commercial model experiments
 

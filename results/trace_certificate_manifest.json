@@ -1,0 +1,97 @@
+{
+  "generated_utc": "2026-09-18T01:38:16.742430+00:00",
+  "protocol_sha256": "1eeb845fa203bbd4f03de61a01b7878541598d4dadb6009e0a14901ee5916e25",
+  "source_code_sha256": "a9cc6db2c1c388876d68addb2728c27fd62997daeb37d6591d7bcf1166849695",
+  "comparator_sha256": "3053f8a14e033b02b514135d7043624ca34c1a1f9da9c622365d35aa7f927fd9",
+  "public_manifest_sha256": "c272cba7fda65458d131666fc29f81fcfcc917540827c91fb38e2f11a7a318a5",
+  "python": "3.14.4",
+  "numpy": "2.4.1",
+  "source_files": [
+    {
+      "file": "tau2_claude-3-7-sonnet-20250219_airline_default_gpt-4.1-2025-04-14_4trials.json",
+      "sha256": "40a2c6a246eab27db5cdefda895fbe7f44be78a23d300817248534aa606d66de",
+      "url": "https://raw.githubusercontent.com/sierra-research/tau2-bench/b7ea9074c1cba482b30687fecdb5c8425fd6f619/data/tau2/results/final/claude-3-7-sonnet-20250219_airline_default_gpt-4.1-2025-04-14_4trials.json",
+      "embedded_run_commit": "c30d59aaa71c65f9b9eb6a8f8636b48945028fcf"
+    },
+    {
+      "file": "tau2_claude-3-7-sonnet-20250219_retail_default_gpt-4.1-2025-04-14_4trials.json",
+      "sha256": "ed41dbd18c080154156484e3a0122c095e324a11367a640d88e15956daed7b9d",
+      "url": "https://raw.githubusercontent.com/sierra-research/tau2-bench/b7ea9074c1cba482b30687fecdb5c8425fd6f619/data/tau2/results/final/claude-3-7-sonnet-20250219_retail_default_gpt-4.1-2025-04-14_4trials.json",
+      "embedded_run_commit": "c30d59aaa71c65f9b9eb6a8f8636b48945028fcf"
+    },
+    {
+      "file": "tau2_claude-3-7-sonnet-20250219_telecom_default_gpt-4.1-2025-04-14_4trials.json",
+      "sha256": "f49e540896fe91ab8631647f02eb777ef6fed5a6ebec545f43e71d0504e227b2",
+      "url": "https://raw.githubusercontent.com/sierra-research/tau2-bench/b7ea9074c1cba482b30687fecdb5c8425fd6f619/data/tau2/results/final/claude-3-7-sonnet-20250219_telecom_default_gpt-4.1-2025-04-14_4trials.json",
+      "embedded_run_commit": "f125e68a2cdc6161f11a4c611413ea4a0918edac"
+    },
+    {
+      "file": "tau2_gpt-4.1-2025-04-14_airline_default_gpt-4.1-2025-04-14_4trials.json",
+      "sha256": "31d19e79b8ddc5934a60701f913ff5fefb41dee5e68f7b813c26254ab2e2d5c8",
+      "url": "https://raw.githubusercontent.com/sierra-research/tau2-bench/b7ea9074c1cba482b30687fecdb5c8425fd6f619/data/tau2/results/final/gpt-4.1-2025-04-14_airline_default_gpt-4.1-2025-04-14_4trials.json",
+      "embedded_run_commit": "c30d59aaa71c65f9b9eb6a8f8636b48945028fcf"
+    },
+    {
+      "file": "tau2_gpt-4.1-2025-04-14_retail_default_gpt-4.1-2025-04-14_4trials.json",
+      "sha256": "5fc5b96ada0fe46a463eaed98d1bfed9947fe073bac052290162dae18d71394e",
+      "url": "https://raw.githubusercontent.com/sierra-research/tau2-bench/b7ea9074c1cba482b30687fecdb5c8425fd6f619/data/tau2/results/final/gpt-4.1-2025-04-14_retail_default_gpt-4.1-2025-04-14_4trials.json",
+      "embedded_run_commit": "c30d59aaa71c65f9b9eb6a8f8636b48945028fcf"
+    },
+    {
+      "file": "tau2_gpt-4.1-2025-04-14_telecom_default_gpt-4.1-2025-04-14_4trials.json",
+      "sha256": "8e1793f57a9e216514dbce1f93b44b0592d5904f1c5b97ab711906782107a1f2",
+      "url": "https://raw.githubusercontent.com/sierra-research/tau2-bench/b7ea9074c1cba482b30687fecdb5c8425fd6f619/data/tau2/results/final/gpt-4.1-2025-04-14_telecom_default_gpt-4.1-2025-04-14_4trials.json",
+      "embedded_run_commit": "f125e68a2cdc6161f11a4c611413ea4a0918edac"
+    },
+    {
+      "file": "tau2_o4-mini-2025-04-16_airline_default_gpt-4.1-2025-04-14_4trials.json",
+      "sha256": "6a3a354c9bce42b52905af096e9cea6f555548acbb17b567fd403c356df7b4ec",
+      "url": "https://raw.githubusercontent.com/sierra-research/tau2-bench/b7ea9074c1cba482b30687fecdb5c8425fd6f619/data/tau2/results/final/o4-mini-2025-04-16_airline_default_gpt-4.1-2025-04-14_4trials.json",
+      "embedded_run_commit": "c30d59aaa71c65f9b9eb6a8f8636b48945028fcf"
+    },
+    {
+      "file": "tau2_o4-mini-2025-04-16_retail_default_gpt-4.1-2025-04-14_4trials.json",
+      "sha256": "7135f38bbbbd46d6babe830574c8623bb276d8fd6da316580b905cf513853f98",
+      "url": "https://raw.githubusercontent.com/sierra-research/tau2-bench/b7ea9074c1cba482b30687fecdb5c8425fd6f619/data/tau2/results/final/o4-mini-2025-04-16_retail_default_gpt-4.1-2025-04-14_4trials.json",
+      "embedded_run_commit": "c30d59aaa71c65f9b9eb6a8f8636b48945028fcf"
+    },
+    {
+      "file": "tau2_o4-mini-2025-04-16_telecom_default_gpt-4.1-2025-04-14_4trials.json",
+      "sha256": "1f46a6f296694bdb3ae203e6b379cdada0b8f17b648a4cf90d6343de1f1fb070",
+      "url": "https://raw.githubusercontent.com/sierra-research/tau2-bench/b7ea9074c1cba482b30687fecdb5c8425fd6f619/data/tau2/results/final/o4-mini-2025-04-16_telecom_default_gpt-4.1-2025-04-14_4trials.json",
+      "embedded_run_commit": "f125e68a2cdc6161f11a4c611413ea4a0918edac"
+    }
+  ],
+  "cost_allowance": "7.446604E-10",
+  "cost_arithmetic": "Decimal on archived numeric strings",
+  "cost_absolute_tolerance": "1E-10",
+  "cost_relative_tolerance": "1E-10",
+  "tasks": 278,
+  "models": 3,
+  "trials_per_task_model": 4,
+  "episodes": 3336,
+  "comparisons": 10008,
+  "assistant_messages": 51247,
+  "every_prefix_containment_checks": 195171,
+  "early_certificates": 3426,
+  "checks": {
+    "source_hashes": true,
+    "nonnegative_message_costs": true,
+    "final_cost_reconciliation": true,
+    "verified_seed_grid": true,
+    "no_hidden_labels_in_pending_states": true,
+    "pending_lower_bounds_below_final": true,
+    "every_prefix_containment": true,
+    "interval_nesting": true,
+    "final_collapse": true,
+    "final_rule_matches_existing_comparator": true
+  },
+  "output_sha256": {
+    "trace_certificate_cost_audit.csv": "383a1c6edfbf25b841c04b1d9a25a1b91d5cef10b3bef059caff80db1c2d142e",
+    "trace_certificate_pairs.csv": "126fc4fab5f571b422eab471beeb5609f11efffde2fc054f4624a6e3f5f237ca",
+    "trace_certificate_summary.csv": "995daf589f834cd07f973a43a522fd24e0379f6b176a847eac9392e7dcfb9db5",
+    "trace_certificate_examples.csv": "8e539e1bc8b275446e7cbc692eb76c98fa92e5153c8625b5006aeaedf5a2b4eb"
+  },
+  "inference": "Descriptive fixed archive; dependent task/seed comparisons; no population confidence intervals or sequential deployment decisions.",
+  "replay": "Ordinal assistant-message ticks with a terminal marker; not observed concurrent latency, operational savings, or a safety evaluation."
+}

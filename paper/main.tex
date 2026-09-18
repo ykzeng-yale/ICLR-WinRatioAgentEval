@@ -36,8 +36,11 @@ identical-agent runs versus 31.05\% for repeated ordinary Wald tests.
 In a separate informative-delay study, partial evidence reduced mean
 capped decision time from 41.285 to 22.363 ticks for an equally successful,
 cheaper alternative; both valid methods deployed in 99.7\% of runs and
-had 0.6\% null false deployments. Historical agent traces show why
-success-first aggregate wins still need success guardrails. These
+had 0.6\% null false deployments. An ordinal replay of 10,008
+historical trace comparisons certified 34.2\% before the later terminal
+marker, demonstrating archived certificate feasibility without claiming operational
+latency savings. Historical comparisons also expose success losses
+hidden by aggregate wins. These
 results support explicit decisions for a specified workload and
 preference rule, with unresolved outcomes retained in the analysis.
 \end{abstract}
@@ -339,6 +342,7 @@ asymptotic variance, bounded-mean alternative, and coupling decomposition.
 \label{sec:experiments}
 \input{results_main.tex}
 \input{async_results.tex}
+\input{trace_certificate_results.tex}
 \input{decision_ablations.tex}
 \input{dm_results.tex}
 
@@ -378,8 +382,9 @@ Our component margins are illustrative, not elicited from application
 owners. All-pairs methods may use data more efficiently than disjoint
 pairs. Partial bounds can remain uninformative when outcomes cannot be
 certified early; our delay simulation uses one deliberately simple
-measurement pipeline and two outcome scenarios. The practical value of
-accrued-cost early certificates from real traces remains unvalidated. Public
+measurement pipeline and two outcome scenarios. The historical prefix
+audit validates certificate feasibility under an artificial message
+schedule; its operational latency and deployment value remain untested. Public
 retrospective traces and laboratory experiments do not constitute a
 randomized intervention among production users.
 
@@ -414,6 +419,7 @@ human verification of every result and citation has been completed.
 \input{asynchronous.tex}
 \input{experiments_appendix.tex}
 \input{async_appendix.tex}
+\input{trace_certificate_appendix.tex}
 \input{decision_ablation_appendix.tex}
 \input{prospective_appendix.tex}
 \input{dm_appendix.tex}

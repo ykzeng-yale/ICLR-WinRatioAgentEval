@@ -13,7 +13,7 @@ def call(*args):
 
 def verify():
     checks=0
-    for name in ['simulation_manifest.json','stress_manifest.json','public_manifest.json','async_manifest.json','reproducibility_manifest.json','dm_baseline_manifest.json','decision_ablation_manifest.json','prospective_final_qa_manifest.json']:
+    for name in ['simulation_manifest.json','stress_manifest.json','public_manifest.json','async_manifest.json','reproducibility_manifest.json','dm_baseline_manifest.json','decision_ablation_manifest.json','prospective_final_qa_manifest.json','trace_certificate_manifest.json']:
         path=ROOT/'results'/name
         if not path.exists():
             if name in ['reproducibility_manifest.json','dm_baseline_manifest.json','decision_ablation_manifest.json','prospective_final_qa_manifest.json']:continue
@@ -53,11 +53,14 @@ def main():
             args=['experiments/reanalyze_public.py','--raw-dir',str(a.public_raw_dir)]
             if a.fetch_public:args.append('--fetch-missing')
             call(*args)
+            call('experiments/run_trace_certificates.py','--raw-dir',str(a.public_raw_dir))
+            call('experiments/verify_trace_certificates_independent.py','--raw-dir',str(a.public_raw_dir))
         call('experiments/build_paper_results.py')
         call('experiments/build_async_paper_results.py')
         if (ROOT/'experiments/build_dm_paper_results.py').exists():call('experiments/build_dm_paper_results.py')
         if (ROOT/'experiments/build_ablation_paper_results.py').exists():call('experiments/build_ablation_paper_results.py')
         if (ROOT/'experiments/summarize_prospective_pilot.py').exists():call('experiments/summarize_prospective_pilot.py')
+        call('experiments/build_trace_paper_results.py')
     if a.build_pdf:
         subprocess.run(['latexmk','-pdf','-jobname=manuscript','-interaction=nonstopmode','-halt-on-error','main.tex'],cwd=ROOT/'paper',check=True)
     print('Finished. No commercial requests were made. Prospective records are archived empirical observations.')

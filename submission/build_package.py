@@ -8,6 +8,9 @@ required=['requirements.txt','reproduce.py','REPRODUCIBILITY.md','src/winstats.p
  'experiments/run_simulations.py','experiments/run_stress_tests.py','experiments/run_async_experiment.py',
  'experiments/reanalyze_public.py','experiments/build_paper_results.py','experiments/build_async_paper_results.py','experiments/build_ablation_paper_results.py','experiments/build_dm_paper_results.py',
  'experiments/protocol.md','evidence/async_experiment_protocol.md',
+ 'experiments/run_trace_certificates.py','experiments/build_trace_paper_results.py','evidence/trace_certificate_protocol.md',
+ 'experiments/verify_trace_certificates_independent.py',
+ 'paper/trace_certificate_results.tex','paper/trace_certificate_appendix.tex',
  'paper/main.tex','paper/theory.tex','paper/asynchronous.tex','paper/results_main.tex','paper/experiments_appendix.tex',
  'paper/public_results.tex','paper/public_appendix.tex','paper/async_results.tex','paper/async_appendix.tex',
  'paper/references.bib','paper/iclr2027_conference.sty','paper/iclr2027_conference.bst','paper/fancyhdr.sty','paper/natbib.sty',
@@ -26,7 +29,7 @@ for name in required:
 for name in optional:
  if (ROOT/name).is_file():files.add(name)
 for pattern in ['experiments/prospective*.tex','results/async_*','results/public_*.csv','results/public_manifest.json','results/public_guardrail_reversal.*',
- 'results/simulation_operating.*','plots/public_*.pdf','plots/public_*.png','results/dm_baseline_*',
+ 'results/simulation_operating.*','plots/public_*.pdf','plots/public_*.png','results/dm_baseline_*','results/trace_certificate_*',
  'results/decision_ablation_*','results/prospective_*.csv','results/prospective_*.json',
  'results/prospective_v2_sanitized_traces/*.json','plots/prospective_v2_cohort.*','results/provider_diagnostics.json','results/project_cost_summary.json']:
  for p in ROOT.glob(pattern):

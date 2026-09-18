@@ -1,6 +1,6 @@
 # Reproducing the reported research
 
-The paper combines synthetic score streams, historical public agent traces, and a small prospectively specified laboratory pilot. None is a production-user randomized trial. Independent model-assisted reviews and limitations are recorded in the development repository.
+The paper combines synthetic score streams, historical public agent traces, an ordinal prefix-certificate replay, and a small prospectively specified laboratory pilot. None is a production-user randomized trial. Independent model-assisted reviews and limitations are recorded in the development repository.
 
 ## Environment
 
@@ -19,6 +19,8 @@ The principal simulations and delayed-feedback experiment run on CPU in minutes.
 `results/*manifest.json` records seeds, parameter settings, code hashes, output hashes, and/or original artifact URLs. A manifest generated on a later replay legitimately has a different timestamp. Numerical result tables, rather than PDF byte identity or elapsed time, are the deterministic comparison target. Public source downloads fail on hash mismatch. No source file is silently substituted. The historical bootstrap is conditional on the archived seed suite and is not a simultaneous ranking guarantee.
 
 `experiments/build_paper_results.py` regenerates the synthetic tables/figure; `experiments/build_async_paper_results.py` regenerates the delayed-feedback text/table from recorded results. Historical manuscript summaries are checked against results/public_comparisons.csv. Full proofs are in paper/theory.tex and paper/asynchronous.tex.
+
+Full mode also executes `experiments/run_trace_certificates.py --raw-dir /path/to/sources` and its separately implemented verifier. The trace replay audits all nine retained tau2 source files, 3,336 episodes, and 195,171 prefixes; it never calls a model. Its four CSVs and every earliest-certificate tick are deterministic. `experiments/build_trace_paper_results.py` derives the two manuscript sections, including the independently requested terminal-marker sensitivity, from the archived full comparison table. Simulation mode keeps the observed public trace results and only rebuilds their manuscript text. No replay count is interpreted as concurrent latency or an independent binomial sample.
 
 ## Prospective model records
 
