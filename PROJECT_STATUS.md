@@ -1,5 +1,19 @@
 # Research status
 
+## Current checkpoint — September 19, 2026, Round 11
+
+**Verified package readiness remains 70%.** The 38-page anonymous review package adds the accepted open-weight coding subset: all 1,182 metric records, 591 tasks, observed resource/success outcomes, first-pass pair scores and root-only post-hoc running-conditional-mean bands. The independently reviewed same-task comparison is descriptive; contributed E2/R2 uncertainty and endpoint routines remain excluded. The success guardrail is not certified. No new model calls or duplicate owner jobs were run.
+
+Three separate coding evidence/target/integrated reviews passed. The paper retains nine main-content pages. The exact code/source archive checks and hashes are recorded in the Round 11 release audit and `submission/READ_ME_FOR_AUTHOR.md`. Original numerical results and the Round 10 release at `b1febcf` remain preserved.
+
+**New external delivery:** PR 8 advanced to `3c70c3e5ec8c8d6f9c5e06b369237319799c864d` at 05:02 UTC. The owner reports the airline run completed all 196 planned units, with 15/98 successes per arm, and deposited raw/aggregate files and two invocation records. This is newly delivered evidence, not accepted inference. Initial scope review finds retained fixed-mean/task-independent intervals and an unfinished deviations report that require repair; independent validation/disposition remains open. Coding files are unchanged from the accepted `c89b525` snapshot. Owner execution/repair ownership is unchanged.
+
+Actual abstract-submission status is unknown. This agent has neither submitted nor attested for the author. The abstract deadline is September 19 at 07:59 EDT; full-paper deadline September 26 at 07:59 EDT. Human scientific review, profile/eligibility and truthful declarations remain pending. All commercial/proprietary experimental calls remain prohibited.
+
+## Historical checkpoints below
+
+The entries below retain their original dates, artifact sizes and then-current states; they do not supersede the current Round 11 checkpoint.
+
 Queue synchronization on September 19, 2026: completed simulation execution issues 3 and 9 are closed with links to their accepted studies and the explicit audit limitations. An independent reviewer confirmed the focused drift issue has no remaining execution item. No new owner results or response arrived; PR 8 repairs and final airline delivery remain pending. The scientific release is still `b1febcf`, and verified readiness remains **70%**. This is coordination cleanup, not new experimental evidence.
 
 ## Round 10 checkpoint — September 18, 2026, 23:15 UTC

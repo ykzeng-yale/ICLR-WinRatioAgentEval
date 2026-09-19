@@ -1,0 +1,5929 @@
+{
+  "arrivals": [
+    {
+      "arrival_index": 1,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 1,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/278"
+    },
+    {
+      "arrival_index": 2,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 1,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/430"
+    },
+    {
+      "arrival_index": 3,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 2,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/441"
+    },
+    {
+      "arrival_index": 4,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 2,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/151"
+    },
+    {
+      "arrival_index": 5,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 3,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "humaneval/62"
+    },
+    {
+      "arrival_index": 6,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 3,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/57"
+    },
+    {
+      "arrival_index": 7,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 4,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "humaneval/116"
+    },
+    {
+      "arrival_index": 8,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 4,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/606"
+    },
+    {
+      "arrival_index": 9,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 5,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "humaneval/21"
+    },
+    {
+      "arrival_index": 10,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 5,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/91"
+    },
+    {
+      "arrival_index": 11,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 6,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/721"
+    },
+    {
+      "arrival_index": 12,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 6,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/573"
+    },
+    {
+      "arrival_index": 13,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 7,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/123"
+    },
+    {
+      "arrival_index": 14,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 7,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/165"
+    },
+    {
+      "arrival_index": 15,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 8,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/228"
+    },
+    {
+      "arrival_index": 16,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 8,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/804"
+    },
+    {
+      "arrival_index": 17,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 9,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "humaneval/131"
+    },
+    {
+      "arrival_index": 18,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 9,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/414"
+    },
+    {
+      "arrival_index": 19,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 10,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/746"
+    },
+    {
+      "arrival_index": 20,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 10,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/128"
+    },
+    {
+      "arrival_index": 21,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 11,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/299"
+    },
+    {
+      "arrival_index": 22,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 11,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/94"
+    },
+    {
+      "arrival_index": 23,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 12,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/722"
+    },
+    {
+      "arrival_index": 24,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 12,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/635"
+    },
+    {
+      "arrival_index": 25,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 13,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/735"
+    },
+    {
+      "arrival_index": 26,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 13,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/101"
+    },
+    {
+      "arrival_index": 27,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 14,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/395"
+    },
+    {
+      "arrival_index": 28,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 14,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/24"
+    },
+    {
+      "arrival_index": 29,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 15,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/268"
+    },
+    {
+      "arrival_index": 30,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 15,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/141"
+    },
+    {
+      "arrival_index": 31,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 16,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/69"
+    },
+    {
+      "arrival_index": 32,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 16,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/807"
+    },
+    {
+      "arrival_index": 33,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 17,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "humaneval/118"
+    },
+    {
+      "arrival_index": 34,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 17,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/569"
+    },
+    {
+      "arrival_index": 35,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 18,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/723"
+    },
+    {
+      "arrival_index": 36,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 18,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/763"
+    },
+    {
+      "arrival_index": 37,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 19,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/172"
+    },
+    {
+      "arrival_index": 38,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 19,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/778"
+    },
+    {
+      "arrival_index": 39,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 20,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/12"
+    },
+    {
+      "arrival_index": 40,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 20,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/605"
+    },
+    {
+      "arrival_index": 41,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 21,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/592"
+    },
+    {
+      "arrival_index": 42,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 21,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/171"
+    },
+    {
+      "arrival_index": 43,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 22,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/775"
+    },
+    {
+      "arrival_index": 44,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 22,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/108"
+    },
+    {
+      "arrival_index": 45,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 23,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/451"
+    },
+    {
+      "arrival_index": 46,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 23,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/142"
+    },
+    {
+      "arrival_index": 47,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 24,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/308"
+    },
+    {
+      "arrival_index": 48,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 24,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/401"
+    },
+    {
+      "arrival_index": 49,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 25,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/80"
+    },
+    {
+      "arrival_index": 50,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 25,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/306"
+    },
+    {
+      "arrival_index": 51,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 26,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/103"
+    },
+    {
+      "arrival_index": 52,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 26,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/130"
+    },
+    {
+      "arrival_index": 53,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 27,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/96"
+    },
+    {
+      "arrival_index": 54,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 27,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/29"
+    },
+    {
+      "arrival_index": 55,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 28,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/781"
+    },
+    {
+      "arrival_index": 56,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 28,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/476"
+    },
+    {
+      "arrival_index": 57,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 29,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/615"
+    },
+    {
+      "arrival_index": 58,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 29,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/111"
+    },
+    {
+      "arrival_index": 59,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 30,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/79"
+    },
+    {
+      "arrival_index": 60,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 30,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/633"
+    },
+    {
+      "arrival_index": 61,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 31,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/447"
+    },
+    {
+      "arrival_index": 62,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 31,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/101"
+    },
+    {
+      "arrival_index": 63,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 32,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "humaneval/100"
+    },
+    {
+      "arrival_index": 64,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 32,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/22"
+    },
+    {
+      "arrival_index": 65,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 33,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/260"
+    },
+    {
+      "arrival_index": 66,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 33,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/88"
+    },
+    {
+      "arrival_index": 67,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 34,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/294"
+    },
+    {
+      "arrival_index": 68,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 34,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/422"
+    },
+    {
+      "arrival_index": 69,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 35,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/291"
+    },
+    {
+      "arrival_index": 70,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 35,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/639"
+    },
+    {
+      "arrival_index": 71,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 36,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/138"
+    },
+    {
+      "arrival_index": 72,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 36,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/77"
+    },
+    {
+      "arrival_index": 73,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 37,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/390"
+    },
+    {
+      "arrival_index": 74,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 37,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/442"
+    },
+    {
+      "arrival_index": 75,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 38,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/145"
+    },
+    {
+      "arrival_index": 76,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 38,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/125"
+    },
+    {
+      "arrival_index": 77,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 39,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/446"
+    },
+    {
+      "arrival_index": 78,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 39,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/282"
+    },
+    {
+      "arrival_index": 79,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 40,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/168"
+    },
+    {
+      "arrival_index": 80,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 40,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/593"
+    },
+    {
+      "arrival_index": 81,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 41,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/629"
+    },
+    {
+      "arrival_index": 82,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 41,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/41"
+    },
+    {
+      "arrival_index": 83,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 42,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/305"
+    },
+    {
+      "arrival_index": 84,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 42,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/767"
+    },
+    {
+      "arrival_index": 85,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 43,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/124"
+    },
+    {
+      "arrival_index": 86,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 43,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/161"
+    },
+    {
+      "arrival_index": 87,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 44,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/13"
+    },
+    {
+      "arrival_index": 88,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 44,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/728"
+    },
+    {
+      "arrival_index": 89,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 45,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/292"
+    },
+    {
+      "arrival_index": 90,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 45,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/247"
+    },
+    {
+      "arrival_index": 91,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 46,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/641"
+    },
+    {
+      "arrival_index": 92,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 46,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/242"
+    },
+    {
+      "arrival_index": 93,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 47,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/725"
+    },
+    {
+      "arrival_index": 94,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 47,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/39"
+    },
+    {
+      "arrival_index": 95,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 48,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/77"
+    },
+    {
+      "arrival_index": 96,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 48,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/472"
+    },
+    {
+      "arrival_index": 97,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 49,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "humaneval/78"
+    },
+    {
+      "arrival_index": 98,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 49,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/136"
+    },
+    {
+      "arrival_index": 99,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 50,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/49"
+    },
+    {
+      "arrival_index": 100,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 50,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/7"
+    },
+    {
+      "arrival_index": 101,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 51,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/38"
+    },
+    {
+      "arrival_index": 102,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 51,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/779"
+    },
+    {
+      "arrival_index": 103,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 52,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/799"
+    },
+    {
+      "arrival_index": 104,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 52,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/753"
+    },
+    {
+      "arrival_index": 105,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 53,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/11"
+    },
+    {
+      "arrival_index": 106,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 53,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/404"
+    },
+    {
+      "arrival_index": 107,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 54,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/281"
+    },
+    {
+      "arrival_index": 108,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 54,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/96"
+    },
+    {
+      "arrival_index": 109,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 55,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/731"
+    },
+    {
+      "arrival_index": 110,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 55,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/91"
+    },
+    {
+      "arrival_index": 111,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 56,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "humaneval/35"
+    },
+    {
+      "arrival_index": 112,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 56,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/153"
+    },
+    {
+      "arrival_index": 113,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 57,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "humaneval/16"
+    },
+    {
+      "arrival_index": 114,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 57,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/732"
+    },
+    {
+      "arrival_index": 115,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 58,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/127"
+    },
+    {
+      "arrival_index": 116,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 58,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/66"
+    },
+    {
+      "arrival_index": 117,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 59,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/14"
+    },
+    {
+      "arrival_index": 118,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 59,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/270"
+    },
+    {
+      "arrival_index": 119,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 60,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/389"
+    },
+    {
+      "arrival_index": 120,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 60,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/9"
+    },
+    {
+      "arrival_index": 121,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 61,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "humaneval/159"
+    },
+    {
+      "arrival_index": 122,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 61,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/66"
+    },
+    {
+      "arrival_index": 123,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 62,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/600"
+    },
+    {
+      "arrival_index": 124,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 62,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/253"
+    },
+    {
+      "arrival_index": 125,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 63,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/470"
+    },
+    {
+      "arrival_index": 126,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 63,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/56"
+    },
+    {
+      "arrival_index": 127,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 64,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/407"
+    },
+    {
+      "arrival_index": 128,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 64,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/479"
+    },
+    {
+      "arrival_index": 129,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 65,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/285"
+    },
+    {
+      "arrival_index": 130,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 65,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/612"
+    },
+    {
+      "arrival_index": 131,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 66,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/84"
+    },
+    {
+      "arrival_index": 132,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 66,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/62"
+    },
+    {
+      "arrival_index": 133,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 67,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/2"
+    },
+    {
+      "arrival_index": 134,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 67,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/92"
+    },
+    {
+      "arrival_index": 135,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 68,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/475"
+    },
+    {
+      "arrival_index": 136,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 68,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/163"
+    },
+    {
+      "arrival_index": 137,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 69,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/154"
+    },
+    {
+      "arrival_index": 138,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 69,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/60"
+    },
+    {
+      "arrival_index": 139,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 70,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/106"
+    },
+    {
+      "arrival_index": 140,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 70,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/764"
+    },
+    {
+      "arrival_index": 141,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 71,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/69"
+    },
+    {
+      "arrival_index": 142,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 71,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/5"
+    },
+    {
+      "arrival_index": 143,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 72,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/614"
+    },
+    {
+      "arrival_index": 144,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 72,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/555"
+    },
+    {
+      "arrival_index": 145,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 73,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/70"
+    },
+    {
+      "arrival_index": 146,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 73,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/230"
+    },
+    {
+      "arrival_index": 147,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 74,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/787"
+    },
+    {
+      "arrival_index": 148,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 74,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/140"
+    },
+    {
+      "arrival_index": 149,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 75,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "humaneval/111"
+    },
+    {
+      "arrival_index": 150,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 75,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/611"
+    },
+    {
+      "arrival_index": 151,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 76,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/36"
+    },
+    {
+      "arrival_index": 152,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 76,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/102"
+    },
+    {
+      "arrival_index": 153,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 77,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/791"
+    },
+    {
+      "arrival_index": 154,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 77,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/45"
+    },
+    {
+      "arrival_index": 155,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 78,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/461"
+    },
+    {
+      "arrival_index": 156,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 78,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/147"
+    },
+    {
+      "arrival_index": 157,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 79,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/300"
+    },
+    {
+      "arrival_index": 158,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 79,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/67"
+    },
+    {
+      "arrival_index": 159,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 80,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "humaneval/28"
+    },
+    {
+      "arrival_index": 160,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 80,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/161"
+    },
+    {
+      "arrival_index": 161,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 81,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/740"
+    },
+    {
+      "arrival_index": 162,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 81,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/279"
+    },
+    {
+      "arrival_index": 163,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 82,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/792"
+    },
+    {
+      "arrival_index": 164,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 82,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/748"
+    },
+    {
+      "arrival_index": 165,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 83,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/82"
+    },
+    {
+      "arrival_index": 166,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 83,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/119"
+    },
+    {
+      "arrival_index": 167,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 84,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/458"
+    },
+    {
+      "arrival_index": 168,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 84,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/235"
+    },
+    {
+      "arrival_index": 169,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 85,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/427"
+    },
+    {
+      "arrival_index": 170,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 85,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/620"
+    },
+    {
+      "arrival_index": 171,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 86,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/141"
+    },
+    {
+      "arrival_index": 172,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 86,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/808"
+    },
+    {
+      "arrival_index": 173,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 87,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/274"
+    },
+    {
+      "arrival_index": 174,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 87,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/118"
+    },
+    {
+      "arrival_index": 175,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 88,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "humaneval/110"
+    },
+    {
+      "arrival_index": 176,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 88,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/455"
+    },
+    {
+      "arrival_index": 177,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 89,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/754"
+    },
+    {
+      "arrival_index": 178,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 89,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/3"
+    },
+    {
+      "arrival_index": 179,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 90,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/264"
+    },
+    {
+      "arrival_index": 180,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 90,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/142"
+    },
+    {
+      "arrival_index": 181,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 91,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "humaneval/75"
+    },
+    {
+      "arrival_index": 182,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 91,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/112"
+    },
+    {
+      "arrival_index": 183,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 92,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/785"
+    },
+    {
+      "arrival_index": 184,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 92,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/170"
+    },
+    {
+      "arrival_index": 185,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 93,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "humaneval/85"
+    },
+    {
+      "arrival_index": 186,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 93,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/134"
+    },
+    {
+      "arrival_index": 187,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 94,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "humaneval/126"
+    },
+    {
+      "arrival_index": 188,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 94,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/756"
+    },
+    {
+      "arrival_index": 189,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 95,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/113"
+    },
+    {
+      "arrival_index": 190,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 95,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/580"
+    },
+    {
+      "arrival_index": 191,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 96,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/244"
+    },
+    {
+      "arrival_index": 192,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 96,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/452"
+    },
+    {
+      "arrival_index": 193,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 97,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/394"
+    },
+    {
+      "arrival_index": 194,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 97,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/741"
+    },
+    {
+      "arrival_index": 195,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 98,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/312"
+    },
+    {
+      "arrival_index": 196,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 98,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/602"
+    },
+    {
+      "arrival_index": 197,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 99,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "humaneval/34"
+    },
+    {
+      "arrival_index": 198,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 99,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/295"
+    },
+    {
+      "arrival_index": 199,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 100,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/468"
+    },
+    {
+      "arrival_index": 200,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 100,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/98"
+    },
+    {
+      "arrival_index": 201,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 101,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "humaneval/53"
+    },
+    {
+      "arrival_index": 202,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 101,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/103"
+    },
+    {
+      "arrival_index": 203,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 102,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/397"
+    },
+    {
+      "arrival_index": 204,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 102,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/87"
+    },
+    {
+      "arrival_index": 205,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 103,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/297"
+    },
+    {
+      "arrival_index": 206,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 103,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/757"
+    },
+    {
+      "arrival_index": 207,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 104,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/391"
+    },
+    {
+      "arrival_index": 208,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 104,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/568"
+    },
+    {
+      "arrival_index": 209,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 105,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/85"
+    },
+    {
+      "arrival_index": 210,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 105,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/608"
+    },
+    {
+      "arrival_index": 211,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 106,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/584"
+    },
+    {
+      "arrival_index": 212,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 106,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/31"
+    },
+    {
+      "arrival_index": 213,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 107,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/30"
+    },
+    {
+      "arrival_index": 214,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 107,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/309"
+    },
+    {
+      "arrival_index": 215,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 108,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/408"
+    },
+    {
+      "arrival_index": 216,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 108,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/9"
+    },
+    {
+      "arrival_index": 217,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 109,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/750"
+    },
+    {
+      "arrival_index": 218,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 109,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/276"
+    },
+    {
+      "arrival_index": 219,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 110,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "humaneval/105"
+    },
+    {
+      "arrival_index": 220,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 110,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/809"
+    },
+    {
+      "arrival_index": 221,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 111,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "humaneval/123"
+    },
+    {
+      "arrival_index": 222,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 111,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/139"
+    },
+    {
+      "arrival_index": 223,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 112,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "humaneval/71"
+    },
+    {
+      "arrival_index": 224,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 112,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/450"
+    },
+    {
+      "arrival_index": 225,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 113,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/65"
+    },
+    {
+      "arrival_index": 226,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 113,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/27"
+    },
+    {
+      "arrival_index": 227,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 114,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/18"
+    },
+    {
+      "arrival_index": 228,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 114,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/99"
+    },
+    {
+      "arrival_index": 229,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 115,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/63"
+    },
+    {
+      "arrival_index": 230,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 115,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/590"
+    },
+    {
+      "arrival_index": 231,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 116,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "humaneval/95"
+    },
+    {
+      "arrival_index": 232,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 116,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/107"
+    },
+    {
+      "arrival_index": 233,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 117,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/419"
+    },
+    {
+      "arrival_index": 234,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 117,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/83"
+    },
+    {
+      "arrival_index": 235,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 118,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/428"
+    },
+    {
+      "arrival_index": 236,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 118,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/644"
+    },
+    {
+      "arrival_index": 237,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 119,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/4"
+    },
+    {
+      "arrival_index": 238,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 119,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/234"
+    },
+    {
+      "arrival_index": 239,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 120,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/625"
+    },
+    {
+      "arrival_index": 240,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 120,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/126"
+    },
+    {
+      "arrival_index": 241,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 121,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/133"
+    },
+    {
+      "arrival_index": 242,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 121,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/588"
+    },
+    {
+      "arrival_index": 243,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 122,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/97"
+    },
+    {
+      "arrival_index": 244,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 122,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/454"
+    },
+    {
+      "arrival_index": 245,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 123,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "humaneval/158"
+    },
+    {
+      "arrival_index": 246,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 123,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/564"
+    },
+    {
+      "arrival_index": 247,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 124,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "humaneval/132"
+    },
+    {
+      "arrival_index": 248,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 124,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/751"
+    },
+    {
+      "arrival_index": 249,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 125,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/770"
+    },
+    {
+      "arrival_index": 250,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 125,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/790"
+    },
+    {
+      "arrival_index": 251,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 126,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/607"
+    },
+    {
+      "arrival_index": 252,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 126,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/616"
+    },
+    {
+      "arrival_index": 253,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 127,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/595"
+    },
+    {
+      "arrival_index": 254,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 127,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/160"
+    },
+    {
+      "arrival_index": 255,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 128,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/125"
+    },
+    {
+      "arrival_index": 256,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 128,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/71"
+    },
+    {
+      "arrival_index": 257,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 129,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/80"
+    },
+    {
+      "arrival_index": 258,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 129,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/632"
+    },
+    {
+      "arrival_index": 259,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 130,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/392"
+    },
+    {
+      "arrival_index": 260,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 130,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/132"
+    },
+    {
+      "arrival_index": 261,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 131,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/273"
+    },
+    {
+      "arrival_index": 262,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 131,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/562"
+    },
+    {
+      "arrival_index": 263,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 132,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/68"
+    },
+    {
+      "arrival_index": 264,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 132,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/144"
+    },
+    {
+      "arrival_index": 265,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 133,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/137"
+    },
+    {
+      "arrival_index": 266,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 133,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/20"
+    },
+    {
+      "arrival_index": 267,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 134,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/7"
+    },
+    {
+      "arrival_index": 268,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 134,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/398"
+    },
+    {
+      "arrival_index": 269,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 135,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/8"
+    },
+    {
+      "arrival_index": 270,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 135,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/284"
+    },
+    {
+      "arrival_index": 271,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 136,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/32"
+    },
+    {
+      "arrival_index": 272,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 136,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/413"
+    },
+    {
+      "arrival_index": 273,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 137,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/122"
+    },
+    {
+      "arrival_index": 274,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 137,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/95"
+    },
+    {
+      "arrival_index": 275,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 138,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/37"
+    },
+    {
+      "arrival_index": 276,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 138,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/734"
+    },
+    {
+      "arrival_index": 277,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 139,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/240"
+    },
+    {
+      "arrival_index": 278,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 139,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/152"
+    },
+    {
+      "arrival_index": 279,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 140,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "humaneval/124"
+    },
+    {
+      "arrival_index": 280,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 140,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/43"
+    },
+    {
+      "arrival_index": 281,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 141,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/747"
+    },
+    {
+      "arrival_index": 282,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 141,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/84"
+    },
+    {
+      "arrival_index": 283,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 142,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/557"
+    },
+    {
+      "arrival_index": 284,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 142,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/627"
+    },
+    {
+      "arrival_index": 285,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 143,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/42"
+    },
+    {
+      "arrival_index": 286,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 143,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/283"
+    },
+    {
+      "arrival_index": 287,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 144,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/120"
+    },
+    {
+      "arrival_index": 288,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 144,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/396"
+    },
+    {
+      "arrival_index": 289,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 145,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/797"
+    },
+    {
+      "arrival_index": 290,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 145,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/755"
+    },
+    {
+      "arrival_index": 291,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 146,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/597"
+    },
+    {
+      "arrival_index": 292,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 146,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/18"
+    },
+    {
+      "arrival_index": 293,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 147,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/463"
+    },
+    {
+      "arrival_index": 294,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 147,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/269"
+    },
+    {
+      "arrival_index": 295,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 148,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/610"
+    },
+    {
+      "arrival_index": 296,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 148,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/265"
+    },
+    {
+      "arrival_index": 297,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 149,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/777"
+    },
+    {
+      "arrival_index": 298,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 149,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/0"
+    },
+    {
+      "arrival_index": 299,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 150,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/745"
+    },
+    {
+      "arrival_index": 300,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 150,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/257"
+    },
+    {
+      "arrival_index": 301,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 151,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/249"
+    },
+    {
+      "arrival_index": 302,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 151,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/583"
+    },
+    {
+      "arrival_index": 303,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 152,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/227"
+    },
+    {
+      "arrival_index": 304,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 152,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/762"
+    },
+    {
+      "arrival_index": 305,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 153,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/619"
+    },
+    {
+      "arrival_index": 306,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 153,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/266"
+    },
+    {
+      "arrival_index": 307,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 154,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "humaneval/72"
+    },
+    {
+      "arrival_index": 308,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 154,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/143"
+    },
+    {
+      "arrival_index": 309,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 155,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/438"
+    },
+    {
+      "arrival_index": 310,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 155,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/3"
+    },
+    {
+      "arrival_index": 311,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 156,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/301"
+    },
+    {
+      "arrival_index": 312,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 156,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/129"
+    },
+    {
+      "arrival_index": 313,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 157,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/759"
+    },
+    {
+      "arrival_index": 314,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 157,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/255"
+    },
+    {
+      "arrival_index": 315,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 158,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/417"
+    },
+    {
+      "arrival_index": 316,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 158,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/464"
+    },
+    {
+      "arrival_index": 317,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 159,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/262"
+    },
+    {
+      "arrival_index": 318,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 159,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/724"
+    },
+    {
+      "arrival_index": 319,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 160,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/271"
+    },
+    {
+      "arrival_index": 320,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 160,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/70"
+    },
+    {
+      "arrival_index": 321,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 161,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/14"
+    },
+    {
+      "arrival_index": 322,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 161,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/421"
+    },
+    {
+      "arrival_index": 323,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 162,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/457"
+    },
+    {
+      "arrival_index": 324,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 162,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/566"
+    },
+    {
+      "arrival_index": 325,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 163,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/15"
+    },
+    {
+      "arrival_index": 326,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 163,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/277"
+    },
+    {
+      "arrival_index": 327,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 164,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/794"
+    },
+    {
+      "arrival_index": 328,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 164,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/572"
+    },
+    {
+      "arrival_index": 329,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 165,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/477"
+    },
+    {
+      "arrival_index": 330,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 165,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/434"
+    },
+    {
+      "arrival_index": 331,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 166,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/445"
+    },
+    {
+      "arrival_index": 332,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 166,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/426"
+    },
+    {
+      "arrival_index": 333,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 167,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/800"
+    },
+    {
+      "arrival_index": 334,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 167,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/226"
+    },
+    {
+      "arrival_index": 335,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 168,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/737"
+    },
+    {
+      "arrival_index": 336,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 168,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/26"
+    },
+    {
+      "arrival_index": 337,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 169,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/444"
+    },
+    {
+      "arrival_index": 338,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 169,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/44"
+    },
+    {
+      "arrival_index": 339,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 170,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/94"
+    },
+    {
+      "arrival_index": 340,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 170,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/425"
+    },
+    {
+      "arrival_index": 341,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 171,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/780"
+    },
+    {
+      "arrival_index": 342,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 171,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/128"
+    },
+    {
+      "arrival_index": 343,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 172,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/400"
+    },
+    {
+      "arrival_index": 344,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 172,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/115"
+    },
+    {
+      "arrival_index": 345,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 173,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/576"
+    },
+    {
+      "arrival_index": 346,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 173,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/157"
+    },
+    {
+      "arrival_index": 347,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 174,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/261"
+    },
+    {
+      "arrival_index": 348,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 174,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/59"
+    },
+    {
+      "arrival_index": 349,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 175,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/130"
+    },
+    {
+      "arrival_index": 350,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 175,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/624"
+    },
+    {
+      "arrival_index": 351,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 176,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/581"
+    },
+    {
+      "arrival_index": 352,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 176,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/89"
+    },
+    {
+      "arrival_index": 353,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 177,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/47"
+    },
+    {
+      "arrival_index": 354,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 177,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/412"
+    },
+    {
+      "arrival_index": 355,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 178,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "humaneval/104"
+    },
+    {
+      "arrival_index": 356,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 178,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/68"
+    },
+    {
+      "arrival_index": 357,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 179,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/582"
+    },
+    {
+      "arrival_index": 358,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 179,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/803"
+    },
+    {
+      "arrival_index": 359,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 180,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/766"
+    },
+    {
+      "arrival_index": 360,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 180,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/114"
+    },
+    {
+      "arrival_index": 361,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 181,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/563"
+    },
+    {
+      "arrival_index": 362,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 181,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/248"
+    },
+    {
+      "arrival_index": 363,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 182,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/743"
+    },
+    {
+      "arrival_index": 364,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 182,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/409"
+    },
+    {
+      "arrival_index": 365,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 183,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/730"
+    },
+    {
+      "arrival_index": 366,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 183,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/93"
+    },
+    {
+      "arrival_index": 367,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 184,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/554"
+    },
+    {
+      "arrival_index": 368,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 184,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/12"
+    },
+    {
+      "arrival_index": 369,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 185,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/742"
+    },
+    {
+      "arrival_index": 370,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 185,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/272"
+    },
+    {
+      "arrival_index": 371,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 186,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/229"
+    },
+    {
+      "arrival_index": 372,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 186,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/420"
+    },
+    {
+      "arrival_index": 373,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 187,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/145"
+    },
+    {
+      "arrival_index": 374,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 187,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/143"
+    },
+    {
+      "arrival_index": 375,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 188,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/133"
+    },
+    {
+      "arrival_index": 376,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 188,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/630"
+    },
+    {
+      "arrival_index": 377,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 189,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/788"
+    },
+    {
+      "arrival_index": 378,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 189,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/86"
+    },
+    {
+      "arrival_index": 379,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 190,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/259"
+    },
+    {
+      "arrival_index": 380,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 190,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/106"
+    },
+    {
+      "arrival_index": 381,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 191,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/287"
+    },
+    {
+      "arrival_index": 382,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 191,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/726"
+    },
+    {
+      "arrival_index": 383,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 192,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/462"
+    },
+    {
+      "arrival_index": 384,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 192,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/786"
+    },
+    {
+      "arrival_index": 385,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 193,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/73"
+    },
+    {
+      "arrival_index": 386,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 193,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/411"
+    },
+    {
+      "arrival_index": 387,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 194,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "humaneval/148"
+    },
+    {
+      "arrival_index": 388,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 194,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/579"
+    },
+    {
+      "arrival_index": 389,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 195,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/643"
+    },
+    {
+      "arrival_index": 390,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 195,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/739"
+    },
+    {
+      "arrival_index": 391,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 196,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/222"
+    },
+    {
+      "arrival_index": 392,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 196,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/267"
+    },
+    {
+      "arrival_index": 393,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 197,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/640"
+    },
+    {
+      "arrival_index": 394,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 197,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/52"
+    },
+    {
+      "arrival_index": 395,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 198,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/245"
+    },
+    {
+      "arrival_index": 396,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 198,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/310"
+    },
+    {
+      "arrival_index": 397,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 199,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/311"
+    },
+    {
+      "arrival_index": 398,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 199,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/250"
+    },
+    {
+      "arrival_index": 399,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 200,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/596"
+    },
+    {
+      "arrival_index": 400,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 200,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/223"
+    },
+    {
+      "arrival_index": 401,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 201,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/623"
+    },
+    {
+      "arrival_index": 402,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 201,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/558"
+    },
+    {
+      "arrival_index": 403,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 202,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/429"
+    },
+    {
+      "arrival_index": 404,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 202,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/89"
+    },
+    {
+      "arrival_index": 405,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 203,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/433"
+    },
+    {
+      "arrival_index": 406,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 203,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/25"
+    },
+    {
+      "arrival_index": 407,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 204,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/290"
+    },
+    {
+      "arrival_index": 408,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 204,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/50"
+    },
+    {
+      "arrival_index": 409,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 205,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/121"
+    },
+    {
+      "arrival_index": 410,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 205,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/163"
+    },
+    {
+      "arrival_index": 411,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 206,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/585"
+    },
+    {
+      "arrival_index": 412,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 206,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/603"
+    },
+    {
+      "arrival_index": 413,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 207,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "humaneval/97"
+    },
+    {
+      "arrival_index": 414,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 207,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/20"
+    },
+    {
+      "arrival_index": 415,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 208,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "humaneval/51"
+    },
+    {
+      "arrival_index": 416,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 208,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/772"
+    },
+    {
+      "arrival_index": 417,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 209,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/150"
+    },
+    {
+      "arrival_index": 418,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 209,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/10"
+    },
+    {
+      "arrival_index": 419,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 210,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/567"
+    },
+    {
+      "arrival_index": 420,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 210,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/19"
+    },
+    {
+      "arrival_index": 421,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 211,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/431"
+    },
+    {
+      "arrival_index": 422,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 211,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/760"
+    },
+    {
+      "arrival_index": 423,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 212,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/758"
+    },
+    {
+      "arrival_index": 424,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 212,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/784"
+    },
+    {
+      "arrival_index": 425,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 213,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/6"
+    },
+    {
+      "arrival_index": 426,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 213,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/131"
+    },
+    {
+      "arrival_index": 427,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 214,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/8"
+    },
+    {
+      "arrival_index": 428,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 214,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/628"
+    },
+    {
+      "arrival_index": 429,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 215,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/436"
+    },
+    {
+      "arrival_index": 430,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 215,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/796"
+    },
+    {
+      "arrival_index": 431,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 216,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/574"
+    },
+    {
+      "arrival_index": 432,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 216,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/56"
+    },
+    {
+      "arrival_index": 433,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 217,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/577"
+    },
+    {
+      "arrival_index": 434,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 217,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/578"
+    },
+    {
+      "arrival_index": 435,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 218,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/586"
+    },
+    {
+      "arrival_index": 436,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 218,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/432"
+    },
+    {
+      "arrival_index": 437,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 219,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/733"
+    },
+    {
+      "arrival_index": 438,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 219,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/771"
+    },
+    {
+      "arrival_index": 439,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 220,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/474"
+    },
+    {
+      "arrival_index": 440,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 220,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/6"
+    },
+    {
+      "arrival_index": 441,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 221,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/135"
+    },
+    {
+      "arrival_index": 442,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 221,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/90"
+    },
+    {
+      "arrival_index": 443,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 222,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/4"
+    },
+    {
+      "arrival_index": 444,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 222,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/237"
+    },
+    {
+      "arrival_index": 445,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 223,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/113"
+    },
+    {
+      "arrival_index": 446,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 223,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/1"
+    },
+    {
+      "arrival_index": 447,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 224,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/765"
+    },
+    {
+      "arrival_index": 448,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 224,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/17"
+    },
+    {
+      "arrival_index": 449,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 225,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/79"
+    },
+    {
+      "arrival_index": 450,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 225,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/86"
+    },
+    {
+      "arrival_index": 451,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 226,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/744"
+    },
+    {
+      "arrival_index": 452,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 226,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/74"
+    },
+    {
+      "arrival_index": 453,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 227,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/631"
+    },
+    {
+      "arrival_index": 454,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 227,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/280"
+    },
+    {
+      "arrival_index": 455,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 228,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/74"
+    },
+    {
+      "arrival_index": 456,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 228,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/405"
+    },
+    {
+      "arrival_index": 457,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 229,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/93"
+    },
+    {
+      "arrival_index": 458,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 229,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/115"
+    },
+    {
+      "arrival_index": 459,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 230,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/556"
+    },
+    {
+      "arrival_index": 460,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 230,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/72"
+    },
+    {
+      "arrival_index": 461,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 231,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/83"
+    },
+    {
+      "arrival_index": 462,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 231,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/776"
+    },
+    {
+      "arrival_index": 463,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 232,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/560"
+    },
+    {
+      "arrival_index": 464,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 232,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/471"
+    },
+    {
+      "arrival_index": 465,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 233,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "humaneval/117"
+    },
+    {
+      "arrival_index": 466,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 233,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/459"
+    },
+    {
+      "arrival_index": 467,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 234,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/415"
+    },
+    {
+      "arrival_index": 468,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 234,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/456"
+    },
+    {
+      "arrival_index": 469,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 235,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/59"
+    },
+    {
+      "arrival_index": 470,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 235,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/105"
+    },
+    {
+      "arrival_index": 471,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 236,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/67"
+    },
+    {
+      "arrival_index": 472,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 236,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/388"
+    },
+    {
+      "arrival_index": 473,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 237,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/424"
+    },
+    {
+      "arrival_index": 474,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 237,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/11"
+    },
+    {
+      "arrival_index": 475,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 238,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/162"
+    },
+    {
+      "arrival_index": 476,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 238,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/162"
+    },
+    {
+      "arrival_index": 477,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 239,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/448"
+    },
+    {
+      "arrival_index": 478,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 239,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/749"
+    },
+    {
+      "arrival_index": 479,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 240,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/252"
+    },
+    {
+      "arrival_index": 480,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 240,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/138"
+    },
+    {
+      "arrival_index": 481,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 241,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/599"
+    },
+    {
+      "arrival_index": 482,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 241,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/233"
+    },
+    {
+      "arrival_index": 483,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 242,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/17"
+    },
+    {
+      "arrival_index": 484,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 242,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/736"
+    },
+    {
+      "arrival_index": 485,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 243,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/109"
+    },
+    {
+      "arrival_index": 486,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 243,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/406"
+    },
+    {
+      "arrival_index": 487,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 244,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/224"
+    },
+    {
+      "arrival_index": 488,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 244,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/232"
+    },
+    {
+      "arrival_index": 489,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 245,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/806"
+    },
+    {
+      "arrival_index": 490,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 245,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/81"
+    },
+    {
+      "arrival_index": 491,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 246,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/782"
+    },
+    {
+      "arrival_index": 492,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 246,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/443"
+    },
+    {
+      "arrival_index": 493,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 247,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "humaneval/139"
+    },
+    {
+      "arrival_index": 494,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 247,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/293"
+    },
+    {
+      "arrival_index": 495,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 248,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/437"
+    },
+    {
+      "arrival_index": 496,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 248,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/146"
+    },
+    {
+      "arrival_index": 497,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 249,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/440"
+    },
+    {
+      "arrival_index": 498,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 249,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/135"
+    },
+    {
+      "arrival_index": 499,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 250,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/783"
+    },
+    {
+      "arrival_index": 500,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 250,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/805"
+    },
+    {
+      "arrival_index": 501,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 251,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/565"
+    },
+    {
+      "arrival_index": 502,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 251,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/82"
+    },
+    {
+      "arrival_index": 503,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 252,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/587"
+    },
+    {
+      "arrival_index": 504,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 252,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/19"
+    },
+    {
+      "arrival_index": 505,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 253,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/137"
+    },
+    {
+      "arrival_index": 506,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 253,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/239"
+    },
+    {
+      "arrival_index": 507,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 254,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/160"
+    },
+    {
+      "arrival_index": 508,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 254,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/604"
+    },
+    {
+      "arrival_index": 509,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 255,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/286"
+    },
+    {
+      "arrival_index": 510,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 255,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/40"
+    },
+    {
+      "arrival_index": 511,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 256,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/164"
+    },
+    {
+      "arrival_index": 512,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 256,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/251"
+    },
+    {
+      "arrival_index": 513,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 257,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/738"
+    },
+    {
+      "arrival_index": 514,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 257,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/801"
+    },
+    {
+      "arrival_index": 515,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 258,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "humaneval/140"
+    },
+    {
+      "arrival_index": 516,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 258,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/637"
+    },
+    {
+      "arrival_index": 517,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 259,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/752"
+    },
+    {
+      "arrival_index": 518,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 259,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/48"
+    },
+    {
+      "arrival_index": 519,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 260,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/120"
+    },
+    {
+      "arrival_index": 520,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 260,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/129"
+    },
+    {
+      "arrival_index": 521,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 261,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/399"
+    },
+    {
+      "arrival_index": 522,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 261,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/57"
+    },
+    {
+      "arrival_index": 523,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 262,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/638"
+    },
+    {
+      "arrival_index": 524,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 262,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/559"
+    },
+    {
+      "arrival_index": 525,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 263,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/46"
+    },
+    {
+      "arrival_index": 526,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 263,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/55"
+    },
+    {
+      "arrival_index": 527,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 264,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "humaneval/65"
+    },
+    {
+      "arrival_index": 528,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 264,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/63"
+    },
+    {
+      "arrival_index": 529,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 265,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/598"
+    },
+    {
+      "arrival_index": 530,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 265,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/793"
+    },
+    {
+      "arrival_index": 531,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 266,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/104"
+    },
+    {
+      "arrival_index": 532,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 266,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/410"
+    },
+    {
+      "arrival_index": 533,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 267,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/64"
+    },
+    {
+      "arrival_index": 534,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 267,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/802"
+    },
+    {
+      "arrival_index": 535,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 268,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/61"
+    },
+    {
+      "arrival_index": 536,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 268,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/119"
+    },
+    {
+      "arrival_index": 537,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 269,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/393"
+    },
+    {
+      "arrival_index": 538,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 269,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/75"
+    },
+    {
+      "arrival_index": 539,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 270,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/773"
+    },
+    {
+      "arrival_index": 540,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 270,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/92"
+    },
+    {
+      "arrival_index": 541,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 271,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/127"
+    },
+    {
+      "arrival_index": 542,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 271,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/58"
+    },
+    {
+      "arrival_index": 543,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 272,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/64"
+    },
+    {
+      "arrival_index": 544,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 272,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/90"
+    },
+    {
+      "arrival_index": 545,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 273,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "humaneval/76"
+    },
+    {
+      "arrival_index": 546,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 273,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/109"
+    },
+    {
+      "arrival_index": 547,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 274,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/439"
+    },
+    {
+      "arrival_index": 548,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 274,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/626"
+    },
+    {
+      "arrival_index": 549,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 275,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/58"
+    },
+    {
+      "arrival_index": 550,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 275,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/473"
+    },
+    {
+      "arrival_index": 551,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 276,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/296"
+    },
+    {
+      "arrival_index": 552,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 276,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/117"
+    },
+    {
+      "arrival_index": 553,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 277,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/108"
+    },
+    {
+      "arrival_index": 554,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 277,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/2"
+    },
+    {
+      "arrival_index": 555,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 278,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/99"
+    },
+    {
+      "arrival_index": 556,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 278,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/116"
+    },
+    {
+      "arrival_index": 557,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 279,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/246"
+    },
+    {
+      "arrival_index": 558,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 279,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/465"
+    },
+    {
+      "arrival_index": 559,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 280,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/435"
+    },
+    {
+      "arrival_index": 560,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 280,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/617"
+    },
+    {
+      "arrival_index": 561,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 281,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/460"
+    },
+    {
+      "arrival_index": 562,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 281,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/102"
+    },
+    {
+      "arrival_index": 563,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 282,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/307"
+    },
+    {
+      "arrival_index": 564,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 282,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/54"
+    },
+    {
+      "arrival_index": 565,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 283,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/591"
+    },
+    {
+      "arrival_index": 566,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 283,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/61"
+    },
+    {
+      "arrival_index": 567,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 284,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/238"
+    },
+    {
+      "arrival_index": 568,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 284,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/769"
+    },
+    {
+      "arrival_index": 569,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 285,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/304"
+    },
+    {
+      "arrival_index": 570,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 285,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "mbpp/418"
+    },
+    {
+      "arrival_index": 571,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 286,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/87"
+    },
+    {
+      "arrival_index": 572,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 286,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/33"
+    },
+    {
+      "arrival_index": 573,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 287,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/594"
+    },
+    {
+      "arrival_index": 574,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 287,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/622"
+    },
+    {
+      "arrival_index": 575,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 288,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/589"
+    },
+    {
+      "arrival_index": 576,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 288,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "humaneval/23"
+    },
+    {
+      "arrival_index": 577,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 289,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/156"
+    },
+    {
+      "arrival_index": 578,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 289,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/16"
+    },
+    {
+      "arrival_index": 579,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 290,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/720"
+    },
+    {
+      "arrival_index": 580,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 290,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/100"
+    },
+    {
+      "arrival_index": 581,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 291,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/98"
+    },
+    {
+      "arrival_index": 582,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 291,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/453"
+    },
+    {
+      "arrival_index": 583,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 292,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/149"
+    },
+    {
+      "arrival_index": 584,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 292,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/478"
+    },
+    {
+      "arrival_index": 585,
+      "benchmark": "humaneval",
+      "orientation": 0,
+      "pair_index": 293,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "humaneval/88"
+    },
+    {
+      "arrival_index": 586,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 293,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/167"
+    },
+    {
+      "arrival_index": 587,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 294,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 1,
+      "task_id": "mbpp/618"
+    },
+    {
+      "arrival_index": 588,
+      "benchmark": "mbpp",
+      "orientation": 0,
+      "pair_index": 294,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 2,
+      "task_id": "mbpp/798"
+    },
+    {
+      "arrival_index": 589,
+      "benchmark": "mbpp",
+      "orientation": 1,
+      "pair_index": 295,
+      "pass1_variant": "single_shot",
+      "pass2_variant": "self_test_repair",
+      "position_in_pair": 1,
+      "task_id": "mbpp/166"
+    },
+    {
+      "arrival_index": 590,
+      "benchmark": "humaneval",
+      "orientation": 1,
+      "pair_index": 295,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": 2,
+      "task_id": "humaneval/155"
+    },
+    {
+      "arrival_index": 591,
+      "benchmark": "mbpp",
+      "orientation": null,
+      "pair_index": null,
+      "pass1_variant": "self_test_repair",
+      "pass2_variant": "single_shot",
+      "position_in_pair": null,
+      "task_id": "mbpp/256"
+    }
+  ],
+  "config_hash": "2dfb51966780698be326a8897c9e384a5513a7c1a47505c42b8a15c6c5baaf5b",
+  "n_pairs": 295,
+  "n_tasks": 591,
+  "n_unpaired": 1,
+  "seed": 20260918,
+  "strata": {
+    "humaneval": 164,
+    "mbpp": 427
+  },
+  "task_list_sha256": "23727895971fa4a040198d8770173a4f0c3263a63a9cb1479abc4203bb01c2ce",
+  "trial": 1,
+  "variants": {
+    "A": "single_shot",
+    "B": "self_test_repair"
+  }
+}

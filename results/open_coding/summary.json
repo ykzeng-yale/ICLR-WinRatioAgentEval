@@ -1,0 +1,69 @@
+{
+  "analysis_status": "Post-hoc fixed construction, no adjustment for analysis selection; conditional-mean target, not full-roster inference; two marginal 95% bands, not joint 95%.",
+  "any_success_lower_above_minus_003": false,
+  "final_marginal_r1": {
+    "n": 295,
+    "nb_hi": -0.2883477013642397,
+    "nb_lo": -0.6540251799916925,
+    "net_benefit": -0.4711864406779661,
+    "radius": 0.1828387393137264,
+    "success_difference": 0.05084745762711865,
+    "success_hi": 0.23368619694084505,
+    "success_lo": -0.13199128168660776
+  },
+  "first_negative_nb_upper_endpoint": 60,
+  "first_pass": {
+    "losses": 208,
+    "n": 295,
+    "net_benefit": -0.4711864406779661,
+    "success_difference": 0.05084745762711865,
+    "ties": 18,
+    "wins": 69
+  },
+  "resources": [
+    {
+      "arm": "A",
+      "completion_tokens": 41491,
+      "episodes": 591,
+      "error_episodes": 0,
+      "estimated_token_episodes": 0,
+      "latency_mean_s": 2.7996592563805494,
+      "latency_median_s": 2.079464666545391,
+      "latency_sum_s": 1654.5986205209047,
+      "model_calls": 591,
+      "n_executions_including_verifier": 591,
+      "prompt_tokens": 71218,
+      "selftest_executions": 0,
+      "successes": 433,
+      "timed_out": 2,
+      "total_tokens": 112709,
+      "verify_seconds_sum": 31.36548403929919
+    },
+    {
+      "arm": "B",
+      "completion_tokens": 185088,
+      "episodes": 591,
+      "error_episodes": 0,
+      "estimated_token_episodes": 0,
+      "latency_mean_s": 12.47610261756454,
+      "latency_median_s": 10.131067499518394,
+      "latency_sum_s": 7373.376646980643,
+      "model_calls": 1748,
+      "n_executions_including_verifier": 1748,
+      "prompt_tokens": 528191,
+      "selftest_executions": 1157,
+      "successes": 433,
+      "timed_out": 0,
+      "total_tokens": 713279,
+      "verify_seconds_sum": 9.67181489802897
+    }
+  ],
+  "same_task_descriptive": {
+    "losses": 429,
+    "n": 591,
+    "net_benefit": -0.6565143824027073,
+    "success_difference": 0.0,
+    "ties": 121,
+    "wins": 41
+  }
+}

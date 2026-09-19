@@ -81,7 +81,7 @@ bounded-score experiment isolates weighting bias; it does not simulate
 full agent traces.
 
 \IfFileExists{public_results.tex}{\input{public_results.tex}}{}
-\IfFileExists{prospective_results.tex}{\input{prospective_results.tex}}{}
+\input{open_coding_results.tex}
 '''
     (ROOT/'paper'/'results_main.tex').write_text(text)
     app=r'''\section{Experimental details and full numerical outputs}

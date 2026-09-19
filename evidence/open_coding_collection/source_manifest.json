@@ -1,0 +1,59 @@
+{
+  "files": [
+    {
+      "collection_path": "experiments/local_stream/agent.py",
+      "retained_path": "evidence/open_coding_collection/agent.py.txt",
+      "sha256": "3cf2056330c72ebd5d2884f48d6ec2daa706fcc685ad67e3c2609d809ff75b64",
+      "transformation": "unchanged archival text; never imported by analytical reproduction"
+    },
+    {
+      "collection_path": "experiments/local_stream/data.py",
+      "retained_path": "evidence/open_coding_collection/data.py.txt",
+      "sha256": "ae630675f43786bcf7483ff90d4c641ab9a6c7c16202de456d96b03f19321405",
+      "transformation": "unchanged archival text; never imported by analytical reproduction"
+    },
+    {
+      "collection_path": "experiments/local_stream/verify.py",
+      "retained_path": "evidence/open_coding_collection/verify.py.txt",
+      "sha256": "7473678b1990ca2a5a1900b45251fddcd2882f2b371d76d3a59fe669a607dbb6",
+      "transformation": "unchanged archival text; never imported by analytical reproduction"
+    },
+    {
+      "collection_path": "experiments/local_stream/sandbox.py",
+      "retained_path": "evidence/open_coding_collection/sandbox.py.txt",
+      "sha256": "d461570937ddbe1fb241288721a1a06b44bd41dd72ccdc2e2ffa2f144184c6ff",
+      "transformation": "unchanged archival text; never imported by analytical reproduction"
+    },
+    {
+      "collection_path": "experiments/local_stream/design.py",
+      "retained_path": "evidence/open_coding_collection/design.py.txt",
+      "sha256": "3cf14e9502d3c6135ef54e62ec5ffc4d9d65939fccc31c7996fef8ec3b5497ec",
+      "transformation": "unchanged archival text; never imported by analytical reproduction"
+    },
+    {
+      "collection_path": "experiments/local_stream/common.py",
+      "retained_path": "evidence/open_coding_collection/common.py.txt",
+      "sha256": "cdee8821250c315b183769806d84495f3055cad14e0e70809c33aab8a6458a42",
+      "transformation": "unchanged archival text; never imported by analytical reproduction"
+    },
+    {
+      "collection_path": "experiments/local_stream/run_stream.py",
+      "retained_path": "evidence/open_coding_collection/run_stream.py.txt",
+      "sha256": "3c4e0782ade99c10e1ac9b063360bb2837d64d914255070fb46bd29cb5220417",
+      "transformation": "unchanged archival text; never imported by analytical reproduction"
+    },
+    {
+      "collection_path": "experiments/local_stream/config.json",
+      "retained_path": "evidence/open_coding_collection/config.json.txt",
+      "sha256": "0b40e6530ff70660116d409ad3887e0999ab5d73fa43af1f88fd93df032f4b73",
+      "transformation": "unchanged archival text; never imported by analytical reproduction"
+    },
+    {
+      "collection_path": "experiments/local_stream/protocol.md",
+      "retained_path": "evidence/open_coding_collection/protocol.md.txt",
+      "sha256": "14a5a81a62fc3144135e463fb8138d2b11b3f1f19b1b9bafec723d49c52242d9",
+      "transformation": "unchanged archival text; never imported by analytical reproduction"
+    }
+  ],
+  "role": "Historical collection definitions; all inferential claims are superseded by README.md scope. Not executable collection entrypoints."
+}

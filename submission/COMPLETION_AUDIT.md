@@ -1,5 +1,9 @@
 # Completion audit against the research objective
 
+**Current Round 11 checkpoint (September 19): 70% on the fixed rubric.** Accepted coding observations and scoped root post-hoc analysis are integrated into the 38-page review package (nine main pages). New airline results at `3c70c3e` require independent validation and final disposition. Original contributed E2/R2 inference and endpoint routines remain excluded. See `../reviews/round11_integration_ledger.md`, the Round 11 release audit and `READ_ME_FOR_AUTHOR.md` for current artifacts. Actual abstract submission and author attestations remain unknown/pending.
+
+**Historical audits follow:** their page counts, queues and completion boundaries describe their dated versions.
+
 ## Round 10 checkpoint — September 18, 2026, 23:15 UTC
 
 **Verified checklist readiness remains 70%.** PR 7's sequential-comparison subset at `ac17f5901bcf4efba6c71e970d3a4c1cf1ed06cb` and PR 10's drift panel at `ae3f0a5d4936855fc0b81f4a327254e932ea729b` passed independent numerical/scientific review and are integrated into a revised 36-page paper (main content through page 9). The fixed-stake running-conditional-mean crossing proof was independently checked. The previous 33-page release remains preserved in Git at `f806aba`. This is an intermediate accepted-results release, not final submission readiness.

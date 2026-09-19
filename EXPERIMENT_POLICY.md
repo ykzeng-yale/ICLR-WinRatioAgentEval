@@ -14,7 +14,7 @@ Effective September 18, 2026, following the author's explicit instruction. This 
 
 Previously collected commercial-model observations and public historical traces remain immutable provenance records. The author requested a ban on future use, not deletion of prior observations. Their historical collection scripts are retained for provenance and are **not authorized for execution**. Archived aggregate reproduction and CPU-only simulations may run without making model calls.
 
-The previous frozen anonymous package is preserved at `f806aba`. Round 10 integrates the accepted PR 7 sequential-comparison subset and PR 10 drift study into new archives with separate numerical, source, anonymity and PDF checks. PR 8 coding/airline results remain excluded pending correction and validation. Never treat an observed contribution as integrated merely because it exists on GitHub.
+The previous frozen anonymous package is preserved at `f806aba`, and the Round 10 comparator/drift release at `b1febcf`. Round 11 adds only independently reviewed coding observations and root-owned post-hoc conditional-mean analysis; contributed E2/R2 uncertainty and endpoint routines remain excluded. The new airline deposit at `3c70c3e` requires independent validation before inclusion. Never treat an observed contribution as integrated merely because it exists on GitHub.
 
 ## Concurrent ownership
 
