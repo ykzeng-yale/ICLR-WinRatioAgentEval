@@ -1,6 +1,6 @@
 # Experiment delivery and remaining work
 
-**Round 13, September 19, 2026: 90% verified readiness (unchanged).** All experiments required for the final retained claims have a documented disposition. The 40-page paper and anonymous archives include reviewed coding and airline observations; the main text remains nine pages. Remaining mandatory work is actual author scientific review and submission declarations. Optional studies do not enlarge the fixed rubric.
+**Round 14, September 19, 2026: 90% verified readiness (unchanged).** All experiments required for the final retained claims have a documented disposition. The 40-page paper and anonymous archives include reviewed coding and airline observations; the main text remains nine pages. Remaining mandatory work is actual author scientific review and submission declarations. Optional studies do not enlarge the fixed rubric.
 
 **No further commercial/proprietary-model calls are authorized**, including agents, simulators, graders and fallbacks. The historical USD3.9476608 accounting is unchanged. No new model calls or spending occurred in this review. Existing owner branches/data are preserved; root integrates only accepted subsets.
 
@@ -16,7 +16,7 @@
 | Open-weight coding, PR 8 | All 1,182 episodes, 591 tasks; both workflows 433/591 successes. Root coding analysis integrated since Round 11 | Post-hoc running history-conditional means; same-task descriptions, no certified success gate. Endpoint/map repairs verified at `c1da1c3`; owner's residual uncertainty/causal wording excluded. No recollection required. |
 | Open-weight interactive airline, PR 8 `55fb1e5` | All 196 canonical records: 194 saved trajectories and two failure placeholders; 206 attempts; 15/98 successes per arm. Every retained comparison and replay band independently reconstructed | Descriptive batch study plus conditional observed-array illustration. Mixed amendment, globally reused seeds, incomplete failed-work usage and serving differences disclosed. No equivalence, production A/B, fresh-task or operational efficiency claim. |
 
-## Round 12–13 concern dispositions
+## Round 12–14 concern dispositions
 
 The evidence, inference and integrated reviews separately reconcile all airline denominators, outcome/termination labels, raw hashes, source versions, all attempts and regime flags. The root builder retains success from archived reward fields and saved-message usage, with explicit missing-reward flags. The 246,284 omitted generated-token lower bound is independently reconstructed; it is not complete failed-attempt cost. The original decision timestamp is corrected by an erratum; immutable decision chronology and actual sampler receipt remain unverified and are not claimed.
 
@@ -24,14 +24,14 @@ The retained airline illustration conditions on the complete outcome array and m
 
 The owner's endpoint arithmetic and anonymous-map fixes pass. The subsequent versioned reports at `01f2381` now also repair the named filtration, cluster-CLT, pass/period, history-conditional, marginal-coverage, final-error and overbroad significance/impossibility statements. Two independent Round 13 checks confirm the five late fixes and exact report/manifest regeneration. All 221 preexisting collection/analysis/result files and all 240 tracked release-payload sources remain unchanged.
 
-A few owner-only precision items remain: obsolete precedence/definition pointers; the placeholder sensitivity's claim about unchanged descriptive observations; the scope of “all abstain” versus sensitivity-selected decisions; and stale or overbroad index/sample-size phrasing. These are not dependencies of the retained paper. Model-dependent intervals and unapproved generic methods remain excluded. See `reviews/round13_integration_disposition.md` and its independent reports.
+Round 14 independently accepts the remaining nine airline and one coding report substitutions at `be4b8e4`, with exact report/manifest regeneration. All 229 prior owner files, 240 release-payload paths and three artifact hashes are unchanged. Two index-only scope notes remain: endpoint arithmetic verification does not approve generic projection/width methods, and the owner's pair-24 e-process crossing is descriptive under R1 rather than the root's retained normal-mixture inference. Neither is a retained-paper dependency or an experiment request. Model-dependent intervals and unapproved generic methods remain excluded. See `reviews/round14_integration_disposition.md` and its independent review.
 
 ## Remaining work by priority
 
 | Priority | Work | Acceptance condition |
 |---|---|---|
 | Required author inputs | Actual science/AI-disclosure review; OpenReview/profile/reciprocal-review checks; truthful originality/concurrent-submission declarations | Actual author responses, not agent inference. Abstract submission status remains unknown. |
-| Owner-only cleanup | Optional precision repairs in the excluded reports/index; independently validate PR 5/issue 6 if future use is proposed | Named Round 12 report corrections verified at `01f2381`; no whole-branch approval. Current package has no dependency on remaining items. |
+| Owner index / future reuse | Two optional index scope clarifications; independently validate PR 5/issue 6 if future use is proposed | Report corrections verified through `be4b8e4`; no whole-branch approval. Current package has no dependency on these items. |
 | Conditional experiment | Concurrent open-model prefix study with actual reveal timestamps; prospective randomized exposure trial | Required for measured operational savings or live-deployment claims, which this paper does not make. |
 | Optional / deferred | More model sizes, hardware, full original tie/Pareto-cost/grader grids, power panels and production workloads | Broaden generalization. Favorable results are never a completion criterion. |
 
