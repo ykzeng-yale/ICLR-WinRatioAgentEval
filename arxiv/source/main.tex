@@ -1,0 +1,481 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{times,natbib}
+\setcitestyle{authoryear,round,citesep={;},aysep={,},yysep={;}}
+\setlength{\emergencystretch}{2em}
+\renewcommand{\topfraction}{0.95}
+\renewcommand{\textfraction}{0.05}
+\usepackage{amsmath,amssymb,amsthm,booktabs,graphicx,microtype}
+\usepackage[hidelinks]{hyperref}
+\usepackage{url}
+\renewcommand{\ttdefault}{cmtt}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{assumption}{Assumption}
+\newcommand{\E}{\mathbb E}
+\newcommand{\Prob}{\mathbb P}
+\newcommand{\ind}{\mathbf 1}
+\title{Guarded Win Statistics for Continuous Agent Evaluation}
+\author{Yukang Zeng\\\texttt{yukang.zeng@yale.edu}}
+\date{Preprint---September 2026}
+\hypersetup{pdftitle={Guarded Win Statistics for Continuous Agent Evaluation},pdfauthor={Yukang Zeng},pdfsubject={Research preprint}}
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Agent evaluation combines verified completion, policy compliance, and
+resource use, often while trajectories are still arriving. A hierarchical
+win statistic makes outcome priorities explicit, but a favorable
+aggregate can conceal a decline in a higher-priority population outcome.
+We develop a guarded evaluation protocol that combines prioritized
+comparisons with separate component requirements. It distinguishes
+same-task benchmark repetitions from randomized cross-arrival online
+comparisons and gives finite-sample continuous-monitoring guarantees.
+For delayed outcomes, feasible completions of partial traces bound the
+final pair score. A prefix envelope transfers established full-data
+guarantees to these partial scores and cannot decide later than its
+matched completed-prefix comparator. Complete proofs identify the
+required enrollment-order assumptions and distinguish threshold error
+control from a calendar-time e-process. In 2,000-repetition stationary
+simulations, guarded betting made false deployments in 0.45\% of
+identical-agent runs versus 31.05\% for repeated ordinary Wald tests.
+In a separate informative-delay study, partial evidence reduced mean
+capped decision time from 41.285 to 22.363 ticks for an equally successful,
+cheaper alternative; both valid methods deployed in 99.7\% of runs and
+had 0.6\% null false deployments. An ordinal replay of 10,008
+historical trace comparisons certified 34.2\% before the later terminal
+marker, demonstrating archived certificate feasibility without claiming operational
+latency savings. Two local open-weight studies add 1,182 coding episodes and 196 planned
+airline records, with descriptive same-task contrasts and explicitly
+qualified replay inference.
+\end{abstract}
+
+\section{Introduction}
+An agent can finish a task while using excessive resources, violate a
+permission rule while obtaining a correct answer, or add verification
+steps that improve reliability at a higher cost. An evaluator therefore
+has several outcomes, often with a meaningful order of importance.
+Accuracy--cost analyses emphasize that capability alone does not
+characterize an agent system \citep{kapoor2024agents}. Interactive agent
+benchmarks further expose variation across repeated trajectories and
+across task families \citep{tau2bench2025,sweagent2024}. These measurements
+leave a consequential statistical question: when does accumulating
+evidence justify replacing the deployed system?
+
+Generalized pairwise comparisons and win statistics address ordered
+outcomes in clinical trials \citep{buyse2010generalized,pocock2012win}.
+A comparison proceeds through a prespecified hierarchy, stopping at the
+first meaningful difference. Applied to agents, the rule might prefer
+policy compliance, then verified completion, then lower cost among
+successful runs. Unlike a weighted score, the explanation of a win
+identifies the deciding tier. This construction is established statistical
+machinery, and win statistics have already appeared in AI evaluation
+\citep{realpocqi2026}.
+
+Three distinctions determine whether such a comparison can support an
+online decision. First, priority within a pair does not protect a
+population-level component: many cost wins can outweigh fewer success
+losses. Second, a resettable benchmark observes both systems on a common
+task, whereas an ordinary live A/B experiment observes only the assigned
+system on each arrival. The corresponding preferences need not agree.
+Third, repeatedly inspecting a fixed-sample confidence interval does not
+preserve its error rate. Repeated runs, adaptive allocation, and delayed
+completion add further ways for the nominal comparison to differ from the
+one actually estimated.
+
+We specify a protocol that keeps these decisions separate and then
+combines them. The inferential ingredients are existing bounded-score
+confidence sequences and betting processes
+\citep{howard2021confidence,waudbysmith2024betting}. Our contribution is a
+design-specific treatment of prioritized agent evaluation: explicit
+targets for paired and online data; a guarded deployment rule with the
+appropriate stationary or drifting error guarantee; partial-trace score bounds that retain pending episodes; and reproducible
+experiments examining compensation, informative delay, and dependence. We give
+complete derivations, including conditions under which the guarantees do
+not apply. We do not propose a new generic confidence-sequence inequality
+or claim that sequential win statistics are new.
+
+\section{What is a win, and whose outcomes are compared?}
+\label{sec:estimands}
+Let $Y$ record an entire episode through a fixed evaluation horizon:
+verified outcomes, selected trajectory summaries, and resources. A
+chronological tool call is not an independent statistical unit. For tier
+$k$, an antisymmetric rule $d_k(y,y')\in\{-1,0,1\}$ reports a meaningful
+advantage, disadvantage, or operational tie. The hierarchical kernel is
+\begin{equation}
+ h(y,y')=\sum_{k=1}^{K}d_k(y,y')\prod_{\ell<k}
+             \ind\{d_\ell(y,y')=0\}.
+ \label{eq:main_kernel}
+\end{equation}
+Only the first decisive tier contributes. A resource comparison can be
+disabled unless both episodes satisfy a symmetric eligibility rule, such
+as both achieving verified completion. For positive costs, our empirical
+primary tolerance is $|c_A-c_B|>0.05\max(c_A,c_B)$. Equality is a tie.
+This threshold is an operational preference, not a significance test.
+
+For a specified comparison law, let $(p_W,p_L,p_T)$ denote win, loss, and
+tie probabilities. We monitor the bounded net benefit
+$\theta=p_W-p_L=\E h$. We also report $\mathrm{WR}=p_W/p_L$ when $p_L>0$,
+and $\mathrm{WO}=(1+\theta)/(1-\theta)$ when defined. A win ratio of two
+does not imply twice the task-success probability. Tier-level win and
+loss contributions accompany the summary, together with the component
+means. Zero losses do not justify adding an arbitrary pseudocount.
+
+\paragraph{Three comparison targets.}
+For task description $X$ and episode randomness $\xi$, a resettable
+benchmark can estimate
+\begin{equation}
+ \theta_{\mathrm{task}}=\E_X\E_{\xi_A,\xi_B}
+ h\{Y^A(X,\xi_A),Y^B(X,\xi_B)\},\qquad
+ \xi_A\perp\xi_B\mid X.
+ \label{eq:main_task}
+\end{equation}
+This compares independent runs of the same task and depends on the task
+distribution. Using the same simulator seed instead defines a coupled-run
+preference. Neither is automatically the individual live-arrival
+cross-world quantity $\E h(Y^A,Y^B)$, which requires a joint
+potential-outcome law unobserved under single-system exposure.
+The distinction between marginal, individual, and same-covariate
+preferences is established in \citet{even2025rethinking}.
+Contrast functions averaged over the marginal potential-outcome laws,
+with inverse-probability and doubly robust estimation, are developed by
+\citet{mao2018causal}; this distributional causal target is not new here.
+
+For independent online arrivals in stratum $s$, the observable
+distributional comparison is
+\begin{equation}
+ \theta_s=\int h(a,b)\,dF_{A,s}(a)\,dF_{B,s}(b).
+ \label{eq:main_online}
+\end{equation}
+This can mix tasks of different difficulty within a stratum. Stratification
+by an outcome-blind task family refines the question but does not make
+separate users the same user. Appendix~\ref{app:theory} supplies an explicit
+coupling example with identical arm marginals and opposite individual
+preferences. The example illustrates an identification limitation; it is
+not evidence that the product-law target in
+Equation~\eqref{eq:main_task} is inherently unidentified.
+
+\paragraph{Pairwise priority and population protection.}
+Let $B$ always succeed. Suppose $A$ fails with probability $\epsilon$,
+and otherwise succeeds more cheaply. Then a success-first hierarchy gives
+$\theta=1-2\epsilon$ while
+$\Delta_S=P(S^A=1)-P(S^B=1)=-\epsilon$.
+Thus even a strongly favorable preference can violate a success
+noninferiority margin. We define the desired deployment region as
+\begin{equation}
+ \mathcal D=\{\theta>0,\ \Delta_j> -\delta_j\text{ for all }j=1,\ldots,J\},
+ \label{eq:main_region}
+\end{equation}
+where $g_j(Y)\in[0,1]$ is an independently reported component and
+$\Delta_j=\E g_j(Y^A)-\E g_j(Y^B)$. The margins $\delta_j$ require
+application-specific justification. A relative compliance requirement
+also does not certify an acceptable absolute event rate.
+
+\section{A randomized online observation protocol}
+\label{sec:online}
+Before observing outcomes, form disjoint pairs of arrivals within a
+prespecified stratum. Let $R_i=1$ assign system $A$ to the first arrival
+and $B$ to the second; $R_i=0$ reverses the order. The known probability
+$q_i=\Prob(R_i=1\mid\mathcal F_{i-1})$ may depend on completed past data,
+but is bounded away from zero and one. Each arrival receives only one
+system. This design fixes one exposure per arm per pair; it is not an
+arbitrary traffic-allocation bandit.
+
+Write $U_i=h(Y^A_{i1},Y^B_{i2})$ and
+$V_i=h(Y^A_{i2},Y^B_{i1})$ for the potential oriented pair scores. Only
+one is observed. The inverse-probability score
+\begin{equation}
+ Z_i=\frac{R_iU_i}{2q_i}+
+          \frac{(1-R_i)V_i}{2(1-q_i)}
+ \label{eq:main_ht}
+\end{equation}
+has conditional expectation $\E\{(U_i+V_i)/2\mid\mathcal F_{i-1}\}$
+under randomization independent of the potential records and no
+cross-arrival interference. With conditionally independent, exchangeable
+arrivals in a stratum, this reduces to
+Equation~\eqref{eq:main_online}. Otherwise it remains a symmetric
+cross-arrival target, rather than silently imposing exchangeability.
+Component scores replace $h$ by $g_j(a)-g_j(b)$.
+
+For balanced order randomization, $q_i=1/2$ and $Z_i\in\{-1,0,1\}$.
+For unbalanced randomized order, $|Z_i|\leq
+B_i=1/\{2\min(q_i,1-q_i)\}$. Unweighted observed preferences can be
+biased when the two positions differ. The target, weighting, and range
+must therefore be specified together. The proof is a conditional
+randomization identity (Theorem~\ref{thm:pair_id}), not an assumption that
+adaptive allocation makes potential outcomes observable.
+
+\paragraph{Endpoint maturity.}
+Freeze an episode horizon $H$. Prespecified per-episode limits define
+endpoint outcomes; exhaustion of a study-level monetary budget instead
+leaves unobserved endpoints requiring bounds. A baseline processes the completely matured prefix of enrolled pairs.
+This can incur latency when a slow earlier pair blocks later completed
+pairs. It preserves the order defining the target. Selecting whichever
+runs finish first can preferentially include fast successes and change
+the comparison law. A display at a random completed-prefix index is
+covered by an all-prefix guarantee; this is not a license to delete
+missing or slow episodes. The delayed-outcome result in
+Proposition~\ref{prop:delay} states the necessary filtration assumptions.
+
+\section{Continuous monitoring and guarded decisions}
+\label{sec:monitoring}
+\paragraph{A finite-sample bound for drifting averages.}
+Let $\mu_i=\E(Z_i\mid\mathcal F_{i-1})$ and
+$\bar\mu_n=n^{-1}\sum_{i\leq n}\mu_i$. If the predictable range of $Z_i$
+has width $r_i$, put $V_n=\sum_{i\leq n}r_i^2/4$. For a fixed
+$\rho>0$, a normal-mixture confidence sequence is
+\begin{equation}
+ \bar Z_n\ \pm\ \frac{1}{n}
+ \sqrt{(V_n+\rho)\log\!\left(\frac{V_n+\rho}{\rho\alpha^2}\right)}.
+ \label{eq:main_cs}
+\end{equation}
+Simultaneously over all $n$, this interval covers $\bar\mu_n$ with
+probability at least $1-\alpha$. For balanced ternary scores $V_n=n$.
+The proof integrates Hoeffding exponential supermartingales against a
+normal mixing law and applies Ville's inequality
+\citep{howard2021confidence}. Under drift the covered quantity is a
+running average of conditional effects; it does not describe the current
+or future deployment population. Range-only bounds can be conservative
+for rare-event components.
+
+\paragraph{A directional fixed-stake betting implementation.}
+For a bounded score $X_i\in[-B,B]$, gate threshold $c>-B$, and fixed
+bets $0<\lambda_k<1/(B+c)$ with weights $w_k\geq0$ summing to one,
+define
+\begin{equation}
+ E_n(c)=\sum_k w_k\prod_{i=1}^n\{1+\lambda_k(X_i-c)\}.
+ \label{eq:main_bet}
+\end{equation}
+Under the conditional null $\E(X_i\mid\mathcal F_{i-1})\leq c$, this
+is a nonnegative supermartingale starting at one. Crossing $1/\alpha$
+therefore rejects the gate null with anytime error at most $\alpha$
+\citep{waudbysmith2024betting}. Our stationary simulations use 40 fixed
+geometric bets and ternary count sufficient statistics. Finite-grid
+validity does not imply power for arbitrarily small gaps: at least one
+bet must have positive expected log growth. This implementation is a
+standard betting baseline specialized to the deployment rule.
+
+By martingale domination, the same fixed grid controls crossings at
+prefixes whose running conditional mean is at or below the threshold
+(Proposition~\ref{prop:bet_running}); under drift, the observed wealth
+need not itself be a supermartingale.
+
+\paragraph{One deployment claim versus simultaneous component claims.}
+Let $c_0=0$ for preference and $c_j=-\delta_j$ for the component gates.
+Under constant conditional means, accept deployment only after every gate
+has valid evidence against its null. If the deployment region fails,
+at least one fixed component null is true. A false deployment entails a
+crossing of that component's level-$\alpha$ process. Consequently the
+probability of ever falsely deploying is at most $\alpha$, without
+dividing $\alpha$ across the required conjuncts
+(Theorem~\ref{thm:iut}). This intersection--union guarantee concerns the
+single deployment decision; it is not simultaneous $1-\alpha$ coverage
+for all reported effects.
+
+Under arbitrary drift, the component violating the region can change
+over time. Then a fixed-null argument is insufficient. Use simultaneous
+component confidence sequences, for example at levels
+$\alpha/(J+1)$, and deploy only when every lower bound for its running
+target exceeds its threshold (Theorem~\ref{thm:drift_gate}). For
+fixed-stake betting gates the same allocation controls the conjunction
+when every gate crosses at the same current prefix; retaining old
+crossings does not certify current running targets. For several
+candidates or repeated model revisions, further error allocation is
+necessary. Reusing the same data to choose the hierarchy, tolerances,
+or candidate invalidates a guarantee that assumes those choices frozen.
+
+\subsection{Using incomplete trajectories without selecting fast outcomes}
+\label{sec:partial}
+Let $N(t)$ denote the number of enrolled pairs at calendar time $t$.
+For each gate, the observed partial traces define bounds
+$\ell_i(t)\leq X_i\leq u_i(t)$ on the final fixed-horizon score,
+within the known score range, simultaneously for every pair and update.
+These bounds range over every
+feasible completion. For a success-then-cost hierarchy, a successful
+$A$ episode at cost 1 already defeats a pending $B$ episode that has
+irreversibly spent 2: $B$ either fails or succeeds at higher cost.
+An unresolved higher safety tier would prevent that certificate.
+An absence of observed violations alone cannot certify final compliance.
+
+Write $b_\alpha(V_n)$ for the numerator of the radius in
+Equation~\eqref{eq:main_cs}. For every enrolled prefix $n\leq N(t)$,
+\begin{equation}
+ \left[\frac{\sum_{i\leq n}\ell_i(t)-b_\alpha(V_n)}{n},
+       \frac{\sum_{i\leq n}u_i(t)+b_\alpha(V_n)}{n}\right]
+ \label{eq:main_partial_cs}
+\end{equation}
+covers the corresponding running conditional mean simultaneously over
+$n$ and $t$ with probability at least $1-\alpha$. On the event that
+the complete-score confidence sequence covers every prefix, replacing
+its score sum by lower and upper bounds preserves coverage pathwise.
+No outcome-independent reveal-time assumption is needed. Its width is
+the complete-data width plus $n^{-1}\sum_i(u_i-\ell_i)$, making the
+cost of unresolved information explicit. If the number enrolled tends to infinity and that average width vanishes,
+stationary means with strictly positive gate margins are eventually
+resolved (Appendix~\ref{app:asynchronous}).
+
+For stationary gates, positive betting factors similarly give
+\begin{equation}
+ \underline E_{n,t}(c)=\sum_k w_k\prod_{i\leq n}
+            \{1+\lambda_k(\ell_i(t)-c)\}\ \leq\ E_n(c).
+ \label{eq:main_partial_wealth}
+\end{equation}
+Thus a partial-score crossing at any time and prefix entails a crossing
+of the latent complete-score process, controlling its probability under
+the fixed conditional null. Retrospectively refining a pending factor
+uses new information about the original pair; it does not add a new
+observation. Under stationarity, deploy if one available prefix satisfies
+all gates. Evaluating every candidate prefix includes every completed
+prefix and therefore cannot decide later than a completed-prefix method
+using the same candidates, bets, and calendar looks. Using only the
+latest enrolled prefix lacks this dominance, because additional pending
+pairs can dilute its lower wealth.
+
+The argument assumes a valid complete-score enrollment filtration and
+guaranteed completion bounds. Shared infrastructure, candidate adaptation,
+or fallible interim labels can violate those premises. We prove
+threshold-crossing control, not that the partial wealth is an e-process
+in the richer calendar-time filtration. Worst-case pending-outcome
+stopping and time-uniform filtration transfer have direct precedents
+\citep{henzi2022forecast,henzi2022correction,choe2024filtrations}; our
+specialization uses hierarchy and component bounds in a deployment
+protocol. Under drift, each selected prefix retains its own target and
+requires simultaneous component coverage. A maximum of historical lower
+bounds is not a lower bound on the current drifting effect.
+
+\paragraph{Offline repeated runs.}
+With $R$ common-seed trials for each task, the $R^2$ cross-run scores are
+dependent. Under independent seed clusters, pairs with different seed
+indices estimate the independent-run target; the $R$ same-seed pairs
+estimate a coupled target. Their equal-weight mixture assigns weight
+$1/R$ to the latter. We average eligible cross-run scores within each
+task, weight tasks equally, and resample complete tasks for uncertainty.
+The effective independent units are tasks, or larger shared clusters
+when required. The appendix provides the unbiased task estimator,
+asymptotic variance, bounded-mean alternative, and coupling decomposition.
+
+\section{Experiments}
+\label{sec:experiments}
+\input{results_main.tex}
+\input{async_results.tex}
+\input{trace_certificate_results.tex}
+\input{decision_ablations.tex}
+\input{dm_results.tex}
+\input{sequential_extension_results.tex}
+
+\section{Related work and scope}
+Generalized pairwise comparisons \citep{buyse2010generalized} and the
+clinical win ratio \citep{pocock2012win} establish the ordered-outcome
+construction. Clustered win-statistic inference is also developed
+\citep{fang2026cluster}; benchmark tasks with both systems observed are
+not parallel-arm randomized clinical clusters. Sequential derived-win
+designs \citep{zhang2024sequential,bergemann2026group} and recent
+anytime-valid U-statistic methods \citep{cai2026ustatistics} are direct
+methodological precedents. \citet[Section~4.2]{manole2023martingale}
+also describes a finite-sample confidence-sequence route for bounded symmetric
+U-statistics under i.i.d. sampling using reverse martingales. Its generic
+displayed construction is one-sample; it is not directly our two-arm
+antisymmetric kernel. Our disjoint-pair construction trades some
+information available to all-pairs estimators for a simple randomized
+score and explicit finite-sample monitoring. We do not establish its
+efficiency relative to every sequential U-statistic method.
+
+Two recent win-statistic proposals address nearby concerns.
+\citet{li2026worstcase} tests benefit under every prespecified hierarchy
+or threshold rule using an intersection--union argument and asymptotic
+fixed-sample inference. Our conjunction uses separate outcome-component
+requirements and continuously monitored evidence; the intersection--union
+principle itself is established. \citet{mccoy2026psnb} replaces
+reach-weighted tier aggregation with prespecified weights on
+stage-conditional effects, explicitly limiting lower-tier influence.
+That changes the composite estimand; it does not impose our requirements
+on raw population success or compliance differences. A positive
+reweighted composite can still fail such a requirement, as illustrated
+in Appendix~\ref{app:pairing_efficiency}. We claim neither discovery of
+lower-tier dominance nor superiority to these different decision targets.
+
+Anytime off-policy confidence sequences already support deployment gates
+\citep{karampatziakis2021offpolicy}. Combining superiority with
+noninferiority guardrails, including their intersection--union error
+logic, is established in product experimentation
+\citep{schultzberg2024riskaware}. Our use of those ideas is specific to
+prioritized episode comparisons and component constraints. The
+agent-evaluation contribution must therefore be judged by the clarity
+of the design, the empirical consequences it reveals, and the usefulness
+of the complete protocol, rather than novelty of e-processes themselves.
+Delayed-outcome inference also depends on the target:
+\citet{lindon2026delayed} studies calendar-time cumulative rewards,
+whereas our bounds retain fixed-horizon enrollment-prefix outcomes.
+Historical benchmark outcomes remain measurements under their original
+harness and model configurations. A favorable comparison does not
+identify the module causing a gain or establish transport to production.
+
+\citet{huang2026leaderboard} already examines estimand-aware pairwise
+conclusions and utility-sensitive selections on public agent records,
+including SWE-bench and $\tau_2$-bench. Our additional focus is the
+hierarchical contrast under randomized observation, component constraints,
+and certified partial-outcome monitoring. We do not claim that
+target-dependent rankings or resource-sensitive selection are new.
+
+\paragraph{Limitations.}
+The primary synthetic model deliberately isolates compensation and
+monitoring; real workflows have richer dependence, measurement error,
+and workload shifts. Benchmark cost records are historical charges, not
+current price quotes. An imperfect success or policy grader changes the
+measured target, and rare severe failures require separate monitoring.
+Our component margins are illustrative, not elicited from application
+owners. All-pairs methods may use data more efficiently than disjoint
+pairs. Partial bounds can remain uninformative when outcomes cannot be
+certified early; our delay simulation uses one deliberately simple
+measurement pipeline and two outcome scenarios. The historical prefix
+audit validates certificate feasibility under an artificial message
+schedule; its operational latency and deployment value remain untested. Public
+retrospective traces and laboratory experiments do not constitute a
+randomized intervention among production users.
+
+\section*{Reproducibility statement}
+The accompanying reproducibility code contains the comparator, monitoring procedures,
+simulation generators, analytic simulation targets, seed and source
+manifests, and result tables. Appendix~\ref{app:theory} states the
+assumptions and complete proofs. Public-data analysis records original
+artifact locations, hashes, processing rules, and task-level uncertainty.
+Internal protocol amendments are distinguished from public preregistration.
+The full preprint includes all supplementary proofs and results after the references. Code and versioned evidence are available at \url{https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval}; the accompanying archive records the exact released files.
+
+\section*{Ethics statement}
+This work studies synthetic environments and public benchmark records.
+Deployment rules require externally justified preferences and safeguards;
+a favorable composite cannot certify absolute safety or fairness.
+Released materials exclude credentials and private user data. No live
+production users are assigned experimental agents in the reported
+historical reanalyses or synthetic studies.
+
+\section*{AI use statement}
+AI assistants were used substantially in literature discovery, conceptual
+development, theorem and proof drafting, experiment design and
+implementation, interpretation, manuscript drafting, and internal
+scientific review. These reviews are model-assisted checks, not independent
+human peer review. The present development version does not assert that
+human verification of every result and citation has been completed.
+
+\bibliography{references}
+\bibliographystyle{plainnat}
+\clearpage
+\appendix
+\label{arxiv:appendix_start}
+\input{theory.tex}
+\input{asynchronous.tex}
+\input{experiments_appendix.tex}
+\input{async_appendix.tex}
+\input{trace_certificate_appendix.tex}
+\input{decision_ablation_appendix.tex}
+\input{prospective_appendix.tex}
+\input{dm_appendix.tex}
+\input{pairing_efficiency.tex}
+\input{ustat_extension_appendix.tex}
+\input{drift_extension_appendix.tex}
+\input{open_coding_appendix.tex}
+\input{open_airline_appendix.tex}
+\end{document}

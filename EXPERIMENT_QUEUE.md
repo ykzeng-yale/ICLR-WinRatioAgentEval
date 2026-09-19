@@ -1,8 +1,18 @@
 # Experiment delivery and remaining work
 
-**Round 14, September 19, 2026: 90% verified readiness (unchanged).** All experiments required for the final retained claims have a documented disposition. The 40-page paper and anonymous archives include reviewed coding and airline observations; the main text remains nine pages. Remaining mandatory work is actual author scientific review and submission declarations. Optional studies do not enlarge the fixed rubric.
+**Active target: arXiv, September 19, 2026; bounded v1 at 90% verified readiness.** The named 45-page article and separate main/supplement/source/code package are technically checked. The author selected arXiv’s non-exclusive license; author review and remaining arXiv metadata/account inputs remain. New studies below support stronger later claims; no unexecuted study is represented as completed evidence.
 
-**No further commercial/proprietary-model calls are authorized**, including agents, simulators, graders and fallbacks. The historical USD3.9476608 accounting is unchanged. No new model calls or spending occurred in this review. Existing owner branches/data are preserved; root integrates only accepted subsets.
+**No new commercial/proprietary calls or paid compute**, including agents, simulators, graders and fallbacks. Existing raw observations and old archives are immutable. Capacity-check already provisioned open models; do not download fresh weights on the nearly full root host.
+
+## Active successor assignments
+
+| Work | Owner / status | Acceptance and boundary |
+|---|---|---|
+| [#11 prospective randomized live study](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/11) | Claimed: `iclr-winratioagentevals-60`, branch `session60/live-ab`; design/adapter review and protocol freeze pending, execution not verified | Exclusive `experiments/live_ab/`, `results/live_ab/`; pre-enrolled AB/BA pairs, enrollment-indexed partial bounds, prospective decision rule, all-attempt accounting. See `reviews/arxiv_live_design_guidance.md`. No duplicate job. |
+| [#12 CPU validation/calibration](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/12) | Initially unclaimed; independent worker preferred | Exclusive `experiments/live_ab_validation/`, `results/live_ab_validation/`; deterministic adapter verification plus bounded known-truth simulation panel. No model calls. |
+| Wider models/hardware, Pareto/tie/grader grids, genuine production deployment | Deferred; no execution request now | Each needs a separately justified question, resource plan and protocol. No broad sweep or causal production claim. |
+
+The [experiment plan](evidence/arxiv_experiment_plan.md) separates required checks for new claims from the completed bounded v1. Old 'no further run' instructions below closed old collections; the author's new request authorizes only these new scoped successor tasks.
 
 ## Verified delivery status
 
@@ -16,7 +26,7 @@
 | Open-weight coding, PR 8 | All 1,182 episodes, 591 tasks; both workflows 433/591 successes. Root coding analysis integrated since Round 11 | Post-hoc running history-conditional means; same-task descriptions, no certified success gate. Endpoint/map repairs verified at `c1da1c3`; owner's residual uncertainty/causal wording excluded. No recollection required. |
 | Open-weight interactive airline, PR 8 `55fb1e5` | All 196 canonical records: 194 saved trajectories and two failure placeholders; 206 attempts; 15/98 successes per arm. Every retained comparison and replay band independently reconstructed | Descriptive batch study plus conditional observed-array illustration. Mixed amendment, globally reused seeds, incomplete failed-work usage and serving differences disclosed. No equivalence, production A/B, fresh-task or operational efficiency claim. |
 
-## Round 12–14 concern dispositions
+## Round 12–15 concern dispositions
 
 The evidence, inference and integrated reviews separately reconcile all airline denominators, outcome/termination labels, raw hashes, source versions, all attempts and regime flags. The root builder retains success from archived reward fields and saved-message usage, with explicit missing-reward flags. The 246,284 omitted generated-token lower bound is independently reconstructed; it is not complete failed-attempt cost. The original decision timestamp is corrected by an erratum; immutable decision chronology and actual sampler receipt remain unverified and are not claimed.
 
@@ -24,23 +34,19 @@ The retained airline illustration conditions on the complete outcome array and m
 
 The owner's endpoint arithmetic and anonymous-map fixes pass. The subsequent versioned reports at `01f2381` now also repair the named filtration, cluster-CLT, pass/period, history-conditional, marginal-coverage, final-error and overbroad significance/impossibility statements. Two independent Round 13 checks confirm the five late fixes and exact report/manifest regeneration. All 221 preexisting collection/analysis/result files and all 240 tracked release-payload sources remain unchanged.
 
-Round 14 independently accepts the remaining nine airline and one coding report substitutions at `be4b8e4`, with exact report/manifest regeneration. All 229 prior owner files, 240 release-payload paths and three artifact hashes are unchanged. Two index-only scope notes remain: endpoint arithmetic verification does not approve generic projection/width methods, and the owner's pair-24 e-process crossing is descriptive under R1 rather than the root's retained normal-mixture inference. Neither is a retained-paper dependency or an experiment request. Model-dependent intervals and unapproved generic methods remain excluded. See `reviews/round14_integration_disposition.md` and its independent review.
+Round 14 independently accepts the remaining nine airline and one coding report substitutions at `be4b8e4`, with exact report/manifest regeneration. All 229 prior owner files, 240 release-payload paths and three artifact hashes are unchanged. Round 15 closes the two subsequent index-only scope notes at `ce8b506`: verification is limited to zero-count betting endpoint arithmetic, and the owner's pair-24 e-process crossing is descriptive under R1 with the R2 model guarantee excluded. Independent text review passes; all 236 prior owner files, 240 release-payload paths and three artifact hashes are unchanged. No requested PR 8 report/index correction remains. Model-dependent intervals and unapproved generic methods remain excluded. See `reviews/round15_integration_disposition.md` and its independent review.
 
 ## Remaining work by priority
 
-| Priority | Work | Acceptance condition |
-|---|---|---|
-| Required author inputs | Actual science/AI-disclosure review; OpenReview/profile/reciprocal-review checks; truthful originality/concurrent-submission declarations | Actual author responses, not agent inference. Abstract submission status remains unknown. |
-| Owner index / future reuse | Two optional index scope clarifications; independently validate PR 5/issue 6 if future use is proposed | Report corrections verified through `be4b8e4`; no whole-branch approval. Current package has no dependency on these items. |
-| Conditional experiment | Concurrent open-model prefix study with actual reveal timestamps; prospective randomized exposure trial | Required for measured operational savings or live-deployment claims, which this paper does not make. |
-| Optional / deferred | More model sizes, hardware, full original tie/Pareto-cost/grader grids, power panels and production workloads | Broaden generalization. Favorable results are never a completion criterion. |
-
-No further model run or full unchanged simulation is required for this bounded package. Original wider ambitions must remain distinguished from the narrower observations actually collected. The paper states the principal delivered 2,000-repetition power counts and deferred alternatives.
+1. Author scientific/AI-use review and remaining arXiv category/account/endorsement/rights/agreements for the prepared package.
+2. Review #11's protocol and adapter before live trial episodes; keep all pair/reveal/resource assumptions explicit. The collector owns execution; root owns acceptance and manuscript integration.
+3. Complete #12 with prespecified seeds/budget and retain null/inconclusive findings. No same-run A/A count is substituted for error calibration.
+4. Integrate only reviewed successor evidence into a versioned later manuscript. Preserve the present release, all original observations and failed attempts.
 
 ## Ownership and issue disposition
 
 The session60/local-stream worker retains PR 8 collection/repair directories; session60/contrib retains its source contributions. Root owns `results/open_coding`, `results/open_airline`, corresponding evidence projections/builders, manuscript and anonymous release. Reviewers write only assigned reports/scratch. No reset, force push, duplicate run or broad unreviewed merge.
 
-Execution issues [1](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/1) and [2](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/2) are now closed with explicit narrowed acceptance in the [issue 1 disposition](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/1#issuecomment-5740372594) and [issue 2 disposition](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/2#issuecomment-5740372802). The collections and accepted root analyses are complete. The original broader confirmatory/randomized and independent-replication ambitions are deferred, not declared achieved; no further run is requested. The owner agrees with this scope. Issues [3](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/3) and [9](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/9) remain closed. [Issue 4](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/4)/PR 5 and [issue 6](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/6) remain separately excluded work. Issue closure is not approval of a whole PR, human scientific signoff or production validation.
+Execution issues [1](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/1) and [2](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/2) are now closed with explicit narrowed acceptance in the [issue 1 disposition](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/1#issuecomment-5740372594) and [issue 2 disposition](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/2#issuecomment-5740372802). The collections and accepted root analyses are complete. The original broader confirmatory/randomized and independent-replication ambitions are deferred, not declared achieved; no further run was requested at that closure. New issue #11 is a separate author-authorized successor. The owner agreed with the original narrowed scope. Issues [3](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/3) and [9](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/9) remain closed. [Issue 4](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/4)/PR 5 and [issue 6](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/6) remain separately excluded work. Issue closure is not approval of a whole PR, human scientific signoff or production validation.
 
 The previous queue checkpoints and original proposals remain in Git at `1001b23`. The full status history remains in `PROJECT_STATUS.md`.

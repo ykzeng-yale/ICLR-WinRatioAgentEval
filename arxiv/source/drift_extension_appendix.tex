@@ -1,0 +1,82 @@
+\section{Drift and unequal-law nulls}
+\label{app:drift_extension}
+This CPU-only extension uses seed 20260919 and twelve synthetic scenarios:
+common difficulty/resource drift, treatment-by-time changes, switching
+violated components, and equal-mean-win nulls with unequal outcome laws.
+Null/boundary/drift scenarios use 10,000 repetitions each; three power
+scenarios use 2,000. Nine rules share the same streams and 199 candidate
+evaluation times, with at most 10,000 pairs (20,000 executions).
+Group-sequential rules use only their ten allowed looks and fixed rules
+only the final look. The scenarios have
+independent pairs and deterministic parameter paths, not adaptive
+candidate changes or production users. Exact target paths were checked
+by separate enumeration/quadrature and Monte Carlo; an independent full
+rerun reproduced both numerical CSVs byte-for-byte.
+
+We distinguish an erroneous first decision from an erroneous decision
+at any scheduled look. Table~\ref{tab:drift_extension} reports the latter:
+some look has deployment while at least one claimed running-average
+component is at or below its threshold. It is a finite-grid Monte Carlo
+assessment; continuous monitoring guarantees come from the theory, not
+from this grid. Program-wide error across repeated experiments is a
+separate multiplicity question. Only the criteria claimed by a rule
+define its error: a win-only deployment in a component-regression scenario
+is not a false rejection of a favorable composite mean.
+
+\begin{table}[h]\centering\scriptsize
+\caption{False running-target deployment at any scheduled look (\%),
+with pointwise 95\% Wilson intervals, over 10,000 repetitions per row.
+Betting uses level 0.05 per gate; the normal-mixture rule splits 0.05
+across the three gates. These allocations have different guarantees.}
+\label{tab:drift_extension}
+\begin{tabular}{lrrr}\toprule
+Scenario & Guarded betting & Split normal mixture & Repeated Wald\\\midrule
+Common drift: identical & 0.55 [0.42, 0.72] & 0.00 [0.00, 0.04] & 26.86 [26.00, 27.74] \\
+Common drift: success boundary & 0.38 [0.28, 0.52] & 0.00 [0.00, 0.04] & 30.52 [29.63, 31.43] \\
+Common drift: compliance boundary & 0.38 [0.28, 0.52] & 0.00 [0.00, 0.04] & 29.77 [28.88, 30.67] \\
+Alternating running violation & 0.37 [0.27, 0.51] & 0.00 [0.00, 0.04] & 28.61 [27.73, 29.50] \\
+Cycling running violation & 0.48 [0.36, 0.64] & 0.00 [0.00, 0.04] & 31.89 [30.98, 32.81] \\
+Unequal-law mean-win null & 0.64 [0.50, 0.82] & 0.00 [0.00, 0.04] & 31.50 [30.60, 32.42] \\
+Unequal-law, many ties & 0.73 [0.58, 0.92] & 0.00 [0.00, 0.04] & 32.12 [31.21, 33.04] \\
+\bottomrule\end{tabular}\end{table}
+
+When one fixed claimed gate violates its threshold at every prefix,
+the fixed-gate argument controls deployment at level 0.05, even if
+other components drift. Under switching violations, splitting alpha
+controls the current-prefix conjunction; Proposition~\ref{prop:bet_running}
+also supplies that conclusion for split fixed-stake betting.
+Per-gate 0.05 allocation alone gives at most the three-gate union bound
+in that setting. Low observed betting error is not proof of a 0.05
+conjunction guarantee without the split. The split betting rule's
+switching-violation rates were 0.08\% and 0.15\%.
+
+Both versions of the range-only normal-mixture rule made no deployments
+in the switching-violation cells. Thus these cells do not empirically
+demonstrate a need to split alpha. Wide intervals may contribute to the
+rule's conservatism, but these null configurations do not identify that
+mechanism.
+In the strong-all-components power scenario, splitting alpha increased
+its mean capped use from 1,481 to 1,868 pairs; this is an observed
+precision/power cost, not a universal ratio.
+
+In a positive-then-negative preference path, every sequential method
+deployed before the reversal, while the final running net benefit was
+$-0.08$. Its earlier decision was valid for the then-running target;
+neither running-target inference nor a correct first decision ensures
+future effectiveness. The unequal-law nulls separately show that equality
+of outcome distributions and zero prioritized mean are different nulls.
+A label-permutation test of distributional equality rejected in 94.3\%
+and 100\% of two unequal-law cells, while guarded betting false-deployment
+rates for its mean-win claim were 0.64\% and 0.73\%.
+
+\paragraph{Protocol and audit scope.}
+The contributed extension records an internally frozen protocol and a
+post-run correction to a descriptive win-only diagnostic. The first
+uncorrected run was not retained, so its asserted single-field change
+and exact first-run chronology cannot be independently reconstructed;
+the current outputs and targets were independently reproduced. The
+original broad protocol also proposed more tie, Pareto-cost and grader
+panels and larger power replication counts than the principal studies
+executed here. Those panels remain deferred; the tables and manifests
+state the actual scenarios and Monte Carlo counts. No completion claim
+is based on unexecuted protocol items.

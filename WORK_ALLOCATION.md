@@ -1,5 +1,16 @@
 # Shared workspace ownership
 
+## Active arXiv phase — September 19, 2026
+
+Root owns `arxiv/`, metadata/status/queue, review integration and all staging/commits/pushes. The release reviewer has handed back `reviews/arxiv_release_audit.md` and `reviews/arxiv_live_design_guidance.md`; these are now root-integrated. The former requirements/empirical planning tasks remained pending and were interrupted; root completed `evidence/arxiv_requirements.md` and `evidence/arxiv_experiment_plan.md` with no concurrent file writes.
+
+External session `iclr-winratioagentevals-60` exclusively owns [issue 11](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/11), new branch `session60/live-ab`, and `experiments/live_ab/` / `results/live_ab/`. Do not duplicate the live collection. [Issue 12](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/12) is a separately claimable CPU validation task in `live_ab_validation/`; prefer an independent agent and claim before writing. Both return a PR; neither edits root paper, core or frozen data. Root posts a pre-run design review before integrating new claims.
+
+Original `local_stream/` and `tau2_open/` remain owned by their contributor and immutable for this transition. No new commercial/proprietary experimental call, paid compute or fresh root-host weight download. Historical allocations and stopped-run statements below are superseded only by the named arXiv successor assignments. The original data and ICLR artifacts remain frozen; the author will submit arXiv personally.
+
+## Historical coordination below
+
+
 Round 14: the bounded reviewer has handed back `reviews/round14_report_cleanup_review.md` and owns only its isolated scratch. Root owns the integration disposition and status updates, stages and pushes. Original PR 8 report/index files remain with their owner; the paper, data and archives are unchanged.
 
 Round 13: root owns only review/status/issue-disposition integration. The two reviewers own `reviews/round13_owner_report_inference_review.md` and `reviews/round13_report_provenance_review.md`, respectively, plus separate scratch. Neither may edit original owner files, the paper, release archives or Git state. The existing collection owner retains its report/index precision repairs. No new model or full experiment execution.

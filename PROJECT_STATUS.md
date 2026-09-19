@@ -1,6 +1,26 @@
 # Research status
 
-## Current checkpoint — September 19, 2026, Round 14
+## Current checkpoint — arXiv transition, September 19, 2026
+
+**90% verified bounded-v1 checklist readiness.** The author has redirected the project from ICLR to arXiv. The named article and all appendices are prepared in `arxiv/`: 45-page full paper, 13-page main extract and 32-page supplement, complete source upload and audited code archive. Clean extraction/rebuild reproduces every page of text; six analytic tests and 127 result hashes pass. Root completed visual QA. No new numerical outcome or model call was introduced; the historical conference release and observations are immutable.
+
+The author selected arXiv’s perpetual, non-exclusive license. Actual scientific/AI-use review and arXiv account/category/endorsement/rights/agreements remain pending. No upload, announcement or acceptance is asserted. ICLR deadlines/reciprocal-review requirements below are historical. See `arxiv/READ_ME.md`, the arXiv requirements and release audit, and the migrated `READINESS_TRACKER.md`.
+
+The external owner has claimed [issue 11](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/11) for a new prospective open-weight trial in `live_ab/` directories. Root posted independently reviewed requirements before the freeze; collection is not yet verified. [Issue 12](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/12) separately requests CPU validation/calibration. Their outcomes may support a later revision after independent review. Monitoring now follows arXiv and these authorized successor studies every 90 minutes, posting theory/progress/experiment requests to GitHub and percentage updates in the existing task.
+
+## Historical checkpoint — September 19, 2026, Round 15
+
+**Deadline status, September 19, 2026, 12:08 UTC:** the abstract deadline has passed (07:59 EDT / 11:59 UTC). Actual author submission remains unconfirmed. If a genuine abstract was submitted on time, the full-paper deadline remains September 26 at 07:59 EDT. If not, the published rules do not permit a new late abstract; this cycle's submission route cannot be assumed available. The fixed 90% package-readiness score does not certify timely submission. The [official author guidelines](https://iclr.cc/Conferences/2027/AuthorGuidelines), rechecked after the deadline, state that deadlines are final.
+
+The 12:08 UTC monitor found no new PR heads, comments, formal reviews, review threads or issue activity. Report/index repairs remain closed; no scientific rerun or release rebuild is needed.
+
+**Readiness remains 90% (change: 0).** PR 8 delivered the two requested index clarifications at `ce8b5063d3bb579e1c605828ca07f0ff28d6c326`. Independent bounded review passes; both notes are closed. Root verifies that only the index changed after the contributor's merge of main, with all 236 prior owner experiment/result files, 240 release-payload source paths and three published artifact hashes unchanged.
+
+No requested PR 8 report/index correction remains. The technical package stays at `45e8ee2`: 40 pages, nine main pages, 1,182 coding episodes and 196 airline records. No new experiment, paper change or archive rebuild was needed. Excluded owner intervals/generic methods and deferred broader studies remain outside acceptance. See `reviews/round15_integration_disposition.md` and the independent text review.
+
+The remaining ten points require actual author scientific/AI-disclosure review and profile/eligibility/declarations. Abstract submission remains unconfirmed. The abstract deadline has passed as recorded above; absence of confirmation does not establish that the author missed it. Hourly monitoring continues.
+
+## Historical Round 14 checkpoint — September 19, 2026
 
 **Readiness remains 90% (change: 0).** PR 8 delivered the remaining versioned report cleanup at `be4b8e4d406c26f16225420493a900105fd20244`. The independent bounded check verifies all nine airline substitutions, the coding Definitions correction and byte-identical report/manifest regeneration. Root verifies all 229 prior owner collection/analysis/result files, 240 release-payload source paths and three published artifact hashes are unchanged.
 
@@ -40,7 +60,7 @@ Actual abstract-submission status is unknown. This agent has neither submitted n
 
 ## Historical checkpoints below
 
-The entries below retain their original dates, artifact sizes and then-current states; they do not supersede the current Round 14 checkpoint.
+The entries below retain their original dates, artifact sizes and then-current states; they do not supersede the current Round 15 checkpoint.
 
 Queue synchronization on September 19, 2026: completed simulation execution issues 3 and 9 are closed with links to their accepted studies and the explicit audit limitations. An independent reviewer confirmed the focused drift issue has no remaining execution item. No new owner results or response arrived; PR 8 repairs and final airline delivery remain pending. The scientific release is still `b1febcf`, and verified readiness remains **70%**. This is coordination cleanup, not new experimental evidence.
 

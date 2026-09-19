@@ -1,0 +1,73 @@
+\section{Delayed-feedback experiment details}
+\label{app:async_exp}
+The master seed is 2026091803, with independent scenario child seeds.
+Success bits are independent Bernoulli(0.90), and positive costs are
+independent lognormal variables with log standard deviation 0.45,
+independent of success. The $A/B$ scale ratio is $r=1$ or $0.55$.
+The analytic success difference is zero and net benefit is
+\[
+ 0.9^2\left[\Phi\!\left(\frac{\log(0.95)-\log r}{\sqrt2(0.45)}\right)
+ -1+\Phi\!\left(\frac{-\log(0.95)-\log r}{\sqrt2(0.45)}\right)\right].
+\]
+The null value is exactly zero; the alternative is approximately 0.52724.
+The hierarchy compares success first, then cost with 5\% relative
+maximum-cost tolerance when both succeed; joint failures tie.
+
+Pairs enroll at ticks 1--60 in batches of 100. $A$'s success grade arrives
+one tick after enrollment if successful and 20 ticks later otherwise;
+$B$'s grade always arrives after one tick. $A$'s cost arrives after two
+ticks if at most 1 and after 20 ticks otherwise; $B$'s cost arrives after
+two ticks. This outcome-dependent telemetry is identical across scenarios.
+The construction deliberately favors early favorable $A$ measurements.
+No record remains permanently missing. The last look is tick 80.
+
+A complete pair has both success grades and, only when both succeed,
+both costs. Thus irrelevant pending costs do not hold up the completed
+baseline. At each tick the valid methods consider the same deterministic
+prefix grid $100,150,\ldots,6000$. Both gates must cross 20 at one common
+prefix. Complete-prefix inference considers every grid prefix with all
+required scores determined, not just the latest prefix. The partial
+method additionally considers enrolled prefixes with unresolved scores.
+Each gate uses 40 equal-weight geometric bets from $10^{-4}$ to
+$0.99/(1+c)$, where $c=0$ or $-0.03$. All choices were recorded before
+execution; this was an internal dated protocol, not public preregistration.
+
+For each missing success bit, enumerate both possible values. Component
+lower bounds are the smallest feasible success difference. The hierarchy
+lower bound is the minimum over these possible success pairs: discordant
+success determines the sign, joint failure ties, and joint success permits
+all three cost signs unless both costs are observed. These deliberately
+broad sets remain valid without using a model for the delay distribution.
+Observed timing is not treated as a perfect classifier of a hidden bit.
+The score bounds are ternary and are checked by exhaustive finite-state
+cases and samplewise containment against simulated complete outcomes.
+
+Nondeployments receive the cap of 80 ticks and 12,000 initiated executions.
+Execution counts are twice the number enrolled before the hypothetical
+procedure stops; generated latent values after that stopping point are
+used solely for paired method comparison. The reported observed cost
+sums measure telemetry completeness, not dollars paid or expenditure
+saved. The source, configuration, protocol and result hashes, numerical
+tables, paired gains, and complete deployment curves are supplied.
+The verification checks include partial-wealth domination, same-prefix
+gating, non-later stopping, and equal final decisions after full reveal.
+The finite simulation does not test the ongoing-enrollment consistency
+propositions, which require $n\to\infty$ and vanishing unresolved width.
+
+\begin{table}[h]
+\centering\small
+\caption{Frozen delay study, 1,000 repetitions per row. Means cap
+nondeployments at 80 ticks and 12,000 initiated executions.}
+\begin{tabular}{llrrr}
+\toprule
+Scenario & Procedure & Deployments & Mean ticks & Executions\\
+\midrule
+Equal outcomes & Completed only (invalid) & 1000 & 4.155 & 831.0\\
+Equal outcomes & Complete prefixes & 6 & 79.763 & 11976.6\\
+Equal outcomes & Partial prefixes & 6 & 79.763 & 11976.6\\
+Cheaper $A$ & Completed only (invalid) & 1000 & 3.958 & 791.6\\
+Cheaper $A$ & Complete prefixes & 997 & 41.285 & 8130.8\\
+Cheaper $A$ & Partial prefixes & 997 & 22.363 & 4459.6\\
+\bottomrule
+\end{tabular}
+\end{table}

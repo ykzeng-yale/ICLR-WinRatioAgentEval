@@ -1,0 +1,100 @@
+\section{Feasible certificates from archived agent trajectories}
+\label{app:trace_certificates}
+\paragraph{Design and information boundary.}
+This descriptive audit uses the same nine hashed $\tau^2$ archives as
+the historical comparison: three models, 278 tasks, four trials, and all
+three fixed model contrasts. Twelve off-diagonal seed-index comparisons
+per task and contrast give 10,008 dependent comparisons. The analysis
+specification was frozen before the replay aggregates were computed,
+after the archive and its complete-outcome analysis were known. It is
+an internal protocol, not external preregistration or a newly sampled
+benchmark. We retain every domain/contrast combination.
+
+At integer tick $k$, expose the $k$th actual assistant message of each
+arm, including its accrued cost and issued tool calls. Zero-cost initial
+messages remain in the sequence. The final success label, cost, and
+tool-call total become available at a terminal marker one tick after
+that arm's last assistant message. This accommodates trailing records
+and final verification by convention; it is not an observed grading
+delay. The rule receives only revealed values. It never uses a pending
+episode's final label, length, cost, or future messages to tighten bounds.
+
+\paragraph{Cost reconciliation and completion sets.}
+All 3,336 episodes and 51,247 assistant messages had finite nonnegative
+costs; 3,336 zero-cost initial messages were retained. Summed message
+costs agreed with final recorded agent cost within the specified
+tolerance; the largest absolute discrepancy was
+$3.565\times10^{-16}$. Decimal arithmetic uses the archived numeric
+strings. From every pending cumulative cost we subtract the same
+conservative allowance, $7.446604\times10^{-10}$, clipping at zero.
+This archive-wide maximum reconciliation allowance is fixed by the
+initial audit; it widens the sets and does not disclose a pending
+episode's own final value. Cost and tool counts have no inferred upper
+bound. Pending success remains in $\{0,1\}$.
+
+Enumerating feasible success bits and resource signs gives a conservative
+interval for success first, then cost with 5\% relative tolerance among
+joint successes, then issued tool calls. Two failures tie. There is no
+independent safety label or safety tier. If $A$ has completed successfully
+and $B$'s certified cost lower bound exceeds $c_A/0.95$, every
+completion favors $A$: $B$ either fails, or succeeds at a losing cost.
+Such a certificate determines the sign without determining the eventual
+deciding tier. All 3,426 early certificates retained this ambiguity:
+3,163 allowed success or cost, and 263 also allowed the tools tier.
+We do not report these as early verified successes or as known cost-tier
+wins. The supplied diagnostic examples contain only revealed values;
+retrospective pair records separately contain final tiers and lead times.
+
+\begin{table}[t]
+\centering\small
+\caption{All archived trace-certificate comparisons. Percentages use
+the full row denominator. ``Before last marker'' means before the later terminal
+marker; ``Before messages'' additionally requires at least one actual
+assistant message to remain unseen. The difference measures sensitivity
+to the added terminal-marker convention. These are descriptive,
+dependent comparisons, not binomial trials.}
+\label{tab:trace_certificates}
+\begin{tabular}{llrrr}
+\toprule
+Domain & Models $A/B$ & Pairs & Before last marker (\%) & Before messages (\%)\\
+\midrule
+Airline & o4-mini / GPT-4.1 & 600 & 39.2 & 27.2 \\
+Airline & Claude-3.7 / GPT-4.1 & 600 & 36.3 & 30.0 \\
+Airline & o4-mini / Claude-3.7 & 600 & 41.7 & 34.5 \\
+Retail & o4-mini / GPT-4.1 & 1,368 & 40.1 & 26.4 \\
+Retail & Claude-3.7 / GPT-4.1 & 1,368 & 54.0 & 41.1 \\
+Retail & o4-mini / Claude-3.7 & 1,368 & 32.7 & 21.3 \\
+Telecom & o4-mini / GPT-4.1 & 1,368 & 31.5 & 26.8 \\
+Telecom & Claude-3.7 / GPT-4.1 & 1,368 & 21.0 & 16.7 \\
+Telecom & o4-mini / Claude-3.7 & 1,368 & 19.7 & 17.3 \\
+\midrule
+All & All three contrasts & 10,008 & 34.2 & 25.9 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Validation and interpretation.}
+All 195,171 prefix intervals contained the archived final sign, were
+nested, and collapsed after completion. Final Decimal signs matched
+the existing floating-point comparator on all 10,008 comparisons.
+A separate implementation reconstructed every prefix from the raw
+archives with a closed-form completion rule and reproduced all early
+resolution times. Independent perturbation checks confirmed that hidden
+final values and future suffixes do not alter a pending revealed state.
+Among the 3,426 early resolutions, 831 led only the terminal
+marker by one tick; 2,595 occurred while actual messages remained.
+This secondary descriptive split was added during independent review,
+without changing the frozen replay or selecting contrasts.
+
+The completion-only comparator resolves at the later terminal marker,
+when both final labels and resources are known. Table~\ref{tab:trace_certificates}
+shows that useful completion bounds occur in real archived records,
+including the motivating retail and telecom contrasts. However, the
+ordinal schedule is artificial, original grader labels may be imperfect,
+and cross-run comparisons share tasks and trajectories. We perform no
+population confidence interval, sequential hypothesis test, deployment
+decision, or wall-clock saving calculation from these counts. A live
+evaluation must validate its own terminal semantics, irrevocable costs,
+grader errors, enrollment assumptions, and information available at each
+decision. These observations establish archival certificate feasibility,
+not operational latency or deployment benefit.

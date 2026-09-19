@@ -1,0 +1,194 @@
+\begin{thebibliography}{30}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Austin et~al.(2021)Austin, Odena, Nye, Bosma, Michalewski, Dohan, Jiang, Cai, Terry, Le, and Sutton]{austin2021program}
+Jacob Austin, Augustus Odena, Maxwell Nye, Maarten Bosma, Henryk Michalewski, David Dohan, Ellen Jiang, Carrie Cai, Michael Terry, Quoc Le, and Charles Sutton.
+\newblock Program synthesis with large language models.
+\newblock \emph{arXiv preprint arXiv:2108.07732}, 2021.
+\newblock URL \url{https://arxiv.org/abs/2108.07732}.
+
+\bibitem[Barres et~al.(2025)Barres, Dong, Ray, Si, and Narasimhan]{tau2bench2025}
+Victor Barres, Honghua Dong, Soham Ray, Xujie Si, and Karthik Narasimhan.
+\newblock {$\tau^2$}-bench: Evaluating conversational agents in a dual-control environment, 2025.
+\newblock URL \url{https://arxiv.org/abs/2506.07982}.
+\newblock arXiv preprint.
+
+\bibitem[Bergemann and Hanson(2026)]{bergemann2026group}
+Tracy Bergemann and Tim Hanson.
+\newblock Group sequential methods for the win ratio, 2026.
+\newblock URL \url{https://arxiv.org/abs/2601.22525}.
+\newblock arXiv preprint.
+
+\bibitem[Buyse(2010)]{buyse2010generalized}
+Marc Buyse.
+\newblock Generalized pairwise comparisons of prioritized outcomes in the two-sample problem.
+\newblock \emph{Statistics in Medicine}, 29\penalty0 (30):\penalty0 3245--3257, 2010.
+\newblock \doi{10.1002/sim.3923}.
+\newblock URL \url{https://doi.org/10.1002/sim.3923}.
+
+\bibitem[Cai et~al.(2026)Cai, Hu, and Li]{cai2026ustatistics}
+Leheng Cai, Qirui Hu, and Weijia Li.
+\newblock Asymptotic anytime-valid inference for {U}-statistics, 2026.
+\newblock URL \url{https://arxiv.org/abs/2605.14692}.
+\newblock arXiv preprint.
+
+\bibitem[Chen et~al.(2021)Chen, Tworek, Jun, Yuan, de~Oliveira~Pinto, Kaplan, Edwards, Burda, Joseph, Brockman, et~al.]{chen2021evaluating}
+Mark Chen, Jerry Tworek, Heewoo Jun, Qiming Yuan, Henrique~Ponde de~Oliveira~Pinto, Jared Kaplan, Harri Edwards, Yuri Burda, Nicholas Joseph, Greg Brockman, et~al.
+\newblock Evaluating large language models trained on code.
+\newblock \emph{arXiv preprint arXiv:2107.03374}, 2021.
+\newblock URL \url{https://arxiv.org/abs/2107.03374}.
+
+\bibitem[Choe and Ramdas(2024)]{choe2024filtrations}
+Yo~Joong Choe and Aaditya Ramdas.
+\newblock Combining evidence across filtrations, 2024.
+\newblock URL \url{https://arxiv.org/abs/2402.09698}.
+
+\bibitem[Even and Josse(2025)]{even2025rethinking}
+Mathieu Even and Julie Josse.
+\newblock Rethinking the win ratio: A causal framework for hierarchical outcome analysis, 2025.
+\newblock URL \url{https://arxiv.org/abs/2501.16933v4}.
+\newblock arXiv preprint; version 4 revised March 23, 2026.
+
+\bibitem[Fang et~al.(2026)Fang, Tong, Huang, Wilson, Heagerty, and Li]{fang2026cluster}
+Xi~Fang, Guangyu Tong, Yuan Huang, F.~Perry Wilson, Patrick~J. Heagerty, and Fan Li.
+\newblock Statistical inference with win statistics in cluster-randomized trials with hierarchical composite outcomes, 2026.
+\newblock URL \url{https://arxiv.org/abs/2604.18341v2}.
+\newblock arXiv preprint; version 2 revised September 16, 2026.
+
+\bibitem[Feng et~al.(2026)Feng, Patel, Heagerty, Mai, Sivaraman, Vossler, Ouyang, and Jena]{realpocqi2026}
+Jean Feng, Vishal Patel, Patrick Heagerty, Yifan Mai, Venkatesh Sivaraman, Patrick Vossler, Jialin Ouyang, and Anupam~B. Jena.
+\newblock Expert evaluation of clinical {AI} tools on real point-of-care clinical queries, 2026.
+\newblock URL \url{https://arxiv.org/abs/2606.28960}.
+\newblock arXiv preprint.
+
+\bibitem[Henzi and Ziegel(2022{\natexlab{a}})]{henzi2022correction}
+Alexander Henzi and Johanna~F. Ziegel.
+\newblock Correction to: `valid sequential inference on probability forecast performance'.
+\newblock \emph{Biometrika}, 109\penalty0 (4):\penalty0 1181--1182, 2022{\natexlab{a}}.
+\newblock \doi{10.1093/biomet/asac043}.
+
+\bibitem[Henzi and Ziegel(2022{\natexlab{b}})]{henzi2022forecast}
+Alexander Henzi and Johanna~F. Ziegel.
+\newblock Valid sequential inference on probability forecast performance.
+\newblock \emph{Biometrika}, 109\penalty0 (3):\penalty0 647--663, 2022{\natexlab{b}}.
+\newblock \doi{10.1093/biomet/asab047}.
+
+\bibitem[Howard et~al.(2021)Howard, Ramdas, McAuliffe, and Sekhon]{howard2021confidence}
+Steven~R. Howard, Aaditya Ramdas, Jon McAuliffe, and Jasjeet Sekhon.
+\newblock Time-uniform, nonparametric, nonasymptotic confidence sequences.
+\newblock \emph{The Annals of Statistics}, 49\penalty0 (2):\penalty0 1055--1080, 2021.
+\newblock \doi{10.1214/20-AOS1991}.
+\newblock URL \url{https://arxiv.org/abs/1810.08240}.
+
+\bibitem[Huang(2026)]{huang2026leaderboard}
+Wei-Jung Huang.
+\newblock What does an {LLM}-agent leaderboard rank actually compare?, 2026.
+\newblock URL \url{https://arxiv.org/abs/2609.07785v1}.
+\newblock Version 1, September 7, 2026.
+
+\bibitem[Kapoor et~al.(2024)Kapoor, Stroebl, Siegel, Nadgir, and Narayanan]{kapoor2024agents}
+Sayash Kapoor, Benedikt Stroebl, Zachary~S. Siegel, Nitya Nadgir, and Arvind Narayanan.
+\newblock {AI} agents that matter, 2024.
+\newblock URL \url{https://arxiv.org/abs/2407.01502}.
+\newblock Citing the verified 2024 arXiv version.
+
+\bibitem[Karampatziakis et~al.(2021)Karampatziakis, Mineiro, and Ramdas]{karampatziakis2021offpolicy}
+Nikos Karampatziakis, Paul Mineiro, and Aaditya Ramdas.
+\newblock Off-policy confidence sequences.
+\newblock In \emph{Proceedings of the 38th International Conference on Machine Learning}, volume 139 of \emph{Proceedings of Machine Learning Research}, pages 5301--5310. PMLR, 2021.
+\newblock URL \url{https://proceedings.mlr.press/v139/karampatziakis21a.html}.
+
+\bibitem[Li et~al.(2026)Li, Fan, and Yang]{li2026worstcase}
+Kexuan Li, Xue Fan, and Lingli Yang.
+\newblock Worst-case win ratios under partially specified outcome hierarchies, 2026.
+\newblock URL \url{https://arxiv.org/abs/2608.29857v1}.
+\newblock Version 1, August 30, 2026.
+
+\bibitem[Lindon and Kallus(2026)]{lindon2026delayed}
+Michael Lindon and Nathan Kallus.
+\newblock Design-based anytime-valid inference for randomized experiments with delayed outcomes and staggered entry, 2026.
+\newblock URL \url{https://arxiv.org/abs/2603.25971}.
+\newblock Version 2, May 29, 2026.
+
+\bibitem[Lindon and Malek(2022)]{lindon2022multinomial}
+Michael Lindon and Alan Malek.
+\newblock Anytime-valid inference for multinomial count data.
+\newblock In \emph{Advances in Neural Information Processing Systems}, volume~35, pages 2817--2831, 2022.
+\newblock URL \url{https://proceedings.neurips.cc/paper_files/paper/2022/hash/12f3bd5d2b7d93eadc1bf508a0872dc2-Abstract-Conference.html}.
+
+\bibitem[Manole and Ramdas(2023)]{manole2023martingale}
+Tudor Manole and Aaditya Ramdas.
+\newblock Martingale methods for sequential estimation of convex functionals and divergences, 2023.
+\newblock URL \url{https://arxiv.org/abs/2103.09267v4}.
+\newblock Version 4, March 12, 2023.
+
+\bibitem[Mao(2018)]{mao2018causal}
+Lu~Mao.
+\newblock On causal estimation using {U}-statistics.
+\newblock \emph{Biometrika}, 105\penalty0 (1):\penalty0 215--220, 2018.
+\newblock \doi{10.1093/biomet/asx071}.
+\newblock URL \url{https://doi.org/10.1093/biomet/asx071}.
+
+\bibitem[McCoy et~al.(2026)McCoy, Leopold, Galbiati, Vu, and Zhang]{mccoy2026psnb}
+David McCoy, John Leopold, Shirley Galbiati, Minhthien Vu, and Bonnie Zhang.
+\newblock Priority-standardized net benefit: A stage-normalized estimand for hierarchical composite endpoints, 2026.
+\newblock URL \url{https://arxiv.org/abs/2607.22950v1}.
+\newblock Version 1, July 24, 2026.
+
+\bibitem[Pocock et~al.(2012)Pocock, Ariti, Collier, and Wang]{pocock2012win}
+Stuart~J. Pocock, Cono~A. Ariti, Timothy~J. Collier, and Duolao Wang.
+\newblock The win ratio: a new approach to the analysis of composite endpoints in clinical trials based on clinical priorities.
+\newblock \emph{European Heart Journal}, 33\penalty0 (2):\penalty0 176--182, 2012.
+\newblock \doi{10.1093/eurheartj/ehr352}.
+\newblock URL \url{https://doi.org/10.1093/eurheartj/ehr352}.
+
+\bibitem[Podkopaev and Ramdas(2023)]{podkopaev2023predictive}
+Aleksandr Podkopaev and Aaditya Ramdas.
+\newblock Sequential predictive two-sample and independence testing.
+\newblock In \emph{Advances in Neural Information Processing Systems}, volume~36, 2023.
+\newblock URL \url{https://proceedings.neurips.cc/paper_files/paper/2023/hash/a72b207734d6112f6b47447e46be40e9-Abstract-Conference.html}.
+
+\bibitem[Schultzberg et~al.(2024)Schultzberg, Ankargren, and Fr{\aa}nberg]{schultzberg2024riskaware}
+M{\aa}rten Schultzberg, Sebastian Ankargren, and Mattias Fr{\aa}nberg.
+\newblock Risk-aware product decisions in {A/B} tests with multiple metrics, 2024.
+\newblock URL \url{https://arxiv.org/abs/2402.11609v1}.
+\newblock Version 1, February 18, 2024.
+
+\bibitem[Shekhar and Ramdas(2024)]{shekhar2024betting}
+Shubhanshu Shekhar and Aaditya Ramdas.
+\newblock Nonparametric two-sample testing by betting.
+\newblock \emph{IEEE Transactions on Information Theory}, 70\penalty0 (2):\penalty0 1178--1203, 2024.
+\newblock \doi{10.1109/TIT.2023.3305867}.
+\newblock URL \url{https://arxiv.org/abs/2112.09162v6}.
+\newblock See also the 2025 correction and corrected arXiv version 6.
+
+\bibitem[Waudby-Smith and Ramdas(2024)]{waudbysmith2024betting}
+Ian Waudby-Smith and Aaditya Ramdas.
+\newblock Estimating means of bounded random variables by betting.
+\newblock \emph{Journal of the Royal Statistical Society Series B: Statistical Methodology}, 86\penalty0 (1):\penalty0 1--27, 2024.
+\newblock \doi{10.1093/jrsssb/qkad009}.
+\newblock URL \url{https://academic.oup.com/jrsssb/article/86/1/1/7043257}.
+
+\bibitem[Waudby-Smith et~al.(2024)Waudby-Smith, Arbour, Sinha, Kennedy, and Ramdas]{waudbysmith2024timeuniform}
+Ian Waudby-Smith, David Arbour, Ritwik Sinha, Edward~H. Kennedy, and Aaditya Ramdas.
+\newblock Time-uniform central limit theory and asymptotic confidence sequences, 2024.
+\newblock URL \url{https://arxiv.org/abs/2103.06476v9}.
+\newblock Version 9, revised March 14, 2024.
+
+\bibitem[Yang et~al.(2024)Yang, Jimenez, Wettig, Lieret, Yao, Narasimhan, and Press]{sweagent2024}
+John Yang, Carlos~E. Jimenez, Alexander Wettig, Kilian Lieret, Shunyu Yao, Karthik Narasimhan, and Ofir Press.
+\newblock {SWE}-agent: Agent-computer interfaces enable automated software engineering.
+\newblock In \emph{Advances in Neural Information Processing Systems}, volume~37, 2024.
+\newblock URL \url{https://proceedings.neurips.cc/paper_files/paper/2024/hash/5a7c947568c1b1328ccc5230172e1e7c-Abstract-Conference.html}.
+
+\bibitem[Zhang and Wu(2024)]{zhang2024sequential}
+Baoshan Zhang and Yuan Wu.
+\newblock Sequential design with derived win statistics, 2024.
+\newblock URL \url{https://arxiv.org/abs/2410.06281}.
+\newblock arXiv preprint.
+
+\end{thebibliography}

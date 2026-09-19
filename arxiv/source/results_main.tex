@@ -1,0 +1,70 @@
+\paragraph{Synthetic online streams.}
+We generated six stationary independent-arrival scenarios, each with
+2,000 independent repetitions and at most 10,000 pairs (20,000 agent
+executions). Compliance and success are Bernoulli outcomes; cost is
+lognormal. The primary hierarchy is compliance, success, then cost among
+jointly compliant successful pairs. The guarded rule requires positive
+net benefit, a success difference above $-0.03$, and a compliance
+difference above $-0.01$. These illustrative margins were fixed before
+viewing the initial numerical results. Alpha is 0.05. Monitoring begins
+at 100 pairs and occurs every 50 pairs, additionally including the ten
+prespecified group looks. Analytic net-benefit targets are independently
+checked in the code.
+
+\begin{table}[t]
+\centering\small
+\caption{Deployment probability (\%) over 2,000 synthetic repetitions.
+Win-only betting addresses composite preference; guarded methods require
+the same three gates. Repeated Wald is unadjusted; group Wald uses ten
+planned looks with Bonferroni allocation. Wald validity is asymptotic.
+The normal-mixture guarded baseline made no deployments in these settings.}
+\label{tab:simulation}
+\begin{tabular}{lrrrrr}\toprule
+ & Win only & Guarded & Repeated & Group & Fixed\\
+ & betting & betting & Wald & Wald & Wald\\\midrule
+Identical agents & 0.55 & 0.45 & 31.05 & 1.65 & 4.30 \\
+Efficiency gain & 100.00 & 96.85 & 99.95 & 99.30 & 99.95 \\
+Success regression & 100.00 & 0.00 & 0.35 & 0.00 & 0.00 \\
+Compliance regression & 100.00 & 0.00 & 2.05 & 0.00 & 0.00 \\
+Joint gain & 100.00 & 100.00 & 100.00 & 100.00 & 100.00 \\
+Weak gain & 5.50 & 4.90 & 58.35 & 13.30 & 28.40 \\
+\bottomrule\end{tabular}
+\end{table}
+
+Under identical agents, guarded betting made 9/2,000 deployments
+(0.45\%; 95\% Wilson interval 0.24--0.85\%), while unadjusted repeated
+Wald inspection made 621/2,000 (31.05\%; 29.06--33.11\%). The valid
+guarded betting procedure deployed the cheaper, equally effective agent
+in 96.85\% of repetitions. Win-only betting favored the cheaper agent in
+every success-regression and compliance-regression repetition; guarded
+betting made no deployments in either scenario (0/2,000; upper Wilson
+limit 0.192\%). These are failures of a preference-only deployment rule,
+not false rejections of the composite-preference null, which is false
+in those scenarios.
+
+The range-only normal-mixture rule made no deployments in any initial
+scenario. Its width at 10,000 balanced pairs is about 0.033, too large to
+resolve the 0.01 compliance margin when the compliance difference is
+near zero. This is a documented conservatism cost of that baseline, not
+evidence that anytime-valid inference generally lacks power. Directional
+betting uses the observed score distribution and is materially more
+useful here. We do not infer uniform power superiority over competitive
+empirical-Bernstein or sequential U-statistic methods.
+
+\paragraph{Targeted stress tests.}
+Extensions designed after the initial run placed each guardrail exactly
+on its null boundary. Guarded betting deployed in 0.75\% of
+success-boundary and 0.45\% of compliance-boundary repetitions; repeated
+Wald deployed in 32.40\% and 30.45\%. A separate repeated-run experiment
+with 40 task clusters and four runs per arm gave 95.25\% coverage for a
+task-level $t$ interval, versus 55.65\% when all 16 within-task comparisons
+were incorrectly treated as independent. In a nonexchangeable-pair
+stress model with adaptive order probabilities and zero symmetric
+preference, unweighted normal-mixture monitoring rejected in 93.0\%
+of 1,000 repetitions. Correctly weighted betting rejected in 1.1\%
+and the conservative weighted normal-mixture rule in 0\%. This abstract
+bounded-score experiment isolates weighting bias; it does not simulate
+full agent traces.
+
+\IfFileExists{public_results.tex}{\input{public_results.tex}}{}
+\input{open_coding_results.tex}
