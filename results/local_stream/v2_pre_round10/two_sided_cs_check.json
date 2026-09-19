@@ -81,6 +81,6 @@
       "interval_vs_capital_disagreements": 0
     }
   ],
-  "elapsed_s": 132.48756003379822,
+  "elapsed_s": 142.804053068161,
   "note": "iid streams, so this checks the R2 (superpopulation) reading of protocol_addendum_round9.md; the max-rule column is informational (its guarantee is 2*delta by the union bound)."
 }

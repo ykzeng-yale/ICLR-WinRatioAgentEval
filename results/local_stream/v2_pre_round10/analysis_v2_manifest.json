@@ -1,0 +1,112 @@
+{
+  "what": "Round 9 (v2) re-analysis manifest for the local stream; POST HOC; no model inference",
+  "started_at": "2026-09-18T20:24:44Z",
+  "finished_at": "2026-09-18T20:27:10Z",
+  "python": "3.12.13",
+  "command": ".venv/bin/python experiments/local_stream/run_v2_all.py --verify-pinned",
+  "raw_evidence_sha256": {
+    "episodes.jsonl": "95179f93acf72597c9b15257863ffee6acceed19414cf2b630beed62ec0effa0",
+    "monitor_pass1.csv": "67504351725acbf51de936ae0ee9b9361de7fd7d73c58ca529987547ac4621a6",
+    "monitor_state.json": "daeca32682832150f7485b15fb46d7ef15b5e2c78a590b09bee4b706f4ef1773",
+    "design.json": "6175b81562efe1b1c87b113050f70c5daab2143e272cba39fb9a796f0d645457",
+    "design.sha256": "f50b77f37899f456610e99deb33b7ba91abd4692de0c9473599f3e0adde4bbb0",
+    "run_manifest.json": "f2efc949ff13745aae0b2c5f902de6af05087a606c03803a6e9bc0a25815aa4f"
+  },
+  "raw_evidence_unchanged_by_this_run": true,
+  "src_sha256": {
+    "wincs.py": "6a6a0b51bf46d64079614af3aefc364800c1862fd7635728c2949be7f2907a3b",
+    "test_wincs.py": "316de8e2a3d613684860759d788d9c12f103dec40cf83bece88902556de696a3",
+    "winstats.py": "3053f8a14e033b02b514135d7043624ca34c1a1f9da9c622365d35aa7f927fd9"
+  },
+  "v2_scripts_sha256": {
+    "analysis_v2.py": "40f31034d58a06f789170759d781cea8a67cbffb0d9e404254988ccf5f56c92e",
+    "make_figures_v2.py": "1c1d2fb7185eba28646d73c5cd97c4e9f6e2c8107c01c4dc63333d5d3b1746ec",
+    "make_report_v2.py": "0abdfde4af589e016a9bfa80e37baa53fe6efeb5d0c3e98013a6f7c496774e5a",
+    "check_two_sided_cs.py": "3dbe064fd728a26520e97a95d54a1b3015c72400c3c05627a48122ff48ccd5e8",
+    "verify_data_manifest.py": "91bb6d64c663cfab4ab997c4d4dffb69ce9f211a4fcd54b13fd9b05c88b1d95a",
+    "make_release_anon.py": "df4cca9592da967c36c75c58b3bb0468ca68fb1f3156a90336c959052536f2e7",
+    "run_v2_all.py": "91ac6b658d8edfba29f97657485301240e4d5de7db94dee9f5a05eac3df220d6",
+    "protocol_addendum_round9.md": "fa39bcc42b2a70c40e6d6d15e8dbc1329a1f41c9d8df991feafb70f49bad64f1"
+  },
+  "frozen_files_sha256": {
+    "analysis.py": "f1f0a05ff6d814252f1ec92cb218e51839ecc1154e75be24da9d6ef425ec3ca5",
+    "run_stream.py": "3c4e0782ade99c10e1ac9b063360bb2837d64d914255070fb46bd29cb5220417",
+    "design.py": "3cf14e9502d3c6135ef54e62ec5ffc4d9d65939fccc31c7996fef8ec3b5497ec",
+    "common.py": "cdee8821250c315b183769806d84495f3055cad14e0e70809c33aab8a6458a42",
+    "data.py": "ae630675f43786bcf7483ff90d4c641ab9a6c7c16202de456d96b03f19321405",
+    "config.json": "0b40e6530ff70660116d409ad3887e0999ab5d73fa43af1f88fd93df032f4b73",
+    "protocol.md": "14a5a81a62fc3144135e463fb8138d2b11b3f1f19b1b9bafec723d49c52242d9",
+    "make_figures.py": "e463e39d5ddf089d94a34bdd658874414ef00b8c545e95c081bca24d799f603d"
+  },
+  "tau2_addendum_sha256": "354175ded37efaf418294aa0a4f887b0b98070bf28e3a6f3efa4099baf27163e",
+  "tau2_analysis_py_sha256_unchanged": "36dd49e1ffab2072cec129a107e9ea9946796b15c6bd2a4f02f6b55134ec36c5",
+  "outputs_sha256": {
+    "summary_v2.json": "2515a92c0ad8387d18f9691216255af8e3cfbb7610145431eef4636558aa37a2",
+    "decision_rules_v2.csv": "73d2714d4092785936025c7240532afee914d968abf7a0b0e87efe5ba670295b",
+    "sensitivity_v2.csv": "b9a8c0f5ce6acd9fd947bd9c675775a24fe8d7ed285f65d3270aae6b69e05bf8",
+    "running_cs_v2.csv": "c2599f6a3479e58f1c9d89b8afca45bccc9e69a611195d0f88926caf5ff9555f",
+    "resources_v2.csv": "6395a8a4e3d0c8a2bfdeedb9d9fb514b94e725cf1ad82fbe3ea639d1f3e82137",
+    "two_sided_cs_check.json": "24858af1eb5966f4d6fef6d2b6835f8e2411fa61555f567532fe15ae0c3addd0",
+    "report_v2.md": "b16d0814ca364f7f09c3a1ce09c389a8664cfbba359ece938dabcb8af0dae5ed",
+    "report.md": "1777e04a987cc8cef91c8c12ccb5e0fe0fe5a28863933535fba23b90fb7d141c",
+    "data_manifest.json": "df0cd99b2795c750adea1d3972862b7a876e9b4893058b92e98ef5250de27064",
+    "release_anon/MAPPING.json": "669eebcde1d3aeb5d67e51112cde0ad2837719e66d595c365c9694523c848eb2",
+    "figures_v2/fig1_monitoring.png": "a5ee22d2653b8b222a6aede0f42d8e3c811414336ada5ed881b7d8ee36801b28",
+    "figures_v2/fig2_running_nb.png": "fb1778c575e0141049f9681212bff71444659b0d18f85daaf7c925d82ce91c3e",
+    "figures_v2/fig3_tier_decomp.png": "016fb3a7bb6a4d9deccc4b58a10ba4b35df84a94ea6a22b1b295925ec44e4d98",
+    "figures_v2/fig4_latency_scatter.png": "899fef896308a2dd2f0cc9a5ffc6058af93e77ba6c5c967ecac359381874ce91"
+  },
+  "v1_preserved_sha256": {
+    "README.md": "604d60c2ba894a691b20fce11d859f6223efa60be53fb9a06661e53942fd5729",
+    "analysis_stdout.log": "f2adb63a37794eda2eef11d4341db9ea425b20e6e4d94c6a7f2cec9561a380e5",
+    "decision_rules.csv": "45a09b1b6231f84b62a6799c40110f99da175b30fca4c6c44bc613cab665c944",
+    "episodes_flat.csv": "1237b82f99c5ea8ad1e319e0ec45873ba85a2ff13d670d508d78ae06547bd540",
+    "report.md": "9023783dc4328f204510a2a34fba4df2ece6d33e43d78e464558f4c446358b92",
+    "sensitivity.csv": "964b7cfc033856a232fa25e6b1eb87b9a136c113cbdf68b0cf66aa08549facc7",
+    "summary.json": "778f2f4f896aed76c4d2d746b67308dc3a24fd79b9b04cd9193e0e4c6767ef78",
+    "task_scores.csv": "8438877ca6b2dbdcb3b9f7088a7c70cf3a45ffaebbe341f856f9ca72eb32c4ce",
+    "test_wincs_v1.py.txt": "97086887f6ed1ddfaeec1e33d91371601e19017ce4bedea8644af691e38737de",
+    "wincs_v1_uncorrected.py.txt": "714b21fe041b7fbe62b21f6a91c301e22e9fe4c1b492161505ecdf4b3ea292a4"
+  },
+  "steps": [
+    {
+      "step": "check_two_sided_cs.py",
+      "args": [],
+      "returncode": 0,
+      "seconds": 143.2
+    },
+    {
+      "step": "verify_data_manifest.py",
+      "args": [
+        "--verify-pinned"
+      ],
+      "returncode": 0,
+      "seconds": 0.4
+    },
+    {
+      "step": "analysis_v2.py",
+      "args": [],
+      "returncode": 0,
+      "seconds": 1.4
+    },
+    {
+      "step": "make_figures_v2.py",
+      "args": [],
+      "returncode": 0,
+      "seconds": 1.1
+    },
+    {
+      "step": "make_report_v2.py",
+      "args": [],
+      "returncode": 0,
+      "seconds": 0.0
+    },
+    {
+      "step": "make_release_anon.py",
+      "args": [],
+      "returncode": 0,
+      "seconds": 0.1
+    }
+  ],
+  "note": "PDF figures embed a creation date and are not hashed; PNG hashes may differ across matplotlib versions. summary_v2.json and report_v2.md contain a generation timestamp."
+}

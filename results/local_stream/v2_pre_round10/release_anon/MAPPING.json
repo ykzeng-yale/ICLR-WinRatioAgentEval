@@ -7,8 +7,6 @@
     "<HOST>": "machine network name"
   },
   "note": "Originals are unmodified; original_sha256 lets a holder of the originals verify the correspondence. Only path/name strings were replaced; no number, hash, timestamp or outcome was touched.",
-  "portability": "Regeneration of the anonymized copies is LOCATION-DEPENDENT: the strings that are replaced are derived at run time from the executing account, repository location and host, and a different checkout may lack git-ignored originals. No byte-for-byte portability of the anonymized copies is claimed; original_sha256 ties each committed copy to its original.",
-  "round": "Round 10 (make_release_anon_v3.py)",
   "files": [
     {
       "file": "results/local_stream/run_manifest.json",
@@ -122,15 +120,14 @@
     },
     {
       "file": "work/local_stream/data/data_manifest.json",
-      "anonymized_copy": "results/local_stream/release_anon/local_data_manifest.anon.json",
+      "anonymized_copy": "results/local_stream/release_anon/work/local_stream/data/data_manifest.json",
       "original_sha256": "4b626bac275ec11f1b9c38d1ac94babd659de007b5dd51416591a0b697b69e82",
       "original_bytes": 1522,
       "anonymized_sha256": "5f28f427514f5a576f4f39f93351226e94543d19790cc388ca0df759fc2e54c0",
       "replacements": {
         "<REPO>": 3
       },
-      "changed": true,
-      "note": "original is git-ignored (work/); Round 10: copy moved to a non-ignored path"
+      "changed": true
     },
     {
       "file": "experiments/local_stream/config.json",
@@ -144,9 +141,9 @@
     {
       "file": "experiments/local_stream/README.md",
       "anonymized_copy": "results/local_stream/release_anon/experiments/local_stream/README.md",
-      "original_sha256": "09d8bcc57d07563c63dd3293c8064aa4f73b7a5458de7ce280f958549e6fd5f0",
-      "original_bytes": 10884,
-      "anonymized_sha256": "599c332a979d21a3aa3b8fc872dc7130aa744efebe65a335880e43b13cdc95ba",
+      "original_sha256": "ecc14931dafb5aa1c5d544743edbb10c9062d385026dfb2aeae0fe4b14d2550b",
+      "original_bytes": 10254,
+      "anonymized_sha256": "0e30769406cf808cf907392e56f6f3a6512b000ba274c12802205b215623d211",
       "replacements": {
         "<REPO>": 2
       },
@@ -167,19 +164,5 @@
       "file": "experiments/local_stream/README.md",
       "occurrences": 4
     }
-  ],
-  "identifier_scan": {
-    "files_scanned": 17,
-    "indicators": [
-      "/Users/",
-      "account name",
-      "account name (case-insensitive)",
-      "host name(s) of this machine",
-      "/home/<name>",
-      "e-mail pattern"
-    ],
-    "hits": [],
-    "email_like_strings": {},
-    "result": "clean"
-  }
+  ]
 }

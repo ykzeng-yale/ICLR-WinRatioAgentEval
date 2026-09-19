@@ -6,6 +6,13 @@ inexpensive coding-workflow variants, and 591 public verifiable tasks (MBPP
 sanitized 427 + HumanEval 164). The frozen pre-registration is `protocol.md`.
 Everything here runs on one machine with no paid API.
 
+**Current status (Round 10, POST HOC).** Current report: `results/local_stream/report_v3.md`; addenda:
+`protocol_addendum_round9.md` and `protocol_addendum_round10.md` (the latter supersedes the conflicting sentences of
+the former). One aggregate command regenerates every current output from the preserved raw files without any model
+call: `.venv/bin/python experiments/local_stream/run_v3_all.py` (`analysis_v3.py`, `make_report_v3.py`,
+`make_release_anon_v3.py`; manifest `results/local_stream/analysis_v3_manifest.json`). E2 task-level intervals are
+model-based; the orientation-pair cluster analysis is in `analysis_v3.py`.
+
 Layout
 
 | file | role |

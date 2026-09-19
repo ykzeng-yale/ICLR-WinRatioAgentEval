@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-19T05:29:04Z",
+  "generated_at": "2026-09-18T20:27:09Z",
   "analysis": "analysis_v2.py (POST HOC Round 9 re-analysis; analysis.py remains the frozen original)",
   "results_dir": "<REPO>/results/local_stream",
   "n_episodes": 1182,
@@ -11,7 +11,7 @@
     "design.json": "6175b81562efe1b1c87b113050f70c5daab2143e272cba39fb9a796f0d645457",
     "run_manifest.json": "f2efc949ff13745aae0b2c5f902de6af05087a606c03803a6e9bc0a25815aa4f"
   },
-  "wincs_sha256": "601865d9adf0a9f1a0f20c44ef78cb18dffe33fdc3beb5d98a47d6c5199b8754",
+  "wincs_sha256": "6a6a0b51bf46d64079614af3aefc364800c1862fd7635728c2949be7f2907a3b",
   "online": {
     "n_pairs": 295,
     "design": "cross-arrival: pass-1 pairs, disjoint arrivals, one exposure per arrival",
