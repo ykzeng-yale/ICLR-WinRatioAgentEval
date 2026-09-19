@@ -514,6 +514,18 @@ def default_stakes(n_bets=40, lo=1e-4, hi=0.5):
     return np.geomspace(lo, hi, n_bets)
 
 
+def _count_log1p(count, arg):
+    """count * log1p(arg) with the convention 0 * log(0) = 0 (Round 10 endpoint repair).
+
+    A stake whose one-step factor 1 + arg is 0 (or, by rounding, slightly negative) must kill the capital only
+    when that outcome was actually observed (count > 0). Unmasked, 0 * (-inf) = nan was mapped to -inf, which
+    dropped valid stakes at the endpoints m = +/-1 (q in {0, 1}) and broke K(m) = 1 at n = 0."""
+    count = np.asarray(count, float); arg = np.asarray(arg, float)
+    with np.errstate(divide='ignore', invalid='ignore'):
+        term = count * np.log1p(np.maximum(arg, -1.0))
+    return np.where(count == 0, 0.0, term)
+
+
 def betting_log_capital_ternary(pos, tie, neg, m, stakes=None):
     """log of the hedged mixture capital for candidate mean m of a ternary
     score z in {-1,0,1}: K(m) = (K+(m) + K-(m))/2 where K± mix over ±stakes.
@@ -525,8 +537,7 @@ def betting_log_capital_ternary(pos, tie, neg, m, stakes=None):
     pos = np.asarray(pos, float)[..., None]; tie = np.asarray(tie, float)[..., None]; neg = np.asarray(neg, float)[..., None]
     m = np.asarray(m, float)[..., None]
     def logk(l):
-        with np.errstate(divide='ignore', invalid='ignore'):
-            lk = pos * np.log1p(l * (1 - m)) + tie * np.log1p(-l * m) + neg * np.log1p(l * (-1 - m))
+        lk = _count_log1p(pos, l * (1 - m)) + _count_log1p(tie, -l * m) + _count_log1p(neg, l * (-1 - m))
         lk = np.where(np.isnan(lk), -np.inf, lk)
         return logsumexp(lk, axis=-1) - np.log(lam.size)
     # Hedged capital of Waudby-Smith & Ramdas (theta = 1/2): the average of the
@@ -592,8 +603,7 @@ def betting_log_capital_bernoulli(k, n, q, stakes=None):
     lam = (default_stakes() if stakes is None else np.asarray(stakes, float)) * 2.0  # |x-q|<=1 => lam<1
     k = np.asarray(k, float)[..., None]; n = np.asarray(n, float)[..., None]; q = np.asarray(q, float)[..., None]
     def logk(l):
-        with np.errstate(divide='ignore', invalid='ignore'):
-            lk = k * np.log1p(l * (1 - q)) + (n - k) * np.log1p(-l * q)
+        lk = _count_log1p(k, l * (1 - q)) + _count_log1p(n - k, -l * q)
         lk = np.where(np.isnan(lk), -np.inf, lk)
         return logsumexp(lk, axis=-1) - np.log(lam.size)
     return np.logaddexp(logk(lam), logk(-lam)) - np.log(2)  # hedged (theta = 1/2)
