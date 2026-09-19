@@ -1,6 +1,14 @@
 # Research status
 
-## Current checkpoint — September 19, 2026, Round 14
+## Current checkpoint — September 19, 2026, Round 15
+
+**Readiness remains 90% (change: 0).** PR 8 delivered the two requested index clarifications at `ce8b5063d3bb579e1c605828ca07f0ff28d6c326`. Independent bounded review passes; both notes are closed. Root verifies that only the index changed after the contributor's merge of main, with all 236 prior owner experiment/result files, 240 release-payload source paths and three published artifact hashes unchanged.
+
+No requested PR 8 report/index correction remains. The technical package stays at `45e8ee2`: 40 pages, nine main pages, 1,182 coding episodes and 196 airline records. No new experiment, paper change or archive rebuild was needed. Excluded owner intervals/generic methods and deferred broader studies remain outside acceptance. See `reviews/round15_integration_disposition.md` and the independent text review.
+
+The remaining ten points require actual author scientific/AI-disclosure review and profile/eligibility/declarations. Abstract submission remains unconfirmed. The official abstract deadline, rechecked at approximately 10:04 UTC, is today September 19 at 07:59 EDT / 11:59 UTC. Hourly monitoring continues.
+
+## Historical Round 14 checkpoint — September 19, 2026
 
 **Readiness remains 90% (change: 0).** PR 8 delivered the remaining versioned report cleanup at `be4b8e4d406c26f16225420493a900105fd20244`. The independent bounded check verifies all nine airline substitutions, the coding Definitions correction and byte-identical report/manifest regeneration. Root verifies all 229 prior owner collection/analysis/result files, 240 release-payload source paths and three published artifact hashes are unchanged.
 
@@ -40,7 +48,7 @@ Actual abstract-submission status is unknown. This agent has neither submitted n
 
 ## Historical checkpoints below
 
-The entries below retain their original dates, artifact sizes and then-current states; they do not supersede the current Round 14 checkpoint.
+The entries below retain their original dates, artifact sizes and then-current states; they do not supersede the current Round 15 checkpoint.
 
 Queue synchronization on September 19, 2026: completed simulation execution issues 3 and 9 are closed with links to their accepted studies and the explicit audit limitations. An independent reviewer confirmed the focused drift issue has no remaining execution item. No new owner results or response arrived; PR 8 repairs and final airline delivery remain pending. The scientific release is still `b1febcf`, and verified readiness remains **70%**. This is coordination cleanup, not new experimental evidence.
 

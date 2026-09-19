@@ -2,7 +2,7 @@
 
 Initialized September 18, 2026, after the author's request for hourly GitHub checks and percentage updates in the existing Codex task.
 
-**Current verified readiness: 90/100 points (90%), unchanged in Round 14 (Round 12 added 20 points).** This is a fixed checklist measure, not an acceptance probability, elapsed-effort estimate, human scientific signoff or submission confirmation. The final retained scientific claims, empirical analyses, manuscript integration and technical release checks have passed. Actual author verification and submission declarations remain unverified.
+**Current verified readiness: 90/100 points (90%), unchanged in Round 15 (Round 12 added 20 points).** This is a fixed checklist measure, not an acceptance probability, elapsed-effort estimate, human scientific signoff or submission confirmation. The final retained scientific claims, empirical analyses, manuscript integration and technical release checks have passed. Actual author verification and submission declarations remain unverified.
 
 ## Fixed rubric
 
@@ -42,19 +42,21 @@ Each milestone is worth five points. No fractional credit is awarded for uploade
 
 ## Observed, validated and integrated contributions
 
-Substantive GitHub inspection: September 19, 2026, approximately 09:03 UTC. PR 8 report-only cleanup at `be4b8e4d406c26f16225420493a900105fd20244` has been independently reviewed; the published technical artifacts remain the unchanged Round 12 release at `45e8ee2`. Frozen review targets below remain distinct from later broad branch heads. A new head does not automatically inherit approval.
+Substantive GitHub inspection: September 19, 2026, approximately 10:04 UTC. PR 8 index-only clarification at `ce8b5063d3bb579e1c605828ca07f0ff28d6c326` has been independently reviewed; the published technical artifacts remain the unchanged Round 12 release at `45e8ee2`. Frozen review targets below remain distinct from later broad branch heads. A new head does not automatically inherit approval.
 
 | Contribution | Observed head / review target | Verified disposition |
 |---|---|---|
 | PR 7 sequential-comparison subset | Observed `88d64343ab5b8a5448f3bd238d4befa54ee86acc`; accepted `ac17f5901bcf4efba6c71e970d3a4c1cf1ed06cb` | All 26 accepted files unchanged. Rare-event diagnostic reproduced; accepted subset integrated. Other branch files excluded. |
 | PR 10 drift/unequal-law panel | Observed `e0f7dab374399bdb173f7a5f675347b11078f878`; accepted `ae3f0a5d4936855fc0b81f4a327254e932ea729b` | All 12 accepted files unchanged; full CPU study and independent targets passed. |
-| PR 8 open-weight coding | Observed `be4b8e4d406c26f16225420493a900105fd20244`; original correction target `c1da1c3fc4e8c90644388e8b47e2e15574fe5215`; retained data from `c89b525cd8e51564ca8c23399201d9cfdf0431a3` | Endpoint/map repair and Round 13–14 report corrections pass; raw data and root retained analysis unchanged. Owner distinguishes filtrations, cluster CLT conditions and pass/roster interpretation. Its model-dependent intervals remain excluded; two index-only scope notes are separate. |
+| PR 8 open-weight coding | Observed `ce8b5063d3bb579e1c605828ca07f0ff28d6c326`; original correction target `c1da1c3fc4e8c90644388e8b47e2e15574fe5215`; retained data from `c89b525cd8e51564ca8c23399201d9cfdf0431a3` | Endpoint/map repair and Round 13–14 report corrections pass; raw data and root retained analysis unchanged. Owner distinguishes filtrations, cluster CLT conditions and pass/roster interpretation. Its model-dependent intervals remain excluded; both index-only scope notes close in Round 15. |
 | PR 8 airline | Accepted observation/handoff target `55fb1e51234ad712c56799455bd704b829ed1d26`, included in observed head above | Three independent scientific checks support root descriptive/conditional-replay integration. All source/attempt/regime limits remain. Round 13 verifies owner withdrawal of the named significance/impossibility claims and corrected history-conditional/marginal-band statements. No owner interval is imported. |
 | PR 5 generic projections | Observed `5e91fcd9afe69a60d4376e5ac370e4865f099f57` | Generic projection/width methods remain separately unapproved and excluded; no retained claim depends on them. |
 
 Round 13 preserved all 221 preexisting coding/airline collection, analysis and result files and all 240 tracked release-payload source paths. Both report generators and manifests reproduce byte-for-byte. Execution issues 1/2 are closed as explicitly narrowed accepted collections, with broader confirmatory and independent-replication ambitions deferred; no new run is requested. See `reviews/round13_integration_disposition.md` and the two independent reports. This does not add rubric points or certify human input.
 
 Round 14 verifies the nine airline and one coding cleanup substitutions and exact generator/manifest reproduction at `be4b8e4`. All 229 prior owner files, 240 release-payload source paths and three artifact hashes are unchanged. No numerical study or release rebuild was repeated. Two index-only scope notes do not affect retained claims. See `reviews/round14_integration_disposition.md` and its independent review.
+
+Round 15 closes both index-only scope notes at `ce8b506` after independent text review. All 236 prior owner-tree files, 240 release-payload source paths and three artifact hashes are unchanged. No requested PR 8 report/index repair remains; no whole-PR approval is implied. See `reviews/round15_integration_disposition.md`.
 
 ## Remaining work and hourly continuation
 

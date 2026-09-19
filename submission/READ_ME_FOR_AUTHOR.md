@@ -36,7 +36,7 @@ The [official author guidelines](https://iclr.cc/Conferences/2027/AuthorGuidelin
 
 All further commercial/proprietary-model experiment calls are now **prohibited by your explicit instruction**, including simulator, judge and fallback calls. The [current execution policy](../EXPERIMENT_POLICY.md) supersedes all earlier cheap-model budget allowances. Historical total accounted project cost is **USD 3.9476608**, including uncertain reservations; this is usage-based accounting rather than a reconciled provider invoice. No new spending or model calls occurred in the Round 9–12 audits.
 
-Open-weight coding, interactive airline, competitive sequential and drift studies now have scoped accepted integrations. The [GitHub experiment queue](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/blob/main/EXPERIMENT_QUEUE.md) separates completed collections, remaining owner-only report corrections and optional stronger studies. Existing workers retain ownership. Generic contributed projections remain excluded, and historical commercial collection scripts are not authorized to run again.
+Open-weight coding, interactive airline, competitive sequential and drift studies now have scoped accepted integrations. The [GitHub experiment queue](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/blob/main/EXPERIMENT_QUEUE.md) separates completed collections, excluded methods requiring review only for future reuse, and optional stronger studies. Requested PR 8 report/index corrections are closed through Round 15. Existing workers retain ownership. Generic contributed projections remain excluded, and historical commercial collection scripts are not authorized to run again.
 
 ## Optional ICLR automated feedback
 
