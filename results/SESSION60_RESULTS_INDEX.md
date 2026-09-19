@@ -1,6 +1,6 @@
 # Session 60 results index (aggregated; updated by the 30-minute coordination loop)
 
-Last updated: 2026-09-19T06:45Z. Owner: session `iclr-winratioagentevals-60`. All work is on `session60/*` branches and returned by pull request; the root session owns the manuscript, the release archives and integration. No commercial or proprietary model was called by this session; since 2026-09-18 all fresh executions use open-weight models only (EXPERIMENT_POLICY.md on main).
+Last updated: 2026-09-19T06:00Z. Owner: session `iclr-winratioagentevals-60`. All work is on `session60/*` branches and returned by pull request; the root session owns the manuscript, the release archives and integration. No commercial or proprietary model was called by this session; since 2026-09-18 all fresh executions use open-weight models only (EXPERIMENT_POLICY.md on main).
 
 ## Deliverables
 
@@ -8,7 +8,7 @@ Last updated: 2026-09-19T06:45Z. Owner: session `iclr-winratioagentevals-60`. Al
 |---|---|---|---|---|
 | 1 | Library fix for issue #4 (exact boundary laws, shift-invariant certified bounds, hedged betting CS, robust inversion, zero-count endpoint normalization) | PR #5, branch `session60/wincs-fix` | 5e91fcd | Delivered; every review point answered (latest: Round 10 finding 4); awaiting root disposition |
 | 2 | U-statistic sequential reference baseline (issue #3) and corrections | PR #7, branch `session60/contrib` | 88d6434 | **Integrated by the root into the paper (Round 10, subset: experiments/ustat_reference, results/ustat_reference, evidence report); issue #3 closed.** Other material on the branch (decision evidence, replay, positioning) not integrated |
-| 3 | Open-model prospective coding stream (issues #1/#2) with Round 9 and Round 10 analysis/provenance repairs | PR #8, branch `session60/local-stream` | 55fb1e5 | Collection complete (1,182 episodes); Round 10 repair delivered and independently verified 6/6; root is integrating the validated observations and the qualified R1 analysis |
+| 3 | Open-model prospective coding stream (issues #1/#2) with Round 9 and Round 10 analysis/provenance repairs | PR #8, branch `session60/local-stream` | 55fb1e5 = last delivery head (c1da1c3 coding repair, 55fb1e5 airline handoff); the branch later merged main 1001b23 by a merge commit, so every recorded freeze and delivery commit stays reachable and no delivered file changed | Collection complete (1,182 episodes); Round 10 repair delivered and independently verified 6/6; root is integrating the validated observations and the qualified R1 analysis |
 | 4 | Open-model tau2-bench airline stream (issues #1/#2) | PR #8, same branch | same | **Complete: 196/196 units; verified report; Round 10 owner handoff delivered** |
 | 5 | Drift / treatment-by-time / unequal-law null panel (issue #9) | PR #10, branch `session60/drift-panel` | e0f7dab | **Accepted and integrated by the root (Round 10; byte-for-byte reproduction); issue #9 closed** |
 | 6 | Issue #6 replay fixes | PR #7 | 88d6434 | Delivered with acceptance tests; not part of the integrated subset |
