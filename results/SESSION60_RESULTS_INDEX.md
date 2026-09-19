@@ -1,6 +1,6 @@
 # Session 60 results index (aggregated; updated by the 30-minute coordination loop)
 
-Last updated: 2026-09-19T06:00Z. Owner: session `iclr-winratioagentevals-60`. All work is on `session60/*` branches and returned by pull request; the root session owns the manuscript, the release archives and integration. No commercial or proprietary model was called by this session; since 2026-09-18 all fresh executions use open-weight models only (EXPERIMENT_POLICY.md on main).
+Last updated: 2026-09-19T07:35Z. Owner: session `iclr-winratioagentevals-60`. All work is on `session60/*` branches and returned by pull request; the root session owns the manuscript, the release archives and integration. No commercial or proprietary model was called by this session; since 2026-09-18 all fresh executions use open-weight models only (EXPERIMENT_POLICY.md on main).
 
 ## Deliverables
 
@@ -32,6 +32,15 @@ Last updated: 2026-09-19T06:00Z. Owner: session `iclr-winratioagentevals-60`. Al
 
 **Real-data decision evidence on archived trajectories (tau2-bench, SWE-bench Lite, HAL airline).** Files: `results/benchmarks/decision_matrix.csv`, `decision_matrix_summary.json`, `tau2_contrasts.csv`, `label_noise_sensitivity.csv`, `results/replay/`. 25 ordered contrasts; rules disagree on 19; 9 priority inversions (4 with net-benefit interval excluding 0); guarded rule decides 10, incumbent per-metric conjunction 6; the guarded rule never changes the winner named by success-only inference at archived sample sizes; marginal decisions flip in 27.5% of replicates under 1% label noise.
 
+## Root integration status (Round 12, main 45e8ee2)
+
+The root session reviewed the coding repair at c1da1c3 and the airline handoff at 55fb1e5 and integrated both into the paper with its own projection and analysis code: the coding observations with the root's running-conditional-mean analysis and a descriptive same-task comparison; the airline results as descriptive collection results plus an optional observed-array replay illustration (known target 0.0102 beside the band [-0.609, 0.650]). The owner's fixed-mean, win-ratio, task-level t and Welch intervals and the sensitivity-derived decisions are excluded from the paper. Root-reported readiness: 90%; the remaining items are author-only.
+
+Round 12 report-only corrections requested by the root (four points) are delivered as new versioned files; originals are byte-unchanged:
+- Coding: `results/local_stream/report_v4.md` (+ `report_v4_manifest.json`), `experiments/local_stream/protocol_addendum_round12.md`, script `make_report_v4.py`. R1 conditions on the full frozen schedule; the symmetric pair-mean formula is stated only under a coarser filtration plus a stable assignment / episode-law model; the approximate cluster t interval needs cluster-level CLT conditions; the pass table does not separate roster composition from period effects.
+- Airline: `results/tau2_open/report_final_v2.md` (+ `report_final_v2_manifest.json`), `experiments/tau2_open/protocol_addendum_round12.md`, script `make_report_final_v2.py`. New section 0 separates descriptive observations, the observed-array illustration, model-dependent intervals and interval-derived decisions; no resource-significance claim; no method-independent impossibility claim; final replay errors 0.010204 (net benefit) and 0.020408 (success difference); marginal, not joint, bands; history-conditional construction described correctly.
+- Independent check: `reviews/session60_round12_report_corrections_verification.md` (mathematics and preservation PASS; its five wording fixes applied).
+
 ## Open requests from the root session
 
-None unanswered as of the last update (Round 10 coding repair and the airline owner handoff were delivered on 2026-09-19 with exact heads posted on PR #8). Pending on the root side: review of the Round 10 deliveries, disposition of PR #5 and of the non-integrated parts of PR #7, and final manuscript/release work. Pending on the author side (only the human author can do these): abstract submission on OpenReview by 2026-09-18 23:59 AoE (= 2026-09-19 11:59 UTC), OpenReview profile and reciprocal-review eligibility, scientific verification and the AI-use statement wording.
+None unanswered. Issues #1 and #2 stay open for the repository owner's explicit disposition: the collections are delivered and integrated in a bounded scope, and their broader confirmatory / live-randomized / independent-replication ambitions are not established. No further run is requested. Pending on the author side (only the human author can do these): abstract submission on OpenReview by 2026-09-18 23:59 AoE (= 2026-09-19 11:59 UTC), OpenReview profile and reciprocal-review eligibility, scientific verification and the AI-use statement wording.
