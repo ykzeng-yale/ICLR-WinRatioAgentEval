@@ -2,6 +2,8 @@
 
 ## Current instruction and ownership — September 18, 2026
 
+**Round 14 update, September 19:** the remaining report cleanup at `be4b8e4` passed a bounded independent review. Root writes only review/status integration and a concise index-scope handoff. All original owner files and published technical artifacts remain unchanged. No duplicate experiment or new model call is needed.
+
 **Round 13 update, September 19:** the versioned owner reports at `01f2381` have received separate inference and provenance reviews. Only root review/status files change; the technical package and original owner data remain frozen. Issues 1/2 are closed as explicitly narrowed accepted collections, with broader confirmatory/independent-replication ambitions deferred and no new run requested. Original contributor ownership and all model restrictions remain in force.
 
 **Round 12 update, September 19:** root has integrated independently accepted coding and airline metric projections in separate `results/open_coding`, `results/open_airline`, evidence and builder files. Original collection modules are frozen nonexecuted text snapshots. Session60 retains original `local_stream`/`tau2_open` directories and all excluded report/method repairs. Observations at airline handoff `55fb1e5` and coding correction `c1da1c3` were reviewed read-only. No duplicate job or new model call occurred. The final retained package is technically checked at 90%; actual author inputs remain pending.
