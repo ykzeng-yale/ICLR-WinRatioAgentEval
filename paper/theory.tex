@@ -343,7 +343,7 @@ is not an iterated-logarithm-optimal boundary. Tuning $\rho$ after
 examining this stream invalidates this particular guarantee unless that
 adaptation is accounted for.
 
-\subsection{Betting tests for stationary deployment claims}
+\subsection{Fixed-stake betting and its two validity statements}
 
 For stationary claims, a direct test can be more efficient than the
 range-based confidence sequence. Let $Z_i\in[-1,1]$ and test
@@ -401,7 +401,46 @@ power must be reported without a universal consistency claim.
 The null in Theorem~\ref{thm:betting} is a conditional-mean null at
 every step. Merely requiring a nonpositive current cumulative mean under
 arbitrary drift does not imply the product's supermartingale property.
-For that running-average target use Theorem~\ref{thm:normal_cs}.
+Nevertheless, fixed nonnegative stakes also control a running-average
+crossing event, by domination rather than by asserting that the observed
+wealth is itself a supermartingale under that weaker null.
+
+\begin{proposition}[Fixed-stake crossings for drifting averages]
+\label{prop:bet_running}
+Let $Z_i\in[-1,1]$ be adapted, put
+$\mu_i=E(Z_i\mid\mathcal F_{i-1})$, and use the fixed stakes and weights
+in \eqref{eq:betting_e}. Without a stationarity assumption,
+\[
+ P\{\exists n\geq1:\ n^{-1}\textstyle\sum_{i\leq n}\mu_i\leq c,
+                   \ E_n(c)\geq1/\alpha\}\leq\alpha.
+\]
+The target is the running average of conditional means, not a fixed
+roster mean, the most recent effect, or a future workload effect.
+\end{proposition}
+\begin{proof}
+For each fixed stake define
+\[
+ M_{jn}=\prod_{i\leq n}
+       \frac{1+\lambda_j(Z_i-c)}{1+\lambda_j(\mu_i-c)},\qquad
+ D_{jn}=\prod_{i\leq n}\{1+\lambda_j(\mu_i-c)\}.
+\]
+The denominator is predictable and at least
+$1-\lambda_j(1+c)>0$. Each normalized factor has conditional
+expectation one, so $M_{jn}$ is a nonnegative unit-mean martingale.
+At any $n$ with $\sum_{i\leq n}(\mu_i-c)\leq0$, the inequality
+$\log(1+x)\leq x$ yields
+$D_{jn}\leq\exp\{\lambda_j\sum_{i\leq n}(\mu_i-c)\}\leq1$.
+Therefore $E_n(c)=\sum_jw_jM_{jn}D_{jn}\leq\sum_jw_jM_{jn}$ at
+every such $n$. The right side is a nonnegative martingale starting
+at one; Ville's inequality proves the claim.
+\end{proof}
+
+This is an elementary normalization of the existing fixed-stake
+construction, not a new generic concentration inequality. The argument
+does not require observing the unknown $\mu_i$. It applies to the
+reported prespecified grid. Predictably time-varying stakes instead
+produce a weighted sum of conditional drifts in the exponent and do not
+automatically certify this unweighted running-average target.
 
 \subsection{Conjunctive deployment and the multiplicity distinction}
 
@@ -458,9 +497,12 @@ Let $\overline\mu_{jn}=n^{-1}\sum_{i\leq n}
 E(Z_{ij}\mid\mathcal F_{i-1})$, with arbitrary allowed drift.
 If $\sum_j\alpha_j\leq\alpha$, the confidence-sequence rule satisfies
 \[
- P\{\exists n:\ \text{the rule deploys at }n
+P\{\exists n:\ \text{the rule deploys at }n
           \text{ and some }\overline\mu_{jn}\leq c_j\}\leq\alpha.
 \]
+The same conclusion holds for fixed-stake betting under the conditions
+of Proposition~\ref{prop:bet_running} for each gate, when all gates cross
+their respective $1/\alpha_j$ thresholds at the same current prefix.
 Alternatively, level $\alpha$ per criterion remains sufficient if
 there is one fixed index $j_*$ such that
 $\overline\mu_{j_*n}\leq c_{j_*}$ almost surely for every $n$.
@@ -473,6 +515,10 @@ $\overline\mu_{jn}\geq L_{jn}>c_j$ for every $j$, so the stated error
 event cannot occur. Under the fixed-index condition the error event
 is contained in failure of the one $j_*$ lower confidence sequence,
 which has probability at most $\alpha$.
+For the current-prefix betting rule, a false conjunction at $n$ entails
+$E_{jn}(c_j)\geq1/\alpha_j$ and $\overline\mu_{jn}\leq c_j$ for
+at least one $j$. Apply Proposition~\ref{prop:bet_running} and the union
+bound; under a fixed violating index only its event is needed.
 \end{proof}
 
 Without a fixed violating component, a time-varying conjunction cannot
@@ -480,6 +526,9 @@ use the stationary proof: the relevant failing component can change
 with $n$. Nor does a favorable historical average establish that a system
 will be safe after a workload shift. A finite-sample statement about the
 future needs a stability or transport assumption beyond the results here.
+Retaining crossings from different earlier prefixes does not establish
+the current running-average conjunction; that retention rule is excluded
+from the drifting guarantee.
 
 \subsection{Delay, strata, and versions}
 

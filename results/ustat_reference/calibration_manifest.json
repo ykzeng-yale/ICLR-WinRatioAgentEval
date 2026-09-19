@@ -1,0 +1,121 @@
+{
+  "arguments": {
+    "replicates": 10000,
+    "pairs": 10000,
+    "batch": 25,
+    "seed": 20260918,
+    "workers": 8,
+    "mc_pairs": 1000000,
+    "out": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/results/ustat_reference",
+    "calibration_only": true
+  },
+  "alpha": 0.05,
+  "thresholds": [
+    0.0,
+    -0.03,
+    -0.01
+  ],
+  "gates": [
+    "nb",
+    "success",
+    "compliance"
+  ],
+  "scenarios": {
+    "null": [
+      0.995,
+      0.995,
+      0.75,
+      0.75,
+      1.0
+    ],
+    "tie_heavy_null": [
+      0.995,
+      0.995,
+      0.3,
+      0.3,
+      1.0
+    ],
+    "success_boundary": [
+      0.995,
+      0.995,
+      0.72,
+      0.75,
+      0.4
+    ],
+    "compliance_boundary": [
+      0.985,
+      0.995,
+      0.75,
+      0.75,
+      0.4
+    ]
+  },
+  "truths": {
+    "null": [
+      -3.0913552967470894e-17,
+      0.0,
+      0.0
+    ],
+    "tie_heavy_null": [
+      -4.946168474795342e-18,
+      0.0,
+      0.0
+    ],
+    "success_boundary": [
+      0.4240552181589537,
+      -0.030000000000000027,
+      0.0
+    ],
+    "compliance_boundary": [
+      0.45791286367940687,
+      0.0,
+      -0.010000000000000009
+    ]
+  },
+  "seeds": {
+    "convention": "numpy SeedSequence([seed, 100 + index])",
+    "seed": 20260918,
+    "index": {
+      "null": 0,
+      "tie_heavy_null": 6,
+      "success_boundary": 8,
+      "compliance_boundary": 9
+    }
+  },
+  "seconds": 835.2808120250702,
+  "workers": 4,
+  "per_scenario": {
+    "null": {
+      "seconds": 834.5650638751686,
+      "maxrss_bytes": 234864640,
+      "seed_index": 100
+    },
+    "tie_heavy_null": {
+      "seconds": 644.9506470412016,
+      "maxrss_bytes": 238452736,
+      "seed_index": 106
+    },
+    "success_boundary": {
+      "seconds": 769.3658550838009,
+      "maxrss_bytes": 235175936,
+      "seed_index": 108
+    },
+    "compliance_boundary": {
+      "seconds": 767.6402909997851,
+      "maxrss_bytes": 228114432,
+      "seed_index": 109
+    }
+  },
+  "peak_rss_bytes_parent": 335429632,
+  "peak_rss_bytes_max_child": 238452736,
+  "source_sha256": {
+    "ustat.py": "ee98a9b344a628fa1dc49d4c314ef9c52252de70aee74316f8d022b93ea58f5d",
+    "run_ustat_reference.py": "cb96f8a58577dc9980109b5ed6932a64deae1f73005e0adf5b5af703103809e8"
+  },
+  "python": "3.12.13",
+  "numpy": "2.4.1",
+  "platform": "macOS-26.5.2-arm64-arm-64bit",
+  "cpu_count": 10,
+  "machine": "arm64",
+  "interpretation": "Type I error at the named boundary: in null/tie_heavy_null the net-benefit gate is at its boundary (theta = 0); in success_boundary the success difference equals its threshold -0.03; in compliance_boundary the compliance difference equals its threshold -0.01. Every guarded deployment is an error in all four scenarios. Wilson 95% intervals. Records per arm = pairs; 2n executions at a look with n records per arm."
+}

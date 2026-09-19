@@ -233,7 +233,7 @@ running average of conditional effects; it does not describe the current
 or future deployment population. Range-only bounds can be conservative
 for rare-event components.
 
-\paragraph{A directional betting implementation for stationary gates.}
+\paragraph{A directional fixed-stake betting implementation.}
 For a bounded score $X_i\in[-B,B]$, gate threshold $c>-B$, and fixed
 bets $0<\lambda_k<1/(B+c)$ with weights $w_k\geq0$ summing to one,
 define
@@ -249,6 +249,11 @@ geometric bets and ternary count sufficient statistics. Finite-grid
 validity does not imply power for arbitrarily small gaps: at least one
 bet must have positive expected log growth. This implementation is a
 standard betting baseline specialized to the deployment rule.
+
+By martingale domination, the same fixed grid controls crossings at
+prefixes whose running conditional mean is at or below the threshold
+(Proposition~\ref{prop:bet_running}); under drift, the observed wealth
+need not itself be a supermartingale.
 
 \paragraph{One deployment claim versus simultaneous component claims.}
 Let $c_0=0$ for preference and $c_j=-\delta_j$ for the component gates.
@@ -266,7 +271,10 @@ Under arbitrary drift, the component violating the region can change
 over time. Then a fixed-null argument is insufficient. Use simultaneous
 component confidence sequences, for example at levels
 $\alpha/(J+1)$, and deploy only when every lower bound for its running
-target exceeds its threshold (Theorem~\ref{thm:drift_gate}). For several
+target exceeds its threshold (Theorem~\ref{thm:drift_gate}). For
+fixed-stake betting gates the same allocation controls the conjunction
+when every gate crosses at the same current prefix; retaining old
+crossings does not certify current running targets. For several
 candidates or repeated model revisions, further error allocation is
 necessary. Reusing the same data to choose the hierarchy, tolerances,
 or candidate invalidates a guarantee that assumes those choices frozen.
@@ -348,6 +356,7 @@ asymptotic variance, bounded-mean alternative, and coupling decomposition.
 \input{trace_certificate_results.tex}
 \input{decision_ablations.tex}
 \input{dm_results.tex}
+\input{sequential_extension_results.tex}
 
 \section{Related work and scope}
 Generalized pairwise comparisons \citep{buyse2010generalized} and the
@@ -455,4 +464,7 @@ human verification of every result and citation has been completed.
 \input{prospective_appendix.tex}
 \input{dm_appendix.tex}
 \input{pairing_efficiency.tex}
+\input{ustat_extension_appendix.tex}
+\input{drift_extension_appendix.tex}
+\input{open_coding_appendix.tex}
 \end{document}

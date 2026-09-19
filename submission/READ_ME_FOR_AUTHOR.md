@@ -1,29 +1,29 @@
 # Author handoff: ICLR 2027
 
-**The complete review package is prepared. You have not submitted it, and your scientific review and submission attestations remain outstanding.** The project goal is therefore not marked complete. The sole-author name and institutional email you supplied are recorded in the excluded local author metadata; the review PDF and archives are anonymous.
+**The updated review package is prepared; verified readiness remains 70%.** The project is not yet declared submission-ready. Actual abstract-submission status is unknown; this agent has neither submitted nor attested for you. Your supplied sole-author details remain in excluded local metadata; review artifacts are anonymous.
 
-## Files to review and upload
+Round 11 adds independently reviewed open-weight coding observations: 1,182 episodes across 591 tasks. Each workflow succeeded on 433 tasks, while repair used 4.46 times the mean measured workflow latency and 6.33 times the total tokens. The retained post-hoc running-mean analysis is narrowly qualified; the same-task result is descriptive, the success guardrail is uncertified, and contributed E2/R2 uncertainty and endpoint routines are excluded. No new model calls occurred. Comparator/drift evidence and all original results remain preserved.
 
-- **paper.pdf**: official ICLR 2027 review format, 33 pages total; main content ends on page 9. It contains the methods, experiments, full proofs, limitations, references, and reproducibility, ethics, and AI-use statements.
-- **anonymous_code.zip**: portable code, complete numerical results, protocols, provenance, source-download instructions, and the paper sources. Its default verification and explicit full reproduction never call paid models.
-- **latex_source.zip**: editable LaTeX and required figures/style files.
-- **abstract.txt** and **form_draft.md**: the current genuine abstract, title, keywords and form-preparation notes.
-- **requirements.md**: official rules, primary-source links, dates and author-only questions.
-- **package_manifest.json**: exact hashes of the supplied archive payload.
+New airline results arrived at PR 8 head `3c70c3e` during this integration. The owner reports 196/196 completed units with 15/98 successes per arm. The deposit requires independent validation and repair of inference/deviation reporting before inclusion. It is not included in these archives. See the [current queue](../EXPERIMENT_QUEUE.md).
 
-Use the anonymous archive as the code supplement. The public development GitHub repository identifies the author and should not be linked in anonymous review materials.
+## Files to review and upload when finalized
 
-The preceding numerical release passed clean extraction and full reproduction: all 23 numerical CSVs, prospective aggregate summary, generated LaTeX and rebuilt PDF text match. Default verification checks 73 archived output hashes. All PDF pages were visually inspected; no missing references, overfull text or detected author/credential leaks remain in the anonymous artifacts. The Round 6 release changes only attribution, an independently reviewed appendix and PDF; numerical code/results are unchanged. Its separate delta audit passed: 73 hashes, all 23 unchanged numerical CSVs, all 44 LaTeX-source members and the rebuilt 33-page PDF text match. The Round 6 archive is preserved at commit `6dfc095`. The current Round 7 code archive SHA256 is `c2e8b7417fdb0c143046140268bd34036f6c461517b6cedab411253aa20f9235`. Round 7 adds explicit credit to three additional precedents and surfaces an already-executed guarded-efficiency comparison; no numerical engine or result changed. The final Round 7 audit passed: all 73 result files and 23 CSVs are unchanged, the updated text builder regenerates its supplied output, 73 integrity hashes match, and the rebuilt PDF text matches. All 33 current PDF pages were visually inspected, with main content ending on page 9.
+- **paper.pdf**: official ICLR 2027 anonymous review format, 38 pages total, main content through page 9; full proofs, studies, limitations and disclosure statements included.
+- **anonymous_code.zip**: 215 hashed payload files plus README/package manifest, including all accepted numerical results, protocols, analytical code and source provenance. Default verification checks 114 output hashes; `python reproduce.py --coding` rebuilds the new coding summaries from metrics without model or candidate-code execution.
+- **latex_source.zip**: editable LaTeX with required figures/style files.
+- **abstract.txt** and **form_draft.md**: genuine abstract and submission-form preparation materials.
+- **requirements.md**: official rules, source links and author-only inputs.
+- **package_manifest.json**: exact payload hashes.
 
-## What has actually been done
+The anonymous supplement deliberately omits candidate programs, self-tests and verifier stderr. It reproduces analysis of archived success labels, not model generations or independent hidden-test adjudication. Historical collection definitions are retained as nonexecuted text. Do not link the identifying public development repository in anonymous review materials.
 
-Complete derivations distinguish offline same-task comparisons from randomized online arrival pairs, and separate stationary deployment tests from inference under drift. The partial-outcome results cover guaranteed completion sets under their stated enrollment assumptions. Established win-statistic, betting, confidence-sequence and delayed-outcome methods are explicitly credited.
+Current SHA-256 identifiers:
 
-Executed evidence includes stationary and stress simulations; 3,936 historical agent trajectories; 2,000 informative-delay simulation repetitions; decision and grader-error ablations; an isolated complete-data Dirichlet-mixture reference; and a budget-limited Haiku laboratory pilot with 18 trajectories over 9 complete task pairs. Three planned pilot pairs remain unobserved and are included through missing-outcome bounds. The pilot does not establish workflow superiority.
+- paper.pdf: `d471f6f01f52a565ef0387fe1fb6eb9a7e9275e2a0dc242ba1e522e907a19021`
+- anonymous_code.zip: `624c1694574d21be534a1a5bfe5648893dc9aee2ab387e761a09ade54eff04e5`
+- latex_source.zip: `2c6a64b28b1730d7b1daac4efb292d8b51abf915e07bf6c289ee23c0baca2088`
 
-The latest archived-prefix audit covers 10,008 comparisons. A separate implementation reproduced all 3,426 early certificates and all 195,171 prefix checks. Of all comparisons, 25.9% resolve while actual assistant messages remain unseen; the additional 8.3% precede only an artificial terminal marker. This is ordinal replay evidence, not measured concurrent latency or a production A/B trial.
-
-Several independent AI review rounds found and corrected mathematical assumptions, interpretation, implementation and packaging defects. They are not human peer review. The latest integrated assessment is a credible focused methodology submission with borderline ICLR strength. The novelty of the synthesis and its practical importance remain reviewer judgments; acceptance is not predicted.
+The exact release audit is `../reviews/round11_release_audit.md`; three independent coding evidence/target/integrated reviews and the integration ledger document scientific acceptance. All 38 PDF pages were rendered and visually inspected. The nine-page main-content boundary is unchanged. This remains an intermediate package while airline disposition and actual author review/declarations remain unresolved.
 
 ## Before you submit
 
@@ -36,9 +36,9 @@ The [official author guidelines](https://iclr.cc/Conferences/2027/AuthorGuidelin
 
 ## Cost and work available to other agents
 
-All commercial calls have stopped. Total accounted project cost is **USD 3.9476608**, including uncertain reservations, below the USD 5 cap. It is usage-based accounting rather than a reconciled provider invoice. No additional commercial allocation has been given to other workers.
+All further commercial/proprietary-model experiment calls are now **prohibited by your explicit instruction**, including simulator, judge and fallback calls. The [current execution policy](../EXPERIMENT_POLICY.md) supersedes all earlier cheap-model budget allowances. Historical total accounted project cost is **USD 3.9476608**, including uncertain reservations; this is usage-based accounting rather than a reconciled provider invoice. No new spending or model calls occurred in the Round 9–11 audits.
 
-Larger prospective streams, local-model replication and a competitive sequential U-statistic reference are separately specified in the [GitHub experiment queue](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/blob/main/EXPERIMENT_QUEUE.md). They are future work and support no current results. Workers must claim an issue, use a separate branch/worktree, and return a reviewed pull request. An independently identified defect in a contributed generic projection patch remains open; that module is excluded from this submission and does not affect the isolated reference results.
+Open-weight coding and the competitive sequential U-statistic reference have now been delivered in PRs 8 and 7; the interactive airline extension has now been delivered at `3c70c3e` and is pending independent acceptance. The [GitHub experiment queue](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/blob/main/EXPERIMENT_QUEUE.md) records independent audit findings and integration conditions. Existing workers retain ownership, use separate branches/worktrees and return reviewed pull requests. Generic contributed projections remain excluded from this frozen submission and do not affect its isolated reference results. Previously collected commercial observations are retained as historical evidence; their collection scripts are not authorized to run again.
 
 ## Optional ICLR automated feedback
 

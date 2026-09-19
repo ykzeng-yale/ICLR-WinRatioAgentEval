@@ -1,0 +1,338 @@
+{
+  "paper_file": "results/online_methods_results.csv",
+  "paper_sha256": "b12a41b3cb84501e50a92df623bdec459e762f46a5945a865d889a4b55f3fc54",
+  "replicates": 2000,
+  "comparisons": {
+    "win_only_disjoint_betting vs paper win_only_betting": {
+      "expected_identical": true,
+      "per_scenario": {
+        "null": {
+          "identical": true,
+          "recomputed": {
+            "deployments": 16,
+            "mean_runs": 9945.425,
+            "median": 1900.0
+          },
+          "paper": {
+            "deployments": 16,
+            "mean_pairs": 9945.425,
+            "median": "1900.0"
+          }
+        },
+        "efficiency_gain": {
+          "identical": true,
+          "recomputed": {
+            "deployments": 2000,
+            "mean_runs": 117.575,
+            "median": 100.0
+          },
+          "paper": {
+            "deployments": 2000,
+            "mean_pairs": 117.575,
+            "median": "100.0"
+          }
+        },
+        "success_regression": {
+          "identical": true,
+          "recomputed": {
+            "deployments": 2000,
+            "mean_runs": 138.625,
+            "median": 100.0
+          },
+          "paper": {
+            "deployments": 2000,
+            "mean_pairs": 138.625,
+            "median": "100.0"
+          }
+        },
+        "safety_regression": {
+          "identical": true,
+          "recomputed": {
+            "deployments": 2000,
+            "mean_runs": 107.15,
+            "median": 100.0
+          },
+          "paper": {
+            "deployments": 2000,
+            "mean_pairs": 107.15,
+            "median": "100.0"
+          }
+        },
+        "joint_gain": {
+          "identical": true,
+          "recomputed": {
+            "deployments": 2000,
+            "mean_runs": 145.05,
+            "median": 150.0
+          },
+          "paper": {
+            "deployments": 2000,
+            "mean_pairs": 145.05,
+            "median": "150.0"
+          }
+        },
+        "weak_gain": {
+          "identical": true,
+          "recomputed": {
+            "deployments": 83,
+            "mean_runs": 9771.1,
+            "median": 4250.0
+          },
+          "paper": {
+            "deployments": 83,
+            "mean_pairs": 9771.1,
+            "median": "4250.0"
+          }
+        },
+        "tie_heavy_null": {
+          "identical": true,
+          "recomputed": {
+            "deployments": 21,
+            "mean_runs": 9925.175,
+            "median": 2000.0
+          },
+          "paper": {
+            "deployments": 21,
+            "mean_pairs": 9925.175,
+            "median": "2000.0"
+          }
+        },
+        "tie_heavy_efficiency": {
+          "identical": true,
+          "recomputed": {
+            "deployments": 2000,
+            "mean_runs": 1562.25,
+            "median": 1400.0
+          },
+          "paper": {
+            "deployments": 2000,
+            "mean_pairs": 1562.25,
+            "median": "1400.0"
+          }
+        }
+      },
+      "all_identical": true
+    },
+    "guarded_disjoint_betting_simultaneous vs paper guarded_betting": {
+      "expected_identical": true,
+      "per_scenario": {
+        "null": {
+          "identical": true,
+          "recomputed": {
+            "deployments": 12,
+            "mean_runs": 9965.325,
+            "median": 2900.0
+          },
+          "paper": {
+            "deployments": 12,
+            "mean_pairs": 9965.325,
+            "median": "2900.0"
+          }
+        },
+        "efficiency_gain": {
+          "identical": true,
+          "recomputed": {
+            "deployments": 1932,
+            "mean_runs": 4361.825,
+            "median": 3750.0
+          },
+          "paper": {
+            "deployments": 1932,
+            "mean_pairs": 4361.825,
+            "median": "3750.0"
+          }
+        },
+        "success_regression": {
+          "identical": true,
+          "recomputed": {
+            "deployments": 0,
+            "mean_runs": 10000.0,
+            "median": ""
+          },
+          "paper": {
+            "deployments": 0,
+            "mean_pairs": 10000.0,
+            "median": ""
+          }
+        },
+        "safety_regression": {
+          "identical": true,
+          "recomputed": {
+            "deployments": 0,
+            "mean_runs": 10000.0,
+            "median": ""
+          },
+          "paper": {
+            "deployments": 0,
+            "mean_pairs": 10000.0,
+            "median": ""
+          }
+        },
+        "joint_gain": {
+          "identical": true,
+          "recomputed": {
+            "deployments": 2000,
+            "mean_runs": 1426.8,
+            "median": 1300.0
+          },
+          "paper": {
+            "deployments": 2000,
+            "mean_pairs": 1426.8,
+            "median": "1300.0"
+          }
+        },
+        "weak_gain": {
+          "identical": true,
+          "recomputed": {
+            "deployments": 70,
+            "mean_runs": 9837.75,
+            "median": 5075.0
+          },
+          "paper": {
+            "deployments": 70,
+            "mean_pairs": 9837.75,
+            "median": "5075.0"
+          }
+        },
+        "tie_heavy_null": {
+          "identical": true,
+          "recomputed": {
+            "deployments": 15,
+            "mean_runs": 9954.15,
+            "median": 2350.0
+          },
+          "paper": {
+            "deployments": 15,
+            "mean_pairs": 9954.15,
+            "median": "2350.0"
+          }
+        },
+        "tie_heavy_efficiency": {
+          "identical": true,
+          "recomputed": {
+            "deployments": 1875,
+            "mean_runs": 4790.7,
+            "median": 4100.0
+          },
+          "paper": {
+            "deployments": 1875,
+            "mean_pairs": 4790.7,
+            "median": "4100.0"
+          }
+        }
+      },
+      "all_identical": true
+    },
+    "guarded_disjoint_betting_retained vs paper guarded_betting": {
+      "expected_identical": false,
+      "per_scenario": {
+        "null": {
+          "identical": false,
+          "recomputed": {
+            "deployments": 16,
+            "mean_runs": 9947.75,
+            "median": 2450.0
+          },
+          "paper": {
+            "deployments": 12,
+            "mean_pairs": 9965.325,
+            "median": "2900.0"
+          }
+        },
+        "efficiency_gain": {
+          "identical": false,
+          "recomputed": {
+            "deployments": 1933,
+            "mean_runs": 4260.3,
+            "median": 3650.0
+          },
+          "paper": {
+            "deployments": 1932,
+            "mean_pairs": 4361.825,
+            "median": "3750.0"
+          }
+        },
+        "success_regression": {
+          "identical": true,
+          "recomputed": {
+            "deployments": 0,
+            "mean_runs": 10000.0,
+            "median": ""
+          },
+          "paper": {
+            "deployments": 0,
+            "mean_pairs": 10000.0,
+            "median": ""
+          }
+        },
+        "safety_regression": {
+          "identical": true,
+          "recomputed": {
+            "deployments": 0,
+            "mean_runs": 10000.0,
+            "median": ""
+          },
+          "paper": {
+            "deployments": 0,
+            "mean_pairs": 10000.0,
+            "median": ""
+          }
+        },
+        "joint_gain": {
+          "identical": false,
+          "recomputed": {
+            "deployments": 2000,
+            "mean_runs": 1423.925,
+            "median": 1300.0
+          },
+          "paper": {
+            "deployments": 2000,
+            "mean_pairs": 1426.8,
+            "median": "1300.0"
+          }
+        },
+        "weak_gain": {
+          "identical": false,
+          "recomputed": {
+            "deployments": 83,
+            "mean_runs": 9778.7,
+            "median": 4250.0
+          },
+          "paper": {
+            "deployments": 70,
+            "mean_pairs": 9837.75,
+            "median": "5075.0"
+          }
+        },
+        "tie_heavy_null": {
+          "identical": false,
+          "recomputed": {
+            "deployments": 21,
+            "mean_runs": 9927.3,
+            "median": 2000.0
+          },
+          "paper": {
+            "deployments": 15,
+            "mean_pairs": 9954.15,
+            "median": "2350.0"
+          }
+        },
+        "tie_heavy_efficiency": {
+          "identical": false,
+          "recomputed": {
+            "deployments": 1875,
+            "mean_runs": 4708.675,
+            "median": 4050.0
+          },
+          "paper": {
+            "deployments": 1875,
+            "mean_pairs": 4790.7,
+            "median": "4100.0"
+          }
+        }
+      },
+      "all_identical": false
+    }
+  },
+  "all_expected_rows_identical": true
+}

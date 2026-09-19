@@ -1,5 +1,45 @@
 # Research status
 
+## Current checkpoint — September 19, 2026, Round 11
+
+**Verified package readiness remains 70%.** The 38-page anonymous review package adds the accepted open-weight coding subset: all 1,182 metric records, 591 tasks, observed resource/success outcomes, first-pass pair scores and root-only post-hoc running-conditional-mean bands. The independently reviewed same-task comparison is descriptive; contributed E2/R2 uncertainty and endpoint routines remain excluded. The success guardrail is not certified. No new model calls or duplicate owner jobs were run.
+
+Three separate coding evidence/target/integrated reviews passed. The paper retains nine main-content pages. The exact code/source archive checks and hashes are recorded in the Round 11 release audit and `submission/READ_ME_FOR_AUTHOR.md`. Original numerical results and the Round 10 release at `b1febcf` remain preserved.
+
+**New external delivery:** PR 8 advanced to `3c70c3e5ec8c8d6f9c5e06b369237319799c864d` at 05:02 UTC. The owner reports the airline run completed all 196 planned units, with 15/98 successes per arm, and deposited raw/aggregate files and two invocation records. This is newly delivered evidence, not accepted inference. Initial scope review finds retained fixed-mean/task-independent intervals and an unfinished deviations report that require repair; independent validation/disposition remains open. Coding files are unchanged from the accepted `c89b525` snapshot. Owner execution/repair ownership is unchanged.
+
+Actual abstract-submission status is unknown. This agent has neither submitted nor attested for the author. The abstract deadline is September 19 at 07:59 EDT; full-paper deadline September 26 at 07:59 EDT. Human scientific review, profile/eligibility and truthful declarations remain pending. All commercial/proprietary experimental calls remain prohibited.
+
+## Historical checkpoints below
+
+The entries below retain their original dates, artifact sizes and then-current states; they do not supersede the current Round 11 checkpoint.
+
+Queue synchronization on September 19, 2026: completed simulation execution issues 3 and 9 are closed with links to their accepted studies and the explicit audit limitations. An independent reviewer confirmed the focused drift issue has no remaining execution item. No new owner results or response arrived; PR 8 repairs and final airline delivery remain pending. The scientific release is still `b1febcf`, and verified readiness remains **70%**. This is coordination cleanup, not new experimental evidence.
+
+## Round 10 checkpoint — September 18, 2026, 23:15 UTC
+
+**Verified checklist readiness remains 70%.** PR 7's sequential-comparison subset at `ac17f5901bcf4efba6c71e970d3a4c1cf1ed06cb` and PR 10's drift panel at `ae3f0a5d4936855fc0b81f4a327254e932ea729b` passed independent numerical/scientific review and are integrated into a revised 36-page paper (main content through page 9). The fixed-stake running-conditional-mean crossing proof was independently checked. The previous 33-page release remains preserved in Git at `f806aba`. This is an intermediate accepted-results release, not final submission readiness.
+
+The PR 7 rare-event diagnostic reproduced byte-for-byte; prior comparison outputs remain unchanged. The PR 10 audit reran all 96,000 sequential and 14,000 permutation replicates and independently checked target calculations. Its two numerical CSVs reproduced byte-for-byte. The paper distinguishes finite-sample from asymptotic guarantees, component versus conjunction errors, fixed versus changing targets, and conditional-on-rejection diagnostics. See the three Round 10 scientific reports in `reviews/`.
+
+PR 8 at `c89b525cd8e51564ca8c23399201d9cfdf0431a3` remains outside the released paper and archives. Its CPU aggregate reproduction, raw-data preservation and pinned benchmark provenance passed. The two-sided hedge is repaired, but same-task uncertainty still assumes independence unsupported by the shared orientation/pass design; zero-count endpoint arithmetic, variance-growth assumptions and one anonymous-map path also need correction. These are analysis/claim repairs, not reasons to repeat completed model calls. The concrete handoff is the [Round 10 PR 8 comment](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/pull/8#issuecomment-5737168893).
+
+The airline owner's latest posted status remains 27/196 saved at 21:44 UTC, under an amended second invocation; no final real invocation artifacts are delivered. Do not infer current activity or completed outcomes from that old status. Keep the owner's job exclusive and audit all invocation failures, token caps, repeated-task/shared-seed dependence and replay construction on delivery. No new model calls or spending occurred in this review.
+
+The exact revised release passed independent extraction and code/source PDF rebuilds: 188 payload hashes, five anonymous provenance mappings, 104 result checks and all rebuilt PDF text agree. All 36 pages were visually inspected. The release audit found and then verified a correction to an identifying temporary-directory path in an anonymous manifest copy.
+
+The same fixed 20-milestone rubric remains in force. Partial closure of S6/E4/M4/Q4 does not earn an entire five-point milestone while retained incoming analyses and final package disposition remain unresolved. Human scientific review, profile/eligibility and truthful submission declarations also remain pending. No paper has been submitted.
+
+## Historical checkpoint — September 18, 2026, Round 9
+
+The author now prohibits further commercial/proprietary-model experiment calls; new agents, simulators, judges and fallbacks must use open weights/open-source systems. [EXPERIMENT_POLICY.md](EXPERIMENT_POLICY.md) supersedes older budget language. Existing observations remain preserved.
+
+PR 8 at `ab24f1b` contains 1,182 completed open-weight coding episodes across 591 tasks. The proposed repair workflow did not improve the observed success count (433/591 for each workflow) and used approximately 4.46 times the mean measured latency/tokens. Independent review found a two-sided confidence-sequence construction error and a mismatch between fixed-roster sampling and the claimed conditional-mean guarantee; these need analysis/claim repairs, not repeated model inference. Its separate airline study was reported running by its owner, but only design and mock dry-run results are present at that head. No live process status or final real airline outcome has been independently verified.
+
+PR 7 at `cfc1850` supplies eight 2,000-repetition scenarios plus four 10,000-repetition boundary calibrations. The Round 9 audit checked counts/intervals, source hashes, convention alignment and exact reproduction of 16 existing betting rows. Interpretation/provenance corrections remain; no full new simulation is required for narrow descriptive integration. The audit did not independently regenerate all 56,000 simulation replicates.
+
+Both PRs remain excluded from the frozen `f806aba` paper/archives. Scientific work remains: owner corrections, independent aggregate reproduction, paper integration and release verification. Finishing the already-owned airline study is high value; actual concurrent timestamped evidence is needed only for stronger operational-latency claims. See [current experiment queue](EXPERIMENT_QUEUE.md) and the three Round 9 reports. Historical checkpoints below should not be read as the current delivery status.
+
 Active objective: a complete, reproducible ICLR submission package for hierarchical win statistics in agent evaluation, with online continuously monitored randomized comparisons as the main setting.
 
 This directory is a development package, not a certified submission-ready paper. Goal completion remains unproven until the scientific and submission checks below are satisfied. No paper has been submitted. The user has specified a single author; private submission metadata records the supplied details, while review materials remain anonymous.
@@ -33,7 +73,7 @@ Official author guidelines verified 2026-09-17: abstract deadline September 18, 
 - Empirical tolerances/noninferiority margins are illustrative engineering choices and require application-owner justification for an actual deployment.
 - The author list is supplied. OpenReview profile status, reciprocal-review eligibility, and human verification remain unverified.
 
-## Current verified checkpoint
+## Earlier verified checkpoint (Rounds 5–7)
 
 The integrated PDF has 33 pages, with main content ending on page 9 and designated statements, references, full proofs and experiment details following. Multiple independent model-assisted reviews found and corrected implementation, assumption, interpretation and packaging defects. The complete-data DM reference is isolated from defective externally contributed projection/width routines. After independently reconstructing the real trace-prefix audit, the fresh reviewer updated the assessment to a credible focused methodology submission with borderline ICLR strength; no acceptance likelihood is promised.
 

@@ -1,0 +1,132 @@
+\section{Open-weight coding stream and same-task shadow observations}
+\label{app:open_coding}
+This laboratory study collected new open-weight model outputs under a
+frozen exposure schedule. It is neither a production-user A/B test nor a
+reassignment of an existing complete outcome table. The original online
+monitor ran during collection, without stopping execution. The
+normal-mixture reanalysis below was chosen after the outcomes were known;
+we distinguish physical collection from post-hoc inferential choices.
+
+\paragraph{Roster, model and workflows.}
+The complete roster contains 427 sanitized MBPP tasks
+\citep{austin2021program} and 164 HumanEval tasks \citep{chen2021evaluating}.
+We used the MLX four-bit conversion of Qwen2.5-Coder-7B-Instruct,
+revision \texttt{019cc73c45c770444708a6dd8690c66243cc5c80}, with
+\texttt{mlx\_lm} 0.31.3, Python 3.12.13 and one Apple M5 machine with
+10 CPU cores and 32 GiB memory. The snapshot inventory contains
+4,295,890,004 bytes, including tokenizer and metadata files; this is not
+a memory-usage measurement. Sampling used temperature 0.7, top-$p$ 0.95
+and a 1,024-token completion cap per call. A generated one solution. B generated
+a solution and its own tests, executed those tests, and made up to two
+repairs from execution feedback, using at most four model calls.
+Hidden verification tests were not supplied for repair. MBPP prompts used
+the task description and reference-derived function signature; standard
+HumanEval prompts include their original illustrative doctests.
+The exact collection definitions, sampling configuration and pinned
+benchmark/model identities accompany the analytical data.
+
+\paragraph{Assignment and observation units.}
+Seed 20260918 generated a permutation of all 591 tasks and an AB/BA
+orientation for each consecutive pair. The first pass exposed each
+arrival once to its assigned workflow, one execution at a time. The
+second pass ran the complementary workflow on every task in the same
+order. There are 295 complete first-pass pairs and one prespecified
+unpaired arrival; the latter contributes only to the 591 same-task
+comparisons. Both passes finished, giving 1,182 episodes without missing
+enrolled tasks. The optional second trial was disabled. This is one
+collected schedule, not independent replications of the task roster.
+The design's pseudorandom seed and full assignment array are retained;
+neither random order nor distinct task identifiers proves independent
+episode outcomes or stationary execution latency.
+
+\paragraph{Endpoints and comparison.}
+Success requires the hidden checks to exit successfully and the verifier's
+sentinel to be observed. Timeouts and failed checks are unsuccessful.
+The hierarchy compares success first, measured workflow latency second,
+and completion-token count third. For each resource tier, a difference
+is decisive only if it exceeds 10\% of the larger recorded value.
+Resource tiers apply only after joint success; joint failure ties.
+Positive scores favor B. Workflow latency includes model calls and
+agent self-tests and excludes hidden verification and model loading.
+It is local elapsed workflow time, not production queueing or calendar
+time to a monitoring decision. Token counts include all calls within
+each workflow. No token counts were estimated; there were no recorded
+connection errors or retries. Two A episodes and no B episodes had
+verifier timeouts. Execution limits and heuristic flags do not establish
+adversarial robustness or correctness beyond these archived tests.
+
+\begin{table}[h]
+\centering\small
+\caption{Observed resources across all 591 tasks per workflow. A is
+single shot; B uses self-tests and repair. Hidden verification is excluded
+from workflow latency and the self-test execution count.}
+\label{tab:open_coding_resources}
+\input{open_coding_resource_rows.tex}
+\end{table}
+
+\paragraph{Observed first-pass contrast and post-hoc running-mean analysis.}
+Among the 295 first-pass pairs, B has 69 wins, 18 ties and 208 losses,
+giving net benefit $-139/295=-0.4712$. Success decides 67 wins and 52
+losses, latency decides two wins and 156 losses, and the token tier
+decides no pair. Thus the success difference is $15/295=0.05085$,
+whereas composite preference favors A under the declared hierarchy.
+The original hypotheses of higher B success and positive net benefit
+were not supported by the complete same-task success counts and this
+first-pass preference result, respectively.
+
+Let $Z_k$ be the observed first-pass sign and $D_k$ its success difference.
+For a filtration $\mathcal F_k$ containing the fixed roster/schedule and
+revealed records through pair $k$, but no future outcomes, define
+$\mu_k=\mathbb E[Z_k\mid\mathcal F_{k-1}]$ and
+$\nu_k=\mathbb E[D_k\mid\mathcal F_{k-1}]$. We target the running
+averages $n^{-1}\sum_{k\leq n}\mu_k$ and
+$n^{-1}\sum_{k\leq n}\nu_k$. These history-conditional means allow
+task composition, machine state and serial dependence. Conditioning on
+the full assignment schedule does not simultaneously give a conditional
+fair-coin causal interpretation. Such an interpretation instead requires
+orientations to be unrevealed and nonanticipating at their pairs, and
+appropriate history-dependent assignment-response laws.
+
+For each process separately, Theorem~\ref{thm:normal_cs} gives the fixed
+normal-mixture construction with $V_n=n$, $\rho=100$ and $\alpha=0.05$:
+\[
+r_n=\frac{\sqrt{(n+100)\log\{(n+100)/(100\cdot0.05^2)\}}}{n}.
+\]
+Apply $[\overline Z_n-r_n,\overline Z_n+r_n]\cap[-1,1]$ and its
+success-difference analogue, without intersections across times because
+the targets can move. At $n=295$, $r_n=0.18284$, yielding the marginal
+bands $[-0.65403,-0.28835]$ for net benefit and
+$[-0.13199,0.23369]$ for success difference. The first negative
+net-benefit upper endpoint occurs at pair 60. The success lower endpoint
+never exceeds $-0.03$: neither success noninferiority nor a guarded
+deployment is certified. These two separate 95\% constructions do not
+form a joint 95\% region. The theorem covers a specified fixed procedure;
+the post-hoc choice of this analysis is not adjusted for selection.
+The crossing is a chronological reanalysis, produced after all planned
+episodes completed, and implies no realized savings.
+
+\paragraph{Same-task descriptions and generalization limits.}
+Both workflows succeed on 433/591 tasks: 393 joint successes, 40
+successes unique to each workflow, and 118 joint failures. The
+same-task hierarchy gives 41 B wins, 121 ties and 429 losses, hence
+$-388/591=-0.6565$ net benefit. This is descriptive: shared pair
+orientations and complementary passes can create dependence and period
+effects. We attach no contributed task-level interval, sampling error for
+the difference between contrasts, or task-superpopulation claim.
+The running-mean bands above do not cover the all-pairs fixed-roster
+functional. One model, one machine and one schedule cannot establish
+hardware-invariant workflow ranking or transfer to production tasks.
+Observed B/A ratios are 4.46 for mean workflow latency, 4.46 for
+completion tokens and 6.33 for total tokens; these are distinct endpoints,
+not a monetary-cost or energy estimate.
+
+\paragraph{Reproduction and retained provenance.}
+The supplement includes a row-preserving projection of every episode's
+metrics, all task assignments, original source hashes, model/tokenizer
+file hashes and pinned benchmark URLs. It omits generated programs,
+self-tests, verifier stderr and identifying local paths. Reproduction
+recalculates every comparison and marginal band from the archived
+verifier labels and resources; it does not regenerate model outputs or
+rerun the hidden tests. Collection definitions are retained as
+nonexecuted historical text. Superseded contributed E2/R2 uncertainty and
+betting-capital endpoint routines are excluded from this analysis.

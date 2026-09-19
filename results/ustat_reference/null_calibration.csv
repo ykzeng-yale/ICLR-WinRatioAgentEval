@@ -1,0 +1,165 @@
+scenario,replicates,true_net_benefit,true_success_difference,true_safety_difference,boundary_gate,admissible,method,convention,deployments,deployment_rate,rate_ci_lower,rate_ci_upper,mean_runs_per_arm_used
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,win_only_allpairs_fixed_wald,single gate (convention-free),503,0.0503,0.04618626511967923,0.05475910301490729,10000.0
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,guarded_allpairs_fixed_wald,single look (conventions coincide),503,0.0503,0.04618626511967923,0.05475910301490729,10000.0
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,win_only_allpairs_gs_obf,single gate (convention-free),496,0.0496,0.04551483891184551,0.054031066820459946,9897.1
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,guarded_allpairs_gs_obf_simultaneous,simultaneous (same-look conjunction; paper convention),496,0.0496,0.04551483891184551,0.054031066820459946,9897.1
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,guarded_allpairs_gs_obf_retained,retained (each gate keeps its first crossing),496,0.0496,0.04551483891184551,0.054031066820459946,9897.1
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,win_only_allpairs_gs_pocock,single gate (convention-free),505,0.0505,0.0463781434893128,0.05496707104592546,9730.6
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,guarded_allpairs_gs_pocock_simultaneous,simultaneous (same-look conjunction; paper convention),501,0.0501,0.04599440546592007,0.05455111626801472,9735.3
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,guarded_allpairs_gs_pocock_retained,retained (each gate keeps its first crossing),505,0.0505,0.0463781434893128,0.05496707104592546,9732.2
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,win_only_allpairs_gs_hsd,single gate (convention-free),493,0.0493,0.04522715614597424,0.05371897998535363,9883.5
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,guarded_allpairs_gs_hsd_simultaneous,simultaneous (same-look conjunction; paper convention),491,0.0491,0.045035391683213966,0.053510898047462174,9885.9
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,guarded_allpairs_gs_hsd_retained,retained (each gate keeps its first crossing),493,0.0493,0.04522715614597424,0.05371897998535363,9883.8
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,win_only_allpairs_asympcs_projection_gaussian,single gate (convention-free),243,0.0243,0.021459791775913607,0.027505544273948104,9805.74
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,guarded_allpairs_asympcs_projection_gaussian_simultaneous,simultaneous (same-look conjunction; paper convention),196,0.0196,0.017061812083451283,0.022507133551094786,9853.045
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,guarded_allpairs_asympcs_projection_gaussian_retained,retained (each gate keeps its first crossing),243,0.0243,0.021459791775913607,0.027505544273948104,9814.0
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,win_only_disjoint_gs_obf,single gate (convention-free),538,0.0538,0.04954674862078317,0.05839593152520862,9890.2
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,guarded_disjoint_gs_obf_simultaneous,simultaneous (same-look conjunction; paper convention),538,0.0538,0.04954674862078317,0.05839593152520862,9890.2
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,guarded_disjoint_gs_obf_retained,retained (each gate keeps its first crossing),538,0.0538,0.04954674862078317,0.05839593152520862,9890.2
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,win_only_disjoint_betting,single gate (convention-free),92,0.0092,0.007508093306449299,0.011268839494206847,9928.96
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,guarded_disjoint_betting_simultaneous,simultaneous (same-look conjunction; paper convention),53,0.0053,0.004054522887776702,0.006925405100170722,9966.56
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,guarded_disjoint_betting_retained,retained (each gate keeps its first crossing),91,0.0091,0.0074181785377802605,0.01115883106255002,9936.925
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,gate_nb_allpairs_fixed_wald,"single gate, ever rejected by n = 10000",503,0.0503,0.04618626511967923,0.05475910301490729,
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,gate_success_allpairs_fixed_wald,"single gate, ever rejected by n = 10000",9993,0.9993,0.9985556655587302,0.9996608736683119,
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,gate_compliance_allpairs_fixed_wald,"single gate, ever rejected by n = 10000",10000,1.0,0.9996160016293234,1.0,
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,gate_nb_allpairs_gs_obf,"single gate, ever rejected by n = 10000",496,0.0496,0.04551483891184551,0.054031066820459946,
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,gate_success_allpairs_gs_obf,"single gate, ever rejected by n = 10000",9990,0.999,0.9981600556125619,0.9994567140135028,
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,gate_compliance_allpairs_gs_obf,"single gate, ever rejected by n = 10000",10000,1.0,0.9996160016293234,1.0,
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,gate_nb_allpairs_gs_pocock,"single gate, ever rejected by n = 10000",505,0.0505,0.0463781434893128,0.05496707104592546,
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,gate_success_allpairs_gs_pocock,"single gate, ever rejected by n = 10000",9981,0.9981,0.9970342049827606,0.9987832558403712,
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,gate_compliance_allpairs_gs_pocock,"single gate, ever rejected by n = 10000",10000,1.0,0.9996160016293234,1.0,
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,gate_nb_allpairs_gs_hsd,"single gate, ever rejected by n = 10000",493,0.0493,0.04522715614597424,0.05371897998535363,
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,gate_success_allpairs_gs_hsd,"single gate, ever rejected by n = 10000",9990,0.999,0.9981600556125619,0.9994567140135028,
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,gate_compliance_allpairs_gs_hsd,"single gate, ever rejected by n = 10000",10000,1.0,0.9996160016293234,1.0,
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,gate_nb_allpairs_asympcs_projection_gaussian,"single gate, ever rejected by n = 10000",243,0.0243,0.021459791775913607,0.027505544273948104,
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,gate_success_allpairs_asympcs_projection_gaussian,"single gate, ever rejected by n = 10000",9847,0.9847,0.9821014234948727,0.9869263284845934,
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,gate_compliance_allpairs_asympcs_projection_gaussian,"single gate, ever rejected by n = 10000",10000,1.0,0.9996160016293234,1.0,
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,gate_nb_disjoint_gs_obf,"single gate, ever rejected by n = 10000",538,0.0538,0.04954674862078317,0.05839593152520862,
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,gate_success_disjoint_gs_obf,"single gate, ever rejected by n = 10000",9990,0.999,0.9981600556125619,0.9994567140135028,
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,gate_compliance_disjoint_gs_obf,"single gate, ever rejected by n = 10000",10000,1.0,0.9996160016293234,1.0,
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,gate_nb_disjoint_betting,"single gate, ever rejected by n = 10000",92,0.0092,0.007508093306449299,0.011268839494206847,
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,gate_success_disjoint_betting,"single gate, ever rejected by n = 10000",9711,0.9711,0.9676313089835055,0.9742068877516429,
+null,10000,-3.0913552967470894e-17,0.0,0.0,nb,False,gate_compliance_disjoint_betting,"single gate, ever rejected by n = 10000",10000,1.0,0.9996160016293234,1.0,
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,win_only_allpairs_fixed_wald,single gate (convention-free),523,0.0523,0.04810587403933279,0.05683795810177102,10000.0
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,guarded_allpairs_fixed_wald,single look (conventions coincide),523,0.0523,0.04810587403933279,0.05683795810177102,10000.0
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,win_only_allpairs_gs_obf,single gate (convention-free),505,0.0505,0.0463781434893128,0.05496707104592546,9887.0
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,guarded_allpairs_gs_obf_simultaneous,simultaneous (same-look conjunction; paper convention),505,0.0505,0.0463781434893128,0.05496707104592546,9887.0
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,guarded_allpairs_gs_obf_retained,retained (each gate keeps its first crossing),505,0.0505,0.0463781434893128,0.05496707104592546,9887.0
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,win_only_allpairs_gs_pocock,single gate (convention-free),545,0.0545,0.05021948667736563,0.059122655870907204,9708.9
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,guarded_allpairs_gs_pocock_simultaneous,simultaneous (same-look conjunction; paper convention),537,0.0537,0.049450660112119696,0.05829209683354622,9717.4
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,guarded_allpairs_gs_pocock_retained,retained (each gate keeps its first crossing),545,0.0545,0.05021948667736563,0.059122655870907204,9710.3
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,win_only_allpairs_gs_hsd,single gate (convention-free),494,0.0494,0.04532304560552551,0.05382301372612823,9879.3
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,guarded_allpairs_gs_hsd_simultaneous,simultaneous (same-look conjunction; paper convention),494,0.0494,0.04532304560552551,0.05382301372612823,9879.3
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,guarded_allpairs_gs_hsd_retained,retained (each gate keeps its first crossing),494,0.0494,0.04532304560552551,0.05382301372612823,9879.3
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,win_only_allpairs_asympcs_projection_gaussian,single gate (convention-free),309,0.0309,0.027684349146600024,0.03447591812476875,9750.03
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,guarded_allpairs_asympcs_projection_gaussian_simultaneous,simultaneous (same-look conjunction; paper convention),252,0.0252,0.02230561215682308,0.02845903269597141,9807.345
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,guarded_allpairs_asympcs_projection_gaussian_retained,retained (each gate keeps its first crossing),309,0.0309,0.027684349146600024,0.03447591812476875,9753.695
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,win_only_disjoint_gs_obf,single gate (convention-free),501,0.0501,0.04599440546592007,0.05455111626801472,9889.6
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,guarded_disjoint_gs_obf_simultaneous,simultaneous (same-look conjunction; paper convention),501,0.0501,0.04599440546592007,0.05455111626801472,9889.6
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,guarded_disjoint_gs_obf_retained,retained (each gate keeps its first crossing),501,0.0501,0.04599440546592007,0.05455111626801472,9889.6
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,win_only_disjoint_betting,single gate (convention-free),80,0.008,0.006433050051197009,0.00994480434554876,9940.66
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,guarded_disjoint_betting_simultaneous,simultaneous (same-look conjunction; paper convention),60,0.006,0.0046645228934497195,0.007714867496778757,9960.135
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,guarded_disjoint_betting_retained,retained (each gate keeps its first crossing),80,0.008,0.006433050051197009,0.00994480434554876,9942.905
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,gate_nb_allpairs_fixed_wald,"single gate, ever rejected by n = 10000",523,0.0523,0.04810587403933279,0.05683795810177102,
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,gate_success_allpairs_fixed_wald,"single gate, ever rejected by n = 10000",9983,0.9983,0.9972790145849042,0.9989382926388795,
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,gate_compliance_allpairs_fixed_wald,"single gate, ever rejected by n = 10000",10000,1.0,0.9996160016293234,1.0,
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,gate_nb_allpairs_gs_obf,"single gate, ever rejected by n = 10000",505,0.0505,0.0463781434893128,0.05496707104592546,
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,gate_success_allpairs_gs_obf,"single gate, ever rejected by n = 10000",9978,0.9978,0.9966710407999471,0.9985466504222074,
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,gate_compliance_allpairs_gs_obf,"single gate, ever rejected by n = 10000",10000,1.0,0.9996160016293234,1.0,
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,gate_nb_allpairs_gs_pocock,"single gate, ever rejected by n = 10000",545,0.0545,0.05021948667736563,0.059122655870907204,
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,gate_success_allpairs_gs_pocock,"single gate, ever rejected by n = 10000",9953,0.9953,0.9937561129811471,0.9964634982328605,
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,gate_compliance_allpairs_gs_pocock,"single gate, ever rejected by n = 10000",10000,1.0,0.9996160016293234,1.0,
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,gate_nb_allpairs_gs_hsd,"single gate, ever rejected by n = 10000",494,0.0494,0.04532304560552551,0.05382301372612823,
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,gate_success_allpairs_gs_hsd,"single gate, ever rejected by n = 10000",9979,0.9979,0.9967916061274641,0.9986260082950161,
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,gate_compliance_allpairs_gs_hsd,"single gate, ever rejected by n = 10000",10000,1.0,0.9996160016293234,1.0,
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,gate_nb_allpairs_asympcs_projection_gaussian,"single gate, ever rejected by n = 10000",309,0.0309,0.027684349146600024,0.03447591812476875,
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,gate_success_allpairs_asympcs_projection_gaussian,"single gate, ever rejected by n = 10000",9683,0.9683,0.9646822658017162,0.9715580813243081,
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,gate_compliance_allpairs_asympcs_projection_gaussian,"single gate, ever rejected by n = 10000",10000,1.0,0.9996160016293234,1.0,
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,gate_nb_disjoint_gs_obf,"single gate, ever rejected by n = 10000",501,0.0501,0.04599440546592007,0.05455111626801472,
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,gate_success_disjoint_gs_obf,"single gate, ever rejected by n = 10000",9978,0.9978,0.9966710407999471,0.9985466504222074,
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,gate_compliance_disjoint_gs_obf,"single gate, ever rejected by n = 10000",10000,1.0,0.9996160016293234,1.0,
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,gate_nb_disjoint_betting,"single gate, ever rejected by n = 10000",80,0.008,0.006433050051197009,0.00994480434554876,
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,gate_success_disjoint_betting,"single gate, ever rejected by n = 10000",9423,0.9423,0.9375577281313293,0.9467025869099702,
+tie_heavy_null,10000,-4.946168474795342e-18,0.0,0.0,nb,False,gate_compliance_disjoint_betting,"single gate, ever rejected by n = 10000",10000,1.0,0.9996160016293234,1.0,
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,win_only_allpairs_fixed_wald,single gate (convention-free),10000,1.0,0.9996160016293234,1.0,10000.0
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,guarded_allpairs_fixed_wald,single look (conventions coincide),483,0.0483,0.04426852864460951,0.05267837548345972,10000.0
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,win_only_allpairs_gs_obf,single gate (convention-free),10000,1.0,0.9996160016293234,1.0,1000.0
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,guarded_allpairs_gs_obf_simultaneous,simultaneous (same-look conjunction; paper convention),508,0.0508,0.04666599590665272,0.05527898822956311,9896.1
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,guarded_allpairs_gs_obf_retained,retained (each gate keeps its first crossing),508,0.0508,0.04666599590665272,0.05527898822956311,9896.1
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,win_only_allpairs_gs_pocock,single gate (convention-free),10000,1.0,0.9996160016293234,1.0,1000.0
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,guarded_allpairs_gs_pocock_simultaneous,simultaneous (same-look conjunction; paper convention),477,0.0477,0.0436935891355785,0.052053775790535536,9751.6
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,guarded_allpairs_gs_pocock_retained,retained (each gate keeps its first crossing),489,0.0489,0.044843646588557176,0.053302796741467234,9742.3
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,win_only_allpairs_gs_hsd,single gate (convention-free),10000,1.0,0.9996160016293234,1.0,1000.0
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,guarded_allpairs_gs_hsd_simultaneous,simultaneous (same-look conjunction; paper convention),492,0.0492,0.045131271500572244,0.05361494143042977,9893.3
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,guarded_allpairs_gs_hsd_retained,retained (each gate keeps its first crossing),496,0.0496,0.04551483891184551,0.054031066820459946,9890.1
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,win_only_allpairs_asympcs_projection_gaussian,single gate (convention-free),10000,1.0,0.9996160016293234,1.0,101.805
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,guarded_allpairs_asympcs_projection_gaussian_simultaneous,simultaneous (same-look conjunction; paper convention),189,0.0189,0.01640994618236014,0.021759537049904878,9855.875
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,guarded_allpairs_asympcs_projection_gaussian_retained,retained (each gate keeps its first crossing),257,0.0257,0.02277595874247574,0.028988302111948076,9794.02
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,win_only_disjoint_gs_obf,single gate (convention-free),10000,1.0,0.9996160016293234,1.0,1000.0
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,guarded_disjoint_gs_obf_simultaneous,simultaneous (same-look conjunction; paper convention),510,0.051,0.046857920608897666,0.055486909927969896,9895.4
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,guarded_disjoint_gs_obf_retained,retained (each gate keeps its first crossing),510,0.051,0.046857920608897666,0.055486909927969896,9895.4
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,win_only_disjoint_betting,single gate (convention-free),10000,1.0,0.9996160016293234,1.0,105.31
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,guarded_disjoint_betting_simultaneous,simultaneous (same-look conjunction; paper convention),43,0.0043,0.003194074401536842,0.005786621583151935,9973.385
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,guarded_disjoint_betting_retained,retained (each gate keeps its first crossing),81,0.0081,0.006522289905863053,0.010055487691208582,9940.97
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,gate_nb_allpairs_fixed_wald,"single gate, ever rejected by n = 10000",10000,1.0,0.9996160016293234,1.0,
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,gate_success_allpairs_fixed_wald,"single gate, ever rejected by n = 10000",483,0.0483,0.04426852864460951,0.05267837548345972,
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,gate_compliance_allpairs_fixed_wald,"single gate, ever rejected by n = 10000",10000,1.0,0.9996160016293234,1.0,
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,gate_nb_allpairs_gs_obf,"single gate, ever rejected by n = 10000",10000,1.0,0.9996160016293234,1.0,
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,gate_success_allpairs_gs_obf,"single gate, ever rejected by n = 10000",508,0.0508,0.04666599590665272,0.05527898822956311,
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,gate_compliance_allpairs_gs_obf,"single gate, ever rejected by n = 10000",10000,1.0,0.9996160016293234,1.0,
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,gate_nb_allpairs_gs_pocock,"single gate, ever rejected by n = 10000",10000,1.0,0.9996160016293234,1.0,
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,gate_success_allpairs_gs_pocock,"single gate, ever rejected by n = 10000",489,0.0489,0.044843646588557176,0.053302796741467234,
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,gate_compliance_allpairs_gs_pocock,"single gate, ever rejected by n = 10000",10000,1.0,0.9996160016293234,1.0,
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,gate_nb_allpairs_gs_hsd,"single gate, ever rejected by n = 10000",10000,1.0,0.9996160016293234,1.0,
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,gate_success_allpairs_gs_hsd,"single gate, ever rejected by n = 10000",496,0.0496,0.04551483891184551,0.054031066820459946,
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,gate_compliance_allpairs_gs_hsd,"single gate, ever rejected by n = 10000",10000,1.0,0.9996160016293234,1.0,
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,gate_nb_allpairs_asympcs_projection_gaussian,"single gate, ever rejected by n = 10000",10000,1.0,0.9996160016293234,1.0,
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,gate_success_allpairs_asympcs_projection_gaussian,"single gate, ever rejected by n = 10000",257,0.0257,0.02277595874247574,0.028988302111948076,
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,gate_compliance_allpairs_asympcs_projection_gaussian,"single gate, ever rejected by n = 10000",10000,1.0,0.9996160016293234,1.0,
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,gate_nb_disjoint_gs_obf,"single gate, ever rejected by n = 10000",10000,1.0,0.9996160016293234,1.0,
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,gate_success_disjoint_gs_obf,"single gate, ever rejected by n = 10000",510,0.051,0.046857920608897666,0.055486909927969896,
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,gate_compliance_disjoint_gs_obf,"single gate, ever rejected by n = 10000",10000,1.0,0.9996160016293234,1.0,
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,gate_nb_disjoint_betting,"single gate, ever rejected by n = 10000",10000,1.0,0.9996160016293234,1.0,
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,gate_success_disjoint_betting,"single gate, ever rejected by n = 10000",81,0.0081,0.006522289905863053,0.010055487691208582,
+success_boundary,10000,0.4240552181589537,-0.030000000000000027,0.0,success,False,gate_compliance_disjoint_betting,"single gate, ever rejected by n = 10000",10000,1.0,0.9996160016293234,1.0,
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,win_only_allpairs_fixed_wald,single gate (convention-free),10000,1.0,0.9996160016293234,1.0,10000.0
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,guarded_allpairs_fixed_wald,single look (conventions coincide),550,0.055,0.05070013939854093,0.059641619151361236,10000.0
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,win_only_allpairs_gs_obf,single gate (convention-free),10000,1.0,0.9996160016293234,1.0,1000.0
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,guarded_allpairs_gs_obf_simultaneous,simultaneous (same-look conjunction; paper convention),540,0.054,0.049738938389422546,0.05860358815722096,9880.3
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,guarded_allpairs_gs_obf_retained,retained (each gate keeps its first crossing),545,0.0545,0.05021948667736563,0.059122655870907204,9878.1
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,win_only_allpairs_gs_pocock,single gate (convention-free),10000,1.0,0.9996160016293234,1.0,1000.0
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,guarded_allpairs_gs_pocock_simultaneous,simultaneous (same-look conjunction; paper convention),509,0.0509,0.04676195595728594,0.055382951379255765,9770.3
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,guarded_allpairs_gs_pocock_retained,retained (each gate keeps its first crossing),643,0.0643,0.05965779150234358,0.069276824677864,9683.3
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,win_only_allpairs_gs_hsd,single gate (convention-free),10000,1.0,0.9996160016293234,1.0,1000.0
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,guarded_allpairs_gs_hsd_simultaneous,simultaneous (same-look conjunction; paper convention),523,0.0523,0.04810587403933279,0.05683795810177102,9885.0
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,guarded_allpairs_gs_hsd_retained,retained (each gate keeps its first crossing),566,0.0566,0.05223891451718412,0.061301615237931865,9856.0
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,win_only_allpairs_asympcs_projection_gaussian,single gate (convention-free),10000,1.0,0.9996160016293234,1.0,100.485
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,guarded_allpairs_asympcs_projection_gaussian_simultaneous,simultaneous (same-look conjunction; paper convention),183,0.0183,0.015851953288404896,0.021117990741904933,9880.14
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,guarded_allpairs_asympcs_projection_gaussian_retained,retained (each gate keeps its first crossing),711,0.0711,0.06622602477244359,0.07630336902992278,9525.955
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,win_only_disjoint_gs_obf,single gate (convention-free),10000,1.0,0.9996160016293234,1.0,1000.0
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,guarded_disjoint_gs_obf_simultaneous,simultaneous (same-look conjunction; paper convention),539,0.0539,0.04964284138359744,0.05849976196272022,9881.3
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,guarded_disjoint_gs_obf_retained,retained (each gate keeps its first crossing),544,0.0544,0.05012336862181131,0.05901885072613565,9878.9
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,win_only_disjoint_betting,single gate (convention-free),10000,1.0,0.9996160016293234,1.0,102.18
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,guarded_disjoint_betting_simultaneous,simultaneous (same-look conjunction; paper convention),31,0.0031,0.002184864524503692,0.004396753056274708,9986.25
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,guarded_disjoint_betting_retained,retained (each gate keeps its first crossing),72,0.0072,0.005721693857721179,0.009056774936417673,9961.755
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,gate_nb_allpairs_fixed_wald,"single gate, ever rejected by n = 10000",10000,1.0,0.9996160016293234,1.0,
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,gate_success_allpairs_fixed_wald,"single gate, ever rejected by n = 10000",9993,0.9993,0.9985556655587302,0.9996608736683119,
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,gate_compliance_allpairs_fixed_wald,"single gate, ever rejected by n = 10000",551,0.0551,0.05079628235660827,0.05974539939361975,
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,gate_nb_allpairs_gs_obf,"single gate, ever rejected by n = 10000",10000,1.0,0.9996160016293234,1.0,
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,gate_success_allpairs_gs_obf,"single gate, ever rejected by n = 10000",9994,0.9994,0.9986914759036991,0.999724986523669,
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,gate_compliance_allpairs_gs_obf,"single gate, ever rejected by n = 10000",546,0.0546,0.05031560891015105,0.059226456838447655,
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,gate_nb_allpairs_gs_pocock,"single gate, ever rejected by n = 10000",10000,1.0,0.9996160016293234,1.0,
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,gate_success_allpairs_gs_pocock,"single gate, ever rejected by n = 10000",9985,0.9985,0.9975264154500286,0.9990907381744069,
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,gate_compliance_allpairs_gs_pocock,"single gate, ever rejected by n = 10000",643,0.0643,0.05965779150234358,0.069276824677864,
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,gate_nb_allpairs_gs_hsd,"single gate, ever rejected by n = 10000",10000,1.0,0.9996160016293234,1.0,
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,gate_success_allpairs_gs_hsd,"single gate, ever rejected by n = 10000",9994,0.9994,0.9986914759036991,0.999724986523669,
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,gate_compliance_allpairs_gs_hsd,"single gate, ever rejected by n = 10000",567,0.0567,0.05233512205233271,0.061405330903109144,
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,gate_nb_allpairs_asympcs_projection_gaussian,"single gate, ever rejected by n = 10000",10000,1.0,0.9996160016293234,1.0,
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,gate_success_allpairs_asympcs_projection_gaussian,"single gate, ever rejected by n = 10000",9813,0.9813,0.978454233071307,0.9837761300970796,
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,gate_compliance_allpairs_asympcs_projection_gaussian,"single gate, ever rejected by n = 10000",725,0.0725,0.06758002331835347,0.07774829528857499,
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,gate_nb_disjoint_gs_obf,"single gate, ever rejected by n = 10000",10000,1.0,0.9996160016293234,1.0,
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,gate_success_disjoint_gs_obf,"single gate, ever rejected by n = 10000",9994,0.9994,0.9986914759036991,0.999724986523669,
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,gate_compliance_disjoint_gs_obf,"single gate, ever rejected by n = 10000",545,0.0545,0.05021948667736563,0.059122655870907204,
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,gate_nb_disjoint_betting,"single gate, ever rejected by n = 10000",10000,1.0,0.9996160016293234,1.0,
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,gate_success_disjoint_betting,"single gate, ever rejected by n = 10000",9692,0.9692,0.9656293507761075,0.9724103051528495,
+compliance_boundary,10000,0.45791286367940687,0.0,-0.010000000000000009,compliance,False,gate_compliance_disjoint_betting,"single gate, ever rejected by n = 10000",76,0.0076,0.006076784264021832,0.009501377331420478,

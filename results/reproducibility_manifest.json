@@ -19,7 +19,13 @@
     },
     {
       "path": "src/winstats.py",
-      "sha256": "3053f8a14e033b02b514135d7043624ca34c1a1f9da9c622365d35aa7f927fd9"
+      "sha256": "56955ce09a8ac7afb15f2bd251048537eabcc04ea75e7579bdb825594f41fc69",
+      "original_sha256": "3053f8a14e033b02b514135d7043624ca34c1a1f9da9c622365d35aa7f927fd9"
     }
-  ]
+  ],
+  "round10_update": "Only the winstats.py docstring changed to describe the independently reviewed fixed-stake running-mean guarantee; executable AST equality checked. Original result bytes and generator hashes are unchanged.",
+  "previous_manifest": {
+    "path": "results/source_baselines/reproducibility_manifest_pre_round10.json",
+    "sha256": "9693d60cbe78f4b31c23e0f86ae17b4d298ce93d2d4c6413664dde52d9a06a74"
+  }
 }

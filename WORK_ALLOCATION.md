@@ -1,5 +1,7 @@
 # Shared workspace ownership
 
+Current Round 10 allocation (September 18, 2026): root owns shared policy/status/queue and manuscript/release integration. The external session60/local-stream worker owns PR 8 coding/airline jobs and repairs; session60/contrib owns PR 7 source contributions. Internal reviewers own only `reviews/round10_open_model_repair_audit.md`, `reviews/round10_sequential_corrections_audit.md`, `reviews/round10_drift_panel_audit.md`, and `reviews/round10_release_delta_audit.md`. PR 7/10 scientific reviews are handed back; root selectively imports their accepted files without merging unrelated branch changes. All further commercial/proprietary-model experiment calls are prohibited under [EXPERIMENT_POLICY.md](EXPERIMENT_POLICY.md). Earlier allocations below are historical and do not authorize a duplicate run.
+
 Only the primary agent integrates source changes, stages files, commits, or pushes. No worker may reset, clean, rebase, change branches, or alter another worker's files. A completed file is handed back explicitly before integration.
 
 | Worker | Current write ownership | Read-only scope |

@@ -1,0 +1,22 @@
+{
+  "status": "PASS visual inspection of final PDF; independent archive audit recorded separately",
+  "pdf_sha256": "24db7d5d24d59d92b81359b72877b2583dc9064b0d01b574d882a6c3a42db95c",
+  "pages": 36,
+  "main_content_last_page": 9,
+  "visual_inspection": {
+    "all_pages": "Six rendered contact sheets, six pages each, examined for missing content, overlaps, clipping and figure/table placement.",
+    "detailed_pages": [
+      16,
+      35,
+      36
+    ],
+    "findings": "No visible clipping, overlapping elements or missing glyphs. New proof and appendix tables legible; dense appendix tables use compact type. Main content ends on page 9 before designated statements."
+  },
+  "text_scan": "No identifying author, username, private-path or credential-shaped marker found.",
+  "latex_log": "No overfull boxes, undefined references/citations or LaTeX errors.",
+  "archives": {
+    "submission/anonymous_code.zip": "ae5edbd74eb81d2363685b633a3dc18d3ad023d0d8fa00c6ab499485a59edcf0",
+    "submission/latex_source.zip": "fc7e4804426add437aba3f7201bce5d1916c16b09f15ce6e9cf4e361904d67fa"
+  },
+  "scope": "Intermediate accepted PR 7/10 release. PR 8 and human inputs remain unresolved; not submission-ready."
+}

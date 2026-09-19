@@ -1,0 +1,10 @@
+cell,test,pairs,permutations,replicates,rejections,rejection_rate,lo,hi
+C0_equal_law_perm_calibration,perm_max_success_costrank,500,199,10000,429,0.0429,0.03910090304217032,0.04705014826830221
+C0_equal_law_perm_calibration,perm_success_only,500,199,10000,397,0.0397,0.03604651144736269,0.04370699745268217
+C0_equal_law_perm_calibration,perm_costrank_only,500,199,10000,468,0.0468,0.042831521462622445,0.051116534660558814
+C1_unequal_law_null,perm_max_success_costrank,500,199,2000,1886,0.943,0.9319642649870394,0.9523372311217704
+C1_unequal_law_null,perm_success_only,500,199,2000,1538,0.769,0.7500233204360779,0.7869453081266081
+C1_unequal_law_null,perm_costrank_only,500,199,2000,1795,0.8975,0.883436204935987,0.9100397424754167
+C2_unequal_law_null_tie_heavy,perm_max_success_costrank,500,199,2000,2000,1.0,0.9980829527187469,0.9999999999999998
+C2_unequal_law_null_tie_heavy,perm_success_only,500,199,2000,90,0.045,0.03675381704471326,0.05499069598122689
+C2_unequal_law_null_tie_heavy,perm_costrank_only,500,199,2000,2000,1.0,0.9980829527187469,0.9999999999999998

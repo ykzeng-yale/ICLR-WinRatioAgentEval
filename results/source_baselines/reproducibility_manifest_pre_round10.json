@@ -1,0 +1,25 @@
+{
+  "scope": "Baseline deterministic simulation results and implementation; independent reproduction recorded in scientific reviews",
+  "outputs": [
+    {
+      "path": "results/simulation_results.csv",
+      "sha256": "765706bfd7b1b7c8e3cd10396a294e94750643ce6cc1975a0a402bb9f5670047"
+    },
+    {
+      "path": "results/stress_results.csv",
+      "sha256": "33f3a003569a999c81e1c365cff75af91878e31ec1c0380f21491f9941a33a28"
+    },
+    {
+      "path": "experiments/run_simulations.py",
+      "sha256": "b3d51d15f707855db19b52f206b7b3362fb8f9a3f4a42df138b4a18840f63c9c"
+    },
+    {
+      "path": "experiments/run_stress_tests.py",
+      "sha256": "92b668753bef59415a87cabbcc13ec61212e4f5cdf63a377293329e3ffb0a041"
+    },
+    {
+      "path": "src/winstats.py",
+      "sha256": "3053f8a14e033b02b514135d7043624ca34c1a1f9da9c622365d35aa7f927fd9"
+    }
+  ]
+}
