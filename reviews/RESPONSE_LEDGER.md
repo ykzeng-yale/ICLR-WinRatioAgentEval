@@ -2,7 +2,7 @@
 
 These are model-assisted project reviews, not external human peer review. Scope and any reviewer/developer overlap are disclosed in each report.
 
-**Current Round 12 disposition:** the retained technical package has passed scoped scientific/integration/release checks (90% fixed-rubric readiness). Actual author verification and declarations remain pending. Earlier table states and narratives below are historical; current concern-by-concern resolutions and explicit exclusions are in `round12_integration_ledger.md`. Scientific competitiveness remains a judgment, not a passed test.
+**Current technical disposition (Round 12 release, reaffirmed in Round 13):** the retained technical package has passed scoped scientific/integration/release checks (90% fixed-rubric readiness). Actual author verification and declarations remain pending. Earlier table states and narratives below are historical; current concern-by-concern resolutions and explicit exclusions are in `round12_integration_ledger.md`. Scientific competitiveness remains a judgment, not a passed test.
 
 | Concern | Response and evidence | Status |
 |---|---|---|
@@ -104,3 +104,9 @@ Separate evidence, inference and integrated reviewers independently checked the 
 The root manuscript retains descriptive results and a conditional observed-array replay illustration with its known target, independent-coin assumptions and post-hoc scope stated. It excludes unsupported task-t/Welch/fixed-mean/ratio intervals, resource significance and universal impossibility claims. Minor caption and reward-provenance wording findings were corrected and rechecked. Coding endpoint/map repairs pass independently, while residual owner filtration/asymptotic/causal wording remains excluded. Accepted PR 7/10 files and all prior observations remain unchanged.
 
 The separate final release audit verifies 241 payload hashes, 127 result checks, byte-identical airline aggregate reproduction, and clean 40-page PDF rebuilds from both archives. Root visually inspected all 40 pages and enlarged changed pages; main content ends on page 9. The completion-scope review distinguishes completed retained-claim requirements from unachieved broader live A/B ambitions. Thus S6/E4/M4/Q4 close for the defined scope, raising the fixed rubric from 70 to 90. A1/A2 remain pending; no paper submission, author signoff or acceptance is asserted. The hourly monitor remains active.
+
+## Round 13: versioned owner reports and execution-queue disposition
+
+The owner delivered `01f2381940fcf5bc57129f1498382cb40f3ea741` after merging the root release without rewriting frozen commits. Two separate reviewers checked the new reports/addenda and text generators. The named Round 12 requests and all five late fixes are present; reports and manifests regenerate exactly, numerical correction values agree, and originals are preserved. Root verifies all 221 preexisting coding/airline files and all 240 tracked release-payload source paths are unchanged. The paper and both archives therefore remain the exact validated Round 12 release; no redundant rebuild or model run was performed.
+
+A few excluded-report precision/index items remain, documented in `round13_integration_disposition.md`, but no retained-paper defect was identified. This is correction acceptance, not approval of model-dependent owner intervals or a broad PR merge. Execution issues 1/2 are closed with explicit narrowed acceptance and deferred broader ambitions, following the owner's agreement. The fixed rubric remains 90/100; actual author verification/declarations and abstract-submission status remain pending. No human or venue confirmation is inferred.

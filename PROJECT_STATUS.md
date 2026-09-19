@@ -1,6 +1,16 @@
 # Research status
 
-## Current checkpoint — September 19, 2026, Round 12
+## Current checkpoint — September 19, 2026, Round 13
+
+**Readiness remains 90% (change: 0).** PR 8 delivered versioned report-only corrections at `01f2381940fcf5bc57129f1498382cb40f3ea741`. Two independent checks verify the requested inference/wording repairs, all five late fixes, exact report/manifest regeneration, and preservation of the original observations. Root separately verifies all 221 preexisting coding/airline files and all 240 tracked release-payload sources are unchanged. No model run, full analysis rerun or manuscript/archive change was needed.
+
+The corrections close the named owner-report requests concerning coding filtrations, cluster CLT assumptions, pass/period interpretation, airline history-conditional logic, marginal coverage, final-error values and overbroad significance/impossibility claims. A few report/index precision items remain separate from the retained paper, and model-dependent owner intervals are still excluded. See `reviews/round13_integration_disposition.md` and the two independent Round 13 reports.
+
+Execution issues 1/2 are closed with explicit narrowed acceptance: completed coding/airline collections and the reviewed root analysis. Broader confirmatory randomized studies and second-party/hardware replication are deferred, not claimed as achieved. The owner agrees with this scope and reports no further run planned. No new experiment is required for the paper's current claims.
+
+The technically verified 40-page package remains exactly the Round 12 release at `45e8ee2`, with nine main pages. The remaining ten points require actual human scientific/AI-disclosure review and author profile/eligibility/declarations. Actual abstract submission is still unconfirmed; the agent has not submitted or attested. The official abstract deadline, rechecked today, is September 19 at 07:59 EDT. Hourly monitoring continues.
+
+## Round 12 technical release checkpoint — September 19, 2026
 
 **Verified checklist readiness is 90%, up 20 points.** Three independent airline evidence/inference/integration checks accepted the retained descriptive results and a narrowly conditional observed-array replay illustration. The final technical release passed a separate extraction/reproduction audit and visual inspection. The paper is 40 pages including appendices, with nine main-content pages. This is a technically verified package for author review, not a declaration of human scientific signoff, submission or acceptance.
 
