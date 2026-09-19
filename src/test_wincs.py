@@ -148,3 +148,107 @@ def test_betting_cs():
 
 if __name__ == '__main__':
     test_betting_cs()
+
+
+def test_boundary_laws_issue4():
+    """Issue #4: deterministic boundary laws and constant functionals must be exact."""
+    from wincs import cs_threshold
+    lo, hi = MultinomialCS(1).net_benefit([0, 3, 0]); assert hi == 1.0 and -0.66 < lo < -0.65, (lo, hi)
+    assert linear_bound([2, 3, 4], [1, 1, 1], np.ones(3), .05, False) == 1.0
+    assert linear_bound([2, 3, 4], [1, 1, 1], np.ones(3), .05, True) == 1.0
+    lo, hi = MultinomialCS(1).net_benefit([5, 0, 0]); assert abs(lo + hi) < 1e-12 and 0 < hi < 1
+    lo, hi = MultinomialCS(1).net_benefit([0, 0, 7]); assert lo == -1.0 and hi < 0.3
+    wlo, whi = MultinomialCS(1).win_ratio([0, 3, 0]); assert np.isinf(whi) and 0 < wlo < 1
+    wlo, whi = MultinomialCS(1).win_ratio([0, 0, 7]); assert wlo == 0.0 and whi < 2
+    rng = np.random.default_rng(5); bad = 0
+    g = np.linspace(0, 1, 601); W, L = np.meshgrid(g, g, indexing='ij'); ok = W + L <= 1 + 1e-12; W, L = W[ok], L[ok]; T = 1 - W - L
+    P = np.stack([T, W, L], -1)
+    for t in range(200):
+        n = int(rng.integers(1, 80)); x = rng.multinomial(n, rng.dirichlet([.3, .3, .3])).astype(float)
+        inside = loglik(x, P) >= cs_threshold(x, np.ones(3), .05); nb = W - L
+        lo, hi = MultinomialCS(1, .05, 1.0).net_benefit(x)
+        # bounds must contain the grid set (conservative) and be within grid resolution of it
+        if not (lo <= nb[inside].min() + 1e-9 and hi >= nb[inside].max() - 1e-9 and lo >= nb[inside].min() - 4e-3 and hi <= nb[inside].max() + 4e-3):
+            bad += 1
+    assert bad == 0, bad
+    print('boundary-law and conservativeness checks ok (issue #4)')
+
+
+if __name__ == '__main__':
+    test_boundary_laws_issue4()
+
+
+def test_shift_equivariance_pr5():
+    """PR #5 review: bounds must be shift-equivariant and conservative for huge offsets."""
+    from wincs import cs_threshold
+    x = np.array([2., 3., 4.]); c = 1e12 + np.array([0., 1., 2.]); prior = np.ones(3); p = np.array([.04, .12, .84])
+    upper = linear_bound(x, c, prior, .05)
+    assert abs(p.sum() - 1) < 1e-15 and loglik(x, p) > cs_threshold(x, prior, .05)
+    assert c @ p <= upper + 1e-3, (c @ p, upper)                      # feasible point never exceeds the bound
+    base_hi = linear_bound(x, c - 1e12, prior, .05); base_lo = linear_bound(x, c - 1e12, prior, .05, False)
+    assert abs(upper - (base_hi + 1e12)) < 1e-3 and abs(linear_bound(x, c, prior, .05, False) - (base_lo + 1e12)) < 1e-3
+    rng = np.random.default_rng(11)
+    for _ in range(300):
+        n = int(rng.integers(1, 200)); xx = rng.multinomial(n, rng.dirichlet([.5, .5, .5])).astype(float)
+        cc = rng.normal(size=3) * rng.choice([1, 1e3, 1e6]); K = rng.normal() * rng.choice([1, 1e6, 1e9])
+        for mx in (True, False):
+            a = linear_bound(xx, cc, prior, .05, mx); b = linear_bound(xx, cc + K, prior, .05, mx)
+            assert abs((b - K) - a) <= 1e-9 * max(1.0, abs(K), np.abs(cc).max()), (xx, cc, K, a, b)
+        # feasible random points never beat the bounds
+        for _ in range(20):
+            q = rng.dirichlet(xx + 0.5)
+            if loglik(xx, q) > cs_threshold(xx, prior, .05):
+                assert cc @ q <= linear_bound(xx, cc, prior, .05) + 1e-9 * max(1, np.abs(cc).max())
+                assert cc @ q >= linear_bound(xx, cc, prior, .05, False) - 1e-9 * max(1, np.abs(cc).max())
+    print('shift-equivariance and feasible-point conservativeness ok (PR #5 review)')
+
+
+if __name__ == '__main__':
+    test_shift_equivariance_pr5()
+
+
+def test_endpoint_normalization_round10():
+    """Round 10 audit, finding 4: the hedged capital must be exactly 1 at n = 0 and at the endpoint means of
+    degenerate samples; a stake with a zero factor may only kill the capital when its count is positive."""
+    from wincs import betting_log_capital_ternary, betting_log_capital_bernoulli, betting_cs_ternary, win_ratio_cs_decided
+    cases = [((0, 0, 0), -1.0), ((0, 0, 0), 0.0), ((0, 0, 0), 1.0), ((5, 0, 0), 1.0), ((0, 0, 5), -1.0), ((0, 7, 0), 0.0)]
+    for (p, t, n), m in cases:
+        cap = float(np.exp(betting_log_capital_ternary(p, t, n, m)))
+        assert abs(cap - 1.0) < 1e-12, ((p, t, n), m, cap)
+    for k, n, q in [(5, 5, 1.0), (0, 5, 0.0), (0, 0, 0.0), (0, 0, 0.3), (0, 0, 1.0)]:
+        cap = float(np.exp(betting_log_capital_bernoulli(k, n, q)))
+        assert abs(cap - 1.0) < 1e-12, (k, n, q, cap)
+    # a positive count on a zero factor still kills that stake: one loss observed, candidate m = 1 -> K+ stake 0.5 dies,
+    # but the capital stays finite and LARGE (strong evidence against m = 1), never nan
+    lc = float(betting_log_capital_ternary(0, 0, 50, 1.0)); assert np.isfinite(lc) and lc > np.log(1e6), lc
+    lc = float(betting_log_capital_bernoulli(0, 50, 1.0)); assert np.isfinite(lc) and lc > np.log(1e6), lc
+    # vectorised endpoints agree with the scalar calls
+    v = np.exp(betting_log_capital_ternary(np.array([0, 5, 0, 0]), np.array([0, 0, 0, 7]), np.array([0, 0, 5, 0]), np.array([1.0, 1.0, -1.0, 0.0])))
+    assert np.allclose(v, 1.0, atol=1e-12), v
+    # conservative intervals that contain the sample mean, for random count vectors including zeros
+    rng = np.random.default_rng(10); delta = 0.05
+    counts = rng.integers(0, 40, size=(200, 3)); counts[rng.random((200, 3)) < 0.3] = 0
+    counts[:6] = [[0, 0, 0], [5, 0, 0], [0, 0, 5], [0, 7, 0], [1, 0, 0], [0, 0, 1]]
+    pos, tie, neg = counts[:, 0], counts[:, 1], counts[:, 2]; n = counts.sum(1)
+    lo, hi = betting_cs_ternary(pos, tie, neg, delta)
+    mean = np.where(n > 0, (pos - neg) / np.maximum(n, 1), 0.0)
+    assert np.all(np.isfinite(lo)) and np.all(np.isfinite(hi)) and np.all(lo >= -1) and np.all(hi <= 1)
+    assert np.all(lo <= mean + 1e-12) and np.all(mean <= hi + 1e-12), (counts[(lo > mean) | (hi < mean)])
+    thr = np.log(1 / delta)      # returned endpoints are outside iterates (capital >= 1/delta) or the range limits
+    for arr, edge in ((lo, -1.0), (hi, 1.0)):
+        lc = betting_log_capital_ternary(pos, tie, neg, arr)
+        assert np.all((lc >= thr - 1e-9) | (arr == edge)), 'endpoint not conservative'
+    assert lo[0] == -1.0 and hi[0] == 1.0, 'n = 0 must give the trivial interval'
+    assert hi[1] == 1.0 and lo[2] == -1.0, 'all-wins / all-losses must keep the matching endpoint'
+    nd = pos + neg; wlo, whi = win_ratio_cs_decided(pos, neg, delta)
+    with np.errstate(divide='ignore', invalid='ignore'):
+        wr = np.where(neg > 0, pos / np.maximum(neg, 1), np.inf)
+    ok = nd > 0
+    assert np.all(wlo[ok] <= wr[ok] + 1e-12) and np.all(wr[ok] <= whi[ok] + 1e-12)
+    assert np.all(wlo[~ok] == 0.0) and np.all(np.isinf(whi[~ok])), 'no decided pair must give [0, inf]'
+    assert np.all(np.isinf(whi[(neg == 0)])) and np.all(wlo[(pos == 0)] == 0.0)
+
+
+if __name__ == '__main__':
+    test_endpoint_normalization_round10()
+    print('round 10 endpoint tests passed')
