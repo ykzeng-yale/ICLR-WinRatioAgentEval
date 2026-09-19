@@ -6,7 +6,7 @@
 
 The author selected arXiv’s perpetual, non-exclusive license. Actual scientific/AI-use review and arXiv account/category/endorsement/rights/agreements remain pending. No upload, announcement or acceptance is asserted. ICLR deadlines/reciprocal-review requirements below are historical. See `arxiv/READ_ME.md`, the arXiv requirements and release audit, and the migrated `READINESS_TRACKER.md`.
 
-The external owner has claimed [issue 11](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/11) for a new prospective open-weight trial in `live_ab/` directories. Root posted independently reviewed requirements before the freeze; collection is not yet verified. [Issue 12](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/12) separately requests CPU validation/calibration. Their outcomes may support a later revision after independent review. Hourly monitoring now follows arXiv and these authorized successor studies.
+The external owner has claimed [issue 11](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/11) for a new prospective open-weight trial in `live_ab/` directories. Root posted independently reviewed requirements before the freeze; collection is not yet verified. [Issue 12](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/12) separately requests CPU validation/calibration. Their outcomes may support a later revision after independent review. Monitoring now follows arXiv and these authorized successor studies every 90 minutes, posting theory/progress/experiment requests to GitHub and percentage updates in the existing task.
 
 ## Historical checkpoint — September 19, 2026, Round 15
 

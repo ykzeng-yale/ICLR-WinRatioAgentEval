@@ -1,6 +1,6 @@
 # Guarded win statistics for continuous agent evaluation
 
-The active target is a named **arXiv preprint**, prepared at **90% checklist readiness**. Start with [the arXiv handoff](arxiv/READ_ME.md): full paper, separate main/supplement reading copies, source upload and reproducibility archive. The author selected arXiv’s non-exclusive license. Actual scientific review and arXiv account/declarations remain outstanding; nothing has been uploaded or attested. See [READINESS_TRACKER.md](READINESS_TRACKER.md) for the explicitly migrated fixed rubric and hourly progress.
+The active target is a named **arXiv preprint**, prepared at **90% checklist readiness**. Start with [the arXiv handoff](arxiv/READ_ME.md): full paper, separate main/supplement reading copies, source upload and reproducibility archive. The author selected arXiv’s non-exclusive license. Actual scientific review and arXiv account/declarations remain outstanding; nothing has been uploaded or attested. See [READINESS_TRACKER.md](READINESS_TRACKER.md) for the explicitly migrated fixed rubric and 90-minute GitHub/progress updates.
 
 This project studies prespecified hierarchical agent comparisons, the distinction between task-matched offline evaluation and cross-arrival online A/B evaluation, and continuously monitored deployment decisions that also require component safeguards. Established win-statistic and martingale methods are credited explicitly. The latest independent AI review describes a credible focused methodology submission with borderline ICLR strength; it does not predict acceptance.
 
