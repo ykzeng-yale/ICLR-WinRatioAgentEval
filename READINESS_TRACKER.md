@@ -42,7 +42,7 @@ Each milestone is worth five points. Award a milestone only when its evidence an
 
 ## Observed, validated and integrated contributions
 
-Latest GitHub check: September 18, 2026, approximately 23:15 UTC. Exact heads below were inspected; a new commit must be reviewed before inheriting these statuses.
+Latest GitHub check: September 19, 2026, approximately 03:00 UTC. Exact heads below are unchanged from the Round 10 audit; no new owner delivery or review response arrived. Completed execution issues 3 and 9 were closed after acceptance-scope reconciliation, without changing the score or scientific release. A new commit must be reviewed before inheriting these statuses.
 
 | Contribution | Exact head | Verified disposition |
 |---|---|---|

@@ -1,5 +1,7 @@
 # Research status
 
+Queue synchronization on September 19, 2026: completed simulation execution issues 3 and 9 are closed with links to their accepted studies and the explicit audit limitations. An independent reviewer confirmed the focused drift issue has no remaining execution item. No new owner results or response arrived; PR 8 repairs and final airline delivery remain pending. The scientific release is still `b1febcf`, and verified readiness remains **70%**. This is coordination cleanup, not new experimental evidence.
+
 ## Round 10 checkpoint — September 18, 2026, 23:15 UTC
 
 **Verified checklist readiness remains 70%.** PR 7's sequential-comparison subset at `ac17f5901bcf4efba6c71e970d3a4c1cf1ed06cb` and PR 10's drift panel at `ae3f0a5d4936855fc0b81f4a327254e932ea729b` passed independent numerical/scientific review and are integrated into a revised 36-page paper (main content through page 9). The fixed-stake running-conditional-mean crossing proof was independently checked. The previous 33-page release remains preserved in Git at `f806aba`. This is an intermediate accepted-results release, not final submission readiness.
