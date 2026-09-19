@@ -10,7 +10,7 @@ The full-project target includes the already verified foundation, the authorized
 |---|---:|---:|---|
 | Baseline theory and literature positioning | 20 | 20 | Existing core proofs, estimands, delayed-observation scope and closest-prior attribution independently reviewed for the retained claims. |
 | Baseline simulations and empirical evidence | 20 | 20 | Accepted synthetic/public/open-weight results, provenance, failures and claim restrictions checked. Original study scopes remain limited. |
-| Current paper, supplement and reproducibility package | 20 | 20 | Named 45-page v1, 13+32 reading extracts, clean-source build and 127 saved-result checks; artifacts at `4fe6d17`. |
+| Current paper, supplement and reproducibility package | 20 | 20 | Named 45-page v1, 13+32 reading extracts, clean-source build and 127 saved-result checks; initial artifacts at `4fe6d17`; current code archive additionally has the audited dependency-only repair in `reviews/arxiv_extension_dependency_audit.md`. |
 | New prospective experiment, [#11](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/11) | 10 | 0 | 5: complete and auditable collection under a prospectively frozen, reviewed protocol/adapter. 5: independent reconciliation and acceptance of outcomes, usage, missingness and inference for the actual design. |
 | Independent new CPU validation, [#12](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/12) | 10 | 0 | 5: independently checked deterministic adapter fixtures and known-truth simulation specification at an exact commit. 5: prespecified calibration panel executed, reproduced and accepted with Monte Carlo uncertainty. |
 | Expanded-paper integration and final release QA | 10 | 0 | 5: accepted new findings, figures, limitations and supplement integrated. 5: final independent claim/release audit, source/code rebuilding and visual inspection complete. |
@@ -42,4 +42,4 @@ Report unchanged percentages when no milestone closes. Report the first 60% asse
 3. Independently check new evidence, integrate the accepted subset, and produce the final expanded manuscript/supplement/source/code release.
 4. Obtain actual author review and remaining submission checks. The author submits; the agent does not attest or publish.
 
-As of this baseline, GitHub has no #11 freeze/episode delivery and #12 has no claim/delivery. These are not evidence that the owner's local work has stopped. Original ownership and no-commercial-model/no-paid-compute rules remain in force.
+At the initial baseline, neither successor had delivered reviewed artifacts. The latest owner report now claims #12 and adopts the requested #11 monitor/margin; no frozen protocol, adapter or trial result has been delivered remotely. Claiming or drafting alone earns no completion points. These are not evidence that the owner's local work has stopped. Original ownership and no-commercial-model/no-paid-compute rules remain in force.

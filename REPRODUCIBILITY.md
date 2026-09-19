@@ -1,6 +1,6 @@
 # Reproducing the reported research
 
-**Current preprint release:** use `arxiv/reproducibility_code.zip` and [the arXiv handoff](arxiv/READ_ME.md). Its independent audit passes six analytic tests and 127 saved-result checks. The named source upload is `arxiv/arxiv_source.tar.gz`. Historical anonymous-package instructions below remain valid for the preserved ICLR baseline.
+**Current preprint release:** use `arxiv/reproducibility_code.zip` and [the arXiv handoff](arxiv/READ_ME.md). Its independent audit passes six analytic tests and 127 saved-result checks. The named source upload is `arxiv/arxiv_source.tar.gz`. The preserved historical anonymous ZIP has an optional-extension import defect; use the repaired arXiv code archive for `--extensions`. Its manifest records the dependency-only repair. Broader development files on main can include excluded methods, so the versioned archive is the reference for paper reproduction. See `reviews/arxiv_extension_dependency_audit.md`.
 
 
 The paper combines synthetic score streams, historical public agent traces, an ordinal prefix-certificate replay, open-weight coding and airline laboratory observations, and an earlier small feasibility pilot. None is a production-user randomized trial. Independent model-assisted reviews and limitations are recorded in the development repository.

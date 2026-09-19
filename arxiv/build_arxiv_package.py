@@ -137,13 +137,32 @@ def build_pdf():
     return pages, first
 
 
-def build_archives(changes, pages, first):
+def build_archives(changes, pages, first, code_only=False):
     # Start from the already audited privacy-filtered evidence supplement.
-    # Preserve all scientific/code/data payload bytes, replacing only the paper
-    # directory and explicit package-level documentation/provenance.
+    # Preserve numerical payload bytes. The one recorded code transformation
+    # removes a dependency on an excluded module from the accepted CPU runner.
     with zipfile.ZipFile(ROOT / "submission/anonymous_code.zip") as z:
         payload = {n: z.read(n) for n in z.namelist()
                    if not n.startswith("paper/") and n not in ("README.md", "package_manifest.json")}
+    runner = "experiments/ustat_reference/run_ustat_reference.py"
+    original_runner = payload[runner]
+    old_imports = "from run_simulations import exact_targets\nfrom run_online_methods import SCENARIOS, THRESHOLDS"
+    standalone_config = """from run_simulations import exact_targets, SCENARIOS as BASE_SCENARIOS
+# Release-only dependency repair: these immutable values and insertion order
+# match the accepted run_online_methods configuration, without importing wincs.
+SCENARIOS = dict(BASE_SCENARIOS)
+SCENARIOS.update({
+    'tie_heavy_null': (.995, .995, .30, .30, 1.),
+    'tie_heavy_efficiency': (.995, .995, .30, .30, .55),
+})
+THRESHOLDS = [0., -.03, -.01]"""
+    runner_text = original_runner.decode()
+    if runner_text.count(old_imports) != 1:
+        raise ValueError("Frozen extension runner import block changed")
+    payload[runner] = runner_text.replace(old_imports, standalone_config).encode()
+    code_changes = [{"path": runner, "original_sha256": digest(original_runner),
+                     "release_sha256": digest(payload[runner]),
+                     "reason": "Inline unchanged scenario/threshold constants to remove the excluded wincs import dependency; numerical algorithm and saved results unchanged."}]
     for p in SOURCE.rglob("*"):
         if p.is_file():
             payload["paper/" + str(p.relative_to(SOURCE))] = p.read_bytes()
@@ -151,7 +170,8 @@ def build_archives(changes, pages, first):
     provenance = {"baseline_scientific_commit": BASELINE,
         "historical_code_archive_sha256": digest((ROOT / "submission/anonymous_code.zip").read_bytes()),
         "source_transformations": changes,
-        "scope": "Formatting, authorized author identity, bounded abstract update and public code link only; original numerical records preserved.",
+        "code_transformations": code_changes,
+        "scope": "Preprint formatting/metadata plus one explicit CPU-runner dependency repair; original numerical records and algorithms preserved.",
         "commercial_model_execution": "prohibited"}
     payload["arxiv_source_provenance.json"] = (json.dumps(provenance, indent=2) + "\n").encode()
     readme = """# Guarded Win Statistics: reproducibility supplement
@@ -171,6 +191,9 @@ No new commercial/proprietary experimental agents, simulators, judges or
 fallbacks are authorized. Historical commercial collection scripts are evidence
 of past collection only and must not be rerun. Default reproduction verifies
 saved results; optional simulation commands are explicitly documented.
+The accepted U-statistic runner uses the same scenario values/order and gate
+thresholds without importing the excluded generic wincs module. The release-only
+dependency repair is recorded in arxiv_source_provenance.json.
 
 This release does not claim human scientific signoff, arXiv submission,
 endorsement, moderation acceptance or production validation. Future-study
@@ -189,14 +212,16 @@ issues are separate from the evidence included in this first preprint.
             z.writestr(name, data)
     # A single root main.tex, supported figure PDFs, BibTeX sources and matching
     # main.bbl; no generated paper PDF or second document in the arXiv upload.
-    with tarfile.open(OUT / "arxiv_source.tar.gz", "w:gz") as tar:
-        for p in sorted(SOURCE.rglob("*")):
-            if p.is_file():
-                tar.add(p, arcname=str(p.relative_to(SOURCE)), recursive=False)
+    if not code_only:
+        with tarfile.open(OUT / "arxiv_source.tar.gz", "w:gz") as tar:
+            for p in sorted(SOURCE.rglob("*")):
+                if p.is_file():
+                    tar.add(p, arcname=str(p.relative_to(SOURCE)), recursive=False)
     result = {"baseline_scientific_commit": BASELINE, "title": TITLE, "authors": [AUTHOR],
               "pages": pages, "main_pages": first - 1, "supplement_pages": pages - first + 1,
               "appendix_first_page": first, "source_files": len(list(SOURCE.rglob("*.*"))),
               "code_payload_files": len(manifest["files"]), "source_transformations": changes,
+              "code_transformations": code_changes,
               "artifacts": [{"path": n, "bytes": (OUT / n).stat().st_size,
                              "sha256": digest((OUT / n).read_bytes())}
                             for n in ["paper.pdf", "main_paper.pdf", "supplement.pdf", "arxiv_source.tar.gz", "reproducibility_code.zip"]]}
@@ -207,7 +232,15 @@ issues are separate from the evidence included in this first preprint.
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--sources-only", action="store_true")
+    ap.add_argument("--code-only", action="store_true", help="Repair/repackage code while preserving all PDFs and the source-upload archive")
     args = ap.parse_args()
+    if args.code_only:
+        if args.sources_only:
+            ap.error("--code-only and --sources-only are mutually exclusive")
+        previous = json.loads((OUT / "package_manifest.json").read_text())
+        result = build_archives(previous["source_transformations"], previous["pages"], previous["appendix_first_page"], code_only=True)
+        print(json.dumps({"code_payload_files": result["code_payload_files"], "code_transformations": result["code_transformations"]}))
+        return
     changes, abstract = prepare_sources()
     if args.sources_only:
         print("Prepared source files; abstract characters:", len(abstract))

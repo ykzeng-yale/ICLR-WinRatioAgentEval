@@ -46,9 +46,11 @@ Start with [the arXiv handoff](arxiv/READ_ME.md). The canonical `arxiv/paper.pdf
 
 The scientific baseline remains `45e8ee2`. Accepted PR 7/10 subsets and PR 8 coding/airline observations retain their documented assumptions and exclusions. PR 8 remains at reviewed `ce8b506`; index/report repairs are closed. Generic projection/width methods and the excluded contributor intervals remain outside the paper. All original collections and issue #1/#2 narrowed closures are preserved; this target change does not approve an entire contributor branch.
 
+The optional-extension import defect found after the direct merges was repaired in the current arXiv code archive and independently checked; see [dependency audit](reviews/arxiv_extension_dependency_audit.md). The historical ICLR ZIP remains preserved. This repair retains the existing release credit and introduces no new outcome or readiness points.
+
 ## New experiment program, reported separately
 
-[Issue 11](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/11) is claimed by session60 for a new prospective randomized open-weight study. Design/adapter review and the protocol freeze precede trial execution. Root posted pairing, partial-information and stopping guidance. [Issue 12](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/12) requests independent CPU validation/calibration of that adapter. It is initially unclaimed. See [the scoped plan](evidence/arxiv_experiment_plan.md).
+[Issue 11](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/11) is claimed by session60 for a new prospective randomized open-weight study. Design/adapter review and the protocol freeze precede trial execution. Root posted pairing, partial-information and stopping guidance. [Issue 12](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/12) requests independent CPU validation/calibration of that adapter. It is now claimed by the same external session, with procedural independence disclosed; separate root acceptance remains pending. See [the scoped plan](evidence/arxiv_experiment_plan.md).
 
 These are authorized successor studies, not missing evidence for a claim made by the bounded v1. Their delivered/validated/integrated states will be tracked separately. New strong claims require their own acceptance conditions. Favorable results are never a completion criterion; a verified defect can reopen a current milestone and lower the score. No new scientific result is included merely because an issue is claimed or a process is running.
 

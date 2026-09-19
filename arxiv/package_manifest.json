@@ -147,6 +147,14 @@
       "preprint_sha256": "570ee8ea1586e8cee8cfcc311bc8c1304db65feeb3fe0df10c2eaad07c58fb8f"
     }
   ],
+  "code_transformations": [
+    {
+      "path": "experiments/ustat_reference/run_ustat_reference.py",
+      "original_sha256": "cb96f8a58577dc9980109b5ed6932a64deae1f73005e0adf5b5af703103809e8",
+      "release_sha256": "e38a174418e19db233041a9148e1707ea455acd6c2b301ab7409957c02ebd9ee",
+      "reason": "Inline unchanged scenario/threshold constants to remove the excluded wincs import dependency; numerical algorithm and saved results unchanged."
+    }
+  ],
   "artifacts": [
     {
       "path": "paper.pdf",
@@ -170,8 +178,8 @@
     },
     {
       "path": "reproducibility_code.zip",
-      "bytes": 3061152,
-      "sha256": "be3cec50e4d46a53889948400072b72bab36f2d5afe0b64ba7fc38836b10c17b"
+      "bytes": 3061624,
+      "sha256": "408b129f0fb5e029d881059458cdf8b83f3524b56f54498c6c1d6f57d8f46165"
     }
   ]
 }
