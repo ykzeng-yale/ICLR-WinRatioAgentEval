@@ -13,7 +13,7 @@ def call(*args):
 
 def verify():
     checks=0
-    for name in ['simulation_manifest.json','stress_manifest.json','public_manifest.json','async_manifest.json','reproducibility_manifest.json','dm_baseline_manifest.json','decision_ablation_manifest.json','prospective_final_qa_manifest.json','trace_certificate_manifest.json','sequential_extensions_integrity.json','sequential_extension_paper_manifest.json','open_coding_integrity.json']:
+    for name in ['simulation_manifest.json','stress_manifest.json','public_manifest.json','async_manifest.json','reproducibility_manifest.json','dm_baseline_manifest.json','decision_ablation_manifest.json','prospective_final_qa_manifest.json','trace_certificate_manifest.json','sequential_extensions_integrity.json','sequential_extension_paper_manifest.json','open_coding_integrity.json','open_airline_integrity.json']:
         path=ROOT/'results'/name
         if not path.exists():
             if name in ['reproducibility_manifest.json','dm_baseline_manifest.json','decision_ablation_manifest.json','prospective_final_qa_manifest.json','sequential_extensions_integrity.json','sequential_extension_paper_manifest.json']:continue
@@ -41,6 +41,7 @@ def main():
     ap.add_argument('--build-pdf',action='store_true')
     ap.add_argument('--extensions',action='store_true',help='Explicitly rerun accepted CPU-only comparator and drift extensions')
     ap.add_argument('--coding',action='store_true',help='Recompute coding summaries from archived metrics; no model or generated-code execution')
+    ap.add_argument('--airline',action='store_true',help='Recompute airline descriptions and masked replay from archived metrics; no model calls')
     a=ap.parse_args()
     if a.mode=='verify':
         call('src/test_winstats.py');verify()
@@ -72,6 +73,8 @@ def main():
         if (ROOT/'experiments/build_sequential_extensions.py').exists():call('experiments/build_sequential_extensions.py')
     if a.coding or a.mode != 'verify':
         call('experiments/build_open_coding_results.py')
+    if a.airline or a.mode != 'verify':
+        call('experiments/build_open_airline_results.py')
     if a.build_pdf:
         subprocess.run(['latexmk','-pdf','-jobname=manuscript','-interaction=nonstopmode','-halt-on-error','main.tex'],cwd=ROOT/'paper',check=True)
     print('Finished. No commercial requests were made. Prospective records are archived empirical observations.')

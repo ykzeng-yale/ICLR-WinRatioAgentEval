@@ -1,0 +1,80 @@
+{
+  "arms": [
+    {
+      "arm": "A",
+      "canonical_agent_tokens_completion": 248996,
+      "canonical_agent_tokens_prompt": 20412368,
+      "canonical_n_assistant_tool_calls": 979,
+      "canonical_n_recorded_model_responses": 4205,
+      "canonical_units": 98,
+      "canonical_user_tokens_completion": 85101,
+      "canonical_user_tokens_prompt": 4373819,
+      "discarded_attempts": 12,
+      "logged_attempts": 108,
+      "pre_amendment_units": 5,
+      "saved_trajectories": 96,
+      "successes": 15
+    },
+    {
+      "arm": "B",
+      "canonical_agent_tokens_completion": 223345,
+      "canonical_agent_tokens_prompt": 19138768,
+      "canonical_n_assistant_tool_calls": 520,
+      "canonical_n_recorded_model_responses": 4075,
+      "canonical_units": 98,
+      "canonical_user_tokens_completion": 82565,
+      "canonical_user_tokens_prompt": 5915658,
+      "discarded_attempts": 0,
+      "logged_attempts": 98,
+      "pre_amendment_units": 0,
+      "saved_trajectories": 98,
+      "successes": 15
+    }
+  ],
+  "complete_failed_attempt_token_totals": null,
+  "different_trial": {
+    "losses": 15,
+    "n": 98,
+    "net_benefit": 0.0,
+    "ties": 68,
+    "wins": 15
+  },
+  "discarded_failure_classes": {
+    "context_window_overflow (litellm.BadRequestError)": 5,
+    "json_decode_error_after_truncation (JSONDecodeError)": 4,
+    "owner_stop_of_invocation_1": 1,
+    "request_timeout (litellm.Timeout: APITimeoutError)": 2
+  },
+  "final_masked_replay_illustration": {
+    "array_mean": 0.01020408163265306,
+    "lower": -0.609323690114096,
+    "n": 49,
+    "observed_mean": 0.02040816326530612,
+    "radius": 0.6297318533794022,
+    "upper": 0.6501400166447083
+  },
+  "inference_scope": "Descriptive canonical-array contrasts; post-hoc independent-orientation masked-replay illustration only. No task-population, fresh-run, operational saving or selection-adjusted inference.",
+  "omitted_a_generated_tokens_lower_bound": 246284,
+  "omitted_generated_tokens_role_partition": null,
+  "replay": {
+    "losses": 9,
+    "n": 49,
+    "net_benefit": 0.02040816326530612,
+    "ties": 30,
+    "wins": 10
+  },
+  "same_task_all": {
+    "losses": 27,
+    "n": 196,
+    "net_benefit": 0.00510204081632653,
+    "ties": 141,
+    "wins": 28
+  },
+  "same_trial": {
+    "losses": 12,
+    "n": 98,
+    "net_benefit": 0.01020408163265306,
+    "ties": 73,
+    "wins": 13
+  }
+}

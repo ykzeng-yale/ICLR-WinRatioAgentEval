@@ -1,6 +1,20 @@
 # Research status
 
-## Current checkpoint — September 19, 2026, Round 11
+## Current checkpoint — September 19, 2026, Round 12
+
+**Verified checklist readiness is 90%, up 20 points.** Three independent airline evidence/inference/integration checks accepted the retained descriptive results and a narrowly conditional observed-array replay illustration. The final technical release passed a separate extraction/reproduction audit and visual inspection. The paper is 40 pages including appendices, with nine main-content pages. This is a technically verified package for author review, not a declaration of human scientific signoff, submission or acceptance.
+
+The package now includes all 1,182 coding episodes and 196 planned airline records: 194 saved trajectories plus two failure placeholders, reconciled to 206 attempts. Both arms had 15/98 airline successes; that does not establish equivalence or noninferiority. Both runner versions and all amendment/regime records are retained. At least 246,284 generated tokens are absent from canonical saved-message totals; complete failed-attempt usage remains unavailable, so no operational efficiency advantage is claimed. Batch collection and replay are clearly separated from prospective randomized deployment.
+
+Round 12 also verifies the contributed coding endpoint/map corrections and unchanged accepted PR 7/10 files. Root retains its already reviewed coding analysis. Remaining owner-only inference/prose defects are explicitly excluded and handed back; no broad PR merge is implied. No new model call, repeated collection or spending occurred.
+
+The fixed rubric closes S6/E4/M4/Q4 after their evidence checks. A1/A2 remain pending: actual human scientific review, accurate AI-use disclosure, OpenReview/profile and reciprocal-review status, originality and concurrent-submission declarations. Actual abstract-submission status is unknown; this agent has neither submitted nor attested. The abstract deadline is September 19 at 07:59 EDT, and the full paper is due September 26 at 07:59 EDT. Hourly monitoring remains active.
+
+See `READINESS_TRACKER.md`, `reviews/round12_integration_ledger.md`, the independent Round 12 reports and `submission/READ_ME_FOR_AUTHOR.md` for exact scope and artifacts. The Round 11 release remains preserved at `1001b23`.
+
+## Historical Round 11 record
+
+## Historical Round 11 checkpoint — September 19, 2026
 
 **Verified package readiness remains 70%.** The 38-page anonymous review package adds the accepted open-weight coding subset: all 1,182 metric records, 591 tasks, observed resource/success outcomes, first-pass pair scores and root-only post-hoc running-conditional-mean bands. The independently reviewed same-task comparison is descriptive; contributed E2/R2 uncertainty and endpoint routines remain excluded. The success guardrail is not certified. No new model calls or duplicate owner jobs were run.
 
@@ -12,7 +26,7 @@ Actual abstract-submission status is unknown. This agent has neither submitted n
 
 ## Historical checkpoints below
 
-The entries below retain their original dates, artifact sizes and then-current states; they do not supersede the current Round 11 checkpoint.
+The entries below retain their original dates, artifact sizes and then-current states; they do not supersede the current Round 12 checkpoint.
 
 Queue synchronization on September 19, 2026: completed simulation execution issues 3 and 9 are closed with links to their accepted studies and the explicit audit limitations. An independent reviewer confirmed the focused drift issue has no remaining execution item. No new owner results or response arrived; PR 8 repairs and final airline delivery remain pending. The scientific release is still `b1febcf`, and verified readiness remains **70%**. This is coordination cleanup, not new experimental evidence.
 

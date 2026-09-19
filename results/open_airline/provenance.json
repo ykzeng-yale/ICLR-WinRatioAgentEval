@@ -1,0 +1,108 @@
+{
+  "analysis_scope": "Descriptive canonical-array contrasts; post-hoc independent-orientation masked-replay illustration only. No task-population, fresh-run, operational saving or selection-adjusted inference.",
+  "attempt_ledger_scope": "206 logged tau2-level attempts; complete discarded-attempt token usage unavailable. Independently checked server counters give a partial generated-token lower bound without role partition. Canonical metrics count only saved messages; empty placeholders do not establish zero operational cost.",
+  "attempt_projection_fields": [
+    "arm",
+    "task",
+    "trial",
+    "tau2_seed",
+    "invocation_index",
+    "attempt_in_invocation",
+    "attempt_overall",
+    "n_attempts_overall",
+    "attempt_status",
+    "failure_class",
+    "is_canonical_record_source",
+    "canonical_record_basis",
+    "truncation_warnings_in_attempt",
+    "attempt_start_utc_approx",
+    "attempt_end_utc",
+    "attempt_wall_clock_s_approx",
+    "attempt_end_basis"
+  ],
+  "policy_projection_fields": [
+    "arm",
+    "task",
+    "trial",
+    "invocation_index",
+    "pre_amendment",
+    "agent_max_tokens",
+    "user_max_tokens",
+    "tau2_simulation_timeout_s",
+    "n_attempts_all_invocations",
+    "n_discarded_attempts",
+    "canonical_termination_reason",
+    "n_agent_responses_finish_length",
+    "n_user_responses_finish_length"
+  ],
+  "projection": "All 196 canonical units retained, including two empty-trajectory infrastructure failures. Success comes from archived reward_info.reward, with missing reward mapped to unsuccessful; retained usage and tool-call counts come from raw messages. No dialogue, tool arguments, customer strings, tracebacks, local paths or simulation UUIDs retained.",
+  "projection_output_sha256": {
+    "assignment.json": "ecc6d4143c85472e614ea1f689c1b933d204d367a5b99c147e867989a9665aa0",
+    "attempt_ledger.csv": "40c11c623c83612ca2d3d2ce49359b84f3f194f71fcffbbacc27abf9545e8c40",
+    "collection_config.json": "01899f7c88732810b82edc06b8637244082a6c03edf44196da128115854e135f",
+    "episode_metrics.json": "195ff8e8785b698bd0bfaae9a6bd603ae448994f6e738d1fdd7942fb320cd435",
+    "omitted_usage_counters.json": "9064c3edea1f8d39c57398a4a6649ad5591e6647eaabbff9aec88d3f50a63645",
+    "unit_policy_flags.csv": "e35f200ad5dc424bf1f194ef7df6742d980f1e30052559f4d3ba6ad08912c774"
+  },
+  "runtime": [
+    {
+      "finished_at": null,
+      "hardware": {
+        "cpu": "Apple M5",
+        "machine": "arm64",
+        "memory_bytes": "34359738368",
+        "n_cpu": "10",
+        "os_version": "26.5.2",
+        "platform": "macOS-26.5.2-arm64-arm-64bit",
+        "python": "3.12.13"
+      },
+      "invocation_index": 1,
+      "packages": {
+        "numpy": "2.4.1",
+        "pandas": "3.0.6",
+        "requests": "2.34.2",
+        "scipy": "1.17.0"
+      },
+      "runner_sha256": "215e943a371a778900033586a28cd00b7e0f49f77966354ff3d2b6913c1c06ee",
+      "started_at": "2026-09-18T17:38:26Z"
+    },
+    {
+      "finished_at": "2026-09-19T04:56:43Z",
+      "hardware": {
+        "cpu": "Apple M5",
+        "machine": "arm64",
+        "memory_bytes": "34359738368",
+        "n_cpu": "10",
+        "os_version": "26.5.2",
+        "platform": "macOS-26.5.2-arm64-arm-64bit",
+        "python": "3.12.13"
+      },
+      "invocation_index": 2,
+      "packages": {
+        "numpy": "2.4.1",
+        "pandas": "3.0.6",
+        "requests": "2.34.2",
+        "scipy": "1.17.0"
+      },
+      "runner_sha256": "27797f68e2aff6e088d0300f4be9baac903ef34b71ec84116125c2fa664ff75c",
+      "started_at": "2026-09-18T20:33:06Z"
+    }
+  ],
+  "schema": "airline-metric-projection-v1",
+  "source_file_sha256": {
+    "experiments/tau2_open/config.json": "12e6c6ea71354e61947a6a170ba3e44fbc48129d3200001a7527e9bf0a2b00dd",
+    "results/tau2_open/all_attempt_accounting.csv": "138fcf4adbe1e7194b7bd7e0b61b2eb166179690cb8d0b233b6fd45dff93bfeb",
+    "results/tau2_open/design.json": "c8fa5728e8a9602813ffac10ea4ef88642ef3550aa9d5a5b7028c25586186597",
+    "results/tau2_open/episodes.csv": "5abbc1ce1acdc248ecf049276621a07449228ea3d8954e5af978559f3e11922f",
+    "results/tau2_open/raw_deposit_manifest.json": "1bdfdaf0b2b1a63d5e5be2197b1cfa7a13ce2bde2e46ddcfaf92c872be9904ce",
+    "results/tau2_open/raw_gz/tau2_open_armA.json.gz": "0d361d7c1f5c47f653a8c8f2daa425f22278b13455999b5eff9d7b864882dc87",
+    "results/tau2_open/raw_gz/tau2_open_armB.json.gz": "9f72ae24cbc4e7696ee960f53cb8cfdedc353498c7f3b1b3843153d15ae945d5",
+    "results/tau2_open/round10_handoff_numbers.json": "a6937828fbf82aabbacda3863f18dd3c0111aa786a9b3448f3282d8739754124",
+    "results/tau2_open/run_manifest.json": "5ee827214337991a1f860d5158ed77d3f29f4169069191eecdb1ec04055f70d6",
+    "results/tau2_open/unit_policy_flags.csv": "d9fe7ac806e6e03755934df392325837c97166d79db0a9e0fe32f0c62e6fcf7b"
+  },
+  "uncompressed_raw_sha256": {
+    "A": "887c66a23c2c1c2188279ce658efb15436648a9e26251b62f569521df4845fd8",
+    "B": "39a49567936fb14f5444ae6e406c43abd1cfbb21198540c8b8df585d8fa1c8f6"
+  }
+}

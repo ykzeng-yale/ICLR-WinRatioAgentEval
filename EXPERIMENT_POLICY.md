@@ -14,7 +14,7 @@ Effective September 18, 2026, following the author's explicit instruction. This 
 
 Previously collected commercial-model observations and public historical traces remain immutable provenance records. The author requested a ban on future use, not deletion of prior observations. Their historical collection scripts are retained for provenance and are **not authorized for execution**. Archived aggregate reproduction and CPU-only simulations may run without making model calls.
 
-The previous frozen anonymous package is preserved at `f806aba`, and the Round 10 comparator/drift release at `b1febcf`. Round 11 adds only independently reviewed coding observations and root-owned post-hoc conditional-mean analysis; contributed E2/R2 uncertainty and endpoint routines remain excluded. The new airline deposit at `3c70c3e` requires independent validation before inclusion. Never treat an observed contribution as integrated merely because it exists on GitHub.
+The earlier anonymous packages remain preserved at `f806aba`, the Round 10 comparator/drift release at `b1febcf`, and Round 11 coding release at `1001b23`. Round 12 adds only independently reviewed airline metric/attempt projections, descriptions and an explicitly conditional observed-array replay illustration. Owner inference/report corrections are separately reviewed; unsupported intervals/projection methods remain excluded. Never equate an observed broad branch head with accepted claims.
 
 ## Concurrent ownership
 

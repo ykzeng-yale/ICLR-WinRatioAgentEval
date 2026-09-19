@@ -3,8 +3,8 @@
   "files": [
     {
       "path": "REPRODUCIBILITY.md",
-      "bytes": 7017,
-      "sha256": "a594329f096cad6419e0f42550e0f47613f9f398f3bcbf98460795262a0db61f"
+      "bytes": 7679,
+      "sha256": "0f74591f03a9a0d79d5b433f57ce8d5e802f4509acbd9d0d5abf2d66fc0e6fdc"
     },
     {
       "path": "evidence/async_experiment_protocol.md",
@@ -20,6 +20,51 @@
       "path": "evidence/dm_baseline.md",
       "bytes": 12729,
       "sha256": "b696fd01c687069fb3a7da3c8d3bf9735ac8bde3c250a316ee9f55090f725f34"
+    },
+    {
+      "path": "evidence/open_airline_collection/README.md",
+      "bytes": 6672,
+      "sha256": "1a0b6162cb635664c26ea881211f94d8aa3b4038abcc13177407a63d5bdac1c6"
+    },
+    {
+      "path": "evidence/open_airline_collection/build_episodes.py.txt",
+      "bytes": 8595,
+      "sha256": "85d95b725805b51f5d0c40a337ce24fa301b4588b9f2e710ae6f8939141a73a8"
+    },
+    {
+      "path": "evidence/open_airline_collection/common.py.txt",
+      "bytes": 6760,
+      "sha256": "14f1a15c69c7e3b1cc89deb333323e8d1f3bb7f78a2fd869f96d3f7d0abc0997"
+    },
+    {
+      "path": "evidence/open_airline_collection/config_amendment_1.json.txt",
+      "bytes": 2097,
+      "sha256": "696aede45eb45360a1a7e3e78626ec5d86ef745af5f2a02c5d0248adc272ce8f"
+    },
+    {
+      "path": "evidence/open_airline_collection/design.py.txt",
+      "bytes": 8847,
+      "sha256": "2d7ef2c6c304acd13c1de37aaf634dfe221bbae84de082cdc9a37cb4603d6038"
+    },
+    {
+      "path": "evidence/open_airline_collection/deviation_1_erratum.md.txt",
+      "bytes": 7740,
+      "sha256": "a480474a72bffc5056796263a2b643ad6c60b338366b87a98e13b9b64772abc9"
+    },
+    {
+      "path": "evidence/open_airline_collection/run_tau2_open.py.txt",
+      "bytes": 31584,
+      "sha256": "27797f68e2aff6e088d0300f4be9baac903ef34b71ec84116125c2fa664ff75c"
+    },
+    {
+      "path": "evidence/open_airline_collection/run_tau2_open_pre_amendment.py.txt",
+      "bytes": 30839,
+      "sha256": "215e943a371a778900033586a28cd00b7e0f49f77966354ff3d2b6913c1c06ee"
+    },
+    {
+      "path": "evidence/open_airline_collection/source_manifest.json",
+      "bytes": 2873,
+      "sha256": "aec8202b5a7f5829f83ef689209821f2164094679588938d7a9a9223bae598cf"
     },
     {
       "path": "evidence/open_coding_collection/README.md",
@@ -105,6 +150,11 @@
       "path": "experiments/build_dm_paper_results.py",
       "bytes": 5987,
       "sha256": "2d69605d52958755c288aae0d614f18d0d30d56b39962b156396df557296c937"
+    },
+    {
+      "path": "experiments/build_open_airline_results.py",
+      "bytes": 16770,
+      "sha256": "7a39748fe14c42aa3d7e614bfb6f67cac1ed6453d5774452467897018a9057fd"
     },
     {
       "path": "experiments/build_open_coding_results.py",
@@ -333,18 +383,33 @@
     },
     {
       "path": "paper/main.tex",
-      "bytes": 25428,
-      "sha256": "f58bd21bbf214c67dc40174426b933b22abf194c5146118b3a6ddd1a1ccdf331"
+      "bytes": 25462,
+      "sha256": "d1f93aef0068c7fabe3ba71ae52a12fc9bcdc4b9dc00ad7ac3bb05f1dd1260d3"
     },
     {
       "path": "paper/manuscript.pdf",
-      "bytes": 519896,
-      "sha256": "d471f6f01f52a565ef0387fe1fb6eb9a7e9275e2a0dc242ba1e522e907a19021"
+      "bytes": 529812,
+      "sha256": "c1add4bb829c4044d5c3e299613a63c7849b09961a53b66be1067bbcbc7244b8"
     },
     {
       "path": "paper/natbib.sty",
       "bytes": 45154,
       "sha256": "88bc70c0e48461934cab5b2accef06b74a8b3ac45ad03ccd3f2a6b7e0d6d530d"
+    },
+    {
+      "path": "paper/open_airline_appendix.tex",
+      "bytes": 8642,
+      "sha256": "91a07b8e0dfe741a144eaeb637b63a1072afda8ed7e5a000ca459bef54516f40"
+    },
+    {
+      "path": "paper/open_airline_results.tex",
+      "bytes": 536,
+      "sha256": "8e2bd718cc6b51093bae5ef070a456f5e974d886d1dcc9dde4f63a5c13c437c7"
+    },
+    {
+      "path": "paper/open_airline_table.tex",
+      "bytes": 397,
+      "sha256": "4917b2d80cf678f1f847f6119d573c18fd9d7d507230318c6d72b922c3c628cb"
     },
     {
       "path": "paper/open_coding_appendix.tex",
@@ -358,8 +423,8 @@
     },
     {
       "path": "paper/open_coding_results.tex",
-      "bytes": 1009,
-      "sha256": "fb6221fc5fccdc34831725b87e1359fb14e0adbfbec501ec888746f893d5a118"
+      "bytes": 733,
+      "sha256": "9d1da75347b5bffb4c570260a61e65120cd983ddaab6c7030daafa10cc87aa62"
     },
     {
       "path": "paper/pairing_efficiency.tex",
@@ -463,8 +528,8 @@
     },
     {
       "path": "reproduce.py",
-      "bytes": 5088,
-      "sha256": "2e913c821c9df998490ab5c749e4105cac500634519aed6d940fa8741010a86c"
+      "bytes": 5363,
+      "sha256": "815bf5ac4781b5befdf71ac0e676ea1b7683ca23a240b073e8d73a9957b03988"
     },
     {
       "path": "requirements.txt",
@@ -615,6 +680,71 @@
       "path": "results/online_methods_results.csv",
       "bytes": 10831,
       "sha256": "b12a41b3cb84501e50a92df623bdec459e762f46a5945a865d889a4b55f3fc54"
+    },
+    {
+      "path": "results/open_airline/assignment.json",
+      "bytes": 22135,
+      "sha256": "ecc6d4143c85472e614ea1f689c1b933d204d367a5b99c147e867989a9665aa0"
+    },
+    {
+      "path": "results/open_airline/attempt_ledger.csv",
+      "bytes": 35423,
+      "sha256": "40c11c623c83612ca2d3d2ce49359b84f3f194f71fcffbbacc27abf9545e8c40"
+    },
+    {
+      "path": "results/open_airline/canonical_accounting.csv",
+      "bytes": 416,
+      "sha256": "afe6a03e17c9517a57440c583ec11fe30a82c02ed5a9c305a6c87fe7a2d913c7"
+    },
+    {
+      "path": "results/open_airline/collection_config.json",
+      "bytes": 3371,
+      "sha256": "01899f7c88732810b82edc06b8637244082a6c03edf44196da128115854e135f"
+    },
+    {
+      "path": "results/open_airline/episode_metrics.json",
+      "bytes": 88420,
+      "sha256": "195ff8e8785b698bd0bfaae9a6bd603ae448994f6e738d1fdd7942fb320cd435"
+    },
+    {
+      "path": "results/open_airline/masked_replay_bands.csv",
+      "bytes": 3612,
+      "sha256": "40a00c6d13ccd7eb6c048c331fae4b9e0fcfd3f4f2b95a8c706b724f03bba6a6"
+    },
+    {
+      "path": "results/open_airline/omitted_usage_counters.json",
+      "bytes": 742,
+      "sha256": "9064c3edea1f8d39c57398a4a6649ad5591e6647eaabbff9aec88d3f50a63645"
+    },
+    {
+      "path": "results/open_airline/provenance.json",
+      "bytes": 4988,
+      "sha256": "45be7c0d5332d6bba38572adb74e0bf55b78fccc08fc357cfa8774ad800df7c1"
+    },
+    {
+      "path": "results/open_airline/replay_scores.csv",
+      "bytes": 1362,
+      "sha256": "ea0b773962201c72e9f5ff50e73639a1645a26e0a887eed0aec6e1269dfd8b2f"
+    },
+    {
+      "path": "results/open_airline/same_task_scores.csv",
+      "bytes": 2779,
+      "sha256": "ead043141b9177134c7273bc37db17ca9b32ba9805db33d2695810a46cbefbb8"
+    },
+    {
+      "path": "results/open_airline/summary.json",
+      "bytes": 2371,
+      "sha256": "908294af9f4c2546a267883c7db84567e87773e24179864546404452f476b4a3"
+    },
+    {
+      "path": "results/open_airline/unit_policy_flags.csv",
+      "bytes": 9758,
+      "sha256": "e35f200ad5dc424bf1f194ef7df6742d980f1e30052559f4d3ba6ad08912c774"
+    },
+    {
+      "path": "results/open_airline_integrity.json",
+      "bytes": 2223,
+      "sha256": "6cb519e16af338dddd60ad8e4676615104fc01d0d337df2dff91cc46782fb220"
     },
     {
       "path": "results/open_coding/assignment.json",

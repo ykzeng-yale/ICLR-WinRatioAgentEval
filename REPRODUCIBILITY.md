@@ -1,6 +1,6 @@
 # Reproducing the reported research
 
-The paper combines synthetic score streams, historical public agent traces, an ordinal prefix-certificate replay, a completed open-weight coding laboratory stream, and an earlier small feasibility pilot. None is a production-user randomized trial. Independent model-assisted reviews and limitations are recorded in the development repository.
+The paper combines synthetic score streams, historical public agent traces, an ordinal prefix-certificate replay, open-weight coding and airline laboratory observations, and an earlier small feasibility pilot. None is a production-user randomized trial. Independent model-assisted reviews and limitations are recorded in the development repository.
 
 ## Environment
 
@@ -13,6 +13,8 @@ From this directory, `python reproduce.py` runs the core scientific checks and v
 Add `--extensions` to explicitly rerun the accepted sequential all-pairs comparison, its four 10,000-repetition boundary calibrations and rare-compliance diagnostic, and the twelve-scenario drift panel. These CPU-only runs require no model weights, benchmark inference, or API credentials. They use their documented separate seed suite, not the primary simulation table's seeds. Four workers are used by this entry point; recorded numerical CSVs are invariant to worker count. The comparator can take several minutes; the drift panel takes about a minute on the recorded machines. To rebuild only the new paper text from retained results, run `python experiments/build_sequential_extensions.py`.
 
 ## Expected resource use
+
+`python reproduce.py --airline` reconstructs the 196-unit airline descriptions, attempt accounting and post-hoc observed-array masked-replay illustration. It needs only the supplied projected metrics/assignments/ledgers, not the original dialogue, benchmark execution or model weights. All 196 canonical entries remain, including two infrastructure-failure placeholders. The 206-attempt ledger does not recover missing discarded-attempt token usage; canonical tokens are saved-message totals, not failure-inclusive operational cost. No task-population, fresh-model or live-stopping inference is asserted. See `evidence/open_airline_collection/README.md`.
 
 `python reproduce.py --coding` also reconstructs coding comparisons, resources and the post-hoc running-mean bands from all 1,182 archived metric records. It makes no model request and executes no candidate program. The projection deliberately omits candidate code, self-tests and verifier stderr, so this reproduces analysis of recorded verifier labels, not generation or independent hidden-test adjudication. See `evidence/open_coding_collection/README.md` for the fixed source/projection hashes, historical collection definitions and limits. The E2 same-task contrast is descriptive only; no contributed E2/R2 uncertainty is imported.
 

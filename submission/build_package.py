@@ -18,6 +18,8 @@ required=['requirements.txt','reproduce.py','REPRODUCIBILITY.md','src/winstats.p
  'results/source_baselines/reproducibility_manifest_pre_round10.json',
  'experiments/build_open_coding_results.py','results/open_coding_integrity.json',
  'paper/open_coding_results.tex','paper/open_coding_appendix.tex','paper/open_coding_resource_rows.tex',
+ 'experiments/build_open_airline_results.py','results/open_airline_integrity.json',
+ 'paper/open_airline_results.tex','paper/open_airline_appendix.tex','paper/open_airline_table.tex',
  'paper/main.tex','paper/theory.tex','paper/asynchronous.tex','paper/results_main.tex','paper/experiments_appendix.tex',
  'paper/public_results.tex','paper/public_appendix.tex','paper/async_results.tex','paper/async_appendix.tex',
  'paper/references.bib','paper/iclr2027_conference.sty','paper/iclr2027_conference.bst','paper/fancyhdr.sty','paper/natbib.sty',
@@ -41,7 +43,7 @@ for pattern in ['experiments/prospective*.tex','results/async_*','results/public
  'results/prospective_v2_sanitized_traces/*.json','plots/prospective_v2_cohort.*','results/provider_diagnostics.json','results/project_cost_summary.json']:
  for p in ROOT.glob(pattern):
   if p.is_file():files.add(str(p.relative_to(ROOT)))
-for directory in ['experiments/ustat_reference','experiments/drift_panel','results/ustat_reference','results/drift_panel','results/open_coding','evidence/open_coding_collection']:
+for directory in ['experiments/ustat_reference','experiments/drift_panel','results/ustat_reference','results/drift_panel','results/open_coding','evidence/open_coding_collection','results/open_airline','evidence/open_airline_collection']:
  for p in (ROOT/directory).rglob('*'):
   if p.is_file() and p.suffix in ['.py','.md','.json','.jsonl','.txt','.csv','.log','.png','.pdf'] and '__pycache__' not in p.parts:
    files.add(str(p.relative_to(ROOT)))

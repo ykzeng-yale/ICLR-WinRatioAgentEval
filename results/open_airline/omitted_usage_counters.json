@@ -1,0 +1,21 @@
+{
+  "invocation1_port8081": {
+    "cancelled_requests": 17,
+    "completed_requests": 193,
+    "generated_in_completed_requests_of_discarded_attempts": 1428,
+    "generated_tokens_completed_requests": 16444,
+    "generated_tokens_in_cancelled_requests_lower_bound": 198280,
+    "retained_in_canonical_records": 15014,
+    "retained_simulation_seconds": 740.1252397503704,
+    "smoke_tokens_first_request": 2,
+    "wall_clock_s": 10452.471
+  },
+  "invocation2_port8081": {
+    "completed_requests": 6259,
+    "generated_in_completed_requests_of_discarded_attempts": 46576,
+    "generated_tokens_completed_requests": 448226,
+    "rejected_requests_context_overflow": 20,
+    "retained_in_canonical_records": 401648,
+    "smoke_tokens": 2
+  }
+}
