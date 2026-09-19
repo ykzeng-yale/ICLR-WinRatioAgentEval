@@ -1,6 +1,6 @@
 # Experiment delivery and remaining work
 
-**Active target: arXiv, September 19, 2026; bounded v1 at 90% verified readiness.** The named 45-page article and separate main/supplement/source/code package are technically checked. The author selected arXiv’s non-exclusive license; author review and remaining arXiv metadata/account inputs remain. New studies below support stronger later claims; no unexecuted study is represented as completed evidence.
+**Active target: arXiv, September 19, 2026; full project at 60%, existing bounded v1 at 90%.** See [the full-project rubric](FULL_PROJECT_PROGRESS.md), which includes the new assignments below and their final integration. The named 45-page article and separate main/supplement/source/code package are technically checked. The author selected arXiv’s non-exclusive license; author review and remaining arXiv metadata/account inputs remain. New studies below support stronger later claims; no unexecuted study is represented as completed evidence.
 
 **No new commercial/proprietary calls or paid compute**, including agents, simulators, graders and fallbacks. Existing raw observations and old archives are immutable. Capacity-check already provisioned open models; do not download fresh weights on the nearly full root host.
 
