@@ -205,3 +205,50 @@ def test_shift_equivariance_pr5():
 
 if __name__ == '__main__':
     test_shift_equivariance_pr5()
+
+
+def test_endpoint_normalization_round10():
+    """Round 10 audit, finding 4: the hedged capital must be exactly 1 at n = 0 and at the endpoint means of
+    degenerate samples; a stake with a zero factor may only kill the capital when its count is positive."""
+    from wincs import betting_log_capital_ternary, betting_log_capital_bernoulli, betting_cs_ternary, win_ratio_cs_decided
+    cases = [((0, 0, 0), -1.0), ((0, 0, 0), 0.0), ((0, 0, 0), 1.0), ((5, 0, 0), 1.0), ((0, 0, 5), -1.0), ((0, 7, 0), 0.0)]
+    for (p, t, n), m in cases:
+        cap = float(np.exp(betting_log_capital_ternary(p, t, n, m)))
+        assert abs(cap - 1.0) < 1e-12, ((p, t, n), m, cap)
+    for k, n, q in [(5, 5, 1.0), (0, 5, 0.0), (0, 0, 0.0), (0, 0, 0.3), (0, 0, 1.0)]:
+        cap = float(np.exp(betting_log_capital_bernoulli(k, n, q)))
+        assert abs(cap - 1.0) < 1e-12, (k, n, q, cap)
+    # a positive count on a zero factor still kills that stake: one loss observed, candidate m = 1 -> K+ stake 0.5 dies,
+    # but the capital stays finite and LARGE (strong evidence against m = 1), never nan
+    lc = float(betting_log_capital_ternary(0, 0, 50, 1.0)); assert np.isfinite(lc) and lc > np.log(1e6), lc
+    lc = float(betting_log_capital_bernoulli(0, 50, 1.0)); assert np.isfinite(lc) and lc > np.log(1e6), lc
+    # vectorised endpoints agree with the scalar calls
+    v = np.exp(betting_log_capital_ternary(np.array([0, 5, 0, 0]), np.array([0, 0, 0, 7]), np.array([0, 0, 5, 0]), np.array([1.0, 1.0, -1.0, 0.0])))
+    assert np.allclose(v, 1.0, atol=1e-12), v
+    # conservative intervals that contain the sample mean, for random count vectors including zeros
+    rng = np.random.default_rng(10); delta = 0.05
+    counts = rng.integers(0, 40, size=(200, 3)); counts[rng.random((200, 3)) < 0.3] = 0
+    counts[:6] = [[0, 0, 0], [5, 0, 0], [0, 0, 5], [0, 7, 0], [1, 0, 0], [0, 0, 1]]
+    pos, tie, neg = counts[:, 0], counts[:, 1], counts[:, 2]; n = counts.sum(1)
+    lo, hi = betting_cs_ternary(pos, tie, neg, delta)
+    mean = np.where(n > 0, (pos - neg) / np.maximum(n, 1), 0.0)
+    assert np.all(np.isfinite(lo)) and np.all(np.isfinite(hi)) and np.all(lo >= -1) and np.all(hi <= 1)
+    assert np.all(lo <= mean + 1e-12) and np.all(mean <= hi + 1e-12), (counts[(lo > mean) | (hi < mean)])
+    thr = np.log(1 / delta)      # returned endpoints are outside iterates (capital >= 1/delta) or the range limits
+    for arr, edge in ((lo, -1.0), (hi, 1.0)):
+        lc = betting_log_capital_ternary(pos, tie, neg, arr)
+        assert np.all((lc >= thr - 1e-9) | (arr == edge)), 'endpoint not conservative'
+    assert lo[0] == -1.0 and hi[0] == 1.0, 'n = 0 must give the trivial interval'
+    assert hi[1] == 1.0 and lo[2] == -1.0, 'all-wins / all-losses must keep the matching endpoint'
+    nd = pos + neg; wlo, whi = win_ratio_cs_decided(pos, neg, delta)
+    with np.errstate(divide='ignore', invalid='ignore'):
+        wr = np.where(neg > 0, pos / np.maximum(neg, 1), np.inf)
+    ok = nd > 0
+    assert np.all(wlo[ok] <= wr[ok] + 1e-12) and np.all(wr[ok] <= whi[ok] + 1e-12)
+    assert np.all(wlo[~ok] == 0.0) and np.all(np.isinf(whi[~ok])), 'no decided pair must give [0, inf]'
+    assert np.all(np.isinf(whi[(neg == 0)])) and np.all(wlo[(pos == 0)] == 0.0)
+
+
+if __name__ == '__main__':
+    test_endpoint_normalization_round10()
+    print('round 10 endpoint tests passed')
