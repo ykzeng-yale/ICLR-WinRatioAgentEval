@@ -1,0 +1,17 @@
+rule,data,estimate,ci,decision,reading,detail
+success_only,shadow,0.0,"[-0.02974850611333089, 0.02974850611333089]",none,E2 (finite-roster conservative / superpopulation),
+pareto_means,shadow,,"[None, None]",A,E2 (finite-roster conservative / superpopulation),d_success=0.0000 d_latency=9.676 d_tokens=243.0
+utility_w=1.00/0.00/0.00,shadow,0.0,"[None, None]",none,E2 (finite-roster conservative / superpopulation),u = w1*d_success - w2*rel_d_latency - w3*rel_d_tokens (point estimate only)
+utility_w=0.80/0.10/0.10,shadow,-0.6917212475158411,"[None, None]",A,E2 (finite-roster conservative / superpopulation),u = w1*d_success - w2*rel_d_latency - w3*rel_d_tokens (point estimate only)
+utility_w=0.60/0.20/0.20,shadow,-1.3834424950316822,"[None, None]",A,E2 (finite-roster conservative / superpopulation),u = w1*d_success - w2*rel_d_latency - w3*rel_d_tokens (point estimate only)
+utility_w=0.50/0.25/0.25,shadow,-1.7293031187896024,"[None, None]",A,E2 (finite-roster conservative / superpopulation),u = w1*d_success - w2*rel_d_latency - w3*rel_d_tokens (point estimate only)
+utility_w=0.34/0.33/0.33,shadow,-2.2826801168022754,"[None, None]",A,E2 (finite-roster conservative / superpopulation),u = w1*d_success - w2*rel_d_latency - w3*rel_d_tokens (point estimate only)
+utility_w=0.20/0.40/0.40,shadow,-2.7668849900633643,"[None, None]",A,E2 (finite-roster conservative / superpopulation),u = w1*d_success - w2*rel_d_latency - w3*rel_d_tokens (point estimate only)
+hierarchical_nb,shadow,-0.6565143824027071,"[-0.7053137691326692, -0.607714995672745]",A,E2 (finite-roster conservative / superpopulation),
+guarded_hierarchical,shadow,-0.6565143824027071,"[-0.7053137691326692, -0.607714995672745]",A,E2 (finite-roster conservative / superpopulation),NB CI > 0 and success CI lower > -0.03
+conjunction_all_components,shadow,,"[None, None]",none,E2 (finite-roster conservative / superpopulation),success non-inferior AND latency lower AND tokens lower (all CIs)
+hierarchical_nb_betting_cs,online,-0.4711864406779661,"[-0.6281036977040566, -0.2879839302119563]",A,R2 (iid-roster assumption),
+guarded_anytime,online,-0.4711864406779661,"[-0.6281036977040566, -0.2879839302119563]",retain A,R2 (iid-roster assumption),first_deploy=None first_harm=24; label: composite harm signal for B; incumbent A retained (not a reverse guarded approval of A; descriptive under R1)
+success_only_betting_cs,online,0.05084745762711865,"[-0.07861178103139843, 0.17939767190965555]",none,R2 (iid-roster assumption),
+hierarchical_nb_normal_mixture_cs,online,-0.4711864406779661,"[-0.6540251799916925, -0.2883477013642397]",A,"R1 (design-based, running average mu_bar_n)",POST HOC (Round 9); first n with upper bound < 0: 60
+success_only_normal_mixture_cs,online,0.05084745762711865,"[-0.13199128168660776, 0.23368619694084505]",none,"R1 (design-based, running average)",POST HOC (Round 9)

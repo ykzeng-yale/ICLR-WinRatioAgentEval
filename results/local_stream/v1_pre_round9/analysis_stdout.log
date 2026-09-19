@@ -1,0 +1,20 @@
+{
+  "online": {
+    "n_pairs": 295,
+    "net_benefit": -0.4711864406779661,
+    "nb_cs": [
+      -0.6183721923828126,
+      -0.30083068847656247
+    ],
+    "guarded_decision": "B_harmful"
+  },
+  "shadow": {
+    "n_tasks": 591,
+    "net_benefit": -0.6565143824027071,
+    "nb_ci": [
+      -0.7053137691326692,
+      -0.607714995672745
+    ],
+    "decision_hierarchical": "A"
+  }
+}

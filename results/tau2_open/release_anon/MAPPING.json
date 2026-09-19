@@ -1,0 +1,437 @@
+{
+  "placeholders": {
+    "<REPO>": "repository root",
+    "<HOME>": "user's home directory",
+    "<TMP>": "per-user or per-session temporary directory (the session scratch directory)",
+    "<USER>": "account name (residual or case-variant occurrences)",
+    "<HOST>": "machine network name",
+    "<SESSION>": "session id outside a path"
+  },
+  "note": "Originals are unmodified; original_sha256 lets a holder of the originals verify the correspondence. Only path/name strings were replaced; no number, hash, timestamp or outcome was touched; line counts are unchanged; JSON copies parse and have identical numeric/boolean/null leaves.",
+  "portability": "Regeneration of the anonymized copies is LOCATION-DEPENDENT: the strings that are replaced are derived at run time from the executing account, repository location, host name and the temp/session paths found in the files, and a different checkout may lack git-ignored originals (logs/, raw/). No byte-for-byte portability of the anonymized copies is claimed; original_sha256 ties each committed copy to its original.",
+  "scope": "tau2_open only. An anonymous release must be packaged from this explicit allowlist: the sanitized copies listed under files, plus the originals listed under clean_originals. Files listed under originals_with_identifiers must NOT be released as they are (this includes the deposited logs_gz/*.gz and raw_gz/tau2_open_armA.json.gz, which carry the same strings as their uncompressed originals).",
+  "generated_by": "experiments/tau2_open/make_release_anon.py",
+  "files": [
+    {
+      "file": "results/tau2_open/run_manifest.json",
+      "anonymized_copy": "results/tau2_open/release_anon/results/tau2_open/run_manifest.json",
+      "original_sha256": "5ee827214337991a1f860d5158ed77d3f29f4169069191eecdb1ec04055f70d6",
+      "original_bytes": 49642,
+      "anonymized_sha256": "e876a2c77cc3d5686256a5d54c9d5474bab32b7494f9ca547c7f161058d9bd42",
+      "anonymized_bytes": 47326,
+      "replacements": {
+        "<TMP>": 18,
+        "<HOME>": 20
+      },
+      "changed": true,
+      "lines_original": 1441,
+      "lines_anonymized": 1441,
+      "json_parses": true,
+      "numeric_boolean_null_leaves": 190,
+      "numeric_boolean_null_leaves_identical": true
+    },
+    {
+      "file": "experiments/tau2_open/config.json",
+      "anonymized_copy": "results/tau2_open/release_anon/experiments/tau2_open/config.json",
+      "original_sha256": "12e6c6ea71354e61947a6a170ba3e44fbc48129d3200001a7527e9bf0a2b00dd",
+      "original_bytes": 4234,
+      "anonymized_sha256": "9c2a3847b5b413cf40ae851d111238b5edb71a34314e31db38450ee3450b8368",
+      "anonymized_bytes": 4010,
+      "replacements": {
+        "<TMP>": 2
+      },
+      "changed": true,
+      "lines_original": 73,
+      "lines_anonymized": 73,
+      "json_parses": true,
+      "numeric_boolean_null_leaves": 28,
+      "numeric_boolean_null_leaves_identical": true
+    },
+    {
+      "file": "experiments/tau2_open/README.md",
+      "anonymized_copy": "results/tau2_open/release_anon/experiments/tau2_open/README.md",
+      "original_sha256": "42ad353dbc960e4cc8ff22a2a734ed7c1d0068c5a897660f3202012f60bd2d6b",
+      "original_bytes": 8249,
+      "anonymized_sha256": "899c3594a4380b5a64231eafa3b3d1fb0a0bd8a3ee544ca6536be6a15d583d5a",
+      "anonymized_bytes": 8171,
+      "replacements": {
+        "<REPO>": 2
+      },
+      "changed": true,
+      "lines_original": 104,
+      "lines_anonymized": 104
+    },
+    {
+      "file": "experiments/tau2_open/protocol.md",
+      "anonymized_copy": "results/tau2_open/release_anon/experiments/tau2_open/protocol.md",
+      "original_sha256": "ca2ea4cc41034ac25a7cdff5e4d16707a954c3a56e5ba15eabfc35bfe15bfbd4",
+      "original_bytes": 42903,
+      "anonymized_sha256": "ca2ea4cc41034ac25a7cdff5e4d16707a954c3a56e5ba15eabfc35bfe15bfbd4",
+      "anonymized_bytes": 42903,
+      "replacements": {},
+      "changed": false,
+      "lines_original": 651,
+      "lines_anonymized": 651
+    },
+    {
+      "file": "experiments/tau2_open/config_amendment_1.json",
+      "anonymized_copy": "results/tau2_open/release_anon/experiments/tau2_open/config_amendment_1.json",
+      "original_sha256": "696aede45eb45360a1a7e3e78626ec5d86ef745af5f2a02c5d0248adc272ce8f",
+      "original_bytes": 2097,
+      "anonymized_sha256": "696aede45eb45360a1a7e3e78626ec5d86ef745af5f2a02c5d0248adc272ce8f",
+      "anonymized_bytes": 2097,
+      "replacements": {},
+      "changed": false,
+      "lines_original": 52,
+      "lines_anonymized": 52,
+      "json_parses": true,
+      "numeric_boolean_null_leaves": 10,
+      "numeric_boolean_null_leaves_identical": true
+    },
+    {
+      "file": "experiments/tau2_open/tests_tau2_open.py",
+      "anonymized_copy": "results/tau2_open/release_anon/experiments/tau2_open/tests_tau2_open.py",
+      "original_sha256": "d74ad11c7fed56f19cc973ec483971b5a7a36b4238e6c775c307d67bc80658ff",
+      "original_bytes": 26153,
+      "anonymized_sha256": "a05e1d7f818c14d077f49a49b36b7ac96350107cb35d1667e75196d797da88a3",
+      "anonymized_bytes": 26114,
+      "replacements": {
+        "<REPO>": 1
+      },
+      "changed": true,
+      "lines_original": 320,
+      "lines_anonymized": 320
+    },
+    {
+      "file": "results/tau2_open/report_final_numbers.json",
+      "anonymized_copy": "results/tau2_open/release_anon/results/tau2_open/report_final_numbers.json",
+      "original_sha256": "6db104ea2b46058f8964b852460df4047d6874416d0ea794142f3356e17a6d56",
+      "original_bytes": 18616,
+      "anonymized_sha256": "32052e099fb238cd59e879571b6bf685b862f513a6901b81909850472005a51d",
+      "anonymized_bytes": 18460,
+      "replacements": {
+        "<REPO>": 4
+      },
+      "changed": true,
+      "lines_original": 734,
+      "lines_anonymized": 734,
+      "json_parses": true,
+      "numeric_boolean_null_leaves": 340,
+      "numeric_boolean_null_leaves_identical": true
+    },
+    {
+      "file": "results/tau2_open/run_stdout.log",
+      "anonymized_copy": "results/tau2_open/release_anon/results/tau2_open/run_stdout.log",
+      "original_sha256": "a239bdbc73f6b537c89809f4155e363beb5184bc682b6371fbc5858aff86d236",
+      "original_bytes": 7961,
+      "anonymized_sha256": "14b05aedb6cfb023fc776184872a66c81be51f319e7439e9f962c01a42f79884",
+      "anonymized_bytes": 6975,
+      "replacements": {
+        "<TMP>": 8,
+        "<HOME>": 6
+      },
+      "changed": true,
+      "lines_original": 263,
+      "lines_anonymized": 263
+    },
+    {
+      "file": "results/tau2_open/dryrun/run_manifest.json",
+      "anonymized_copy": "results/tau2_open/release_anon/results/tau2_open/dryrun/run_manifest.json",
+      "original_sha256": "0c5645165d98f1e554c221db1c76dbed03ed6418bd810875d3dfb7f6e60b1786",
+      "original_bytes": 14686,
+      "anonymized_sha256": "9617625a700ef46554a49824b073b390200c05d07db7da55ac07d298c81bfa72",
+      "anonymized_bytes": 14208,
+      "replacements": {
+        "<TMP>": 4,
+        "<HOME>": 2
+      },
+      "changed": true,
+      "lines_original": 463,
+      "lines_anonymized": 463,
+      "json_parses": true,
+      "numeric_boolean_null_leaves": 37,
+      "numeric_boolean_null_leaves_identical": true
+    },
+    {
+      "file": "reviews/tau2_open_preregistration_audit.md",
+      "anonymized_copy": "results/tau2_open/release_anon/reviews/tau2_open_preregistration_audit.md",
+      "original_sha256": "07b87a4317be7ccd95a0702fc0156856e2390c813474ea58bff46d60c60ef63b",
+      "original_bytes": 45739,
+      "anonymized_sha256": "689810d7e4aada35e45f98e5b4508b7bffc194823813ab00393451936993e19c",
+      "anonymized_bytes": 45476,
+      "replacements": {
+        "<TMP>": 2,
+        "<REPO>": 1
+      },
+      "changed": true,
+      "lines_original": 641,
+      "lines_anonymized": 641
+    },
+    {
+      "file": "results/tau2_open/logs/tau2_armA.invocation1_preamendment.log",
+      "anonymized_copy": "results/tau2_open/release_anon/results/tau2_open/logs/tau2_armA.invocation1_preamendment.log.gz",
+      "original_sha256": "838b082f78dce04a71ccec2c98ff1394e95e54bb75f03a3cd4bb07bc7159073c",
+      "original_bytes": 93466,
+      "anonymized_sha256": "2d0a1db54931eb65812710bebde8580fdb3867a7a702a9d5ae22d41452da765d",
+      "anonymized_bytes": 93339,
+      "replacements": {
+        "<TMP>": 1,
+        "<HOME>": 1
+      },
+      "changed": true,
+      "lines_original": 965,
+      "lines_anonymized": 965,
+      "stored_as": "gzip (mtime 0, no embedded name); anonymized_sha256 is of the UNCOMPRESSED sanitized text",
+      "stored_gz_sha256": "5f15ce85ab2fb27ae7e7301f1aea66d4ee7bba68cc5ced20948c13f2a5865624",
+      "stored_gz_bytes": 5154,
+      "deposited_compressed_original": "results/tau2_open/logs_gz/tau2_armA.invocation1_preamendment.log.gz",
+      "deposited_compressed_original_sha256": "0a4c2abc9c407b2f4972c92fd4452d852ecb2f8f9603c04cb43f9aaba8d02f9a",
+      "deposited_compressed_original_decompresses_to_this_original": true
+    },
+    {
+      "file": "results/tau2_open/logs/tau2_armA.log",
+      "anonymized_copy": "results/tau2_open/release_anon/results/tau2_open/logs/tau2_armA.log.gz",
+      "original_sha256": "e2cb454b254c1bfc4cbebee5777cd9e3504ee399eec234081a4cb414217f95ef",
+      "original_bytes": 1536109,
+      "anonymized_sha256": "1fd1a951af4c0904c7ae9b80411b89a4c4b4961fefcd657f1980548e8e94fef5",
+      "anonymized_bytes": 1535870,
+      "replacements": {
+        "<TMP>": 2,
+        "<HOME>": 1
+      },
+      "changed": true,
+      "lines_original": 12979,
+      "lines_anonymized": 12979,
+      "stored_as": "gzip (mtime 0, no embedded name); anonymized_sha256 is of the UNCOMPRESSED sanitized text",
+      "stored_gz_sha256": "4c0b993e92908e41817f19a40c79a26300f67b61073495ac47d9ec134323e83c",
+      "stored_gz_bytes": 51412,
+      "deposited_compressed_original": "results/tau2_open/logs_gz/tau2_armA.log.gz",
+      "deposited_compressed_original_sha256": "dd8eb707f231578b06b97054e2184f0fe9a4d483beda25d82d6a3e1aa0e23138",
+      "deposited_compressed_original_decompresses_to_this_original": true
+    },
+    {
+      "file": "results/tau2_open/logs/tau2_armB.log",
+      "anonymized_copy": "results/tau2_open/release_anon/results/tau2_open/logs/tau2_armB.log.gz",
+      "original_sha256": "fa95ab70d88e2a279535f8bccdb7651b2ca930188b45484a8ceb9eec249e0677",
+      "original_bytes": 1354207,
+      "anonymized_sha256": "3a66c3edd9234c60562c9c4d4d99daadd707d94d48f591465addf8bf8d898048",
+      "anonymized_bytes": 1354095,
+      "replacements": {
+        "<TMP>": 1
+      },
+      "changed": true,
+      "lines_original": 11190,
+      "lines_anonymized": 11190,
+      "stored_as": "gzip (mtime 0, no embedded name); anonymized_sha256 is of the UNCOMPRESSED sanitized text",
+      "stored_gz_sha256": "5604aaf0286f8ec81db50835763fadc936df95437383336833dc49267e268fc4",
+      "stored_gz_bytes": 43039,
+      "deposited_compressed_original": "results/tau2_open/logs_gz/tau2_armB.log.gz",
+      "deposited_compressed_original_sha256": "42c0f7c1cb970139327aef1131a7dad7e4004b72aa3b06f801054b5224cecf46",
+      "deposited_compressed_original_decompresses_to_this_original": true
+    },
+    {
+      "file": "results/tau2_open/logs/llama_server_8081.log",
+      "anonymized_copy": "results/tau2_open/release_anon/results/tau2_open/logs/llama_server_8081.log.gz",
+      "original_sha256": "9c2eeca8a8f49183a0bf61a29c8e559394b49acbf34f542e28f67b1bfc400d13",
+      "original_bytes": 5892421,
+      "anonymized_sha256": "577cbc32003e9b7cdcd6666f22e015bbec4e4ea0daeb52734a0d426a05899882",
+      "anonymized_bytes": 5892391,
+      "replacements": {
+        "<HOME>": 2
+      },
+      "changed": true,
+      "lines_original": 50863,
+      "lines_anonymized": 50863,
+      "stored_as": "gzip (mtime 0, no embedded name); anonymized_sha256 is of the UNCOMPRESSED sanitized text",
+      "stored_gz_sha256": "9b52915ad290a702f44d79b0e23a20af3a4407d499dc3c957dbf2add1ca44c95",
+      "stored_gz_bytes": 764898,
+      "deposited_compressed_original": "results/tau2_open/logs_gz/llama_server_8081.log.gz",
+      "deposited_compressed_original_sha256": "962a4b0f9bda1e26f130b067881e552b2eade1f5ba75c566c228d48b78468be9",
+      "deposited_compressed_original_decompresses_to_this_original": true
+    },
+    {
+      "file": "results/tau2_open/logs/llama_server_8082.log",
+      "anonymized_copy": "results/tau2_open/release_anon/results/tau2_open/logs/llama_server_8082.log.gz",
+      "original_sha256": "f693ccaa977dff310bdf4af37ddb9403b7363cf3b3c282bcec0517ce086b4dc6",
+      "original_bytes": 2035343,
+      "anonymized_sha256": "87238ef857665d15f312707583d43686f509b952c061f4da420bf9a6fea28cc9",
+      "anonymized_bytes": 2035328,
+      "replacements": {
+        "<HOME>": 1
+      },
+      "changed": true,
+      "lines_original": 17170,
+      "lines_anonymized": 17170,
+      "stored_as": "gzip (mtime 0, no embedded name); anonymized_sha256 is of the UNCOMPRESSED sanitized text",
+      "stored_gz_sha256": "19d0c1bb46db5609a771940f762d683b1ebb92f2e8fd10c64b32e3e4b62a97fa",
+      "stored_gz_bytes": 255277,
+      "deposited_compressed_original": "results/tau2_open/logs_gz/llama_server_8082.log.gz",
+      "deposited_compressed_original_sha256": "d40468d1f866cf686a0144c992047cdc7ffbc370309001a1de6764db759c89b5",
+      "deposited_compressed_original_decompresses_to_this_original": true
+    },
+    {
+      "file": "results/tau2_open/raw/tau2_open_armA.json",
+      "anonymized_copy": "results/tau2_open/release_anon/results/tau2_open/raw/tau2_open_armA.json.gz",
+      "original_sha256": "887c66a23c2c1c2188279ce658efb15436648a9e26251b62f569521df4845fd8",
+      "original_bytes": 14835545,
+      "anonymized_sha256": "dbe16d6dbec879f20fc9143dca617c189a8dc68253e9d54cfe92275c45571e77",
+      "anonymized_bytes": 14830094,
+      "replacements": {
+        "<TMP>": 48,
+        "<HOME>": 5
+      },
+      "changed": true,
+      "lines_original": 343880,
+      "lines_anonymized": 343880,
+      "stored_as": "gzip (mtime 0, no embedded name); anonymized_sha256 is of the UNCOMPRESSED sanitized text",
+      "stored_gz_sha256": "acd6e98f593c3e9bfdc54cd39a11c2554395fd9c6e3e68821cae1c369914618b",
+      "stored_gz_bytes": 1318701,
+      "deposited_compressed_original": "results/tau2_open/raw_gz/tau2_open_armA.json.gz",
+      "deposited_compressed_original_sha256": "0d361d7c1f5c47f653a8c8f2daa425f22278b13455999b5eff9d7b864882dc87",
+      "deposited_compressed_original_decompresses_to_this_original": true,
+      "json_parses": true,
+      "numeric_boolean_null_leaves": 174668,
+      "numeric_boolean_null_leaves_identical": true
+    }
+  ],
+  "scan_of_anonymized_tree": {
+    "n_files": 16,
+    "indicators_searched": [
+      "macOS user-directory path",
+      "linux home-directory path",
+      "account name (case-insensitive)",
+      "6-character prefix of the account name",
+      "host names",
+      "per-session and per-user temp paths",
+      "session ids",
+      "e-mail patterns"
+    ],
+    "hits": [],
+    "clean": true,
+    "email_addresses_by_domain": {
+      "example.com": 80,
+      "airline.com": 10
+    },
+    "email_note": "all e-mail addresses in the tree are tau2 benchmark records (example.com) or model-generated dialogue text (airline.com, delta.com); an address at any other domain is reported as a hit"
+  },
+  "clean_originals": [
+    "experiments/tau2_open/analysis.py",
+    "experiments/tau2_open/build_episodes.py",
+    "experiments/tau2_open/check_analysis_consistency.py",
+    "experiments/tau2_open/common.py",
+    "experiments/tau2_open/design.py",
+    "experiments/tau2_open/deviation_1_erratum.md",
+    "experiments/tau2_open/deviation_1_runaway_generation.md",
+    "experiments/tau2_open/make_figures_final.py",
+    "experiments/tau2_open/make_release_anon.py",
+    "experiments/tau2_open/make_round10_handoff.py",
+    "experiments/tau2_open/protocol_addendum_round10.md",
+    "experiments/tau2_open/protocol_addendum_round9.md",
+    "experiments/tau2_open/run_tau2_open.py",
+    "results/tau2_open/all_attempt_accounting.csv",
+    "results/tau2_open/all_attempt_accounting.md",
+    "results/tau2_open/analysis_consistency_check.json",
+    "results/tau2_open/analysis_stdout.log",
+    "results/tau2_open/decision_rules.csv",
+    "results/tau2_open/design.json",
+    "results/tau2_open/design.sha256",
+    "results/tau2_open/dryrun/decision_rules.csv",
+    "results/tau2_open/dryrun/design.json",
+    "results/tau2_open/dryrun/design.sha256",
+    "results/tau2_open/dryrun/episodes.csv",
+    "results/tau2_open/dryrun/monitor_pass1.csv",
+    "results/tau2_open/dryrun/monitor_state.json",
+    "results/tau2_open/dryrun/raw/tau2_open_armA.87e6097cec654f2d83b767ef21339a0f.json",
+    "results/tau2_open/dryrun/raw/tau2_open_armA.json",
+    "results/tau2_open/dryrun/raw/tau2_open_armB.87e6097cec654f2d83b767ef21339a0f.json",
+    "results/tau2_open/dryrun/raw/tau2_open_armB.json",
+    "results/tau2_open/dryrun/report.md",
+    "results/tau2_open/dryrun/sensitivity.csv",
+    "results/tau2_open/dryrun/summary.json",
+    "results/tau2_open/dryrun/task_scores.csv",
+    "results/tau2_open/episodes.csv",
+    "results/tau2_open/monitor_pass1.csv",
+    "results/tau2_open/monitor_state.json",
+    "results/tau2_open/raw/tau2_open_armB.0bf28fc9101f442a806c625dbdbe47c7.json",
+    "results/tau2_open/raw/tau2_open_armB.json",
+    "results/tau2_open/raw_deposit_manifest.json",
+    "results/tau2_open/raw_gz/tau2_open_armB.json.gz",
+    "results/tau2_open/report.md",
+    "results/tau2_open/report_final.md",
+    "results/tau2_open/round10_handoff_numbers.json",
+    "results/tau2_open/sensitivity.csv",
+    "results/tau2_open/summary.json",
+    "results/tau2_open/task_scores.csv",
+    "results/tau2_open/unit_policy_flags.csv",
+    "reviews/tau2_open_final_verification.md",
+    "reviews/tau2_open_final_verify.py"
+  ],
+  "originals_with_identifiers": [
+    {
+      "file": "results/tau2_open/logs_gz/llama_server_8081.log.gz",
+      "indicators": [
+        "macOS user-directory path",
+        "account name"
+      ],
+      "covered_by": "results/tau2_open/release_anon/results/tau2_open/logs/llama_server_8081.log.gz"
+    },
+    {
+      "file": "results/tau2_open/logs_gz/llama_server_8082.log.gz",
+      "indicators": [
+        "macOS user-directory path",
+        "account name"
+      ],
+      "covered_by": "results/tau2_open/release_anon/results/tau2_open/logs/llama_server_8082.log.gz"
+    },
+    {
+      "file": "results/tau2_open/logs_gz/tau2_armA.invocation1_preamendment.log.gz",
+      "indicators": [
+        "macOS user-directory path",
+        "account name",
+        "temp path",
+        "session id"
+      ],
+      "covered_by": "results/tau2_open/release_anon/results/tau2_open/logs/tau2_armA.invocation1_preamendment.log.gz"
+    },
+    {
+      "file": "results/tau2_open/logs_gz/tau2_armA.log.gz",
+      "indicators": [
+        "macOS user-directory path",
+        "account name",
+        "temp path",
+        "session id"
+      ],
+      "covered_by": "results/tau2_open/release_anon/results/tau2_open/logs/tau2_armA.log.gz"
+    },
+    {
+      "file": "results/tau2_open/logs_gz/tau2_armB.log.gz",
+      "indicators": [
+        "account name",
+        "temp path",
+        "session id"
+      ],
+      "covered_by": "results/tau2_open/release_anon/results/tau2_open/logs/tau2_armB.log.gz"
+    },
+    {
+      "file": "results/tau2_open/raw/tau2_open_armA.0bf28fc9101f442a806c625dbdbe47c7.json",
+      "indicators": [
+        "macOS user-directory path",
+        "account name",
+        "temp path",
+        "session id"
+      ],
+      "covered_by": "results/tau2_open/release_anon/results/tau2_open/raw/tau2_open_armA.json.gz (byte-identical per-invocation copy of the canonical arm-A file)"
+    },
+    {
+      "file": "results/tau2_open/raw_gz/tau2_open_armA.json.gz",
+      "indicators": [
+        "macOS user-directory path",
+        "account name",
+        "temp path",
+        "session id"
+      ],
+      "covered_by": "results/tau2_open/release_anon/results/tau2_open/raw/tau2_open_armA.json.gz"
+    }
+  ],
+  "originals_with_identifiers_not_covered_by_a_copy": []
+}

@@ -1,0 +1,29 @@
+{
+  "note": "Raw tau2 results are deposited gzip-compressed (raw_gz/); the uncompressed canonical files and the byte-identical per-invocation copies stay local under raw/ (git-ignored by size policy); hashes of all are recorded here.",
+  "files": {
+    "results/tau2_open/raw/tau2_open_armA.0bf28fc9101f442a806c625dbdbe47c7.json": {
+      "bytes": 14835545,
+      "sha256": "887c66a23c2c1c2188279ce658efb15436648a9e26251b62f569521df4845fd8"
+    },
+    "results/tau2_open/raw/tau2_open_armA.json": {
+      "bytes": 14835545,
+      "sha256": "887c66a23c2c1c2188279ce658efb15436648a9e26251b62f569521df4845fd8"
+    },
+    "results/tau2_open/raw/tau2_open_armB.0bf28fc9101f442a806c625dbdbe47c7.json": {
+      "bytes": 14208179,
+      "sha256": "39a49567936fb14f5444ae6e406c43abd1cfbb21198540c8b8df585d8fa1c8f6"
+    },
+    "results/tau2_open/raw/tau2_open_armB.json": {
+      "bytes": 14208179,
+      "sha256": "39a49567936fb14f5444ae6e406c43abd1cfbb21198540c8b8df585d8fa1c8f6"
+    },
+    "results/tau2_open/raw_gz/tau2_open_armA.json.gz": {
+      "bytes": 1318975,
+      "sha256": "0d361d7c1f5c47f653a8c8f2daa425f22278b13455999b5eff9d7b864882dc87"
+    },
+    "results/tau2_open/raw_gz/tau2_open_armB.json.gz": {
+      "bytes": 1271255,
+      "sha256": "9f72ae24cbc4e7696ee960f53cb8cfdedc353498c7f3b1b3843153d15ae945d5"
+    }
+  }
+}

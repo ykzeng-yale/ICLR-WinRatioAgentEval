@@ -1,0 +1,11 @@
+# Deviation 1 (post-freeze, operational): generation cap and per-simulation time limit
+
+Recorded 2026-09-18 about 20:45 UTC by the experiment owner (session iclr-winratioagentevals-60). The frozen `protocol.md`, `config.json` and `design.json` are unchanged; this file and `config_amendment_1.json` document the amendment, and every invocation's manifest record stores the amendment content and sha256.
+
+**What happened.** Invocation 1 started at 17:38 UTC. After 5 completed arm-A units (tasks 1-5, trial 0), task 6 entered runaway generations: tau2 sends no `max_tokens`, one request produced 18,084 tokens in about 10 minutes, litellm raised `APITimeoutError`, and tau2's retry logic re-ran the whole task (attempt 2 of 4, about 70 minutes per attempt). After 2.9 hours 5 of 98 arm-A units were done. The design (196 units) could not finish in any useful time. Logs: `results/tau2_open/logs/tau2_armA.invocation1_preamendment.log`, `llama_server_8081.log`.
+
+**Amendment (applies to both arms and both roles from invocation 2 on).** `max_tokens = 1024` in the agent and user-simulator request arguments; tau2 `--timeout 1800` (wall-clock seconds per simulation; tau2 records `TerminationReason.TIMEOUT`). Truncated generations and timeouts are outcomes (failures under the reward), never exclusions. Nothing else changes: hierarchy, tolerances, guardrail margin, alpha, min_n, pairing design, task set, models, temperatures, seeds.
+
+**Outcome blindness.** The decision used only the operational failure. No arm-B outcome existed. The five completed arm-A units have at most 514 (agent) and 205 (user) completion tokens per message and durations of 47-432 s, so the cap and the limit would not have altered them; they are retained and the run resumes with `tau2 --auto-resume`. Task 6's two failed attempts left no outcome record; the unit is re-run under the amended settings like every other remaining unit.
+
+**Consequences for interpretation.** Agent behaviour under a 1,024-token response cap is part of the evaluated system for all but the five retained units (for which it is immaterial). Runaway generation is a real failure mode of the 7B model in this stack and will be visible as `finish_reason=length` responses and failed or timed-out units; their counts per arm will be reported.

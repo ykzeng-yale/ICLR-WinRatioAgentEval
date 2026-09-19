@@ -1,0 +1,12 @@
+{
+  "n_pairs_monitored": 49,
+  "alpha": 0.05,
+  "success_margin": 0.03,
+  "min_n_pairs": 20,
+  "first_win_cross": null,
+  "first_gate_cross": null,
+  "first_deploy": null,
+  "first_harm": null,
+  "note": "monitoring computed post hoc over the prespecified arrival sequence (tau2 executes arms in batches); execution never stopped early",
+  "updated_at": "2026-09-18T16:56:40Z"
+}

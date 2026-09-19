@@ -1,0 +1,86 @@
+{
+  "witness": {
+    "z=+1": {
+      "K_plus": 1.0637042315487604,
+      "K_minus": 0.9362957684512396,
+      "max": 1.0637042315487604,
+      "hedged": 1.0
+    },
+    "z=-1": {
+      "K_plus": 0.9362957684512396,
+      "K_minus": 1.0637042315487604,
+      "max": 1.0637042315487604,
+      "hedged": 1.0
+    },
+    "mean_stake": 0.0637042315487604,
+    "expected_max": 1.0637042315487604,
+    "expected_hedged": 1.0,
+    "expected_wincs_capital": 1.0,
+    "closed_form_expected_max": 1.0637042315487604,
+    "expected_wincs_bernoulli_capital": 1.0
+  },
+  "simulations": [
+    {
+      "p_win_tie_loss": [
+        0.5,
+        0.0,
+        0.5
+      ],
+      "true_mean": 0.0,
+      "reps": 2000,
+      "n": 2000,
+      "delta": 0.05,
+      "seed": 9001,
+      "ever_miss_hedged": 0.01,
+      "ever_miss_hedged_mc_se": 0.0022248595461286987,
+      "ever_miss_uncorrected_max_rule": 0.0285,
+      "ever_miss_max_mc_se": 0.0037207358143249033,
+      "ever_miss_wr_decided_hedged": 0.01,
+      "median_first_miss_time": 379.5,
+      "interval_check_streams": 100,
+      "interval_vs_capital_disagreements": 0
+    },
+    {
+      "p_win_tie_loss": [
+        0.3,
+        0.4,
+        0.3
+      ],
+      "true_mean": 0.0,
+      "reps": 2000,
+      "n": 2000,
+      "delta": 0.05,
+      "seed": 9002,
+      "ever_miss_hedged": 0.0105,
+      "ever_miss_hedged_mc_se": 0.002279226842593778,
+      "ever_miss_uncorrected_max_rule": 0.023,
+      "ever_miss_max_mc_se": 0.003351939736928455,
+      "ever_miss_wr_decided_hedged": 0.0105,
+      "median_first_miss_time": 534.0,
+      "interval_check_streams": 100,
+      "interval_vs_capital_disagreements": 0
+    },
+    {
+      "p_win_tie_loss": [
+        0.23389830508474577,
+        0.061016949152542375,
+        0.7050847457627119
+      ],
+      "true_mean": -0.4711864406779661,
+      "reps": 2000,
+      "n": 2000,
+      "delta": 0.05,
+      "seed": 9003,
+      "ever_miss_hedged": 0.01,
+      "ever_miss_hedged_mc_se": 0.0022248595461286987,
+      "ever_miss_uncorrected_max_rule": 0.0245,
+      "ever_miss_max_mc_se": 0.003456859123539749,
+      "ever_miss_wr_decided_hedged": 0.011,
+      "median_first_miss_time": 222.0,
+      "interval_check_streams": 100,
+      "interval_vs_capital_disagreements": 0
+    }
+  ],
+  "elapsed_s": 142.804053068161,
+  "note": "iid streams, so this checks the R2 (superpopulation) reading of protocol_addendum_round9.md; the max-rule column is informational (its guarantee is 2*delta by the union bound)."
+}

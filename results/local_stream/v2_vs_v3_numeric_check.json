@@ -1,0 +1,46 @@
+{
+  "what": "v2 numerical outputs regenerated with the endpoint-fixed src/wincs.py versus the Round 9 files preserved in v2_pre_round10/",
+  "wincs_sha256": {
+    "round9": "6a6a0b51bf46d64079614af3aefc364800c1862fd7635728c2949be7f2907a3b",
+    "round10": "601865d9adf0a9f1a0f20c44ef78cb18dffe33fdc3beb5d98a47d6c5199b8754"
+  },
+  "ignored_keys": [
+    "generated_at",
+    "wincs_sha256"
+  ],
+  "summary_v2_json": {
+    "n_numeric_leaves": 482,
+    "max_abs_diff": 0.0,
+    "n_changed": 0,
+    "changed": [],
+    "nonnumeric_changes": [],
+    "structural_changes": []
+  },
+  "csv": {
+    "decision_rules_v2.csv": {
+      "byte_identical": true,
+      "max_abs_diff_numeric": 0.0,
+      "nonnumeric_cells_changed": 0
+    },
+    "sensitivity_v2.csv": {
+      "byte_identical": true,
+      "max_abs_diff_numeric": 0.0,
+      "nonnumeric_cells_changed": 0
+    },
+    "running_cs_v2.csv": {
+      "byte_identical": true,
+      "max_abs_diff_numeric": 0.0,
+      "nonnumeric_cells_changed": 0
+    },
+    "resources_v2.csv": {
+      "byte_identical": true,
+      "max_abs_diff_numeric": 0.0,
+      "nonnumeric_cells_changed": 0
+    }
+  },
+  "n_csv_numeric_cells": 4256,
+  "max_abs_diff_overall": 0.0,
+  "any_v2_number_changed": false,
+  "any_v2_number_changed_beyond_1e-8": false,
+  "conclusion": "NO v2 number changed (all regenerated numeric leaves and cells equal the Round 9 values exactly)."
+}

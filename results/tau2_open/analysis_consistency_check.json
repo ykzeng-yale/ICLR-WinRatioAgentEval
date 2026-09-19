@@ -1,0 +1,136 @@
+{
+  "check": "re-run of the frozen experiments/tau2_open/analysis.py on a scratch copy of its inputs, with the src/wincs.py on disk at check time",
+  "post_hoc": true,
+  "checked_at": "2026-09-19T05:32:25Z",
+  "python": "3.12.13",
+  "scratch_dir": "<TMP>/tau2_recheck  (location-dependent; outside the repository; not deposited)",
+  "src_sha256": {
+    "src/wincs.py": "601865d9adf0a9f1a0f20c44ef78cb18dffe33fdc3beb5d98a47d6c5199b8754",
+    "src/winstats.py": "3053f8a14e033b02b514135d7043624ca34c1a1f9da9c622365d35aa7f927fd9",
+    "experiments/tau2_open/analysis.py": "36dd49e1ffab2072cec129a107e9ea9946796b15c6bd2a4f02f6b55134ec36c5",
+    "experiments/tau2_open/common.py": "14f1a15c69c7e3b1cc89deb333323e8d1f3bb7f78a2fd869f96d3f7d0abc0997",
+    "experiments/tau2_open/design.py": "2d7ef2c6c304acd13c1de37aaf634dfe221bbae84de082cdc9a37cb4603d6038",
+    "experiments/tau2_open/config.json": "12e6c6ea71354e61947a6a170ba3e44fbc48129d3200001a7527e9bf0a2b00dd"
+  },
+  "wincs_sha256_registered_in_addendum_e": "6a6a0b51bf46d64079614af3aefc364800c1862fd7635728c2949be7f2907a3b",
+  "wincs_note": "The wincs.py hash in force when the deposited summary.json was written (2026-09-19T05:01:30Z) is recorded in no saved artifact. src/wincs.py was modified by another session afterwards (mtime at check time: 2026-09-19T05:15:34Z). This check shows that the bytes now on disk reproduce the deposited numbers; it cannot show which bytes were imported at the time.",
+  "inputs_sha256": {
+    "design.json": {
+      "deposited": "c8fa5728e8a9602813ffac10ea4ef88642ef3550aa9d5a5b7028c25586186597",
+      "scratch_copy": "c8fa5728e8a9602813ffac10ea4ef88642ef3550aa9d5a5b7028c25586186597"
+    },
+    "design.sha256": {
+      "deposited": "b316631d8b31b9354fce02e5a483808459d8b6d99836e1e82635539ff3601bbe",
+      "scratch_copy": "b316631d8b31b9354fce02e5a483808459d8b6d99836e1e82635539ff3601bbe"
+    },
+    "episodes.csv": {
+      "deposited": "5abbc1ce1acdc248ecf049276621a07449228ea3d8954e5af978559f3e11922f",
+      "scratch_copy": "5abbc1ce1acdc248ecf049276621a07449228ea3d8954e5af978559f3e11922f"
+    },
+    "run_manifest.json": {
+      "deposited": "5ee827214337991a1f860d5158ed77d3f29f4169069191eecdb1ec04055f70d6",
+      "scratch_copy": "5ee827214337991a1f860d5158ed77d3f29f4169069191eecdb1ec04055f70d6"
+    },
+    "raw/tau2_open_armA.json": {
+      "deposited": "887c66a23c2c1c2188279ce658efb15436648a9e26251b62f569521df4845fd8",
+      "scratch_copy": "887c66a23c2c1c2188279ce658efb15436648a9e26251b62f569521df4845fd8"
+    },
+    "raw/tau2_open_armB.json": {
+      "deposited": "39a49567936fb14f5444ae6e406c43abd1cfbb21198540c8b8df585d8fa1c8f6",
+      "scratch_copy": "39a49567936fb14f5444ae6e406c43abd1cfbb21198540c8b8df585d8fa1c8f6"
+    }
+  },
+  "deposited_summary_sha256": "15353593b90d32d8d1d52301773e43b33276a556be304d9ece4b860bab590e14",
+  "scratch_summary_sha256": "58e5deca63a5e43669995db0e29e6e5d5707639398939668c017d4beeabd8b8d",
+  "ignored_top_level_keys": {
+    "generated_at": "timestamp",
+    "results_dir": "path of the results directory (scratch versus deposited)"
+  },
+  "ignored_nested_paths": {
+    "/monitor_state/updated_at": "timestamp"
+  },
+  "ignored_values": {
+    "deposited": {
+      "generated_at": "2026-09-19T05:01:30Z",
+      "results_dir": "results/tau2_open"
+    },
+    "scratch": {
+      "generated_at": "2026-09-19T05:32:25Z",
+      "results_dir": "<TMP>/tau2_recheck"
+    }
+  },
+  "summary_leaves_compared": 703,
+  "summary_numeric_leaves_compared": 438,
+  "summary_differences": [],
+  "every_number_in_summary_equal": true,
+  "all_other_outputs_identical_up_to_timestamp_and_path": true,
+  "comparison": "exact equality of parsed JSON values (no tolerance)",
+  "other_outputs": {
+    "decision_rules.csv": {
+      "deposited_sha256": "f61a8e1f2acc51eb3dacae804b263976fc61344753911b9b8355cb8fe3e438f6",
+      "scratch_sha256": "f61a8e1f2acc51eb3dacae804b263976fc61344753911b9b8355cb8fe3e438f6",
+      "byte_identical": true
+    },
+    "sensitivity.csv": {
+      "deposited_sha256": "2fa44233b2fdf79d30612f43f8efe48d3e12518a9a18a9c4139976d7780be618",
+      "scratch_sha256": "2fa44233b2fdf79d30612f43f8efe48d3e12518a9a18a9c4139976d7780be618",
+      "byte_identical": true
+    },
+    "task_scores.csv": {
+      "deposited_sha256": "55754560ea46db257d7abe969ba1f270d83cd2aa50a1ded4568149688b2c7e58",
+      "scratch_sha256": "55754560ea46db257d7abe969ba1f270d83cd2aa50a1ded4568149688b2c7e58",
+      "byte_identical": true
+    },
+    "monitor_pass1.csv": {
+      "deposited_sha256": "c080615aa319cb3657cbb5e3ce7c80ccfe3da5e629067eb65d24c266fca76340",
+      "scratch_sha256": "c080615aa319cb3657cbb5e3ce7c80ccfe3da5e629067eb65d24c266fca76340",
+      "byte_identical": true
+    },
+    "monitor_state.json": {
+      "deposited_sha256": "0e01fd00c51063adc1051806356f5b50fd28b51bbbbfef7bc2267d41396be6e4",
+      "scratch_sha256": "1d0828e11cc9700c4522c29fda4b1faf3adee275f719fd576f03f0ed6e590e39",
+      "byte_identical": false,
+      "differing_lines": [
+        {
+          "line": 11,
+          "deposited": "  \"updated_at\": \"2026-09-19T05:01:30Z\"",
+          "scratch": "  \"updated_at\": \"2026-09-19T05:32:25Z\""
+        }
+      ],
+      "differs_only_in_timestamp_or_results_dir_path": true,
+      "n_lines": [
+        12,
+        12
+      ]
+    },
+    "report.md": {
+      "deposited_sha256": "094fe00407c89297dc533bc7fbb5a77e32a2fd5d3011cf16d664af8f3c2d1d17",
+      "scratch_sha256": "1903c5e1d4c25f8774460ade649a6a899a3a104fc1844e1e79dafece41f3eceb",
+      "byte_identical": false,
+      "differing_lines": [
+        {
+          "line": 3,
+          "deposited": "Generated 2026-09-19T05:01:30Z from `results/tau2_open`. Scores are B (agent qwen3-4b-instruct-2507) vs A (agent qwen2.5-7b-instruct); user simulator qwen2.5-7b",
+          "scratch": "Generated 2026-09-19T05:32:25Z from `<TMP>/tau2_recheck`. Scores are B (agent qwen3-4b-instruct-2507) vs A (agent qwen2.5-7b-instruct); user simulator qwen2.5-7"
+        }
+      ],
+      "differs_only_in_timestamp_or_results_dir_path": true,
+      "n_lines": [
+        95,
+        95
+      ]
+    }
+  },
+  "deposited_outputs_untouched": true,
+  "deposited_outputs_sha256": {
+    "summary.json": "15353593b90d32d8d1d52301773e43b33276a556be304d9ece4b860bab590e14",
+    "decision_rules.csv": "f61a8e1f2acc51eb3dacae804b263976fc61344753911b9b8355cb8fe3e438f6",
+    "sensitivity.csv": "2fa44233b2fdf79d30612f43f8efe48d3e12518a9a18a9c4139976d7780be618",
+    "task_scores.csv": "55754560ea46db257d7abe969ba1f270d83cd2aa50a1ded4568149688b2c7e58",
+    "monitor_pass1.csv": "c080615aa319cb3657cbb5e3ce7c80ccfe3da5e629067eb65d24c266fca76340",
+    "monitor_state.json": "0e01fd00c51063adc1051806356f5b50fd28b51bbbbfef7bc2267d41396be6e4",
+    "report.md": "094fe00407c89297dc533bc7fbb5a77e32a2fd5d3011cf16d664af8f3c2d1d17"
+  },
+  "analysis_elapsed_s": 0.94,
+  "analysis_stdout_tail": "{\n  \"online\": {\n    \"n_pairs\": 49,\n    \"net_benefit\": 0.020408163265306117,\n    \"nb_cs\": [\n      -0.3660352820036362,\n      0.40631790063819107\n    ],\n    \"guarded_decision\": \"inconclusive\"\n  },\n  \"shadow\": {\n    \"n_tasks\": 49,\n    \"net_benefit\": 0.005102040816326536,\n    \"nb_ci\": [\n      -0.1107687809027074,\n      0.12097286253536048\n    ],\n    \"decision_hierarchical\": \"inconclusive\"\n  }\n}\n"
+}
