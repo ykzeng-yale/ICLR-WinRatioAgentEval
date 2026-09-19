@@ -1,0 +1,163 @@
+{
+  "what": "Round 10 (v3) re-analysis manifest for the local stream; POST HOC; no model inference, no generated program executed",
+  "started_at": "2026-09-19T05:28:23Z",
+  "finished_at": "2026-09-19T05:29:05Z",
+  "python": "3.12.13",
+  "command": ".venv/bin/python experiments/local_stream/run_v3_all.py",
+  "raw_evidence_sha256": {
+    "episodes.jsonl": "95179f93acf72597c9b15257863ffee6acceed19414cf2b630beed62ec0effa0",
+    "monitor_pass1.csv": "67504351725acbf51de936ae0ee9b9361de7fd7d73c58ca529987547ac4621a6",
+    "monitor_state.json": "daeca32682832150f7485b15fb46d7ef15b5e2c78a590b09bee4b706f4ef1773",
+    "design.json": "6175b81562efe1b1c87b113050f70c5daab2143e272cba39fb9a796f0d645457",
+    "design.sha256": "f50b77f37899f456610e99deb33b7ba91abd4692de0c9473599f3e0adde4bbb0",
+    "run_manifest.json": "f2efc949ff13745aae0b2c5f902de6af05087a606c03803a6e9bc0a25815aa4f"
+  },
+  "raw_evidence_unchanged_by_this_run": true,
+  "raw_evidence_equals_round9_manifest": true,
+  "src_sha256": {
+    "wincs.py": "601865d9adf0a9f1a0f20c44ef78cb18dffe33fdc3beb5d98a47d6c5199b8754",
+    "test_wincs.py": "87e3be85e1cc24f3a993d677548a2ba1f4b03673c2e146f1bec93cef58412e21",
+    "winstats.py": "3053f8a14e033b02b514135d7043624ca34c1a1f9da9c622365d35aa7f927fd9"
+  },
+  "src_sha256_round9": {
+    "wincs.py": "6a6a0b51bf46d64079614af3aefc364800c1862fd7635728c2949be7f2907a3b",
+    "test_wincs.py": "316de8e2a3d613684860759d788d9c12f103dec40cf83bece88902556de696a3",
+    "winstats.py": "3053f8a14e033b02b514135d7043624ca34c1a1f9da9c622365d35aa7f927fd9"
+  },
+  "v3_scripts_sha256": {
+    "analysis_v3.py": "c40bb3fc0304e36a745976872f852736a06e9f60466b197b78d740503ff638a0",
+    "make_report_v3.py": "3264f21a926c3d2b9cfa7c39bd9a7ed4e2e134e758c4d75e3a6d9fe3c5583aa3",
+    "make_release_anon_v3.py": "a01d437b93d470f65f81d062acd9db5aa813a957e11767b9c8ed2d4892790d25",
+    "run_v3_all.py": "62d70fd130432c0956da37cdd20b533ab5cb5ecbd8210ce8dc73bf820e6520fc",
+    "protocol_addendum_round10.md": "790cd549f2f6d365cdcd3a8eed21ce96108e129e114e9901cc38ec9ac2fdd6d6"
+  },
+  "round9_scripts_sha256_unchanged": {
+    "analysis_v2.py": "40f31034d58a06f789170759d781cea8a67cbffb0d9e404254988ccf5f56c92e",
+    "make_figures_v2.py": "1c1d2fb7185eba28646d73c5cd97c4e9f6e2c8107c01c4dc63333d5d3b1746ec",
+    "make_report_v2.py": "0abdfde4af589e016a9bfa80e37baa53fe6efeb5d0c3e98013a6f7c496774e5a",
+    "check_two_sided_cs.py": "3dbe064fd728a26520e97a95d54a1b3015c72400c3c05627a48122ff48ccd5e8",
+    "verify_data_manifest.py": "91bb6d64c663cfab4ab997c4d4dffb69ce9f211a4fcd54b13fd9b05c88b1d95a",
+    "make_release_anon.py": "df4cca9592da967c36c75c58b3bb0468ca68fb1f3156a90336c959052536f2e7",
+    "run_v2_all.py": "91ac6b658d8edfba29f97657485301240e4d5de7db94dee9f5a05eac3df220d6",
+    "protocol_addendum_round9.md": "fa39bcc42b2a70c40e6d6d15e8dbc1329a1f41c9d8df991feafb70f49bad64f1"
+  },
+  "frozen_files_sha256": {
+    "protocol.md": "14a5a81a62fc3144135e463fb8138d2b11b3f1f19b1b9bafec723d49c52242d9",
+    "analysis.py": "f1f0a05ff6d814252f1ec92cb218e51839ecc1154e75be24da9d6ef425ec3ca5",
+    "run_stream.py": "3c4e0782ade99c10e1ac9b063360bb2837d64d914255070fb46bd29cb5220417",
+    "agent.py": "3cf2056330c72ebd5d2884f48d6ec2daa706fcc685ad67e3c2609d809ff75b64",
+    "sandbox.py": "d461570937ddbe1fb241288721a1a06b44bd41dd72ccdc2e2ffa2f144184c6ff",
+    "verify.py": "7473678b1990ca2a5a1900b45251fddcd2882f2b371d76d3a59fe669a607dbb6",
+    "design.py": "3cf14e9502d3c6135ef54e62ec5ffc4d9d65939fccc31c7996fef8ec3b5497ec",
+    "data.py": "ae630675f43786bcf7483ff90d4c641ab9a6c7c16202de456d96b03f19321405",
+    "config.json": "0b40e6530ff70660116d409ad3887e0999ab5d73fa43af1f88fd93df032f4b73",
+    "common.py": "cdee8821250c315b183769806d84495f3055cad14e0e70809c33aab8a6458a42",
+    "make_figures.py": "e463e39d5ddf089d94a34bdd658874414ef00b8c545e95c081bca24d799f603d"
+  },
+  "outputs_sha256": {
+    "summary_v3.json": "35880a11628088c8f9b836f2b954c72d3cc11fe9147d1960516b5a7eaaa05ab5",
+    "decision_rules_v3.csv": "386072974c10882f8ac97f039542f9679907ae6763ab64f8ed21db4e92899c02",
+    "e2_cluster_v3.csv": "123acaca6d35bc91b1715312cff39d45b982787fab0713205f5324226fa91870",
+    "pass_effects_v3.csv": "458b684a169837fdf3db715d5ae16b5c9f580bd2f9903b3926e71df8fbdc149c",
+    "report_v3.md": "0a534fd6bacf10e1e28e01e0aa06f57966cb0f6aa5b0d1fdcc2fa07e11a8e378",
+    "report.md": "130b044ea7dd4fa1c11e39c0c1b501e5c08a02635a3853f70b92455ed8c75227",
+    "report_v2.md": "c9e257040224c03a705bdd417e6ba82125165607823851c3efae44759e36ea10",
+    "v2_vs_v3_numeric_check.json": "615c24c724e32717cc90c5efc48085222b1d7c7a2b67cf4cf6876c4ea547e45f",
+    "summary_v2.json": "ec6a983833852ba4f5676b57677dfa9968a8adda8f4c5563087e70a1ecdb39b9",
+    "two_sided_cs_check.json": "20224337461390ef191f07b88511a45cec2f4c7a5b0f07f5804935cedb8dfa8b",
+    "data_manifest.json": "df0cd99b2795c750adea1d3972862b7a876e9b4893058b92e98ef5250de27064",
+    "release_anon/MAPPING.json": "a63271e8c28acb191d6c816f95971b7147e7b0dca5aeecb9247e8084cc703520",
+    "release_anon/MAPPING.md": "816dc4841629a972fe781c5b53867e5103445115f04d544946a9da51fe0068d3",
+    "release_anon/local_data_manifest.anon.json": "5f28f427514f5a576f4f39f93351226e94543d19790cc388ca0df759fc2e54c0",
+    "PR8_BODY_round10.md": "f79296413e4e32e9fbe10706ac844d7b095549b2eefc46e9788237124be63cff",
+    "decision_rules_v2.csv": "73d2714d4092785936025c7240532afee914d968abf7a0b0e87efe5ba670295b",
+    "sensitivity_v2.csv": "b9a8c0f5ce6acd9fd947bd9c675775a24fe8d7ed285f65d3270aae6b69e05bf8",
+    "running_cs_v2.csv": "c2599f6a3479e58f1c9d89b8afca45bccc9e69a611195d0f88926caf5ff9555f",
+    "resources_v2.csv": "6395a8a4e3d0c8a2bfdeedb9d9fb514b94e725cf1ad82fbe3ea639d1f3e82137"
+  },
+  "v2_numeric_check": {
+    "max_abs_diff_overall": 0.0,
+    "any_v2_number_changed": false,
+    "conclusion": "NO v2 number changed (all regenerated numeric leaves and cells equal the Round 9 values exactly).",
+    "csv_byte_identical": {
+      "decision_rules_v2.csv": true,
+      "sensitivity_v2.csv": true,
+      "running_cs_v2.csv": true,
+      "resources_v2.csv": true
+    }
+  },
+  "two_sided_cs_check": "not re-run in this invocation (file as left by the last run that used --with-cs-check)",
+  "figures": "figures_v2/ are the Round 9 files (not regenerated; numerical inputs unchanged); report_v3.md re-captions them",
+  "v2_pre_round10_sha256": {
+    "README.md": "e0a161f5d5dc1166f22864758c10400e57139f37177aee90f34393c3e3195e89",
+    "analysis_v2_manifest.json": "278ff5cd8f208ff1274534157a0605600512a7d2455b207ff85ab13f39e4cb26",
+    "data_manifest.json": "df0cd99b2795c750adea1d3972862b7a876e9b4893058b92e98ef5250de27064",
+    "decision_rules_v2.csv": "73d2714d4092785936025c7240532afee914d968abf7a0b0e87efe5ba670295b",
+    "figures_v2/fig1_monitoring.png": "a5ee22d2653b8b222a6aede0f42d8e3c811414336ada5ed881b7d8ee36801b28",
+    "figures_v2/fig2_running_nb.png": "fb1778c575e0141049f9681212bff71444659b0d18f85daaf7c925d82ce91c3e",
+    "figures_v2/fig3_tier_decomp.png": "016fb3a7bb6a4d9deccc4b58a10ba4b35df84a94ea6a22b1b295925ec44e4d98",
+    "figures_v2/fig4_latency_scatter.png": "899fef896308a2dd2f0cc9a5ffc6058af93e77ba6c5c967ecac359381874ce91",
+    "release_anon/MAPPING.json": "669eebcde1d3aeb5d67e51112cde0ad2837719e66d595c365c9694523c848eb2",
+    "release_anon/MAPPING.md": "c4c464318bcf50b798b703e8dabe19d741012e725b585f5ea2f7f7e334922fbf",
+    "report.md": "1777e04a987cc8cef91c8c12ccb5e0fe0fe5a28863933535fba23b90fb7d141c",
+    "report_v2.md": "b16d0814ca364f7f09c3a1ce09c389a8664cfbba359ece938dabcb8af0dae5ed",
+    "resources_v2.csv": "6395a8a4e3d0c8a2bfdeedb9d9fb514b94e725cf1ad82fbe3ea639d1f3e82137",
+    "running_cs_v2.csv": "c2599f6a3479e58f1c9d89b8afca45bccc9e69a611195d0f88926caf5ff9555f",
+    "sensitivity_v2.csv": "b9a8c0f5ce6acd9fd947bd9c675775a24fe8d7ed285f65d3270aae6b69e05bf8",
+    "summary_v2.json": "2515a92c0ad8387d18f9691216255af8e3cfbb7610145431eef4636558aa37a2",
+    "test_wincs_v2.py.txt": "316de8e2a3d613684860759d788d9c12f103dec40cf83bece88902556de696a3",
+    "two_sided_cs_check.json": "24858af1eb5966f4d6fef6d2b6835f8e2411fa61555f567532fe15ae0c3addd0",
+    "wincs_v2_pre_endpoint_fix.py.txt": "6a6a0b51bf46d64079614af3aefc364800c1862fd7635728c2949be7f2907a3b"
+  },
+  "v1_preserved_sha256": {
+    "README.md": "604d60c2ba894a691b20fce11d859f6223efa60be53fb9a06661e53942fd5729",
+    "analysis_stdout.log": "f2adb63a37794eda2eef11d4341db9ea425b20e6e4d94c6a7f2cec9561a380e5",
+    "decision_rules.csv": "45a09b1b6231f84b62a6799c40110f99da175b30fca4c6c44bc613cab665c944",
+    "episodes_flat.csv": "1237b82f99c5ea8ad1e319e0ec45873ba85a2ff13d670d508d78ae06547bd540",
+    "report.md": "9023783dc4328f204510a2a34fba4df2ece6d33e43d78e464558f4c446358b92",
+    "sensitivity.csv": "964b7cfc033856a232fa25e6b1eb87b9a136c113cbdf68b0cf66aa08549facc7",
+    "summary.json": "778f2f4f896aed76c4d2d746b67308dc3a24fd79b9b04cd9193e0e4c6767ef78",
+    "task_scores.csv": "8438877ca6b2dbdcb3b9f7088a7c70cf3a45ffaebbe341f856f9ca72eb32c4ce",
+    "test_wincs_v1.py.txt": "97086887f6ed1ddfaeec1e33d91371601e19017ce4bedea8644af691e38737de",
+    "wincs_v1_uncorrected.py.txt": "714b21fe041b7fbe62b21f6a91c301e22e9fe4c1b492161505ecdf4b3ea292a4"
+  },
+  "steps": [
+    {
+      "step": "test_wincs.py",
+      "args": [],
+      "returncode": 0,
+      "seconds": 40.3
+    },
+    {
+      "step": "verify_data_manifest.py",
+      "args": [],
+      "returncode": 0,
+      "seconds": 0.1
+    },
+    {
+      "step": "analysis_v2.py",
+      "args": [],
+      "returncode": 0,
+      "seconds": 1.2
+    },
+    {
+      "step": "analysis_v3.py",
+      "args": [],
+      "returncode": 0,
+      "seconds": 0.6
+    },
+    {
+      "step": "make_report_v3.py",
+      "args": [],
+      "returncode": 0,
+      "seconds": 0.0
+    },
+    {
+      "step": "make_release_anon_v3.py",
+      "args": [],
+      "returncode": 0,
+      "seconds": 0.1
+    }
+  ],
+  "note": "summary_v2.json, summary_v3.json and report_v3.md contain a generation timestamp. Anonymized-copy regeneration is location-dependent (see release_anon/MAPPING.md)."
+}

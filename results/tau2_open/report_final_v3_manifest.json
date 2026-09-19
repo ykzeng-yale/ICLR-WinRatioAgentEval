@@ -1,0 +1,57 @@
+{
+  "kind": "owner-document cleanup (Round 13); report-only; no model call; no analysis rerun",
+  "source": "results/tau2_open/report_final_v2.md",
+  "source_sha256": "11f5691e54ac2603e229a10524685b69d91035620d20fe8748e500efc257b3cc",
+  "output": "results/tau2_open/report_final_v3.md",
+  "output_sha256": "4295a7253aa1c25877b5c0471b3dd076be4289964ab10babe1eece9f34254f78",
+  "reviewed_owner_head": "01f2381940fcf5bc57129f1498382cb40f3ea741",
+  "root_review_commit": "a2eee58526f0ce3cef913fa8156ae34601d1b597",
+  "replacements": [
+    {
+      "label": "item 1: precedence of governing documents (header)",
+      "old_sha256": "f60353acc0b00c41e3d0165d50ec7a4d42c1117207128262ca11369d8f69aaa6",
+      "new_sha256": "57bbd64dc1c6850b371f292ae40d82319cd4b6680dc26ca9b2473a9940403a61"
+    },
+    {
+      "label": "item 1: governing text of section 12",
+      "old_sha256": "a50812876c0c01bdfbaa7023903f11acd384369b9476892c469df81949e39d53",
+      "new_sha256": "94a32d24797d334de9bd8f2177c716bafddc03fe2e2bef61d9cb7b646f9e37a0"
+    },
+    {
+      "label": "item 5: banner describes the replacements and the manifest accurately",
+      "old_sha256": "0e2a6c441ff46cd323e67f2302085f85a724023652b9257f7ac44582177224b4",
+      "new_sha256": "9c7e0fe98e0ba5eade07831b35fc88ca14125429c3c5bc0597debd1dc5f9d1d4"
+    },
+    {
+      "label": "item 5: manifest holds digests, generator holds text",
+      "old_sha256": "cd85ec280177f6914a932c0a7be1519602451375463e3d83323a035747b2ec22",
+      "new_sha256": "c6268ceb80aaef6588dffd9cc5c487a82e1f03912204a5b48f6d8b63c9b3ca2d"
+    },
+    {
+      "label": "item 5 / token-role precision: summary sentence",
+      "old_sha256": "6b481a77075109648627889863413c08dc5bcd0909dea236ffc506be0c8620f4",
+      "new_sha256": "5313d0daa7bdf06834299e56bfe7bba7381b261713460aa21948a069215a1c62"
+    },
+    {
+      "label": "item 2: placeholder sensitivity sentence",
+      "old_sha256": "de5019d7e85f247ee5662a05527e95c6b402dd1ef99123e609ef13c6caa78dd4",
+      "new_sha256": "8a70bb4a423e278b4f1a8ccf51f1c49169b978bc099f15216188a679f16f611e"
+    },
+    {
+      "label": "item 3: abstention scoped to the primary rules (a)",
+      "old_sha256": "c421cec46a096358fc8af3fd215c933bf73f99621f931181e18bca96a5897119",
+      "new_sha256": "7fb3f585dbaa3357dbfe280c2d3a0422e5aec813460ff2ddb64c2f2a7d0d9d24"
+    },
+    {
+      "label": "item 3: abstention scoped to the primary rules (b)",
+      "old_sha256": "f6dfa6b4416bb2f507295b91a994fdc6b70a241d34a2c9a9be5b526f029b8740",
+      "new_sha256": "1abcb0c2de2a43ae9b3c3cffd8913afcb1adaea02dae5b8d7a8bab33adbe7d2d"
+    },
+    {
+      "label": "item 4: radius extrapolation is specific to this boundary and rho",
+      "old_sha256": "7d0e95fbd68e8c009335d7cbc79d9ac09e6193b2c1537a165415b86e3e67028b",
+      "new_sha256": "9d0671cdd03a8c19c3e20fa50781dd0be81fcc6e57b1f25e794af4acac8c9731"
+    }
+  ],
+  "note": "replacements hold sha256 digests of the passages; the passage text is in the generator"
+}

@@ -1,0 +1,734 @@
+{
+ "generated_by": "experiments/tau2_open/make_figures_final.py",
+ "inputs": {
+  "episodes.csv": "5abbc1ce1acdc248ecf049276621a07449228ea3d8954e5af978559f3e11922f",
+  "summary.json": "15353593b90d32d8d1d52301773e43b33276a556be304d9ece4b860bab590e14",
+  "monitor_pass1.csv": "c080615aa319cb3657cbb5e3ce7c80ccfe3da5e629067eb65d24c266fca76340",
+  "design.json": "c8fa5728e8a9602813ffac10ea4ef88642ef3550aa9d5a5b7028c25586186597",
+  "run_manifest.json": "5ee827214337991a1f860d5158ed77d3f29f4169069191eecdb1ec04055f70d6"
+ },
+ "raw": {
+  "A": {
+   "raw_file": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/results/tau2_open/raw/tau2_open_armA.json",
+   "raw_sha256": "887c66a23c2c1c2188279ce658efb15436648a9e26251b62f569521df4845fd8",
+   "n_units": 98,
+   "n_success": 15,
+   "success_by_trial": {
+    "0": 6,
+    "1": 9
+   },
+   "termination_reasons": {
+    "user_stop": 55,
+    "too_many_errors": 14,
+    "infrastructure_error": 2,
+    "max_steps": 27
+   },
+   "n_timeout_terminations": 0,
+   "per_trial_seed_field": {
+    "0:626729": 49,
+    "1:373753": 49
+   },
+   "info_block": {
+    "agent_llm": "openai/qwen2.5-7b-instruct",
+    "agent_llm_args": {
+     "temperature": 0.3,
+     "api_base": "http://127.0.0.1:8081/v1"
+    },
+    "user_llm": "openai/qwen2.5-7b-instruct",
+    "user_llm_args": {
+     "temperature": 0.0,
+     "api_base": "http://127.0.0.1:8081/v1"
+    },
+    "seed": 300,
+    "git_commit": "b7ea9074c1cba482b30687fecdb5c8425fd6f619"
+   },
+   "infrastructure_error_units": [
+    {
+     "task": "6",
+     "trial": 0,
+     "seed": 626729,
+     "n_messages": 0,
+     "duration": 0.0,
+     "reward_info_is_null": true,
+     "error_type": "JSONDecodeError",
+     "error": "Unterminated string starting at: line 1 column 185 (char 184)"
+    },
+    {
+     "task": "32",
+     "trial": 1,
+     "seed": 373753,
+     "n_messages": 0,
+     "duration": 0.0,
+     "reward_info_is_null": true,
+     "error_type": "BadRequestError",
+     "error": "litellm.BadRequestError: OpenAIException - request (32836 tokens) exceeds the available context size (32768 tokens), try increasing it"
+    }
+   ],
+   "units_with_missing_reward": [
+    [
+     "6",
+     0
+    ],
+    [
+     "32",
+     1
+    ]
+   ],
+   "finish_reasons": {
+    "user:stop": 1720,
+    "assistant:stop": 1642,
+    "assistant:tool_calls": 839,
+    "assistant:length": 4
+   },
+   "served_model_ids": {
+    "user:qwen2.5-7b-instruct": 1720,
+    "assistant:qwen2.5-7b-instruct": 2485
+   },
+   "llm_calls": {
+    "user": 1720,
+    "assistant": 2485
+   },
+   "messages_without_usage": {
+    "assistant": 96
+   },
+   "tokens": {
+    "user_prompt": 4373819,
+    "user_completion": 85101,
+    "assistant_prompt": 20412368,
+    "assistant_completion": 248996
+   },
+   "max_completion_tokens_per_response": {
+    "user": 460,
+    "assistant": 1024
+   },
+   "response_raw_data_keys": [
+    "choices",
+    "created",
+    "id",
+    "model",
+    "object",
+    "service_tier",
+    "system_fingerprint",
+    "timings",
+    "usage"
+   ],
+   "truncated_responses_length": {
+    "agent": 4,
+    "user": 0
+   },
+   "units_with_truncated_response": [
+    {
+     "task": "22",
+     "trial": 0,
+     "success": false,
+     "termination": "too_many_errors"
+    },
+    {
+     "task": "24",
+     "trial": 0,
+     "success": false,
+     "termination": "user_stop"
+    },
+    {
+     "task": "24",
+     "trial": 1,
+     "success": false,
+     "termination": "user_stop"
+    },
+    {
+     "task": "31",
+     "trial": 1,
+     "success": true,
+     "termination": "user_stop"
+    }
+   ],
+   "agent_generation_seconds_total": 11971.936521640979,
+   "duration_total_s": 15851.15660412237,
+   "duration_min_median_max": [
+    0.0,
+    119.95779243763536,
+    899.0712691675872
+   ],
+   "n_units_duration_over_1800s": 0,
+   "first_start_local": "2026-09-18T13:38:44.918308",
+   "last_end_local": "2026-09-18T21:34:30.575482",
+   "pre_amendment_units": [
+    {
+     "task": "1",
+     "trial": 0,
+     "start_local": "2026-09-18T13:38:44.918308",
+     "duration": 46.9,
+     "termination": "user_stop",
+     "reward": 0.0,
+     "max_agent_completion": 85,
+     "max_user_completion": 48
+    },
+    {
+     "task": "2",
+     "trial": 0,
+     "start_local": "2026-09-18T13:39:32.025688",
+     "duration": 432.3,
+     "termination": "too_many_errors",
+     "reward": 0.0,
+     "max_agent_completion": 514,
+     "max_user_completion": 205
+    },
+    {
+     "task": "3",
+     "trial": 0,
+     "start_local": "2026-09-18T13:46:44.424425",
+     "duration": 91.9,
+     "termination": "user_stop",
+     "reward": 1.0,
+     "max_agent_completion": 179,
+     "max_user_completion": 91
+    },
+    {
+     "task": "4",
+     "trial": 0,
+     "start_local": "2026-09-18T13:48:16.629472",
+     "duration": 59.1,
+     "termination": "user_stop",
+     "reward": 1.0,
+     "max_agent_completion": 120,
+     "max_user_completion": 70
+    },
+    {
+     "task": "5",
+     "trial": 0,
+     "start_local": "2026-09-18T13:49:15.987690",
+     "duration": 109.9,
+     "termination": "user_stop",
+     "reward": 0.0,
+     "max_agent_completion": 308,
+     "max_user_completion": 56
+    }
+   ],
+   "replicates": {
+    "n_tasks": 49,
+    "n_tasks_both_trials_nonempty": 47,
+    "n_identical_trajectories": 0,
+    "n_identical_first_user_message": 47,
+    "n_identical_first_agent_reply": 19,
+    "n_tasks_success_both_trials": 2,
+    "n_tasks_success_exactly_one_trial": 11,
+    "tasks_with_any_success": [
+     "1",
+     "2",
+     "3",
+     "4",
+     "9",
+     "10",
+     "11",
+     "27",
+     "28",
+     "31",
+     "34",
+     "36",
+     "41"
+    ]
+   }
+  },
+  "B": {
+   "raw_file": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/results/tau2_open/raw/tau2_open_armB.json",
+   "raw_sha256": "39a49567936fb14f5444ae6e406c43abd1cfbb21198540c8b8df585d8fa1c8f6",
+   "n_units": 98,
+   "n_success": 15,
+   "success_by_trial": {
+    "0": 8,
+    "1": 7
+   },
+   "termination_reasons": {
+    "user_stop": 69,
+    "max_steps": 29
+   },
+   "n_timeout_terminations": 0,
+   "per_trial_seed_field": {
+    "0:626729": 49,
+    "1:373753": 49
+   },
+   "info_block": {
+    "agent_llm": "openai/qwen3-4b-instruct-2507",
+    "agent_llm_args": {
+     "temperature": 0.3,
+     "api_base": "http://127.0.0.1:8082/v1",
+     "max_tokens": 1024
+    },
+    "user_llm": "openai/qwen2.5-7b-instruct",
+    "user_llm_args": {
+     "temperature": 0.0,
+     "api_base": "http://127.0.0.1:8081/v1",
+     "max_tokens": 1024
+    },
+    "seed": 300,
+    "git_commit": "b7ea9074c1cba482b30687fecdb5c8425fd6f619"
+   },
+   "infrastructure_error_units": [],
+   "units_with_missing_reward": [],
+   "finish_reasons": {
+    "user:stop": 1812,
+    "assistant:stop": 1743,
+    "assistant:tool_calls": 520
+   },
+   "served_model_ids": {
+    "user:qwen2.5-7b-instruct": 1812,
+    "assistant:qwen3-4b-instruct-2507": 2263
+   },
+   "llm_calls": {
+    "user": 1812,
+    "assistant": 2263
+   },
+   "messages_without_usage": {
+    "assistant": 98
+   },
+   "tokens": {
+    "user_prompt": 5915658,
+    "user_completion": 82565,
+    "assistant_prompt": 19138768,
+    "assistant_completion": 223345
+   },
+   "max_completion_tokens_per_response": {
+    "user": 169,
+    "assistant": 935
+   },
+   "response_raw_data_keys": [
+    "choices",
+    "created",
+    "id",
+    "model",
+    "object",
+    "service_tier",
+    "system_fingerprint",
+    "timings",
+    "usage"
+   ],
+   "truncated_responses_length": {
+    "agent": 0,
+    "user": 0
+   },
+   "units_with_truncated_response": [],
+   "agent_generation_seconds_total": 8258.224449742585,
+   "duration_total_s": 12096.15234420728,
+   "duration_min_median_max": [
+    12.565034916624427,
+    66.45293397875503,
+    492.1519488329068
+   ],
+   "n_units_duration_over_1800s": 0,
+   "first_start_local": "2026-09-18T21:34:36.902533",
+   "last_end_local": "2026-09-19T00:56:42.096777",
+   "pre_amendment_units": [],
+   "replicates": {
+    "n_tasks": 49,
+    "n_tasks_both_trials_nonempty": 49,
+    "n_identical_trajectories": 0,
+    "n_identical_first_user_message": 49,
+    "n_identical_first_agent_reply": 31,
+    "n_tasks_success_both_trials": 3,
+    "n_tasks_success_exactly_one_trial": 9,
+    "tasks_with_any_success": [
+     "2",
+     "6",
+     "10",
+     "13",
+     "28",
+     "30",
+     "34",
+     "36",
+     "38",
+     "40",
+     "46",
+     "49"
+    ]
+   }
+  }
+ },
+ "logs": {
+  "A": {
+   "log": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/results/tau2_open/logs/tau2_armA.log",
+   "n_token_limit_warnings": 9,
+   "n_context_overflow_errors": 5,
+   "retry_lines": [
+    "2026-09-18 15:01:32.415 | Task 6 failed (attempt 1/4): litellm.Timeout: APITimeoutError - Request timed out. Error_str: Request timed out.",
+    "2026-09-18 16:12:01.332 | Task 6 failed (attempt 2/4): litellm.Timeout: APITimeoutError - Request timed out. Error_str: Request timed out.",
+    "2026-09-18 16:34:29.612 | Task 6 failed (attempt 1/4): Unterminated string starting at: line 1 column 185 (char 184)",
+    "2026-09-18 16:35:40.597 | Task 6 failed (attempt 2/4): Unterminated string starting at: line 1 column 185 (char 184)",
+    "2026-09-18 16:36:49.697 | Task 6 failed (attempt 3/4): Unterminated string starting at: line 1 column 185 (char 184)",
+    "2026-09-18 16:37:59.180 | Task 6 failed after 4 attempts: Unterminated string starting at: line 1 column 185 (char 184)",
+    "2026-09-18 17:11:55.898 | Task 15 failed (attempt 1/4): litellm.BadRequestError: OpenAIException - request (33050 tokens) exceeds the available context size (32768 tokens), try",
+    "2026-09-18 20:22:28.940 | Task 32 failed (attempt 1/4): litellm.BadRequestError: OpenAIException - request (32836 tokens) exceeds the available context size (32768 tokens), try",
+    "2026-09-18 20:29:54.364 | Task 32 failed (attempt 2/4): litellm.BadRequestError: OpenAIException - request (32836 tokens) exceeds the available context size (32768 tokens), try",
+    "2026-09-18 20:37:15.837 | Task 32 failed (attempt 3/4): litellm.BadRequestError: OpenAIException - request (32836 tokens) exceeds the available context size (32768 tokens), try",
+    "2026-09-18 20:44:39.336 | Task 32 failed after 4 attempts: litellm.BadRequestError: OpenAIException - request (32836 tokens) exceeds the available context size (32768 tokens), "
+   ],
+   "other": [
+    "Task 6 failed permanently after 4 attempts: Unterminated string starting at:",
+    "Task 15 succeeded on retry 1",
+    "Task 32 failed permanently after 4 attempts: litellm.BadRequestError:"
+   ]
+  },
+  "B": {
+   "log": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/results/tau2_open/logs/tau2_armB.log",
+   "n_token_limit_warnings": 0,
+   "n_context_overflow_errors": 0,
+   "retry_lines": [],
+   "other": []
+  }
+ },
+ "R1": {
+  "all_49": {
+   "n": 49,
+   "rho": 100,
+   "alpha": 0.05,
+   "radius": 0.6297318533794022,
+   "nb_hat": 0.020408163265306117,
+   "nb_cs_unclipped": [
+    -0.609323690114096,
+    0.6501400166447083
+   ],
+   "nb_cs_clipped": [
+    -0.609323690114096,
+    0.6501400166447083
+   ],
+   "success_diff_hat": 0.02040816326530612,
+   "success_diff_cs_clipped": [
+    -0.609323690114096,
+    0.6501400166447083
+   ],
+   "wider_than_half_parameter_range": true,
+   "covers_whole_parameter_range": false
+  },
+  "block1_24": {
+   "n": 24,
+   "rho": 100,
+   "alpha": 0.05,
+   "radius": 1.1559143018037255,
+   "nb_hat": 0.08333333333333334,
+   "nb_cs_unclipped": [
+    -1.0725809684703922,
+    1.2392476351370587
+   ],
+   "nb_cs_clipped": [
+    -1.0,
+    1.0
+   ],
+   "success_diff_hat": 0.08333333333333333,
+   "success_diff_cs_clipped": [
+    -1.0,
+    1.0
+   ],
+   "wider_than_half_parameter_range": true,
+   "covers_whole_parameter_range": true
+  },
+  "n_needed_for_radius_0.03": 12094
+ },
+ "guardrail_arithmetic": {
+  "margin": 0.03,
+  "same_task_success_diff_se": 0.056469243931578206,
+  "same_task_ci_halfwidth": 0.11353902458559237,
+  "tasks_needed_for_halfwidth_003_same_sd": 666.9444444444445,
+  "shadow_p_tie": 0.7193877551020409,
+  "online_p_tie": 0.6122448979591837,
+  "pooled_success_rate": 0.15306122448979592,
+  "independence_tie_probability_at_pooled_rate": 0.7407330279050396
+ },
+ "same_unit_success_table": {
+  "both": 5,
+  "A_only": 10,
+  "B_only": 10,
+  "neither": 73
+ },
+ "task_level_success": {
+  "tasks_any_success_A": 13,
+  "tasks_any_success_B": 12,
+  "tasks_any_success_either": 20,
+  "tasks_never_solved": 29
+ },
+ "infrastructure_sensitivity": {
+  "units": [
+   [
+    "A",
+    "32",
+    1
+   ],
+   [
+    "A",
+    "6",
+    0
+   ]
+  ],
+  "frozen_treatment": "retained as failures: success=False, reward missing, 0 messages, 0 tokens, 0 tool calls, duration 0.0, agent_generation_seconds missing",
+  "pass_of_units": {
+   "A:6:0": 2,
+   "A:32:1": 2
+  },
+  "excluded": {
+   "success_A": "15/96",
+   "online": {
+    "n_pairs": 49,
+    "p_win": 0.20408163265306123,
+    "p_loss": 0.1836734693877551,
+    "p_tie": 0.6122448979591837,
+    "net_benefit": 0.020408163265306117,
+    "nb_cs": [
+     -0.3660352820036362,
+     0.40631790063819107
+    ],
+    "success_diff_hat": 0.02040816326530612,
+    "success_diff_cs": [
+     -0.3660352820036362,
+     0.40631790063819107
+    ],
+    "guarded_decision": "inconclusive"
+   },
+   "shadow": {
+    "n_tasks": 49,
+    "p_win": 0.14285714285714285,
+    "p_loss": 0.1377551020408163,
+    "p_tie": 0.7193877551020409,
+    "net_benefit": 0.005102040816326536,
+    "nb_ci": [
+     -0.1107687809027074,
+     0.12097286253536048
+    ],
+    "decision_hierarchical": "inconclusive"
+   },
+   "components_same_task": {
+    "success": {
+     "n": 49,
+     "mean": 0.0,
+     "ci": [
+      -0.11353902458559237,
+      0.11353902458559237
+     ],
+     "mean_A": 0.15306122448979592,
+     "mean_B": 0.15306122448979592
+    },
+    "agent_tokens_completion": {
+     "n": 49,
+     "mean": -386.83673469387753,
+     "ci": [
+      -1081.630975016409,
+      307.9575056286539
+     ],
+     "mean_A": 2665.8673469387754,
+     "mean_B": 2279.030612244898
+    },
+    "agent_tokens_prompt": {
+     "n": 49,
+     "mean": -20755.418367346938,
+     "ci": [
+      -79116.9154909508,
+      37606.07875625693
+     ],
+     "mean_A": 216048.9693877551,
+     "mean_B": 195293.55102040817
+    },
+    "n_assistant_tool_calls": {
+     "n": 49,
+     "mean": -4.744897959183674,
+     "ci": [
+      -6.9148744684614405,
+      -2.574921449905907
+     ],
+     "mean_A": 10.051020408163266,
+     "mean_B": 5.3061224489795915
+    },
+    "duration": {
+     "n": 49,
+     "mean": -47.93798747277648,
+     "ci": [
+      -94.79308692108708,
+      -1.0828880244658734
+     ],
+     "mean_A": 171.36811343407524,
+     "mean_B": 123.43012596129877
+    },
+    "agent_generation_seconds": {
+     "n": 49,
+     "mean": -44.103747358640696,
+     "ci": [
+      -75.2993402095147,
+      -12.908154507766703
+     ],
+     "mean_A": 128.37134378458543,
+     "mean_B": 84.26759642594475
+    }
+   }
+  },
+  "as_failures_frozen": {
+   "online": {
+    "n_pairs": 49,
+    "p_win": 0.20408163265306123,
+    "p_loss": 0.1836734693877551,
+    "p_tie": 0.6122448979591837,
+    "net_benefit": 0.020408163265306117,
+    "nb_cs": [
+     -0.3660352820036362,
+     0.40631790063819107
+    ],
+    "success_diff_hat": 0.02040816326530612,
+    "success_diff_cs": [
+     -0.3660352820036362,
+     0.40631790063819107
+    ],
+    "guarded_decision": "inconclusive"
+   },
+   "shadow": {
+    "n_tasks": 49,
+    "p_win": 0.14285714285714285,
+    "p_loss": 0.1377551020408163,
+    "p_tie": 0.7193877551020409,
+    "net_benefit": 0.005102040816326536,
+    "nb_ci": [
+     -0.1107687809027074,
+     0.12097286253536048
+    ],
+    "decision_hierarchical": "inconclusive"
+   }
+  }
+ },
+ "pair_level_components": {
+  "all_49": {
+   "success": {
+    "n": 49,
+    "mean": 0.02040816326530612,
+    "se": 0.08983069827377045,
+    "ci": [
+     -0.16020856098559183,
+     0.20102488751620406
+    ],
+    "mean_A": 0.1836734693877551,
+    "mean_B": 0.20408163265306123
+   },
+   "agent_tokens_completion": {
+    "n": 49,
+    "mean": -906.3265306122449,
+    "se": 374.04112031094286,
+    "ci": [
+     -1658.3866078901337,
+     -154.26645333435624
+    ],
+    "mean_A": 2695.0,
+    "mean_B": 1788.6734693877552
+   },
+   "agent_tokens_prompt": {
+    "n": 49,
+    "mean": -68683.40816326531,
+    "se": 35816.5447217037,
+    "ci": [
+     -140697.3978787255,
+     3330.581552194868
+    ],
+    "mean_A": 230271.9387755102,
+    "mean_B": 161588.5306122449
+   },
+   "n_assistant_tool_calls": {
+    "n": 49,
+    "mean": -5.918367346938775,
+    "se": 1.5207847773519454,
+    "ci": [
+     -8.976110079148425,
+     -2.8606246147291254
+    ],
+    "mean_A": 11.16326530612245,
+    "mean_B": 5.244897959183674
+   },
+   "duration": {
+    "n": 49,
+    "mean": -78.86099868353304,
+    "se": 25.2393368354892,
+    "ci": [
+     -129.6080865843532,
+     -28.113910782712864
+    ],
+    "mean_A": 173.710369706515,
+    "mean_B": 94.84937102298196
+   },
+   "agent_generation_seconds": {
+    "n": 49,
+    "mean": -62.72074556073212,
+    "se": 17.08202130453826,
+    "ci": [
+     -97.06645132611436,
+     -28.37503979534987
+    ],
+    "mean_A": 129.07675630926173,
+    "mean_B": 66.35601074852961
+   }
+  },
+  "block1_24": {
+   "success": {
+    "n": 24,
+    "mean": 0.08333333333333333,
+    "se": 0.11912523349835939,
+    "ci": [
+     -0.16309598753599402,
+     0.32976265420266065
+    ],
+    "mean_A": 0.125,
+    "mean_B": 0.20833333333333334
+   },
+   "agent_tokens_completion": {
+    "n": 24,
+    "mean": -1231.1666666666667,
+    "se": 380.07919973031,
+    "ci": [
+     -2017.420395750754,
+     -444.9129375825794
+    ],
+    "mean_A": 2604.375,
+    "mean_B": 1373.2083333333333
+   },
+   "agent_tokens_prompt": {
+    "n": 24,
+    "mean": -123743.45833333333,
+    "se": 46119.895616938644,
+    "ci": [
+     -219149.73139304557,
+     -28337.185273621086
+    ],
+    "mean_A": 247037.20833333334,
+    "mean_B": 123293.75
+   },
+   "n_assistant_tool_calls": {
+    "n": 24,
+    "mean": -6.458333333333333,
+    "se": 2.065923633374961,
+    "ci": [
+     -10.732021980059018,
+     -2.1846446866076477
+    ],
+    "mean_A": 11.583333333333334,
+    "mean_B": 5.125
+   },
+   "duration": {
+    "n": 24,
+    "mean": -96.79429419424075,
+    "se": 26.162727066384704,
+    "ci": [
+     -150.9160186494339,
+     -42.6725697390476
+    ],
+    "mean_A": 168.15676537303565,
+    "mean_B": 71.3624711787949
+   },
+   "agent_generation_seconds": {
+    "n": 24,
+    "mean": -75.21183778656025,
+    "se": 17.067230786276536,
+    "ci": [
+     -110.51809464136949,
+     -39.90558093175101
+    ],
+    "mean_A": 124.32276212909103,
+    "mean_B": 49.11092434253078
+   }
+  }
+ },
+ "amendment": {
+  "sha256_config_amendment_1": "696aede45eb45360a1a7e3e78626ec5d86ef745af5f2a02c5d0248adc272ce8f",
+  "sha256_deviation_1": "1160458fca2ddfc50908edc89405ff757b3cf05f6fda8120753e8ac2e6116e88",
+  "n_pre_amendment_units": 5
+ }
+}

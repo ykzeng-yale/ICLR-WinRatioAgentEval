@@ -1,0 +1,980 @@
+{
+  "generated_at": "2026-09-19T05:01:30Z",
+  "results_dir": "results/tau2_open",
+  "n_episodes": 196,
+  "n_per_arm": {
+    "A": 98,
+    "B": 98
+  },
+  "dry_run": false,
+  "config_hash": "347b7bbdd8b24ef73f8e7f4047625a7d5cd7ec56d7a9e054c6efbdc605122c58",
+  "arms": {
+    "A": "agent qwen2.5-7b-instruct",
+    "B": "agent qwen3-4b-instruct-2507",
+    "user": "qwen2.5-7b-instruct"
+  },
+  "design_sha256": "c8fa5728e8a9602813ffac10ea4ef88642ef3550aa9d5a5b7028c25586186597",
+  "n_invocations": 2,
+  "monitor_state": {
+    "n_pairs_monitored": 49,
+    "alpha": 0.05,
+    "success_margin": 0.03,
+    "min_n_pairs": 20,
+    "first_win_cross": null,
+    "first_gate_cross": null,
+    "first_deploy": null,
+    "first_harm": null,
+    "note": "monitoring computed post hoc over the prespecified arrival sequence (tau2 executes arms in batches); execution never stopped early",
+    "updated_at": "2026-09-19T05:01:30Z"
+  },
+  "online": {
+    "n_pairs": 49,
+    "design": "cross-arrival: prespecified pass-1 pairs, disjoint (task, trial) units, one exposure per arrival",
+    "absorbing_rule": true,
+    "blocks": [
+      1,
+      2
+    ],
+    "n_pairs_straddling_blocks": 1,
+    "block_rule": "pair block = max block of its two arrivals; block-1 subset = pairs with both arrivals in block 1",
+    "p_win": 0.20408163265306123,
+    "p_loss": 0.1836734693877551,
+    "p_tie": 0.6122448979591837,
+    "net_benefit": 0.020408163265306117,
+    "win_ratio": 1.1111111111111112,
+    "win_odds": 1.0416666666666667,
+    "nb_cs": [
+      -0.3660352820036362,
+      0.40631790063819107
+    ],
+    "wr_cs": [
+      0.0070957024535648425,
+      null
+    ],
+    "success_diff_hat": 0.02040816326530612,
+    "success_diff_cs": [
+      -0.3660352820036362,
+      0.40631790063819107
+    ],
+    "tier_decomposition": {
+      "success": {
+        "wins": 10,
+        "losses": 9,
+        "contribution": 0.02040816326530612
+      },
+      "agent_tokens_completion": {
+        "wins": 0,
+        "losses": 0,
+        "contribution": 0.0
+      },
+      "n_assistant_tool_calls": {
+        "wins": 0,
+        "losses": 0,
+        "contribution": 0.0
+      }
+    },
+    "ties": 30,
+    "success_tier_determines_sign": true,
+    "monitoring": {
+      "first_win_cross": null,
+      "first_gate_cross": null,
+      "first_deploy": null,
+      "first_harm": null,
+      "final_log_e_win": -0.14072419823152194,
+      "final_log_e_gate": -0.07494999129060753,
+      "final_log_e_harm": -0.21244866593732947
+    },
+    "guarded_decision": "inconclusive",
+    "fixed_horizon_decision": "inconclusive",
+    "n_pairs_same_task_different_trial": 0
+  },
+  "online_block1": {
+    "n_pairs": 24,
+    "design": "cross-arrival: prespecified pass-1 pairs, disjoint (task, trial) units, one exposure per arrival",
+    "absorbing_rule": true,
+    "blocks": [
+      1
+    ],
+    "n_pairs_straddling_blocks": 0,
+    "block_rule": "pair block = max block of its two arrivals; block-1 subset = pairs with both arrivals in block 1",
+    "p_win": 0.20833333333333334,
+    "p_loss": 0.125,
+    "p_tie": 0.6666666666666666,
+    "net_benefit": 0.08333333333333334,
+    "win_ratio": 1.6666666666666667,
+    "win_odds": 1.1818181818181819,
+    "nb_cs": [
+      -0.6451344949503739,
+      0.8115299791097641
+    ],
+    "wr_cs": [
+      0.0,
+      null
+    ],
+    "success_diff_hat": 0.08333333333333333,
+    "success_diff_cs": [
+      -0.6451344949503739,
+      0.8115299791097641
+    ],
+    "tier_decomposition": {
+      "success": {
+        "wins": 5,
+        "losses": 3,
+        "contribution": 0.08333333333333333
+      },
+      "agent_tokens_completion": {
+        "wins": 0,
+        "losses": 0,
+        "contribution": 0.0
+      },
+      "n_assistant_tool_calls": {
+        "wins": 0,
+        "losses": 0,
+        "contribution": 0.0
+      }
+    },
+    "ties": 16,
+    "success_tier_determines_sign": true,
+    "monitoring": {
+      "first_win_cross": null,
+      "first_gate_cross": null,
+      "first_deploy": null,
+      "first_harm": null,
+      "final_log_e_win": 0.0015930900949805427,
+      "final_log_e_gate": 0.0650881788146398,
+      "final_log_e_harm": -0.21344635201951023
+    },
+    "guarded_decision": "inconclusive",
+    "fixed_horizon_decision": "inconclusive",
+    "n_pairs_same_task_different_trial": 0
+  },
+  "shadow": {
+    "design": "same-task shadow: both arms per (task, trial); trials are replicates within the task cluster",
+    "n_tasks": 49,
+    "absorbing_rule": true,
+    "pairing": "all",
+    "p_win": 0.14285714285714285,
+    "p_loss": 0.1377551020408163,
+    "p_tie": 0.7193877551020409,
+    "net_benefit": 0.005102040816326536,
+    "nb_se": 0.05762897576482117,
+    "nb_ci": [
+      -0.1107687809027074,
+      0.12097286253536048
+    ],
+    "win_ratio": 1.037037037037037,
+    "wr_ci": [
+      0.4544472559362854,
+      2.366492045310836
+    ],
+    "win_odds": 1.0102564102564104,
+    "wo_ci": [
+      0.8012810609791826,
+      1.2737328562551467
+    ],
+    "tier_contribution_mean": {
+      "success": 0.0,
+      "agent_tokens_completion": 0.01020408163265306,
+      "n_assistant_tool_calls": -0.00510204081632653
+    },
+    "success_tier_determines_sign": false,
+    "decision_hierarchical": "inconclusive",
+    "replicate_identical_fraction": {
+      "A": 0.0,
+      "B": 0.0
+    }
+  },
+  "shadow_pairing": {
+    "all": {
+      "design": "same-task shadow: both arms per (task, trial); trials are replicates within the task cluster",
+      "n_tasks": 49,
+      "absorbing_rule": true,
+      "pairing": "all",
+      "p_win": 0.14285714285714285,
+      "p_loss": 0.1377551020408163,
+      "p_tie": 0.7193877551020409,
+      "net_benefit": 0.005102040816326536,
+      "nb_se": 0.05762897576482117,
+      "nb_ci": [
+        -0.1107687809027074,
+        0.12097286253536048
+      ],
+      "win_ratio": 1.037037037037037,
+      "wr_ci": [
+        0.4544472559362854,
+        2.366492045310836
+      ],
+      "win_odds": 1.0102564102564104,
+      "wo_ci": [
+        0.8012810609791826,
+        1.2737328562551467
+      ],
+      "tier_contribution_mean": {
+        "success": 0.0,
+        "agent_tokens_completion": 0.01020408163265306,
+        "n_assistant_tool_calls": -0.00510204081632653
+      },
+      "success_tier_determines_sign": false,
+      "decision_hierarchical": "inconclusive",
+      "replicate_identical_fraction": {
+        "A": 0.0,
+        "B": 0.0
+      }
+    },
+    "offdiagonal": {
+      "design": "same-task shadow: both arms per (task, trial); trials are replicates within the task cluster",
+      "n_tasks": 49,
+      "absorbing_rule": true,
+      "pairing": "offdiagonal",
+      "p_win": 0.15306122448979592,
+      "p_loss": 0.15306122448979592,
+      "p_tie": 0.693877551020408,
+      "net_benefit": 0.0,
+      "nb_se": 0.05646924393157819,
+      "nb_ci": [
+        -0.11353902458559234,
+        0.11353902458559234
+      ],
+      "win_ratio": 1.0,
+      "wr_ci": [
+        0.47626145803751996,
+        2.0996870167084145
+      ],
+      "win_odds": 1.0,
+      "wo_ci": [
+        0.7968585857108094,
+        1.254927810193556
+      ],
+      "tier_contribution_mean": {
+        "success": 0.0,
+        "agent_tokens_completion": 0.0,
+        "n_assistant_tool_calls": 0.0
+      },
+      "success_tier_determines_sign": null,
+      "decision_hierarchical": "inconclusive",
+      "replicate_identical_fraction": {
+        "A": 0.0,
+        "B": 0.0
+      }
+    },
+    "diagonal": {
+      "design": "same-task shadow: both arms per (task, trial); trials are replicates within the task cluster",
+      "n_tasks": 49,
+      "absorbing_rule": true,
+      "pairing": "diagonal",
+      "p_win": 0.13265306122448978,
+      "p_loss": 0.12244897959183672,
+      "p_tie": 0.7448979591836734,
+      "net_benefit": 0.010204081632653059,
+      "nb_se": 0.06097596953060393,
+      "nb_ci": [
+        -0.1123963220854153,
+        0.13280448535072142
+      ],
+      "win_ratio": 1.0833333333333333,
+      "wr_ci": [
+        0.4146041990603508,
+        2.8306783042018284
+      ],
+      "win_odds": 1.0206185567010309,
+      "wo_ci": [
+        0.7986619855660718,
+        1.3042591948885496
+      ],
+      "tier_contribution_mean": {
+        "success": 0.0,
+        "agent_tokens_completion": 0.02040816326530612,
+        "n_assistant_tool_calls": -0.01020408163265306
+      },
+      "success_tier_determines_sign": false,
+      "decision_hierarchical": "inconclusive",
+      "replicate_identical_fraction": {
+        "A": 0.0,
+        "B": 0.0
+      }
+    }
+  },
+  "components": {
+    "same_task_paired": {
+      "success": {
+        "n": 49,
+        "mean": 0.0,
+        "se": 0.056469243931578206,
+        "ci": [
+          -0.11353902458559237,
+          0.11353902458559237
+        ],
+        "mean_A": 0.15306122448979592,
+        "mean_B": 0.15306122448979592
+      },
+      "agent_tokens_completion": {
+        "n": 49,
+        "mean": -261.7448979591837,
+        "se": 308.4642985061668,
+        "ci": [
+          -881.9539380218591,
+          358.4641421034917
+        ],
+        "mean_A": 2540.7755102040815,
+        "mean_B": 2279.030612244898,
+        "median_A": 2172.0,
+        "median_B": 1875.0,
+        "ratio_of_means_B_over_A": 0.8969822808398529
+      },
+      "agent_tokens_prompt": {
+        "n": 49,
+        "mean": -12995.918367346938,
+        "se": 27919.405836021448,
+        "ci": [
+          -69131.6461534685,
+          43139.80941877461
+        ],
+        "mean_A": 208289.4693877551,
+        "mean_B": 195293.55102040817,
+        "median_A": 177930.5,
+        "median_B": 128093.0,
+        "ratio_of_means_B_over_A": 0.9376064550668497
+      },
+      "n_assistant_tool_calls": {
+        "n": 49,
+        "mean": -4.683673469387755,
+        "se": 1.0867646350191762,
+        "ci": [
+          -6.868760217914123,
+          -2.498586720861387
+        ],
+        "mean_A": 9.989795918367347,
+        "mean_B": 5.3061224489795915,
+        "median_A": 7.5,
+        "median_B": 5.0,
+        "ratio_of_means_B_over_A": 0.5311542390194075
+      },
+      "n_agent_llm_calls": {
+        "n": 49,
+        "mean": -2.2653061224489797,
+        "se": 2.8287315837001077,
+        "ci": [
+          -7.952852164625855,
+          3.422239919727896
+        ],
+        "mean_A": 25.357142857142858,
+        "mean_B": 23.091836734693878,
+        "median_A": 21.5,
+        "median_B": 16.5,
+        "ratio_of_means_B_over_A": 0.9106639839034205
+      },
+      "duration": {
+        "n": 49,
+        "mean": -38.316369999133585,
+        "se": 19.28777009905485,
+        "ci": [
+          -77.09703095735864,
+          0.4642909590914712
+        ],
+        "mean_A": 161.74649596043236,
+        "mean_B": 123.43012596129877,
+        "median_A": 146.8105740826577,
+        "median_B": 86.69720068760216,
+        "ratio_of_means_B_over_A": 0.7631085003009473
+      },
+      "agent_generation_seconds": {
+        "n": 49,
+        "mean": -44.103747358640696,
+        "se": 15.515295720707991,
+        "ci": [
+          -75.2993402095147,
+          -12.908154507766703
+        ],
+        "mean_A": 128.37134378458543,
+        "mean_B": 84.26759642594475,
+        "median_A": 100.85711785499007,
+        "median_B": 68.5482467059046,
+        "ratio_of_means_B_over_A": 0.6564361947269997
+      }
+    },
+    "cross_arrival_independent": {
+      "success": {
+        "diff": 0.020408163265306117,
+        "se": 0.08067034847368315,
+        "ci": [
+          -0.13972448264554319,
+          0.18054080917615542
+        ],
+        "mean_A": 0.1836734693877551,
+        "mean_B": 0.20408163265306123
+      },
+      "agent_tokens_completion": {
+        "diff": -906.3265306122448,
+        "se": 376.78458292287274,
+        "ci": [
+          -1654.592065558073,
+          -158.06099566641672
+        ],
+        "mean_A": 2695.0,
+        "mean_B": 1788.6734693877552
+      },
+      "agent_tokens_prompt": {
+        "diff": -68683.4081632653,
+        "se": 35502.54206730949,
+        "ci": [
+          -139158.53459431947,
+          1791.7182677888923
+        ],
+        "mean_A": 230271.9387755102,
+        "mean_B": 161588.5306122449
+      },
+      "n_assistant_tool_calls": {
+        "diff": -5.918367346938775,
+        "se": 1.5632573133487788,
+        "ci": [
+          -9.039723284541765,
+          -2.797011409335787
+        ],
+        "mean_A": 11.16326530612245,
+        "mean_B": 5.244897959183674
+      },
+      "n_agent_llm_calls": {
+        "diff": -7.489795918367346,
+        "se": 3.4337960273687247,
+        "ci": [
+          -14.305976055718977,
+          -0.6736157810157142
+        ],
+        "mean_A": 27.591836734693878,
+        "mean_B": 20.102040816326532
+      },
+      "duration": {
+        "diff": -78.86099868353304,
+        "se": 24.99234495107099,
+        "ci": [
+          -128.56873797197443,
+          -29.153259395091638
+        ],
+        "mean_A": 173.710369706515,
+        "mean_B": 94.84937102298196
+      },
+      "agent_generation_seconds": {
+        "diff": -62.72074556073211,
+        "se": 17.16980153808007,
+        "ci": [
+          -96.87738663877585,
+          -28.564104482688386
+        ],
+        "mean_A": 129.07675630926173,
+        "mean_B": 66.35601074852961
+      }
+    },
+    "failure_accounting": {
+      "A": {
+        "n": 98,
+        "success": 15,
+        "max_steps": 27,
+        "errors": 16,
+        "termination_reasons": {
+          "user_stop": 55,
+          "too_many_errors": 14,
+          "infrastructure_error": 2,
+          "max_steps": 27
+        },
+        "tokens_estimated_episodes": 0,
+        "tokens_estimated_calls": 0,
+        "zero_tool_call_episodes": 2,
+        "served_models": [
+          "qwen2.5-7b-instruct"
+        ],
+        "duration_total_s": 15851.15660412237
+      },
+      "B": {
+        "n": 98,
+        "success": 15,
+        "max_steps": 29,
+        "errors": 0,
+        "termination_reasons": {
+          "user_stop": 69,
+          "max_steps": 29
+        },
+        "tokens_estimated_episodes": 0,
+        "tokens_estimated_calls": 0,
+        "zero_tool_call_episodes": 1,
+        "served_models": [
+          "qwen3-4b-instruct-2507"
+        ],
+        "duration_total_s": 12096.15234420728
+      }
+    }
+  },
+  "decision_rules": [
+    {
+      "rule": "success_only",
+      "data": "shadow",
+      "estimate": 0.0,
+      "ci": [
+        -0.11353902458559237,
+        0.11353902458559237
+      ],
+      "decision": "none"
+    },
+    {
+      "rule": "pareto_means",
+      "data": "shadow",
+      "estimate": null,
+      "ci": [
+        null,
+        null
+      ],
+      "decision": "B",
+      "detail": "d_success=0.0000 d_tokens=-261.7 d_calls=-4.68"
+    },
+    {
+      "rule": "utility_w=1.00/0.00/0.00",
+      "data": "shadow",
+      "estimate": 0.0,
+      "ci": [
+        null,
+        null
+      ],
+      "decision": "none",
+      "detail": "u = w1*d_success - w2*rel_d_tokens - w3*rel_d_calls (point estimate only)"
+    },
+    {
+      "rule": "utility_w=0.80/0.10/0.10",
+      "data": "shadow",
+      "estimate": 0.05718634801407396,
+      "ci": [
+        null,
+        null
+      ],
+      "decision": "B",
+      "detail": "u = w1*d_success - w2*rel_d_tokens - w3*rel_d_calls (point estimate only)"
+    },
+    {
+      "rule": "utility_w=0.60/0.20/0.20",
+      "data": "shadow",
+      "estimate": 0.11437269602814792,
+      "ci": [
+        null,
+        null
+      ],
+      "decision": "B",
+      "detail": "u = w1*d_success - w2*rel_d_tokens - w3*rel_d_calls (point estimate only)"
+    },
+    {
+      "rule": "utility_w=0.50/0.25/0.25",
+      "data": "shadow",
+      "estimate": 0.1429658700351849,
+      "ci": [
+        null,
+        null
+      ],
+      "decision": "B",
+      "detail": "u = w1*d_success - w2*rel_d_tokens - w3*rel_d_calls (point estimate only)"
+    },
+    {
+      "rule": "utility_w=0.34/0.33/0.33",
+      "data": "shadow",
+      "estimate": 0.1887149484464441,
+      "ci": [
+        null,
+        null
+      ],
+      "decision": "B",
+      "detail": "u = w1*d_success - w2*rel_d_tokens - w3*rel_d_calls (point estimate only)"
+    },
+    {
+      "rule": "utility_w=0.20/0.40/0.40",
+      "data": "shadow",
+      "estimate": 0.22874539205629585,
+      "ci": [
+        null,
+        null
+      ],
+      "decision": "B",
+      "detail": "u = w1*d_success - w2*rel_d_tokens - w3*rel_d_calls (point estimate only)"
+    },
+    {
+      "rule": "hierarchical_nb",
+      "data": "shadow",
+      "estimate": 0.005102040816326536,
+      "ci": [
+        -0.1107687809027074,
+        0.12097286253536048
+      ],
+      "decision": "none"
+    },
+    {
+      "rule": "guarded_hierarchical",
+      "data": "shadow",
+      "estimate": 0.005102040816326536,
+      "ci": [
+        -0.1107687809027074,
+        0.12097286253536048
+      ],
+      "decision": "none",
+      "detail": "NB CI > 0 and success CI lower > -0.03"
+    },
+    {
+      "rule": "conjunction_all_components",
+      "data": "shadow",
+      "estimate": null,
+      "ci": [
+        null,
+        null
+      ],
+      "decision": "none",
+      "detail": "success non-inferior AND tokens lower AND calls lower (all CIs)"
+    },
+    {
+      "rule": "hierarchical_nb_betting_cs",
+      "data": "online",
+      "estimate": 0.020408163265306117,
+      "ci": [
+        -0.3660352820036362,
+        0.40631790063819107
+      ],
+      "decision": "none"
+    },
+    {
+      "rule": "guarded_anytime",
+      "data": "online",
+      "estimate": 0.020408163265306117,
+      "ci": [
+        -0.3660352820036362,
+        0.40631790063819107
+      ],
+      "decision": "none",
+      "detail": "first_deploy=None first_harm=None"
+    },
+    {
+      "rule": "success_only_betting_cs",
+      "data": "online",
+      "estimate": 0.02040816326530612,
+      "ci": [
+        -0.3660352820036362,
+        0.40631790063819107
+      ],
+      "decision": "none"
+    }
+  ],
+  "sensitivity": [
+    {
+      "tolerance": 0.0,
+      "order": "success>agent_tokens_completion>n_assistant_tool_calls",
+      "eligibility": "absorbing",
+      "label": "primary order, absorbing",
+      "shadow_nb": 0.005102040816326536,
+      "shadow_nb_lo": -0.1107687809027074,
+      "shadow_nb_hi": 0.12097286253536048,
+      "shadow_decision": "inconclusive",
+      "online_nb": 0.020408163265306117,
+      "online_nb_lo": -0.3660352820036362,
+      "online_nb_hi": 0.40631790063819107,
+      "online_guarded": "inconclusive",
+      "online_first_deploy": null,
+      "online_first_harm": null
+    },
+    {
+      "tolerance": 0.0,
+      "order": "success>n_assistant_tool_calls>agent_tokens_completion",
+      "eligibility": "absorbing",
+      "label": "steps before tokens, absorbing",
+      "shadow_nb": 0.005102040816326536,
+      "shadow_nb_lo": -0.1107687809027074,
+      "shadow_nb_hi": 0.12097286253536048,
+      "shadow_decision": "inconclusive",
+      "online_nb": 0.020408163265306117,
+      "online_nb_lo": -0.3660352820036362,
+      "online_nb_hi": 0.40631790063819107,
+      "online_guarded": "inconclusive",
+      "online_first_deploy": null,
+      "online_first_harm": null
+    },
+    {
+      "tolerance": 0.0,
+      "order": "success>duration>agent_tokens_completion",
+      "eligibility": "absorbing",
+      "label": "duration as tier 2, absorbing",
+      "shadow_nb": 0.015306122448979581,
+      "shadow_nb_lo": -0.10048899143987494,
+      "shadow_nb_hi": 0.1311012363378341,
+      "shadow_decision": "inconclusive",
+      "online_nb": 0.020408163265306117,
+      "online_nb_lo": -0.3660352820036362,
+      "online_nb_hi": 0.40631790063819107,
+      "online_guarded": "inconclusive",
+      "online_first_deploy": null,
+      "online_first_harm": null
+    },
+    {
+      "tolerance": 0.0,
+      "order": "success>agent_tokens_completion>n_assistant_tool_calls",
+      "eligibility": "none",
+      "label": "lexicographic, non-absorbing (failures ranked by cost)",
+      "shadow_nb": 0.13265306122448967,
+      "shadow_nb_lo": -0.08232384031478487,
+      "shadow_nb_hi": 0.34762996276376423,
+      "shadow_decision": "inconclusive",
+      "online_nb": 0.3469387755102041,
+      "online_nb_lo": -0.16174251814277807,
+      "online_nb_hi": 0.7973778685744928,
+      "online_guarded": "inconclusive",
+      "online_first_deploy": null,
+      "online_first_harm": null
+    },
+    {
+      "tolerance": 0.0,
+      "order": "agent_tokens_completion>success>n_assistant_tool_calls",
+      "eligibility": "none",
+      "label": "token-first (H4), no eligibility mask",
+      "shadow_nb": 0.18367346938775503,
+      "shadow_nb_lo": -0.02298393583440353,
+      "shadow_nb_hi": 0.39033087460991356,
+      "shadow_decision": "inconclusive",
+      "online_nb": 0.4285714285714286,
+      "online_nb_lo": -0.07640369875090461,
+      "online_nb_hi": 0.8645753690174649,
+      "online_guarded": "inconclusive",
+      "online_first_deploy": null,
+      "online_first_harm": null
+    },
+    {
+      "tolerance": 0.05,
+      "order": "success>agent_tokens_completion>n_assistant_tool_calls",
+      "eligibility": "absorbing",
+      "label": "primary order, absorbing",
+      "shadow_nb": 0.005102040816326536,
+      "shadow_nb_lo": -0.1107687809027074,
+      "shadow_nb_hi": 0.12097286253536048,
+      "shadow_decision": "inconclusive",
+      "online_nb": 0.020408163265306117,
+      "online_nb_lo": -0.3660352820036362,
+      "online_nb_hi": 0.40631790063819107,
+      "online_guarded": "inconclusive",
+      "online_first_deploy": null,
+      "online_first_harm": null
+    },
+    {
+      "tolerance": 0.05,
+      "order": "success>n_assistant_tool_calls>agent_tokens_completion",
+      "eligibility": "absorbing",
+      "label": "steps before tokens, absorbing",
+      "shadow_nb": 0.005102040816326536,
+      "shadow_nb_lo": -0.1107687809027074,
+      "shadow_nb_hi": 0.12097286253536048,
+      "shadow_decision": "inconclusive",
+      "online_nb": 0.020408163265306117,
+      "online_nb_lo": -0.3660352820036362,
+      "online_nb_hi": 0.40631790063819107,
+      "online_guarded": "inconclusive",
+      "online_first_deploy": null,
+      "online_first_harm": null
+    },
+    {
+      "tolerance": 0.05,
+      "order": "success>duration>agent_tokens_completion",
+      "eligibility": "absorbing",
+      "label": "duration as tier 2, absorbing",
+      "shadow_nb": 0.015306122448979581,
+      "shadow_nb_lo": -0.10048899143987494,
+      "shadow_nb_hi": 0.1311012363378341,
+      "shadow_decision": "inconclusive",
+      "online_nb": 0.020408163265306117,
+      "online_nb_lo": -0.3660352820036362,
+      "online_nb_hi": 0.40631790063819107,
+      "online_guarded": "inconclusive",
+      "online_first_deploy": null,
+      "online_first_harm": null
+    },
+    {
+      "tolerance": 0.05,
+      "order": "success>agent_tokens_completion>n_assistant_tool_calls",
+      "eligibility": "none",
+      "label": "lexicographic, non-absorbing (failures ranked by cost)",
+      "shadow_nb": 0.14795918367346939,
+      "shadow_nb_lo": -0.0654208765671351,
+      "shadow_nb_hi": 0.3613392439140739,
+      "shadow_decision": "inconclusive",
+      "online_nb": 0.3469387755102041,
+      "online_nb_lo": -0.16174251814277807,
+      "online_nb_hi": 0.7973778685744928,
+      "online_guarded": "inconclusive",
+      "online_first_deploy": null,
+      "online_first_harm": null
+    },
+    {
+      "tolerance": 0.05,
+      "order": "agent_tokens_completion>success>n_assistant_tool_calls",
+      "eligibility": "none",
+      "label": "token-first (H4), no eligibility mask",
+      "shadow_nb": 0.19897959183673464,
+      "shadow_nb_lo": -0.009851770239679453,
+      "shadow_nb_hi": 0.4078109539131487,
+      "shadow_decision": "inconclusive",
+      "online_nb": 0.4285714285714286,
+      "online_nb_lo": -0.07640369875090461,
+      "online_nb_hi": 0.8645753690174649,
+      "online_guarded": "inconclusive",
+      "online_first_deploy": null,
+      "online_first_harm": null
+    },
+    {
+      "tolerance": 0.1,
+      "order": "success>agent_tokens_completion>n_assistant_tool_calls",
+      "eligibility": "absorbing",
+      "label": "primary order, absorbing",
+      "shadow_nb": 0.005102040816326536,
+      "shadow_nb_lo": -0.1107687809027074,
+      "shadow_nb_hi": 0.12097286253536048,
+      "shadow_decision": "inconclusive",
+      "online_nb": 0.020408163265306117,
+      "online_nb_lo": -0.3660352820036362,
+      "online_nb_hi": 0.40631790063819107,
+      "online_guarded": "inconclusive",
+      "online_first_deploy": null,
+      "online_first_harm": null
+    },
+    {
+      "tolerance": 0.1,
+      "order": "success>n_assistant_tool_calls>agent_tokens_completion",
+      "eligibility": "absorbing",
+      "label": "steps before tokens, absorbing",
+      "shadow_nb": 0.005102040816326536,
+      "shadow_nb_lo": -0.1107687809027074,
+      "shadow_nb_hi": 0.12097286253536048,
+      "shadow_decision": "inconclusive",
+      "online_nb": 0.020408163265306117,
+      "online_nb_lo": -0.3660352820036362,
+      "online_nb_hi": 0.40631790063819107,
+      "online_guarded": "inconclusive",
+      "online_first_deploy": null,
+      "online_first_harm": null
+    },
+    {
+      "tolerance": 0.1,
+      "order": "success>duration>agent_tokens_completion",
+      "eligibility": "absorbing",
+      "label": "duration as tier 2, absorbing",
+      "shadow_nb": 0.015306122448979581,
+      "shadow_nb_lo": -0.10048899143987494,
+      "shadow_nb_hi": 0.1311012363378341,
+      "shadow_decision": "inconclusive",
+      "online_nb": 0.020408163265306117,
+      "online_nb_lo": -0.3660352820036362,
+      "online_nb_hi": 0.40631790063819107,
+      "online_guarded": "inconclusive",
+      "online_first_deploy": null,
+      "online_first_harm": null
+    },
+    {
+      "tolerance": 0.1,
+      "order": "success>agent_tokens_completion>n_assistant_tool_calls",
+      "eligibility": "none",
+      "label": "lexicographic, non-absorbing (failures ranked by cost)",
+      "shadow_nb": 0.16326530612244905,
+      "shadow_nb_lo": -0.049425251047630236,
+      "shadow_nb_hi": 0.37595586329252834,
+      "shadow_decision": "inconclusive",
+      "online_nb": 0.3877551020408163,
+      "online_nb_lo": -0.11945601263824776,
+      "online_nb_hi": 0.8311316419620902,
+      "online_guarded": "inconclusive",
+      "online_first_deploy": null,
+      "online_first_harm": null
+    },
+    {
+      "tolerance": 0.1,
+      "order": "agent_tokens_completion>success>n_assistant_tool_calls",
+      "eligibility": "none",
+      "label": "token-first (H4), no eligibility mask",
+      "shadow_nb": 0.21428571428571425,
+      "shadow_nb_lo": 0.01491773920730835,
+      "shadow_nb_hi": 0.41365368936412017,
+      "shadow_decision": "B",
+      "online_nb": 0.46938775510204084,
+      "online_nb_lo": -0.032526135444641086,
+      "online_nb_hi": 0.897719528602094,
+      "online_guarded": "inconclusive",
+      "online_first_deploy": null,
+      "online_first_harm": null
+    },
+    {
+      "tolerance": 0.2,
+      "order": "success>agent_tokens_completion>n_assistant_tool_calls",
+      "eligibility": "absorbing",
+      "label": "primary order, absorbing",
+      "shadow_nb": 0.005102040816326536,
+      "shadow_nb_lo": -0.1107687809027074,
+      "shadow_nb_hi": 0.12097286253536048,
+      "shadow_decision": "inconclusive",
+      "online_nb": 0.020408163265306117,
+      "online_nb_lo": -0.3660352820036362,
+      "online_nb_hi": 0.40631790063819107,
+      "online_guarded": "inconclusive",
+      "online_first_deploy": null,
+      "online_first_harm": null
+    },
+    {
+      "tolerance": 0.2,
+      "order": "success>n_assistant_tool_calls>agent_tokens_completion",
+      "eligibility": "absorbing",
+      "label": "steps before tokens, absorbing",
+      "shadow_nb": 0.005102040816326536,
+      "shadow_nb_lo": -0.1107687809027074,
+      "shadow_nb_hi": 0.12097286253536048,
+      "shadow_decision": "inconclusive",
+      "online_nb": 0.020408163265306117,
+      "online_nb_lo": -0.3660352820036362,
+      "online_nb_hi": 0.40631790063819107,
+      "online_guarded": "inconclusive",
+      "online_first_deploy": null,
+      "online_first_harm": null
+    },
+    {
+      "tolerance": 0.2,
+      "order": "success>duration>agent_tokens_completion",
+      "eligibility": "absorbing",
+      "label": "duration as tier 2, absorbing",
+      "shadow_nb": 0.015306122448979581,
+      "shadow_nb_lo": -0.10048899143987494,
+      "shadow_nb_hi": 0.1311012363378341,
+      "shadow_decision": "inconclusive",
+      "online_nb": 0.020408163265306117,
+      "online_nb_lo": -0.3660352820036362,
+      "online_nb_hi": 0.40631790063819107,
+      "online_guarded": "inconclusive",
+      "online_first_deploy": null,
+      "online_first_harm": null
+    },
+    {
+      "tolerance": 0.2,
+      "order": "success>agent_tokens_completion>n_assistant_tool_calls",
+      "eligibility": "none",
+      "label": "lexicographic, non-absorbing (failures ranked by cost)",
+      "shadow_nb": 0.173469387755102,
+      "shadow_nb_lo": -0.04155849846449075,
+      "shadow_nb_hi": 0.3884972739746948,
+      "shadow_decision": "inconclusive",
+      "online_nb": 0.3469387755102041,
+      "online_nb_lo": -0.16174251814277807,
+      "online_nb_hi": 0.7973778685744928,
+      "online_guarded": "inconclusive",
+      "online_first_deploy": null,
+      "online_first_harm": null
+    },
+    {
+      "tolerance": 0.2,
+      "order": "agent_tokens_completion>success>n_assistant_tool_calls",
+      "eligibility": "none",
+      "label": "token-first (H4), no eligibility mask",
+      "shadow_nb": 0.21428571428571425,
+      "shadow_nb_lo": 0.01065270083412062,
+      "shadow_nb_hi": 0.41791872773730787,
+      "shadow_decision": "B",
+      "online_nb": 0.46938775510204084,
+      "online_nb_lo": -0.032526135444641086,
+      "online_nb_hi": 0.897719528602094,
+      "online_guarded": "inconclusive",
+      "online_first_deploy": null,
+      "online_first_harm": null
+    }
+  ]
+}

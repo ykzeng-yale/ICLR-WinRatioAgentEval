@@ -1,0 +1,1632 @@
+{
+  "generated_by": "experiments/tau2_open/make_round10_handoff.py",
+  "post_hoc": true,
+  "generated_at": "2026-09-19T05:44:16Z",
+  "inputs_sha256": {
+    "raw/tau2_open_armA.json": "887c66a23c2c1c2188279ce658efb15436648a9e26251b62f569521df4845fd8",
+    "raw/tau2_open_armB.json": "39a49567936fb14f5444ae6e406c43abd1cfbb21198540c8b8df585d8fa1c8f6",
+    "episodes.csv": "5abbc1ce1acdc248ecf049276621a07449228ea3d8954e5af978559f3e11922f",
+    "design.json": "c8fa5728e8a9602813ffac10ea4ef88642ef3550aa9d5a5b7028c25586186597",
+    "run_manifest.json": "5ee827214337991a1f860d5158ed77d3f29f4169069191eecdb1ec04055f70d6",
+    "logs/tau2_armA.log": "e2cb454b254c1bfc4cbebee5777cd9e3504ee399eec234081a4cb414217f95ef",
+    "logs/tau2_armA.invocation1_preamendment.log": "838b082f78dce04a71ccec2c98ff1394e95e54bb75f03a3cd4bb07bc7159073c",
+    "logs/tau2_armB.log": "fa95ab70d88e2a279535f8bccdb7651b2ca930188b45484a8ceb9eec249e0677",
+    "logs/llama_server_8081.log": "9c2eeca8a8f49183a0bf61a29c8e559394b49acbf34f542e28f67b1bfc400d13",
+    "logs/llama_server_8082.log": "f693ccaa977dff310bdf4af37ddb9403b7363cf3b3c282bcec0517ce086b4dc6"
+  },
+  "wincs_sha256_at_run": "601865d9adf0a9f1a0f20c44ef78cb18dffe33fdc3beb5d98a47d6c5199b8754",
+  "reconciliation": {
+    "planned_units": 196,
+    "unique_canonical_units": 196,
+    "missing_outcomes": 0,
+    "duplicate_units": 0,
+    "total_attempts_started": 206,
+    "attempts_by_arm": {
+      "A": 108,
+      "B": 98
+    },
+    "attempts_by_invocation": {
+      "1": 8,
+      "2": 198
+    },
+    "attempts_that_produced_the_saved_trajectory_record": 194,
+    "attempts_discarded": 12,
+    "discarded_failed_with_tau2_failure_line": 11,
+    "discarded_interrupted_by_owner_stop": 1,
+    "discarded_by_cause": {
+      "request_timeout (litellm.Timeout: APITimeoutError)": 2,
+      "owner_stop_of_invocation_1": 1,
+      "json_decode_error_after_truncation (JSONDecodeError)": 4,
+      "context_window_overflow (litellm.BadRequestError)": 5
+    },
+    "extra_attempts_beyond_one_per_unit": 10,
+    "tau2_within_invocation_retries": 9,
+    "cross_invocation_reruns_of_a_unit_without_record": 1,
+    "units_with_more_than_one_attempt": {
+      "A task 6 trial 0": 7,
+      "A task 15 trial 0": 2,
+      "A task 32 trial 1": 4
+    },
+    "tau2_TIMEOUT_terminations": 0,
+    "termination_reasons": {
+      "A": {
+        "user_stop": 55,
+        "too_many_errors": 14,
+        "infrastructure_error": 2,
+        "max_steps": 27
+      },
+      "B": {
+        "user_stop": 69,
+        "max_steps": 29
+      }
+    },
+    "request_level_timeouts_seen_by_llama_server_invocation1": 16,
+    "requests_aborted_by_owner_stop_invocation1": 1,
+    "request_level_context_rejections_seen_by_llama_server_invocation2": 20,
+    "server_cancel_detail_invocation1": [
+      {
+        "rel_s": 1382.012,
+        "utc": "2026-09-18T18:01:28Z",
+        "kind": "client_timeout_after_about_600s",
+        "request_seconds": 600.141,
+        "last_n_gen_logged": 12621,
+        "slot_n_tokens_prompt_plus_generated": 18709
+      },
+      {
+        "rel_s": 1982.774,
+        "utc": "2026-09-18T18:11:28Z",
+        "kind": "client_timeout_after_about_600s",
+        "request_seconds": 600.3059999999998,
+        "last_n_gen_logged": 12809,
+        "slot_n_tokens_prompt_plus_generated": 18849
+      },
+      {
+        "rel_s": 2583.701,
+        "utc": "2026-09-18T18:21:29Z",
+        "kind": "client_timeout_after_about_600s",
+        "request_seconds": 600.1990000000001,
+        "last_n_gen_logged": 12817,
+        "slot_n_tokens_prompt_plus_generated": 18856
+      },
+      {
+        "rel_s": 3185.224,
+        "utc": "2026-09-18T18:31:31Z",
+        "kind": "client_timeout_after_about_600s",
+        "request_seconds": 599.9170000000004,
+        "last_n_gen_logged": 12753,
+        "slot_n_tokens_prompt_plus_generated": 18836
+      },
+      {
+        "rel_s": 3785.378,
+        "utc": "2026-09-18T18:41:31Z",
+        "kind": "client_timeout_after_about_600s",
+        "request_seconds": 600.1090000000004,
+        "last_n_gen_logged": 12666,
+        "slot_n_tokens_prompt_plus_generated": 18701
+      },
+      {
+        "rel_s": 4386.068,
+        "utc": "2026-09-18T18:51:32Z",
+        "kind": "client_timeout_after_about_600s",
+        "request_seconds": 600.643,
+        "last_n_gen_logged": 12463,
+        "slot_n_tokens_prompt_plus_generated": 18499
+      },
+      {
+        "rel_s": 4986.155,
+        "utc": "2026-09-18T19:01:32Z",
+        "kind": "client_timeout_after_about_600s",
+        "request_seconds": 600.0819999999994,
+        "last_n_gen_logged": 11705,
+        "slot_n_tokens_prompt_plus_generated": 17780
+      },
+      {
+        "rel_s": 5611.145,
+        "utc": "2026-09-18T19:11:57Z",
+        "kind": "client_timeout_after_about_600s",
+        "request_seconds": 600.0390000000007,
+        "last_n_gen_logged": 11625,
+        "slot_n_tokens_prompt_plus_generated": 17695
+      },
+      {
+        "rel_s": 6211.669,
+        "utc": "2026-09-18T19:21:57Z",
+        "kind": "client_timeout_after_about_600s",
+        "request_seconds": 600.0019999999995,
+        "last_n_gen_logged": 11851,
+        "slot_n_tokens_prompt_plus_generated": 17911
+      },
+      {
+        "rel_s": 6812.428,
+        "utc": "2026-09-18T19:31:58Z",
+        "kind": "client_timeout_after_about_600s",
+        "request_seconds": 599.8779999999997,
+        "last_n_gen_logged": 12033,
+        "slot_n_tokens_prompt_plus_generated": 18114
+      },
+      {
+        "rel_s": 7414.933,
+        "utc": "2026-09-18T19:42:00Z",
+        "kind": "client_timeout_after_about_600s",
+        "request_seconds": 600.6620000000003,
+        "last_n_gen_logged": 12722,
+        "slot_n_tokens_prompt_plus_generated": 18763
+      },
+      {
+        "rel_s": 8014.579,
+        "utc": "2026-09-18T19:52:00Z",
+        "kind": "client_timeout_after_about_600s",
+        "request_seconds": 599.5659999999998,
+        "last_n_gen_logged": 12735,
+        "slot_n_tokens_prompt_plus_generated": 18818
+      },
+      {
+        "rel_s": 8614.586,
+        "utc": "2026-09-18T20:02:00Z",
+        "kind": "client_timeout_after_about_600s",
+        "request_seconds": 599.8649999999998,
+        "last_n_gen_logged": 12797,
+        "slot_n_tokens_prompt_plus_generated": 18829
+      },
+      {
+        "rel_s": 9214.412,
+        "utc": "2026-09-18T20:12:00Z",
+        "kind": "client_timeout_after_about_600s",
+        "request_seconds": 599.6759999999995,
+        "last_n_gen_logged": 12590,
+        "slot_n_tokens_prompt_plus_generated": 18672
+      },
+      {
+        "rel_s": 9841.08,
+        "utc": "2026-09-18T20:22:27Z",
+        "kind": "client_timeout_after_about_600s",
+        "request_seconds": 600.0540000000001,
+        "last_n_gen_logged": 12019,
+        "slot_n_tokens_prompt_plus_generated": 18084
+      },
+      {
+        "rel_s": 10441.926,
+        "utc": "2026-09-18T20:32:27Z",
+        "kind": "client_timeout_after_about_600s",
+        "request_seconds": 600.3299999999999,
+        "last_n_gen_logged": 11905,
+        "slot_n_tokens_prompt_plus_generated": 17938
+      },
+      {
+        "rel_s": 10452.471,
+        "utc": "2026-09-18T20:32:38Z",
+        "kind": "aborted_when_the_owner_stopped_invocation_1",
+        "request_seconds": 10.064000000000306,
+        "last_n_gen_logged": 169,
+        "slot_n_tokens_prompt_plus_generated": 6260
+      }
+    ],
+    "server_cancels_8082": 0,
+    "server_clock_alignment_s": {
+      "max_abs": 1.108,
+      "values": [
+        0.26,
+        0.92,
+        1.108,
+        1.108,
+        1.107,
+        1.103,
+        1.105
+      ]
+    },
+    "truncated_responses_in_canonical_records": 4,
+    "truncated_responses_in_canonical_records_detail": {
+      "A": {
+        "task 22 trial 0": [
+          [
+            "agent",
+            1024
+          ]
+        ],
+        "task 24 trial 0": [
+          [
+            "agent",
+            1024
+          ]
+        ],
+        "task 24 trial 1": [
+          [
+            "agent",
+            1024
+          ]
+        ],
+        "task 31 trial 1": [
+          [
+            "agent",
+            1024
+          ]
+        ]
+      },
+      "B": {}
+    },
+    "truncation_warnings_in_logs_total": 9,
+    "truncation_warnings_in_record_producing_attempts": 4,
+    "truncation_warnings_in_discarded_attempts": 5,
+    "truncation_warnings_in_discarded_attempts_detail": [
+      {
+        "arm": "A",
+        "task": "6",
+        "trial": 0,
+        "invocation": 2,
+        "attempt": 1,
+        "n": 1
+      },
+      {
+        "arm": "A",
+        "task": "6",
+        "trial": 0,
+        "invocation": 2,
+        "attempt": 2,
+        "n": 1
+      },
+      {
+        "arm": "A",
+        "task": "6",
+        "trial": 0,
+        "invocation": 2,
+        "attempt": 3,
+        "n": 1
+      },
+      {
+        "arm": "A",
+        "task": "6",
+        "trial": 0,
+        "invocation": 2,
+        "attempt": 4,
+        "n": 1
+      },
+      {
+        "arm": "A",
+        "task": "15",
+        "trial": 0,
+        "invocation": 2,
+        "attempt": 1,
+        "n": 1
+      }
+    ],
+    "infrastructure_error_units": [
+      {
+        "arm": "A",
+        "task": "6",
+        "trial": 0,
+        "error_type": "JSONDecodeError",
+        "error": "Unterminated string starting at: line 1 column 185 (char 184)",
+        "failed_after_attempts": 4,
+        "placeholder_written_local": "2026-09-18T16:37:59.181071",
+        "n_messages": 0,
+        "duration": 0.0
+      },
+      {
+        "arm": "A",
+        "task": "32",
+        "trial": 1,
+        "error_type": "BadRequestError",
+        "error": "litellm.BadRequestError: OpenAIException - request (32836 tokens) exceeds the available context size (32768 tokens), try increasing it",
+        "failed_after_attempts": 4,
+        "placeholder_written_local": "2026-09-18T20:44:39.336758",
+        "n_messages": 0,
+        "duration": 0.0
+      }
+    ],
+    "n_infrastructure_error_units": 2,
+    "units_with_missing_reward": 2,
+    "infrastructure_error_units_rerun_after_invocation2": 0,
+    "manifest_n_infrastructure_error_rerun_on_resume": {
+      "A": 0,
+      "B": 0
+    },
+    "log_segments": {
+      "A inv 1": {
+        "resumed": null,
+        "skipped": 0,
+        "completed": false,
+        "n_attempts": 8
+      },
+      "A inv 2": {
+        "resumed": {
+          "done": 5,
+          "remaining": 93
+        },
+        "skipped": 5,
+        "completed": true,
+        "n_attempts": 100
+      },
+      "B inv 2": {
+        "resumed": null,
+        "skipped": 0,
+        "completed": true,
+        "n_attempts": 98
+      }
+    },
+    "preamendment_log_is_byte_prefix_of_armA_log": true,
+    "tau2_clock_vs_marker_s": [
+      4.707,
+      4.451,
+      4.81
+    ]
+  },
+  "operational_accounting_failure_inclusive": {
+    "note": "Failure-inclusive. Port 8081 served the arm-A agent and the user simulator of both arms; port 8082 served only the arm-B agent. llama-server prints a generated-token count for every COMPLETED request; a cancelled request prints none, so its generated tokens are taken from the last n_gen progress line (printed about every 3 s: a lower bound).",
+    "invocation1_port8081": {
+      "completed_requests": 193,
+      "generated_tokens_completed_requests": 16444,
+      "smoke_tokens_first_request": 2,
+      "retained_in_canonical_records": 15014,
+      "generated_in_completed_requests_of_discarded_attempts": 1428,
+      "cancelled_requests": 17,
+      "generated_tokens_in_cancelled_requests_lower_bound": 198280,
+      "wall_clock_s": 10452.471,
+      "retained_simulation_seconds": 740.1252397503704
+    },
+    "invocation2_port8081": {
+      "completed_requests": 6259,
+      "generated_tokens_completed_requests": 448226,
+      "smoke_tokens": 2,
+      "retained_in_canonical_records": 401648,
+      "generated_in_completed_requests_of_discarded_attempts": 46576,
+      "rejected_requests_context_overflow": 20
+    },
+    "invocation2_port8082": {
+      "completed_requests": 2264,
+      "generated_tokens_completed_requests": 223347,
+      "retained_in_canonical_records": 223345,
+      "discarded": 0
+    },
+    "invocation2_arm_wall_clock_s": {
+      "A": 18081.781316757202,
+      "B": 12127.197072029114
+    },
+    "invocation2_retained_simulation_seconds": {
+      "A": 15111.031364372,
+      "B": 12096.15234420728
+    },
+    "discarded_attempts": [
+      {
+        "arm": "A",
+        "task": "6",
+        "trial": 0,
+        "invocation": 1,
+        "attempt": 1,
+        "start_utc_approx": "2026-09-18T17:51:05Z",
+        "end_utc": "2026-09-18T19:01:32Z",
+        "wall_clock_s_approx": 4226.5
+      },
+      {
+        "arm": "A",
+        "task": "6",
+        "trial": 0,
+        "invocation": 1,
+        "attempt": 2,
+        "start_utc_approx": "2026-09-18T19:01:32Z",
+        "end_utc": "2026-09-18T20:12:01Z",
+        "wall_clock_s_approx": 4228.9
+      },
+      {
+        "arm": "A",
+        "task": "6",
+        "trial": 0,
+        "invocation": 1,
+        "attempt": 3,
+        "start_utc_approx": "2026-09-18T20:12:01Z",
+        "end_utc": "2026-09-18T20:32:38Z",
+        "wall_clock_s_approx": 1237.1
+      },
+      {
+        "arm": "A",
+        "task": "6",
+        "trial": 0,
+        "invocation": 2,
+        "attempt": 1,
+        "start_utc_approx": "2026-09-18T20:33:13Z",
+        "end_utc": "2026-09-18T20:34:29Z",
+        "wall_clock_s_approx": 76.2
+      },
+      {
+        "arm": "A",
+        "task": "6",
+        "trial": 0,
+        "invocation": 2,
+        "attempt": 2,
+        "start_utc_approx": "2026-09-18T20:34:29Z",
+        "end_utc": "2026-09-18T20:35:40Z",
+        "wall_clock_s_approx": 71.0
+      },
+      {
+        "arm": "A",
+        "task": "6",
+        "trial": 0,
+        "invocation": 2,
+        "attempt": 3,
+        "start_utc_approx": "2026-09-18T20:35:40Z",
+        "end_utc": "2026-09-18T20:36:49Z",
+        "wall_clock_s_approx": 69.1
+      },
+      {
+        "arm": "A",
+        "task": "6",
+        "trial": 0,
+        "invocation": 2,
+        "attempt": 4,
+        "start_utc_approx": "2026-09-18T20:36:49Z",
+        "end_utc": "2026-09-18T20:37:59Z",
+        "wall_clock_s_approx": 69.5
+      },
+      {
+        "arm": "A",
+        "task": "15",
+        "trial": 0,
+        "invocation": 2,
+        "attempt": 1,
+        "start_utc_approx": "2026-09-18T20:56:12Z",
+        "end_utc": "2026-09-18T21:11:55Z",
+        "wall_clock_s_approx": 943.6
+      },
+      {
+        "arm": "A",
+        "task": "32",
+        "trial": 1,
+        "invocation": 2,
+        "attempt": 1,
+        "start_utc_approx": "2026-09-19T00:16:07Z",
+        "end_utc": "2026-09-19T00:22:28Z",
+        "wall_clock_s_approx": 381.0
+      },
+      {
+        "arm": "A",
+        "task": "32",
+        "trial": 1,
+        "invocation": 2,
+        "attempt": 2,
+        "start_utc_approx": "2026-09-19T00:22:28Z",
+        "end_utc": "2026-09-19T00:29:54Z",
+        "wall_clock_s_approx": 445.4
+      },
+      {
+        "arm": "A",
+        "task": "32",
+        "trial": 1,
+        "invocation": 2,
+        "attempt": 3,
+        "start_utc_approx": "2026-09-19T00:29:54Z",
+        "end_utc": "2026-09-19T00:37:15Z",
+        "wall_clock_s_approx": 441.5
+      },
+      {
+        "arm": "A",
+        "task": "32",
+        "trial": 1,
+        "invocation": 2,
+        "attempt": 4,
+        "start_utc_approx": "2026-09-19T00:37:15Z",
+        "end_utc": "2026-09-19T00:44:39Z",
+        "wall_clock_s_approx": 443.5
+      }
+    ],
+    "discarded_attempt_wall_clock_s_approx_total": {
+      "1": 9692.5,
+      "2": 2940.8
+    },
+    "canonical_attempt_wall_clock_minus_recorded_duration_s": {
+      "max_abs": 2.8588238341733785,
+      "note": "log-derived attempt windows (first/last timestamped tau2 line) versus the duration stored in the raw record; shows how approximate the windows are"
+    }
+  },
+  "settings_verification": {
+    "served_model_ids": {
+      "A": {
+        "user:qwen2.5-7b-instruct": 1720,
+        "agent:qwen2.5-7b-instruct": 2485
+      },
+      "B": {
+        "user:qwen2.5-7b-instruct": 1812,
+        "agent:qwen3-4b-instruct-2507": 2263
+      }
+    },
+    "info_block_llm_args": {
+      "A": {
+        "agent": {
+          "temperature": 0.3,
+          "api_base": "http://127.0.0.1:8081/v1"
+        },
+        "user": {
+          "temperature": 0.0,
+          "api_base": "http://127.0.0.1:8081/v1"
+        },
+        "seed": 300
+      },
+      "B": {
+        "agent": {
+          "temperature": 0.3,
+          "api_base": "http://127.0.0.1:8082/v1",
+          "max_tokens": 1024
+        },
+        "user": {
+          "temperature": 0.0,
+          "api_base": "http://127.0.0.1:8081/v1",
+          "max_tokens": 1024
+        },
+        "seed": 300
+      }
+    },
+    "info_block_note": "tau2 try_resume() returns the PREVIOUS Results object when it resumes (checkpoint.py), so arm A keeps the invocation-1 info block; the config diff was logged at resume: \"dictionary_item_added: root['user_info']['llm_args']['max_tokens'], root['agent_info']['llm_args']['max_tokens']\"",
+    "cap": {
+      "length_finished_responses": {
+        "A": [
+          {
+            "unit": "task 22 trial 0",
+            "role": "agent",
+            "completion_tokens": 1024
+          },
+          {
+            "unit": "task 24 trial 0",
+            "role": "agent",
+            "completion_tokens": 1024
+          },
+          {
+            "unit": "task 24 trial 1",
+            "role": "agent",
+            "completion_tokens": 1024
+          },
+          {
+            "unit": "task 31 trial 1",
+            "role": "agent",
+            "completion_tokens": 1024
+          }
+        ],
+        "B": []
+      },
+      "max_completion_tokens": {
+        "A_pre_amendment": {
+          "agent": 514,
+          "user": 205
+        },
+        "A_post_amendment": {
+          "agent": 1024,
+          "user": 460
+        },
+        "B": {
+          "agent": 935,
+          "user": 169
+        }
+      },
+      "n_responses_above_1024_post_amendment": 0
+    },
+    "timeout": {
+      "flag_in_manifest_command": {
+        "1": {
+          "A": null,
+          "B": null
+        },
+        "2": {
+          "A": "1800",
+          "B": "1800"
+        }
+      },
+      "max_tokens_in_manifest_command": {
+        "1": {
+          "A": {
+            "agent": null,
+            "user": null
+          },
+          "B": {
+            "agent": null,
+            "user": null
+          }
+        },
+        "2": {
+          "A": {
+            "agent": 1024,
+            "user": 1024
+          },
+          "B": {
+            "agent": 1024,
+            "user": 1024
+          }
+        }
+      },
+      "executed_command_in_log": {
+        "A inv 1": {
+          "has_timeout_1800": false,
+          "has_max_tokens_1024": 0
+        },
+        "A inv 2": {
+          "has_timeout_1800": true,
+          "has_max_tokens_1024": 2
+        },
+        "B inv 2": {
+          "has_timeout_1800": true,
+          "has_max_tokens_1024": 2
+        }
+      },
+      "timeout_terminations": 0,
+      "longest_simulation_s": {
+        "A": 899.0712691675872,
+        "B": 492.1519488329068
+      }
+    },
+    "seed": {
+      "unit_seed_counts": {
+        "A": {
+          "626729": 49,
+          "373753": 49
+        },
+        "B": {
+          "626729": 49,
+          "373753": 49
+        }
+      },
+      "seed_by_trial": {
+        "A": {
+          "0": [
+            626729
+          ],
+          "1": [
+            373753
+          ]
+        },
+        "B": {
+          "0": [
+            626729
+          ],
+          "1": [
+            373753
+          ]
+        }
+      },
+      "seed_key_in_info_llm_args": {
+        "A": {
+          "agent": false,
+          "user": false
+        },
+        "B": {
+          "agent": false,
+          "user": false
+        }
+      },
+      "occurrences_of_word_seed_in_llama_server_logs": {
+        "port8081": 0,
+        "port8082": 0
+      },
+      "request_bodies_saved": false
+    },
+    "tokens": {
+      "episodes_tokens_source": {
+        "usage": 196
+      },
+      "episodes_tokens_estimated_calls": 0,
+      "responses_where_usage_differs_from_llamacpp_timings_predicted_n": {
+        "A": 0,
+        "B": 0
+      },
+      "raw_totals": {
+        "A": {
+          "user_completion": 85101,
+          "user_prompt": 4373819,
+          "agent_completion": 248996,
+          "agent_prompt": 20412368
+        },
+        "B": {
+          "user_completion": 82565,
+          "user_prompt": 5915658,
+          "agent_completion": 223345,
+          "agent_prompt": 19138768
+        }
+      },
+      "raw_calls": {
+        "A": {
+          "user": 1720,
+          "agent": 2485
+        },
+        "B": {
+          "user": 1812,
+          "agent": 2263
+        }
+      },
+      "llama_server_8082_log": {
+        "n_completed_requests": 2264,
+        "generated_tokens": 223347,
+        "note": "port 8082 served only the arm-B agent plus one 2-token smoke completion"
+      },
+      "llama_server_8081_log": [
+        {
+          "invocation": 1,
+          "n_completed_requests": 193,
+          "generated_tokens": 16444
+        },
+        {
+          "invocation": 2,
+          "n_completed_requests": 6259,
+          "generated_tokens": 448226
+        }
+      ],
+      "check_8082_equals_armB_agent_plus_smoke": {
+        "requests": [
+          2264,
+          2264
+        ],
+        "tokens": [
+          223347,
+          223347
+        ]
+      }
+    }
+  },
+  "erratum_facts": {
+    "amendment_file_sha256": "696aede45eb45360a1a7e3e78626ec5d86ef745af5f2a02c5d0248adc272ce8f",
+    "amendment_sha256_in_manifest": "696aede45eb45360a1a7e3e78626ec5d86ef745af5f2a02c5d0248adc272ce8f",
+    "amendment_decided_utc_as_recorded": "2026-09-18T20:45Z",
+    "amendment_file_mtime_utc": "2026-09-18T20:32:43Z",
+    "deviation_note_mtime_utc": "2026-09-18T20:32:43Z",
+    "runner_mtime_utc": "2026-09-18T20:32:43Z",
+    "invocation1_started_utc": "2026-09-18T17:38:26Z",
+    "invocation2_started_utc": "2026-09-18T20:33:06Z",
+    "invocation1_last_tau2_log_line_utc": "2026-09-18T20:12:28Z",
+    "invocation1_last_server_event_utc": "2026-09-18T20:32:38Z",
+    "runner_sha256": {
+      "invocation1": "215e943a371a778900033586a28cd00b7e0f49f77966354ff3d2b6913c1c06ee",
+      "invocation2": "27797f68e2aff6e088d0300f4be9baac903ef34b71ec84116125c2fa664ff75c",
+      "on_disk": "27797f68e2aff6e088d0300f4be9baac903ef34b71ec84116125c2fa664ff75c"
+    },
+    "other_harness_hashes_identical": {
+      "common.py": true,
+      "design.py": true,
+      "build_episodes.py": true,
+      "analysis.py": true,
+      "tests_tau2_open.py": true,
+      "config.json": true,
+      "protocol.md": true,
+      "README.md": true
+    },
+    "harness_git_hash": {
+      "invocation1": "35a8d5a1c8b9155a39ad211252b928c244553893",
+      "invocation2": "4f01206a7d579f0ea02b6445c852d60d0ca23009"
+    },
+    "five_units": [
+      {
+        "task": "1",
+        "trial": 0,
+        "reward": 0.0,
+        "termination_reason": "user_stop",
+        "duration_s": 46.87566733453423,
+        "max_agent_completion": 85,
+        "max_user_completion": 48
+      },
+      {
+        "task": "2",
+        "trial": 0,
+        "reward": 0.0,
+        "termination_reason": "too_many_errors",
+        "duration_s": 432.34411708358675,
+        "max_agent_completion": 514,
+        "max_user_completion": 205
+      },
+      {
+        "task": "3",
+        "trial": 0,
+        "reward": 1.0,
+        "termination_reason": "user_stop",
+        "duration_s": 91.90025429148227,
+        "max_agent_completion": 179,
+        "max_user_completion": 91
+      },
+      {
+        "task": "4",
+        "trial": 0,
+        "reward": 1.0,
+        "termination_reason": "user_stop",
+        "duration_s": 59.098208165727556,
+        "max_agent_completion": 120,
+        "max_user_completion": 70
+      },
+      {
+        "task": "5",
+        "trial": 0,
+        "reward": 0.0,
+        "termination_reason": "user_stop",
+        "duration_s": 109.90699287503958,
+        "max_agent_completion": 308,
+        "max_user_completion": 56
+      }
+    ],
+    "amendment_content_embedded_in_manifest_equals_file": true
+  },
+  "omit_five_sensitivity_POST_HOC": {
+    "label": "POST HOC omit-five sensitivity. It does not replace the planned denominator (196 units, 49 pairs, 49 task clusters), which stays the analysis of record.",
+    "five_units": [
+      {
+        "arm": "A",
+        "task": "1",
+        "trial": 0
+      },
+      {
+        "arm": "A",
+        "task": "2",
+        "trial": 0
+      },
+      {
+        "arm": "A",
+        "task": "3",
+        "trial": 0
+      },
+      {
+        "arm": "A",
+        "task": "4",
+        "trial": 0
+      },
+      {
+        "arm": "A",
+        "task": "5",
+        "trial": 0
+      }
+    ],
+    "five_units_design_role": [
+      {
+        "task": "1",
+        "trial": 0,
+        "design_pass": 2,
+        "pair_index": 24,
+        "reward": 0.0,
+        "enters_E1": false
+      },
+      {
+        "task": "2",
+        "trial": 0,
+        "design_pass": 2,
+        "pair_index": 20,
+        "reward": 0.0,
+        "enters_E1": false
+      },
+      {
+        "task": "3",
+        "trial": 0,
+        "design_pass": 2,
+        "pair_index": 12,
+        "reward": 1.0,
+        "enters_E1": false
+      },
+      {
+        "task": "4",
+        "trial": 0,
+        "design_pass": 1,
+        "pair_index": 24,
+        "reward": 1.0,
+        "enters_E1": true
+      },
+      {
+        "task": "5",
+        "trial": 0,
+        "design_pass": 1,
+        "pair_index": 10,
+        "reward": 0.0,
+        "enters_E1": true
+      }
+    ],
+    "E1_pairs_dropped_variant_a": [
+      10,
+      24
+    ],
+    "E1_pairs_dropped_variant_b": [
+      10,
+      12,
+      20,
+      24,
+      32,
+      40,
+      46,
+      47,
+      48
+    ],
+    "planned": {
+      "E1": {
+        "n_pairs": 49,
+        "net_benefit": 0.020408163265306117,
+        "nb_cs": [
+          -0.3660352820036362,
+          0.40631790063819107
+        ],
+        "success_diff": 0.02040816326530612,
+        "success_diff_cs": [
+          -0.3660352820036362,
+          0.40631790063819107
+        ],
+        "wtl": [
+          10,
+          30,
+          9
+        ],
+        "r1_radius": 0.6297318533794022
+      },
+      "E2": {
+        "n_tasks": 49,
+        "net_benefit": 0.005102040816326536,
+        "nb_ci": [
+          -0.1107687809027074,
+          0.12097286253536048
+        ],
+        "success_diff": 0.0,
+        "success_diff_ci": [
+          -0.11353902458559237,
+          0.11353902458559237
+        ]
+      }
+    },
+    "variant_a": {
+      "label": "a: omit the five arm-A units only",
+      "note": "E1 loses every prespecified pair whose arm-A member is one of the five units (the arm-B partner of such a pair is then unused). E2 keeps all 49 task clusters; for tasks 1-5 arm A contributes trial 1 only, so the task score averages 2 comparisons (A trial 1 versus B trials 0 and 1) instead of 4, and the same-trial (shared-seed) comparison A0-B0 is among those removed. The success difference for tasks 1-5 is mean(B trials 0,1) - A trial 1.",
+      "n_units": {
+        "A": 93,
+        "B": 98
+      },
+      "success": {
+        "A": 13,
+        "B": 15
+      },
+      "E1": {
+        "n_pairs": 47,
+        "wins": null,
+        "net_benefit": 0.04255319148936171,
+        "nb_cs": [
+          -0.35636034005499906,
+          0.44044815574554685
+        ],
+        "success_diff": 0.0425531914893617,
+        "success_diff_cs": [
+          -0.35636034005499906,
+          0.44044815574554685
+        ],
+        "ties": 29,
+        "guarded_decision": "inconclusive",
+        "r1_radius": 0.6514179475503564,
+        "wtl": [
+          10,
+          29,
+          8
+        ]
+      },
+      "E2": {
+        "n_tasks": 49,
+        "net_benefit": 0.010204081632653073,
+        "nb_ci": [
+          -0.10702112035671688,
+          0.12742928362202302
+        ],
+        "p_win": 0.14285714285714285,
+        "p_tie": 0.7244897959183674,
+        "p_loss": 0.13265306122448978,
+        "decision": "inconclusive",
+        "success_diff": 0.0,
+        "success_diff_ci": [
+          -0.1172626003639023,
+          0.1172626003639023
+        ],
+        "success_diff_n_tasks": 49
+      }
+    },
+    "variant_b": {
+      "label": "b: omit tasks 1-5 entirely (both arms, both trials)",
+      "note": "E1 loses every prespecified pair with a member (either arm) on tasks 1-5. E2 has 44 task clusters. This removes 20 units, 15 of which were collected under the amended settings, so it discards more than the amendment touches; shown only to bracket variant a.",
+      "n_units": {
+        "A": 88,
+        "B": 88
+      },
+      "success": {
+        "A": 11,
+        "B": 14
+      },
+      "E1": {
+        "n_pairs": 40,
+        "wins": null,
+        "net_benefit": 0.05000000000000002,
+        "nb_cs": [
+          -0.4107547149062156,
+          0.5093745641410352
+        ],
+        "success_diff": 0.05,
+        "success_diff_cs": [
+          -0.4107547149062156,
+          0.5093745641410352
+        ],
+        "ties": 24,
+        "guarded_decision": "inconclusive",
+        "r1_radius": 0.7441064900780697,
+        "wtl": [
+          9,
+          24,
+          7
+        ]
+      },
+      "E2": {
+        "n_tasks": 44,
+        "net_benefit": 0.034090909090909075,
+        "nb_ci": [
+          -0.08812730884480122,
+          0.15630912702661937
+        ],
+        "p_win": 0.1477272727272727,
+        "p_tie": 0.7386363636363636,
+        "p_loss": 0.11363636363636363,
+        "decision": "inconclusive",
+        "success_diff": 0.03409090909090909,
+        "success_diff_ci": [
+          -0.08590864189542016,
+          0.15409046007723834
+        ],
+        "success_diff_n_tasks": 44
+      }
+    }
+  },
+  "orientation_randomization_reading": {
+    "all_pairs_49": {
+      "net_benefit": {
+        "n": 49,
+        "observed_running_mean": 0.02040816326530612,
+        "radius": 0.6297318533794022,
+        "interval_unclipped": [
+          -0.609323690114096,
+          0.6501400166447083
+        ],
+        "interval_clipped": [
+          -0.609323690114096,
+          0.6501400166447083
+        ],
+        "orientation_averaged_target_computed_from_observed_array": 0.01020408163265306,
+        "target_inside_interval": true,
+        "n_pairs_where_the_two_orientations_differ": 24
+      },
+      "success_difference": {
+        "n": 49,
+        "observed_running_mean": 0.02040816326530612,
+        "radius": 0.6297318533794022,
+        "interval_unclipped": [
+          -0.609323690114096,
+          0.6501400166447083
+        ],
+        "interval_clipped": [
+          -0.609323690114096,
+          0.6501400166447083
+        ],
+        "orientation_averaged_target_computed_from_observed_array": 0.0,
+        "target_inside_interval": true,
+        "n_pairs_where_the_two_orientations_differ": 24
+      }
+    },
+    "block1_pairs_1_24": {
+      "net_benefit": {
+        "n": 24,
+        "observed_running_mean": 0.08333333333333333,
+        "radius": 1.1559143018037255,
+        "interval_unclipped": [
+          -1.0725809684703922,
+          1.2392476351370587
+        ],
+        "interval_clipped": [
+          -1.0,
+          1.0
+        ],
+        "orientation_averaged_target_computed_from_observed_array": 0.041666666666666664,
+        "target_inside_interval": true,
+        "n_pairs_where_the_two_orientations_differ": 12
+      },
+      "success_difference": {
+        "n": 24,
+        "observed_running_mean": 0.08333333333333333,
+        "radius": 1.1559143018037255,
+        "interval_unclipped": [
+          -1.0725809684703922,
+          1.2392476351370587
+        ],
+        "interval_clipped": [
+          -1.0,
+          1.0
+        ],
+        "orientation_averaged_target_computed_from_observed_array": 0.041666666666666664,
+        "target_inside_interval": true,
+        "n_pairs_where_the_two_orientations_differ": 12
+      }
+    },
+    "path_check_net_benefit": {
+      "max_abs_running_mean_minus_running_target": 0.375,
+      "target_inside_at_every_n": true,
+      "smallest_radius": 0.6297318533794022,
+      "first_n_with_radius_below_1": 29
+    },
+    "n_for_radius_0p03": 12094,
+    "pairs": [
+      {
+        "pair": 1,
+        "R": 0,
+        "z_R1": 0,
+        "z_R0": 0,
+        "dq_R1": 0,
+        "dq_R0": 0,
+        "z_obs": 0,
+        "dq_obs": 0
+      },
+      {
+        "pair": 2,
+        "R": 1,
+        "z_R1": 0,
+        "z_R0": 0,
+        "dq_R1": 0,
+        "dq_R0": 0,
+        "z_obs": 0,
+        "dq_obs": 0
+      },
+      {
+        "pair": 3,
+        "R": 0,
+        "z_R1": -1,
+        "z_R0": 1,
+        "dq_R1": -1,
+        "dq_R0": 1,
+        "z_obs": 1,
+        "dq_obs": 1
+      },
+      {
+        "pair": 4,
+        "R": 0,
+        "z_R1": 0,
+        "z_R0": 1,
+        "dq_R1": 0,
+        "dq_R0": 1,
+        "z_obs": 1,
+        "dq_obs": 1
+      },
+      {
+        "pair": 5,
+        "R": 0,
+        "z_R1": 1,
+        "z_R0": 0,
+        "dq_R1": 1,
+        "dq_R0": 0,
+        "z_obs": 0,
+        "dq_obs": 0
+      },
+      {
+        "pair": 6,
+        "R": 0,
+        "z_R1": 0,
+        "z_R0": 1,
+        "dq_R1": 0,
+        "dq_R0": 1,
+        "z_obs": 1,
+        "dq_obs": 1
+      },
+      {
+        "pair": 7,
+        "R": 0,
+        "z_R1": 0,
+        "z_R0": 0,
+        "dq_R1": 0,
+        "dq_R0": 0,
+        "z_obs": 0,
+        "dq_obs": 0
+      },
+      {
+        "pair": 8,
+        "R": 0,
+        "z_R1": 0,
+        "z_R0": 0,
+        "dq_R1": 0,
+        "dq_R0": 0,
+        "z_obs": 0,
+        "dq_obs": 0
+      },
+      {
+        "pair": 9,
+        "R": 1,
+        "z_R1": 0,
+        "z_R0": 1,
+        "dq_R1": 0,
+        "dq_R0": 1,
+        "z_obs": 0,
+        "dq_obs": 0
+      },
+      {
+        "pair": 10,
+        "R": 1,
+        "z_R1": 0,
+        "z_R0": 0,
+        "dq_R1": 0,
+        "dq_R0": 0,
+        "z_obs": 0,
+        "dq_obs": 0
+      },
+      {
+        "pair": 11,
+        "R": 0,
+        "z_R1": 0,
+        "z_R0": 1,
+        "dq_R1": 0,
+        "dq_R0": 1,
+        "z_obs": 1,
+        "dq_obs": 1
+      },
+      {
+        "pair": 12,
+        "R": 1,
+        "z_R1": 0,
+        "z_R0": -1,
+        "dq_R1": 0,
+        "dq_R0": -1,
+        "z_obs": 0,
+        "dq_obs": 0
+      },
+      {
+        "pair": 13,
+        "R": 1,
+        "z_R1": -1,
+        "z_R0": 0,
+        "dq_R1": -1,
+        "dq_R0": 0,
+        "z_obs": -1,
+        "dq_obs": -1
+      },
+      {
+        "pair": 14,
+        "R": 0,
+        "z_R1": 0,
+        "z_R0": 0,
+        "dq_R1": 0,
+        "dq_R0": 0,
+        "z_obs": 0,
+        "dq_obs": 0
+      },
+      {
+        "pair": 15,
+        "R": 0,
+        "z_R1": 0,
+        "z_R0": 0,
+        "dq_R1": 0,
+        "dq_R0": 0,
+        "z_obs": 0,
+        "dq_obs": 0
+      },
+      {
+        "pair": 16,
+        "R": 1,
+        "z_R1": 0,
+        "z_R0": 0,
+        "dq_R1": 0,
+        "dq_R0": 0,
+        "z_obs": 0,
+        "dq_obs": 0
+      },
+      {
+        "pair": 17,
+        "R": 0,
+        "z_R1": 0,
+        "z_R0": 0,
+        "dq_R1": 0,
+        "dq_R0": 0,
+        "z_obs": 0,
+        "dq_obs": 0
+      },
+      {
+        "pair": 18,
+        "R": 1,
+        "z_R1": 0,
+        "z_R0": 0,
+        "dq_R1": 0,
+        "dq_R0": 0,
+        "z_obs": 0,
+        "dq_obs": 0
+      },
+      {
+        "pair": 19,
+        "R": 0,
+        "z_R1": 0,
+        "z_R0": -1,
+        "dq_R1": 0,
+        "dq_R0": -1,
+        "z_obs": -1,
+        "dq_obs": -1
+      },
+      {
+        "pair": 20,
+        "R": 1,
+        "z_R1": 0,
+        "z_R0": 1,
+        "dq_R1": 0,
+        "dq_R0": 1,
+        "z_obs": 0,
+        "dq_obs": 0
+      },
+      {
+        "pair": 21,
+        "R": 1,
+        "z_R1": 0,
+        "z_R0": 0,
+        "dq_R1": 0,
+        "dq_R0": 0,
+        "z_obs": 0,
+        "dq_obs": 0
+      },
+      {
+        "pair": 22,
+        "R": 0,
+        "z_R1": -1,
+        "z_R0": 1,
+        "dq_R1": -1,
+        "dq_R0": 1,
+        "z_obs": 1,
+        "dq_obs": 1
+      },
+      {
+        "pair": 23,
+        "R": 1,
+        "z_R1": 0,
+        "z_R0": 0,
+        "dq_R1": 0,
+        "dq_R0": 0,
+        "z_obs": 0,
+        "dq_obs": 0
+      },
+      {
+        "pair": 24,
+        "R": 1,
+        "z_R1": -1,
+        "z_R0": 0,
+        "dq_R1": -1,
+        "dq_R0": 0,
+        "z_obs": -1,
+        "dq_obs": -1
+      },
+      {
+        "pair": 25,
+        "R": 1,
+        "z_R1": 1,
+        "z_R0": 0,
+        "dq_R1": 1,
+        "dq_R0": 0,
+        "z_obs": 1,
+        "dq_obs": 1
+      },
+      {
+        "pair": 26,
+        "R": 1,
+        "z_R1": 0,
+        "z_R0": 0,
+        "dq_R1": 0,
+        "dq_R0": 0,
+        "z_obs": 0,
+        "dq_obs": 0
+      },
+      {
+        "pair": 27,
+        "R": 1,
+        "z_R1": -1,
+        "z_R0": 0,
+        "dq_R1": -1,
+        "dq_R0": 0,
+        "z_obs": -1,
+        "dq_obs": -1
+      },
+      {
+        "pair": 28,
+        "R": 1,
+        "z_R1": 0,
+        "z_R0": 0,
+        "dq_R1": 0,
+        "dq_R0": 0,
+        "z_obs": 0,
+        "dq_obs": 0
+      },
+      {
+        "pair": 29,
+        "R": 0,
+        "z_R1": 1,
+        "z_R0": -1,
+        "dq_R1": 1,
+        "dq_R0": -1,
+        "z_obs": -1,
+        "dq_obs": -1
+      },
+      {
+        "pair": 30,
+        "R": 0,
+        "z_R1": 0,
+        "z_R0": 1,
+        "dq_R1": 0,
+        "dq_R0": 1,
+        "z_obs": 1,
+        "dq_obs": 1
+      },
+      {
+        "pair": 31,
+        "R": 1,
+        "z_R1": 1,
+        "z_R0": 0,
+        "dq_R1": 1,
+        "dq_R0": 0,
+        "z_obs": 1,
+        "dq_obs": 1
+      },
+      {
+        "pair": 32,
+        "R": 1,
+        "z_R1": 0,
+        "z_R0": -1,
+        "dq_R1": 0,
+        "dq_R0": -1,
+        "z_obs": 0,
+        "dq_obs": 0
+      },
+      {
+        "pair": 33,
+        "R": 0,
+        "z_R1": 0,
+        "z_R0": -1,
+        "dq_R1": 0,
+        "dq_R0": -1,
+        "z_obs": -1,
+        "dq_obs": -1
+      },
+      {
+        "pair": 34,
+        "R": 0,
+        "z_R1": 0,
+        "z_R0": 0,
+        "dq_R1": 0,
+        "dq_R0": 0,
+        "z_obs": 0,
+        "dq_obs": 0
+      },
+      {
+        "pair": 35,
+        "R": 1,
+        "z_R1": 0,
+        "z_R0": 0,
+        "dq_R1": 0,
+        "dq_R0": 0,
+        "z_obs": 0,
+        "dq_obs": 0
+      },
+      {
+        "pair": 36,
+        "R": 0,
+        "z_R1": 0,
+        "z_R0": -1,
+        "dq_R1": 0,
+        "dq_R0": -1,
+        "z_obs": -1,
+        "dq_obs": -1
+      },
+      {
+        "pair": 37,
+        "R": 1,
+        "z_R1": 0,
+        "z_R0": 0,
+        "dq_R1": 0,
+        "dq_R0": 0,
+        "z_obs": 0,
+        "dq_obs": 0
+      },
+      {
+        "pair": 38,
+        "R": 0,
+        "z_R1": 0,
+        "z_R0": 0,
+        "dq_R1": 0,
+        "dq_R0": 0,
+        "z_obs": 0,
+        "dq_obs": 0
+      },
+      {
+        "pair": 39,
+        "R": 0,
+        "z_R1": 0,
+        "z_R0": 0,
+        "dq_R1": 0,
+        "dq_R0": 0,
+        "z_obs": 0,
+        "dq_obs": 0
+      },
+      {
+        "pair": 40,
+        "R": 0,
+        "z_R1": 0,
+        "z_R0": -1,
+        "dq_R1": 0,
+        "dq_R0": -1,
+        "z_obs": -1,
+        "dq_obs": -1
+      },
+      {
+        "pair": 41,
+        "R": 0,
+        "z_R1": 0,
+        "z_R0": 0,
+        "dq_R1": 0,
+        "dq_R0": 0,
+        "z_obs": 0,
+        "dq_obs": 0
+      },
+      {
+        "pair": 42,
+        "R": 0,
+        "z_R1": 0,
+        "z_R0": 0,
+        "dq_R1": 0,
+        "dq_R0": 0,
+        "z_obs": 0,
+        "dq_obs": 0
+      },
+      {
+        "pair": 43,
+        "R": 1,
+        "z_R1": 0,
+        "z_R0": 0,
+        "dq_R1": 0,
+        "dq_R0": 0,
+        "z_obs": 0,
+        "dq_obs": 0
+      },
+      {
+        "pair": 44,
+        "R": 1,
+        "z_R1": -1,
+        "z_R0": 1,
+        "dq_R1": -1,
+        "dq_R0": 0,
+        "z_obs": -1,
+        "dq_obs": -1
+      },
+      {
+        "pair": 45,
+        "R": 1,
+        "z_R1": 1,
+        "z_R0": 0,
+        "dq_R1": 1,
+        "dq_R0": 0,
+        "z_obs": 1,
+        "dq_obs": 1
+      },
+      {
+        "pair": 46,
+        "R": 0,
+        "z_R1": -1,
+        "z_R0": 1,
+        "dq_R1": -1,
+        "dq_R0": 1,
+        "z_obs": 1,
+        "dq_obs": 1
+      },
+      {
+        "pair": 47,
+        "R": 0,
+        "z_R1": 0,
+        "z_R0": 0,
+        "dq_R1": 0,
+        "dq_R0": 0,
+        "z_obs": 0,
+        "dq_obs": 0
+      },
+      {
+        "pair": 48,
+        "R": 0,
+        "z_R1": 0,
+        "z_R0": 0,
+        "dq_R1": 0,
+        "dq_R0": 0,
+        "z_obs": 0,
+        "dq_obs": 0
+      },
+      {
+        "pair": 49,
+        "R": 0,
+        "z_R1": 0,
+        "z_R0": 0,
+        "dq_R1": 0,
+        "dq_R0": 0,
+        "z_obs": 0,
+        "dq_obs": 0
+      }
+    ]
+  }
+}

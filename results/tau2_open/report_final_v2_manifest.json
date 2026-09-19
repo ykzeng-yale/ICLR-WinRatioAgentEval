@@ -1,0 +1,108 @@
+{
+  "kind": "report-only correction (Round 12); no model call; no analysis rerun",
+  "source": "results/tau2_open/report_final.md",
+  "source_sha256": "1ae93f5bff68d57eb879c37fb5069b3fc6595c41e18fdce209ec7e1eb86505d0",
+  "output": "results/tau2_open/report_final_v2.md",
+  "output_sha256": "11f5691e54ac2603e229a10524685b69d91035620d20fe8748e500efc257b3cc",
+  "reviewed_owner_head": "55fb1e51234ad712c56799455bd704b829ed1d26",
+  "root_integration_commit": "45e8ee2715f148c81db7f6510d66677f57e03f0a",
+  "replacements": [
+    {
+      "label": "summary: separate descriptive observations from model-dependent intervals; drop 'significantly'",
+      "old_sha256": "ab54527b93a96e4b8c60a13ed90d36291a25ab09c0ce56ebec6c2aa676f5b001",
+      "new_sha256": "1f20c7727096462073da339e3082f46c69dea72331d9253861df4ce55a68e5a0"
+    },
+    {
+      "label": "section 8: remove the method-independent impossibility assertion",
+      "old_sha256": "df394424d60d9a41c83d743919aca516c0c83cac8ab0e48c58c5e50f095eb8c7",
+      "new_sha256": "bd115583e7cd37ce05df2e8833983aa0783cd102ded8ca09ae9f99da3f37fbd9"
+    },
+    {
+      "label": "section 12.1: history-conditional construction; final errors; marginal (not joint) bands",
+      "old_sha256": "74c4881954667b84a5ae4714f96ee955559a98f93ea4345f2f6de5b9c2a5c461",
+      "new_sha256": "3b735c2a661fc7030031af1bb61b0d68cef7adbece3e3132f1bceaf5d9c735ed"
+    },
+    {
+      "label": "section 3.1 power paragraph: no unqualified impossibility wording (a)",
+      "old_sha256": "ed01f2ff5d333614f27842af55c668733a6ee0ab227744828198407daf2cabae",
+      "new_sha256": "2cf1f52dd42133ff491bd7f135a437d9fcd0eb180f5de6f3ccd388cbce461d1e"
+    },
+    {
+      "label": "section 3.1 power paragraph: no unqualified impossibility wording (b)",
+      "old_sha256": "4d9f5b7ea7b7b9917b680e41ccaf4fe0c7084317b5ddefb2c06957afffb2ba3e",
+      "new_sha256": "c5d65535b2ea68aa7cc1d300d3e4d164639242397d68dfc94dc4f75d328ec9c4"
+    },
+    {
+      "label": "section 3.2: withdraw 'conservative for the finite-roster average'",
+      "old_sha256": "1680d1dbb666fe8b0712cf3b301976f4c98b23486788a0e39e56956389c23f42",
+      "new_sha256": "3f796e2f5ecd11f7c28658aa6bcbbbce1cd14544d4f595443954c6173bad571b"
+    },
+    {
+      "label": "section 3.3 table: no emphasis on interval cells (tool calls)",
+      "old_sha256": "fcf1ece205ccb7c43f6ab5cdc67d25bfba112babbb85173fa648b13a15d2abaa",
+      "new_sha256": "9890d49ad897da0dd8bafe7a316434f2ed4a7b2bf7c5d4bba2049d2fb7520afc"
+    },
+    {
+      "label": "section 3.3 table: no emphasis on interval cells (generation time)",
+      "old_sha256": "31ede8dd10bfc1fe9becc951f5d99aabe8fdaa74b50f381c3e619d2c0e9b23c4",
+      "new_sha256": "fbc9501290038dd4c506b64083670f5fe93f88c7b1195d28ccc04628ef656418"
+    },
+    {
+      "label": "section 3.3 text: neutral wording instead of 'resolved'",
+      "old_sha256": "4b10aaa096f85e27d16a90282e0910db8d72f70ceaf41449685479701d4ca0c6",
+      "new_sha256": "89506a99d64e35bedb26153ea7c267567ee9f90383bbba02f06490e82be87658"
+    },
+    {
+      "label": "section 7.2 sensitivity: neutral wording",
+      "old_sha256": "5754c594c97176a22515d5e9ee6e4026d5628c173639c831e3a660f84d5d904d",
+      "new_sha256": "4ada5f23e5764cd3551760e5a78a80541c734189d904b9fb358dcfeaf49e14c3"
+    },
+    {
+      "label": "section 8: descriptive instead of 'Resolved secondary facts'",
+      "old_sha256": "ce1769d321b8d3ad5ccd298a58b20acdc49f3722b896b5cbec8421f934151bc5",
+      "new_sha256": "31a59c73cafaf77a3fb16c709beda41bb075f531cb03d04df51b18935eff985d"
+    },
+    {
+      "label": "section 10: run manifest versus decision chronology",
+      "old_sha256": "da71bbe92acdf5f76f484c4cf497f241e3cac039f30f86509a69388d78998dcf",
+      "new_sha256": "fb2b4ff7544576113f893fac1697f5b7c3216fd2a4510ca361d9681163b8a912"
+    },
+    {
+      "label": "section 10: independent-unit uncertainty rating",
+      "old_sha256": "8b4db6405b08f5cc1d517572023b43d8d626261937e30e3fd2edf3951bfec41c",
+      "new_sha256": "b00b879d5d6760885f6ee63b5a62635459147150f5d76c319921f8bf758c90e4"
+    },
+    {
+      "label": "section 10: repeated-task uncertainty rating",
+      "old_sha256": "85138688f36bf4521c0837890185aa191727085b83b6181370e95643f7e90d61",
+      "new_sha256": "cf7ecd29d2d99265e65d2eae0f3d7db54d151410710978bfbae3685d9ba58619"
+    },
+    {
+      "label": "section 12.1: name the coin model instead of 'by design alone'",
+      "old_sha256": "e499dd697278e705d346e1c2861d9807350deca50447e2ea98823da2d9c0f828",
+      "new_sha256": "8be6a4b4407c6654ea301945801affb32001e9dc70d91aece286c9b1c5cd1e2a"
+    }
+  ],
+  "observed_array_replay_numbers": {
+    "net_benefit": {
+      "observed": 0.02040816326530612,
+      "target": 0.01020408163265306,
+      "final_abs_error": 0.01020408163265306,
+      "max_abs_path_error": 0.375,
+      "max_abs_path_error_at_n": 4,
+      "target_inside_at_every_n": true,
+      "final_radius": 0.6297318533794022
+    },
+    "success_difference": {
+      "observed": 0.02040816326530612,
+      "target": 0.0,
+      "final_abs_error": 0.02040816326530612,
+      "max_abs_path_error": 0.375,
+      "max_abs_path_error_at_n": 4,
+      "target_inside_at_every_n": true,
+      "final_radius": 0.6297318533794022
+    }
+  },
+  "numbers_source": "results/tau2_open/round10_handoff_numbers.json",
+  "numbers_source_sha256": "a6937828fbf82aabbacda3863f18dd3c0111aa786a9b3448f3282d8739754124"
+}

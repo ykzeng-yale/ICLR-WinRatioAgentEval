@@ -1,0 +1,53 @@
+{
+  "id": 1,
+  "decided_utc": "2026-09-18T20:45Z",
+  "scope": "all tau2 requests issued after this amendment: both arms (A and B), both roles (agent and user simulator)",
+  "agent_llm_args_extra": {
+    "max_tokens": 1024
+  },
+  "user_llm_args_extra": {
+    "max_tokens": 1024
+  },
+  "tau2_extra_flags": [
+    "--timeout",
+    "1800"
+  ],
+  "reason": "Operational failure of invocation 1: on arm A task 6 (trial 0) the model entered runaway generations (one request produced 18,084 tokens over about 10 minutes; tau2 sends no max_tokens), litellm raised APITimeoutError, and tau2 re-ran the whole task (attempt 2 of 4 after about 70 minutes per attempt). 5 of 98 arm-A units were complete after 2.9 hours, so the frozen design could not finish. A per-request generation cap and a per-simulation wall-clock limit are standard serving safeguards; truncated generations (finish_reason=length) and tau2 TerminationReason.TIMEOUT are retained as outcomes (failures), not exclusions.",
+  "outcome_blindness": "Decided from the operational failure only. No arm-B outcome exists; the only observed outcomes are 5 completed arm-A units (tasks 1-5, trial 0). Their largest per-message completion is 514 tokens (agent) and 205 tokens (user), below the 1,024-token cap, and their durations (47-432 s) are below the 1,800 s limit, so the amendment would not have changed these records; they are kept and the run resumes with tau2 --auto-resume. The hierarchy, tolerances, margins, alpha, pairing design and task set are unchanged.",
+  "pre_amendment_units": [
+    {
+      "arm": "A",
+      "task": "1",
+      "trial": 0
+    },
+    {
+      "arm": "A",
+      "task": "2",
+      "trial": 0
+    },
+    {
+      "arm": "A",
+      "task": "3",
+      "trial": 0
+    },
+    {
+      "arm": "A",
+      "task": "4",
+      "trial": 0
+    },
+    {
+      "arm": "A",
+      "task": "5",
+      "trial": 0
+    }
+  ],
+  "pre_amendment_failed_attempts": [
+    {
+      "arm": "A",
+      "task": "6",
+      "trial": 0,
+      "attempts": 2,
+      "failure": "litellm.Timeout after runaway generation; no outcome recorded"
+    }
+  ]
+}

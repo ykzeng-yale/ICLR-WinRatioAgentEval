@@ -1,0 +1,573 @@
+{
+  "generated_at": "2026-09-19T05:29:05Z",
+  "analysis": "analysis_v3.py (POST HOC Round 10; analysis.py frozen, analysis_v2.py unchanged)",
+  "results_dir": "<REPO>/results/local_stream",
+  "n_episodes": 1182,
+  "config_hash": "2dfb51966780698be326a8897c9e384a5513a7c1a47505c42b8a15c6c5baaf5b",
+  "inputs_sha256": {
+    "episodes.jsonl": "95179f93acf72597c9b15257863ffee6acceed19414cf2b630beed62ec0effa0",
+    "monitor_pass1.csv": "67504351725acbf51de936ae0ee9b9361de7fd7d73c58ca529987547ac4621a6",
+    "monitor_state.json": "daeca32682832150f7485b15fb46d7ef15b5e2c78a590b09bee4b706f4ef1773",
+    "design.json": "6175b81562efe1b1c87b113050f70c5daab2143e272cba39fb9a796f0d645457",
+    "run_manifest.json": "f2efc949ff13745aae0b2c5f902de6af05087a606c03803a6e9bc0a25815aa4f"
+  },
+  "wincs_sha256": "601865d9adf0a9f1a0f20c44ef78cb18dffe33fdc3beb5d98a47d6c5199b8754",
+  "summary_v2_sha256": "ec6a983833852ba4f5676b57677dfa9968a8adda8f4c5563087e70a1ecdb39b9",
+  "online_label": "composite harm signal for B; incumbent A retained",
+  "e1": {
+    "R1": {
+      "reading": "R1: running conditional mean (POST HOC)",
+      "method": "normal-mixture (Hoeffding-type sub-Gaussian) CS, V_n = n, rho = 100, two-sided alpha = 0.05; NO running intersection (the target moves with n)",
+      "n": 295,
+      "radius_at_n": 0.1828387393137264,
+      "nb_hat": -0.4711864406779661,
+      "nb_cs": [
+        -0.6540251799916925,
+        -0.2883477013642397
+      ],
+      "first_n_nb_upper_below_0": 60,
+      "first_n_nb_upper_below_0_at_or_after_min_n": 60,
+      "stays_below_0_from": 60,
+      "success_diff_hat": 0.05084745762711865,
+      "success_diff_cs": [
+        -0.13199128168660776,
+        0.23368619694084505
+      ],
+      "first_n_success_lower_above_minus_margin": null,
+      "first_n_success_upper_below_0": null,
+      "gate_threshold": -0.03,
+      "gate_status": "not established: lower bound -0.1320 <= -0.03 at n = 295",
+      "target": "running conditional mean (1/n) sum_{k<=n} mu_k, mu_k = E[Z_k | F_(k-1)], F_k = sigma(design information independent of future outcomes, revealed pair data up to k)",
+      "filtration": "F_k = sigma(design information independent of future outcomes, revealed pair data up to k)",
+      "assumption": "bounded scores and the stated filtration only (Z_k - mu_k is a martingale difference with range 2); no iid / stationarity / independence-of-pairs assumption",
+      "interpretation_condition": "the reading mu_k = [m(s_k,t_k)+m(t_k,s_k)]/2 and E_design[mu_bar] = theta_N hold ONLY under an additional orientation-independent, history-independent stable episode-law model (thermal state, order and caching can affect latency); not assumed for the CS",
+      "joint_coverage_note": "the separate 95% CSs for NB and for the success difference are NOT a joint 95% region",
+      "post_hoc_note": "rho = 100 was fixed after the outcomes of this experiment had been seen (post hoc); fixing it before computing these intervals does not preregister the analysis"
+    },
+    "R2": {
+      "reading": "R2: iid-roster superpopulation MODEL",
+      "method": "corrected hedged betting CS (src/wincs.py, (K+ + K-)/2 vs 1/delta), decided-pair win-ratio CS, preregistered one-sided e-processes",
+      "n": 295,
+      "nb_hat": -0.4711864406779661,
+      "nb_cs": [
+        -0.6281036977040566,
+        -0.2879839302119563
+      ],
+      "first_n_nb_upper_below_0": 42,
+      "stays_below_0_from": 50,
+      "wr_hat": 0.3317307692307692,
+      "wr_cs": [
+        0.2010017961679758,
+        0.5299128993964202
+      ],
+      "success_diff_hat": 0.05084745762711865,
+      "success_diff_cs": [
+        -0.07861178103139843,
+        0.17939767190965555
+      ],
+      "first_n_success_lower_above_minus_margin": null,
+      "gate_threshold": -0.03,
+      "model": "unconditional MODEL-BASED inference over hypothetical iid rosters with independent stable episode laws; F = past revealed pair data plus design information independent of future task values (NOT the entire realized roster); not a guarantee conditional on the curated benchmark",
+      "filtration": "F = past revealed pair data plus design information independent of future task values (NOT the entire realized roster)"
+    },
+    "monitor": {
+      "first_win_cross": null,
+      "first_gate_cross": null,
+      "first_deploy": null,
+      "first_harm": 24,
+      "log_e_harm_at_first_harm": 3.2086066470052512,
+      "harm_above_threshold_before_min_n": {
+        "n": 14,
+        "log_e": 3.1072218372000413
+      },
+      "final_log_e": {
+        "win": -0.903821606504891,
+        "gate": 0.8124274347906062,
+        "harm": 32.94185808506633
+      },
+      "max_log_e": {
+        "win": -0.1252989463988574,
+        "gate": 0.8124274347906062,
+        "harm": 33.09651278679489
+      },
+      "threshold": 2.995732273553991,
+      "unaffected_by_two_sided_fix": true,
+      "status_R1": "DESCRIPTIVE. The fixed-stake one-sided e-processes test the pointwise conditional null (harm: mu_k >= 0 for every k); no guarantee about the running conditional mean or theta_N is claimed from a crossing, and no new theorem is imported.",
+      "status_R2": "Under the R2 model E[Z_k | F_(k-1)] = theta_P for the stated (coarse) filtration, so the crossings carry the anytime type-I guarantee at alpha for theta_P; model-based, not conditional on the curated roster.",
+      "guarded_decision_code": "B_harmful",
+      "guarded_decision_label": "composite harm signal for B; incumbent A retained",
+      "label_note": "Unfavourable result for B on the prespecified COMPOSITE (driven by the latency tier); not a success-rate or safety harm, and not a reverse guarded approval of A: A is retained as the incumbent."
+    },
+    "scores": {
+      "wins": 69,
+      "ties": 18,
+      "losses": 208
+    }
+  },
+  "e2": {
+    "target": "assignment-averaged same-task preference over the roster: (1/591) sum_t E[S_t], the expectation taken over the orientation coins (which fix the pass in which each workflow sees task t) and over episode randomness; S_t = h(Y_B(t), Y_A(t)) from the one A and one B episode of task t",
+    "estimator": "total same-task score / 591",
+    "clusters": "295 design pairs of design.json (shared AB/BA coin, complementary pass positions) + singleton unpaired task mbpp/256; G = 296",
+    "counterexample": "Two tasks forming one design pair; both workflows are identical within a task and period. Task 1 succeeds in pass 1 and fails in pass 2; task 2 fails in pass 1 and succeeds in pass 2. Under one fair AB/BA orientation the two same-task success scores are (1, 1); under the other they are (-1, -1). Each task's mean score is 0, but Var((S1+S2)/2) = 1 while s^2/2 = 0 in both realizations. No model noise is needed: positive covariance inside the orientation pair defeats the variance identity; in general E[s^2/N] acquires the extra term -2 sum_{i<j} Cov(S_i,S_j) / (N(N-1)).",
+    "lindeberg_note": "Bounded independent scores do not by themselves give a CLT: for S_t ~ Bernoulli(1/N) independently, all N = 591 scores are 0 with probability (1-1/591)^591 = 0.367568 and the zero-width t interval then excludes the mean 1/591.",
+    "net_benefit": {
+      "estimate": -0.6565143824027073,
+      "n_tasks": 591,
+      "task_level_sd": 0.6040434651940565,
+      "task_level_se": 0.024847028026826347,
+      "task_level": {
+        "interval_t": [
+          -0.7053137691326692,
+          -0.607714995672745
+        ],
+        "interval_t_status": "MODEL-BASED: valid under independent task scores with stable task-specific episode laws and no relevant pass/period effects; NOT implied by the two-pass AB/BA design (the two tasks of a design pair share one orientation coin and complementary pass positions); approximate: additionally needs a Lindeberg / variance-growth regularity condition (boundedness alone is not enough) and a well-behaved variance estimator",
+        "hoeffding_radius": 0.11172966307661844,
+        "interval_hoeffding": [
+          -0.7682440454793258,
+          -0.5447847193260889
+        ],
+        "interval_hoeffding_status": "exact finite-sample final-time bound ONLY under the same model (independent task scores in [-1,1]); MODEL-BASED: valid under independent task scores with stable task-specific episode laws and no relevant pass/period effects; NOT implied by the two-pass AB/BA design (the two tasks of a design pair share one orientation coin and complementary pass positions)"
+      },
+      "orientation_pair_cluster": {
+        "estimate": -0.6565143824027073,
+        "n_clusters": 296,
+        "n_tasks": 591,
+        "cluster_robust_se": 0.02487695893084316,
+        "t_df": 295,
+        "t_quantile": 1.9680381148904695,
+        "interval_cluster_t": [
+          -0.7054731857611716,
+          -0.6075555790442431
+        ],
+        "interval_cluster_t_status": "APPROXIMATE (t reference on G-1 df); valid under INDEPENDENT ORIENTATION-PAIR CLUSTERS (arbitrary dependence inside a design pair); independence ACROSS clusters is still an assumption: shared machine state (thermal, cache, server history) across clusters is not excluded by the design",
+        "hoeffding_cluster_radius": 0.1579427507649385,
+        "interval_cluster_hoeffding": [
+          -0.8144571331676458,
+          -0.49857163163776885
+        ],
+        "interval_cluster_hoeffding_status": "exact finite-sample, final-time (not time-uniform), range-based; valid under INDEPENDENT ORIENTATION-PAIR CLUSTERS (arbitrary dependence inside a design pair); independence ACROSS clusters is still an assumption: shared machine state (thermal, cache, server history) across clusters is not excluded by the design"
+      },
+      "se_ratio_cluster_over_task": 1.0012046070050913,
+      "within_pair_descriptive": {
+        "n_pairs": 295,
+        "pearson_corr_of_the_two_task_scores": 0.0007903133949706435,
+        "mean_product_minus_product_of_means": 0.0002872737719046281,
+        "note": "descriptive; position 1 / position 2 of the design pair"
+      }
+    },
+    "success_difference": {
+      "estimate": 0.0,
+      "n_tasks": 591,
+      "task_level_sd": 0.3682298471593293,
+      "task_level_se": 0.01514695193290846,
+      "task_level": {
+        "interval_t": [
+          -0.02974850611333089,
+          0.02974850611333089
+        ],
+        "interval_t_status": "MODEL-BASED: valid under independent task scores with stable task-specific episode laws and no relevant pass/period effects; NOT implied by the two-pass AB/BA design (the two tasks of a design pair share one orientation coin and complementary pass positions); approximate: additionally needs a Lindeberg / variance-growth regularity condition (boundedness alone is not enough) and a well-behaved variance estimator",
+        "hoeffding_radius": 0.11172966307661844,
+        "interval_hoeffding": [
+          -0.11172966307661844,
+          0.11172966307661844
+        ],
+        "interval_hoeffding_status": "exact finite-sample final-time bound ONLY under the same model (independent task scores in [-1,1]); MODEL-BASED: valid under independent task scores with stable task-specific episode laws and no relevant pass/period effects; NOT implied by the two-pass AB/BA design (the two tasks of a design pair share one orientation coin and complementary pass positions)"
+      },
+      "orientation_pair_cluster": {
+        "estimate": 0.0,
+        "n_clusters": 296,
+        "n_tasks": 591,
+        "cluster_robust_se": 0.014969064785670665,
+        "t_df": 295,
+        "t_quantile": 1.9680381148904695,
+        "interval_cluster_t": [
+          -0.029459690042464605,
+          0.029459690042464605
+        ],
+        "interval_cluster_t_status": "APPROXIMATE (t reference on G-1 df); valid under INDEPENDENT ORIENTATION-PAIR CLUSTERS (arbitrary dependence inside a design pair); independence ACROSS clusters is still an assumption: shared machine state (thermal, cache, server history) across clusters is not excluded by the design",
+        "hoeffding_cluster_radius": 0.1579427507649385,
+        "interval_cluster_hoeffding": [
+          -0.1579427507649385,
+          0.1579427507649385
+        ],
+        "interval_cluster_hoeffding_status": "exact finite-sample, final-time (not time-uniform), range-based; valid under INDEPENDENT ORIENTATION-PAIR CLUSTERS (arbitrary dependence inside a design pair); independence ACROSS clusters is still an assumption: shared machine state (thermal, cache, server history) across clusters is not excluded by the design"
+      },
+      "se_ratio_cluster_over_task": 0.9882559112865926,
+      "within_pair_descriptive": {
+        "n_pairs": 295,
+        "pearson_corr_of_the_two_task_scores": -0.019707946689860725,
+        "mean_product_minus_product_of_means": -0.002654409652398736,
+        "note": "descriptive; position 1 / position 2 of the design pair"
+      },
+      "margin": -0.03,
+      "b_only": 40,
+      "a_only": 40,
+      "lower_ends": {
+        "task_t": -0.02974850611333089,
+        "task_hoeffding": -0.11172966307661844,
+        "cluster_t": -0.029459690042464605,
+        "cluster_hoeffding": -0.1579427507649385
+      },
+      "lower_end_minus_margin": {
+        "task_t": 0.00025149388666910813,
+        "task_hoeffding": -0.08172966307661844,
+        "cluster_t": 0.000540309957535394,
+        "cluster_hoeffding": -0.1279427507649385
+      },
+      "margin_certified_by_any_interval": false,
+      "margin_note": "The -0.03 margin is NOT certified by any of these intervals: the task-level t interval clears it by 0.000251 only under the independence + CLT model (not a design property); the cluster-robust t interval lower end is -0.029460 and the two Hoeffding lower ends are -0.1117 (task-level, model-based) and -0.1579 (cluster-level)."
+    },
+    "by_exposure_order_descriptive": {
+      "A_then_B": {
+        "n_tasks": 295,
+        "mean_score": -0.6610169491525424,
+        "mean_success_diff": -0.01694915254237288
+      },
+      "B_then_A": {
+        "n_tasks": 296,
+        "mean_score": -0.652027027027027,
+        "mean_success_diff": 0.016891891891891893
+      }
+    }
+  },
+  "e2_old_vs_new": {
+    "v2": {
+      "task_t": [
+        -0.7053137691326692,
+        -0.607714995672745
+      ],
+      "task_t_label_v2": "\"conservative (Neyman-type)\" [WITHDRAWN as a design-based statement]",
+      "task_hoeffding": [
+        -0.7682440454793258,
+        -0.5447847193260889
+      ],
+      "task_hoeffding_label_v2": "described in v2 as needing no assumption [WITHDRAWN]",
+      "success_task_t": [
+        -0.02974850611333089,
+        0.02974850611333089
+      ],
+      "success_task_hoeffding": [
+        -0.11172966307661844,
+        0.11172966307661844
+      ]
+    },
+    "v3": {
+      "task_t": [
+        -0.7053137691326692,
+        -0.607714995672745
+      ],
+      "task_hoeffding": [
+        -0.7682440454793258,
+        -0.5447847193260889
+      ],
+      "task_level_label": "MODEL-BASED",
+      "cluster_t": [
+        -0.7054731857611716,
+        -0.6075555790442431
+      ],
+      "cluster_hoeffding": [
+        -0.8144571331676458,
+        -0.49857163163776885
+      ],
+      "success_task_t": [
+        -0.02974850611333089,
+        0.02974850611333089
+      ],
+      "success_task_hoeffding": [
+        -0.11172966307661844,
+        0.11172966307661844
+      ],
+      "success_cluster_t": [
+        -0.029459690042464605,
+        0.029459690042464605
+      ],
+      "success_cluster_hoeffding": [
+        -0.1579427507649385,
+        0.1579427507649385
+      ]
+    }
+  },
+  "pass_effects": {
+    "rows": [
+      {
+        "arm": "A",
+        "variant": "single_shot",
+        "n_pass1": 295,
+        "n_pass2": 296,
+        "success_rate_pass1": 0.7152542372881356,
+        "success_rate_pass2": 0.75,
+        "success_rate_diff_pass2_minus_pass1": 0.03474576271186436,
+        "mean_latency_s_pass1": 2.666278298451739,
+        "mean_latency_s_pass2": 2.9325896029650056,
+        "mean_latency_s_diff_pass2_minus_pass1": 0.26631130451326657,
+        "median_latency_s_pass1": 1.90074429102242,
+        "median_latency_s_pass2": 2.145311875268817,
+        "mean_completion_tokens_pass1": 66.76949152542373,
+        "mean_completion_tokens_pass2": 73.62837837837837,
+        "mean_completion_tokens_diff_pass2_minus_pass1": 6.85888685295464
+      },
+      {
+        "arm": "B",
+        "variant": "self_test_repair",
+        "n_pass1": 296,
+        "n_pass2": 295,
+        "success_rate_pass1": 0.7668918918918919,
+        "success_rate_pass2": 0.6983050847457627,
+        "success_rate_diff_pass2_minus_pass1": -0.06858680714612919,
+        "mean_latency_s_pass1": 12.588986538268777,
+        "mean_latency_s_pass2": 12.362836039501984,
+        "mean_latency_s_diff_pass2_minus_pass1": -0.22615049876679372,
+        "median_latency_s_pass1": 9.76885885419324,
+        "median_latency_s_pass2": 10.313080250285566,
+        "mean_completion_tokens_pass1": 317.2364864864865,
+        "mean_completion_tokens_pass2": 309.1050847457627,
+        "mean_completion_tokens_diff_pass2_minus_pass1": -8.131401740723788
+      }
+    ],
+    "status": "DESCRIPTIVE ONLY, no inference: for a given variant the pass-1 and pass-2 episodes are on DIFFERENT tasks (a random split of the roster), so a difference mixes task composition with any period effect"
+  },
+  "e1_vs_e2": {
+    "e1_nb": -0.4711864406779661,
+    "e2_nb": -0.6565143824027071,
+    "difference_e1_minus_e2": 0.18532794172474099,
+    "status": "DESCRIPTIVE ONLY: different targets, shared episodes (pass-1 episodes enter both), different unit counts and exposure passes; no joint uncertainty is claimed for the difference."
+  },
+  "decision_rules": [
+    {
+      "rule": "success_only",
+      "data": "shadow",
+      "estimate": 0.0,
+      "ci": [
+        -0.02974850611333089,
+        0.02974850611333089
+      ],
+      "decision": "none",
+      "reading": "E2 task-level, MODEL-BASED (independent task scores, stable episode laws, no pass/period effects; t interval approximate)"
+    },
+    {
+      "rule": "pareto_means",
+      "data": "shadow",
+      "estimate": null,
+      "ci": [
+        null,
+        null
+      ],
+      "decision": "A",
+      "detail": "d_success=0.0000 d_latency=9.676 d_tokens=243.0",
+      "reading": "E2 task-level, MODEL-BASED (independent task scores, stable episode laws, no pass/period effects; t interval approximate)"
+    },
+    {
+      "rule": "utility_w=1.00/0.00/0.00",
+      "data": "shadow",
+      "estimate": 0.0,
+      "ci": [
+        null,
+        null
+      ],
+      "decision": "none",
+      "detail": "u = w1*d_success - w2*rel_d_latency - w3*rel_d_tokens (point estimate only)",
+      "reading": "E2 task-level, MODEL-BASED (independent task scores, stable episode laws, no pass/period effects; t interval approximate)"
+    },
+    {
+      "rule": "utility_w=0.80/0.10/0.10",
+      "data": "shadow",
+      "estimate": -0.6917212475158411,
+      "ci": [
+        null,
+        null
+      ],
+      "decision": "A",
+      "detail": "u = w1*d_success - w2*rel_d_latency - w3*rel_d_tokens (point estimate only)",
+      "reading": "E2 task-level, MODEL-BASED (independent task scores, stable episode laws, no pass/period effects; t interval approximate)"
+    },
+    {
+      "rule": "utility_w=0.60/0.20/0.20",
+      "data": "shadow",
+      "estimate": -1.3834424950316822,
+      "ci": [
+        null,
+        null
+      ],
+      "decision": "A",
+      "detail": "u = w1*d_success - w2*rel_d_latency - w3*rel_d_tokens (point estimate only)",
+      "reading": "E2 task-level, MODEL-BASED (independent task scores, stable episode laws, no pass/period effects; t interval approximate)"
+    },
+    {
+      "rule": "utility_w=0.50/0.25/0.25",
+      "data": "shadow",
+      "estimate": -1.7293031187896024,
+      "ci": [
+        null,
+        null
+      ],
+      "decision": "A",
+      "detail": "u = w1*d_success - w2*rel_d_latency - w3*rel_d_tokens (point estimate only)",
+      "reading": "E2 task-level, MODEL-BASED (independent task scores, stable episode laws, no pass/period effects; t interval approximate)"
+    },
+    {
+      "rule": "utility_w=0.34/0.33/0.33",
+      "data": "shadow",
+      "estimate": -2.2826801168022754,
+      "ci": [
+        null,
+        null
+      ],
+      "decision": "A",
+      "detail": "u = w1*d_success - w2*rel_d_latency - w3*rel_d_tokens (point estimate only)",
+      "reading": "E2 task-level, MODEL-BASED (independent task scores, stable episode laws, no pass/period effects; t interval approximate)"
+    },
+    {
+      "rule": "utility_w=0.20/0.40/0.40",
+      "data": "shadow",
+      "estimate": -2.7668849900633643,
+      "ci": [
+        null,
+        null
+      ],
+      "decision": "A",
+      "detail": "u = w1*d_success - w2*rel_d_latency - w3*rel_d_tokens (point estimate only)",
+      "reading": "E2 task-level, MODEL-BASED (independent task scores, stable episode laws, no pass/period effects; t interval approximate)"
+    },
+    {
+      "rule": "hierarchical_nb",
+      "data": "shadow",
+      "estimate": -0.6565143824027071,
+      "ci": [
+        -0.7053137691326692,
+        -0.607714995672745
+      ],
+      "decision": "A",
+      "reading": "E2 task-level, MODEL-BASED (independent task scores, stable episode laws, no pass/period effects; t interval approximate)"
+    },
+    {
+      "rule": "guarded_hierarchical",
+      "data": "shadow",
+      "estimate": -0.6565143824027071,
+      "ci": [
+        -0.7053137691326692,
+        -0.607714995672745
+      ],
+      "decision": "A",
+      "detail": "NB CI > 0 and success CI lower > -0.03",
+      "reading": "E2 task-level, MODEL-BASED (independent task scores, stable episode laws, no pass/period effects; t interval approximate)"
+    },
+    {
+      "rule": "conjunction_all_components",
+      "data": "shadow",
+      "estimate": null,
+      "ci": [
+        null,
+        null
+      ],
+      "decision": "none",
+      "detail": "success non-inferior AND latency lower AND tokens lower (all CIs)",
+      "reading": "E2 task-level, MODEL-BASED (independent task scores, stable episode laws, no pass/period effects; t interval approximate)"
+    },
+    {
+      "rule": "hierarchical_nb_betting_cs",
+      "data": "online",
+      "estimate": -0.4711864406779661,
+      "ci": [
+        -0.6281036977040566,
+        -0.2879839302119563
+      ],
+      "decision": "A",
+      "reading": "R2 (iid-roster MODEL; unconditional, not conditional on the curated benchmark)"
+    },
+    {
+      "rule": "guarded_anytime",
+      "data": "online",
+      "estimate": -0.4711864406779661,
+      "ci": [
+        -0.6281036977040566,
+        -0.2879839302119563
+      ],
+      "decision": "retain A",
+      "detail": "first_deploy=None first_harm=24; label: composite harm signal for B; incumbent A retained (not a reverse guarded approval of A; descriptive under R1)",
+      "reading": "R2 (iid-roster MODEL; unconditional, not conditional on the curated benchmark)"
+    },
+    {
+      "rule": "success_only_betting_cs",
+      "data": "online",
+      "estimate": 0.05084745762711865,
+      "ci": [
+        -0.07861178103139843,
+        0.17939767190965555
+      ],
+      "decision": "none",
+      "reading": "R2 (iid-roster MODEL; unconditional, not conditional on the curated benchmark)"
+    },
+    {
+      "rule": "hierarchical_nb_normal_mixture_cs",
+      "data": "online",
+      "estimate": -0.4711864406779661,
+      "ci": [
+        -0.6540251799916925,
+        -0.2883477013642397
+      ],
+      "decision": "A",
+      "reading": "R1 (running conditional mean given the stated filtration; POST HOC)",
+      "detail": "POST HOC (Round 9); first n with upper bound < 0: 60"
+    },
+    {
+      "rule": "success_only_normal_mixture_cs",
+      "data": "online",
+      "estimate": 0.05084745762711865,
+      "ci": [
+        -0.13199128168660776,
+        0.23368619694084505
+      ],
+      "decision": "none",
+      "reading": "R1 (running conditional mean given the stated filtration; POST HOC)",
+      "detail": "POST HOC (Round 9)"
+    },
+    {
+      "rule": "hierarchical_nb_cluster_robust_t",
+      "data": "shadow",
+      "estimate": -0.6565143824027073,
+      "ci": [
+        -0.7054731857611716,
+        -0.6075555790442431
+      ],
+      "decision": "A",
+      "reading": "E2 orientation-pair clusters (G = 296), APPROXIMATE, independent clusters assumed",
+      "detail": "POST HOC (Round 10); cluster-robust SE 0.024877"
+    },
+    {
+      "rule": "hierarchical_nb_cluster_hoeffding",
+      "data": "shadow",
+      "estimate": -0.6565143824027073,
+      "ci": [
+        -0.8144571331676458,
+        -0.49857163163776885
+      ],
+      "decision": "A",
+      "reading": "E2 orientation-pair clusters, exact final-time Hoeffding, independent clusters assumed",
+      "detail": "POST HOC (Round 10); radius 0.15794"
+    },
+    {
+      "rule": "success_only_cluster_robust_t",
+      "data": "shadow",
+      "estimate": 0.0,
+      "ci": [
+        -0.029459690042464605,
+        0.029459690042464605
+      ],
+      "decision": "none",
+      "reading": "E2 orientation-pair clusters (G = 296), APPROXIMATE, independent clusters assumed",
+      "detail": "POST HOC (Round 10); -0.03 margin NOT certified"
+    },
+    {
+      "rule": "success_only_cluster_hoeffding",
+      "data": "shadow",
+      "estimate": 0.0,
+      "ci": [
+        -0.1579427507649385,
+        0.1579427507649385
+      ],
+      "decision": "none",
+      "reading": "E2 orientation-pair clusters, exact final-time Hoeffding, independent clusters assumed",
+      "detail": "POST HOC (Round 10); -0.03 margin NOT certified"
+    }
+  ]
+}

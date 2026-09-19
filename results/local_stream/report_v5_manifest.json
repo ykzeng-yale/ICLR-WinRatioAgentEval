@@ -1,0 +1,17 @@
+{
+  "kind": "owner-document cleanup (Round 13); report-only",
+  "source": "results/local_stream/report_v4.md",
+  "source_sha256": "806d82ce35d55d9c573b806575d3d4176ffbb4e89cbe9d8d2281d92d80ae59bd",
+  "output": "results/local_stream/report_v5.md",
+  "output_sha256": "e8e751f941d2e1d9a4de9dbafc6608c73a961cfc38b54920f1874df09cd47326",
+  "reviewed_owner_head": "01f2381940fcf5bc57129f1498382cb40f3ea741",
+  "root_review_commit": "a2eee58526f0ce3cef913fa8156ae34601d1b597",
+  "replacements": [
+    {
+      "label": "Definitions pointer names the governing addendum first",
+      "old_sha256": "2cf8cd2701bf5b94712e19c4a1896420642e7e68c0cf114ecfd07c98b9f8dc6c",
+      "new_sha256": "ce0d8d7676625c3a5734c29465610f97ffd3820359750582635acbdfcdebc9c5"
+    }
+  ],
+  "note": "digests only; passage text is in the generator"
+}

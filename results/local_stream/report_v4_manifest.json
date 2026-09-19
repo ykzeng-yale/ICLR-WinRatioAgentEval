@@ -1,0 +1,91 @@
+{
+  "kind": "report-only correction (Round 12); no model call; no analysis rerun",
+  "source": "results/local_stream/report_v3.md",
+  "source_sha256": "0a534fd6bacf10e1e28e01e0aa06f57966cb0f6aa5b0d1fdcc2fa07e11a8e378",
+  "output": "results/local_stream/report_v4.md",
+  "output_sha256": "806d82ce35d55d9c573b806575d3d4176ffbb4e89cbe9d8d2281d92d80ae59bd",
+  "reviewed_owner_head": "c1da1c3fc4e8c90644388e8b47e2e15574fe5215",
+  "root_integration_commit": "45e8ee2715f148c81db7f6510d66677f57e03f0a",
+  "replacements": [
+    {
+      "label": "summary item 5: symmetric formula needs a coarser filtration",
+      "matches": 1,
+      "old_sha256": "d8e9965386f88d44e74ccad91a3db91d14b1bba41840f035304b029ce9627e0e",
+      "new_sha256": "e89f54c91f55427066c4e77b428a75893a072e12a4c7b344d73aea01bc449781"
+    },
+    {
+      "label": "R1 table row: filtration",
+      "matches": 1,
+      "old_sha256": "de8e6ba65c561345aa6ee336c728799968fde8bb2d738b78eb53937b3a23288b",
+      "new_sha256": "139235c282a2f2e5ec4a0c028e1bc17f2fb93d8ad76236abfca0e48a3b7fdad8"
+    },
+    {
+      "label": "R1 caption: filtration and symmetric formula",
+      "matches": 1,
+      "old_sha256": "bc4e73a56bdcf7a195ec867837713971c4746d7f04dc7ae51c2195a5fb8220e2",
+      "new_sha256": "0bb12335a3d8c457cb2e4873ca6f6c72722d5a1e6a08dab6801b58c6d19cea1a"
+    },
+    {
+      "label": "R1 caption: symmetric formula",
+      "matches": 1,
+      "old_sha256": "31a92b0581fdd3840161e2a812d44b8ba210856d44fc2e558e00c6955a140d06",
+      "new_sha256": "deef204abb4d73e64615a2f3f15183a7ed2db4add4e2ee414248f6b9f4e43781"
+    },
+    {
+      "label": "summary item 2: cluster t conditions",
+      "matches": 1,
+      "old_sha256": "e8dff7ed95f0da39912a0a67d40848df17d18f5365498748e896a3970f058f68",
+      "new_sha256": "e6f5cfd3db7846aabc5e661f41227a334cdfe4326cd841f8d361b0a0d2104204"
+    },
+    {
+      "label": "section 4: cluster-robust t status",
+      "matches": 1,
+      "old_sha256": "558762ba2664e97c9502a0d56a5b67eb318c3d06f810e09aa9e26cc79a453a56",
+      "new_sha256": "f029119a94cda8fcff7b5dc2b8d54dbf0fc75e93e9afc2c9df827916cc67e7f6"
+    },
+    {
+      "label": "section 4 table header: cluster t",
+      "matches": 1,
+      "old_sha256": "e58d35b14d7f412ec7994a7f920f3b6ae67e92f25ec541af280788d0fa8e3833",
+      "new_sha256": "fa50c022906e560d3121ee1b596e8614a7899c52a4476f37671a938086ba1a44"
+    },
+    {
+      "label": "section 5: cluster t slack sentence",
+      "matches": 1,
+      "old_sha256": "f36c8014380017f71bbdf2773f9488dbe8622219a0d2fb952de37dd9bdb9cac7",
+      "new_sha256": "f9fc7827ad0ff2ec82c5477e89c80ebe3332551aab1ffdce6cd679b528e70b66"
+    },
+    {
+      "label": "decision table: cluster-robust t rows",
+      "matches": 2,
+      "old_sha256": "984d5de43d925ecc1b97bfc3b223ce7f5c305a5de522f05a59718b733d5357a7",
+      "new_sha256": "5a707f83dd35fcaadd6509a93bbf2cfceb4912a1e17635616503eb9f009ebc11"
+    },
+    {
+      "label": "pass table reading aid: no causal attribution",
+      "matches": 1,
+      "old_sha256": "9c11539f0dfd61a0f4617e20571b32d1ed79277e4db4c4080f6d042584f013b9",
+      "new_sha256": "c9a336035eb04f1986bf2203466471d18b42efd0b8d13958045e1ccddcc2f6cb"
+    },
+    {
+      "label": "figure 2: embed the Round 10/12 legend version",
+      "matches": 1,
+      "old_sha256": "ca49e29897f25017100f464e060ddcbe5c6e116132e28d015e7ceb81a5f94703",
+      "new_sha256": "39b236dd81d6dc63a4242673eadc54991fa1b5b0a4a0850f11da3913f4392af4"
+    },
+    {
+      "label": "figure 2 caption",
+      "matches": 1,
+      "old_sha256": "641d2f3f59f663533311b3885342dd5d772c971d3435364eb207cf23f9018ef4",
+      "new_sha256": "1143d885bc5104bb27d70f6f02bf4d822b2116a0089337c4c720dd99106a5964"
+    }
+  ],
+  "figures_v3_sha256": {
+    "fig2_running_nb.png": "cdab5456f98ccb5fcc4f7d1e2c4c7ac473af23c1aed0e764ebc486638e63f7d3",
+    "fig2_running_nb.pdf": "599e40690691956add17e6a8fcbc4b71a7b16fd864dd1896699be3fe58c0440d"
+  },
+  "counterexample": {
+    "G": 296,
+    "probability_all_cluster_totals_zero": 0.36725714697229994
+  }
+}

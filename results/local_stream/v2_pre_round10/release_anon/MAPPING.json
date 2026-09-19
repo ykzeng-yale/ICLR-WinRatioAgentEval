@@ -1,0 +1,168 @@
+{
+  "placeholders": {
+    "<REPO>": "repository root",
+    "<HOME>": "user's home directory",
+    "<TMP>": "per-user or per-session temporary directory",
+    "<USER>": "account name (residual or truncated occurrences)",
+    "<HOST>": "machine network name"
+  },
+  "note": "Originals are unmodified; original_sha256 lets a holder of the originals verify the correspondence. Only path/name strings were replaced; no number, hash, timestamp or outcome was touched.",
+  "files": [
+    {
+      "file": "results/local_stream/run_manifest.json",
+      "anonymized_copy": "results/local_stream/release_anon/results/local_stream/run_manifest.json",
+      "original_sha256": "f2efc949ff13745aae0b2c5f902de6af05087a606c03803a6e9bc0a25815aa4f",
+      "original_bytes": 11339,
+      "anonymized_sha256": "d584b2e0df4dc5110071c9fc87fc625d1c5b04546069c5d8adae35c93bda7a2c",
+      "replacements": {
+        "<REPO>": 1,
+        "<TMP>": 3,
+        "<HOME>": 8
+      },
+      "changed": true
+    },
+    {
+      "file": "results/local_stream/episodes.jsonl",
+      "anonymized_copy": "results/local_stream/release_anon/results/local_stream/episodes.jsonl",
+      "original_sha256": "95179f93acf72597c9b15257863ffee6acceed19414cf2b630beed62ec0effa0",
+      "original_bytes": 2460483,
+      "anonymized_sha256": "296173ee05c79609fb47b702174a21ab2b2fcf68beba037a83bcd28f9ad2cd21",
+      "replacements": {
+        "<TMP>": 411,
+        "<HOME>": 3
+      },
+      "changed": true
+    },
+    {
+      "file": "results/local_stream/design.json",
+      "anonymized_copy": "results/local_stream/release_anon/results/local_stream/design.json",
+      "original_sha256": "6175b81562efe1b1c87b113050f70c5daab2143e272cba39fb9a796f0d645457",
+      "original_bytes": 108881,
+      "anonymized_sha256": "6175b81562efe1b1c87b113050f70c5daab2143e272cba39fb9a796f0d645457",
+      "replacements": {},
+      "changed": false
+    },
+    {
+      "file": "results/local_stream/monitor_state.json",
+      "anonymized_copy": "results/local_stream/release_anon/results/local_stream/monitor_state.json",
+      "original_sha256": "daeca32682832150f7485b15fb46d7ef15b5e2c78a590b09bee4b706f4ef1773",
+      "original_bytes": 343,
+      "anonymized_sha256": "daeca32682832150f7485b15fb46d7ef15b5e2c78a590b09bee4b706f4ef1773",
+      "replacements": {},
+      "changed": false
+    },
+    {
+      "file": "results/local_stream/dryrun/run_manifest.json",
+      "anonymized_copy": "results/local_stream/release_anon/results/local_stream/dryrun/run_manifest.json",
+      "original_sha256": "cc0f2778ec9f45766b6a6ee55ea06fcfc560c0b973d385ecabd1e4c35a5539d6",
+      "original_bytes": 6801,
+      "anonymized_sha256": "83543d85b07e8a3038290e00afa885a712f3e4fd789b7fe84290dcd7f98db4ed",
+      "replacements": {
+        "<REPO>": 1,
+        "<TMP>": 3,
+        "<HOME>": 4
+      },
+      "changed": true
+    },
+    {
+      "file": "results/local_stream/dryrun/episodes.jsonl",
+      "anonymized_copy": "results/local_stream/release_anon/results/local_stream/dryrun/episodes.jsonl",
+      "original_sha256": "5850724f41c56f6f78cfbad8292b7900f694b8bb3cf02d6579c904e3226c9887",
+      "original_bytes": 45309,
+      "anonymized_sha256": "c0a927866118c42d699add5340a831221d1ae30dd4bfd8053d43c22485d144b5",
+      "replacements": {
+        "<TMP>": 22
+      },
+      "changed": true
+    },
+    {
+      "file": "results/local_stream/timing_pilot/summary.json",
+      "anonymized_copy": "results/local_stream/release_anon/results/local_stream/timing_pilot/summary.json",
+      "original_sha256": "d0fc70db0efbd802a0a38ca33084477a45ecc6d2291e67da06f8a138aed236fe",
+      "original_bytes": 4834,
+      "anonymized_sha256": "7ecfcd3dc79f9f69006aef0ef0332f63f3f5f11294e23f4088dda7fc5bca0c0e",
+      "replacements": {
+        "<TMP>": 1,
+        "<HOME>": 4
+      },
+      "changed": true
+    },
+    {
+      "file": "results/local_stream/timing_pilot/episodes.jsonl",
+      "anonymized_copy": "results/local_stream/release_anon/results/local_stream/timing_pilot/episodes.jsonl",
+      "original_sha256": "907a5d5950e3304d751dccbb22df0a3c5ef71292aa41e7870ec95d3af964922b",
+      "original_bytes": 29771,
+      "anonymized_sha256": "1a5dbf664e0760a0ab7c03ea3894b18b85cfaabf3f845c77bed36bb277162122",
+      "replacements": {
+        "<TMP>": 9
+      },
+      "changed": true
+    },
+    {
+      "file": "results/local_stream/v1_pre_round9/report.md",
+      "anonymized_copy": "results/local_stream/release_anon/results/local_stream/v1_pre_round9/report.md",
+      "original_sha256": "9023783dc4328f204510a2a34fba4df2ece6d33e43d78e464558f4c446358b92",
+      "original_bytes": 34286,
+      "anonymized_sha256": "df07875aca220eb4d04a1879400fdcf58105906e0b8db7372e29154fc9900b6a",
+      "replacements": {
+        "<REPO>": 1
+      },
+      "changed": true
+    },
+    {
+      "file": "results/local_stream/v1_pre_round9/summary.json",
+      "anonymized_copy": "results/local_stream/release_anon/results/local_stream/v1_pre_round9/summary.json",
+      "original_sha256": "778f2f4f896aed76c4d2d746b67308dc3a24fd79b9b04cd9193e0e4c6767ef78",
+      "original_bytes": 18615,
+      "anonymized_sha256": "778f2f4f896aed76c4d2d746b67308dc3a24fd79b9b04cd9193e0e4c6767ef78",
+      "replacements": {},
+      "changed": false
+    },
+    {
+      "file": "work/local_stream/data/data_manifest.json",
+      "anonymized_copy": "results/local_stream/release_anon/work/local_stream/data/data_manifest.json",
+      "original_sha256": "4b626bac275ec11f1b9c38d1ac94babd659de007b5dd51416591a0b697b69e82",
+      "original_bytes": 1522,
+      "anonymized_sha256": "5f28f427514f5a576f4f39f93351226e94543d19790cc388ca0df759fc2e54c0",
+      "replacements": {
+        "<REPO>": 3
+      },
+      "changed": true
+    },
+    {
+      "file": "experiments/local_stream/config.json",
+      "anonymized_copy": "results/local_stream/release_anon/experiments/local_stream/config.json",
+      "original_sha256": "0b40e6530ff70660116d409ad3887e0999ab5d73fa43af1f88fd93df032f4b73",
+      "original_bytes": 1212,
+      "anonymized_sha256": "0b40e6530ff70660116d409ad3887e0999ab5d73fa43af1f88fd93df032f4b73",
+      "replacements": {},
+      "changed": false
+    },
+    {
+      "file": "experiments/local_stream/README.md",
+      "anonymized_copy": "results/local_stream/release_anon/experiments/local_stream/README.md",
+      "original_sha256": "ecc14931dafb5aa1c5d544743edbb10c9062d385026dfb2aeae0fe4b14d2550b",
+      "original_bytes": 10254,
+      "anonymized_sha256": "0e30769406cf808cf907392e56f6f3a6512b000ba274c12802205b215623d211",
+      "replacements": {
+        "<REPO>": 2
+      },
+      "changed": true
+    },
+    {
+      "file": "experiments/local_stream/protocol.md",
+      "anonymized_copy": "results/local_stream/release_anon/experiments/local_stream/protocol.md",
+      "original_sha256": "14a5a81a62fc3144135e463fb8138d2b11b3f1f19b1b9bafec723d49c52242d9",
+      "original_bytes": 30036,
+      "anonymized_sha256": "14a5a81a62fc3144135e463fb8138d2b11b3f1f19b1b9bafec723d49c52242d9",
+      "replacements": {},
+      "changed": false
+    }
+  ],
+  "code_files_to_check": [
+    {
+      "file": "experiments/local_stream/README.md",
+      "occurrences": 4
+    }
+  ]
+}
