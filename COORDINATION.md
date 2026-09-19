@@ -1,5 +1,16 @@
 # Multi-agent coordination (read before editing)
 
+## Active arXiv phase — September 19, 2026
+
+Root owns `arxiv/`, metadata/status/queue, review integration and all staging/commits/pushes. The release reviewer has handed back `reviews/arxiv_release_audit.md` and `reviews/arxiv_live_design_guidance.md`; these are now root-integrated. The former requirements/empirical planning tasks remained pending and were interrupted; root completed `evidence/arxiv_requirements.md` and `evidence/arxiv_experiment_plan.md` with no concurrent file writes.
+
+External session `iclr-winratioagentevals-60` exclusively owns [issue 11](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/11), new branch `session60/live-ab`, and `experiments/live_ab/` / `results/live_ab/`. Do not duplicate the live collection. [Issue 12](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/12) is a separately claimable CPU validation task in `live_ab_validation/`; prefer an independent agent and claim before writing. Both return a PR; neither edits root paper, core or frozen data. Root posts a pre-run design review before integrating new claims.
+
+Original `local_stream/` and `tau2_open/` remain owned by their contributor and immutable for this transition. No new commercial/proprietary experimental call, paid compute or fresh root-host weight download. Historical allocations and stopped-run statements below are superseded only by the named arXiv successor assignments. The original data and ICLR artifacts remain frozen; the author will submit arXiv personally.
+
+## Historical coordination below
+
+
 ## Current instruction and ownership — September 18, 2026
 
 **Round 14 update, September 19:** the remaining report cleanup at `be4b8e4` passed a bounded independent review. Root writes only review/status integration and a concise index-scope handoff. All original owner files and published technical artifacts remain unchanged. No duplicate experiment or new model call is needed.

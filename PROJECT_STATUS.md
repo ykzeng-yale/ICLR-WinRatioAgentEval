@@ -1,6 +1,14 @@
 # Research status
 
-## Current checkpoint — September 19, 2026, Round 15
+## Current checkpoint — arXiv transition, September 19, 2026
+
+**90% verified bounded-v1 checklist readiness.** The author has redirected the project from ICLR to arXiv. The named article and all appendices are prepared in `arxiv/`: 45-page full paper, 13-page main extract and 32-page supplement, complete source upload and audited code archive. Clean extraction/rebuild reproduces every page of text; six analytic tests and 127 result hashes pass. Root completed visual QA. No new numerical outcome or model call was introduced; the historical conference release and observations are immutable.
+
+The author selected arXiv’s perpetual, non-exclusive license. Actual scientific/AI-use review and arXiv account/category/endorsement/rights/agreements remain pending. No upload, announcement or acceptance is asserted. ICLR deadlines/reciprocal-review requirements below are historical. See `arxiv/READ_ME.md`, the arXiv requirements and release audit, and the migrated `READINESS_TRACKER.md`.
+
+The external owner has claimed [issue 11](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/11) for a new prospective open-weight trial in `live_ab/` directories. Root posted independently reviewed requirements before the freeze; collection is not yet verified. [Issue 12](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/12) separately requests CPU validation/calibration. Their outcomes may support a later revision after independent review. Hourly monitoring now follows arXiv and these authorized successor studies.
+
+## Historical checkpoint — September 19, 2026, Round 15
 
 **Deadline status, September 19, 2026, 12:08 UTC:** the abstract deadline has passed (07:59 EDT / 11:59 UTC). Actual author submission remains unconfirmed. If a genuine abstract was submitted on time, the full-paper deadline remains September 26 at 07:59 EDT. If not, the published rules do not permit a new late abstract; this cycle's submission route cannot be assumed available. The fixed 90% package-readiness score does not certify timely submission. The [official author guidelines](https://iclr.cc/Conferences/2027/AuthorGuidelines), rechecked after the deadline, state that deadlines are final.
 

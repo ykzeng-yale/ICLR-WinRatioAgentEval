@@ -1,0 +1,401 @@
+% Additional technical appendix. Root owns integration into main.tex.
+\section{Continuous evaluation from partially observed episodes}
+\label{app:asynchronous}
+
+Waiting for the first unresolved episode can prevent a completed-prefix
+analysis from using many later outcomes. Selecting only completed episodes
+can instead introduce outcome-dependent selection. Here we retain the
+enrollment order but replace each unresolved score by guaranteed bounds.
+This is a worst-case completion construction: it does not require a model
+for how quickly favorable and unfavorable outcomes become observable.
+It specializes established full-data anytime inference and is closely
+related to the pending-outcome stopping construction of
+\citet{henzi2022forecast,henzi2022correction}.
+
+\subsection{Latent enrollment order and the actual observation process}
+
+Let $X_i$ be the complete bounded score of enrolled pair $i$, defined
+under the frozen evaluation horizon and protocol. It may be the observed
+oriented hierarchy score, its inverse-probability-weighted version from
+Theorem~\ref{thm:pair_id}, or a component difference. The enrollment
+filtration $(\mathcal F_i)$ used for the full-score argument need not be
+the calendar-time filtration actually observed by the evaluator. We
+require, rather than infer from the observation schedule, that
+\[
+ X_i\text{ is }\mathcal F_i\text{-measurable},\qquad
+ a_i\leq X_i\leq b_i,\qquad
+ \mu_i=E(X_i\mid\mathcal F_{i-1}),
+\]
+where $a_i,b_i$ are known predictable bounds. Put
+$V_n=\sum_{i\leq n}(b_i-a_i)^2/4$ and
+$\overline\mu_n=n^{-1}\sum_{i\leq n}\mu_i$.
+
+At calendar time $t$, let $N(t)$ be the finite number of fully enrolled
+and randomized pairs. The evaluator's information $\mathcal G_t$
+contains whatever traces and labels have arrived by then. For each
+$i\leq N(t)$, it supplies measurable bounds
+$\ell_i(t),u_i(t)$ satisfying
+\begin{equation}
+ a_i\leq\ell_i(t)\leq X_i\leq u_i(t)\leq b_i
+ \quad\text{simultaneously for every enrolled }i\text{ and every }t.
+ \label{eq:async_enclosures}
+\end{equation}
+Bounds collapse to the score when it is determined. Outcome-dependent
+delay, out-of-order updates, and partial information are allowed.
+The observation process does not need to make $X_i$ independent of its
+reveal time. For continuous calendar time, assume the relevant suprema
+and events are measurable; an event-driven implementation with countably
+many recorded updates suffices.
+
+Condition~\eqref{eq:async_enclosures} is a simultaneous guarantee about
+the \emph{frozen complete score}. A point prediction, an ordinary
+pointwise 95\% interval, or an unvalidated judgment of likely success
+does not satisfy it. If the guarantee instead holds on an event
+$\mathcal A$ with $P(\mathcal A)\geq1-\eta$, all the error bounds below
+increase by at most $\eta$, without requiring independence.
+
+\paragraph{A sufficient experimental model.}
+One transparent model samples independent full potential episode records
+and their partial-reveal paths for each pair, uses fixed candidate systems
+and a fixed outcome protocol, and has no cross-pair interference. The
+record for pair $i$ can include arbitrarily dependent final outcomes and
+reveal times. Pair orientation is then drawn with a fresh recorded
+randomization coin; its probability can depend on information from
+previously enrolled pairs. If that information is a function of their
+full records, it is measurable in the filtration revealing those records
+in enrollment order. The pair-score identification and bounded-score
+arguments apply in this filtration. Balanced orientation with a fixed
+independent workload supplies the stationary case. In a design-based
+version, full potential records and reveal paths can be conditioned upon,
+with independent assignment coins supplying the randomness.
+
+These are sufficient conditions, not a claim that any asynchronous
+production system satisfies them. In particular, revealing all earlier
+final records in a mathematical filtration can change a conditional-mean
+restriction. Shared infrastructure effects, interference, or adaptive
+candidate updates require their own justification. The hierarchy must
+not be refitted after a pending episode's partial outcome is seen.
+Time-uniform coverage and threshold-crossing guarantees transfer by
+pathwise event inclusion; free confidence-sequence and p-process lifting
+are established in \citet{choe2024filtrations}. Their delayed-forecast
+discussion is also a close structural precedent. Such a transfer does
+not establish a calendar-time e-process or the required latent
+enrollment-order conditional-mean restriction.
+
+\subsection{Confidence sequences from all enrolled pairs}
+
+Let $B_\alpha(v)$ be the normal-mixture boundary in
+Theorem~\ref{thm:normal_cs}. For any $1\leq n\leq N(t)$ define
+\begin{equation}
+ L_{n,t}=\frac{\sum_{i=1}^n\ell_i(t)-B_\alpha(V_n)}n,
+ \qquad
+ U_{n,t}=\frac{\sum_{i=1}^n u_i(t)+B_\alpha(V_n)}n.
+ \label{eq:async_cs}
+\end{equation}
+In particular, $n=N(t)$ uses every enrolled pair, including unresolved
+pairs before or after a completed pair. The bounds use $n$, not the
+number of completed episodes, in both the sum and the boundary.
+
+\begin{theorem}[Pathwise transfer of the full-score confidence sequence]
+\label{thm:async_cs}
+Under the full-score assumptions of Theorem~\ref{thm:normal_cs} and
+the simultaneous enclosures \eqref{eq:async_enclosures},
+\[
+ P\{L_{n,t}\leq\overline\mu_n\leq U_{n,t}
+       \text{ for every }t\text{ and every }1\leq n\leq N(t)\}
+ \geq1-\alpha.
+\]
+If the enclosures hold only on $\mathcal A$, the lower bound is
+$1-\alpha-\eta$.
+\end{theorem}
+\begin{proof}
+Let $\mathcal C$ be the event of full-score coverage for every integer
+$n$, which has probability at least $1-\alpha$ by
+Theorem~\ref{thm:normal_cs}. On $\mathcal C$, for every $n$,
+\[
+ \frac{\sum_{i\leq n}X_i-B_\alpha(V_n)}n
+ \leq\overline\mu_n\leq
+ \frac{\sum_{i\leq n}X_i+B_\alpha(V_n)}n.
+\]
+On the enclosure event, replacing the left sum by its lower bound and
+the right sum by its upper bound only widens this interval. This is a
+pathwise statement for every available $(n,t)$, so there is no need to
+assert that $N(t)$ or a display time is an $\mathcal F$-stopping time.
+The desired event contains $\mathcal C$ when the enclosures are certain,
+and contains $\mathcal C\cap\mathcal A$ otherwise. A union bound gives
+the second probability statement.
+\end{proof}
+
+The width has an exact decomposition:
+\begin{equation}
+ U_{n,t}-L_{n,t}
+ =\frac{2B_\alpha(V_n)}n+
+   \frac1n\sum_{i=1}^n\{u_i(t)-\ell_i(t)\}.
+ \label{eq:async_width}
+\end{equation}
+The second term is the price of unresolved outcome information. If
+$X_i\in[-B,B]$ and only $M$ of the first $n$ scores remain unresolved,
+its contribution is at most $2BM/n$ when the enclosures are clipped to
+$[-B,B]$. Thus one unresolved early pair
+need not prevent learning from arbitrarily many later pairs.
+This is a bound on information loss, not a guarantee that the method
+always produces a narrower interval than waiting for a smaller completed
+prefix; those procedures can also concern different running targets.
+
+\subsection{Partial-score betting evidence}
+
+For every fixed-$B$ result below, clip the predictable bounds and all
+enclosures to $[-B,B]$, so that $-B\leq a_i\leq\ell_i(t)\leq
+X_i\leq u_i(t)\leq b_i\leq B$. Clipping preserves containment.
+For clarity use a fixed bound $X_i\in[-B,B]$ and a fixed gate threshold
+$c\in(-B,B)$. Choose $J$ stakes
+$0\leq\lambda_k<1/(B+c)$ and weights $w_k\geq0$ with
+$\sum_kw_k=1$ before viewing the stream. The full-score mixture is
+\[
+ E_n^{\mathrm{full}}(c)=
+ \sum_{k=1}^{J}w_k\prod_{i=1}^n\{1+\lambda_k(X_i-c)\}.
+\]
+The observable partial-score lower wealth for any enrolled prefix is
+\begin{equation}
+ \underline E_{n,t}(c)=
+ \sum_{k=1}^{J}w_k\prod_{i=1}^n
+                      \{1+\lambda_k(\ell_i(t)-c)\}.
+ \label{eq:async_wealth}
+\end{equation}
+Past factors are recomputed or updated when an enclosure improves; they
+are not counted as fresh independent observations. Stakes and mixture
+weights remain the ones committed before seeing this stream.
+
+\begin{theorem}[Threshold validity of partial-score lower wealth]
+\label{thm:async_betting}
+If $E(X_i\mid\mathcal F_{i-1})\leq c$ for every $i$, then
+\[
+ P\left\{\exists t,\ 1\leq n\leq N(t):
+             \underline E_{n,t}(c)\geq1/\alpha\right\}\leq\alpha.
+\]
+If the enclosures hold only on $\mathcal A$, the bound is $\alpha+\eta$.
+This establishes a valid anytime threshold test. It does not assert that
+$\underline E_{N(t),t}(c)$ is a martingale or an e-process in
+$(\mathcal G_t)$.
+\end{theorem}
+\begin{proof}
+Under the null, each full-score factor is positive and has conditional
+expectation at most one. Hence $E_n^{\mathrm{full}}(c)$ is a
+nonnegative supermartingale starting at one, by the same argument as
+Theorem~\ref{thm:betting}. On the enclosure event, nonnegative stakes
+give
+\[
+ 0<1+\lambda_k(\ell_i(t)-c)
+ \leq1+\lambda_k(X_i-c).
+\]
+Products and their nonnegative mixtures preserve the inequality, so
+$\underline E_{n,t}(c)\leq E_n^{\mathrm{full}}(c)$ for all $(n,t)$.
+Every partial-wealth threshold crossing therefore implies a crossing of
+the full-score process at some integer $n$. Ville's inequality bounds
+the latter event by $\alpha$. A possible enclosure failure adds at most
+$\eta$. Nothing in this event inclusion proves a calendar-time
+conditional-expectation identity, which explains the final qualification.
+\end{proof}
+
+If desired, the process
+\[
+ p_t=\min\!\left\{1,
+ \left[\sup_{s\leq t}\ \max_{1\leq n\leq N(s)}
+                         \underline E_{n,s}(c)\right]^{-1}\right\}
+\]
+is an anytime-valid p-value process under exact enclosures, with an empty
+maximum interpreted as one. The threshold statement follows directly
+from Theorem~\ref{thm:async_betting}. Calling its reciprocal an e-process
+would require an additional expectation guarantee and is not warranted
+by this argument alone.
+
+\begin{corollary}[A prefix envelope contains the completed-prefix test]
+\label{cor:async_envelope}
+\leavevmode\par
+Define $\underline E_t^{\max}(c)
+=\max_{1\leq n\leq N(t)}\underline E_{n,t}(c)$. It has the same
+threshold guarantee as Theorem~\ref{thm:async_betting}, without dividing
+$\alpha$ over prefixes. If $m(t)$ is a completely resolved enrollment
+prefix with $\ell_i(t)=u_i(t)=X_i$ for $i\leq m(t)$, then
+\[
+ \underline E_t^{\max}(c)\geq E_{m(t)}^{\mathrm{full}}(c).
+\]
+Consequently the envelope test cannot cross later than the
+completed-prefix test with the same full process and monitoring times.
+\end{corollary}
+\begin{proof}
+The threshold event is exactly a subset of the event already bounded in
+Theorem~\ref{thm:async_betting}. At the resolved prefix $m(t)$, partial
+and full factors coincide, and this prefix is one of the maximands.
+The crossing-time ordering follows pointwise.
+\end{proof}
+
+This corollary concerns the envelope, not merely the all-enrolled
+quantity $\underline E_{N(t),t}$. Adding many unresolved pairs can reduce
+that latter quantity, so the all-enrolled implementation has no universal
+speed ordering relative to completed-prefix inference. If each enclosure
+narrows over calendar time, a fixed-prefix lower wealth is nondecreasing
+as information arrives. Revisions that widen a previously overconfident
+enclosure indicate that its claimed pathwise guarantee was not valid.
+
+For stationary means, the maximum over enrolled prefixes of $L_{n,t}$
+in \eqref{eq:async_cs} is also a valid lower bound on the same constant
+$\mu$. Under drift, $\overline\mu_n$ depends on $n$, so maximizing
+lower bounds across prefixes does not produce a lower bound for
+$\overline\mu_{N(t)}$. The drifting analysis should retain the selected
+prefix and its corresponding target explicitly.
+
+\subsection{Constructing guaranteed hierarchy enclosures from traces}
+
+Let $\mathcal C_i^A(t)$ and $\mathcal C_i^B(t)$ contain all final
+episode records consistent with the information observed for the assigned
+$A$ and $B$ episodes. Require that the actual complete records belong
+to these sets simultaneously. For the unweighted hierarchy define
+\begin{equation}
+ \ell_i^h(t)=\inf_{a\in\mathcal C_i^A(t),\ b\in\mathcal C_i^B(t)}h(a,b),
+ \qquad
+ u_i^h(t)=\sup_{a\in\mathcal C_i^A(t),\ b\in\mathcal C_i^B(t)}h(a,b).
+ \label{eq:async_kernel_set}
+\end{equation}
+These are bounds on the observed oriented comparison, not on an
+unobserved alternative-arm outcome for the same user. Measurability of
+the bounds is required; finite outcome-state enumeration is sufficient
+for binary tiers and possible signs of the resource comparison. The
+true final records are among the feasible completions, proving
+\eqref{eq:async_enclosures}. A superset of feasible completions gives
+conservative bounds even if the separate completion sets ignore some
+within-pair constraints.
+
+For a component score $g(a)-g(b)$, if the traces guarantee
+$g(a)\in[g_A^-,g_A^+]$ and $g(b)\in[g_B^-,g_B^+]$, use
+\[
+ \ell_i^g=g_A^- -g_B^+,\qquad
+ u_i^g=g_A^+ -g_B^-.
+\]
+For the inverse-probability pair score, multiply both endpoints by the
+known positive factor $1/(2q_i)$ or $1/\{2(1-q_i)\}$ corresponding to
+the realized orientation. The resulting global or predictable score
+range must also be used in the full-score bound.
+
+The hierarchy gives useful early conclusions without requiring every
+endpoint to be finalized. If all higher-priority tiers are guaranteed
+tied and the next tier is guaranteed decisive, its sign is final even
+when lower-priority resource records remain open. A stronger implication
+can sometimes combine several possible completions. For example, use
+success then cost with joint failures tied. Suppose $A$ has completed
+with verified success at cost 1, while $B$ is unresolved but has already
+incurred cost 2. Under a 5\% relative cost tolerance and nondecreasing
+recorded cost, $A$ wins if $B$ ultimately fails and also wins if $B$
+ultimately succeeds: any final $B$ cost is at least 2. Therefore
+$\ell_i^h=u_i^h=1$ before $B$ completes. The success-difference enclosure
+is only $[0,1]$, so superiority in success has not been established by
+that episode. A higher-priority safety tier still unresolved would
+invalidate this particular early win certificate.
+
+Absence of a violation so far is not a certificate that the final
+episode is violation-free. Similarly, accumulated cost is a lower bound
+only when the recorded cost cannot later decrease. Refunds, post hoc
+verifier changes, or continuing activity after an apparently successful
+termination require broader completion sets. If a partial trace is
+missing, its possible completions remain in the bounds. Evaluation
+cannot improve evidence by deleting that pair.
+
+\subsection{When can partial information eventually suffice?}
+
+\begin{proposition}[Vanishing unresolved information]
+\label{prop:async_consistency}
+Suppose $X_i\in[-B,B]$ have fixed conditional mean $\mu$, and use a
+fixed normal-mixture tuning parameter. Along any observed sequence of
+calendar looks $t_k$ with $n_k=N(t_k)\to\infty$, suppose
+\[
+ \frac1{n_k}\sum_{i\leq n_k}
+       \{u_i(t_k)-\ell_i(t_k)\}\longrightarrow0
+ \quad\text{almost surely}.
+\]
+Then both bounds $L_{n_k,t_k}$ and $U_{n_k,t_k}$ converge to $\mu$
+almost surely. Thus a finite collection of stationary criteria with
+strict positive gaps above their thresholds eventually passes the
+partial-score confidence-bound rule, provided this condition holds
+for every criterion.
+\end{proposition}
+\begin{proof}
+Bounded martingale differences give
+$n^{-1}\sum_{i\leq n}(X_i-\mu)\to0$ almost surely. One direct proof
+uses the exponential fixed-time Hoeffding bound, its summability for
+any fixed positive deviation, and Borel--Cantelli, followed by a
+countable sequence of deviations tending to zero. By enclosure,
+\[
+ 0\leq\frac1{n_k}\sum_{i\leq n_k}\{X_i-\ell_i(t_k)\}
+ \leq\frac1{n_k}\sum_{i\leq n_k}\{u_i(t_k)-\ell_i(t_k)\},
+\]
+and likewise for $u_i(t_k)-X_i$. Hence the averages of lower and upper
+endpoints converge to $\mu$. The normal-mixture radius tends to zero
+because $V_n\leq nB^2$. The finite-gate conclusion follows by taking
+the maximum of the almost surely finite eventual-passing indices.
+\end{proof}
+
+The condition permits an unresolved first pair forever if the total
+unresolved width is $o(n)$. It can also hold when complete traces remain
+open but their hierarchy signs have already been certified. Conversely,
+if all scores remain enclosed only by $[-B,B]$, the lower bound cannot
+establish a positive mean without additional information. Robustness to
+informative delay is obtained through this explicit uncertainty cost.
+
+\begin{proposition}[A bound on the loss of log wealth]
+\label{prop:async_log_penalty}
+For a fixed positive stake $\lambda<1/(B+c)$ let
+$\gamma=1-\lambda(B+c)>0$. For any $n\leq N(t)$, the corresponding
+full and partial single-stake log products satisfy
+\[
+ 0\leq\log E^{\mathrm{full},\lambda}_n
+          -\log\underline E^\lambda_{n,t}
+ \leq\frac\lambda\gamma
+              \sum_{i=1}^n\{X_i-\ell_i(t)\}.
+\]
+If the full-score sequence is i.i.d., the stake has strictly positive
+expected log growth, and the average upper-minus-lower width vanishes
+along $n_k=N(t_k)\to\infty$, its partial log product divided by $n_k$
+has the same positive limit. A fixed mixture assigning positive weight
+to that stake therefore eventually crosses every finite threshold.
+\end{proposition}
+\begin{proof}
+The function $f(x)=\log\{1+\lambda(x-c)\}$ is increasing on $[-B,B]$
+and has derivative at most $\lambda/\gamma$. Apply the mean value
+theorem to each $f(X_i)-f(\ell_i(t))$ and sum. The strong law gives the
+full log-growth limit; the normalized difference vanishes by the width
+assumption and the displayed inequality. A fixed positive mixture
+weight contributes only a constant to the logarithm of its term.
+\end{proof}
+
+\subsection{Deployment conjunctions and the scope of the guarantee}
+
+Under fixed conditional means, every required stationary gate can use
+its partial-score threshold test at level $\alpha$. If one fixed gate
+null is true, an eventual deployment requires that gate's partial wealth
+to cross, whose probability is at most $\alpha$ by
+Theorem~\ref{thm:async_betting}. Gates may cross at different times or
+prefix lengths because they concern fixed stationary parameters. This
+is the same intersection--union argument as Theorem~\ref{thm:iut},
+and does not require independence between reveal times or criteria.
+An enclosure failure event common to all gates adds at most $\eta$.
+
+For arbitrary drifting running means, use the bounds
+\eqref{eq:async_cs} for the same stated enrolled prefix, allocate the
+confidence-sequence error across all required criteria, and require
+every lower bound to exceed its threshold. The union-bound proof of
+Theorem~\ref{thm:drift_gate} then applies pathwise. A historical
+partial-bound crossing cannot be retained as evidence about a different
+current drifting target. The same candidate-selection and repeated-test
+restrictions continue to apply.
+
+These results address eventual outcomes through a \emph{fixed episode
+horizon}. They are distinct from the calendar-time cumulative reward
+target studied by \citet{lindon2026delayed}, who analyze delayed
+randomized outcomes and their filtration difficulties. No assertion of
+calendar-time martingale structure is needed here; nor do our bounds
+contradict that work's obstruction for a different, calendar-time
+treatment-effect process. Stopping enrollment does not authorize
+changing the endpoint definition for pending episodes. If deployment
+terminates pending runs, either the prespecified intervention includes
+that termination or the estimand remains the stated hypothetical
+continuation through the frozen horizon.

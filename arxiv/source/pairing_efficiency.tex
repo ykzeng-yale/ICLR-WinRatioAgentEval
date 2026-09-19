@@ -1,0 +1,103 @@
+\section{Related decision targets and the cost of disjoint pairing}
+\label{app:pairing_efficiency}
+
+\paragraph{Stage reweighting and raw component requirements differ.}
+The priority-standardized net benefit of \citet{mccoy2026psnb} combines
+stage-conditional effects using prespecified weights. Consider the same
+success-first, success-eligible cost rule as in Section~\ref{sec:estimands}.
+Let $B$ always succeed at cost 2; let $A$ fail with probability
+$\epsilon=0.1$ and otherwise succeed at cost 1. Success is the first
+tier. The cost tier is reached exactly when $A$ succeeds, with
+probability $1-\epsilon=0.9$, and every reached comparison favors $A$.
+Thus the stage-conditional effects are $(-0.1,1)$, ordinary net benefit
+is $-0.1+0.9=0.8$, and priority-standardized net benefit under weights
+$(0.8,0.2)$ is $-0.08+0.2=0.12$. Both composite effects are positive,
+while the raw success contrast $-0.1$ fails a margin of $0.03$.
+All stage reach probabilities are positive, and costs are decisive under
+the 5\% tolerance. This algebra illustrates different population
+requirements. It does not show a miscalibrated test, compare operating
+characteristics, or claim novelty for the lower-tier-dominance concern.
+
+\paragraph{A standard projection identity at the same execution budget.}
+An efficient all-pairs estimator can reduce variance by reusing complete
+arm records. The following identity quantifies the fixed-prefix price of
+discarding those comparisons. It is the usual two-sample projection
+decomposition, not a new U-statistic result. It applies to the independent
+stationary arm law used by our primary score simulation; adaptive,
+nonexchangeable, or task-coupled records require a separate argument.
+
+Let $A_1,\ldots,A_N\overset{\mathrm{iid}}\sim F_A$ and
+$B_1,\ldots,B_N\overset{\mathrm{iid}}\sim F_B$, with independent arms.
+Both procedures use $2N$ executed episodes: $N$ records per arm.
+For a square-integrable comparison $h$, put
+\[
+ \theta=\E h(A,B),\quad
+ a(A)=\E\{h(A,B)\mid A\}-\theta,\quad
+ b(B)=\E\{h(A,B)\mid B\}-\theta,
+\]
+and $r(A,B)=h(A,B)-\theta-a(A)-b(B)$. Define
+$\sigma_A^2=\E a^2$, $\sigma_B^2=\E b^2$, and
+$\sigma_R^2=\E r^2$. Consider
+\[
+ D_N=\frac1N\sum_{i=1}^N h(A_i,B_i),\qquad
+ U_N=\frac1{N^2}\sum_{i,j=1}^N h(A_i,B_j).
+\]
+\begin{proposition}[Exact fixed-prefix variance comparison]
+Under the independent-arm law above,
+\[
+ \operatorname{Var}(D_N)
+   =\frac{\sigma_A^2+\sigma_B^2+\sigma_R^2}{N},\qquad
+ \operatorname{Var}(U_N)
+   =\frac{\sigma_A^2+\sigma_B^2}{N}+\frac{\sigma_R^2}{N^2}.
+\]
+Consequently, $\operatorname{Var}(D_N)-\operatorname{Var}(U_N)
+=(N-1)\sigma_R^2/N^2\geq0$.
+\end{proposition}
+\begin{proof}
+Independence gives $\E a=\E b=0$ and
+$\E(r\mid A)=\E(r\mid B)=0$. Thus $a$, $b$, and $r$ are orthogonal
+in $L^2$, so $\operatorname{Var}(h)=\sigma_A^2+\sigma_B^2+\sigma_R^2$.
+The $N$ disjoint scores are independent, proving the first formula.
+For the all-pairs statistic,
+\[
+ U_N-\theta=\frac1N\sum_i a(A_i)+\frac1N\sum_j b(B_j)
+                    +\frac1{N^2}\sum_{i,j}r(A_i,B_j).
+\]
+The three displayed terms are pairwise uncorrelated. Two distinct
+residual terms are independent when they share no index. When they
+share only an $A$ index, condition on that $A$ record and use independent
+$B$ records and $\E(r\mid A)=0$; their covariance is again zero.
+The same argument applies to a shared $B$ index. Only the $N^2$
+identical-index residual variances remain, giving
+$N^2\sigma_R^2/N^4=\sigma_R^2/N^2$. Adding the projection variances
+proves the second formula and the stated difference.
+\end{proof}
+
+If $\sigma_A^2+\sigma_B^2>0$, the variance ratio is
+\[
+ \frac{\operatorname{Var}(D_N)}{\operatorname{Var}(U_N)}
+ =\frac{\sigma_A^2+\sigma_B^2+\sigma_R^2}
+        {\sigma_A^2+\sigma_B^2+\sigma_R^2/N}.
+\]
+Its large-$N$ limit depends on the score law. If the first-order
+projections vanish but $\sigma_R^2>0$, the ratio is $N$; if all three
+variances vanish, both estimators are constant and their ratio is
+undefined. At $N=1$ the estimators coincide.
+
+For a component kernel $h_g(A,B)=g(A)-g(B)$, the residual is exactly
+zero, and $D_N=U_N=\bar g_A-\bar g_B$ for every realized sample.
+This applies to the raw success and compliance gates in our simulation.
+Reusing all cross-arm comparisons can improve the hierarchical score's
+point-estimation variance but provides no additional component-mean
+observations on these same records. Different confidence boundaries may
+still have different behavior.
+
+These fixed-prefix identities do not compare anytime error control,
+conjunction stopping time, delayed observation policies, or computation.
+All-pairs scores are dependent and cannot be inserted as $N^2$
+independent observations into the disjoint-pair betting process.
+The sequential U-statistic literature
+\citep{zhang2024sequential,bergemann2026group,cai2026ustatistics}
+addresses that dependence under its respective assumptions. No
+empirical superiority claim over those procedures follows from this
+identity or from our current reference experiments.

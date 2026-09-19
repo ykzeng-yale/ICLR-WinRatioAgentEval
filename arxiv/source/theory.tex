@@ -1,0 +1,820 @@
+% Complete technical appendix. Input after \appendix in the main manuscript.
+% Requires amsmath, amssymb, amsthm and theorem/proposition/lemma/corollary environments.
+
+\section{Protocol, estimands, and complete proofs}
+\label{app:theory}
+
+This appendix gives complete proofs for the proposed protocol. The
+concentration and betting arguments are specializations of established
+anytime-valid inference, rather than new concentration inequalities
+\citep{howard2021confidence,waudbysmith2024betting}. Sequential win-statistic
+methods already exist \citep{zhang2024sequential,bergemann2026group}, as do
+asymptotic anytime-valid methods for U-statistics
+\citep{cai2026ustatistics} and confidence-sequence-based deployment gates
+\citep{karampatziakis2021offpolicy}. The purpose of the results below is to
+make the evaluation design, decision claim, and its limitations explicit.
+
+\subsection{A measurable hierarchy with operational ties}
+
+Let $Y\in\mathcal Y$ denote the complete outcome record of an episode under
+a frozen evaluation protocol. It includes final outcomes, selected
+trajectory summaries, and resources measured through a fixed horizon.
+Let $d_k:\mathcal Y^2\to\{-1,0,1\}$, $k=1,\ldots,K$, be measurable,
+antisymmetric tier comparators:
+$d_k(y,y')=-d_k(y',y)$. A value of zero means a prespecified operational
+tie. For example, for a larger-is-better scalar endpoint $g_k$ and an
+absolute tolerance $\eta_k\geq0$,
+\[
+ d_k(y,y')=\mathbf1\{g_k(y)-g_k(y')>\eta_k\}
+           -\mathbf1\{g_k(y')-g_k(y)>\eta_k\}.
+\]
+Resource tiers can be set to zero unless a symmetric eligibility condition
+is satisfied, such as both episodes achieving verified success. Such a
+rule is part of the estimand. It must not be chosen after inspecting the
+systems' comparative results. Define
+\begin{align}
+ h_k(y,y')&=d_k(y,y')\prod_{\ell<k}\mathbf1\{d_\ell(y,y')=0\},
+ & h(y,y')&=\sum_{k=1}^K h_k(y,y'). \label{eq:hierarchy_kernel}
+\end{align}
+At most one term is nonzero; hence $h\in\{-1,0,1\}$ and $h$ is
+antisymmetric. The first decisive tier determines the sign. A tolerance
+does not assert statistical equivalence, and absence of a significant
+difference is not used to define an episode-level tie.
+
+For any specified joint comparison law $P$ on $(Y^A,Y^B)$, put
+\[
+ p_W=P(h=1),\quad p_L=P(h=-1),\quad p_T=P(h=0),\quad
+ \theta=E_P h=p_W-p_L.
+\]
+The net benefit $\theta$ is the primary bounded target. Tier contributions
+are $\theta_k=E_P h_k$, so that $\theta=\sum_k\theta_k$. The corresponding
+decisive masses $P(|h_k|=1)$ show how often each tier determined a
+comparison; these are not population-level component effects.
+
+\begin{proposition}[Relations among win summaries]\label{prop:win_relations}
+Let $d=p_W+p_L$. When denominators are positive,
+\[
+ \mathrm{WR}=\frac{d+\theta}{d-\theta},\qquad
+ \mathrm{WO}=\frac{p_W+p_T/2}{p_L+p_T/2}
+             =\frac{1+\theta}{1-\theta}.
+\]
+In particular, $\mathrm{WR}>1$ is equivalent to $\theta>0$ when $p_L>0$.
+The net benefit alone determines win odds, but does not determine the win
+ratio.
+\end{proposition}
+\begin{proof}
+Adding and subtracting $d=p_W+p_L$ and $\theta=p_W-p_L$ gives
+$p_W=(d+\theta)/2$ and $p_L=(d-\theta)/2$. Also,
+$p_W+p_T/2=(1+\theta)/2$ and $p_L+p_T/2=(1-\theta)/2$.
+The identities and equivalence follow. Different $d\in[|\theta|,1]$
+give different win ratios at a fixed nonzero $\theta$.
+\end{proof}
+
+\subsection{Pairwise priority does not imply a population guardrail}
+
+\begin{proposition}[Arbitrarily favorable preference can hide harm]
+\label{prop:compensation}
+Consider verified success followed by cost, with lower cost preferred
+only when both systems succeed. For every $\epsilon\in(0,1)$ there is a
+comparison distribution with success-rate difference
+$\Delta_S=P(S^A=1)-P(S^B=1)=-\epsilon$ and net benefit
+$\theta=1-2\epsilon$. Consequently, for any noninferiority margin
+$\delta\in[0,1/2)$, positive net benefit need not imply
+$\Delta_S>-\delta$. Moreover, net benefit can approach one while the
+success-rate difference remains strictly negative.
+\end{proposition}
+\begin{proof}
+Let $B$ always succeed. Let $A$ fail with probability $\epsilon$ and
+otherwise succeed with lower cost than $B$. On failure, $A$ loses at the
+success tier. On success, $A$ wins at the cost tier. Thus $p_W=1-\epsilon$,
+$p_L=\epsilon$, and $\Delta_S=-\epsilon$. For the margin claim choose
+$\delta<\epsilon<1/2$. Taking $\epsilon\downarrow0$ proves the last
+claim. This construction works for same-task or independent-draw
+comparisons because $B$'s outcome is constant.
+\end{proof}
+
+The proposition does not say that cost should be ignored. It shows that
+``success takes priority within a pair'' and ``population success cannot
+decline beyond a margin'' are different requirements. We therefore use
+component scores $g_j:\mathcal Y\to[0,1]$, oriented so larger values are
+better, and separate component differences $\Delta_j$. A safety score can
+be one minus an adverse-event indicator. An adverse-event rate that is
+already unacceptable for the reference also requires an \emph{absolute}
+rate gate: noninferiority alone does not certify an acceptable absolute
+rate. The bounded-score results below also apply to an absolute score for
+$A$, by replacing a difference kernel with $g_j(y^A)$.
+
+\subsection{What an online A/B experiment identifies}
+
+A live-episode counterfactual, a same-task clone comparison, and a
+two-arrival online comparison are three distinct targets. Let
+$Y^A,Y^B$ first denote the potential outcomes of a single live episode
+and define $\theta_{\mathrm{episode}}=E h(Y^A,Y^B)$. This target depends
+on the joint potential-outcome law, including latent episode features.
+For the clone design, let $Y^a(x,\xi)$ be a complete
+episode under system $a$, task context $x$, and evaluation randomness
+$\xi$. The offline independent-replicate target is
+\begin{equation}
+ \theta_{\mathrm{task}}
+ =E_X E_{\xi_A,\xi_B\mid X}
+       h\{Y^A(X,\xi_A),Y^B(X,\xi_B)\}, \label{eq:task_target}
+\end{equation}
+where the two replicate streams are conditionally independent. A
+common-randomness coupling defines a different target unless equality of
+these expectations is established. The law of $X$, evaluation horizon,
+and replication convention must all be reported.
+
+For a stratum $s$, an online independent-draw target is
+\begin{equation}
+ \theta_{\mathrm{cross},s}
+ = E\,h(Y_s^A,\widetilde Y_s^B),\qquad
+ Y_s^A\perp\widetilde Y_s^B, \label{eq:cross_target}
+\end{equation}
+where each episode is drawn from that stratum's workload. Even exact
+knowledge of both marginal outcome distributions generally does not
+identify $\theta_{\mathrm{episode}}$. By contrast, if the arm-specific
+conditional distributions given an observed task context $X$ are
+identified under overlap, their product defines the identifiable
+functional in \eqref{eq:task_target}. Individual-counterfactual,
+same-covariate independent-copy, and population independent-copy win
+targets, including the first target's nonidentifiability, are explicitly
+distinguished by \citet{even2025rethinking}. Our construction below
+illustrates that established obstruction for an agent episode.
+
+\begin{proposition}[Episode-counterfactual preference is not identified]
+\label{prop:nonidentification}
+There exist two full-data laws with identical distributions of all
+observed data from an independently randomized, one-system-per-task
+A/B experiment, but opposite $\theta_{\mathrm{episode}}$. Both laws have
+independent-draw net benefit zero.
+\end{proposition}
+\begin{proof}
+Let the observed context $X$ be constant, let the latent episode feature
+$U$ be uniform on $\{0,1,2\}$, and use the single-tier comparator
+$h(a,b)=\operatorname{sign}(a-b)$. Under the first law set
+$Y^B=U$ and $Y^A=(U+1)\bmod3$. Under the second set
+$Y^B=U$ and $Y^A=(U-1)\bmod3$. Under either law, each system's marginal
+outcome is uniform on $\{0,1,2\}$. A randomized assignment independent of
+potential outcomes therefore gives the same distribution for
+$(\text{assignment},\text{observed outcome})$; independent tasks give the
+same law at every sample size. In the first law, $A$ wins for $U=0,1$
+and loses for $U=2$, giving $\theta_{\mathrm{episode}}=1/3$. In the second,
+$A$ wins for $U=0$ and loses for $U=1,2$, giving $-1/3$.
+For independent uniform draws the probability of either strict ordering
+is $1/3$, so both $\theta_{\mathrm{cross}}$ and the independent-replicate
+$\theta_{\mathrm{task}}$ given the constant observed context are zero
+under both laws.
+\end{proof}
+
+This is an identification obstruction, not a confidence-interval issue.
+Additional observations of the same randomized design cannot resolve
+$\theta_{\mathrm{episode}}$.
+A binary single-tier net benefit is a special exception because it
+equals the difference of the two means; the proposition uses three
+ordered values. Running both systems in resettable task environments can
+identify the explicitly chosen clone/run coupling, subject to valid
+measurement and independent task sampling. Shadow runs do not reproduce
+live user reactions or downstream interference automatically.
+
+\subsection{A randomized disjoint-pair design}
+
+Index nonoverlapping pairs of enrolled episodes by $i$. The pair has two
+positions, $r=1,2$, and potential outcomes $Y_{ir}^A,Y_{ir}^B$.
+Both positions are fixed before randomizing the orientation. All
+potential outcomes here refer to the fixed system versions, endpoint
+definitions, horizon, and resource caps. There is no interference between
+the two positions. Let $R_i=1$ assign $A$ to position 1 and $B$ to
+position 2; $R_i=0$ reverses these assignments. Let
+\[
+ P(R_i=1\mid\mathcal H_i,\{Y_{ir}^a\}_{r,a})=q_i,
+ \qquad 0<\varepsilon\leq q_i\leq1-\varepsilon,
+\]
+where $\mathcal H_i$ contains the information used to form and randomize
+the pair, and $q_i$ is known and $\mathcal H_i$-measurable. This condition
+is satisfied by a fresh randomization coin with its recorded probability.
+It excludes assignments driven by unrecorded current outcomes.
+
+For any measurable kernel $\phi:\mathcal Y^2\to[-1,1]$, define observed
+outcomes $O_{i1},O_{i2}$ and the score
+\begin{equation}
+ Z_i^\phi=
+ \frac{R_i}{2q_i}\phi(O_{i1},O_{i2})+
+ \frac{1-R_i}{2(1-q_i)}\phi(O_{i2},O_{i1}).
+ \label{eq:pair_ht}
+\end{equation}
+The arguments are always oriented as $A$ then $B$. The within-pair
+symmetrized potential-outcome quantity is
+\begin{equation}
+ m_i^\phi=\frac12\{
+ \phi(Y_{i1}^A,Y_{i2}^B)+\phi(Y_{i2}^A,Y_{i1}^B)\}.
+ \label{eq:finite_pair_target}
+\end{equation}
+
+\begin{theorem}[Identification by pair randomization]\label{thm:pair_id}
+Under the stated randomization and consistency conditions,
+\[
+ E(Z_i^\phi\mid\mathcal H_i,\{Y_{ir}^a\}_{r,a})=m_i^\phi.
+\]
+For a filtration $\mathcal F_{i-1}$ describing prior pairs and satisfying
+$\mathcal F_{i-1}\subseteq\mathcal H_i$, it follows that
+$E(Z_i^\phi\mid\mathcal F_{i-1})
+=E(m_i^\phi\mid\mathcal F_{i-1})=:\mu_i^\phi$.
+The score is bounded by $|Z_i^\phi|\leq1/(2\varepsilon)$.
+With balanced orientation $q_i=1/2$, it is simply the observed oriented
+kernel, and $|Z_i^\phi|\leq1$.
+\end{theorem}
+\begin{proof}
+Under $R_i=1$, consistency gives
+$(O_{i1},O_{i2})=(Y_{i1}^A,Y_{i2}^B)$. Its contribution to the
+conditional expectation is
+$q_i\phi(Y_{i1}^A,Y_{i2}^B)/(2q_i)$.
+Under $R_i=0$, the contribution is
+$(1-q_i)\phi(Y_{i2}^A,Y_{i1}^B)/(2(1-q_i))$.
+Their sum is \eqref{eq:finite_pair_target}. The conditional-mean identity
+follows by iterated expectation. Exactly one term in
+\eqref{eq:pair_ht} is nonzero, yielding the stated bound.
+\end{proof}
+
+Conditional exchangeability of the two positions is \emph{not} needed
+for the symmetrized target in \eqref{eq:finite_pair_target}. If,
+additionally, the two potential-outcome vectors are conditionally
+independent draws from the same stratum-specific population, each term's
+conditional mean equals \eqref{eq:cross_target}. Then balanced pairs
+estimate the independent-draw stratum preference. Pair formation by
+baseline stratum reduces cross-context comparisons but does not create
+same-task observations.
+
+For a population component set
+$\phi_j(y,y')=g_j(y)-g_j(y')$. Algebra gives the particularly useful
+identity
+\begin{equation}
+ m_i^{\phi_j}=
+ \frac12\sum_{r=1}^2\{g_j(Y_{ir}^A)-g_j(Y_{ir}^B)\}.
+ \label{eq:component_pair_effect}
+\end{equation}
+Unlike a general hierarchy kernel, the component contrast is the
+average same-episode component effect for the pair. Thus the design
+supports population component gates and a cross-episode preference
+without incorrectly claiming a same-task preference effect.
+
+If $q_i\ne1/2$, omitting the inverse-probability factors generally
+targets $q_i\phi(Y_{i1}^A,Y_{i2}^B)
++(1-q_i)\phi(Y_{i2}^A,Y_{i1}^B)$ instead. For example, if these two
+potential comparison signs are $1$ and $-1$ and $q_i=3/4$, the
+symmetrized target is zero but the unweighted mean is $1/2$.
+The extension permits adaptive \emph{orientation} probabilities; it
+still allocates one episode to each system per pair and is not a general
+bandit-router analysis.
+
+\subsection{Anytime confidence sequences, including drift}
+
+The next result applies to any score sequence $Z_i$, including each
+hierarchy, tier, probability, or component score above. Let
+$(\mathcal F_i)$ be a filtration to which the scores are adapted.
+Assume known $\mathcal F_{i-1}$-measurable bounds
+$a_i\leq Z_i\leq b_i$, set $c_i=b_i-a_i$, and write
+\[
+ \mu_i=E(Z_i\mid\mathcal F_{i-1}),\quad
+ \overline\mu_n=\frac1n\sum_{i=1}^n\mu_i,\quad
+ \widehat\mu_n=\frac1n\sum_{i=1}^n Z_i,\quad
+ V_n=\frac14\sum_{i=1}^n c_i^2.
+\]
+The predictable bounds must hold before observing $Z_i$. If $q_i$ depends
+on current contexts outside $\mathcal F_{i-1}$, the universal
+$[-1/(2\varepsilon),1/(2\varepsilon)]$ bound is valid; substituting a
+post-context narrower bound requires a filtration and centering
+argument that preserve predictability.
+
+\begin{theorem}[Normal-mixture confidence sequence]\label{thm:normal_cs}
+Fix $\rho>0$ and $\alpha\in(0,1)$ before examining this score stream.
+Define
+\begin{equation}
+ B_\alpha(v)=
+ \sqrt{(v+\rho)\log\!\left(\frac{v+\rho}{\rho\alpha^2}\right)},
+ \qquad
+ C_n=\left[\widehat\mu_n-\frac{B_\alpha(V_n)}n,
+           \widehat\mu_n+\frac{B_\alpha(V_n)}n\right].
+ \label{eq:normal_cs}
+\end{equation}
+Then
+\[
+ P\{\overline\mu_n\in C_n\text{ for every }n\geq1\}\geq1-\alpha.
+\]
+One may intersect $C_n$ with a known parameter range, such as $[-1,1]$.
+For balanced pair scores in $[-1,1]$, $V_n=n$.
+\end{theorem}
+\begin{proof}
+Let $D_i=Z_i-\mu_i$ and $S_n=\sum_{i\leq n}D_i$.
+The conditional Hoeffding lemma gives, for every fixed
+$\lambda\in\mathbb R$,
+\[
+ E\{e^{\lambda D_i}\mid\mathcal F_{i-1}\}
+ \leq e^{\lambda^2c_i^2/8}.
+\]
+Therefore $M_n(\lambda)=\exp\{\lambda S_n-\lambda^2V_n/2\}$ is a
+nonnegative supermartingale starting at one. Mix over
+$\lambda\sim N(0,\rho^{-1})$. Conditional Tonelli's theorem preserves
+the supermartingale property. Completing the square in the Gaussian
+integral gives
+\[
+ M_n=\sqrt{\frac\rho{V_n+\rho}}
+      \exp\!\left\{\frac{S_n^2}{2(V_n+\rho)}\right\}.
+\]
+Ville's inequality implies $P(\exists n:M_n\geq1/\alpha)\leq\alpha$.
+If $|S_n|\geq B_\alpha(V_n)$, substitution gives
+$M_n\geq1/\alpha$. Hence, outside an event of probability at most
+$\alpha$, $|\widehat\mu_n-\overline\mu_n|<B_\alpha(V_n)/n$ for every
+$n$. This proves the claimed coverage. Intersecting with a set known
+to contain the target cannot remove it on the coverage event.
+\end{proof}
+
+No identical-distribution assumption appears in the theorem. Under
+drift, however, the target is the \emph{running average conditional
+effect} $\overline\mu_n$, not the effect at the latest arrival or a
+future workload. If a predictable policy changes the stratum mix,
+hierarchy, or candidate version, that change is reflected in the sequence
+$\mu_i$. Predictability preserves the concentration argument but does
+not preserve a frozen deployment estimand. A new version or preference
+rule should ordinarily start a separately specified experiment.
+
+The normal-mixture width scales as $O(\sqrt{\log n/n})$ for bounded
+constant ranges and fixed $\rho$. It is convenient and explicit, but
+is not an iterated-logarithm-optimal boundary. Tuning $\rho$ after
+examining this stream invalidates this particular guarantee unless that
+adaptation is accounted for.
+
+\subsection{Fixed-stake betting and its two validity statements}
+
+For stationary claims, a direct test can be more efficient than the
+range-based confidence sequence. Let $Z_i\in[-1,1]$ and test
+$H_0:E(Z_i\mid\mathcal F_{i-1})\leq c$ for every $i$, where
+$c\in(-1,1)$ is fixed. Select $J$ nonnegative stakes satisfying
+$0\leq\lambda_j<1/(1+c)$ and mixture weights
+$w_j>0$, $\sum_jw_j=1$, before examining the stream. Define
+\begin{equation}
+ E_n(c)=\sum_{j=1}^J w_j
+             \prod_{i=1}^n\{1+\lambda_j(Z_i-c)\}.
+ \label{eq:betting_e}
+\end{equation}
+These are standard bounded-mean betting tests
+\citep{waudbysmith2024betting}; sequential two-sample betting also has an
+established literature \citep{shekhar2024betting,podkopaev2023predictive}.
+
+\begin{theorem}[Validity and the finite-grid power condition]
+\label{thm:betting}
+Under $H_0$, $E_n(c)$ is a nonnegative supermartingale starting at one,
+and
+$P\{\sup_n E_n(c)\geq1/\alpha\}\leq\alpha$.
+If the scores are i.i.d. under an alternative and at least one selected
+stake satisfies
+$E\log\{1+\lambda_j(Z_1-c)\}>0$, then $E_n(c)\to\infty$ almost surely.
+A fixed finite grid need not satisfy this condition for every alternative
+with $E Z_1>c$.
+\end{theorem}
+\begin{proof}
+Each factor is positive because
+$1+\lambda_j(Z_i-c)\geq1-\lambda_j(1+c)>0$.
+Its conditional expectation is
+$1+\lambda_j\{E(Z_i\mid\mathcal F_{i-1})-c\}\leq1$.
+Each product is therefore a nonnegative supermartingale; their fixed
+convex mixture is also one. Ville's inequality proves the error bound.
+For a selected stake with positive expected log factor, the factors are
+bounded away from zero and infinity, so their logarithms are integrable.
+The strong law implies that the corresponding log product divided by
+$n$ tends to its strictly positive expectation. That product and hence
+its positively weighted contribution to $E_n(c)$ diverge.
+For the final claim take $c=0$ and a nondegenerate symmetric
+$Z_1\in\{-1,1\}$. Every fixed $\lambda\in(0,1)$ has negative mean
+log factor, since it equals $\tfrac12\log(1-\lambda^2)$.
+Continuity in the success probability implies that all finitely many
+positive grid stakes still have negative mean log factor for a sufficiently
+small positive mean. Zero stakes remain constant and cannot supply
+divergence.
+\end{proof}
+
+A countable positive-weight mixture with stakes tending to zero repairs
+the latter consistency limitation: for $EZ_1-c>0$, the derivative at
+zero of $E\log\{1+\lambda(Z_1-c)\}$ is $EZ_1-c>0$, so all sufficiently
+small positive stakes have positive mean log factor. A reported finite
+grid retains exact error control, but its stake choices and empirical
+power must be reported without a universal consistency claim.
+The null in Theorem~\ref{thm:betting} is a conditional-mean null at
+every step. Merely requiring a nonpositive current cumulative mean under
+arbitrary drift does not imply the product's supermartingale property.
+Nevertheless, fixed nonnegative stakes also control a running-average
+crossing event, by domination rather than by asserting that the observed
+wealth is itself a supermartingale under that weaker null.
+
+\begin{proposition}[Fixed-stake crossings for drifting averages]
+\label{prop:bet_running}
+Let $Z_i\in[-1,1]$ be adapted, put
+$\mu_i=E(Z_i\mid\mathcal F_{i-1})$, and use the fixed stakes and weights
+in \eqref{eq:betting_e}. Without a stationarity assumption,
+\[
+ P\{\exists n\geq1:\ n^{-1}\textstyle\sum_{i\leq n}\mu_i\leq c,
+                   \ E_n(c)\geq1/\alpha\}\leq\alpha.
+\]
+The target is the running average of conditional means, not a fixed
+roster mean, the most recent effect, or a future workload effect.
+\end{proposition}
+\begin{proof}
+For each fixed stake define
+\[
+ M_{jn}=\prod_{i\leq n}
+       \frac{1+\lambda_j(Z_i-c)}{1+\lambda_j(\mu_i-c)},\qquad
+ D_{jn}=\prod_{i\leq n}\{1+\lambda_j(\mu_i-c)\}.
+\]
+The denominator is predictable and at least
+$1-\lambda_j(1+c)>0$. Each normalized factor has conditional
+expectation one, so $M_{jn}$ is a nonnegative unit-mean martingale.
+At any $n$ with $\sum_{i\leq n}(\mu_i-c)\leq0$, the inequality
+$\log(1+x)\leq x$ yields
+$D_{jn}\leq\exp\{\lambda_j\sum_{i\leq n}(\mu_i-c)\}\leq1$.
+Therefore $E_n(c)=\sum_jw_jM_{jn}D_{jn}\leq\sum_jw_jM_{jn}$ at
+every such $n$. The right side is a nonnegative martingale starting
+at one; Ville's inequality proves the claim.
+\end{proof}
+
+This is an elementary normalization of the existing fixed-stake
+construction, not a new generic concentration inequality. The argument
+does not require observing the unknown $\mu_i$. It applies to the
+reported prespecified grid. Predictably time-varying stakes instead
+produce a weighted sum of conditional drifts in the exponent and do not
+automatically certify this unweighted running-average target.
+
+\subsection{Conjunctive deployment and the multiplicity distinction}
+
+Index the required criteria by $j=0,\ldots,m-1$. Criterion zero is
+hierarchical net benefit above a prespecified minimum $c_0\geq0$.
+Other criteria can be component noninferiority,
+$\Delta_j>c_j=-\delta_j$, with $\delta_j\geq0$. A deployment claim is
+the conjunction that \emph{every} criterion holds. Use the corresponding
+bounded scores from \eqref{eq:pair_ht}. Let $L_{jn}(\alpha_j)$ be the
+lower endpoint in \eqref{eq:normal_cs}. The rule is
+\begin{equation}
+ \tau=\inf\{n\geq1:L_{jn}(\alpha_j)>c_j
+                     \text{ for all }j\}. \label{eq:deploy_rule}
+\end{equation}
+The reported stationary betting implementation replaces each lower-bound
+condition with $E_{jn}(c_j)\geq1/\alpha_j$: all criteria must pass at the
+same monitored look. An optional retained-evidence variant instead uses
+$\sup_{t\leq n}E_{jt}(c_j)\geq1/\alpha_j$. Retention is justified only
+for the fixed stationary claims; its stopping times and power differ
+from those of the reported current-look implementation.
+
+\begin{theorem}[Stationary conjunction needs no alpha split]
+\label{thm:iut}
+Suppose each score has fixed conditional mean
+$E(Z_{ij}\mid\mathcal F_{i-1})=\mu_j$ and at least one requirement is
+false, namely $\mu_{j_*}\leq c_{j_*}$. Set $\alpha_j=\alpha$ for every
+criterion. The confidence-sequence rule and both stationary betting variants have
+$P(\tau<\infty)\leq\alpha$, regardless of dependence among criteria.
+\end{theorem}
+\begin{proof}
+For the confidence-sequence rule, deployment requires
+$L_{j_*n}(\alpha)>c_{j_*}\geq\mu_{j_*}$ at some $n$. Its probability
+is at most $\alpha$ by Theorem~\ref{thm:normal_cs}.
+For betting, deployment requires the $j_*$ process to cross
+$1/\alpha$; its conditional-mean null holds, so
+Theorem~\ref{thm:betting} bounds this probability by $\alpha$.
+The index $j_*$ can be chosen for each fixed data-generating law. No
+independence among criteria or union bound over them is needed.
+\end{proof}
+
+This is an intersection--union test for a \emph{single conjunction},
+not simultaneous confidence coverage for all component claims. It does
+not authorize choosing among multiple candidates, hierarchies, success
+routes, or deployment experiments at level $\alpha$ each. For example,
+independent repeated experiments each allowed a level-$\alpha$ false
+deployment can have probability $1-(1-\alpha)^M$ of at least one false
+deployment over $M$ experiments. An experiment-wise allocation with
+$\sum_e\alpha_e\leq\alpha_{\mathrm{program}}$ gives a simple overall
+bound by the union inequality.
+
+\begin{theorem}[Drifting running-average claims require simultaneous control]
+\label{thm:drift_gate}
+Let $\overline\mu_{jn}=n^{-1}\sum_{i\leq n}
+E(Z_{ij}\mid\mathcal F_{i-1})$, with arbitrary allowed drift.
+If $\sum_j\alpha_j\leq\alpha$, the confidence-sequence rule satisfies
+\[
+P\{\exists n:\ \text{the rule deploys at }n
+          \text{ and some }\overline\mu_{jn}\leq c_j\}\leq\alpha.
+\]
+The same conclusion holds for fixed-stake betting under the conditions
+of Proposition~\ref{prop:bet_running} for each gate, when all gates cross
+their respective $1/\alpha_j$ thresholds at the same current prefix.
+Alternatively, level $\alpha$ per criterion remains sufficient if
+there is one fixed index $j_*$ such that
+$\overline\mu_{j_*n}\leq c_{j_*}$ almost surely for every $n$.
+\end{theorem}
+\begin{proof}
+The union bound and Theorem~\ref{thm:normal_cs} give probability at least
+$1-\sum_j\alpha_j$ that all lower bounds are valid for all indices and
+times. On this event deployment implies
+$\overline\mu_{jn}\geq L_{jn}>c_j$ for every $j$, so the stated error
+event cannot occur. Under the fixed-index condition the error event
+is contained in failure of the one $j_*$ lower confidence sequence,
+which has probability at most $\alpha$.
+For the current-prefix betting rule, a false conjunction at $n$ entails
+$E_{jn}(c_j)\geq1/\alpha_j$ and $\overline\mu_{jn}\leq c_j$ for
+at least one $j$. Apply Proposition~\ref{prop:bet_running} and the union
+bound; under a fixed violating index only its event is needed.
+\end{proof}
+
+Without a fixed violating component, a time-varying conjunction cannot
+use the stationary proof: the relevant failing component can change
+with $n$. Nor does a favorable historical average establish that a system
+will be safe after a workload shift. A finite-sample statement about the
+future needs a stability or transport assumption beyond the results here.
+Retaining crossings from different earlier prefixes does not establish
+the current running-average conjunction; that retention rule is excluded
+from the drifting guarantee.
+
+\subsection{Delay, strata, and versions}
+
+\begin{proposition}[Displaying completed enrollment prefixes]
+\label{prop:delay}
+Suppose the full episode scores in enrollment-pair order satisfy
+Theorem~\ref{thm:normal_cs}. At calendar time $t$, let $N(t)$ be any
+possibly data-dependent integer such that the first $N(t)$ pairs have
+their frozen complete endpoints available. Display $C_{N(t)}$, with no
+display at index zero. The same simultaneous coverage guarantee holds
+over all calendar display times.
+\end{proposition}
+\begin{proof}
+On the event that the confidence sequence covers at every integer
+$n\geq1$, it covers at every selected integer $N(t)\geq1$, simultaneously
+over $t$. Thus every calendar-time coverage failure is contained in the
+original failure event. No stopping-time property of $N(t)$ is needed
+for this pathwise inclusion.
+\end{proof}
+
+The premise is substantive: the score's conditional-mean and bound
+assumptions must hold in the filtration used for enrollment-order
+inference. Shared load, interference, and adaptive collection cannot
+be dismissed by invoking the delay proposition. A practical protocol
+fixes a horizon and treats failure to achieve a required outcome by that
+horizon as an endpoint, not as an observation to discard. It waits for
+each pair to mature and analyzes completed enrollment prefixes. Naively
+sorting by completion time or selecting only completed successes can
+change the comparison population. If endpoints remain genuinely missing
+at the fixed horizon, this analysis requires a prespecified observed
+missingness outcome or a separate justified missing-data model; it does
+not impute validity to missing traces.
+
+For a prespecified set of $S$ strata with stationary parameters $\mu_s$
+and a fixed target mix $w_s\geq0$, $\sum_sw_s=1$, construct within-stratum
+confidence sequences $[L_{s,n_s},U_{s,n_s}]$ at levels $\alpha_s$ with
+$\sum_s\alpha_s\leq\alpha$. Set $[L_{s,0},U_{s,0}]=[-1,1]$ before a
+stratum is sampled. Then
+\begin{equation}
+ \left[\sum_s w_sL_{s,n_s},\ \sum_s w_sU_{s,n_s}\right]
+ \label{eq:stratified_cs}
+\end{equation}
+covers $\sum_sw_s\mu_s$ for every vector of sample counts with probability
+at least $1-\alpha$. Indeed, simultaneous coverage of all stratum
+sequences implies the result by nonnegative weighting. Adaptive
+allocation of sample counts is allowed provided each within-stratum
+sequence retains its stated assumptions. Data-dependent weights selected
+to favor the candidate do not preserve a prespecified workload target.
+If both strata and gates require simultaneous drifting claims, allocate
+error over both indices.
+
+\subsection{Offline repeated runs: the task is the independent unit}
+
+Let $X_i$, $i=1,\ldots,n$, be i.i.d. task clusters. The complete records
+consisting of task information, replicate counts, and all episode
+randomness are independent across $i$. Conditional on $X_i$,
+draw independent replicate sets
+$Y_{ir}^A$, $r=1,\ldots,R_{iA}$, and
+$Y_{is}^B$, $s=1,\ldots,R_{iB}$, with the stated system-specific laws.
+The positive replicate counts may be fixed or determined by task
+information before observing its outcomes. Define
+\begin{equation}
+ T_i=\frac1{R_{iA}R_{iB}}
+       \sum_{r=1}^{R_{iA}}\sum_{s=1}^{R_{iB}}
+               h(Y_{ir}^A,Y_{is}^B),\qquad
+ \widehat\theta_n=\frac1n\sum_{i=1}^nT_i.
+ \label{eq:offline_est}
+\end{equation}
+
+\begin{theorem}[Task-level estimation and inference]\label{thm:offline}
+Under this design, $E(T_i)=\theta_{\mathrm{task}}$,
+$T_i\in[-1,1]$, and $\widehat\theta_n$ is unbiased. If the entire
+task-and-replication records are also identically distributed across tasks,
+then
+\[
+ \operatorname{Var}(\widehat\theta_n)=\frac{\operatorname{Var}(T_1)}n.
+\]
+The normal-mixture confidence sequence with scores $T_i$ and $V_n=n$
+is finite-sample valid in task order. Under the preceding i.i.d.
+complete-record condition, if
+$\sigma^2=\operatorname{Var}(T_1)>0$, then
+\[
+ \frac{\sqrt n(\widehat\theta_n-\theta_{\mathrm{task}})}
+ {\{(n-1)^{-1}\sum_i(T_i-\widehat\theta_n)^2\}^{1/2}}
+ \ \Longrightarrow\ N(0,1).
+\]
+\end{theorem}
+\begin{proof}
+Each replicate comparison has the conditional expectation in
+\eqref{eq:task_target}; averaging and iterating expectation proves
+unbiasedness. Boundedness follows because $T_i$ is an average of
+numbers in $[-1,1]$. Independence across tasks makes the variance of
+the mean equal to the sum of the task variances divided by $n^2$,
+which simplifies as stated under identical distribution. The bounded
+task scores meet Theorem~\ref{thm:normal_cs}. Finally, the ordinary
+i.i.d. central limit theorem applies because $T_i$ is bounded. The
+sample variance converges to $\sigma^2$ by the strong law, and
+Slutsky's theorem gives the studentized limit.
+\end{proof}
+
+Replicate pairs reuse episode outcomes and are dependent. Their number
+$\sum_iR_{iA}R_{iB}$ is not an independent sample size. If tasks share a
+repository, user, or scenario with residual dependence, independent
+clusters at that higher level must replace individual tasks. If the
+benchmark is a fixed list rather than a sample of tasks, generalization
+to an external workload does not follow from a task bootstrap; one must
+state a fixed-list target or justify task sampling. Repeated runs do not
+repair that generalization gap.
+
+For $\mathrm{WR}=p_W/p_L$, use two task-level scores formed by replacing
+$h$ with $\mathbf1\{h=1\}$ and $\mathbf1\{h=-1\}$. Simultaneous
+intervals $[l_W,u_W]$ and $[l_L,u_L]$ with $l_L>0$ imply
+$\mathrm{WR}\in[l_W/u_L,u_W/l_L]$. If the lower loss bound is zero,
+there is no finite upper ratio bound from these intervals. In contrast,
+any confidence interval for $\theta$ transforms monotonically to win
+odds on $(-1,1)$ via Proposition~\ref{prop:win_relations}.
+
+\begin{lemma}[Shared seeds: the diagonal changes the target]
+\label{lem:shared_seed}
+For a fixed task $X=x$, suppose the paired seed records
+$W_r=(Y_r^A,Y_r^B)$, $r=1,\ldots,R$, are i.i.d. conditional on $x$,
+but the two outcomes within $W_r$ may be dependent. Let
+\[
+ \theta_{\mathrm{ind}}(x)
+ =E\{h(Y_1^A,Y_2^B)\mid x\},\qquad
+ \theta_{\mathrm{coupled}}(x)
+ =E\{h(Y_1^A,Y_1^B)\mid x\}.
+\]
+For $R\geq2$, the off-diagonal statistic
+\[
+ U_R(x)=\frac1{R(R-1)}\sum_{r\ne s}h(Y_r^A,Y_s^B)
+\]
+is conditionally unbiased for $\theta_{\mathrm{ind}}(x)$.
+The all-pairs statistic, including diagonal comparisons, satisfies
+\[
+ E\!\left\{\frac1{R^2}\sum_{r,s}h(Y_r^A,Y_s^B)\,\middle|\,x\right\}
+ =\left(1-\frac1R\right)\theta_{\mathrm{ind}}(x)
+       +\frac1R\theta_{\mathrm{coupled}}(x).
+\]
+Its absolute bias for $\theta_{\mathrm{ind}}(x)$ is at most $2/R$.
+\end{lemma}
+\begin{proof}
+For $r\ne s$, conditional independence of seed records gives
+$E\{h(Y_r^A,Y_s^B)\mid x\}=\theta_{\mathrm{ind}}(x)$.
+For $r=s$, the expectation is
+$\theta_{\mathrm{coupled}}(x)$. There are $R(R-1)$ off-diagonal
+terms and $R$ diagonal terms. Averaging proves both identities. Since
+both expectations lie in $[-1,1]$, their difference divided by $R$
+has absolute value at most $2/R$.
+\end{proof}
+
+This is the usual finite-sample distinction between a U-statistic and
+its diagonal-including V-statistic, applied to paired stochastic agent
+runs. Averaging $U_R(X_i)$ over independent tasks retains the bounded
+task-level inference in Theorem~\ref{thm:offline}. The
+$R(R-1)$ comparisons still are not independent observations.
+For $R=4$, the all-pairs expectation contains one-quarter coupled-seed
+preference. With only one seed, no off-diagonal estimate is available.
+Removing diagonal pairs repairs within-seed coupling only under
+independence of the distinct seed records; shared infrastructure or
+other cross-seed dependence needs its own treatment.
+
+\subsection{Sampling cost of requiring every gate}
+
+\begin{proposition}[A finite-time tail bound for deployment delay]
+\label{prop:delay_bound}
+Suppose stationary criterion $j$ has conditional mean
+$\mu_j=c_j+\Delta_j$ with $\Delta_j>0$ and constant score-range width
+$d_j$. Write $r_{jn}=B_{\alpha_j}(nd_j^2/4)/n$ for its confidence
+radius. For any deterministic $n$ satisfying $r_{jn}<\Delta_j$ for all
+$j$, the confidence-sequence deployment time in
+\eqref{eq:deploy_rule} satisfies
+\[
+ P(\tau>n)\leq\sum_{j=0}^{m-1}
+       \exp\!\left\{-\frac{2n(\Delta_j-r_{jn})^2}{d_j^2}\right\}.
+\]
+In particular, for fixed positive gaps and bounded widths, deployment
+occurs almost surely as data continue to accrue.
+\end{proposition}
+\begin{proof}
+If every $L_{jn}>c_j$, the rule deploys by $n$. For a given criterion,
+$L_{jn}\leq c_j$ implies
+$\widehat\mu_{jn}-\mu_j\leq-(\Delta_j-r_{jn})$.
+The conditional Hoeffding lemma followed by the Chernoff bound gives
+probability at most
+$\exp\{-2n(\Delta_j-r_{jn})^2/d_j^2\}$ for that event. The union
+bound proves the result without requiring independence between criteria.
+Because $r_{jn}\to0$, the right side tends to zero. The events
+$\{\tau>n\}$ decrease to $\{\tau=\infty\}$, so continuity of
+probability proves almost sure finite deployment.
+\end{proof}
+
+This bound is deliberately conservative. It makes explicit that a
+criterion close to its margin can dominate the sample requirement even
+when hierarchical preference is overwhelmingly favorable.
+
+\begin{proposition}[A guardrail has an unavoidable information cost]
+\label{prop:guardrail_lower_bound}
+Consider a submodel in which each pair reveals one $A$ failure
+indicator $F_i\sim\mathrm{Bernoulli}(p)$ independently, $B$ never
+fails, and all other recorded information has the same conditional law
+under the hypotheses and gives no additional information about $p$.
+Fix a permitted failure rate $\delta\in(0,1)$ and an acceptable
+alternative $p_1\in(0,\delta)$. Any sequential procedure with almost
+surely finite decision time $T$ under both laws, $E_{p_1}T<\infty$,
+and deployment event $D$ satisfying
+$P_{\delta}(D)\leq\alpha<1-\beta\leq P_{p_1}(D)$ must obey
+\[
+ E_{p_1}T\ \geq\
+ \frac{\operatorname{kl}(1-\beta,\alpha)}
+      {\operatorname{kl}(p_1,\delta)},
+ \qquad
+ \operatorname{kl}(u,v)=u\log\frac uv+(1-u)\log\frac{1-u}{1-v}.
+\]
+\end{proposition}
+\begin{proof}
+Let $\ell_i$ be the log likelihood ratio of one failure observation
+under $p_1$ versus $\delta$. The stopped transcript likelihood ratio
+is $\exp(\sum_{i=1}^T\ell_i)$, since the procedure's randomization
+mechanism is the same under both laws. Its relative entropy under
+$p_1$ is
+\[
+ E_{p_1}\sum_{i=1}^T\ell_i
+ =\sum_{i\geq1} E_{p_1}[\mathbf1\{T\geq i\}\ell_i]
+ =E_{p_1}T\,\operatorname{kl}(p_1,\delta).
+\]
+The interchange is valid because $\ell_i$ is bounded for interior
+$p_1,\delta$ and $E_{p_1}T<\infty$. The final equality uses the
+independence of $F_i$ from the pre-$i$ stopping decision.
+Mapping the transcript to $\mathbf1_D$ cannot increase relative
+entropy (the log-sum inequality), so this quantity is at least
+$\operatorname{kl}\{P_{p_1}(D),P_\delta(D)\}$.
+For $u>v$, binary relative entropy increases with $u$ and decreases
+with $v$, as follows by differentiating its displayed formula.
+The stated probability bounds therefore give a lower bound of
+$\operatorname{kl}(1-\beta,\alpha)$, proving the claim.
+\end{proof}
+
+For $p_1=\delta-\gamma$ with $\gamma\to0$ and fixed interior $\delta$,
+Taylor expansion yields
+$\operatorname{kl}(\delta-\gamma,\delta)
+=\gamma^2/\{2\delta(1-\delta)\}+o(\gamma^2)$.
+Thus the required expected sample size can scale as the inverse squared
+distance to the guardrail. The result is a standard information-bound
+argument applied to this deployment subproblem, not a claim of a new
+general sequential lower bound.
+
+\subsection{Sensitivity of a preference claim to its comparator}
+
+\begin{proposition}[Comparator disagreement bound]
+\label{prop:sensitivity}
+For any two prespecified measurable comparators $h,g\in[-1,1]$ on the
+same comparison population,
+\[
+ |E h-E g|\leq E|h-g|\leq2P(h\ne g).
+\]
+If $Eh>2P(h\ne g)$, then $Eg>0$. The factor two is sharp.
+\end{proposition}
+\begin{proof}
+The first inequality is the triangle inequality. The second follows
+pointwise because $|h-g|\leq2\mathbf1\{h\ne g\}$.
+The sign claim follows from $Eg\geq Eh-E|h-g|$.
+Equality in both bounds is obtained when $h=1,g=-1$ on an event of
+probability $q$ and $h=g=0$ otherwise, giving a difference $2q$.
+\end{proof}
+
+This supplies an interpretable sensitivity diagnostic when a tolerance,
+judge, or priority ordering changes: report the fraction of comparisons
+whose decision changes and whether they reverse or become tied.
+Statistical uncertainty in an estimated disagreement mass still needs
+inference. Choosing a favorable hierarchy after seeing the results is
+multiple selection, not prespecification. A finite family can be handled
+with simultaneous confidence sequences allocated over the family, or a
+separate validation stream; a result for one frozen hierarchy does not
+validate arbitrary post hoc searching.
+
+\subsection{Scope of the established guarantees}
+
+The proofs establish identification for the stated paired design,
+finite-sample error control for its bounded scores, and correctly
+defined deployment conjunctions. They do not establish that an
+unvalidated grader measures the intended construct; that an absence of
+observed rare harms certifies safety; that a benchmark represents a
+future workload; or that disjoint-pair analysis is statistically
+efficient relative to a correctly analyzed all-pairs U-statistic.
+Disjoint pairs intentionally simplify sequential dependence at a
+possible efficiency cost. Those issues require measurement audits,
+empirical comparisons, and application-specific assumptions rather than
+additional algebra on the same win score.

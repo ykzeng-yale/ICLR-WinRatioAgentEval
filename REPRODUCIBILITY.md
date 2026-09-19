@@ -1,5 +1,8 @@
 # Reproducing the reported research
 
+**Current preprint release:** use `arxiv/reproducibility_code.zip` and [the arXiv handoff](arxiv/READ_ME.md). Its independent audit passes six analytic tests and 127 saved-result checks. The named source upload is `arxiv/arxiv_source.tar.gz`. Historical anonymous-package instructions below remain valid for the preserved ICLR baseline.
+
+
 The paper combines synthetic score streams, historical public agent traces, an ordinal prefix-certificate replay, open-weight coding and airline laboratory observations, and an earlier small feasibility pilot. None is a production-user randomized trial. Independent model-assisted reviews and limitations are recorded in the development repository.
 
 ## Environment

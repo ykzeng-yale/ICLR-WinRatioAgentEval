@@ -1,0 +1,177 @@
+{
+  "baseline_scientific_commit": "45e8ee2715f148c81db7f6510d66677f57e03f0a",
+  "title": "Guarded Win Statistics for Continuous Agent Evaluation",
+  "authors": [
+    "Yukang Zeng"
+  ],
+  "pages": 45,
+  "main_pages": 13,
+  "supplement_pages": 32,
+  "appendix_first_page": 14,
+  "source_files": 35,
+  "code_payload_files": 246,
+  "source_transformations": [
+    {
+      "path": "async_appendix.tex",
+      "original_sha256": "afcc51c9e1dfb5d75aa9e45cf09381987cdc41c4f57cbd90d6ab9426bdbf2e93",
+      "preprint_sha256": "afcc51c9e1dfb5d75aa9e45cf09381987cdc41c4f57cbd90d6ab9426bdbf2e93"
+    },
+    {
+      "path": "async_results.tex",
+      "original_sha256": "79d5ede6a7fb7b9eb6fc1eebeffbcb6eb387da0af6537821c7c592d2da2eae8c",
+      "preprint_sha256": "55e1bced4a639360d1139ad81519ffd4b6425e6c17a098083c4e684912132d0c"
+    },
+    {
+      "path": "asynchronous.tex",
+      "original_sha256": "18cbd8c234f0b5aa7b81af5e91ce42ce0aa6aafc9b33a4f61cb5db3fec1992da",
+      "preprint_sha256": "e2ef17bd8e967e86a2d4c842916a423d017f4a860075540e94ce7c9d96084f61"
+    },
+    {
+      "path": "decision_ablation_appendix.tex",
+      "original_sha256": "bc5baea863bce20c21a452092e6933b5e4b196287e1b3518a3d20ca14d48a4c8",
+      "preprint_sha256": "b66febad7e4fe6d84b776e83f0b320d4294c7c364bfe2ec2086d71a332e55065"
+    },
+    {
+      "path": "decision_ablations.tex",
+      "original_sha256": "ffb5b291ab50a8e5d12e284503574cab438dec1122b3d57cd27925b67fa0442e",
+      "preprint_sha256": "ffb5b291ab50a8e5d12e284503574cab438dec1122b3d57cd27925b67fa0442e"
+    },
+    {
+      "path": "dm_appendix.tex",
+      "original_sha256": "f3521aa91ff98106e1d53f197eed5d443bf88b453dc1bff159838d89a457be68",
+      "preprint_sha256": "f3521aa91ff98106e1d53f197eed5d443bf88b453dc1bff159838d89a457be68"
+    },
+    {
+      "path": "dm_results.tex",
+      "original_sha256": "a21356bac3eea640035122eeb7dd1ccf9bce925d662a6c194f477e952d11455f",
+      "preprint_sha256": "a21356bac3eea640035122eeb7dd1ccf9bce925d662a6c194f477e952d11455f"
+    },
+    {
+      "path": "drift_extension_appendix.tex",
+      "original_sha256": "00e728cca72b2c79289b3f03ee1b9911c4fb2063422aa7afc94367de2980daef",
+      "preprint_sha256": "00e728cca72b2c79289b3f03ee1b9911c4fb2063422aa7afc94367de2980daef"
+    },
+    {
+      "path": "experiments_appendix.tex",
+      "original_sha256": "e5bcf205290e2b67de36f462c5c0b6e112bc6603c2dbf0dff4bb634524d33cf3",
+      "preprint_sha256": "d766d1f5385d77df210474141b1660e4e81fb60219c84c4eae9fac4abbe9e1da"
+    },
+    {
+      "path": "main.tex",
+      "original_sha256": "d1f93aef0068c7fabe3ba71ae52a12fc9bcdc4b9dc00ad7ac3bb05f1dd1260d3",
+      "preprint_sha256": "efaf5c393f8a6c9a2337effc3bfd784e4d565b15fe4e6ae9b32ccf1ac29bd5e6"
+    },
+    {
+      "path": "open_airline_appendix.tex",
+      "original_sha256": "91a07b8e0dfe741a144eaeb637b63a1072afda8ed7e5a000ca459bef54516f40",
+      "preprint_sha256": "91a07b8e0dfe741a144eaeb637b63a1072afda8ed7e5a000ca459bef54516f40"
+    },
+    {
+      "path": "open_airline_results.tex",
+      "original_sha256": "8e2bd718cc6b51093bae5ef070a456f5e974d886d1dcc9dde4f63a5c13c437c7",
+      "preprint_sha256": "8e2bd718cc6b51093bae5ef070a456f5e974d886d1dcc9dde4f63a5c13c437c7"
+    },
+    {
+      "path": "open_airline_table.tex",
+      "original_sha256": "4917b2d80cf678f1f847f6119d573c18fd9d7d507230318c6d72b922c3c628cb",
+      "preprint_sha256": "4917b2d80cf678f1f847f6119d573c18fd9d7d507230318c6d72b922c3c628cb"
+    },
+    {
+      "path": "open_coding_appendix.tex",
+      "original_sha256": "5052a9a43d69a9494d1fa61674a112a25f48b47a400cbcb7cad01193701c3f22",
+      "preprint_sha256": "5052a9a43d69a9494d1fa61674a112a25f48b47a400cbcb7cad01193701c3f22"
+    },
+    {
+      "path": "open_coding_resource_rows.tex",
+      "original_sha256": "fd884a106ab2b304232b41a5ab234f1875e074637b2d416ee83c438c8879e10f",
+      "preprint_sha256": "fd884a106ab2b304232b41a5ab234f1875e074637b2d416ee83c438c8879e10f"
+    },
+    {
+      "path": "open_coding_results.tex",
+      "original_sha256": "9d1da75347b5bffb4c570260a61e65120cd983ddaab6c7030daafa10cc87aa62",
+      "preprint_sha256": "9d1da75347b5bffb4c570260a61e65120cd983ddaab6c7030daafa10cc87aa62"
+    },
+    {
+      "path": "pairing_efficiency.tex",
+      "original_sha256": "ef3c65a34424a887f1e1bea1c65a88689b90eb7f292849cd41b2f1c891173af8",
+      "preprint_sha256": "ef3c65a34424a887f1e1bea1c65a88689b90eb7f292849cd41b2f1c891173af8"
+    },
+    {
+      "path": "prospective_appendix.tex",
+      "original_sha256": "0bb9d23ce2700f3c57df699758093f254b43437b9f8a8564cb1986f39b68edae",
+      "preprint_sha256": "b33e9bf79cfdb36addbc1829bc5cd233650ed2596c60695f1270a64ff475bfbb"
+    },
+    {
+      "path": "prospective_results.tex",
+      "original_sha256": "610fc789787b6d848f8b35e164e3457ffac6eea3b29bf7de03a33be4bda67e09",
+      "preprint_sha256": "610fc789787b6d848f8b35e164e3457ffac6eea3b29bf7de03a33be4bda67e09"
+    },
+    {
+      "path": "public_appendix.tex",
+      "original_sha256": "2b838d80ea64a4da191acaddc409d1cdaa4b4d75613ba2ff165de8be61b49a98",
+      "preprint_sha256": "418741333a4205b960517585fe9ba44ea16d451c95ca2c27ef253703327222d5"
+    },
+    {
+      "path": "public_results.tex",
+      "original_sha256": "baf02f30703f1ed3bce6b964f7fde6a78416a60f3060fc57e939ee9c592e0c69",
+      "preprint_sha256": "243f5099eb39f40d5b841b8e2908d9febac13d46efdd3571a3aef9763bb6fae0"
+    },
+    {
+      "path": "results_main.tex",
+      "original_sha256": "a57a80a74af5afa6535cc09ed8065fc6331eac2f452c1473461b24414a8f64ee",
+      "preprint_sha256": "a57a80a74af5afa6535cc09ed8065fc6331eac2f452c1473461b24414a8f64ee"
+    },
+    {
+      "path": "sequential_extension_results.tex",
+      "original_sha256": "d36c2712da2d0fc267a2c2312921ceadeb90d2b0b966eed09dcdc9d15c74cfdf",
+      "preprint_sha256": "d36c2712da2d0fc267a2c2312921ceadeb90d2b0b966eed09dcdc9d15c74cfdf"
+    },
+    {
+      "path": "theory.tex",
+      "original_sha256": "ddaebf17e6e9b72822ff945d37475bdb176cba37b27f78fee3c8505e1881445f",
+      "preprint_sha256": "ddaebf17e6e9b72822ff945d37475bdb176cba37b27f78fee3c8505e1881445f"
+    },
+    {
+      "path": "trace_certificate_appendix.tex",
+      "original_sha256": "67c802a88935fc82d75bec29f6165d6195da057ecbd7a573aaacc54ce3d942d3",
+      "preprint_sha256": "67c802a88935fc82d75bec29f6165d6195da057ecbd7a573aaacc54ce3d942d3"
+    },
+    {
+      "path": "trace_certificate_results.tex",
+      "original_sha256": "b214dbae034d24dd9b2b15819e4f84160a98a4b9247f816538725c07f63e01ff",
+      "preprint_sha256": "b214dbae034d24dd9b2b15819e4f84160a98a4b9247f816538725c07f63e01ff"
+    },
+    {
+      "path": "ustat_extension_appendix.tex",
+      "original_sha256": "570ee8ea1586e8cee8cfcc311bc8c1304db65feeb3fe0df10c2eaad07c58fb8f",
+      "preprint_sha256": "570ee8ea1586e8cee8cfcc311bc8c1304db65feeb3fe0df10c2eaad07c58fb8f"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "paper.pdf",
+      "bytes": 508541,
+      "sha256": "8d75610e9e2183a63ab9e64b4e4b697da6aea4ebe343a9ee11d0363bf8777399"
+    },
+    {
+      "path": "main_paper.pdf",
+      "bytes": 300004,
+      "sha256": "5e37e7744c79dcc76e4afa872f47000162e538349a3d4ae9083725d9dcaae3b5"
+    },
+    {
+      "path": "supplement.pdf",
+      "bytes": 432047,
+      "sha256": "0ceaf58a0fcb90c9440e14d3e6c9445f9d11feba2b16365ee4d7ddcfa5bb128d"
+    },
+    {
+      "path": "arxiv_source.tar.gz",
+      "bytes": 142708,
+      "sha256": "fd82e3e117a855c7a3f968ecb42e1022148bc8f37804018b2394e961afb43a9d"
+    },
+    {
+      "path": "reproducibility_code.zip",
+      "bytes": 3061152,
+      "sha256": "be3cec50e4d46a53889948400072b72bab36f2d5afe0b64ba7fc38836b10c17b"
+    }
+  ]
+}
