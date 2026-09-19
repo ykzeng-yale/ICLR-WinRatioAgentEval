@@ -1,6 +1,6 @@
 # ICLR 2027 form preparation
 
-Prepared for author entry; no submission by this agent or confirmation of author submission is recorded. The abstract in abstract.txt describes executed results and matches the current manuscript abstract. The author must review and submit it; this form draft is not a submission confirmation.
+Prepared for author entry; no submission by this agent or confirmation of author submission is recorded. The abstract in abstract.txt describes executed results and matches the current manuscript abstract. The author must review it; this form draft is not a submission confirmation. The abstract deadline has now passed. Full-paper completion for this cycle depends on an actual, timely genuine abstract submission, which remains unconfirmed.
 
 Title: Guarded Win Statistics for Continuous Agent Evaluation
 

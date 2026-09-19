@@ -28,6 +28,8 @@ Round 14 independently accepts the remaining nine airline and one coding report 
 
 ## Remaining work by priority
 
+**Deadline status, September 19, 2026, 12:08 UTC:** the abstract deadline has passed (07:59 EDT / 11:59 UTC). Actual author submission remains unconfirmed. If a genuine abstract was submitted on time, the full-paper deadline remains September 26 at 07:59 EDT. If not, the published rules do not permit a new late abstract; this cycle's submission route cannot be assumed available. The fixed 90% package-readiness score does not certify timely submission. The [official author guidelines](https://iclr.cc/Conferences/2027/AuthorGuidelines), rechecked after the deadline, state that deadlines are final.
+
 | Priority | Work | Acceptance condition |
 |---|---|---|
 | Required author inputs | Actual science/AI-disclosure review; OpenReview/profile/reciprocal-review checks; truthful originality/concurrent-submission declarations | Actual author responses, not agent inference. Abstract submission status remains unknown. |

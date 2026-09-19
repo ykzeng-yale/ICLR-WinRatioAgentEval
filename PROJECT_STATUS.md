@@ -2,11 +2,15 @@
 
 ## Current checkpoint — September 19, 2026, Round 15
 
+**Deadline status, September 19, 2026, 12:08 UTC:** the abstract deadline has passed (07:59 EDT / 11:59 UTC). Actual author submission remains unconfirmed. If a genuine abstract was submitted on time, the full-paper deadline remains September 26 at 07:59 EDT. If not, the published rules do not permit a new late abstract; this cycle's submission route cannot be assumed available. The fixed 90% package-readiness score does not certify timely submission. The [official author guidelines](https://iclr.cc/Conferences/2027/AuthorGuidelines), rechecked after the deadline, state that deadlines are final.
+
+The 12:08 UTC monitor found no new PR heads, comments, formal reviews, review threads or issue activity. Report/index repairs remain closed; no scientific rerun or release rebuild is needed.
+
 **Readiness remains 90% (change: 0).** PR 8 delivered the two requested index clarifications at `ce8b5063d3bb579e1c605828ca07f0ff28d6c326`. Independent bounded review passes; both notes are closed. Root verifies that only the index changed after the contributor's merge of main, with all 236 prior owner experiment/result files, 240 release-payload source paths and three published artifact hashes unchanged.
 
 No requested PR 8 report/index correction remains. The technical package stays at `45e8ee2`: 40 pages, nine main pages, 1,182 coding episodes and 196 airline records. No new experiment, paper change or archive rebuild was needed. Excluded owner intervals/generic methods and deferred broader studies remain outside acceptance. See `reviews/round15_integration_disposition.md` and the independent text review.
 
-The remaining ten points require actual author scientific/AI-disclosure review and profile/eligibility/declarations. Abstract submission remains unconfirmed. The official abstract deadline, rechecked at approximately 10:04 UTC, is today September 19 at 07:59 EDT / 11:59 UTC. Hourly monitoring continues.
+The remaining ten points require actual author scientific/AI-disclosure review and profile/eligibility/declarations. Abstract submission remains unconfirmed. The abstract deadline has passed as recorded above; absence of confirmation does not establish that the author missed it. Hourly monitoring continues.
 
 ## Historical Round 14 checkpoint — September 19, 2026
 

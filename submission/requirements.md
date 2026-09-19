@@ -12,7 +12,7 @@ Verified 2026-09-17 (America/New_York). This is a preparation checklist, not a r
 | Author–reviewer discussion | November 5–18, 2026 | — |
 | Decisions | December 16, 2026 | — |
 
-Dates are supported by the [2027 call for papers](https://www.iclr.cc/Conferences/2027/CallForPapers); supplementary timing is also explicit in the author FAQ. AoE is UTC−12; the local conversions above are calculated, not quoted. The deadline is imminent relative to the idea-stage starting point. A placeholder abstract is not an acceptable way to reserve a place.
+Dates are supported by the [2027 call for papers](https://www.iclr.cc/Conferences/2027/CallForPapers); supplementary timing is also explicit in the author FAQ. AoE is UTC−12; the local conversions above are calculated, not quoted. As of September 19, 2026, 12:08 UTC, the abstract deadline has passed. Actual author submission is unconfirmed. Full-paper completion for this cycle requires a genuine abstract submitted on time; the author guidelines state that deadlines are final, with no accommodation for missing them. A placeholder abstract is not an acceptable way to reserve a place.
 
 ## Format and administrative checklist
 
