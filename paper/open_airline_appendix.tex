@@ -1,0 +1,144 @@
+\section{Interactive open-weight airline study: retained outcomes and replay scope}
+\label{app:open_airline}
+Fresh local open-weight outputs in $\tau^2$-bench airline
+\citep{tau2bench2025} follow prospectively specified batch collection,
+all A then all B, with a prespecified replay schedule. Physical exposure
+was not randomized into replay order. We retain every planned unit and
+distinguish recorded outcomes from incomplete resource accounting.
+
+\paragraph{Systems, tasks and configuration.}
+The roster comprises tasks 1--49 with two trial seeds, 626729 and 373753,
+reused across tasks and arms. Task 0 was excluded before collection
+because it had been used in smoke runs. A uses Qwen2.5-7B-Instruct;
+B uses Qwen3-4B-Instruct-2507. Both use Qwen2.5-7B-Instruct as the
+user simulator. The quantized GGUF files use Q4\_K\_M; their repository
+revisions and individual file hashes accompany the data. The runtime
+is llama.cpp commit \texttt{4fea119de30f6a923992780f6fd5ccb0bee5d47d},
+with a 32,768-token context and one server slot. The benchmark commit is
+\texttt{b7ea9074c1cba482b30687fecdb5c8425fd6f619}.
+Collection used an Apple M5 with 32 GiB memory, 100 maximum steps,
+10 maximum errors, concurrency one, agent temperature 0.3 and user
+temperature zero. A shared one serving process between agent and user;
+B used separate processes for its two models. These serving and batch
+differences belong to the measured systems and prevent attributing an
+observed resource difference solely to model size.
+
+\paragraph{Canonical outcomes and failed attempts.}
+All 196 task--trial--arm units have one canonical record, with no duplicate
+or absent planned units. There are 194 saved trajectories and two A
+infrastructure-failure placeholders with empty messages, zero recorded
+duration and missing reward. Both placeholders count as unsuccessful
+planned units. Each arm has 15/98 successes (15.3\%). A terminates with
+55 user stops, 27 step-limit stops, 14 too-many-error stops and two
+infrastructure failures; B has 69 user stops and 29 step-limit stops.
+Equal observed success counts do not establish equivalence or noninferiority.
+
+Reward bases are present for 124 user-stop trajectories; 70 others have
+termination-based zero reward without that basis. These are archived
+benchmark labels, not 194 independently completed verification procedures.
+
+The retry rule returns the first whole-simulation attempt that completes
+without an exception, irrespective of reward, or a failure placeholder
+after four unsuccessful attempts. The logs reconcile to 206 attempts:
+194 produced retained trajectories and 12 were discarded, all in A.
+Discarded causes are five context-window overflows, four JSON-decoding
+failures after truncation, two request timeouts and one interrupted
+attempt when the operator stopped the first invocation. A task 6/trial 0
+had seven attempts across invocations; task 15/trial 0 had two and
+task 32/trial 1 had four. All 30 retained successes arose from
+single-attempt units. A completed low-reward unit was not rerun to
+improve its outcome.
+
+\begin{table}[h]
+\centering\small
+\caption{Canonical and attempt accounting. Token totals cover saved
+messages only. Complete failed-attempt token usage is unavailable, so these are
+not failure-inclusive compute or monetary costs.}
+\label{tab:open_airline_accounting}
+\input{open_airline_table.tex}
+\end{table}
+
+The attempt ledger supplies statuses and approximate log-derived timing,
+not complete request-level token usage for discarded attempts. Zero
+messages in a placeholder mean no saved message record; they do not mean
+zero operational consumption. Accordingly, we report canonical token
+counts with this explicit scope and do not claim an operational resource
+advantage, failure-inclusive cost, or elapsed-time saving. Server counters
+give a lower bound of 246,284 additional A-collection generated tokens
+absent from the canonical records; their agent/user partition is unknown.
+This combines 198,280 tokens from cancelled-request progress counters
+with 48,004 completed-request tokens after excluding smoke calls and
+retained messages. It remains an incomplete usage total. Saved-message
+agent and user prompt/completion counts are separately available in the
+supplement. Different model tokenizers further limit compute comparisons.
+
+\paragraph{Amendment and chronology.}
+Five A units were completed before an operational failure triggered an
+amendment adding a 1,024-token completion cap for both roles and arms,
+and a 1,800-second simulation timeout. Those five units remain in the
+denominator; the other 191 canonical records belong to the amended
+invocation. The operator had seen the first five A outcomes and failure
+information, but no B outcomes. This was not fully outcome-blind.
+The five completed trajectories did not reach the later caps; invariance
+of their outcomes under the changed serving regime was not tested.
+
+The original amendment's 20:45 UTC decision time was an incorrect clock
+estimate and is preserved with an explicit erratum. The amended invocation
+started at 20:33:06 UTC and contains the amended commands. The owner's
+reported file modification time shortly before that start is not an
+independent immutable decision timestamp. The first invocation's log
+snapshot records two failed attempts followed by an interrupted third
+attempt on task 6, correcting the initial report of only two attempts.
+Both original and amended runner versions were recovered from source
+history and matched exactly to their respective invocation-manifest hashes.
+The combined A raw file retains first-invocation top-level configuration
+metadata, so per-unit regime flags and invocation commands take precedence
+over treating that field as a uniform policy for every A record.
+
+\paragraph{Descriptive contrasts.}
+The hierarchy prioritizes success, then agent completion tokens with a
+5\% larger-value relative tolerance, then assistant tool calls with zero
+tolerance. Resource tiers require joint success; joint failure ties.
+Positive signs favor B. The 49 scheduled cross-arrival replay pairs give
+10 B wins, 30 ties and nine losses, or $1/49=0.02041$ net benefit.
+All 19 non-ties are decided by success. Averaging all four A/B trial
+combinations within each of the 49 tasks gives 28 wins, 141 ties and
+27 losses across 196 dependent comparisons, or $1/196=0.00510$.
+Matched-trial and different-trial descriptions are $0.01020$ and $0$,
+respectively. None of these comparison counts is an independent sample
+size for a binomial or task-population interval.
+
+The two trial seeds are reused across all tasks; task clustering alone
+does not establish independence from common seed, period or machine
+effects. First-block task uniqueness is also insufficient. We therefore
+omit contributed task-$t$, independent-arm Welch, fixed-mean betting
+and win-ratio intervals rather than asserting their assumptions.
+No retained sensitivity analysis is selected for a favorable interval.
+
+\paragraph{A conditional observed-array illustration.}
+To illustrate the observation protocol without claiming new-task inference,
+condition on the complete retained A/B outcome array and the matching.
+For pair $k$, let $z_k(0)$ and $z_k(1)$ be the two computable signs under
+the alternative orientations. Under a model of independent fair replay
+coins, with collection, amendment and retention independent of those
+coins, $\mu_k=\{z_k(0)+z_k(1)\}/2$. The pre-pair filtration contains
+the array, matching and earlier revealed coins, but not future coins.
+Task reuse and dependence within the conditioned array do not require
+independent task draws for this conditional calculation.
+
+A post-hoc application of the fixed normal-mixture construction
+($V_n=n$, $\rho=100$, $\alpha=0.05$) to the revealed signs gives a
+final band $[-0.60932,0.65014]$ at 49 pairs, centered at $0.02041$ with
+radius $0.62973$. The target $49^{-1}\sum_k\mu_k=0.01020$ is already
+known from the complete array: the band illustrates masking, not uncertainty
+about that array. Its fixed-construction guarantee assumes the stated coin
+model, without post-hoc selection adjustment or inference over fresh model
+runs, new tasks or a production population. No execution was stopped;
+the replay establishes no deployment or stopping gain.
+
+\paragraph{Reproduction scope.}
+The supplement retains all metrics, 98 arrivals, 206 attempt rows, regime
+flags, source/raw hashes and model identities. The builder recomputes
+descriptions and replay bands without model calls. Projected data omit
+dialogue, tool arguments, customer strings, tracebacks and identifiers;
+archived reward labels are not independently readjudicated.

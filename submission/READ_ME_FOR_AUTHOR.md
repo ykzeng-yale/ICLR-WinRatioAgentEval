@@ -1,29 +1,27 @@
 # Author handoff: ICLR 2027
 
-**The updated review package is prepared; verified readiness remains 70%.** The project is not yet declared submission-ready. Actual abstract-submission status is unknown; this agent has neither submitted nor attested for you. Your supplied sole-author details remain in excluded local metadata; review artifacts are anonymous.
+**The technical package is verified; overall readiness is 90%.** All retained scientific/empirical claims, manuscript integration and release checks have passed the documented model-assisted reviews. Your actual scientific review and submission declarations remain pending. Actual abstract-submission status is unknown; this agent has neither submitted nor attested for you. The supplied sole-author details stay in excluded local metadata; review artifacts are anonymous.
 
-Round 11 adds independently reviewed open-weight coding observations: 1,182 episodes across 591 tasks. Each workflow succeeded on 433 tasks, while repair used 4.46 times the mean measured workflow latency and 6.33 times the total tokens. The retained post-hoc running-mean analysis is narrowly qualified; the same-task result is descriptive, the success guardrail is uncertified, and contributed E2/R2 uncertainty and endpoint routines are excluded. No new model calls occurred. Comparator/drift evidence and all original results remain preserved.
+The package includes all 1,182 coding episodes across 591 tasks and all 196 planned airline records, including two infrastructure-failure placeholders. The airline logs reconcile to 206 attempts and 194 saved trajectories. Each arm succeeded on 15/98 records; this does not establish equivalence or noninferiority. Batch collection, amendment, shared seeds and incomplete failed-attempt resource accounting are explicit. The coding analysis targets post-hoc running conditional means; the airline band is a conditional observed-array replay illustration. Neither is claimed as a randomized production deployment. No additional experiment is required for these bounded claims, and no new model call was made during review.
 
-New airline results arrived at PR 8 head `3c70c3e` during this integration. The owner reports 196/196 completed units with 15/98 successes per arm. The deposit requires independent validation and repair of inference/deviation reporting before inclusion. It is not included in these archives. See the [current queue](../EXPERIMENT_QUEUE.md).
+## Files to review and upload after author checks
 
-## Files to review and upload when finalized
-
-- **paper.pdf**: official ICLR 2027 anonymous review format, 38 pages total, main content through page 9; full proofs, studies, limitations and disclosure statements included.
-- **anonymous_code.zip**: 215 hashed payload files plus README/package manifest, including all accepted numerical results, protocols, analytical code and source provenance. Default verification checks 114 output hashes; `python reproduce.py --coding` rebuilds the new coding summaries from metrics without model or candidate-code execution.
-- **latex_source.zip**: editable LaTeX with required figures/style files.
+- **paper.pdf**: official ICLR 2027 anonymous review format, 40 pages total, main content through page 9; proofs, studies, limitations and disclosure statements included.
+- **anonymous_code.zip**: 241 hashed payload files plus README/package manifest (243 ZIP entries). Default verification checks 127 output hashes. `python reproduce.py --coding --airline` reconstructs the new summaries from projected metrics without model or candidate-code execution.
+- **latex_source.zip**: 56 entries containing editable LaTeX and required figures/style files.
 - **abstract.txt** and **form_draft.md**: genuine abstract and submission-form preparation materials.
 - **requirements.md**: official rules, source links and author-only inputs.
 - **package_manifest.json**: exact payload hashes.
 
-The anonymous supplement deliberately omits candidate programs, self-tests and verifier stderr. It reproduces analysis of archived success labels, not model generations or independent hidden-test adjudication. Historical collection definitions are retained as nonexecuted text. Do not link the identifying public development repository in anonymous review materials.
+The anonymous supplement omits candidate programs, full dialogues, customer strings, self-tests, verifier stderr and identifying paths. It reproduces analysis of archived success labels and saved-message usage, not fresh model generation, independent reward adjudication or complete failed-attempt resources. Collection definitions are retained as nonexecuted historical text. Do not link the identifying public development repository in anonymous review materials.
 
 Current SHA-256 identifiers:
 
-- paper.pdf: `d471f6f01f52a565ef0387fe1fb6eb9a7e9275e2a0dc242ba1e522e907a19021`
-- anonymous_code.zip: `624c1694574d21be534a1a5bfe5648893dc9aee2ab387e761a09ade54eff04e5`
-- latex_source.zip: `2c6a64b28b1730d7b1daac4efb292d8b51abf915e07bf6c289ee23c0baca2088`
+- paper.pdf: `c1add4bb829c4044d5c3e299613a63c7849b09961a53b66be1067bbcbc7244b8`
+- anonymous_code.zip: `d3887a19ff6d71c5af91080540aec6ed7777b571274e8dd4fbadcd4747e92334`
+- latex_source.zip: `a1dd834a2884d2d4428e0221159573c453968ad610a3c15c8e162811f1a81fda`
 
-The exact release audit is `../reviews/round11_release_audit.md`; three independent coding evidence/target/integrated reviews and the integration ledger document scientific acceptance. All 38 PDF pages were rendered and visually inspected. The nine-page main-content boundary is unchanged. This remains an intermediate package while airline disposition and actual author review/declarations remain unresolved.
+The exact release audit is `../reviews/round12_release_audit.md`; independent evidence, inference, integration and completion-scope reports accompany `../reviews/round12_integration_ledger.md`. Clean code/source builds reproduce the PDF text; all 40 final pages were visually inspected. Prior observations and the Round 11 package are preserved in Git at `1001b23`. These checks do not substitute for your authorship responsibility or guarantee acceptance.
 
 ## Before you submit
 
@@ -36,9 +34,9 @@ The [official author guidelines](https://iclr.cc/Conferences/2027/AuthorGuidelin
 
 ## Cost and work available to other agents
 
-All further commercial/proprietary-model experiment calls are now **prohibited by your explicit instruction**, including simulator, judge and fallback calls. The [current execution policy](../EXPERIMENT_POLICY.md) supersedes all earlier cheap-model budget allowances. Historical total accounted project cost is **USD 3.9476608**, including uncertain reservations; this is usage-based accounting rather than a reconciled provider invoice. No new spending or model calls occurred in the Round 9–11 audits.
+All further commercial/proprietary-model experiment calls are now **prohibited by your explicit instruction**, including simulator, judge and fallback calls. The [current execution policy](../EXPERIMENT_POLICY.md) supersedes all earlier cheap-model budget allowances. Historical total accounted project cost is **USD 3.9476608**, including uncertain reservations; this is usage-based accounting rather than a reconciled provider invoice. No new spending or model calls occurred in the Round 9–12 audits.
 
-Open-weight coding and the competitive sequential U-statistic reference have now been delivered in PRs 8 and 7; the interactive airline extension has now been delivered at `3c70c3e` and is pending independent acceptance. The [GitHub experiment queue](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/blob/main/EXPERIMENT_QUEUE.md) records independent audit findings and integration conditions. Existing workers retain ownership, use separate branches/worktrees and return reviewed pull requests. Generic contributed projections remain excluded from this frozen submission and do not affect its isolated reference results. Previously collected commercial observations are retained as historical evidence; their collection scripts are not authorized to run again.
+Open-weight coding, interactive airline, competitive sequential and drift studies now have scoped accepted integrations. The [GitHub experiment queue](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/blob/main/EXPERIMENT_QUEUE.md) separates completed collections, remaining owner-only report corrections and optional stronger studies. Existing workers retain ownership. Generic contributed projections remain excluded, and historical commercial collection scripts are not authorized to run again.
 
 ## Optional ICLR automated feedback
 

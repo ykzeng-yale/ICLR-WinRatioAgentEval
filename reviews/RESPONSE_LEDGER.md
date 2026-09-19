@@ -2,6 +2,8 @@
 
 These are model-assisted project reviews, not external human peer review. Scope and any reviewer/developer overlap are disclosed in each report.
 
+**Current Round 12 disposition:** the retained technical package has passed scoped scientific/integration/release checks (90% fixed-rubric readiness). Actual author verification and declarations remain pending. Earlier table states and narratives below are historical; current concern-by-concern resolutions and explicit exclusions are in `round12_integration_ledger.md`. Scientific competitiveness remains a judgment, not a passed test.
+
 | Concern | Response and evidence | Status |
 |---|---|---|
 | Generic GPC plus sequential inference may be incremental | Broad first-use claims removed. Closest sequential, deployment, and delayed-outcome methods explicitly compared. Partial-evidence protocol now proved, implemented and independently reproduced; closest worst-case completion/lifting precedents credited. | Scientific contribution remains open |
@@ -94,3 +96,11 @@ Three independent evidence, target and integrated-code checks accepted the narro
 The release audit passed: 215 payload hashes, 114 result checks, byte-identical new aggregate regeneration, all 37 preexisting numerical CSVs unchanged, and identical 38-page PDF text from clean code/source builds. All pages were visually inspected; main content remains within nine pages. No further model or generated-program execution occurred.
 
 During this work the airline owner deposited `3c70c3e`, reporting canonical coverage of all 196 planned units. This is substantive new evidence, still outside the paper. Initial review identifies unsupported task-independent/fixed-mean intervals, omitted failed-attempt resource use and inconsistent amendment timing. The existing owner retains repairs and full invocation accounting; root does not duplicate the experiment. Readiness remains 70% while final airline disposition and actual author inputs are pending.
+
+## Round 12: final retained airline integration and technical release
+
+Separate evidence, inference and integrated reviewers independently checked the airline source and every retained comparison. All 196 canonical records, 194 saved trajectories, two placeholders, 206 attempts and amendment flags reconcile. Success is derived from archived reward fields, with missingness explicit; recorded usage comes from saved messages. Both historical runner versions were recovered and matched to invocation hashes. A separately reconstructed lower bound identifies at least 246,284 omitted generated tokens; complete failed-attempt consumption and immutable decision chronology remain unavailable and are not claimed.
+
+The root manuscript retains descriptive results and a conditional observed-array replay illustration with its known target, independent-coin assumptions and post-hoc scope stated. It excludes unsupported task-t/Welch/fixed-mean/ratio intervals, resource significance and universal impossibility claims. Minor caption and reward-provenance wording findings were corrected and rechecked. Coding endpoint/map repairs pass independently, while residual owner filtration/asymptotic/causal wording remains excluded. Accepted PR 7/10 files and all prior observations remain unchanged.
+
+The separate final release audit verifies 241 payload hashes, 127 result checks, byte-identical airline aggregate reproduction, and clean 40-page PDF rebuilds from both archives. Root visually inspected all 40 pages and enlarged changed pages; main content ends on page 9. The completion-scope review distinguishes completed retained-claim requirements from unachieved broader live A/B ambitions. Thus S6/E4/M4/Q4 close for the defined scope, raising the fixed rubric from 70 to 90. A1/A2 remain pending; no paper submission, author signoff or acceptance is asserted. The hourly monitor remains active.

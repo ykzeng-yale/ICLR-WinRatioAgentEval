@@ -1,0 +1,59 @@
+{
+  "analysis_script_sha256": "7a39748fe14c42aa3d7e614bfb6f67cac1ed6453d5774452467897018a9057fd",
+  "core_sha256": "56955ce09a8ac7afb15f2bd251048537eabcc04ea75e7579bdb825594f41fc69",
+  "new_model_calls": 0,
+  "outputs": [
+    {
+      "path": "results/open_airline/assignment.json",
+      "sha256": "ecc6d4143c85472e614ea1f689c1b933d204d367a5b99c147e867989a9665aa0"
+    },
+    {
+      "path": "results/open_airline/attempt_ledger.csv",
+      "sha256": "40c11c623c83612ca2d3d2ce49359b84f3f194f71fcffbbacc27abf9545e8c40"
+    },
+    {
+      "path": "results/open_airline/canonical_accounting.csv",
+      "sha256": "afe6a03e17c9517a57440c583ec11fe30a82c02ed5a9c305a6c87fe7a2d913c7"
+    },
+    {
+      "path": "results/open_airline/collection_config.json",
+      "sha256": "01899f7c88732810b82edc06b8637244082a6c03edf44196da128115854e135f"
+    },
+    {
+      "path": "results/open_airline/episode_metrics.json",
+      "sha256": "195ff8e8785b698bd0bfaae9a6bd603ae448994f6e738d1fdd7942fb320cd435"
+    },
+    {
+      "path": "results/open_airline/masked_replay_bands.csv",
+      "sha256": "40a00c6d13ccd7eb6c048c331fae4b9e0fcfd3f4f2b95a8c706b724f03bba6a6"
+    },
+    {
+      "path": "results/open_airline/omitted_usage_counters.json",
+      "sha256": "9064c3edea1f8d39c57398a4a6649ad5591e6647eaabbff9aec88d3f50a63645"
+    },
+    {
+      "path": "results/open_airline/provenance.json",
+      "sha256": "45be7c0d5332d6bba38572adb74e0bf55b78fccc08fc357cfa8774ad800df7c1"
+    },
+    {
+      "path": "results/open_airline/replay_scores.csv",
+      "sha256": "ea0b773962201c72e9f5ff50e73639a1645a26e0a887eed0aec6e1269dfd8b2f"
+    },
+    {
+      "path": "results/open_airline/same_task_scores.csv",
+      "sha256": "ead043141b9177134c7273bc37db17ca9b32ba9805db33d2695810a46cbefbb8"
+    },
+    {
+      "path": "results/open_airline/summary.json",
+      "sha256": "908294af9f4c2546a267883c7db84567e87773e24179864546404452f476b4a3"
+    },
+    {
+      "path": "results/open_airline/unit_policy_flags.csv",
+      "sha256": "e35f200ad5dc424bf1f194ef7df6742d980f1e30052559f4d3ba6ad08912c774"
+    },
+    {
+      "path": "paper/open_airline_table.tex",
+      "sha256": "4917b2d80cf678f1f847f6119d573c18fd9d7d507230318c6d72b922c3c628cb"
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "files": [
+    {
+      "collection_path": "experiments/tau2_open/common.py",
+      "retained_path": "evidence/open_airline_collection/common.py.txt",
+      "sha256": "14f1a15c69c7e3b1cc89deb333323e8d1f3bb7f78a2fd869f96d3f7d0abc0997",
+      "version": "owner handoff version",
+      "transformation": "unchanged historical text; not executable or imported by reproduction"
+    },
+    {
+      "collection_path": "experiments/tau2_open/design.py",
+      "retained_path": "evidence/open_airline_collection/design.py.txt",
+      "sha256": "2d7ef2c6c304acd13c1de37aaf634dfe221bbae84de082cdc9a37cb4603d6038",
+      "version": "owner handoff version",
+      "transformation": "unchanged historical text; not executable or imported by reproduction"
+    },
+    {
+      "collection_path": "experiments/tau2_open/build_episodes.py",
+      "retained_path": "evidence/open_airline_collection/build_episodes.py.txt",
+      "sha256": "85d95b725805b51f5d0c40a337ce24fa301b4588b9f2e710ae6f8939141a73a8",
+      "version": "owner handoff version",
+      "transformation": "unchanged historical text; not executable or imported by reproduction"
+    },
+    {
+      "collection_path": "experiments/tau2_open/run_tau2_open.py",
+      "retained_path": "evidence/open_airline_collection/run_tau2_open.py.txt",
+      "sha256": "27797f68e2aff6e088d0300f4be9baac903ef34b71ec84116125c2fa664ff75c",
+      "version": "owner handoff version",
+      "transformation": "unchanged historical text; not executable or imported by reproduction"
+    },
+    {
+      "collection_path": "experiments/tau2_open/deviation_1_erratum.md",
+      "retained_path": "evidence/open_airline_collection/deviation_1_erratum.md.txt",
+      "sha256": "a480474a72bffc5056796263a2b643ad6c60b338366b87a98e13b9b64772abc9",
+      "version": "owner handoff version",
+      "transformation": "unchanged historical text; not executable or imported by reproduction"
+    },
+    {
+      "collection_path": "experiments/tau2_open/config_amendment_1.json",
+      "retained_path": "evidence/open_airline_collection/config_amendment_1.json.txt",
+      "sha256": "696aede45eb45360a1a7e3e78626ec5d86ef745af5f2a02c5d0248adc272ce8f",
+      "version": "owner handoff version",
+      "transformation": "unchanged historical text; not executable or imported by reproduction"
+    },
+    {
+      "collection_path": "experiments/tau2_open/run_tau2_open.py",
+      "retained_path": "evidence/open_airline_collection/run_tau2_open_pre_amendment.py.txt",
+      "sha256": "215e943a371a778900033586a28cd00b7e0f49f77966354ff3d2b6913c1c06ee",
+      "version": "pre-amendment",
+      "transformation": "unchanged historical text; not executable or imported by reproduction"
+    }
+  ],
+  "note": "Historical collection definitions. Root README and paper define retained inference; source metadata and old amendments may contain explicitly corrected claims."
+}
