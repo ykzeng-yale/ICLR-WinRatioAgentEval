@@ -62,7 +62,7 @@ def betting_cs_ternary(z, ms, bets=40, delta=0.05):
     """Two-sided hedged mixture-betting CS for the mean of scores in [-1,1].
 
     Fixed geometric grid of stakes (prespecified), equal weights; for each
-    candidate mean m the capital is max(K+, K-)/... ; CS = {m: capital < 1/delta}.
+    candidate mean m the hedged capital is (K+ + K-)/2 ; CS = {m: capital < 1/delta}.
     z: (reps, n) scores; ms: candidate means grid. Returns (lower, upper) per rep.
     """
     lam = np.geomspace(1e-4, .5, bets)  # stakes in units where |z-m|<=2 => lam<0.5 keeps 1+lam(z-m)>0
@@ -79,7 +79,7 @@ def betting_cs_ternary(z, ms, bets=40, delta=0.05):
                 lk = (pos[:, None] * np.log1p(l * (1 - m)) + tie[:, None] * np.log1p(l * (0 - m))
                       + neg[:, None] * np.log1p(l * (-1 - m)))
             return logsumexp(lk, axis=1) - np.log(bets)
-        cap = np.maximum(logK(lam), logK(-lam)) + np.log(0.5) + np.log(2)  # hedged max of the two halves
+        cap = np.logaddexp(logK(lam), logK(-lam)) - np.log(2)  # hedged capital (theta=1/2), level delta
         inside[:, j] = cap < np.log(1 / delta)
     for r in range(reps):
         idx = np.where(inside[r])[0]

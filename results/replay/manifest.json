@@ -1,0 +1,19 @@
+{
+  "alpha": 0.05,
+  "margin": 0.03,
+  "min_n": 50,
+  "code_sha256": "d37aa471ce0ac998d79cb6cf5e216db2486f940ec26a86af0537fc5b44dbcf88",
+  "seeds": {
+    "replay_base": 0,
+    "design_ids": {
+      "paired": 1,
+      "cross_arrival": 2,
+      "cross_arrival_stratified": 3
+    },
+    "self_null": 1,
+    "completion_order": 2,
+    "example_stream": 123
+  },
+  "preserved_baseline": "replay_results_pre_issue6_e1ea314.csv (generated with process-dependent hash seeds; superseded)",
+  "note": "Replay of historical tau2-bench runs; synthetic arrival process; not live A/B outcomes."
+}

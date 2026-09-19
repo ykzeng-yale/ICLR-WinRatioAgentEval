@@ -20,6 +20,7 @@ from winstats import Tier, compare, betting_log_e_ternary
 from wincs import betting_cs_ternary
 SRC = ROOT / 'work' / 'empirical_sources'; OUT = ROOT / 'results' / 'replay'; OUT.mkdir(parents=True, exist_ok=True)
 ALPHA = 0.05; MARGIN = 0.03
+DESIGN_ID = {'paired': 1, 'cross_arrival': 2, 'cross_arrival_stratified': 3}  # replaces hash(design), which depends on PYTHONHASHSEED
 
 
 def load_tau2():
@@ -53,7 +54,25 @@ def stream(rng, PA, PB, n, design):
     idx = rng.integers(0, len(keys), n)
     A = np.stack([PA[keys[i]][rng.integers(0, len(PA[keys[i]]))] for i in idx])
     if design == 'paired':
-        B = np.stack([PB[keys[i]][rng.integers(0, len(PB[keys[i]]))] for i in idx])
+        # avoid the same trial index (shared simulator seed) for A and B within a task
+        B = []
+        for i, a_row in zip(idx, A):
+            runsB = PB[keys[i]]; runsA = PA[keys[i]]
+            ia = int(np.where((runsA == a_row).all(1))[0][0]) if len(runsA) == len(runsB) else -1
+            choices = [j for j in range(len(runsB)) if j != ia] or list(range(len(runsB)))
+            B.append(runsB[choices[rng.integers(0, len(choices))]])
+        B = np.stack(B)
+    elif design == 'cross_arrival_stratified':
+        # B's task drawn independently but from the SAME domain (prespecified stratum) as A's task;
+        # the task is selected once and a run is then drawn from that task's own pool (issue #6).
+        by_dom = {}
+        for j, k in enumerate(keys): by_dom.setdefault(k[0], []).append(j)
+        B = []
+        for i in idx:
+            cands = by_dom[keys[i][0]]
+            pool = PB[keys[cands[rng.integers(0, len(cands))]]]
+            B.append(pool[rng.integers(0, len(pool))])
+        B = np.stack(B)
     else:
         jdx = rng.integers(0, len(keys), n)
         B = np.stack([PB[keys[j]][rng.integers(0, len(PB[keys[j]]))] for j in jdx])
@@ -77,8 +96,8 @@ def run_guarded(z, dq, alpha=ALPHA, margin=MARGIN, min_n=50):
 def replay(df, a, b, domains, n=2000, reps=500, seed=0, label=''):
     PA = pools(df, a, domains); PB = pools(df, b, domains)
     rows = []
-    for design in ['paired', 'cross_arrival']:
-        rng = np.random.default_rng([seed, hash(design) % 1000])
+    for design in ['paired', 'cross_arrival', 'cross_arrival_stratified']:
+        rng = np.random.default_rng([seed, DESIGN_ID[design]])  # fixed design ids: process-independent seeds (issue #6)
         res = []
         for r in range(reps):
             A, B = stream(rng, PA, PB, n, design)
@@ -159,6 +178,8 @@ def main():
     qp = np.cumsum(dq > 0); qn = np.cumsum(dq < 0); glo, ghi = betting_cs_ternary(qp[looks - 1], n[looks - 1] - qp[looks - 1] - qn[looks - 1], qn[looks - 1], ALPHA)
     pd.DataFrame(dict(n=looks, nb_hat=((pos - neg) / n)[looks - 1], nb_lo=lo, nb_hi=hi, succ_hat=((qp - qn) / n)[looks - 1], succ_lo=glo, succ_hi=ghi)).to_csv(OUT / 'example_stream_cs.csv', index=False)
     (OUT / 'manifest.json').write_text(json.dumps(dict(alpha=ALPHA, margin=MARGIN, min_n=50, code_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+                                                     seeds=dict(replay_base=0, design_ids=DESIGN_ID, self_null=1, completion_order=2, example_stream=123),
+                                                     preserved_baseline='replay_results_pre_issue6_e1ea314.csv (generated with process-dependent hash seeds; superseded)',
                                                      note='Replay of historical tau2-bench runs; synthetic arrival process; not live A/B outcomes.'), indent=2))
     print('done')
 

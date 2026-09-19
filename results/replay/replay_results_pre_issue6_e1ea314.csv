@@ -1,0 +1,13 @@
+label,A,B,domains,design,reps,max_pairs,deploy_rate,harm_rate,median_deploy_time,q25_deploy_time,q75_deploy_time,median_harm_time,mean_final_nb,sd_final_nb,mean_final_success_diff
+tau2_o4mini_vs_gpt41_all,o4-mini-2025-04-16,gpt-4.1-2025-04-14,airline+retail+telecom,paired,500,2000,0.942,0.0,852.0,588.0,1148.0,,0.10368200000000001,0.017754967642888003,0.026609
+tau2_o4mini_vs_gpt41_all,o4-mini-2025-04-16,gpt-4.1-2025-04-14,airline+retail+telecom,cross_arrival,500,2000,0.354,0.002,1204.0,734.0,1573.0,52.0,0.052063000000000005,0.019738402442953686,0.027694
+tau2_o4mini_vs_gpt41_all,o4-mini-2025-04-16,gpt-4.1-2025-04-14,airline+retail+telecom,cross_arrival_stratified,500,2000,0.376,0.0,1249.5,828.5,1647.5,,0.050675,0.020263683648339952,0.026831
+tau2_o4mini_vs_gpt41_retail,o4-mini-2025-04-16,gpt-4.1-2025-04-14,retail,paired,500,2000,0.008,0.0,879.5,473.0,1264.0,,0.057801000000000005,0.021198794753475962,-0.026727000000000004
+tau2_o4mini_vs_gpt41_retail,o4-mini-2025-04-16,gpt-4.1-2025-04-14,retail,cross_arrival,500,2000,0.0,0.014,,,,585.0,-0.013533,0.021571657585823113,-0.026788
+tau2_o4mini_vs_gpt41_retail,o4-mini-2025-04-16,gpt-4.1-2025-04-14,retail,cross_arrival_stratified,500,2000,0.0,0.018,,,,534.0,-0.012147,0.020615040407430688,-0.025396000000000002
+tau2_claude37_vs_gpt41_all,claude-3-7-sonnet-20250219,gpt-4.1-2025-04-14,airline+retail+telecom,paired,500,2000,0.0,1.0,,,,54.5,-0.360941,0.01706147763237405,0.07054400000000001
+tau2_claude37_vs_gpt41_all,claude-3-7-sonnet-20250219,gpt-4.1-2025-04-14,airline+retail+telecom,cross_arrival,500,2000,0.0,1.0,,,,108.0,-0.26142200000000004,0.019596221982821075,0.07042500000000002
+tau2_claude37_vs_gpt41_all,claude-3-7-sonnet-20250219,gpt-4.1-2025-04-14,airline+retail+telecom,cross_arrival_stratified,500,2000,0.0,1.0,,,,91.5,-0.28770100000000004,0.018979596913527953,0.069611
+self_null,gpt-4.1-2025-04-14,gpt-4.1-2025-04-14,airline+retail+telecom,paired_disjoint_trials,500,2000,0.0,0.006,,,,,,,
+completion_order_stress,gpt-4.1-2025-04-14,gpt-4.1-2025-04-14 (failures slowed x4),airline+retail+telecom,arrival_order,300,1500,0.0033333333333333335,0.006666666666666667,,,,,,,
+completion_order_stress,gpt-4.1-2025-04-14,gpt-4.1-2025-04-14 (failures slowed x4),airline+retail+telecom,completion_order,300,1500,0.0,0.013333333333333334,,,,,,,
