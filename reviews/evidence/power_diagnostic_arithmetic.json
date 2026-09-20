@@ -1,0 +1,82 @@
+{
+  "pin": "57482e317c42e971e33871e7d879e6ca61c8eac0",
+  "mode": "deterministic arithmetic, zero Monte Carlo trials",
+  "alpha": 0.00625,
+  "delta": 0.03,
+  "owner_kl_conditional_arithmetic": {
+    "kl": 0.001149011,
+    "necessary_horizon_for_80pct_power_realvalued": 3099.1788166097567,
+    "necessary_integer_horizon": 3100,
+    "power_upper_at_568": 0.23510898091953397,
+    "power_upper_at_295": 0.14851646212218303
+  },
+  "illustrative_plugin_laws_not_claimed_to_be_owner_exact_new_input": {
+    "independent_tasks_with_replacement": {
+      "alternative_ternary_probabilities_minus_zero_plus": [
+        0.1958709463154308,
+        0.6082581073691384,
+        0.1958709463154308
+      ],
+      "dual_stake": 0.076484883628001,
+      "null_ternary_probabilities_minus_zero_plus": [
+        0.21156718726173132,
+        0.6068656259657438,
+        0.18156718680720949
+      ],
+      "null_probability_sum": 1.0000000000346845,
+      "null_mean": -0.030000000454521836,
+      "reverse_kl": 0.0011479916794849814,
+      "necessary_horizon_for_80pct_power_realvalued": 3101.9306279720986,
+      "power_upper_at_568": 0.23496009870358603,
+      "power_upper_at_295": 0.14842595163287747,
+      "fractional_expected_counts_betting_crossing_NOT_actual_power_or_mean_stopping_time": 6697
+    },
+    "ordered_distinct_tasks_from_pilot": {
+      "alternative_ternary_probabilities_minus_zero_plus": [
+        0.19608821589377384,
+        0.6078235682124523,
+        0.19608821589377384
+      ],
+      "dual_stake": 0.07640073163988985,
+      "null_ternary_probabilities_minus_zero_plus": [
+        0.21178319522615646,
+        0.606433609069734,
+        0.18178319567025758
+      ],
+      "null_probability_sum": 0.999999999966148,
+      "null_mean": -0.029999999555898882,
+      "reverse_kl": 0.0011467241776926887,
+      "necessary_horizon_for_80pct_power_realvalued": 3105.3592664424527,
+      "power_upper_at_568": 0.23477492281821288,
+      "power_upper_at_295": 0.1483133766821266,
+      "fractional_expected_counts_betting_crossing_NOT_actual_power_or_mean_stopping_time": 6704
+    },
+    "same_task_pilot": {
+      "alternative_ternary_probabilities_minus_zero_plus": [
+        0.0676818950930626,
+        0.8646362098138748,
+        0.0676818950930626
+      ],
+      "dual_stake": 0.21430536244959103,
+      "null_ternary_probabilities_minus_zero_plus": [
+        0.08544358246492596,
+        0.8591128351879732,
+        0.05544358236778559
+      ],
+      "null_probability_sum": 1.0000000000206848,
+      "null_mean": -0.03000000009714037,
+      "reverse_kl": 0.0032680062511762364,
+      "necessary_horizon_for_80pct_power_realvalued": 1089.6523071122963,
+      "power_upper_at_568": 0.5017059301877596,
+      "power_upper_at_295": 0.31129514018204696,
+      "fractional_expected_counts_betting_crossing_NOT_actual_power_or_mean_stopping_time": 2360
+    }
+  },
+  "normal_radius_at_568": 0.1579515124940428,
+  "first_normal_crossing_on_exact_zero_empirical_mean_path": 17097,
+  "reported_log_shortfall_shares_arithmetic_only": {
+    "17097_to_6697": 0.27529246427373383,
+    "6697_to_3099": 0.2263392101762298,
+    "3099_to_568": 0.4983683255500365
+  }
+}

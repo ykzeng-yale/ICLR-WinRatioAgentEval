@@ -1,0 +1,8 @@
+{
+  "saved_rate_rows_arithmetic_checked": 768,
+  "critical_counts": {
+    "8000": 64,
+    "20000": 147
+  },
+  "counterexample_flag_probability_at_true_p_0.007_n8000": 0.1571523834255155
+}

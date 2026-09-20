@@ -1,0 +1,488 @@
+{
+  "comparison_status_counts": {
+    "checkpoint:event:enroll": 2172,
+    "checkpoint:event:reveal": 4340,
+    "checkpoint:look": 400203,
+    "look:AGREE": 277417,
+    "look:DISAGREE": 122786,
+    "rows": 406715
+  },
+  "disagreement_detail_classes": {
+    "band_endpoint": 131352,
+    "per_pair_enclosure_endpoint": 151032
+  },
+  "output_hashes": {
+    "README_OUTPUTS.md": "3e7d176bf825aaaf19331744bade7ed74fa9170958ddab06bafe7e9f52c7b3c3",
+    "budget.json": "56e32b7d663bb69f0e80610956c205810f10273eb7257cab7d5b763622e5778a",
+    "comparison_defects.csv.gz": "97c27b66a45185df0c9d1abf371737deb14d1ac0e9108f2eda7bda3037bc2d47",
+    "comparison_summary.json": "65b063cadf9fcf4cc99943c00a88c22ba965387ba7eaf8295fe31cee806e2d3b",
+    "comparison_vs_live_ab.csv.gz": "3c0e7d395a385135a0b1ba04544bc2e180b458b1c4f70f262320e06d9a3b1358",
+    "compute.json": "1c66cdae2e04f34ce900301affc1a3cf552e5a613022be247fe3ba8f55452831",
+    "decision_time.csv": "75a6d4b04758c13c0bc819388956fbacb25d506115ca7b79d6cd74cea3a154fc",
+    "decisions.csv": "923f05abe8d9ad4d02894800fcc1fa98df1113d8dc55e60dc02bd3d8cbbd08e9",
+    "fixtures_report.json": "40e1c1f442641814d024171063163c3e6e106ac49275a3cc4eeab7ec8731daa9",
+    "horizon_summaries.csv": "1377fc60350e3a760821e6bf3605af7d744c6439352ffe789801d42acf908519",
+    "manifest.json": "0ba8b7b2fb7212b5709a7aafc710739337fdfcb2a6686f114ee0302dd1e60af5",
+    "miscoverage.csv": "746e383e683f8654e8f53a126b7bd5e7bbafbb02752f3575ecd6221803af31fd",
+    "trials.csv.gz": "5ecedd82ef5e1d35622ee70ba7f4ea6d6e2f03586c1b68f9b21094f68cce7167",
+    "unresolved.csv": "281d2b905910267eb982fb2d975c7645ef430a9090cf124decbffbd1a2025ed8"
+  },
+  "pair_endpoint_row_containment": {
+    "contains": 151032
+  },
+  "scope": "Saved-record accounting and arithmetic only; no latent-stream rerun, schedule approval or live validation.",
+  "selected_recorded_rates": [
+    {
+      "N": "8000",
+      "cell": "C1",
+      "construction": "ADAPTER",
+      "flagged": "0",
+      "gate": "hierarchy",
+      "rate": "0",
+      "x": "0"
+    },
+    {
+      "N": "8000",
+      "cell": "C1",
+      "construction": "ADAPTER",
+      "flagged": "0",
+      "gate": "success",
+      "rate": "0",
+      "x": "0"
+    },
+    {
+      "N": "8000",
+      "cell": "C1",
+      "construction": "CPREFIX",
+      "flagged": "0",
+      "gate": "hierarchy",
+      "rate": "0.00025",
+      "x": "2"
+    },
+    {
+      "N": "8000",
+      "cell": "C1",
+      "construction": "CPREFIX",
+      "flagged": "0",
+      "gate": "success",
+      "rate": "0",
+      "x": "0"
+    },
+    {
+      "N": "8000",
+      "cell": "C1",
+      "construction": "NAIVE",
+      "flagged": "0",
+      "gate": "hierarchy",
+      "rate": "0.00025",
+      "x": "2"
+    },
+    {
+      "N": "8000",
+      "cell": "C1",
+      "construction": "NAIVE",
+      "flagged": "0",
+      "gate": "success",
+      "rate": "0",
+      "x": "0"
+    },
+    {
+      "N": "8000",
+      "cell": "C2",
+      "construction": "ADAPTER",
+      "flagged": "0",
+      "gate": "hierarchy",
+      "rate": "0.000125",
+      "x": "1"
+    },
+    {
+      "N": "8000",
+      "cell": "C2",
+      "construction": "ADAPTER",
+      "flagged": "0",
+      "gate": "success",
+      "rate": "0",
+      "x": "0"
+    },
+    {
+      "N": "8000",
+      "cell": "C2",
+      "construction": "CPREFIX",
+      "flagged": "0",
+      "gate": "hierarchy",
+      "rate": "0.000125",
+      "x": "1"
+    },
+    {
+      "N": "8000",
+      "cell": "C2",
+      "construction": "CPREFIX",
+      "flagged": "0",
+      "gate": "success",
+      "rate": "0",
+      "x": "0"
+    },
+    {
+      "N": "8000",
+      "cell": "C2",
+      "construction": "NAIVE",
+      "flagged": "1",
+      "gate": "hierarchy",
+      "rate": "0.98875",
+      "x": "7910"
+    },
+    {
+      "N": "8000",
+      "cell": "C2",
+      "construction": "NAIVE",
+      "flagged": "0",
+      "gate": "success",
+      "rate": "0.00125",
+      "x": "10"
+    },
+    {
+      "N": "20000",
+      "cell": "C3",
+      "construction": "ADAPTER",
+      "flagged": "0",
+      "gate": "hierarchy",
+      "rate": "0",
+      "x": "0"
+    },
+    {
+      "N": "20000",
+      "cell": "C3",
+      "construction": "ADAPTER",
+      "flagged": "0",
+      "gate": "success",
+      "rate": "0",
+      "x": "0"
+    },
+    {
+      "N": "20000",
+      "cell": "C3",
+      "construction": "CPREFIX",
+      "flagged": "0",
+      "gate": "hierarchy",
+      "rate": "0.00055",
+      "x": "11"
+    },
+    {
+      "N": "20000",
+      "cell": "C3",
+      "construction": "CPREFIX",
+      "flagged": "0",
+      "gate": "success",
+      "rate": "0",
+      "x": "0"
+    },
+    {
+      "N": "20000",
+      "cell": "C3",
+      "construction": "NAIVE",
+      "flagged": "0",
+      "gate": "hierarchy",
+      "rate": "0.00115",
+      "x": "23"
+    },
+    {
+      "N": "20000",
+      "cell": "C3",
+      "construction": "NAIVE",
+      "flagged": "0",
+      "gate": "success",
+      "rate": "0",
+      "x": "0"
+    },
+    {
+      "N": "20000",
+      "cell": "C4",
+      "construction": "ADAPTER",
+      "flagged": "0",
+      "gate": "hierarchy",
+      "rate": "0.00035",
+      "x": "7"
+    },
+    {
+      "N": "20000",
+      "cell": "C4",
+      "construction": "ADAPTER",
+      "flagged": "0",
+      "gate": "success",
+      "rate": "0",
+      "x": "0"
+    },
+    {
+      "N": "20000",
+      "cell": "C4",
+      "construction": "CPREFIX",
+      "flagged": "0",
+      "gate": "hierarchy",
+      "rate": "0.0007",
+      "x": "14"
+    },
+    {
+      "N": "20000",
+      "cell": "C4",
+      "construction": "CPREFIX",
+      "flagged": "0",
+      "gate": "success",
+      "rate": "0",
+      "x": "0"
+    },
+    {
+      "N": "20000",
+      "cell": "C4",
+      "construction": "NAIVE",
+      "flagged": "1",
+      "gate": "hierarchy",
+      "rate": "0.9999",
+      "x": "19998"
+    },
+    {
+      "N": "20000",
+      "cell": "C4",
+      "construction": "NAIVE",
+      "flagged": "0",
+      "gate": "success",
+      "rate": "0.0063",
+      "x": "126"
+    },
+    {
+      "N": "20000",
+      "cell": "C5",
+      "construction": "ADAPTER",
+      "flagged": "0",
+      "gate": "hierarchy",
+      "rate": "0",
+      "x": "0"
+    },
+    {
+      "N": "20000",
+      "cell": "C5",
+      "construction": "ADAPTER",
+      "flagged": "0",
+      "gate": "success",
+      "rate": "0",
+      "x": "0"
+    },
+    {
+      "N": "20000",
+      "cell": "C5",
+      "construction": "CPREFIX",
+      "flagged": "0",
+      "gate": "hierarchy",
+      "rate": "5e-05",
+      "x": "1"
+    },
+    {
+      "N": "20000",
+      "cell": "C5",
+      "construction": "CPREFIX",
+      "flagged": "0",
+      "gate": "success",
+      "rate": "0",
+      "x": "0"
+    },
+    {
+      "N": "20000",
+      "cell": "C5",
+      "construction": "NAIVE",
+      "flagged": "0",
+      "gate": "hierarchy",
+      "rate": "0",
+      "x": "0"
+    },
+    {
+      "N": "20000",
+      "cell": "C5",
+      "construction": "NAIVE",
+      "flagged": "0",
+      "gate": "success",
+      "rate": "0",
+      "x": "0"
+    },
+    {
+      "N": "20000",
+      "cell": "C6",
+      "construction": "ADAPTER",
+      "flagged": "0",
+      "gate": "hierarchy",
+      "rate": "0",
+      "x": "0"
+    },
+    {
+      "N": "20000",
+      "cell": "C6",
+      "construction": "ADAPTER",
+      "flagged": "0",
+      "gate": "success",
+      "rate": "0",
+      "x": "0"
+    },
+    {
+      "N": "20000",
+      "cell": "C6",
+      "construction": "CPREFIX",
+      "flagged": "0",
+      "gate": "hierarchy",
+      "rate": "0",
+      "x": "0"
+    },
+    {
+      "N": "20000",
+      "cell": "C6",
+      "construction": "CPREFIX",
+      "flagged": "0",
+      "gate": "success",
+      "rate": "0",
+      "x": "0"
+    },
+    {
+      "N": "20000",
+      "cell": "C6",
+      "construction": "NAIVE",
+      "flagged": "1",
+      "gate": "hierarchy",
+      "rate": "0.8136",
+      "x": "16272"
+    },
+    {
+      "N": "20000",
+      "cell": "C6",
+      "construction": "NAIVE",
+      "flagged": "0",
+      "gate": "success",
+      "rate": "0",
+      "x": "0"
+    },
+    {
+      "N": "8000",
+      "cell": "C7",
+      "construction": "ADAPTER",
+      "flagged": "0",
+      "gate": "hierarchy",
+      "rate": "0",
+      "x": "0"
+    },
+    {
+      "N": "8000",
+      "cell": "C7",
+      "construction": "ADAPTER",
+      "flagged": "0",
+      "gate": "success",
+      "rate": "0",
+      "x": "0"
+    },
+    {
+      "N": "8000",
+      "cell": "C7",
+      "construction": "CPREFIX",
+      "flagged": "0",
+      "gate": "hierarchy",
+      "rate": "0.000125",
+      "x": "1"
+    },
+    {
+      "N": "8000",
+      "cell": "C7",
+      "construction": "CPREFIX",
+      "flagged": "0",
+      "gate": "success",
+      "rate": "0",
+      "x": "0"
+    },
+    {
+      "N": "8000",
+      "cell": "C7",
+      "construction": "NAIVE",
+      "flagged": "0",
+      "gate": "hierarchy",
+      "rate": "0.00025",
+      "x": "2"
+    },
+    {
+      "N": "8000",
+      "cell": "C7",
+      "construction": "NAIVE",
+      "flagged": "0",
+      "gate": "success",
+      "rate": "0",
+      "x": "0"
+    },
+    {
+      "N": "8000",
+      "cell": "C8",
+      "construction": "ADAPTER",
+      "flagged": "0",
+      "gate": "hierarchy",
+      "rate": "0",
+      "x": "0"
+    },
+    {
+      "N": "8000",
+      "cell": "C8",
+      "construction": "ADAPTER",
+      "flagged": "0",
+      "gate": "success",
+      "rate": "0",
+      "x": "0"
+    },
+    {
+      "N": "8000",
+      "cell": "C8",
+      "construction": "CPREFIX",
+      "flagged": "0",
+      "gate": "hierarchy",
+      "rate": "0",
+      "x": "0"
+    },
+    {
+      "N": "8000",
+      "cell": "C8",
+      "construction": "CPREFIX",
+      "flagged": "0",
+      "gate": "success",
+      "rate": "0",
+      "x": "0"
+    },
+    {
+      "N": "8000",
+      "cell": "C8",
+      "construction": "NAIVE",
+      "flagged": "1",
+      "gate": "hierarchy",
+      "rate": "0.69375",
+      "x": "5550"
+    },
+    {
+      "N": "8000",
+      "cell": "C8",
+      "construction": "NAIVE",
+      "flagged": "0",
+      "gate": "success",
+      "rate": "0",
+      "x": "0"
+    }
+  ],
+  "source_commit": "57482e317c42e971e33871e7d879e6ca61c8eac0",
+  "source_hashes_verified": {
+    "experiments/live_ab_validation/PROTOCOL.md": "bcef5e825d31d87463fcda597ae4f2223e02d62943ab4342c94886b2c829fad6",
+    "experiments/live_ab_validation/cells.json": "17f544b34ab1b83be773c4e8517a8a281a90ad5278932ba1b64d01db0babb0f7",
+    "experiments/live_ab_validation/tests_validation.py": "b5349609cd411164d857d9e22e91d380c0648d344cb847a485ebda3bec451c43",
+    "experiments/live_ab_validation/vband.py": "55a9894ff5694099c05cedbdf695ecdad3ac4bd5025328cd445e0b1d3df8cd9c",
+    "experiments/live_ab_validation/vcompare.py": "299ff652725a5549ae55e3de42b11e67335fa4a103bb4ce6d22d46946c5fe7e3",
+    "experiments/live_ab_validation/vfixtures.py": "a5b98a6622e5c357634a63fc03e7cd1b03895ae5f89595f7672805618791b10d",
+    "experiments/live_ab_validation/vgen.py": "2d0e2756b5e28b3af256b657953532ecb1849a404a1761952fae8a287e2745cd",
+    "experiments/live_ab_validation/vrun.py": "8b735cfe994b2dddbc240ba5568ca680ccb37cc171ff024d0002230db65d862b",
+    "reviews/arxiv_live_design_guidance.md": "a71965986165d56915a557a1a43998d9eb76a4e800dba670281c93720037ad1b",
+    "src/winstats.py": "56955ce09a8ac7afb15f2bd251048537eabcc04ea75e7579bdb825594f41fc69"
+  },
+  "underlying_program_coordinates": 28000,
+  "underlying_trial_coordinates": 112000,
+  "unique_trial_construction_rows": 336000,
+  "verified_aggregate_rows": {
+    "decisions.csv": 288,
+    "miscoverage.csv": 192
+  }
+}
