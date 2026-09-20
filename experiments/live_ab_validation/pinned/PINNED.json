@@ -1,0 +1,10 @@
+{
+  "purpose": "read-only copy of the #11 monitor, pinned by hash, loaded ONLY at the comparison step of the #12 protocol; never imported by vband.py or vfixtures.py",
+  "source_branch": "session60/live-ab",
+  "source_commit": "577687799e8588077c036b4d94f1afc839d78e4f",
+  "files": {
+    "lab_enclosure.py": "47c523128b0abf91165670772940ee096827e12d533556ef1fd26c60dc578d0a",
+    "lab_monitor.py": "8c20e07205748e59dad4224420e7804103d1d73e41733ccc2a91df5f8aebeced",
+    "lab_reference_rule.py": "6219cc64f439e7bf64b4da20e4076429ccf7ea9f3d5655090f27b4a20ae360b1"
+  }
+}

@@ -68,6 +68,11 @@ CHECK_SEVERITY: dict[str, str] = {
     'usage.reconciliation': 'DEFECT', 'exposure.ledger': 'FAIL',
     'anchor.prefix': 'FAIL', 'anchor.receipts': 'DEFECT', 'integrity.table': 'INFO',
     't4.payload_identity': 'FAIL', 'program.order': 'FAIL',
+    # protocol 5.7, the host quiescence gate.  `host.record` is a FAIL because a scan
+    # record that contradicts itself is a chain that lies about the host; `host.quiescence`
+    # is a DEFECT because a foreign load observed DURING a trial is a fact the analysis
+    # must carry, and what to do about it is the operator's decision, not the verifier's.
+    'host.record': 'FAIL', 'host.quiescence': 'DEFECT',
 }
 
 # Which verifier FAILs mean what between trials (protocol 6.4 rows 22a/22b, audit M5).
@@ -81,7 +86,7 @@ CONDITION_LIST_A: frozenset[str] = frozenset(
 # table (ARCHITECTURE_FINAL.md 3.3).
 _PLUMBING_PREFIXES: tuple[str, ...] = ('chain.', 'schema.', 'order.', 'coin.', 'episode.',
                                        'calls.', 'switch.', 'usage.', 'anchor.',
-                                       'program.', 'worktree.', 't4.')
+                                       'program.', 'worktree.', 't4.', 'host.')
 _PLUMBING_EXTRA: frozenset[str] = frozenset({'monitor.replay', 'monitor.cadence',
                                              'monitor.shadow',
                                              'reference_rule.agreement'})
@@ -189,6 +194,71 @@ class _Collector:
 # ---------------------------------------------------------------------------
 def _by_type(events: Sequence[Mapping], etype: str) -> list[Mapping]:
     return [e for e in events if e['type'] == etype]
+
+
+# The two closed vocabularies of the host-scan records, read off the schema itself so the
+# verifier cannot drift away from what the log is allowed to contain.
+HOST_DETECTORS: frozenset[str] = frozenset(
+    EVENT_SCHEMA['foreign_load_detected']['findings'].item.fields['detector'].enum)
+HOST_DEGRADED_CAUSES: frozenset[str] = frozenset(
+    EVENT_SCHEMA['foreign_load_detected']['degraded'].item.fields['cause'].enum)
+
+
+def _check_host_scans(col: _Collector, events: Sequence[Mapping], etype: str, *,
+                      refusal: bool = False) -> None:
+    """protocol 5.7: the host-quiescence records of one chain.
+
+    Two separate questions.  `host.record` asks whether the record is internally honest --
+    `clean` must be exactly "no findings and no degraded cause", because `clean` is the
+    field a reader trusts and a chain that sets it while carrying offenders is worse than
+    one that carries no scan at all.  `host.quiescence` then reports what was actually
+    seen: a named foreign consumer, or a scan that could not establish quiescence.
+
+    With `refusal=True` the records are trial-start refusals in the program chain.  Those
+    carry offenders by construction -- that is why they exist -- so the contention rows are
+    emitted at INFO: the gate refusing a trial is the gate working, not a defect in a
+    trial's chain.  The consistency half still applies in full."""
+    for ev in _by_type(events, etype):
+        body = ev['body']
+        findings = list(body.get('findings') or [])
+        degraded = list(body.get('degraded') or [])
+        if bool(body.get('clean')) != (not findings and not degraded):
+            col.add('host.record',
+                    {'type': etype, 'clean': bool(body.get('clean')),
+                     'n_findings': len(findings), 'n_degraded': len(degraded),
+                     'error': 'clean disagrees with the findings it carries'},
+                    seq=ev['seq'])
+        if int(body.get('scanned', 0)) < 0 or int(body.get('allowlisted', 0)) < 0:
+            col.add('host.record', {'type': etype, 'error': 'negative count'},
+                    seq=ev['seq'])
+        for finding in findings:
+            if finding.get('detector') not in HOST_DETECTORS:
+                col.add('host.record',
+                        {'type': etype, 'error': 'detector outside the closed vocabulary',
+                         'detector': str(finding.get('detector'))}, seq=ev['seq'])
+        for row in degraded:
+            if row.get('cause') not in HOST_DEGRADED_CAUSES:
+                col.add('host.record',
+                        {'type': etype, 'error': 'degraded cause outside the closed '
+                                                 'vocabulary',
+                         'cause': str(row.get('cause'))}, seq=ev['seq'])
+        severity = 'INFO' if refusal else None
+        if findings:
+            col.add('host.quiescence',
+                    {'type': etype, 'point': str(body.get('point')),
+                     'n_findings': len(findings),
+                     'detectors': ','.join(sorted({str(f.get('detector'))
+                                                   for f in findings})),
+                     'max_elapsed_s': max(int(f.get('elapsed_s', 0)) for f in findings)},
+                    seq=ev['seq'], severity=severity)
+        if degraded:
+            col.add('host.quiescence',
+                    {'type': etype, 'point': str(body.get('point')),
+                     'error': 'quiescence could not be established',
+                     'causes': ','.join(sorted(str(r.get('cause')) for r in degraded))},
+                    seq=ev['seq'], severity=severity)
+    col.ok('host.record')
+    col.ok('host.quiescence')
 
 
 def _load_json(path: Path) -> object | None:
@@ -843,6 +913,9 @@ def _verify_trial(trial: str, freeze_bundle_sha256: str, *, mode: str = 'full',
                                                 'a': digests[0], 'b': digests[1]})
     col.ok('t4.payload_identity')
 
+    # ---- host.record / host.quiescence (protocol 5.7) ------------------------
+    _check_host_scans(col, events, 'foreign_load_detected')
+
     # ---- integrity.table (INFO) ---------------------------------------------
     terminal_by_arm = {arm: 0 for arm in ARMS}
     for ev in reveals:
@@ -963,6 +1036,7 @@ def verify_program(freeze_bundle_sha256: str, *,
                         {'trial': trial, 'error': 'refreeze not authorized in the program '
                                                   'chain', 'refreeze': h})
     col.ok('program.order')
+    _check_host_scans(col, events, 'host_quiescence_refused', refusal=True)
     return _finish(col, '_program', 'full')
 
 

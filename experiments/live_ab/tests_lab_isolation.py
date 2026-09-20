@@ -49,9 +49,13 @@ MATRIX: dict[str, set[str]] = {
     'lab_mock_server': set(),
     'lab_worker': {'requests', 'lab_common', 'lab_client', 'lab_data', 'agent',
                    'sandbox', 'verify', 'data', 'common'},
+    # lab_hostcheck is the host quiescence gate of protocol 5.7.  It sits beside
+    # lab_server in the matrix: standard library plus lab_common, imported by the
+    # orchestrator and by nothing below it.
+    'lab_hostcheck': {'lab_common'},
     'lab_orchestrator': {'requests', 'lab_common', 'lab_eventlog', 'lab_data',
                          'lab_design', 'lab_coin', 'lab_monitor', 'lab_enclosure',
-                         'lab_reference_rule', 'lab_server'},
+                         'lab_reference_rule', 'lab_server', 'lab_hostcheck'},
     'lab_anchor': {'requests', 'lab_common'},
     'build_live_ab_results': {'numpy', 'pandas', 'winstats', 'lab_common',
                               'lab_eventlog', 'lab_monitor', 'lab_enclosure',
@@ -412,10 +416,37 @@ SIGNATURES: dict[str, dict[str, tuple]] = {
         'run_job': fn(('job', None, PO), ('sandbox_lock_path', None, KW)),
         'main': fn(('argv', 'None', PO)),
     },
+    # The host quiescence gate of protocol 5.7.  Not a section-3 module: this table is the
+    # gate's own public contract, pinned here so that the orchestrator's two call sites and
+    # the event-schema vocabularies cannot drift away from it silently.
+    'lab_hostcheck': {
+        'RUNNER_TOKENS': CONST, 'DETECTOR_LABELS': CONST, 'DEGRADED_CAUSES': CONST,
+        'PROBE_RSS_FLOOR_BYTES': CONST, 'MAX_LSOF_PIDS': CONST,
+        'METAL_COMPUTE_RE': CONST, 'METAL_DISPLAY_RE': CONST, 'METAL_NAME_RE': CONST,
+        'HostNotQuiescent': CONST,
+        'ProcRow': fields('pid', 'ppid', 'elapsed_s', 'rss_bytes', 'command'),
+        'MetalProbe': fields('holders', 'compute', 'covered', 'failure'),
+        'ScanResult': fields('findings', 'degraded', 'scanned', 'allowlisted'),
+        'metal_context_pids': fn(('pids', None, PO), ('timeout_s', '30', KW)),
+        'enumerate_foreign_consumers': fn(
+            ('own_pids', 'None', PO), ('table_text', 'None', KW),
+            ('metal_pids', 'None', KW), ('now', 'None', KW), ('accounts', 'None', KW),
+            ('include_descendants', 'True', KW), ('rss_floor_bytes', '134217728', KW),
+            ('max_probe_pids', '96', KW)),
+        'preflight_host_quiescent': fn(('own_pids', 'None', PO), ('**kwargs', None, PO)),
+        'soft_host_check': fn(('own_pids', 'None', PO), ('**kwargs', None, PO)),
+        'degraded_causes': fn(('degraded', None, PO)),
+        'chain_finding': fn(('finding', None, PO)),
+        'chain_body': fn(('scan', None, PO)),
+    },
     'lab_orchestrator': {
         'RunContext': fields('trial', 'inv', 'cfg', 'bundle_sha', 'paths', 'order',
                              'tasks', 'mc', 'servers', 'golden'),
         'preflight': fn(('ctx', None, PO)),
+        'host_scan_is_required': fn(('cfg', None, PO)),
+        'own_harness_pids': fn(('world', 'None', PO)),
+        'host_quiescence_gate': fn(('ctx', None, PO)),
+        'write_host_quiescence_refused': fn(('ctx', None, PO), ('exc', None, PO)),
         'run_trial': fn(('ctx', None, PO), ('resume', 'True', KW)),
         'step': fn(('state', None, PO), ('ctx', None, PO), ('world', None, PO)),
         'ResumePlan': fields('phase', 'next_pair', 'reenroll_pair', 'bound_assignments',

@@ -265,3 +265,34 @@ wherever they differ. All of the following are adopted literally; none is negoti
         5.7.1 must say so in those words.
 29. CONSEQUENCE TODAY: the host is still NOT quiescent. The two foreign llama-servers have now been running
     10 h 47 m. The live trial stays blocked on them, exactly as ruling 26 says, and I am still not killing them.
+
+# ===== REVISION 8, 2026-09-20: ruling 28 is WITHDRAWN and replaced. Measure activity, not possession. =====
+30. Two incompatible rules were produced for the OS-owned case, and I am replacing BOTH.
+    - MY ruling 28 (revision 7) exempted a frozen allowlist of OS daemons from refusal regardless of what they
+      were doing. WITHDRAWN. An allowlist that exempts on identity alone is exactly the kind of thing that gets
+      quietly extended to unblock a trial, and it would have let a BUSY daemon through.
+    - The implementer's option (b) (ARCHITECTURE_FINAL 3.17.1) keeps a hard refusal with no override and tells the
+      operator to wait for three clean scans. ALSO NOT ADOPTED AS WRITTEN, because it refuses on mere possession
+      of a Metal context.
+    MEASUREMENT THAT DECIDES IT, taken 2026-09-20 ~04:20 UTC on `mediaanalysisd` (pid 39197, resident 9 h 12 m):
+      %CPU 0.0, cumulative CPU 18:24.25, UNCHANGED across three samples 4 s apart.
+    The daemon HOLDS a compute-class Metal context and CONSUMES NOTHING. A rule that refuses on possession would
+    block this host indefinitely on a process doing no work; a rule that exempts on identity would admit the same
+    process while it was doing a lot of work. Both are wrong, in opposite directions.
+31. THE RULE, frozen before any trial:
+    (a) A NON-BASELINE accelerator consumer (anything not OS-owned: another experiment, another project, a user's
+        model server) REFUSES ON PRESENCE. No activity test, no override. A loaded model server exists to be used.
+    (b) An OS-OWNED process, identified by absolute `/System/...` path prefix and never by name alone, refuses
+        only if it is ACTIVE by a test fixed in advance: cumulative CPU time sampled at t and t+10 s, active iff
+        the delta exceeds 0.5 CPU-seconds. Idle-but-resident is recorded and does not refuse.
+    (c) The activity test runs at trial start AND at every quiescent scrape. A baseline daemon that WAKES during
+        a trial does not abort it (aborting on an OS daemon would make trials unfinishable) but is recorded, and
+        the affected window is named beside the latency tier as a disclosure. No latency number is ever adjusted.
+    (d) Every OS-owned process found is written to the chain at every scan whether active or not, with its
+        elapsed time, resident size and CPU delta, so "clean" is never a bare assertion.
+    (e) The 5.7.1 wording stands as narrowed: the gate proves that no non-baseline accelerator consumer above the
+        resident floor was detectable and that the baseline present is recorded. It does not prove an idle host.
+    (f) The thresholds in (b) are frozen in the freeze bundle. They are NOT tuned after a refusal. If this rule
+        ever blocks a trial, the trial waits; the rule does not move.
+32. STATUS UNCHANGED FOR #11: the two foreign llama-servers are still present, so the gate still refuses and the
+    trial is still blocked. Ruling 31(a) is why, and it is the correct reason.

@@ -155,6 +155,7 @@ Modules are imported by bare name, exactly as `experiments/local_stream/` does. 
 | `lab_enclosure.py` | G3 | enclosure arithmetic, pair scores, certificates |
 | `lab_client.py` | G4 | spooling llama.cpp client with the pilot's `chat()` interface |
 | `lab_server.py` | G4 | llama-server start / identity / health / `/metrics` |
+| `lab_hostcheck.py` | G5 | **the host quiescence gate of protocol 5.7**: enumerates foreign accelerator consumers, refuses trial start on a contended host, and reports in-trial foreign load. Observes only — it never signals, kills or throttles anything (3.17) |
 | `lab_mock_server.py` | G4 | scripted stand-in for llama-server (no model) |
 | `lab_worker.py` | G4 | one-episode worker process, spool writer, execution lock |
 | `lab_orchestrator.py` | G5 | state machine, single chain writer, scheduler, switch, resume |
@@ -167,6 +168,7 @@ Modules are imported by bare name, exactly as `experiments/local_stream/` does. 
 | `tests_lab_design.py` | G2 | tests for `lab_data`, `lab_design`, `lab_coin` |
 | `tests_lab_stats.py` | G3 | tests for `lab_monitor`, `lab_enclosure` |
 | `tests_lab_serving.py` | G4 | tests for `lab_client`, `lab_server`, `lab_mock_server`, `lab_worker` |
+| `tests_lab_hostcheck.py` | G5 | tests for `lab_hostcheck` and for the orchestrator's two call sites into it |
 | `tests_lab_e2e.py` | G5 | orchestrator, resume, switch, anchor, builder, dry runs |
 | `testdata/` | mixed | golden fixtures, owner named per file in section 9.3 |
 | `protocol.md`, `run_book.md` | — | frozen text, not code; hashed into the bundle |
@@ -530,6 +532,8 @@ severity column is frozen here so the plumbing gate of PG-13 is machine-checkabl
 | `integrity.table` | INFO | the six tables of **protocol 12.6** (including the `posting_latency_p95_s` term of the sandwich tolerance, the covered-gap rule, the `job_accepted` column, the randomized-phase / follow-up split, and the environment-event column for `worktree_drift`) |
 | `t4.payload_identity` | FAIL | in T4, the two job payloads of every pair are byte-identical after removing `arm`, `arrival`, `position`, `seed_*` and path fields (PG-14) |
 | `program.order` | FAIL | the program chain opens and closes the four trials in the frozen order and contains every re-freeze authorization any `invocation_started` relied on |
+| `host.record` | FAIL | every `host_quiescence_refused` (P6b) and `foreign_load_detected` (T6b) is internally honest: `clean` is true **exactly** when the record carries no finding and no degraded cause, the counts are non-negative, and every `detector` and every degraded `cause` is inside the closed vocabularies of `lab_hostcheck.DETECTOR_LABELS` / `DEGRADED_CAUSES`. A chain that claims a clean host while carrying offenders is worse than one carrying no scan at all, so this is a FAIL and not an INFO |
+| `host.quiescence` | DEFECT | what the scan actually saw: the detectors, the count and the longest elapsed time of any foreign consumer, and separately any scan that could not establish quiescence. A foreign load observed **during** a trial is a fact the analysis must carry; what to do about it is the operator's decision, not the verifier's. **In the program chain the same rows are emitted at `INFO`**, because a trial-start refusal carries offenders by construction — that is why the event exists — and the gate refusing a trial is the gate working, not a defect in a trial's chain. The consistency half (`host.record`) still applies in full |
 
 `_band_independent` is a **third, deliberately naive implementation** of the band written inside
 `lab_verify_log.py`, calling `winstats.normal_mixture_radius` directly in a Python loop, never importing
@@ -547,7 +551,7 @@ make after outcomes exist.
 
 Plumbing mode (`--mode plumbing`, run between trials) emits **only** the rows above whose check id starts
 with `chain.`, `schema.`, `order.`, `coin.`, `episode.`, `calls.`, `switch.`, `usage.`, `anchor.`,
-`program.`, `worktree.`, `t4.` and the `monitor.replay`, `monitor.cadence`, `monitor.shadow` and
+`program.`, `worktree.`, `t4.`, `host.` and the `monitor.replay`, `monitor.cadence`, `monitor.shadow` and
 `reference_rule.agreement` verdict flags — never a score, never a count by arm, never a
 table. `verify_trial` asserts this by construction: in plumbing mode the report object is built from a
 whitelist of check ids, and a test feeds it a chain with an extreme outcome imbalance and asserts the two
@@ -1440,24 +1444,32 @@ program chain** (`erratum`, program-chain row P10), with both outputs deposited 
 Rows are modules, columns are permitted imports. `.` = forbidden, `x` = permitted, `(s)` = permitted only
 through `lab_common.add_import_paths()`.
 
-| module \ may import | stdlib | numpy | pandas | requests | winstats | LS pilot | common | eventlog | data | design | coin | monitor | enclosure | ref_rule | client | server | worker | orch | anchor |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| lab_common | x | . | . | . | . | . | — | . | . | . | . | . | . | . | . | . | . | . | . |
-| lab_eventlog | x | . | . | . | . | . | x | — | . | . | . | . | . | . | . | . | . | . | . |
-| lab_verify_log | x | x | . | . | x | . | x | x | . | x | . | x | x | x | . | . | . | . | . |
-| lab_reference_rule | x | x | . | . | x | . | . | . | . | . | . | . | . | — | . | . | . | . | . |
-| lab_data | x | . | . | x | . | (s) | x | . | — | . | . | . | . | . | . | . | . | . | . |
-| lab_design | x | x | . | . | . | . | x | . | . | — | . | . | . | . | . | . | . | . | . |
-| lab_coin | x | . | . | . | . | . | x | x | . | . | — | . | . | . | . | . | . | . | . |
-| lab_monitor | x | x | . | . | x | . | x | . | . | . | . | — | x | . | . | . | . | . | . |
-| lab_enclosure | x | x | . | . | x | . | x | . | . | . | . | . | — | . | . | . | . | . | . |
-| lab_client | x | . | . | x | . | . | x | . | . | . | . | . | . | . | — | . | . | . | . |
-| lab_server | x | . | . | x | . | . | x | . | . | . | . | . | . | . | . | — | . | . | . |
-| lab_mock_server | x | . | . | . | . | . | . | . | . | . | . | . | . | . | . | . | . | . | . |
-| lab_worker | x | . | . | x | . | (s) | x | . | x | . | . | . | . | . | x | . | — | . | . |
-| lab_orchestrator | x | . | . | x | . | . | x | x | x | x | x | x | x | x | . | x | . | — | . |
-| lab_anchor | x | . | . | x | . | . | x | . | . | . | . | . | . | . | . | . | . | . | — |
-| build_live_ab_results | x | x | x | . | x | . | x | x | . | . | . | x | x | x | . | . | . | . | . |
+| module \ may import | stdlib | numpy | pandas | requests | winstats | LS pilot | common | eventlog | data | design | coin | monitor | enclosure | ref_rule | client | server | hostcheck | worker | orch | anchor |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| lab_common | x | . | . | . | . | . | — | . | . | . | . | . | . | . | . | . | . | . | . | . |
+| lab_eventlog | x | . | . | . | . | . | x | — | . | . | . | . | . | . | . | . | . | . | . | . |
+| lab_verify_log | x | x | . | . | x | . | x | x | . | x | . | x | x | x | . | . | . | . | . | . |
+| lab_reference_rule | x | x | . | . | x | . | . | . | . | . | . | . | . | — | . | . | . | . | . | . |
+| lab_data | x | . | . | x | . | (s) | x | . | — | . | . | . | . | . | . | . | . | . | . | . |
+| lab_design | x | x | . | . | . | . | x | . | . | — | . | . | . | . | . | . | . | . | . | . |
+| lab_coin | x | . | . | . | . | . | x | x | . | . | — | . | . | . | . | . | . | . | . | . |
+| lab_monitor | x | x | . | . | x | . | x | . | . | . | . | — | x | . | . | . | . | . | . | . |
+| lab_enclosure | x | x | . | . | x | . | x | . | . | . | . | . | — | . | . | . | . | . | . | . |
+| lab_client | x | . | . | x | . | . | x | . | . | . | . | . | . | . | — | . | . | . | . | . |
+| lab_server | x | . | . | x | . | . | x | . | . | . | . | . | . | . | . | — | . | . | . | . |
+| lab_hostcheck | x | . | . | . | . | . | x | . | . | . | . | . | . | . | . | . | — | . | . | . |
+| lab_mock_server | x | . | . | . | . | . | . | . | . | . | . | . | . | . | . | . | . | . | . | . |
+| lab_worker | x | . | . | x | . | (s) | x | . | x | . | . | . | . | . | x | . | . | — | . | . |
+| lab_orchestrator | x | . | . | x | . | . | x | x | x | x | x | x | x | x | . | x | x | . | — | . |
+| lab_anchor | x | . | . | x | . | . | x | . | . | . | . | . | . | . | . | . | . | . | . | — |
+| build_live_ab_results | x | x | x | . | x | . | x | x | . | . | . | x | x | x | . | . | . | . | . | . |
+
+`lab_hostcheck`'s row is deliberately as narrow as `lab_server`'s: standard library plus `lab_common`,
+nothing else. It is imported by the orchestrator and by nothing below it, so the gate cannot see a monitor
+state, a coin, a decision or a task, and no defect in it can reach decision-defining code. It is not a
+section-3 module, but its public contract is pinned by a signature table in `tests_lab_isolation.py` all
+the same, so the orchestrator's two call sites and the event schema's two vocabularies cannot drift away
+from it silently.
 
 The isolation statements the protocol requires are consequences of this table and are asserted by name
 in `tests_lab_isolation.py`:
@@ -1475,6 +1487,106 @@ no `betting`; `lab_orchestrator` does not import `lab_worker`; no module outside
 `os.urandom` except `lab_client` (seeds) — and the test whitelists exactly those two call sites; no module
 contains the strings `protocol_draft_v2` or `protocol_v3` (audit M16: the superseded drafts must not be
 cited by any file), and no module or test name contains `unreachable` (audit B4).
+
+### 3.17 `lab_hostcheck.py` — G5, the host quiescence gate (protocol 5.7)
+
+Protocol 5.7 requires "no other GPU job" for the duration of a trial. The exclusive lock file only ever
+excluded a second copy of **this** harness; a model server belonging to another project on the same
+machine was invisible to it. That gap is not cosmetic: the frozen hierarchy is `success > cost` with
+`cost = latency_s`, so whenever the two arms tie on success the whole composite effect rides on the latency
+tier, and a foreign accelerator load corrupts the primary endpoint silently.
+
+**Two halves, deliberately asymmetric.**
+
+* **A hard gate at trial start.** `host_quiescence_gate` runs inside `run_trial` **after** `preflight` and
+  **before** `lock.acquire()`. On a finding or a degraded marker it writes `preflight_refused` with
+  `checks_failed = ['host_not_quiescent']` **and** `host_quiescence_refused` (P6b) to the **program**
+  chain, and returns `aborted`. **The trial chain is never opened.**
+* **An observing half inside the trial.** `World.host_scan` emits `foreign_load_detected` (T6b) and never
+  raises: a mid-trial refusal would throw away the pairs already enrolled, and the decision about
+  contention belongs to the operator and to the analysis, not to a scanner.
+
+**It observes only.** The module never sends a control instruction of any kind to any process it finds —
+no termination, no suspension, no priority change. `tests_lab_hostcheck.py` asserts that against the
+module's own source at the syntax-tree **and** token level, and asserts that the only external programs it
+names anywhere are `ps` and `lsof`. There is deliberately **no configuration key that disables the gate**,
+and a test greps for one: the whole point of 5.7 is that the primary endpoint rides on the latency tier,
+and a gate an operator can switch off is a gate that will be off.
+
+#### 3.17.1 When the only offender is an OS-owned process (`PREREG_CHECK_2` N.7)
+
+The gate is a hard refusal with no override, and `mediaanalysisd` — Apple's media-analysis daemon — is a
+genuine compute-class Metal consumer that appears and disappears without the operator asking it to. It was
+absent from one scan on the serving host and present twenty minutes later, at 392 MiB and 8.5 h elapsed.
+Every property of the design is individually right and together they had no exit, so the exit is written
+down here rather than improvised at 2 a.m. on the night of the first trial.
+
+**The decision: the hard refusal stays.** A daemon that holds a compute-class Metal resource is contending
+for the accelerator whether or not Apple owns it, and the trial's primary endpoint cannot tell the
+difference. The alternative — a frozen by-detector allowlist of system daemons, admitted below some duty
+cycle — was considered and **not** taken: it would add decision-affecting behaviour and a new threshold to
+a module whose refusals are the only thing standing between a contended host and a corrupted latency tier,
+and the duty-cycle threshold would itself need justifying before any outcome exists.
+
+**The operator procedure, when a scan's only findings are OS-owned:**
+
+1. **Do not bypass, and do not signal it.** There is no override and this document does not create one.
+   The operator never terminates, suspends or renices an OS daemon to open a trial; the module may not,
+   and neither may the person.
+2. **Read the finding.** `elapsed_s` and `rss_bytes` distinguish a short indexing burst from a daemon that
+   has been holding the accelerator for hours.
+3. **Let it finish.** `mediaanalysisd` is work-driven, not continuous: it runs when there is media to
+   analyse and stops when there is not. Waiting is the remedy.
+4. **Remove the work that feeds it** before the pre-trial window: no media import, no new content in a
+   photo library, no re-index, and no capture or conferencing application running on the serving host.
+5. **Re-scan, and require three consecutive clean scans**, each at least 5 minutes apart, inside a
+   60-minute window, before opening a trial chain. One clean scan is not evidence of quiescence for an
+   intermittent consumer — it is the evidence that produced this finding's absence from the first scan.
+   This is an operator requirement introduced by this document; it is not enforced by code.
+6. **If it recurs across that window**, the run is **deferred** or moved to a host where the daemon does
+   not run. The refusals are already in the program chain as `host_quiescence_refused`; the operator adds
+   nothing but the decision, and the coordinator is told.
+
+**What this does not cover.** Item 5 is a pre-trial rule, so it says nothing about a daemon that starts
+**during** a trial. Under the current emit set that case is not merely unhandled, it is largely invisible —
+see item 2 below.
+
+#### 3.17.2 Open items against this gate, stated rather than closed
+
+None of the following is fixed by this document, and each is named so that the next reader does not
+mistake silence for absence.
+
+1. **The resident-size floor reaches only part of what it claims** (`PREREG_CHECK_2` N.8). The module's
+   lead sentence says a renamed `llama-server` is detected "at all", qualified two paragraphs later by
+   `PROBE_RSS_FLOOR_BYTES = 128 MiB`. On the serving host one of the two real `llama-server` processes was
+   resident at **68 MiB**, below the floor, and a reconstruction with both binaries renamed and the Metal
+   probe given its best case returned **one** finding rather than two. Either the floor drops or the lead
+   sentence narrows; the 68 MiB measurement is the evidence and belongs beside whichever is chosen.
+2. **The in-trial half never looks during enrollment** (`PREREG_CHECK_2` N.9). `host_scan` emits at
+   `trial_start` and `quiescent` only, and the single `quiescent` scrape site sits inside the
+   **post-decision** follow-up dispatch. Across the entire enrollment phase — the phase whose `latency_s`
+   measurements are the primary endpoint — the host is observed **once, at tick 0**. A foreign server that
+   starts ten minutes into a multi-hour enrollment is invisible until after the decision. Cost is not the
+   obstacle: a full scan measured 0.09–0.11 s on a 1,034-process host, against a `pair_boundary` cadence of
+   one per pair.
+3. **The 16/32-hex carve-out in the summary scrubber is undocumented** (`PREREG_CHECK` C.6). A 16- or
+   32-hex token passes through a command summary verbatim while a 40-hex token is redacted, which is the
+   inverse of the chain's own string discipline. One inline comment is owed.
+4. **A short account name disables the account scrubber silently** (`PREREG_CHECK` C.7). `account_names()`
+   drops names shorter than three characters, so on such a host the scrubber is a no-op **and**
+   `summary_is_identifier_safe` returns true on the leaked token. The reason for the length rule is
+   recorded nowhere.
+5. **The dry runs do not exercise the gate at all** (`PREREG_CHECK_2` N.10). `host_scan_is_required`
+   returns false for every `sim` invocation, which is right — a simulated run measures no latency — but it
+   means `D1`–`D4` contain no `foreign_load_detected` and would not catch a wiring regression. The gate's
+   only executable evidence is `tests_lab_hostcheck.py`.
+6. **The Metal census is quoted from one unrecorded measurement.** The docstring's "956 processes … 16 at
+   or above 128 MiB" no longer matches the serving host (1,034 and 26), and no artifact of the census
+   exists in the repository. Re-take and deposit it, or stop quoting counts.
+
+`protocol_FINAL.md` 5.7.1 does not yet point at this subsection, and items 1–6 are not reflected there.
+Those edits belong to whoever owns that document.
+
 ---
 
 ## 4. Event schema (JSON lines)
@@ -1548,6 +1660,7 @@ between-trial events have somewhere to live.
 | P4 | `plumbing_verdict` | D | `trial` enum; `verdict` enum[`PASS`,`FAIL`]; `checks` {check_id: enum[`PASS`,`FAIL`,`DEFECT`,`INFO`]}; `report_sha256` hex64 |
 | P5 | `refreeze_authorization` | D | `reason_code` enum (closed list); `files` [{`file` tok, `old_sha256` hex64, `new_sha256` hex64, `diff_sha256` hex64}]; `what_was_known` obj (4.5); `scope` enum[`reporting_code`] — decision-defining code can never appear here (PG-13) |
 | P6 | `preflight_refused` | D | `trial` enum; `checks_failed` [enum]; `drift` [{`item` enum, `expected` hex64, `found` hex64}] |
+| P6b | `host_quiescence_refused` | D | **protocol 5.7, the trial-start quiescence gate.** `trial` enum; `point` enum (the `metrics_scrape` scrape-point vocabulary); `clean` bool; `scanned` int; `allowlisted` int; `findings` [{`pid` int, `ppid` int, `detector` enum (`lab_hostcheck.DETECTOR_LABELS`), `start_utc` iso, `elapsed_s` int, `rss_bytes` int, `argv_sha256` hex64, `summary_sha256` hex64}]; `degraded` [{`cause` enum (`lab_hostcheck.DEGRADED_CAUSES`), `count` int}]. Written to the **program** chain, beside the `preflight_refused` that carries the reason code `host_not_quiescent`, because the refusal happens before the trial chain's seq 0 and so has nowhere else to live. A finding names its offender by a **closed-vocabulary detector label** and a **digest of its argv**; the command text and the token summary derived from it are never published, because that summary's vocabulary is closed for paths and addresses but not for bare literals. `clean` is redundant with the two lists by construction and `host.record` asserts the agreement, so a body that claims a clean host while carrying findings is a verifier FAIL rather than a reader's problem |
 | P7 | `program_paused` / `program_resumed` | D | `reason_code` enum[`plumbing_fail`,`power`,`disk`,`anchor_unavailable`,`worktree_drift`,`operator_discretion`] (**no `thermal`**: the probe was removed with the reason code, protocol 14.6, audit M15); `what_was_known` obj |
 | P8 | `anchor` / `anchor_receipt` / `anchor_failed` | D | as T22/T23/T24 below |
 | P9 | `log_recovery` | D | as T25 below |
@@ -1581,6 +1694,7 @@ Integrity labels and terminal-failure counts are `INFO` and never stop the progr
 | T4 | `server_started` | D | `server_id` enum; `pid` int; `port` int; `argv_sha256` hex64; `gguf` {`bytes` int, `sha256` hex64}; `props_sha256` hex64; `props_matches_golden` bool; `total_slots` int; `n_ctx` int; `load_seconds` float; `smoke` {`request_sha256` hex64, `receipt_matches_golden` bool, `usage` obj, `timings` obj, `ok` bool} |
 | T5 | `server_health` | | `server_id` enum; `ok` bool; `slots_busy` int; `rss_bytes` int; `clock_anomaly` bool |
 | T6 | `metrics_scrape` | D at pair boundaries | `server_id` enum; `point` enum[`trial_start`,`pair_boundary`,`before_failed_try`,`after_failed_try`,`restart`,`quiescent`,`trial_end`]; `ok` bool; `counters` {`prompt_tokens_total` int?, `tokens_predicted_total` int?, `n_decode_total` int?, `requests_processing` int?, `requests_deferred` int?} |
+| T6b | `foreign_load_detected` | D | **protocol 5.7, the in-trial observing half.** Same body as P6b without `trial`: `point` enum; `clean` bool; `scanned` int; `allowlisted` int; `findings` [obj]; `degraded` [obj]. It is written **whether or not anything was found**, so that a reader can see positively that the host was scanned and was clean rather than inferring it from the absence of an event. Emitted at the `trial_start` and `quiescent` scrape points only; **during the whole enrollment phase that is exactly one scan, at tick 0**, because `quiescent` is reached only inside the post-decision follow-up dispatch. A foreign load that starts after enrollment begins is therefore not recorded until after the decision. This is a known limitation of the emit set, not of the scan, which costs about 0.1 s on a thousand-process host; widening it to `pair_boundary` is an **open** item (3.17, item 2) and is not resolved by this document |
 | T7 | `server_down` | D | `server_id` enum; `detected_by` enum[`exit`,`health`]; `returncode` int?; `inflight` [{`arrival` int, `arm` enum}]; `last_counters` obj; `counters_lost` bool |
 | T8 | `server_restarted` | D | as T4 plus `props_equal_previous` bool (false ⇒ `trial_aborted(server_identity)`) |
 | T9 | `pair_enrolled` | D | `pair` int; `stratum` enum[`S1`,`S2`] (**no `mixed`**, audit B5); `arrivals` [int,int]; `task_uids` [uid,uid] — string form (e) of protocol 12.2: matches `^(mbpp\|mbpp_full\|humaneval)/[0-9]+$` **and** is present in `roster.json`, which the validator checks; `phase` enum[`randomizing`]; `re_enrolled` bool |

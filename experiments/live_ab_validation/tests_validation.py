@@ -1,0 +1,1346 @@
+"""Test suite for the independent #12 validation band, enclosure and fixtures.
+
+SOURCE DECLARATION -- files read while writing this module
+----------------------------------------------------------
+Read: reviews/arxiv_live_design_guidance.md, src/winstats.py, the issue-#12 task
+text, and this directory's own ``vband.py`` / ``vfixtures.py``.  NOT read,
+opened, grepped or imported: experiments/live_ab/lab_monitor.py,
+experiments/live_ab/lab_enclosure.py, experiments/live_ab/lab_reference_rule.py,
+experiments/live_ab/design/protocol_FINAL.md sections 7-8, or anything else
+under experiments/live_ab/.
+
+What is checked here, beyond replaying every deterministic fixture:
+
+  * the enclosure algebra (starts full, never widens, refuses contradictions,
+    collapses only on a certificate);
+  * SOUNDNESS AND COMPLETENESS of the feasible-cost-order predicate, by
+    exhibiting an explicit witness point for every value the predicate admits
+    and by a brute-force grid sweep for every value it denies;
+  * agreement of the partial-data enumeration with ``winstats.compare`` whenever
+    both episodes are final, over an exhaustive tolerance-boundary grid and over
+    randomised outcomes;
+  * a RANDOMISED CONTAINMENT PROPERTY over many seeds: with a hidden ground
+    truth per episode and only logically certain facts revealed, every recorded
+    enclosure must contain that pair's true score, the running-sum interval must
+    bracket the true enrollment-running mean at every look, no enclosure may
+    ever widen, and the state must be invariant to reveal order and to repeated
+    updates;
+  * the COST/LATENCY ENCLOSURE PATH of PROTOCOL 2.5 and 4.3, driven end to end
+    through the monitor on streams shaped like the frozen data-generating
+    process: elapsed cost accrues, the hierarchy enclosure narrows and collapses
+    to a point WITHOUT a certificate, containment holds at every look, and the
+    path is shown to be live rather than merely specified;
+  * the two guards added after the pre-registration audit -- the import graph
+    that enforces the independence rule, and the PROTOCOL.md/cells.json
+    agreement check -- each with MUTATION TESTS that deliberately break a copy
+    of the input and assert the guard reports it.  A guard that has never fired
+    is not known to be a guard.
+
+The randomised programs here -- ``Program`` and ``CostPathProgram`` -- are a
+correctness property test for the monitor.  They are NOT the issue-#12
+simulation grid and they establish no operating characteristic: no miscoverage
+rate, power or error rate is claimed anywhere in this file.  They use
+``random.Random`` with fixed integer seeds and touch no namespace-0
+``SeedSequence`` stream.  ``CostPathProgram`` is shaped like the frozen
+data-generating process of PROTOCOL 4.1-4.3 but shortens the long delay block,
+so it is not a cell of that grid at any horizon.  The eight-cell grid, its
+ground-truth derivations and its Monte Carlo intervals are a separate,
+pre-registered step, and PROTOCOL 0.1 discloses this file by name.
+
+CPU only.  Stdlib ``unittest`` (there is no pytest in this environment), numpy.
+Run: ``.venv/bin/python experiments/live_ab_validation/tests_validation.py``
+"""
+from __future__ import annotations
+
+import copy
+import hashlib
+import json
+import math
+import os
+import random
+import re
+import sys
+import unittest
+from typing import Dict, Hashable, List, Set, Tuple
+
+import numpy as np
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+import vband  # noqa: E402
+import vfixtures  # noqa: E402
+from vband import (  # noqa: E402
+    ALPHA_GATE, CONTINUE, DELTA, DEPLOY, Enclosure, EnclosureContradiction,
+    Episode, N_MIN, ProtocolViolation, RETAIN_INCUMBENT, RHO, SwitchPhaseError,
+    ValidationError, ValidationMonitor, cost_order_possibilities, decide,
+    final_hierarchy_score, hierarchy_feasible_values, normal_mixture_band,
+)
+from winstats import compare, normal_mixture_radius  # noqa: E402
+
+RTOL = vband.COST_RELATIVE_TOLERANCE
+ATOL = vband.COST_ABSOLUTE_TOLERANCE
+CAP = 100.0
+
+
+# ---------------------------------------------------------------------------
+# Independent reference helpers (a third transcription of the frozen endpoint)
+# ---------------------------------------------------------------------------
+def reference_scores(sa: int, ca: float, sb: int, cb: float,
+                     rtol: float = RTOL, atol: float = ATOL) -> Tuple[int, int]:
+    """(hierarchy, success) written straight from the frozen tier definition."""
+    if sa != sb:
+        h = 1 if sa > sb else -1
+    elif sa == 0:
+        h = 0                                   # joint failure: cost ineligible
+    else:
+        tol = atol + rtol * max(abs(ca), abs(cb))
+        d = cb - ca                             # lower cost is better
+        h = 0 if abs(d) <= tol else (1 if d > 0 else -1)
+    return h, sa - sb
+
+
+def order_at(ca: float, cb: float, rtol: float = RTOL,
+             atol: float = ATOL) -> int:
+    tol = atol + rtol * max(abs(ca), abs(cb))
+    d = cb - ca
+    return 0 if abs(d) <= tol else (1 if d > 0 else -1)
+
+
+def witness_point(value: int, a_lo: float, a_hi: float, b_lo: float, b_hi: float
+                  ) -> Tuple[float, float]:
+    """An explicit point of the cost box that should realise ``value``."""
+    if value == 1:
+        return (a_lo, b_hi)
+    if value == -1:
+        return (a_hi, b_lo)
+    if a_hi >= b_lo and b_hi >= a_lo:           # boxes overlap
+        m = max(a_lo, b_lo)
+        return (m, m)
+    if a_hi < b_lo:
+        return (a_hi, b_lo)
+    return (a_lo, b_hi)
+
+
+def brute_orders(a_lo: float, a_hi: float, b_lo: float, b_hi: float,
+                 grid: int = 41) -> Set[int]:
+    a_pts = np.linspace(a_lo, a_hi, grid) if a_hi > a_lo else np.array([a_lo])
+    b_pts = np.linspace(b_lo, b_hi, grid) if b_hi > b_lo else np.array([b_lo])
+    return {order_at(float(ca), float(cb)) for ca in a_pts for cb in b_pts}
+
+
+# ---------------------------------------------------------------------------
+# Randomised program generator with a hidden ground truth
+# ---------------------------------------------------------------------------
+class Program:
+    """A randomly generated enrollment/reveal stream with a hidden truth.
+
+    Every emitted fact is LOGICALLY CERTAIN given the hidden truth, so any
+    containment failure is a defect in the enclosure arithmetic rather than a
+    badly generated stream.  A slot whose destiny is ``timeout`` has its truth
+    REDEFINED by the frozen cap rule to (failure, full cap); nothing is dropped.
+    """
+
+    def __init__(self, seed: int, n_pairs: int, cap: float = CAP) -> None:
+        rng = random.Random(seed)
+        self.cap = cap
+        self.enroll_events: List[tuple] = []
+        self.reveal_events: List[tuple] = []
+        self.truth: Dict[Hashable, Tuple[int, float]] = {}
+        self.pair_truth: Dict[Hashable, Tuple[int, int]] = {}
+        self.pairs: List[Tuple[str, str, str, str]] = []
+
+        for i in range(n_pairs):
+            pid, coin = f"p{i}", rng.choice(("AB", "BA"))
+            s_first, s_second = f"s{i}a", f"s{i}b"
+            self.pairs.append((pid, coin, s_first, s_second))
+            self.enroll_events.append(("enroll", pid, coin, s_first, s_second))
+
+            base_cost = rng.uniform(0.5, cap * 0.9)
+            for slot in (s_first, s_second):
+                destiny = rng.choices(("final", "timeout", "pending"),
+                                      weights=(0.7, 0.1, 0.2))[0]
+                if destiny == "timeout":
+                    truth = (0, cap)
+                else:
+                    success = 1 if rng.random() < 0.6 else 0
+                    if rng.random() < 0.4:      # straddle the 5% tolerance
+                        cost = min(cap, max(0.0,
+                                            base_cost * (1.0 + rng.uniform(-0.09, 0.09))))
+                    else:
+                        cost = rng.uniform(0.0, cap)
+                    truth = (success, cost)
+                self.truth[slot] = truth
+                self._emit_facts(rng, slot, destiny, truth)
+
+            slot_a, slot_b = ((s_first, s_second) if coin == "AB"
+                              else (s_second, s_first))
+            sa, ca = self.truth[slot_a]
+            sb, cb = self.truth[slot_b]
+            self.pair_truth[pid] = reference_scores(sa, ca, sb, cb)
+
+        rng.shuffle(self.reveal_events)
+        self.rng = rng
+
+    def _emit_facts(self, rng: random.Random, slot: str, destiny: str,
+                    truth: Tuple[int, float]) -> None:
+        success, cost = truth
+        for _ in range(rng.randint(0, 3)):
+            self.reveal_events.append(("elapsed", slot, rng.uniform(0.0, cost)))
+        if rng.random() < 0.5:
+            self.reveal_events.append(
+                ("succeed", slot) if success == 1 else ("fail", slot))
+        if destiny != "timeout" and rng.random() < 0.3:
+            self.reveal_events.append(
+                ("cost_upper", slot, rng.uniform(cost, self.cap)))
+        if destiny == "final":
+            self.reveal_events.append(("final", slot, success, cost))
+        elif destiny == "timeout":
+            self.reveal_events.append(("timeout", slot))
+
+    def script(self, look_every: int = 4) -> List[tuple]:
+        events = list(self.enroll_events)
+        for k, ev in enumerate(self.reveal_events):
+            events.append(ev)
+            if look_every and (k + 1) % look_every == 0:
+                events.append(("look", f"L{k+1}"))
+        events.append(("look", "final"))
+        return events
+
+    def true_mean(self, score_index: int) -> float:
+        vals = [v[score_index] for v in self.pair_truth.values()]
+        return sum(vals) / len(vals) if vals else 0.0
+
+
+# ===========================================================================
+class TestEnclosureAlgebra(unittest.TestCase):
+
+    def test_starts_at_full_range(self):
+        e = Enclosure.full()
+        self.assertEqual((e.lo, e.hi, e.certified), (-1.0, 1.0, False))
+
+    def test_narrow_never_widens_and_is_idempotent(self):
+        e = Enclosure.full().narrow(-0.5, 0.5)
+        self.assertEqual((e.lo, e.hi), (-0.5, 0.5))
+        self.assertEqual(e.narrow(-1.0, 1.0).as_tuple(), e.as_tuple())
+        self.assertEqual(e.narrow(-0.5, 0.5).as_tuple(), e.as_tuple())
+        tighter = e.narrow(0.0, 0.25)
+        self.assertEqual((tighter.lo, tighter.hi), (0.0, 0.25))
+        self.assertLessEqual(tighter.width, e.width)
+
+    def test_contradictory_narrow_raises(self):
+        e = Enclosure.full().narrow(0.5, 1.0)
+        with self.assertRaises(EnclosureContradiction):
+            e.narrow(-1.0, 0.0)
+
+    def test_collapse_requires_containment_and_is_certified(self):
+        e = Enclosure.full().narrow(0.0, 1.0)
+        c = e.collapse(1.0)
+        self.assertTrue(c.certified)
+        self.assertEqual((c.lo, c.hi), (1.0, 1.0))
+        self.assertEqual(c.collapse(1.0).as_tuple(), c.as_tuple())
+        with self.assertRaises(EnclosureContradiction):
+            e.collapse(-1.0)
+        with self.assertRaises(EnclosureContradiction):
+            c.collapse(0.0)
+
+    def test_point_resolved_is_not_certified(self):
+        e = Enclosure.full().narrow(1.0, 1.0)
+        self.assertTrue(e.resolved)
+        self.assertFalse(e.certified)
+
+    def test_scores_stay_in_the_bounded_range(self):
+        with self.assertRaises(ValidationError):
+            Enclosure(-2.0, 1.0)
+
+
+class TestEpisodeFacts(unittest.TestCase):
+
+    def test_pending_episode_knows_nothing(self):
+        ep = Episode.pending("x", CAP)
+        self.assertEqual(ep.success_set(), (0, 1))
+        self.assertEqual((ep.cost_lo, ep.cost_hi), (0.0, CAP))
+        self.assertFalse(ep.final)
+
+    def test_absence_of_failure_is_not_success(self):
+        ep = Episode.pending("x", CAP).with_elapsed_cost(90.0)
+        self.assertEqual(ep.success_set(), (0, 1))
+
+    def test_monotone_facts_are_idempotent(self):
+        ep = Episode.pending("x", CAP).with_elapsed_cost(10.0).with_success()
+        self.assertIs(ep.with_elapsed_cost(10.0), ep)
+        self.assertIs(ep.with_elapsed_cost(4.0), ep)
+        self.assertIs(ep.with_success(), ep)
+        self.assertIs(ep.with_cost_upper(CAP), ep)
+
+    def test_contradictions_raise(self):
+        ep = Episode.pending("x", CAP).with_success()
+        with self.assertRaises(EnclosureContradiction):
+            ep.with_failure()
+        with self.assertRaises(EnclosureContradiction):
+            ep.with_elapsed_cost(CAP + 1.0)
+        fin = ep.finalized(1, 20.0)
+        with self.assertRaises(EnclosureContradiction):
+            fin.finalized(1, 21.0)
+        self.assertIs(fin.finalized(1, 20.0), fin)
+
+    def test_final_outside_established_bounds_raises(self):
+        ep = Episode.pending("x", CAP).with_elapsed_cost(40.0)
+        with self.assertRaises(EnclosureContradiction):
+            ep.finalized(1, 30.0)
+
+    def test_timeout_is_the_frozen_cap_rule(self):
+        ep = Episode.pending("x", 50.0).with_elapsed_cost(30.0).timed_out()
+        self.assertEqual((ep.success_lo, ep.success_hi), (0, 0))
+        self.assertEqual((ep.cost_lo, ep.cost_hi), (50.0, 50.0))
+        self.assertTrue(ep.final)
+
+
+class TestCostOrderPredicate(unittest.TestCase):
+    """Soundness and completeness of the feasible-cost-order enumeration."""
+
+    def _boxes(self, n: int = 400, seed: int = 20260919):
+        rng = random.Random(seed)
+        boxes = [(0.0, 0.0, 0.0, 0.0), (10.0, 10.0, 20.0, 20.0),
+                 (95.0, 95.0, 100.0, 100.0), (0.0, CAP, 0.0, CAP),
+                 (10.0, 10.0, 80.0, 100.0), (40.0, 60.0, 41.0, 59.0),
+                 (0.0, 1e-9, 0.0, 1e-9)]
+        for _ in range(n):
+            a_lo = rng.uniform(0.0, CAP)
+            a_hi = min(CAP, a_lo + rng.choice((0.0, 0.1, 1.0, 5.0, 40.0)))
+            b_lo = rng.uniform(0.0, CAP)
+            b_hi = min(CAP, b_lo + rng.choice((0.0, 0.1, 1.0, 5.0, 40.0)))
+            boxes.append((a_lo, a_hi, b_lo, b_hi))
+        return boxes
+
+    def test_every_admitted_value_has_a_witness(self):
+        checked = 0
+        for a_lo, a_hi, b_lo, b_hi in self._boxes():
+            vals = cost_order_possibilities(a_lo, a_hi, b_lo, b_hi)
+            self.assertTrue(vals)
+            for v in vals:
+                ca, cb = witness_point(v, a_lo, a_hi, b_lo, b_hi)
+                self.assertTrue(a_lo - 1e-12 <= ca <= a_hi + 1e-12)
+                self.assertTrue(b_lo - 1e-12 <= cb <= b_hi + 1e-12)
+                self.assertEqual(
+                    order_at(ca, cb), v,
+                    f"box {(a_lo, a_hi, b_lo, b_hi)} admits {v} with no witness")
+                checked += 1
+        self.assertGreater(checked, 400)
+
+    def test_no_reachable_value_is_denied(self):
+        for a_lo, a_hi, b_lo, b_hi in self._boxes():
+            vals = cost_order_possibilities(a_lo, a_hi, b_lo, b_hi)
+            missed = brute_orders(a_lo, a_hi, b_lo, b_hi) - vals
+            self.assertFalse(
+                missed, f"box {(a_lo, a_hi, b_lo, b_hi)} denies reachable {missed}")
+
+    def test_degenerate_box_matches_the_point_rule(self):
+        for ca in (0.0, 1.0, 10.0, 95.0, 100.0):
+            for cb in (0.0, 1.0, 10.0, 95.0, 100.0):
+                self.assertEqual(cost_order_possibilities(ca, ca, cb, cb),
+                                 {order_at(ca, cb)})
+
+    def test_rejects_unusable_tolerance(self):
+        with self.assertRaises(ValidationError):
+            cost_order_possibilities(0.0, 1.0, 0.0, 1.0, rtol=1.0)
+
+
+class TestAgreementWithCompare(unittest.TestCase):
+    """When both episodes are final the enumeration must equal ``compare``."""
+
+    def test_exhaustive_tolerance_boundary_grid(self):
+        costs = [0.0, 1.0, 5.0, 19.0, 19.9, 20.0, 21.0, 90.0, 94.9, 95.0,
+                 95.1, 100.0]
+        checked = 0
+        for sa in (0, 1):
+            for sb in (0, 1):
+                for ca in costs:
+                    for cb in costs:
+                        ep_a = Episode.pending("a", CAP).finalized(sa, ca)
+                        ep_b = Episode.pending("b", CAP).finalized(sb, cb)
+                        want_h, want_s = reference_scores(sa, ca, sb, cb)
+                        self.assertEqual(final_hierarchy_score(ep_a, ep_b), want_h)
+                        self.assertEqual(
+                            hierarchy_feasible_values(ep_a, ep_b), frozenset({want_h}))
+                        self.assertEqual(
+                            vband.success_bounds(ep_a, ep_b),
+                            (float(want_s), float(want_s)))
+                        checked += 1
+        self.assertEqual(checked, 2 * 2 * len(costs) ** 2)
+
+    def test_compare_primitive_agrees_with_the_reference(self):
+        rng = random.Random(7)
+        tiers = list(vband.TIERS)
+        for _ in range(2000):
+            sa, sb = rng.randint(0, 1), rng.randint(0, 1)
+            ca, cb = rng.uniform(0, CAP), rng.uniform(0, CAP)
+            a = np.array([[float(sa), ca]])
+            b = np.array([[float(sb), cb]])
+            eligible = np.array([[True, bool(sa == 1 and sb == 1)]])
+            got, _tier = compare(a, b, tiers, eligible=eligible)
+            want, _ = reference_scores(sa, ca, sb, cb)
+            self.assertEqual(int(got[0]), want)
+
+    def test_joint_failure_ignores_cost(self):
+        ep_a = Episode.pending("a", CAP).finalized(0, 1.0)
+        ep_b = Episode.pending("b", CAP).finalized(0, 100.0)
+        self.assertEqual(final_hierarchy_score(ep_a, ep_b), 0)
+
+
+class TestBandAndDecision(unittest.TestCase):
+
+    def test_radius_uses_variance_process_n(self):
+        for n in (1, 2, 3, 6, 100, 500, 2000):
+            got = vband.radius_from_formula(n)
+            want = float(normal_mixture_radius(n, alpha=ALPHA_GATE, rho=RHO,
+                                               variance_process=n))
+            self.assertAlmostEqual(got, want, places=12)
+            self.assertAlmostEqual(got, vfixtures.literal_radius(n), places=12)
+
+    def test_band_denominator_and_clip(self):
+        lowers = [1.0, 1.0, -1.0, -1.0]
+        uppers = [1.0, 1.0, 1.0, 1.0]
+        band = normal_mixture_band(lowers, uppers, 4)
+        self.assertEqual(band.n, 4)
+        self.assertEqual(band.mean_lower, 0.0)
+        self.assertEqual(band.mean_upper, 1.0)
+        self.assertEqual((band.lower, band.upper), (-1.0, 1.0))
+        n = 2000
+        interior = normal_mixture_band([0.5] * n, [0.6] * n, n)
+        r = vfixtures.literal_radius(n)
+        self.assertAlmostEqual(interior.lower, 0.5 - r, places=12)
+        self.assertAlmostEqual(interior.upper, 0.6 + r, places=12)
+
+    def test_zero_prefix_shows_the_full_range(self):
+        band = normal_mixture_band([], [], 0)
+        self.assertEqual((band.lower, band.upper), (-1.0, 1.0))
+        self.assertEqual(band.n, 0)
+        self.assertTrue(math.isinf(band.radius))
+        self.assertEqual(decide(band, band), CONTINUE)
+
+    def test_decision_rule_boundaries(self):
+        b = vfixtures._band_of
+        n = 200
+        self.assertEqual(decide(b("h", n, .1, .4), b("s", n, -.02, .3)), DEPLOY)
+        self.assertEqual(decide(b("h", n, .1, .4), b("s", n, -DELTA, .3)), CONTINUE)
+        self.assertEqual(decide(b("h", n, 0.0, .4), b("s", n, .1, .3)), CONTINUE)
+        self.assertEqual(decide(b("h", n, -.4, -1e-9), b("s", n, -.9, -.1)),
+                         RETAIN_INCUMBENT)
+        self.assertEqual(decide(b("h", n, -.4, 0.0), b("s", n, -.9, -.1)), CONTINUE)
+        self.assertEqual(decide(b("h", N_MIN - 1, .9, .95),
+                                b("s", N_MIN - 1, .9, .95)), CONTINUE)
+        self.assertEqual(decide(b("h", N_MIN, .9, .95), b("s", N_MIN, .9, .95)),
+                         DEPLOY)
+
+    def test_same_look_conjunction_is_enforced(self):
+        b = vfixtures._band_of
+        with self.assertRaises(ProtocolViolation):
+            decide(b("h", 150, .5, .9), b("s", 120, .5, .9))
+
+    def test_alpha_allocation(self):
+        self.assertEqual(vband.PROGRAM_ALPHA, 0.05)
+        self.assertEqual(vband.N_TRIALS, 4)
+        self.assertEqual(vband.ALPHA_PER_TRIAL, 0.0125)
+        self.assertEqual(vband.ALPHA_GATE, 0.00625)
+        self.assertAlmostEqual(
+            vband.ALPHA_GATE * vband.GATES_PER_TRIAL * vband.N_TRIALS,
+            vband.PROGRAM_ALPHA, places=15)
+
+
+class TestProtocolGuards(unittest.TestCase):
+
+    def test_enrollment_and_slot_uniqueness(self):
+        mon = ValidationMonitor()
+        mon.enroll("a", "AB", "x1", "x2")
+        with self.assertRaises(ProtocolViolation):
+            mon.enroll("a", "AB", "x3", "x4")
+        with self.assertRaises(ProtocolViolation):
+            mon.enroll("b", "AB", "x1", "x5")
+        with self.assertRaises(ProtocolViolation):
+            mon.enroll("c", "AB", "x6", "x6")
+        with self.assertRaises(ProtocolViolation):
+            mon.observe_success("x9")
+
+    def test_switch_stops_randomisation_but_not_resolution(self):
+        mon = ValidationMonitor()
+        mon.enroll("a", "AB", "x1", "x2")
+        mon.switch()
+        with self.assertRaises(SwitchPhaseError):
+            mon.enroll("b", "AB", "x3", "x4")
+        mon.finalize("x1", 1, 10.0)
+        mon.finalize("x2", 0, 20.0)
+        mon.record_followup_arrival("f1")
+        self.assertEqual(mon.look("post").n_enrolled, 1)
+        with self.assertRaises(ProtocolViolation):
+            mon.record_followup_arrival("x1")
+
+    def test_orientation_follows_the_pre_enrolled_coin(self):
+        mon = ValidationMonitor()
+        mon.enroll("ab", "AB", "u1", "u2")
+        mon.enroll("ba", "BA", "v1", "v2")
+        self.assertEqual(mon.pairs[0].arm_slots(), ("u1", "u2"))
+        self.assertEqual(mon.pairs[1].arm_slots(), ("v2", "v1"))
+
+    def test_audit_requires_history(self):
+        mon = ValidationMonitor()
+        with self.assertRaises(ValidationError):
+            mon.audit_containment()
+
+
+class TestFixtures(unittest.TestCase):
+    """Replay every deterministic acceptance fixture of root item 1."""
+
+    def test_every_fixture_passes(self):
+        results = vfixtures.run_all()
+        self.assertEqual(len(results), len(vfixtures.ALL_FIXTURES))
+        self.assertGreaterEqual(len(results), 17)
+        for name, failures in results:
+            with self.subTest(fixture=name):
+                self.assertEqual(failures, [], f"{name}: {failures}")
+
+    def test_the_register_is_unique_and_ordered(self):
+        names = [c.name for c in vfixtures.ALL_FIXTURES]
+        self.assertEqual(len(names), len(set(names)))
+        self.assertEqual(names, sorted(names), "fixture ids must stay in id order")
+
+
+# ===========================================================================
+class TestImportGraphIndependence(unittest.TestCase):
+    """PROTOCOL 12.1 item 4: the only MECHANICAL guard on the independence rule.
+
+    Before the pre-registration audit this test did not exist and independence
+    rested entirely on docstring declarations.
+    """
+
+    def test_no_module_of_the_forbidden_tree_is_ever_loaded(self):
+        failures = vfixtures._f16_import_graph_independence()
+        self.assertEqual(failures, [], f"import graph: {failures}")
+
+    # The offending sources below are BUILT from fragments so that this file
+    # does not itself contain the literals the guard forbids.  Assembling them
+    # is the point: a guard is only known to work once it has fired.
+    _LAB = "lab_" + "monitor"
+    _ENC = "lab_" + "enclosure"
+    _TREE = "experiments/live_" + "ab/"
+
+    def test_the_pinned_tree_is_present_and_the_probe_would_catch_it(self):
+        """The pinned #11 copy now sits inside this directory, so the dynamic
+        half of F16 has something real to guard against.  This checks the
+        probe's path-prefix logic against the actual layout WITHOUT importing
+        or reading any pinned module: only directory entries are listed.
+        """
+        pinned = vfixtures.HERE / "pinned"
+        if not pinned.is_dir():
+            self.skipTest("the coordinator has not deposited pinned/ yet")
+        modules = sorted(p.name for p in pinned.glob("*.py"))
+        self.assertTrue(modules, "pinned/ holds no python module to guard against")
+        prefix = str(pinned) + os.sep
+        for name in modules:
+            self.assertTrue(
+                str(pinned / name).startswith(prefix),
+                f"the F16 probe prefix would not match {name}")
+        # and nothing under pinned/ is loaded in THIS interpreter
+        for mod in list(sys.modules.values()):
+            f = getattr(mod, "__file__", None)
+            self.assertFalse(f and f.startswith(prefix),
+                             f"a pinned module is already imported: {f}")
+
+    def test_the_static_scanner_reports_a_forbidden_import(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            p = os.path.join(tmp, "offender.py")
+            with open(p, "w") as fh:
+                fh.write(f"import {self._LAB}\n")
+            failures = vfixtures.scan_sources_for_forbidden_paths(
+                tmp, require_at_least=1)
+        self.assertTrue(any(f"imports {self._LAB}" in f for f in failures),
+                        f"scanner missed a forbidden import: {failures}")
+
+    def test_the_static_scanner_reports_a_forbidden_from_import(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            with open(os.path.join(tmp, "offender.py"), "w") as fh:
+                fh.write(f"from {self._ENC} import PairEnclosure\n")
+            failures = vfixtures.scan_sources_for_forbidden_paths(
+                tmp, require_at_least=1)
+        self.assertTrue(any(f"imports from {self._ENC}" in f for f in failures),
+                        f"scanner missed a forbidden from-import: {failures}")
+
+    def test_the_static_scanner_reports_a_path_literal_and_a_dynamic_import(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            with open(os.path.join(tmp, "offender.py"), "w") as fh:
+                fh.write(f'"""A docstring may name {self._TREE} freely."""\n'
+                         f'import importlib\n'
+                         f'PATH = "{self._TREE}{self._LAB}.py"\n'
+                         f'm = importlib.import_module("{self._LAB}")\n')
+            failures = vfixtures.scan_sources_for_forbidden_paths(
+                tmp, require_at_least=1)
+        joined = " ".join(failures)
+        self.assertIn("outside a docstring", joined)
+        self.assertIn("import_module", joined)
+        self.assertNotIn(":1 ", joined, "the docstring line must stay exempt")
+
+    def test_the_marker_exempts_only_the_line_it_is_on(self):
+        import tempfile
+        marker = "IMPORT-GUARD" "-LITERAL"
+        with tempfile.TemporaryDirectory() as tmp:
+            with open(os.path.join(tmp, "offender.py"), "w") as fh:
+                fh.write(f'A = "{self._TREE}x.py"  # {marker}\n'
+                         f'B = "{self._TREE}y.py"\n')
+            failures = vfixtures.scan_sources_for_forbidden_paths(
+                tmp, require_at_least=1)
+        self.assertEqual(len(failures), 1, failures)
+        self.assertIn(":2", failures[0])
+
+
+# ===========================================================================
+class TestProtocolConfigAgreement(unittest.TestCase):
+    """PROTOCOL's header claims cells.json is normative and asserted. Check it.
+
+    The claim was false before the audit: no such check existed, and the two
+    files had already drifted on the fixture register.
+    """
+
+    def setUp(self):
+        self.text = vfixtures.PROTOCOL_PATH.read_text()
+        self.cfg = json.loads(vfixtures.CELLS_PATH.read_text())
+
+    def _check(self, text=None, cfg=None):
+        return vfixtures.check_protocol_config_agreement(
+            self.text if text is None else text,
+            self.cfg if cfg is None else cfg)
+
+    def test_the_two_documents_agree(self):
+        self.assertEqual(self._check(), [])
+
+    def test_a_changed_band_endpoint_is_caught(self):
+        cfg = copy.deepcopy(self.cfg)
+        row = cfg["analytic_reachability"]["expected_path_band_endpoints_Lh_Uh_Ls"]
+        row["C5"]["500"][0] += 0.01
+        failures = self._check(cfg=cfg)
+        self.assertTrue(any("6.3 C5 500 L_h" in f for f in failures), failures)
+
+    def test_a_changed_gate_prefix_is_caught(self):
+        cfg = copy.deepcopy(self.cfg)
+        cfg["analytic_reachability"]["expected_path_gate_opening_prefix"]["C7"]["DEPLOY"] = 694
+        failures = self._check(cfg=cfg)
+        self.assertTrue(any("6.2 C7 DEPLOY" in f for f in failures), failures)
+
+    def test_a_gate_prefix_becoming_never_is_caught(self):
+        cfg = copy.deepcopy(self.cfg)
+        cfg["analytic_reachability"]["expected_path_gate_opening_prefix"]["C5"]["L_h>0"] = None
+        failures = self._check(cfg=cfg)
+        self.assertTrue(any("6.2 C5 L_h>0" in f for f in failures), failures)
+
+    def test_a_changed_parameter_is_caught(self):
+        cfg = copy.deepcopy(self.cfg)
+        cfg["parameters"]["delta"] = 0.05
+        failures = self._check(cfg=cfg)
+        self.assertTrue(any("2.1 delta" in f for f in failures), failures)
+
+    def test_a_changed_atom_cost_is_caught(self):
+        cfg = copy.deepcopy(self.cfg)
+        cfg["outcome_atoms"]["definition"][0]["c_candidate"] = 12.0
+        failures = self._check(cfg=cfg)
+        self.assertTrue(any("4.1 BB+ c_candidate" in f for f in failures), failures)
+
+    def test_a_changed_weight_breaks_both_the_table_and_the_enumeration(self):
+        cfg = copy.deepcopy(self.cfg)
+        cfg["outcome_laws"]["L2"]["weights"]["BB+"] = 1600
+        failures = self._check(cfg=cfg)
+        self.assertTrue(any("4.1 L2 w[BB+]" in f for f in failures), failures)
+        self.assertTrue(any("mu_h by enumeration" in f or "weights sum to" in f
+                            for f in failures), failures)
+
+    def test_a_changed_cost_path_fraction_is_caught(self):
+        cfg = copy.deepcopy(self.cfg)
+        cfg["analytic_reachability"]["expected_cost_enclosure_exercise"]["C4"]["500"][0] = 0.01
+        failures = self._check(cfg=cfg)
+        self.assertTrue(any("6.4 C4 500 point" in f for f in failures), failures)
+
+    def test_a_drifting_fixture_register_is_caught(self):
+        """The exact drift the audit found: cells.json renumbered, code not."""
+        cfg = copy.deepcopy(self.cfg)
+        cfg["fixtures"]["list"][0]["id"] = "F0"
+        failures = self._check(cfg=cfg)
+        self.assertTrue(any("cells.json register" in f for f in failures), failures)
+
+    def test_a_dropped_protocol_row_is_caught(self):
+        text = "\n".join(ln for ln in self.text.splitlines()
+                         if not ln.startswith("| `C5` | -0."))
+        failures = self._check(text=text)
+        self.assertTrue(any("6.3" in f and "C5" in f for f in failures), failures)
+
+    def test_a_changed_protocol_number_is_caught(self):
+        text = self.text.replace("| `C8` `L4/A` | 137 | 566 | never | **566** |",
+                                 "| `C8` `L4/A` | 137 | 566 | never | **560** |")
+        self.assertNotEqual(text, self.text, "the 6.2 C8 row moved; fix this test")
+        failures = self._check(text=text)
+        self.assertTrue(any("6.2 C8 DEPLOY" in f for f in failures), failures)
+
+    def test_a_missing_hash_is_caught(self):
+        cfg = copy.deepcopy(self.cfg)
+        cfg["provenance"]["pinned_primitive"]["sha256"] = "0" * 64
+        failures = self._check(cfg=cfg)
+        self.assertTrue(any("winstats.py" in f for f in failures), failures)
+
+    # -- the tables PREREG_CHECK_2 N.2 found unguarded ---------------------
+    # Each of the five tables below was compared against NOTHING: a mutation
+    # sweep over every numeric token of every table row of PROTOCOL.md reported
+    # 0 of 44 changes to the section 2.5 table, 0 of 7 to the seed namespaces,
+    # 0 of 9 to the decision-level bounds, and 4 of 12 to the budget ladder's
+    # grid column.  One test per table, in both directions where the table has
+    # two sides that can drift apart.
+
+    def test_a_changed_enclosure_row_is_caught(self):
+        """Section 2.5 decides ground truth for the whole cost-path design."""
+        cfg = copy.deepcopy(self.cfg)
+        cfg["enclosure_rules"]["protocol_2_5_rows"][3]["hierarchy"] = [-1.0, 1.0]
+        failures = self._check(cfg=cfg)
+        self.assertTrue(any("2.5" in f and "hierarchy" in f for f in failures),
+                        failures)
+
+    def test_a_changed_enclosure_row_in_the_protocol_is_caught(self):
+        old = "| candidate revealed, `s_C = 1`, both infeasible | `[+1, +1]` | `[0, +1]` |"
+        new = "| candidate revealed, `s_C = 1`, both infeasible | `[0, +1]` | `[0, +1]` |"
+        self.assertIn(old, self.text, "the 2.5 table moved; fix this test")
+        failures = self._check(text=self.text.replace(old, new))
+        self.assertTrue(any("2.5" in f and "both infeasible" in f
+                            for f in failures), failures)
+
+    def test_an_enclosure_row_inconsistent_with_the_coarse_states_is_caught(self):
+        """The ten rows must refine the six states, not contradict them."""
+        cfg = copy.deepcopy(self.cfg)
+        cfg["enclosure_rules"]["states"][1]["hierarchy"] = [-1.0, 1.0]
+        failures = self._check(cfg=cfg)
+        self.assertTrue(any("enclosure_rules.states" in f for f in failures),
+                        failures)
+
+    def test_a_changed_seed_namespace_is_caught(self):
+        cfg = copy.deepcopy(self.cfg)
+        cfg["seeding"]["namespaces"]["1"]["seeds_reused"] = True
+        failures = self._check(cfg=cfg)
+        self.assertTrue(any("5 namespace 1 reuse" in f for f in failures), failures)
+
+    def test_a_changed_master_seed_is_caught(self):
+        cfg = copy.deepcopy(self.cfg)
+        cfg["seeding"]["master_seed"] = 1220260920
+        failures = self._check(cfg=cfg)
+        self.assertTrue(any("master seed" in f for f in failures), failures)
+
+    def test_a_changed_decision_level_bound_is_caught(self):
+        cfg = copy.deepcopy(self.cfg)
+        cfg["reported_quantities"]["decision_level"]["family_any_erroneous"][
+            "nominal_bound"] = 0.10
+        failures = self._check(cfg=cfg)
+        self.assertTrue(any("9.2 family_any_erroneous nominal bound" in f
+                            for f in failures), failures)
+
+    def test_a_changed_decision_level_definition_is_caught(self):
+        old = "| `false_harm` | trial | trial issues RETAIN_INCUMBENT and `mu_h >= 0` | `0.00625` |"
+        new = "| `false_harm` | trial | trial issues RETAIN_INCUMBENT and `mu_h >= 1` | `0.00625` |"
+        self.assertIn(old, self.text, "the 9.2 table moved; fix this test")
+        failures = self._check(text=self.text.replace(old, new))
+        self.assertTrue(any("9.2 false_harm definition" in f for f in failures),
+                        failures)
+
+    def test_a_changed_budget_grid_column_is_caught(self):
+        cfg = copy.deepcopy(self.cfg)
+        cfg["budget"]["ladder"][0]["programs"]["C3"] = 2000
+        cfg["budget"]["ladder"][0]["programs_total"] = 25000
+        failures = self._check(cfg=cfg)
+        self.assertTrue(any("8.2 T1 grid column" in f for f in failures), failures)
+
+    def test_a_changed_budget_horizon_is_caught(self):
+        cfg = copy.deepcopy(self.cfg)
+        cfg["budget"]["ladder"][3]["N_max"] = 2000
+        failures = self._check(cfg=cfg)
+        self.assertTrue(any("8.2 T4 N_max" in f for f in failures), failures)
+
+    def test_a_changed_look_count_is_caught(self):
+        cfg = copy.deepcopy(self.cfg)
+        cfg["parameters"]["decision_eligible_looks"] = 1901
+        failures = self._check(cfg=cfg)
+        self.assertTrue(any("7.1 decision-eligible" in f for f in failures),
+                        failures)
+
+    def test_a_look_count_that_no_longer_follows_from_N_max_is_caught(self):
+        """The derivation, not only the transcription: both sides can be wrong."""
+        cfg = copy.deepcopy(self.cfg)
+        text = self.text.replace("| looks per trial | 2,001 -",
+                                 "| looks per trial | 2,002 -")
+        self.assertNotEqual(text, self.text, "the 7.1 row moved; fix this test")
+        cfg["parameters"]["looks_per_trial"] = 2002
+        failures = self._check(text=text, cfg=cfg)
+        self.assertTrue(any("looks_per_trial = N_max + 1" in f for f in failures),
+                        failures)
+
+    def test_a_changed_horizon_header_is_caught(self):
+        old = "| law | `n=100` unresolved / unrevealed | `n=500` | `n=2000` |"
+        self.assertIn(old, self.text, "the 6.1 header moved; fix this test")
+        failures = self._check(text=self.text.replace(
+            old, "| law | `n=100` unresolved / unrevealed | `n=600` | `n=2000` |"))
+        self.assertTrue(any("6.1 horizon headers" in f for f in failures), failures)
+
+    def test_a_changed_cell_row_label_is_caught(self):
+        old = "| `C6` `L3/A` |"
+        self.assertIn(old, self.text, "the 6.2 table moved; fix this test")
+        failures = self._check(text=self.text.replace(old, "| `C6` `L3/N` |"))
+        self.assertTrue(any("6.2 C6 row label" in f for f in failures), failures)
+
+    def test_a_changed_comparison_tolerance_is_caught(self):
+        cfg = copy.deepcopy(self.cfg)
+        cfg["comparison_to_live_ab"]["compared_at_every_look"][
+            "per_pair_enclosure_endpoints"] = "absolute difference <= 1e-9"
+        failures = self._check(cfg=cfg)
+        self.assertTrue(any("12.2 per-pair enclosure tolerance" in f
+                            for f in failures), failures)
+
+    def test_a_changed_label_bijection_is_caught(self):
+        cfg = copy.deepcopy(self.cfg)
+        cfg["comparison_to_live_ab"]["decision_label_bijection"]["map"][1][
+            "validation"] = "RETAIN_INCUMBENT"
+        failures = self._check(cfg=cfg)
+        self.assertTrue(any("12.2 bijection" in f for f in failures), failures)
+
+    def test_a_stale_fixture_range_is_caught(self):
+        """How the B.2 register drift spread: a range nobody recounted."""
+        cfg = copy.deepcopy(self.cfg)
+        cfg["fixtures"]["deposited_to"] = cfg["fixtures"]["deposited_to"].replace(
+            "F01..F18", "F01..F17")
+        failures = self._check(cfg=cfg)
+        self.assertTrue(any("fixture range" in f for f in failures), failures)
+
+    def test_a_changed_repository_commit_is_caught(self):
+        cfg = copy.deepcopy(self.cfg)
+        cfg["provenance"]["repo_commit_at_writing"] = "0" * 40
+        failures = self._check(cfg=cfg)
+        self.assertTrue(any("header commit" in f for f in failures), failures)
+
+
+def _table_row_lines(text: str):
+    """Every markdown table data row of ``text``, as ``(index, line)``."""
+    out = []
+    for i, line in enumerate(text.splitlines(keepends=True)):
+        s = line.strip()
+        if not (s.startswith("|") and s.endswith("|") and len(s) > 1):
+            continue
+        cells = [c.strip() for c in s[1:-1].split("|")]
+        if all(re.fullmatch(r":?-{2,}:?", c) for c in cells if c):
+            continue
+        out.append((i, line))
+    return out
+
+
+def _perturb(token: str) -> str:
+    """A change larger than every tolerance ``check_...`` uses (the largest is 5e-3)."""
+    raw = token.replace(",", "")
+    try:
+        value = float(raw)
+    except ValueError:                                      # pragma: no cover
+        return token
+    if "." in raw:
+        places = len(raw.split(".")[1])
+        out = f"{value + max(10.0 ** -places, abs(value) * 0.1, 0.02):.{places}f}"
+    else:
+        out = str(int(value) + (3 if abs(value) < 1 else abs(int(value)) // 10 + 1))
+        if "," in token:
+            out = f"{int(out):,}"
+    return out if out != token else token + "1"
+
+
+def f15_mutation_coverage(text: str, cfg: dict):
+    """Perturb every numeric token of every table row; report what F15 catches.
+
+    This is the measurement PREREG_CHECK_2 N.2 made by hand, kept in the repo so
+    the claim in PROTOCOL 11 about what F15 covers is a number anyone can
+    reproduce rather than a sentence.  Returns ``(caught, missed, by_section)``
+    where ``by_section`` maps a section number to ``[caught, missed]``.
+    """
+    base = set(vfixtures.check_protocol_config_agreement(text, cfg))
+    lines = text.splitlines(keepends=True)
+    section, sections = "header", []
+    for line in lines:
+        hit = re.match(r"^#{2,4} ([0-9]+(?:\.[0-9]+)?)", line)
+        if hit:
+            section = hit.group(1)
+        sections.append(section)
+    caught = missed = 0
+    by_section: dict = {}
+    for i, line in _table_row_lines(text):
+        for hit in list(re.finditer(vfixtures._NUM_RE, line)):
+            new = _perturb(hit.group(0))
+            if new == hit.group(0):
+                continue                                    # pragma: no cover
+            mutated = lines[:i] + [line[:hit.start()] + new + line[hit.end():]] \
+                + lines[i + 1:]
+            got = set(vfixtures.check_protocol_config_agreement("".join(mutated), cfg))
+            tally = by_section.setdefault(sections[i], [0, 0])
+            if got - base:
+                caught += 1
+                tally[0] += 1
+            else:
+                missed += 1
+                tally[1] += 1
+    return caught, missed, by_section
+
+
+class TestF15MutationCoverage(unittest.TestCase):
+    """How much of PROTOCOL.md F15 actually guards, measured, not asserted.
+
+    PREREG_CHECK_2 N.2 ran this sweep by hand and found whole frozen tables
+    unguarded while sections 11 and 13 claimed "every numeric table": 384 of 595
+    mutations reported, with 0 of 44 changes to the section 2.5 enclosure table,
+    0 of 7 to the seed namespaces, 0 of 9 to the decision-level bounds and 4 of
+    12 to the budget ladder's grid column.  The sweep now lives here, so the
+    claim degrades into a failing test rather than into prose.
+    """
+
+    #: sections whose tables carry only frozen values, where nothing may be missed
+    FULLY_GUARDED = ("2.2", "2.5", "4.2", "5", "6.1", "6.3", "6.4", "7.1", "8.2",
+                     "9.1", "9.3")
+    FLOOR = 0.80
+
+    @classmethod
+    def setUpClass(cls):
+        cls.caught, cls.missed, cls.by_section = f15_mutation_coverage(
+            vfixtures.PROTOCOL_PATH.read_text(),
+            json.loads(vfixtures.CELLS_PATH.read_text()))
+
+    def test_the_tables_of_frozen_values_have_no_unguarded_number(self):
+        for section in self.FULLY_GUARDED:
+            with self.subTest(section=section):
+                tally = self.by_section.get(section)
+                self.assertIsNotNone(tally, f"section {section} has no table rows")
+                self.assertEqual(tally[1], 0,
+                                 f"section {section}: {tally[1]} numeric tokens "
+                                 f"can be changed without F15 noticing")
+
+    def test_overall_coverage_stays_above_the_floor(self):
+        total = self.caught + self.missed
+        self.assertGreater(total, 500, "the sweep found too few mutations to mean "
+                                       "anything")
+        self.assertGreaterEqual(
+            self.caught / total, self.FLOOR,
+            f"F15 catches {self.caught}/{total} mutations, below the "
+            f"{self.FLOOR:.0%} floor this suite holds it to")
+
+    def test_the_sweep_can_fail(self):
+        """A coverage measurement that cannot report a gap measures nothing."""
+        text = vfixtures.PROTOCOL_PATH.read_text()
+        cfg = json.loads(vfixtures.CELLS_PATH.read_text())
+        cfg["enclosure_rules"].pop("protocol_2_5_rows")
+        _, _, by_section = f15_mutation_coverage(text, cfg)
+        self.assertGreater(by_section.get("2.5", [0, 0])[1], 0,
+                           "removing the 2.5 twin left the sweep reporting no gap")
+
+
+class TestPinnedFileHashes(unittest.TestCase):
+    """F18: the pins must be recomputed from the files, not from each other.
+
+    PREREG_CHECK_2 N.1.  The check this replaces asserted that the same 64-hex
+    token appeared in PROTOCOL.md and in cells.json, which two documents can
+    satisfy while both disagree with the file on disk -- and did: the pin on
+    the #11 vocabulary document was stale by one revision of that document and
+    nothing reported it.  Every test below breaks one recorded pin and asserts
+    the fixture says so, because a hash check that cannot fail is the defect.
+    """
+
+    def setUp(self):
+        self.text = vfixtures.PROTOCOL_PATH.read_text()
+        self.cfg = json.loads(vfixtures.CELLS_PATH.read_text())
+        self.manifest = json.loads(vfixtures.PINNED_MANIFEST.read_text())
+
+    def _check(self, cfg=None, manifest=None, text=None):
+        return vfixtures.check_pinned_file_hashes(
+            self.cfg if cfg is None else cfg,
+            self.manifest if manifest is None else manifest,
+            vfixtures.REPO_ROOT, vfixtures.PINNED_DIR,
+            self.text if text is None else text)
+
+    def test_every_pin_matches_the_file_it_names(self):
+        self.assertEqual(self._check(), [])
+
+    def test_the_fixture_itself_passes(self):
+        case = next(c for c in vfixtures.ALL_FIXTURES
+                    if c.name == "F18_pinned_file_hashes")
+        self.assertEqual(case.run(), [])
+
+    def test_a_stale_provenance_pin_is_caught(self):
+        """Exactly the N.1 failure: the file moved, the pin did not."""
+        for key in ("formula_source", "pinned_primitive", "vocabulary_alignment"):
+            with self.subTest(pin=key):
+                cfg = copy.deepcopy(self.cfg)
+                cfg["provenance"][key]["sha256"] = "d" * 64
+                failures = self._check(cfg=cfg)
+                self.assertTrue(any("The pin is stale" in f for f in failures),
+                                failures)
+
+    def test_a_pin_absent_from_the_protocol_is_caught(self):
+        cfg = copy.deepcopy(self.cfg)
+        real = cfg["provenance"]["pinned_primitive"]["sha256"]
+        text = self.text.replace(real, "e" * 64)
+        self.assertNotEqual(text, self.text, "the header pin moved; fix this test")
+        failures = self._check(text=text)
+        self.assertTrue(any("does not appear in PROTOCOL.md" in f
+                            for f in failures), failures)
+
+    def test_a_stale_pinned_copy_hash_is_caught(self):
+        manifest = copy.deepcopy(self.manifest)
+        name = sorted(manifest["files"])[0]
+        manifest["files"][name] = "f" * 64
+        failures = self._check(manifest=manifest)
+        self.assertTrue(any(name in f and "PINNED.json records" in f
+                            for f in failures), failures)
+
+    def test_a_manifest_that_omits_a_deposited_file_is_caught(self):
+        manifest = copy.deepcopy(self.manifest)
+        manifest["files"].pop(sorted(manifest["files"])[0])
+        failures = self._check(manifest=manifest)
+        self.assertTrue(any("the deposit holds" in f for f in failures), failures)
+
+    def test_a_manifest_naming_a_file_that_is_not_there_is_caught(self):
+        manifest = copy.deepcopy(self.manifest)
+        manifest["files"]["lab_absent.py"] = "0" * 64
+        failures = self._check(manifest=manifest)
+        self.assertTrue(any("the deposit holds" in f for f in failures), failures)
+
+    def test_a_missing_file_is_caught_rather_than_skipped(self):
+        cfg = copy.deepcopy(self.cfg)
+        cfg["provenance"]["pinned_primitive"]["path"] = "src/no_such_file.py"
+        failures = self._check(cfg=cfg)
+        self.assertTrue(any("does not exist" in f for f in failures), failures)
+
+    def test_a_source_commit_the_protocol_does_not_name_is_caught(self):
+        manifest = copy.deepcopy(self.manifest)
+        manifest["source_commit"] = "a" * 40
+        failures = self._check(manifest=manifest)
+        self.assertTrue(any("does not name the commit" in f for f in failures),
+                        failures)
+
+    def test_the_digest_is_the_real_sha256_of_the_bytes(self):
+        """Against a second implementation, so the hash is not self-referential."""
+        path = vfixtures.CELLS_PATH
+        want = hashlib.sha256(path.read_bytes()).hexdigest()
+        self.assertEqual(vfixtures.sha256_file(path), want)
+
+
+class TestRandomisedContainment(unittest.TestCase):
+    """The containment property over many independently seeded programs."""
+
+    SEEDS = 300
+
+    def _run_one(self, seed: int) -> Tuple[ValidationMonitor, Program]:
+        rng = random.Random(seed * 7919 + 13)
+        program = Program(seed=seed, n_pairs=rng.randint(1, 25))
+        mon, _looks = vfixtures.replay(program.script(look_every=rng.randint(2, 6)),
+                                       cost_cap=CAP, record_history=True)
+        return mon, program
+
+    def test_containment_over_many_seeds(self):
+        n_pairs_total = 0
+        n_looks_total = 0
+        n_certified = 0
+        for seed in range(self.SEEDS):
+            with self.subTest(seed=seed):
+                mon, program = self._run_one(seed)
+                n_pairs_total += len(mon.pairs)
+                n_looks_total += len(mon.looks)
+
+                # 1. every recorded enclosure contains the hidden true score
+                for label, _n, snapshot in mon.history:
+                    for pid, (h_enc, s_enc) in snapshot.items():
+                        true_h, true_s = program.pair_truth[pid]
+                        self.assertTrue(
+                            h_enc.contains(true_h),
+                            f"seed {seed} {label}: hierarchy {true_h} outside "
+                            f"[{h_enc.lo}, {h_enc.hi}] for {pid}")
+                        self.assertTrue(
+                            s_enc.contains(true_s),
+                            f"seed {seed} {label}: success {true_s} outside "
+                            f"[{s_enc.lo}, {s_enc.hi}] for {pid}")
+
+                # 2. no enclosure ever widened
+                seen: Dict[Hashable, Tuple[Enclosure, Enclosure]] = {}
+                for label, _n, snapshot in mon.history:
+                    for pid, encs in snapshot.items():
+                        prev = seen.get(pid)
+                        if prev is not None:
+                            for k in (0, 1):
+                                self.assertGreaterEqual(prev[k].lo, -1.0)
+                                self.assertLessEqual(encs[k].width,
+                                                     prev[k].width + 1e-12)
+                                self.assertGreaterEqual(encs[k].lo, prev[k].lo - 1e-12)
+                                self.assertLessEqual(encs[k].hi, prev[k].hi + 1e-12)
+                        seen[pid] = encs
+
+                # 3. every certificate equals the hidden truth
+                for pair in mon.pairs:
+                    true_h, true_s = program.pair_truth[pair.pair_id]
+                    if pair.hierarchy.certified:
+                        n_certified += 1
+                        self.assertEqual(pair.hierarchy.lo, float(true_h))
+                        self.assertEqual(pair.success.lo, float(true_s))
+
+                # 4. the running-sum interval brackets the true running mean at
+                #    every look, on that look's own prefix, and the band is
+                #    ordered and bounded
+                for look in mon.looks:
+                    n = look.n_enrolled
+                    for idx, band in ((0, look.hierarchy), (1, look.success)):
+                        prefix_true = [program.pair_truth[p.pair_id][idx]
+                                       for p in mon.pairs[:n]]
+                        mean = sum(prefix_true) / n if n else 0.0
+                        self.assertLessEqual(band.mean_lower, mean + 1e-12)
+                        self.assertGreaterEqual(band.mean_upper, mean - 1e-12)
+                        self.assertLessEqual(band.lower, band.upper)
+                        self.assertGreaterEqual(band.lower, -1.0)
+                        self.assertLessEqual(band.upper, 1.0)
+        self.assertGreater(n_pairs_total, 1000)
+        self.assertGreater(n_looks_total, 300)
+        self.assertGreater(n_certified, 100)
+
+    def test_reveal_order_invariance_over_many_seeds(self):
+        for seed in range(60):
+            with self.subTest(seed=seed):
+                program = Program(seed=seed + 5000, n_pairs=random.Random(seed).randint(2, 12))
+                base, _ = vfixtures.replay(
+                    program.enroll_events + program.reveal_events, cost_cap=CAP)
+                reference = base.state_signature()
+                shuffler = random.Random(seed + 991)
+                for _ in range(5):
+                    shuffled = list(program.reveal_events)
+                    shuffler.shuffle(shuffled)
+                    other, _ = vfixtures.replay(
+                        program.enroll_events + shuffled, cost_cap=CAP)
+                    self.assertEqual(other.state_signature(), reference)
+
+    def test_repeated_updates_are_idempotent_over_many_seeds(self):
+        for seed in range(60):
+            with self.subTest(seed=seed):
+                program = Program(seed=seed + 9000,
+                                  n_pairs=random.Random(seed).randint(2, 12))
+                base, _ = vfixtures.replay(
+                    program.enroll_events + program.reveal_events, cost_cap=CAP)
+                repeated: List[tuple] = []
+                for ev in program.reveal_events:
+                    repeated.extend([ev, ev, ev])
+                other, _ = vfixtures.replay(
+                    program.enroll_events + repeated, cost_cap=CAP)
+                self.assertEqual(other.state_signature(), base.state_signature())
+
+    def test_completed_pairs_never_change_the_denominator(self):
+        program = Program(seed=424242, n_pairs=40)
+        mon, _ = vfixtures.replay(program.script(look_every=5), cost_cap=CAP)
+        for look in mon.looks:
+            self.assertEqual(look.n_enrolled, look.hierarchy.n)
+            self.assertEqual(look.hierarchy.n, look.success.n)
+            self.assertLessEqual(look.n_certified, look.n_enrolled)
+        self.assertEqual(mon.looks[-1].n_enrolled, 40)
+
+
+class CostPathProgram:
+    """A stream shaped like the frozen DGP of PROTOCOL 4.1-4.3.
+
+    Atoms with their cost columns, a long/short delay, a uniform first-reveal
+    offset, a fair first-reveal coin, and the elapsed-cost accrual
+    ``ell(a) = (c * a) / D``.  This is the shape ``vgen.py`` will have to
+    produce, exercised here against the monitor before that module exists.
+
+    It is NOT the issue-#12 grid and establishes no operating characteristic.
+    It uses ``random.Random`` and touches no namespace-0 ``SeedSequence``
+    stream, and the long delay block is shortened so the test runs in seconds.
+    """
+
+    CAP = 100.0
+    SHORT = (0, 19)
+    LONG = (20, 60)              # shortened; the grid's block is (100, 699)
+
+    def __init__(self, seed: int, n_pairs: int, weights: Dict[str, int],
+                 informative_delay: bool) -> None:
+        rng = random.Random(seed)
+        self.n_pairs = n_pairs
+        self.pairs = []
+        atoms = list(weights)
+        cum = []
+        total = 0
+        for a in atoms:
+            total += weights[a]
+            cum.append(total)
+        for i in range(n_pairs):
+            k = rng.randrange(total)
+            atom = atoms[next(j for j, c in enumerate(cum) if k < c)]
+            s_C, s_I, c_C, c_I, Z, D = vfixtures.ATOM_COSTS[atom]
+            if informative_delay:
+                long_ = (Z == -1) and (rng.randrange(4) < 3)
+            else:
+                long_ = rng.random() < 0.3
+            block = self.LONG if long_ else self.SHORT
+            d = rng.randint(*block)
+            f = rng.randint(0, d)
+            cand_first = rng.random() < 0.5
+            # arrival positions: slot_first, slot_second; the coin orients them
+            coin = "AB" if cand_first else "BA"
+            self.pairs.append(dict(
+                pid=f"p{i}", coin=coin, first=f"s{i}a", second=f"s{i}b",
+                atom=atom, Z=Z, D=D, d=d, f=f,
+                # the arm revealed first is the candidate iff coin == 'AB'
+                c_first=(c_C if cand_first else c_I),
+                s_first=(s_C if cand_first else s_I),
+                c_second=(c_I if cand_first else c_C),
+                s_second=(s_I if cand_first else s_C)))
+
+    def run(self, record_history: bool = True) -> ValidationMonitor:
+        mon = ValidationMonitor(cost_cap=self.CAP, record_history=record_history)
+        for tick, pair in enumerate(self.pairs, start=1):
+            mon.enroll(pair["pid"], pair["coin"], pair["first"], pair["second"])
+            for j in range(tick):
+                p = self.pairs[j]
+                age = tick - (j + 1)
+                for slot, dur, succ, cost in (
+                        (p["first"], p["f"], p["s_first"], p["c_first"]),
+                        (p["second"], p["d"], p["s_second"], p["c_second"])):
+                    if age == dur:
+                        mon.finalize(slot, succ, cost)
+                    elif age < dur:
+                        mon.observe_elapsed_cost(slot, (cost * age) / dur)
+            mon.look(f"n{tick}")
+        return mon
+
+
+class TestCostEnclosurePath(unittest.TestCase):
+    """PROTOCOL 2.5 and 4.3: the tier the live effect actually rides on.
+
+    PREREG_CHECK B.6 found that no cell exercised this path at all.  These are
+    the end-to-end property tests of the path it now takes.
+    """
+
+    LAWS = {
+        "L1": {"BB+": 2250, "BB0": 500, "BB-": 2250, "C>I": 1500, "I>C": 1500, "FF": 2000},
+        "L2": {"BB+": 1500, "BB0": 500, "BB-": 4000, "C>I": 3000, "I>C": 500, "FF": 500},
+        "L3": {"BB+": 5000, "BB0": 300, "BB-": 700, "C>I": 1200, "I>C": 1500, "FF": 1300},
+        "L4": {"BB+": 4000, "BB0": 1000, "BB-": 1500, "C>I": 2500, "I>C": 500, "FF": 500},
+    }
+
+    def test_containment_and_monotonicity_on_dgp_shaped_streams(self):
+        collapsed_uncertified = 0
+        looks = 0
+        # fixed integer seeds: str.__hash__ is salted per interpreter, and a
+        # pre-registration artefact has to reproduce run for run
+        for law_i, (law, weights) in enumerate(sorted(self.LAWS.items())):
+            for informative in (False, True):
+                with self.subTest(law=law, informative=informative):
+                    prog = CostPathProgram(seed=9_000 + 10 * law_i + int(informative),
+                                           n_pairs=45, weights=weights,
+                                           informative_delay=informative)
+                    mon = prog.run()
+                    truth = {p["pid"]: (p["Z"], p["D"]) for p in prog.pairs}
+                    seen: Dict[Hashable, Tuple[Enclosure, Enclosure]] = {}
+                    for label, n, snap in mon.history:
+                        looks += len(snap)
+                        for pid, (h_enc, s_enc) in snap.items():
+                            tz, td = truth[pid]
+                            self.assertTrue(
+                                h_enc.contains(tz),
+                                f"{law} {label}: hierarchy {tz} outside "
+                                f"[{h_enc.lo}, {h_enc.hi}] for {pid}")
+                            self.assertTrue(s_enc.contains(td))
+                            prev = seen.get(pid)
+                            if prev is not None:
+                                self.assertGreaterEqual(h_enc.lo, prev[0].lo - 1e-12)
+                                self.assertLessEqual(h_enc.hi, prev[0].hi + 1e-12)
+                                self.assertGreaterEqual(s_enc.lo, prev[1].lo - 1e-12)
+                                self.assertLessEqual(s_enc.hi, prev[1].hi + 1e-12)
+                            seen[pid] = (h_enc, s_enc)
+                    for look in mon.looks:
+                        n = look.n_enrolled
+                        for idx, band in ((0, look.hierarchy), (1, look.success)):
+                            mean = sum(truth[p.pair_id][idx]
+                                       for p in mon.pairs[:n]) / n
+                            self.assertLessEqual(band.mean_lower, mean + 1e-12)
+                            self.assertGreaterEqual(band.mean_upper, mean - 1e-12)
+                    last = mon.looks[-1]
+                    collapsed_uncertified += (last.n_point_resolved
+                                              - last.n_certified)
+        self.assertGreater(looks, 5000, "pair-look observations checked")
+        self.assertGreater(
+            collapsed_uncertified, 0,
+            "no pair was ever point-resolved without a certificate: the cost "
+            "enclosure path is not being exercised by these streams")
+
+    def test_elapsed_cost_alone_collapses_the_hierarchy_without_a_certificate(self):
+        """The mechanism, in isolation: one pair, one reveal, cost only."""
+        mon = ValidationMonitor(cost_cap=100.0)
+        mon.enroll("x", "AB", "xa", "xb")
+        mon.finalize("xa", 1, 10.0)                 # candidate: success, cost 10
+        self.assertEqual(vfixtures._enc(mon, "x", "hierarchy").as_tuple(),
+                         (-1.0, 1.0, False))
+        mon.observe_elapsed_cost("xb", 9.4)         # below .95 * 10
+        self.assertEqual(vfixtures._enc(mon, "x", "hierarchy").as_tuple(),
+                         (-1.0, 1.0, False))
+        mon.observe_elapsed_cost("xb", 9.5)         # at .95 * 10
+        self.assertEqual(vfixtures._enc(mon, "x", "hierarchy").as_tuple(),
+                         (0.0, 1.0, False))
+        mon.observe_elapsed_cost("xb", 10.6)        # beyond 10 / .95
+        enc = vfixtures._enc(mon, "x", "hierarchy")
+        self.assertEqual(enc.as_tuple(), (1.0, 1.0, False))
+        self.assertTrue(enc.resolved)
+        self.assertFalse(enc.certified,
+                         "a cost collapse is a point WITHOUT a certificate")
+        # the success enclosure is untouched by cost
+        self.assertEqual(vfixtures._enc(mon, "x", "success").as_tuple(),
+                         (0.0, 1.0, False))
+        # and the eventual certificate agrees with what cost already proved
+        mon.finalize("xb", 1, 40.0)
+        self.assertEqual(vfixtures._enc(mon, "x", "hierarchy").as_tuple(),
+                         (1.0, 1.0, True))
+
+    def test_a_failed_revealed_arm_never_opens_the_cost_tier(self):
+        mon = ValidationMonitor(cost_cap=100.0)
+        mon.enroll("y", "AB", "ya", "yb")
+        mon.finalize("ya", 0, 40.0)                 # candidate failed
+        for ell in (0.0, 38.0, 60.0, 99.0):
+            mon.observe_elapsed_cost("yb", ell)
+            self.assertEqual(vfixtures._enc(mon, "y", "hierarchy").as_tuple(),
+                             (-1.0, 0.0, False),
+                             "cost is ineligible unless both episodes succeed")
+
+    def test_the_mirror_case_collapses_toward_the_incumbent(self):
+        mon = ValidationMonitor(cost_cap=100.0)
+        mon.enroll("z", "BA", "z1", "z2")           # z2 is the candidate
+        mon.finalize("z1", 1, 10.0)                 # incumbent: success, cost 10
+        mon.observe_elapsed_cost("z2", 10.6)
+        self.assertEqual(vfixtures._enc(mon, "z", "hierarchy").as_tuple(),
+                         (-1.0, -1.0, False))
+
+
+class TestLargeProgramSmoke(unittest.TestCase):
+    """One larger program: containment holds and nothing decides prematurely."""
+
+    def test_four_hundred_pairs(self):
+        program = Program(seed=31337, n_pairs=400)
+        mon, _ = vfixtures.replay(program.script(look_every=200), cost_cap=CAP,
+                                  record_history=False)
+        final = mon.looks[-1]
+        self.assertEqual(final.n_enrolled, 400)
+        for idx, band in ((0, final.hierarchy), (1, final.success)):
+            mean = program.true_mean(idx)
+            self.assertLessEqual(band.mean_lower, mean + 1e-12)
+            self.assertGreaterEqual(band.mean_upper, mean - 1e-12)
+        # with a large unresolved fraction the conservative band must abstain
+        self.assertEqual(final.decision, CONTINUE)
+
+
+def _run() -> int:
+    loader = unittest.TestLoader()
+    suite = loader.loadTestsFromModule(sys.modules[__name__])
+    runner = unittest.TextTestRunner(verbosity=2)
+    result = runner.run(suite)
+    print(f"\nran={result.testsRun} failures={len(result.failures)} "
+          f"errors={len(result.errors)} skipped={len(result.skipped)}")
+    return 0 if result.wasSuccessful() else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(_run())

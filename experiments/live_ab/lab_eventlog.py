@@ -184,7 +184,16 @@ E_PREFLIGHT = _E('weights_hash', 'serving_manifest', 'port_busy', 'api_key_env',
                  'freeze_bundle_drift', 'worktree_identity', 'clock_equivalence',
                  'run_lock', 'hardware_allowlist', 'package_lock', 'config_sha',
                  'roster_sha', 'order_sha', 'winstats_sha', 'harness_file_sha',
-                 'gguf_sha256', 'llama_commit', 'preflight_rule_failed')
+                 'gguf_sha256', 'llama_commit', 'preflight_rule_failed',
+                 'host_not_quiescent')
+# The host quiescence gate of protocol 5.7 (lab_hostcheck).  Both vocabularies are
+# transcribed from that module rather than imported, so the schema stays a G1 artifact that
+# depends on nothing below it; tests_lab_hostcheck asserts the two lists agree exactly.
+E_HOST_DETECTOR = _E('llama-cli', 'llama-server', 'metal-process', 'metal-python',
+                     'mlx-lm', 'ollama', 'vllm')
+E_HOST_DEGRADED = _E('lsof_failed', 'lsof_incomplete', 'lsof_timeout', 'lsof_unavailable',
+                     'probe_budget_exhausted', 'ps_line_unparsed', 'ps_unavailable',
+                     'scan_error')
 E_ANCHOR_TRIGGER = _E('trial_started', 'every_25_completed_pairs', 'decision',
                       'trial_paused', 'trial_resumed', 'refreeze_authorization',
                       'trial_ended', 'trial_aborted', 'operator_action', 'program_paused',
@@ -292,6 +301,27 @@ LOG_RECOVERY_FIELDS: dict[str, FieldSpec] = {
     'is_event_prefix': _B(), 'boottime_changed': _B(),
 }
 
+# One foreign accelerator consumer, as it may enter the public chain (protocol 5.7).  The
+# offender is named by its closed-vocabulary detector label and identified by the digest of
+# its exact argv, which an operator can reproduce locally; the command text itself and the
+# token summary derived from it are never published, because that summary's vocabulary is
+# closed for paths but not for bare literals.
+HOST_FINDING = _O({
+    'pid': _I(), 'ppid': _I(), 'detector': E_HOST_DETECTOR, 'start_utc': _ISO(),
+    'elapsed_s': _I(), 'rss_bytes': _I(), 'argv_sha256': _H64(),
+    'summary_sha256': _H64(),
+})
+# Why the scan could not establish quiescence, as counts over a closed vocabulary.  A raw
+# marker carries a pid or a count and is therefore kept out of the chain.
+HOST_DEGRADED = _L(_O({'cause': E_HOST_DEGRADED, 'count': _I()}))
+# `clean` is the recorded verdict and is redundant with the two lists by construction; the
+# verifier asserts the agreement, so a chain that claims a clean host while carrying
+# findings is a FAIL rather than a reader's problem.
+HOST_SCAN_FIELDS: dict[str, FieldSpec] = {
+    'point': E_SCRAPE_POINT, 'clean': _B(), 'scanned': _I(), 'allowlisted': _I(),
+    'findings': _L(HOST_FINDING), 'degraded': HOST_DEGRADED,
+}
+
 # T14 identifying + timing keys, repeated by T15 and T16.
 CALL_ID_FIELDS: dict[str, FieldSpec] = {
     'arrival': _I(), 'attempt': _I(), 'call_index': _I(), 'request_id': _H32(),
@@ -347,6 +377,10 @@ EVENT_SCHEMA: dict[str, dict[str, FieldSpec]] = {
     'preflight_refused': {
         'trial': E_TRIAL, 'checks_failed': _L(E_PREFLIGHT), 'drift': DRIFT_LIST,
     },
+    # protocol 5.7: the trial-start quiescence gate refused to open a trial.  Written to
+    # the PROGRAM chain, beside the preflight_refused that carries the reason code, because
+    # it happens before the trial chain's seq 0.
+    'host_quiescence_refused': dict(HOST_SCAN_FIELDS, trial=E_TRIAL),
     'program_paused': {'reason_code': E_PROGRAM_PAUSE, 'what_was_known': WHAT_WAS_KNOWN},
     'program_resumed': {'reason_code': E_PROGRAM_PAUSE, 'what_was_known': WHAT_WAS_KNOWN},
     'erratum': {
@@ -395,6 +429,11 @@ EVENT_SCHEMA: dict[str, dict[str, FieldSpec]] = {
                       'rss_bytes': _I(), 'clock_anomaly': _B()},
     'metrics_scrape': {'server_id': E_SERVER, 'point': E_SCRAPE_POINT, 'ok': _B(),
                        'counters': COUNTERS, 'tries': _I(), 'unreconciled': _B()},
+    # protocol 5.7: the host scan taken at the trial-start scrape and at every quiescent
+    # scrape.  It is written whether or not anything was found, so that a reader can see
+    # positively that the host was scanned and was clean, rather than inferring it from the
+    # absence of an event.
+    'foreign_load_detected': dict(HOST_SCAN_FIELDS),
     'server_down': {'server_id': E_SERVER, 'detected_by': E_DETECTED_BY,
                     'returncode': _N(_I()),
                     'inflight': _L(_O({'arrival': _I(), 'arm': E_ARM})),
@@ -513,12 +552,14 @@ EVENT_SCHEMA: dict[str, dict[str, FieldSpec]] = {
 
 PROGRAM_ONLY_TYPES: frozenset[str] = frozenset({
     'program_opened', 'trial_opened', 'trial_closed', 'plumbing_verdict',
-    'refreeze_authorization', 'preflight_refused', 'program_paused', 'program_resumed',
+    'refreeze_authorization', 'preflight_refused', 'host_quiescence_refused',
+    'program_paused', 'program_resumed',
     'erratum', 'decision_code_defect', 'program_closed'})
 
 TRIAL_ONLY_TYPES: frozenset[str] = frozenset({
     'trial_started', 'invocation_started', 'invocation_refused', 'server_started',
-    'server_restarted', 'server_health', 'metrics_scrape', 'server_down', 'server_stopped',
+    'server_restarted', 'server_health', 'metrics_scrape', 'foreign_load_detected',
+    'server_down', 'server_stopped',
     'pair_enrolled', 'coin_drawn', 'arm_assigned_by_decision', 'episode_started',
     'job_accepted', 'llm_request', 'llm_response', 'llm_error', 'episode_revealed',
     'orphan_rejected', 'monitor_update', 'decision', 'traffic_switch', 'trial_paused',

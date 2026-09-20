@@ -365,7 +365,8 @@ The exact chip string, core count, memory, OS build, `kern.boottime` hash and po
 at every invocation and logged; nothing else about the host is recorded (no user name, no host name, no process
 listing). **The root session's host is not used for any execution.**
 
-During a trial: mains power, `caffeinate` active, no other GPU job, exclusive lock file, preflight scan of the service
+During a trial: mains power, `caffeinate` active, no other GPU job (checked by the host quiescence gate of 5.7.1,
+whose limits are stated there), exclusive lock file, preflight scan of the service
 ports; the harness refuses to attach to a server it did not start. Hardware and runtime are printed next to every
 resource table; no hardware-invariant statement is made.
 
@@ -842,8 +843,10 @@ Guidance item 2 requires the scheduling and resource policy to be fixed and all 
 **Fixed policy, non-amendable (14.3).** Exactly two workers; `-np 2` server slots so no request queues for a slot;
 one host-wide execution lock so at most one generated program runs at any instant (5.7); pair-synchronous dispatch in
 the randomized phase and work-conserving dispatch in the follow-up cohort; both T3 servers resident for the whole
-trial; `caffeinate` on and mains power required; no other GPU job, enforced by an exclusive lock file and a preflight
-port scan; the harness refuses to attach to a server it did not start.
+trial; `caffeinate` on and mains power required; no other GPU job — **required of the operator and checked, within the
+stated limits of 5.7.1, by the host quiescence gate; the exclusive lock file and the preflight port scan exclude only a
+second instance of this harness and see no other project's model server**; the harness refuses to attach to a server it
+did not start.
 
 **Isolation, as far as this host allows, stated honestly.** The two arms of a pair deliberately share one GPU and one
 server process: that is the regime the estimand refers to (7.4). What is isolated is everything the protocol can
@@ -955,6 +958,53 @@ program of one worker list, read or overwrite the other worker's verification pr
 
 Success = hidden checks exit 0 **and** the per-call nonce sentinel is seen (`verify.py:78-82`). Verifier wall seconds
 and CPU seconds are both logged.
+
+#### 5.7.1 Host quiescence: what the gate proves, and what it does not
+
+The execution lock of item 1 excludes a second instance of **this harness**. It does not see a model server belonging
+to a different project on the same machine, and on 2026-09-19 two such `llama-server` processes held this host's GPU
+for 8 h 34 m while the harness believed the host was exclusive. That gap is not cosmetic: the frozen hierarchy is
+success > cost with `cost = latency_s`, the two arms tie on success in the pilot, so nearly the whole composite effect
+rides on the latency tier and a foreign accelerator load silently corrupts the primary endpoint.
+
+`experiments/live_ab/lab_hostcheck.py` is therefore run as a **hard gate before a trial may open its chain** and as an
+**observing check at the trial-start and quiescent scrape points**. It reads `ps` and `lsof` and nothing else. It
+**observes only**: it never terminates, suspends or reprioritises any process it finds, and the operator decides what
+to do about an offender. A refusal is written to the program chain as `host_quiescence_refused` beside
+`preflight_refused(host_not_quiescent)`; every in-trial scan is written to the trial chain as `foreign_load_detected`
+whether or not anything was found, so that a reader can see positively that the host was scanned and what was seen.
+Findings carry the detector label, the pid, the age, the resident size and the SHA-256 of the offending `argv`; the
+command text and the token summary derived from it are **not** published, because that summary's vocabulary is closed
+for paths and addresses but not for bare literals, and a foreign project's module or model name could otherwise enter
+an immutable chain.
+
+**A scan reports a foreign accelerator consumer when, and only when, one of these holds.**
+
+1. The command names a known runner by exact token (`llama-server`, `llama-cli`, `mlx_lm`, `ollama`, `vllm` and
+   spelling variants), including behind a wrapper shell.
+2. The process is a python interpreter, at any size, and holds **any** open Metal resource.
+3. The process is at or above `PROBE_RSS_FLOOR_BYTES` (128 MiB) and holds a **compute-class** Metal resource: the ggml
+   Metal backend, Metal Performance Shaders, or MLX.
+
+Rule 3 is what defeats a **rename**: copying `llama-server` to another name does not change which Metal libraries the
+process opens. It is deliberately narrower than rule 2, because a bare display-class marker is mapped by any
+window-drawing application as well — measured on the serving host, two ordinary desktop applications map `AGXMetal`
+while doing no accelerator work — and a gate that reports a text editor is a gate an operator learns to bypass.
+
+**What this gate does NOT detect, stated so that no sentence of this protocol claims more than it delivers.**
+
+- An accelerator job whose resident size is **below 128 MiB** and whose command matches no runner name. It is not
+  probed at all and the scan reports the host clean.
+- A job that drives the GPU through **raw Metal only**, linking neither ggml, MPS nor MLX. By open files alone such a
+  process is indistinguishable from a window-drawing application.
+- Anything on a host whose process table or Metal probe could not be read. That case is never silence: it is recorded
+  as a `degraded` cause and **the preflight refuses**, because an unprovable host is not a clean host. A scan that
+  fails open would be worse than no scan at all, since it would produce a clean-looking audit trail over contaminated
+  numbers.
+
+Accordingly, **"no other GPU job" is a requirement of this protocol and an operator responsibility; it is checked, not
+enforced, and checked only to the extent set out above.** Any report of a trial states that the gate ran, and states
+these limits with it.
 
 ### 5.8 Pre-freeze out-of-design phase
 

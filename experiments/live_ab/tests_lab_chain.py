@@ -1378,7 +1378,10 @@ class SchemaTests(TempTree):
 
     def test_every_event_type_has_a_valid_synthetic_body(self) -> None:
         lab_eventlog.set_roster_uids(['mbpp/1'])
-        self.assertEqual(len(EVENT_SCHEMA), 47)
+        # 47 event types of ARCHITECTURE_FINAL.md 4.3/4.4, plus the two the host
+        # quiescence gate of protocol 5.7 adds: host_quiescence_refused (program chain)
+        # and foreign_load_detected (trial chain).
+        self.assertEqual(len(EVENT_SCHEMA), 49)
         for etype in sorted(EVENT_SCHEMA):
             with self.subTest(etype=etype):
                 validate_event(etype, synth_body(etype))

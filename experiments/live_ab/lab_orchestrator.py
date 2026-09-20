@@ -45,6 +45,7 @@ import lab_coin
 import lab_data
 import lab_enclosure
 import lab_eventlog
+import lab_hostcheck
 import lab_monitor
 import lab_reference_rule
 import lab_server
@@ -494,6 +495,68 @@ def preflight(ctx: RunContext) -> dict:
     if failed:
         raise PreflightError(','.join(sorted(set(failed))))
     return drift
+
+
+# ---------------------------------------------------------------------------
+# host quiescence (protocol 5.7, lab_hostcheck)
+# ---------------------------------------------------------------------------
+def host_scan_is_required(cfg: Mapping) -> bool:
+    """[pure] Whether this invocation must hold the host to protocol 5.7.
+
+    A simulated invocation starts no server and makes no model call, so there is no
+    latency measurement for a foreign accelerator load to corrupt and nothing to protect.
+    Every other invocation is gated, and there is deliberately NO key that turns the gate
+    off for a real one: the whole point of 5.7 is that the primary endpoint rides on the
+    latency tier, and a gate an operator can switch off is a gate that will be off."""
+    return not runtime(cfg).get('sim')
+
+
+def own_harness_pids(world: 'World | None' = None) -> set[int]:
+    """This orchestrator, plus the servers and workers it started.
+
+    Descendants are added by the scan itself, so a server started through a shell is
+    covered by the shell's pid alone."""
+    pids = {os.getpid()}
+    if world is not None:
+        pids |= {int(p) for p in world.server_pids.values() if p}
+        pids |= {int(a.pid) for a in world.attempts.values() if getattr(a, 'pid', 0)}
+    return pids
+
+
+def host_quiescence_gate(ctx: RunContext) -> lab_hostcheck.ScanResult | None:
+    """The HARD gate of protocol 5.7, run before a trial may open its chain.
+
+    Returns the clean scan, returns None when this invocation is not gated, and otherwise
+    raises ``lab_hostcheck.HostNotQuiescent`` -- which is a ``PreflightError`` -- naming
+    the offenders.  It refuses on an unproven host as well as on a dirty one."""
+    if not host_scan_is_required(ctx.cfg):
+        return None
+    return lab_hostcheck.preflight_host_quiescent(own_harness_pids())
+
+
+def write_host_quiescence_refused(ctx: RunContext,
+                                  exc: lab_hostcheck.HostNotQuiescent) -> None:
+    """Name the offenders in the PROGRAM chain, beside the ``preflight_refused`` that
+    carries the closed reason code.  Before a trial's seq 0 there is no trial chain to
+    write to, exactly as for every other refusal (critic N1)."""
+    rt = runtime(ctx.cfg)
+    events_dir = Path(rt['results_root']) / lab_common.PROGRAM_CHAIN_ID / 'events'
+    scan = lab_hostcheck.ScanResult(findings=list(exc.findings),
+                                    degraded=list(exc.degraded))
+    body = dict(lab_hostcheck.chain_body(scan), trial=ctx.trial, point='trial_start')
+    try:
+        log = EventLog(events_dir, lab_common.PROGRAM_CHAIN_ID, ctx.bundle_sha, ctx.inv,
+                       create=not lab_eventlog.segment_paths(events_dir))
+    except ChainError:
+        return
+    try:
+        log.append('host_quiescence_refused', body, durable=True)
+    except lab_common.SchemaError:
+        # A record we cannot write in the schema's vocabulary must not take the refusal
+        # down with it: the refusal itself is already carried by preflight_refused.
+        pass
+    finally:
+        log.close()
 
 
 def git_identity(repo: Path | None = None) -> dict:
@@ -1085,6 +1148,27 @@ class World:
             self.append('metrics_scrape', {
                 'server_id': server_id, 'point': point, 'ok': ok, 'counters': counters,
                 'tries': tries, 'unreconciled': not ok}, durable=True)
+        self.host_scan(point)
+
+    def host_scan(self, point: str) -> None:
+        """protocol 5.7 inside a running trial: the OBSERVING half of the gate.
+
+        It never raises and never stops the trial -- a mid-trial refusal would throw away
+        the pairs already enrolled, and the decision about contention belongs to the
+        operator and to the analysis.  What it must do is leave a record: the event is
+        written whether or not anything was found, so that a reader can see positively
+        that the host was scanned at this point and what was seen."""
+        # `self.cfg` is the FROZEN projection and carries no runtime overlay, so the
+        # simulation predicate must be read from the context's own configuration.
+        if point not in ('trial_start', 'quiescent') \
+                or not host_scan_is_required(self.ctx.cfg):
+            return
+        scan = lab_hostcheck.soft_host_check(own_harness_pids(self))
+        try:
+            self.append('foreign_load_detected',
+                        dict(lab_hostcheck.chain_body(scan), point=point), durable=True)
+        except lab_common.SchemaError as exc:                # pragma: no cover - belt
+            self.findings.append(f'host_scan_unwritable:{type(exc).__name__}')
 
     def _sim_counters(self, server_id: str) -> dict:
         """In a simulated run the counters are the exact sum of the receipted usage, so the
@@ -2378,6 +2462,17 @@ def run_trial(ctx: RunContext, *, resume: bool = True) -> str:
             rt['drift'] = drift
         except PreflightError as exc:
             write_preflight_refused(ctx, str(exc))
+            return 'aborted'
+        # protocol 5.7.  Last of the pre-seq-0 refusals, because it is the only one that
+        # reads the rest of the machine: a foreign accelerator job is reported by name and
+        # a host the scan could not read is refused as well.
+        try:
+            host_quiescence_gate(ctx)
+        except lab_hostcheck.HostNotQuiescent as exc:
+            # The closed reason code first, as for every other refusal; then the record
+            # that names the offenders, which only this gate can write.
+            write_preflight_refused(ctx, 'host_not_quiescent')
+            write_host_quiescence_refused(ctx, exc)
             return 'aborted'
         lock.acquire()
         world.integrity_paths, world.integrity_digests = integrity_baseline(ctx)
