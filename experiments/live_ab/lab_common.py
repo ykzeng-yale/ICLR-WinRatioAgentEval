@@ -237,6 +237,17 @@ def _sysctl(name: str) -> str:
     return out.stdout.decode('utf-8', 'replace').strip()
 
 
+def hardware_identity() -> str:
+    """The single string ``hardware_allowlist`` lists, e.g. ``'arm64-darwin'``.
+
+    ``hardware_info()`` is the full provenance record written at trial start; this is the
+    coarse identity the frozen allowlist is expressed in, so that preflight can *compare*
+    the running host with the allowlist instead of merely recording it afterwards
+    (provenance review section 3: "Hardware is recorded at trial start rather than compared
+    with the allowlist in the inspected preflight")."""
+    return '%s-%s' % (platform.machine(), sys.platform)
+
+
 def hardware_info() -> dict:
     """Host provenance in a form the event-schema string discipline accepts: the CPU brand
     string is carried as a digest, never as free text."""
@@ -347,13 +358,142 @@ def build_freeze_bundle(parts: dict) -> dict:
 
 
 def freeze_bundle_sha256(bundle: dict) -> str:
-    """[pure] The genesis anchor value of the program chain and of the four trial chains."""
+    """[pure] The genesis anchor value of the program chain and of the four trial chains.
+
+    THE ONE CANONICAL DIGEST CONVENTION.  A freeze bundle's identity is the sha256 of the
+    canonical JSON of its **object**, never of the bytes of the file that happens to carry
+    it.  Hashing raw file bytes gives a different digest for a pretty-printed copy of the
+    same bundle (provenance review section 3, ``freeze_bundle_drift`` in the root's
+    witness), so every producer and consumer of a bundle digest -- the orchestrator CLI,
+    preflight, the verifier, the anchor and the report builder -- goes through this
+    function or through ``freeze_bundle_sha256_of_file`` below, and none of them calls
+    ``sha256_file`` on ``freeze_bundle.json``."""
     return sha256_canonical(bundle)
+
+
+def load_freeze_bundle(path: str | Path) -> dict:
+    """Read a freeze bundle from disk.  Raises ``FreezeIncomplete`` on unreadable bytes or
+    on anything that is not a JSON object, so a corrupt bundle fails closed rather than
+    escaping preflight as a bare ``ValueError``."""
+    try:
+        obj = json.loads(Path(path).read_text(encoding='utf-8'))
+    except (OSError, ValueError) as exc:
+        raise FreezeIncomplete('freeze bundle at %s is unreadable: %s'
+                               % (tokenize_path(path), type(exc).__name__)) from None
+    if not isinstance(obj, dict):
+        raise FreezeIncomplete('freeze bundle at %s is not a JSON object'
+                               % (tokenize_path(path),))
+    return obj
+
+
+def freeze_bundle_sha256_of_file(path: str | Path) -> str:
+    """The canonical digest of the bundle stored at ``path`` (see ``freeze_bundle_sha256``).
+
+    This is what a caller that has a *path* must use.  ``sha256_file(path)`` is the raw-byte
+    digest of the same file and is NOT the bundle's identity."""
+    return freeze_bundle_sha256(load_freeze_bundle(path))
 
 
 def harness_file_hashes() -> dict[str, str]:
     """sha256 of every HARNESS_FILES entry, keyed by bare file name."""
     return {name: sha256_file(HERE / name) for name in HARNESS_FILES}
+
+
+# ---- freeze-bundle MEMBER verification -------------------------------------
+# A bundle whose canonical digest still matches the approved one proves exactly one thing:
+# that nobody edited the bundle.  It proves nothing whatever about the artifacts the bundle
+# NAMES.  The root's executed witness (provenance review section 3) kept an unchanged bundle
+# carrying the original `config_sha256`, changed `monitor.delta` from .03 to .04, and
+# preflight returned `[]`.  The two tuples below partition FREEZE_BUNDLE_KEYS into the
+# members a run-time artifact determines -- which preflight recomputes and compares, one by
+# one -- and the members nothing at run time determines, which are bound by the bundle digest
+# alone.  The second list is DECLARED rather than silently skipped.
+
+#: Recomputed from the deposited freeze tree and the working copy at every invocation.
+BUNDLE_MEMBERS_RECOMPUTED: tuple[str, ...] = (
+    'protocol_version', 'config_sha256', 'rule_block_sha256', 'roster_sha256',
+    'task_content_sha256', 'arrival_order_sha256', 'harness_file_sha256',
+    'reused_file_sha256', 'winstats_sha256', 'gguf_sha256', 'serving_manifest_sha256',
+    'golden_props_sha256', 'golden_generation_settings_sha256', 'receipt_mask_sha256',
+    'sandbox_profile_sha256', 'containment_probe_sha256', 'environment_lock_sha256',
+    'hardware_allowlist')
+
+#: Named by the bundle but not determined by any artifact a run can read: the protocol
+#: document, the run book, the licence evidence, the derivation and planning records and the
+#: three pre-freeze chain facts.  Covered by the bundle digest only.
+BUNDLE_MEMBERS_NOT_RECOMPUTED: tuple[str, ...] = (
+    'protocol_sha256', 'run_book_sha256', 'license_evidence_sha256', 'derivation_sha256',
+    'planning_sha256', 'prefreeze_head', 'prefreeze_bytes', 'prefreeze_file_sha256')
+
+#: The ``found`` value of a drift row for a member the bundle records and nothing observed.
+MEMBER_ABSENT: str = '0' * 64
+
+_SHA256_RE = re.compile(r'^[0-9a-f]{64}$')
+
+
+def _member_digest(value: object) -> str:
+    """The 64-hex form every drift row must carry (event schema ``DRIFT_LIST``, PG-11): a
+    recorded sha256 stands for itself, anything else travels as the sha256 of its canonical
+    JSON, so no free text and no path ever reaches the chain."""
+    if isinstance(value, str) and _SHA256_RE.match(value):
+        return value
+    return sha256_canonical(value)
+
+
+def _member_item(member: str, key: str | None = None) -> str:
+    """A drift ``item`` label (``_LABEL_RE``: 1-64 chars of ``[A-Za-z0-9_.+-]``)."""
+    label = member if key is None else '%s.%s' % (member, re.sub(r'[^A-Za-z0-9_.+-]', '-',
+                                                                 str(key)))
+    return label[:64]
+
+
+def verify_bundle_members(bundle: dict, observed: dict) -> list[dict]:
+    """[pure] Drift rows for every recomputable bundle member that does not match.
+
+    ``bundle`` is the approved freeze bundle, held FIXED; ``observed`` is what
+    ``lab_orchestrator.observed_bundle_members`` recomputed from the deposited freeze tree
+    and the working copy.  Returns ``[{'item', 'expected', 'found'}]``, empty when every
+    recomputable member agrees.
+
+    * A member the bundle records and ``observed`` does not carry is drift, with
+      ``found = MEMBER_ABSENT``: an artifact the freeze names must be there to be checked.
+    * A dict-valued member (``harness_file_sha256``, ``gguf_sha256``, the per-trial
+      ``arrival_order_sha256``, the two golden tables) is compared key by key over the UNION
+      of the recorded and observed keys, so an edited file, a removed file and a newly added
+      file each produce their own row.
+    * ``BUNDLE_MEMBERS_NOT_RECOMPUTED`` is not examined here; those members are bound by the
+      bundle digest alone and that limit is stated, not hidden.
+    """
+    if not isinstance(bundle, dict) or not isinstance(observed, dict):
+        raise FrozenMismatch('verify_bundle_members takes two dicts')
+    rows: list[dict] = []
+    for member in BUNDLE_MEMBERS_RECOMPUTED:
+        if member not in bundle:
+            continue
+        want = bundle[member]
+        if member not in observed:
+            rows.append({'item': _member_item(member), 'expected': _member_digest(want),
+                         'found': MEMBER_ABSENT})
+            continue
+        got = observed[member]
+        if isinstance(want, dict) or isinstance(got, dict):
+            if not (isinstance(want, dict) and isinstance(got, dict)):
+                rows.append({'item': _member_item(member),
+                             'expected': _member_digest(want),
+                             'found': _member_digest(got)})
+                continue
+            for key in sorted(set(want) | set(got)):
+                if key in want and key in got and want[key] == got[key]:
+                    continue
+                rows.append({
+                    'item': _member_item(member, key),
+                    'expected': _member_digest(want[key]) if key in want else MEMBER_ABSENT,
+                    'found': _member_digest(got[key]) if key in got else MEMBER_ABSENT})
+            continue
+        if want != got:
+            rows.append({'item': _member_item(member), 'expected': _member_digest(want),
+                         'found': _member_digest(got)})
+    return rows
 
 
 RULE_BLOCK_KEYS: tuple[str, ...] = (

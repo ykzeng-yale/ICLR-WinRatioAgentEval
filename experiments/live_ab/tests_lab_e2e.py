@@ -459,17 +459,21 @@ class SwitchTests(unittest.TestCase):
         finally:
             tree.close()
 
-    def test_t4_payload_identity_breaks_when_a_pair_spans_two_invocations(self) -> None:
-        """A DOCUMENT DEFECT, asserted rather than hidden.
+    def test_t4_payload_identity_survives_a_pair_spanning_two_invocations(self) -> None:
+        """The repair of execution-review E3, asserted on the path that used to break.
 
-        ``Job`` (ARCHITECTURE 3.12) carries ``inv``, and the frozen removal list of PG-14 /
-        protocol 12.3 does **not** remove it, so the canonical payloads of the two episodes
-        of a T4 pair differ whenever one position is dispatched by a later invocation --
-        which is exactly protocol 6.4 rows 11c to 11e.  ``t4.payload_identity`` is a FAIL on
-        condition list B, so this false positive would drop claims 2-5 and 7 for T4.  The
-        integrator implements the removal list verbatim and reports it; the one-word repair
-        is to add ``inv`` to that list, for the same reason ``worker_index`` is already in
-        it: the invocation id is a property of the dispatch, not of the arm."""
+        This test previously asserted the DEFECT: ``Job`` (ARCHITECTURE 3.12) carries
+        ``inv``, the removal list of PG-14 / protocol 12.3 did not remove it, so the
+        canonical payloads of the two episodes of a T4 pair differed whenever one position
+        was dispatched by a later invocation -- which is exactly what protocol 6.4 rows 11c
+        to 11e permit after a crash.  ``t4.payload_identity`` is a FAIL on condition list B,
+        so the false positive would have dropped claims 2-5 and 7 for T4 on a run in which
+        nothing scientific had changed.
+
+        ``inv`` is now in the removal list, for the same reason ``worker_index`` always was:
+        the invocation id is a property of the dispatch, not of the arm.  The trial is still
+        killed at the second coin and resumed, so pair 2 still genuinely spans two
+        invocations -- what changed is the verdict."""
         tree = Tree(pairs=4, trial='T4')
         try:
             self.assertEqual(tree.run(kill={'id': 'coin_drawn', 'event': 'coin_drawn',
@@ -477,8 +481,7 @@ class SwitchTests(unittest.TestCase):
             tree.run(resume=True)
             report = tree.verify()
             fails = [f.check for f in report.findings if f.severity == 'FAIL']
-            self.assertEqual(fails, ['t4.payload_identity'],
-                             'the defect changed shape: %r' % fails)
+            self.assertEqual(fails, [], 'a resumed A/A pair must not fail: %r' % fails)
             jobs = {int(json.loads(p.read_text('utf-8'))['arrival']): json.loads(
                 p.read_text('utf-8'))
                 for p in (tree.work / 'T4' / 'jobs').glob('job_*.json')}
@@ -489,12 +492,15 @@ class SwitchTests(unittest.TestCase):
             self.assertEqual(len(invs), 2, 'the pair did not span two invocations')
             payloads = {canonical_json(orch.canonical_job_payload(jobs[a]))
                         for a in spanning}
-            self.assertEqual(len(payloads), 2)
-            without_inv = {canonical_json({k: v for k, v in
-                                           orch.canonical_job_payload(jobs[a]).items()
-                                           if k != 'inv'}) for a in spanning}
-            self.assertEqual(len(without_inv), 1,
-                             'removing inv is the whole repair, and it is sufficient')
+            self.assertEqual(len(payloads), 1,
+                             'the invocation id still reaches the canonical payload')
+            self.assertNotIn('inv', orch.canonical_job_payload(jobs[spanning[0]]))
+            # and the check still has teeth: real configuration drift between the two
+            # episodes of the pair must still be a FAIL.
+            drifted = dict(jobs[spanning[1]], workflow='self_test_repair')
+            self.assertNotEqual(
+                canonical_json(orch.canonical_job_payload(jobs[spanning[0]])),
+                canonical_json(orch.canonical_job_payload(drifted)))
         finally:
             tree.close()
 
@@ -560,6 +566,48 @@ class ResumeTests(unittest.TestCase):
         self.assertIn(second, ('ended', 'aborted'),
                       'the resumed invocation ended as %r' % second)
         return tree
+
+    def test_seed_registry_survives_a_crash_and_stays_unique(self) -> None:
+        """Execution review E2, on the path where the registry can actually go stale.
+
+        The trial is killed just after a worker durably spooled a ``call_started`` -- so a
+        seed exists that the orchestrator may not have flushed -- and then resumed.  What
+        must hold afterwards:
+
+          * the resumed invocation rebuilt the program-wide set from the spools, so no seed
+            the crashed invocation committed to was forgotten;
+          * the file on disk agrees exactly with the chain, rather than being behind it;
+          * and every seed in the chain is distinct, which is the promise of protocol 5.5
+            that had no writer at all before this repair.
+        """
+        tree = self._kill_and_resume({'id': 'call_started', 'spool': 'call_started',
+                                      'nth': 3})
+        try:
+            self.assertEqual(tree.verify().verdict, 'PASS')
+            events = tree.events()
+            chain = [e['body']['seed'] for e in events if e['type'] == 'llm_request']
+            self.assertGreater(len(chain), 2, 'the fixture ran too few requests to test')
+            self.assertEqual(len(set(chain)), len(chain),
+                             'a seed was drawn twice across the crash boundary')
+            registry = orch.seed_registry_path(tree.work)
+            self.assertTrue(registry.exists(),
+                            'no invocation ever wrote the used-seed registry')
+            on_disk = json.loads(registry.read_text('utf-8'))
+            self.assertEqual(on_disk, sorted(on_disk), 'the registry is written sorted')
+            self.assertEqual(set(on_disk), set(chain),
+                             'the registry and the chain disagree about what was used')
+            # the crash-durable half: the file is recoverable from the spools alone
+            registry.unlink()
+            self.assertEqual(orch.seed_registry_reconstruct(tree.work), set(chain))
+            # ... and a worker starting now would load exactly its own half
+            orch.write_seed_registry(registry,
+                                     orch.seed_registry_reconstruct(tree.work))
+            import lab_client
+            halves = [lab_client.load_used_seeds(registry, i) for i in (0, 1)]
+            self.assertEqual(halves[0] | halves[1], set(chain))
+            self.assertEqual(halves[0] & halves[1], set())
+        finally:
+            tree.close()
 
     def test_resume_kill_points(self) -> None:
         """A kill at each point of protocol 14.5 / 9.2: after each one, resume yields a

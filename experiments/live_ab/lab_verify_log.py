@@ -937,11 +937,85 @@ def _verify_trial(trial: str, freeze_bundle_sha256: str, *, mode: str = 'full',
     return _finish(col, trial, mode)
 
 
+def program_seed_collisions(trial: str, events: Sequence[Mapping],
+                            seed_owner: dict[int, str]) -> list[dict]:
+    """``seeds.unique`` ACROSS trial chains (protocol 5.5; execution review E2).
+
+    The per-trial check in ``_verify_trial`` sees one chain and therefore cannot see the
+    collision the program-wide seed registry exists to prevent: the same seed drawn again in
+    a LATER trial of the same program.  ``seed_owner`` carries "seed -> first trial and
+    request that used it" from one trial to the next and is MUTATED here, so calling this
+    over the trials in frozen order reports each repeat once, against its first user.
+
+    Severity is unchanged -- ``seeds.unique`` is a DEFECT, never a FAIL -- because seeds are
+    not part of any guarantee and a collision never invalidates a trial (protocol 5.5 and
+    6.4 row 19).  What changes is that the defect is detectable at all."""
+    out: list[dict] = []
+    for ev in events:
+        if ev['type'] != 'llm_request':
+            continue
+        seed = int(ev['body']['seed'])
+        here = '%s:%s' % (trial, ev['body']['request_id'])
+        first = seed_owner.get(seed)
+        if first is None:
+            seed_owner[seed] = here
+        else:
+            out.append({'seed': seed, 'first': first, 'again': here,
+                        'scope': 'program', 'seq': ev['seq']})
+    return out
+
+
+def _unknown_usage_requests(events: Sequence[Mapping]) -> dict[str, int]:
+    """``request_id -> arrival`` for every started request with no complete usage receipt.
+
+    The verifier's own reading of the same rule the orchestrator applies in
+    ``lab_orchestrator.unknown_usage_by_request``; the two are written and maintained
+    separately and their ledgers are compared byte for byte, so this one must not be edited
+    into a copy of that one.  Per request id the chain can be in exactly one of three
+    states, and only ``receipted`` means the consumed tokens are known:
+
+      * ``receipted``  -- an ``llm_response`` (which always carries ``usage``), or an
+                          ``llm_error`` declaring ``usage_known``;
+      * ``unreceipted``-- an ``llm_error`` without ``usage_known``;
+      * ``outstanding``-- an ``llm_request`` and nothing else, which is legal after
+                          ``worker_died`` / ``episode_timeout`` / ``interrupted`` (see the
+                          permission granted in ``_check_calls``) and which an earlier
+                          version of this recount scored as zero tokens.
+
+    The last two are both unknown.  Keying on the request id makes the count idempotent
+    under repeated or duplicated events."""
+    state: dict[str, str] = {}
+    arrival_of: dict[str, int] = {}
+    for ev in events:
+        etype = ev['type']
+        if etype not in ('llm_request', 'llm_response', 'llm_error'):
+            continue
+        body = ev['body']
+        rid = str(body['request_id'])
+        if 'arrival' in body:
+            arrival_of.setdefault(rid, int(body['arrival']))
+        if etype == 'llm_request':
+            state.setdefault(rid, 'outstanding')
+        elif etype == 'llm_response':
+            state[rid] = 'receipted'
+        elif body.get('usage_known', False):
+            state[rid] = 'receipted'
+        elif state.get(rid) != 'receipted':
+            state[rid] = 'unreceipted'
+    return {rid: arrival_of[rid] for rid, st in state.items()
+            if st != 'receipted' and rid in arrival_of}
+
+
 def _recount_exposure(events: Sequence[Mapping]) -> dict:
     """Per phase x arm: episodes, wall seconds, prompt/completion tokens, unknown-usage
-    calls.  Recomputed from the chain alone."""
+    calls.  Recomputed from the chain alone.
+
+    ``tokens_are_lower_bound`` is set whenever a call in that cell consumed tokens the
+    chain cannot report, so the ledger states its own incompleteness instead of presenting
+    an unknown as a zero."""
     out: dict = {phase: {arm: {'episodes': 0, 'wall_seconds': 0.0, 'prompt_tokens': 0,
-                               'completion_tokens': 0, 'unknown_usage_calls': 0}
+                               'completion_tokens': 0, 'unknown_usage_calls': 0,
+                               'tokens_are_lower_bound': False}
                          for arm in ARMS}
                  for phase in ('randomizing', 'post_decision')}
     arm_of_arrival: dict[int, str] = {}
@@ -958,16 +1032,16 @@ def _recount_exposure(events: Sequence[Mapping]) -> dict:
             row['wall_seconds'] += float(ev['body']['outcome']['latency_s'])
             row['prompt_tokens'] += int(ev['body']['outcome']['prompt_tokens'])
             row['completion_tokens'] += int(ev['body']['outcome']['completion_tokens'])
-    for ev in events:
-        if ev['type'] == 'llm_error' and not ev['body'].get('usage_known', False):
-            a = int(ev['body']['arrival'])
-            arm = arm_of_arrival.get(a)
-            phase = phase_of_arrival.get(a)
-            if arm is not None and phase is not None:
-                out[phase][arm]['unknown_usage_calls'] += 1
+    for a in _unknown_usage_requests(events).values():
+        arm = arm_of_arrival.get(a)
+        phase = phase_of_arrival.get(a)
+        if arm is not None and phase is not None:
+            out[phase][arm]['unknown_usage_calls'] += 1
     for phase in out:
         for arm in out[phase]:
             out[phase][arm]['wall_seconds'] = round(out[phase][arm]['wall_seconds'], 6)
+            out[phase][arm]['tokens_are_lower_bound'] = \
+                out[phase][arm]['unknown_usage_calls'] > 0
     return out
 
 
@@ -1019,6 +1093,7 @@ def verify_program(freeze_bundle_sha256: str, *,
     if closed != opened[:len(closed)]:
         col.add('program.order', {'closed': ','.join(closed), 'opened': ','.join(opened)})
     authorizations = {e['h'] for e in events if e['type'] == 'refreeze_authorization'}
+    seed_owner: dict[int, str] = {}                 # seed -> "<trial>:<request id>"
     for trial in frozen_order:
         tdir = rroot / trial / 'events'
         if not tdir.exists():
@@ -1035,7 +1110,11 @@ def verify_program(freeze_bundle_sha256: str, *,
                 col.add('program.order',
                         {'trial': trial, 'error': 'refreeze not authorized in the program '
                                                   'chain', 'refreeze': h})
+        for body in program_seed_collisions(trial, tread.events, seed_owner):
+            col.add('seeds.unique', {k: v for k, v in body.items() if k != 'seq'},
+                    seq=body['seq'])
     col.ok('program.order')
+    col.ok('seeds.unique')
     _check_host_scans(col, events, 'host_quiescence_refused', refusal=True)
     return _finish(col, '_program', 'full')
 

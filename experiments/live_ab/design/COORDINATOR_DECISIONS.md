@@ -186,16 +186,23 @@ wherever they differ. All of the following are adopted literally; none is negoti
     succeeding and the incumbent failing, both running means are 1.0, both lower bounds are 1 - r(100) = 0.534307,
     and BOTH GATES PASS. A deploy fires at the first permitted look.
     CORRECT STATEMENT, which is what the protocol already says (sections 1.4, 1.5 item 13, 11):
-      the deploy route requires an observed running success difference above r(N_P) - 0.03 = +0.1280 at n = 568;
-      the same-task pilot difference is 0.000000 with a paired standard error of 0.0151, so the threshold is about
-      8.5 standard errors away; the deploy route is therefore a PRE-SPECIFIED NEAR-CERTAIN ABSTENTION under
-      pilot-like outcomes, NOT a logical impossibility. If a deploy occurs it is reported normally, with no claim
-      that it was impossible.
+      at 568 completely observed pairs the declared success gate requires an observed running success difference
+      strictly above r(568) - 0.03 = 0.1279515124940428; IF the observed difference stays at zero the gate cannot
+      pass within this horizon. That is the whole of the statement. It is a conditional threshold calculation and
+      it does NOT calibrate the probability of a deployment or of an abstention.
+    SECOND WITHDRAWAL, 2026-09-20, after the root's statistics review: the replacement I wrote above originally
+    read "PRE-SPECIFIED NEAR-CERTAIN ABSTENTION" and justified it by the same-task pilot difference of 0.000000
+    with a paired standard error of 0.0151, "about 8.5 standard errors away". BOTH ARE WITHDRAWN. "Near-certain"
+    is still a probability claim I have not calibrated, and the 8.5-standard-error rationale uses the WRONG SCALE:
+    the same-task paired standard error describes paired comparisons on ONE task, whereas this trial pairs two
+    DIFFERENT tasks with one arm on each, so that quantity does not describe this design's variability at all and
+    must not appear as a rationale. No replacement scale is substituted, because I do not have a calibrated one.
+    The forbidden list below therefore also covers "near-certain" and the 8.5-standard-error argument.
     Likewise "the gate crosses at 92 pairs" is only the first n at which the radius falls below the PILOT effect
     magnitude 0.497, and the first permitted look is n_min = 100, so no decision can occur at 92 under this
     schedule. Whether any gate crosses is an outcome, not a plan.
-    The phrases "unreachable by construction", "impossible whatever the outcomes" and "guaranteed abstention" are
-    forbidden in every artifact of this program. delta = 0.03 and the frozen rule are unchanged.
+    The phrases "unreachable by construction", "impossible whatever the outcomes", "guaranteed abstention",
+    "near-certain abstention" and the 8.5-standard-error rationale are forbidden in every artifact of this program. delta = 0.03 and the frozen rule are unchanged.
 22. DISCLOSURE, correcting my own merge statement of 2026-09-19 ~21:00 UTC. I said the direct merge modified
     "0 root-owned files". My filter covered paper/, arxiv/, src/winstats, reviews/, and the status files; it did
     NOT cover results/. The merge did change three tracked CSVs that the root treats as frozen baselines:

@@ -492,8 +492,10 @@ class TestDecision(unittest.TestCase):
 
         With Dbar = 0 and n <= N_P <= 568 no prefix deploys, because r(n) >= r(568) = 0.158 and
         the success guard needs L_s = -r(n) > -0.03.  With a running success difference just
-        above r(n) - delta at the same n it DOES deploy: the near-certain abstention is a
-        property of the data, not of the rule.
+        above r(n) - delta at the same n it DOES deploy: abstention on the deploy route is a
+        property of the DATA, not of the rule.  The gate is a condition on the observed
+        difference, not a fixed sample-size requirement, so no outcome is excluded by
+        arithmetic and no probability of abstention is implied.
         """
         mc = mc_of()
         for n in (100, 150, 295, 400, 568):
@@ -947,6 +949,58 @@ class TestEnclosure(unittest.TestCase):
         with self.assertRaises(FrozenMismatch):
             MonitorConfig.from_config(frozen_config(), "T9")
 
+    def test_clip_is_frozen_at_the_known_range(self):
+        """Statistics review section 3: the clip is the KNOWN score range, not a window.
+
+        `from_config` used to accept any `-1 <= lo < hi <= 1` while its error message said the
+        clip was frozen at [-1, 1].  Intersecting the band with a narrower range is licensed
+        only when that range is known to contain the target, and no such narrower range is
+        known here, so a narrower clip does not tighten a display -- it manufactures a lower
+        endpoint.  Only the frozen range is accepted now.
+        """
+        for good in ([-1.0, 1.0], [-1, 1]):          # the int spelling is the same range
+            cfg = frozen_config()
+            cfg["monitor"]["clip"] = good
+            mc = MonitorConfig.from_config(cfg, "T4")
+            self.assertEqual((mc.clip_lo, mc.clip_hi), (-1.0, 1.0))
+        for bad in ([0.2, 1.0], [-1.0, 0.5], [-0.5, 0.5], [0.0, 1.0], [-1.0, 1.5], [-1.0, -1.0]):
+            cfg = frozen_config()
+            cfg["monitor"]["clip"] = bad
+            with self.assertRaises(FrozenMismatch, msg=f"clip {bad} was accepted"):
+                MonitorConfig.from_config(cfg, "T4")
+
+    def test_narrowed_clip_cannot_manufacture_a_deploy(self):
+        """The reviewer's witness, reproduced and then asserted to be REJECTED.
+
+        Before the repair: changing ONLY the clip to [0.2, 1.0] made `from_config` accept the
+        config, and at 100 completely observed ZERO-score pairs both reported lower endpoints
+        became 0.2, so `decide` returned `deploy_candidate` -- a deploy manufactured out of
+        data whose every pair scored 0, falsely excluding the possible target 0.
+
+        This asserts the witness config is now refused at load, and, at the frozen clip, that
+        the same 100 zero-score pairs decide NOTHING.  The scientific rule is untouched: only
+        the configuration validator changed.
+        """
+        witness = frozen_config()
+        witness["monitor"]["clip"] = [0.2, 1.0]      # the only deviation from the frozen config
+        with self.assertRaises(FrozenMismatch):
+            MonitorConfig.from_config(witness, "T4")
+
+        # and the same data under the frozen clip does not decide
+        mc = mc_of()
+        st = state_from_blocks(uniform_blocks(100, 0.0, 0.0), mc)
+        bh, bs = st.bands()
+        self.assertAlmostEqual(bh.lo, -independent_radius(100), places=12)
+        self.assertAlmostEqual(bs.lo, -independent_radius(100), places=12)
+        self.assertIsNone(mon.decide(st, mc), "zero-score pairs must not deploy")
+
+        # the dataclass itself refuses too, so no caller can bypass `from_config`
+        with self.assertRaises(FrozenMismatch):
+            MonitorConfig(
+                alpha_gate=ALPHA_GATE, rho=RHO, delta=DELTA, n_min=N_MIN, n_max=N_MAX,
+                clip_lo=0.2, clip_hi=1.0,
+            )
+
 
 # =============================================================================================
 # Containment: every ultimately revealed score lies inside every prior enclosure
@@ -1362,6 +1416,148 @@ class TestReplay(unittest.TestCase):
             set(snap["readouts"]), {"L_s_vs_010", "L_s_vs_015", "s1_restricted", "completed_prefix"}
         )
         self.assertEqual(json.loads(json.dumps(snap)), snap)  # JSON-ready
+
+
+# =============================================================================================
+# The active documents state a CONDITIONAL threshold, never a predicted outcome
+# =============================================================================================
+#: The binding documents.  The superseded drafts, audits, critic notes and planning records in
+#: design/ are deliberately NOT checked (and are not named here: audit M16 forbids citing them
+#: from any module): they are the historical record of what was believed at the time, and
+#: rewriting them would falsify that record rather than repair it.  The withdrawal is propagated
+#: into the documents that BIND, which are the two below.
+ACTIVE_DOCS: tuple[str, ...] = (
+    "design/protocol_FINAL.md",
+    "design/ARCHITECTURE_FINAL.md",
+)
+
+#: The audit-B4 guard in tests_lab_isolation.py forbids any *.py file from containing the word
+#: below, so -- exactly as that guard does with its own needle -- it is assembled at run time
+#: and never written literally in this file.
+_UNREACH = "unreach" + "able"
+
+#: Phrases that assert a deterministic or calibrated outcome.  Each is an ASSERTIVE construction,
+#: not the bare phrase, so the prohibition lists of protocol 1.5 item 13 and ARCHITECTURE 0 --
+#: which quote the bare phrases in order to forbid them -- do not match and stay legal.
+#: Sources: COORDINATOR_DECISIONS revision 5 ruling 21 (the withdrawal) and the bounded
+#: statistical review, section 1.
+ASSERTIVE_CLAIMS: tuple[str, ...] = (
+    "guaranteed-abstention deploy route",
+    "guaranteed abstention deploy route",
+    "a pre-specified near-certain abstention",
+    "a near-certain abstention",
+    "the near-certain abstention is",
+    "to be a near-certain abstention",
+    "declared a near-certain abstention",
+    "the " + _UNREACH[:-2] + "ility of",          # "the unreachability of"
+    _UNREACH[:-2] + "ility result",               # "unreachability result"
+    "is therefore " + _UNREACH,
+    _UNREACH + " by construction at this scale",
+    "decision is " + _UNREACH,
+    "impossible whatever the outcomes, whatever",  # the withdrawn assertion, not the quote
+    "paired standard errors above",
+    "the threshold is about 8.5",
+    "8.5 paired standard errors above",
+    "margin the data cannot reach",
+    "the data cannot reach",
+    "a margin this horizon was not expected to reach",
+)
+
+
+class TestActiveClaimLanguage(unittest.TestCase):
+    """COORDINATOR_DECISIONS revision 5 ruling 21 withdrew the claim that a deploy decision
+    could not be reached whatever the outcomes, and with it "guaranteed abstention",
+    "near-certain abstention" and the deterministic "the gate will cross at n". (The withdrawn
+    wording itself is not quoted here: audit B4 forbids it in any .py file.) It reached only
+    COORDINATOR_DECISIONS.md while the binding documents still said the opposite; these tests
+    keep it propagated.
+
+    The gate is `mean_success_difference - r(n) > -delta`: a condition on the DATA, not a fixed
+    sample-size requirement. Threshold arithmetic conditional on an assumed observed value is
+    legitimate and is kept; a probability of deployment or abstention is not claimed anywhere.
+    """
+
+    @staticmethod
+    def _normalized(rel: str) -> str:
+        """Whitespace-collapsed text, so a claim split across wrapped lines still matches."""
+        import re
+        return re.sub(r"\s+", " ", (HERE / rel).read_text(encoding="utf-8"))
+
+    def test_no_active_document_asserts_a_deterministic_outcome(self):
+        for rel in ACTIVE_DOCS:
+            text = self._normalized(rel).lower()
+            for claim in ASSERTIVE_CLAIMS:
+                with self.subTest(doc=rel, claim=claim):
+                    self.assertNotIn(
+                        claim.lower(), text,
+                        f"{rel} asserts {claim!r}: whether a gate crosses is an outcome, not a "
+                        f"plan (COORDINATOR_DECISIONS ruling 21)",
+                    )
+
+    def test_the_pilot_standard_error_is_never_a_rationale(self):
+        """The same-task paired pilot s.e. does not describe this trial, whose pairs put ONE
+        TASK ON EACH ARM, so it must not appear as a scale for any threshold of this trial.
+
+        Every surviving mention must be inside a sentence that REJECTS its use.
+        """
+        import re
+        for rel in ACTIVE_DOCS:
+            text = self._normalized(rel)
+            for m in re.finditer(r"standard error", text, re.I):
+                window = text[max(0, m.start() - 320):m.end() + 320].lower()
+                with self.subTest(doc=rel, at=m.start()):
+                    self.assertTrue(
+                        any(k in window for k in
+                            ("forbidden", "must not", "does not describe",
+                             "does **not** describe", "is void", "never used as a rationale")),
+                        f"{rel} uses a standard error near offset {m.start()} without "
+                        f"rejecting it as a scale for this trial",
+                    )
+
+    def test_the_declared_threshold_matches_the_frozen_radius(self):
+        """The number the protocol states is not hand-typed folklore: it is r(568) - delta,
+        recomputed here from the pinned winstats and from the independent formula."""
+        n_p, delta = 568, DELTA
+        from_winstats = float(
+            winstats.normal_mixture_radius(n_p, alpha=ALPHA_GATE, rho=RHO, variance_process=n_p)
+        )
+        self.assertAlmostEqual(from_winstats, independent_radius(n_p), places=15)
+        threshold = from_winstats - delta
+        self.assertAlmostEqual(threshold, 0.1279515124940428, places=15)
+
+        protocol = self._normalized(ACTIVE_DOCS[0])
+        self.assertIn("0.1279515", protocol,
+                      "protocol_FINAL no longer states the recomputed success threshold")
+        # and the zero-difference reachability index, also recomputed rather than quoted
+        n = 1
+        while independent_radius(n) >= delta:
+            n += 1
+        self.assertEqual(n, 17097)
+        self.assertIn("17,097", protocol)
+
+    def test_the_counterexample_to_the_withdrawn_claim_really_deploys(self):
+        """Ruling 21's verified counterexample, re-executed rather than quoted: at n = 100 with
+        every resolved pair favouring the candidate, BOTH gates pass and a deploy fires at the
+        first permitted look. This is why no document may deny that the deploy route can be
+        reached."""
+        mc = mc_of()
+        st = state_from_blocks(uniform_blocks(100, 1.0, 1.0), mc)
+        bh, bs = st.bands()
+        self.assertAlmostEqual(bh.lo, 1.0 - independent_radius(100), places=12)
+        self.assertAlmostEqual(bh.lo, 0.5343070794820347, places=12)
+        got = mon.decide(st, mc)
+        self.assertIsNotNone(got, "the withdrawn claim would require this to be None")
+        self.assertEqual(got.kind, "deploy_candidate")
+        self.assertEqual(got.n, N_MIN)
+
+    def test_section_1_3_heading_declares_a_feasibility_study(self):
+        heading = [ln for ln in (HERE / ACTIVE_DOCS[0]).read_text(encoding="utf-8").splitlines()
+                   if ln.startswith("### 1.3 ")]
+        self.assertEqual(len(heading), 1, "section 1.3 heading not found exactly once")
+        self.assertIn("prospective feasibility study", heading[0].lower())
+        for banned in ("guaranteed", _UNREACH[:-2], "near-certain"):
+            self.assertNotIn(banned, heading[0].lower(),
+                             f"the 1.3 heading still carries {banned!r}")
 
 
 # =============================================================================================

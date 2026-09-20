@@ -17,9 +17,26 @@ IT STARTED when the timeout expires, so the `ps`/`lsof` readers this module spaw
 killed by the standard-library timeout path.  No process this module FINDS is ever
 signalled, which is the property the tests enforce.)
 
-WHAT THIS GATE PROVES, AND WHAT IT DOES NOT (PREREG_CHECK C.3).  Read this before writing
-any sentence claiming that "no other GPU job" is enforced.  A scan reports a foreign
-accelerator consumer when, and only when, one of these holds:
+WHAT A SCAN REPORTS, AND WHAT IT DOES NOT ESTABLISH (PREREG_CHECK C.3; COORDINATOR_DECISIONS
+ruling 31(e); reviews/arxiv_baseline_daemon_policy_review.md clarification 3).  Read this
+before writing any sentence claiming that "no other GPU job" is enforced.  A scan reports
+what the detector saw at the instants it looked, and nothing beyond that.  The single
+statement a scan supports is this one:
+
+    At the recorded scans, the detector reported no non-baseline process satisfying the
+    frozen detection criteria above the frozen resident-size floor, and every frozen
+    baseline process it did find is recorded with its measured CPU delta.
+
+That is a report about a detector at a few instants, not a description of the machine
+between them.  In particular, the CPU-time deltas of the baseline activity test measure
+CPU ACTIVITY; they do NOT establish accelerator activity, and they do not establish
+accelerator inactivity.  A process can keep the GPU saturated while accumulating almost no
+CPU time, and a process can burn CPU while touching no accelerator at all.  Nothing in this
+module, in tests_lab_hostcheck.py or in protocol 5.7 may turn a scan into a statement that
+the machine was doing no accelerator work, and no report may promote a scan into a claim of
+continuous accelerator isolation over the trial window.
+
+A scan reports a foreign accelerator consumer when, and only when, one of these holds:
 
   * the command names a known runner by exact token (RUNNER_TOKENS: llama-server,
     llama-cli, mlx_lm, ollama, vllm and spelling variants), or
@@ -45,6 +62,46 @@ an OSError -- and there was at least one process it needed to interrogate, the s
 a `degraded` marker naming the cause and `preflight_host_quiescent` RAISES.  An unprovable
 host is not a clean host.  An empty `findings` list means "nothing found" only when
 `degraded` is also empty.
+
+THE FROZEN BASELINE ALLOWANCE (COORDINATOR_DECISIONS ruling 31, revision 8, which withdrew
+and replaced BOTH the identity-only allowlist of ruling 28 and the refuse-on-possession
+option of ARCHITECTURE_FINAL 3.17.1).  Two kinds of accelerator consumer are treated
+differently, and the difference is measured rather than assumed:
+
+  * 31(a) a NON-BASELINE consumer -- another experiment, another project, a user's model
+    server -- REFUSES ON PRESENCE.  There is no activity test for it and no override.  A
+    loaded model server exists in order to be used.
+  * 31(b) a BASELINE process is one whose argv[0] is EXACTLY EQUAL to an entry of the
+    frozen, closed list BASELINE_EXECUTABLES.  It refuses only when it is ACTIVE by a test
+    fixed in advance: cumulative CPU time sampled at t and t + BASELINE_ACTIVITY_INTERVAL_S
+    seconds, active iff the delta exceeds BASELINE_ACTIVITY_THRESHOLD_MS milliseconds of
+    CPU time.  Idle-but-resident is recorded and does not refuse.
+  * 31(d) every baseline process the scan finds is recorded at EVERY scan, active or not,
+    with its elapsed time, resident size and CPU delta, so that `clean` is never a bare
+    assertion a reader has to take on trust.
+
+`match_baseline` is the whole identity rule and it is deliberately unforgiving: EXACT
+string equality against a resolved absolute executable path, argv[0] only, never a
+basename, never a substring, never a directory or framework prefix, and every entry must
+additionally sit under BASELINE_PATH_PREFIX so that no user-writable path can ever be added
+to the list.  `reviews/arxiv_baseline_daemon_policy_review.md` clarification 1 rejected the
+blanket `/System/` prefix of ruling 28 for exactly this reason: a prefix exempts an entire
+directory tree including binaries nobody has looked at.  A baseline daemon reached through
+a wrapper, a symlink or a copy does NOT match, and therefore refuses like any other
+non-baseline consumer.  That is the conservative direction of error, chosen on purpose.
+
+An activity measurement that could not be taken is UNKNOWN, never zero (clarification 2).
+`ACTIVITY_UNKNOWN` degrades the scan and the preflight refuses, so no baseline process is
+ever admitted on the strength of a measurement that did not happen.  A baseline process
+that exited between the two samples is `ACTIVITY_EXITED`: it is no longer contending, so
+that case records itself and does not degrade the scan.
+
+The policy is frozen BEFORE any trial and is bound by the freeze bundle, whose hash covers
+every file under `experiments/live_ab/` (protocol 14.2), so these constants cannot move
+without moving the bundle hash and invalidating the preflight.  `baseline_policy()` returns
+the same facts as a JSON-able object for deposit in the freeze deliverable.  Per 31(f) the
+thresholds are NOT tuned after a refusal: if this rule ever blocks a trial, the trial waits
+and the rule stays where it is.
 
 Identifier safety.  A finding is written into the public hash chain, so it must not carry an
 account name, a home directory, a foreign project's directory names or a remote address.
@@ -91,12 +148,93 @@ RUNNER_TOKENS: dict[str, str] = {
 
 METAL_PYTHON_LABEL = 'metal-python'
 METAL_PROCESS_LABEL = 'metal-process'
+# A frozen baseline process that FAILED the activity test of ruling 31(b).  It is the only
+# way a baseline identity becomes a refusal, and it is a finding like any other.
+BASELINE_ACTIVE_LABEL = 'baseline-active'
 
 # Every detector label this module can emit.  lab_eventlog transcribes this list into
 # E_HOST_DETECTOR so a finding entering the chain carries a closed-vocabulary label, and
 # tests_lab_hostcheck asserts the two lists agree.
 DETECTOR_LABELS: tuple[str, ...] = tuple(sorted(
-    set(RUNNER_TOKENS.values()) | {METAL_PYTHON_LABEL, METAL_PROCESS_LABEL}))
+    set(RUNNER_TOKENS.values())
+    | {METAL_PYTHON_LABEL, METAL_PROCESS_LABEL, BASELINE_ACTIVE_LABEL}))
+
+# ---------------------------------------------------------------------------
+# the frozen baseline allowance (COORDINATOR_DECISIONS ruling 31)
+# ---------------------------------------------------------------------------
+# THE CLOSED LIST.  Exact resolved absolute executable paths, one per entry, mapped to the
+# closed-vocabulary label under which the entry is recorded in the chain.  Clarification 1
+# of reviews/arxiv_baseline_daemon_policy_review.md rejects a blanket `/System/` or
+# framework-directory prefix and a name-only match, so this is neither: it is an equality
+# test against a path that was read off the serving host.
+#
+# The single entry was resolved on the serving host on 2026-09-20 with
+# `ps -axo pid=,ppid=,etime=,time=,rss=,command=`:
+#     pid 39197  elapsed 09:22:45  cumulative CPU 19:27.70  rss 372448 KiB
+#     /System/Library/PrivateFrameworks/MediaAnalysis.framework/Versions/A/mediaanalysisd
+# The same scan shows a DIFFERENT binary whose basename contains the same word,
+#     /System/Library/PrivateFrameworks/MediaAnalysisAccess.framework/Versions/A/
+#     XPCServices/mediaanalysisd-access.xpc/Contents/MacOS/mediaanalysisd-access
+# which is NOT on this list, does NOT match, and therefore refuses on presence like any
+# other consumer.  A name-only or prefix rule would have admitted it silently.
+BASELINE_EXECUTABLES: dict[str, str] = {
+    '/System/Library/PrivateFrameworks/MediaAnalysis.framework/Versions/A/mediaanalysisd':
+        'mediaanalysisd',
+}
+
+# Every entry must live under this prefix.  This is a second lock on the LIST, not a
+# matching rule for a process: it is what stops a user-writable path from ever being added.
+# A test asserts it over every entry.
+BASELINE_PATH_PREFIX = '/System/'
+
+# The closed vocabulary of baseline labels, transcribed into lab_eventlog's E_HOST_BASELINE.
+BASELINE_IDS: tuple[str, ...] = tuple(sorted(set(BASELINE_EXECUTABLES.values())))
+
+# ---- the activity test, frozen per ruling 31(b) and (f) --------------------
+# Cumulative CPU time sampled at t and t + BASELINE_ACTIVITY_INTERVAL_S; active iff the
+# delta EXCEEDS BASELINE_ACTIVITY_THRESHOLD_MS (strict >, so exactly 0.5 CPU-seconds is
+# idle).  NORMALIZATION: none.  The quantity is the raw difference of the cumulative CPU
+# time `ps` reports for the process, summed over its threads, in milliseconds.  It is NOT
+# divided by the sampling interval, NOT divided by the core count and NOT expressed as a
+# percentage, so a multi-threaded process can legitimately show a delta larger than the
+# interval.  The measurement that decided the rule (COORDINATOR_DECISIONS revision 8) was
+# taken in exactly these units: mediaanalysisd held a compute-class Metal resource with a
+# cumulative CPU time that did not move at all across three samples.
+BASELINE_ACTIVITY_INTERVAL_S = 10
+BASELINE_ACTIVITY_THRESHOLD_MS = 500
+
+# A second sample taken too soon is not the frozen measurement, and a short interval could
+# make a busy process look idle.  Below this measured wall interval the sample is discarded
+# as UNKNOWN rather than believed.  80% of the frozen interval.
+BASELINE_MIN_INTERVAL_MS = 8000
+
+# ---- what the activity test can say ---------------------------------------
+# A closed four-value vocabulary.  There is deliberately no boolean here: a boolean would
+# have to render an unmeasured process as `false`, which is the one thing clarification 2
+# forbids ("an unavailable measurement is unknown, not zero activity").
+ACTIVITY_ACTIVE = 'active'      # delta > threshold over a valid interval: REFUSES
+ACTIVITY_IDLE = 'idle'          # delta <= threshold over a valid interval: recorded only
+ACTIVITY_EXITED = 'exited'      # gone by the second sample: not contending, not degraded
+ACTIVITY_UNKNOWN = 'unknown'    # not measured: degrades the scan, so the preflight refuses
+BASELINE_ACTIVITY_VALUES: tuple[str, ...] = (
+    ACTIVITY_ACTIVE, ACTIVITY_EXITED, ACTIVITY_IDLE, ACTIVITY_UNKNOWN)
+
+# ---- the frozen scan cadence (ruling 31(c)) --------------------------------
+# The activity test runs at trial start AND at every quiescent scrape, which are exactly
+# the points at which the orchestrator scans the host at all: the hard gate immediately
+# before a trial chain is opened, then `World.host_scan` at these two scrape points.  A
+# scan that finds no baseline accelerator consumer runs no activity test and costs nothing;
+# a scan that finds one pays BASELINE_ACTIVITY_INTERVAL_S seconds, once, at that point.
+SCAN_POINTS: tuple[str, ...] = ('trial_start', 'quiescent')
+
+# THE TRIAL-OVERLAP FLAG, frozen here so that it is a reading rule and not a judgement call.
+# A trial's window overlaps materially active baseline load if and only if that trial's own
+# chain carries a `foreign_load_detected` record whose `baseline_active` is true.  The
+# structure decides it: a trial chain exists only while its trial is running, so every
+# record on it is inside the window, while the pre-trial gate's refusal lives on the PROGRAM
+# chain as `host_quiescence_refused` and belongs to a trial that never opened.  Nothing has
+# to be inferred from a timestamp.
+TRIAL_OVERLAP_RULE = 'foreign_load_detected_on_trial_chain_with_baseline_active'
 
 # ---- the two Metal marker families ----------------------------------------
 # COMPUTE class: an open resource that a process doing accelerator WORK maps.  ggml is the
@@ -149,11 +287,15 @@ CAUSE_LSOF_FAILED = 'lsof_failed'
 CAUSE_LSOF_INCOMPLETE = 'lsof_incomplete'
 CAUSE_PROBE_BUDGET = 'probe_budget_exhausted'
 CAUSE_SCAN_ERROR = 'scan_error'
+# ruling 31(b) with clarification 2: the activity test of at least one baseline process
+# could not be taken, so its activity is UNKNOWN.  Unknown is not idle, so this degrades
+# the scan and the preflight refuses.
+CAUSE_BASELINE_UNMEASURED = 'baseline_unmeasured'
 
 DEGRADED_CAUSES: tuple[str, ...] = (
     CAUSE_PS_UNAVAILABLE, CAUSE_PS_LINE_UNPARSED, CAUSE_LSOF_UNAVAILABLE,
     CAUSE_LSOF_TIMEOUT, CAUSE_LSOF_FAILED, CAUSE_LSOF_INCOMPLETE,
-    CAUSE_PROBE_BUDGET, CAUSE_SCAN_ERROR)
+    CAUSE_PROBE_BUDGET, CAUSE_BASELINE_UNMEASURED, CAUSE_SCAN_ERROR)
 
 # marker prefix -> cause.  Longest prefix wins, and an unrecognised marker maps to
 # CAUSE_SCAN_ERROR rather than being dropped: a marker we cannot classify is still a
@@ -168,6 +310,7 @@ _MARKER_CAUSES: tuple[tuple[str, str], ...] = (
     ('lsof-exit', CAUSE_LSOF_FAILED),
     ('lsof-failed', CAUSE_LSOF_FAILED),
     ('probe-budget', CAUSE_PROBE_BUDGET),
+    ('baseline-unmeasured', CAUSE_BASELINE_UNMEASURED),
 )
 
 
@@ -188,22 +331,40 @@ class HostNotQuiescent(lab_common.PreflightError):
 # ---------------------------------------------------------------------------
 # the process table
 # ---------------------------------------------------------------------------
-PS_ARGV: tuple[str, ...] = ('ps', '-axo', 'pid=,ppid=,etime=,rss=,command=')
+PS_ARGV: tuple[str, ...] = ('ps', '-axo', 'pid=,ppid=,etime=,time=,rss=,command=')
+
+# The SECOND sample of the baseline activity test (ruling 31(b)).  It asks for nothing but
+# the pid and the cumulative CPU time, because that is all the test needs and because a
+# second full command-line read would be a second copy of every foreign argv in memory.
+PS_CPU_ARGV: tuple[str, ...] = ('ps', '-axo', 'pid=,time=')
 
 # macOS ps renders elapsed time as [[DD-]HH:]MM:SS.  `etimes` (plain seconds) is a GNU
 # extension and is NOT available here, which this module verified on the target host.
 _ETIME_RE = re.compile(r'^(?:(\d+)-)?(?:(\d{1,3}):)?(\d{1,2}):(\d{2})$')
 
+# The TIME column is CUMULATIVE CPU time and its minutes field does NOT roll over into
+# hours on this platform: measured on the serving host, launchd showed `499:33.14` and
+# another daemon `839:44.16`, both well past 60 minutes.  The optional day and hour groups
+# are accepted anyway so that a platform which does roll over is read correctly, and the
+# minutes bound of `_ETIME_RE` is deliberately NOT applied here.
+_CPUTIME_RE = re.compile(r'^(?:(\d+)-)?(?:(\d+):)?(\d+):(\d{2})(?:\.(\d{1,2}))?$')
+
 
 @dataclass(frozen=True)
 class ProcRow:
     """One parsed line of the process table.  `command` is the raw, UNREDACTED text; it
-    never leaves this process except as a digest or as a redacted summary."""
+    never leaves this process except as a digest or as a redacted summary.
+
+    `cpu_ms` is the cumulative CPU time of the process in milliseconds, the FIRST sample of
+    the baseline activity test, and it is None when the TIME field could not be read.  None
+    is not zero: a baseline process whose first sample is None is reported UNKNOWN and the
+    scan degrades."""
     pid: int
     ppid: int
     elapsed_s: int
     rss_bytes: int
     command: str
+    cpu_ms: int | None = None
 
 
 def parse_etime(text: str) -> int | None:
@@ -221,6 +382,26 @@ def parse_etime(text: str) -> int | None:
     return days * 86400 + hours * 3600 + minutes * 60 + seconds
 
 
+def parse_cputime(text: str) -> int | None:
+    """[pure] A `ps` TIME field -> cumulative CPU MILLISECONDS; None if unreadable.
+
+    '0:00.00' -> 0, '19:27.70' -> 1167700, '499:33.14' -> 29973140, '1-02:03:04' -> a day
+    and change.  The fractional field is hundredths of a second, so '.7' is 700 ms and
+    '.07' is 70 ms."""
+    m = _CPUTIME_RE.match(text.strip())
+    if m is None:
+        return None
+    days = int(m.group(1) or 0)
+    hours = int(m.group(2) or 0)
+    minutes = int(m.group(3))
+    seconds = int(m.group(4))
+    if seconds > 59 or (m.group(2) is not None and minutes > 59):
+        return None
+    hundredths = int((m.group(5) or '0').ljust(2, '0'))
+    whole = days * 86400 + hours * 3600 + minutes * 60 + seconds
+    return whole * 1000 + hundredths * 10
+
+
 def parse_ps_table(text: str) -> tuple[list[ProcRow], list[str]]:
     """[pure] Parse the output of PS_ARGV.
 
@@ -233,19 +414,40 @@ def parse_ps_table(text: str) -> tuple[list[ProcRow], list[str]]:
     for line in text.splitlines():
         if not line.strip():
             continue
-        parts = line.split(None, 4)
-        if len(parts) < 5:
+        parts = line.split(None, 5)
+        if len(parts) < 6:
             malformed.append(f'short-line-fields-{len(parts)}')
             continue
-        pid_s, ppid_s, etime_s, rss_s, command = parts
+        pid_s, ppid_s, etime_s, cpu_s, rss_s, command = parts
         elapsed = parse_etime(etime_s)
         if not (pid_s.isdigit() and ppid_s.isdigit() and rss_s.isdigit()) or elapsed is None:
             # The marker names the shape of the failure, never the command text.
             malformed.append(f'unparsed-fields-pid-{pid_s if pid_s.isdigit() else "nan"}')
             continue
+        # An unreadable TIME field does NOT discard the row: the row is still usable for
+        # every detection rule, and the missing CPU sample only matters if this process
+        # turns out to be a baseline identity, where it becomes ACTIVITY_UNKNOWN.
         rows.append(ProcRow(pid=int(pid_s), ppid=int(ppid_s), elapsed_s=elapsed,
-                            rss_bytes=int(rss_s) * 1024, command=command))
+                            rss_bytes=int(rss_s) * 1024, command=command,
+                            cpu_ms=parse_cputime(cpu_s)))
     return rows, malformed
+
+
+def parse_cpu_table(text: str) -> dict[int, int]:
+    """[pure] Parse the output of PS_CPU_ARGV -> {pid: cumulative CPU milliseconds}.
+
+    A line whose pid or TIME field cannot be read is dropped rather than guessed at, which
+    leaves the pid absent from the map; the caller turns an absent pid into
+    ACTIVITY_UNKNOWN or ACTIVITY_EXITED, never into zero activity."""
+    out: dict[int, int] = {}
+    for line in text.splitlines():
+        parts = line.split()
+        if len(parts) != 2 or not parts[0].isdigit():
+            continue
+        cpu_ms = parse_cputime(parts[1])
+        if cpu_ms is not None:
+            out[int(parts[0])] = cpu_ms
+    return out
 
 
 def read_process_table(*, timeout_s: int = PS_TIMEOUT_S) -> str:
@@ -257,6 +459,130 @@ def read_process_table(*, timeout_s: int = PS_TIMEOUT_S) -> str:
     if done.returncode != 0:
         return ''
     return done.stdout.decode('utf-8', 'replace')
+
+
+# ---------------------------------------------------------------------------
+# the baseline activity test (ruling 31(b))
+# ---------------------------------------------------------------------------
+@dataclass(frozen=True)
+class ActivitySample:
+    """The SECOND sample of the activity test, with its measured interval.
+
+    `cpu_ms` maps pid -> cumulative CPU milliseconds at the second sample.  `interval_ms`
+    is the wall time actually elapsed between the two samples, measured on the monotonic
+    clock and recorded so that a reader can see the measurement really spanned the frozen
+    interval.  `failure` is a marker when the second sample could not be taken at all; the
+    caller then reports every baseline process as ACTIVITY_UNKNOWN and degrades the scan."""
+    cpu_ms: Mapping[int, int] = field(default_factory=dict)
+    interval_ms: int = 0
+    failure: str | None = None
+
+    @property
+    def ok(self) -> bool:
+        return self.failure is None and self.interval_ms >= BASELINE_MIN_INTERVAL_MS
+
+
+def probe_baseline_activity(*, interval_s: int = BASELINE_ACTIVITY_INTERVAL_S,
+                            timeout_s: int = PS_TIMEOUT_S) -> ActivitySample:
+    """Wait `interval_s` seconds and read the cumulative CPU times again.
+
+    The wait is this scan's OWN wait: it is the measurement interval of ruling 31(b), and
+    it is the only thing in this module that takes time on purpose.  Nothing is sent to any
+    process while it passes -- this module observes, and a waiting observer is still an
+    observer.  The cost is paid once per scan, and only on a scan that actually found a
+    baseline accelerator consumer to measure."""
+    started = time.monotonic()
+    try:
+        time.sleep(interval_s)
+        done = subprocess.run(list(PS_CPU_ARGV), capture_output=True, timeout=timeout_s)
+    except (OSError, subprocess.SubprocessError):
+        return ActivitySample(failure='baseline-unmeasured-ps')
+    elapsed_ms = int((time.monotonic() - started) * 1000)
+    if done.returncode != 0:
+        return ActivitySample(interval_ms=elapsed_ms, failure='baseline-unmeasured-exit')
+    table = parse_cpu_table(done.stdout.decode('utf-8', 'replace'))
+    if not table:
+        return ActivitySample(interval_ms=elapsed_ms, failure='baseline-unmeasured-empty')
+    return ActivitySample(cpu_ms=table, interval_ms=elapsed_ms)
+
+
+def classify_activity(row: ProcRow, sample: ActivitySample) -> tuple[str, int]:
+    """[pure] One baseline process and the second sample -> (activity, cpu_delta_ms).
+
+    The frozen rule of 31(b), and nothing else: active iff the delta EXCEEDS
+    BASELINE_ACTIVITY_THRESHOLD_MS over an interval that really lasted at least
+    BASELINE_MIN_INTERVAL_MS.  Every path that cannot produce that number returns
+    ACTIVITY_UNKNOWN with a delta of 0, and the 0 is a filler for a field that must hold an
+    int -- it is NOT a measurement, which is why the activity value beside it says so."""
+    if sample.failure is not None or sample.interval_ms < BASELINE_MIN_INTERVAL_MS:
+        return ACTIVITY_UNKNOWN, 0
+    if row.cpu_ms is None:
+        return ACTIVITY_UNKNOWN, 0
+    later = sample.cpu_ms.get(row.pid)
+    if later is None:
+        # Absent from the second sample.  A process that is gone is not contending for the
+        # accelerator, so this records itself and does not degrade the scan.
+        return ACTIVITY_EXITED, 0
+    delta = later - row.cpu_ms
+    if delta < 0:
+        # Cumulative CPU time cannot fall.  Something is wrong with the pairing (a reused
+        # pid, a thread-accounting anomaly), so the measurement is not believed.
+        return ACTIVITY_UNKNOWN, 0
+    if delta > BASELINE_ACTIVITY_THRESHOLD_MS:
+        return ACTIVITY_ACTIVE, delta
+    return ACTIVITY_IDLE, delta
+
+
+def baseline_record(row: ProcRow, baseline_id: str, sample: ActivitySample, *,
+                    now: float | None = None) -> dict:
+    """[pure given `now`] The chain-ready record of ONE frozen baseline process.
+
+    Ruling 31(d): this is written at every scan whether the process is active or not, so
+    that a reader sees what shared the host instead of taking a bare `clean` on trust.
+    Every value is an int, a closed-vocabulary label or a digest; the executable path is
+    NOT published, because `baseline_id` already names the frozen entry it matched and the
+    argv digest lets an operator confirm the match locally."""
+    stamp = time.time() if now is None else now
+    activity, delta_ms = classify_activity(row, sample)
+    return {
+        'pid': row.pid,
+        'ppid': row.ppid,
+        'baseline_id': baseline_id,
+        'start_utc': _iso_utc(stamp - row.elapsed_s),
+        'elapsed_s': row.elapsed_s,
+        'rss_bytes': row.rss_bytes,
+        'cpu_delta_ms': delta_ms,
+        'interval_ms': int(sample.interval_ms),
+        'activity': activity,
+        'argv_sha256': lab_common.sha256_text(row.command),
+    }
+
+
+def baseline_policy() -> dict:
+    """[pure] The frozen baseline policy as a JSON-able object, for deposit in the freeze
+    bundle (protocol 5.7.2, freeze deliverable 14.2).
+
+    The bundle hash already covers every file under `experiments/live_ab/`, so these
+    constants are bound by the freeze whether or not this object is deposited; the object
+    exists so that a reader of the freeze does not have to read the source to see which
+    identities were allowed and at what threshold."""
+    return {
+        'executables': [{'path': path, 'baseline_id': BASELINE_EXECUTABLES[path]}
+                        for path in sorted(BASELINE_EXECUTABLES)],
+        'match_rule': 'argv0_exact_absolute_path',
+        'path_prefix_required': BASELINE_PATH_PREFIX,
+        'activity_interval_s': BASELINE_ACTIVITY_INTERVAL_S,
+        'activity_threshold_ms': BASELINE_ACTIVITY_THRESHOLD_MS,
+        'activity_min_interval_ms': BASELINE_MIN_INTERVAL_MS,
+        'activity_normalization': 'none_raw_cumulative_cpu_ms_delta',
+        'activity_values': list(BASELINE_ACTIVITY_VALUES),
+        'rss_floor_bytes': PROBE_RSS_FLOOR_BYTES,
+        'scan_points': list(SCAN_POINTS),
+        'trial_overlap_rule': TRIAL_OVERLAP_RULE,
+        'non_baseline_rule': 'refuse_on_presence_no_activity_test_no_override',
+        'unmeasured_rule': 'unknown_degrades_and_refuses',
+        'newly_detected_load_rule': 'record_disclose_preserve_enrolment_never_adjust',
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -530,6 +856,35 @@ def match_consumer(command: str) -> str | None:
     return None
 
 
+def match_baseline(command: str) -> str | None:
+    """[pure] The frozen baseline label for a command, or None.
+
+    THE WHOLE IDENTITY RULE (ruling 31(b) as narrowed by clarification 1).  argv[0] -- the
+    first whitespace-delimited token of the command line and nothing else -- must be
+    EXACTLY EQUAL, character for character, to a key of BASELINE_EXECUTABLES, and that key
+    must sit under BASELINE_PATH_PREFIX.
+
+    What this deliberately does NOT do, each because it was the failure mode of a rejected
+    proposal:
+
+      * it does not match a basename, so a copy of any binary named `mediaanalysisd`
+        anywhere on the host is not baseline;
+      * it does not match a prefix or a framework directory, so nothing else under
+        `/System/Library/PrivateFrameworks/MediaAnalysis.framework/` is baseline either,
+        and `.../MediaAnalysisAccess.framework/.../mediaanalysisd-access` -- a real,
+        different binary on this host -- is not baseline;
+      * it does not resolve symlinks, follow a wrapper or look past argv[0], so a baseline
+        daemon launched through a shell does not match.
+
+    Every one of those cases falls through to the ordinary rules and REFUSES on presence.
+    The list is closed: the only way onto it is to edit it before a freeze, which moves the
+    freeze-bundle hash."""
+    head = command.split(None, 1)[0] if command.split() else ''
+    if not head.startswith(BASELINE_PATH_PREFIX):
+        return None
+    return BASELINE_EXECUTABLES.get(head)
+
+
 def is_python_command(command: str) -> bool:
     """[pure] True if argv[0] looks like a python interpreter."""
     head = command.split(None, 1)[0] if command.split() else ''
@@ -627,18 +982,34 @@ class ScanResult:
 
     `degraded` is non-empty when the scan could not establish quiescence -- ps failed, a
     line did not parse, the Metal probe could not run or could not answer for a process it
-    was asked about, or there were more candidates than the probe budget.  An empty
-    `findings` with a non-empty `degraded` means NOT PROVEN, never PROVEN CLEAN, and the
-    preflight gate treats it accordingly.  `degraded_causes` folds these markers into the
-    closed vocabulary the event chain accepts."""
+    was asked about, the activity test of a baseline process could not be taken, or there
+    were more candidates than the probe budget.  An empty `findings` with a non-empty
+    `degraded` means NOT PROVEN, never PROVEN CLEAN, and the preflight gate treats it
+    accordingly.  `degraded_causes` folds these markers into the closed vocabulary the
+    event chain accepts.
+
+    `baseline` holds one record per frozen baseline accelerator consumer the scan found,
+    active or not (ruling 31(d)).  An IDLE baseline record is not a finding and does not
+    make the scan unclean; that is the whole content of the allowance.  An ACTIVE one also
+    appears in `findings` under BASELINE_ACTIVE_LABEL and therefore refuses.
+
+    `clean` remains exactly "no findings and no degraded cause".  It is a statement about
+    what this detector saw at this instant, and it is not a claim that the machine was
+    doing no accelerator work."""
     findings: list[dict] = field(default_factory=list)
     degraded: list[str] = field(default_factory=list)
     scanned: int = 0
     allowlisted: int = 0
+    baseline: list[dict] = field(default_factory=list)
 
     @property
     def clean(self) -> bool:
         return not self.findings and not self.degraded
+
+    @property
+    def baseline_active(self) -> bool:
+        """True iff some frozen baseline process was measured ACTIVE at this scan."""
+        return any(b['activity'] == ACTIVITY_ACTIVE for b in self.baseline)
 
 
 def enumerate_foreign_consumers(own_pids: set[int] | None = None, *,
@@ -648,7 +1019,9 @@ def enumerate_foreign_consumers(own_pids: set[int] | None = None, *,
                                 accounts: tuple[str, ...] | None = None,
                                 include_descendants: bool = True,
                                 rss_floor_bytes: int = PROBE_RSS_FLOOR_BYTES,
-                                max_probe_pids: int = MAX_LSOF_PIDS) -> ScanResult:
+                                max_probe_pids: int = MAX_LSOF_PIDS,
+                                baseline_activity: ActivitySample | None = None
+                                ) -> ScanResult:
     """Every foreign accelerator consumer visible on this host, as findings.
 
     `table_text` and `metal_pids` are injection points: pass them to evaluate a synthesized
@@ -662,7 +1035,19 @@ def enumerate_foreign_consumers(own_pids: set[int] | None = None, *,
     non-allowlisted process at or above `rss_floor_bytes` is probed too, and reported only
     on a COMPUTE-class resource: that is the arm a renamed binary cannot walk past, and the
     narrower predicate is what keeps a window-drawing application from being reported.  The
-    docstring of this module states exactly what neither arm detects."""
+    docstring of this module states exactly what neither arm detects.
+
+    A process whose argv[0] matches the frozen baseline list takes a THIRD path (ruling
+    31).  It is probed exactly like any other heavy process, and if it holds a
+    compute-class Metal resource it is recorded in `result.baseline` with the outcome of
+    the activity test, active or not.  It becomes a finding, and therefore a refusal, only
+    when that test says ACTIVE.  Every process that is NOT on the frozen list refuses on
+    presence with no activity test and no override, which is ruling 31(a).
+
+    `baseline_activity` is the injection point for the second sample of the activity test,
+    in the same spirit as `metal_pids`: pass a prepared `ActivitySample` and no second `ps`
+    runs and nothing waits, which is how the tests exercise the active, idle, exited and
+    unmeasured paths deterministically."""
     text = read_process_table() if table_text is None else table_text
     result = ScanResult()
     if not text.strip():
@@ -678,7 +1063,16 @@ def enumerate_foreign_consumers(own_pids: set[int] | None = None, *,
     by_name: list[tuple[ProcRow, str]] = []
     python_rows: list[ProcRow] = []
     heavy_rows: list[ProcRow] = []
+    baseline_rows: list[tuple[ProcRow, str]] = []
     for row in candidates:
+        # The frozen identity is tested FIRST and it is decisive.  Nothing that fails it
+        # reaches the baseline path, and everything that fails it is subject to the
+        # refuse-on-presence rule of 31(a) exactly as before.
+        baseline_id = match_baseline(row.command)
+        if baseline_id is not None:
+            if row.rss_bytes >= rss_floor_bytes:
+                baseline_rows.append((row, baseline_id))
+            continue
         label = match_consumer(row.command)
         if label is not None:
             by_name.append((row, label))
@@ -687,7 +1081,7 @@ def enumerate_foreign_consumers(own_pids: set[int] | None = None, *,
         elif row.rss_bytes >= rss_floor_bytes:
             heavy_rows.append(row)
 
-    probe_rows = python_rows + heavy_rows
+    probe_rows = python_rows + heavy_rows + [r for r, _ in baseline_rows]
     if metal_pids is None:
         if len(probe_rows) > max_probe_pids:
             # Never silently under-scan: the pids past the budget are unexamined, which is
@@ -697,6 +1091,7 @@ def enumerate_foreign_consumers(own_pids: set[int] | None = None, *,
             probed = {r.pid for r in probe_rows}
             python_rows = [r for r in python_rows if r.pid in probed]
             heavy_rows = [r for r in heavy_rows if r.pid in probed]
+            baseline_rows = [(r, b) for r, b in baseline_rows if r.pid in probed]
         probe = metal_context_pids([r.pid for r in probe_rows])
         # C.2: a probe that could not run degrades the scan, but only when there was
         # something it would have had to look at.  With nothing to probe there is nothing
@@ -718,6 +1113,27 @@ def enumerate_foreign_consumers(own_pids: set[int] | None = None, *,
     for row in heavy_rows:
         if row.pid in probe.compute:
             by_name.append((row, METAL_PROCESS_LABEL))
+
+    # ---- the baseline arm (ruling 31(b), (d)) -----------------------------
+    # Only a baseline process that actually holds a compute-class Metal resource is a
+    # baseline ACCELERATOR consumer, and only those are measured and recorded.  A frozen
+    # identity that holds nothing is not competing for the accelerator and is no more
+    # interesting than any other daemon on the host.
+    holders = [(row, bid) for row, bid in baseline_rows if row.pid in probe.compute]
+    if holders:
+        sample = (probe_baseline_activity() if baseline_activity is None
+                  else baseline_activity)
+        records = [baseline_record(row, bid, sample, now=now) for row, bid in holders]
+        records.sort(key=lambda rec: rec['pid'])
+        result.baseline = records
+        unmeasured = sum(1 for rec in records if rec['activity'] == ACTIVITY_UNKNOWN)
+        if unmeasured:
+            # Clarification 2: an unavailable measurement is unknown, not zero activity.
+            result.degraded.append(f'baseline-unmeasured-{unmeasured}')
+        active = {rec['pid'] for rec in records if rec['activity'] == ACTIVITY_ACTIVE}
+        for row, _bid in holders:
+            if row.pid in active:
+                by_name.append((row, BASELINE_ACTIVE_LABEL))
 
     by_name.sort(key=lambda pair: pair[0].pid)
     result.findings = [finding_for(r, label, now=now, accounts=accounts)
@@ -765,16 +1181,45 @@ def chain_finding(finding: Mapping) -> dict:
     }
 
 
+def chain_baseline(record: Mapping) -> dict:
+    """[pure] One baseline record reduced to what may enter the public event chain.
+
+    Nothing has to be dropped here the way `chain_finding` drops the token summary: a
+    baseline record carries no derived free text at all.  `baseline_id` is a label from the
+    closed frozen vocabulary, the executable path itself is never published, and every
+    other value is an int, an enum or a digest."""
+    return {
+        'pid': int(record['pid']),
+        'ppid': int(record['ppid']),
+        'baseline_id': str(record['baseline_id']),
+        'start_utc': str(record['start_utc']),
+        'elapsed_s': int(record['elapsed_s']),
+        'rss_bytes': int(record['rss_bytes']),
+        'cpu_delta_ms': int(record['cpu_delta_ms']),
+        'interval_ms': int(record['interval_ms']),
+        'activity': str(record['activity']),
+        'argv_sha256': str(record['argv_sha256']),
+    }
+
+
 def chain_body(scan: ScanResult) -> dict:
     """[pure] The identifier-safe body shared by `host_quiescence_refused` and
     `foreign_load_detected`.  Every value is an int, a bool or a closed-vocabulary token;
-    no free text, no untokenized path and no URL can reach the chain through it."""
+    no free text, no untokenized path and no URL can reach the chain through it.
+
+    `baseline` and `baseline_active` implement ruling 31(d): every frozen baseline
+    accelerator consumer the scan found is written at EVERY scan, active or not, so that
+    `clean` is never a bare assertion.  `baseline_active` is the flag the trial-overlap
+    rule reads (TRIAL_OVERLAP_RULE); it is redundant with the list by construction, and it
+    is written out because it is the field a reader of a latency result actually needs."""
     return {
         'clean': bool(scan.clean),
         'scanned': int(scan.scanned),
         'allowlisted': int(scan.allowlisted),
         'findings': [chain_finding(f) for f in scan.findings],
         'degraded': degraded_causes(scan.degraded),
+        'baseline': [chain_baseline(b) for b in scan.baseline],
+        'baseline_active': bool(scan.baseline_active),
     }
 
 
@@ -825,7 +1270,10 @@ def _main(argv: list[str]) -> int:                              # pragma: no cov
     import json
     scan = soft_host_check(set())
     print(json.dumps({'findings': scan.findings, 'degraded': scan.degraded,
-                      'scanned': scan.scanned, 'allowlisted': scan.allowlisted},
+                      'scanned': scan.scanned, 'allowlisted': scan.allowlisted,
+                      'baseline': scan.baseline,
+                      'baseline_active': scan.baseline_active,
+                      'baseline_policy': baseline_policy()},
                      indent=2, sort_keys=True))
     return 1 if scan.findings else 0
 

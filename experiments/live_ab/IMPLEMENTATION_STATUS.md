@@ -252,13 +252,18 @@ reach in any case.
 
 Carried forward from README §5; all still open, none of them masked by a test:
 
-* **`inv` in the T4 identity payload.** `Job` carries `inv`, and the frozen removal list of
-  PG-14 / protocol 12.3 does not remove it, so the two canonical payloads of a T4 pair differ
-  whenever one position is dispatched by a later invocation — precisely the resume case of
-  protocol 6.4 rows 11c–11e. `t4.payload_identity` is a FAIL on condition list B, so this
-  false positive would drop claims 2–5 and 7 for T4. Implemented verbatim and asserted by
-  `test_t4_payload_identity_breaks_when_a_pair_spans_two_invocations`. The repair is one word:
-  add `inv` to the removal list, for the same reason `worker_index` is already in it.
+* ~~**`inv` in the T4 identity payload.**~~ **CLOSED 2026-09-20** by the repair of
+  execution-review finding E3, pre-freeze. `Job` carries `inv`, and the removal list of
+  PG-14 / protocol 12.3 did not remove it, so the two canonical payloads of a T4 pair
+  differed whenever one position was dispatched by a later invocation — precisely the resume
+  case of protocol 6.4 rows 11c–11e. `t4.payload_identity` is a FAIL on condition list B, so
+  the false positive would have dropped claims 2–5 and 7 for T4 on a run in which nothing
+  scientific had changed. `inv` is now in the removal list in `lab_worker.CANONICAL_JOB_DROP`,
+  in `lab_orchestrator.canonical_job_payload` and in protocol 12.3, for the same reason
+  `worker_index` always was: the invocation id is a property of the dispatch, not of the arm.
+  The test that asserted the defect now asserts the repair on the same crash-and-resume path
+  (`test_t4_payload_identity_survives_a_pair_spanning_two_invocations`), and it also checks
+  that genuine configuration drift between the two arms of a pair still fails.
 * **`monitor_update` at the horizon (ARCHITECTURE 7.1 row 4a)** would be a look with no
   trigger in the closed enum. Unreachable in practice: the last reveal's look already
   satisfies `decide`'s horizon condition and the decision quotes it.

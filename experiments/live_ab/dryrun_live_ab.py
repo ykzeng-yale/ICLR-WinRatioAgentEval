@@ -51,8 +51,10 @@ from lab_orchestrator import World, make_context, run_trial
 HERE = Path(__file__).resolve().parent
 MOCK_BANNER = 'MOCK'
 
-#: The prefixes of the radius table (ARCHITECTURE 10; 568 is the horizon ceiling, 569 is a
-#: reference row and is not a horizon of this program).
+#: The prefixes of the radius table (ARCHITECTURE 10).  565 is the ceiling once the six
+#: declared smoke tasks are excluded; 568 is the same rule BEFORE any exclusion, so it is a
+#: loose pre-exclusion bound and not the horizon; 569 is the unstratified count 1138 // 2 and
+#: is not a horizon either.  The effective horizon is read from the frozen roster.
 RADIUS_NS: tuple[int, ...] = (1, 20, 92, 100, 150, 200, 295, 400, 565, 568, 569, 1000)
 
 
@@ -157,7 +159,9 @@ def build_mock_freeze(root: Path, *, n_pairs: int, trial: str, delta: float | No
     cfg['sandbox']['profile_sha256'] = sha256_text('mock-sandbox-profile')
     cfg['sandbox']['containment_probe_sha256'] = sha256_text('mock-containment-probe')
     cfg['anchor']['posting_latency_p95_s'] = 0.0
-    cfg['hardware_allowlist'] = ['mock']
+    # Preflight now COMPARES the running host with the frozen allowlist, so a mock tree must
+    # name the host it is actually executed on beside the 'mock' marker.
+    cfg['hardware_allowlist'] = ['mock', lab_common.hardware_identity()]
     cfg['environment_lock_sha256'] = sha256_text('mock-environment-lock')
     cfg['llama_cpp']['build_flags_sha256'] = sha256_text('mock-build-flags')
     cfg['llama_cpp']['serving_manifest_sha256'] = sha256_text('mock-serving-manifest')
@@ -202,7 +206,12 @@ def _mock_bundle(freeze: Path, cfg: dict, roster: dict) -> dict:
         'rule_block_sha256': lab_common.rule_block_sha256(cfg),
         'roster_sha256': str(roster['roster_sha256']),
         'task_content_sha256': str(roster['task_content_sha256']),
-        'arrival_order_sha256': {t: sha256_text(t) for t in lab_common.TRIALS},
+        # The real digest of each deposited arrival-order file, not a stand-in: preflight
+        # now compares every bundle member against the artifact it names, so a mock bundle
+        # that recorded an invented order digest would be a mock of a BROKEN freeze.
+        'arrival_order_sha256': {t: sha256_file(freeze / ('arrival_order_%s.json' % t))
+                                 for t in lab_common.TRIALS
+                                 if (freeze / ('arrival_order_%s.json' % t)).exists()},
         'protocol_sha256': sha256_text('mock-protocol'),
         'run_book_sha256': sha256_text('mock-run-book'),
         'harness_file_sha256': lab_common.harness_file_hashes(),

@@ -13,7 +13,7 @@ it is protocol 6.4 row 24.
 Rule, restated from the protocol so that this file is self-contained:
 
   * 7.3  A pair occupies an immutable enrollment position.  The denominator is always `n`,
-         the number of fully enrolled pairs, never the number completed.
+         the number of fully enrolled (i.e. RANDOMIZED) pairs, never the number completed.
   * 7.5  Enclosures start at [-1, 1] and are narrowed ONLY by enumerating feasible
          completions.  Success enclosure [sA_low - sB_high, sA_high - sB_low] with A the
          candidate.  Cost certificate: with the revealed episode successful and the partner
@@ -21,7 +21,10 @@ Rule, restated from the protocol so that this file is self-contained:
          hierarchy enclosure to [sgn, sgn].
   * 8.2  r = normal_mixture_radius(n, alpha=alpha_gate, rho=rho, variance_process=n);
          L_j = sum(lower_j[:n])/n - r, U_j = sum(upper_j[:n])/n + r, clipped to [-1, 1].
-  * 8.3  Evaluation triggers: every pair_enrolled; every pre-decision episode_revealed;
+  * 8.3  The prefix `n` grows at `coin_drawn`, NEVER at `pair_enrolled`: a pair whose
+         coin has not been drawn and fsynced is not randomized, holds no position and
+         produces no evaluation (COORDINATOR_DECISIONS revision 4 ruling 17).  Evaluation
+         triggers: every coin_drawn (the `enroll` look); every pre-decision episode_revealed;
          every ingested llm_request / llm_response / llm_error that RAISES the certified
          `ell` of a still-pending episode of an enrolled pair; every resume, once; and
          every post-decision drain reveal, which updates but never decides.
@@ -212,7 +215,13 @@ def _hierarchy_enclosure(cand: _Episode | None, inc: _Episode | None,
     # revealed episode succeeded
     l_r = float(revealed.latency_s or 0.0)
     if (1.0 - tol) * ell > l_r + 1e-9:
-        return sgn, sgn, 1                          # the cost certificate binds
+        # The cost certificate binds: the SCORE is certain (every feasible completion gives
+        # `sgn`), but the DECISIVE TIER is not.  If the pending partner ultimately fails, the
+        # pair is decided at tier 0 (success), not at tier 1 (cost) -- the certificate proves
+        # only that the revealed episode wins either way.  So the score collapses and the tier
+        # stays -1, "not yet determined", until both outcomes are known.  This matches the live
+        # path, which also holds tier -1 while a partner is open (statistics review section 4).
+        return sgn, sgn, -1
     return FULL_LO, FULL_HI, -1
 
 

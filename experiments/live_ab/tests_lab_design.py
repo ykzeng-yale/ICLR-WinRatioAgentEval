@@ -1298,5 +1298,320 @@ class TestDataTests(unittest.TestCase):
                                     for t in lab_design.TRIAL_NO})
 
 
+# ==================================================================================================
+# Provenance review section 4: the horizon after exclusions, and the leftover parity rule
+# ==================================================================================================
+class HorizonAfterExclusionsTests(unittest.TestCase):
+    """568 is a LOOSE PRE-EXCLUSION bound, never the post-exclusion horizon.
+
+    `floor(591/2) + floor(547/2) = 568` counts the candidate task lists before protocol 3.2
+    has excluded anything. The six declared smoke tasks are all `mbpp_full/*`, so they come
+    out of S2 and lower its ceiling to 541, which lowers `N_P` to at most 565. Further
+    exclusions (duplicate prompts, missing entry points, unparsable references, and the
+    reference sweep, which can also touch S1) lower it again. The exact rule is
+    `N_P = floor(n_S1 / 2) + floor(n_S2 / 2)` on the SURVIVING counts and nothing else.
+    """
+
+    def test_568_is_the_pre_exclusion_bound_only(self):
+        full = full_roster()
+        self.assertEqual((full['n_S1'], full['n_S2'], full['n_pairs']), (591, 547, 568))
+        self.assertEqual(full['n_excluded'], 0, '568 is the count with NO exclusion applied')
+
+    def test_the_six_smoke_tasks_put_the_ceiling_at_565(self):
+        """With only the six declared smoke exclusions, N_P is exactly 565 and there are two
+        leftovers, because 591 and 541 are both odd."""
+        tasks = real_tasks()
+        smoke = [e for e in lab_data.prospective_exclusions(tasks, {})
+                 if e['reason'] == 'out_of_design_smoke_task']
+        self.assertEqual(len(smoke), 6)
+        self.assertEqual(sorted(e['uid'] for e in smoke), sorted(lab_data.SMOKE_TASKS))
+        self.assertTrue(all(uid.startswith('mbpp_full/') for uid in lab_data.SMOKE_TASKS),
+                        'all six smoke tasks are in S2, which is why only S2 shrinks here')
+        roster = lab_data.build_roster(tasks, smoke, {})
+        self.assertEqual(roster['n_S1'], 591)
+        self.assertEqual(roster['n_S2'], 541)
+        self.assertEqual(roster['n_pairs'], 591 // 2 + 541 // 2)
+        self.assertEqual(roster['n_pairs'], 565)
+        self.assertLess(roster['n_pairs'], 568)
+        self.assertEqual(len(lab_design.leftover_slots(roster, 'T4', DESIGN_SEED_BASE)), 2)
+
+    def test_the_remaining_blind_exclusions_lower_it_further(self):
+        blind = blind_roster()
+        self.assertLessEqual(blind['n_S2'], 541)
+        self.assertLessEqual(blind['n_pairs'], 565)
+        self.assertEqual(blind['n_pairs'], blind['n_S1'] // 2 + blind['n_S2'] // 2)
+        self.assertGreater(blind['n_excluded'], 6, 'more than the six smoke tasks are blind-excluded')
+
+    def test_leftovers_are_the_parity_sum_and_can_be_0_1_or_2(self):
+        """The table's unconditional "one leftover per stratum" is wrong: the count is
+        `(n_S1 % 2) + (n_S2 % 2)`, which is 0, 1 or 2 depending on the surviving counts."""
+        for n_s1, n_s2, n_pairs, n_left in ((590, 540, 565, 0), (591, 540, 565, 1),
+                                            (590, 541, 565, 1), (591, 541, 565, 2)):
+            with self.subTest(n_S1=n_s1, n_S2=n_s2):
+                roster = synthetic_roster(n_s1, n_s2)
+                self.assertEqual(roster['n_pairs'], n_pairs)
+                slots = lab_design.leftover_slots(roster, 'T1', DESIGN_SEED_BASE)
+                self.assertEqual(len(slots), (n_s1 % 2) + (n_s2 % 2))
+                self.assertEqual(len(slots), n_left)
+                self.assertEqual(len(lab_design.arrival_order(roster, 'T1', DESIGN_SEED_BASE)),
+                                 n_pairs)
+
+    def test_the_four_trials_reuse_one_roster_and_are_not_replications(self):
+        """Root warning (provenance review section 4). The four trials differ ONLY in the
+        order seed; they draw from the same task pool. Their results are therefore not
+        independent replications and must never be pooled as such, and S1 -- the 591 tasks
+        the pilot already observed -- is never "fresh tasks"."""
+        roster = synthetic_roster(8, 6)                # even counts: no leftover to move
+        pools = {trial: {uid
+                         for slot in lab_design.arrival_order(roster, trial, DESIGN_SEED_BASE)
+                         for uid in slot['uids']}
+                 for trial in lab_design.TRIAL_NO}
+        self.assertEqual(len({frozenset(p) for p in pools.values()}), 1,
+                         'every trial enrolls the same 14 tasks; only the order differs')
+        signatures = {trial: lab_design.order_sha256(
+            lab_design.arrival_order(roster, trial, DESIGN_SEED_BASE))
+            for trial in lab_design.TRIAL_NO}
+        self.assertEqual(len(set(signatures.values())), 4, 'the orders themselves do differ')
+
+
+# ==================================================================================================
+# Provenance review section 3: preflight must bind execution to every MEMBER of the freeze
+# ==================================================================================================
+import shutil                                            # noqa: E402
+from unittest import mock                                # noqa: E402
+
+import dryrun_live_ab as dry                             # noqa: E402
+import lab_eventlog                                      # noqa: E402
+import lab_orchestrator as orch                          # noqa: E402
+
+_LABEL_RE = re.compile(r'^[A-Za-z0-9][A-Za-z0-9_.+-]{0,63}$')
+_HEX64_RE = re.compile(r'^[0-9a-f]{64}$')
+
+
+class FreezeBundleBindingTests(unittest.TestCase):
+    """The regression test the root asked for: hold the APPROVED BUNDLE FIXED, alter each
+    frozen artifact independently, and assert that every alteration is refused.
+
+    The defect this closes (provenance review section 3, with an executed witness): preflight
+    compared the bundle's own canonical digest with `ctx.bundle_sha` and checked that the
+    roster and the arrival order EXISTED, but never compared a single bundle MEMBER with the
+    artifact it names. The root kept an unchanged bundle carrying the original
+    `config_sha256`, changed `monitor.delta` from .03 to .04, initialised the runtime hashes
+    from the current bytes exactly as `make_context` does, and preflight returned `[]`.
+
+    Nothing in this class changes a scientific rule. Every alteration is reverted with the
+    temporary tree; `delta` is altered only in a throwaway mock freeze, never in the frozen
+    configuration, and the assertion is that the alteration is REFUSED.
+    """
+
+    def setUp(self) -> None:
+        self.root = Path(tempfile.mkdtemp(prefix='live_ab_bundle_'))
+        self.addCleanup(shutil.rmtree, self.root, True)
+        self.results = self.root / 'results'
+        self.work = self.root / 'work'
+        self.built = dry.build_mock_freeze(self.results, n_pairs=4, trial='T4')
+        self.freeze = self.results / 'freeze'
+        self.bundle_sha = self.built['bundle_sha']
+        self.bundle = json.loads((self.freeze / 'freeze_bundle.json').read_text('utf-8'))
+
+    # -- helpers -----------------------------------------------------------------------------
+    def _ctx(self):
+        """A context built the way a real invocation builds one: the configuration is read
+        from the deposited file, and the runtime digests default to the CURRENT bytes."""
+        cfg = json.loads((self.freeze / 'config.json').read_text('utf-8'))
+        cfg['_runtime'] = {'results_root': str(self.results), 'work_root': str(self.work),
+                           'bundle_sha': self.bundle_sha, 'sim': True, 'mock': True,
+                           'free_disk_floor_gb': 0.0,
+                           'tasks_path': str(self.freeze / 'tasks.json')}
+        return orch.make_context('T4', cfg, results_root=self.results, work_root=self.work)
+
+    def _passes(self) -> list:
+        return orch.preflight(self._ctx())
+
+    def _refusal(self) -> tuple[set, set]:
+        """(closed reason codes, drift item labels) of the refusal, which must happen."""
+        with self.assertRaises(lab_common.PreflightError) as caught:
+            orch.preflight(self._ctx())
+        drift = list(getattr(caught.exception, 'drift', []))
+        for row in drift:
+            self.assertRegex(str(row['item']), _LABEL_RE,
+                             'a drift item must satisfy the event schema label rule')
+            self.assertRegex(str(row['expected']), _HEX64_RE)
+            self.assertRegex(str(row['found']), _HEX64_RE)
+        return set(str(caught.exception).split(',')), {str(r['item']) for r in drift}
+
+    def _rewrite_config(self, mutate) -> None:
+        path = self.freeze / 'config.json'
+        cfg = json.loads(path.read_text('utf-8'))
+        mutate(cfg)
+        path.write_text(lab_common.canonical_json(cfg) + '\n', encoding='utf-8')
+
+    # -- the control -------------------------------------------------------------------------
+    def test_the_untouched_freeze_passes_with_no_drift(self):
+        """Without a control the refusals below would prove nothing."""
+        self.assertEqual(self._passes(), [])
+
+    # -- the seven independent alterations ---------------------------------------------------
+    def test_an_altered_config_is_refused_the_roots_witness(self):
+        """The root's exact witness: bundle unchanged, `monitor.delta` .03 -> .04."""
+        self.assertEqual(self._passes(), [])
+        self._rewrite_config(lambda c: c['monitor'].__setitem__('delta', 0.04))
+        # The bundle on disk is untouched and still carries the ORIGINAL config hash.
+        self.assertEqual(json.loads((self.freeze / 'freeze_bundle.json').read_text('utf-8')),
+                         self.bundle)
+        codes, items = self._refusal()
+        self.assertIn('config_sha', codes)
+        self.assertIn('config_sha256', items)
+        self.assertIn('rule_block_sha256', items,
+                      'delta is inside the rule block, so the decision-defining subset moved too')
+
+    def test_a_roster_rewritten_with_its_own_hash_is_refused(self):
+        """The hard case: the roster is edited AND its self-referential `roster_sha256` is
+        recomputed, so `check_roster` still accepts it. Only the bundle catches this."""
+        path = self.freeze / 'roster.json'
+        roster = json.loads(path.read_text('utf-8'))
+        roster['n_excluded'] = int(roster['n_excluded']) + 1
+        roster['roster_sha256'] = lab_data.roster_sha256(roster)
+        path.write_text(lab_common.canonical_json(roster) + '\n', encoding='utf-8')
+        lab_data.check_roster(json.loads(path.read_text('utf-8')))   # internally consistent
+        codes, items = self._refusal()
+        self.assertIn('roster_sha', codes)
+        self.assertIn('roster_sha256', items)
+
+    def test_a_reordered_arrival_order_is_refused(self):
+        """Swapping two enrollment slots after the freeze. `make_context` reads the order
+        file without validating it, so preflight is the only thing that can catch this."""
+        path = self.freeze / 'arrival_order_T4.json'
+        rows = json.loads(path.read_text('utf-8'))
+        rows[0]['uids'], rows[1]['uids'] = rows[1]['uids'], rows[0]['uids']
+        path.write_text(lab_common.canonical_json(rows) + '\n', encoding='utf-8')
+        codes, items = self._refusal()
+        self.assertIn('order_sha', codes)
+        self.assertIn('arrival_order_sha256.T4', items)
+
+    def test_a_frozen_order_file_that_vanished_is_refused(self):
+        """Fail closed: an artifact the freeze NAMES must be present to be checked, even for
+        a trial this invocation is not running."""
+        (self.freeze / 'arrival_order_T2.json').unlink()
+        codes, items = self._refusal()
+        self.assertIn('order_sha', codes)
+        self.assertIn('arrival_order_sha256.T2', items)
+
+    def test_an_edited_reference_rule_or_harness_file_is_refused(self):
+        """The harness files live in the repository and are not editable from a test, so the
+        FILE READ is stubbed and nothing else: `harness_file_hashes` returns what it would
+        return if that one file had been edited. The byte-level read is exercised for real by
+        `test_observed_members_read_the_files_they_name` below."""
+        for name in ('lab_reference_rule.py', 'lab_monitor.py', 'lab_orchestrator.py'):
+            with self.subTest(file=name):
+                edited = dict(lab_common.harness_file_hashes())
+                self.assertIn(name, edited)
+                edited[name] = lab_common.sha256_text('one edited byte in ' + name)
+                with mock.patch.object(lab_common, 'harness_file_hashes', lambda: edited):
+                    codes, items = self._refusal()
+                self.assertIn('harness_file_sha', codes)
+                self.assertIn('harness_file_sha256.' + name, items)
+
+    def test_an_altered_serving_manifest_is_refused_by_name(self):
+        """The serving manifest digest is carried inside the frozen configuration, so this
+        also moves `config_sha256`; what matters is that the refusal NAMES the manifest."""
+        self._rewrite_config(lambda c: c['llama_cpp'].__setitem__(
+            'serving_manifest_sha256', lab_common.sha256_text('a different serving build')))
+        codes, items = self._refusal()
+        self.assertIn('serving_manifest', codes)
+        self.assertIn('serving_manifest_sha256', items)
+
+    def test_a_host_outside_the_frozen_hardware_allowlist_is_refused(self):
+        """Hardware was recorded at trial start and never compared. It is compared now."""
+        self.assertIn(lab_common.hardware_identity(), self.bundle['hardware_allowlist'])
+        with mock.patch.object(lab_common, 'hardware_identity', lambda: 'x86_64-linux'):
+            codes, items = self._refusal()
+        self.assertIn('hardware_allowlist', codes)
+        self.assertIn('hardware_identity', items)
+
+    # -- the recomputation really reads the artifacts ----------------------------------------
+    def test_observed_members_read_the_files_they_name(self):
+        """No stub at all: copy the harness into a temporary directory, append one comment
+        line to `lab_reference_rule.py`, and point the recomputation at that copy. Exactly
+        one member drifts, which also proves the other members are stable."""
+        with tempfile.TemporaryDirectory() as tmp:
+            copy = Path(tmp)
+            for name in lab_common.HARNESS_FILES:
+                source = lab_common.HERE / name
+                if source.exists():
+                    shutil.copyfile(source, copy / name)
+            target = copy / 'lab_reference_rule.py'
+            target.write_text(target.read_text('utf-8') + '\n# edited after the freeze\n',
+                              encoding='utf-8')
+            observed = orch.observed_bundle_members(self.freeze, trial='T4',
+                                                    bundle=self.bundle, harness_dir=copy)
+            rows = lab_common.verify_bundle_members(self.bundle, observed)
+        self.assertEqual({r['item'] for r in rows},
+                         {'harness_file_sha256.lab_reference_rule.py'})
+
+    def test_an_untouched_tree_recomputes_to_the_bundle(self):
+        observed = orch.observed_bundle_members(self.freeze, trial='T4', bundle=self.bundle)
+        self.assertEqual(lab_common.verify_bundle_members(self.bundle, observed), [])
+        for member in lab_common.BUNDLE_MEMBERS_RECOMPUTED:
+            self.assertIn(member, observed,
+                          'every recomputable member must actually be observed in a real tree')
+
+    def test_every_bundle_key_is_recomputed_or_declared_unrecomputable(self):
+        """A future bundle key cannot be silently left unchecked: it must be put in one of
+        the two lists, and the second list is the DECLARED limit of this gate."""
+        recomputed = set(lab_common.BUNDLE_MEMBERS_RECOMPUTED)
+        declared = set(lab_common.BUNDLE_MEMBERS_NOT_RECOMPUTED)
+        self.assertEqual(recomputed & declared, set())
+        self.assertEqual(recomputed | declared, set(lab_common.FREEZE_BUNDLE_KEYS))
+
+    def test_build_freeze_bundle_is_the_only_shape_preflight_accepts(self):
+        """`build_freeze_bundle` exists and preflight never called it. The mock freeze is
+        built through it, and its key set is exactly what the member check iterates."""
+        self.assertEqual(set(self.bundle), set(lab_common.FREEZE_BUNDLE_KEYS))
+        with self.assertRaises(lab_common.FreezeIncomplete):
+            lab_common.build_freeze_bundle({k: self.bundle[k]
+                                            for k in list(self.bundle)[:-1]})
+
+    # -- one canonical digest convention -----------------------------------------------------
+    def test_one_canonical_digest_convention_for_the_bundle(self):
+        """The CLI default hashed the bundle's RAW BYTES while preflight hashed its
+        canonical JSON, so pretty-printing the very same bundle produced
+        `freeze_bundle_drift`. Both sides now go through `freeze_bundle_sha256`."""
+        path = self.freeze / 'freeze_bundle.json'
+        raw_before = lab_common.sha256_file(path)
+        canonical_before = lab_common.freeze_bundle_sha256_of_file(path)
+        self.assertEqual(canonical_before, self.bundle_sha)
+        self.assertNotEqual(raw_before, canonical_before,
+                            'the file carries a trailing newline, so the two differ already')
+        path.write_text(json.dumps(json.loads(path.read_text('utf-8')),
+                                   indent=2, sort_keys=True) + '\n', encoding='utf-8')
+        self.assertNotEqual(lab_common.sha256_file(path), raw_before,
+                            'the bytes really did change')
+        self.assertEqual(lab_common.freeze_bundle_sha256_of_file(path), canonical_before,
+                         'the same bundle keeps the same identity when it is pretty-printed')
+        self.assertEqual(self._passes(), [],
+                         'a pretty-printed bundle must no longer be freeze_bundle_drift')
+
+    def test_a_corrupt_bundle_fails_closed(self):
+        (self.freeze / 'freeze_bundle.json').write_text('{not json', encoding='utf-8')
+        codes, _ = self._refusal()
+        self.assertIn('freeze_bundle_drift', codes)
+
+    def test_a_refusal_carries_its_evidence_into_the_program_chain(self):
+        """`preflight_refused` has always had a `drift` field and always wrote `[]`."""
+        self._rewrite_config(lambda c: c['monitor'].__setitem__('delta', 0.04))
+        ctx = self._ctx()
+        self.assertEqual(orch.run_trial(ctx, resume=False), 'aborted')
+        read = lab_eventlog.read_chain(self.results / '_program' / 'events', '_program',
+                                       self.bundle_sha)
+        refusals = [e for e in read.events if e['type'] == 'preflight_refused']
+        self.assertEqual(len(refusals), 1)
+        body = refusals[0]['body']
+        self.assertIn('config_sha', body['checks_failed'])
+        self.assertIn('config_sha256', {row['item'] for row in body['drift']})
+        self.assertEqual(lab_eventlog.segment_paths(self.results / 'T4' / 'events'), [],
+                         'the trial chain must not have been opened')
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)

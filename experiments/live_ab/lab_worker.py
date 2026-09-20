@@ -47,12 +47,18 @@ import lab_common
 from lab_client import (GoldenReceipt, LlamaClient, Spool, load_used_seeds, read_spool)
 
 #: Keys removed before the T4 byte-identity comparison of two jobs of one pair.
-#: The list is frozen in protocol 12.3 and in PG-14 and may not be extended: ``worker_index``
-#: is in it because the two jobs of a pair necessarily run in different slots, and the task
-#: content is deliberately **not** in the job for the same reason (it is loaded from the
-#: roster file named by ``paths['tasks']``).
+#: The list is fixed by protocol 12.3 and PG-14 and may not be extended after the freeze:
+#: ``worker_index`` is in it because the two jobs of a pair necessarily run in different
+#: slots, ``inv`` because they may be dispatched by different orchestrator invocations
+#: (protocol 6.4 rows 11c-11e), and the task content is deliberately **not** in the job for
+#: the same reason (it is loaded from the roster file named by ``paths['tasks']``).  Every
+#: key that defines the scientific configuration of the episode stays in the payload, so
+#: real configuration drift between the two arms of a T4 pair still fails
+#: ``t4.payload_identity``.  ``inv`` was added pre-freeze by the repair of execution-review
+#: finding E3; nothing here is frozen yet, and the list must stay identical to the one in
+#: ``lab_orchestrator.canonical_job_payload``.
 CANONICAL_JOB_DROP: tuple[str, ...] = (
-    'arm', 'arrival', 'pair', 'position', 'task_uid', 'worker_index', 'paths',
+    'arm', 'arrival', 'inv', 'pair', 'position', 'task_uid', 'worker_index', 'paths',
     'assignment_seq', 'payload_sha256')
 
 #: Outcome-level error classes (protocol 6.4).  The five per-request classes live in

@@ -75,7 +75,7 @@ and the reports say so (section 14.7).
 | **Design** | Prospective online A/B. Disjoint pairs of consecutive arrivals from a frozen order. One fresh fair coin per **pre-enrolled** pair from OS entropy fixes the orientation (AB or BA). Each task runs under exactly one arm, once per trial. |
 | **Trials, in execution order** | **T4** A/A control (`single_shot` vs itself) -> **T2** incumbent `single_shot`, candidate `self_test_repair` -> **T1** the reverse -> **T3** `single_shot` on Qwen2.5-Coder-7B-Instruct vs `single_shot` on IBM Granite 3.3 8B Instruct. |
 | **Host** | One Apple M5, 10 cores, 32 GiB RAM, 262 GiB free disk (measured 2026-09-19 20:28 UTC). `llama.cpp` `llama-server`, GGUF Q4_K_M, loopback only. |
-| **Roster** | MBPP-sanitized (427) + HumanEval (164) = 591 tasks (stratum S1), plus MBPP-full-only tasks that survive the prospective exclusions of 3.2 (stratum S2). Horizon `N_P` = all pairs of the frozen arrival order, formed **inside a stratum**, **at most 568** (3.3). |
+| **Roster** | MBPP-sanitized (427) + HumanEval (164) = 591 tasks (stratum S1), plus MBPP-full-only tasks that survive the prospective exclusions of 3.2 (stratum S2). Horizon `N_P` = all pairs of the frozen arrival order, formed **inside a stratum**: `floor(n_S1 / 2) + floor(n_S2 / 2)` on the **surviving** counts, **at most 565** once the six declared smoke tasks are excluded and smaller after the remaining exclusions of 3.2. `568` is the same rule applied to the candidate lists 591/547, i.e. a **loose pre-exclusion bound, not the horizon** (3.3). |
 | **Scores per pair** | `Z_i` (hierarchy, in {-1,0,+1}) and `D_i` (success difference, in {-1,0,+1}) from `winstats.compare`. |
 | **Hierarchy** | Tier 0 `success`, higher better, tolerance 0. Tier 1 `cost` = episode wall-clock `latency_s`, lower better, **relative tolerance 0.05**. Tier 1 is eligible **only when both episodes succeeded**; a joint failure is a tie. Exact threshold equality is a tie. |
 | **Monitoring rule (the decision rule)** | At every **evaluation trigger of 8.3**, on the **current full enrolled prefix** `n = N(t)`, for each score `j` in {`h`, `s`}: `r = normal_mixture_radius(n, alpha=0.00625, rho=100., variance_process=n)`; `L_j = sum(lower_j[:n])/n - r`; `U_j = sum(upper_j[:n])/n + r`; both intersected with `[-1, 1]`. |
@@ -85,7 +85,7 @@ and the reports say so (section 14.7).
 | **Alpha** | Program `0.05`; four prespecified trials -> `0.0125` per trial; two monitored scores per trial -> `alpha_gate = 0.00625` per band. The same two-sided band serves the deploy tail and the harm tail; no extra split. `rho = 100.` |
 | **Minimum / horizon** | `n_min = 100` enrolled pairs; no decision below it, no display at `n = 0`. Horizon = the full roster. No extension, ever. |
 | **Guarantee** | Per trial, `P{any false decision statement} <= 0.0125`; program union bound over four trials `<= 0.05`. Rests on `thm:normal_cs` (`paper/theory.tex:288-304`) and `thm:drift_gate` (`paper/theory.tex:494-521`), with `prop:delay` (`paper/theory.tex:535-552`) for calendar-time display. |
-| **Declared in advance** | The deploy route is a **pre-specified near-certain abstention**: it requires an observed running success difference above `r(N_P) - 0.03` (`+0.1280` at `n = 568`), about 8.5 paired standard errors above the pilot's 0.000000, and with the pilot effect sizes the T1 success gate at `delta = 0.03` first becomes reachable at **17,097** pairs against a roster of at most 568. It is **not a logical impossibility** and is reported under Appendix E if it occurs. This is a **prospective feasibility study** (section 1.3). |
+| **Declared in advance** | This is a **prospective feasibility study** (section 1.3). At 568 completely observed pairs the declared success gate requires an observed running success difference above **`0.1279515`** (`= r(568) - 0.03`); if the observed difference stays at zero, the gate cannot pass within this horizon, and `r(n) < 0.03` first holds at **17,097** pairs. These are conditional threshold calculations: they suggest limited sensitivity near zero but **do not calibrate the probability of deployment or abstention**. Deployment, harm and no decision are all retained and reported under the frozen rule; whether either component crosses is an empirical outcome. |
 | **Traffic switch** | A crossing stops randomization, finishes every already enrolled pair under its original assignment, logs the switch time and all in-flight exposure. Post-switch single-arm traffic is an **operational follow-up cohort**, never additional pairs for the A/B estimator. **No causal resource or latency saving is identified** (section 9.4). |
 | **Not used as a rule** | `betting_log_e_ternary` (post hoc descriptive only, final complete scores only); prefix envelopes; maximization over prefixes; retained crossings; running intersections. |
 | **Anchoring** | Pushed commits carrying the chain-head hash on `session60/live-ab-anchors`, plus exactly three comments per trial on issue #11 (start, decision, end). Never force-pushed. No timestamp authority. |
@@ -164,8 +164,8 @@ pooled with a pilot table.
 | trial | incumbent | candidate | what is known in advance | prespecified expectation (section 11) |
 |---|---|---|---|---|
 | **T4** "A/A control" | `single_shot` on Qwen2.5-Coder-7B | the identical system | exact null by construction: `mu_i = 0` for any hierarchy and any load | no decision. A decision has probability at most 0.0125 under the exact null and is reported and investigated, never discarded |
-| **T2** "costly candidate with equal pilot success" | `single_shot` | `self_test_repair` | mirror image of T1 on the same model and tasks | **HARM / RETAIN_INCUMBENT**, expected at the first look (`n = n_min = 100`): pilot `Zbar = -0.4993`, `r(100) = 0.4657` |
-| **T1** "cheap candidate" | `self_test_repair` | `single_shot` | pilot on the same 591 tasks (MLX stack): equal success 433/591 and 433/591, candidate about 4.46x faster | the **hierarchy** condition `L_h > 0` is expected to be met at `n = 100`, and the **success guardrail** `L_s > -0.03` is expected never to be met, so the trial is expected to end in `ABSTAIN_AT_HORIZON`. This is the scientific content of T1 (section 1.3) |
+| **T2** "costly candidate with equal pilot success" | `single_shot` | `self_test_repair` | mirror image of T1 on the same model and tasks | **HARM / RETAIN_INCUMBENT** is the anticipated outcome, and *if the realized effect resembles the pilot* it could occur from the first look (`n = n_min = 100`): pilot `Zbar = -0.4993`, `r(100) = 0.4657`. Anticipation, not prediction |
+| **T1** "cheap candidate" | `self_test_repair` | `single_shot` | pilot on the same 591 tasks (MLX stack): equal success 433/591 and 433/591, candidate about 4.46x faster | *if the realized values resemble the pilot's*, the **hierarchy** condition `L_h > 0` could be met from `n = 100` while the **success guardrail** `L_s > -0.03` is not met, giving `ABSTAIN_AT_HORIZON`. That is the anticipated outcome and the motivation for T1 (section 1.3), **not a prediction**: every outcome is pre-written (Appendix E) and the realized one is whatever the data give |
 | **T3** "model swap" | `single_shot` on Qwen2.5-Coder-7B | `single_shot` on Granite 3.3 8B Instruct | nothing produced by this harness; vendor-published aggregate benchmark pass rates were used to choose the model (2.4), which is an **outcome-informed criterion at the aggregate level** | unknown; abstention is likely unless the composite effect is large |
 
 T1 and T2 test **one contrast with the roles exchanged**. "The hierarchy band excluded 0 upward in T1" and "the
@@ -175,7 +175,7 @@ mention (1.4 item 9). Scope of T4: because the two arms are one system and nothi
 label, T4 checks the coin path and label blindness only; it cannot reveal any arm-dependent defect (retry, timeout,
 routing), because there is no arm difference to depend on.
 
-### 1.3 Declaration: this is a prospective feasibility study with a guaranteed-abstention deploy route
+### 1.3 Declaration: this is a prospective feasibility study, and what its thresholds do and do not say
 
 This section is computed **before any data** and is part of the frozen text. It is not a post hoc explanation.
 
@@ -187,15 +187,18 @@ This section is computed **before any data** and is part of the frozen text. It 
 | 92 | 0.495026 | 250 | 0.252700 | 450 | 0.179441 |
 | 100 | 0.465693 | 295 | 0.228707 | 500 | 0.169296 |
 | 120 | 0.408804 | 350 | 0.206911 | 565 | 0.158404 |
-| 150 | 0.350660 | 400 | 0.191701 | **568 (the horizon ceiling)** | **0.157952** |
+| 150 | 0.350660 | 400 | 0.191701 | **568 (pre-exclusion bound)** | **0.157952** |
 | 200 | 0.290460 | | | 569 (reference row only) | 0.157802 |
 | | | | | 626 | 0.149925 |
 
 **No radius in this protocol is hand-typed.** Every row above, and every row of 11.2 and 11.3, is regenerated from
 `src/winstats.py` by `dryrun_live_ab.py --radius-table` into `results/live_ab/freeze/radius_table.csv`, which is the
 freeze-bundle artifact; the text is checked against that file by the freeze test of Appendix C (this closes
-`PROTOCOL-GAP PG-20`). The `n = 569` row is retained only because earlier notes quote it; the **horizon of this
-program is `N_P <= 568`** (3.3).
+`PROTOCOL-GAP PG-20`). The `n = 569` row is retained only because earlier notes quote it; it is the unstratified
+count `1138 // 2` and is not a horizon. **The horizon of this program is `N_P = floor(n_S1 / 2) + floor(n_S2 / 2)` on
+the surviving roster, which is at most 565 after the six smoke exclusions and smaller after the rest; `568` is the
+same rule before any exclusion and is quoted here only as a loose upper bound** (3.3). The `565` row above is
+therefore the relevant ceiling row, and the effective horizon is read from the frozen roster, not from this table.
 
 *Correction of record, stated openly.* `COORDINATOR_DECISIONS.md` revision 2 item 5 reports `r(92) = 0.4966`. The
 recomputed value is **`r(92) = 0.495026`**; `0.4966` is close to the pilot net benefit, not the radius, and the two
@@ -203,7 +206,7 @@ appear to have been transposed in that note. `r(295) = 0.2287` and `r(569) = 0.1
 **No conclusion changes.** The coordinator's "about 92 pairs" follows from the three-tier pilot value `0.4968`
 (`r(92) = 0.495026 < 0.4968 <= r(91) = 0.499041`); the frozen two-tier value `0.4993` gives `n = 91` instead. Either
 way the binding constraint is `n_min = 100`, which is larger than both, so the first admissible evaluation is
-unchanged and the unreachability result below is untouched. Both values were recomputed with `.venv/bin/python` against
+unchanged and the threshold calculation below is untouched. Both values were recomputed with `.venv/bin/python` against
 `src/winstats.py` at SHA-256 `56955ce0...` before this protocol was written.
 
 **The pilot effect sizes, recomputed for the frozen two-tier hierarchy.** Over all 591 x 591 ordered cross-task pairs
@@ -221,7 +224,10 @@ relative tolerance 0.05, eligibility only when both succeed:
 0.709/0.079/0.212 exactly; the token tier decided 0.30% of pairs. Dropping it moves the planning value by 0.0025.)
 
 **The consequence, which is the reason for this section.** A gate crosses when the observed running average beats the
-radius. With a constant observed value:
+radius. The table below is **conditional arithmetic**: each row fixes a *hypothetical constant observed value* and
+reports the smallest `n` at which the gate could then cross. The assumed values are the pilot's, and the pilot is a
+different serving stack and a same-task design, so no row predicts this trial's data or licenses a statement that a
+gate *will* cross at any `n`:
 
 | condition | requirement | smallest `n` that can satisfy it |
 |---|---|---|
@@ -234,19 +240,36 @@ radius. With a constant observed value:
 | the same at `delta = 0.20` | `r(n) < 0.20` | `n = 372` |
 
 **The roster gives at most 568 pairs (3.3). A DEPLOY decision therefore requires an observed running success
-difference above `r(N_P) - 0.03`, which is `+0.1280` at `n = 568` and `+0.1278` at `n = 569`; the same-task pilot
-difference is `0.000000` with a paired standard error of `0.0151`, i.e. the threshold is about 8.5 standard errors
-away. The deploy route is declared, before collection, a PRE-SPECIFIED NEAR-CERTAIN ABSTENTION; it is NOT a logical
-impossibility, and if it occurs it is reported under Appendix E's DEPLOY template without any claim that it was
-impossible.** The phrases "unreachable by construction" and "impossible whatever the outcomes" are forbidden
-(1.5 item 13).
+difference above `r(N_P) - 0.03`, which is `+0.1279515` at `n = 568` (`+0.1278017` at `n = 569`). If the observed
+difference stays at zero, the gate cannot pass within this horizon: `r(n) < 0.03` first holds at `n = 17,097`.**
+
+**These are conditional threshold calculations, not a power analysis and not a prediction.** Each row of the table
+above answers "at this *assumed constant* observed value, what is the smallest `n` at which the gate could cross?".
+None of them is a statement about what the data will do. The gate is a condition on the DATA — `mean_success_difference
+- r(n) > -delta` — not a fixed sample-size requirement, so no outcome is excluded by arithmetic. A concrete
+counterexample, recomputed here: at `n = 100` with the candidate succeeding and the incumbent failing on every one of
+the 100 resolved pairs, both running means are `1.0`, both lower endpoints are `1 - r(100) = 0.5343070794820347`, and
+**both gates pass** — a deploy fires at the first permitted look. **Deployment, harm and no decision are all retained
+and reported under the frozen rule, and whether either component crosses is an empirical outcome.**
+
+**No uncertainty scale is attached to these thresholds, deliberately.** The pilot's same-task paired standard error
+(`0.0151`) does **not** describe this trial and must not be used as a rationale for any expectation about the outcome:
+the pilot compared the two workflows on the *same* task, whereas a pair here puts **one task on each arm**, so the two
+designs have different sampling variability and the pilot scale does not transfer. Any "the threshold is N standard
+errors away" argument built on it is void. No replacement scale is substituted either: a calibrated prospective
+statement would need a design-matched planning distribution with Monte Carlo uncertainty, and none is claimed here.
+The many cross-task pilot comparisons share underlying trajectories and are not independent replications.
+
+**These calculations suggest limited sensitivity near zero. They do NOT calibrate the probability of deployment or of
+abstention for this prospective design.** The phrases "unreachable by construction", "impossible whatever the
+outcomes", "guaranteed abstention" and "near-certain abstention" are forbidden (1.5 item 13).
 
 **What follows from that, and what does not.**
 
-- The program is declared, before collection, a **PROSPECTIVE FEASIBILITY STUDY whose deploy route is a pre-specified
-  near-certain abstention**. Its scientific content in T1 is that **the composite gate crosses while the success
-  guardrail refuses**:
-  the guarded rule behaving exactly as specified, live, on real randomized traffic.
+- The program is declared, before collection, a **PROSPECTIVE FEASIBILITY STUDY**. Its scientific content in T1 is
+  whether **the composite gate crosses while the success guardrail refuses** — the guarded rule behaving as specified,
+  live, on real randomized traffic. That is the outcome the thresholds above make *plausible*, not one that is
+  declared in advance: it is reported if it happens, and a different outcome is reported if a different one happens.
 - **The horizon, the margin and the rule are not changed to make a deploy reachable.** No horizon extension, no margin
   loosening, no model replacement after unfavourable monitoring (guidance item 6; revision 2 item 5). Any such change
   would be a new protocol version with its own freeze, its own alpha and its own audit, and every trial started after
@@ -254,8 +277,9 @@ impossible.** The phrases "unreachable by construction" and "impossible whatever
 - This is **not a defect of the design and not a defect of the method**. The permitted sentence is "this prespecified
   rule did not certify margin `delta = 0.03` on these data at this horizon". The forbidden sentences are
   "not certifiable", "cannot be certified at this sample size", "impossible for any method" (1.5 item 13).
-- T2's harm route and T1's hierarchy route are **reachable and are the live content of the program**: a real crossing,
-  a real traffic switch, a real receipted decision time.
+- T2's harm route and T1's hierarchy route are **reachable at this horizon under pilot-like values, and are the live
+  content of the program**: a real crossing, a real traffic switch, a real receipted decision time. Reachable means the
+  arithmetic permits them, not that they are expected to occur; whether they occur is an empirical outcome.
 
 ### 1.4 Claims the trials MAY support (each only if literally true at the end)
 
@@ -291,15 +315,18 @@ impossible.** The phrases "unreachable by construction" and "impossible whatever
    was retained". T4: "in one A/A control path no band crossed" (or, if one did, it is reported as the rare event it
    is, investigated, and never discarded). T3: whatever happens, including abstention and deferral.
 8. "The success guardrail at the margin `delta = 0.03` was **not** met at any enrolled prefix; the lower endpoint
-   `L_s` at the reported prefix was [value] against the threshold `-0.03`. Before collection this route was declared a
-   **pre-specified near-certain abstention** at this horizon (1.3): meeting it requires an observed running success
-   difference above `r(n) - 0.03` (`+0.1280` at the horizon `n = 568`), `r(n) < 0.03` first holds at `n = 17,097`, and
-   the roster gives at most 568 pairs." Non-crossing is abstention on the deploy route. **The sentence never says the
-   outcome was impossible.**
+   `L_s` at the reported prefix was [value] against the threshold `-0.03`. Before collection, the threshold
+   calculation of 1.3 was recorded: meeting the gate requires an observed running success difference above
+   `r(n) - 0.03` (`+0.1279515` at the horizon `n = 568`), `r(n) < 0.03` first holds at `n = 17,097`, and the roster
+   gives at most 568 pairs — so at an observed difference of zero the gate cannot pass within this horizon." Non-
+   crossing is abstention on the deploy route. **The sentence never says the outcome was impossible, and never says
+   it was expected or near-certain: the calculation was conditional on the observed difference, which was not known
+   in advance.**
 9. Wherever two or more trials appear in one table, abstract or paragraph: "each trial has its own error budget of
    0.0125 and the union bound over the four decisions is 0.05".
 10. "A composite that crossed while the prespecified success guardrail refused" is the **specified** behaviour of a
-    guarded rule at a margin the data cannot reach at this horizon, and is reported as such.
+    guarded rule at a margin these data did not reach at this horizon, and is reported as such. Past tense: it
+    describes what the observed data did, never what the data could have done.
 
 ### 1.5 Claims that are FORBIDDEN in any report, index, PR text, issue comment or manuscript sentence
 
@@ -310,8 +337,9 @@ impossible.** The phrases "unreachable by construction" and "impossible whatever
 3. Empirical calibration or type-I-error control from one or four streams; "holds its level"; "error rate is zero";
    any operating-characteristic statement derived from T4.
 4. Equivalence or non-inferiority from equal or similar success counts. Only a crossing of the success guardrail at
-   `delta = 0.03` could be called non-inferiority at that margin, and it is declared a pre-specified near-certain abstention (1.3). A crossing of
-   an exploratory read-out at 0.10 or 0.15 is **never** reported as non-inferiority at that margin and never as
+   `delta = 0.03` could be called non-inferiority at that margin, and the threshold calculation of 1.3 shows it
+   requires an observed running success difference above `+0.1279515` at the horizon. A crossing of an exploratory
+   read-out at 0.10 or 0.15 is **never** reported as non-inferiority at that margin and never as
    "success was preserved".
 5. "Approval of the incumbent", "the incumbent satisfies the guardrail", success harm or safety harm from a hierarchy
    upper-endpoint crossing. A harm decision is a statement about the **composite only**.
@@ -333,9 +361,15 @@ impossible.** The phrases "unreachable by construction" and "impossible whatever
     archived verifier label.
 13. "Assumption-free", "impossible for any method", "not certifiable", "cannot be certified at this sample size",
     **"unreachable by construction"**, **"impossible whatever the outcomes"**, **"a deploy decision was impossible"**,
+    **"guaranteed abstention"**, **"near-certain abstention"**, **"the gate will cross at `n = ...`"**,
     "conservative" without conditions, mechanism claims from post-crossing diagnostics. The permitted sentences are
     "this prespecified rule did not certify margin `delta` on these data at this horizon" and, for planning, "for this
     rule, this allocation and this roster the reachability threshold is `n = ...`".
+    **Also forbidden: attaching the pilot's same-task paired standard error (or any multiple of it, such as "about
+    8.5 standard errors away") to a threshold of this trial.** The pilot is a same-task design; a pair here puts one
+    task on each arm, so that scale does not describe this trial and is not a rationale for any expected outcome. No
+    prospective probability of deployment or abstention is stated anywhere without a design-matched planning
+    distribution and its Monte Carlo uncertainty.
 14. That post-switch single-arm data validate, contradict or refute the decision, or predict future benefit.
     Post-switch rates are not compared with pre-switch rates of either arm.
 15. That the hierarchical rule is generally better than component rules.
@@ -594,7 +628,7 @@ and on S1.
 | S2 after excluding the six smoke tasks | 541 |
 | S2 after rules 2-4 of 3.2 | `n_S2 <= 541`, pinned in the pre-freeze phase |
 | **Horizon `N_P`** | **`floor(n_S1 / 2) + floor(n_S2 / 2)`** = `295 + floor(n_S2 / 2)` pairs, **at most 565** after the smoke exclusions and **at most 568** before any exclusion (`floor(591/2) + floor(547/2) = 295 + 273`). Roster S1: `N_P = 295`. |
-| unpaired leftovers | **one per stratum**, never enrolled, executed only in a follow-up cohort |
+| unpaired leftovers | **`(n_S1 % 2) + (n_S2 % 2)`** — 0, 1 or 2; only an **odd** stratum leaves one. Never enrolled, executed only in a follow-up cohort. (At 591/541 both strata are odd, so there are two; that is a property of those counts, not of the rule.) |
 
 **`N_P` is never `n_total // 2`.** Pairs are formed inside a stratum (3.4), so the odd remainder of each stratum is a
 leftover and **no pair ever crosses the strata**. The number 569 that appears in earlier notes came from the
@@ -603,6 +637,13 @@ radius table of 1.3.
 
 `N_P` is the number of pairs in the frozen `arrival_order_T<e>.json` and is the authoritative value.
 **There is no extension, no second pass and no re-randomization of unused tasks**, whatever the monitoring shows.
+
+**One roster, four trials, four order seeds — and therefore no cross-trial independence.** All four trials draw from
+the same frozen roster and differ only in the trial number that seeds the arrival order (3.4). Disjointness is a
+**within-trial** property: within one trial each task appears at most once. Across trials the same tasks recur, so
+**the four trials are never pooled as independent replications, and their results are never presented as four
+independent estimates of one quantity.** S1 is the 591 tasks the pilot has already observed and **must never be
+described as fresh tasks**; only S2 was unobserved before this program, and S2 too is reused by all four trials.
 
 ### 3.4 Arrival-order generation (seeded and hash-committed; it is not the assignment mechanism)
 
@@ -899,9 +940,31 @@ workers and makes a cross-worker collision impossible. `worker_index` is the **s
 position 2 in the randomized phase; the free slot in the follow-up cohort); it is carried in the job file, it is
 **not** a function of the arm, and it is removed from the canonical job payload before the T4 byte-identity check
 (12.3), so the partition can never give one arm an advantage. Each worker loads the used-seed set of earlier trials of
-the program at start and checks only its own half; a value already used is redrawn; `0xFFFFFFFF` is never used. The seed is
-written to the worker spool and to `llm_request` **before** the POST, and the seed receipted by the server must equal
-the seed sent (13.2). Seeds are drawn by the worker **independently of the coin** (the worker knows its arm but the
+the program at start and checks only its own half; a value already used is redrawn; `0xFFFFFFFF` is never used.
+
+**The registry that makes the previous sentence true.** The used-seed set is one program-wide file,
+`<work root>/used_seeds.json`, a sorted JSON list of integers. The **orchestrator** is its only writer
+(`lab_orchestrator.write_seed_registry`): it rebuilds the set at every trial start and at every resume by reading the
+`call_started` lines of every trial's worker spools (`seed_registry_reconstruct`), and rewrites the file before every
+dispatch, so the set a worker reads already contains every seed its predecessors committed to sending. The
+reconstruction is from the **spools**, not from the chain, because a `call_started` line is fsynced before its POST and
+becomes `llm_request` only at the orchestrator's next ingest: after an unclean exit the file may be stale but no seed
+that was ever sent can be missing from the spool that recorded it. The file lives at the **program** work root, above
+every trial, because a per-trial file cannot carry "earlier trials of the program"; the verifier's per-trial
+`seeds.unique` check is therefore joined by a program-scope one in `verify_program`, which compares the `llm_request`
+seeds of every trial chain against each other. Neither is a refusal: see the defect rule at the end of this section.
+
+**What is durable before the POST.** The **worker spool** line `call_started` -- carrying the drawn seed, the body
+hash, `t_c1` and `t_send` -- is written and fsynced **before** the HTTP request (`lab_client.LlamaClient.chat`), and it
+is the write-ahead evidence that a seed was committed to. The chain event `llm_request` is the orchestrator's
+**asynchronous projection** of that spool line and is appended when the orchestrator next ingests the spool, which is
+after the POST and may be after the response. There is **no chain acknowledgment handshake before the POST, and none is
+required**: adding one would put an inter-process round trip inside the measured call, and `latency_s` is the cost tier
+of the frozen hierarchy, so the handshake would contaminate the very quantity the trial measures. This paragraph
+narrows an earlier sentence that claimed the seed was durable "in the worker spool and in `llm_request` before the
+POST"; only the first half of that was ever true of the implementation, and the promise is narrowed to match the code
+rather than the code changed to match the promise (execution review E4). The seed receipted by the server must still
+equal the seed sent (13.2). Seeds are drawn by the worker **independently of the coin** (the worker knows its arm but the
 seed draw does not read it; a unit test asserts the drawn stream is independent of a patched coin stream); they are
 part of an episode's internal randomness (7.2). The seed that `run_episode` computes internally is ignored by the
 injected client. **A detected duplicate is a logged defect (`seed_collision`) with no effect on any outcome**; it never
@@ -959,7 +1022,7 @@ program of one worker list, read or overwrite the other worker's verification pr
 Success = hidden checks exit 0 **and** the per-call nonce sentinel is seen (`verify.py:78-82`). Verifier wall seconds
 and CPU seconds are both logged.
 
-#### 5.7.1 Host quiescence: what the gate proves, and what it does not
+#### 5.7.1 Host quiescence: what a scan reports, and what it does not establish
 
 The execution lock of item 1 excludes a second instance of **this harness**. It does not see a model server belonging
 to a different project on the same machine, and on 2026-09-19 two such `llama-server` processes held this host's GPU
@@ -1002,9 +1065,118 @@ while doing no accelerator work — and a gate that reports a text editor is a g
   fails open would be worse than no scan at all, since it would produce a clean-looking audit trail over contaminated
   numbers.
 
+**What a scan supports, and it is the only sentence a report may carry about it.** The previous wording of this
+subsection said what the gate *proves*. It is replaced, on the instruction of the baseline-daemon policy review
+(clarification 3), by a statement of exactly what the detector reported and nothing more:
+
+> At the recorded scans, the detector reported no non-baseline process satisfying the frozen detection criteria above
+> the frozen resident-size floor of 128 MiB, and every frozen baseline process it found is recorded with its measured
+> CPU delta.
+
+That is a report about a detector at a few instants; it is not a description of the machine between them, and it does
+not establish accelerator isolation over the trial window. In particular, the CPU-time deltas of 5.7.2 measure **CPU
+activity**: they **do not establish accelerator activity, and they do not establish accelerator inactivity.** A process
+can keep the GPU saturated while accumulating almost no CPU time, and a process can burn CPU while touching no
+accelerator at all. No sentence of this protocol, of any report of a trial, of `lab_hostcheck.py` or of
+`tests_lab_hostcheck.py` may promote a scan into a statement that the machine was doing no accelerator work;
+`tests_lab_hostcheck.IdlenessClaimTests` reads all three texts and fails on the phrases that would.
+
 Accordingly, **"no other GPU job" is a requirement of this protocol and an operator responsibility; it is checked, not
 enforced, and checked only to the extent set out above.** Any report of a trial states that the gate ran, and states
 these limits with it.
+
+#### 5.7.2 The frozen baseline allowance
+
+`design/COORDINATOR_DECISIONS.md` ruling 31 (revision 8) withdrew and replaced **both** earlier proposals: the
+identity-only allowlist of ruling 28, which would have admitted an OS daemon however busy it was, and the
+refuse-on-possession option of `ARCHITECTURE_FINAL.md` 3.17.1, which would have blocked this host indefinitely on a
+daemon doing no work. The decisive measurement is in revision 8: `mediaanalysisd` held a compute-class Metal resource
+while its cumulative CPU time did not move across three samples. Everything below is frozen **before any trial** and is
+bound by the freeze bundle, whose hash covers every file under `experiments/live_ab/` (14.2);
+`lab_hostcheck.baseline_policy()` renders the same facts as a JSON object for deposit in the freeze deliverable. Per
+ruling 31(f) the thresholds are **not** tuned after a refusal: if this rule blocks a trial, the trial waits.
+
+**1. A non-baseline accelerator consumer refuses on presence (31(a)).** Anything not on the closed list below — another
+experiment, another project, a user's model server — is a refusal the moment it is detected, with **no activity test
+and no override**. A loaded model server exists in order to be used.
+
+**2. The closed list, by exact resolved executable path (31(b), narrowed by clarification 1 of the review).** A blanket
+`/System/` prefix and a framework-directory prefix are both rejected, because a prefix exempts an entire tree including
+binaries nobody has looked at.
+
+| resolved executable path | `baseline_id` |
+|---|---|
+| `/System/Library/PrivateFrameworks/MediaAnalysis.framework/Versions/A/mediaanalysisd` | `mediaanalysisd` |
+
+**Matching rules, exhaustively.** `argv[0]` — the first whitespace-delimited token of the `ps` command line, and
+nothing else — must be **string-equal, character for character**, to a listed path; and every listed path must lie
+under `/System/`, which is a lock on the *list* so that no user-writable path can be added to it. There is no basename
+match, no prefix match, no substring match, no symlink resolution and no look past `argv[0]`. Three consequences, each
+pinned by a test:
+
+- `/System/.../MediaAnalysisAccess.framework/.../mediaanalysisd-access`, a **different** binary that really runs on
+  this host and whose basename contains the allowed name, is **not** baseline;
+- a copy of the daemon anywhere else, e.g. `/opt/priv/mediaanalysisd`, is **not** baseline;
+- the daemon reached through a wrapper, `/bin/sh -c <path>`, is **not** baseline.
+
+Each of the three falls through to rule 1 and refuses. The list is extended only by editing it before a freeze, which
+moves the freeze-bundle hash and invalidates the preflight; it is never extended during or after a trial.
+
+**3. The activity test (31(b)), frozen in every part.**
+
+- *Quantity*: the cumulative CPU time `ps` reports for the process, summed over its threads, in milliseconds.
+- *Samples*: at `t` and at `t + 10 s`. The first is the `TIME` column of the scan's own process table; the second is
+  one further `ps` reading pid and `TIME` only.
+- *Rule*: **active iff the delta exceeds 0.5 CPU-seconds**, strictly. A delta of exactly 0.5 CPU-seconds is `idle`.
+- *Normalization*: **none.** The delta is raw CPU milliseconds. It is not divided by the sampling interval, not divided
+  by the core count and not expressed as a percentage, so a multi-threaded process may legitimately show a delta larger
+  than the interval itself.
+- *Validity of the interval*: the wall interval actually achieved is measured on the monotonic clock and recorded in
+  each record as `interval_ms`. Below `8000` ms — 80% of the frozen interval — the sample is discarded as `unknown`
+  rather than believed, because a short window is exactly how a busy process would look quiet.
+- *Scope*: only a listed process that is at or above the **128 MiB resident floor** and holds a **compute-class** Metal
+  resource is measured at all. A listed process holding no Metal resource is not competing for the accelerator; a
+  listed process below the floor falls into the blind spot already stated in 5.7.1, which this ruling does not change.
+- *Cost*: a scan that finds no baseline accelerator consumer runs no activity test and costs nothing extra. A scan that
+  finds one pays the 10 s interval once, at that scan.
+
+**4. The four outcomes (31(b), (d)).** There is deliberately no boolean here: a boolean would have to render an
+unmeasured process as "not active", and **an unavailable measurement is unknown, not zero activity**.
+
+| `activity` | meaning | effect on the gate |
+|---|---|---|
+| `active` | delta above the threshold over a valid interval | a finding with detector `baseline-active`: **refuses** |
+| `idle` | delta at or below the threshold over a valid interval | recorded only; does not refuse |
+| `exited` | absent from the second sample, so no longer contending | recorded only; does not degrade the scan |
+| `unknown` | the second sample failed, the first was unreadable, the interval was too short, or the cumulative time fell | degraded cause `baseline_unmeasured`: **the preflight refuses** |
+
+**5. Cadence and the record (31(c), (d)).** The activity test runs at the hard gate immediately before a trial chain is
+opened **and** at every in-trial scan point, which are `trial_start` and `quiescent`. Every listed process the scan
+finds is written to the chain at **every** scan, active or not, as a `baseline` record carrying `pid`, `ppid`,
+`baseline_id`, `start_utc`, `elapsed_s`, `rss_bytes`, `cpu_delta_ms`, `interval_ms`, `activity` and the SHA-256 of its
+`argv`. The executable path itself is **not** published: `baseline_id` names the frozen entry it matched, and the
+digest lets an operator confirm the match locally. `clean` is therefore never a bare assertion a reader must trust.
+
+**6. The trial-overlap flag.** Each scan record also carries `baseline_active`, true iff some listed process was
+measured `active` at that scan. A trial's window overlaps materially active baseline load **if and only if that
+trial's own chain carries a `foreign_load_detected` record whose `baseline_active` is true**. The structure decides it
+and nothing is inferred from a timestamp: a trial chain exists only while its trial runs, so every record on it is
+inside the window, while the pre-trial gate's refusal lives on the program chain as `host_quiescence_refused` and
+belongs to a trial that never opened.
+
+**7. A baseline daemon that wakes during a trial (31(c)).** It does **not** abort the trial — aborting on an OS daemon
+would make trials unfinishable — and it does not void the randomization. Every pair already **enrolled** stays
+enrolled, every observation and every failure is kept, no assignment is redrawn, no affected pair is dropped and no
+trial is restarted on the strength of it. The affected window is named **beside the latency tier** as a disclosure, and
+**no latency number is adjusted** for it. This is the same response the protocol already fixes for newly detected
+foreign load, and it is fixed here before it can block or favour any result.
+
+**8. What is reported beside the latency results (clarification 4).** Every report of a trial states, next to its
+latency tier: the permitted baseline activity actually observed, as the `baseline` records with their `activity`
+values and CPU deltas; the detection limits of 5.7.1, including the resident floor and the raw-Metal blind spot; and
+the fact that scans happened only at the points listed in item 5, so the host was observed at instants and not
+continuously. A trial that ran with permitted baseline activity present describes its **measured serving regime** and
+is not reported as an isolated-latency result.
 
 ### 5.8 Pre-freeze out-of-design phase
 
@@ -1515,7 +1687,7 @@ additional candidate, primary hierarchy or confirmatory decision route exists**,
 | `rho` | **100.** | guidance item 4, "a fixed reproducible starting specification, with its power checked before the freeze" (section 11) |
 | `delta` (primary and only decision margin) | **0.03** | guidance item 6; revision 2 item 4 |
 | `n_min` | **100** | guidance item 6; revision 2 item 9 |
-| horizon | full roster, `N_P <= 568` (3.3) | revision 2 item 9 |
+| horizon | full roster, `N_P = floor(n_S1 / 2) + floor(n_S2 / 2)` on the surviving counts (at most 565 after the six smoke exclusions; `568` is the loose pre-exclusion bound) (3.3) | revision 2 item 9 |
 
 **The same two-sided band serves both the deploy tail and the harm tail; there is no extra split for the harm
 direction.** The trial count and the allocation are frozen before collection and **are not re-allocated** if a trial is
@@ -1566,8 +1738,11 @@ machine state, serial dependence and informative delay are all allowed.
 1. **Not a statement about the latest arrival, a later prefix, a future workload, the all-pairs roster functional
    `theta_N`, a task superpopulation, or production traffic.** The decision certifies **the running average of
    history-conditional pair means at the logged prefix** and nothing else (`paper/theory.tex:524-531`).
-2. **Not a joint confidence region for effect sizes.** The two bands are jointly valid for the two running targets
-   because the levels were split; they are not a two-dimensional region and no contour is drawn.
+2. **Not an optimized joint confidence region for effect sizes.** The two bands are jointly valid for the two running
+   targets because the levels were split, so their Cartesian product `[L_h, U_h] x [L_s, U_s]` **is** a valid
+   simultaneous rectangular region for the pair of running targets at the stated joint level. What is not claimed is
+   any *optimized* multivariate region: the rectangle is conservative, it ignores the dependence between the two
+   scores, no contour is drawn and no area, shape or efficiency property is asserted for it.
 3. **Not a calibrated error rate.** One A/A run does not establish a 5% false-decision rate and does not demonstrate
    equivalence (guidance item 8). Calibrated operating characteristics would need repeated prespecified CPU null
    simulations with Monte Carlo uncertainty, which are planning objects only (section 11).
@@ -1798,7 +1973,8 @@ task composition and ... and cannot separate them"); the sensitivity read-outs S
 per-contrast side-by-side compression `C` (5.8 item 4); `t`-values of the
 completed-prefix read-out; switch latencies; everything from the follow-up cohort; the projection of 9.5 item 4. The
 words "significant", "equivalent" and "non-inferior" do not appear at all, because the only margin at which
-non-inferiority could be claimed (`delta = 0.03`) is a pre-specified near-certain abstention (1.3).
+non-inferiority could be claimed (`delta = 0.03`) requires an observed running success difference above `+0.1279515`
+at the horizon (1.3), which these read-outs do not establish.
 
 **Not produced at all:** t, Welch, cluster-t, bootstrap or delta-method intervals; win-ratio confidence sequences;
 fixed-mean (iid-roster) readings; any function of `src/wincs.py`; any comparison with, or pooling of, pilot episodes;
@@ -1856,15 +2032,17 @@ model-dependent (10.2). **None of them is a statement about what any method can 
 
 **Reading, honest in both directions.** `rho = 100` is the root's fixed reproducible specification (guidance item 4)
 and is frozen; it is **not** the value that minimises the radius at `n = 100` (`rho = 10` would be tighter there, and
-`rho = 1000` makes the band the full range at `n = 100`). **No choice of `rho` makes the deploy route reachable**:
-every row needs more than 15,000 pairs at `delta = 0.03`. The unreachability of 1.3 is therefore **not an artefact of
-`rho`**, and `rho` is not tuned after seeing anything.
+`rho = 1000` makes the band the full range at `n = 100`). **At an observed success difference of zero, no choice of
+`rho` brings the deploy gate within this horizon**: every row needs more than 15,000 pairs at `delta = 0.03`. The
+threshold calculation of 1.3 is therefore **not an artefact of `rho`**, and `rho` is not tuned after seeing anything.
+As in 1.3, this is conditional on the observed difference: at a large enough observed difference the gate can pass at
+any of these `rho` values, and the column simply shows where the zero-difference case sits.
 
 ### 11.3 The reachability table (the decisive planning object)
 
 A gate can cross at prefix `n` only if the observed running average beats the radius. With a constant observed value:
 
-| gate | threshold on the observed value at prefix `n` | pilot value | first `n` that can satisfy it | within the horizon `N_P <= 568`? |
+| gate | threshold on the observed value at prefix `n` | pilot value | first `n` that can satisfy it | within the horizon (`N_P <= 565` after the smoke exclusions, `<= 568` before any exclusion)? |
 |---|---|---|---|---|
 | T2 harm `U_h < 0` | `Zbar_n < -r(n)` | `-0.4993` | `n = 91`; first admissible evaluation `n = n_min = 100` | **yes** |
 | T1 hierarchy `L_h > 0` | `Zbar_n > +r(n)` | `+0.4993` | `n = 91`; first admissible evaluation `n = n_min = 100` | **yes** |
@@ -1886,7 +2064,7 @@ A gate can cross at prefix `n` only if the observed running average beats the ra
 | 450 | 0.1794 | 0.1794 | +0.1494 |
 | 500 | 0.1693 | 0.1693 | +0.1393 |
 | 565 | 0.1584 | 0.1584 | +0.1284 |
-| **568 (horizon ceiling)** | **0.1580** | **0.1580** | **+0.1280** |
+| **568 (pre-exclusion bound)** | **0.1580** | **0.1580** | **+0.1280** |
 
 **First crossing prefix as a function of a constant realized `|Zbar|`** (the sensitivity that matters most, because the
 pilot value 0.4993 sits only 0.0336 above `r(100)`):
@@ -1907,15 +2085,18 @@ horizon; an effect below about 0.16 does not decide at all. Both outcomes are re
   is by worker index, not by arm). Its alpha allocation is reserved and every result is retained. **One non-crossing
   A/A run does not establish a 5% false-decision rate and does not demonstrate equivalence.** A crossing is reported
   and investigated, never silently discarded, and the run is not repeated to obtain a different answer.
-- **T2.** `HARM_RETAIN_INCUMBENT` expected at the first admissible evaluation, `n = 100`, because `|{-0.4993}| >
-  r(100) = 0.4657`. This is the **one live traffic switch the program expects**. Its margin over the radius is 0.0336,
+- **T2.** `HARM_RETAIN_INCUMBENT` is anticipated at the first admissible evaluation, `n = 100`, *conditional on the
+  realized effect matching the pilot*, because `|{-0.4993}| > r(100) = 0.4657`. This is the **one live traffic switch
+  the program anticipates**, not one it predicts. Its margin over the radius is 0.0336,
   so a realized effect more than about 7% weaker moves the crossing later (11.3), and an effect below 0.16 gives
   abstention. All three outcomes are pre-written (Appendix E).
-- **T1.** The **hierarchy** condition is expected to be met at `n = 100` and the **success guardrail is expected never
-  to be met**: with `Dbar` near 0 it needs 17,097 pairs. The expected outcome is therefore **`ABSTAIN_AT_HORIZON`
-  after `N_P` (at most 568) pairs, with the composite condition satisfied throughout**. *This is the scientific content of T1 and it is
-  declared before collection* (1.3). It is run because a prespecified rule that refuses is a legitimate and reportable
-  result, and because the program freeze forbids dropping a trial after its expectation is known.
+- **T1.** *If the realized values resemble the pilot's*, the **hierarchy** condition could be met from `n = 100` while
+  the **success guardrail is not met**: at an observed `Dbar` of 0 the guardrail would need 17,097 pairs. The
+  anticipated outcome is therefore **`ABSTAIN_AT_HORIZON` after `N_P` (at most 565 after the smoke exclusions; `568` only before them) pairs, with the composite
+  condition satisfied throughout**. *This anticipation is recorded before collection* (1.3); it is conditional on the
+  observed values, carries no probability, and does not exclude any outcome — a deploy is permitted by the arithmetic
+  and is reported normally if it occurs. T1 is run because a prespecified rule that refuses is a legitimate and
+  reportable result, and because the program freeze forbids dropping a trial after its anticipated outcome is known.
 - **T3.** Abstention is the expected result in every scenario except a candidate that is both more successful and
   faster side by side. T3 is run because it is the only contrast whose outcome is unknown to the operator; an
   abstention is reported with the same prominence as a decision; a deferral under 2.4 is reported under its own
@@ -2102,9 +2283,15 @@ leftover has one assignment event and one reveal, or the count that did not run 
 one terminal event per `llm_request`; the orphan check matched against
 **`job_accepted`** (not against the non-durable `episode_started`, finding N4/N21); outcome fields of `episode_revealed`
 equal those of the hashed record; **T4 job payloads byte-identical apart from the label** - operationally: the two job
-objects of a T4 pair are compared after removing exactly `arm`, `arrival`, `pair`, `position`, `task_uid`,
+objects of a T4 pair are compared after removing exactly `arm`, `arrival`, **`inv`**, `pair`, `position`, `task_uid`,
 `worker_index`, `paths`, `assignment_seq` and `payload_sha256`, and what remains must be byte-identical
-(`canonical_job_payload`, `ARCHITECTURE_FINAL.md` §3.12); first coin after the start
+(`canonical_job_payload`, `ARCHITECTURE_FINAL.md` §3.12). `inv` is in the list for the same reason as `worker_index`:
+it identifies the orchestrator invocation that dispatched the job, not the scientific configuration the episode ran
+under, and 6.4 rows 11c-11e expressly permit the two episodes of one pair to be dispatched by different invocations
+after a pause or crash. Keeping it made `t4.payload_identity` -- a FAIL on condition list B -- fire on a correctly
+resumed A/A pair whose configuration had not changed (execution review E3). Every key that *does* define the
+configuration (`trial`, `workflow`, `server`, `sampling`, `limits`, `sandbox`, `golden`, `max_repair_rounds`,
+`config_sha256`, `freeze_bundle_sha256`) stays in the payload, so genuine drift between the two arms still fails. First coin after the start
 receipt and first post-decision assignment after the decision receipt; **equality ties and joint failures** score as
 specified; **switch-phase exclusion** (no follow-up-cohort arrival enters any score, any band or `n`); the reference-rule
 replay and the agreement test of 8.9; `exposure_ledger.json` equal to a recount from events; the SHA-256 of the first
@@ -2327,8 +2514,28 @@ or `timings`), **the program is not started**; no logging proxy or other substit
    file. **Every freeze condition of 5.8 item 6 must hold.**
 4. **Assemble and post the freeze bundle** (14.2). Commit, push, and post the commit and the bundle hash on issue #11.
    Only then may a design episode start.
-5. The runner refuses to start on any hash mismatch and **re-verifies harness, config, serving manifest and weights at
-   every invocation**.
+5. The runner refuses to start on any hash mismatch and **re-verifies every member of the freeze bundle against the
+   artifact that member names, at every invocation, with the approved bundle held fixed**. Matching the bundle's own
+   canonical digest proves only that nobody edited the bundle; it proves nothing about what the bundle names. So
+   preflight recomputes, from the deposited freeze tree and the working copy, each of
+   `lab_common.BUNDLE_MEMBERS_RECOMPUTED`: `protocol_version`, `config_sha256`, `rule_block_sha256`, `roster_sha256`
+   (recomputed from the roster object, so a roster rewritten together with its own self-hash still fails),
+   `task_content_sha256`, the per-trial `arrival_order_sha256`, `harness_file_sha256` (which includes
+   `lab_reference_rule.py`), `reused_file_sha256`, `winstats_sha256`, `gguf_sha256`, `serving_manifest_sha256`, the
+   two golden tables, `receipt_mask_sha256`, `sandbox_profile_sha256`, `containment_probe_sha256`,
+   `environment_lock_sha256` and `hardware_allowlist`; and the **running host's identity is compared with the frozen
+   allowlist** rather than merely recorded at trial start. A member the bundle names whose artifact is missing is a
+   refusal, not a pass. The refusal carries the drifting `{item, expected, found}` rows into the `preflight_refused`
+   record, so a reader sees which artifact moved.
+   **The declared limit of this gate.** Eight members name artifacts no run can read — `protocol_sha256`,
+   `run_book_sha256`, `license_evidence_sha256`, `derivation_sha256`, `planning_sha256`, `prefreeze_head`,
+   `prefreeze_bytes`, `prefreeze_file_sha256` (`lab_common.BUNDLE_MEMBERS_NOT_RECOMPUTED`). They are bound by the
+   bundle digest alone. That is stated here rather than left silent, and the two lists together must exhaust
+   `FREEZE_BUNDLE_KEYS` (asserted by `tests_lab_design.FreezeBundleBindingTests`).
+   **One canonical digest convention.** A bundle's identity is `sha256` of the canonical JSON of its **object**
+   (`lab_common.freeze_bundle_sha256`), never of the bytes of the file carrying it. The CLI, preflight, the verifier
+   and the report builder all use that one convention, so a pretty-printed copy of the same bundle keeps the same
+   identity instead of reporting `freeze_bundle_drift`.
 6. **The `winstats` pin** (finding N11). If `src/winstats.py` is not at SHA-256 `56955ce0...` at the moment the freeze
    bundle is assembled, **the freeze is refused** and the change is escalated; no trial runs against a different core.
 7. **The rule-block hash** (finding N11, retained even though no consultation remains). Sections 6.2, 6.3, 6.4, 7, 8
@@ -2572,9 +2779,10 @@ and "wrong-direction" ones - **in the same format and with the same prominence**
    **S-lock**, `sandbox_lock_wait_s` **by arm next to every cost-tier statement**, the number of tasks excluded by
    rule 3.2 item 4 with their reference verification times (3.5 item 7), and the post hoc betting read-out with its
    no-error-control label, all labelled descriptive;
-10. the **planning expectation next to what happened**, including the frozen sentence "the composite crossed while the
-    success guardrail refused", reported as the prespecified behaviour of the rule at a margin declared before
-    collection to be a near-certain abstention at this horizon (1.3) and **never** as evidence that the workflows differ or are equivalent;
+10. the **planning arithmetic next to what happened**, including, if it occurred, the sentence "the composite crossed
+    while the success guardrail refused", reported as the prespecified behaviour of the rule at a margin whose
+    threshold calculation was recorded before collection (1.3) and **never** as evidence that the workflows differ or
+    are equivalent, and never described as an outcome that had been predicted;
 11. for **T4**: whether any band crossed; if so, the statement that this event has probability at most 0.0125 under the
     exact null and did occur, that it is investigated and not discarded, and the scope sentence of 1.2;
 12. for **T3**: the model identity, licence evidence, the rationale of 2.4 with its outcome-informed criterion named,
@@ -3011,33 +3219,35 @@ Templates. Brackets are filled from the governing report; **nothing else may be 
 **Retained in every case, without exception:** "These are laboratory trials on public benchmark tasks with open-weight
 models on one laptop; design parameters were chosen with knowledge of a pilot on the same tasks on a different serving
 stack; they provide feasibility evidence, not operational latency savings, measured operational savings or a live
-deployment. The deploy route of this program was declared **a pre-specified near-certain abstention** at this horizon
-before collection; the four trials reuse one task roster, so they are not independent replicates; and the cost tier is
+deployment. The threshold the deploy route requires at this horizon was **computed and recorded before collection**
+(an observed running success difference above `+0.1279515` at `n = 568`), without any prospective probability being
+attached to it; the four trials reuse one task roster, so they are not independent replicates; and the cost tier is
 measured under the two arm-asymmetric mechanisms named in the protocol (within-pair duration asymmetry and the
 execution-lock transfer)."
 
-- **T1, the expected outcome (composite met, guardrail refuses, abstention at the horizon):**
+- **T1, composite met, guardrail refuses, abstention at the horizon:**
   "In a prospectively frozen, externally timestamped A/B trial with OS-entropy pair randomization (operator-attested),
   the prespecified normal-mixture rule first met its hierarchy condition `L_h > 0` at enrolled pair [n0] of [N_P] and
   held it through the horizon, while the prespecified success guardrail at margin 0.03 was never met (`L_s` = [value]
-  at [N_P] against the threshold -0.03). The trial therefore ended in abstention on the deploy route, which was
-  declared a pre-specified near-certain abstention before collection: at `alpha_gate` = 0.00625 and `rho` = 100 the
-  guardrail requires an observed running success difference above `r(n) - 0.03` (`+0.1280` at the horizon), needs
-  17,097 pairs at a zero observed success difference, and the roster provides at most 568. This is the specified
-  behaviour of a guarded rule at a margin this horizon was not expected to reach; it is not evidence that the
-  workflows differ or are equivalent. Cost was measured side by side; the measured compression for this contrast was
-  [C], and `sandbox_lock_wait_s` by arm was [values].
+  at [N_P] against the threshold -0.03). The trial therefore ended in abstention on the deploy route. The threshold
+  calculation recorded before collection was: at `alpha_gate` = 0.00625 and `rho` = 100 the guardrail requires an
+  observed running success difference above `r(n) - 0.03` (`+0.1279515` at the horizon), `r(n) < 0.03` first holds at
+  17,097 pairs, and the roster provides at most 568 — so at an observed difference of zero the gate cannot pass here.
+  That calculation was conditional on the observed difference and carried no probability of this outcome. This is the
+  specified behaviour of a guarded rule at a margin these data did not reach at this horizon; it is not evidence that
+  the workflows differ or are equivalent. Cost was measured side by side; the measured compression for this contrast
+  was [C], and `sandbox_lock_wait_s` by arm was [values].
   [N17 clause where applicable: Under the prespecified S-int sensitivity the rule [also met / did not meet] the
   hierarchy condition at pair [n].] The per-trial error bound is 0.0125 and the program bound over four trials is
   0.05."
-- **T1, DEPLOY (not expected; if it nevertheless occurred):** "... the rule met both conditions at enrolled pair [tau],
-  which requires an observed success difference above [r(tau) - 0.03]; randomization stopped and the remaining
-  [2M + leftovers] arrivals ran under `single_shot`. The margin 0.03 is the root's prespecified value and was not
-  chosen for certifiability. This outcome was declared before collection to be a near-certain abstention, about 8.5
-  paired standard errors from the pilot value; **it was never declared impossible**, and it is reported here under the
-  same error bound (0.0125) as any other decision of this trial."
+- **T1, DEPLOY:** "... the rule met both conditions at enrolled pair [tau], which requires an observed success
+  difference above [r(tau) - 0.03]; randomization stopped and the remaining [2M + leftovers] arrivals ran under
+  `single_shot`. The margin 0.03 is the root's prespecified value and was not chosen for certifiability. The
+  pre-collection threshold calculation of 1.3 was conditional on the observed success difference and attached no
+  probability to any outcome; **this outcome was never declared impossible, improbable or near-certain**, and it is
+  reported here under the same error bound (0.0125) as any other decision of this trial."
 - **T1, HARM_RETAIN:** reported as observed, with the sentence that it contradicts the pilot direction.
-- **T2, HARM_RETAIN (the expected outcome):** "With the roles exchanged, the prespecified rule's hierarchy upper
+- **T2, HARM_RETAIN:** "With the roles exchanged, the prespecified rule's hierarchy upper
   endpoint fell below 0 at enrolled pair [tau] (`U_h` = [value]); randomization stopped, every already enrolled pair
   was finished under its original assignment, the exact switch time was [t], and [M] pairs of the prespecified roster
   were not enrolled (`M` is determined by the roster length `N_P`; it is not a saving rate). The signal is carried by

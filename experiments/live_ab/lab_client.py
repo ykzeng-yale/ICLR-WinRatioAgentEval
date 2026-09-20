@@ -367,10 +367,18 @@ def draw_seed(worker_index: int, used: Iterable[int] = ()) -> int:
 def load_used_seeds(path: str | Path | None, worker_index: int) -> set[int]:
     """The used-seed set of earlier trials, restricted to this worker's own half.
 
-    The file is a JSON list of integers written by the orchestrator (protocol 5.5: "each
-    worker loads the used-seed set of earlier trials of the program at start and checks only
-    its own half").  A missing file is an empty set: a duplicate seed is a logged defect with
-    no effect on any outcome (6.4 row 19), never a refusal."""
+    The file is a sorted JSON list of integers, written durably by
+    ``lab_orchestrator.write_seed_registry`` at ``<work root>/used_seeds.json`` -- the
+    PROGRAM work root, above every trial, because protocol 5.5 is "each worker loads the
+    used-seed set of earlier trials of the program at start and checks only its own half".
+    The orchestrator rebuilds it from every trial's spools at each start and resume and
+    rewrites it before every dispatch, so the set a worker reads here already contains every
+    seed its predecessors committed to sending.
+
+    A missing file is an empty set rather than a refusal, and it stays a defect-grade event
+    rather than an error: a duplicate seed is a logged defect with no effect on any outcome
+    (6.4 row 19).  The verifier is what turns a missing registry into a visible finding --
+    silence here must never be how the harness reports one."""
     if not path:
         return set()
     p = Path(path)

@@ -130,8 +130,19 @@ class MonitorConfig:
             raise FrozenMismatch("n_min must be at least 1")
         if self.n_max < 1:
             raise FrozenMismatch("n_max must be at least 1")
-        if not -1.0 <= self.clip_lo < self.clip_hi <= 1.0:
-            raise FrozenMismatch("the clip is frozen at [-1.0, 1.0]")
+        # The clip is the KNOWN RANGE of the scores, not a tunable window.  Intersecting the
+        # band with a range is licensed by thm:normal_cs (`paper/theory.tex:303`) ONLY when
+        # that range is known to contain the target; both scores live in [-1, 1] and no
+        # narrower range is known here.  A narrower clip does not merely tighten the display:
+        # it can manufacture a positive lower endpoint out of zero-score data and fire a FALSE
+        # deploy (witness: clip [0.2, 1.0] at 100 zero-score pairs reports L_h = L_s = 0.2 and
+        # decides `deploy_candidate`).  So the contract the error message states is enforced
+        # exactly, rather than as an ordering check (statistics review section 3).
+        if (self.clip_lo, self.clip_hi) != (-1.0, 1.0):
+            raise FrozenMismatch(
+                "the clip is frozen at [-1.0, 1.0]; it is the known score range, not a "
+                f"tunable window (got [{self.clip_lo!r}, {self.clip_hi!r}])"
+            )
 
     @staticmethod
     def from_config(cfg: dict, trial: str) -> "MonitorConfig":

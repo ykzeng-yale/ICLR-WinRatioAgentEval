@@ -9,7 +9,16 @@ odd remainder of each stratum is a leftover that is never enrolled, and
 
     N_P = floor(n_S1 / 2) + floor(n_S2 / 2)        (protocol 3.3)
 
-which is at most 568 on the extended roster and 295 on roster S1. It is never `n_total // 2`.
+on the SURVIVING counts, and nothing else. It is never `n_total // 2`.
+
+`568 = floor(591/2) + floor(547/2)` is the value of that rule on the CANDIDATE lists, before protocol
+3.2 has excluded anything: a loose pre-exclusion bound, never the horizon. The six declared smoke
+tasks are all `mbpp_full/*`, so they come out of S2 and put the ceiling at `floor(591/2) +
+floor(541/2) = 565`; the remaining blind exclusions and the reference sweep, which can also touch S1,
+lower it again. The horizon is whatever the rule gives on the frozen roster, and is 295 on roster S1.
+
+The leftovers are `(n_S1 % 2) + (n_S2 % 2)` slots, which is 0, 1 or 2 -- not unconditionally "one per
+stratum". Only an odd stratum has one. (`HorizonAfterExclusionsTests` in `tests_lab_design.py`.)
 
 What this file is **not**: it is not the orientation mechanism. Nothing here reads OS entropy, nothing
 here decides which system runs at which position, and the file it writes contains nothing from which
@@ -86,6 +95,11 @@ def arrival_order(roster: dict, trial: str, design_seed_base: int) -> list[PairS
 
 def leftover_slots(roster: dict, trial: str, design_seed_base: int) -> list[LeftoverSlot]:
     """[pure] The odd remainder of each stratum, numbered after `2 * N_P` in list order.
+
+    There are exactly `(n_S1 % 2) + (n_S2 % 2)` of them -- 0, 1 or 2, depending on the parity of the
+    SURVIVING stratum counts. An even stratum contributes none. The claim that there is always "one
+    leftover per stratum" holds only for the particular case where both counts are odd, which is true
+    of 591/547 and of 591/541 but is not a property of the rule.
 
     Leftovers are never enrolled and are executed only in a follow-up cohort (protocol 3.3, 3.4).
     """
@@ -218,6 +232,11 @@ def assert_disjoint(orders: dict[str, list[PairSlot]]) -> None:
 
     Tasks ARE reused across trials (`PROTOCOL-GAP PG-22`); this function proves within-trial
     disjointness only. Raises `ValueError` naming the first offender.
+
+    **The four trials therefore run on ONE roster and differ only in the order seed.** Within-trial
+    disjointness is not cross-trial independence: the four results must never be pooled as
+    independent replications, and S1 -- the 591 tasks the pilot already observed -- must never be
+    described as fresh tasks. Only S2 was never observed, and even S2 is reused by all four trials.
     """
     if not orders:
         return

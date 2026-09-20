@@ -67,16 +67,21 @@ with `alpha_gate = 0.00625` (program 0.05 / 4 trials / 2 scores per trial), `rho
 No prefix envelope, no maximization over prefixes, no retained crossing, no running intersection, no
 betting statistic anywhere in the decision path.
 
-**Declared before any data (this is not a defect, it is the study):** with these constants,
-`r(92) = 0.495026`, `r(100) = 0.465693`, `r(295) = 0.228707`, `r(568) = 0.157952`. With the pilot effect
-sizes (hierarchy net benefit about ±0.497, success difference about 0) the hierarchy gates become
-reachable at `n >= 92` and therefore, under `n_min = 100`, at the very first admissible look, while the
-success guardrail at `delta = 0.03` needs `n >= 17,097` against a roster of at most **568** pairs (protocol
-3.3: pairs are formed inside a stratum, `N_P = floor(n_S1/2) + floor(n_S2/2)`; 569 is the unstratified count
-and is **not** a horizon of this program). **A DEPLOY decision therefore requires an observed running success
-difference above `r(N_P) - 0.03`, which is `+0.1280` at `n = 568`, about 8.5 paired standard errors above the
-pilot's 0.000000. It is declared a pre-specified near-certain abstention; it is NOT a logical impossibility,
-and the words "unreachable by construction" must not appear in any output, test name or comment.** The
+**Computed before any data (this is not a defect, it is the study):** with these constants,
+`r(92) = 0.495026`, `r(100) = 0.465693`, `r(295) = 0.228707`, `r(568) = 0.157952`. These are **conditional
+threshold calculations**: at a *hypothetical constant* observed value equal to the pilot's (hierarchy net
+benefit about ±0.497, success difference about 0) the hierarchy gates could cross from `n >= 92` and
+therefore, under `n_min = 100`, at the first admissible look, while the success guardrail at `delta = 0.03`
+would need `n >= 17,097` against a roster of at most **568** pairs (protocol 3.3: pairs are formed inside a
+stratum, `N_P = floor(n_S1/2) + floor(n_S2/2)`; 569 is the unstratified count and is **not** a horizon of
+this program). **A DEPLOY decision therefore requires an observed running success difference above
+`r(N_P) - 0.03`, which is `+0.1279515` at `n = 568`; if the observed difference stays at zero the gate cannot
+pass within this horizon. This is a condition on the DATA, not a fixed sample-size requirement: no outcome is
+excluded by arithmetic, and at `n = 100` with every resolved pair favouring the candidate both lower
+endpoints are `1 - r(100) = 0.534307` and both gates pass. No probability of deployment or abstention is
+claimed, and the pilot's same-task paired standard error does not describe this trial's one-task-per-arm
+pairs and is never used as a rationale. The words "unreachable by construction", "guaranteed abstention" and
+"near-certain abstention" must not appear in any output, test name or comment.** The
 horizon, the margin and the rule are never changed to make it more reachable. The code must be correct on the
 abstention and harm paths first; the deploy path is exercised by mock dry runs with a mock-only wide margin,
 and `test_deploy_threshold_at_scale` (9.2 G3) asserts the *conditional* statement, not an impossibility.
@@ -530,7 +535,7 @@ severity column is frozen here so the plumbing gate of PG-13 is machine-checkabl
 | `anchor.prefix` | FAIL | each `anchor`'s `upto_h` and `segment_sha256` match the committed segment bytes |
 | `anchor.receipts` | DEFECT | every `anchor` has a receipt or an `anchor_failed`; longest unreceipted span reported |
 | `integrity.table` | INFO | the six tables of **protocol 12.6** (including the `posting_latency_p95_s` term of the sandwich tolerance, the covered-gap rule, the `job_accepted` column, the randomized-phase / follow-up split, and the environment-event column for `worktree_drift`) |
-| `t4.payload_identity` | FAIL | in T4, the two job payloads of every pair are byte-identical after removing `arm`, `arrival`, `position`, `seed_*` and path fields (PG-14) |
+| `t4.payload_identity` | FAIL | in T4, the two job payloads of every pair are byte-identical after removing exactly the keys of PG-14: `arm`, `arrival`, `inv`, `pair`, `position`, `task_uid`, `worker_index`, `paths`, `assignment_seq`, `payload_sha256` |
 | `program.order` | FAIL | the program chain opens and closes the four trials in the frozen order and contains every re-freeze authorization any `invocation_started` relied on |
 | `host.record` | FAIL | every `host_quiescence_refused` (P6b) and `foreign_load_detected` (T6b) is internally honest: `clean` is true **exactly** when the record carries no finding and no degraded cause, the counts are non-negative, and every `detector` and every degraded `cause` is inside the closed vocabularies of `lab_hostcheck.DETECTOR_LABELS` / `DEGRADED_CAUSES`. A chain that claims a clean host while carrying offenders is worse than one carrying no scan at all, so this is a FAIL and not an INFO |
 | `host.quiescence` | DEFECT | what the scan actually saw: the detectors, the count and the longest elapsed time of any foreign consumer, and separately any scan that could not establish quiescence. A foreign load observed **during** a trial is a fact the analysis must carry; what to do about it is the operator's decision, not the verifier's. **In the program chain the same rows are emitted at `INFO`**, because a trial-start refusal carries offenders by construction — that is why the event exists — and the gate refusing a trial is the gate working, not a defect in a trial's chain. The consistency half (`host.record`) still applies in full |
@@ -1190,8 +1195,8 @@ class Job(TypedDict):
     payload_sha256: str                  # sha256 of this object with the T4-identity keys removed
 
 def canonical_job_payload(job: Job) -> dict:
-    """[pure] The job with {'arm','arrival','pair','position','task_uid','worker_index','paths',
-    'assignment_seq','payload_sha256'} removed. In T4 the two jobs of a pair must have
+    """[pure] The job with {'arm','arrival','inv','pair','position','task_uid','worker_index',
+    'paths','assignment_seq','payload_sha256'} removed. In T4 the two jobs of a pair must have
     byte-identical canonical payloads; the verifier checks it (PG-14, protocol 12.3). `worker_index`
     is in the removal list because the two jobs of a pair necessarily run in different slots."""
 
@@ -2324,7 +2329,7 @@ whole suite: **under 180 s** (the mock dry runs use `--max-pairs` and a compress
 | `test_deploy_needs_both` | `L_h > 0` alone does not deploy; `L_s > -delta` alone does not deploy |
 | `test_harm_is_hierarchy_only` | `U_s < -delta` with `U_h > 0` decides nothing |
 | `test_harm_before_deploy` | the frozen order is applied |
-| `test_deploy_threshold_at_scale` | **conditional, never an impossibility** (audit B4): with `Dbar = 0` and `n <= N_P <= 568`, `decide` never returns `deploy_candidate`; **and** with a running success difference just above `r(n) - delta` at the same `n`, it **does** — so the near-certain abstention is a property of the data, not of the rule. The test name contains no form of the word "unreachable" |
+| `test_deploy_threshold_at_scale` | **conditional, never an impossibility** (audit B4): with `Dbar = 0` and `n <= N_P <= 568`, `decide` never returns `deploy_candidate`; **and** with a running success difference just above `r(n) - delta` at the same `n`, it **does** — so abstention on the deploy route is a property of the data, not of the rule. The test name contains no form of the word "unreachable" |
 | `test_enroll_update_order` | `enroll` only ever appends position `n+1`; `update` never creates a pair; `update` is idempotent |
 | `test_enclosure_starts_full` | an enrolled, unresolved pair is `[-1, 1]` in both scores |
 | `test_enclosure_never_widens` | a widening update raises `EnclosureError` |
@@ -2454,13 +2459,13 @@ resolution. Nothing is left "coordinator"; nothing is left to the implementer.**
 | **PG-5** | The harm tail: guidance 6 allows `U_h < 0`, `U_s < -delta` or either; rev2 fixes the hierarchy tail only. | `harm_keep_incumbent` iff `U_h < 0`. `U_s` is computed and logged at every look and **never decides**. A test asserts it. |
 | **PG-6** | Long-lived `multiprocessing` workers with pipes (§5.1) versus subprocess-plus-spool. | One OS process per episode (`AD-1`). The spool is unchanged and remains the recovery source; the pipe disappears. |
 | **PG-7** | "Open attempt" is undefined between `coin_drawn` and the first dispatch (critic N4); the natural reading turns a kill into a free tie. | An attempt began iff a fsynced `job_accepted` spool line exists. An assigned arrival with no `job_accepted` is **dispatched on resume** as its one and only attempt, flagged `started_after_resume` with `partner_concurrent` recorded. An arrival with `job_accepted` and no terminal line is revealed as `interrupted`. |
-| **PG-8** | Seed uniqueness cannot be enforced across uncoordinated workers (critic N6). | **Protocol 5.5**: draw `(os.urandom(4) & 0x7FFFFFFE) \| worker_index` per try, so **the low bit carries the worker index** and a cross-worker collision is impossible; each worker checks only its own half of the used-seed set; log before the POST; `0xFFFFFFFF` never occurs. A duplicate within a half is a **logged defect with no outcome effect** (`seeds.unique` is severity DEFECT, not FAIL), because no bit-reproducibility is claimed. `worker_index` is the slot, not the arm, and is removed from the canonical job payload (audit M1). |
+| **PG-8** | Seed uniqueness cannot be enforced across uncoordinated workers (critic N6). | **Protocol 5.5**: draw `(os.urandom(4) & 0x7FFFFFFE) \| worker_index` per try, so **the low bit carries the worker index** and a cross-worker collision is impossible; each worker checks only its own half of the used-seed set; the seed is fsynced to the WORKER SPOOL before the POST and reaches the chain as `llm_request` when the orchestrator next ingests that spool (protocol 5.5, as narrowed by execution-review E4 -- there is no pre-POST chain handshake, and adding one would put a round trip inside the measured `latency_s`); `0xFFFFFFFF` never occurs. **The used-seed set is a real, program-wide file**: `<work root>/used_seeds.json`, written durably by `lab_orchestrator.write_seed_registry`, rebuilt from every trial's spools at each start and resume by `seed_registry_reconstruct`, and rewritten before every dispatch and whenever a pump ingests a new seed. It sits above the trial directories because protocol 5.5 promises the set of earlier TRIALS of the PROGRAM; `verify_program` therefore runs `seeds.unique` at program scope across all trial chains, which no single-chain check can do. Before the repair of execution-review E2 there was no writer at all, so uniqueness was enforced only within one episode. A duplicate within a half is still a **logged defect with no outcome effect** (`seeds.unique` is severity DEFECT, not FAIL), because no bit-reproducibility is claimed. `worker_index` is the slot, not the arm, and is removed from the canonical job payload (audit M1). |
 | **PG-9** | `latency_s` and `ell` are undefined when a worker died before its first request (critic N5). | `ell = 0.0`, `tokens_known = 0`. `winstats.compare` then still receives finite values. |
 | **PG-10** | `/metrics` identities have no failure consequence and a hanging scrape blocks enrollment (critic N9). | 5 s timeout, 3 tries, then `ok: False`, the window is logged as unreconciled and enrollment continues. A violated start identity is a `reconciliation_defect`, never a refusal. |
 | **PG-11** | The "no free text" rule contradicts embedding the full config (critic N12). | Operational string discipline (4.2 rule 7); the config is carried by hash with the file as a tracked sibling; commit ids appear only as `*_sha256` of the id. |
 | **PG-12** | Who writes anchor events (critic N13). | The anchor process owns a spool; the orchestrator is the sole chain writer and turns receipts into events. Comment target is fixed to the issue. |
 | **PG-13** | No chain between trials; no rule for a plumbing FAIL; no exit for a defective verifier or builder (critic N1-N3). | The **program chain** of 4.3; `plumbing_verdict` + `program_paused(plumbing_fail)` with **two** condition lists (protocol 6.4 rows 22a/22b): list A is repairable by a reporting-code re-freeze and stops the program on a second identical occurrence, list B is a `decision_code_defect` (P11) under protocol row 24 and needs a new protocol version. `refreeze_authorization.scope` remains the single-member enum `[reporting_code]`, so a re-freeze **cannot** express a change to decision-defining code (audit M5). |
-| **PG-14** | "T4 job payloads byte-identical apart from the label" is undefined. | `canonical_job_payload()` removes `arm`, `arrival`, `pair`, `position`, `task_uid`, **`worker_index`**, `paths`, `assignment_seq`, `payload_sha256`; what remains must be byte-identical for the two jobs of a T4 pair. **The same removal list is written in protocol 12.3**, so the verifier check is defined in the frozen text and not only here. |
+| **PG-14** | "T4 job payloads byte-identical apart from the label" is undefined. | `canonical_job_payload()` removes `arm`, `arrival`, **`inv`**, `pair`, `position`, `task_uid`, **`worker_index`**, `paths`, `assignment_seq`, `payload_sha256` (`inv` added pre-freeze by the repair of execution-review E3: the invocation id is a property of the dispatch, and 6.4 rows 11c-11e let one pair span two invocations); what remains must be byte-identical for the two jobs of a T4 pair. **The same removal list is written in protocol 12.3**, so the verifier check is defined in the frozen text and not only here. |
 | **PG-15** | The hard-cap formula is arithmetically false as written (critic N15). | **Protocol 5.6**: `max_recovery_waits_per_call = 1` is an explicit key; the cap is `4*(3*T + server_recovery_s + 6) + 3*(sandbox_timeout_s + max_lock_wait_s) + 60` = **3,354 s** at `T = 180` (the 3,306 of the v3 draft was an arithmetic slip, audit M12); **the harness computes it from the formula and the pinned `request_timeout_s` and never reads a typed literal**, and `config.json` carries `episode_hard_cap_s: null` until that computation. The cap is terminal, so validity is untouched; the claim "can only bind on a hang" is replaced by "reported by arm". |
 | **PG-16** | `betting_log_e_ternary` appeared in the v2 draft as a traffic driver. | **Protocol 8.8 item 5**: it exists only in `build_live_ab_results.posthoc_betting.json`, computed after the trial has ended, on final complete scores only, never on partial scores, labelled post hoc with no error-control claim and no adapter. Tests forbid it in `lab_monitor`, `lab_reference_rule` and `lab_orchestrator`. |
 | **PG-17** | The margin: `delta = 0.03` primary, with 0.10 and 0.15 as read-outs. | `monitor.delta = 0.03` is the only value the decision function ever sees; `monitor.exploratory_margins` (0.10, 0.15) are computed into `monitor_update.readouts` for display and are **structurally incapable of deciding** — they are never passed to `decide`, and `exploratory_margins_decide` is `false` (protocol 8.8 item 1). |

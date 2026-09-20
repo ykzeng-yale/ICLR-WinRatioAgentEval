@@ -189,11 +189,18 @@ E_PREFLIGHT = _E('weights_hash', 'serving_manifest', 'port_busy', 'api_key_env',
 # The host quiescence gate of protocol 5.7 (lab_hostcheck).  Both vocabularies are
 # transcribed from that module rather than imported, so the schema stays a G1 artifact that
 # depends on nothing below it; tests_lab_hostcheck asserts the two lists agree exactly.
-E_HOST_DETECTOR = _E('llama-cli', 'llama-server', 'metal-process', 'metal-python',
-                     'mlx-lm', 'ollama', 'vllm')
-E_HOST_DEGRADED = _E('lsof_failed', 'lsof_incomplete', 'lsof_timeout', 'lsof_unavailable',
-                     'probe_budget_exhausted', 'ps_line_unparsed', 'ps_unavailable',
-                     'scan_error')
+E_HOST_DETECTOR = _E('baseline-active', 'llama-cli', 'llama-server', 'metal-process',
+                     'metal-python', 'mlx-lm', 'ollama', 'vllm')
+E_HOST_DEGRADED = _E('baseline_unmeasured', 'lsof_failed', 'lsof_incomplete',
+                     'lsof_timeout', 'lsof_unavailable', 'probe_budget_exhausted',
+                     'ps_line_unparsed', 'ps_unavailable', 'scan_error')
+# The frozen baseline allowance of COORDINATOR_DECISIONS ruling 31.  `E_HOST_BASELINE` is
+# the closed label vocabulary of `lab_hostcheck.BASELINE_EXECUTABLES` and `E_HOST_ACTIVITY`
+# the four outcomes of its activity test.  There is deliberately no boolean for activity:
+# a boolean would render an UNMEASURED process as `false`, and an unavailable measurement
+# is unknown, not zero activity.
+E_HOST_BASELINE = _E('mediaanalysisd')
+E_HOST_ACTIVITY = _E('active', 'exited', 'idle', 'unknown')
 E_ANCHOR_TRIGGER = _E('trial_started', 'every_25_completed_pairs', 'decision',
                       'trial_paused', 'trial_resumed', 'refreeze_authorization',
                       'trial_ended', 'trial_aborted', 'operator_action', 'program_paused',
@@ -314,12 +321,27 @@ HOST_FINDING = _O({
 # Why the scan could not establish quiescence, as counts over a closed vocabulary.  A raw
 # marker carries a pid or a count and is therefore kept out of the chain.
 HOST_DEGRADED = _L(_O({'cause': E_HOST_DEGRADED, 'count': _I()}))
+# One frozen baseline accelerator consumer as seen at one scan (ruling 31(d)): written at
+# EVERY scan, active or not, so that `clean` is never a bare assertion.  `cpu_delta_ms` is
+# the raw difference of cumulative CPU milliseconds over `interval_ms` of measured wall
+# time, with no normalization; it is meaningful only when `activity` is `active` or `idle`.
+# The executable path is not published -- `baseline_id` names the frozen entry it matched
+# and `argv_sha256` lets an operator confirm the match locally.
+HOST_BASELINE = _L(_O({
+    'pid': _I(), 'ppid': _I(), 'baseline_id': E_HOST_BASELINE, 'start_utc': _ISO(),
+    'elapsed_s': _I(), 'rss_bytes': _I(), 'cpu_delta_ms': _I(), 'interval_ms': _I(),
+    'activity': E_HOST_ACTIVITY, 'argv_sha256': _H64(),
+}))
 # `clean` is the recorded verdict and is redundant with the two lists by construction; the
 # verifier asserts the agreement, so a chain that claims a clean host while carrying
-# findings is a FAIL rather than a reader's problem.
+# findings is a FAIL rather than a reader's problem.  `baseline_active` is redundant with
+# `baseline` in the same way, and is the flag the trial-overlap rule of protocol 5.7.2
+# reads: a trial window overlaps materially active baseline load iff that trial's own chain
+# carries a `foreign_load_detected` record with `baseline_active` true.
 HOST_SCAN_FIELDS: dict[str, FieldSpec] = {
     'point': E_SCRAPE_POINT, 'clean': _B(), 'scanned': _I(), 'allowlisted': _I(),
     'findings': _L(HOST_FINDING), 'degraded': HOST_DEGRADED,
+    'baseline': HOST_BASELINE, 'baseline_active': _B(),
 }
 
 # T14 identifying + timing keys, repeated by T15 and T16.

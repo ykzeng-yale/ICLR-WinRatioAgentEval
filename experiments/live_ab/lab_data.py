@@ -540,6 +540,13 @@ def build_roster(tasks: list[Task], exclusions: list[Exclusion], cfg: dict) -> d
     the counts and `n_pairs = n_S1 // 2 + n_S2 // 2` (protocol 3.3; **never** `n_total // 2`), plus
     `roster_sha256` and `task_content_sha256`.
 
+    `n_pairs` is computed on the SURVIVING counts, so it is the horizon `N_P` of whatever roster this
+    call produces. The number 568 is the same rule applied to the candidate lists 591/547, i.e.
+    before any exclusion: a loose pre-exclusion bound and not a horizon. The six smoke tasks of
+    `SMOKE_TASKS` are all in S2, so they alone put the ceiling at `295 + floor(541/2) = 565`, and the
+    duplicate-prompt, entry-point, unparsable and reference-sweep exclusions lower it further, S1
+    included. The leftover count is `(n_S1 % 2) + (n_S2 % 2)`, which is 0, 1 or 2.
+
     The top-level `'S1'` and `'S2'` keys are the lists protocol 3.4's code path indexes as
     `roster[stratum]`; `'tasks'` is the flat frozen order ARCHITECTURE 3.4 names.
     """

@@ -33,7 +33,9 @@ if str(HERE) not in sys.path:
 import lab_common                                                          # noqa: E402
 import lab_client                                                          # noqa: E402
 import lab_mock_server                                                     # noqa: E402
+import lab_orchestrator                                                    # noqa: E402
 import lab_server                                                          # noqa: E402
+import lab_verify_log                                                      # noqa: E402
 import lab_worker                                                          # noqa: E402
 from lab_client import (GoldenReceipt, LlamaClient, Spool, read_spool)     # noqa: E402
 
@@ -514,6 +516,165 @@ class ClientTests(unittest.TestCase):
         p.write_text(json.dumps([2, 3, 4, 5]))
         self.assertEqual(lab_client.load_used_seeds(p, 0), {2, 4})
         self.assertEqual(lab_client.load_used_seeds(p, 1), {3, 5})
+
+    # -- the program-wide seed registry (protocol 5.5; execution review E2) ---- #
+    def _spool_a_seed(self, work_root: Path, trial: str, arrival: int, seed: int) -> None:
+        """One worker spool holding one durable ``call_started`` for ``seed``."""
+        d = work_root / trial / 'spools'
+        d.mkdir(parents=True, exist_ok=True)
+        (d / ('ep_%d_1.jsonl' % arrival)).write_text(
+            json.dumps({'kind': 'call_started', 'spool_seq': 0,
+                        'body': {'request_id': '%032x' % arrival, 'seed': seed}}) + '\n',
+            encoding='utf-8')
+
+    def test_root_duplicate_seed_probe_now_fails(self):
+        """The execution review's E2 probe, reproduced, and then repaired.
+
+        The review initialised the absent seed state twice, forced the same entropy value
+        and obtained ``[42, 42]``.  Both halves run here against the SAME forced entropy
+        stream, so the only difference is whether a registry exists:
+
+          * with no writer -- the candidate's behaviour -- each episode loads an empty set
+            from a file nobody ever wrote, and the probe's duplicate is reproduced exactly;
+          * with the orchestrator's registry, episode 2 loads ``{42}``, ``draw_seed``
+            redraws as protocol 5.5 promises, and the duplicate is gone.
+        """
+        work = self.dir / 'probe_work'
+        registry = lab_orchestrator.seed_registry_path(work)
+        entropy = [(42).to_bytes(4, 'big'), (42).to_bytes(4, 'big'), (44).to_bytes(4, 'big')]
+        forced = list(entropy)
+
+        def fake_urandom(n):
+            return forced.pop(0) if (n == 4 and forced) else os.urandom(n)
+
+        # -- the candidate's behaviour: no writer anywhere, so the file never exists ----
+        real_urandom, lab_client.os.urandom = lab_client.os.urandom, fake_urandom
+        try:
+            self.assertFalse(registry.exists(), 'nothing has written the registry yet')
+            drawn = []
+            for _ in range(2):                       # two successive one-episode workers
+                used = lab_client.load_used_seeds(registry, 0)
+                drawn.append(lab_client.draw_seed(0, used))
+            self.assertEqual(drawn, [42, 42],
+                             "the root's duplicate-seed probe no longer reproduces; "
+                             'the fixture, not the harness, has drifted')
+        finally:
+            lab_client.os.urandom = real_urandom
+
+        # -- the repair: the orchestrator persists what each episode committed to -------
+        forced[:] = entropy
+        real_urandom, lab_client.os.urandom = lab_client.os.urandom, fake_urandom
+        try:
+            drawn = []
+            for arrival in (1, 2):
+                used = lab_client.load_used_seeds(registry, 0)
+                seed = lab_client.draw_seed(0, used)
+                drawn.append(seed)
+                # what the live harness does between two episodes: the worker's durable
+                # call_started reaches the spool, the orchestrator ingests it and rewrites
+                # the registry before it dispatches the next episode.
+                self._spool_a_seed(work, 'T4', arrival, seed)
+                lab_orchestrator.write_seed_registry(
+                    registry, lab_orchestrator.seed_registry_reconstruct(work))
+        finally:
+            lab_client.os.urandom = real_urandom
+        self.assertEqual(drawn, [42, 44],
+                         'the same entropy stream must now yield distinct seeds')
+        self.assertEqual(len(set(drawn)), 2)
+        self.assertEqual(json.loads(registry.read_text(encoding='utf-8')), [42, 44])
+
+    def test_seed_registry_writer_and_reader_agree(self):
+        """``write_seed_registry`` emits exactly what ``load_used_seeds`` parses.
+
+        The writer lives in the orchestrator and the reader in the client because the
+        orchestrator never imports the worker side (AD-1); this test is the contract
+        between the two halves, and it is the reason the file format may not drift."""
+        p = lab_orchestrator.seed_registry_path(self.dir / 'w')
+        digest = lab_orchestrator.write_seed_registry(p, [7, 4, 4, 2, 9])
+        self.assertEqual(json.loads(p.read_text(encoding='utf-8')), [2, 4, 7, 9])
+        self.assertEqual(digest, lab_common.sha256_bytes(p.read_bytes()))
+        self.assertEqual(lab_client.load_used_seeds(p, 0), {2, 4})
+        self.assertEqual(lab_client.load_used_seeds(p, 1), {7, 9})
+        # the registry GROWS: a second write must replace the first, not refuse it the way
+        # the write-once write_json_atomic would.
+        lab_orchestrator.write_seed_registry(p, [7, 4, 2, 9, 10])
+        self.assertEqual(json.loads(p.read_text(encoding='utf-8')), [2, 4, 7, 9, 10])
+        self.assertFalse(p.with_name(p.name + '.tmp').exists(), 'the temp file is replaced')
+
+    def test_seed_registry_is_program_wide_and_survives_a_crash(self):
+        """Reconstruction spans trials and outlives a stale file and a torn spool line."""
+        work = self.dir / 'prog'
+        self._spool_a_seed(work, 'T4', 1, 100)
+        self._spool_a_seed(work, 'T2', 1, 102)
+        registry = lab_orchestrator.seed_registry_path(work)
+        self.assertEqual(registry.parent, work,
+                         'the registry sits at the PROGRAM work root, above every trial')
+
+        # a crash left the registry holding only what an early trial had flushed
+        lab_orchestrator.write_seed_registry(registry, [100])
+        # ... and left a half-written final line in a third spool
+        d = work / 'T1' / 'spools'
+        d.mkdir(parents=True, exist_ok=True)
+        (d / 'ep_1_1.jsonl').write_text(
+            json.dumps({'kind': 'call_started', 'spool_seq': 0,
+                        'body': {'request_id': '0' * 32, 'seed': 104}}) + '\n'
+            + '{"kind": "call_started", "body": {"se', encoding='utf-8')
+
+        rebuilt = lab_orchestrator.seed_registry_reconstruct(work)
+        self.assertEqual(rebuilt, {100, 102, 104},
+                         'every trial\'s spools are read, and the torn tail is skipped')
+        # a seed that only the stale file remembers is never dropped
+        lab_orchestrator.write_seed_registry(registry, rebuilt | {999})
+        self.assertEqual(lab_orchestrator.seed_registry_reconstruct(work),
+                         {100, 102, 104, 999})
+
+    def test_seed_registry_has_a_writer_at_all(self):
+        """E2 was a MISSING writer, so the absence itself is what the suite must catch.
+
+        A grep-shaped assertion would pass on a comment; this asserts behaviour: every
+        symbol the live path needs exists, and a dispatch-time persist actually lands."""
+        for name in ('seed_registry_path', 'seed_registry_reconstruct',
+                     'write_seed_registry', 'seeds_from_spool_lines'):
+            self.assertTrue(callable(getattr(lab_orchestrator, name, None)), name)
+        for name in ('load_seed_registry', 'note_seed', 'persist_seed_registry'):
+            self.assertTrue(callable(getattr(lab_orchestrator.World, name, None)), name)
+        self.assertEqual(
+            lab_orchestrator.seeds_from_spool_lines([
+                {'kind': 'call_started', 'body': {'seed': 6}},
+                {'kind': 'call_response', 'body': {'seed': 8}},     # not a commitment
+                {'kind': 'call_started', 'body': {}},               # no seed recorded
+                {'kind': 'call_started', 'body': {'seed': True}},   # bool is not a seed
+            ]), {6})
+
+    # -- what is durable before the POST (execution review E4) ----------------- #
+    def test_call_started_is_fsynced_before_the_post(self):
+        """Protocol 5.5 as narrowed: the SPOOL is the write-ahead record, not the chain.
+
+        The claim the protocol now makes is exactly this one -- ``call_started`` carrying
+        the seed is on stable storage before the request leaves the client -- so it is
+        asserted against the real ``Spool``, at the moment of the POST rather than after
+        the call returns.  The chain's ``llm_request`` is the orchestrator's later
+        projection of this line; no pre-POST acknowledgment exists and none is claimed."""
+        seen: dict = {}
+        with mock_server(self.basic) as (base, _srv):
+            s = self.spool()
+            client = make_client(base, self.basic, s)
+            real_post = client.session.post
+
+            def watching_post(url, **kw):
+                # read the spool from disk, mid-call: whatever is here was fsynced first
+                seen['rows'] = read_spool(s.path)
+                seen['sent_seed'] = kw['json']['seed']
+                return real_post(url, **kw)
+
+            client.session.post = watching_post
+            client.chat(messages_for(task_of(self.basic, 'mbpp/32')), {'kind': 'code'})
+        started = [r for r in seen['rows'] if r['kind'] == 'call_started']
+        self.assertEqual(len(started), 1,
+                         'call_started was not durable on disk before the POST')
+        self.assertEqual(started[0]['body']['seed'], seen['sent_seed'])
+        self.assertTrue(started[0]['body']['request_id'])
+        self.assertNotIn('call_response', [r['kind'] for r in seen['rows']])
 
     def test_seed_is_independent_of_the_arm(self):
         """The worker knows its arm, but the seed draw never reads it (protocol 5.5)."""
@@ -1286,6 +1447,44 @@ class WorkerTests(unittest.TestCase):
             self.assertNotIn(key, pa)
         self.assertNotIn('task', pa, 'task content is loaded from the roster, not the job')
 
+    def test_t4_canonical_payload_ignores_the_invocation(self):
+        """Execution review E3: ``inv`` is a property of the dispatch, not the science.
+
+        Protocol 6.4 rows 11c-11e let the two episodes of one pair be dispatched by
+        different orchestrator invocations after a pause or crash.  While ``inv`` stayed in
+        the canonical payload that made ``t4.payload_identity`` -- a FAIL -- fire on an A/A
+        pair whose configuration had not changed by one byte.  Both halves are asserted
+        here: the invocation no longer breaks identity, and real configuration drift still
+        does."""
+        with mock_server(self.basic) as (base, _srv):
+            a = self.make_job(base, self.basic, uid='mbpp/32', arrival=1, worker_index=0)
+            b = self.make_job(base, self.basic, uid='mbpp/24', arrival=2, worker_index=1)
+        b['arm'] = 'incumbent'
+        b['paths'] = dict(b['paths'], spool=str(self.dir / 'spools' / 'ep_2_1.jsonl'))
+        a['inv'], b['inv'] = 'a' * 32, 'b' * 32           # the pair spans two invocations
+        self.assertIn('inv', lab_worker.CANONICAL_JOB_DROP)
+        self.assertEqual(lab_worker.payload_sha256(a), lab_worker.payload_sha256(b),
+                         'a resumed T4 pair must keep byte identity across invocations')
+        # the orchestrator computes the same projection from its own copy of the list, and
+        # it never imports lab_worker, so this equality is the only thing holding them
+        # together.
+        self.assertEqual(
+            lab_common.canonical_json(lab_orchestrator.canonical_job_payload(a)),
+            lab_common.canonical_json(lab_worker.canonical_job_payload(a)))
+        self.assertEqual(sorted(lab_worker.CANONICAL_JOB_DROP),
+                         sorted(k for k in dict(a)
+                                if k not in lab_orchestrator.canonical_job_payload(a)))
+        # ... and genuine drift is still caught, key by key.
+        for key, value in (('workflow', 'self_test_repair'), ('trial', 'T2'),
+                           ('config_sha256', 'f' * 64), ('max_repair_rounds', 99),
+                           ('freeze_bundle_sha256', 'e' * 64)):
+            drifted = dict(b)
+            drifted[key] = value
+            self.assertNotEqual(lab_worker.payload_sha256(a),
+                                lab_worker.payload_sha256(drifted),
+                                'drift in %r stopped failing the A/A identity check' % key)
+
+
     def test_task_is_loaded_from_the_roster_file(self):
         job = {'task_uid': 'mbpp/32', 'paths': {'tasks': str(self.tasks_path)}}
         self.assertEqual(lab_worker.load_task(job)['uid'], 'mbpp/32')
@@ -1316,6 +1515,176 @@ class WorkerTests(unittest.TestCase):
         lines = read_spool(s.path)
         self.assertAlmostEqual(lab_worker.certified_ell(lines), 2.0)
         self.assertEqual(lab_worker.tokens_known(lines), 11)
+
+
+# --------------------------------------------------------------------------- #
+# the exposure ledger's unknown-usage column (execution review E1)
+# --------------------------------------------------------------------------- #
+def _rid(n: int) -> str:
+    return '%032x' % n
+
+
+def _ev(seq: int, etype: str, body: dict) -> dict:
+    return {'seq': seq, 'type': etype, 'body': body}
+
+
+def _request(seq: int, arrival: int, rid: int) -> dict:
+    return _ev(seq, 'llm_request', {'arrival': arrival, 'request_id': _rid(rid)})
+
+
+def _response(seq: int, arrival: int, rid: int) -> dict:
+    return _ev(seq, 'llm_response', {'arrival': arrival, 'request_id': _rid(rid)})
+
+
+def _error(seq: int, arrival: int, rid: int, *, usage_known: bool) -> dict:
+    return _ev(seq, 'llm_error', {'arrival': arrival, 'request_id': _rid(rid),
+                                  'usage_known': usage_known})
+
+
+def _reveal(seq: int, arrival: int, arm: str, *, post_decision: bool = False,
+            latency_s: float = 1.0, prompt: int = 10, completion: int = 20,
+            error_class: str | None = None) -> dict:
+    return _ev(seq, 'episode_revealed', {
+        'arrival': arrival, 'arm': arm, 'post_decision': post_decision,
+        'outcome': {'latency_s': latency_s, 'prompt_tokens': prompt,
+                    'completion_tokens': completion, 'error_class': error_class}})
+
+
+class ExposureLedgerUnknownUsageTests(unittest.TestCase):
+    """E1: a started request with no terminal receipt is unknown usage, not zero tokens.
+
+    The orchestrator writes ``exposure_ledger.json`` from its recount and the verifier
+    recomputes it independently, comparing byte for byte -- which means a shared omission
+    was invisible to that comparison.  Every case below therefore pins the EXPECTED numbers
+    first, derived by hand from the fixture, and only then checks that the two
+    implementations agree; agreement alone is not evidence."""
+
+    def _both(self, events):
+        a = lab_orchestrator.exposure_recount(events)
+        b = lab_verify_log._recount_exposure(events)
+        self.assertEqual(lab_common.canonical_json(a), lab_common.canonical_json(b),
+                         'the two independent recounts disagree')
+        return a
+
+    def test_root_probe_one_started_request_and_a_worker_death(self):
+        """The review's ``probe_ledger_seed.py`` fixture, which used to report zero.
+
+        One durable ``llm_request``, then a terminal ``worker_died`` reveal and no
+        ``llm_error`` for the outstanding request -- exactly what the terminal
+        reconstruction produces.  The old recount looked only at ``llm_error`` events and
+        scored the consumed tokens as zero."""
+        events = [_request(1, 1, 1),
+                  _reveal(2, 1, 'candidate', error_class='worker_died')]
+        led = self._both(events)
+        row = led['randomizing']['candidate']
+        self.assertEqual(row['unknown_usage_calls'], 1,
+                         'an interrupted request with no receipt is unknown, not zero')
+        self.assertTrue(row['tokens_are_lower_bound'],
+                        'the ledger must say its token totals are incomplete')
+        self.assertEqual(row['episodes'], 1)
+        self.assertEqual(led['randomizing']['incumbent']['unknown_usage_calls'], 0)
+        self.assertFalse(led['randomizing']['incumbent']['tokens_are_lower_bound'])
+
+    def test_expected_counts_are_pinned_case_by_case(self):
+        """Every terminal state a request id can be in, with the count written out.
+
+        arrival 1 (candidate): request 1 answered; request 2 errored with usage unknown;
+                               request 3 started and never came back  -> 2 unknown
+        arrival 2 (incumbent): request 4 errored but the error DECLARED usage_known;
+                               request 5 answered                      -> 0 unknown
+        arrival 3 (candidate, post-decision): request 6 outstanding     -> 1 unknown
+        """
+        events = [
+            _request(1, 1, 1), _response(2, 1, 1),
+            _request(3, 1, 2), _error(4, 1, 2, usage_known=False),
+            _request(5, 1, 3),
+            _reveal(6, 1, 'candidate', error_class='episode_timeout'),
+            _request(7, 2, 4), _error(8, 2, 4, usage_known=True),
+            _request(9, 2, 5), _response(10, 2, 5),
+            _reveal(11, 2, 'incumbent'),
+            _request(12, 3, 6),
+            _reveal(13, 3, 'candidate', post_decision=True, error_class='interrupted'),
+        ]
+        led = self._both(events)
+        self.assertEqual(led['randomizing']['candidate']['unknown_usage_calls'], 2)
+        self.assertEqual(led['randomizing']['incumbent']['unknown_usage_calls'], 0)
+        self.assertEqual(led['post_decision']['candidate']['unknown_usage_calls'], 1)
+        self.assertEqual(led['post_decision']['incumbent']['unknown_usage_calls'], 0)
+        self.assertEqual([led['randomizing']['candidate']['tokens_are_lower_bound'],
+                          led['randomizing']['incumbent']['tokens_are_lower_bound'],
+                          led['post_decision']['candidate']['tokens_are_lower_bound']],
+                         [True, False, True])
+        # the known columns are untouched by the repair
+        self.assertEqual(led['randomizing']['candidate']['prompt_tokens'], 10)
+        self.assertEqual(led['randomizing']['candidate']['completion_tokens'], 20)
+        self.assertEqual(led['post_decision']['candidate']['episodes'], 1)
+
+    def test_a_retried_call_counts_once_per_try_and_never_twice(self):
+        """Each try spools its own ``call_started`` under a fresh request id.
+
+        Two tries of one call that both failed with unknown usage are two unknown calls --
+        each may have consumed tokens server-side -- and repeating the events must not
+        inflate that, because the count is keyed by request id."""
+        events = [_request(1, 1, 1), _error(2, 1, 1, usage_known=False),
+                  _request(3, 1, 2), _error(4, 1, 2, usage_known=False),
+                  _reveal(5, 1, 'incumbent', error_class='connection')]
+        led = self._both(events)
+        self.assertEqual(led['randomizing']['incumbent']['unknown_usage_calls'], 2)
+        doubled = self._both(events + [_request(1, 1, 1), _error(2, 1, 1,
+                                                                usage_known=False)])
+        self.assertEqual(doubled['randomizing']['incumbent']['unknown_usage_calls'], 2,
+                         'a repeated event double counted')
+
+    def test_an_unrevealed_episode_contributes_to_no_cell(self):
+        """Attribution is unchanged: without a reveal there is no arm and no phase."""
+        led = self._both([_request(1, 7, 1)])
+        for phase in ('randomizing', 'post_decision'):
+            for arm in ('incumbent', 'candidate'):
+                self.assertEqual(led[phase][arm]['unknown_usage_calls'], 0)
+                self.assertEqual(led[phase][arm]['episodes'], 0)
+
+    def test_seed_collisions_are_detected_across_trial_chains(self):
+        """E2: a seed repeated in a LATER trial is invisible to any single-chain check.
+
+        ``verify_program`` walks the trials in frozen order and carries the owner map
+        between them, which is the only place a cross-trial repeat can be seen.  The
+        severity stays DEFECT: a collision is a plumbing defect, never a trial
+        invalidation (protocol 5.5, 6.4 row 19)."""
+        owner: dict = {}
+        t4 = [_request(1, 1, 1), _request(2, 1, 2)]
+        for ev, seed in zip(t4, (100, 102)):
+            ev['body']['seed'] = seed
+        self.assertEqual(lab_verify_log.program_seed_collisions('T4', t4, owner), [])
+        self.assertEqual(owner, {100: 'T4:' + _rid(1), 102: 'T4:' + _rid(2)})
+
+        t2 = [_request(1, 1, 3), _request(2, 1, 4)]
+        t2[0]['body']['seed'] = 100                      # the repeat, one trial later
+        t2[1]['body']['seed'] = 104
+        found = lab_verify_log.program_seed_collisions('T2', t2, owner)
+        self.assertEqual(len(found), 1)
+        self.assertEqual(found[0]['seed'], 100)
+        self.assertEqual(found[0]['first'], 'T4:' + _rid(1))
+        self.assertEqual(found[0]['again'], 'T2:' + _rid(3))
+        self.assertEqual(found[0]['scope'], 'program')
+        self.assertEqual(lab_verify_log.CHECK_SEVERITY['seeds.unique'], 'DEFECT',
+                         'a seed collision must never be escalated to a FAIL')
+        # a repeat is reported once, against its first user, not once per later trial
+        t1 = [_request(1, 1, 5)]
+        t1[0]['body']['seed'] = 100
+        again = lab_verify_log.program_seed_collisions('T1', t1, owner)
+        self.assertEqual([(f['seed'], f['first']) for f in again],
+                         [(100, 'T4:' + _rid(1))])
+
+    def test_the_helpers_return_the_same_request_ids(self):
+        """Both modules must classify the same ids, not merely produce equal totals."""
+        events = [_request(1, 1, 1), _response(2, 1, 1),
+                  _request(3, 1, 2),
+                  _request(4, 2, 3), _error(5, 2, 3, usage_known=False),
+                  _reveal(6, 1, 'candidate'), _reveal(7, 2, 'incumbent')]
+        self.assertEqual(lab_orchestrator.unknown_usage_by_request(events),
+                         {_rid(2): 1, _rid(3): 2})
+        self.assertEqual(lab_verify_log._unknown_usage_requests(events),
+                         {_rid(2): 1, _rid(3): 2})
 
 
 if __name__ == '__main__':

@@ -189,7 +189,7 @@ class ImportIsolationTests(unittest.TestCase):
                                      f'{path.name} cites a superseded draft')
 
     def test_no_module_or_test_name_denies_the_deploy_path(self) -> None:
-        """audit B4: the near-certain abstention is a property of the data, never a
+        """audit B4: abstention on the deploy route is a property of the data, never a
         property of the rule, and no output may say otherwise.  The needle is assembled
         at run time so that this file does not itself contain it."""
         needle = 'unreach' + 'able'

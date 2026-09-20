@@ -490,7 +490,11 @@ def hierarchy_enclosure(candidate: EpisodeView, incumbent: EpisodeView,
         # tolerance `tol`; the partner's final latency x >= ell.
         if (1.0 - tol) * ell > l_r + CERTIFICATE_EPS:
             # For every feasible x >= ell: x - L_r > tol * x = tol * max(x, L_r), so the revealed
-            # episode wins at tier 1 in EVERY feasible completion.  Exactly one feasible value.
+            # episode wins in EVERY feasible completion and the SCORE is certain: exactly one
+            # feasible value, sgn.  The TIER is not certain, and this certificate does not claim
+            # it is: the partner succeeding decides the pair at tier 1 (latency), the partner
+            # failing decides it at tier 0 (success).  `pair_enclosure` therefore keeps
+            # decisive_tier = -1 until both episodes are revealed (statistics review section 4).
             feasible = {sgn}
         else:
             feasible = {-1.0, 0.0, 1.0}

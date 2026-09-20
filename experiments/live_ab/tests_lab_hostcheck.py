@@ -13,6 +13,8 @@ from __future__ import annotations
 import ast
 import contextlib
 import io
+import json
+import re
 import shutil
 import subprocess
 import sys
@@ -45,19 +47,32 @@ LLAMA_CMD = (
     '--alias qwen2.5-7b-instruct --port 8191 -ngl 99 -np 4 -c 32768 --jinja '
     '--host 127.0.0.1')
 
+# Real `ps -axo pid=,ppid=,etime=,time=,rss=,command=` shapes, including the TIME column
+# whose minutes field does NOT roll over into hours on this platform (`499:33.14`).
 QUIET_TABLE = '\n'.join([
-    '    1     0 58-02:38:46  19088 /sbin/launchd',
-    '  139     1    01:36:33   7760 /usr/libexec/secinitd',
-    '  400     1    00:10:01   4096 /usr/sbin/cfprefsd agent',
+    '    1     0 58-02:38:46 499:33.14  19088 /sbin/launchd',
+    '  139     1    01:36:33   0:00.14   7760 /usr/libexec/secinitd',
+    '  400     1    00:10:01   0:00.22   4096 /usr/sbin/cfprefsd agent',
 ])
+
+# The frozen baseline identity, resolved on the serving host, and the two commands that
+# look like it and are not it.  `BASELINE_CMD` is the exact path of the single entry in
+# `hc.BASELINE_EXECUTABLES`; the other two must fall through to the ordinary rules.
+BASELINE_CMD = sorted(hc.BASELINE_EXECUTABLES)[0]
+BASELINE_ID = hc.BASELINE_EXECUTABLES[BASELINE_CMD]
+BASELINE_NEIGHBOUR_CMD = (
+    '/System/Library/PrivateFrameworks/MediaAnalysisAccess.framework/Versions/A/'
+    'XPCServices/mediaanalysisd-access.xpc/Contents/MacOS/mediaanalysisd-access')
+BASELINE_COPY_CMD = '/opt/priv/mediaanalysisd'
 
 
 def table(*lines: str) -> str:
     return '\n'.join(lines)
 
 
-def ps_line(pid: int, ppid: int, etime: str, rss_kb: int, command: str) -> str:
-    return f'{pid:>5} {ppid:>5} {etime:>11} {rss_kb:>7} {command}'
+def ps_line(pid: int, ppid: int, etime: str, rss_kb: int, command: str,
+            cpu: str = '0:00.00') -> str:
+    return f'{pid:>5} {ppid:>5} {etime:>11} {cpu:>10} {rss_kb:>7} {command}'
 
 
 BIG_KB = (hc.PROBE_RSS_FLOOR_BYTES // 1024) + 1024       # comfortably over the probe floor
@@ -116,7 +131,8 @@ class ParseTests(unittest.TestCase):
                 self.assertIsNone(hc.parse_etime(bad))
 
     def test_parse_ps_table_reads_fields_and_keeps_command_intact(self) -> None:
-        rows, malformed = hc.parse_ps_table(ps_line(63658, 1, '08:31:12', 7041312, LLAMA_CMD))
+        rows, malformed = hc.parse_ps_table(
+            ps_line(63658, 1, '08:31:12', 7041312, LLAMA_CMD, cpu='19:27.70'))
         self.assertEqual(malformed, [])
         self.assertEqual(len(rows), 1)
         row = rows[0]
@@ -125,6 +141,38 @@ class ParseTests(unittest.TestCase):
         self.assertEqual(row.elapsed_s, 8 * 3600 + 31 * 60 + 12)
         self.assertEqual(row.rss_bytes, 7041312 * 1024)
         self.assertEqual(row.command, LLAMA_CMD)
+        self.assertEqual(row.cpu_ms, (19 * 60 + 27) * 1000 + 700)
+
+    def test_parse_cputime_reads_every_shape_ps_produces(self) -> None:
+        """The TIME column is cumulative CPU time and its minutes do NOT roll over into
+        hours here: `499:33.14` and `839:44.16` were both read off the serving host."""
+        self.assertEqual(hc.parse_cputime('0:00.00'), 0)
+        self.assertEqual(hc.parse_cputime('19:27.70'), (19 * 60 + 27) * 1000 + 700)
+        self.assertEqual(hc.parse_cputime('499:33.14'), (499 * 60 + 33) * 1000 + 140)
+        self.assertEqual(hc.parse_cputime('1:02:03.45'), 3723 * 1000 + 450)
+        self.assertEqual(hc.parse_cputime('1-02:03:04'), (86400 + 7384) * 1000)
+        self.assertEqual(hc.parse_cputime('0:00.7'), 700,
+                         'the fraction is hundredths, so .7 is 700 ms and not 7 ms')
+
+    def test_parse_cputime_rejects_what_it_cannot_read(self) -> None:
+        for bad in ('', 'x', '12', '1:2:3:4', '0:75.00', '1:99:00'):
+            with self.subTest(bad=bad):
+                self.assertIsNone(hc.parse_cputime(bad))
+
+    def test_an_unreadable_cpu_field_keeps_the_row_but_records_no_sample(self) -> None:
+        """An unreadable TIME field must not discard the row -- every detection rule still
+        applies to it -- and must not become a zero, which would read as "idle"."""
+        rows, malformed = hc.parse_ps_table(
+            ps_line(900, 1, '08:31:12', 7041312, LLAMA_CMD, cpu='nonsense'))
+        self.assertEqual(malformed, [])
+        self.assertEqual(len(rows), 1)
+        self.assertIsNone(rows[0].cpu_ms)
+
+    def test_parse_cpu_table_reads_the_second_sample(self) -> None:
+        got = hc.parse_cpu_table('39197 19:27.70\n1 499:33.14\nbroken line\n7 nonsense\n')
+        self.assertEqual(got, {39197: (19 * 60 + 27) * 1000 + 700,
+                              1: (499 * 60 + 33) * 1000 + 140})
+        self.assertNotIn(7, got, 'an unreadable TIME must leave the pid absent, not zero')
 
     def test_malformed_lines_are_reported_not_dropped_silently(self) -> None:
         rows, malformed = hc.parse_ps_table(table(
@@ -393,13 +441,28 @@ class SoftCheckTests(unittest.TestCase):
 
     def test_soft_check_on_the_real_host_returns_a_well_formed_result(self) -> None:
         """Touches the real machine, and therefore asserts only the SHAPE of the result;
-        whether a foreign consumer is running right now is not this test's business."""
+        whether a foreign consumer is running right now is not this test's business.
+
+        This is also the only test that runs the REAL activity probe, including its wait,
+        so it is what keeps `probe_baseline_activity` from rotting untested.  When this
+        host is running a frozen baseline daemon the record below is a live measurement;
+        when it is not, the list is empty and nothing here asserts otherwise."""
         scan = hc.soft_host_check(set())
         self.assertIsInstance(scan, hc.ScanResult)
         self.assertIsInstance(scan.findings, list)
         for finding in scan.findings:
             self.assertTrue(hc.summary_is_identifier_safe(finding['command_summary']),
                             finding['command_summary'])
+        for record in scan.baseline:
+            self.assertIn(record['baseline_id'], hc.BASELINE_IDS)
+            self.assertIn(record['activity'], hc.BASELINE_ACTIVITY_VALUES)
+            self.assertGreaterEqual(record['cpu_delta_ms'], 0)
+            if record['activity'] in (hc.ACTIVITY_ACTIVE, hc.ACTIVITY_IDLE):
+                self.assertGreaterEqual(record['interval_ms'],
+                                        hc.BASELINE_MIN_INTERVAL_MS)
+        # The chain body of whatever this host looks like right now must be writable.
+        lab_eventlog.validate_event('foreign_load_detected',
+                                    dict(hc.chain_body(scan), point='quiescent'))
 
 
 # ---------------------------------------------------------------------------
@@ -606,6 +669,317 @@ class RenamedBinaryTests(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
+# ruling 31: the frozen baseline allowance
+# ---------------------------------------------------------------------------
+BASELINE_KB = (hc.PROBE_RSS_FLOOR_BYTES // 1024) + 250000     # mediaanalysisd was 372448
+GGML = '/opt/build/bin/libggml-metal.dylib'
+MPS = ('/System/Library/Frameworks/MetalPerformanceShaders.framework/Versions/A/'
+       'MetalPerformanceShaders')
+
+
+def sample(cpu_ms: dict | None = None, *, interval_ms: int = 10_000,
+           failure: str | None = None) -> hc.ActivitySample:
+    """A prepared second sample, so no test waits ten seconds or runs a second `ps`."""
+    return hc.ActivitySample(cpu_ms=dict(cpu_ms or {}), interval_ms=interval_ms,
+                             failure=failure)
+
+
+def baseline_table(*, pid: int = 39197, cpu: str = '19:27.70',
+                   rss_kb: int = BASELINE_KB, command: str = BASELINE_CMD) -> str:
+    return table(ps_line(1, 0, '10:00', 100, '/sbin/launchd'),
+                 ps_line(pid, 1, '09:22:45', rss_kb, command, cpu=cpu))
+
+
+class BaselineIdentityTests(unittest.TestCase):
+    """Clarification 1 of reviews/arxiv_baseline_daemon_policy_review.md: the review
+    rejects a blanket `/System/` or framework-directory prefix and a name-only match, so
+    the identity rule is exact equality against a resolved executable path."""
+
+    def test_the_frozen_entry_matches_exactly(self) -> None:
+        self.assertEqual(hc.match_baseline(BASELINE_CMD), BASELINE_ID)
+
+    def test_a_different_binary_in_a_sibling_framework_does_not_match(self) -> None:
+        """AMBIGUOUS IDENTITY, and a real one: this binary runs on the serving host, its
+        basename contains the allowed name, and it lives under `/System/`.  A prefix rule
+        or a name rule admits it; the frozen rule does not."""
+        self.assertIsNone(hc.match_baseline(BASELINE_NEIGHBOUR_CMD))
+
+    def test_a_copy_of_the_daemon_outside_the_system_tree_does_not_match(self) -> None:
+        self.assertIsNone(hc.match_baseline(BASELINE_COPY_CMD))
+        self.assertIsNone(hc.match_baseline('mediaanalysisd'))
+
+    def test_a_directory_prefix_of_the_frozen_entry_does_not_match(self) -> None:
+        """The rejected proposal in one line: everything under the framework directory
+        would have been exempt."""
+        head = BASELINE_CMD.rsplit('/', 1)[0]
+        for command in (head, head + '/other', head + '/../A/mediaanalysisd'):
+            with self.subTest(command=command):
+                self.assertIsNone(hc.match_baseline(command))
+
+    def test_the_daemon_behind_a_wrapper_does_not_match(self) -> None:
+        """argv[0] only.  A wrapper is not the frozen identity, so it refuses."""
+        self.assertIsNone(hc.match_baseline(f'/bin/sh -c {BASELINE_CMD}'))
+        self.assertIsNone(hc.match_baseline(f'/usr/bin/nohup {BASELINE_CMD}'))
+
+    def test_arguments_after_argv0_are_ignored_by_the_match(self) -> None:
+        self.assertEqual(hc.match_baseline(BASELINE_CMD + ' --flag x'), BASELINE_ID)
+
+    def test_every_frozen_entry_is_an_absolute_path_under_the_required_prefix(self) -> None:
+        """The prefix is a lock on the LIST, not a rule for a process: it is what stops a
+        user-writable path from ever being added to a closed list of OS-owned binaries."""
+        self.assertTrue(hc.BASELINE_EXECUTABLES, 'the closed list must not be empty')
+        for path, label in hc.BASELINE_EXECUTABLES.items():
+            with self.subTest(path=path):
+                self.assertTrue(path.startswith(hc.BASELINE_PATH_PREFIX), path)
+                self.assertTrue(path.startswith('/'), path)
+                self.assertFalse(path.endswith('/'), path)
+                self.assertNotIn('*', path)
+                self.assertNotIn('..', path)
+                self.assertIn(label, hc.BASELINE_IDS)
+
+    def test_the_policy_object_is_json_able_and_agrees_with_the_constants(self) -> None:
+        """It is deposited in the freeze bundle, so it must survive canonical JSON."""
+        policy = hc.baseline_policy()
+        self.assertEqual(lab_common.canonical_json(policy),
+                         lab_common.canonical_json(json.loads(
+                             lab_common.canonical_json(policy))))
+        self.assertEqual(policy['activity_threshold_ms'],
+                         hc.BASELINE_ACTIVITY_THRESHOLD_MS)
+        self.assertEqual(policy['activity_interval_s'], hc.BASELINE_ACTIVITY_INTERVAL_S)
+        self.assertEqual(policy['activity_min_interval_ms'], hc.BASELINE_MIN_INTERVAL_MS)
+        self.assertEqual(policy['rss_floor_bytes'], hc.PROBE_RSS_FLOOR_BYTES)
+        self.assertEqual([e['path'] for e in policy['executables']],
+                         sorted(hc.BASELINE_EXECUTABLES))
+        self.assertEqual(policy['activity_normalization'],
+                         'none_raw_cumulative_cpu_ms_delta')
+        self.assertEqual(policy['scan_points'], list(hc.SCAN_POINTS))
+
+
+class BaselineActivityTests(unittest.TestCase):
+    """Ruling 31(b): cumulative CPU time at t and t+10 s, active iff the delta exceeds
+    0.5 CPU-seconds.  Every case here injects the second sample, so nothing waits."""
+
+    def _scan(self, sample_obj, *, text: str | None = None, compute=(39197,)):
+        out = lsof_output(*[(pid, GGML) for pid in compute])
+        with fake_lsof(FakeCompleted(out)):
+            return hc.enumerate_foreign_consumers(
+                set(), table_text=baseline_table() if text is None else text,
+                now=1.0e9, accounts=ACCOUNTS, baseline_activity=sample_obj)
+
+    # ---- the threshold itself --------------------------------------------
+    def test_a_delta_just_over_the_threshold_is_active(self) -> None:
+        first = hc.parse_cputime('19:27.70')
+        scan = self._scan(sample({39197: first + hc.BASELINE_ACTIVITY_THRESHOLD_MS + 1}))
+        self.assertEqual([b['activity'] for b in scan.baseline], [hc.ACTIVITY_ACTIVE])
+        self.assertEqual(scan.baseline[0]['cpu_delta_ms'],
+                         hc.BASELINE_ACTIVITY_THRESHOLD_MS + 1)
+        self.assertTrue(scan.baseline_active)
+
+    def test_a_delta_exactly_at_the_threshold_is_idle(self) -> None:
+        """"exceeds 0.5 CPU-seconds" is a strict inequality, and a boundary that is read
+        the other way would flip a refusal.  Pinned so the reading cannot drift."""
+        first = hc.parse_cputime('19:27.70')
+        scan = self._scan(sample({39197: first + hc.BASELINE_ACTIVITY_THRESHOLD_MS}))
+        self.assertEqual([b['activity'] for b in scan.baseline], [hc.ACTIVITY_IDLE])
+        self.assertTrue(scan.clean)
+
+    def test_an_unmoving_cpu_time_is_idle(self) -> None:
+        """The measurement that decided ruling 31: the daemon holds a compute-class Metal
+        resource and its cumulative CPU time does not move at all."""
+        first = hc.parse_cputime('19:27.70')
+        scan = self._scan(sample({39197: first}))
+        self.assertEqual([b['activity'] for b in scan.baseline], [hc.ACTIVITY_IDLE])
+        self.assertEqual(scan.baseline[0]['cpu_delta_ms'], 0)
+
+    # ---- what each outcome does to the gate -------------------------------
+    def test_an_idle_baseline_daemon_is_recorded_and_does_not_refuse(self) -> None:
+        first = hc.parse_cputime('19:27.70')
+        scan = self._scan(sample({39197: first}))
+        self.assertEqual(scan.findings, [])
+        self.assertEqual(scan.degraded, [])
+        self.assertTrue(scan.clean)
+        record = scan.baseline[0]
+        self.assertEqual(record['baseline_id'], BASELINE_ID)
+        self.assertEqual(record['pid'], 39197)
+        self.assertEqual(record['elapsed_s'], 9 * 3600 + 22 * 60 + 45)
+        self.assertEqual(record['rss_bytes'], BASELINE_KB * 1024)
+        self.assertEqual(record['interval_ms'], 10_000)
+        self.assertEqual(len(record['argv_sha256']), 64)
+        out = lsof_output((39197, GGML))
+        with fake_lsof(FakeCompleted(out)):
+            hc.preflight_host_quiescent(set(), table_text=baseline_table(), now=1.0e9,
+                                        accounts=ACCOUNTS,
+                                        baseline_activity=sample({39197: first}))
+
+    def test_an_active_baseline_daemon_refuses(self) -> None:
+        first = hc.parse_cputime('19:27.70')
+        busy = sample({39197: first + 4_000})
+        scan = self._scan(busy)
+        self.assertEqual([f['detector'] for f in scan.findings],
+                         [hc.BASELINE_ACTIVE_LABEL])
+        self.assertFalse(scan.clean)
+        out = lsof_output((39197, GGML))
+        with self.assertRaises(hc.HostNotQuiescent) as caught:
+            with fake_lsof(FakeCompleted(out)):
+                hc.preflight_host_quiescent(set(), table_text=baseline_table(),
+                                            now=1.0e9, accounts=ACCOUNTS,
+                                            baseline_activity=busy)
+        self.assertIn(hc.BASELINE_ACTIVE_LABEL, str(caught.exception))
+
+    def test_a_baseline_process_that_exited_is_not_active_and_does_not_degrade(self) -> None:
+        """It is gone, so it is not contending.  Degrading on it would make every scan
+        that catches a daemon mid-exit refuse, and a gate that cries wolf gets bypassed."""
+        scan = self._scan(sample({}))
+        self.assertEqual([b['activity'] for b in scan.baseline], [hc.ACTIVITY_EXITED])
+        self.assertEqual(scan.degraded, [])
+        self.assertTrue(scan.clean)
+
+    # ---- the degraded path -------------------------------------------------
+    def test_an_unmeasurable_activity_test_is_unknown_and_refuses(self) -> None:
+        """Clarification 2: an unavailable measurement is unknown, NOT zero activity."""
+        scan = self._scan(sample(failure='baseline-unmeasured-ps'))
+        self.assertEqual([b['activity'] for b in scan.baseline], [hc.ACTIVITY_UNKNOWN])
+        self.assertEqual(scan.baseline[0]['cpu_delta_ms'], 0)
+        self.assertIn('baseline-unmeasured-1', scan.degraded)
+        self.assertFalse(scan.clean)
+        self.assertFalse(scan.baseline_active)
+        out = lsof_output((39197, GGML))
+        with self.assertRaises(hc.HostNotQuiescent) as caught:
+            with fake_lsof(FakeCompleted(out)):
+                hc.preflight_host_quiescent(
+                    set(), table_text=baseline_table(), now=1.0e9, accounts=ACCOUNTS,
+                    baseline_activity=sample(failure='baseline-unmeasured-ps'))
+        self.assertIn('baseline-unmeasured-1', caught.exception.degraded)
+
+    def test_an_interval_that_was_too_short_is_not_believed(self) -> None:
+        """A second sample taken early is not the frozen measurement, and a short window
+        is exactly how a busy process would look idle."""
+        first = hc.parse_cputime('19:27.70')
+        scan = self._scan(sample({39197: first},
+                                 interval_ms=hc.BASELINE_MIN_INTERVAL_MS - 1))
+        self.assertEqual([b['activity'] for b in scan.baseline], [hc.ACTIVITY_UNKNOWN])
+        self.assertIn('baseline-unmeasured-1', scan.degraded)
+
+    def test_a_missing_first_sample_is_unknown(self) -> None:
+        text = baseline_table(cpu='nonsense')
+        scan = self._scan(sample({39197: 10_000}), text=text)
+        self.assertEqual([b['activity'] for b in scan.baseline], [hc.ACTIVITY_UNKNOWN])
+        self.assertIn('baseline-unmeasured-1', scan.degraded)
+
+    def test_cumulative_cpu_time_that_fell_is_unknown(self) -> None:
+        """Cumulative CPU time cannot decrease.  A reused pid or a thread-accounting
+        anomaly is not a measurement of idleness."""
+        first = hc.parse_cputime('19:27.70')
+        scan = self._scan(sample({39197: first - 1000}))
+        self.assertEqual([b['activity'] for b in scan.baseline], [hc.ACTIVITY_UNKNOWN])
+        self.assertIn('baseline-unmeasured-1', scan.degraded)
+
+    def test_the_unmeasured_marker_folds_into_the_closed_vocabulary(self) -> None:
+        rows = hc.degraded_causes(['baseline-unmeasured-2'])
+        self.assertEqual(rows, [{'cause': hc.CAUSE_BASELINE_UNMEASURED, 'count': 1}])
+        self.assertIn(hc.CAUSE_BASELINE_UNMEASURED, hc.DEGRADED_CAUSES)
+
+    # ---- classify_activity as a pure function ------------------------------
+    def test_classify_activity_is_a_pure_function_of_the_two_samples(self) -> None:
+        row = hc.ProcRow(pid=7, ppid=1, elapsed_s=10, rss_bytes=0, command='x',
+                         cpu_ms=1_000)
+        cases = [
+            (sample({7: 1_600}), (hc.ACTIVITY_ACTIVE, 600)),
+            (sample({7: 1_500}), (hc.ACTIVITY_IDLE, 500)),
+            (sample({7: 1_000}), (hc.ACTIVITY_IDLE, 0)),
+            (sample({}), (hc.ACTIVITY_EXITED, 0)),
+            (sample({7: 9_000}, failure='x'), (hc.ACTIVITY_UNKNOWN, 0)),
+        ]
+        for sample_obj, want in cases:
+            with self.subTest(want=want):
+                self.assertEqual(hc.classify_activity(row, sample_obj), want)
+
+
+class BaselineScopeTests(unittest.TestCase):
+    """What the baseline allowance does NOT reach, and ruling 31(a)."""
+
+    def test_a_non_baseline_consumer_refuses_on_presence_with_no_activity_test(self) -> None:
+        """31(a) in one test: a renamed accelerator binary holding a compute-class Metal
+        resource is a finding immediately.  The activity probe is replaced by something
+        that fails the test if it is called at all, so "no activity test" is asserted and
+        not merely intended."""
+        text = table(ps_line(1, 0, '10:00', 100, '/sbin/launchd'),
+                     ps_line(901, 1, '08:31:12', BIG_KB, RENAMED_CMD, cpu='0:00.01'))
+        out = lsof_output((901, GGML))
+        real = hc.probe_baseline_activity
+
+        def forbidden(**kwargs):                       # pragma: no cover - must not run
+            raise AssertionError('a non-baseline consumer was given an activity test')
+
+        try:
+            hc.probe_baseline_activity = forbidden
+            with fake_lsof(FakeCompleted(out)):
+                scan = hc.enumerate_foreign_consumers(set(), table_text=text, now=1.0e9,
+                                                      accounts=ACCOUNTS)
+        finally:
+            hc.probe_baseline_activity = real
+        self.assertEqual([f['detector'] for f in scan.findings],
+                         [hc.METAL_PROCESS_LABEL])
+        self.assertEqual(scan.baseline, [])
+        self.assertFalse(scan.clean)
+
+    def test_the_sibling_daemon_is_treated_as_any_other_consumer(self) -> None:
+        """The ambiguous identity, end to end: it holds a compute-class resource, it is
+        not on the frozen list, so it refuses on presence."""
+        text = table(ps_line(9412, 1, '03:27:11', BASELINE_KB, BASELINE_NEIGHBOUR_CMD,
+                             cpu='0:02.62'))
+        out = lsof_output((9412, MPS))
+        with fake_lsof(FakeCompleted(out)):
+            scan = hc.enumerate_foreign_consumers(set(), table_text=text, now=1.0e9,
+                                                  accounts=ACCOUNTS)
+        self.assertEqual([f['detector'] for f in scan.findings],
+                         [hc.METAL_PROCESS_LABEL])
+        self.assertEqual(scan.baseline, [])
+
+    def test_a_baseline_process_holding_no_metal_resource_is_not_recorded(self) -> None:
+        """The allowance is about accelerator consumers.  A frozen identity that holds
+        nothing is not competing for the accelerator and is not the subject of 31."""
+        with fake_lsof(FakeCompleted(lsof_output((39197, '/usr/lib/libSystem.B.dylib')))):
+            scan = hc.enumerate_foreign_consumers(set(), table_text=baseline_table(),
+                                                  now=1.0e9, accounts=ACCOUNTS)
+        self.assertEqual(scan.baseline, [])
+        self.assertEqual(scan.findings, [])
+        self.assertTrue(scan.clean)
+
+    def test_a_baseline_process_below_the_resident_floor_is_not_probed(self) -> None:
+        """The documented blind spot is unchanged by this ruling: the resident-size floor
+        is a frozen scientific rule and the baseline arm does not get an exemption from
+        it.  Asserted so the limit can never be a surprise."""
+        text = baseline_table(rss_kb=SMALL_KB)
+        with fake_lsof(FakeCompleted('')):
+            scan = hc.enumerate_foreign_consumers(set(), table_text=text, now=1.0e9,
+                                                  accounts=ACCOUNTS)
+        self.assertEqual(scan.baseline, [])
+        self.assertTrue(scan.clean)
+
+    def test_the_baseline_pid_is_inside_the_probe_budget(self) -> None:
+        """A baseline candidate is probed like any other heavy process, so it consumes a
+        slot; being over budget degrades the scan rather than skipping the daemon."""
+        rows = [ps_line(1000 + i, 1, '01:00:00', BIG_KB, f'/opt/x/worker{i}')
+                for i in range(3)]
+        text = table(*rows, ps_line(39197, 1, '09:22:45', BASELINE_KB, BASELINE_CMD,
+                                    cpu='19:27.70'))
+        with fake_lsof(FakeCompleted('')):
+            scan = hc.enumerate_foreign_consumers(set(), table_text=text, now=1.0e9,
+                                                  accounts=ACCOUNTS, max_probe_pids=2)
+        self.assertIn('probe-budget-4', scan.degraded)
+        self.assertFalse(scan.clean)
+
+    def test_our_own_baseline_matching_process_is_still_allowlisted(self) -> None:
+        text = baseline_table()
+        with fake_lsof(FakeCompleted(lsof_output((39197, GGML)))):
+            scan = hc.enumerate_foreign_consumers({39197}, table_text=text, now=1.0e9,
+                                                  accounts=ACCOUNTS)
+        self.assertEqual(scan.baseline, [])
+        self.assertTrue(scan.clean)
+
+
+# ---------------------------------------------------------------------------
 # C.4: the gate is wired to the trial, and its records are chain events
 # ---------------------------------------------------------------------------
 class ChainRecordTests(unittest.TestCase):
@@ -629,6 +1003,62 @@ class ChainRecordTests(unittest.TestCase):
         spec = lab_eventlog.EVENT_SCHEMA['foreign_load_detected']
         self.assertEqual(sorted(hc.DEGRADED_CAUSES),
                          sorted(spec['degraded'].item.fields['cause'].enum))
+
+    def test_the_baseline_vocabularies_match_the_schema_exactly(self) -> None:
+        """The frozen list and the activity vocabulary are transcribed into lab_eventlog,
+        so a baseline record entering the chain carries only closed-vocabulary labels."""
+        spec = lab_eventlog.EVENT_SCHEMA['foreign_load_detected']['baseline'].item
+        self.assertEqual(sorted(hc.BASELINE_IDS),
+                         sorted(spec.fields['baseline_id'].enum))
+        self.assertEqual(sorted(hc.BASELINE_ACTIVITY_VALUES),
+                         sorted(spec.fields['activity'].enum))
+        self.assertIn(hc.BASELINE_ACTIVE_LABEL, hc.DETECTOR_LABELS)
+
+    def test_a_baseline_record_validates_and_publishes_no_path(self) -> None:
+        text = baseline_table()
+        with fake_lsof(FakeCompleted(lsof_output((39197, GGML)))):
+            scan = hc.enumerate_foreign_consumers(
+                set(), table_text=text, now=1.0e9, accounts=ACCOUNTS,
+                baseline_activity=sample({39197: hc.parse_cputime('19:27.70')}))
+        body = dict(hc.chain_body(scan), point='trial_start')
+        lab_eventlog.validate_event('foreign_load_detected', body)
+        self.assertTrue(body['clean'])
+        self.assertFalse(body['baseline_active'])
+        self.assertEqual(len(body['baseline']), 1)
+        blob = lab_common.canonical_json(body)
+        self.assertNotIn('/System/', blob, 'the executable path must not be published')
+        self.assertNotIn('MediaAnalysis', blob)
+        self.assertNotIn(ACCOUNT, blob)
+
+    def test_an_active_baseline_record_validates_and_carries_the_flag(self) -> None:
+        text = baseline_table()
+        with fake_lsof(FakeCompleted(lsof_output((39197, GGML)))):
+            scan = hc.enumerate_foreign_consumers(
+                set(), table_text=text, now=1.0e9, accounts=ACCOUNTS,
+                baseline_activity=sample(
+                    {39197: hc.parse_cputime('19:27.70') + 4_000}))
+        body = dict(hc.chain_body(scan), point='quiescent')
+        lab_eventlog.validate_event('foreign_load_detected', body)
+        lab_eventlog.validate_event('host_quiescence_refused',
+                                    dict(body, trial='T4', point='trial_start'))
+        self.assertTrue(body['baseline_active'])
+        self.assertFalse(body['clean'])
+        self.assertEqual(body['baseline'][0]['activity'], hc.ACTIVITY_ACTIVE)
+        self.assertEqual(body['baseline'][0]['cpu_delta_ms'], 4_000)
+
+    def test_the_verifier_still_reads_a_body_carrying_a_baseline_record(self) -> None:
+        """The honesty check is unchanged by the allowance: an IDLE baseline record is not
+        a finding, so a scan carrying one is still clean and produces no verifier row."""
+        text = baseline_table()
+        with fake_lsof(FakeCompleted(lsof_output((39197, GGML)))):
+            scan = hc.enumerate_foreign_consumers(
+                set(), table_text=text, now=1.0e9, accounts=ACCOUNTS,
+                baseline_activity=sample({39197: hc.parse_cputime('19:27.70')}))
+        events = [{'seq': 3, 'type': 'foreign_load_detected',
+                   'body': dict(hc.chain_body(scan), point='trial_start')}]
+        col = lab_verify_log._Collector(trial='T4', mode='full')
+        lab_verify_log._check_host_scans(col, events, 'foreign_load_detected')
+        self.assertEqual(col.findings, [])
 
     def test_every_marker_this_module_can_emit_folds_into_the_vocabulary(self) -> None:
         markers = ['ps-unavailable', 'short-line-fields-3', 'unparsed-fields-pid-91',
@@ -858,6 +1288,97 @@ class OrchestratorWiringTests(unittest.TestCase):
         world = FakeWorld()
         orch.World.host_scan(world, 'quiescent')
         self.assertEqual(world.appended, [])
+
+
+# ---------------------------------------------------------------------------
+# clarification 3: a scan reports what a detector saw, and says nothing more
+# ---------------------------------------------------------------------------
+PROTOCOL_PATH = HERE / 'design' / 'protocol_FINAL.md'
+
+# Each needle is assembled from its words at import time rather than written out, so that
+# this list cannot match ITSELF when the check is run over this file.
+FORBIDDEN_CLAIMS: tuple[str, ...] = tuple(' '.join(words) for words in (
+    ('the', 'host', 'was', 'idle'),
+    ('the', 'host', 'is', 'idle'),
+    ('an', 'idle', 'host'),
+    ('idle', 'machine'),
+    ('idle', 'host'),
+    ('proves', 'the', 'host'),
+    ('proves', 'that', 'the', 'host'),
+    ('guarantees', 'that', 'the', 'host'),
+    ('no', 'other', 'GPU', 'job', 'is', 'enforced'),
+))
+
+# The load-bearing sentence the review asked for, in the words it asked for.
+REQUIRED_LIMIT = ('CPU ACTIVITY; they do NOT establish accelerator activity, and they do '
+                  'not establish accelerator inactivity')
+
+
+def flat(text: str) -> str:
+    """Collapse every run of whitespace, so a sentence that a line wrap split still reads
+    as one sentence.  Both the module docstring and the protocol are hard-wrapped."""
+    return ' '.join(text.split())
+
+
+def protocol_section_5_7() -> str:
+    """The text of section 5.7 and its subsections, up to but not including 5.8."""
+    text = PROTOCOL_PATH.read_text('utf-8')
+    start = text.index('\n### 5.7 ')
+    end = text.index('\n### 5.8 ', start)
+    return text[start:end]
+
+
+class IdlenessClaimTests(unittest.TestCase):
+    """Clarification 3 of reviews/arxiv_baseline_daemon_policy_review.md, and the sharpest
+    of the four: CPU-time deltas measure CPU activity and do NOT establish accelerator
+    activity or inactivity.  The module, these tests and protocol 5.7 may report what the
+    detector reported at the recorded scans and nothing beyond it."""
+
+    def _check(self, text: str, where: str) -> None:
+        lowered = text.lower()
+        for needle in FORBIDDEN_CLAIMS:
+            with self.subTest(where=where, claim=needle):
+                self.assertNotIn(needle.lower(), lowered,
+                                 f'{where} claims {needle!r}')
+
+    def test_the_module_never_claims_the_machine_was_doing_nothing(self) -> None:
+        self._check(module_source(), 'lab_hostcheck.py')
+
+    def test_these_tests_never_claim_it_either(self) -> None:
+        self._check(Path(__file__).read_text('utf-8'), 'tests_lab_hostcheck.py')
+
+    def test_protocol_5_7_never_claims_it_either(self) -> None:
+        self._check(protocol_section_5_7(), 'protocol_FINAL.md 5.7')
+
+    def test_the_module_states_the_limit_in_the_reviews_own_terms(self) -> None:
+        doc = flat(hc.__doc__ or '')
+        self.assertIn(REQUIRED_LIMIT, doc)
+        self.assertIn('At the recorded scans, the detector reported', doc)
+
+    def test_protocol_5_7_states_the_same_limit(self) -> None:
+        section = flat(protocol_section_5_7())
+        self.assertIn('At the recorded scans, the detector reported', section)
+        self.assertRegex(section, r'do(es)? not establish accelerator')
+
+    def test_protocol_5_7_carries_the_frozen_policy_numbers(self) -> None:
+        """The freeze is only a freeze if the binding document carries the same numbers
+        the code does."""
+        section = flat(protocol_section_5_7())
+        self.assertIn(sorted(hc.BASELINE_EXECUTABLES)[0], section)
+        self.assertIn(f'{hc.BASELINE_ACTIVITY_INTERVAL_S} s', section)
+        self.assertIn('0.5 CPU-seconds', section)
+        self.assertIn(str(hc.BASELINE_MIN_INTERVAL_MS), section)
+        for value in hc.BASELINE_ACTIVITY_VALUES:
+            with self.subTest(value=value):
+                self.assertRegex(section, rf'`{re.escape(value)}`')
+
+    def test_protocol_5_7_keeps_the_operating_regime_reporting_duty(self) -> None:
+        """Clarification 4: permitted baseline activity and the detection limits are
+        reported BESIDE the latency results, and enrolment is preserved."""
+        section = flat(protocol_section_5_7())
+        self.assertIn('beside the latency tier', section)
+        self.assertIn('enrolled', section)
+        self.assertIn('no latency number is adjusted', section.lower())
 
 
 # ---------------------------------------------------------------------------

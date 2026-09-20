@@ -38,7 +38,7 @@ import time
 import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Literal, Mapping, Sequence
+from typing import Any, Iterable, Literal, Mapping, Sequence
 
 import lab_common
 import lab_coin
@@ -250,10 +250,22 @@ def canonical_job_payload(job: Mapping) -> dict:
     """[pure] The T4 identity projection of PG-14 / protocol 12.3, verbatim.
 
     Removes exactly ``arm``, ``arrival``, ``pair``, ``position``, ``task_uid``,
-    ``worker_index``, ``paths``, ``assignment_seq`` and ``payload_sha256``.  What remains
-    must be byte-identical for the two jobs of a T4 pair."""
-    drop = ('arm', 'arrival', 'pair', 'position', 'task_uid', 'worker_index', 'paths',
-            'assignment_seq', 'payload_sha256')
+    ``worker_index``, ``paths``, ``assignment_seq``, ``payload_sha256`` and ``inv``.  What
+    remains must be byte-identical for the two jobs of a T4 pair.
+
+    ``inv`` joined the list in the pre-freeze repair of execution-review finding E3, for
+    exactly the reason ``worker_index`` was already in it: the invocation id identifies the
+    orchestrator run that dispatched the job, not the scientific configuration under which
+    the episode ran.  Protocol 6.4 rows 11c-11e expressly allow the two episodes of one pair
+    to be dispatched by different invocations after a pause or crash, so keeping ``inv``
+    made ``t4.payload_identity`` -- a FAIL -- fire on a correctly resumed A/A pair whose
+    configuration never changed.  Genuine configuration drift still fails, because every
+    key that defines the configuration (``trial``, ``workflow``, ``server``, ``sampling``,
+    ``limits``, ``sandbox``, ``golden``, ``config_sha256``, ``freeze_bundle_sha256``,
+    ``max_repair_rounds``) remains in the payload.  Must stay identical to
+    ``lab_worker.CANONICAL_JOB_DROP``."""
+    drop = ('arm', 'arrival', 'inv', 'pair', 'position', 'task_uid', 'worker_index',
+            'paths', 'assignment_seq', 'payload_sha256')
     return {k: v for k, v in dict(job).items() if k not in drop}
 
 
@@ -267,13 +279,166 @@ def episode_hard_cap_s(execution: Mapping) -> float:
                      + float(execution['max_lock_wait_s'])) + 60.0)
 
 
+def unknown_usage_by_request(events: Sequence[Mapping]) -> dict[str, int]:
+    """[pure] ``request_id -> arrival`` for every started request whose consumed tokens the
+    chain does not know (execution review E1).
+
+    A request is KNOWN only on a complete terminal receipt: an ``llm_response`` (which by
+    protocol 5.4 cannot exist without ``usage``, because the client turns a 200 without
+    ``usage``/``timings`` into a ``malformed`` error) or an ``llm_error`` that explicitly
+    carries ``usage_known: true``.  Everything else is unknown, and that deliberately
+    includes the case the earlier recount missed: a durable ``llm_request`` with **no**
+    terminal event at all, which ``lab_verify_log`` expressly permits after ``worker_died``,
+    ``episode_timeout`` or ``interrupted`` and which the terminal reconstruction reveals
+    without minting an ``llm_error`` for the outstanding request.  Counting only
+    ``llm_error`` turned those calls into "zero tokens consumed"; they are now counted as
+    what they are, unknown.
+
+    Keyed by ``request_id``, so a request can be counted at most once however many events
+    mention it, and a retried try -- which spools its own ``call_started`` under a fresh
+    ``request_id`` -- is one more genuinely unknown call rather than a double count."""
+    started: dict[str, int] = {}
+    known: set[str] = set()
+    for ev in events:
+        etype = ev['type']
+        if etype not in ('llm_request', 'llm_response', 'llm_error'):
+            continue
+        body = ev['body']
+        rid = str(body['request_id'])
+        if etype == 'llm_request':
+            started.setdefault(rid, int(body['arrival']))
+        elif etype == 'llm_response':
+            known.add(rid)
+        else:
+            # an error can only be a receipt for a request that started; setdefault keeps a
+            # torn chain that lost the llm_request from silently dropping the call.
+            started.setdefault(rid, int(body['arrival']))
+            if body.get('usage_known', False):
+                known.add(rid)
+    return {rid: arrival for rid, arrival in started.items() if rid not in known}
+
+
+# ---------------------------------------------------------------------------
+# the program-wide seed registry (protocol 5.5; execution review E2)
+# ---------------------------------------------------------------------------
+#: The one file every worker of every trial reads before its first request.  It lives at the
+#: PROGRAM work root, not under a trial, because protocol 5.5 promises "the used-seed set of
+#: earlier trials of the program" and a per-trial file cannot carry one.
+SEED_REGISTRY_NAME: str = 'used_seeds.json'
+
+
+def seed_registry_path(work_root: str | Path) -> Path:
+    """[pure] ``<work root>/used_seeds.json`` -- program-wide, above every trial."""
+    return Path(work_root) / SEED_REGISTRY_NAME
+
+
+def seeds_from_spool_lines(lines: Iterable[Mapping]) -> set[int]:
+    """[pure] Every seed a worker durably committed to sending, from its spool lines.
+
+    ``call_started`` is fsynced BEFORE the POST (protocol 5.5, and see
+    ``lab_client.LlamaClient.chat``), so a spool is never behind the chain: a seed reaches
+    the spool first and becomes ``llm_request`` only when the orchestrator next ingests.
+    That ordering is what makes the registry crash-durable -- a seed sent by a worker the
+    orchestrator never got to ingest is still recoverable from the spool it left behind."""
+    out: set[int] = set()
+    for row in lines:
+        if row.get('kind') != 'call_started':
+            continue
+        body = row.get('body') or {}
+        seed = body.get('seed')
+        if isinstance(seed, int) and not isinstance(seed, bool):
+            out.add(int(seed))
+    return out
+
+
+def seed_registry_reconstruct(work_root: str | Path) -> set[int]:
+    """Every seed this PROGRAM has already committed to sending, rebuilt from the spools.
+
+    Reads ``<work root>/*/spools/*.jsonl`` across every trial directory, plus whatever the
+    registry file already holds.  The spools are the write-ahead record and are a superset
+    of the chain's ``llm_request`` seeds, so this reconstruction survives a crash at any
+    point: after an unclean exit the registry file may be stale, but no seed that was ever
+    sent can be missing from the spool that recorded it before the POST.
+
+    Malformed or partially written spool lines are skipped rather than raising: the registry
+    exists to widen the exclusion set, and a torn last line has its own chain-level check.
+    A seed that cannot be read is a seed that may be re-drawn, which protocol 5.5 grades a
+    logged DEFECT, never a refusal -- but the reconstruction is run at every start and every
+    resume precisely so that a re-draw stays the rare case rather than the normal one."""
+    root = Path(work_root)
+    seeds: set[int] = set()
+    path = seed_registry_path(root)
+    if path.exists():
+        try:
+            raw = json.loads(path.read_text(encoding='utf-8'))
+        except (ValueError, OSError):
+            raw = []
+        if isinstance(raw, list):
+            seeds.update(int(v) for v in raw
+                         if isinstance(v, int) and not isinstance(v, bool))
+    if not root.exists():
+        return seeds
+    for spool in sorted(root.glob('*/spools/*.jsonl')):
+        try:
+            text = spool.read_text(encoding='utf-8')
+        except OSError:
+            continue
+        rows: list[Mapping] = []
+        for line in text.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                row = json.loads(line)
+            except ValueError:
+                continue                    # a torn tail line; the chain checks that
+            if isinstance(row, dict):
+                rows.append(row)
+        seeds |= seeds_from_spool_lines(rows)
+    return seeds
+
+
+def write_seed_registry(path: str | Path, seeds: Iterable[int]) -> str:
+    """Rewrite the registry durably and atomically; returns the sha256 of its bytes.
+
+    A sorted JSON list of ints -- the exact shape ``lab_client.load_used_seeds`` reads, and
+    the reason a test pins writer and reader against each other.  The registry GROWS across
+    the program, so this is deliberately not ``write_json_atomic``, which is write-once and
+    would refuse the second seed.  The write is still all-or-nothing: the bytes are fsynced
+    into a temporary file, ``os.replace`` swaps it in, and the directory entry is fsynced,
+    so a crash leaves either the previous complete registry or this one."""
+    out = sorted({int(s) for s in seeds})
+    p = Path(path)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    data = canonical_json(out).encode('utf-8')
+    tmp = p.with_name(p.name + '.tmp')
+    fd = os.open(str(tmp), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o644)
+    try:
+        written = os.write(fd, data)
+        if written != len(data):
+            raise lab_common.TornWrite(
+                '%d of %d bytes written to %s' % (written, len(data), tokenize_path(tmp)))
+        lab_common.fullsync(fd)
+    finally:
+        os.close(fd)
+    os.replace(str(tmp), str(p))
+    lab_common._fullsync_dir(p.parent)
+    return sha256_bytes(data)
+
+
 def exposure_recount(events: Sequence[Mapping]) -> dict:
     """[pure] The exposure ledger, per phase x arm, recomputed from the chain alone.
 
     The verifier recounts it independently and compares byte for byte
-    (``exposure.ledger``), so this function and the verifier's must agree exactly."""
+    (``exposure.ledger``), so this function and the verifier's must agree exactly.
+
+    ``prompt_tokens`` / ``completion_tokens`` are the tokens the chain can PROVE were
+    consumed.  When ``unknown_usage_calls`` is non-zero the server consumed tokens that no
+    receipt reports, so the two token totals are a LOWER BOUND and ``tokens_are_lower_bound``
+    says so in the ledger itself: missing usage is never rewritten as zero."""
     out: dict = {phase: {arm: {'episodes': 0, 'wall_seconds': 0.0, 'prompt_tokens': 0,
-                               'completion_tokens': 0, 'unknown_usage_calls': 0}
+                               'completion_tokens': 0, 'unknown_usage_calls': 0,
+                               'tokens_are_lower_bound': False}
                          for arm in lab_common.ARMS}
                  for phase in ('randomizing', 'post_decision')}
     arm_of: dict[int, str] = {}
@@ -292,16 +457,16 @@ def exposure_recount(events: Sequence[Mapping]) -> dict:
         row['wall_seconds'] += float(body['outcome']['latency_s'])
         row['prompt_tokens'] += int(body['outcome']['prompt_tokens'])
         row['completion_tokens'] += int(body['outcome']['completion_tokens'])
-    for ev in events:
-        if ev['type'] == 'llm_error' and not ev['body'].get('usage_known', False):
-            arrival = int(ev['body']['arrival'])
-            arm = arm_of.get(arrival)
-            phase = phase_of.get(arrival)
-            if arm is not None and phase is not None:
-                out[phase][arm]['unknown_usage_calls'] += 1
+    for arrival in unknown_usage_by_request(events).values():
+        arm = arm_of.get(arrival)
+        phase = phase_of.get(arrival)
+        if arm is not None and phase is not None:
+            out[phase][arm]['unknown_usage_calls'] += 1
     for phase in out:
         for arm in out[phase]:
             out[phase][arm]['wall_seconds'] = round(out[phase][arm]['wall_seconds'], 6)
+            out[phase][arm]['tokens_are_lower_bound'] = \
+                out[phase][arm]['unknown_usage_calls'] > 0
     return out
 
 
@@ -405,6 +570,146 @@ def argv_tokens(argv: Sequence[str]) -> list[str]:
 
 
 # ---------------------------------------------------------------------------
+# freeze-bundle members: what a run can recompute, and the refusal each one earns
+# ---------------------------------------------------------------------------
+#: Which closed ``E_PREFLIGHT`` reason code a drifting bundle member is refused under.  The
+#: vocabulary is the event schema's and is NOT extended here; a member with no more specific
+#: code is refused as ``preflight_rule_failed``.
+MEMBER_REFUSAL: dict[str, str] = {
+    'config_sha256': 'config_sha',
+    'rule_block_sha256': 'config_sha',
+    'roster_sha256': 'roster_sha',
+    'task_content_sha256': 'roster_sha',
+    'arrival_order_sha256': 'order_sha',
+    'harness_file_sha256': 'harness_file_sha',
+    'reused_file_sha256': 'harness_file_sha',
+    'winstats_sha256': 'winstats_sha',
+    'gguf_sha256': 'gguf_sha256',
+    'serving_manifest_sha256': 'serving_manifest',
+    'hardware_allowlist': 'hardware_allowlist',
+}
+
+
+def observed_bundle_members(freeze_dir: Path, *, trial: str | None = None,
+                            bundle: Mapping | None = None,
+                            harness_dir: Path | None = None,
+                            src_dir: Path | None = None,
+                            reused_dir: Path | None = None) -> dict:
+    """Recompute every ``lab_common.BUNDLE_MEMBERS_RECOMPUTED`` member from the deposited
+    freeze tree and the working copy.
+
+    Reads files; compares nothing and raises nothing on a mismatch -- the comparison is
+    ``lab_common.verify_bundle_members``.  A member whose source cannot be read is simply
+    absent from the result, and the comparison then reports it as drift, so an artifact that
+    the freeze names and that has gone missing refuses the run rather than passing it.
+
+    ``bundle`` is read only to match the recorded SHAPE of ``arrival_order_sha256`` (a bundle
+    may carry one digest for the running trial or a table over the four trials); no recorded
+    VALUE is ever copied into the observation.  The three directory arguments exist so that a
+    test can point the harness/core/reused lookups at a copy of the tree; a run leaves them
+    unset and the real locations are used.
+    """
+    freeze_dir = Path(freeze_dir)
+    src_dir = Path(src_dir) if src_dir is not None else lab_common.SRC_DIR
+    reused_dir = Path(reused_dir) if reused_dir is not None else lab_common.LS_DIR
+    recorded = dict(bundle or {})
+    out: dict = {}
+
+    # --- the frozen configuration and everything it pins --------------------
+    cfg_path = freeze_dir / 'config.json'
+    cfg: dict | None = None
+    if cfg_path.exists():
+        out['config_sha256'] = sha256_file(cfg_path)
+        try:
+            loaded = json.loads(cfg_path.read_text(encoding='utf-8'))
+        except (OSError, ValueError):
+            loaded = None
+        if isinstance(loaded, dict):
+            cfg = frozen_cfg(loaded)
+    if cfg is not None:
+        try:
+            out['rule_block_sha256'] = lab_common.rule_block_sha256(cfg)
+        except lab_common.FrozenMismatch:
+            pass
+        if cfg.get('protocol_version') is not None:
+            out['protocol_version'] = str(cfg['protocol_version'])
+        gguf = {k: str((v or {}).get('sha256_expected'))
+                for k, v in sorted((cfg.get('servers') or {}).items())
+                if isinstance(v, Mapping) and v.get('sha256_expected') is not None}
+        if gguf:
+            out['gguf_sha256'] = gguf
+        manifest = (cfg.get('llama_cpp') or {}).get('serving_manifest_sha256')
+        if manifest is not None:
+            out['serving_manifest_sha256'] = str(manifest)
+        receipt = cfg.get('receipt') or {}
+        for member in ('golden_props_sha256', 'golden_generation_settings_sha256'):
+            table = receipt.get(member)
+            if isinstance(table, Mapping):
+                got = {k: str(v) for k, v in sorted(table.items()) if v is not None}
+                if got:
+                    out[member] = got
+        if receipt.get('mask') is not None:
+            out['receipt_mask_sha256'] = sha256_canonical(receipt['mask'])
+        sandbox = cfg.get('sandbox') or {}
+        for member, key in (('sandbox_profile_sha256', 'profile_sha256'),
+                            ('containment_probe_sha256', 'containment_probe_sha256')):
+            if sandbox.get(key) is not None:
+                out[member] = str(sandbox[key])
+        if cfg.get('environment_lock_sha256') is not None:
+            out['environment_lock_sha256'] = str(cfg['environment_lock_sha256'])
+        if cfg.get('hardware_allowlist') is not None:
+            out['hardware_allowlist'] = [str(x) for x in cfg['hardware_allowlist']]
+
+    # --- the roster, by its own rule, not by the digest it carries ----------
+    roster_path = freeze_dir / 'roster.json'
+    if roster_path.exists():
+        try:
+            roster = json.loads(roster_path.read_text(encoding='utf-8'))
+        except (OSError, ValueError):
+            roster = None
+        if isinstance(roster, dict):
+            # lab_data.roster_sha256 RECOMPUTES the digest from the object, so a roster
+            # whose content was rewritten together with its own `roster_sha256` field --
+            # which `check_roster` accepts -- still fails against the bundle.
+            out['roster_sha256'] = lab_data.roster_sha256(roster)
+            if roster.get('task_content_sha256') is not None:
+                out['task_content_sha256'] = str(roster['task_content_sha256'])
+
+    # --- the arrival orders -------------------------------------------------
+    order_member = recorded.get('arrival_order_sha256')
+    if isinstance(order_member, str) and trial:
+        path = freeze_dir / ('arrival_order_%s.json' % trial)
+        if path.exists():
+            out['arrival_order_sha256'] = sha256_file(path)
+    else:
+        names = set(k for k in (order_member or {}) if isinstance(order_member, Mapping))
+        names |= {t for t in lab_common.TRIALS
+                  if (freeze_dir / ('arrival_order_%s.json' % t)).exists()}
+        orders = {t: sha256_file(freeze_dir / ('arrival_order_%s.json' % t))
+                  for t in sorted(names)
+                  if (freeze_dir / ('arrival_order_%s.json' % t)).exists()}
+        if orders:
+            out['arrival_order_sha256'] = orders
+
+    # --- the code: the harness, the reused pilot modules, the pinned core ---
+    if harness_dir is None:
+        out['harness_file_sha256'] = lab_common.harness_file_hashes()
+    else:
+        hdir = Path(harness_dir)
+        out['harness_file_sha256'] = {n: sha256_file(hdir / n)
+                                      for n in lab_common.HARNESS_FILES
+                                      if (hdir / n).exists()}
+    reused = {n: sha256_file(reused_dir / n) for n in lab_common.REUSED_FILES
+              if (reused_dir / n).exists()}
+    if reused:
+        out['reused_file_sha256'] = reused
+    winstats = src_dir / 'winstats.py'
+    if winstats.exists():
+        out['winstats_sha256'] = sha256_file(winstats)
+    return out
+
+
+# ---------------------------------------------------------------------------
 # preflight
 # ---------------------------------------------------------------------------
 def preflight(ctx: RunContext) -> dict:
@@ -440,14 +745,55 @@ def preflight(ctx: RunContext) -> dict:
         if not p.exists():
             failed.append(item)
     bundle_path = freeze_dir / 'freeze_bundle.json'
+    bundle: dict | None = None
     if bundle_path.exists():
-        bundle = json.loads(bundle_path.read_text(encoding='utf-8'))
-        found = lab_common.freeze_bundle_sha256(bundle)
-        if found != ctx.bundle_sha:
+        try:
+            bundle = lab_common.load_freeze_bundle(bundle_path)
+        except lab_common.FreezeIncomplete:
+            bundle = None
             failed.append('freeze_bundle_drift')
-            _drift('freeze_bundle_sha256', ctx.bundle_sha, found)
+        if bundle is not None:
+            found = lab_common.freeze_bundle_sha256(bundle)
+            if found != ctx.bundle_sha:
+                failed.append('freeze_bundle_drift')
+                _drift('freeze_bundle_sha256', ctx.bundle_sha, found)
     elif not rt.get('allow_missing_bundle'):
         failed.append('freeze_bundle_drift')
+
+    # --- every MEMBER of the frozen bundle, against its recorded hash --------
+    # The digest check above proves only that nobody edited the BUNDLE.  Provenance review
+    # section 3: the root held an unchanged bundle carrying the original `config_sha256`,
+    # changed `monitor.delta` from .03 to .04, and preflight returned `[]`.  Each member the
+    # freeze names is therefore recomputed from the deposited tree and the working copy and
+    # compared with the value the approved bundle records, with the bundle held FIXED.
+    if bundle is not None:
+        observed = observed_bundle_members(freeze_dir, trial=ctx.trial, bundle=bundle)
+        for row in lab_common.verify_bundle_members(bundle, observed):
+            failed.append(MEMBER_REFUSAL.get(str(row['item']).split('.', 1)[0],
+                                             'preflight_rule_failed'))
+            drift.append(dict(row))
+        # The hardware identity is COMPARED here, not merely recorded at trial start.
+        allowlist = bundle.get('hardware_allowlist')
+        if isinstance(allowlist, list) and allowlist:
+            identity = lab_common.hardware_identity()
+            if identity not in [str(x) for x in allowlist]:
+                failed.append('hardware_allowlist')
+                _drift('hardware_identity',
+                       sha256_canonical(sorted(str(x) for x in allowlist)),
+                       sha256_text(identity))
+
+    # --- the independent reference rule (protocol 8.6) ----------------------
+    # `lab_reference_rule.py` is also a harness file, so the member check above covers it;
+    # this names it in its own right, because a reference rule that drifts from the value the
+    # frozen configuration pins is the one defect that would let the verifier agree with a
+    # decision code that had itself moved.
+    want_ref = str((cfg.get('monitor') or {}).get('reference_rule_sha256') or '')
+    ref_path = lab_common.HERE / 'lab_reference_rule.py'
+    if want_ref and ref_path.exists():
+        found_ref = sha256_file(ref_path)
+        if found_ref != want_ref:
+            failed.append('harness_file_sha')
+            _drift('reference_rule_sha256', want_ref, found_ref)
 
     # --- winstats, the pinned read-only core --------------------------------
     wpath = lab_common.SRC_DIR / 'winstats.py'
@@ -493,7 +839,13 @@ def preflight(ctx: RunContext) -> dict:
                        sha256_text(str(observed.get(key))))
 
     if failed:
-        raise PreflightError(','.join(sorted(set(failed))))
+        # The refusal carries its own evidence.  `preflight_refused` has always had a
+        # `drift` field and the caller had nothing to put in it, so a refusal named a
+        # reason code and never said WHICH artifact moved; the member rows above are
+        # exactly that missing evidence.
+        error = PreflightError(','.join(sorted(set(failed))))
+        error.drift = drift
+        raise error
     return drift
 
 
@@ -708,11 +1060,14 @@ def plan_resume(events: Sequence[Mapping], spools: Mapping, order: Sequence,
 
     monitor_prefix = len(coins)                               # rule 10
     if monitor_prefix != len(enrolled):
-        # ARCHITECTURE 3.13 rule 10 says "number of pair_enrolled events"; protocol 7.3
-        # item 2 says n counts chain-valid coin_drawn events, and a pair that was never
-        # randomized has no position in the monitor.  The conservative reading is used and
-        # the difference is reported rather than silently chosen.
-        findings.append('monitor_prefix_from_coins')
+        # COORDINATOR_DECISIONS ruling 17 (revision 4) settled the three-way disagreement
+        # that used to be recorded here: n grows at `coin_drawn` and never at
+        # `pair_enrolled`, because a pair whose coin has not been drawn and fsynced is not
+        # randomized and holds no position in the monitor.  Counting coins is therefore the
+        # RULE, not a conservative choice between readings, and protocol 8.3 trigger 1 was
+        # corrected in place to say so.  The gap is still reported, because it means this
+        # resume found a staged pair that must be re-enrolled before it is randomized.
+        findings.append('staged_pair_without_coin_excluded_from_prefix')
 
     if status is not None:
         phase = status
@@ -912,6 +1267,12 @@ class World:
                                 or episode_hard_cap_s(self._execution()))
         self.max_pairs = int(self.rt.get('max_pairs') or len(ctx.order))
         self.mock = bool(self.rt.get('mock'))
+        #: The program-wide used-seed registry of protocol 5.5 (execution review E2).  Held
+        #: in memory and mirrored to ``<work root>/used_seeds.json``, which every worker of
+        #: every trial reads before its first request.
+        self.seed_registry_path = seed_registry_path(self.work_root())
+        self.used_seeds: set[int] = set()
+        self._seeds_on_disk: int = -1
 
     # -- configuration --------------------------------------------------------
     def _execution(self) -> dict:
@@ -919,6 +1280,44 @@ class World:
         if ex.get('request_timeout_s') is None:
             ex['request_timeout_s'] = float(self.rt.get('request_timeout_s') or 180.0)
         return ex
+
+    def work_root(self) -> Path:
+        """The PROGRAM work root, one level above this trial's ``paths.work``."""
+        rt_root = self.rt.get('work_root')
+        return Path(rt_root) if rt_root else Path(self.ctx.paths.work).parent
+
+    # -- the used-seed registry (protocol 5.5; execution review E2) -----------
+    def load_seed_registry(self) -> None:
+        """Rebuild the program-wide used-seed set and publish it, before any episode starts.
+
+        Called at trial start AND at resume, so a worker never draws against a set that a
+        crash left stale.  The reconstruction reads every trial's spools, which is what makes
+        the set program-wide and what makes it survive an unclean exit; the file is then
+        rewritten so that the next worker reads the repaired set rather than the stale one.
+        """
+        self.used_seeds = seed_registry_reconstruct(self.work_root())
+        self._seeds_on_disk = -1
+        self.persist_seed_registry()
+
+    def note_seed(self, seed: int) -> None:
+        """Record a seed a worker committed to sending (its ``call_started`` spool line)."""
+        self.used_seeds.add(int(seed))
+
+    def persist_seed_registry(self) -> None:
+        """Mirror the in-memory set to disk when it has grown.
+
+        Called before every dispatch, so the worker about to start reads every seed its
+        predecessors committed to.  Pair-synchronous execution (COORDINATOR_DECISIONS C2)
+        is what makes that complete rather than merely current: pair i+1 is enrolled only
+        after both episodes of pair i are revealed, and a reveal follows the ingest of that
+        episode's whole spool, so no earlier request of this worker's own half of the seed
+        space is still unseen when the file is written.  The two concurrent workers of one
+        pair cannot collide with each other at all, because the low bit of the seed carries
+        ``worker_index``."""
+        if len(self.used_seeds) == self._seeds_on_disk:
+            return
+        write_seed_registry(self.seed_registry_path, self.used_seeds)
+        self._seeds_on_disk = len(self.used_seeds)
 
     # -- the chain ------------------------------------------------------------
     def open_chain(self, *, create: bool) -> None:
@@ -1330,7 +1729,10 @@ class World:
                 'requests': tokenize_path(ctx.paths.requests),
                 'sandbox_lock': tokenize_path(ctx.paths.sandbox_lock),
                 'tasks': str(self.rt.get('tasks_path') or ''),
-                'used_seeds': tokenize_path(ctx.paths.work / 'used_seeds.json'),
+                # protocol 5.5 promises "the used-seed set of earlier TRIALS of the
+                # PROGRAM", so the registry is the one at the program work root; a per-trial
+                # file could never carry it (execution review E2).
+                'used_seeds': tokenize_path(self.seed_registry_path),
             },
             'assignment_seq': assignment_seq,
         }
@@ -1349,6 +1751,9 @@ class World:
         ctx = self.ctx
         ctx.paths.jobs.mkdir(parents=True, exist_ok=True)
         ctx.paths.spools.mkdir(parents=True, exist_ok=True)
+        # protocol 5.5: the worker loads the used-seed set at start, so it must be on disk
+        # and current before the process exists -- not after (execution review E2).
+        self.persist_seed_registry()
         job_path = ctx.paths.jobs / f'job_{att.arrival}_{att.attempt}.json'
         try:
             job_sha = write_json_atomic(job_path, att.job, durable=True)
@@ -1444,6 +1849,12 @@ def ingest_spool(world: World, att: Attempt) -> bool:
         body = row.get('body') or {}
         if kind == 'call_started':
             att.calls[str(body['request_id'])] = dict(body)
+            # E2: the seed is now used, whatever happens to the request afterwards.  Noted
+            # from the SPOOL rather than from the chain event below, because the spool line
+            # is durable before the POST and is seen even when this row was already
+            # projected by an earlier invocation and is about to be skipped as a duplicate.
+            if isinstance(body.get('seed'), int) and not isinstance(body.get('seed'), bool):
+                world.note_seed(int(body['seed']))
         key = (str(kind), str(body.get('request_id') or ''))
         if key in att.logged:
             # already a chain event of an earlier invocation: the spool is evidence, the
@@ -1646,6 +2057,11 @@ def _step(state: State, ctx: RunContext, world: World) -> State:      # noqa: C9
 
     if state == 'OPENING':
         existing = lab_eventlog.segment_paths(ctx.paths.events)
+        # protocol 5.5 / execution review E2: rebuild the program-wide used-seed set from
+        # every trial's spools before anything can be dispatched.  This runs on BOTH the
+        # fresh-start and the resume branch, because the crash a resume follows is exactly
+        # the case where the registry file can be behind the spools.
+        world.load_seed_registry()
         if not existing:
             world.open_chain(create=True)
             world.append('trial_started', trial_started_body(ctx, world), durable=True)
@@ -1951,6 +2367,14 @@ def _w_pump(self: World) -> dict | None:
             ingest_spool(self, att)
             if not att.revealed:
                 self._terminal(att, 'episode_timeout')
+    # E2: flush the used-seed registry as soon as this pump saw new seeds, not only at the
+    # next dispatch.  Without this the LAST pair's seeds never reach the file -- the trial
+    # ends with no further dispatch -- and the next trial of the program would start from a
+    # registry that is missing them.  The reconstruction at that trial's start would still
+    # recover them from the spools, but a file that disagrees with the spools is exactly the
+    # kind of quiet staleness this repair exists to remove.  The call is a no-op unless the
+    # set actually grew, so a 50 ms poll does not rewrite the file.
+    self.persist_seed_registry()
     self._auto_abort()
     return self.decision
 
@@ -2461,7 +2885,7 @@ def run_trial(ctx: RunContext, *, resume: bool = True) -> str:
             drift = preflight(ctx)
             rt['drift'] = drift
         except PreflightError as exc:
-            write_preflight_refused(ctx, str(exc))
+            write_preflight_refused(ctx, str(exc), drift=getattr(exc, 'drift', None))
             return 'aborted'
         # protocol 5.7.  Last of the pre-seq-0 refusals, because it is the only one that
         # reads the rest of the machine: a foreign accelerator job is reported by name and
@@ -2563,11 +2987,18 @@ def write_status(ctx: RunContext, world: World) -> None:
         pass
 
 
-def write_preflight_refused(ctx: RunContext, reasons: str) -> None:
-    """Before a trial's seq 0 the refusal goes to the PROGRAM chain (critic N1)."""
+def write_preflight_refused(ctx: RunContext, reasons: str, *,
+                            drift: Sequence[Mapping] | None = None) -> None:
+    """Before a trial's seq 0 the refusal goes to the PROGRAM chain (critic N1).
+
+    ``drift`` is the evidence ``preflight`` attached to the ``PreflightError``: the
+    ``{'item', 'expected', 'found'}`` rows naming the bundle members that moved.  A reader
+    of the chain therefore sees WHICH frozen artifact drifted, not only that something
+    did."""
     rt = runtime(ctx.cfg)
     events_dir = Path(rt['results_root']) / lab_common.PROGRAM_CHAIN_ID / 'events'
     checks = [r for r in reasons.split(',') if r]
+    rows = [dict(row) for row in (drift or [])]
     try:
         log = EventLog(events_dir, lab_common.PROGRAM_CHAIN_ID, ctx.bundle_sha, ctx.inv,
                        create=not lab_eventlog.segment_paths(events_dir))
@@ -2575,7 +3006,7 @@ def write_preflight_refused(ctx: RunContext, reasons: str) -> None:
         return
     try:
         log.append('preflight_refused', {'trial': ctx.trial, 'checks_failed': checks,
-                                         'drift': []}, durable=True)
+                                         'drift': rows}, durable=True)
     except lab_common.SchemaError:
         log.append('preflight_refused', {'trial': ctx.trial,
                                          'checks_failed': ['worktree_identity'],
@@ -2690,9 +3121,14 @@ def main(argv: list[str] | None = None) -> int:
         if not args.mock:
             raise SystemExit('--max-pairs is a mock-only option')
         rt['max_pairs'] = int(args.max_pairs)
-    rt.setdefault('bundle_sha', sha256_file(results_root / 'freeze' / 'freeze_bundle.json')
-                  if (results_root / 'freeze' / 'freeze_bundle.json').exists()
-                  else '0' * 64)
+    # ONE canonical digest convention (lab_common.freeze_bundle_sha256): the bundle's
+    # identity is the digest of its canonical JSON object, never of the file's raw bytes.
+    # The default used to be `sha256_file`, which disagreed with the digest preflight
+    # computes, so a pretty-printed copy of the very same bundle produced
+    # `freeze_bundle_drift` (provenance review section 3, "Also confirmed").
+    bundle_file = results_root / 'freeze' / 'freeze_bundle.json'
+    rt.setdefault('bundle_sha', lab_common.freeze_bundle_sha256_of_file(bundle_file)
+                  if bundle_file.exists() else '0' * 64)
     try:
         ctx = make_context(args.trial, cfg, results_root=results_root,
                            work_root=work_root)
