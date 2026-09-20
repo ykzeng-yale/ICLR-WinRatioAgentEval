@@ -20,7 +20,11 @@ The first study comprises six synthetic stationary scenarios. The separate stres
 
 The package also includes 1,182 open-weight coding episodes and all 196 planned interactive airline records: 194 saved trajectories and two failure placeholders, reconciled to 206 attempts. Their accepted analyses distinguish post-hoc running means, descriptive batch outcomes and conditional replay from live deployment. All earlier numerical results remain unchanged.
 
-The current [arXiv package](arxiv/) contains a 45-page combined PDF, 13-page main/statements/reference extract, 32-page supplement, 35-file source upload, and a code archive with 246 hashed payload files. Independent clean compilation, six analytic checks and 127 retained-result checks pass; layouts were visually inspected. All old data and the original anonymous [ICLR release](submission/) remain unchanged. [Issue 11](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/11) continues prospective open-weight work in separately owned directories; [issue 12](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/12) requests its CPU validation. New results require review before integration.
+The current [arXiv package](arxiv/) contains a 45-page combined PDF, 13-page main/statements/reference extract, 32-page supplement, 35-file source upload, and a code archive with 246 hashed payload files. Independent clean compilation, six analytic checks and 127 retained-result checks pass; layouts were visually inspected. All packaged data and the original anonymous [ICLR release](submission/) remain unchanged. The broader development tree also contains methods excluded from the paper; use the frozen arXiv code archive to reproduce its claims. [Issue 11](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/11) continues prospective open-weight work in separately owned directories; [issue 12](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/12) requests its CPU validation. New results require review before integration.
+
+## Direct integration workflow
+
+The author requests **no new pull requests**. Owners coordinate direct main pushes and post exact contribution commits on their issue. All four legacy PRs are merged. Root separately reviews scientific evidence before adopting it in the paper/release. See [the policy](DIRECT_INTEGRATION_POLICY.md). Existing excluded methods remain excluded; original branches and evidence are preserved.
 
 ## Experiment execution policy
 

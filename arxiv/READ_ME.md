@@ -33,6 +33,8 @@ The scientific content preserves the reviewed baseline. Conversion changes are t
 
 The **full project is 60/100** under [the expanded-scope tracker](../FULL_PROJECT_PROGRESS.md), including the prospective trial, independent CPU validation and their final integration. The separate fixed checklist for this already assembled bounded-v1 package is **90/100**: technical science/empirical/manuscript/release items verified, ten author-only points pending. This is not an acceptance probability or a claim that all conceivable experiments have been performed. See [readiness](../READINESS_TRACKER.md).
 
+The current code archive also repairs a pre-existing optional CPU-runner import dependency, with unchanged scenario values, algorithms and all 47 packaged CSVs. The transformation and hashes are explicit in the manifest; the historical anonymous ZIP is preserved. See [dependency and merge audit](../reviews/arxiv_extension_dependency_audit.md). The three PDFs and TeX source archive were unchanged by this repair. Broader development code on main includes excluded methods; reproduce the article from this versioned archive.
+
 ## Continued experiments
 
 The current bounded v1 paper does not depend on a new study. A new prospective randomized open-weight study is claimed in [issue 11](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/11). Its evidence may strengthen a later revision after protocol and independent result checks. Realized counts alone do not establish counterfactual savings. Use [the current queue](../EXPERIMENT_QUEUE.md) and [ownership rules](../COORDINATION.md). No new commercial model, paid compute or duplicate model collection is authorized. Historical commercial observations remain identified and preserved.
@@ -40,3 +42,5 @@ The current bounded v1 paper does not depend on a new study. A new prospective r
 ## Rebuild
 
 Run `python3 arxiv/build_arxiv_package.py` from the repository root with PyMuPDF and pdfLaTeX/latexmk installed. The builder reads the frozen original paper and anonymous code package, writes only the arXiv output and ignored scratch, and makes no network/model call. Rebuilding may alter PDF byte hashes through TeX metadata; recheck the newly generated manifest and PDF before publishing. The standalone code archive's default `python reproduce.py` runs analytic tests and validates retained saved results; it does not collect new model episodes.
+
+For a code-archive-only repair with existing source/PDF artifacts, `python3 arxiv/build_arxiv_package.py --code-only` refreshes the code ZIP and manifest without recompiling or changing the source upload.

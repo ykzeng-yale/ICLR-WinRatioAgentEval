@@ -6,10 +6,12 @@
 
 ## Active successor assignments
 
+No new PRs. Owners coordinate direct main pushes and deliver exact commits via issue comments under [the direct-integration policy](DIRECT_INTEGRATION_POLICY.md). All four legacy PRs are now merged; previously excluded methods remain excluded from paper/release claims despite their presence on main. Root reviews the freeze on its working branch before trial execution.
+
 | Work | Owner / status | Acceptance and boundary |
 |---|---|---|
-| [#11 prospective randomized live study](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/11) | Claimed: `iclr-winratioagentevals-60`, branch `session60/live-ab`; design/adapter review and protocol freeze pending, execution not verified | Exclusive `experiments/live_ab/`, `results/live_ab/`; pre-enrolled AB/BA pairs, enrollment-indexed partial bounds, prospective decision rule, all-attempt accounting. See `reviews/arxiv_live_design_guidance.md`. No duplicate job. |
-| [#12 CPU validation/calibration](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/12) | Initially unclaimed; independent worker preferred | Exclusive `experiments/live_ab_validation/`, `results/live_ab_validation/`; deterministic adapter verification plus bounded known-truth simulation panel. No model calls. |
+| [#11 prospective randomized live study](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/11) | Claimed: `iclr-winratioagentevals-60`, branch `session60/live-ab`; owner at 21:51:16 UTC reports revised 568-pair stratified design and harness implementation starting, zero trial episodes; no remote freeze/adapter delivery or execution verification | Exclusive `experiments/live_ab/`, `results/live_ab/`; pre-enrolled AB/BA pairs, enrollment-indexed partial bounds, prospective decision rule, all-attempt accounting. See `reviews/arxiv_live_design_guidance.md` and `reviews/arxiv_live_design_progress3_review.md`. No duplicate job. |
+| [#12 CPU validation/calibration](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/12) | Claimed: `iclr-winratioagentevals-60`, branch `session60/live-ab-validation`; procedural independence disclosed, root acceptance review pending | Exclusive `experiments/live_ab_validation/`, `results/live_ab_validation/`; deterministic adapter verification plus bounded known-truth simulation panel. No model calls. |
 | Wider models/hardware, Pareto/tie/grader grids, genuine production deployment | Deferred; no execution request now | Each needs a separately justified question, resource plan and protocol. No broad sweep or causal production claim. |
 
 The [experiment plan](evidence/arxiv_experiment_plan.md) separates required checks for new claims from the completed bounded v1. Old 'no further run' instructions below closed old collections; the author's new request authorizes only these new scoped successor tasks.
