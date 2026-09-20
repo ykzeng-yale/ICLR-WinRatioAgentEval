@@ -303,3 +303,41 @@ wherever they differ. All of the following are adopted literally; none is negoti
         ever blocks a trial, the trial waits; the rule does not move.
 32. STATUS UNCHANGED FOR #11: the two foreign llama-servers are still present, so the gate still refuses and the
     trial is still blocked. Ruling 31(a) is why, and it is the correct reason.
+
+# ===== REVISION 9, 2026-09-20: two adjudications on the frozen #12 protocol, before any outcome =====
+33. CONTEXT. Implementing the modules the frozen #12 protocol SPECIFIES BUT DOES NOT CONTAIN surfaced two facts.
+    No simulation outcome of the reported grid exists: every number below came from namespace 1 (the measurement
+    namespace whose seeds are discarded), and the reported namespace 0 has never been drawn.
+34. BLOCKER 2 — the protocol's own fixture refuses to let the grid run, and it is RIGHT to.
+    Section 13.0 asserts "vgen.py, vrun.py and vcompare.py do not exist". Writing them, which is exactly what the
+    protocol instructs, makes that sentence false, so F15 fails and vrun aborts before the grid. This is the
+    pre-registration working: a frozen document that refuses to run while it describes a world that no longer holds.
+    RULING: this is a STATUS CORRECTION THAT CHANGES NO VALUE, which section 14 permits explicitly
+    ("Typographical corrections that change no value are recorded as such with the before/after text"). Record the
+    before/after text of 13.0's status column and nothing else. It is NOT a version bump: no cell, parameter, seed,
+    grid, estimator, reported quantity, flag rule or positive control moves.
+35. FINDING 1 — sections 6.3 and 6.4 were computed under the reading that section 2.5 says does NOT govern.
+    Recomputing section 6 under the FROZEN PREDICATE disagrees with the frozen 6.3/6.4 tables in 13 entries at
+    N_max = 2000 and 14 at N_max = 1000, each by one unit in the fourth decimal, confined to exactly the 128
+    boundary states that 2.5 itself names. Recomputing under 2.5's closed-form paraphrase reproduces all of
+    6.1-6.4 with zero disagreements. So the tables were built with the paraphrase while the predicate governs.
+    RULING, and I am deliberately choosing the more conservative of the two available fixes:
+    (a) DO NOT EDIT THE FROZEN VALUES. Section 14's last clause says the next change of any value is a new version
+        "whatever it is, and whoever asks for it". Quietly recomputing 13 numbers in a pre-registration because
+        they turned out to be slightly wrong is precisely the habit pre-registration exists to prevent, and the
+        fact that it would be harmless here is not a reason to acquire the habit.
+    (b) CORRECT THE SENTENCE, which changes no value: 2.5's claim that "this study's numbers in sections 6.3 and
+        6.4 are computed with it" is FALSE and is withdrawn. Replace it with the fact: 6.3 and 6.4 were computed
+        with the closed-form paraphrase, which differs from the governing predicate in exactly the 128 named
+        boundary states.
+    (c) DEPOSIT THE CORRECTED TABLE BESIDE THE FROZEN ONE, not in place of it: an addendum carrying the
+        predicate-reading recomputation, both readings shown, every differing entry named with both values, and
+        labelled as a post-freeze recomputation. A reader then sees what was frozen, what is right, and the gap.
+    (d) NOTHING OPERATIVE MOVES. The predicate is what vband, vcompare, F17 and vgen implement, so the grid, the
+        decision rule and every reported quantity are unaffected. 6.3 and 6.4 are descriptive expectation tables.
+    The root may overturn (a) and require a version bump instead; if it does, v1 carries no results, so there would
+    be nothing to report beside and the bump costs nothing but a label.
+36. BUDGET. Measured on this host at namespace 1: 3.15 ms per program, 0.79 ms per trial, peak RSS 79.8 MB. The
+    protocol's own ladder therefore selects T1, the full grid: 28,000 programs, projected about 88 s, about 6 MB of
+    output and about 115 MB peak RSS, against caps of 5,400 s, 200 MiB and 2 GiB. Every cap passes by two orders of
+    magnitude, so there is no reduced grid to report and no pause-and-report branch to take.
