@@ -449,3 +449,47 @@ wherever they differ. All of the following are adopted literally; none is negoti
     no anytime-validity penalty. A guarded trial is bound by the GUARDRAIL, which depends on delta and the tie
     mass and not on the composite effect size at all. It is the one place this repository hands a practitioner a
     wrong number, and it is mine.
+
+# ===== REVISION 12, 2026-09-20: my revision-10 adjudication was imprecise. The root has the better framing. =====
+52. Revision 10 said the #11 monitor "is LOOSE: it retains an outcome the state has already excluded", which reads
+    as an implementation defect. That is not what it is, and the root's CPU statistics review
+    (reviews/arxiv_cpu_prereg_statistics_review.md section 1) is right: the comparison contract asked two
+    differently-declared adapters to agree numerically and then called the difference a defect of one of them.
+53. WHAT IS ACTUALLY TRUE, checked line by line against protocol_FINAL.md item 5 rather than assumed:
+    (a) Item 5's `s_r = 1` branch has exactly two outcomes. If the certificate `(1-tol)*ell > L_r + 1e-9` fires,
+        collapse to `[sgn, sgn]`; "Otherwise the enclosure stays `[-1, 1]`." On the reproducer the certificate is
+        0.95 * 9.6 = 9.120 > 10.0, which is FALSE, so item 5 PRESCRIBES [-1, 1] and the code emitted [-1, 1].
+        => THE #11 CODE CONFORMS TO ITS OWN DECLARED RULE. It is not an implementation defect and I should not
+        have implied it was.
+    (b) Item 5 is nevertheless INCOMPLETE RELATIVE TO ITEM 1 of the same protocol, which promises that an
+        unresolved score is "narrowed ONLY BY ENUMERATING FEASIBLE COMPLETIONS". A two-case rule with an explicit
+        "otherwise [-1,1]" is not an enumeration. The protocol contradicts itself, and item 1 is the promise.
+    (c) THE MISSING CASE IS NAMEABLE, which is what makes this fixable rather than a matter of taste. Item 5
+        carries a certificate for the REVEALED episode winning tier 1 and NONE for the PENDING partner being
+        unable to win it. On the reproducer the pending partner needs a final cost below L_r*(1-tol) = 9.50 to
+        win, and its elapsed is already 9.60, so a candidate win is infeasible and item 5 cannot see it.
+    => THE DEFECT IS IN THE SPECIFICATION, NOT THE CODE AND NOT THE THEORY.
+54. RULING. Complete item 5 with the reverse certificate, so that item 5 delivers what item 1 promises:
+    if the pending partner's certified elapsed cost already exceeds what winning tier 1 would require, the
+    partner's win is infeasible and that value is removed from the enclosure. This is conformance to item 1 and
+    to the root's guidance item 5, it is a power improvement rather than a validity fix (the direction
+    measurement stands: #11 was wider in 151,032 of 151,032 rows and never narrower, so nothing it produced was
+    wrong), and it is outcome-free because no trial episode has ever run.
+55. AND THE VALIDATION CONTRACT MUST BE RESTATED, which is the root's actual point and the more important half.
+    Demanding exact numerical agreement to 1e-12 between an adapter built from the guidance formula and an
+    adapter built from protocol item 5 validates nothing while the two policies differ: every disagreement is
+    guaranteed and none of them is evidence. After item 5 is completed the two policies coincide and the equality
+    contract becomes meaningful. Until then the 122,786 disagreeing looks are a CONTRACT MISMATCH, not 122,786
+    findings, and I will describe them that way.
+56. SECOND ROOT FINDING, taken seriously and NOT yet verified by me: the review says the last-look reduction
+    (keep only the final look at each enrolled prefix) FAILS for the completed-data baselines, with an exact
+    witness inside the T4 horizon. If that holds, the CPREFIX and NAIVE miscoverage numbers I reported are
+    affected; the ADAPTER numbers may not be. Until I have reproduced the witness myself, every baseline number
+    in the grid report is PROVISIONAL and is to be cited that way. The positive control's conclusion does not
+    obviously survive unexamined either, since it is a statement about NAIVE.
+57. Pattern worth naming, because it is the second time in two days. Both defects found this week were checks or
+    rules that LOOKED complete and were not: a hash fixture that never hashed a file, a host gate that never
+    detected a foreign process, and now an enclosure rule that promises enumeration and delivers two cases. The
+    common signature is a specification asserting a general property while the implementation satisfies a
+    special case, with tests written against the special case. Tests written from the IMPLEMENTATION cannot catch
+    this; only a second implementation from the PROMISE can, which is exactly what #12 did.
