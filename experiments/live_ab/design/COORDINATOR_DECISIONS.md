@@ -92,9 +92,11 @@ wherever they differ. All of the following are adopted literally; none is negoti
    - T2 harm gate (pilot NB = -0.497): crosses at n >= 92 pairs. FEASIBLE.
    - T1 hierarchy gate (pilot NB = +0.497): crosses at n >= 92 pairs. FEASIBLE.
    - T1 success gate at delta = 0.03 with Dbar = 0: needs n >= 17,097 pairs. The roster gives at most 569.
-     => A DEPLOY DECISION IS UNREACHABLE BY CONSTRUCTION AT THIS SCALE, whatever the outcomes.
-     (delta 0.10 needs 1,378; delta 0.15 needs 626; delta 0.20 needs 372.)
-   This is declared in the protocol as a PROSPECTIVE FEASIBILITY STUDY with a guaranteed-abstention deploy route.
+     => [WITHDRAWN 2026-09-20, SEE REVISION 5. The sentence that stood here, "A DEPLOY DECISION IS UNREACHABLE BY
+        CONSTRUCTION AT THIS SCALE, whatever the outcomes", IS FALSE and must not be relied on. The 17,097 figure is
+        conditional on an OBSERVED success difference of 0; it is not a statement about all outcomes.]
+     (delta 0.10 needs 1,378; delta 0.15 needs 626; delta 0.20 needs 372, all at an observed difference of 0.)
+   The protocol states this correctly as a PRE-SPECIFIED NEAR-CERTAIN ABSTENTION, not an impossibility.
    It is not a defect of the design: T1 is expected to show the composite gate crossing while the success
    guardrail refuses, which is the guarded rule behaving as specified. No horizon extension, no margin loosening
    and no model replacement after unfavourable monitoring (root guidance 6).
@@ -170,3 +172,37 @@ wherever they differ. All of the following are adopted literally; none is negoti
     must raise an explicit TimeoutError; the ten dormant skipTest guards must become hard failures; the two
     spelling-based PG-16 greps must become behavioural assertions. A skip that passes silently is a test that
     does not exist.
+
+
+# ===== REVISION 5, 2026-09-20: I was wrong about unreachability. Correction. =====
+21. WITHDRAWN: "a deploy decision is unreachable by construction, whatever the outcomes", and with it
+    "guaranteed abstention" and the deterministic "the hierarchy gate will cross at 92 pairs".
+    The root caught this (reviews/arxiv_live_feasibility_claim_correction.md on main) and it is right.
+    MY ERROR: I computed the pairs needed for the success gate ASSUMING the observed running success difference
+    stays at the pilot value of 0, then reported the result as if it held for every possible outcome. The gate is
+    `mean_success_difference - r(n) > -delta`, i.e. the observed difference must exceed `r(n) - 0.03`. That is a
+    condition on the DATA, not a fixed sample-size requirement.
+    VERIFIED COUNTEREXAMPLE (recomputed here): at n = 100, if every one of the 100 resolved pairs has the candidate
+    succeeding and the incumbent failing, both running means are 1.0, both lower bounds are 1 - r(100) = 0.534307,
+    and BOTH GATES PASS. A deploy fires at the first permitted look.
+    CORRECT STATEMENT, which is what the protocol already says (sections 1.4, 1.5 item 13, 11):
+      the deploy route requires an observed running success difference above r(N_P) - 0.03 = +0.1280 at n = 568;
+      the same-task pilot difference is 0.000000 with a paired standard error of 0.0151, so the threshold is about
+      8.5 standard errors away; the deploy route is therefore a PRE-SPECIFIED NEAR-CERTAIN ABSTENTION under
+      pilot-like outcomes, NOT a logical impossibility. If a deploy occurs it is reported normally, with no claim
+      that it was impossible.
+    Likewise "the gate crosses at 92 pairs" is only the first n at which the radius falls below the PILOT effect
+    magnitude 0.497, and the first permitted look is n_min = 100, so no decision can occur at 92 under this
+    schedule. Whether any gate crosses is an outcome, not a plan.
+    The phrases "unreachable by construction", "impossible whatever the outcomes" and "guaranteed abstention" are
+    forbidden in every artifact of this program. delta = 0.03 and the frozen rule are unchanged.
+22. DISCLOSURE, correcting my own merge statement of 2026-09-19 ~21:00 UTC. I said the direct merge modified
+    "0 root-owned files". My filter covered paper/, arxiv/, src/winstats, reviews/, and the status files; it did
+    NOT cover results/. The merge did change three tracked CSVs that the root treats as frozen baselines:
+      results/benchmarks/tau2_contrasts.csv and tau2_rankings.csv: main held the version from da7ad17; the merge
+        brought the LATER version from 84773e1, "Align benchmark analysis and replay with the amended protocol
+        (12 off-diagonal within-task pairs)". The newer file is the corrected one.
+      results/cs_width.csv: main held da7ad17's version; the merge brought 6e53db4's, from the audit-driven wincs
+        fixes. The differences are in the 11th decimal place, consistent with the corrected betting capital.
+    All three are session-60-owned files, and in each case the merge moved main FORWARD to the corrected version
+    rather than reverting anything. That is still a change I failed to disclose, and the root found it first.
