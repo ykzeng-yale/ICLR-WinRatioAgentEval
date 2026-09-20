@@ -37,6 +37,8 @@ Report unchanged percentages when no milestone closes. Report the first 60% asse
 
 ## Current remaining sequence
 
+September 20 scientific-lead reassessment: root now explicitly owns design adjudication and failure diagnosis under [the decision report](reviews/scientific_lead_diagnosis_and_decisions.md), separately challenged in [the independent report](reviews/scientific_design_reassessment_independent.md). The new owner head `02b9410` reports resource-only namespace-1 measurements and no namespace-0 draw; this supersedes an unqualified statement that nothing has been measured, but supplies no independently validated grid outcomes or delivered runner. Root's fresh deterministic coding decomposition and self-test/hidden-verifier disagreement table concern old accepted observations and are review evidence, not new-study completion. The four CPU design corrections remain prerequisites; root directs a preserved v1 and explicit v2 amendment. Live work is classified as paired-regime prospective feasibility at the current limited horizon. Full project remains 60% (change 0), bounded v1 90%; no new five-point milestone is awarded.
+
 1. Receive and review #11's exact protocol/adapter freeze; #12 deterministic validation needs that pinned adapter.
 2. Complete the authorized open-weight collection and CPU panel with all attempts/failures retained and no outcome-driven extension.
 3. Independently check new evidence, integrate the accepted subset, and produce the final expanded manuscript/supplement/source/code release.

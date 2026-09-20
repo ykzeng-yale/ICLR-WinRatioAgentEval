@@ -1,0 +1,240 @@
+{
+  "airline_replay": {
+    "hierarchy_sum": 1,
+    "n": 49,
+    "net_benefit": 0.02040816326530612,
+    "resource_tier_sum": 0,
+    "success_difference_sum": 1,
+    "tier_counts": [
+      {
+        "count": 30,
+        "score": 0,
+        "tier": -1
+      },
+      {
+        "count": 9,
+        "score": -1,
+        "tier": 0
+      },
+      {
+        "count": 10,
+        "score": 1,
+        "tier": 0
+      }
+    ]
+  },
+  "coding_b_to_a_resource_ratios": {
+    "completion_tokens": 4.4609192354968545,
+    "total_tokens": 6.328500829569954,
+    "workflow_seconds": 4.456293239661556
+  },
+  "coding_final_self_test_vs_hidden_verifier": [
+    {
+      "count": 107,
+      "hidden_success": false,
+      "self_test_passed": false
+    },
+    {
+      "count": 166,
+      "hidden_success": true,
+      "self_test_passed": false
+    },
+    {
+      "count": 51,
+      "hidden_success": false,
+      "self_test_passed": true
+    },
+    {
+      "count": 267,
+      "hidden_success": true,
+      "self_test_passed": true
+    }
+  ],
+  "coding_first_pass": {
+    "hierarchy_sum": -139,
+    "n": 295,
+    "net_benefit": -0.4711864406779661,
+    "resource_tier_sum": -154,
+    "success_difference_sum": 15,
+    "tier_counts": [
+      {
+        "count": 18,
+        "score": 0,
+        "tier": -1
+      },
+      {
+        "count": 52,
+        "score": -1,
+        "tier": 0
+      },
+      {
+        "count": 67,
+        "score": 1,
+        "tier": 0
+      },
+      {
+        "count": 156,
+        "score": -1,
+        "tier": 1
+      },
+      {
+        "count": 2,
+        "score": 1,
+        "tier": 1
+      }
+    ]
+  },
+  "coding_repair_rounds_vs_hidden_verifier": [
+    {
+      "count": 45,
+      "hidden_success": false,
+      "repair_rounds": 0
+    },
+    {
+      "count": 254,
+      "hidden_success": true,
+      "repair_rounds": 0
+    },
+    {
+      "count": 6,
+      "hidden_success": false,
+      "repair_rounds": 1
+    },
+    {
+      "count": 12,
+      "hidden_success": true,
+      "repair_rounds": 1
+    },
+    {
+      "count": 107,
+      "hidden_success": false,
+      "repair_rounds": 2
+    },
+    {
+      "count": 167,
+      "hidden_success": true,
+      "repair_rounds": 2
+    }
+  ],
+  "coding_resources": {
+    "A": {
+      "completion_tokens": 41491,
+      "total_tokens": 112709,
+      "workflow_seconds": 1654.5986205209047
+    },
+    "B": {
+      "completion_tokens": 185088,
+      "total_tokens": 713279,
+      "workflow_seconds": 7373.376646980643
+    }
+  },
+  "coding_same_task": {
+    "hierarchy_sum": -388,
+    "n": 591,
+    "net_benefit": -0.6565143824027073,
+    "resource_tier_sum": -388,
+    "success_difference_sum": 0,
+    "tier_counts": [
+      {
+        "count": 121,
+        "score": 0,
+        "tier": -1
+      },
+      {
+        "count": 40,
+        "score": -1,
+        "tier": 0
+      },
+      {
+        "count": 40,
+        "score": 1,
+        "tier": 0
+      },
+      {
+        "count": 388,
+        "score": -1,
+        "tier": 1
+      },
+      {
+        "count": 1,
+        "score": 1,
+        "tier": 1
+      },
+      {
+        "count": 1,
+        "score": -1,
+        "tier": 2
+      }
+    ]
+  },
+  "coding_success_transitions": [
+    {
+      "a_success": false,
+      "b_success": false,
+      "count": 118
+    },
+    {
+      "a_success": false,
+      "b_success": true,
+      "count": 40
+    },
+    {
+      "a_success": true,
+      "b_success": false,
+      "count": 40
+    },
+    {
+      "a_success": true,
+      "b_success": true,
+      "count": 393
+    }
+  ],
+  "inputs_sha256": {
+    "evidence/open_coding_collection/agent.py.txt": "3cf2056330c72ebd5d2884f48d6ec2daa706fcc685ad67e3c2609d809ff75b64",
+    "results/open_airline/replay_scores.csv": "ea0b773962201c72e9f5ff50e73639a1645a26e0a887eed0aec6e1269dfd8b2f",
+    "results/open_coding/episode_metrics.jsonl": "2551abc878ea8d2daaca2c14716428dabe4de959bdcb2080c3f2f014393ae512",
+    "results/open_coding/first_pass_pairs.csv": "66bf3e9604288d67e94a6fb3d22bcd05adc74d3fe9437046f7a617f0fbd81a1f",
+    "results/open_coding/same_task_scores.csv": "9ae71547420588ac322a25daa4f260e17dc5c6d6a326fba6f3a75c08a01dc221"
+  },
+  "prospective_planning_arithmetic_not_power": {
+    "alpha_gate": 0.00625,
+    "caveat": "Complete-score algebra only, not a power probability or universal abstention claim; pending data can widen bounds.",
+    "complete_score_rows": [
+      {
+        "minimum_integer_net_success_count": 44,
+        "n": 100,
+        "radius": 0.4656929205179653,
+        "strict_required_observed_success_difference": 0.43569292051796527
+      },
+      {
+        "minimum_integer_net_success_count": 73,
+        "n": 565,
+        "radius": 0.1584036325586779,
+        "strict_required_observed_success_difference": 0.1284036325586779
+      },
+      {
+        "minimum_integer_net_success_count": 88,
+        "n": 1000,
+        "radius": 0.11748645536227836,
+        "strict_required_observed_success_difference": 0.08748645536227836
+      },
+      {
+        "minimum_integer_net_success_count": 107,
+        "n": 2000,
+        "radius": 0.08323044386401118,
+        "strict_required_observed_success_difference": 0.053230443864011184
+      },
+      {
+        "minimum_integer_net_success_count": 0,
+        "n": 17097,
+        "radius": 0.02999984735668843,
+        "strict_required_observed_success_difference": -1.5264331157047173e-07
+      }
+    ],
+    "first_n_allowing_exactly_zero_observed_success_difference": 17097,
+    "rho": 100,
+    "success_margin": 0.03
+  },
+  "scope": "Post-hoc deterministic descriptions of existing accepted projections; not new study outcomes or causal repair estimates.",
+  "source_baseline": "0775cbc847d8084b0e0a5197123026dcd90cabe8"
+}

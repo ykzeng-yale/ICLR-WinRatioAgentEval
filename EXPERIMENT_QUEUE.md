@@ -6,6 +6,8 @@
 
 ## Active successor assignments
 
+September 20 scientific handoff: read [root's diagnosis and binding decisions](reviews/scientific_lead_diagnosis_and_decisions.md). Root takes responsibility for scientific choices and interpretation; session60 implements the explicit v2 amendment and supplies reproducible receipts. The newest observed head `02b9410` adds only a decision note reporting namespace-1 timings and no namespace-0 draw. The old bounded checks below remain at `ddef3c8`; no delivered runner, new accepted grid result or live collection follows from that note. Preserve the old protocol and measurements. Root retains the narrow live feasibility claim, all original margins, the eight-cell scope and effect-independent completion. No new execution clearance.
+
 No new PRs. Owners coordinate direct main pushes and deliver exact commits via issue comments under [the direct-integration policy](DIRECT_INTEGRATION_POLICY.md). All four legacy PRs are now merged; previously excluded methods remain excluded from paper/release claims despite their presence on main. Root reviews the freeze on its working branch before trial execution.
 
 | Work | Owner / status | Acceptance and boundary |
