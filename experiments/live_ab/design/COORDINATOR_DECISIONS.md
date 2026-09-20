@@ -383,3 +383,69 @@ wherever they differ. All of the following are adopted literally; none is negoti
     the freeze commit that writing the file falsifies. A status correction that changes no value, recorded with
     before/after text. The implementing agent was right to refuse to widen a ruling on a frozen pre-registration
     without being told; that refusal is the behaviour I want and it should not be discouraged.
+
+# ===== REVISION 11, 2026-09-20: my "why everything nulls" hypothesis, adversarially tested and MOSTLY REFUTED =====
+44. I ran five independent diagnostic lines and three adversaries against my own hypothesis, which was that the
+    three null results are largely an artifact of a loose variance proxy and that "the method as published would
+    tell practitioners they need ten thousand comparisons when one thousand would do". VERDICT: wrong in its
+    premise, wrong in its number, right in one term, and the term it is right about did not produce the nulls.
+45. WHERE I WAS WRONG, each checked rather than conceded.
+    (a) THE PREMISE. "The method as published" says nothing of the kind. `grep -rn "17,097|17097" paper/` and
+        `grep -rn "0\.1279" paper/` both return NOTHING. That figure exists only in the pre-registration of a
+        trial that has never run. The paper's headline method is guarded BETTING, and paper/results_main.tex
+        already publishes the estimator comparison in its own voice, at 13x the scale any diagnostic line
+        reproduced: the range-only normal-mixture rule made no deployments in any initial scenario, a documented
+        conservatism cost, against 96.85% for the directional betting gate. I raised an alarm about a claim the
+        paper does not make, and presenting this as news would be wrong.
+    (b) THE NUMBER. My 1,527 was wrong twice over: it fed a SAME-TASK paired variance into a FIXED-N formula for
+        a CROSS-TASK design. The information floor -- what NO procedure whatsoever can beat -- is 3,099 pairs
+        cross-task (KL 0.001149011 per pair, I-projection recomputed independently), and 1,079 even paired. The
+        best valid, enclosure-compatible construction needs 6,697. Nothing reaches 1,000.
+    (c) THE NULLS ARE REAL and survive every attack. At n = 568 the maximum power attainable by ANY level-alpha
+        procedure is 0.2351; at the S1-only roster, 0.1485. No estimator rescues this.
+    (d) MY INSTINCT TO SWAP THE VARIANCE PROCESS WAS INVALID. `variance_process = n` is FORCED, not chosen:
+        thm:normal_cs builds V_n from PREDICTABLE ranges, and for a ternary score nothing in the past rules out
+        any of the three values, so c_i = 2 and V_n = n. There is no free slot. Feeding it an empirical variance
+        measures 0.189 miscoverage against a 0.10 nominal -- roughly twice -- and at rho = 100 that violation is
+        MASKED by the rho floor, which is a trap rather than a defence. Had I acted on my instinct I would have
+        broken validity and the masking would have hidden it.
+    (e) MY OWN LIBRARY'S FUNCTION IS THE WRONG ONE. I would have reached for `wincs.betting_cs_ternary`. It is
+        NOT enclosure-compatible: 1,164 monotonicity violations in 4,919 trials, and degrading a pair can RAISE
+        its capital by 1.15 and switch a gate on. The correct object is `winstats.betting_log_e_ternary`, which
+        is what prop:bet_running covers, has 0 violations in 7,878 plus an analytic argument, and is tighter
+        anyway (6,697 vs 7,274 pairs).
+46. WHERE I WAS RIGHT, and it is worth keeping. The frozen boundary IS loose on the guardrail -- by 2.55x in
+    required n, not the 11x I claimed. That is a genuine defect of the frozen live specification. But 2.55x of a
+    30.10x shortfall rescues nothing.
+47. THE APPORTIONMENT, which is the answer to the question I should have asked first. Of the deploy-route
+    shortfall from 17,097 pairs to the 568 available, as shares of the log-shortfall:
+        estimator / variance proxy .............. 27.5%   (fixable, worth 2.55x)
+        irreducible price of anytime validity ... 22.6%   (mostly not fixable; this is what monitoring costs)
+        genuine no-difference, against budget ... 49.8%   (NOT FIXABLE BY ANYTHING)
+    Half of it is simply that the two systems are identical on the top tier, 433/591 in both arms, and the roster
+    is too small to certify that they are.
+48. A CORRECTION THAT CHANGES THE FRAMING: EXPERIMENT 1 IS NOT A NULL. The RETAIN route FIRED at n = 100, the
+    first look n_min permits, under every construction and both pairings. That is a successful guarded decision
+    at the earliest legal opportunity. Only the DEPLOY route nulled. I have been calling the whole thing a null
+    and that was sloppy. The adversary's deflation is kept: it fired because the latency gap is 4.46x, and a
+    candidate at a true net benefit of -0.44, still plainly harmful, would not have fired at n = 100 at all.
+49. ACTIONS. Keep `variance_process = n` (forced, and it changes no decision: probability that swapping the band
+    alters any realised decision in the frozen trial set is at most 0.0057). Do NOT move delta, do NOT extend the
+    horizon, do NOT switch to same-task pairing, do NOT add a contrast chosen because it could deploy. Promote
+    the existing `monitor.betting_readout` to a PRESPECIFIED SECONDARY using `winstats.betting_log_e_ternary`,
+    on the GUARDRAIL only, with its own reported decisions and no claim on the primary alpha, declared before
+    execution and with the two-line monotonicity argument written down and reviewed. Never add WSR-EB: it
+    false-certifies at 10x nominal alone and 28x on the joint gate under a legal drift. Free fixes: separate MBPP
+    from HumanEval in the strata, and correct the horizon from 568 to at most 565 in every table.
+50. WHAT THE PAPER SHOULD GAIN, and this is the real deliverable of the whole investigation: a SIZING statement,
+    which main.tex currently lacks entirely. For a 3-point success non-inferiority margin against an equally
+    accurate candidate, a guarded cross-arrival trial needs about 6,700 randomized pairs with the paper's own
+    betting gate and about 17,100 with the range-only band, against an information floor of about 3,100 for any
+    procedure whatsoever; a 10-point margin needs about 280 to 900. Plus the certifiable-margin inversion, which
+    is the practitioner's actual question: at n = 568 an equal candidate can certify delta = 0.158 frozen or
+    0.104 with the best valid band. A guardrail that certifies "not more than 15 points worse" is not a
+    deployment guardrail, and saying so plainly is the honest content of a feasibility study.
+51. ONE SHIPPED TRAP TO FIX: `wincs.pairs_for_power` sizes on the hierarchy net benefit alone, with no delta and
+    no anytime-validity penalty. A guarded trial is bound by the GUARDRAIL, which depends on delta and the tie
+    mass and not on the composite effect size at all. It is the one place this repository hands a practitioner a
+    wrong number, and it is mine.
