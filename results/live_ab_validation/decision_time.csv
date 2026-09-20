@@ -1,0 +1,26 @@
+# PROTOCOL 9.5: decision prefixes in ENROLLED PAIRS, never wall clock, and never as a paired comparison between constructions.
+cell,law,law_name,delay,construction,construction_status,unit,n_trials,n_deciding,deciding_fraction,capped_fraction,capped_q1,capped_median,capped_q3,conditional_q1,conditional_median,conditional_q3
+C1,L1,aa_null,N,ADAPTER,the object under test,enrolled pairs (never wall clock),8000,0,0,1,2000,2000,2000,NA,NA,NA
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,enrolled pairs (never wall clock),8000,1,0.000125,0.999875,2000,2000,2000,2000,2000,2000
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,enrolled pairs (never wall clock),8000,2,0.00025,0.99975,2000,2000,2000,664.75,916.5,1168.25
+C2,L1,aa_null,A,ADAPTER,the object under test,enrolled pairs (never wall clock),8000,0,0,1,2000,2000,2000,NA,NA,NA
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,enrolled pairs (never wall clock),8000,0,0,1,2000,2000,2000,NA,NA,NA
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,enrolled pairs (never wall clock),8000,404,0.0505,0.9495,2000,2000,2000,463,598,912.5
+C3,L2,pref_boundary,N,ADAPTER,the object under test,enrolled pairs (never wall clock),20000,0,0,1,2000,2000,2000,NA,NA,NA
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,enrolled pairs (never wall clock),20000,11,0.00055,0.99945,2000,2000,2000,1144,1291,1699
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,enrolled pairs (never wall clock),20000,23,0.00115,0.99885,2000,2000,2000,414,720,1446
+C4,L2,pref_boundary,A,ADAPTER,the object under test,enrolled pairs (never wall clock),20000,5,0.00025,0.99975,2000,2000,2000,733,760,1456
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,enrolled pairs (never wall clock),20000,14,0.0007,0.9993,2000,2000,2000,1162,1310,1445.25
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,enrolled pairs (never wall clock),20000,19998,0.9999,9.999999999998899e-05,159,169,187,159,169,187
+C5,L3,success_boundary,N,ADAPTER,the object under test,enrolled pairs (never wall clock),20000,0,0,1,2000,2000,2000,NA,NA,NA
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,enrolled pairs (never wall clock),20000,0,0,1,2000,2000,2000,NA,NA,NA
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,enrolled pairs (never wall clock),20000,0,0,1,2000,2000,2000,NA,NA,NA
+C6,L3,success_boundary,A,ADAPTER,the object under test,enrolled pairs (never wall clock),20000,0,0,1,2000,2000,2000,NA,NA,NA
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,enrolled pairs (never wall clock),20000,0,0,1,2000,2000,2000,NA,NA,NA
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,enrolled pairs (never wall clock),20000,0,0,1,2000,2000,2000,NA,NA,NA
+C7,L4,favorable_alt,N,ADAPTER,the object under test,enrolled pairs (never wall clock),8000,8000,1,0,621,683,745,621,683,745
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,enrolled pairs (never wall clock),8000,8000,1,0,868,917,968,868,917,968
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,enrolled pairs (never wall clock),8000,8000,1,0,297,340,391,297,340,391
+C8,L4,favorable_alt,A,ADAPTER,the object under test,enrolled pairs (never wall clock),8000,8000,1,0,485,550,615,485,550,615
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,enrolled pairs (never wall clock),8000,8000,1,0,865,915,965,865,915,965
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,enrolled pairs (never wall clock),8000,8000,1,0,199,225,254,199,225,254

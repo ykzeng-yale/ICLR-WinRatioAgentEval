@@ -1,0 +1,27 @@
+{
+  "cases": {
+    "F01_pre_enrolled_orientation": "pass",
+    "F02_enrollment_denominator": "pass",
+    "F03_repeated_update_idempotence": "pass",
+    "F04_nonoverlapping_pair_ids": "pass",
+    "F05_completion_order_permutations": "pass",
+    "F06_joint_failures": "pass",
+    "F07_strict_tolerance_equality": "pass",
+    "F08_unknown_outcomes": "pass",
+    "F09_cap_timeout_finalization": "pass",
+    "F10_switch_phase_exclusion": "pass",
+    "F11_containment_audit": "pass",
+    "F12_band_formula": "pass",
+    "F13_decision_rule": "pass",
+    "F14_radius_sweep": "pass",
+    "F15_protocol_config_agreement": "pass",
+    "F16_import_graph_independence": "pass",
+    "F17_atom_cost_table": "pass",
+    "F18_pinned_file_hashes": "pass"
+  },
+  "command": "vfixtures.py",
+  "passed": 18,
+  "returncode": 0,
+  "stderr_tail": "",
+  "total": 18
+}

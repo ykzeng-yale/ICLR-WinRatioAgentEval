@@ -341,3 +341,45 @@ wherever they differ. All of the following are adopted literally; none is negoti
     protocol's own ladder therefore selects T1, the full grid: 28,000 programs, projected about 88 s, about 6 MB of
     output and about 115 MB peak RSS, against caps of 5,400 s, 200 MiB and 2 GiB. Every cap passes by two orders of
     magnitude, so there is no reduced grid to report and no pause-and-report branch to take.
+
+# ===== REVISION 10, 2026-09-20: adjudication of the #12 comparison defect =====
+37. THE VALIDATION STUDY FOUND A REAL DEFECT IN THE LIVE MONITOR, and 380 passing tests had not.
+    vcompare reports 122,786 of 400,203 compared looks disagreeing across 926 streams, in two classes
+    (151,032 per-pair enclosure endpoints and 131,352 band endpoints, the second being the first summed).
+38. ADJUDICATION, from first principles rather than by preferring either implementation.
+    Reproducer: incumbent revealed, success 1, cost 10.0; candidate pending with elapsed 9.6.
+      #11 reports [-1, +1].   #12 reports [-1, 0].
+    Enumerating the feasible completions: if the candidate fails, the incumbent wins the success tier, Z = -1.
+    If it succeeds, both succeed and the cost tier decides; to WIN there the candidate needs final cost below
+    10.0 - 0.05*10.0 = 9.5, but its elapsed time is ALREADY 9.6 and cost cannot decrease. A candidate win is
+    therefore impossible from this state, and the tight enclosure is [-1, 0].
+    => #12 IS CORRECT AND TIGHT. #11 IS LOOSE: it retains an outcome that the state has already excluded.
+39. DIRECTION, which decides whether this is a bug or a cost. Measured over every disagreeing row:
+      per-pair enclosures: #11 contains #12 in 151,032 of 151,032 rows -- 100.00%, never narrower.
+      band endpoints:      #11 wider in 131,352 of 131,352 -- never tighter.
+    => #11 NEVER EXCLUDES THE TRUTH. This is NOT a validity defect and no #11 result would have been wrong.
+    It is a POWER defect: the live monitor carries impossible outcomes in its enclosures, so its bands are
+    wider than the data warrant, on every partially revealed pair, at every look.
+40. WHY THIS MATTERS MORE THAN IT LOOKS. It is the SECOND independent source of conservatism found in the same
+    rule. The first is the variance proxy: the normal-mixture radius uses variance_process = n, a proxy of 1 per
+    observation, while the measured variance of the success difference is 0.135 same-task and 0.392 cross-task.
+    Both defects push the same way, toward abstention, and every experiment so far has abstained. A method that
+    is conservative in two compounding ways, on the gate that decides whether anything may ever deploy, will
+    abstain whether or not the systems differ. That is the hypothesis the "why every experiment nulls"
+    investigation is testing, and this adjudication is the first hard evidence for it.
+41. ACTION. Tighten #11's enclosure to the full feasible-completion enumeration that #12 implements.
+    THIS IS NOT A POST-HOC CHANGE MADE BECAUSE RESULTS WERE UNFAVOURABLE, and the defense is written down in
+    advance by someone else: the root's own guidance item 5 says "Start unresolved hierarchy scores at [-1,1],
+    ENUMERATE FEASIBLE COMPLETIONS TO NARROW THEM, and collapse only with a valid final-score certificate."
+    #12 does that; #11 does it only partially. Tightening #11 is CONFORMANCE TO THE PRE-EXISTING WRITTEN
+    SPECIFICATION, not a new choice. It is also free of outcome bias in the strictest sense: no trial episode has
+    ever run, nothing is frozen, and there is no live data whose analysis could be moved by it.
+    The change must be made BEFORE the freeze, verified by re-running vcompare to agreement, and disclosed.
+42. WHAT IS NOT CLAIMED. Agreement after the fix would mean the two implementations agree, NOT that the monitor
+    is correct: two implementations of the same misreading agree perfectly, which is the protocol's own wording
+    and remains binding.
+43. Ruling 34 is EXTENDED to REPORT.md, on the same grounds and for the same reason: section 13.0 lists it as not
+    written, writing it is required by section 13.3 item 6, and the status column is a statement of fact about
+    the freeze commit that writing the file falsifies. A status correction that changes no value, recorded with
+    before/after text. The implementing agent was right to refuse to widen a ruling on a frozen pre-registration
+    without being told; that refusal is the behaviour I want and it should not be discouraged.

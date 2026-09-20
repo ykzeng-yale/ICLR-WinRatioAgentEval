@@ -1,0 +1,194 @@
+# PROTOCOL 9.1. Coverage here is coverage of a BOUNDED ARBITRARY-RUNNING-MEAN target of a synthetic stream and establishes nothing causal; NAIVE is INVALID under informative delay and is reported only to exhibit the failure mode; an unflagged row means no exceedance was detected at this resolution, never that the bound holds.
+cell,law,law_name,delay,construction,construction_status,gate,mu,looks,event,x,N,rate,wilson_lo,wilson_hi,nominal,flagged
+C1,L1,aa_null,N,ADAPTER,the object under test,hierarchy,0,all,ever_miscover,0,8000,0,0,0.00047995188815998056,0.00625,0
+C1,L1,aa_null,N,ADAPTER,the object under test,hierarchy,0,all,ever_below,0,8000,0,0,0.00047995188815998056,0.00625,0
+C1,L1,aa_null,N,ADAPTER,the object under test,hierarchy,0,all,ever_above,0,8000,0,0,0.00047995188815998056,0.00625,0
+C1,L1,aa_null,N,ADAPTER,the object under test,hierarchy,0,decision_eligible,ever_miscover,0,8000,0,0,0.00047995188815998056,0.00625,0
+C1,L1,aa_null,N,ADAPTER,the object under test,success,0,all,ever_miscover,0,8000,0,0,0.00047995188815998056,0.00625,0
+C1,L1,aa_null,N,ADAPTER,the object under test,success,0,all,ever_below,0,8000,0,0,0.00047995188815998056,0.00625,0
+C1,L1,aa_null,N,ADAPTER,the object under test,success,0,all,ever_above,0,8000,0,0,0.00047995188815998056,0.00625,0
+C1,L1,aa_null,N,ADAPTER,the object under test,success,0,decision_eligible,ever_miscover,0,8000,0,0,0.00047995188815998056,0.00625,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,hierarchy,0,all,ever_miscover,2,8000,0.00025,6.85616946618155e-05,0.0009111502175540851,0.00625,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,hierarchy,0,all,ever_below,1,8000,0.000125,2.2065910162169305e-05,0.0007077659900257713,0.00625,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,hierarchy,0,all,ever_above,1,8000,0.000125,2.2065910162169305e-05,0.0007077659900257713,0.00625,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,hierarchy,0,decision_eligible,ever_miscover,2,8000,0.00025,6.85616946618155e-05,0.0009111502175540851,0.00625,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,success,0,all,ever_miscover,0,8000,0,0,0.00047995188815998056,0.00625,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,success,0,all,ever_below,0,8000,0,0,0.00047995188815998056,0.00625,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,success,0,all,ever_above,0,8000,0,0,0.00047995188815998056,0.00625,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,success,0,decision_eligible,ever_miscover,0,8000,0,0,0.00047995188815998056,0.00625,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,hierarchy,0,all,ever_miscover,2,8000,0.00025,6.85616946618155e-05,0.0009111502175540851,0.00625,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,hierarchy,0,all,ever_below,0,8000,0,0,0.00047995188815998056,0.00625,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,hierarchy,0,all,ever_above,2,8000,0.00025,6.85616946618155e-05,0.0009111502175540851,0.00625,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,hierarchy,0,decision_eligible,ever_miscover,2,8000,0.00025,6.85616946618155e-05,0.0009111502175540851,0.00625,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,success,0,all,ever_miscover,0,8000,0,0,0.00047995188815998056,0.00625,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,success,0,all,ever_below,0,8000,0,0,0.00047995188815998056,0.00625,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,success,0,all,ever_above,0,8000,0,0,0.00047995188815998056,0.00625,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,success,0,decision_eligible,ever_miscover,0,8000,0,0,0.00047995188815998056,0.00625,0
+C2,L1,aa_null,A,ADAPTER,the object under test,hierarchy,0,all,ever_miscover,1,8000,0.000125,2.2065910162169305e-05,0.0007077659900257713,0.00625,0
+C2,L1,aa_null,A,ADAPTER,the object under test,hierarchy,0,all,ever_below,1,8000,0.000125,2.2065910162169305e-05,0.0007077659900257713,0.00625,0
+C2,L1,aa_null,A,ADAPTER,the object under test,hierarchy,0,all,ever_above,0,8000,0,0,0.00047995188815998056,0.00625,0
+C2,L1,aa_null,A,ADAPTER,the object under test,hierarchy,0,decision_eligible,ever_miscover,1,8000,0.000125,2.2065910162169305e-05,0.0007077659900257713,0.00625,0
+C2,L1,aa_null,A,ADAPTER,the object under test,success,0,all,ever_miscover,0,8000,0,0,0.00047995188815998056,0.00625,0
+C2,L1,aa_null,A,ADAPTER,the object under test,success,0,all,ever_below,0,8000,0,0,0.00047995188815998056,0.00625,0
+C2,L1,aa_null,A,ADAPTER,the object under test,success,0,all,ever_above,0,8000,0,0,0.00047995188815998056,0.00625,0
+C2,L1,aa_null,A,ADAPTER,the object under test,success,0,decision_eligible,ever_miscover,0,8000,0,0,0.00047995188815998056,0.00625,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,hierarchy,0,all,ever_miscover,1,8000,0.000125,2.2065910162169305e-05,0.0007077659900257713,0.00625,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,hierarchy,0,all,ever_below,1,8000,0.000125,2.2065910162169305e-05,0.0007077659900257713,0.00625,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,hierarchy,0,all,ever_above,0,8000,0,0,0.00047995188815998056,0.00625,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,hierarchy,0,decision_eligible,ever_miscover,1,8000,0.000125,2.2065910162169305e-05,0.0007077659900257713,0.00625,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,success,0,all,ever_miscover,0,8000,0,0,0.00047995188815998056,0.00625,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,success,0,all,ever_below,0,8000,0,0,0.00047995188815998056,0.00625,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,success,0,all,ever_above,0,8000,0,0,0.00047995188815998056,0.00625,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,success,0,decision_eligible,ever_miscover,0,8000,0,0,0.00047995188815998056,0.00625,0
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,hierarchy,0,all,ever_miscover,7910,8000,0.98875,0.9861929806287273,0.9908378664005963,0.00625,1
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,hierarchy,0,all,ever_below,7910,8000,0.98875,0.9861929806287273,0.9908378664005963,0.00625,1
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,hierarchy,0,all,ever_above,0,8000,0,0,0.00047995188815998056,0.00625,0
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,hierarchy,0,decision_eligible,ever_miscover,7910,8000,0.98875,0.9861929806287273,0.9908378664005963,0.00625,1
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,success,0,all,ever_miscover,10,8000,0.00125,0.0006791348013851288,0.0022996172070544516,0.00625,0
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,success,0,all,ever_below,10,8000,0.00125,0.0006791348013851288,0.0022996172070544516,0.00625,0
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,success,0,all,ever_above,0,8000,0,0,0.00047995188815998056,0.00625,0
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,success,0,decision_eligible,ever_miscover,10,8000,0.00125,0.0006791348013851288,0.0022996172070544516,0.00625,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,hierarchy,0,all,ever_miscover,0,20000,0,0,0.00019203605610462553,0.00625,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,hierarchy,0,all,ever_below,0,20000,0,0,0.00019203605610462553,0.00625,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,hierarchy,0,all,ever_above,0,20000,0,0,0.00019203605610462553,0.00625,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,hierarchy,0,decision_eligible,ever_miscover,0,20000,0,0,0.00019203605610462553,0.00625,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,success,0.25,all,ever_miscover,0,20000,0,0,0.00019203605610462553,0.00625,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,success,0.25,all,ever_below,0,20000,0,0,0.00019203605610462553,0.00625,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,success,0.25,all,ever_above,0,20000,0,0,0.00019203605610462553,0.00625,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,success,0.25,decision_eligible,ever_miscover,0,20000,0,0,0.00019203605610462553,0.00625,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,hierarchy,0,all,ever_miscover,11,20000,0.00055,0.00030714858193327043,0.00098467623450964,0.00625,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,hierarchy,0,all,ever_below,2,20000,0.0001,2.7424035272726838e-05,0.0003645736136206778,0.00625,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,hierarchy,0,all,ever_above,9,20000,0.00045,0.0002367711161400211,0.0008550921075141104,0.00625,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,hierarchy,0,decision_eligible,ever_miscover,11,20000,0.00055,0.00030714858193327043,0.00098467623450964,0.00625,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,success,0.25,all,ever_miscover,0,20000,0,0,0.00019203605610462553,0.00625,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,success,0.25,all,ever_below,0,20000,0,0,0.00019203605610462553,0.00625,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,success,0.25,all,ever_above,0,20000,0,0,0.00019203605610462553,0.00625,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,success,0.25,decision_eligible,ever_miscover,0,20000,0,0,0.00019203605610462553,0.00625,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,hierarchy,0,all,ever_miscover,23,20000,0.00115,0.0007664595208507286,0.0017251348523248567,0.00625,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,hierarchy,0,all,ever_below,11,20000,0.00055,0.00030714858193327043,0.00098467623450964,0.00625,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,hierarchy,0,all,ever_above,12,20000,0.0006,0.00034327006692676633,0.0010485355459105338,0.00625,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,hierarchy,0,decision_eligible,ever_miscover,23,20000,0.00115,0.0007664595208507286,0.0017251348523248567,0.00625,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,success,0.25,all,ever_miscover,0,20000,0,0,0.00019203605610462553,0.00625,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,success,0.25,all,ever_below,0,20000,0,0,0.00019203605610462553,0.00625,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,success,0.25,all,ever_above,0,20000,0,0,0.00019203605610462553,0.00625,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,success,0.25,decision_eligible,ever_miscover,0,20000,0,0,0.00019203605610462553,0.00625,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,hierarchy,0,all,ever_miscover,7,20000,0.00035,0.00016955317759555276,0.0007223484532697996,0.00625,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,hierarchy,0,all,ever_below,7,20000,0.00035,0.00016955317759555276,0.0007223484532697996,0.00625,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,hierarchy,0,all,ever_above,0,20000,0,0,0.00019203605610462553,0.00625,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,hierarchy,0,decision_eligible,ever_miscover,7,20000,0.00035,0.00016955317759555276,0.0007223484532697996,0.00625,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,success,0.25,all,ever_miscover,0,20000,0,0,0.00019203605610462553,0.00625,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,success,0.25,all,ever_below,0,20000,0,0,0.00019203605610462553,0.00625,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,success,0.25,all,ever_above,0,20000,0,0,0.00019203605610462553,0.00625,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,success,0.25,decision_eligible,ever_miscover,0,20000,0,0,0.00019203605610462553,0.00625,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,hierarchy,0,all,ever_miscover,14,20000,0.0007,0.00041703692288281327,0.0011747302827432658,0.00625,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,hierarchy,0,all,ever_below,10,20000,0.0005,0.00027162114501557604,0.0009202228750329448,0.00625,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,hierarchy,0,all,ever_above,4,20000,0.0002,7.777875605022839e-05,0.0005141804856319553,0.00625,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,hierarchy,0,decision_eligible,ever_miscover,14,20000,0.0007,0.00041703692288281327,0.0011747302827432658,0.00625,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,success,0.25,all,ever_miscover,0,20000,0,0,0.00019203605610462553,0.00625,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,success,0.25,all,ever_below,0,20000,0,0,0.00019203605610462553,0.00625,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,success,0.25,all,ever_above,0,20000,0,0,0.00019203605610462553,0.00625,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,success,0.25,decision_eligible,ever_miscover,0,20000,0,0,0.00019203605610462553,0.00625,0
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,hierarchy,0,all,ever_miscover,19998,20000,0.9999,0.9996354263863794,0.9999725759647273,0.00625,1
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,hierarchy,0,all,ever_below,19998,20000,0.9999,0.9996354263863794,0.9999725759647273,0.00625,1
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,hierarchy,0,all,ever_above,0,20000,0,0,0.00019203605610462553,0.00625,0
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,hierarchy,0,decision_eligible,ever_miscover,19998,20000,0.9999,0.9996354263863794,0.9999725759647273,0.00625,1
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,success,0.25,all,ever_miscover,126,20000,0.0063,0.005294265681343146,0.007495350720454562,0.00625,0
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,success,0.25,all,ever_below,126,20000,0.0063,0.005294265681343146,0.007495350720454562,0.00625,0
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,success,0.25,all,ever_above,0,20000,0,0,0.00019203605610462553,0.00625,0
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,success,0.25,decision_eligible,ever_miscover,126,20000,0.0063,0.005294265681343146,0.007495350720454562,0.00625,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,hierarchy,0.4,all,ever_miscover,0,20000,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,hierarchy,0.4,all,ever_below,0,20000,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,hierarchy,0.4,all,ever_above,0,20000,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,hierarchy,0.4,decision_eligible,ever_miscover,0,20000,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,success,-0.03,all,ever_miscover,0,20000,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,success,-0.03,all,ever_below,0,20000,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,success,-0.03,all,ever_above,0,20000,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,success,-0.03,decision_eligible,ever_miscover,0,20000,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,hierarchy,0.4,all,ever_miscover,1,20000,5e-05,8.82628227297485e-06,0.0002831905702260402,0.00625,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,hierarchy,0.4,all,ever_below,1,20000,5e-05,8.82628227297485e-06,0.0002831905702260402,0.00625,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,hierarchy,0.4,all,ever_above,0,20000,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,hierarchy,0.4,decision_eligible,ever_miscover,1,20000,5e-05,8.82628227297485e-06,0.0002831905702260402,0.00625,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,success,-0.03,all,ever_miscover,0,20000,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,success,-0.03,all,ever_below,0,20000,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,success,-0.03,all,ever_above,0,20000,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,success,-0.03,decision_eligible,ever_miscover,0,20000,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,hierarchy,0.4,all,ever_miscover,0,20000,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,hierarchy,0.4,all,ever_below,0,20000,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,hierarchy,0.4,all,ever_above,0,20000,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,hierarchy,0.4,decision_eligible,ever_miscover,0,20000,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,success,-0.03,all,ever_miscover,0,20000,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,success,-0.03,all,ever_below,0,20000,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,success,-0.03,all,ever_above,0,20000,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,success,-0.03,decision_eligible,ever_miscover,0,20000,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,hierarchy,0.4,all,ever_miscover,0,20000,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,hierarchy,0.4,all,ever_below,0,20000,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,hierarchy,0.4,all,ever_above,0,20000,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,hierarchy,0.4,decision_eligible,ever_miscover,0,20000,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,success,-0.03,all,ever_miscover,0,20000,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,success,-0.03,all,ever_below,0,20000,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,success,-0.03,all,ever_above,0,20000,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,success,-0.03,decision_eligible,ever_miscover,0,20000,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,hierarchy,0.4,all,ever_miscover,0,20000,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,hierarchy,0.4,all,ever_below,0,20000,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,hierarchy,0.4,all,ever_above,0,20000,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,hierarchy,0.4,decision_eligible,ever_miscover,0,20000,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,success,-0.03,all,ever_miscover,0,20000,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,success,-0.03,all,ever_below,0,20000,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,success,-0.03,all,ever_above,0,20000,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,success,-0.03,decision_eligible,ever_miscover,0,20000,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,hierarchy,0.4,all,ever_miscover,16272,20000,0.8136,0.8081428466501542,0.818936708335457,0.00625,1
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,hierarchy,0.4,all,ever_below,16272,20000,0.8136,0.8081428466501542,0.818936708335457,0.00625,1
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,hierarchy,0.4,all,ever_above,0,20000,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,hierarchy,0.4,decision_eligible,ever_miscover,16272,20000,0.8136,0.8081428466501542,0.818936708335457,0.00625,1
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,success,-0.03,all,ever_miscover,0,20000,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,success,-0.03,all,ever_below,0,20000,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,success,-0.03,all,ever_above,0,20000,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,success,-0.03,decision_eligible,ever_miscover,0,20000,0,0,0.00019203605610462553,0.00625,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,hierarchy,0.45,all,ever_miscover,0,8000,0,0,0.00047995188815998056,0.00625,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,hierarchy,0.45,all,ever_below,0,8000,0,0,0.00047995188815998056,0.00625,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,hierarchy,0.45,all,ever_above,0,8000,0,0,0.00047995188815998056,0.00625,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,hierarchy,0.45,decision_eligible,ever_miscover,0,8000,0,0,0.00047995188815998056,0.00625,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,success,0.2,all,ever_miscover,0,8000,0,0,0.00047995188815998056,0.00625,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,success,0.2,all,ever_below,0,8000,0,0,0.00047995188815998056,0.00625,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,success,0.2,all,ever_above,0,8000,0,0,0.00047995188815998056,0.00625,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,success,0.2,decision_eligible,ever_miscover,0,8000,0,0,0.00047995188815998056,0.00625,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,hierarchy,0.45,all,ever_miscover,1,8000,0.000125,2.2065910162169305e-05,0.0007077659900257713,0.00625,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,hierarchy,0.45,all,ever_below,0,8000,0,0,0.00047995188815998056,0.00625,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,hierarchy,0.45,all,ever_above,1,8000,0.000125,2.2065910162169305e-05,0.0007077659900257713,0.00625,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,hierarchy,0.45,decision_eligible,ever_miscover,1,8000,0.000125,2.2065910162169305e-05,0.0007077659900257713,0.00625,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,success,0.2,all,ever_miscover,0,8000,0,0,0.00047995188815998056,0.00625,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,success,0.2,all,ever_below,0,8000,0,0,0.00047995188815998056,0.00625,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,success,0.2,all,ever_above,0,8000,0,0,0.00047995188815998056,0.00625,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,success,0.2,decision_eligible,ever_miscover,0,8000,0,0,0.00047995188815998056,0.00625,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,hierarchy,0.45,all,ever_miscover,2,8000,0.00025,6.85616946618155e-05,0.0009111502175540851,0.00625,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,hierarchy,0.45,all,ever_below,0,8000,0,0,0.00047995188815998056,0.00625,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,hierarchy,0.45,all,ever_above,2,8000,0.00025,6.85616946618155e-05,0.0009111502175540851,0.00625,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,hierarchy,0.45,decision_eligible,ever_miscover,2,8000,0.00025,6.85616946618155e-05,0.0009111502175540851,0.00625,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,success,0.2,all,ever_miscover,0,8000,0,0,0.00047995188815998056,0.00625,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,success,0.2,all,ever_below,0,8000,0,0,0.00047995188815998056,0.00625,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,success,0.2,all,ever_above,0,8000,0,0,0.00047995188815998056,0.00625,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,success,0.2,decision_eligible,ever_miscover,0,8000,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,hierarchy,0.45,all,ever_miscover,0,8000,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,hierarchy,0.45,all,ever_below,0,8000,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,hierarchy,0.45,all,ever_above,0,8000,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,hierarchy,0.45,decision_eligible,ever_miscover,0,8000,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,success,0.2,all,ever_miscover,0,8000,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,success,0.2,all,ever_below,0,8000,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,success,0.2,all,ever_above,0,8000,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,success,0.2,decision_eligible,ever_miscover,0,8000,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,hierarchy,0.45,all,ever_miscover,0,8000,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,hierarchy,0.45,all,ever_below,0,8000,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,hierarchy,0.45,all,ever_above,0,8000,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,hierarchy,0.45,decision_eligible,ever_miscover,0,8000,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,success,0.2,all,ever_miscover,0,8000,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,success,0.2,all,ever_below,0,8000,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,success,0.2,all,ever_above,0,8000,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,success,0.2,decision_eligible,ever_miscover,0,8000,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,hierarchy,0.45,all,ever_miscover,5550,8000,0.69375,0.6835585106520834,0.7037555079912545,0.00625,1
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,hierarchy,0.45,all,ever_below,5550,8000,0.69375,0.6835585106520834,0.7037555079912545,0.00625,1
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,hierarchy,0.45,all,ever_above,0,8000,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,hierarchy,0.45,decision_eligible,ever_miscover,5550,8000,0.69375,0.6835585106520834,0.7037555079912545,0.00625,1
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,success,0.2,all,ever_miscover,0,8000,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,success,0.2,all,ever_below,0,8000,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,success,0.2,all,ever_above,0,8000,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,success,0.2,decision_eligible,ever_miscover,0,8000,0,0,0.00047995188815998056,0.00625,0

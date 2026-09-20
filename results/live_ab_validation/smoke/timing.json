@@ -1,0 +1,45 @@
+{
+  "measures_only": [
+    "wall_clock_seconds",
+    "peak_rss",
+    "output_bytes",
+    "counts"
+  ],
+  "namespace": 1,
+  "note": "effect columns are never formed into a record here and are never read; they play no part in choosing anything",
+  "peak_rss_bytes": 74104832,
+  "points": [
+    {
+      "N_max": 2000,
+      "band_evaluations": 480240,
+      "cell": "C1",
+      "enclosure_updates": 230951,
+      "enclosure_updates_per_pair": 2.8868875,
+      "enrolled_pairs": 80000,
+      "looks": 80040,
+      "programs": 10,
+      "record_bytes_measured_not_written": 1321,
+      "seconds": 0.02876441739499569,
+      "seconds_per_program": 0.0028764417394995688,
+      "trials": 40
+    },
+    {
+      "N_max": 1000,
+      "band_evaluations": 240240,
+      "cell": "C2",
+      "enclosure_updates": 115327,
+      "enclosure_updates_per_pair": 2.883175,
+      "enrolled_pairs": 40000,
+      "looks": 40040,
+      "programs": 10,
+      "record_bytes_measured_not_written": 1317,
+      "seconds": 0.018746708519756794,
+      "seconds_per_program": 0.0018746708519756794,
+      "trials": 40
+    }
+  ],
+  "protocol_smoke": true,
+  "seeds": "discarded, never reused",
+  "total_programs": 20,
+  "total_seconds": 0.04751112591475248
+}

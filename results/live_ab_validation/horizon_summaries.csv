@@ -1,0 +1,722 @@
+# PROTOCOL 9.6. Coverage here is coverage of a BOUNDED ARBITRARY-RUNNING-MEAN target of a synthetic stream and establishes nothing causal; NAIVE is INVALID under informative delay and is reported only to exhibit the failure mode; an unflagged row means no exceedance was detected at this resolution, never that the bound holds.
+cell,law,law_name,delay,construction,construction_status,horizon,quantity,N,kind,mean,q1,median,q3,x,rate,wilson_lo,wilson_hi,nominal,flagged
+C1,L1,aa_null,N,ADAPTER,the object under test,100,L_h,8000,distribution,-0.7814468998317351,-0.8356929205179653,-0.7856929205179652,-0.7256929205179653,,,,,,0
+C1,L1,aa_null,N,ADAPTER,the object under test,100,U_h,8000,distribution,0.7820464175304402,0.7256929205179653,0.7856929205179652,0.8356929205179653,,,,,,0
+C1,L1,aa_null,N,ADAPTER,the object under test,100,L_s,8000,distribution,-0.7753634589029006,-0.8156929205179653,-0.7756929205179652,-0.7356929205179653,,,,,,0
+C1,L1,aa_null,N,ADAPTER,the object under test,100,U_s,8000,distribution,0.7752014972878357,0.7356929205179653,0.7756929205179652,0.8156929205179653,,,,,,0
+C1,L1,aa_null,N,ADAPTER,the object under test,100,miscover_h_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C1,L1,aa_null,N,ADAPTER,the object under test,100,miscover_s_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C1,L1,aa_null,N,ADAPTER,the object under test,100,deploy_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C1,L1,aa_null,N,ADAPTER,the object under test,100,retain_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C1,L1,aa_null,N,ADAPTER,the object under test,100,unresolved_fraction,8000,distribution,0.34959125,0.31999999999999995,0.35,0.38,,,,,,0
+C1,L1,aa_null,N,ADAPTER,the object under test,100,unrevealed_fraction,8000,distribution,0.26959125,0.24,0.27,0.30000000000000004,,,,,,0
+C1,L1,aa_null,N,ADAPTER,the object under test,500,L_h,8000,distribution,-0.3353552679307717,-0.36129576793077167,-0.3352957679307717,-0.30929576793077174,,,,,,0
+C1,L1,aa_null,N,ADAPTER,the object under test,500,U_h,8000,distribution,0.3356440179307717,0.30929576793077174,0.3352957679307717,0.36129576793077167,,,,,,0
+C1,L1,aa_null,N,ADAPTER,the object under test,500,L_s,8000,distribution,-0.3378600179307717,-0.35529576793077167,-0.3372957679307717,-0.3192957679307717,,,,,,0
+C1,L1,aa_null,N,ADAPTER,the object under test,500,U_s,8000,distribution,0.3376432679307717,0.3192957679307717,0.3372957679307717,0.35529576793077167,,,,,,0
+C1,L1,aa_null,N,ADAPTER,the object under test,500,miscover_h_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C1,L1,aa_null,N,ADAPTER,the object under test,500,miscover_s_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C1,L1,aa_null,N,ADAPTER,the object under test,500,deploy_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C1,L1,aa_null,N,ADAPTER,the object under test,500,retain_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C1,L1,aa_null,N,ADAPTER,the object under test,500,unresolved_fraction,8000,distribution,0.21959824999999994,0.20799999999999996,0.21999999999999997,0.23199999999999998,,,,,,0
+C1,L1,aa_null,N,ADAPTER,the object under test,500,unrevealed_fraction,8000,distribution,0.1173135,0.10799999999999998,0.11599999999999999,0.126,,,,,,0
+C1,L1,aa_null,N,ADAPTER,the object under test,2000,L_h,8000,distribution,-0.1273620688640112,-0.14023044386401118,-0.12723044386401117,-0.11423044386401118,,,,,,0
+C1,L1,aa_null,N,ADAPTER,the object under test,2000,U_h,8000,distribution,0.12689850636401118,0.11373044386401118,0.12673044386401117,0.14023044386401118,,,,,,0
+C1,L1,aa_null,N,ADAPTER,the object under test,2000,L_s,8000,distribution,-0.1280451313640112,-0.13673044386401118,-0.12773044386401117,-0.11973044386401119,,,,,,0
+C1,L1,aa_null,N,ADAPTER,the object under test,2000,U_s,8000,distribution,0.12780256886401117,0.11923044386401119,0.12773044386401117,0.13623044386401117,,,,,,0
+C1,L1,aa_null,N,ADAPTER,the object under test,2000,miscover_h_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C1,L1,aa_null,N,ADAPTER,the object under test,2000,miscover_s_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C1,L1,aa_null,N,ADAPTER,the object under test,2000,deploy_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C1,L1,aa_null,N,ADAPTER,the object under test,2000,retain_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C1,L1,aa_null,N,ADAPTER,the object under test,2000,unresolved_fraction,8000,distribution,0.05960618750000001,0.056499999999999995,0.0595,0.06299999999999994,,,,,,0
+C1,L1,aa_null,N,ADAPTER,the object under test,2000,unrevealed_fraction,8000,distribution,0.029780625,0.02749999999999997,0.02949999999999997,0.03200000000000003,,,,,,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,100,L_h,8000,distribution,-1,-1,-1,-1,,,,,,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,100,U_h,8000,distribution,1,1,1,1,,,,,,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,100,L_s,8000,distribution,-1,-1,-1,-1,,,,,,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,100,U_s,8000,distribution,1,1,1,1,,,,,,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,100,miscover_h_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,100,miscover_s_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,100,deploy_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,100,retain_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,100,unresolved_fraction,8000,distribution,0.34959125,0.31999999999999995,0.35,0.38,,,,,,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,100,unrevealed_fraction,8000,distribution,0.26959125,0.24,0.27,0.30000000000000004,,,,,,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,500,L_h,8000,distribution,-0.9970801845195065,-1,-1,-1,,,,,,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,500,U_h,8000,distribution,0.9972282382351139,1,1,1,,,,,,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,500,L_s,8000,distribution,-0.9978668046959108,-1,-1,-1,,,,,,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,500,U_s,8000,distribution,0.9976608556486546,1,1,1,,,,,,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,500,miscover_h_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,500,miscover_s_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,500,deploy_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,500,retain_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,500,unresolved_fraction,8000,distribution,0.21959824999999994,0.20799999999999996,0.21999999999999997,0.23199999999999998,,,,,,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,500,unrevealed_fraction,8000,distribution,0.1173135,0.10799999999999998,0.11599999999999999,0.126,,,,,,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,2000,L_h,8000,distribution,-0.10090190241003925,-0.11667544734239059,-0.10112342173083763,-0.08498476694485858,,,,,,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,2000,U_h,8000,distribution,0.10055715552319222,0.08484814137619982,0.10038387857854604,0.1164788266747439,,,,,,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,2000,L_s,8000,distribution,-0.1007413481323994,-0.1107908130874864,-0.10056380583566926,-0.0905224527710014,,,,,,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,2000,U_s,8000,distribution,0.10071770980083207,0.09049077655311594,0.10079255307442636,0.11090975382303675,,,,,,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,2000,miscover_h_so_far,8000,rate,0.000125,,,,1,0.000125,2.2065910162169305e-05,0.0007077659900257713,0.00625,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,2000,miscover_s_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,2000,deploy_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,2000,retain_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,2000,unresolved_fraction,8000,distribution,0.05960618750000001,0.056499999999999995,0.0595,0.06299999999999994,,,,,,0
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,2000,unrevealed_fraction,8000,distribution,0.029780625,0.02749999999999997,0.02949999999999997,0.03200000000000003,,,,,,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,100,L_h,8000,distribution,-0.6466608395455785,-0.7244931607204116,-0.6447601327640978,-0.5680273191389198,,,,,,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,100,U_h,8000,distribution,0.6472894060130499,0.570133267092456,0.6451280813553322,0.7255431086227605,,,,,,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,100,L_s,8000,distribution,-0.6473623714453965,-0.6978870423842543,-0.6451280813553322,-0.5945912442536374,,,,,,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,100,U_s,8000,distribution,0.6466711460861664,0.5931901674462899,0.6451280813553322,0.6978870423842543,,,,,,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,100,miscover_h_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,100,miscover_s_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,100,deploy_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,100,retain_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,100,unresolved_fraction,8000,distribution,0.34959125,0.31999999999999995,0.35,0.38,,,,,,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,100,unrevealed_fraction,8000,distribution,0.26959125,0.24,0.27,0.30000000000000004,,,,,,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,500,L_h,8000,distribution,-0.19425456027631777,-0.22442046147138056,-0.1944792460727924,-0.16491246416505234,,,,,,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,500,U_h,8000,distribution,0.1946763539487769,0.1648123607386931,0.19420114715767348,0.22420797741566778,,,,,,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,500,L_s,8000,distribution,-0.19455983614825917,-0.21359057125524916,-0.1944732021655626,-0.176051938077929,,,,,,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,500,U_s,8000,distribution,0.19437107807683546,0.17580634485663407,0.19419600770367842,0.21282266331799563,,,,,,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,500,miscover_h_so_far,8000,rate,0.000125,,,,1,0.000125,2.2065910162169305e-05,0.0007077659900257713,0.00625,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,500,miscover_s_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,500,deploy_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,500,retain_by,8000,rate,0.000125,,,,1,0.000125,2.2065910162169305e-05,0.0007077659900257713,,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,500,unresolved_fraction,8000,distribution,0.21959824999999994,0.20799999999999996,0.21999999999999997,0.23199999999999998,,,,,,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,500,unrevealed_fraction,8000,distribution,0.1173135,0.10799999999999998,0.11599999999999999,0.126,,,,,,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,2000,L_h,8000,distribution,-0.08597411821016054,-0.09931805978232733,-0.08598570562984649,-0.07224287727133658,,,,,,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,2000,U_h,8000,distribution,0.08556058820158746,0.07219007480838145,0.08560613791674489,0.09932571740788242,,,,,,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,2000,L_s,8000,distribution,-0.08586955397938681,-0.09426884156169814,-0.08565051995302063,-0.07734473493829813,,,,,,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,2000,U_s,8000,distribution,0.0856651524323612,0.07723790726954123,0.08589592001169241,0.09426790584328452,,,,,,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,2000,miscover_h_so_far,8000,rate,0.00025,,,,2,0.00025,6.85616946618155e-05,0.0009111502175540851,0.00625,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,2000,miscover_s_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,2000,deploy_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,2000,retain_by,8000,rate,0.00025,,,,2,0.00025,6.85616946618155e-05,0.0009111502175540851,,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,2000,unresolved_fraction,8000,distribution,0.05960618750000001,0.056499999999999995,0.0595,0.06299999999999994,,,,,,0
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,2000,unrevealed_fraction,8000,distribution,0.029780625,0.02749999999999997,0.02949999999999997,0.03200000000000003,,,,,,0
+C2,L1,aa_null,A,ADAPTER,the object under test,100,L_h,8000,distribution,-0.5365541705179653,-0.5956929205179653,-0.5356929205179652,-0.4756929205179653,,,,,,0
+C2,L1,aa_null,A,ADAPTER,the object under test,100,U_h,8000,distribution,0.9855259855615905,0.9856929205179653,1,1,,,,,,0
+C2,L1,aa_null,A,ADAPTER,the object under test,100,L_s,8000,distribution,-0.6799516705179653,-0.7256929205179653,-0.6806929205179653,-0.6356929205179653,,,,,,0
+C2,L1,aa_null,A,ADAPTER,the object under test,100,U_s,8000,distribution,0.8702754155387569,0.8356929205179653,0.8756929205179653,0.9056929205179653,,,,,,0
+C2,L1,aa_null,A,ADAPTER,the object under test,100,miscover_h_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C2,L1,aa_null,A,ADAPTER,the object under test,100,miscover_s_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C2,L1,aa_null,A,ADAPTER,the object under test,100,deploy_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C2,L1,aa_null,A,ADAPTER,the object under test,100,retain_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C2,L1,aa_null,A,ADAPTER,the object under test,100,unresolved_fraction,8000,distribution,0.34969,0.31999999999999995,0.35,0.38,,,,,,0
+C2,L1,aa_null,A,ADAPTER,the object under test,100,unrevealed_fraction,8000,distribution,0.26932249999999996,0.24,0.27,0.30000000000000004,,,,,,0
+C2,L1,aa_null,A,ADAPTER,the object under test,500,L_h,8000,distribution,-0.1827620179307717,-0.2092957679307717,-0.1832957679307717,-0.15529576793077168,,,,,,0
+C2,L1,aa_null,A,ADAPTER,the object under test,500,U_h,8000,distribution,0.48047326793077166,0.45529576793077164,0.48129576793077167,0.5032957679307717,,,,,,0
+C2,L1,aa_null,A,ADAPTER,the object under test,500,L_s,8000,distribution,-0.2756442679307717,-0.2932957679307717,-0.2752957679307717,-0.2572957679307717,,,,,,0
+C2,L1,aa_null,A,ADAPTER,the object under test,500,U_s,8000,distribution,0.3993745179307717,0.3832957679307717,0.3992957679307717,0.4152957679307717,,,,,,0
+C2,L1,aa_null,A,ADAPTER,the object under test,500,miscover_h_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C2,L1,aa_null,A,ADAPTER,the object under test,500,miscover_s_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C2,L1,aa_null,A,ADAPTER,the object under test,500,deploy_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C2,L1,aa_null,A,ADAPTER,the object under test,500,retain_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C2,L1,aa_null,A,ADAPTER,the object under test,500,unresolved_fraction,8000,distribution,0.2193375,0.20599999999999996,0.21999999999999997,0.23199999999999998,,,,,,0
+C2,L1,aa_null,A,ADAPTER,the object under test,500,unrevealed_fraction,8000,distribution,0.11708974999999998,0.10799999999999998,0.11599999999999999,0.126,,,,,,0
+C2,L1,aa_null,A,ADAPTER,the object under test,2000,L_h,8000,distribution,-0.08667275636401117,-0.09923044386401118,-0.08673044386401119,-0.07373044386401119,,,,,,0
+C2,L1,aa_null,A,ADAPTER,the object under test,2000,U_h,8000,distribution,0.16535325636401121,0.1527304438640112,0.1657304438640112,0.17773044386401118,,,,,,0
+C2,L1,aa_null,A,ADAPTER,the object under test,2000,L_s,8000,distribution,-0.11140956886401118,-0.12023044386401119,-0.11123044386401118,-0.10273044386401119,,,,,,0
+C2,L1,aa_null,A,ADAPTER,the object under test,2000,U_s,8000,distribution,0.1444126313640112,0.13623044386401117,0.14473044386401118,0.1527304438640112,,,,,,0
+C2,L1,aa_null,A,ADAPTER,the object under test,2000,miscover_h_so_far,8000,rate,0.000125,,,,1,0.000125,2.2065910162169305e-05,0.0007077659900257713,0.00625,0
+C2,L1,aa_null,A,ADAPTER,the object under test,2000,miscover_s_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C2,L1,aa_null,A,ADAPTER,the object under test,2000,deploy_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C2,L1,aa_null,A,ADAPTER,the object under test,2000,retain_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C2,L1,aa_null,A,ADAPTER,the object under test,2000,unresolved_fraction,8000,distribution,0.05957800000000002,0.056499999999999995,0.0595,0.0625,,,,,,0
+C2,L1,aa_null,A,ADAPTER,the object under test,2000,unrevealed_fraction,8000,distribution,0.029783312500000002,0.02749999999999997,0.02949999999999997,0.03200000000000003,,,,,,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,100,L_h,8000,distribution,-0.9999576289789572,-1,-1,-1,,,,,,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,100,U_h,8000,distribution,1,1,1,1,,,,,,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,100,L_s,8000,distribution,-1,-1,-1,-1,,,,,,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,100,U_s,8000,distribution,1,1,1,1,,,,,,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,100,miscover_h_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,100,miscover_s_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,100,deploy_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,100,retain_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,100,unresolved_fraction,8000,distribution,0.34969,0.31999999999999995,0.35,0.38,,,,,,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,100,unrevealed_fraction,8000,distribution,0.26932249999999996,0.24,0.27,0.30000000000000004,,,,,,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,500,L_h,8000,distribution,-0.9940593430200523,-1,-1,-1,,,,,,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,500,U_h,8000,distribution,0.9987537689729951,1,1,1,,,,,,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,500,L_s,8000,distribution,-0.9964207568122172,-1,-1,-1,,,,,,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,500,U_s,8000,distribution,0.9981315068793086,1,1,1,,,,,,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,500,miscover_h_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,500,miscover_s_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,500,deploy_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,500,retain_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,500,unresolved_fraction,8000,distribution,0.2193375,0.20599999999999996,0.21999999999999997,0.23199999999999998,,,,,,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,500,unrevealed_fraction,8000,distribution,0.11708974999999998,0.10799999999999998,0.11599999999999999,0.126,,,,,,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,2000,L_h,8000,distribution,-0.09987628079626079,-0.11556542620314889,-0.09991365017368803,-0.08414755418171037,,,,,,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,2000,U_h,8000,distribution,0.101607940976726,0.08580200565133114,0.10169289381306756,0.11735135868103783,,,,,,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,2000,L_s,8000,distribution,-0.10038106973100545,-0.11052775176580326,-0.10027065930270047,-0.09031728361087278,,,,,,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,2000,U_s,8000,distribution,0.10110315204198132,0.09109790383979867,0.1012078948889103,0.11117891369211352,,,,,,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,2000,miscover_h_so_far,8000,rate,0.000125,,,,1,0.000125,2.2065910162169305e-05,0.0007077659900257713,0.00625,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,2000,miscover_s_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,2000,deploy_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,2000,retain_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,2000,unresolved_fraction,8000,distribution,0.05957800000000002,0.056499999999999995,0.0595,0.0625,,,,,,0
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,2000,unrevealed_fraction,8000,distribution,0.029783312500000002,0.02749999999999997,0.02949999999999997,0.03200000000000003,,,,,,0
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,100,L_h,8000,distribution,-0.25565900773905365,-0.3174226431628823,-0.2532544285626716,-0.19364340819220616,,,,,,0
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,100,U_h,8000,distribution,0.9784266371781226,0.9758568485328709,1,1,,,,,,0
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,100,L_s,8000,distribution,-0.4905142812490881,-0.5372338017700223,-0.49024899097570174,-0.4435987840167419,,,,,,0
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,100,U_s,8000,distribution,0.8035418559263421,0.7549548733286429,0.8037005898049767,0.8494021938994059,,,,,,0
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,100,miscover_h_so_far,8000,rate,0.002375,,,,19,0.002375,0.0015210317901773033,0.0037066403265139177,0.00625,0
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,100,miscover_s_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,100,deploy_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,100,retain_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,100,unresolved_fraction,8000,distribution,0.34969,0.31999999999999995,0.35,0.38,,,,,,0
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,100,unrevealed_fraction,8000,distribution,0.26932249999999996,0.24,0.27,0.30000000000000004,,,,,,0
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,500,L_h,8000,distribution,0.06305252639709903,0.035618382703924124,0.06306915933321039,0.09069388463955627,,,,,,0
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,500,U_h,8000,distribution,0.45191336224866085,0.4244237623237356,0.45202683769762886,0.4791034550086488,,,,,,0
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,500,L_s,8000,distribution,-0.09157892470921311,-0.10933141216609721,-0.09182704140211792,-0.07401112175139837,,,,,,0
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,500,U_s,8000,distribution,0.2972819111423487,0.27964430028536663,0.2974107977472956,0.3145676828078376,,,,,,0
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,500,miscover_h_so_far,8000,rate,0.982625,,,,7861,0.982625,0.9795214428382196,0.985265283601734,0.00625,1
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,500,miscover_s_so_far,8000,rate,0.00075,,,,6,0.00075,0.00034377562749706174,0.0016354563328306788,0.00625,0
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,500,deploy_by,8000,rate,0.017,,,,136,0.017,0.014390300438928222,0.02007333308503432,,0
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,500,retain_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,500,unresolved_fraction,8000,distribution,0.2193375,0.20599999999999996,0.21999999999999997,0.23199999999999998,,,,,,0
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,500,unrevealed_fraction,8000,distribution,0.11708974999999998,0.10799999999999998,0.11599999999999999,0.126,,,,,,0
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,2000,L_h,8000,distribution,-0.02736495913374724,-0.04005430992566337,-0.027299809741216187,-0.014476271071867941,,,,,,0
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,2000,U_h,8000,distribution,0.1441672071135876,0.13132251650983628,0.14418796040450405,0.1571209572616849,,,,,,0
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,2000,L_s,8000,distribution,-0.062395400764676395,-0.07091929556601065,-0.062301053170982175,-0.05383181751691546,,,,,,0
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,2000,U_s,8000,distribution,0.10913676548265844,0.10052684950141437,0.10932767736900176,0.11777765552341214,,,,,,0
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,2000,miscover_h_so_far,8000,rate,0.98875,,,,7910,0.98875,0.9861929806287273,0.9908378664005963,0.00625,1
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,2000,miscover_s_so_far,8000,rate,0.00125,,,,10,0.00125,0.0006791348013851288,0.0022996172070544516,0.00625,0
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,2000,deploy_by,8000,rate,0.0505,,,,404,0.0505,0.04591364340432156,0.05551783334313427,,0
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,2000,retain_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,2000,unresolved_fraction,8000,distribution,0.05957800000000002,0.056499999999999995,0.0595,0.0625,,,,,,0
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,2000,unrevealed_fraction,8000,distribution,0.029783312500000002,0.02749999999999997,0.02949999999999997,0.03200000000000003,,,,,,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,100,L_h,20000,distribution,-0.8258856762665701,-0.8856929205179653,-0.8256929205179653,-0.7656929205179652,,,,,,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,100,U_h,20000,distribution,0.8369239868405038,0.7756929205179652,0.8356929205179653,0.8956929205179653,,,,,,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,100,L_s,20000,distribution,-0.6620864205179652,-0.7056929205179653,-0.6656929205179654,-0.6156929205179653,,,,,,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,100,U_s,20000,distribution,0.9689340862959991,0.9456929205179653,0.9856929205179653,1,,,,,,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,100,miscover_h_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,100,miscover_s_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,100,deploy_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,100,retain_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,100,unresolved_fraction,20000,distribution,0.4004265,0.37,0.4,0.43000000000000005,,,,,,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,100,unrevealed_fraction,20000,distribution,0.313762,0.28,0.31000000000000005,0.33999999999999997,,,,,,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,500,L_h,20000,distribution,-0.3570070679307717,-0.3852957679307717,-0.35729576793077167,-0.3292957679307717,,,,,,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,500,U_h,20000,distribution,0.3730257679307717,0.34529576793077166,0.3732957679307717,0.4012957679307717,,,,,,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,500,L_s,20000,distribution,-0.1682639679307717,-0.18729576793077168,-0.1672957679307717,-0.1492957679307717,,,,,,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,500,U_s,20000,distribution,0.5688558679307716,0.5512957679307717,0.5692957679307717,0.5852957679307716,,,,,,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,500,miscover_h_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,500,miscover_s_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,500,deploy_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,500,retain_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,500,unresolved_fraction,20000,distribution,0.2597848,0.246,0.26,0.272,,,,,,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,500,unrevealed_fraction,20000,distribution,0.13874350000000002,0.128,0.138,0.14800000000000002,,,,,,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,2000,L_h,20000,distribution,-0.13246146886401117,-0.14673044386401118,-0.13273044386401117,-0.11823044386401119,,,,,,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,2000,U_h,20000,distribution,0.1373984188640112,0.12323044386401119,0.13723044386401118,0.1517304438640112,,,,,,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,2000,L_s,20000,distribution,0.10069658113598882,0.0922695561359888,0.10076955613598881,0.10926955613598882,,,,,,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,2000,U_s,20000,distribution,0.3730331938640112,0.36473044386401116,0.37323044386401116,0.38123044386401117,,,,,,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,2000,miscover_h_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,2000,miscover_s_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,2000,deploy_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,2000,retain_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,2000,unresolved_fraction,20000,distribution,0.07057289999999998,0.06699999999999995,0.07050000000000001,0.07399999999999995,,,,,,0
+C3,L2,pref_boundary,N,ADAPTER,the object under test,2000,unrevealed_fraction,20000,distribution,0.03530282500000001,0.03300000000000003,0.035250000000000004,0.038000000000000034,,,,,,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,100,L_h,20000,distribution,-1,-1,-1,-1,,,,,,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,100,U_h,20000,distribution,1,1,1,1,,,,,,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,100,L_s,20000,distribution,-1,-1,-1,-1,,,,,,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,100,U_s,20000,distribution,1,1,1,1,,,,,,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,100,miscover_h_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,100,miscover_s_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,100,deploy_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,100,retain_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,100,unresolved_fraction,20000,distribution,0.4004265,0.37,0.4,0.43000000000000005,,,,,,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,100,unrevealed_fraction,20000,distribution,0.313762,0.28,0.31000000000000005,0.33999999999999997,,,,,,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,500,L_h,20000,distribution,-0.9987106715453555,-1,-1,-1,,,,,,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,500,U_h,20000,distribution,0.9988347404570759,1,1,1,,,,,,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,500,L_s,20000,distribution,-0.9957353130416184,-1,-1,-1,,,,,,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,500,U_s,20000,distribution,0.9999537466381285,1,1,1,,,,,,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,500,miscover_h_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,500,miscover_s_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,500,deploy_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,500,retain_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,500,unresolved_fraction,20000,distribution,0.2597848,0.246,0.26,0.272,,,,,,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,500,unrevealed_fraction,20000,distribution,0.13874350000000002,0.128,0.138,0.14800000000000002,,,,,,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,2000,L_h,20000,distribution,-0.1005007602697596,-0.11789316049535237,-0.10056650523293674,-0.08305471779549262,,,,,,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,2000,U_h,20000,distribution,0.10138581500354714,0.08387506905496457,0.10130619066966848,0.11873876467251213,,,,,,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,2000,L_s,20000,distribution,0.1492495511074938,0.13945596570118468,0.14921062206122887,0.15893665753865083,,,,,,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,2000,U_s,20000,distribution,0.3511361263808006,0.3413470185579596,0.3509342806391806,0.360878664386735,,,,,,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,2000,miscover_h_so_far,20000,rate,0.0005,,,,10,0.0005,0.00027162114501557604,0.0009202228750329448,0.00625,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,2000,miscover_s_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,2000,deploy_by,20000,rate,0.0001,,,,2,0.0001,2.7424035272726838e-05,0.0003645736136206778,,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,2000,retain_by,20000,rate,0.0004,,,,8,0.0004,0.00020270340374573263,0.0007891790235140092,,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,2000,unresolved_fraction,20000,distribution,0.07057289999999998,0.06699999999999995,0.07050000000000001,0.07399999999999995,,,,,,0
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,2000,unrevealed_fraction,20000,distribution,0.03530282500000001,0.03300000000000003,0.035250000000000004,0.038000000000000034,,,,,,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,100,L_h,20000,distribution,-0.6897900204921366,-0.7764390366055053,-0.6902670211596595,-0.6024020962101347,,,,,,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,100,U_h,20000,distribution,0.6906707511245942,0.6024020962101347,0.6886089927618588,0.777834533561309,,,,,,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,100,L_s,20000,distribution,-0.44072473026921133,-0.4938384497310881,-0.4382118920518751,-0.3834119345235351,,,,,,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,100,U_s,20000,distribution,0.9290444353031593,0.8861755358171767,0.937258088369689,0.9938384497310881,,,,,,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,100,miscover_h_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,100,miscover_s_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,100,deploy_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,100,retain_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,100,unresolved_fraction,20000,distribution,0.4004265,0.37,0.4,0.43000000000000005,,,,,,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,100,unrevealed_fraction,20000,distribution,0.313762,0.28,0.31000000000000005,0.33999999999999997,,,,,,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,500,L_h,20000,distribution,-0.20004396513775183,-0.23363369724391533,-0.20016821569053897,-0.16657511001912567,,,,,,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,500,U_h,20000,distribution,0.20082465387321213,0.1670867510294397,0.20061093766185675,0.23421232460975702,,,,,,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,500,L_s,20000,distribution,0.049676345063563755,0.03090566109157153,0.04957778720955294,0.06863220043060589,,,,,,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,500,U_s,20000,distribution,0.4505449640745277,0.4316868339319852,0.45050921092248786,0.46959485995495587,,,,,,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,500,miscover_h_so_far,20000,rate,0.00045,,,,9,0.00045,0.0002367711161400211,0.0008550921075141104,0.00625,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,500,miscover_s_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,500,deploy_by,20000,rate,0.00025,,,,5,0.00025,0.00010678963454394946,0.0005851504035326238,,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,500,retain_by,20000,rate,0.0002,,,,4,0.0002,7.777875605022839e-05,0.0005141804856319553,,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,500,unresolved_fraction,20000,distribution,0.2597848,0.246,0.26,0.272,,,,,,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,500,unrevealed_fraction,20000,distribution,0.13874350000000002,0.128,0.138,0.14800000000000002,,,,,,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,2000,L_h,20000,distribution,-0.0859834880348001,-0.10089331028368526,-0.08604391085939458,-0.07119498075724648,,,,,,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,2000,U_h,20000,distribution,0.08653868494949223,0.07165856392292894,0.08649741962117992,0.1013495258098231,,,,,,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,2000,L_s,20000,distribution,0.16385547941460368,0.15548821969154153,0.16372442218022354,0.17217912861214935,,,,,,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,2000,U_s,20000,distribution,0.33637765239889594,0.3280901228687338,0.3362341446205906,0.3446778888172404,,,,,,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,2000,miscover_h_so_far,20000,rate,0.00115,,,,23,0.00115,0.0007664595208507286,0.0017251348523248567,0.00625,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,2000,miscover_s_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,2000,deploy_by,20000,rate,0.00055,,,,11,0.00055,0.00030714858193327043,0.00098467623450964,,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,2000,retain_by,20000,rate,0.0006,,,,12,0.0006,0.00034327006692676633,0.0010485355459105338,,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,2000,unresolved_fraction,20000,distribution,0.07057289999999998,0.06699999999999995,0.07050000000000001,0.07399999999999995,,,,,,0
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,2000,unrevealed_fraction,20000,distribution,0.03530282500000001,0.03300000000000003,0.035250000000000004,0.038000000000000034,,,,,,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,100,L_h,20000,distribution,-0.5333219205179652,-0.5956929205179653,-0.5356929205179652,-0.4656929205179653,,,,,,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,100,U_h,20000,distribution,0.9992144860221921,1,1,1,,,,,,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,100,L_s,20000,distribution,-0.5586379205179653,-0.6156929205179653,-0.5556929205179653,-0.5056929205179653,,,,,,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,100,U_s,20000,distribution,0.9990057208040853,1,1,1,,,,,,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,100,miscover_h_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,100,miscover_s_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,100,deploy_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,100,retain_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,100,unresolved_fraction,20000,distribution,0.4001855,0.37,0.4,0.43000000000000005,,,,,,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,100,unrevealed_fraction,20000,distribution,0.3136075,0.28,0.31000000000000005,0.33999999999999997,,,,,,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,500,L_h,20000,distribution,-0.1828916679307717,-0.2112957679307717,-0.1832957679307717,-0.15529576793077168,,,,,,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,500,U_h,20000,distribution,0.5559934679307716,0.5312957679307717,0.5552957679307717,0.5812957679307716,,,,,,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,500,L_s,20000,distribution,-0.10185166793077169,-0.1232957679307717,-0.10129576793077169,-0.0812957679307717,,,,,,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,500,U_s,20000,distribution,0.6352707679307716,0.6192957679307717,0.6352957679307717,0.6512957679307717,,,,,,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,500,miscover_h_so_far,20000,rate,0.0001,,,,2,0.0001,2.7424035272726838e-05,0.0003645736136206778,0.00625,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,500,miscover_s_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,500,deploy_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,500,retain_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,500,unresolved_fraction,20000,distribution,0.2597612,0.246,0.26,0.272,,,,,,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,500,unrevealed_fraction,20000,distribution,0.13876970000000002,0.128,0.138,0.14800000000000002,,,,,,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,2000,L_h,20000,distribution,-0.08660591886401119,-0.10073044386401118,-0.08673044386401119,-0.07273044386401119,,,,,,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,2000,U_h,20000,distribution,0.18587091886401116,0.17223044386401118,0.18573044386401116,0.19973044386401118,,,,,,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,2000,L_s,20000,distribution,0.11844153113598882,0.10926955613598882,0.11826955613598883,0.1272695561359888,,,,,,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,2000,U_s,20000,distribution,0.39073516886401116,0.38273044386401117,0.3907304438640112,0.3987304438640112,,,,,,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,2000,miscover_h_so_far,20000,rate,0.00035,,,,7,0.00035,0.00016955317759555276,0.0007223484532697996,0.00625,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,2000,miscover_s_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,2000,deploy_by,20000,rate,0.00025,,,,5,0.00025,0.00010678963454394946,0.0005851504035326238,,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,2000,retain_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,2000,unresolved_fraction,20000,distribution,0.07056039999999998,0.06699999999999995,0.07050000000000001,0.07399999999999995,,,,,,0
+C4,L2,pref_boundary,A,ADAPTER,the object under test,2000,unrevealed_fraction,20000,distribution,0.03527235000000001,0.03300000000000003,0.03500000000000003,0.03749999999999998,,,,,,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,100,L_h,20000,distribution,-0.9999906963613132,-1,-1,-1,,,,,,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,100,U_h,20000,distribution,1,1,1,1,,,,,,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,100,L_s,20000,distribution,-0.9999950448604377,-1,-1,-1,,,,,,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,100,U_s,20000,distribution,1,1,1,1,,,,,,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,100,miscover_h_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,100,miscover_s_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,100,deploy_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,100,retain_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,100,unresolved_fraction,20000,distribution,0.4001855,0.37,0.4,0.43000000000000005,,,,,,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,100,unrevealed_fraction,20000,distribution,0.3136075,0.28,0.31000000000000005,0.33999999999999997,,,,,,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,500,L_h,20000,distribution,-0.9966806073478263,-1,-1,-1,,,,,,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,500,U_h,20000,distribution,0.9995700706331014,1,1,1,,,,,,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,500,L_s,20000,distribution,-0.9937263658700202,-1,-1,-1,,,,,,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,500,U_s,20000,distribution,0.9999841604290323,1,1,1,,,,,,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,500,miscover_h_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,500,miscover_s_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,500,deploy_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,500,retain_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,500,unresolved_fraction,20000,distribution,0.2597612,0.246,0.26,0.272,,,,,,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,500,unrevealed_fraction,20000,distribution,0.13876970000000002,0.128,0.138,0.14800000000000002,,,,,,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,2000,L_h,20000,distribution,-0.10010366325355481,-0.11745519983449071,-0.10024994542226433,-0.0825712228181438,,,,,,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,2000,U_h,20000,distribution,0.10174716950257769,0.08431079275754036,0.10149484971772949,0.11927678103907946,,,,,,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,2000,L_s,20000,distribution,0.14928024078069924,0.1392789011833215,0.1492136923897445,0.15925617393460884,,,,,,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,2000,U_s,20000,distribution,0.3511310735368317,0.34112583169342636,0.3510860378891384,0.36111167344335116,,,,,,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,2000,miscover_h_so_far,20000,rate,0.0007,,,,14,0.0007,0.00041703692288281327,0.0011747302827432658,0.00625,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,2000,miscover_s_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,2000,deploy_by,20000,rate,0.0005,,,,10,0.0005,0.00027162114501557604,0.0009202228750329448,,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,2000,retain_by,20000,rate,0.0002,,,,4,0.0002,7.777875605022839e-05,0.0005141804856319553,,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,2000,unresolved_fraction,20000,distribution,0.07056039999999998,0.06699999999999995,0.07050000000000001,0.07399999999999995,,,,,,0
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,2000,unrevealed_fraction,20000,distribution,0.03527235000000001,0.03300000000000003,0.03500000000000003,0.03749999999999998,,,,,,0
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,100,L_h,20000,distribution,-0.18152958160189137,-0.2518488726710791,-0.17294797972262466,-0.1047438022141707,,,,,,0
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,100,U_h,20000,distribution,0.9985426039896586,1,1,1,,,,,,0
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,100,L_s,20000,distribution,-0.25659150727362223,-0.30929864793427264,-0.2537005898049767,-0.2006836369108878,,,,,,0
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,100,U_s,20000,distribution,0.9980347037125473,1,1,1,,,,,,0
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,100,miscover_h_so_far,20000,rate,0.04285,,,,857,0.04285,0.040129969801871355,0.0457456087642251,0.00625,1
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,100,miscover_s_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,100,deploy_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,100,retain_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,100,unresolved_fraction,20000,distribution,0.4001855,0.37,0.4,0.43000000000000005,,,,,,0
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,100,unrevealed_fraction,20000,distribution,0.3136075,0.28,0.31000000000000005,0.33999999999999997,,,,,,0
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,500,L_h,20000,distribution,0.12473371951377517,0.09441390096988533,0.12521443453560646,0.15560936320682076,,,,,,0
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,500,U_h,20000,distribution,0.5255939328665988,0.49520969730740594,0.5260072660253479,0.5561870387259056,,,,,,0
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,500,L_s,20000,distribution,0.16663253995383462,0.14736662275866405,0.16706525937289893,0.18608481231414795,,,,,,0
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,500,U_s,20000,distribution,0.5674927533066583,0.5484432418872576,0.5676740111180267,0.586888160658825,,,,,,0
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,500,miscover_h_so_far,20000,rate,0.9998,,,,19996,0.9998,0.9994858195143681,0.9999222212439498,0.00625,1
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,500,miscover_s_so_far,20000,rate,0.00395,,,,79,0.00395,0.0031708336462077536,0.0049196853250536455,0.00625,0
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,500,deploy_by,20000,rate,0.9998,,,,19996,0.9998,0.9994858195143681,0.9999222212439498,,0
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,500,retain_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,500,unresolved_fraction,20000,distribution,0.2597612,0.246,0.26,0.272,,,,,,0
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,500,unrevealed_fraction,20000,distribution,0.13876970000000002,0.128,0.138,0.14800000000000002,,,,,,0
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,2000,L_h,20000,distribution,-0.01545082199183413,-0.02977486241405121,-0.01558635347752163,-0.0009354656487976648,,,,,,0
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,2000,U_h,20000,distribution,0.15707024863157934,0.14273882153185646,0.15691101641516647,0.17158085770103462,,,,,,0
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,2000,L_s,20000,distribution,0.18929869778242842,0.18086236704125924,0.18926816930334434,0.19756528875497206,,,,,,0
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,2000,U_s,20000,distribution,0.36181976840584196,0.3533997620717494,0.3618195175298842,0.3701051123625261,,,,,,0
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,2000,miscover_h_so_far,20000,rate,0.9999,,,,19998,0.9999,0.9996354263863794,0.9999725759647273,0.00625,1
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,2000,miscover_s_so_far,20000,rate,0.0063,,,,126,0.0063,0.005294265681343146,0.007495350720454562,0.00625,0
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,2000,deploy_by,20000,rate,0.9999,,,,19998,0.9999,0.9996354263863794,0.9999725759647273,,0
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,2000,retain_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,2000,unresolved_fraction,20000,distribution,0.07056039999999998,0.06699999999999995,0.07050000000000001,0.07399999999999995,,,,,,0
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,2000,unrevealed_fraction,20000,distribution,0.03527235000000001,0.03300000000000003,0.03500000000000003,0.03749999999999998,,,,,,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,100,L_h,20000,distribution,-0.3702069205179653,-0.4256929205179653,-0.3656929205179653,-0.30569292051796526,,,,,,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,100,U_h,20000,distribution,0.9651346003098308,0.9356929205179653,0.9956929205179653,1,,,,,,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,100,L_s,20000,distribution,-0.7006349205179653,-0.7356929205179653,-0.6956929205179653,-0.6656929205179654,,,,,,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,100,U_s,20000,distribution,0.6523719205179653,0.6156929205179653,0.6556929205179653,0.6956929205179653,,,,,,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,100,miscover_h_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,100,miscover_s_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,100,deploy_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,100,retain_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,100,unresolved_fraction,20000,distribution,0.244274,0.21999999999999997,0.24,0.27,,,,,,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,100,unrevealed_fraction,20000,distribution,0.17734699999999998,0.15000000000000002,0.18000000000000005,0.19999999999999996,,,,,,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,500,L_h,20000,distribution,0.08369113206922829,0.05670423206922831,0.08470423206922831,0.11070423206922833,,,,,,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,500,U_h,20000,distribution,0.6294041679307717,0.6052957679307717,0.6292957679307717,0.6532957679307717,,,,,,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,500,L_s,20000,distribution,-0.3010647679307717,-0.3172957679307717,-0.30129576793077173,-0.2832957679307717,,,,,,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,500,U_s,20000,distribution,0.2471563679307717,0.2292957679307717,0.24729576793077168,0.2632957679307717,,,,,,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,500,miscover_h_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,500,miscover_s_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,500,deploy_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,500,retain_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,500,unresolved_fraction,20000,distribution,0.1368059,0.126,0.136,0.14600000000000002,,,,,,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,500,unrevealed_fraction,20000,distribution,0.07282369999999998,0.06599999999999995,0.07199999999999995,0.07999999999999996,,,,,,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,2000,L_h,20000,distribution,0.2781940811359888,0.2657695561359888,0.2782695561359888,0.2907695561359888,,,,,,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,2000,U_h,20000,distribution,0.4991446188640111,0.4867304438640112,0.49923044386401116,0.5117304438640111,,,,,,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,2000,L_s,20000,distribution,-0.1401247438640112,-0.14823044386401119,-0.14023044386401118,-0.13223044386401117,,,,,,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,2000,U_s,20000,distribution,0.0817583938640112,0.07373044386401119,0.08173044386401118,0.08973044386401119,,,,,,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,2000,miscover_h_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,2000,miscover_s_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,2000,deploy_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,2000,retain_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,2000,unresolved_fraction,20000,distribution,0.036938175000000004,0.034499999999999975,0.03700000000000003,0.03949999999999998,,,,,,0
+C5,L3,success_boundary,N,ADAPTER,the object under test,2000,unrevealed_fraction,20000,distribution,0.01848407499999999,0.01649999999999996,0.01849999999999996,0.020499999999999963,,,,,,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,100,L_h,20000,distribution,-0.9982666689274183,-1,-1,-1,,,,,,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,100,U_h,20000,distribution,1,1,1,1,,,,,,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,100,L_s,20000,distribution,-0.9999754897858218,-1,-1,-1,,,,,,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,100,U_s,20000,distribution,0.9998744560250896,1,1,1,,,,,,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,100,miscover_h_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,100,miscover_s_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,100,deploy_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,100,retain_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,100,unresolved_fraction,20000,distribution,0.244274,0.21999999999999997,0.24,0.27,,,,,,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,100,unrevealed_fraction,20000,distribution,0.17734699999999998,0.15000000000000002,0.18000000000000005,0.19999999999999996,,,,,,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,500,L_h,20000,distribution,-0.9201577680675264,-1,-1,-1,,,,,,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,500,U_h,20000,distribution,0.9988380030460979,1,1,1,,,,,,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,500,L_s,20000,distribution,-0.9835614776786966,-1,-1,-1,,,,,,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,500,U_s,20000,distribution,0.9783340364575673,1,1,1,,,,,,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,500,miscover_h_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,500,miscover_s_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,500,deploy_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,500,retain_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,500,unresolved_fraction,20000,distribution,0.1368059,0.126,0.136,0.14600000000000002,,,,,,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,500,unrevealed_fraction,20000,distribution,0.07282369999999998,0.06599999999999995,0.07199999999999995,0.07999999999999996,,,,,,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,2000,L_h,20000,distribution,0.29998671139327054,0.28532430561083244,0.3000880768832725,0.31498695776154734,,,,,,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,2000,U_h,20000,distribution,0.5002175820306926,0.4854471517978175,0.5003380827173736,0.515377319280949,,,,,,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,2000,L_s,20000,distribution,-0.1301494829957395,-0.13961258232147467,-0.1300588691968848,-0.12058331936928378,,,,,,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,2000,U_s,20000,distribution,0.0700813876416825,0.06053531506239697,0.07007200960291714,0.0795524001144583,,,,,,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,2000,miscover_h_so_far,20000,rate,5e-05,,,,1,5e-05,8.82628227297485e-06,0.0002831905702260402,0.00625,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,2000,miscover_s_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,2000,deploy_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,2000,retain_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,2000,unresolved_fraction,20000,distribution,0.036938175000000004,0.034499999999999975,0.03700000000000003,0.03949999999999998,,,,,,0
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,2000,unrevealed_fraction,20000,distribution,0.01848407499999999,0.01649999999999996,0.01849999999999996,0.020499999999999963,,,,,,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,100,L_h,20000,distribution,-0.1756492374304302,-0.24106896965512337,-0.1755983462399749,-0.1102312716157276,,,,,,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,100,U_h,20000,distribution,0.946696856621651,0.9087400671544448,0.9750961364805925,1,,,,,,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,100,L_s,20000,distribution,-0.6053945750865579,-0.6499573205989493,-0.604705333291487,-0.5620543895350804,,,,,,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,100,U_s,20000,distribution,0.5445976813327492,0.5008092293953831,0.54266370404816,0.5880096053753048,,,,,,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,100,miscover_h_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,100,miscover_s_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,100,deploy_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,100,retain_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,100,unresolved_fraction,20000,distribution,0.244274,0.21999999999999997,0.24,0.27,,,,,,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,100,unrevealed_fraction,20000,distribution,0.17734699999999998,0.15000000000000002,0.18000000000000005,0.19999999999999996,,,,,,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,500,L_h,20000,distribution,0.21629338542556098,0.18985523274511926,0.2165928659712257,0.24310056339737057,,,,,,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,500,U_h,20000,distribution,0.5836856572363096,0.5572533702488339,0.5840076280754894,0.6103154449727507,,,,,,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,500,L_s,20000,distribution,-0.21377114075886725,-0.2304527447439177,-0.21363044743099166,-0.19719477027389717,,,,,,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,500,U_s,20000,distribution,0.1536211310518814,0.13688904009925085,0.15365117674184053,0.1705154405603656,,,,,,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,500,miscover_h_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,500,miscover_s_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,500,deploy_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,500,retain_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,500,unresolved_fraction,20000,distribution,0.1368059,0.126,0.136,0.14600000000000002,,,,,,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,500,unrevealed_fraction,20000,distribution,0.07282369999999998,0.06599999999999995,0.07199999999999995,0.07999999999999996,,,,,,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,2000,L_h,20000,distribution,0.3153910405910234,0.3029296702822767,0.3155082288517043,0.3281151253914334,,,,,,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,2000,U_h,20000,distribution,0.4849394675139431,0.47255034894500364,0.4850507762748564,0.4976556189773068,,,,,,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,2000,L_s,20000,distribution,-0.11479229129263409,-0.12271996135407387,-0.11481623199162193,-0.10677291944046706,,,,,,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,2000,U_s,20000,distribution,0.05475613563028562,0.04687398173475696,0.0546738837747775,0.06285783460156964,,,,,,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,2000,miscover_h_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,2000,miscover_s_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,2000,deploy_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,2000,retain_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,2000,unresolved_fraction,20000,distribution,0.036938175000000004,0.034499999999999975,0.03700000000000003,0.03949999999999998,,,,,,0
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,2000,unrevealed_fraction,20000,distribution,0.01848407499999999,0.01649999999999996,0.01849999999999996,0.020499999999999963,,,,,,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,100,L_h,20000,distribution,-0.1668719205179653,-0.2256929205179653,-0.1656929205179653,-0.1056929205179653,,,,,,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,100,U_h,20000,distribution,0.9999872696903885,1,1,1,,,,,,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,100,L_s,20000,distribution,-0.6095419205179653,-0.6456929205179653,-0.6056929205179653,-0.5756929205179653,,,,,,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,100,U_s,20000,distribution,0.7439544205179652,0.7056929205179653,0.7456929205179653,0.7756929205179652,,,,,,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,100,miscover_h_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,100,miscover_s_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,100,deploy_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,100,retain_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,100,unresolved_fraction,20000,distribution,0.2442865,0.21999999999999997,0.24,0.27,,,,,,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,100,unrevealed_fraction,20000,distribution,0.177824,0.15000000000000002,0.18000000000000005,0.19999999999999996,,,,,,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,500,L_h,20000,distribution,0.21028423206922825,0.18470423206922829,0.2107042320692283,0.23470423206922833,,,,,,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,500,U_h,20000,distribution,0.7437186679307717,0.7232957679307718,0.7432957679307717,0.7652957679307717,,,,,,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,500,L_s,20000,distribution,-0.2421398679307717,-0.2592957679307717,-0.24129576793077168,-0.2252957679307717,,,,,,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,500,U_s,20000,distribution,0.30596166793077173,0.2912957679307717,0.30529576793077173,0.3212957679307717,,,,,,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,500,miscover_h_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,500,miscover_s_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,500,deploy_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,500,retain_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,500,unresolved_fraction,20000,distribution,0.13679310000000003,0.126,0.136,0.14600000000000002,,,,,,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,500,unrevealed_fraction,20000,distribution,0.07271689999999997,0.06599999999999995,0.07199999999999995,0.07999999999999996,,,,,,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,2000,L_h,20000,distribution,0.3116930561359888,0.2992695561359888,0.31176955613598883,0.3242695561359888,,,,,,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,2000,U_h,20000,distribution,0.5290282438640111,0.5172304438640112,0.5292304438640112,0.5412304438640112,,,,,,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,2000,L_s,20000,distribution,-0.12438364386401117,-0.13223044386401117,-0.12423044386401119,-0.11623044386401118,,,,,,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,2000,U_s,20000,distribution,0.09744101886401117,0.08973044386401119,0.09773044386401118,0.10523044386401118,,,,,,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,2000,miscover_h_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,2000,miscover_s_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,2000,deploy_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,2000,retain_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,2000,unresolved_fraction,20000,distribution,0.03692675,0.034499999999999975,0.03700000000000003,0.03949999999999998,,,,,,0
+C6,L3,success_boundary,A,ADAPTER,the object under test,2000,unrevealed_fraction,20000,distribution,0.01843702499999999,0.01649999999999996,0.01849999999999996,0.020499999999999963,,,,,,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,100,L_h,20000,distribution,-0.9938343510775681,-1,-1,-1,,,,,,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,100,U_h,20000,distribution,1,1,1,1,,,,,,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,100,L_s,20000,distribution,-0.9998014342660119,-1,-1,-1,,,,,,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,100,U_s,20000,distribution,0.999965810945527,1,1,1,,,,,,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,100,miscover_h_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,100,miscover_s_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,100,deploy_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,100,retain_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,100,unresolved_fraction,20000,distribution,0.2442865,0.21999999999999997,0.24,0.27,,,,,,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,100,unrevealed_fraction,20000,distribution,0.177824,0.15000000000000002,0.18000000000000005,0.19999999999999996,,,,,,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,500,L_h,20000,distribution,-0.9017305253305934,-1,-1,-1,,,,,,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,500,U_h,20000,distribution,0.9997885594118956,1,1,1,,,,,,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,500,L_s,20000,distribution,-0.9814068749011705,-1,-1,-1,,,,,,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,500,U_s,20000,distribution,0.9834881293349758,1,1,1,,,,,,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,500,miscover_h_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,500,miscover_s_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,500,deploy_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,500,retain_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,500,unresolved_fraction,20000,distribution,0.13679310000000003,0.126,0.136,0.14600000000000002,,,,,,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,500,unrevealed_fraction,20000,distribution,0.07271689999999997,0.06599999999999995,0.07199999999999995,0.07999999999999996,,,,,,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,2000,L_h,20000,distribution,0.30068203505357927,0.28558332878656556,0.3008517636003184,0.3159285577814071,,,,,,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,2000,U_h,20000,distribution,0.50094055369032,0.48577719609949543,0.5012426601977812,0.5161013071545364,,,,,,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,2000,L_s,20000,distribution,-0.12974783991943128,-0.13926736809375195,-0.12955165097227228,-0.12021914957258614,,,,,,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,2000,U_s,20000,distribution,0.07051067871730939,0.061049620788442886,0.07064323886516427,0.07987128987749122,,,,,,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,2000,miscover_h_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,2000,miscover_s_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,2000,deploy_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,2000,retain_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,2000,unresolved_fraction,20000,distribution,0.03692675,0.034499999999999975,0.03700000000000003,0.03949999999999998,,,,,,0
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,2000,unrevealed_fraction,20000,distribution,0.01843702499999999,0.01649999999999996,0.01849999999999996,0.020499999999999963,,,,,,0
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,100,L_h,20000,distribution,0.10109364473024166,0.053623487150634364,0.10534445388865915,0.15044561046491955,,,,,,0
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,100,U_h,20000,distribution,0.9999989286109838,1,1,1,,,,,,0
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,100,L_s,20000,distribution,-0.4766830710848175,-0.5122943135106293,-0.4753335490372766,-0.4398368378021419,,,,,,0
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,100,U_s,20000,distribution,0.6733855407201774,0.6372052588547734,0.6715251176522901,0.7086014371875908,,,,,,0
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,100,miscover_h_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,100,miscover_s_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,100,deploy_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,100,retain_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,100,unresolved_fraction,20000,distribution,0.2442865,0.21999999999999997,0.24,0.27,,,,,,0
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,100,unrevealed_fraction,20000,distribution,0.177824,0.15000000000000002,0.18000000000000005,0.19999999999999996,,,,,,0
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,500,L_h,20000,distribution,0.4070829504943775,0.3847913729131698,0.4076778401483174,0.42975383981441884,,,,,,0
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,500,U_h,20000,distribution,0.7744728489334207,0.7522259655979014,0.7748840987888365,0.7966836648594311,,,,,,0
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,500,L_s,20000,distribution,-0.12500314948494826,-0.14000395299941662,-0.12508745084297807,-0.11010425108226599,,,,,,0
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,500,U_s,20000,distribution,0.24238674895409495,0.2275567861767495,0.24219235343443205,0.2569652778242534,,,,,,0
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,500,miscover_h_so_far,20000,rate,0.76075,,,,15215,0.76075,0.7547876612206266,0.7666121919761149,0.00625,1
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,500,miscover_s_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,500,deploy_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,500,retain_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,500,unresolved_fraction,20000,distribution,0.13679310000000003,0.126,0.136,0.14600000000000002,,,,,,0
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,500,unrevealed_fraction,20000,distribution,0.07271689999999997,0.06599999999999995,0.07199999999999995,0.07999999999999996,,,,,,0
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,2000,L_h,20000,distribution,0.3619577488654567,0.34983419848805086,0.36211687044748186,0.3742059767283791,,,,,,0
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,2000,U_h,20000,distribution,0.5315051884035229,0.5193806977443084,0.5315755927842344,0.5437582911053042,,,,,,0
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,2000,L_s,20000,distribution,-0.0930250337194207,-0.10075266410882494,-0.09298064338343634,-0.08527381527428514,,,,,,0
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,2000,U_s,20000,distribution,0.07652240581864563,0.0687334942131997,0.07652062877906698,0.08425715930485042,,,,,,0
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,2000,miscover_h_so_far,20000,rate,0.8136,,,,16272,0.8136,0.8081428466501542,0.818936708335457,0.00625,1
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,2000,miscover_s_so_far,20000,rate,0,,,,0,0,0,0.00019203605610462553,0.00625,0
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,2000,deploy_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,2000,retain_by,20000,rate,0,,,,0,0,0,0.00019203605610462553,,0
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,2000,unresolved_fraction,20000,distribution,0.03692675,0.034499999999999975,0.03700000000000003,0.03949999999999998,,,,,,0
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,2000,unrevealed_fraction,20000,distribution,0.01843702499999999,0.01649999999999996,0.01849999999999996,0.020499999999999963,,,,,,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,100,L_h,8000,distribution,-0.3108166705179653,-0.3756929205179653,-0.30569292051796526,-0.2556929205179653,,,,,,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,100,U_h,8000,distribution,0.9824140949677918,0.9756929205179653,1,1,,,,,,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,100,L_s,8000,distribution,-0.5038979205179653,-0.5456929205179653,-0.5056929205179653,-0.4656929205179653,,,,,,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,100,U_s,8000,distribution,0.8245650740577063,0.7856929205179652,0.8256929205179653,0.8656929205179653,,,,,,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,100,miscover_h_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,100,miscover_s_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,100,deploy_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,100,retain_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,100,unresolved_fraction,8000,distribution,0.2310725,0.20999999999999996,0.22999999999999998,0.26,,,,,,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,100,unrevealed_fraction,8000,distribution,0.16601249999999998,0.14,0.17000000000000004,0.18999999999999995,,,,,,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,500,L_h,8000,distribution,0.14186473206922828,0.11670423206922828,0.1427042320692283,0.16870423206922833,,,,,,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,500,U_h,8000,distribution,0.6742805179307718,0.6512957679307717,0.6752957679307717,0.6992957679307718,,,,,,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,500,L_s,8000,distribution,-0.08534151793077172,-0.10129576793077169,-0.08529576793077169,-0.06929576793077169,,,,,,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,500,U_s,8000,distribution,0.44636001793077174,0.42929576793077173,0.44529576793077175,0.46329576793077165,,,,,,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,500,miscover_h_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,500,miscover_s_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,500,deploy_by,8000,rate,0.023,,,,184,0.023,0.01993691471597651,0.02652095938532811,,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,500,retain_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,500,unresolved_fraction,8000,distribution,0.12613925,0.11599999999999999,0.126,0.136,,,,,,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,500,unrevealed_fraction,8000,distribution,0.06697074999999998,0.06000000000000005,0.06599999999999995,0.07399999999999995,,,,,,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,2000,L_h,8000,distribution,0.32998174363598876,0.31726955613598884,0.3302695561359888,0.3422695561359888,,,,,,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,2000,U_h,8000,distribution,0.5474547563640111,0.5352304438640112,0.5474804438640112,0.5592304438640112,,,,,,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,2000,L_s,8000,distribution,0.08593311863598882,0.07776955613598882,0.08576955613598883,0.09376955613598881,,,,,,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,2000,U_s,8000,distribution,0.30338600636401114,0.2952304438640112,0.3032304438640112,0.3112304438640112,,,,,,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,2000,miscover_h_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,2000,miscover_s_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,2000,deploy_by,8000,rate,1,,,,8000,1,0.99952004811184,1,,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,2000,retain_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,2000,unresolved_fraction,8000,distribution,0.03399356250000001,0.03149999999999997,0.03400000000000003,0.03649999999999998,,,,,,0
+C7,L4,favorable_alt,N,ADAPTER,the object under test,2000,unrevealed_fraction,8000,distribution,0.016998437499999988,0.015000000000000013,0.017000000000000015,0.019000000000000017,,,,,,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,100,L_h,8000,distribution,-0.9956963978561657,-1,-1,-1,,,,,,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,100,U_h,8000,distribution,0.9999925182602941,1,1,1,,,,,,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,100,L_s,8000,distribution,-0.9989787030316741,-1,-1,-1,,,,,,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,100,U_s,8000,distribution,0.9999330994441645,1,1,1,,,,,,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,100,miscover_h_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,100,miscover_s_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,100,deploy_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,100,retain_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,100,unresolved_fraction,8000,distribution,0.2310725,0.20999999999999996,0.22999999999999998,0.26,,,,,,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,100,unrevealed_fraction,8000,distribution,0.16601249999999998,0.14,0.17000000000000004,0.18999999999999995,,,,,,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,500,L_h,8000,distribution,-0.8897728486805927,-1,-1,-1,,,,,,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,500,U_h,8000,distribution,0.9990687031280429,1,1,1,,,,,,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,500,L_s,8000,distribution,-0.945104305057016,-1,-1,-1,,,,,,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,500,U_s,8000,distribution,0.9919568491386876,1,1,1,,,,,,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,500,miscover_h_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,500,miscover_s_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,500,deploy_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,500,retain_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,500,unresolved_fraction,8000,distribution,0.12613925,0.11599999999999999,0.126,0.136,,,,,,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,500,unrevealed_fraction,8000,distribution,0.06697074999999998,0.06000000000000005,0.06599999999999995,0.07399999999999995,,,,,,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,2000,L_h,8000,distribution,0.34974835093592627,0.3349244513526459,0.35002755134649255,0.3642941496903455,,,,,,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,2000,U_h,8000,distribution,0.5497119336088863,0.5349683360637165,0.5499097760089949,0.5642027005563722,,,,,,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,2000,L_s,8000,distribution,0.09992254688647449,0.0907144934938543,0.09987954575442098,0.10927806229645648,,,,,,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,2000,U_s,8000,distribution,0.29988612955943456,0.29057974798217945,0.2999035634346769,0.30914662282826233,,,,,,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,2000,miscover_h_so_far,8000,rate,0.000125,,,,1,0.000125,2.2065910162169305e-05,0.0007077659900257713,0.00625,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,2000,miscover_s_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,2000,deploy_by,8000,rate,1,,,,8000,1,0.99952004811184,1,,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,2000,retain_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,2000,unresolved_fraction,8000,distribution,0.03399356250000001,0.03149999999999997,0.03400000000000003,0.03649999999999998,,,,,,0
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,2000,unrevealed_fraction,8000,distribution,0.016998437499999988,0.015000000000000013,0.017000000000000015,0.019000000000000017,,,,,,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,100,L_h,8000,distribution,-0.11829834159680012,-0.17955890114995265,-0.11256905580919169,-0.054442481206313675,,,,,,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,100,U_h,8000,distribution,0.97005188726896,0.952994732538984,1,1,,,,,,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,100,L_s,8000,distribution,-0.3674342280494362,-0.40861329116089323,-0.36790603854766724,-0.32644748783194383,,,,,,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,100,U_s,8000,distribution,0.7672650190576992,0.7245543895350803,0.7666379825189179,0.8082578904337208,,,,,,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,100,miscover_h_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,100,miscover_s_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,100,deploy_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,100,retain_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,100,unresolved_fraction,8000,distribution,0.2310725,0.20999999999999996,0.22999999999999998,0.26,,,,,,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,100,unrevealed_fraction,8000,distribution,0.16601249999999998,0.14,0.17000000000000004,0.18999999999999995,,,,,,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,500,L_h,8000,distribution,0.26723041095924416,0.2411071418014636,0.2676576370670685,0.29387567154633726,,,,,,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,500,U_h,8000,distribution,0.632102540696158,0.6059707517981465,0.6325224514539816,0.658728120559021,,,,,,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,500,L_s,8000,distribution,0.017387048997688125,0.0006685367206131776,0.017585830187996587,0.03401728789732458,,,,,,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,500,U_s,8000,distribution,0.38225917873460197,0.3657704690327757,0.3821288174874917,0.3989580056164922,,,,,,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,500,miscover_h_so_far,8000,rate,0.000125,,,,1,0.000125,2.2065910162169305e-05,0.0007077659900257713,0.00625,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,500,miscover_s_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,500,deploy_by,8000,rate,0.978125,,,,7825,0.978125,0.9746827449582762,0.9811083010486708,,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,500,retain_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,500,unresolved_fraction,8000,distribution,0.12613925,0.11599999999999999,0.126,0.136,,,,,,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,500,unrevealed_fraction,8000,distribution,0.06697074999999998,0.06000000000000005,0.06599999999999995,0.07399999999999995,,,,,,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,2000,L_h,8000,distribution,0.364980262072983,0.35249653190736047,0.36498175523560583,0.37732238388527006,,,,,,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,2000,U_h,8000,distribution,0.534275912725662,0.5218149848338877,0.5342145967166932,0.5466024581823752,,,,,,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,2000,L_s,8000,distribution,0.11511558850418138,0.10727560470523946,0.11507625718860252,0.12308386905245244,,,,,,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,2000,U_s,8000,distribution,0.28441123915686023,0.27655161835144565,0.28435267429578287,0.292459257764659,,,,,,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,2000,miscover_h_so_far,8000,rate,0.00025,,,,2,0.00025,6.85616946618155e-05,0.0009111502175540851,0.00625,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,2000,miscover_s_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,2000,deploy_by,8000,rate,1,,,,8000,1,0.99952004811184,1,,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,2000,retain_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,2000,unresolved_fraction,8000,distribution,0.03399356250000001,0.03149999999999997,0.03400000000000003,0.03649999999999998,,,,,,0
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,2000,unrevealed_fraction,8000,distribution,0.016998437499999988,0.015000000000000013,0.017000000000000015,0.019000000000000017,,,,,,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,100,L_h,8000,distribution,-0.11961917051796529,-0.1756929205179653,-0.11569292051796531,-0.06569292051796527,,,,,,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,100,U_h,8000,distribution,0.9999994616150648,1,1,1,,,,,,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,100,L_s,8000,distribution,-0.4461116705179653,-0.4856929205179653,-0.4456929205179653,-0.4056929205179653,,,,,,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,100,U_s,8000,distribution,0.8818315296977209,0.8456929205179653,0.8856929205179653,0.9156929205179654,,,,,,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,100,miscover_h_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,100,miscover_s_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,100,deploy_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,100,retain_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,100,unresolved_fraction,8000,distribution,0.23093124999999998,0.20999999999999996,0.22999999999999998,0.26,,,,,,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,100,unrevealed_fraction,8000,distribution,0.1658075,0.14,0.16000000000000003,0.18999999999999995,,,,,,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,500,L_h,8000,distribution,0.26023298206922835,0.23670423206922833,0.2607042320692283,0.28470423206922835,,,,,,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,500,U_h,8000,distribution,0.7897152679307717,0.7692957679307717,0.7892957679307717,0.8092957679307717,,,,,,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,500,L_s,8000,distribution,-0.0481860179307717,-0.0652957679307717,-0.0472957679307717,-0.031295767930771684,,,,,,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,500,U_s,8000,distribution,0.4834522679307717,0.46729576793077165,0.48329576793077167,0.4992957679307717,,,,,,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,500,miscover_h_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,500,miscover_s_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,500,deploy_by,8000,rate,0.299,,,,2392,0.299,0.2890661790909308,0.3091267615681095,,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,500,retain_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,500,unresolved_fraction,8000,distribution,0.12601474999999998,0.11599999999999999,0.126,0.136,,,,,,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,500,unrevealed_fraction,8000,distribution,0.06703199999999998,0.06000000000000005,0.06599999999999995,0.07399999999999995,,,,,,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,2000,L_h,8000,distribution,0.36173618113598877,0.3497695561359888,0.3617695561359888,0.37376955613598883,,,,,,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,2000,U_h,8000,distribution,0.5784190063640112,0.5667304438640112,0.5787304438640112,0.5902304438640111,,,,,,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,2000,L_s,8000,distribution,0.09582649363598882,0.08776955613598883,0.09576955613598881,0.10376955613598882,,,,,,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,2000,U_s,8000,distribution,0.31334138136401124,0.30573044386401116,0.3132304438640112,0.32073044386401117,,,,,,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,2000,miscover_h_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,2000,miscover_s_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,2000,deploy_by,8000,rate,1,,,,8000,1,0.99952004811184,1,,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,2000,retain_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,2000,unresolved_fraction,8000,distribution,0.034047125000000004,0.03149999999999997,0.03400000000000003,0.03649999999999998,,,,,,0
+C8,L4,favorable_alt,A,ADAPTER,the object under test,2000,unrevealed_fraction,8000,distribution,0.017006874999999987,0.015000000000000013,0.017000000000000015,0.019000000000000017,,,,,,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,100,L_h,8000,distribution,-0.9894090708602571,-1,-1,-1,,,,,,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,100,U_h,8000,distribution,1,1,1,1,,,,,,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,100,L_s,8000,distribution,-0.99829808216058,-1,-1,-1,,,,,,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,100,U_s,8000,distribution,1,1,1,1,,,,,,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,100,miscover_h_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,100,miscover_s_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,100,deploy_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,100,retain_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,100,unresolved_fraction,8000,distribution,0.23093124999999998,0.20999999999999996,0.22999999999999998,0.26,,,,,,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,100,unrevealed_fraction,8000,distribution,0.1658075,0.14,0.16000000000000003,0.18999999999999995,,,,,,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,500,L_h,8000,distribution,-0.8692527064096549,-1,-1,-0.9203812815905283,,,,,,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,500,U_h,8000,distribution,0.9998153771531081,1,1,1,,,,,,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,500,L_s,8000,distribution,-0.9410746547026114,-1,-1,-1,,,,,,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,500,U_s,8000,distribution,0.9940484726225668,1,1,1,,,,,,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,500,miscover_h_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,500,miscover_s_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,500,deploy_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,500,retain_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,500,unresolved_fraction,8000,distribution,0.12601474999999998,0.11599999999999999,0.126,0.136,,,,,,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,500,unrevealed_fraction,8000,distribution,0.06703199999999998,0.06000000000000005,0.06599999999999995,0.07399999999999995,,,,,,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,2000,L_h,8000,distribution,0.351198398773037,0.336687382025479,0.3512988223254768,0.36590830810542063,,,,,,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,2000,U_h,8000,distribution,0.5511694216141302,0.5365487937601353,0.5513662804812439,0.5657859392510629,,,,,,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,2000,L_s,8000,distribution,0.10004890853303394,0.09075828387987646,0.10013101854220018,0.10942030938625386,,,,,,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,2000,U_s,8000,distribution,0.3000199313741271,0.2906382281772963,0.30006730147639293,0.30931333647247583,,,,,,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,2000,miscover_h_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,2000,miscover_s_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,2000,deploy_by,8000,rate,1,,,,8000,1,0.99952004811184,1,,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,2000,retain_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,2000,unresolved_fraction,8000,distribution,0.034047125000000004,0.03149999999999997,0.03400000000000003,0.03649999999999998,,,,,,0
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,2000,unrevealed_fraction,8000,distribution,0.017006874999999987,0.015000000000000013,0.017000000000000015,0.019000000000000017,,,,,,0
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,100,L_h,8000,distribution,0.1382274587592019,0.09363242299079433,0.14138375233712608,0.18706602568156971,,,,,,0
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,100,U_h,8000,distribution,1,1,1,1,,,,,,0
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,100,L_s,8000,distribution,-0.2871705418100908,-0.3269706780426208,-0.2870543895350804,-0.24671539727260633,,,,,,0
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,100,U_s,8000,distribution,0.8472199204586177,0.8079833362704689,0.8459580198147727,0.8839327033590765,,,,,,0
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,100,miscover_h_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,100,miscover_s_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,100,deploy_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,100,retain_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,100,unresolved_fraction,8000,distribution,0.23093124999999998,0.20999999999999996,0.22999999999999998,0.26,,,,,,0
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,100,unrevealed_fraction,8000,distribution,0.1658075,0.14,0.16000000000000003,0.18999999999999995,,,,,,0
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,500,L_h,8000,distribution,0.4452476018449167,0.42414842838361155,0.44568880486478446,0.4666680436186884,,,,,,0
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,500,U_h,8000,distribution,0.810092402459875,0.7892414589394199,0.8106348247789517,0.8317022806070183,,,,,,0
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,500,L_s,8000,distribution,0.07263093572101965,0.0568468001649019,0.0724960321461563,0.0884342754388118,,,,,,0
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,500,U_s,8000,distribution,0.4374757363359779,0.42177832557106265,0.43738095892251094,0.4532257209341974,,,,,,0
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,500,miscover_h_so_far,8000,rate,0.62325,,,,4986,0.62325,0.6125747858277534,0.6338069060318151,0.00625,1
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,500,miscover_s_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,500,deploy_by,8000,rate,1,,,,8000,1,0.99952004811184,1,,0
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,500,retain_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,500,unresolved_fraction,8000,distribution,0.12601474999999998,0.11599999999999999,0.126,0.136,,,,,,0
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,500,unrevealed_fraction,8000,distribution,0.06703199999999998,0.06000000000000005,0.06599999999999995,0.07399999999999995,,,,,,0
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,2000,L_h,8000,distribution,0.4094700588821422,0.397765958954621,0.4094297823894052,0.42132304621493466,,,,,,0
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,2000,U_h,8000,distribution,0.578770320555629,0.5670001921677398,0.5787502947023266,0.5905291707116732,,,,,,0
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,2000,L_s,8000,distribution,0.12881180411093884,0.12100179190089819,0.1288985096763599,0.1366051118760267,,,,,,0
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,2000,U_s,8000,distribution,0.29811206578442573,0.29027288431065507,0.2981720087337185,0.3058772437823034,,,,,,0
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,2000,miscover_h_so_far,8000,rate,0.69375,,,,5550,0.69375,0.6835585106520834,0.7037555079912545,0.00625,1
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,2000,miscover_s_so_far,8000,rate,0,,,,0,0,0,0.00047995188815998056,0.00625,0
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,2000,deploy_by,8000,rate,1,,,,8000,1,0.99952004811184,1,,0
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,2000,retain_by,8000,rate,0,,,,0,0,0,0.00047995188815998056,,0
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,2000,unresolved_fraction,8000,distribution,0.034047125000000004,0.03149999999999997,0.03400000000000003,0.03649999999999998,,,,,,0
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,2000,unrevealed_fraction,8000,distribution,0.017006874999999987,0.015000000000000013,0.017000000000000015,0.019000000000000017,,,,,,0

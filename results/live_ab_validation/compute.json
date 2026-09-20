@@ -1,0 +1,124 @@
+{
+  "N_max": 2000,
+  "determinism_check": {
+    "bytes_compared": 154912,
+    "cell": "C1",
+    "files_that_are_byte_identical_between_runs": [
+      "trials.csv.gz",
+      "miscoverage.csv",
+      "decisions.csv",
+      "decision_time.csv",
+      "unresolved.csv",
+      "horizon_summaries.csv",
+      "manifest.json",
+      "fixtures_report.json"
+    ],
+    "files_that_cannot_be_byte_identical_between_runs": [
+      "compute.json (its timing fields)",
+      "budget.json (it IS the smoke measurement and the projection)",
+      "smoke/timing.json (the same measurement)"
+    ],
+    "identical": true,
+    "programs": [
+      0,
+      99
+    ],
+    "scope": "one cell block was re-run from its seed coordinates and its per-trial records compared byte for byte"
+  },
+  "fixtures": {
+    "passed": 18,
+    "total": 18
+  },
+  "output_bytes": 29685812,
+  "peak_rss_bytes": 94208000,
+  "per_cell": {
+    "C1": {
+      "band_evaluations": 96048000,
+      "enclosure_updates": 46209242,
+      "enrolled_pairs": 16000000,
+      "looks": 16008000,
+      "programs": 2000,
+      "trials": 8000
+    },
+    "C2": {
+      "band_evaluations": 96048000,
+      "enclosure_updates": 46101225,
+      "enrolled_pairs": 16000000,
+      "looks": 16008000,
+      "programs": 2000,
+      "trials": 8000
+    },
+    "C3": {
+      "band_evaluations": 240120000,
+      "enclosure_updates": 117702201,
+      "enrolled_pairs": 40000000,
+      "looks": 40020000,
+      "programs": 5000,
+      "trials": 20000
+    },
+    "C4": {
+      "band_evaluations": 240120000,
+      "enclosure_updates": 117195542,
+      "enrolled_pairs": 40000000,
+      "looks": 40020000,
+      "programs": 5000,
+      "trials": 20000
+    },
+    "C5": {
+      "band_evaluations": 240120000,
+      "enclosure_updates": 113795553,
+      "enrolled_pairs": 40000000,
+      "looks": 40020000,
+      "programs": 5000,
+      "trials": 20000
+    },
+    "C6": {
+      "band_evaluations": 240120000,
+      "enclosure_updates": 113708702,
+      "enrolled_pairs": 40000000,
+      "looks": 40020000,
+      "programs": 5000,
+      "trials": 20000
+    },
+    "C7": {
+      "band_evaluations": 96048000,
+      "enclosure_updates": 45592532,
+      "enrolled_pairs": 16000000,
+      "looks": 16008000,
+      "programs": 2000,
+      "trials": 8000
+    },
+    "C8": {
+      "band_evaluations": 96048000,
+      "enclosure_updates": 45400733,
+      "enrolled_pairs": 16000000,
+      "looks": 16008000,
+      "programs": 2000,
+      "trials": 8000
+    }
+  },
+  "positive_control": {
+    "consequence_if_failed": "the measurement apparatus itself is reported as unvalidated, the ADAPTER results of this run are reported as uninterpretable, and the cause is investigated before any of them is cited",
+    "flagged_cells": [
+      "C2",
+      "C4",
+      "C6"
+    ],
+    "passed": true,
+    "statement": "NAIVE's hierarchy ever-miscoverage must be FLAGGED in at least one of C2, C4, C6"
+  },
+  "reported_grid": true,
+  "tier": "T1",
+  "timing": {
+    "started_unix": 1789933967.541932,
+    "wall_clock_seconds": 86.44143795967102
+  },
+  "total": {
+    "band_evaluations": 1344672000,
+    "enclosure_updates": 645705730,
+    "enrolled_pairs": 224000000,
+    "looks": 224112000,
+    "programs": 28000,
+    "trials": 112000
+  }
+}

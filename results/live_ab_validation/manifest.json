@@ -1,0 +1,37 @@
+{
+  "N_max": 2000,
+  "coverage_target_boundary": "Coverage validated here is for the BOUNDED ARBITRARY-RUNNING-MEAN target mubar_n = (1/n) sum_{i<=n} E[Z_i | F_{i-1}] of a synthetic stream. It does NOT establish the assumptions needed for a causal pair-orientation interpretation: pre-enrolled nonoverlapping arrival positions chosen without their outcomes, one fresh fair coin per pair logged and fsynced before either episode is dispatched, single exposure, no cross-pair interference, no dependence of a task's record on a later coin, an operator who does not act on coins, a fixed scheduling and resource policy, and the frozen outcome/missingness rule. A simulation assumes those; it cannot supply them.",
+  "grid_namespace": 0,
+  "master_seed": 1220260919,
+  "namespace_of_the_reported_grid": 0,
+  "numpy": "2.4.1",
+  "platform": "macOS-26.5.2-arm64-arm-64bit",
+  "programs_per_cell": {
+    "C1": 2000,
+    "C2": 2000,
+    "C3": 5000,
+    "C4": 5000,
+    "C5": 5000,
+    "C6": 5000,
+    "C7": 2000,
+    "C8": 2000
+  },
+  "protocol_version": "v1-cpu-validation",
+  "python": "3.12.13",
+  "repo_commit": "02b94103bb9798c906967b27031ba6b38b94eb74",
+  "reported_grid": true,
+  "selected_budget_tier": "T1",
+  "sha256": {
+    "experiments/live_ab_validation/PROTOCOL.md": "bcef5e825d31d87463fcda597ae4f2223e02d62943ab4342c94886b2c829fad6",
+    "experiments/live_ab_validation/cells.json": "17f544b34ab1b83be773c4e8517a8a281a90ad5278932ba1b64d01db0babb0f7",
+    "reviews/arxiv_live_design_guidance.md": "a71965986165d56915a557a1a43998d9eb76a4e800dba670281c93720037ad1b",
+    "src/winstats.py": "56955ce09a8ac7afb15f2bd251048537eabcc04ea75e7579bdb825594f41fc69",
+    "tests_validation.py": "b5349609cd411164d857d9e22e91d380c0648d344cb847a485ebda3bec451c43",
+    "vband.py": "55a9894ff5694099c05cedbdf695ecdad3ac4bd5025328cd445e0b1d3df8cd9c",
+    "vcompare.py": "299ff652725a5549ae55e3de42b11e67335fa4a103bb4ce6d22d46946c5fe7e3",
+    "vfixtures.py": "a5b98a6622e5c357634a63fc03e7cd1b03895ae5f89595f7672805618791b10d",
+    "vgen.py": "2d0e2756b5e28b3af256b657953532ecb1849a404a1761952fae8a287e2745cd",
+    "vrun.py": "8b735cfe994b2dddbc240ba5568ca680ccb37cc171ff024d0002230db65d862b"
+  },
+  "study": "live_ab_validation (issue 12)"
+}

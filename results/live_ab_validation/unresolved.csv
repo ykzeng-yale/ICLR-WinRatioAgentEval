@@ -1,0 +1,170 @@
+# PROTOCOL 9.5: resolution quantities at the deciding look, or at the finalization look for non-deciding trials.
+cell,law,law_name,delay,construction,construction_status,quantity,N,mean,q1,median,q3
+C1,L1,aa_null,N,ADAPTER,the object under test,unresolved_fraction,8000,0.0292343125,0.027,0.029,0.0315
+C1,L1,aa_null,N,ADAPTER,the object under test,unrevealed_fraction,8000,0.008799125,0.0075,0.0085,0.01
+C1,L1,aa_null,N,ADAPTER,the object under test,cost_collapsed_fraction,8000,0.007651937500000001,0.0065,0.0075,0.009
+C1,L1,aa_null,N,ADAPTER,the object under test,cost_narrowed_fraction,8000,0.007780312500000001,0.0065,0.0075,0.009
+C1,L1,aa_null,N,ADAPTER,the object under test,n_certified,8000,1941.531375,1937,1942,1946
+C1,L1,aa_null,N,ADAPTER,the object under test,n_point_resolved,8000,1956.83525,1953,1957,1961
+C1,L1,aa_null,N,ADAPTER,the object under test,look_prefix,8000,2000,2000,2000,2000
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,unresolved_fraction,8000,0.0292343125,0.027,0.029,0.0315
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,unrevealed_fraction,8000,0.008799125,0.0075,0.0085,0.01
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,cost_collapsed_fraction,8000,0.007651937500000001,0.0065,0.0075,0.009
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,cost_narrowed_fraction,8000,0.007780312500000001,0.0065,0.0075,0.009
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,n_certified,8000,1941.531375,1937,1942,1946
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,n_point_resolved,8000,1956.83525,1953,1957,1961
+C1,L1,aa_null,N,CPREFIX,valid for its own running target,look_prefix,8000,2000,2000,2000,2000
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,unresolved_fraction,8000,0.029267662737015313,0.027,0.029,0.0315
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,unrevealed_fraction,8000,0.00881925958505269,0.0075,0.0085,0.01
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,cost_collapsed_fraction,8000,0.0076556103741090625,0.0065,0.0075,0.009
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,cost_narrowed_fraction,8000,0.007783985374109062,0.0065,0.0075,0.009
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,n_certified,8000,1941.249625,1937,1942,1946
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,n_point_resolved,8000,1956.552875,1953,1957,1961
+C1,L1,aa_null,N,NAIVE,INVALID under informative delay,look_prefix,8000,1999.729125,2000,2000,2000
+C2,L1,aa_null,A,ADAPTER,the object under test,unresolved_fraction,8000,0.029179250000000007,0.027,0.029,0.0315
+C2,L1,aa_null,A,ADAPTER,the object under test,unrevealed_fraction,8000,0.008757437500000001,0.0075,0.0085,0.01
+C2,L1,aa_null,A,ADAPTER,the object under test,cost_collapsed_fraction,8000,0.010219250000000003,0.0085,0.01,0.0115
+C2,L1,aa_null,A,ADAPTER,the object under test,cost_narrowed_fraction,8000,0.010219250000000003,0.0085,0.01,0.0115
+C2,L1,aa_null,A,ADAPTER,the object under test,n_certified,8000,1941.6415,1937,1942,1946
+C2,L1,aa_null,A,ADAPTER,the object under test,n_point_resolved,8000,1962.08,1958,1962,1966
+C2,L1,aa_null,A,ADAPTER,the object under test,look_prefix,8000,2000,2000,2000,2000
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,unresolved_fraction,8000,0.029179250000000007,0.027,0.029,0.0315
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,unrevealed_fraction,8000,0.008757437500000001,0.0075,0.0085,0.01
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,cost_collapsed_fraction,8000,0.010219250000000003,0.0085,0.01,0.0115
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,cost_narrowed_fraction,8000,0.010219250000000003,0.0085,0.01,0.0115
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,n_certified,8000,1941.6415,1937,1942,1946
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,n_point_resolved,8000,1962.08,1958,1962,1966
+C2,L1,aa_null,A,CPREFIX,valid for its own running target,look_prefix,8000,2000,2000,2000,2000
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,unresolved_fraction,8000,0.036729022357932066,0.027,0.0295,0.032
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,unrevealed_fraction,8000,0.013130589368271476,0.0075,0.009,0.0105
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,cost_collapsed_fraction,8000,0.011550848103811087,0.009,0.0105,0.012
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,cost_narrowed_fraction,8000,0.011580218908612641,0.009,0.0105,0.012
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,n_certified,8000,1875.34325,1936,1941,1946
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,n_point_resolved,8000,1895.93225,1958,1962,1966
+C2,L1,aa_null,A,NAIVE,INVALID under informative delay,look_prefix,8000,1936.288125,2000,2000,2000
+C3,L2,pref_boundary,N,ADAPTER,the object under test,unresolved_fraction,20000,0.035100525,0.0325,0.035,0.0375
+C3,L2,pref_boundary,N,ADAPTER,the object under test,unrevealed_fraction,20000,0.010559125,0.009,0.0105,0.012
+C3,L2,pref_boundary,N,ADAPTER,the object under test,cost_collapsed_fraction,20000,0.011050174999999999,0.0095,0.011,0.0125
+C3,L2,pref_boundary,N,ADAPTER,the object under test,cost_narrowed_fraction,20000,0.01120185,0.0095,0.011,0.0125
+C3,L2,pref_boundary,N,ADAPTER,the object under test,n_certified,20000,1929.79895,1925,1930,1935
+C3,L2,pref_boundary,N,ADAPTER,the object under test,n_point_resolved,20000,1951.8993,1948,1952,1956
+C3,L2,pref_boundary,N,ADAPTER,the object under test,look_prefix,20000,2000,2000,2000,2000
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,unresolved_fraction,20000,0.035139329393500666,0.0325,0.035,0.0375
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,unrevealed_fraction,20000,0.010581496534240486,0.009,0.0105,0.012
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,cost_collapsed_fraction,20000,0.011055922496633327,0.0095,0.011,0.0125
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,cost_narrowed_fraction,20000,0.011207731947503649,0.0095,0.011,0.0125
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,n_certified,20000,1929.43125,1925,1930,1935
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,n_point_resolved,20000,1951.535,1948,1952,1956
+C3,L2,pref_boundary,N,CPREFIX,valid for its own running target,look_prefix,20000,1999.669,2000,2000,2000
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,unresolved_fraction,20000,0.035281958931741554,0.0325,0.035,0.0375
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,unrevealed_fraction,20000,0.010665089338339739,0.009,0.0105,0.012
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,cost_collapsed_fraction,20000,0.01108243368436084,0.0095,0.011,0.0125
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,cost_narrowed_fraction,20000,0.011235096935459338,0.0095,0.011,0.0125
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,n_certified,20000,1928.46285,1925,1930,1935
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,n_point_resolved,20000,1950.5688,1948,1952,1956
+C3,L2,pref_boundary,N,NAIVE,INVALID under informative delay,look_prefix,20000,1998.7321,2000,2000,2000
+C4,L2,pref_boundary,A,ADAPTER,the object under test,unresolved_fraction,20000,0.03511992283951667,0.0325,0.035,0.0375
+C4,L2,pref_boundary,A,ADAPTER,the object under test,unrevealed_fraction,20000,0.01055913623297738,0.009,0.0105,0.012
+C4,L2,pref_boundary,A,ADAPTER,the object under test,cost_collapsed_fraction,20000,0.012265819386688992,0.0105,0.012,0.014
+C4,L2,pref_boundary,A,ADAPTER,the object under test,cost_narrowed_fraction,20000,0.01226594692910272,0.0105,0.012,0.014
+C4,L2,pref_boundary,A,ADAPTER,the object under test,n_certified,20000,1929.5635,1925,1930,1935
+C4,L2,pref_boundary,A,ADAPTER,the object under test,n_point_resolved,20000,1954.0857,1950,1954,1959
+C4,L2,pref_boundary,A,ADAPTER,the object under test,look_prefix,20000,1999.76815,2000,2000,2000
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,unresolved_fraction,20000,0.0351526391265268,0.0325,0.035,0.0375
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,unrevealed_fraction,20000,0.010579368281952774,0.009,0.0105,0.012
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,cost_collapsed_fraction,20000,0.012271358259230213,0.0105,0.012,0.014
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,cost_narrowed_fraction,20000,0.012271611040268277,0.0105,0.012,0.014
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,n_certified,20000,1929.281,1925,1930,1935
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,n_point_resolved,20000,1953.8089,1950,1954,1959
+C4,L2,pref_boundary,A,CPREFIX,valid for its own running target,look_prefix,20000,1999.52405,2000,2000,2000
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,unresolved_fraction,20000,0.35981860017435346,0.33774834437086093,0.36,0.38271604938271603
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,unrevealed_fraction,20000,0.25754023341469096,0.23626373626373626,0.2578947368421053,0.2795031055900621
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,cost_collapsed_fraction,20000,0.035731277659490475,0.025252525252525252,0.03494976639081443,0.045204837748062346
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,cost_narrowed_fraction,20000,0.038059393452076325,0.026881720430107527,0.0374331550802139,0.04790419161676647
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,n_certified,20000,113.22505,100,106,120
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,n_point_resolved,20000,119.67815,106,112,127
+C4,L2,pref_boundary,A,NAIVE,INVALID under informative delay,look_prefix,20000,176.85615,159,169,187
+C5,L3,success_boundary,N,ADAPTER,the object under test,unresolved_fraction,20000,0.01716145,0.015,0.017,0.019
+C5,L3,success_boundary,N,ADAPTER,the object under test,unrevealed_fraction,20000,0.005161025,0.004,0.005,0.006
+C5,L3,success_boundary,N,ADAPTER,the object under test,cost_collapsed_fraction,20000,0.0050396,0.004,0.005,0.006
+C5,L3,success_boundary,N,ADAPTER,the object under test,cost_narrowed_fraction,20000,0.0050837,0.004,0.005,0.006
+C5,L3,success_boundary,N,ADAPTER,the object under test,n_certified,20000,1965.6771,1962,1966,1970
+C5,L3,success_boundary,N,ADAPTER,the object under test,n_point_resolved,20000,1975.7563,1973,1976,1979
+C5,L3,success_boundary,N,ADAPTER,the object under test,look_prefix,20000,2000,2000,2000,2000
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,unresolved_fraction,20000,0.01716145,0.015,0.017,0.019
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,unrevealed_fraction,20000,0.005161025,0.004,0.005,0.006
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,cost_collapsed_fraction,20000,0.0050396,0.004,0.005,0.006
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,cost_narrowed_fraction,20000,0.0050837,0.004,0.005,0.006
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,n_certified,20000,1965.6771,1962,1966,1970
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,n_point_resolved,20000,1975.7563,1973,1976,1979
+C5,L3,success_boundary,N,CPREFIX,valid for its own running target,look_prefix,20000,2000,2000,2000,2000
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,unresolved_fraction,20000,0.01716145,0.015,0.017,0.019
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,unrevealed_fraction,20000,0.005161025,0.004,0.005,0.006
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,cost_collapsed_fraction,20000,0.0050396,0.004,0.005,0.006
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,cost_narrowed_fraction,20000,0.0050837,0.004,0.005,0.006
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,n_certified,20000,1965.6771,1962,1966,1970
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,n_point_resolved,20000,1975.7563,1973,1976,1979
+C5,L3,success_boundary,N,NAIVE,INVALID under informative delay,look_prefix,20000,2000,2000,2000,2000
+C6,L3,success_boundary,A,ADAPTER,the object under test,unresolved_fraction,20000,0.017150625000000003,0.015,0.017,0.019
+C6,L3,success_boundary,A,ADAPTER,the object under test,unrevealed_fraction,20000,0.005157225,0.004,0.005,0.006
+C6,L3,success_boundary,A,ADAPTER,the object under test,cost_collapsed_fraction,20000,0.0059991,0.005,0.006,0.007
+C6,L3,success_boundary,A,ADAPTER,the object under test,cost_narrowed_fraction,20000,0.0059991,0.005,0.006,0.007
+C6,L3,success_boundary,A,ADAPTER,the object under test,n_certified,20000,1965.69875,1962,1966,1970
+C6,L3,success_boundary,A,ADAPTER,the object under test,n_point_resolved,20000,1977.69695,1975,1978,1981
+C6,L3,success_boundary,A,ADAPTER,the object under test,look_prefix,20000,2000,2000,2000,2000
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,unresolved_fraction,20000,0.017150625000000003,0.015,0.017,0.019
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,unrevealed_fraction,20000,0.005157225,0.004,0.005,0.006
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,cost_collapsed_fraction,20000,0.0059991,0.005,0.006,0.007
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,cost_narrowed_fraction,20000,0.0059991,0.005,0.006,0.007
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,n_certified,20000,1965.69875,1962,1966,1970
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,n_point_resolved,20000,1977.69695,1975,1978,1981
+C6,L3,success_boundary,A,CPREFIX,valid for its own running target,look_prefix,20000,2000,2000,2000,2000
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,unresolved_fraction,20000,0.017150625000000003,0.015,0.017,0.019
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,unrevealed_fraction,20000,0.005157225,0.004,0.005,0.006
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,cost_collapsed_fraction,20000,0.0059991,0.005,0.006,0.007
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,cost_narrowed_fraction,20000,0.0059991,0.005,0.006,0.007
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,n_certified,20000,1965.69875,1962,1966,1970
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,n_point_resolved,20000,1977.69695,1975,1978,1981
+C6,L3,success_boundary,A,NAIVE,INVALID under informative delay,look_prefix,20000,2000,2000,2000,2000
+C7,L4,favorable_alt,N,ADAPTER,the object under test,unresolved_fraction,8000,0.09777227707814555,0.0891238670694864,0.09717868338557993,0.10600706713780919
+C7,L4,favorable_alt,N,ADAPTER,the object under test,unrevealed_fraction,8000,0.04736352596526486,0.04184704184704185,0.04692556634304207,0.05247485586652738
+C7,L4,favorable_alt,N,ADAPTER,the object under test,cost_collapsed_fraction,8000,0.019954221996908376,0.01592356687898089,0.01943198804185351,0.02358490566037736
+C7,L4,favorable_alt,N,ADAPTER,the object under test,cost_narrowed_fraction,8000,0.020618444444644262,0.01653944020356234,0.020114942528735632,0.024320457796852647
+C7,L4,favorable_alt,N,ADAPTER,the object under test,n_certified,8000,618.465375,558,616,677
+C7,L4,favorable_alt,N,ADAPTER,the object under test,n_point_resolved,8000,631.96675,571,630,690
+C7,L4,favorable_alt,N,ADAPTER,the object under test,look_prefix,8000,684.721875,621,683,745
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,unresolved_fraction,8000,0.07337956204821705,0.06666666666666667,0.07288805552910615,0.07965476881628235
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,unrevealed_fraction,8000,0.037238724046863306,0.03275109170305677,0.03699551569506727,0.04152637485970819
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,cost_collapsed_fraction,8000,0.01416558619676125,0.011339621759356664,0.013921113689095127,0.01671978695966702
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,cost_narrowed_fraction,8000,0.014633019398226192,0.011752921553362296,0.014388489208633094,0.017220172201722016
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,n_certified,8000,852.323875,802,850,900
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,n_point_resolved,8000,865.272625,814,862,913.25
+C7,L4,favorable_alt,N,CPREFIX,valid for its own running target,look_prefix,8000,919.36475,868,917,968
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,unresolved_fraction,8000,0.15065296141568646,0.13541666666666666,0.14925373134328357,0.16412213740458015
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,unrevealed_fraction,8000,0.08976157604127234,0.07638474542561655,0.08847184986595175,0.10149534283469869
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,cost_collapsed_fraction,8000,0.022514136697486635,0.016908212560386472,0.022151898734177215,0.027649769585253458
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,cost_narrowed_fraction,8000,0.023300909744120843,0.017626440189766182,0.02292920795983281,0.028498947731160698
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,n_certified,8000,294.547375,250,289,333.25
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,n_point_resolved,8000,302.401875,256,297,343
+C7,L4,favorable_alt,N,NAIVE,INVALID under informative delay,look_prefix,8000,345.893875,297,340,391
+C8,L4,favorable_alt,A,ADAPTER,the object under test,unresolved_fraction,8000,0.11485241587222186,0.10605552165954851,0.11455108359133127,0.12314486523799065
+C8,L4,favorable_alt,A,ADAPTER,the object under test,unrevealed_fraction,8000,0.05784486916533304,0.050966608084358524,0.05719557195571956,0.0640651816361556
+C8,L4,favorable_alt,A,ADAPTER,the object under test,cost_collapsed_fraction,8000,0.025413575387476798,0.020958083832335328,0.025071692097846363,0.029641185647425898
+C8,L4,favorable_alt,A,ADAPTER,the object under test,cost_narrowed_fraction,8000,0.025843222037398108,0.021376765607151273,0.02564102564102564,0.030120481927710843
+C8,L4,favorable_alt,A,ADAPTER,the object under test,n_certified,8000,489.3315,428,487,548
+C8,L4,favorable_alt,A,ADAPTER,the object under test,n_point_resolved,8000,503.392125,440,501,563
+C8,L4,favorable_alt,A,ADAPTER,the object under test,look_prefix,8000,552.1295,485,550,615
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,unresolved_fraction,8000,0.07368488207566182,0.0670198841483792,0.07309322033898305,0.0799141746893687
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,unrevealed_fraction,8000,0.03737580815274684,0.0327313769751693,0.03699551569506727,0.04157303370786517
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,cost_collapsed_fraction,8000,0.016386101841297438,0.01344831352212115,0.01607878621402834,0.019140103021681967
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,cost_narrowed_fraction,8000,0.016628761524746856,0.013666718544404986,0.016339869281045753,0.019400579744805992
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,n_certified,8000,848.5695,798,847,897
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,n_point_resolved,8000,863.4905,813,862,913
+C8,L4,favorable_alt,A,CPREFIX,valid for its own running target,look_prefix,8000,915.5995,865,915,965
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,unresolved_fraction,8000,0.17400641745486486,0.1569767441860465,0.17307692307692307,0.1895734597156398
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,unrevealed_fraction,8000,0.11384565162243873,0.09870538739552745,0.11267605633802817,0.12778822055137845
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,cost_collapsed_fraction,8000,0.0230648453699354,0.016,0.02247191011235955,0.029556650246305417
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,cost_narrowed_fraction,8000,0.023992091565285995,0.016853932584269662,0.02336448598130841,0.030456852791878174
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,n_certified,8000,189.092875,164,185,211
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,n_point_resolved,8000,194.446875,168,191,217
+C8,L4,favorable_alt,A,NAIVE,INVALID under informative delay,look_prefix,8000,228.580375,199,225,254

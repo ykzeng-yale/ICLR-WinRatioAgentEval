@@ -336,8 +336,14 @@ in the section 4.2 delay blocks, `2,878,680` states in all - the two readings di
 of them the single boundary point `ell = c / (1 - rtol) = 200/19` reached at elapsed fraction `5/19`, where the
 predicate calls the tie infeasible and the closed form calls it feasible.
 
-**The predicate governs, there and everywhere.** It is what `vband` computes and what `compare` itself uses, and
-this study's numbers in sections 6.3 and 6.4 are computed with it. The `2,878,680`-state sweep was run once while
+**The predicate governs, there and everywhere.** It is what `vband` computes and what `compare` itself uses.
+**The claim that stood here, that "this study's numbers in sections 6.3 and 6.4 are computed with it", is FALSE and
+is withdrawn** (coordinator ruling 35(b), 2026-09-20; recorded with its before/after text in section 14.1
+correction 2). The fact: sections 6.3 and 6.4 were computed with the **closed-form paraphrase** of the preceding
+paragraph, which differs from the governing predicate in exactly the `128` named boundary states. The frozen 6.3 and
+6.4 values are **not** edited (ruling 35(a)); the predicate-reading recomputation is deposited beside them in
+`ADDENDUM_SECTION6.md` (ruling 35(c)), and nothing operative moves, because the predicate is what `vband`, `vgen`,
+`vcompare` and `F17` implement (ruling 35(d)). The `2,878,680`-state sweep was run once while
 writing this protocol (section 0.1 item 3); `F17_atom_cost_table` re-checks `47,484` of those states at run time,
 asserts that every disagreement it finds lies at elapsed fraction `5/19`, and asserts that it finds exactly the `28`
 boundary states that grid reaches - a count, so that the check cannot pass by failing to reach the boundary at all.
@@ -1313,9 +1319,9 @@ document refers to a file that will never be created under that name.
 | `PREREG_CHECK.md` | exists | the adversarial pre-registration audit the first revision answers |
 | `PREREG_CHECK_2.md` | exists | the second adversarial pass, which re-tested the first audit's findings and raised the four the second revision answers (section 0.2b) |
 | `pinned/` | exists | the coordinator's read-only copy of the #11 monitor from `live_ab` commit `5776877`, with `pinned/PINNED.json`. Nothing in this directory may load it until `vcompare.py` exists (section 12.1) |
-| `vgen.py` | **specified, not written** | the data-generating process of sections 4 and 5: atoms, delays, reveal schedule, elapsed-cost accrual |
-| `vrun.py` | **specified, not written** | the grid runner of sections 7-9; writes only `results/live_ab_validation/` |
-| `vcompare.py` | **specified, not written** | the pinned comparison of section 12; the only module permitted to load `pinned/` |
+| `vgen.py` | exists | the data-generating process of sections 4 and 5: atoms, delays, reveal schedule, elapsed-cost accrual |
+| `vrun.py` | exists | the grid runner of sections 7-9; writes only `results/live_ab_validation/` |
+| `vcompare.py` | exists | the pinned comparison of section 12; the only module permitted to load `pinned/` |
 | `REPORT.md` | **specified, not written** | the study report of 13.3 item 6 |
 
 ### 13.1 The commands
@@ -1400,3 +1406,82 @@ simulation outcome existed. It is not a version bump, because nothing had been c
 and no result exists under any earlier version - there is nothing to report beside. **From the freeze commit onward
 this clause has no successor: the next change of any value in this document is a new version, whatever it is, and
 whoever asks for it.**
+
+### 14.1 Post-freeze corrections that change no value
+
+Each entry below is a correction made **after** the freeze commit under the clause above that permits
+"typographical corrections that change no value ... recorded as such with the before/after text". Each carries its
+authority, its before text and its after text. **No entry here moves a cell, a parameter, a seed, the grid, an
+estimator, a reported quantity, the flag rule or the positive control.** Anything that did would be a new version.
+
+---
+
+**Correction 1 - 2026-09-20 - STATUS CORRECTION, CHANGES NO VALUE.**
+Authority: `experiments/live_ab/design/COORDINATOR_DECISIONS.md` revision 9, item 34.
+
+Cause: section 13.0's status column asserted that `vgen.py`, `vrun.py` and `vcompare.py` do not exist. Writing them
+to this frozen specification - which is exactly what 13.0 instructs - made that assertion false, and fixture `F15`
+failed on the contradiction, so `vrun.py` aborted before the grid. The pre-registration was working as designed: a
+frozen document refusing to run while it describes a world that no longer holds.
+
+Scope: the status column of the 13.0 table for those three rows, and the corresponding module map in `cells.json`,
+which `F15` compares against it value for value. **Nothing else in 13.0 changed, and no value anywhere changed.**
+Section 13.0's preamble sentence, "As of the freeze commit, `vgen.py`, `vrun.py`, `vcompare.py` and `REPORT.md` do
+not exist", is a statement about the freeze commit, is still true, and is deliberately left standing.
+
+BEFORE (`PROTOCOL.md` section 13.0, three rows, status column only):
+
+```
+| `vgen.py` | **specified, not written** | the data-generating process of sections 4 and 5: atoms, delays, reveal schedule, elapsed-cost accrual |
+| `vrun.py` | **specified, not written** | the grid runner of sections 7-9; writes only `results/live_ab_validation/` |
+| `vcompare.py` | **specified, not written** | the pinned comparison of section 12; the only module permitted to load `pinned/` |
+```
+
+AFTER:
+
+```
+| `vgen.py` | exists | the data-generating process of sections 4 and 5: atoms, delays, reveal schedule, elapsed-cost accrual |
+| `vrun.py` | exists | the grid runner of sections 7-9; writes only `results/live_ab_validation/` |
+| `vcompare.py` | exists | the pinned comparison of section 12; the only module permitted to load `pinned/` |
+```
+
+BEFORE (`cells.json` -> `modules`): `vgen.py`, `vrun.py` and `vcompare.py` were keys of
+`specified_here_but_do_not_exist_at_the_freeze_commit`.
+AFTER: they are keys of `exist_at_the_freeze_commit` - the set `F15` maps the `exists` status onto - each with
+"WRITTEN AFTER THE FREEZE COMMIT, NOT AT IT" prefixed to its own description so the key name cannot be read as a
+claim that they existed at the freeze, and with a new `modules.status_correction_2026_09_20` block recording what
+moved, from where, to where and why. `REPORT.md` remains in
+`specified_here_but_do_not_exist_at_the_freeze_commit`; this correction does not cover it.
+
+---
+
+**Correction 2 - 2026-09-20 - WITHDRAWAL OF A FALSE SENTENCE, CHANGES NO VALUE.**
+Authority: `experiments/live_ab/design/COORDINATOR_DECISIONS.md` revision 9, item 35(b).
+
+Cause: section 2.5's closing paragraph claimed that sections 6.3 and 6.4 were computed with the governing predicate.
+They were not: recomputing section 6 under the predicate disagrees with the frozen 6.3/6.4 tables in 13 entries at
+`N_max = 2,000` and 14 at `N_max = 1,000`, each by one unit in the fourth decimal, while recomputing under 2.5's own
+closed-form paraphrase reproduces all of 6.1-6.4 with zero disagreements. The tables were therefore built with the
+paraphrase, in exactly the 128 boundary states 2.5 itself names.
+
+Scope: **the sentence only.** The frozen values in 6.3 and 6.4 are NOT edited - see ruling 35(a) and (d): the
+predicate still governs, and it is what `vband`, `vgen`, `vcompare` and `F17` implement, so the grid, the decision
+rule and every reported quantity are unaffected. The predicate-reading recomputation is deposited **beside** the
+frozen tables, not in place of them, in `ADDENDUM_SECTION6.md` under ruling 35(c).
+
+BEFORE (`PROTOCOL.md` section 2.5):
+
+```
+**The predicate governs, there and everywhere.** It is what `vband` computes and what `compare` itself uses, and
+this study's numbers in sections 6.3 and 6.4 are computed with it.
+```
+
+AFTER:
+
+```
+**The predicate governs, there and everywhere.** It is what `vband` computes and what `compare` itself uses.
+**The claim that stood here, that "this study's numbers in sections 6.3 and 6.4 are computed with it", is FALSE
+and is withdrawn** (coordinator ruling 35(b), 2026-09-20). The fact: sections 6.3 and 6.4 were computed with the
+closed-form paraphrase of the preceding paragraph, which differs from the governing predicate in exactly the 128
+named boundary states.
+```

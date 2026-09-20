@@ -1,0 +1,125 @@
+{
+  "beta": 0.6176479350549632,
+  "bytes_per_program": 131.9,
+  "fixture_gate": {
+    "closed": false,
+    "exemptions": [],
+    "fail_closed_for_the_reported_grid": true,
+    "failing_cases": [],
+    "passed": 18,
+    "ran": true,
+    "total": 18
+  },
+  "grid_may_start": true,
+  "hard_limits": {
+    "output_bytes": 209715200,
+    "peak_rss_bytes": 2147483648,
+    "seconds": 5400
+  },
+  "incremental_property": {
+    "bound_per_pair": 5,
+    "enclosure_updates_per_pair_max": 2.8868875,
+    "incremental": true
+  },
+  "ladder": [
+    {
+      "N_max": 2000,
+      "admissible": true,
+      "bytes_projected": 3693200.0,
+      "peak_rss_projected": 74104832,
+      "programs_total": 28000,
+      "seconds_projected": 80.54036870598793,
+      "tier": "T1",
+      "within_bytes": true,
+      "within_peak_rss": true,
+      "within_seconds": true
+    },
+    {
+      "N_max": 2000,
+      "admissible": true,
+      "bytes_projected": 2110400.0,
+      "peak_rss_projected": 74104832,
+      "programs_total": 16000,
+      "seconds_projected": 46.0230678319931,
+      "tier": "T2",
+      "within_bytes": true,
+      "within_peak_rss": true,
+      "within_seconds": true
+    },
+    {
+      "N_max": 2000,
+      "admissible": true,
+      "bytes_projected": 1055200.0,
+      "peak_rss_projected": 74104832,
+      "programs_total": 8000,
+      "seconds_projected": 23.01153391599655,
+      "tier": "T3",
+      "within_bytes": true,
+      "within_peak_rss": true,
+      "within_seconds": true
+    },
+    {
+      "N_max": 1000,
+      "admissible": true,
+      "bytes_projected": 1055200.0,
+      "peak_rss_projected": 74104832,
+      "programs_total": 8000,
+      "seconds_projected": 14.997366815805435,
+      "tier": "T4",
+      "within_bytes": true,
+      "within_peak_rss": true,
+      "within_seconds": true
+    }
+  ],
+  "paused": false,
+  "protocol_smoke": true,
+  "s_per_program_1000": 0.0018746708519756794,
+  "s_per_program_2000": 0.0028764417394995688,
+  "selected_tier": "T1",
+  "selection_rule": "the highest tier whose projection satisfies ALL of seconds_projected <= 5400, peak_rss_projected <= 2 GiB, bytes_projected <= 200 MiB; written to budget.json BEFORE the reported grid starts",
+  "smoke": {
+    "measures_only": [
+      "wall_clock_seconds",
+      "peak_rss",
+      "output_bytes",
+      "counts"
+    ],
+    "namespace": 1,
+    "note": "effect columns are never formed into a record here and are never read; they play no part in choosing anything",
+    "peak_rss_bytes": 74104832,
+    "points": [
+      {
+        "N_max": 2000,
+        "band_evaluations": 480240,
+        "cell": "C1",
+        "enclosure_updates": 230951,
+        "enclosure_updates_per_pair": 2.8868875,
+        "enrolled_pairs": 80000,
+        "looks": 80040,
+        "programs": 10,
+        "record_bytes_measured_not_written": 1321,
+        "seconds": 0.02876441739499569,
+        "seconds_per_program": 0.0028764417394995688,
+        "trials": 40
+      },
+      {
+        "N_max": 1000,
+        "band_evaluations": 240240,
+        "cell": "C2",
+        "enclosure_updates": 115327,
+        "enclosure_updates_per_pair": 2.883175,
+        "enrolled_pairs": 40000,
+        "looks": 40040,
+        "programs": 10,
+        "record_bytes_measured_not_written": 1317,
+        "seconds": 0.018746708519756794,
+        "seconds_per_program": 0.0018746708519756794,
+        "trials": 40
+      }
+    ],
+    "protocol_smoke": true,
+    "seeds": "discarded, never reused",
+    "total_programs": 20,
+    "total_seconds": 0.04751112591475248
+  }
+}
