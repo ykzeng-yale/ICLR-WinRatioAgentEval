@@ -237,3 +237,31 @@ wherever they differ. All of the following are adopted literally; none is negoti
     another agent's multi-hour job to free my GPU is not a decision this session gets to make. The live trial
     WAITS for a quiescent host instead. This is now the binding constraint on when T4/T2/T1/T3 can run, not the
     harness, which is finished and green.
+
+# ===== REVISION 7, 2026-09-20: the gate works, and it forces a baseline-load ruling =====
+27. THE GATE WORKS AND ITS FIRST ANSWER IS "NO". Run against this host at 2026-09-20 ~04:00 UTC it reports
+    clean = False, 1,037 processes scanned, 0 degraded, and three findings:
+      pid 63657  detector llama-server   elapsed 38,839 s   the other project's 3B server
+      pid 63658  detector llama-server   elapsed 38,839 s   the other project's 7B server
+      pid 39197  detector metal-process  elapsed 31,310 s   /System/Library/PrivateFrameworks/
+                                                            MediaAnalysis.framework/.../mediaanalysisd
+    The first two are the foreign experiment the gate was built to catch. The third is an Apple SYSTEM DAEMON.
+28. RULING, made now because it must not be made after it blocks something. `mediaanalysisd` and processes like it
+    are part of the host's BASELINE, not a competing experiment, and they restart on their own, so a gate that
+    refuses on them can never pass on a normal macOS host and would quietly become a gate nobody runs.
+    THEREFORE:
+    (a) a CLOSED, frozen allowlist of OS-owned baseline daemons, identified by their absolute `/System/...` path
+        prefix and NOT by name alone, is exempt from REFUSAL. The list is frozen in the freeze bundle before any
+        trial and is never extended during or after a trial. Anything not on that list refuses, as before.
+    (b) Exemption from refusal is NOT exemption from the record. Every baseline daemon found is still written into
+        the chain at every scan, with its elapsed time and resident size, so a reader sees exactly what shared the
+        host rather than taking a bare "clean" on trust.
+    (c) Because `mediaanalysisd` does intermittent on-device machine learning, its presence is not constant-cost.
+        The scan therefore records its CPU time delta between consecutive scrapes, and any trial whose window
+        overlaps a materially active baseline daemon carries that fact beside its latency tier. This is a
+        disclosure, not a correction: no latency number is adjusted for it.
+    (d) What the gate proves is therefore: no non-baseline accelerator consumer above the resident-size floor was
+        detectable, and the baseline that was present is recorded. It does NOT prove an idle machine, and protocol
+        5.7.1 must say so in those words.
+29. CONSEQUENCE TODAY: the host is still NOT quiescent. The two foreign llama-servers have now been running
+    10 h 47 m. The live trial stays blocked on them, exactly as ruling 26 says, and I am still not killing them.
