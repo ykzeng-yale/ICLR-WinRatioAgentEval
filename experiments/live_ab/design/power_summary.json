@@ -1,0 +1,220 @@
+{
+  "pilot_episodes_flat_sha256": "1237b82f99c5ea8ad1e319e0ec45873ba85a2ff13d670d508d78ae06547bd540",
+  "pilot_episodes_jsonl_sha256": "95179f93acf72597c9b15257863ffee6acceed19414cf2b630beed62ec0effa0",
+  "winstats_sha256": "56955ce09a8ac7afb15f2bd251048537eabcc04ea75e7579bdb825594f41fc69",
+  "root_e1_counts_reproduced": [
+    69,
+    18,
+    208
+  ],
+  "pilot_success": {
+    "single_shot": 433,
+    "self_test_repair": 433
+  },
+  "pilot_same_task_discordant": {
+    "ss_only": 40,
+    "str_only": 40
+  },
+  "predictive_se_success_diff": 0.015134131827409745,
+  "population_targets_cross_task": {
+    "T1": {
+      "p_win": 0.7090166050073131,
+      "p_tie": 0.0787949181221142,
+      "p_loss": 0.2121884768705727,
+      "net_benefit": 0.4968281281367404,
+      "success_diff": 0.0,
+      "p_succdiff_pos": 0.19608821589377384,
+      "p_succdiff_neg": 0.19608821589377384
+    },
+    "T2": {
+      "p_win": 0.2121884768705727,
+      "p_tie": 0.0787949181221142,
+      "p_loss": 0.7090166050073131,
+      "net_benefit": -0.4968281281367404,
+      "success_diff": 0.0,
+      "p_succdiff_pos": 0.19608821589377384,
+      "p_succdiff_neg": 0.19608821589377384
+    },
+    "T4": {
+      "p_win": 0.44282600590782645,
+      "p_tie": 0.11434798818434713,
+      "p_loss": 0.44282600590782645,
+      "net_benefit": 0.0,
+      "success_diff": 0.0,
+      "p_succdiff_pos": 0.19620293097020275,
+      "p_succdiff_neg": 0.19620293097020275
+    }
+  },
+  "guard_oracle": [
+    {
+      "delta": 0.03,
+      "alpha_scheme": "nosplit_iut",
+      "alpha_guard": 0.05,
+      "oracle_growth_per_pair": 0.001147991679391165,
+      "oracle_lambda": 0.07648419248999896,
+      "pairs_oracle": 2609.541800113718,
+      "pairs_grid_mixture_upper": 5822.87471910345
+    },
+    {
+      "delta": 0.03,
+      "alpha_scheme": "deploy_bonf2",
+      "alpha_guard": 0.025,
+      "oracle_growth_per_pair": 0.001147991679391165,
+      "oracle_lambda": 0.07648419248999896,
+      "pairs_oracle": 3213.3329189897318,
+      "pairs_grid_mixture_upper": 6426.6658379794635
+    },
+    {
+      "delta": 0.03,
+      "alpha_scheme": "twosided_equal",
+      "alpha_guard": 0.025,
+      "oracle_growth_per_pair": 0.001147991679391165,
+      "oracle_lambda": 0.07648419248999896,
+      "pairs_oracle": 3213.3329189897318,
+      "pairs_grid_mixture_upper": 6426.6658379794635
+    },
+    {
+      "delta": 0.03,
+      "alpha_scheme": "bonf3",
+      "alpha_guard": 0.016666666666666666,
+      "oracle_growth_per_pair": 0.001147991679391165,
+      "oracle_lambda": 0.07648419248999896,
+      "pairs_oracle": 3566.528081800669,
+      "pairs_grid_mixture_upper": 6779.861000790401
+    },
+    {
+      "delta": 0.05,
+      "alpha_scheme": "nosplit_iut",
+      "alpha_guard": 0.05,
+      "oracle_growth_per_pair": 0.003185364482560302,
+      "oracle_lambda": 0.12717031113577446,
+      "pairs_oracle": 940.4676576120136,
+      "pairs_grid_mixture_upper": 2098.539041376839
+    },
+    {
+      "delta": 0.05,
+      "alpha_scheme": "deploy_bonf2",
+      "alpha_guard": 0.025,
+      "oracle_growth_per_pair": 0.003185364482560302,
+      "oracle_lambda": 0.12717031113577446,
+      "pairs_oracle": 1158.0713837648254,
+      "pairs_grid_mixture_upper": 2316.142767529651
+    },
+    {
+      "delta": 0.05,
+      "alpha_scheme": "twosided_equal",
+      "alpha_guard": 0.025,
+      "oracle_growth_per_pair": 0.003185364482560302,
+      "oracle_lambda": 0.12717031113577446,
+      "pairs_oracle": 1158.0713837648254,
+      "pairs_grid_mixture_upper": 2316.142767529651
+    },
+    {
+      "delta": 0.05,
+      "alpha_scheme": "bonf3",
+      "alpha_guard": 0.016666666666666666,
+      "oracle_growth_per_pair": 0.003185364482560302,
+      "oracle_lambda": 0.12717031113577446,
+      "pairs_oracle": 1285.361403581416,
+      "pairs_grid_mixture_upper": 2443.4327873462416
+    },
+    {
+      "delta": 0.1,
+      "alpha_scheme": "nosplit_iut",
+      "alpha_guard": 0.05,
+      "oracle_growth_per_pair": 0.01268048336623583,
+      "oracle_lambda": 0.25184645063311656,
+      "pairs_oracle": 236.24748261022063,
+      "pairs_grid_mixture_upper": 527.1574856102853
+    },
+    {
+      "delta": 0.1,
+      "alpha_scheme": "deploy_bonf2",
+      "alpha_guard": 0.025,
+      "oracle_growth_per_pair": 0.01268048336623583,
+      "oracle_lambda": 0.25184645063311656,
+      "pairs_oracle": 290.91000300006476,
+      "pairs_grid_mixture_upper": 581.8200060001295
+    },
+    {
+      "delta": 0.1,
+      "alpha_scheme": "twosided_equal",
+      "alpha_guard": 0.025,
+      "oracle_growth_per_pair": 0.01268048336623583,
+      "oracle_lambda": 0.25184645063311656,
+      "pairs_oracle": 290.91000300006476,
+      "pairs_grid_mixture_upper": 581.8200060001295
+    },
+    {
+      "delta": 0.1,
+      "alpha_scheme": "bonf3",
+      "alpha_guard": 0.016666666666666666,
+      "oracle_growth_per_pair": 0.01268048336623583,
+      "oracle_lambda": 0.25184645063311656,
+      "pairs_oracle": 322.88552762302913,
+      "pairs_grid_mixture_upper": 613.7955306230939
+    },
+    {
+      "delta": 0.15,
+      "alpha_scheme": "nosplit_iut",
+      "alpha_guard": 0.05,
+      "oracle_growth_per_pair": 0.028336108283476394,
+      "oracle_lambda": 0.37324324208148546,
+      "pairs_oracle": 105.72137301228797,
+      "pairs_grid_mixture_upper": 235.90436840495553
+    },
+    {
+      "delta": 0.15,
+      "alpha_scheme": "deploy_bonf2",
+      "alpha_guard": 0.025,
+      "oracle_growth_per_pair": 0.028336108283476394,
+      "oracle_lambda": 0.37324324208148546,
+      "pairs_oracle": 130.18299539266755,
+      "pairs_grid_mixture_upper": 260.3659907853351
+    },
+    {
+      "delta": 0.15,
+      "alpha_scheme": "twosided_equal",
+      "alpha_guard": 0.025,
+      "oracle_growth_per_pair": 0.028336108283476394,
+      "oracle_lambda": 0.37324324208148546,
+      "pairs_oracle": 130.18299539266755,
+      "pairs_grid_mixture_upper": 260.3659907853351
+    },
+    {
+      "delta": 0.15,
+      "alpha_scheme": "bonf3",
+      "alpha_guard": 0.016666666666666666,
+      "oracle_growth_per_pair": 0.028336108283476394,
+      "oracle_lambda": 0.37324324208148546,
+      "pairs_oracle": 144.492127191991,
+      "pairs_grid_mixture_upper": 274.67512258465854
+    }
+  ],
+  "base_seed": 20260919,
+  "workers": 2,
+  "rho": 100.0,
+  "alpha": 0.05,
+  "schemes": {
+    "nosplit_iut": [
+      0.05,
+      0.05,
+      0.05
+    ],
+    "deploy_bonf2": [
+      0.025,
+      0.025,
+      0.05
+    ],
+    "twosided_equal": [
+      0.025,
+      0.025,
+      0.025
+    ],
+    "bonf3": [
+      0.016666666666666666,
+      0.016666666666666666,
+      0.016666666666666666
+    ]
+  }
+}

@@ -1,0 +1,201 @@
+{
+  "alias": "t3-candidate",
+  "count_cancelled_tokens": true,
+  "defaults": {
+    "chat_format": "Content-only",
+    "dynatemp_exponent": 1.0,
+    "dynatemp_range": 0.0,
+    "ignore_eos": false,
+    "n_keep": 0,
+    "samplers": [
+      "penalties",
+      "top_k",
+      "top_p",
+      "min_p",
+      "temperature"
+    ]
+  },
+  "faults": [],
+  "latency_model": "tokens / (rate / max(1, active_slots))",
+  "outcome_seed": 20260919,
+  "outcomes": {
+    "self_test_repair": {
+      "p_good": 0.55,
+      "p_repair_fixes": 0.25,
+      "p_selftest_fails": 0.4
+    },
+    "single_shot": {
+      "p_good": 0.55
+    }
+  },
+  "props": {
+    "build_info": "b6000-4fea119d",
+    "chat_template_sha256": "df2eb65e106cd90716afdd73945f032a2e9186b178215f525d1f2a4b683a59b3",
+    "default_generation_settings": {
+      "n_ctx": 8192,
+      "params": {
+        "chat_format": "Content-only",
+        "dynatemp_exponent": 1.0,
+        "dynatemp_range": 0.0,
+        "frequency_penalty": 0.0,
+        "ignore_eos": false,
+        "min_p": 0.0,
+        "mirostat": 0,
+        "n_keep": 0,
+        "n_predict": 1024,
+        "presence_penalty": 0.0,
+        "repeat_penalty": 1.0,
+        "samplers": [
+          "penalties",
+          "top_k",
+          "top_p",
+          "min_p",
+          "temperature"
+        ],
+        "temperature": 0.7,
+        "top_k": 0,
+        "top_p": 0.95,
+        "typical_p": 1.0
+      }
+    },
+    "model_alias": "t3-candidate",
+    "model_path": "<HF_CACHE>/granite-3.3-8b-instruct-Q4_K_M.gguf",
+    "n_ctx": 8192,
+    "slot_prompt_similarity": 0.0,
+    "total_slots": 2
+  },
+  "rate_tokens_per_s": 2000000.0,
+  "tasks": [
+    {
+      "benchmark": "mbpp",
+      "challenge_test_list": [],
+      "entry_point": "add_two",
+      "prompt": "Write a function add_two that returns the sum of two numbers.",
+      "reference": "def add_two(a, b):\n    return a + b\n",
+      "test_imports": [],
+      "test_list": [
+        "assert add_two(1, 2) == 3",
+        "assert add_two(-1, 1) == 0"
+      ],
+      "uid": "mbpp/12"
+    },
+    {
+      "benchmark": "mbpp",
+      "challenge_test_list": [],
+      "entry_point": "triple",
+      "prompt": "Write a function triple that multiplies its argument by three.",
+      "reference": "def triple(n):\n    return 3 * n\n",
+      "test_imports": [],
+      "test_list": [
+        "assert triple(2) == 6",
+        "assert triple(0) == 0"
+      ],
+      "uid": "mbpp/14"
+    },
+    {
+      "benchmark": "mbpp",
+      "challenge_test_list": [],
+      "entry_point": "last_item",
+      "prompt": "Write a function last_item that returns the last element of a list.",
+      "reference": "def last_item(xs):\n    return xs[-1]\n",
+      "test_imports": [],
+      "test_list": [
+        "assert last_item([1, 2, 3]) == 3"
+      ],
+      "uid": "mbpp/18"
+    },
+    {
+      "benchmark": "mbpp",
+      "challenge_test_list": [],
+      "entry_point": "is_even",
+      "prompt": "Write a function is_even that reports whether an integer is even.",
+      "reference": "def is_even(n):\n    return n % 2 == 0\n",
+      "test_imports": [],
+      "test_list": [
+        "assert is_even(4) is True",
+        "assert is_even(3) is False"
+      ],
+      "uid": "mbpp/20"
+    },
+    {
+      "benchmark": "mbpp",
+      "challenge_test_list": [],
+      "entry_point": "count_chars",
+      "prompt": "Write a function count_chars that returns the length of a string.",
+      "reference": "def count_chars(s):\n    return len(s)\n",
+      "test_imports": [],
+      "test_list": [
+        "assert count_chars(\"abc\") == 3"
+      ],
+      "uid": "mbpp/22"
+    },
+    {
+      "benchmark": "mbpp",
+      "challenge_test_list": [],
+      "entry_point": "square",
+      "prompt": "Write a function square that returns the square of a number.",
+      "reference": "def square(n):\n    return n * n\n",
+      "test_imports": [],
+      "test_list": [
+        "assert square(3) == 9"
+      ],
+      "uid": "mbpp/24"
+    },
+    {
+      "benchmark": "mbpp",
+      "challenge_test_list": [],
+      "entry_point": "join_words",
+      "prompt": "Write a function join_words that joins a list of words with single spaces.",
+      "reference": "def join_words(ws):\n    return \" \".join(ws)\n",
+      "test_imports": [],
+      "test_list": [
+        "assert join_words([\"a\", \"b\"]) == \"a b\""
+      ],
+      "uid": "mbpp/26"
+    },
+    {
+      "benchmark": "mbpp",
+      "challenge_test_list": [],
+      "entry_point": "negate",
+      "prompt": "Write a function negate that returns the negation of a number.",
+      "reference": "def negate(n):\n    return -n\n",
+      "test_imports": [],
+      "test_list": [
+        "assert negate(5) == -5"
+      ],
+      "uid": "mbpp/28"
+    },
+    {
+      "benchmark": "mbpp",
+      "challenge_test_list": [],
+      "entry_point": "first_item",
+      "prompt": "Write a function first_item that returns the first element of a list.",
+      "reference": "def first_item(xs):\n    return xs[0]\n",
+      "test_imports": [],
+      "test_list": [
+        "assert first_item([7, 8]) == 7"
+      ],
+      "uid": "mbpp/30"
+    },
+    {
+      "benchmark": "mbpp",
+      "challenge_test_list": [],
+      "entry_point": "double",
+      "prompt": "Write a function double that multiplies its argument by two.",
+      "reference": "def double(n):\n    return 2 * n\n",
+      "test_imports": [],
+      "test_list": [
+        "assert double(4) == 8"
+      ],
+      "uid": "mbpp/32"
+    }
+  ],
+  "tokens": {
+    "completion_code": 180,
+    "completion_repair": 200,
+    "completion_smoke": 2,
+    "completion_tests": 60,
+    "prompt_per_char": 0.25
+  },
+  "total_slots": 2
+}

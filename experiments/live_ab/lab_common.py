@@ -1,0 +1,460 @@
+"""live_ab foundation: paths, canonical JSON, hashing, durable writes, freeze bundle.
+
+Group G1.  Standard library only (ARCHITECTURE_FINAL.md 3.1 / 3.16): this module must be
+importable by the monitor, the verifier and the builder without dragging the pilot's path
+shim into them, so it deliberately does not import experiments/local_stream/common.py.
+
+Every public name below is specified in ARCHITECTURE_FINAL.md section 3.1.
+"""
+from __future__ import annotations
+
+import fcntl
+import hashlib
+import json
+import os
+import platform
+import re
+import subprocess
+import sys
+import tempfile
+import time
+from dataclasses import dataclass
+from pathlib import Path
+
+# ---- paths (module constants, all absolute, computed once) -----------------
+HERE: Path = Path(__file__).resolve().parent
+REPO_ROOT: Path = HERE.parents[1]
+SRC_DIR: Path = REPO_ROOT / 'src'
+LS_DIR: Path = REPO_ROOT / 'experiments' / 'local_stream'
+RESULTS_ROOT: Path = REPO_ROOT / 'results' / 'live_ab'
+WORK_ROOT: Path = REPO_ROOT / 'work' / 'live_ab'
+FREEZE_DIR: Path = RESULTS_ROOT / 'freeze'
+PROGRAM_CHAIN_ID: str = '_program'
+PREFREEZE_CHAIN_ID: str = '_prefreeze'
+TRIALS: tuple[str, ...] = ('T4', 'T2', 'T1', 'T3')     # execution order, frozen
+ARMS: tuple[str, str] = ('incumbent', 'candidate')
+
+
+def add_import_paths() -> None:
+    """Insert LS_DIR and SRC_DIR at the front of sys.path (idempotent).
+    Side effect: mutates sys.path. ONLY lab_data, lab_worker and lab_client may call it."""
+    for d in (str(SRC_DIR), str(LS_DIR)):
+        if d in sys.path:
+            sys.path.remove(d)
+        sys.path.insert(0, d)
+
+
+@dataclass(frozen=True)
+class TrialPaths:
+    trial: str
+    results: Path
+    events: Path
+    anchors: Path
+    work: Path
+    jobs: Path
+    spools: Path
+    records: Path
+    requests: Path
+    anchor_spool: Path
+    anchors_private: Path
+    logs: Path
+    run_lock: Path
+    sandbox_lock: Path
+
+    def mkdirs(self) -> None:
+        """Side effect: creates every directory of this trial, mode 0o755."""
+        for d in (self.results, self.events, self.anchors, self.work, self.jobs,
+                  self.spools, self.records, self.requests, self.anchor_spool,
+                  self.anchors_private, self.logs):
+            d.mkdir(parents=True, exist_ok=True, mode=0o755)
+
+
+def trial_paths(trial: str) -> TrialPaths:
+    """The directory layout of one chain id (a trial, '_program' or '_prefreeze')."""
+    if not isinstance(trial, str) or not trial:
+        raise ValueError('trial must be a non-empty string')
+    results = RESULTS_ROOT / trial
+    work = WORK_ROOT / trial
+    return TrialPaths(
+        trial=trial,
+        results=results,
+        events=results / 'events',
+        anchors=results / 'anchors',
+        work=work,
+        jobs=work / 'jobs',
+        spools=work / 'spools',
+        records=work / 'records',
+        requests=work / 'requests',
+        anchor_spool=work / 'anchor_spool',
+        anchors_private=work / 'anchors_private',
+        logs=work / 'logs',
+        run_lock=work / 'run.lock',
+        sandbox_lock=work / 'sandbox.lock',
+    )
+
+
+def _token_roots() -> list[tuple[str, str]]:
+    """(prefix string, token) pairs, longest prefix first.  Both the nominal and the
+    realpath form of each root is offered, because macOS resolves /tmp and /var through
+    /private."""
+    raw: list[tuple[Path, str]] = [
+        (WORK_ROOT, '<WORK>'),
+        (RESULTS_ROOT, '<RESULTS>'),
+        (REPO_ROOT, '<REPO>'),
+        (Path.home(), '<HOME>'),
+        (Path(tempfile.gettempdir()), '<TMP>'),
+    ]
+    out: list[tuple[str, str]] = []
+    for p, tok in raw:
+        for s in {str(p), os.path.realpath(str(p))}:
+            out.append((s.rstrip('/'), tok))
+    out.sort(key=lambda kv: len(kv[0]), reverse=True)
+    return out
+
+
+def tokenize_path(p: str | Path) -> str:
+    """'<repo>/work/live_ab/T1/records/ab.json' -> '<WORK>/T1/records/ab.json'.
+
+    Replaces, longest prefix first: WORK_ROOT -> '<WORK>', RESULTS_ROOT -> '<RESULTS>',
+    REPO_ROOT -> '<REPO>', Path.home() -> '<HOME>', tempfile.gettempdir() -> '<TMP>'.
+    A path that matches none of these raises UntokenizablePath."""
+    s = str(p)
+    for prefix, tok in _token_roots():
+        if s == prefix:
+            return tok
+        if s.startswith(prefix + '/'):
+            rest = s[len(prefix) + 1:]
+            return tok + '/' + rest if rest else tok
+    raise UntokenizablePath(str(p))
+
+
+# ---- canonical JSON and hashing -------------------------------------------
+def canonical_json(obj: object) -> str:
+    """json.dumps(obj, sort_keys=True, separators=(',', ':'), ensure_ascii=False,
+    allow_nan=False).  Raises ValueError (from json) on NaN/Inf.  Floats serialize
+    through repr() as CPython does."""
+    return json.dumps(obj, sort_keys=True, separators=(',', ':'), ensure_ascii=False,
+                      allow_nan=False)
+
+
+def sha256_bytes(b: bytes) -> str:
+    return hashlib.sha256(b).hexdigest()
+
+
+def sha256_text(s: str) -> str:
+    return hashlib.sha256(s.encode('utf-8')).hexdigest()
+
+
+def sha256_file(p: str | Path) -> str:
+    h = hashlib.sha256()
+    with open(p, 'rb') as fh:
+        while True:
+            chunk = fh.read(1 << 20)
+            if not chunk:
+                break
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def sha256_canonical(obj: object) -> str:
+    return sha256_text(canonical_json(obj))
+
+
+# ---- durable writes --------------------------------------------------------
+def fullsync(fd: int) -> None:
+    """fcntl.fcntl(fd, fcntl.F_FULLFSYNC) on darwin when available, else os.fsync(fd).
+    macOS os.fsync() does NOT flush the drive cache; F_FULLFSYNC does."""
+    f_fullfsync = getattr(fcntl, 'F_FULLFSYNC', None)
+    if sys.platform == 'darwin' and f_fullfsync is not None:
+        try:
+            fcntl.fcntl(fd, f_fullfsync)
+            return
+        except OSError:
+            pass
+    os.fsync(fd)
+
+
+def _fullsync_dir(d: Path) -> None:
+    fd = os.open(str(d), os.O_RDONLY)
+    try:
+        fullsync(fd)
+    finally:
+        os.close(fd)
+
+
+def write_json_atomic(path: Path, obj: object, *, durable: bool = True) -> str:
+    """Write canonical_json(obj) to <path>.tmp, fullsync, os.replace, fullsync the
+    directory.  Returns the sha256 of the bytes written.  Raises WriteOnceViolation if
+    path exists and its bytes differ."""
+    path = Path(path)
+    data = canonical_json(obj).encode('utf-8')
+    digest = sha256_bytes(data)
+    if path.exists():
+        existing = path.read_bytes()
+        if existing == data:
+            return digest
+        raise WriteOnceViolation(
+            f'{tokenize_path(path)} exists with sha256 {sha256_bytes(existing)}, '
+            f'refusing to overwrite with {digest}')
+    tmp = path.with_name(path.name + '.tmp')
+    fd = os.open(str(tmp), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o644)
+    try:
+        written = os.write(fd, data)
+        if written != len(data):
+            raise TornWrite(f'{written} of {len(data)} bytes written to {tokenize_path(tmp)}')
+        if durable:
+            fullsync(fd)
+    finally:
+        os.close(fd)
+    os.replace(str(tmp), str(path))
+    if durable:
+        _fullsync_dir(path.parent)
+    return digest
+
+
+def append_line_durable(fd: int, line: str, *, durable: bool) -> int:
+    """One os.write of (line + '\\n').encode('utf-8') on an O_APPEND descriptor; fullsync
+    when durable.  Returns bytes written.  Partial writes raise TornWrite."""
+    if '\n' in line:
+        raise TornWrite('a chain line may not contain a newline')
+    data = (line + '\n').encode('utf-8')
+    n = os.write(fd, data)
+    if n != len(data):
+        raise TornWrite(f'partial write: {n} of {len(data)} bytes')
+    if durable:
+        fullsync(fd)
+    return n
+
+
+# ---- environment provenance ------------------------------------------------
+def _sysctl(name: str) -> str:
+    try:
+        out = subprocess.run(['sysctl', '-n', name], capture_output=True, timeout=10)
+    except (OSError, subprocess.SubprocessError):
+        return ''
+    if out.returncode != 0:
+        return ''
+    return out.stdout.decode('utf-8', 'replace').strip()
+
+
+def hardware_info() -> dict:
+    """Host provenance in a form the event-schema string discipline accepts: the CPU brand
+    string is carried as a digest, never as free text."""
+    brand = _sysctl('machdep.cpu.brand_string')
+    memsize = _sysctl('hw.memsize')
+    ncpu = _sysctl('hw.ncpu')
+    return {
+        'platform': sys.platform,
+        'machine': platform.machine(),
+        'os_version': platform.release(),
+        'cpu_brand_sha256': sha256_text(brand),
+        'memsize_bytes': int(memsize) if memsize.isdigit() else 0,
+        'ncpu': int(ncpu) if ncpu.isdigit() else (os.cpu_count() or 0),
+    }
+
+
+def package_versions() -> dict:
+    """Version strings of the four permitted third-party packages plus python."""
+    import importlib.metadata as md
+    out: dict = {'python': platform.python_version()}
+    for name in ('numpy', 'scipy', 'pandas', 'requests'):
+        try:
+            out[name] = md.version(name)
+        except Exception:
+            out[name] = '0'
+    return out
+
+
+def boottime_hash() -> str:
+    """sha256 of `sysctl -n kern.boottime` output; '' off darwin."""
+    if sys.platform != 'darwin':
+        return ''
+    raw = _sysctl('kern.boottime')
+    return sha256_text(raw) if raw else ''
+
+
+def process_rss_bytes(pattern: str) -> list[dict]:
+    """[{'pid': int, 'rss_bytes': int}] for every process whose command matches `pattern`.
+    The command text itself is never returned (string discipline)."""
+    try:
+        out = subprocess.run(['ps', '-axo', 'pid=,rss=,command='],
+                             capture_output=True, timeout=15)
+    except (OSError, subprocess.SubprocessError):
+        return []
+    rows: list[dict] = []
+    for line in out.stdout.decode('utf-8', 'replace').splitlines():
+        parts = line.strip().split(None, 2)
+        if len(parts) < 3 or not parts[0].isdigit() or not parts[1].isdigit():
+            continue
+        if pattern in parts[2]:
+            rows.append({'pid': int(parts[0]), 'rss_bytes': int(parts[1]) * 1024})
+    rows.sort(key=lambda r: r['pid'])
+    return rows
+
+
+# ---- freeze bundle ---------------------------------------------------------
+FREEZE_BUNDLE_KEYS: tuple[str, ...] = (
+    'protocol_version', 'config_sha256', 'rule_block_sha256', 'roster_sha256',
+    'task_content_sha256', 'arrival_order_sha256', 'protocol_sha256', 'run_book_sha256',
+    'harness_file_sha256', 'reused_file_sha256', 'winstats_sha256', 'gguf_sha256',
+    'license_evidence_sha256', 'serving_manifest_sha256', 'golden_props_sha256',
+    'golden_generation_settings_sha256', 'receipt_mask_sha256', 'sandbox_profile_sha256',
+    'containment_probe_sha256', 'prefreeze_head', 'prefreeze_bytes', 'prefreeze_file_sha256',
+    'derivation_sha256', 'planning_sha256', 'environment_lock_sha256', 'hardware_allowlist')
+
+
+def _harness_files() -> tuple[str, ...]:
+    names = sorted(p.name for p in HERE.glob('*.py'))
+    if (HERE / 'config.json').exists():
+        names.append('config.json')
+    return tuple(sorted(names))
+
+
+HARNESS_FILES: tuple[str, ...] = _harness_files()
+REUSED_FILES: tuple[str, ...] = ('agent.py', 'sandbox.py', 'verify.py', 'data.py', 'common.py')
+
+
+def _walk_for_holes(obj: object, path: str, out: list[str]) -> None:
+    if obj is None:
+        out.append(path or '<root>')
+    elif isinstance(obj, str):
+        if obj == 'unknown':
+            out.append(path or '<root>')
+    elif isinstance(obj, dict):
+        for k in sorted(obj):
+            _walk_for_holes(obj[k], f'{path}.{k}' if path else str(k), out)
+    elif isinstance(obj, (list, tuple)):
+        for i, v in enumerate(obj):
+            _walk_for_holes(v, f'{path}[{i}]', out)
+
+
+def build_freeze_bundle(parts: dict) -> dict:
+    """[pure] Validate that parts.keys() == set(FREEZE_BUNDLE_KEYS) exactly (no extras, no
+    missing, no None, no 'unknown' anywhere in the tree) and return the canonicalised
+    object.  Raises FreezeIncomplete naming every offending key."""
+    if not isinstance(parts, dict):
+        raise FreezeIncomplete('freeze bundle parts must be a dict')
+    want = set(FREEZE_BUNDLE_KEYS)
+    have = set(parts)
+    missing = sorted(want - have)
+    extra = sorted(have - want)
+    holes: list[str] = []
+    _walk_for_holes({k: parts[k] for k in sorted(have & want)}, '', holes)
+    if missing or extra or holes:
+        raise FreezeIncomplete(canonical_json(
+            {'missing': missing, 'extra': extra, 'null_or_unknown': sorted(holes)}))
+    return json.loads(canonical_json(parts))
+
+
+def freeze_bundle_sha256(bundle: dict) -> str:
+    """[pure] The genesis anchor value of the program chain and of the four trial chains."""
+    return sha256_canonical(bundle)
+
+
+def harness_file_hashes() -> dict[str, str]:
+    """sha256 of every HARNESS_FILES entry, keyed by bare file name."""
+    return {name: sha256_file(HERE / name) for name in HARNESS_FILES}
+
+
+RULE_BLOCK_KEYS: tuple[str, ...] = (
+    'rule_id', 'trials', 'execution_order', 'monitor', 'hierarchy', 'eligibility_rule',
+    'tie_rule', 'enclosure', 'coin', 'seed_rule', 'roster.strata', 'roster.exclusion_rules',
+    'roster.pairing', 'roster.n_pairs_rule', 'design_seed_base', 'execution.max_attempts',
+    'execution.auto_abort', 'plumbing_fail_conditions', 'integrity_label_rule')
+
+
+def _dotted(cfg: dict, dotted: str) -> object:
+    node: object = cfg
+    for part in dotted.split('.'):
+        if not isinstance(node, dict) or part not in node:
+            raise FrozenMismatch(f'config is missing the rule-block key {dotted!r}')
+        node = node[part]
+    return node
+
+
+def rule_block_sha256(config: dict) -> str:
+    """[pure] sha256 over the canonical JSON of the decision-defining subset of the config
+    (ARCHITECTURE_FINAL.md 6.2 'rule block' == protocol Appendix B).  Everything outside
+    this key list may be pinned in the pre-freeze phase without changing the hash."""
+    if not isinstance(config, dict):
+        raise FrozenMismatch('config must be a dict')
+    block = {k: _dotted(config, k) for k in RULE_BLOCK_KEYS}
+    return sha256_canonical(block)
+
+
+# ---- exception taxonomy (every module raises only from this tree) ----------
+class LabError(Exception):
+    """Root of the live_ab exception taxonomy.  No module raises a bare Exception."""
+
+
+class FreezeIncomplete(LabError): ...
+
+
+class FrozenMismatch(LabError):
+    """A hash, a tier table or a frozen constant differs from the bundle."""
+
+
+class UntokenizablePath(LabError): ...
+
+
+class WriteOnceViolation(LabError): ...
+
+
+class TornWrite(LabError): ...
+
+
+class ChainError(LabError):
+    """Any hash-chain or ordering violation."""
+
+
+class SchemaError(LabError):
+    """An event body violates the schema or the string discipline."""
+
+
+class SpoolError(LabError): ...
+
+
+class EnclosureError(LabError):
+    """An enclosure widened, or is empty, or is outside [-1, 1]."""
+
+
+class MonitorError(LabError): ...
+
+
+class ReceiptMismatch(LabError): ...
+
+
+class ServerIdentityError(LabError): ...
+
+
+class PreflightError(LabError): ...
+
+
+class VerifyFailure(LabError):
+    """The verifier's own FAIL; carries the list of findings."""
+
+    def __init__(self, message: str, findings: list | None = None) -> None:
+        super().__init__(message)
+        self.findings = list(findings or [])
+
+
+class AbortTrial(LabError):
+    reason: str
+
+    def __init__(self, reason: str) -> None:
+        super().__init__(reason)
+        self.reason = reason
+
+
+class PauseTrial(LabError):
+    reason: str
+
+    def __init__(self, reason: str) -> None:
+        super().__init__(reason)
+        self.reason = reason
+
+
+# Helpers shared with lab_eventlog's string discipline (PG-11 / protocol 12.2 form (c)).
+PATH_TOKENS: tuple[str, ...] = ('<WORK>', '<HF_CACHE>', '<LLAMA_BUILD>', '<RESULTS>',
+                                '<REPO>', '<HOME>', '<TMP>', '<REMOTE>')
+UID_RE = re.compile(r'^(mbpp|mbpp_full|humaneval)/[0-9]+$')

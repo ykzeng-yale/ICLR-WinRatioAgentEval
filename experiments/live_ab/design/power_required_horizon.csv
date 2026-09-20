@@ -1,0 +1,17 @@
+trial,design,resample,method,alpha_scheme,delta,min_n,reps,max_horizon_pairs,p_deploy_by_max_horizon,pairs_for_power_50,pairs_for_power_80,pairs_for_power_90
+T1,pair_coin,boot,betting,nosplit_iut,0.03,20,2000,8000,0.9105,3658.5,6136.0,7735.200000000004
+T1,pair_coin,boot,betting,nosplit_iut,0.05,20,2000,8000,1.0,1298.0,2274.2,2863.600000000001
+T1,pair_coin,boot,betting,nosplit_iut,0.1,20,2000,8000,1.0,337.0,567.0,705.1000000000001
+T1,pair_coin,boot,betting,nosplit_iut,0.15,20,2000,8000,1.0,158.0,259.0,322.0
+T1,pair_coin,boot,betting,deploy_bonf2,0.03,20,2000,8000,0.864,4301.5,7091.4,
+T1,pair_coin,boot,betting,deploy_bonf2,0.05,20,2000,8000,1.0,1548.0,2590.8,3190.1000000000004
+T1,pair_coin,boot,betting,deploy_bonf2,0.1,20,2000,8000,1.0,399.0,647.2,797.1000000000001
+T1,pair_coin,boot,betting,deploy_bonf2,0.15,20,2000,8000,1.0,188.0,295.0,367.10000000000014
+T1,pair_coin,boot,betting,twosided_equal,0.03,20,2000,8000,0.864,4301.5,7091.4,
+T1,pair_coin,boot,betting,twosided_equal,0.05,20,2000,8000,1.0,1548.0,2590.8,3190.1000000000004
+T1,pair_coin,boot,betting,twosided_equal,0.1,20,2000,8000,1.0,399.0,647.2,797.1000000000001
+T1,pair_coin,boot,betting,twosided_equal,0.15,20,2000,8000,1.0,188.0,295.0,367.10000000000014
+T1,pair_coin,boot,betting,bonf3,0.03,20,2000,8000,0.833,4769.5,7537.4,
+T1,pair_coin,boot,betting,bonf3,0.05,20,2000,8000,1.0,1705.5,2740.0,3360.2000000000003
+T1,pair_coin,boot,betting,bonf3,0.1,20,2000,8000,1.0,436.0,702.4000000000001,847.0
+T1,pair_coin,boot,betting,bonf3,0.15,20,2000,8000,1.0,202.0,318.0,394.0
