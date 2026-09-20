@@ -2,6 +2,10 @@
 
 Effective September 19, 2026, following the author's instruction: **do not open new pull requests for this project.** Verified changes are committed directly to `main`. Review continues through exact commit links, issue comments and versioned review reports; the GitHub PR form is not a prerequisite.
 
+## Commit identity
+
+The author requests **Yukang Zeng <ykzeng2019@gmail.com>** for both Git author and committer identity in this project (September 20, 2026). Set repository-local `user.name` and `user.email` in each separately owned checkout and verify both identities before committing; do not add OpenAI/Codex co-author trailers. This concerns Git attribution, not removal of scientific AI-use disclosures. The authenticated GitHub account currently resolves to `ykzeng-yale`; a local Git identity setting does not rename that account. `.mailmap` canonicalizes the two existing historical identity forms in tools that honor mailmaps, without rewriting immutable commits, experiment pins or existing links. Original commit metadata remains intact.
+
 ## Coordination without conflicting writes
 
 1. Each external worker keeps its named issue, exclusive directories and isolated working branch. Completed, checked work in those owned directories may be integrated directly into `main`, with the exact hash, changed paths, manifests and reproducible command posted in the issue. Branches and timestamp-anchor commits remain useful for unfinished work; they do not require pull requests.
