@@ -206,3 +206,34 @@ wherever they differ. All of the following are adopted literally; none is negoti
         fixes. The differences are in the 11th decimal place, consistent with the corrected betting capital.
     All three are session-60-owned files, and in each case the merge moved main FORWARD to the corrected version
     rather than reverting anything. That is still a change I failed to disclose, and the root found it first.
+
+# ===== REVISION 6, 2026-09-20 02:20 UTC: host contention is real, and it blocks trial execution =====
+23. FINDING (measured, not hypothetical). Two `llama-server` processes have been running on the serving host for
+    8h34m (PIDs 63657, 63658; started 2026-09-19 13:41:11), serving Qwen2.5-3B-Instruct on port 8193 and
+    Qwen2.5-7B-Instruct on port 8191, both with `-ngl 99 -np 4 -c 32768`, together holding about 7.7 GB RSS and
+    actively processing (`/slots` shows `is_processing: true`). They are NOT mine and NOT part of this program.
+    They are driven by a python client (PID 15720) whose working directory is
+    `/Users/yukangzengcmac/DTR-AgentEvals/experiments/code_routing`, running `run.py --stage branch
+    --allow-contention` under a different Claude Code session on a DIFFERENT project.
+24. CONSEQUENCE FOR live_ab, and it is material. The frozen hierarchy is success > cost, and cost is `latency_s`.
+    The pilot shows the two arms tie on success (433/591 each), so essentially the whole composite effect is
+    carried by the LATENCY tier. Latency measured while another project saturates the same GPU is not a
+    measurement of the two workflows; it is a measurement of whatever that project happened to be doing. The root
+    guidance anticipated exactly this: "Shared serving contention or adaptive schedulers do not disappear merely
+    because assignment coins are fair: isolate resources where feasible and log the fixed scheduling/resource
+    policy and all concurrent load." Protocol 5.7 already requires "no other GPU job", but the harness's exclusive
+    lock file only excludes a SECOND INSTANCE OF THIS HARNESS; nothing detects a FOREIGN GPU consumer.
+25. REQUIRED BEFORE THE FREEZE (new pre-freeze item, added to the hardening list of ruling 20):
+    (a) a preflight HOST QUIESCENCE GATE that enumerates foreign GPU consumers (any `llama-server`, `mlx_lm`,
+        `ollama`, `python` holding a Metal context that this harness did not start) and REFUSES to start a trial
+        while one is present, naming it in the refusal;
+    (b) the same check repeated at every quiescent scrape during a trial, emitting a logged
+        `foreign_load_detected` event with the offending command line; contention that appears mid-trial does not
+        void the randomization, but it is disclosed per trial and per arm, and the latency tier is reported with
+        that caveat attached;
+    (c) the refusal and the mid-trial event are both chain events, so a reader can see that the host was clean.
+26. WHAT I WILL NOT DO: I will not kill or throttle the other project's processes. They belong to a different
+    repository and a different session, that session passed `--allow-contention` deliberately, and terminating
+    another agent's multi-hour job to free my GPU is not a decision this session gets to make. The live trial
+    WAITS for a quiescent host instead. This is now the binding constraint on when T4/T2/T1/T3 can run, not the
+    harness, which is finished and green.
