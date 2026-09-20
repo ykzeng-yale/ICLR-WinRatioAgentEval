@@ -1,8 +1,8 @@
 # Session 60 results index (aggregated; updated by the 30-minute coordination loop)
 
-Last updated: 2026-09-19T09:20Z. Owner: session `iclr-winratioagentevals-60`. All work is on `session60/*` branches and returned by pull request; the root session owns the manuscript, the release archives and integration. No commercial or proprietary model was called by this session; all fresh executions use open-weight models only (EXPERIMENT_POLICY.md on main).
+Last updated: 2026-09-20T03:00Z. Owner: session `iclr-winratioagentevals-60`. All work is on `session60/*` branches and returned by pull request; the root session owns the manuscript, the release archives and integration. No commercial or proprietary model was called by this session; all fresh executions use open-weight models only (EXPERIMENT_POLICY.md on main).
 
-**How to read this index.** "Integrated" means the root session copied or re-derived the material into its own files and reviewed it; it never means a pull request was merged wholesale. Numbers marked *descriptive* are counts and means of retained records. Numbers marked *model-dependent* are owner intervals whose assumptions the designs do not establish; the root paper **excludes** them. Current root state: main `410b158` (Round 14: owner-report cleanup accepted and closed), validated technical release `45e8ee2`, root-reported readiness 90%, remaining items author-only.
+**How to read this index.** "Integrated" means the root session copied or re-derived the material into its own files and reviewed it; it never means a pull request was merged wholesale. Numbers marked *descriptive* are counts and means of retained records. Numbers marked *model-dependent* are owner intervals whose assumptions the designs do not establish; the root paper **excludes** them. Current root state: main `79905eb` (Round 14: owner-report cleanup accepted and closed), validated technical release `45e8ee2`, root-reported readiness 90%, remaining items author-only.
 
 ## Deliverables and their disposition
 
@@ -46,6 +46,19 @@ Current owner report: `results/tau2_open/report_final_v3.md` (= `report_final_v2
 **Drift / unequal-law null panel (integrated).** `evidence/drift_panel_report.md`, `results/drift_panel/`; protocol sha256 bb497cbb... 12 scenarios x 9 rules. Guarded betting ever-false-deployment under common drift 0.55% [0.42, 0.72] at the identical null and 0.38% at each guardrail boundary; repeated Wald 27-31%. Limitation: the normal-mixture rules never deploy in the alternating-component cells, so the alpha split is not demonstrated empirically there.
 
 **Decision evidence on archived public trajectories (delivered on PR #7, not integrated).** `results/benchmarks/decision_matrix.csv`, `tau2_contrasts.csv`, `label_noise_sensitivity.csv`, `results/replay/`. 25 ordered contrasts; the compared rules disagree on 19; 9 priority inversions. These use archived third-party model outputs, not fresh executions, and their intervals carry the same model-dependence caveats as above.
+
+## ArXiv phase: live randomized trial (#11) and its validation (#12)
+
+Both are NEW work for the arXiv version, started 2026-09-19 after the ICLR abstract deadline passed. Neither has produced a scientific result yet, and nothing below is evidence.
+
+**#11 live_ab — prospective randomized live-stopped A/B trial.** Branch `session60/live-ab`, head `5776877`. Directories `experiments/live_ab/` and `results/live_ab/`.
+- Built to the root's design guidance (`reviews/arxiv_live_design_guidance.md`), adopted literally: the normal-mixture band is the decision rule, alpha .05 program / .0125 per trial / .00625 per band with one band serving both tails, delta = 0.03, current-full-enrolled-prefix only, no envelope, no retained crossing, enclosures starting at [-1,1].
+- Status: **harness complete and green** (17 modules, 12,002 lines; 6 test files, 8,103 lines; **304 tests pass**; end-to-end mock dry run passes on four scenarios, no model and no network). Full pre-registration record in `experiments/live_ab/design/`.
+- **No trial episode has been run and nothing is frozen.**
+- **Blocked on host quiescence, not on code.** Another project (`DTR-AgentEvals`, a different session, launched with `--allow-contention`) has been holding this host's GPU with two `llama-server` processes since 2026-09-19 13:41. The frozen hierarchy is success > cost with cost = latency_s and the pilot ties on success, so nearly the whole composite effect rides on the latency tier; latency measured under foreign load is not a measurement of the two workflows. A preflight quiescence gate is required before the freeze. Those processes will not be killed.
+- Two errors of mine, corrected publicly rather than silently: the claim that a deploy was "unreachable whatever the outcomes" (false: it is a condition on the observed data, and a verified counterexample deploys at n = 100), and a merge statement of "0 root-owned files modified" produced by a filter that did not cover `results/`.
+
+**#12 live_ab_validation — independent CPU validation of that monitor.** Branch `session60/live-ab-validation`. Directories `experiments/live_ab_validation/` and `results/live_ab_validation/`. Claimed 2026-09-19, with the independence disclosed as **procedural, not organizational**: the band and fixtures are written from the guidance formula alone by agents that never read the #11 monitor, which is loaded by hash only at the comparison step. CPU only, so it is **not blocked by the GPU contention**. The frozen protocol is published before any simulation outcome exists. No simulation outcome exists yet.
 
 ## Open requests
 
