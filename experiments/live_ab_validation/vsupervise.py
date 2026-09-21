@@ -304,6 +304,13 @@ def supervise(argv: Sequence[str], out_dir: Path, caps: Optional[Caps] = None,
     # had no post-run check, so bytes written during close were never tested.
     final_output = _dir_bytes(out_dir)
     peak_output = max(peak_output, final_output)
+    # TERMINAL ELAPSED, checked.  Root: "Final supervisor elapsed time is
+    # recomputed but not compared against the cap: a mocked 2-second terminal
+    # receipt with a 1-second cap returns within_caps=true."  An earlier breach
+    # is preserved rather than replaced.
+    if breach is None and elapsed > caps.seconds:
+        breach = {"cap": "seconds", "limit": caps.seconds,
+                  "observed": elapsed, "detected": "terminal recheck after exit"}
     if breach is None and final_output > caps.output_bytes:
         breach = {"cap": "output_bytes", "limit": caps.output_bytes,
                   "observed": final_output, "detected": "final recheck after close"}
@@ -344,6 +351,8 @@ def supervise(argv: Sequence[str], out_dir: Path, caps: Optional[Caps] = None,
         "foreign_processes_touched": False,
         "safety": ("the supervisor signals only the process group it created; it "
                    "never signals or inspects a process it did not spawn"),
+        "deadline_monotonic": t0 + caps.seconds,
+        "started_perf": t0,
         "timestamps": {
             "started_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ",
                                          time.gmtime(started_wall)),

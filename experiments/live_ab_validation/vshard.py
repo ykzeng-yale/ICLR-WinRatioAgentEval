@@ -373,11 +373,21 @@ def write_failure_receipt(out_root: Path, job_id: str, attempt: str,
 
 def finalize_job(out_root: Path, plan: Dict[str, Any], job: JobCounters,
                  supervision: Optional[Dict[str, Any]] = None,
-                 context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-    """The final job receipt, with every condition root named, each checked.
+                 context: Optional[Dict[str, Any]] = None,
+                 stage: str = "final") -> Dict[str, Any]:
+    """Reconcile published shards.  Two stages, deliberately separated.
 
-    ``within_caps`` or exit zero alone is explicitly insufficient.
+    ``stage="data"`` is the CHILD's verdict: data, pins and accounting only.
+    It must not assert anything about supervision, because the child cannot
+    observe its own supervisor -- the previous version passed
+    ``supervision=None`` and then failed on the two supervision conditions, so
+    a perfectly good child could never exit zero and the parent failed with it.
+
+    ``stage="final"`` is the PARENT's verdict: the data conditions AND actual
+    successful terminal supervision with no cap event.
     """
+    if stage not in ("data", "final"):
+        raise ShardError(f"unknown finalize stage {stage!r}")
     out_root = Path(out_root)
     receipts = []
     for d in sorted(out_root.glob(f"{FINAL_PREFIX}_*")):
@@ -449,7 +459,28 @@ def finalize_job(out_root: Path, plan: Dict[str, Any], job: JobCounters,
     sup_ok = bool(supervision and supervision.get("within_caps"))
     no_cap_event = bool(supervision and supervision.get("breach") is None)
 
-    conditions = {
+    # BINDINGS MUST EQUAL THE FROZEN CONTEXT, not merely each other.  Root:
+    # "An isolated fixture with a different expected manifest, source pin and
+    # job still passes finalization today."  It did: consistency across shards
+    # says they agree, not that they agree with what was reviewed.
+    ctx = dict(context or {})
+    bindings_ok = True
+    if ctx.get("manifest_digest") or ctx.get("source_commit") or ctx.get("job_id"):
+        for r in receipts:
+            if (ctx.get("manifest_digest") is not None
+                    and r.get("manifest_digest") != ctx["manifest_digest"]):
+                bindings_ok = False
+            if (ctx.get("source_commit") is not None
+                    and r.get("source_commit") != ctx["source_commit"]):
+                bindings_ok = False
+            if ctx.get("job_id") is not None and r.get("job_id") != ctx["job_id"]:
+                bindings_ok = False
+            if ctx.get("attempt_id") is not None and r.get("attempt_id") != ctx["attempt_id"]:
+                bindings_ok = False
+    else:
+        bindings_ok = False        # an unbound finalization proves nothing
+
+    data_conditions = {
         "all_expected_shard_ids_exactly_once": ids_exactly_once,
         "coordinate_coverage_disjoint": disjoint,
         "coordinate_coverage_complete": complete_cover,
@@ -458,14 +489,23 @@ def finalize_job(out_root: Path, plan: Dict[str, Any], job: JobCounters,
         "hashes_reconciled": hashes_ok,
         "pins_present_and_consistent": pins_ok,
         "every_shard_complete_with_clean_attempts": statuses_ok,
-        "supervisor_completed_successfully": sup_ok,
-        "no_cap_event": no_cap_event,
+        "bindings_equal_frozen_context": bindings_ok,
     }
+    conditions = dict(data_conditions)
+    if stage == "final":
+        conditions["supervisor_completed_successfully"] = sup_ok
+        conditions["no_cap_event"] = no_cap_event
     complete = all(conditions.values())
     return {
-        "schema": JOB_SCHEMA,
-        "job_id": context.get("job_id") if context else None,
-        "scientific_completion": complete,
+        "schema": (JOB_SCHEMA if stage == "final"
+                   else "live_ab_validation_v2.t1_child_data_receipt.1"),
+        "stage": stage,
+        "job_id": ctx.get("job_id"), "attempt_id": ctx.get("attempt_id"),
+        "data_completion": all(data_conditions.values()),
+        "scientific_completion": complete if stage == "final" else False,
+        "scientific_completion_note": (
+            "a CHILD data receipt never asserts scientific completion; only the "
+            "parent, with an actual terminal supervisor result, can"),
         "conditions": conditions,
         "shards_published": len(receipts),
         "shards_expected": len(expected_ids),

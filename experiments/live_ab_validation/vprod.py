@@ -51,6 +51,10 @@ import vshard                                                   # noqa: E402
 from reference import eb_reference                              # noqa: E402
 
 
+class _ShardAborted(Exception):
+    """Internal: stop this shard at the first technical failure."""
+
+
 def _default_reference(values, alpha):
     return eb_reference.reference_bands(np.asarray(values, dtype=np.float64), alpha)
 
@@ -96,6 +100,7 @@ def make_runner(*, horizon: int, namespace: int, policy: str, schedule: str,
         errors: List[Dict[str, Any]] = []
         attempted = completed = failed = 0
         try:
+          try:
             for program in range(spec["program_start_inclusive"],
                                  spec["program_stop_exclusive"]):
                 coordinates.append((cell.id, program))
@@ -127,13 +132,24 @@ def make_runner(*, horizon: int, namespace: int, policy: str, schedule: str,
                                 counts["reference_rows"] += 1
                         counts["trials"] += 1
                         completed += 1
-                    except Exception as exc:                   # pragma: no cover
+                    except Exception as exc:
+                        # STOP IMMEDIATELY.  Root: an injected first-trial
+                        # failure "still invokes the three later trials in a
+                        # four-trial fixture".  Continuing after a technical
+                        # failure does more work whose value is already void and
+                        # buries the first error among later ones.  The `finally`
+                        # below still closes both handles.
                         failed += 1
                         errors.append({
                             "program": program, "trial": trial,
                             "message": f"{type(exc).__name__}: {exc}",
                             "utc": time.strftime("%Y-%m-%dT%H:%M:%SZ",
-                                                 time.gmtime())})
+                                                 time.gmtime()),
+                            "first_error": True,
+                            "stopped_immediately": True})
+                        raise _ShardAborted()
+          except _ShardAborted:
+            pass            # the first error is already recorded; stop here
         finally:
             # BOTH FILES CLOSED before anything is reconciled or published.
             sink.close()

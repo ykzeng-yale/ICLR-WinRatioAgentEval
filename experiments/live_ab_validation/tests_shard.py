@@ -448,6 +448,175 @@ class TestRealOrchestrationRoundtrip(unittest.TestCase):
         self.assertFalse(final["conditions"]["counts_reconciled"])
 
 
+class TestParentChildRoundtrip(unittest.TestCase):
+    """F15.  Root: "Test a positive roundtrip through `launch` -> actual
+    `run_child` with an intercepted supervisor and stub scientific functions,
+    not only `run_shard` -> `finalize_job`."
+
+    The blocker this closes: `run_child` asserted supervision it cannot
+    observe, so a perfectly good child returned 6 and the parent failed with
+    it.  Child exit 0 AND final completion true are both asserted here.
+    """
+
+    HORIZON = 500
+
+    def setUp(self):
+        import vlaunch, vprod, vrun
+        self.L, self.vprod, self.vrun = vlaunch, vprod, vrun
+        self.tmp = Path(tempfile.mkdtemp(prefix="rt_"))
+        self.prefixes = list(vrun.make_config(
+            self.HORIZON, 0, schedule="v2_tick_batched").horizons)
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def _stub_runner(self, trials=2, fail_at=None):
+        import numpy as np
+
+        class Rec:
+            decision = 0
+            tau = 1
+
+        def draw(cell, program, trial, n_max=None, namespace=None):
+            class D:
+                z = np.zeros(self.HORIZON)
+                dsc = np.zeros(self.HORIZON)
+            return D()
+
+        def evaluate(d, cfg, sched):
+            return ({c: Rec() for c in self.vrun.CONSTRUCTIONS}, 0, 0)
+
+        def rows(cell, program, trial, records, sched):
+            if fail_at is not None and program == fail_at:
+                raise RuntimeError("synthetic failure")
+            return "".join(f"s,{cell.id},{program},{trial},{c}\n"
+                           for c in self.vrun.CONSTRUCTIONS)
+
+        def ref(values, alpha):
+            n = len(values)
+            return (np.full(n, -0.5), np.full(n, 0.5))
+
+        return self.vprod.make_runner(
+            horizon=self.HORIZON, namespace=0, policy="operational",
+            schedule="v2_tick_batched", alpha_gate=0.00625,
+            trials_per_program=trials, draw_fn=draw, evaluate_fn=evaluate,
+            rows_fn=rows, reference_fn=ref, smoke_fn=None)
+
+    def _plan(self, programs=2, shards=2, trials=2):
+        nc = len(self.vrun.CONSTRUCTIONS)
+        pr = programs * trials * nc
+        rr = programs * trials * 2 * len(self.prefixes)
+        plan = {"shards": [], "allocation": {"C1": programs * shards},
+                "total_programs": programs * shards, "programs_per_shard": programs,
+                "total_trials": programs * shards * trials,
+                "total_reference_calls": programs * shards * trials * 2,
+                "total_primary_rows": pr * shards, "total_reference_rows": rr * shards}
+        for i in range(shards):
+            a = i * programs
+            plan["shards"].append({
+                "sequence": i + 1, "id": f"C1-p{a:04d}-{a+programs-1:04d}",
+                "cell": "C1", "program_start_inclusive": a,
+                "program_stop_exclusive": a + programs,
+                "trial_indices": list(range(trials)),
+                "expected_programs": programs, "expected_trials": programs * trials,
+                "expected_reference_calls": programs * trials * 2,
+                "expected_primary_rows": pr, "expected_reference_rows": rr})
+        return plan
+
+    def _intercepted(self, plan, runner, child_rc_box, breach=None, elapsed=1.0):
+        """A supervisor that runs the ACTUAL run_child in-process."""
+        def fake(argv, out_dir, caps, label=None, require_available_ram_bytes=None,
+                 **kw):
+            ident = argv[argv.index("--reviewed-identity") + 1]
+            attempt = argv[argv.index("--attempt") + 1]
+            rc = self.L.run_child(out_dir, reviewed_manifest_identity=ident,
+                                  runner=runner, plan=plan, attempt_id=attempt)
+            child_rc_box.append(rc)
+            return {"within_caps": breach is None, "breach": breach,
+                    "returncode": rc,
+                    "observed": {"wall_seconds": elapsed, "started_perf": 0.0,
+                                 "peak_tree_rss_bytes": 1, "poll_samples": 1,
+                                 "final_output_bytes_actual_child_dir": 1}}
+        return fake
+
+    def test_positive_roundtrip_child_exits_zero_and_job_completes(self):
+        plan, runner, box = self._plan(), self._stub_runner(), []
+        ident = self.L.manifest_identity(self.L.build_manifest())
+        r = self.L.launch(self.tmp / "run", clearance=self.L.CLEARANCE_SENTINEL,
+                          reviewed_manifest_identity=ident,
+                          supervise_fn=self._intercepted(plan, runner, box),
+                          plan=plan)
+        self.assertEqual(box, [0], "the child must be able to exit ZERO")
+        self.assertTrue(r["complete"],
+                        [k for k, v in r["job_receipt"]["conditions"].items() if not v])
+
+    def test_both_receipts_are_preserved_separately(self):
+        plan, runner, box = self._plan(), self._stub_runner(), []
+        ident = self.L.manifest_identity(self.L.build_manifest())
+        out = self.tmp / "run"
+        self.L.launch(out, clearance=self.L.CLEARANCE_SENTINEL,
+                      reviewed_manifest_identity=ident,
+                      supervise_fn=self._intercepted(plan, runner, box), plan=plan)
+        self.assertTrue((out / "T1_CHILD_DATA_RECEIPT.json").is_file())
+        self.assertTrue((out / "T1_JOB_RECEIPT.json").is_file())
+        child = json.loads((out / "T1_CHILD_DATA_RECEIPT.json").read_text())
+        self.assertEqual(child["stage"], "data")
+        self.assertFalse(child["scientific_completion"],
+                         "a child receipt must never assert scientific completion")
+
+    def test_the_parent_carries_the_childs_actual_counters(self):
+        plan, runner, box = self._plan(), self._stub_runner(), []
+        ident = self.L.manifest_identity(self.L.build_manifest())
+        out = self.tmp / "run"
+        r = self.L.launch(out, clearance=self.L.CLEARANCE_SENTINEL,
+                          reviewed_manifest_identity=ident,
+                          supervise_fn=self._intercepted(plan, runner, box), plan=plan)
+        cum = r["job_receipt"]["cumulative_job"]
+        self.assertEqual(cum["trials"], plan["total_trials"])
+        self.assertEqual(cum["reference_rows"], plan["total_reference_rows"])
+        self.assertGreater(cum["elapsed_seconds"], 0.0)
+
+    def test_a_cap_breach_keeps_the_job_incomplete(self):
+        plan, runner, box = self._plan(), self._stub_runner(), []
+        ident = self.L.manifest_identity(self.L.build_manifest())
+        r = self.L.launch(self.tmp / "run", clearance=self.L.CLEARANCE_SENTINEL,
+                          reviewed_manifest_identity=ident,
+                          supervise_fn=self._intercepted(
+                              plan, runner, box, breach={"cap": "seconds"}),
+                          plan=plan)
+        self.assertEqual(box, [0], "the child still completed its data")
+        self.assertFalse(r["complete"])
+        self.assertFalse(r["job_receipt"]["conditions"]["no_cap_event"])
+
+    def test_a_shard_error_keeps_the_job_incomplete(self):
+        plan, box = self._plan(), []
+        runner = self._stub_runner(fail_at=0)
+        ident = self.L.manifest_identity(self.L.build_manifest())
+        r = self.L.launch(self.tmp / "run", clearance=self.L.CLEARANCE_SENTINEL,
+                          reviewed_manifest_identity=ident,
+                          supervise_fn=self._intercepted(plan, runner, box), plan=plan)
+        self.assertEqual(box, [5], "a shard error returns the failure code")
+        self.assertFalse(r["complete"])
+
+    def test_the_child_refuses_without_an_identity(self):
+        with self.assertRaises(self.L.LaunchRefused):
+            self.L.run_child(self.tmp / "x", reviewed_manifest_identity=None,
+                             runner=self._stub_runner(), plan=self._plan())
+
+    def test_the_runner_stops_at_the_FIRST_trial_failure(self):
+        """Root: an injected first-trial failure still ran the three later ones."""
+        runner = self._stub_runner(trials=4, fail_at=0)
+        spec = self._plan(programs=1, shards=1, trials=4)["shards"][0]
+        d = self.tmp / "one"
+        d.mkdir(parents=True)
+        outcome = runner(spec=spec, out_dir=d)
+        self.assertEqual(outcome.attempted, 1, "exactly one trial attempted")
+        self.assertEqual(outcome.failed, 1)
+        self.assertEqual(outcome.completed, 0)
+        self.assertEqual(len(outcome.coordinates), 1, "no later coordinates")
+        self.assertTrue(outcome.errors[0]["stopped_immediately"])
+
+
 if __name__ == "__main__":
     r = unittest.main(verbosity=2, exit=False).result
     print(f"\nran={r.testsRun} failures={len(r.failures)} errors={len(r.errors)}")

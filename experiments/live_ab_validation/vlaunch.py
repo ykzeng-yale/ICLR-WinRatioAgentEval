@@ -354,7 +354,9 @@ def dry_run(request: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
 
 def launch(out_dir: Path, request: Optional[Dict[str, Any]] = None,
            clearance: Optional[str] = None,
-           reviewed_manifest_identity: Optional[str] = None) -> Dict[str, Any]:
+           reviewed_manifest_identity: Optional[str] = None,
+           supervise_fn: Optional[Any] = None,
+           plan: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """Refuse, or run the whole T1 job under ONE supervisor window."""
     manifest = build_manifest(request)
     # Root: "Compare the reviewed manifest identity at launch rather than
@@ -393,34 +395,101 @@ def launch(out_dir: Path, request: Optional[Dict[str, Any]] = None,
     (out_dir / "T1_MANIFEST.json").write_text(
         json.dumps(manifest, indent=2, sort_keys=True) + "\n")
 
+    job_id, attempt = job_identity(manifest)
     caps = vsupervise.Caps(seconds=T1_CAP_SECONDS,
                            tree_rss_bytes=T1_CAP_TREE_RSS_BYTES,
                            output_bytes=T1_CAP_OUTPUT_BYTES)
-    sup = vsupervise.supervise(
+    # ``supervise_fn`` is injectable ONLY so the parent->child roundtrip can be
+    # exercised without spawning a real 45-minute job.  The default is the real
+    # supervisor and nothing in production passes anything else.
+    supervise_fn = supervise_fn or vsupervise.supervise
+    sup = supervise_fn(
         [sys.executable, str(HERE / "vlaunch.py"), "--child",
          "--out", str(out_dir),
-         "--reviewed-identity", manifest_identity(manifest)],
+         "--reviewed-identity", manifest_identity(manifest),
+         "--attempt", attempt],
         out_dir, caps, label="t1_full_grid",
         require_available_ram_bytes=T1_CAP_TREE_RSS_BYTES)
     # Root: "launch() still reports completion solely from within_caps and
     # never invokes shard reconciliation ... Root's isolated mocked launcher
     # returned complete with ZERO shards."  It did. Completion is now the
     # conjunction of supervision AND full shard reconciliation.
-    plan = vshard.load_plan()
-    job = vshard.JobCounters(started_perf=0.0)
+    plan = plan or vshard.load_plan()
+
+    # RESTORE THE CHILD'S ACTUAL COUNTERS.  Root: "observed totals are 4
+    # trials/8 references/12 primary rows/24 reference rows while the final
+    # cumulative counters all say zero and elapsed time is the system monotonic
+    # clock minus zero."  The parent was inventing fresh zero counters.
+    child_path = out_dir / "T1_CHILD_DATA_RECEIPT.json"
+    child = json.loads(child_path.read_text()) if child_path.is_file() else None
+    job = vshard.JobCounters(started_perf=time.perf_counter())
+    if child and child.get("child_counters"):
+        c = child["child_counters"]
+        job = vshard.JobCounters(
+            started_perf=time.perf_counter() - float(c.get("elapsed_seconds") or 0.0),
+            shards_completed=int(c.get("shards_completed") or 0),
+            trials=int(c.get("trials") or 0),
+            reference_calls=int(c.get("reference_calls") or 0),
+            primary_rows=int(c.get("primary_rows") or 0),
+            reference_rows=int(c.get("reference_rows") or 0),
+            output_bytes=int(c.get("output_bytes") or 0))
+
+    ctx = {"job_id": job_id, "attempt_id": attempt,
+           "manifest_digest": manifest_identity(manifest),
+           "source_commit": manifest["pins"]["detail"]["repo"]["head"]}
     final = vshard.finalize_job(out_dir, plan, job, supervision=sup,
-                                context={"job_id": "T1"})
+                                context=ctx, stage="final")
+    final["child_data_receipt"] = {
+        "present": child is not None,
+        "data_completion": bool(child and child.get("data_completion")),
+        "preserved_at": child_path.name}
+
+    # THE BUDGET APPLIES THROUGH TERMINAL ACCEPTANCE, including this parent's
+    # own hashing and metadata writes, with NO reset.
+    total_elapsed = time.perf_counter() - sup["observed"]["started_perf"] \
+        if "started_perf" in sup else sup["observed"]["wall_seconds"]
+    all_artifact_bytes = sum(p.stat().st_size for p in out_dir.rglob("*")
+                             if p.is_file())
+    over = []
+    if total_elapsed > caps.seconds:
+        over.append({"cap": "seconds", "limit": caps.seconds,
+                     "observed": total_elapsed,
+                     "detected": "including parent finalization"})
+    if all_artifact_bytes > caps.output_bytes:
+        over.append({"cap": "output_bytes", "limit": caps.output_bytes,
+                     "observed": all_artifact_bytes,
+                     "detected": "final all-artifact total"})
+    final["terminal_budget"] = {
+        "elapsed_including_parent_finalization": total_elapsed,
+        "all_artifact_bytes": all_artifact_bytes,
+        "breaches": over,
+        "earlier_breach_preserved": sup.get("breach")}
+    if over:
+        final["conditions"]["terminal_budget_within_caps"] = False
+        final["scientific_completion"] = False
+    else:
+        final["conditions"]["terminal_budget_within_caps"] = True
+
     (out_dir / "T1_JOB_RECEIPT.json").write_text(
         json.dumps(final, indent=2, sort_keys=True) + "\n")
     return {"manifest": manifest, "supervision": sup, "job_receipt": final,
+            "child_data_receipt": child,
             "complete": bool(final["scientific_completion"]),
             "on_breach": manifest["on_cap_breach"]}
+
+
+def job_identity(manifest: Dict[str, Any],
+                 attempt_id: Optional[str] = None) -> Tuple[str, str]:
+    """Deterministic (job_id, attempt_id) so both stages agree by construction."""
+    jid = f"T1-{manifest_identity(manifest)[:12]}"
+    return jid, (attempt_id or "a1")
 
 
 def run_child(out_dir: Path,
               reviewed_manifest_identity: Optional[str] = None,
               runner: Optional[Any] = None,
-              plan: Optional[Dict[str, Any]] = None) -> int:
+              plan: Optional[Dict[str, Any]] = None,
+              attempt_id: Optional[str] = None) -> int:
     """ONE serial child iterating the fixed plan, then final reconciliation.
 
     The parent supervises this whole call.  On any shard error the attempt
@@ -429,20 +498,29 @@ def run_child(out_dir: Path,
     """
     out_dir = Path(out_dir)
     manifest = build_manifest()
-    if reviewed_manifest_identity and manifest_identity(manifest) != reviewed_manifest_identity:
+    # Root: "Required child identity must also refuse when absent: direct
+    # run_child currently publishes a synthetic shard without it."  It did.
+    if not reviewed_manifest_identity:
+        raise LaunchRefused(
+            "the child requires the reviewed manifest identity; without it a "
+            "shard could be published against unreviewed source")
+    if manifest_identity(manifest) != reviewed_manifest_identity:
         raise LaunchRefused(
             "manifest identity mismatch inside the child; refusing to run")
 
     plan = plan or vshard.load_plan()
     spec = manifest["frozen_request"]
-    job_id = f"T1-{manifest_identity(manifest)[:12]}"
-    attempt = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
+    # ONE FROZEN JOB CONTEXT, derived deterministically so the parent can
+    # reconstruct exactly the same identity rather than inventing "T1".
+    job_id, attempt = job_identity(manifest, attempt_id)
     job = vshard.JobCounters(started_perf=time.perf_counter())
+    job_started_utc = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
     context = {
         "source_commit": manifest["pins"]["detail"]["repo"]["head"],
         "manifest_digest": manifest_identity(manifest),
         "root_clearance_reference": manifest["clearance"]["status"],
+        "job_id": job_id, "attempt_id": attempt,
         "pins": manifest["pins"],
         "namespace": spec["namespace"], "horizon": spec["horizon"],
         "prefixes": list(vrun.make_config(spec["horizon"], spec["namespace"],
@@ -471,11 +549,17 @@ def run_child(out_dir: Path,
             {"message": str(exc)}, job)
         return 5
 
-    final = vshard.finalize_job(out_dir, plan, job, supervision=None,
-                                context={"job_id": job_id})
-    (out_dir / "T1_JOB_RECEIPT.json").write_text(
-        json.dumps(final, indent=2, sort_keys=True) + "\n")
-    return 0 if final["scientific_completion"] else 6
+    # DATA stage only.  The child cannot observe its own supervisor, so it
+    # must not assert supervision -- asserting it was exactly what made a good
+    # child unable to exit zero.
+    data = vshard.finalize_job(out_dir, plan, job, supervision=None,
+                               context=context, stage="data")
+    data["child_counters"] = job.snapshot()
+    data["job_started_utc"] = job_started_utc
+    data["job_started_perf"] = job.started_perf
+    (out_dir / "T1_CHILD_DATA_RECEIPT.json").write_text(
+        json.dumps(data, indent=2, sort_keys=True) + "\n")
+    return 0 if data["data_completion"] else 6
 
 
 def main(argv: Optional[List[str]] = None) -> int:
@@ -490,6 +574,7 @@ def main(argv: Optional[List[str]] = None) -> int:
                     help="REQUIRED to launch: execution_spec.canonical_digest "
                          "from the reviewed manifest")
     ap.add_argument("--child", action="store_true", help=argparse.SUPPRESS)
+    ap.add_argument("--attempt", default=None, help=argparse.SUPPRESS)
     a = ap.parse_args(argv)
 
     if a.manifest:
@@ -501,7 +586,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     if a.child:
         if a.out is None:
             ap.error("--child requires --out")
-        rc = run_child(a.out, reviewed_manifest_identity=a.reviewed_identity)
+        rc = run_child(a.out, reviewed_manifest_identity=a.reviewed_identity,
+                       attempt_id=a.attempt)
         return rc
     if a.out is None:
         ap.error("--out is required to launch")
