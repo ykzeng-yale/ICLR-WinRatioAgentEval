@@ -64,7 +64,7 @@ import re
 import tempfile
 import time
 from pathlib import Path
-from typing import Callable, Literal, TypedDict
+from typing import Callable, Literal, Sequence, TypedDict
 
 import lab_common
 
@@ -455,6 +455,102 @@ def _exclusion(uid: str, reason: str, detail: str) -> Exclusion:
     return Exclusion(uid=uid, reason=reason, detail_sha256=lab_common.sha256_text(detail))
 
 
+# ---------------------------------------------------------------------------
+# D1 REPAIR: the detail PREIMAGE is retained, and its canonicalization is a rule
+# ---------------------------------------------------------------------------
+# Root, 2026-09-21 18:54: "Persist the complete per-attempt verifier record used to
+# construct each detail digest, with an explicit canonicalization rule; reconstruct
+# the roster/hash from those saved records ... If current code hashes details then
+# discards the preimage, repair retention now."
+#
+# It did.  `sweep_references` built a detail string inline, hashed it into
+# `detail_sha256`, and dropped the string on the floor.  Nothing could afterwards
+# reconstruct what had been hashed, so the roster identity was unverifiable against
+# its own evidence -- not because the hash was wrong, but because its preimage was
+# gone.  (Root also corrected my overstatement that this made the roster
+# "unfreezable": a hash of recorded bytes stays recomputable FROM THOSE BYTES.  The
+# defect is retention, and this is the retention repair.)
+#
+# THE CANONICALIZATION RULE, stated once and used by both the producer and the
+# reconstructor, so they cannot drift:
+#   detail = "\n".join("run{i}:{stdout_tail}|{stderr}" for each attempt, in order)
+# That is byte-for-byte what the previous inline construction produced, so retained
+# records reconstruct digests recorded BEFORE this repair as well as after it.
+ATTEMPT_RECORD_SCHEMA: str = 'live_ab/reference_attempt-v1'
+
+
+def attempt_record(uid: str, run_index: int, result: dict) -> dict:
+    """The COMPLETE per-attempt verifier record, retained rather than discarded.
+
+    Carries the two fields the digest is built from (`stdout_tail`, `stderr`) plus
+    the flags and the measured duration root required kept explicitly, so a
+    genuine timeout is distinguishable from a non-timeout verifier failure after
+    the fact and not only at classification time.
+    """
+    run = (result or {}).get('run') or {}
+    return {
+        'schema': ATTEMPT_RECORD_SCHEMA,
+        'uid': uid,
+        'run_index': int(run_index),
+        # --- the digest preimage, verbatim -------------------------------
+        'stdout_tail': run.get('stdout_tail', ''),
+        'stderr': run.get('stderr', ''),
+        # --- the flags and duration (D3) ---------------------------------
+        'success': bool((result or {}).get('success')),
+        'timed_out': bool(run.get('timed_out')),
+        'returncode': run.get('returncode'),
+        'sentinel_seen': bool(run.get('passed')),
+        'verify_seconds': float((result or {}).get('verify_seconds') or 0.0),
+    }
+
+
+def detail_from_attempts(attempts: Sequence[dict]) -> str:
+    """THE canonicalization rule. Both the producer and any reconstructor use this.
+
+    Reconstruction check, for any retained attempt list:
+        lab_common.sha256_text(detail_from_attempts(attempts)) == exclusion['detail_sha256']
+    """
+    return '\n'.join('run%d:%s|%s' % (int(a['run_index']), a['stdout_tail'], a['stderr'])
+                     for a in attempts)
+
+
+def reconstruct_detail_sha256(attempts: Sequence[dict]) -> str:
+    """The exclusion's `detail_sha256`, recomputed from retained records alone."""
+    return lab_common.sha256_text(detail_from_attempts(attempts))
+
+
+#: D3 REPAIR: the documented precedence when more than one condition holds.
+#: Root: "classify genuine timeout distinctly from non-timeout verifier failure,
+#: with documented precedence if multiple conditions hold. Preserve the same
+#: exclusion set implied by the protocol, not a success-favoring change."
+#:
+#: Before the repair the order was (not success) -> (slow), so a wall-clock TIMEOUT
+#: -- which sets passed False in sandbox.py:196 and hence success False -- was filed
+#: `reference_fails_verify`, and `reference_timeout` could fire only for a run that
+#: SUCCEEDED but took over the threshold.  The two reasons did not mean what their
+#: names say, and protocol 3.5 item 7's timeout count was systematically understated.
+#:
+#: The exclusion SET is unchanged by this repair: every attempt excluded before is
+#: still excluded, because a timed-out attempt was already failing. Only its REASON
+#: moves, from `reference_fails_verify` to `reference_timeout`.
+EXCLUSION_PRECEDENCE: tuple[tuple[str, str], ...] = (
+    ('timed_out', 'reference_timeout'),
+    ('not_success', 'reference_fails_verify'),
+    ('over_threshold', 'reference_timeout'),
+)
+
+
+def classify_attempt(record: dict, threshold_s: float) -> "str | None":
+    """The exclusion reason for one attempt, or None. Precedence as documented above."""
+    if record['timed_out']:
+        return 'reference_timeout'          # a GENUINE hang, not a verifier failure
+    if not record['success']:
+        return 'reference_fails_verify'     # exited non-zero or no sentinel
+    if record['verify_seconds'] > threshold_s:
+        return 'reference_timeout'          # succeeded but over the wall threshold
+    return None
+
+
 def prospective_exclusions(tasks: list[Task], cfg: dict) -> list[Exclusion]:
     """[pure] The exclusions of protocol 3.2 that need no execution: rules 1, 2, 3 and `unparsable`.
 
@@ -465,7 +561,15 @@ def prospective_exclusions(tasks: list[Task], cfg: dict) -> list[Exclusion]:
     smoke = tuple(roster_cfg.get('smoke_tasks') or SMOKE_TASKS)
     s1_prompts: dict[str, str] = {}
     for task in tasks:
-        if task['stratum'] == 'S1' and task['benchmark'] == 'mbpp':
+        # D6 REPAIR, root 2026-09-21 18:54: "Apply the declared normalized-prompt
+        # duplicate rule against ALL S1 tasks, including HumanEval; record if counts
+        # stay unchanged."  The rule (protocol 3.2 item 2) says "S2 problems whose
+        # normalized prompt duplicates an S1 task" -- an S1 TASK, with no benchmark
+        # qualifier.  The `and task['benchmark'] == 'mbpp'` clause made the code
+        # narrower than the rule it implements, silently skipping the 164 HumanEval
+        # prompts.  On the delivered sources this changes NO count (verified: zero
+        # additional duplicates), which is exactly why it had gone unnoticed.
+        if task['stratum'] == 'S1':
             s1_prompts.setdefault(normalize_prompt(task['prompt']), task['uid'])
     out: list[Exclusion] = []
     for task in tasks:
@@ -524,7 +628,8 @@ class _ExecutionLock:
                 self._fd = None
 
 
-def sweep_references(tasks: list[Task], cfg: dict, *, on_progress: Callable | None = None) -> list[Exclusion]:
+def sweep_references(tasks: list[Task], cfg: dict, *, on_progress: Callable | None = None,
+                     on_attempt: Callable | None = None) -> list[Exclusion]:
     """Protocol 3.2 rule 4: verify every task's own reference solution, twice, under the sandbox.
 
     A task is excluded `reference_fails_verify` if either run fails, and `reference_timeout` if either
@@ -549,24 +654,28 @@ def sweep_references(tasks: list[Task], cfg: dict, *, on_progress: Callable | No
     for index, task in enumerate(tasks):
         pilot_task = to_pilot_task(task)
         reason: str | None = None
-        detail_parts: list[str] = []
+        attempts: list[dict] = []
         for run_index in range(REFERENCE_SWEEP_RUNS):
             with _ExecutionLock(lock_path, max_lock_wait_s):
                 result = verify_mod.verify(pilot_task, task['reference'], timeout_s=timeout_s,
                                            mem_bytes=mem_bytes, cpu_seconds=cpu_s,
                                            output_cap=output_cap)
-            run = result.get('run') or {}
-            detail_parts.append('run%d:%s|%s' % (run_index, run.get('stdout_tail', ''),
-                                                 run.get('stderr', '')))
-            seconds = float(result.get('verify_seconds') or 0.0)
-            if not result.get('success'):
-                reason = 'reference_fails_verify'
-                break
-            if seconds > threshold:
-                reason = 'reference_timeout'
+            # D1: the COMPLETE record is retained, not a string that is hashed and
+            # thrown away.  `on_attempt` lets the caller persist it durably; the
+            # digest below is built from these same records through the one
+            # canonicalization rule, so it reconstructs from what was saved.
+            record = attempt_record(task['uid'], run_index, result)
+            attempts.append(record)
+            if on_attempt is not None:
+                on_attempt(record)
+            # D3: documented precedence; a genuine hang is a timeout, not a
+            # verifier failure.  The excluded SET is unchanged -- a timed-out
+            # attempt was already failing -- only its reason moves.
+            reason = classify_attempt(record, threshold)
+            if reason is not None:
                 break
         if reason is not None:
-            out.append(_exclusion(task['uid'], reason, '\n'.join(detail_parts)))
+            out.append(_exclusion(task['uid'], reason, detail_from_attempts(attempts)))
         if on_progress is not None:
             on_progress(index + 1, len(tasks), task['uid'], reason)
     return out

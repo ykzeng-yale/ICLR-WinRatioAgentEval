@@ -1244,7 +1244,18 @@ class DocumentedSignatureTests(unittest.TestCase):
         expected = {
             (lab_data, 'fetch_sources'): ['dest', 'offline'],
             (lab_data, 'build_candidate_tasks'): ['raw'],
-            (lab_data, 'sweep_references'): ['tasks', 'cfg', 'on_progress'],
+            # DEVIATION from ARCHITECTURE_FINAL.md section 3.4, recorded not hidden:
+            # `on_attempt` is an EXTRA KEYWORD-ONLY parameter added by the D1
+            # retention repair (root 2026-09-21 18:54, ranked item 2). Retention
+            # requires the caller to RECEIVE each per-attempt verifier record; the
+            # previous signature gave it no way to, so the preimage of every
+            # detail digest was unavoidably discarded. The same deviation shape --
+            # an added keyword-only parameter -- already exists and is tolerated
+            # for lab_hostcheck.enumerate_foreign_consumers and lab_server.start /
+            # .restart, which tests_lab_isolation reports as DEVIATION rather than
+            # failing. Defaulting to None keeps every existing call site valid.
+            (lab_data, 'sweep_references'): ['tasks', 'cfg', 'on_progress',
+                                            'on_attempt'],
             (lab_data, 'build_roster'): ['tasks', 'exclusions', 'cfg'],
             (lab_data, 'write_roster'): ['roster', 'path'],
             (lab_data, 'load_roster'): ['path'],
@@ -1779,3 +1790,126 @@ class FreezeBundleBindingTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
+
+
+class ReferenceAttemptRetentionTests(unittest.TestCase):
+    """D1/D3 repairs (root 2026-09-21 18:54, ranked item 2 and item 3)."""
+
+    def _rec(self, i=0, out='', err='', success=True, timed_out=False, secs=0.1):
+        return {'schema': lab_data.ATTEMPT_RECORD_SCHEMA, 'uid': 'u', 'run_index': i,
+                'stdout_tail': out, 'stderr': err, 'success': success,
+                'timed_out': timed_out, 'returncode': 0 if success else 1,
+                'sentinel_seen': success, 'verify_seconds': secs}
+
+    # -- D1: the preimage is retained and the digest reconstructs from it ----
+    def test_digest_reconstructs_from_retained_records(self):
+        recs = [self._rec(0, '__LS_VERIFY_OK__deadbeef', ''),
+                self._rec(1, 'boom', 'Traceback /tmp/p_9f/prog.py', success=False)]
+        exc = lab_data._exclusion('u', 'reference_fails_verify',
+                                  lab_data.detail_from_attempts(recs))
+        self.assertEqual(lab_data.reconstruct_detail_sha256(recs), exc['detail_sha256'])
+
+    def test_canonicalization_is_byte_compatible_with_pre_repair_digests(self):
+        """The rule must reproduce the OLD inline construction exactly.
+
+        Otherwise the repair would orphan every digest recorded before it, which
+        would be a worse retention failure than the one being fixed.
+        """
+        recs = [self._rec(0, 'a', 'b'), self._rec(1, 'c', 'd')]
+        legacy = '\n'.join('run%d:%s|%s' % (i, r['stdout_tail'], r['stderr'])
+                           for i, r in enumerate(recs))
+        self.assertEqual(lab_data.detail_from_attempts(recs), legacy)
+
+    def test_record_retains_flags_and_duration_not_only_the_digest_inputs(self):
+        r = self._rec(0, 'x', 'y', success=False, timed_out=True, secs=10.0)
+        for key in ('timed_out', 'returncode', 'sentinel_seen', 'verify_seconds',
+                    'success', 'stdout_tail', 'stderr'):
+            self.assertIn(key, r)
+
+    # -- D3: documented precedence, and no success-favoring change ----------
+    def test_a_genuine_hang_is_a_timeout_not_a_verifier_failure(self):
+        hang = self._rec(0, '', '', success=False, timed_out=True, secs=10.0)
+        self.assertEqual(lab_data.classify_attempt(hang, 2.5), 'reference_timeout')
+
+    def test_non_timeout_failure_is_still_a_verifier_failure(self):
+        fail = self._rec(0, '', 'SyntaxError', success=False, timed_out=False, secs=0.2)
+        self.assertEqual(lab_data.classify_attempt(fail, 2.5), 'reference_fails_verify')
+
+    def test_slow_but_successful_is_a_timeout(self):
+        slow = self._rec(0, 'ok', '', success=True, timed_out=False, secs=3.0)
+        self.assertEqual(lab_data.classify_attempt(slow, 2.5), 'reference_timeout')
+
+    def test_healthy_attempt_is_not_excluded(self):
+        self.assertIsNone(lab_data.classify_attempt(self._rec(), 2.5))
+
+    def test_exclusion_set_does_not_shrink(self):
+        """Every attempt excluded BEFORE the repair is still excluded after it.
+
+        Root: 'Preserve the same exclusion set implied by the protocol, not a
+        success-favoring change.'  A hang and a non-timeout failure were both
+        `reference_fails_verify` before; both must still be excluded now, only the
+        hang's reason moves.
+        """
+        for rec in (self._rec(0, '', '', success=False, timed_out=True, secs=10.0),
+                    self._rec(0, '', '', success=False, timed_out=False, secs=0.2),
+                    self._rec(0, 'ok', '', success=True, timed_out=False, secs=3.0)):
+            self.assertIsNotNone(lab_data.classify_attempt(rec, 2.5))
+
+
+class DuplicateRuleScopeTests(unittest.TestCase):
+    """D6 repair: the rule compares against ALL S1 tasks, including HumanEval."""
+
+    def test_a_humaneval_twin_is_now_detected(self):
+        def task(uid, bench, stratum, prompt):
+            return {'uid': uid, 'benchmark': bench, 'stratum': stratum, 'prompt': prompt,
+                    'entry_point': 'f', 'reference': 'def f():\n    return 1\n',
+                    'test_imports': [], 'test_list': [], 'challenge_test_list': [], 'test': ''}
+        tasks = [task('humaneval/1', 'humaneval', 'S1', 'Write a function that adds.'),
+                 task('mbpp_full/999', 'mbpp_full', 'S2', 'Write a function that adds.')]
+        exc = lab_data.prospective_exclusions(tasks, {'roster': {'smoke_tasks': []}})
+        dups = [e for e in exc if e['reason'] == 'duplicate_prompt']
+        self.assertEqual([e['uid'] for e in dups], ['mbpp_full/999'],
+                         'an S2 prompt duplicating a HUMANEVAL S1 prompt must be excluded; '
+                         'the pre-repair code only compared against benchmark=="mbpp"')
+
+
+class Stage1RegressionFixtureTests(unittest.TestCase):
+    """The stage-1 receipt as a regression fixture BOUND TO ITS SOURCE DIGESTS.
+
+    Root: 'Keep the actual stage1 receipt as a regression fixture bound to its
+    source digests, rather than a universal hardcoded benchmark size.'
+
+    So the counts are asserted ONLY when the three pinned sources are present and
+    hash to the values the receipt was produced from.  If the sources differ, the
+    test SKIPS rather than failing -- a different corpus legitimately yields
+    different counts, and pinning them universally would turn a provenance change
+    into a spurious test failure.
+    """
+
+    EXPECTED = {'candidates': 1138, 'exclusions': 8, 'survivors': 1130,
+                'n_S1': 591, 'n_S2': 539, 'n_pairs_ceiling': 564}
+
+    def test_counts_match_the_stage1_receipt_for_these_exact_sources(self):
+        import collections
+        src = lab_common.WORK_ROOT / 'sources'
+        if not (src / 'sources.json').is_file():
+            self.skipTest('pinned sources not present on this host')
+        manifest = json.loads((src / 'sources.json').read_text())
+        for name, spec in lab_data.SOURCES.items():
+            got = (manifest.get('sources') or {}).get(name) or {}
+            if got.get('sha256') != spec['sha256']:
+                self.skipTest('source %s is not the pinned revision this fixture binds'
+                              % name)
+        cfg = json.loads((lab_common.HERE / 'config.json').read_text())
+        tasks = lab_data.build_candidate_tasks(lab_data.load_raw(src))
+        exc = lab_data.prospective_exclusions(tasks, cfg)
+        excl = {e['uid'] for e in exc}
+        surv = [t for t in tasks if t['uid'] not in excl]
+        sv = collections.Counter(t['stratum'] for t in surv)
+        self.assertEqual(len(tasks), self.EXPECTED['candidates'])
+        self.assertEqual(len(exc), self.EXPECTED['exclusions'])
+        self.assertEqual(len(surv), self.EXPECTED['survivors'])
+        self.assertEqual(sv['S1'], self.EXPECTED['n_S1'])
+        self.assertEqual(sv['S2'], self.EXPECTED['n_S2'])
+        self.assertEqual(sv['S1'] // 2 + sv['S2'] // 2,
+                         self.EXPECTED['n_pairs_ceiling'])

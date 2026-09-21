@@ -1,4 +1,14 @@
 {
+  "D10_CORRECTION_config_is_bound_by_a_THREE_WAY_verbatim_contract": {
+    "action_taken": "config.json RESTORED to its committed text; all three values are null again and the verbatim test passes. Freeze status returns from 12 of 26 to 9 of 26. That is an honest correction, not a regression -- the three keys were never legitimately resolved.",
+    "found_by": "tests_lab_e2e.ConfigTests.test_config_is_appendix_b_verbatim, failing after my own edit",
+    "pattern": "third time this session I have changed a pinned or contracted artifact through a convenience path -- D8 put a tool inside the globbed harness set, D9 hashed an error string as a package list, and this. Each was caught by something that checks rather than by me noticing.",
+    "the_contract_I_broke": "config.json must be VERBATIM identical to the ```json block of ARCHITECTURE_FINAL.md section 6.1 AND to the block of protocol_FINAL.md Appendix B. The test asserts all three are the same text. Reformatting alone breaks it; changing a VALUE breaks it even with perfect formatting, because the two design documents still carry the old value.",
+    "the_measured_values_are_NOT_lost": "environment lock, hardware facts and the Seatbelt profile digest remain recorded in this manifest. Only their promotion into the frozen config is withdrawn.",
+    "what_I_did": "Last cycle I filled environment_lock_sha256, hardware_allowlist and sandbox.profile_sha256 into config.json by rewriting the file with json.dumps(indent=2). That reformatted the whole document.",
+    "what_is_actually_required_to_resolve_them": "one amendment touching config.json, ARCHITECTURE_FINAL.md section 6.1 and protocol_FINAL.md Appendix B in lockstep, with identical text in all three. That is root's decision, not mine: the protocol is the pre-registration document.",
+    "why_this_matters_more_than_formatting": "filling a null in config.json is therefore NOT a preparation convenience. It is a synchronized amendment to the PRE-REGISTRATION protocol's Appendix B and to the architecture's interface contract. I treated a three-document design change as a one-file edit."
+  },
   "WHAT_THIS_IS": "Offline preparation facts for the freeze. No server contacted, no model call, no sandbox execution, no network.",
   "authority": "root 2026-09-21 18:17, binding answers 1, 3 and 5",
   "environment_lock": {
