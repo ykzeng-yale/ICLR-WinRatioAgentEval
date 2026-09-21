@@ -1,339 +1,264 @@
 {
-  "AMENDMENT_v2": {
-    "1_THE_240_LABEL_CONTRADICTS_ITSELF_IN_THE_PROTOCOL": {
-      "finding_N21_same_document": "'Calibration size: fixed plan, 5 x 6 x 2 x 2 x 2 = 240 CALLS (5.8 item 3)'",
-      "protocol_5_8_item_3": "'5 repetitions x 6 smoke tasks x 2 workflows x 2 models x 2 concurrency levels = 240 EPISODES (a self_test_repair episode is 2 to 4 calls, so the number of calls is larger and is recorded)'",
-      "severity": "this decides the entire calibration budget",
-      "the_contradiction": "Identical arithmetic, identical cross-reference, two different UNITS. They cannot both hold: if 240 counts episodes then the calls are 360-600; if 240 counts calls then the episode count is smaller than 240 and the stated cell structure cannot produce it, because 8 cells x 6 tasks x 5 reps is 240 EPISODES by construction.",
-      "verified_at": "design/protocol_FINAL.md:1200 and :3322",
-      "what_I_did_not_do": "I did not pick one. The plan's arithmetic uses the EPISODE reading because it is the internally consistent one, and this amendment records that the frozen protocol text disagrees with itself so root can settle it before the number is frozen into a budget.",
-      "which_is_self_consistent": "5.8 item 3 is, because its parenthetical explicitly anticipates that calls exceed episodes. N21's 'calls' reading contradicts that parenthetical inside the same document."
+  "EFFECTIVE_PLAN": {
+    "consistency_check": {
+      "all_pass": true,
+      "calls_hi_sum_matches_total": true,
+      "calls_lo_sum_matches_total": true,
+      "episodes_sum_matches_total": true,
+      "item_3_grid_is_240": true,
+      "item_4_is_30_pairs_x_4_contrasts": true,
+      "note": "per-item sums are verified against the effective totals at file-generation time; a stale operative field cannot survive this"
     },
-    "2_format_conformance_denominator_RESOLVED": {
-      "call_consequence": "10 prompts x 2 models = 20 responses. The four hand-written prompts are NOT smoke tasks, so 4 x 2 = 8 of those responses CANNOT be reused from item 3's calibration, which uses only the six smoke tasks. At least 8 new calls, and up to 20 if none is reused.",
-      "item_1_call_bound_updated": {
-        "composition": "8-20 format-conformance responses + 2 golden-object reference requests (one per server) + the 2.2 observable-surface proof, whose request count the protocol does not state",
-        "lower": 10,
-        "upper": 24
+    "items": {
+      "item_1_serving_and_conformance": {
+        "episodes": "see request_list",
+        "logical_calls": "PENDING enumerated request list",
+        "note": "ten declared prompts per model for format conformance; golden-props GETs counted separately from generation calls; my earlier upper bound of 24 is WITHDRAWN"
       },
-      "now": "protocol 2.4 rule 6, design/protocol_FINAL.md:545: 'On the ten out-of-design prompts of 5.8, at least 9 of 10 responses of...'. The denominator is TEN, per model.",
-      "the_ten_prompts": "5.8's task set is 'the six timing-pilot tasks of 3.2 and four hand-written prompts stored in the config' = 6 + 4 = 10.",
-      "was": "an open gap in v1 of this plan -- 'config.prefreeze.format_conformance_min = 9 gives a numerator with no denominator'"
+      "item_2_counter_semantics": {
+        "logical_calls": 4,
+        "note": "both servers, one non-streamed and one streamed each, including deliberately abandoned work"
+      },
+      "item_3_duration_calibration": {
+        "episodes": 240,
+        "logical_calls_hi": 600,
+        "logical_calls_lo": 360,
+        "note": "240 means EPISODES; 120 single_shot (1 call) + 120 self_test_repair (2-4 calls)"
+      },
+      "item_4_side_by_side": {
+        "episodes": 240,
+        "logical_calls_hi": 420,
+        "logical_calls_lo": 300,
+        "note": "30 pairs per contrast x 4 contrasts; orientation balanced 15/15 fixed before measurement; solo reused from item 3 with explicit links; NO paired reuse"
+      },
+      "item_5_loaded_sweep": {
+        "model_calls": "PENDING cadence and caps",
+        "note": "at most 2260 under the early-exclusion rule; single prescribed coder load, max_tokens 1024",
+        "verifier_attempts_max": 2260
+      },
+      "item_6_rehearsal": {
+        "episodes_max": 32,
+        "note": "plus a deterministic injected-decision fixture, test-only, pinned, unreachable in trial configuration and rejected by production",
+        "pairs_max": 16
+      },
+      "item_7_anchor_drill": {
+        "model_calls": 0,
+        "note": "drill branch, no new PR"
+      },
+      "item_8_downloads": {
+        "model_calls": 0,
+        "note": "no weight download needed"
+      }
     },
-    "3_golden_object_capture_QUANTIFIED": {
-      "matches": "the four config nulls receipt.golden_props_sha256.{coder,t3} and receipt.golden_generation_settings_sha256.{coder,t3}",
-      "per_server": "(a) the full /props object with model_path tokenized, and (b) the full __verbose.generation_settings object of a reference request",
-      "source": "protocol 13.2, not 2.2 -- 2.2 does not define it",
-      "totals": "2 golden objects per server x 2 servers = 4 objects; /props is a GET and is not a model call, so the model-call minimum is 1 reference request per server = 2 calls"
-    },
-    "4_LOAD_SCHEDULE_now_required_by_root": {
-      "a_CPU_stub_is_allowed_but_does_not_substitute": "root: 'A deterministic CPU stub can verify timeout classification/retention now; it cannot replace the real loaded sweep.'",
-      "reference_thresholds": "exclusion at verify_seconds > 0.5 * 5.0 = 2.5 s, lab_data.py:169-172",
-      "root_correction_of_its_own_prior_instruction": "'My 18:17 guidance called the reference sweep offline without accounting for protocol 3.2(4)'s concurrent 1024-token generation. That was incomplete. Do not substitute an unloaded sweep.'",
-      "root_requirement": "'the loaded reference sweep belongs in the consolidated finite prefreeze model-execution plan, with its load schedule, two-run policy, reference thresholds and all attempts recorded ... A single short generation must not be assumed to cover a long sweep: specify how the prescribed load is actually observed over its relevant checks and account for every associated request.'",
-      "two_run_policy": "REFERENCE_SWEEP_RUNS = 2 per task, already fixed in lab_data.py:172",
-      "what_must_be_specified_before_this_item_is_finite": [
-        "the generation cadence and concurrency that constitutes 'the load regime of the trial'",
-        "how load presence is OBSERVED and recorded for each of the 2,260 executions, so a check run during a load gap is distinguishable from one run under load",
-        "the total number of generations the schedule implies, which is the item's model-call count and is currently unknown",
-        "what happens to a check observed WITHOUT load -- rerun under load, or excluded"
-      ],
-      "why_a_schedule_is_needed_not_a_generation": "a 1,024-token generation lasts on the order of tens of seconds; the sweep is 2,260 sandbox executions. One generation cannot cover the sweep, so the load must be SUSTAINED and its coverage OBSERVED per check, not assumed."
-    },
-    "5_item_6_still_the_binding_unknown": "unchanged from v1. Root did not fix the rehearsal n_min, margin or pair cap, so the dress rehearsal still has no finite size and no grand total can be stated.",
-    "6_anchor_drill_has_no_implementation": {
-      "consequence": "item 7 of 5.8 cannot be executed as written today. Added to the gap list rather than assumed available.",
-      "finding": "protocol 12.4 item 10's anchor drill against the real remote has no implementation; only --local-only exists, which by its own docstring does not push or comment."
-    },
-    "amended_utc": "2026-09-21T19:35:00Z",
-    "authority": "root 2026-09-21 18:54 (reviews/live_roster_root_decisions_20260921_1854.md), plus a protocol extraction pass"
+    "logical_calls_are_not_wire_requests": "retries, recovery, failures, abandoned requests and unknown usage are accounted separately in the all-attempt ledger",
+    "totals": {
+      "grand_total": "NOT STATED: items 1 and 5 have pending call counts",
+      "items_3_and_4_episodes": 480,
+      "items_3_and_4_logical_calls_hi": 1020,
+      "items_3_and_4_logical_calls_lo": 660
+    }
   },
-  "AMENDMENT_v3_ROOT_DECISIONS_1929": {
-    "A_MY_MEDIAN_CLAIM_WAS_FALSE": {
-      "I_verified_it": "confirmed. The identity holds only for ODD n, where the median IS an order statistic. At EVEN n the median averages the two middle values, and averaging does not commute with reciprocation. Our design is 30 pairs per contrast -- EVEN -- so it fails exactly where I applied it.",
-      "I_wrote": "'for positive values median(1/X) = 1/median(X) exactly', and used it to argue T1 and T2 could share one measurement set because their C statistics would be reciprocals by construction.",
-      "consequence": "the argument for sharing T1/T2 measurements collapses. Root independently ordered separate measurements, so the plan changes for two reasons, not one.",
-      "root_counterexample": "15 values of 1 and 15 values of 4 give median 2.5, whose reciprocal is 0.4; the median of the reciprocals is 0.625.",
-      "root_further": "'Compute the declared median statistics directly; do not change the estimator to manufacture reciprocity.' Adopted: C is computed from its own paired and solo medians per contrast, and no reciprocal relationship is assumed or asserted."
+  "NONOPERATIVE_HISTORY": {
+    "AMENDMENT_v2": {
+      "1_THE_240_LABEL_CONTRADICTS_ITSELF_IN_THE_PROTOCOL": {
+        "finding_N21_same_document": "'Calibration size: fixed plan, 5 x 6 x 2 x 2 x 2 = 240 CALLS (5.8 item 3)'",
+        "protocol_5_8_item_3": "'5 repetitions x 6 smoke tasks x 2 workflows x 2 models x 2 concurrency levels = 240 EPISODES (a self_test_repair episode is 2 to 4 calls, so the number of calls is larger and is recorded)'",
+        "severity": "this decides the entire calibration budget",
+        "the_contradiction": "Identical arithmetic, identical cross-reference, two different UNITS. They cannot both hold: if 240 counts episodes then the calls are 360-600; if 240 counts calls then the episode count is smaller than 240 and the stated cell structure cannot produce it, because 8 cells x 6 tasks x 5 reps is 240 EPISODES by construction.",
+        "verified_at": "design/protocol_FINAL.md:1200 and :3322",
+        "what_I_did_not_do": "I did not pick one. The plan's arithmetic uses the EPISODE reading because it is the internally consistent one, and this amendment records that the frozen protocol text disagrees with itself so root can settle it before the number is frozen into a budget.",
+        "which_is_self_consistent": "5.8 item 3 is, because its parenthetical explicitly anticipates that calls exceed episodes. N21's 'calls' reading contradicts that parenthetical inside the same document."
+      },
+      "2_format_conformance_denominator_RESOLVED": {
+        "call_consequence": "10 prompts x 2 models = 20 responses. The four hand-written prompts are NOT smoke tasks, so 4 x 2 = 8 of those responses CANNOT be reused from item 3's calibration, which uses only the six smoke tasks. At least 8 new calls, and up to 20 if none is reused.",
+        "item_1_call_bound_updated": {
+          "composition": "8-20 format-conformance responses + 2 golden-object reference requests (one per server) + the 2.2 observable-surface proof, whose request count the protocol does not state",
+          "lower": 10,
+          "upper": 24
+        },
+        "now": "protocol 2.4 rule 6, design/protocol_FINAL.md:545: 'On the ten out-of-design prompts of 5.8, at least 9 of 10 responses of...'. The denominator is TEN, per model.",
+        "the_ten_prompts": "5.8's task set is 'the six timing-pilot tasks of 3.2 and four hand-written prompts stored in the config' = 6 + 4 = 10.",
+        "was": "an open gap in v1 of this plan -- 'config.prefreeze.format_conformance_min = 9 gives a numerator with no denominator'"
+      },
+      "3_golden_object_capture_QUANTIFIED": {
+        "matches": "the four config nulls receipt.golden_props_sha256.{coder,t3} and receipt.golden_generation_settings_sha256.{coder,t3}",
+        "per_server": "(a) the full /props object with model_path tokenized, and (b) the full __verbose.generation_settings object of a reference request",
+        "source": "protocol 13.2, not 2.2 -- 2.2 does not define it",
+        "totals": "2 golden objects per server x 2 servers = 4 objects; /props is a GET and is not a model call, so the model-call minimum is 1 reference request per server = 2 calls"
+      },
+      "4_LOAD_SCHEDULE_now_required_by_root": {
+        "a_CPU_stub_is_allowed_but_does_not_substitute": "root: 'A deterministic CPU stub can verify timeout classification/retention now; it cannot replace the real loaded sweep.'",
+        "reference_thresholds": "exclusion at verify_seconds > 0.5 * 5.0 = 2.5 s, lab_data.py:169-172",
+        "root_correction_of_its_own_prior_instruction": "'My 18:17 guidance called the reference sweep offline without accounting for protocol 3.2(4)'s concurrent 1024-token generation. That was incomplete. Do not substitute an unloaded sweep.'",
+        "root_requirement": "'the loaded reference sweep belongs in the consolidated finite prefreeze model-execution plan, with its load schedule, two-run policy, reference thresholds and all attempts recorded ... A single short generation must not be assumed to cover a long sweep: specify how the prescribed load is actually observed over its relevant checks and account for every associated request.'",
+        "two_run_policy": "REFERENCE_SWEEP_RUNS = 2 per task, already fixed in lab_data.py:172",
+        "what_must_be_specified_before_this_item_is_finite": [
+          "the generation cadence and concurrency that constitutes 'the load regime of the trial'",
+          "how load presence is OBSERVED and recorded for each of the 2,260 executions, so a check run during a load gap is distinguishable from one run under load",
+          "the total number of generations the schedule implies, which is the item's model-call count and is currently unknown",
+          "what happens to a check observed WITHOUT load -- rerun under load, or excluded"
+        ],
+        "why_a_schedule_is_needed_not_a_generation": "a 1,024-token generation lasts on the order of tens of seconds; the sweep is 2,260 sandbox executions. One generation cannot cover the sweep, so the load must be SUSTAINED and its coverage OBSERVED per check, not assumed."
+      },
+      "5_item_6_still_the_binding_unknown": "unchanged from v1. Root did not fix the rehearsal n_min, margin or pair cap, so the dress rehearsal still has no finite size and no grand total can be stated.",
+      "6_anchor_drill_has_no_implementation": {
+        "consequence": "item 7 of 5.8 cannot be executed as written today. Added to the gap list rather than assumed available.",
+        "finding": "protocol 12.4 item 10's anchor drill against the real remote has no implementation; only --local-only exists, which by its own docstring does not push or comment."
+      },
+      "amended_utc": "2026-09-21T19:35:00Z",
+      "authority": "root 2026-09-21 18:54 (reviews/live_roster_root_decisions_20260921_1854.md), plus a protocol extraction pass"
     },
-    "B_ITEM_4_CORRECTED": {
-      "new_calls": "300-420 (T1 and T2 each 90-150; T3 and T4 each 60)",
-      "orientation": "balanced 15/15 within each contrast, FIXED BEFORE measurement, by deterministic prospective assignment across task/replicate coordinates. This timing schedule does NOT replace the trial's randomization.",
-      "root_ruling": "separate paired timing measurements for EACH of the four contrasts; 30 pairs per contrast (6 smoke tasks x 5 repetitions) = 240 NEW episodes",
-      "solo_reuse": "the matching solo measurements from item 3 ARE reused, with explicit task/model/workflow/replicate links recorded per contrast.",
-      "two_errors_root_corrected_in_my_v1": [
-        "I budgeted 120 new episodes by sharing T1/T2. Root: 'Do not reuse paired T1 data as independent T2 observations.' Corrected to 240.",
-        "I treated item 3's 30 concurrency-two episodes in a cell as providing 30 pairs. Root: 'they provide only 15 pairs if partitioned into disjoint pairs.' So T4's paired half is NOT fully covered by item 3 either."
+    "AMENDMENT_v3_ROOT_DECISIONS_1929": {
+      "A_MY_MEDIAN_CLAIM_WAS_FALSE": {
+        "I_verified_it": "confirmed. The identity holds only for ODD n, where the median IS an order statistic. At EVEN n the median averages the two middle values, and averaging does not commute with reciprocation. Our design is 30 pairs per contrast -- EVEN -- so it fails exactly where I applied it.",
+        "I_wrote": "'for positive values median(1/X) = 1/median(X) exactly', and used it to argue T1 and T2 could share one measurement set because their C statistics would be reciprocals by construction.",
+        "consequence": "the argument for sharing T1/T2 measurements collapses. Root independently ordered separate measurements, so the plan changes for two reasons, not one.",
+        "root_counterexample": "15 values of 1 and 15 values of 4 give median 2.5, whose reciprocal is 0.4; the median of the reciprocals is 0.625.",
+        "root_further": "'Compute the declared median statistics directly; do not change the estimator to manufacture reciprocity.' Adopted: C is computed from its own paired and solo medians per contrast, and no reciprocal relationship is assumed or asserted."
+      },
+      "B_ITEM_4_CORRECTED": {
+        "new_calls": "300-420 (T1 and T2 each 90-150; T3 and T4 each 60)",
+        "orientation": "balanced 15/15 within each contrast, FIXED BEFORE measurement, by deterministic prospective assignment across task/replicate coordinates. This timing schedule does NOT replace the trial's randomization.",
+        "root_ruling": "separate paired timing measurements for EACH of the four contrasts; 30 pairs per contrast (6 smoke tasks x 5 repetitions) = 240 NEW episodes",
+        "solo_reuse": "the matching solo measurements from item 3 ARE reused, with explicit task/model/workflow/replicate links recorded per contrast.",
+        "two_errors_root_corrected_in_my_v1": [
+          "I budgeted 120 new episodes by sharing T1/T2. Root: 'Do not reuse paired T1 data as independent T2 observations.' Corrected to 240.",
+          "I treated item 3's 30 concurrency-two episodes in a cell as providing 30 pairs. Root: 'they provide only 15 pairs if partitioned into disjoint pairs.' So T4's paired half is NOT fully covered by item 3 either."
+        ]
+      },
+      "C_CORRECTED_SUBTOTAL": {
+        "items_3_and_4_episodes": 480,
+        "items_3_and_4_logical_calls": "660-1020",
+        "logical_calls_are_not_wire_requests": "root, on the 240: 'This is not an upper bound on HTTP attempts: retries, recovery, failures and unknown usage require separate accounting.' The all-attempt ledger counts wire requests; these are logical generation calls.",
+        "root_note": "'No paired-observation reuse is budgeted.' And: 'it does not alter trial power, success margin or horizon.'",
+        "supersedes": "v1's 360 episodes / 660-1020 calls, which root identified as internally inconsistent: I carried item 4's call range while halving its episode count."
+      },
+      "D_240_MEANS_EPISODES_AND_N21_IS_AN_ERRATUM": {
+        "erratum_to_record": "protocol_FINAL.md finding N21 says '240 calls'; the unit is EPISODES. Recorded here as a documented unit erratum rather than silently reconciled.",
+        "implication": "120 single-shot episodes + 120 repair episodes = 360-600 logical generation calls.",
+        "ruling": "'240 means episodes. The fixed 5x6x2x2x2 grid and 5.8(3) determine the unit. Correct N21's word calls as a documented unit erratum; preserve the grid and thresholds.'"
+      },
+      "E_COUNTER_SEMANTICS_AND_CONFORMANCE_FIXED": {
+        "counter_semantics": "probe BOTH servers, one non-streamed and one streamed each = FOUR logical requests, including the deliberately abandoned work. (v1 left this as an unresolved 2-or-4 ambiguity.)",
+        "format_conformance": "the declared TEN prompts per model; any reuse must NAME the actual matching request.",
+        "required_next": "enumerate a FIXED request list for item 1, and keep golden-props GETs separate from generation calls.",
+        "root_caught_an_inconsistency_in_v1": "'The plan's unknown observable-surface request count cannot coexist with a claimed hard upper 24.' Correct -- I gave item 1 an upper bound of 24 while also saying one of its components had no stated count. The bound is withdrawn until the request list is enumerated."
+      },
+      "F_REHEARSAL_NOW_FINITE": {
+        "a_real_server_rehearsal": "AT MOST 16 pairs / 32 episodes, covering both models, both workflows, both orientations and the four named fault drills, on a prospectively written schedule.",
+        "b_deterministic_fixture": "injects a decision event at the monitor/router interface to exercise receipt, switch, pending-work resolution and post-switch bookkeeping. It is an INJECTED CONTROL-PATH TEST, not statistical evidence and not an observed real-server decision. Monitor outputs stay untouched and real-server abstention is permitted.",
+        "root_ruling": "do not widen margins or run until a favourable crossing. Two clearly distinguished checks replace the guaranteed natural decision:",
+        "stop_rule": "'If 32 episodes cannot cover required paths, report precisely which paths were untested and stop; do not silently extend or call the rehearsal passed.'",
+        "this_closes_v1s_binding_unknown": "item 6 had no finite size in v1 and was the reason no grand total could be stated. It now has one."
+      },
+      "G_LOADED_SWEEP_BOUNDS": {
+        "attempts": "AT MOST 2260 verifier attempts, not necessarily exactly 2260: the stop-on-first-exclusion rule applies, so a task excluded on run 0 never runs run 1.",
+        "clearance": "root has NOT cleared this component; foreign servers remain a separate capacity blocker.",
+        "load": "keep the prescribed concurrent 1024-token generation; no unloaded substitution.",
+        "load_gap_rule": "'A load gap invalidates that preparation check: retain it and stop for diagnosis, without classifying the task as a scientific reference failure or retrying until it passes.'",
+        "owner_must_return": "an implementable bounded cadence with a HARD LOAD-REQUEST CAP and a WALL-TIME CAP, per-check observed overlap, and all-attempt records; caps chosen from available host capacity before execution."
+      },
+      "H_INDEPENDENCE_CAVEAT_ROOT_ADDED": "'Shared solo calibration also means contrast summaries are not statistically independent, even with separate paired records. They remain preparation diagnostics.' Recorded: the four C values share their solo arm measurements and must never be treated as four independent estimates.",
+      "authority": "reviews/live_prefreeze_root_decisions_20260921_1929.md",
+      "status": "v1 and v2 totals are SUPERSEDED by this amendment. Retained above for the record; do not quote them.",
+      "still_open": [
+        "item 1's enumerated request list (the observable-surface proof count)",
+        "the loaded sweep's cadence and its two caps, chosen from host capacity",
+        "the rehearsal's prospectively written schedule and its finite logical/wire budget, to be returned BEFORE execution"
       ]
     },
-    "C_CORRECTED_SUBTOTAL": {
-      "items_3_and_4_episodes": 480,
-      "items_3_and_4_logical_calls": "660-1020",
-      "logical_calls_are_not_wire_requests": "root, on the 240: 'This is not an upper bound on HTTP attempts: retries, recovery, failures and unknown usage require separate accounting.' The all-attempt ledger counts wire requests; these are logical generation calls.",
-      "root_note": "'No paired-observation reuse is budgeted.' And: 'it does not alter trial power, success margin or horizon.'",
-      "supersedes": "v1's 360 episodes / 660-1020 calls, which root identified as internally inconsistent: I carried item 4's call range while halving its episode count."
+    "WARNING": "SUPERSEDED. Retained for the record only. Root 20:05 found that these fields still carried 360 episodes and item 4 = 120, so a reader could obtain the superseded design from the current file. They are quarantined here and are NOT the plan. Read EFFECTIVE_PLAN.",
+    "finite_totals_for_the_quantifiable_items": {
+      "calls_lower_bound_items_3_and_4": 660,
+      "calls_upper_bound_items_3_and_4": 1020,
+      "episodes_subtotal_items_3_and_4": 360,
+      "grand_total": "CANNOT BE STATED AS A NUMBER while item 6, the item-1 denominator and the rule-4 load regime are unquantified. Stating one would be the kind of false precision this plan exists to avoid.",
+      "item_1_calls": "2 plus an unknown format-conformance denominator",
+      "item_2_calls": "2-4",
+      "item_3_episodes": 240,
+      "item_4_new_episodes": 120,
+      "item_5_model_calls": "NOT QUANTIFIED -- the rule-4 load regime",
+      "item_5_sandbox_executions": 2260,
+      "items_7_and_8_model_calls": 0
     },
-    "D_240_MEANS_EPISODES_AND_N21_IS_AN_ERRATUM": {
-      "erratum_to_record": "protocol_FINAL.md finding N21 says '240 calls'; the unit is EPISODES. Recorded here as a documented unit erratum rather than silently reconciled.",
-      "implication": "120 single-shot episodes + 120 repair episodes = 360-600 logical generation calls.",
-      "ruling": "'240 means episodes. The fixed 5x6x2x2x2 grid and 5.8(3) determine the unit. Correct N21's word calls as a documented unit erratum; preserve the grid and thresholds.'"
-    },
-    "E_COUNTER_SEMANTICS_AND_CONFORMANCE_FIXED": {
-      "counter_semantics": "probe BOTH servers, one non-streamed and one streamed each = FOUR logical requests, including the deliberately abandoned work. (v1 left this as an unresolved 2-or-4 ambiguity.)",
-      "format_conformance": "the declared TEN prompts per model; any reuse must NAME the actual matching request.",
-      "required_next": "enumerate a FIXED request list for item 1, and keep golden-props GETs separate from generation calls.",
-      "root_caught_an_inconsistency_in_v1": "'The plan's unknown observable-surface request count cannot coexist with a claimed hard upper 24.' Correct -- I gave item 1 an upper bound of 24 while also saying one of its components had no stated count. The bound is withdrawn until the request list is enumerated."
-    },
-    "F_REHEARSAL_NOW_FINITE": {
-      "a_real_server_rehearsal": "AT MOST 16 pairs / 32 episodes, covering both models, both workflows, both orientations and the four named fault drills, on a prospectively written schedule.",
-      "b_deterministic_fixture": "injects a decision event at the monitor/router interface to exercise receipt, switch, pending-work resolution and post-switch bookkeeping. It is an INJECTED CONTROL-PATH TEST, not statistical evidence and not an observed real-server decision. Monitor outputs stay untouched and real-server abstention is permitted.",
-      "root_ruling": "do not widen margins or run until a favourable crossing. Two clearly distinguished checks replace the guaranteed natural decision:",
-      "stop_rule": "'If 32 episodes cannot cover required paths, report precisely which paths were untested and stop; do not silently extend or call the rehearsal passed.'",
-      "this_closes_v1s_binding_unknown": "item 6 had no finite size in v1 and was the reason no grand total could be stated. It now has one."
-    },
-    "G_LOADED_SWEEP_BOUNDS": {
-      "attempts": "AT MOST 2260 verifier attempts, not necessarily exactly 2260: the stop-on-first-exclusion rule applies, so a task excluded on run 0 never runs run 1.",
-      "clearance": "root has NOT cleared this component; foreign servers remain a separate capacity blocker.",
-      "load": "keep the prescribed concurrent 1024-token generation; no unloaded substitution.",
-      "load_gap_rule": "'A load gap invalidates that preparation check: retain it and stop for diagnosis, without classifying the task as a scientific reference failure or retrying until it passes.'",
-      "owner_must_return": "an implementable bounded cadence with a HARD LOAD-REQUEST CAP and a WALL-TIME CAP, per-check observed overlap, and all-attempt records; caps chosen from available host capacity before execution."
-    },
-    "H_INDEPENDENCE_CAVEAT_ROOT_ADDED": "'Shared solo calibration also means contrast summaries are not statistically independent, even with separate paired records. They remain preparation diagnostics.' Recorded: the four C values share their solo arm measurements and must never be treated as four independent estimates.",
-    "authority": "reviews/live_prefreeze_root_decisions_20260921_1929.md",
-    "status": "v1 and v2 totals are SUPERSEDED by this amendment. Retained above for the record; do not quote them.",
-    "still_open": [
+    "gaps_that_must_close_before_this_plan_is_finite": [
       "item 1's enumerated request list (the observable-surface proof count)",
       "the loaded sweep's cadence and its two caps, chosen from host capacity",
       "the rehearsal's prospectively written schedule and its finite logical/wire budget, to be returned BEFORE execution"
-    ]
-  },
-  "WHAT_THIS_IS": "A PLAN submitted for explicit prefreeze model-execution review. Nothing in it has been executed. No model call, no server start, no fault injection is claimed or approved.",
-  "all_attempt_ledger": {
-    "chain": "all of it is written to a separate chain under results/live_ab/_prefreeze/ with phase in {SMOKE, TIMING_PILOT, SERVER_SMOKE, REHEARSAL} and its own genesis, closed by a prefreeze_closed event whose head, byte length and file hash enter the freeze bundle",
-    "must_be_counted_even_though_discarded": [
-      "item 2's deliberately ABANDONED non-streamed generation -- the client times out on purpose, and the server still did the work",
-      "item 2's streamed probe, which exists only to learn the token count at the cut",
-      "every rehearsal episode in item 6 -- protocol 1.5 item 17: rehearsal success outcomes are never used and never reported as observations, but their RESOURCE COST is real",
-      "every failed or retried call, and any call whose usage is unknown",
-      "the rule-4 load-regime generations concurrent with the reference sweep"
     ],
-    "requirement": "root: 'an all-attempt ledger'. Every attempt is recorded, including ones whose output is discarded.",
-    "separation_rule": "protocol 5.8: prefreeze tokens 'are reported separately and excluded from every trial total'. The ledger is therefore a PREFREEZE ledger and must never be added to trial usage."
-  },
-  "authority": "root 2026-09-21 18:17, 'Separate finite prefreeze execution plan': 'The 240 episodes in protocol 5.8(3) are the duration-calibration subtotal, NOT the total prefreeze budget ... Consolidate these existing requirements into one finite episode/call/resource plan, identifying overlap/reuse explicitly, an all-attempt ledger, failure/stop rules and prospective inputs to c_max. Do not double-count reused observations as independent runs; do not hide additional calls outside the 240 label.'",
-  "failure_and_stop_rules": {
-    "auto_abort": "config.execution.auto_abort: 10 consecutive infrastructure failures, counted in reveal order",
-    "item_6_is_all_or_nothing": "verifier PASS, builder run without error, and the frozen receipt comparison passing on 100% of rehearsal responses. Protocol: 'Any failure means no freeze.'",
-    "max_attempts": "config.execution.max_attempts = 1; hard_cap_outcome = terminal_failure",
-    "retained": "root: 'retaining failed attempts and any unknown usage'. Nothing is deleted; failed attempts stay in the ledger and on the chain.",
-    "what_I_will_not_do": "no retry-until-pass on the rehearsal freeze conditions, and no widening of the rehearsal margin to make a decision occur sooner than the frozen rehearsal config produces it"
-  },
-  "finite_totals_for_the_quantifiable_items": {
-    "calls_lower_bound_items_3_and_4": 660,
-    "calls_upper_bound_items_3_and_4": 1020,
-    "episodes_subtotal_items_3_and_4": 360,
-    "grand_total": "CANNOT BE STATED AS A NUMBER while item 6, the item-1 denominator and the rule-4 load regime are unquantified. Stating one would be the kind of false precision this plan exists to avoid.",
-    "item_1_calls": "2 plus an unknown format-conformance denominator",
-    "item_2_calls": "2-4",
-    "item_3_episodes": 240,
-    "item_4_new_episodes": 120,
-    "item_5_model_calls": "NOT QUANTIFIED -- the rule-4 load regime",
-    "item_5_sandbox_executions": 2260,
-    "items_7_and_8_model_calls": 0
-  },
-  "gaps_that_must_close_before_this_plan_is_finite": [
-    "item 1's enumerated request list (the observable-surface proof count)",
-    "the loaded sweep's cadence and its two caps, chosen from host capacity",
-    "the rehearsal's prospectively written schedule and its finite logical/wire budget, to be returned BEFORE execution"
-  ],
-  "generated_utc": "2026-09-21T19:10:00Z",
-  "headline": "240 is item 3 only. Items 3 and 4 together are 360 episodes and 660-1020 CALLS. Items 1, 2, 5 and 6 add more. Item 6 is NOT QUANTIFIED by the protocol and is the single reason a total cannot be stated as a number -- see unquantified_item_6.",
-  "must_not_claim": [
-    "that this plan has been approved, or that any part of it has been executed",
-    "that the totals are complete -- four of the eight items are not fully quantifiable yet and this file says which",
-    "that the reuse claimed here is settled; the T1/T2 sharing question could turn a claimed saving into a design error"
-  ],
-  "overlap_and_reuse": {
-    "T1_and_T2_share_one_measurement_set_AND_THAT_IS_A_QUESTION_NOT_A_SAVING": {
-      "my_plan_assumes": "ONE shared pair-set A serving both T1 and T2, which is the cheaper reading. If root wants them measured separately, pair-set A doubles: +60 episodes and +180-300 calls.",
-      "observation": "T1 and T2 are the same two arms with incumbent and candidate exchanged. C is defined as a ratio candidate/incumbent, and for positive values median(1/X) = 1/median(X) exactly, so computing both C's from ONE measurement set forces C_T1 = 1 / C_T2 as an algebraic identity.",
-      "protocol_is_silent": "5.8(4) says 'for each of the four contrasts' and does not say whether T1 and T2 may share a measurement set.",
-      "this_is_the_single_place_where_my_reuse_claim_could_be_double_counting_in_reverse": "claiming a saving the design does not permit",
-      "what_could_make_them_genuinely_differ": "slot/position asymmetry. A pair assigns arms to positions 1 and 2, and if side-by-side latency depends on slot, then running the pair with the roles exchanged is a DIFFERENT measurement, not the same one inverted.",
-      "why_that_is_uncomfortable": "two contrasts would then carry compression statistics that are exact reciprocals by construction rather than by measurement. If the protocol intends them as independent empirical quantities, they must be measured separately."
-    },
-    "paired_half_is_PARTLY_reusable": {
-      "T2_and_T1": "NEW. The pair is heterogeneous (single_shot/coder beside self_test_repair/coder) and no item-3 cell is heterogeneous -- each cell runs ONE workflow+model at both concurrency levels.",
-      "T3": "NEW. Cross-model pair (single_shot/coder beside single_shot/t3); no item-3 cell mixes models.",
-      "T4": "REUSABLE. Its pair is single_shot/coder beside single_shot/coder, which is exactly item 3's (single_shot, coder, concurrency 2) cell. 0 new episodes.",
-      "distinct_new_pair_sets": 2,
-      "new_calls": {
-        "pair_set_A_single_shot_coder_beside_self_test_repair_coder": "60 single_shot episodes (60 calls) + 60 self_test_repair episodes (120-240 calls) = 180-300 calls",
-        "pair_set_B_single_shot_coder_beside_single_shot_t3": "120 single_shot episodes = 120 calls",
-        "total_lower": 300,
-        "total_upper": 420
+    "headline": "240 is item 3 only. Items 3 and 4 together are 360 episodes and 660-1020 CALLS. Items 1, 2, 5 and 6 add more. Item 6 is NOT QUANTIFIED by the protocol and is the single reason a total cannot be stated as a number -- see unquantified_item_6.",
+    "overlap_and_reuse": {
+      "T1_and_T2_share_one_measurement_set_AND_THAT_IS_A_QUESTION_NOT_A_SAVING": {
+        "my_plan_assumes": "ONE shared pair-set A serving both T1 and T2, which is the cheaper reading. If root wants them measured separately, pair-set A doubles: +60 episodes and +180-300 calls.",
+        "observation": "T1 and T2 are the same two arms with incumbent and candidate exchanged. C is defined as a ratio candidate/incumbent, and for positive values median(1/X) = 1/median(X) exactly, so computing both C's from ONE measurement set forces C_T1 = 1 / C_T2 as an algebraic identity.",
+        "protocol_is_silent": "5.8(4) says 'for each of the four contrasts' and does not say whether T1 and T2 may share a measurement set.",
+        "this_is_the_single_place_where_my_reuse_claim_could_be_double_counting_in_reverse": "claiming a saving the design does not permit",
+        "what_could_make_them_genuinely_differ": "slot/position asymmetry. A pair assigns arms to positions 1 and 2, and if side-by-side latency depends on slot, then running the pair with the roles exchanged is a DIFFERENT measurement, not the same one inverted.",
+        "why_that_is_uncomfortable": "two contrasts would then carry compression statistics that are exact reciprocals by construction rather than by measurement. If the protocol intends them as independent empirical quantities, they must be measured separately."
       },
-      "new_pair_runs": "2 pair-sets x 6 tasks x 5 reps = 60 pair-runs = 120 episodes"
-    },
-    "root_requirement": "'identifying overlap/reuse explicitly ... Do not double-count reused observations as independent runs.'",
-    "solo_half_of_item_4_is_FULLY_REUSABLE": {
-      "distinct_solo_configurations_needed": [
-        "single_shot/coder",
-        "self_test_repair/coder",
-        "single_shot/t3"
-      ],
-      "new_episodes": 0,
-      "note": "single_shot/t3 is an item-3 cell but appears in no contrast except T3's candidate arm; self_test_repair/t3 is an item-3 cell that appears in NO contrast at all. Item 3 therefore buys one cell (self_test_repair/t3, 30 episodes) that item 4 never uses. That is item 3's fixed plan, not waste I introduced, and I am not proposing to trim it -- the protocol says its size is not the operator's choice.",
-      "why_reusable": "all three are exactly item 3's concurrency-1 cells, measured on the same 6 smoke tasks x 5 repetitions"
-    },
-    "the_four_contrasts": {
-      "T1": "incumbent self_test_repair/coder vs candidate single_shot/coder -- THE SAME PHYSICAL PAIR AS T2, roles swapped",
-      "T2": "incumbent single_shot/coder vs candidate self_test_repair/coder",
-      "T3": "incumbent single_shot/coder vs candidate single_shot/t3 -- CROSS-MODEL",
-      "T4": "incumbent single_shot/coder vs candidate single_shot/coder -- HOMOGENEOUS"
-    }
-  },
-  "prospective_inputs_to_c_max": {
-    "both_are_null_in_config_today": true,
-    "definition": "c_max = the maximum SINGLE-CALL duration over item 3's fixed 240-episode sample. Protocol 5.8(3).",
-    "downstream": "request_timeout_s = max(180, 30*ceil(4*c_max/30)) and episode_hard_cap_s = 4*(3*request_timeout_s + server_recovery_s + 6) + 3*(sandbox_timeout_s + max_lock_wait_s) + 60, both from config.execution; config marks episode_hard_cap_is_computed_never_typed: true",
-    "it_is_a_MAXIMUM_over_calls_not_episodes": "the 240 episodes contain 360-600 calls; c_max ranges over the calls",
-    "no_performance_based_retuning": "root: 'A data-derived timeout is acceptable only through the predetermined rule applied to the separate out-of-design phase, retaining failed attempts and any unknown usage. No performance-success-based retuning.' The rule above is predetermined and applied once.",
-    "sample_is_frozen_before_measurement": "5 x 6 x 2 x 2 x 2; the operator has no choice in its size, so c_max cannot be tuned by enlarging or shrinking the sample"
-  },
-  "schema": "live_ab.prefreeze_execution_plan.1",
-  "status": "NOT APPROVED, NOT RUN. Root's report is explicit that it 'avoids demanding outputs of model calibration before reviewing authority to run that calibration'.",
-  "the_eight_items_of_protocol_5_8": {
-    "1_serving_build_manifest_golden_capture": {
-      "calls_lower_bound": 2,
-      "calls_upper_bound": "UNKNOWN",
-      "episodes": "NOT QUANTIFIED for the conformance rule",
-      "protocol": "5.8(1), cross-refs 2.2 and 2.4",
-      "requires": "serving build and manifest; receipt smoke test and golden-object capture PER SERVER; the template rule and the format-conformance rule for BOTH models",
-      "resolves_freeze_keys": [
-        "serving_manifest_sha256",
-        "golden_props_sha256",
-        "golden_generation_settings_sha256"
-      ],
-      "why_unknown": "config.prefreeze.format_conformance_min = 9 gives a numerator with no denominator recorded anywhere in config. 9 of how many? Until that is fixed the item has no finite call count."
-    },
-    "2_counter_semantics_test": {
-      "ambiguity": "the text says 'a 1,024-token generation', singular, and does not say per-server. 2 calls if once; 4 if once per server. Recorded as a range rather than resolved by me.",
-      "calls_lower_bound": 2,
-      "calls_upper_bound": 4,
-      "episodes": "2 probes (1 non-streamed + 1 streamed), per server if run per server",
-      "note": "these calls are ABANDONED by design -- the client times out deliberately. They still consume server work and MUST appear in the all-attempt ledger.",
-      "protocol": "5.8(2), finding N14, fixes the accounting wording of 13.1",
-      "requires": "a 1,024-token generation over a NON-STREAMED POST with a short client timeout, client allowed to time out, /metrics scraped before and after; PLUS a streamed probe run in addition, only to learn how many tokens had been generated at the cut"
-    },
-    "3_duration_calibration_THE_240": {
-      "call_arithmetic": {
-        "calls_lower_bound": 360,
-        "calls_upper_bound": 600,
-        "self_test_repair_cells": "4 cells x 6 tasks x 5 reps = 120 episodes x 2-4 calls = 240-480 calls",
-        "single_shot_cells": "4 cells x 6 tasks x 5 reps = 120 episodes x 1 call = 120 calls"
+      "paired_half_is_PARTLY_reusable": {
+        "T2_and_T1": "NEW. The pair is heterogeneous (single_shot/coder beside self_test_repair/coder) and no item-3 cell is heterogeneous -- each cell runs ONE workflow+model at both concurrency levels.",
+        "T3": "NEW. Cross-model pair (single_shot/coder beside single_shot/t3); no item-3 cell mixes models.",
+        "T4": "REUSABLE. Its pair is single_shot/coder beside single_shot/coder, which is exactly item 3's (single_shot, coder, concurrency 2) cell. 0 new episodes.",
+        "distinct_new_pair_sets": 2,
+        "new_calls": {
+          "pair_set_A_single_shot_coder_beside_self_test_repair_coder": "60 single_shot episodes (60 calls) + 60 self_test_repair episodes (120-240 calls) = 180-300 calls",
+          "pair_set_B_single_shot_coder_beside_single_shot_t3": "120 single_shot episodes = 120 calls",
+          "total_lower": 300,
+          "total_upper": 420
+        },
+        "new_pair_runs": "2 pair-sets x 6 tasks x 5 reps = 60 pair-runs = 120 episodes"
       },
-      "cells": "8 = workflow{single_shot, self_test_repair} x model{coder, t3} x concurrency{1, 2}",
-      "episodes": 240,
-      "plan_frozen_before_it_runs": "5 repetitions x 6 smoke tasks x 2 workflows x 2 models x 2 concurrency levels = 240 episodes. The protocol states the operator has NO CHOICE in its size.",
-      "produces": "c_max = the MAXIMUM SINGLE-CALL DURATION over this fixed sample; sets request_timeout_s and hence episode_hard_cap_s by the rules of 5.6; also checks memory",
-      "protocol": "5.8(3), finding N21",
-      "resolves_freeze_keys": [
-        "prefreeze_head",
-        "prefreeze_bytes",
-        "prefreeze_file_sha256 (jointly with the other items on the same chain)"
-      ],
-      "why_the_call_count_matters": "root: 'do not hide additional calls outside the 240 label'. The 240 is an EPISODE count. The protocol itself says 'a self_test_repair episode is 2 to 4 calls, so the number of calls is larger and is recorded'. With max_repair_rounds = 2 the upper bound is 4."
-    },
-    "4_side_by_side_compression_every_contrast": {
-      "genuinely_new_calls_lower_bound": 300,
-      "genuinely_new_calls_upper_bound": 420,
-      "genuinely_new_episodes": 120,
-      "protocol": "5.8(4), finding N21",
-      "requires": "for EACH of the four contrasts, the latency of each arm (i) SOLO and (ii) BESIDE the other arm of that contrast, exactly as a pair runs, over 6 smoke tasks x 5 repetitions",
-      "resolves_config": "prefreeze.side_by_side_compression_C.{T1,T2,T3,T4}, all four currently null",
-      "see": "overlap_and_reuse -- most of the solo half and part of the paired half is already bought by item 3",
-      "statistic": "C = (median side-by-side latency ratio candidate/incumbent) / (median solo latency ratio candidate/incumbent); ONE C per contrast, frozen into that contrast's estimand text in 6.2"
-    },
-    "5_reference_sweep_and_containment_probe": {
-      "containment_probe": {
-        "blocked_by": "writing one adds a .py to the GLOBBED HARNESS_FILES set and moves harness_file_sha256, a freeze-bundle key. Reported rather than improvised -- the same mistake as defect D8.",
-        "model_calls": 0,
-        "status": "NO IMPLEMENTATION EXISTS in experiments/live_ab; only mock references in dryrun_live_ab.py"
+      "root_requirement": "'identifying overlap/reuse explicitly ... Do not double-count reused observations as independent runs.'",
+      "solo_half_of_item_4_is_FULLY_REUSABLE": {
+        "distinct_solo_configurations_needed": [
+          "single_shot/coder",
+          "self_test_repair/coder",
+          "single_shot/t3"
+        ],
+        "new_episodes": 0,
+        "note": "single_shot/t3 is an item-3 cell but appears in no contrast except T3's candidate arm; self_test_repair/t3 is an item-3 cell that appears in NO contrast at all. Item 3 therefore buys one cell (self_test_repair/t3, 30 episodes) that item 4 never uses. That is item 3's fixed plan, not waste I introduced, and I am not proposing to trim it -- the protocol says its size is not the operator's choice.",
+        "why_reusable": "all three are exactly item 3's concurrency-1 cells, measured on the same 6 smoke tasks x 5 repetitions"
       },
-      "protocol": "5.8(5), cross-refs 3.2 item 4 and 5.7",
-      "reference_sweep": {
-        "BUT": "protocol 3.2 rule 4 requires the sweep to run UNDER THE LOAD REGIME OF THE TRIAL -- a 1,024-token generation running on the coder server DURING the sweep. Those are model calls, they are concurrent with a 2,260-execution sweep, and their count is NOT QUANTIFIED by the protocol. This is the same blocker recorded in ROSTER_STAGE1_20260921_1830.json.",
-        "arithmetic": "1,130 surviving tasks x 2 runs each (REFERENCE_SWEEP_RUNS = 2)",
-        "consequence": "the reference sweep is not a model-free item once the load regime is honoured, and its generation count must be fixed before the plan is finite.",
-        "model_calls_by_the_sweep_itself": 0,
-        "sandbox_executions": 2260
-      },
-      "resolves_freeze_keys": [
-        "roster_sha256",
-        "task_content_sha256",
-        "arrival_order_sha256 (via the roster)",
-        "containment_probe_sha256"
-      ]
+      "the_four_contrasts": {
+        "T1": "incumbent self_test_repair/coder vs candidate single_shot/coder -- THE SAME PHYSICAL PAIR AS T2, roles swapped",
+        "T2": "incumbent single_shot/coder vs candidate self_test_repair/coder",
+        "T3": "incumbent single_shot/coder vs candidate single_shot/t3 -- CROSS-MODEL",
+        "T4": "incumbent single_shot/coder vs candidate single_shot/coder -- HOMOGENEOUS"
+      }
     },
-    "6_real_server_dress_rehearsal": {
-      "any_failure_means_no_freeze": true,
-      "calls": "NOT QUANTIFIED",
-      "episodes": "NOT QUANTIFIED",
-      "freeze_conditions": [
-        "verifier PASS",
-        "builder run without error",
-        "the frozen receipt comparison (golden object, mask list, cache_n, alias, seed) passes on 100% of the rehearsal's responses",
-        "must include complete self_test_repair episodes with repair rounds on both slots",
-        "must include two consecutive episodes with an identical prefix on the same slot"
-      ],
-      "injected_faults_each_at_least_once": [
-        "one orchestrator kill",
-        "one worker kill",
-        "one forced server kill with supervised restart",
-        "one forced pause and resume"
-      ],
-      "protocol": "5.8(6), finding N8 and N7",
-      "requires": "the FULL production path under a rehearsal-only config -- orchestrator, pair-synchronous scheduler, program chain, both workflows in both orientations, BOTH models, spools, execution lock, per-pair /metrics scrapes, live monitor and reference rule, real anchors on a drill branch, the verifier and one builder run -- with a small n_min and a wide margin so that a DECISION, its blocking receipt, the SWITCH and a post-switch phase all occur",
-      "see": "unquantified_item_6"
-    },
-    "7_anchor_drill": {
-      "model_calls": 0,
-      "note": "this writes to the real issue thread, so it is externally visible and should be flagged as such before it runs.",
-      "protocol": "5.8(7), cross-ref 12.4",
-      "requires": "anchor drill against the real remote on a drill branch and the real issue thread",
-      "resource": "GitHub API writes on a drill branch and the real issue thread"
-    },
-    "8_downloads": {
-      "current_state": {
-        "LICENSE_files": "NOT OBTAINED. license_evidence_sha256 is still an open freeze key; config declares apache-2.0 for both models but no evidence file is deposited. A declared licence is not evidence of one.",
-        "mbpp.jsonl": "PRESENT but in NO version-controlled location -- see defect D4. Its pinned sha256 verifies."
-      },
-      "model_calls": 0,
-      "no_weight_download_is_needed": "stated explicitly by the protocol, and confirmed: both GGUFs are installed and hash to config's frozen values",
-      "protocol": "5.8(8), revision 1 C9 and revision 2 item 12",
-      "requires": [
-        "mbpp.jsonl at the pinned revision",
-        "the two LICENSE files"
+    "unquantified_item_6": {
+      "consequence": "the number of pairs needed to reach a decision is a function of those two unrecorded parameters and of the data, so the rehearsal has no finite episode count until they are fixed.",
+      "my_position": "I am not choosing these. They are design parameters that decide how much model work the prefreeze phase costs, and root asked for a plan to evaluate, not for me to invent its most expensive term.",
+      "problem": "The dress rehearsal is the only item whose size the protocol does not fix. It must reach a DECISION, its blocking receipt, a SWITCH and a post-switch phase, under a rehearsal-only config with 'a small n_min and a wide margin'. Neither the rehearsal n_min nor the rehearsal margin is recorded anywhere in config.json.",
+      "what_would_make_it_finite": [
+        "record the rehearsal-only n_min and margin in config, as frozen values",
+        "record a HARD CAP on rehearsal pairs, with the cap outcome defined (abort and no freeze, rather than extend)",
+        "state whether the four injected faults are run inside the same rehearsal or as separate rehearsals, which changes the count by a factor"
       ]
     }
   },
-  "unquantified_item_6": {
-    "consequence": "the number of pairs needed to reach a decision is a function of those two unrecorded parameters and of the data, so the rehearsal has no finite episode count until they are fixed.",
-    "my_position": "I am not choosing these. They are design parameters that decide how much model work the prefreeze phase costs, and root asked for a plan to evaluate, not for me to invent its most expensive term.",
-    "problem": "The dress rehearsal is the only item whose size the protocol does not fix. It must reach a DECISION, its blocking receipt, a SWITCH and a post-switch phase, under a rehearsal-only config with 'a small n_min and a wide margin'. Neither the rehearsal n_min nor the rehearsal margin is recorded anywhere in config.json.",
-    "what_would_make_it_finite": [
-      "record the rehearsal-only n_min and margin in config, as frozen values",
-      "record a HARD CAP on rehearsal pairs, with the cap outcome defined (abort and no freeze, rather than extend)",
-      "state whether the four injected faults are run inside the same rehearsal or as separate rehearsals, which changes the count by a factor"
-    ]
+  "authority": "root decisions 2026-09-21 18:17, 18:54, 19:29 and 20:05",
+  "capacity": "UNRESOLVED. Foreign servers present; protocol 5.7.2 fails on presence.",
+  "load_coverage_rule": {
+    "a_request_is_not_proof": "a submitted HTTP request alone does not prove inference is active; the server-side active/processing observation used must be defined. Point samples before and after cannot by themselves prove no interior gap.",
+    "gap_between_attempts": "ALLOWED. Stop dispatching, let the controlled load restart, resume only once activity is evidenced. A predetermined scheduling rule, not a failed check.",
+    "gap_intersecting_a_running_check": "that preparation check is INVALID: retain the timing and result, stop for diagnosis, do NOT exclude the task as a scientific reference failure, do NOT retry until favourable, do NOT alter the reference threshold.",
+    "my_earlier_default_was_stricter_and_wrong": "I had proposed a hard stop on the FIRST gap of any kind. Root distinguishes gaps BETWEEN attempts (schedule around them) from gaps INTERSECTING a check (invalidate that check). The distinction is what makes a 2,260-attempt sweep feasible at all.",
+    "no_hiding": "single prescribed coder load at max_tokens 1024; extra concurrency must not be used to mask gaps. EOS, failures, restart gaps, abandoned requests and unknown usage all stay in the load ledger.",
+    "per_attempt_record": [
+      "monotonic start and end times on the same host clock",
+      "the load-window identifiers covering that entire interval",
+      "the timing resolution / uncertainty"
+    ],
+    "resolved_by_root_2005": "PER-ATTEMPT coverage, evidenced by REUSABLE load windows. A new load request or metrics scrape per verifier attempt is NOT required; one generation's observed active interval may cover several checks.",
+    "sampled_only": "if the server exposes only sampled activity, that limitation is LABELLED and a concrete instrumentation proposal returned; continuous coverage is never asserted from interpolation."
   },
-  "what_is_NOT_approved_by_this_plan": [
-    "no model call",
-    "no server startup",
-    "no fault injection",
-    "no trial episode",
-    "no anchor drill write to the real issue thread",
-    "root's report is explicit that prefreeze model-execution review is SEPARATE from final trial clearance"
+  "schema": "live_ab.prefreeze_execution_plan.2",
+  "status": "NOT APPROVED, NOT RUN. Submitted for explicit prefreeze model-execution review.",
+  "still_pending_before_execution": [
+    "item 1: the enumerated request list for serving checks",
+    "item 5: a finite load-request cap and wall-time cap, chosen from available host capacity",
+    "item 6: the capped rehearsal schedule with its finite logical and wire-request budget"
   ]
 }

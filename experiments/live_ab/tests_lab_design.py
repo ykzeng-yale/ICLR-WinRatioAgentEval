@@ -190,6 +190,7 @@ USING_FAKE_COMMON = install_fakes()
 import lab_common                                        # noqa: E402
 import lab_coin                                          # noqa: E402
 import lab_data                                          # noqa: E402
+import lab_prepare                                       # noqa: E402
 import lab_design                                        # noqa: E402
 
 DESIGN_SEED_BASE = 60260919
@@ -2005,3 +2006,120 @@ class AttemptLedgerRetentionTests(unittest.TestCase):
         rec['clean_exit'] = True
         self.assertFalse(rec['sentinel_seen'])
         self.assertEqual(lab_data.classify_attempt(rec, 2.5), 'reference_fails_verify')
+
+
+class PreparationWiringTests(unittest.TestCase):
+    """Root 2026-09-21 20:05: connect the ACTUAL preparation entry point.
+
+    "A stubbed driver-level call can establish wiring without running task
+    references."  These drive `lab_prepare.run_reference_sweep` with a stub sweep
+    -- no model, no server, no sandbox, no task reference executed.
+    """
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp(prefix='prep_'))
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+
+    def _payload(self, success=False, sentinel=False, out='o', err='e'):
+        return {'success': success, 'sentinel_seen': sentinel, 'timed_out': False,
+                'entry_point_defined': True, 'sandbox_flag': False,
+                'verify_seconds': 0.2,
+                'run': {'passed': success, 'returncode': 0 if success else 1,
+                        'stdout_tail': out, 'stderr': err, 'timed_out': False}}
+
+    def _stub_sweep(self, uid='t/1'):
+        """A sweep that emits one attempt through the sink and one exclusion."""
+        def sweep(tasks, cfg, *, on_progress=None, on_attempt=None):
+            rec = lab_data.attempt_record(uid, 0, self._payload())
+            if on_attempt is not None:
+                on_attempt(rec)
+            return [lab_data._exclusion(uid, 'reference_fails_verify',
+                                        lab_data.detail_from_attempts([rec]))]
+        return sweep
+
+    def test_refuses_without_a_load_observer(self):
+        """An unloaded sweep must not be reachable through the entry point."""
+        with self.assertRaises(lab_prepare.PreparationRefused) as ctx:
+            lab_prepare.run_reference_sweep(
+                [], {}, ledger_path=self.tmp / 'l.jsonl',
+                sweep_fn=self._stub_sweep())
+        self.assertIn('rule 4', str(ctx.exception))
+
+    def test_wires_the_ledger_and_reconstructs_every_digest(self):
+        res = lab_prepare.run_reference_sweep(
+            [], {}, ledger_path=self.tmp / 'l.jsonl', require_load=False,
+            sweep_fn=self._stub_sweep())
+        self.assertTrue(res['receipt']['completed'])
+        self.assertEqual(res['receipt']['records_retained'], 1)
+        self.assertTrue(res['receipt']['all_digests_reconstruct_from_ledger'])
+        # and the ledger really is on disk, independently readable
+        self.assertEqual(len(lab_data.AttemptLedger(self.tmp / 'l.jsonl').load()), 1)
+
+    def test_a_failed_durable_append_stops_the_entry_point(self):
+        def boom(fd, data):
+            raise OSError('device full')
+        with mock.patch.object(os, 'write', boom):
+            with self.assertRaises(lab_prepare.PreparationRefused):
+                lab_prepare.run_reference_sweep(
+                    [], {}, ledger_path=self.tmp / 'l.jsonl', require_load=False,
+                    sweep_fn=self._stub_sweep())
+
+    def test_refuses_to_continue_onto_an_unresolved_malformed_tail(self):
+        p = self.tmp / 'l.jsonl'
+        p.write_bytes(b'{"uid":"a"}\n{"uid":"trunc')       # failure evidence
+        with self.assertRaises(lab_prepare.PreparationRefused):
+            lab_prepare.run_reference_sweep(
+                [], {}, ledger_path=p, require_load=False,
+                sweep_fn=self._stub_sweep())
+
+    def test_load_coverage_is_recorded_beside_each_attempt(self):
+        def observer():
+            return {'window_id': 'w1', 'active': True, 'resolution_ms': 50}
+        res = lab_prepare.run_reference_sweep(
+            [], {}, ledger_path=self.tmp / 'l.jsonl', load_observer=observer,
+            sweep_fn=self._stub_sweep())
+        self.assertEqual(len(res['coverage']), 1)
+        self.assertEqual(res['coverage'][0]['observation']['window_id'], 'w1')
+        stored = lab_data.AttemptLedger(self.tmp / 'l.jsonl').load()[0]
+        self.assertIn('load_coverage', stored)
+
+
+class LedgerShortWriteTests(unittest.TestCase):
+    """Root 2026-09-21 20:05, reproduced defect: short writes silently succeeded."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp(prefix='sw_'))
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.rec = lab_data.attempt_record('u', 0, {
+            'success': True, 'sentinel_seen': True, 'timed_out': False,
+            'verify_seconds': 0.1,
+            'run': {'passed': True, 'returncode': 0, 'stdout_tail': 'x',
+                    'stderr': '', 'timed_out': False}})
+
+    def test_a_positive_short_write_completes_through_the_loop(self):
+        real, calls = os.write, {'n': 0}
+
+        def half_once(fd, data):
+            calls['n'] += 1
+            return real(fd, data[:max(1, len(data) // 2)]) if calls['n'] == 1 \
+                else real(fd, data)
+        led = lab_data.AttemptLedger(self.tmp / 'a.jsonl')
+        with mock.patch.object(os, 'write', half_once):
+            led.append(self.rec)
+        self.assertEqual(led.count, 1)
+        self.assertTrue((self.tmp / 'a.jsonl').read_bytes().endswith(b'\n'))
+        self.assertEqual(len(lab_data.AttemptLedger(self.tmp / 'a.jsonl').load()), 1)
+
+    def test_a_non_progressing_write_fails_visibly_and_is_not_counted(self):
+        led = lab_data.AttemptLedger(self.tmp / 'a.jsonl')
+        with mock.patch.object(os, 'write', lambda fd, data: 0):
+            with self.assertRaises(OSError):
+                led.append(self.rec)
+        self.assertEqual(led.count, 0, 'a failed append must not be counted')
+
+    def test_load_refuses_a_truncated_tail_instead_of_skipping_it(self):
+        p = self.tmp / 'a.jsonl'
+        p.write_bytes(b'{"uid":"a"}\n{"uid":"trunc')
+        with self.assertRaises(ValueError):
+            lab_data.AttemptLedger(p).load()
+        self.assertTrue(p.exists(), 'the incomplete tail must be retained as evidence')

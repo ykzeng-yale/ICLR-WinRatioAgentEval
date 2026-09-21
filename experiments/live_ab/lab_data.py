@@ -540,19 +540,75 @@ class AttemptLedger:
         self.count = 0
 
     def append(self, record: dict) -> None:
-        line = lab_common.canonical_json(record) + '\n'
+        """Append one record durably, or raise. Never report a partial write as success.
+
+        SHORT-WRITE REPAIR, root 2026-09-21 20:05. The first version issued ONE
+        ``os.write`` and ignored its return value. ``os.write`` may legally accept
+        only part of the buffer and return a positive count WITHOUT raising, so a
+        truncated record was recorded as a successful append: root's injected
+        witness produced ``count == 1``, a 219-byte tail with no newline, and a
+        ``JSONDecodeError`` on reload. That is precisely the fail-closed contract
+        this class exists to provide, broken by the class itself.
+
+        Now: encode once, write until every byte is accepted, fail on a zero or
+        non-progressing write, sync, and only THEN count the record. An incomplete
+        tail from a failed append is deliberately LEFT ON DISK as failure evidence,
+        and ``load`` refuses to read past it rather than silently skipping it.
+        """
+        payload = (lab_common.canonical_json(record) + '\n').encode('utf-8')
+        created = not self.path.exists()
         fd = os.open(self.path, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o644)
         try:
-            os.write(fd, line.encode('utf-8'))
+            written = 0
+            while written < len(payload):
+                n = os.write(fd, payload[written:])
+                if n <= 0:
+                    # No progress. Raising here leaves whatever was accepted on
+                    # disk as evidence; it must never be reported as an append.
+                    raise OSError(
+                        'ledger append made no progress after %d of %d bytes; '
+                        'the retained record is incomplete and this preparation '
+                        'must stop' % (written, len(payload)))
+                written += n
             lab_common.fullsync(fd)
         finally:
             os.close(fd)
+        if created:
+            # fsync of the file does not make a NEW directory entry durable.
+            lab_common._fullsync_dir(self.path.parent)
         self.count += 1
 
     def load(self) -> list[dict]:
+        """Every retained record, or raise on a malformed tail.
+
+        Root: "refuse a continuation that would append onto malformed JSON without
+        an explicit preserved-tail recovery rule." A truncated final line is the
+        signature of a failed append, and silently dropping it would hide exactly
+        the loss this ledger exists to make impossible. The rule is: the tail is
+        PRESERVED on disk and reported, never skipped and never overwritten.
+        """
         if not self.path.is_file():
             return []
-        return [json.loads(l) for l in self.path.read_text('utf-8').splitlines() if l.strip()]
+        raw = self.path.read_bytes()
+        if raw and not raw.endswith(b'\n'):
+            raise ValueError(
+                'ledger %s ends with an incomplete record (%d bytes, no trailing '
+                'newline). This is retained failure evidence from a short or failed '
+                'append. Resolve it explicitly -- preserve the tail and decide '
+                'whether a new preparation run is needed -- before appending again.'
+                % (lab_common.tokenize_path(self.path), len(raw)))
+        out: list[dict] = []
+        for i, line in enumerate(raw.decode('utf-8').splitlines()):
+            if not line.strip():
+                continue
+            try:
+                out.append(json.loads(line))
+            except ValueError as exc:
+                raise ValueError(
+                    'ledger %s line %d is not valid JSON (%s); the tail is retained '
+                    'as failure evidence and is not skipped'
+                    % (lab_common.tokenize_path(self.path), i + 1, exc)) from None
+        return out
 
     def attempts_for(self, uid: str) -> list[dict]:
         return [r for r in self.load() if r.get('uid') == uid]
