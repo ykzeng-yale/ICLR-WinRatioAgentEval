@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import ast
 import hashlib
+import inspect
 import json
 import os
 import re
@@ -349,7 +350,11 @@ def real_tasks() -> list:
 
 
 def full_roster() -> dict:
-    """The roster with no exclusion at all: 591 S1 + 547 S2, so N_P = 295 + 273 = 568."""
+    """The roster with no exclusion at all: 591 S1 + 547 S2, so `295 + 273 = 568` pairs.
+
+    568 is the LOOSE PRE-EXCLUSION BOUND and is never a horizon; every roster that has had an
+    exclusion applied gives at most 565. Use `blind_roster()` for a post-exclusion figure.
+    """
     if 'full' not in _REAL:
         _REAL['full'] = lab_data.build_roster(real_tasks(), [], {})
     return _REAL['full']
@@ -468,6 +473,7 @@ class RosterTests(unittest.TestCase):
 
     def test_n_pairs_rule(self):
         roster = full_roster()
+        self.assertEqual(roster['n_excluded'], 0, 'the 568 below is the pre-exclusion bound')
         self.assertEqual((roster['n_S1'], roster['n_S2']), (591, 547))
         self.assertEqual(roster['n_pairs'], 591 // 2 + 547 // 2)
         self.assertEqual(roster['n_pairs'], 568)
@@ -729,14 +735,27 @@ class OrderTests(unittest.TestCase):
         self.assertTrue(all(slot['stratum'] == 'S1' for slot in order))
         self.assertEqual(len(lab_design.leftover_slots(roster, 'T3', DESIGN_SEED_BASE)), 1)
 
-    def test_order_document_horizon(self):
+    def test_order_document_matches_the_roster_it_was_built_from(self):
+        """The document's `n_pairs` is whatever the rule gives on the roster it was handed.
+
+        Renamed from `test_order_document_horizon`: this roster has had NOTHING excluded, so
+        its 568 is the loose pre-exclusion bound and calling it a horizon is the mislabelling
+        coordinator ruling 49 asks to stop. The post-exclusion document is checked too, and
+        it is at most 565.
+        """
         roster = full_roster()
+        self.assertEqual(roster['n_excluded'], 0, 'this is the PRE-exclusion roster')
         document = lab_design.order_document(roster, 'T4', DESIGN_SEED_BASE)
-        self.assertEqual(document['n_pairs'], 568)
+        self.assertEqual(document['n_pairs'], 568)               # pre-exclusion bound
         self.assertEqual(len(document['pairs']), 568)
         self.assertEqual(document['trial_no'], 4)
         self.assertEqual(document['roster_sha256'], roster['roster_sha256'])
         self.assertEqual(len(document['leftovers']), 2)          # 591 and 547 are both odd
+        blind = blind_roster()
+        blind_document = lab_design.order_document(blind, 'T4', DESIGN_SEED_BASE)
+        self.assertEqual(blind_document['n_pairs'], blind['n_pairs'])
+        self.assertLessEqual(blind_document['n_pairs'], 565, 'the horizon is at most 565')
+        self.assertEqual(len(blind_document['pairs']), blind_document['n_pairs'])
 
     def test_orders_differ_between_trials_and_repeat_within_one(self):
         roster = blind_roster()
@@ -1356,6 +1375,22 @@ class HorizonAfterExclusionsTests(unittest.TestCase):
                 self.assertEqual(len(lab_design.arrival_order(roster, 'T1', DESIGN_SEED_BASE)),
                                  n_pairs)
 
+    def test_the_only_post_exclusion_figure_is_565_or_less(self):
+        """Ruling 49's second free fix, as a test rather than as prose. Every roster that has
+        had ANY exclusion applied must report `n_pairs <= 565`; 568 may appear only on the
+        roster with `n_excluded == 0`, where it is the loose pre-exclusion bound."""
+        tasks = real_tasks()
+        smoke = [e for e in lab_data.prospective_exclusions(tasks, {})
+                 if e['reason'] == 'out_of_design_smoke_task']
+        for label, roster in (('smoke only', lab_data.build_roster(tasks, smoke, {})),
+                              ('all blind', blind_roster())):
+            with self.subTest(roster=label):
+                self.assertGreater(roster['n_excluded'], 0)
+                self.assertLessEqual(roster['n_pairs'], 565,
+                                     '568 is never a post-exclusion figure')
+        self.assertEqual(full_roster()['n_excluded'], 0,
+                         'the only roster that gives 568 is the one with nothing excluded')
+
     def test_the_four_trials_reuse_one_roster_and_are_not_replications(self):
         """Root warning (provenance review section 4). The four trials differ ONLY in the
         order seed; they draw from the same task pool. Their results are therefore not
@@ -1372,6 +1407,135 @@ class HorizonAfterExclusionsTests(unittest.TestCase):
             lab_design.arrival_order(roster, trial, DESIGN_SEED_BASE))
             for trial in lab_design.TRIAL_NO}
         self.assertEqual(len(set(signatures.values())), 4, 'the orders themselves do differ')
+
+
+# ==================================================================================================
+# Coordinator ruling 49: proportional allocation, and the MBPP/HumanEval stratum separation
+# ==================================================================================================
+class ProportionalAllocationTests(unittest.TestCase):
+    """ALLOCATION ACROSS STRATA MUST STAY PROPORTIONAL, or the guardrail changes its target.
+
+    Each stratum contributes `floor(n_s / 2)` pairs and protocol 3.4 permutes the COMBINED
+    pair list, so the stratum mix of every enrolled prefix is the roster's own mix in
+    expectation. That is what makes the guarded estimand invariant to the stopping time: the
+    band is anytime-valid for the mean of the pairs it has seen, and proportionality is the
+    separate property that keeps that mean equal to the contrast the protocol names. A
+    blockwise or stratum-weighted order would leave the band valid and the ESTIMAND wrong,
+    which is the failure mode this class exists to catch.
+
+    Deterministic: the seeds below are fixed constants, so these tests either always pass or
+    always fail.
+    """
+
+    #: 400 S1 + 200 S2 -> 200 + 100 = 300 pairs, so one third of every prefix should be S2.
+    N_S1, N_S2, PREFIX, SEEDS = 400, 200, 30, 200
+
+    def _orders(self):
+        roster = synthetic_roster(self.N_S1, self.N_S2)
+        return roster, [lab_design.arrival_order(roster, 'T1', DESIGN_SEED_BASE + k)
+                        for k in range(self.SEEDS)]
+
+    def test_pair_counts_per_stratum_are_floor_half_the_surviving_counts(self):
+        """The allocation rule itself: no stratum is weighted, on the real roster."""
+        for label, roster in (('pre-exclusion', full_roster()), ('blind', blind_roster())):
+            with self.subTest(roster=label):
+                order = lab_design.arrival_order(roster, 'T4', DESIGN_SEED_BASE)
+                counts = {s: 0 for s in lab_design.STRATA}
+                for slot in order:
+                    counts[slot['stratum']] += 1
+                self.assertEqual(counts['S1'], roster['n_S1'] // 2)
+                self.assertEqual(counts['S2'], roster['n_S2'] // 2)
+                self.assertEqual(sum(counts.values()), roster['n_pairs'])
+
+    def test_every_enrolled_prefix_is_proportional_in_expectation(self):
+        """A stopping prefix is an exchangeable sample of the strata, not a block of one."""
+        roster, orders = self._orders()
+        share = (self.N_S2 // 2) / (self.N_S1 // 2 + self.N_S2 // 2)
+        expected = self.PREFIX * share
+        observed = [sum(1 for slot in order[:self.PREFIX] if slot['stratum'] == 'S2')
+                    for order in orders]
+        mean = sum(observed) / len(observed)
+        self.assertAlmostEqual(mean, expected, delta=1.0,
+                               msg='prefix stratum mix drifts from the roster mix')
+        # and no single prefix is degenerate, which a blockwise order would make every one
+        self.assertGreater(min(observed), 0)
+        self.assertLess(max(observed), self.PREFIX)
+
+    def test_a_blockwise_order_would_be_caught_by_the_same_check(self):
+        """Negative control: the check above has teeth."""
+        roster, orders = self._orders()
+        blockwise = sorted(orders[0], key=lambda slot: slot['stratum'])
+        observed = sum(1 for slot in blockwise[:self.PREFIX] if slot['stratum'] == 'S2')
+        share = (self.N_S2 // 2) / (self.N_S1 // 2 + self.N_S2 // 2)
+        self.assertEqual(observed, 0)
+        self.assertGreater(abs(observed - self.PREFIX * share), 1.0)
+
+    def test_a_weighted_allocation_would_change_the_guarded_estimand(self):
+        """Why it matters, arithmetically, with no simulation.
+
+        If the two strata carry different true guarded means, the mean over enrolled pairs is
+        the stratum-size-weighted average. Re-weighting the allocation moves that average, so
+        a band that is perfectly valid for what it saw certifies a different quantity.
+        """
+        roster = synthetic_roster(self.N_S1, self.N_S2)
+        w1, w2 = roster['n_S1'] // 2, roster['n_S2'] // 2
+        mu_s1, mu_s2 = 0.00, -0.12                       # illustrative stratum means
+        proportional = (w1 * mu_s1 + w2 * mu_s2) / (w1 + w2)
+        reweighted = (w2 * mu_s1 + w1 * mu_s2) / (w1 + w2)   # strata swapped in weight
+        self.assertAlmostEqual(proportional, -0.04, places=12)
+        self.assertGreater(abs(reweighted - proportional), 0.03,
+                           'a re-weighted allocation moves the estimand by more than delta')
+
+
+class StratumSeparationTests(unittest.TestCase):
+    """Coordinator ruling 49's MBPP/HumanEval separation: its single change point, and the
+    reason it is not applied in `lab_data` alone.
+
+    The point of these assertions is that nobody can later believe the separation has been
+    made when it has not, and that when it IS made there is exactly one table to edit.
+    """
+
+    def test_the_stratum_table_drives_every_task(self):
+        """`BENCHMARK_STRATUM` is the single source of truth, not scattered literals."""
+        for task in real_tasks():
+            self.assertEqual(task['stratum'], lab_data.BENCHMARK_STRATUM[task['benchmark']])
+        source = (HERE / 'lab_data.py').read_text(encoding='utf-8')
+        body = source.split('def build_candidate_tasks', 1)[1].split('\ndef ', 1)[0]
+        self.assertNotIn("stratum='S1'", body)
+        self.assertNotIn("stratum='S2'", body)
+
+    def test_mbpp_and_humaneval_still_share_one_stratum(self):
+        """Recorded as the CURRENT state, deliberately, so the ruling stays visible."""
+        self.assertEqual(lab_data.BENCHMARK_STRATUM['mbpp'],
+                         lab_data.BENCHMARK_STRATUM['humaneval'])
+        self.assertEqual(sorted(set(lab_data.BENCHMARK_STRATUM.values())), ['S1', 'S2'])
+        self.assertEqual(lab_data.STRATA, lab_design.STRATA,
+                         'the two modules must agree on the stratum vocabulary')
+        s1 = [t for t in real_tasks() if t['stratum'] == 'S1']
+        self.assertEqual(len([t for t in s1 if t['benchmark'] == 'mbpp']), 427)
+        self.assertEqual(len([t for t in s1 if t['benchmark'] == 'humaneval']), 164)
+
+    def test_the_separation_is_blocked_on_the_protocol_snippet(self):
+        """The reason it is a coordinated amendment and not a local edit.
+
+        Protocol 3.4's literal code block enumerates exactly two strata, and this test file
+        transcribes it as an independent oracle. Splitting the strata in `lab_data` alone
+        would drop HumanEval from every pairing; splitting them in `lab_design` alone would
+        put the implementation ahead of the binding document and turn that oracle into a test
+        written from the implementation, which is the anti-pattern the coordinator named.
+        """
+        snippet = inspect.getsource(protocol_3_4_reference)
+        self.assertIn('["S1", "S2"]', snippet)
+        # the oracle and the implementation must enumerate the SAME strata, always
+        self.assertEqual(tuple(re.findall(r'"(S\d)"', snippet)), lab_design.STRATA)
+        # ... and a roster carrying a stratum the implementation does not know would lose it
+        roster = synthetic_roster(4, 4)
+        roster['S3'] = ['humaneval/%d' % i for i in range(4)]
+        roster['tasks'] = list(roster['tasks']) + roster['S3']
+        order = lab_design.arrival_order(roster, 'T1', DESIGN_SEED_BASE)
+        enrolled = {uid for slot in order for uid in slot['uids']}
+        self.assertEqual(len(enrolled & set(roster['S3'])), 0,
+                         'a third stratum is silently dropped until lab_design knows it')
 
 
 # ==================================================================================================

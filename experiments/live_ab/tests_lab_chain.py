@@ -1612,12 +1612,26 @@ class ReferenceRuleTests(TempTree):
         self.assertEqual((h_lo, h_hi), (1.0, 1.0))
         self.assertEqual((s_lo, s_hi), (0.0, 1.0))     # success stays open
         self.assertFalse(collapsed)
+        # The forward certificate does NOT bind here (0.95 * 10.4 = 9.88 < 10), but the REVERSE
+        # one does: the pending incumbent would have to FINISH below 0.95 * 10 = 9.5 to win the
+        # cost tier and it has already spent 10.4, so an incumbent win is infeasible and +1 is
+        # the only remaining winner besides a tie.  protocol 7.5 item 5 (completed under
+        # COORDINATOR_DECISIONS revision 12 ruling 54); before that completion this state read
+        # [-1, 1], keeping an outcome the evidence had already excluded.
         inc2 = lab_reference_rule._Pair(2, [3, 4])
         inc2.episodes[3].arm, inc2.episodes[4].arm = 'candidate', 'incumbent'
         inc2.episodes[3].revealed = True
         inc2.episodes[3].success, inc2.episodes[3].latency_s = 1, 10.0
         inc2.episodes[4].note_stamp(0, [int(10.4 * 1e9)])   # 0.95*10.4 = 9.88 < 10
         self.assertEqual(lab_reference_rule._pair_enclosure(inc2, tiers, tol)[:2],
+                         (0.0, 1.0))
+        # and with neither certificate binding the enclosure is still the full range
+        inc3 = lab_reference_rule._Pair(3, [5, 6])
+        inc3.episodes[5].arm, inc3.episodes[6].arm = 'candidate', 'incumbent'
+        inc3.episodes[5].revealed = True
+        inc3.episodes[5].success, inc3.episodes[5].latency_s = 1, 10.0
+        inc3.episodes[6].note_stamp(0, [int(9.0 * 1e9)])    # 9.0 < 0.95 * 10 = 9.5
+        self.assertEqual(lab_reference_rule._pair_enclosure(inc3, tiers, tol)[:2],
                          (-1.0, 1.0))
 
     def test_joint_failure_and_equality_are_ties(self) -> None:

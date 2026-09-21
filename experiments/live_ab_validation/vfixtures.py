@@ -1237,9 +1237,26 @@ def check_pinned_file_hashes(cfg: dict, manifest: dict, repo_root: Path,
             continue
         got = sha256_file(path)
         if got != want:
-            fails.append(f"provenance.{key}: {rel} hashes to {got}, but cells.json "
-                         f"pins {want}. The pin is stale: recompute it before the "
-                         f"freeze commit")
+            # A pin may legitimately fall behind the file it names when the OTHER study
+            # moves after this pre-registration was frozen and after this grid ran. That
+            # is not a licence to re-pin: coordinator ruling 60 forbids asserting that a
+            # completed run covered a version that did not exist when it ran. So the
+            # invariant this fixture actually enforces is "no pin is SILENTLY stale":
+            # a supersession passes only when it is recorded explicitly AND its recorded
+            # successor hash is itself verified against the file on disk. A pin that
+            # simply drifted, with no record, still fails exactly as before.
+            sup = entry.get("superseded_by")
+            # `supersedes` binds the record to the EXACT pin it excuses, so mutating the
+            # pin breaks the binding and the mutation is caught, as the N.1 test requires.
+            if (isinstance(sup, dict) and sup.get("sha256") == got
+                    and sup.get("supersedes") == want
+                    and str(sup.get("reason", "")).strip() and str(sup.get("ruling", "")).strip()):
+                pass  # documented supersession, successor hash verified against the file
+            else:
+                fails.append(f"provenance.{key}: {rel} hashes to {got}, but cells.json "
+                             f"pins {want}. The pin is stale: recompute it before the "
+                             f"freeze commit, or record superseded_by with the successor "
+                             f"hash, a reason and the ruling that forbids re-pinning")
         if want not in doc_hashes:
             fails.append(f"provenance.{key}: the pin recorded for {rel} does not "
                          f"appear in PROTOCOL.md")

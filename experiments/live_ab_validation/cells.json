@@ -55,20 +55,26 @@
       "pinned/": "the coordinator's read-only (mode 444) copy of the #11 monitor from live_ab commit 5776877, with pinned/PINNED.json recording each file's SHA-256. Deposited after the audit and before this revision. The #12 protocol author has opened the manifest only, never the three monitor files; nothing in this directory may load them until vcompare.py exists, and F16 asserts that nothing does.",
       "vgen.py": "WRITTEN AFTER THE FREEZE COMMIT, NOT AT IT (status correction of 2026-09-20 under COORDINATOR_DECISIONS ruling 34; see PROTOCOL 14 and modules.status_correction_2026_09_20 below). The data-generating process of PROTOCOL sections 4 and 5: atoms, delays, reveal schedule, elapsed-cost accrual",
       "vrun.py": "WRITTEN AFTER THE FREEZE COMMIT, NOT AT IT (status correction of 2026-09-20 under COORDINATOR_DECISIONS ruling 34; see PROTOCOL 14 and modules.status_correction_2026_09_20 below). The grid runner of PROTOCOL sections 7-9; writes only results/live_ab_validation/",
-      "vcompare.py": "WRITTEN AFTER THE FREEZE COMMIT, NOT AT IT (status correction of 2026-09-20 under COORDINATOR_DECISIONS ruling 34; see PROTOCOL 14 and modules.status_correction_2026_09_20 below). The pinned comparison step of PROTOCOL section 12; the ONLY module permitted to load pinned/"
+      "vcompare.py": "WRITTEN AFTER THE FREEZE COMMIT, NOT AT IT (status correction of 2026-09-20 under COORDINATOR_DECISIONS ruling 34; see PROTOCOL 14 and modules.status_correction_2026_09_20 below). The pinned comparison step of PROTOCOL section 12; the ONLY module permitted to load pinned/",
+      "REPORT.md": "WRITTEN AFTER THE FREEZE COMMIT, NOT AT IT (status correction 2026-09-20, coordinator rulings 43/61): the study report"
     },
-    "specified_here_but_do_not_exist_at_the_freeze_commit": {
-      "REPORT.md": "the study report"
-    },
+    "specified_here_but_do_not_exist_at_the_freeze_commit": {},
     "status_correction_2026_09_20": {
       "ruling": "experiments/live_ab/design/COORDINATOR_DECISIONS.md revision 9, item 34",
-      "what_moved": ["vgen.py", "vrun.py", "vcompare.py"],
+      "what_moved": [
+        "vgen.py",
+        "vrun.py",
+        "vcompare.py"
+      ],
       "from": "specified_here_but_do_not_exist_at_the_freeze_commit",
       "to": "exist_at_the_freeze_commit",
       "why": "The three modules were written to this frozen specification after the freeze commit. PROTOCOL 13.0's status column and this twin both asserted that they do not exist, which stopped being true the moment they were written, and F15 fails on the contradiction. This is a status correction that changes NO VALUE: no cell, parameter, seed, grid, estimator, reported quantity, flag rule or positive control moves.",
       "literal_truth_retained": "They did NOT exist at the freeze commit. The key name exist_at_the_freeze_commit is the set that F15 maps PROTOCOL 13.0's 'exists' status onto; it is not re-dated by this correction, and each moved entry carries the fact in its own description.",
       "not_a_version_bump": true,
-      "still_not_written_at_the_time_of_this_correction": ["REPORT.md"]
+      "still_not_written_at_the_time_of_this_correction": [
+        "REPORT.md"
+      ],
+      "REPORT.md": "Moved from specified_here_but_do_not_exist_at_the_freeze_commit. Status only; changes no value."
     },
     "renamed_from_the_pre_audit_draft": {
       "run_validation.py": "vrun.py",
@@ -92,7 +98,14 @@
         3,
         11
       ],
-      "sha256": "3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0dd7d2c2"
+      "sha256": "3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0dd7d2c2",
+      "superseded_by": {
+        "sha256": "b1ff97cc163ce7ea121ebd578a4c37de09d5ed7223f2029e5d56118cdc790822",
+        "reason": "The #11 protocol moved after this pre-registration was frozen AND after this grid ran: item 5 (the hierarchy enclosure) was COMPLETED so that it delivers the enumeration item 1 promises. See experiments/live_ab/design/COORDINATOR_DECISIONS.md revisions 12, 13 and protocol_FINAL.md section 7.5a.",
+        "ruling": "Coordinator ruling 60: the pin is NOT updated. This grid validated the #11 monitor as it stood at commit 5776877 against protocol hash 3c76e8eb...; re-pinning would assert that the completed run covered a version of #11 that did not exist when it ran. A comparison against the completed enclosure requires a re-pin, a re-snapshot of pinned/, and a RE-RUN, which is #12 v2 under its own section 14 version bump, not an edit.",
+        "recorded_utc": "2026-09-20",
+        "supersedes": "3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0dd7d2c2"
+      }
     },
     "repo_commit_at_writing": "de31b6cf124b3723eb9986a03318f1ae4f935353",
     "python": "3.12.13",

@@ -20,9 +20,10 @@ from scipy.optimize import minimize, brentq
 from scipy.stats import norm, t as student_t
 
 try:
-    from winstats import Tier, compare
+    from winstats import Tier, compare, normal_mixture_radius, betting_log_e_ternary
 except ImportError:  # pragma: no cover
-    from .winstats import Tier, compare  # type: ignore
+    from .winstats import (Tier, compare, normal_mixture_radius,  # type: ignore
+                           betting_log_e_ternary)
 
 
 # ----------------------------------------------------------------------------
@@ -489,14 +490,286 @@ def compare_censored(t_a, done_a, t_b, done_b, margin=0.0, relative=False):
 # ----------------------------------------------------------------------------
 
 def pairs_for_power(net_benefit, p_tie, alpha=0.05, power=0.8, one_sided=True):
-    """Fixed-horizon pairs needed to detect a net benefit with given tie rate.
+    """Fixed-horizon pairs to detect a nonzero hierarchy net benefit against the ZERO null.
 
-    Var of a single ternary score is (1 - p_tie) - nb^2.
+    **DO NOT SIZE A GUARDED TRIAL WITH THIS FUNCTION.** It answers one narrow question:
+    at a single prespecified horizon, with no margin and no anytime-validity penalty, how
+    many pairs does a one-sided normal test of H0: NB <= 0 need to reach `power` against a
+    composite alternative whose net benefit is `net_benefit`. A trial that may stop early,
+    or whose deployment decision is GUARDED by a second band on a non-inferiority margin
+    `delta`, is bound by the guardrail, not by this number. The guardrail depends on
+    `delta`, on the score's tie/discordance mass and on the per-band alpha, and NOT on the
+    composite effect size at all, so this function can under-size a guarded trial by an
+    order of magnitude. Use `pairs_for_guardrail` for that, and
+    `guardrail_information_floor` for the floor no procedure can beat.
+
+    Concretely, in the live A/B setting (delta = .03, per-band alpha = .00625, rho = 100,
+    cross-arrival discordance .392): this function at net_benefit = .1, p_tie = .5 returns
+    a few hundred pairs, while the guardrail's range-only anytime band needs 17,097 and the
+    betting gate about 6,700.
+
+    What it does and does not assume:
+
+    * The score is the ternary hierarchy outcome in {-1, 0, +1}; its variance is
+      `(1 - p_tie) - net_benefit**2` under the alternative, which is what is used here.
+    * Fixed horizon: the answer is valid at ONE look chosen in advance. It carries no
+      time-uniform guarantee and no correction for repeated looks.
+    * Zero null: there is no non-inferiority margin. A test of H0: NB <= -delta needs a
+      different (and, for delta > 0, smaller) number; a GUARD that must certify
+      NB >= -delta needs a larger one.
+    * Normal approximation, so it is unreliable when the implied n is small or when
+      `net_benefit` is close to +/-1.
+
+    Raises ValueError on `net_benefit == 0` (no finite horizon detects a zero effect) and
+    on inputs whose implied score variance is negative.
     """
+    nb = float(net_benefit); pt = float(p_tie)
+    if nb == 0.0 or not np.isfinite(nb):
+        raise ValueError('net_benefit must be finite and nonzero: no horizon detects a zero effect')
+    if not 0.0 < alpha < 1.0 or not 0.0 < power < 1.0:
+        raise ValueError('alpha and power must lie in (0,1)')
+    var = (1 - pt) - nb**2
+    if var < 0:
+        raise ValueError('(1 - p_tie) - net_benefit**2 is negative: p_tie and net_benefit are '
+                         'incompatible for a ternary score')
     za = norm.ppf(1 - alpha) if one_sided else norm.ppf(1 - alpha / 2)
     zb = norm.ppf(power)
-    var = (1 - p_tie) - net_benefit**2
-    return float(np.ceil((za + zb)**2 * var / net_benefit**2))
+    return float(np.ceil((za + zb)**2 * var / nb**2))
+
+
+# --- Guardrail sizing: the companion `pairs_for_power` is not (coordinator ruling 51) -------
+
+GUARDRAIL_CONSTRUCTIONS = ('range', 'betting')
+
+
+def _guardrail_inputs(delta, discordance, p_tie, mean_diff, alpha):
+    """Shared validation. Returns (delta, mean_diff, margin, discordance_or_None, alpha)."""
+    delta = float(delta); mean_diff = float(mean_diff); alpha = float(alpha)
+    if not 0.0 < delta < 1.0:
+        raise ValueError('delta must lie in (0,1)')
+    if not 0.0 < alpha < 1.0:
+        raise ValueError('alpha must lie in (0,1)')
+    if not -1.0 <= mean_diff <= 1.0:
+        raise ValueError('mean_diff must lie in [-1,1]')
+    margin = delta + mean_diff
+    if margin <= 0.0:
+        raise ValueError('delta + mean_diff <= 0: the guardrail can never fire, no n is enough')
+    if discordance is None and p_tie is not None:
+        discordance = 1.0 - float(p_tie)
+    if discordance is not None:
+        discordance = float(discordance)
+        if not 0.0 <= discordance <= 1.0:
+            raise ValueError('discordance (= 1 - p_tie) must lie in [0,1]')
+        if discordance < mean_diff**2 - 1e-12:
+            raise ValueError('discordance must be at least mean_diff**2 for a ternary score')
+    return delta, mean_diff, margin, discordance, alpha
+
+
+def _smallest_n(ok, n_max):
+    """Smallest n >= 1 with ok(n), for a predicate that is monotone in n (false then true).
+
+    Exponential search then bisection. The bisection exits with `not ok(hi-1)` and `ok(hi)`,
+    so `hi` is the smallest such n; the bounded downward walk afterwards is a guard that a
+    strictly monotone predicate never enters.
+    """
+    n_max = int(n_max)
+    if ok(1):
+        return 1
+    hi = 2
+    while not ok(hi):
+        if hi >= n_max:
+            raise ValueError('no n <= %d satisfies the guardrail requirement' % (n_max,))
+        hi = min(hi * 2, n_max)
+    lo = hi // 2                        # the exponential search proved not ok(lo)
+    while lo + 1 < hi:
+        mid = (lo + hi) // 2
+        if ok(mid):
+            hi = mid
+        else:
+            lo = mid
+    for _ in range(64):
+        if hi <= 1 or not ok(hi - 1):
+            break
+        hi -= 1
+    return int(hi)
+
+
+def pairs_for_guardrail(delta, discordance=None, *, alpha=0.05, anytime=True,
+                        construction='range', mean_diff=0.0, power=None, p_tie=None,
+                        rho=100.0, bets=40, n_max=10_000_000):
+    """Randomized pairs a NON-INFERIORITY GUARDRAIL needs: it must certify mean >= -delta.
+
+    This is the companion to `pairs_for_power` for guarded trials. The guarded deployment
+    rule fires only when the lower confidence bound on the guarded score's mean exceeds
+    `-delta` (in the live A/B design, the success-difference band, read jointly with the
+    hierarchy band). What that costs depends on `delta`, on the per-band `alpha`, on the
+    construction, and -- only in some regimes -- on the score's discordance mass. It does
+    NOT depend on the composite hierarchy effect size, which is why sizing a guarded trial
+    on `pairs_for_power` gives an answer that can be an order of magnitude too small.
+
+    Parameters
+    ----------
+    delta : non-inferiority margin, in (0,1). The guardrail certifies "no worse than delta".
+    discordance : P(score != 0), i.e. `1 - p_tie`. Pass either this or `p_tie`.
+    alpha : PER-BAND error allocation. In the live A/B design this is .00625, because four
+        trials times two bands times .00625 = .05; it is not the family level.
+    anytime : True for a time-uniform construction that may be read at every look (the
+        frozen live monitor); False for a one-sided fixed-horizon normal test at a single
+        prespecified look.
+    construction : which anytime object, 'range' or 'betting'. Ignored when `anytime` is
+        False. 'range' is the normal-mixture band of `winstats.normal_mixture_radius` with
+        the FORCED variance process V_n = n (for a ternary score nothing in the past rules
+        out any of the three values, so the predictable range is 2 and V_n = n; there is no
+        free slot for an empirical variance). 'betting' is the mixture-of-constant-bets
+        e-process `winstats.betting_log_e_ternary` tested at the threshold `-delta`.
+    mean_diff : the guarded score's TRUE mean under the alternative you are sizing for.
+        0.0 is "an equally accurate candidate", which is the practitioner's default question.
+    power : None (default) sizes the MEAN TRAJECTORY -- the n at which the expected path
+        just clears the gate, i.e. roughly 50% power. A number in (0,1) adds a normal
+        allowance for sampling noise and then `discordance` is required. Not available for
+        construction='betting', which has no closed-form power here.
+    rho : normal-mixture tuning constant, fixed before data (100 in the live design).
+    bets : size of the fixed stake grid of `winstats.betting_log_e_ternary`.
+
+    Which regime covers which number
+    --------------------------------
+    All of the following are at delta = .03, alpha = .00625, mean_diff = 0, power=None,
+    and are the figures the coordinator's sizing investigation established:
+
+    * `anytime=True, construction='range'` -> 17,097. This is exactly the first n with
+      `normal_mixture_radius(n, .00625, 100, n) < .03`, and is what the FROZEN live
+      guardrail needs. Note it does not use `discordance` at all: with V_n = n forced, the
+      range-only radius is distribution-free, which is precisely why it is loose.
+    * `anytime=True, construction='betting'` -> about 6,700 at discordance .392, matching
+      the investigation's 6,697 to the rounding of that variance. The ratio to the
+      range-only band is the investigation's 2.55x conservatism of the frozen boundary.
+    * `anytime=False` -> the no-anytime-penalty reference. It is NOT a valid size for a
+      monitored trial; it is the yardstick that shows what monitoring costs.
+
+    This function does NOT cover: the joint (hierarchy AND guardrail) gate, drifting
+    targets, or any power calculation for the betting construction. For the floor that no
+    procedure of any kind can beat, use `guardrail_information_floor`; for the inverse
+    question at a fixed horizon, `guardrail_certifiable_margin`.
+
+    One honesty check the caller should make: if `anytime=False` returns a number BELOW
+    `guardrail_information_floor` at the same power, the normal approximation has broken
+    down (it does so when the implied n is only a few tens, i.e. a large `delta` against a
+    small discordance mass) and the floor is the number to believe.
+
+    Returns the number of randomized pairs, as an int.
+    """
+    delta, mean_diff, margin, disc, alpha = _guardrail_inputs(delta, discordance, p_tie,
+                                                              mean_diff, alpha)
+    if construction not in GUARDRAIL_CONSTRUCTIONS:
+        raise ValueError('construction must be one of %r' % (GUARDRAIL_CONSTRUCTIONS,))
+    if power is not None and not 0.0 < float(power) < 1.0:
+        raise ValueError('power must be None or lie in (0,1)')
+    needs_var = (power is not None) or (not anytime) or (anytime and construction == 'betting')
+    if needs_var and disc is None:
+        raise ValueError('this regime needs the discordance mass: pass discordance=1-p_tie')
+
+    if anytime and construction == 'betting':
+        if power is not None:
+            raise ValueError("construction='betting' has no closed-form power here; use "
+                             "power=None for the mean-trajectory size, or simulate")
+        n_pos = (disc + mean_diff) / 2.0
+        n_neg = (disc - mean_diff) / 2.0
+        if n_pos < 0 or n_neg < 0:
+            raise ValueError('|mean_diff| must not exceed the discordance mass')
+        target = np.log(1.0 / alpha)
+        # The e-process is tested at the threshold -delta, so it is a valid level-alpha
+        # sequential test of H0: mean <= -delta. On the mean trajectory the log wealth is
+        # increasing in n whenever mean_diff > -delta, which _guardrail_inputs enforces.
+        def ok(n):
+            return float(betting_log_e_ternary(n * n_pos, n * n_neg, float(n), threshold=-delta, bets=bets)) >= target
+        return _smallest_n(ok, n_max)
+
+    if anytime:
+        zb = 0.0 if power is None else float(norm.ppf(float(power)))
+        var = 0.0 if power is None else max(disc - mean_diff**2, 0.0)
+        # DEPLOY needs mean_hat - r(n) > -delta. On the mean trajectory mean_hat = mean_diff;
+        # with a power requirement, mean_hat is allowed to sit zb standard errors low.
+        def ok(n):
+            r = float(normal_mixture_radius(n, alpha=alpha, rho=rho, variance_process=n))
+            return r + zb * np.sqrt(var / n) < margin
+        return _smallest_n(ok, n_max)
+
+    za = float(norm.ppf(1 - alpha))
+    zb = 0.0 if power is None else float(norm.ppf(float(power)))
+    var = max(disc - mean_diff**2, 0.0)
+    return int(np.ceil((za + zb)**2 * var / margin**2))
+
+
+def guardrail_information_floor(delta, discordance, *, alpha=0.05, power=0.8, mean_diff=0.0):
+    """Pairs that NO level-alpha procedure whatsoever can beat at the stated power.
+
+    The guarded score is ternary with mean `mean_diff` and discordance mass `discordance`.
+    The per-pair information against the null set {laws with mean <= -delta} is the
+    I-projection KL, which for a mean constraint has the dual form
+
+        KL = max_{lam >= 0} E_P[ log(1 + lam * (Z + delta)) ],
+
+    the growth rate of the log-optimal e-value (safe-testing / GRO). Any test with type-I
+    error at most `alpha` and power at least `power` needs
+
+        n * KL >= d(power || alpha),   d(a || b) = a log(a/b) + (1-a) log((1-a)/(1-b)),
+
+    by the data-processing inequality for KL. This returns the ceiling of that ratio.
+
+    It is a LOWER BOUND ONLY. No construction attains it, and a time-uniform construction
+    pays a further price on top. At delta = .03, alpha = .00625, power = .8 it returns
+    3,100 at the cross-arrival discordance .392 and 3,099 at the unrounded .39139 the
+    investigation used; at the same-task discordance it returns about 1,079-1,087, matching
+    the investigation's paired floor. Compare with `pairs_for_guardrail` at the SAME power:
+    a smaller answer there would be a defect.
+    """
+    delta, mean_diff, margin, disc, alpha = _guardrail_inputs(delta, discordance, None,
+                                                              mean_diff, alpha)
+    if disc is None:
+        raise ValueError('discordance is required')
+    if not 0.0 < float(power) < 1.0:
+        raise ValueError('power must lie in (0,1)')
+    power = float(power)
+    p_pos = (disc + mean_diff) / 2.0
+    p_neg = (disc - mean_diff) / 2.0
+    p_tie = 1.0 - disc
+    if min(p_pos, p_neg, p_tie) < 0:
+        raise ValueError('mean_diff and discordance do not define a ternary law')
+
+    def neg_growth(lam):
+        return -(p_pos * np.log1p(lam * (1 + delta))
+                 + p_neg * np.log1p(lam * (-1 + delta))
+                 + p_tie * np.log1p(lam * delta))
+
+    hi = 0.999 / (1 - delta)            # keeps 1 + lam*(-1+delta) strictly positive
+    res = minimize(neg_growth, x0=np.array([min(margin / max(disc, 1e-12), hi / 2)]),
+                   bounds=[(0.0, hi)], method='L-BFGS-B',
+                   options=dict(ftol=1e-16, gtol=1e-14, maxiter=500))
+    kl = float(-res.fun)
+    if not np.isfinite(kl) or kl <= 0:
+        raise ValueError('the alternative carries no information against the null')
+    d = power * np.log(power / alpha) + (1 - power) * np.log((1 - power) / (1 - alpha))
+    return int(np.ceil(d / kl))
+
+
+def guardrail_certifiable_margin(n, *, alpha=0.05, rho=100.0, mean_diff=0.0):
+    """Inverse of the range-only guardrail: the smallest delta certifiable at horizon n.
+
+    The practitioner's actual question. At `n` randomized pairs the frozen anytime band
+    certifies "no worse than delta" only for delta greater than `r(n) - mean_diff`, with
+    `r` the normal-mixture radius at V_n = n. At n = 568, alpha = .00625, rho = 100 and an
+    equally accurate candidate this is 0.1579515..., i.e. the frozen live trial can certify
+    only "not more than about 16 points worse", which is not a deployment guardrail.
+
+    Returns a float; it is not clipped, so a value above 1 means no margin in [-1,1] is
+    certifiable at that horizon.
+    """
+    if int(n) <= 0:
+        raise ValueError('n must be positive')
+    if not 0.0 < float(alpha) < 1.0:
+        raise ValueError('alpha must lie in (0,1)')
+    return float(normal_mixture_radius(int(n), alpha=float(alpha), rho=float(rho),
+                                       variance_process=int(n))) - float(mean_diff)
 
 
 def nb_from_win_ratio(win_ratio, p_tie):

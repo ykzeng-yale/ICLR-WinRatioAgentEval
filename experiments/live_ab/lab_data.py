@@ -12,6 +12,34 @@ Scope, stated once:
   from this module, ever, and nothing in it depends on an arm.
 * `n_pairs = n_S1 // 2 + n_S2 // 2` (protocol 3.3). It is never `n_total // 2`: pairs are formed inside
   a stratum and each stratum keeps its own leftover.
+* **Allocation across strata must stay PROPORTIONAL.** Each stratum contributes `floor(n_s / 2)` pairs
+  and protocol 3.4 then permutes the whole pair list as ONE sequence, so every enrolled prefix is an
+  exchangeable sample of the strata in proportion to their pair counts. The guardrail's target is the
+  mean guarded score over the pairs actually enrolled. If allocation drifted away from proportional --
+  by weighting a stratum, by enrolling the strata in blocks, or by any rule that makes the stratum mix
+  of a stopping prefix differ from the roster's -- then the quantity the band brackets at the stopping
+  time would no longer be the intended contrast, and **the guardrail would certify something other
+  than what it names**. Proportionality is what makes optional stopping safe for the ESTIMAND, which
+  is a separate requirement from the anytime validity of the band itself.
+  (`ProportionalAllocationTests` in `tests_lab_design.py`.)
+
+**Known, deliberately NOT applied here: the MBPP/HumanEval stratum separation.** Coordinator ruling 49
+lists "separate MBPP from HumanEval in the strata" as a free fix, because S1 currently pairs a
+sanitized-MBPP task with a HumanEval task and that cross-benchmark heterogeneity inflates the paired
+score variance. The investigation sizes the gain at about **3.8% of the pairing gap** -- the gap
+between the cross-arrival discordance .392 and the same-task .135 -- which is roughly 2.5% off the
+betting-gate sample size and **nothing at all at the horizon this roster provides**. It is not applied
+in this module because it is not a `lab_data` change: it adds a third stratum, and the stratum
+vocabulary and the draw order are fixed by the literal code block of `protocol_FINAL.md` section 3.4
+(`for stratum in ["S1", "S2"]`), transcribed as an independent oracle in
+`tests_lab_design.protocol_3_4_reference`. Applying it here alone would silently drop the 164
+HumanEval tasks from every pairing; applying it in `lab_design` alone would put the implementation
+ahead of the binding document and turn that oracle into a test written from the implementation.
+The separation therefore needs one coordinated amendment: protocol 3.4's code block, `lab_design.STRATA`
+and its `order_document` count, `lab_eventlog.E_STRATUM`, the `Literal` annotations in `lab_coin` and
+`lab_design`, the roster concatenation in `lab_orchestrator`, `dryrun_live_ab`'s mock roster, and this
+module's stratum table. It also changes every `order_sha256`, which costs nothing today because no
+trial episode has ever run. See the report accompanying coordinator ruling 49.
 
 Network use is confined to `_download()`, reached only from `fetch_sources(..., offline=False)`. Every
 other entry point works from cached bytes and refuses anything whose size or SHA-256 differs from the
@@ -116,6 +144,15 @@ SMOKE_TASKS: tuple[str, ...] = ('mbpp_full/39', 'mbpp_full/122', 'mbpp_full/522'
 
 UID_PATTERN: str = r'^(mbpp|mbpp_full|humaneval)/[0-9]+$'
 _UID_RE = re.compile(UID_PATTERN)
+
+#: The stratum of each benchmark (protocol 3.1/3.3), as ONE table rather than string literals spread
+#: through the module. `mbpp` (sanitized) and `humaneval` SHARE S1 today; giving HumanEval its own
+#: stratum -- coordinator ruling 49's free fix -- is a one-line change here plus the coordinated
+#: amendment the module docstring lists, and it must not be made in this file alone.
+BENCHMARK_STRATUM: dict[str, str] = {'mbpp': 'S1', 'humaneval': 'S1', 'mbpp_full': 'S2'}
+
+#: The stratum labels, in the order protocol 3.4 draws them. Pairs never cross a stratum.
+STRATA: tuple[str, ...] = ('S1', 'S2')
 
 #: protocol 3.2 rule 4: "more than half of the 5 s verifier wall limit".  The frozen config pins the
 #: sandbox wall limit at 10.0 s (`sandbox.timeout_s`); the exclusion threshold below is the protocol's
@@ -347,15 +384,16 @@ def build_candidate_tasks(raw: dict) -> list[Task]:
         raise lab_common.PreflightError('build_candidate_tasks needs mbpp_sanitized and humaneval')
     tasks: list[Task] = []
     for rec in sorted(raw['mbpp_sanitized'], key=lambda r: int(r['task_id'])):
-        tasks.append(_mbpp_task(rec, benchmark='mbpp', stratum='S1'))
+        tasks.append(_mbpp_task(rec, benchmark='mbpp', stratum=BENCHMARK_STRATUM['mbpp']))
     sanitized_ids = {int(r['task_id']) for r in raw['mbpp_sanitized']}
     for rec in sorted(raw.get('mbpp_full') or [], key=lambda r: int(r['task_id'])):
         if int(rec['task_id']) in sanitized_ids:
             continue                       # the sanitized version is the S1 task; S2 is the complement
-        tasks.append(_mbpp_task(rec, benchmark='mbpp_full', stratum='S2'))
+        tasks.append(_mbpp_task(rec, benchmark='mbpp_full', stratum=BENCHMARK_STRATUM['mbpp_full']))
     for rec in sorted(raw['humaneval'], key=lambda r: int(str(r['task_id']).split('/')[-1])):
         idx = int(str(rec['task_id']).split('/')[-1])
-        tasks.append(Task(uid='humaneval/%d' % idx, benchmark='humaneval', stratum='S1',
+        tasks.append(Task(uid='humaneval/%d' % idx, benchmark='humaneval',
+                          stratum=BENCHMARK_STRATUM['humaneval'],
                           prompt=rec['prompt'], entry_point=rec['entry_point'],
                           reference=rec['prompt'] + rec['canonical_solution'],
                           test_imports=[], test_list=[], challenge_test_list=[], test=rec['test']))
@@ -542,10 +580,17 @@ def build_roster(tasks: list[Task], exclusions: list[Exclusion], cfg: dict) -> d
 
     `n_pairs` is computed on the SURVIVING counts, so it is the horizon `N_P` of whatever roster this
     call produces. The number 568 is the same rule applied to the candidate lists 591/547, i.e.
-    before any exclusion: a loose pre-exclusion bound and not a horizon. The six smoke tasks of
-    `SMOKE_TASKS` are all in S2, so they alone put the ceiling at `295 + floor(541/2) = 565`, and the
-    duplicate-prompt, entry-point, unparsable and reference-sweep exclusions lower it further, S1
-    included. The leftover count is `(n_S1 % 2) + (n_S2 % 2)`, which is 0, 1 or 2.
+    before any exclusion: a loose pre-exclusion bound and not a horizon. Wherever a POST-exclusion
+    figure is wanted the number is **at most 565**: the six smoke tasks of `SMOKE_TASKS` are all in
+    S2, so they alone put the ceiling at `295 + floor(541/2) = 565`, and the duplicate-prompt,
+    entry-point, unparsable and reference-sweep exclusions lower it further, S1 included. 568 may be
+    quoted only where it is explicitly labelled the loose pre-exclusion bound. The leftover count is
+    `(n_S1 % 2) + (n_S2 % 2)`, which is 0, 1 or 2.
+
+    The per-stratum pair counts `floor(n_s / 2)` are what makes the allocation PROPORTIONAL (module
+    docstring): protocol 3.4 permutes the combined pair list, so the stratum mix of every enrolled
+    prefix is the roster's own mix in expectation, and the guarded estimand does not move with the
+    stopping time. Nothing in this function may weight a stratum.
 
     The top-level `'S1'` and `'S2'` keys are the lists protocol 3.4's code path indexes as
     `roster[stratum]`; `'tasks'` is the flat frozen order ARCHITECTURE 3.4 names.

@@ -739,25 +739,42 @@ class TestEnclosure(unittest.TestCase):
         # (c) s_r == 0, revealed is the incumbent (sgn = -1) -> feasible {0, +1}
         e = enc.hierarchy_enclosure(pend("candidate", ell=99.0), inc(0, 5.0), t)
         self.assertEqual((e.lo, e.hi), (0.0, 1.0))
-        # (c) s_r == 1, certificate does NOT bind -> [-1, 1]
+        # (c) s_r == 1, neither certificate (ell is far below 0.95 * L_r) -> [-1, 1]
         e = enc.hierarchy_enclosure(cand(1, 100.0), pend("incumbent", ell=1.0), t)
         self.assertEqual((e.lo, e.hi), (-1.0, 1.0))
-        # (c) s_r == 1, certificate binds for the candidate -> [1, 1]
+        # (c) s_r == 1, forward certificate binds for the candidate -> [1, 1]
         e = enc.hierarchy_enclosure(cand(1, 5.0), pend("incumbent", ell=100.0), t)
         self.assertEqual((e.lo, e.hi), (1.0, 1.0))
-        # (c) s_r == 1, certificate binds for the incumbent -> [-1, -1]
+        # (c) s_r == 1, forward certificate binds for the incumbent -> [-1, -1]
         e = enc.hierarchy_enclosure(pend("candidate", ell=100.0), inc(1, 5.0), t)
         self.assertEqual((e.lo, e.hi), (-1.0, -1.0))
+        # (c) s_r == 1, REVERSE certificate: the pending partner has already spent more than
+        #     winning the cost tier would allow it to spend, so its win leaves the enclosure.
+        #     This is the COORDINATOR_DECISIONS revision 12 reproducer, both orientations:
+        #     revealed incumbent, success 1, cost 10.0; pending candidate at elapsed 9.6.  A
+        #     candidate win would need a FINAL cost below 0.95 * 10.0 = 9.50 and 9.60 is already
+        #     spent, so the tight enclosure is [-1, 0] and not [-1, 1].
+        e = enc.hierarchy_enclosure(pend("candidate", ell=9.6), inc(1, 10.0), t)
+        self.assertEqual((e.lo, e.hi), (-1.0, 0.0))
+        e = enc.hierarchy_enclosure(cand(1, 10.0), pend("incumbent", ell=9.6), t)
+        self.assertEqual((e.lo, e.hi), (0.0, 1.0))
         # (a) both revealed
         e = enc.hierarchy_enclosure(cand(1, 5.0), inc(1, 100.0), t)
         self.assertEqual((e.lo, e.hi), (1.0, 1.0))
 
     def test_certificate_boundary(self):
-        """The certificate is exactly `0.95 * ell > L_r + 1e-9`, strict (audit B1)."""
+        """Both certificates are strict and carry the same 1e-9 margin (audit B1).
+
+        Forward: `0.95 * ell > L_r + 1e-9` collapses to `[sgn, sgn]`.
+        Reverse: `ell > 0.95 * L_r + 1e-9` removes the partner's win, leaving `{0, sgn}`.
+        Neither: `[-1, 1]`.  The three are exclusive and exhaustive in that order.
+        """
         t = tiers()
         l_r = 1.0
         for ell in (
             0.0,
+            0.9,
+            0.95,
             l_r,
             (l_r + 1e-9) / 0.95,
             math.nextafter((l_r + 1e-9) / 0.95, 0.0),
@@ -766,10 +783,17 @@ class TestEnclosure(unittest.TestCase):
             2.0,
         ):
             binds = (1.0 - 0.05) * ell > l_r + 1e-9
+            reverse = ell > (1.0 - 0.05) * l_r + 1e-9
+            if binds:
+                want = (1.0, 1.0)
+            elif reverse:
+                want = (0.0, 1.0)
+            else:
+                want = (-1.0, 1.0)
             e = enc.hierarchy_enclosure(cand(1, l_r), pend("incumbent", ell=ell), t)
-            self.assertEqual(
-                (e.lo, e.hi), (1.0, 1.0) if binds else (-1.0, 1.0), f"ell={ell!r}"
-            )
+            self.assertEqual((e.lo, e.hi), want, f"ell={ell!r}")
+            # the forward certificate is the stronger of the two: it never fires alone
+            self.assertFalse(binds and not reverse, f"ell={ell!r}")
         # the frozen 0.95 collapses where the superseded v2 constant 0.9 would not (audit B1)
         ell = (l_r + 1e-9) / 0.92
         self.assertTrue(0.95 * ell > l_r + 1e-9)
@@ -1000,6 +1024,290 @@ class TestEnclosure(unittest.TestCase):
                 alpha_gate=ALPHA_GATE, rho=RHO, delta=DELTA, n_min=N_MIN, n_max=N_MAX,
                 clip_lo=0.2, clip_hi=1.0,
             )
+
+
+# =============================================================================================
+# The enumeration of protocol 7.5 item 5, proved by EXHAUSTIVE ENUMERATION
+#
+# Written from the PROMISE (item 1: an unresolved score "is narrowed only by enumerating feasible
+# completions"), not from the implementation.  The reference object is the brute-force set of
+# scores still attainable over every completion of the pending episode, swept directly; the
+# assertion is EQUALITY with the enclosure, not containment in it.  A rule that answered [-1, 1]
+# to a state whose own evidence has excluded a value would fail these tests, which is exactly
+# what the superseded two-case text of item 5 did (protocol 7.5a, COORDINATOR_DECISIONS rev. 12).
+# =============================================================================================
+TOL = 0.05        # the frozen cost tolerance (protocol 6.2); never varied in these tests
+CERT_EPS = 1e-9   # the frozen certificate margin (protocol 7.5 item 5)
+
+
+def protocol_score(s_a: int, x_a: float, s_b: int, x_b: float) -> int:
+    """The frozen hierarchy of protocol 6.2, read off the protocol text and rewritten here in
+    plain Python: tier 0 is success; tier 1 is cost and is eligible ONLY on joint success; a
+    tier decides iff `|a - b| > tol * max(|a|, |b|)` STRICTLY, so exact threshold equality is a
+    tie; joint failure is a tie.  A = candidate, B = incumbent, and +1 favours the candidate.
+
+    `test_protocol_score_matches_winstats` checks this reading against `winstats.compare` on
+    every completion swept below, so the brute force cannot inherit a misreading of the kernel.
+    """
+    if s_a != s_b:
+        return 1 if s_a > s_b else -1
+    if not (s_a and s_b):
+        return 0                                    # joint failure: tier 1 is not eligible
+    if abs(x_a - x_b) > TOL * max(abs(x_a), abs(x_b)):
+        return -1 if x_a > x_b else 1               # lower cost wins
+    return 0                                        # within tolerance: a tie
+
+
+def completion_costs(ell: float, l_r: float, n_fine: int = 201) -> list[float]:
+    """Every final cost the pending episode can still record.
+
+    The one fact the partial state supplies is protocol 7.5 item 4's: a certified elapsed cost
+    can only grow, so the feasible set is `x >= ell` and nothing narrower.  A fine sweep upward
+    from `ell`, with the two exact tier-1 thresholds and their float neighbours included so that
+    no narrow feasible window can be stepped over.
+    """
+    hi = max(ell, l_r) * 4.0 + 10.0                 # well past L_r / (1 - tol) = 1.0526 * L_r
+    xs = {ell, hi}
+    for k in range(n_fine):
+        xs.add(ell + (hi - ell) * k / (n_fine - 1))
+    for c in ((1.0 - TOL) * l_r, l_r, l_r / (1.0 - TOL)):
+        for x in (c, math.nextafter(c, 0.0), math.nextafter(c, math.inf)):
+            if x >= ell:
+                xs.add(x)
+    return sorted(xs)
+
+
+def brute_force_feasible(revealed_arm: str, s_r: int, l_r: float, ell: float):
+    """(set of feasible Z, set of feasible D) by direct sweep over every completion.
+
+    Consults neither `lab_enclosure` nor any certificate: it sweeps the pending episode's
+    success over {0, 1} and its final cost over `completion_costs`, and scores each completed
+    pair with `protocol_score`.
+    """
+    zs: set[int] = set()
+    ds: set[int] = set()
+    for s_p in (0, 1):
+        for x in completion_costs(ell, l_r):
+            if revealed_arm == "candidate":
+                zs.add(protocol_score(s_r, l_r, s_p, x))
+                ds.add(s_r - s_p)
+            else:
+                zs.add(protocol_score(s_p, x, s_r, l_r))
+                ds.add(s_p - s_r)
+    return zs, ds
+
+
+def epsilon_gap(l_r: float, ell: float) -> bool:
+    """True iff `ell` sits inside the declared band around one of the two tier-1 thresholds,
+    `L_r / (1 - tol)` (forward) and `(1 - tol) * L_r` (reverse), where the enclosure may be one
+    value wider than the feasible set.
+
+    Two things make that band, and both are deliberate.  The certificates demand a margin of
+    1e-9 so that a rounding error below that margin can never forge an exclusion.  And each
+    certificate is written in the multiplied-out form -- `(1 - tol) * ell > L_r` rather than
+    `ell - L_r > tol * max(ell, L_r)` -- which is the same inequality in exact arithmetic but
+    not the same rounding, so at a threshold hit exactly (the root statistics review's
+    `ell = 200/19`) the two forms can differ by an ulp.  Both effects are one-sided: the
+    enclosure keeps a value it could have excluded, never the reverse.  This predicate only
+    CLASSIFIES states; correctness is decided by the brute force in every case.
+    """
+    width = CERT_EPS + 8.0 * math.ulp(max(abs(l_r), abs(ell), 1.0))
+    return (abs((1.0 - TOL) * ell - l_r) <= width
+            or abs(ell - (1.0 - TOL) * l_r) <= width)
+
+
+def enumeration_grid() -> list[tuple[str, int, float, float]]:
+    """A dense grid of partially revealed states: `(revealed arm, s_r, L_r, ell)`.
+
+    Both orientations, both revealed successes, a spread of revealed latencies, and for each of
+    them a spread of certified elapsed values that brackets BOTH tier-1 thresholds,
+    `(1 - tol) * L_r` and `L_r / (1 - tol)`, from both sides and at several scales.
+    """
+    out: list[tuple[str, int, float, float]] = []
+    for l_r in (0.0, 0.5, 1.0, 2.5, 9.6, 10.0, 40.0, 100.0):
+        ells = {0.0, 1e-9, 1e-6, 0.1, 9.5, 9.6, 10.0, 40.0}
+        ells.update({0.25 * l_r, 0.5 * l_r, 0.9 * l_r, l_r, 1.2 * l_r, 2.0 * l_r, 5.0 * l_r})
+        for c in ((1.0 - TOL) * l_r, l_r, l_r / (1.0 - TOL)):
+            for off in (-1.0, -0.01, -1e-3, -1e-6, 0.0, 1e-6, 1e-3, 0.01, 1.0):
+                ells.add(c + off)
+        for ell in sorted(e for e in ells if e >= 0.0):
+            for arm in ("candidate", "incumbent"):
+                for s_r in (0, 1):
+                    out.append((arm, s_r, l_r, ell))
+    return out
+
+
+def views_for(revealed_arm: str, s_r: int, l_r: float, ell: float):
+    """(candidate view, incumbent view) for a state of `enumeration_grid`."""
+    if revealed_arm == "candidate":
+        return cand(s_r, l_r), pend("incumbent", ell=ell)
+    return pend("candidate", ell=ell), inc(s_r, l_r)
+
+
+class TestEnumerationIsExhaustive(unittest.TestCase):
+    def test_protocol_score_matches_winstats(self):
+        """The plain-Python reading of the hierarchy equals `winstats.compare` on every
+        completion the sweeps below use, so the brute force is not a second opinion of the
+        implementation but the frozen kernel restated."""
+        t = tiers()
+        checked = 0
+        for _, s_r, l_r, ell in enumeration_grid()[::7]:
+            for s_p in (0, 1):
+                for x in completion_costs(ell, l_r, n_fine=17):
+                    want = int(enc.final_scores(cand(s_r, l_r), inc(s_p, x), t)[0])
+                    self.assertEqual(protocol_score(s_r, l_r, s_p, x), want,
+                                     f"({s_r}, {l_r!r}) vs ({s_p}, {x!r})")
+                    want = int(enc.final_scores(cand(s_p, x), inc(s_r, l_r), t)[0])
+                    self.assertEqual(protocol_score(s_p, x, s_r, l_r), want,
+                                     f"({s_p}, {x!r}) vs ({s_r}, {l_r!r})")
+                    checked += 2
+        self.assertGreater(checked, 5000)
+
+    def test_enclosure_equals_the_brute_force_feasible_set(self):
+        """EQUALITY, not containment: for every state of the dense grid outside the declared
+        1e-9 certificate gaps, `hierarchy_enclosure` reproduces the brute-force feasible set
+        exactly, and so does `success_enclosure` (which carries no margin at all, so it is
+        checked at every state without exception)."""
+        t = tiers()
+        grid = enumeration_grid()
+        equal = 0
+        gapped = 0
+        for arm, s_r, l_r, ell in grid:
+            cv, iv = views_for(arm, s_r, l_r, ell)
+            fz, fd = brute_force_feasible(arm, s_r, l_r, ell)
+            msg = f"arm={arm} s_r={s_r} L_r={l_r!r} ell={ell!r}"
+            # the feasible sets are contiguous runs of {-1, 0, 1}, so [min, max] IS the set
+            for f in (fz, fd):
+                self.assertEqual(f, {v for v in (-1, 0, 1) if min(f) <= v <= max(f)}, msg)
+            s = enc.success_enclosure(cv, iv)
+            self.assertEqual((s.lo, s.hi), (float(min(fd)), float(max(fd))), msg)
+            h = enc.hierarchy_enclosure(cv, iv, t)
+            if (h.lo, h.hi) == (float(min(fz)), float(max(fz))):
+                equal += 1
+                continue
+            # the only permitted disagreement is the declared 1e-9 conservatism
+            gapped += 1
+            self.assertTrue(epsilon_gap(l_r, ell), f"{msg}: {(h.lo, h.hi)} != {sorted(fz)}")
+            self.assertLessEqual(h.lo, float(min(fz)), msg)
+            self.assertGreaterEqual(h.hi, float(max(fz)), msg)
+        self.assertEqual(equal + gapped, len(grid))
+        self.assertEqual(len(grid), 1140)
+        # the grid is dominated by states at which the enclosure IS the feasible set, exactly
+        self.assertEqual(equal, 1120)
+        self.assertEqual(gapped, 20)
+
+    def test_certificate_epsilon_gaps_are_conservative_and_never_wrong(self):
+        """The states the previous test set aside, walked deliberately.
+
+        Each is a state at which the margin-free certificate holds but the implemented one,
+        which demands a further 1e-9, does not.  The enclosure is then ONE VALUE wider than the
+        feasible set -- it can never be narrower -- and that is the declared cost of refusing to
+        certify an exclusion that only float rounding would support.  The second witness is the
+        root statistics review's `ell = 200/19` state (section 1), recorded here rather than
+        quietly removed.
+        """
+        t = tiers()
+        states: list[tuple[str, int, float, float]] = []
+        for l_r in (1.0, 10.0, 40.0):
+            for ell in ((1.0 - TOL) * l_r, l_r / (1.0 - TOL),
+                        math.nextafter(l_r / (1.0 - TOL), math.inf)):
+                for arm in ("candidate", "incumbent"):
+                    states.append((arm, 1, l_r, ell))
+        states.append(("incumbent", 1, 10.0, 200.0 / 19.0))     # the root review's witness
+        wider = 0
+        exact = 0
+        for arm, s_r, l_r, ell in states:
+            cv, iv = views_for(arm, s_r, l_r, ell)
+            fz, _ = brute_force_feasible(arm, s_r, l_r, ell)
+            h = enc.hierarchy_enclosure(cv, iv, t)
+            msg = f"arm={arm} L_r={l_r!r} ell={ell!r}"
+            self.assertLessEqual(h.lo, float(min(fz)), msg)      # never narrower: never wrong
+            self.assertGreaterEqual(h.hi, float(max(fz)), msg)
+            if (h.lo, h.hi) == (float(min(fz)), float(max(fz))):
+                exact += 1
+            else:
+                wider += 1
+                self.assertTrue(epsilon_gap(l_r, ell), msg)
+                self.assertLessEqual((h.hi - h.lo) - (max(fz) - min(fz)), 1.0 + 1e-12, msg)
+        self.assertEqual(wider + exact, len(states))
+        self.assertEqual(len(states), 19)
+        self.assertEqual(wider, 15)
+        self.assertEqual(exact, 4)
+        # the named witness of the root review: the feasible set is the point {-1}, the
+        # enclosure keeps the tie as well, and nothing feasible is excluded
+        cv, iv = views_for("incumbent", 1, 10.0, 200.0 / 19.0)
+        fz, _ = brute_force_feasible("incumbent", 1, 10.0, 200.0 / 19.0)
+        h = enc.hierarchy_enclosure(cv, iv, t)
+        self.assertEqual(sorted(fz), [-1])
+        self.assertEqual((h.lo, h.hi), (-1.0, 0.0))
+
+    def test_enumeration_never_widens_and_holds_the_revealed_score(self):
+        """The two invariants protocol 7.5 items 1 and 6 require, over the same grid.
+
+        For every state and every completion of its pending episode: the enclosure NEVER widens
+        as evidence accrues (certified cost rising, then the partner revealing), and the
+        ultimately revealed score lies inside EVERY earlier enclosure.
+        """
+        t = tiers()
+        grid = enumeration_grid()
+        chains = 0
+        for arm, s_r, l_r, ell in grid:
+            costs = completion_costs(ell, l_r, n_fine=5)
+            for s_p in (0, 1):
+                for x in costs:
+                    steps = [enc.pair_enclosure(pend("candidate"), pend("incumbent"), t)]
+                    for e_k in (0.0, 0.5 * ell, ell):       # certified cost can only grow
+                        cv, iv = views_for(arm, s_r, l_r, e_k)
+                        steps.append(enc.pair_enclosure(cv, iv, t))
+                    if arm == "candidate":
+                        final_c, final_i = cand(s_r, l_r), inc(s_p, x)
+                    else:
+                        final_c, final_i = cand(s_p, x), inc(s_r, l_r)
+                    steps.append(enc.pair_enclosure(final_c, final_i, t))
+                    z, _, d = enc.final_scores(final_c, final_i, t)
+                    msg = f"arm={arm} s_r={s_r} L_r={l_r!r} ell={ell!r} s_p={s_p} x={x!r}"
+                    for k, pe in enumerate(steps):
+                        if k:
+                            enc.assert_monotone(steps[k - 1], pe)   # raises if it widened
+                        self.assertTrue(pe.h.contains(z), f"{msg} step {k}: z={z}")
+                        self.assertTrue(pe.s.contains(d), f"{msg} step {k}: d={d}")
+                    chains += 1
+        # = sum over the grid of 2 successes x |completion_costs(..., n_fine=5)|
+        self.assertEqual(chains, 21784)
+
+    def test_reference_rule_enumerates_identically(self):
+        """The two deliberately separate code paths (protocol 8.9) agree BITWISE on the whole
+        grid.  `lab_reference_rule` is imported inside the test: the isolation rule of
+        ARCHITECTURE 3.8b is about that module's own imports, and this test compares the two
+        implementations rather than joining them."""
+        import lab_reference_rule as ref  # noqa: PLC0415 - see the docstring
+
+        t = tiers()
+        checked = 0
+        for arm, s_r, l_r, ell in enumeration_grid():
+            # both paths must see the SAME float `ell`, so it is built from integer nanoseconds
+            # the way the live chain does (protocol 7.5 item 4)
+            ell_ns = int(round(ell * 1e9))
+            ell_q = ell_ns / 1_000_000_000
+            cv, iv = views_for(arm, s_r, l_r, ell_q)
+            h = enc.hierarchy_enclosure(cv, iv, t)
+            s = enc.success_enclosure(cv, iv)
+
+            p = ref._Pair(1, [1, 2])
+            c_ep, i_ep = p.episodes[1], p.episodes[2]
+            c_ep.arm, i_ep.arm = "candidate", "incumbent"
+            revealed_ep = c_ep if arm == "candidate" else i_ep
+            pending_ep = i_ep if arm == "candidate" else c_ep
+            revealed_ep.revealed = True
+            revealed_ep.success, revealed_ep.latency_s = s_r, l_r
+            pending_ep.note_stamp(0, [ell_ns])
+            self.assertEqual(pending_ep.ell, ell_q)
+            r_h_lo, r_h_hi, r_s_lo, r_s_hi, _, _ = ref._pair_enclosure(p, t, TOL)
+            msg = f"arm={arm} s_r={s_r} L_r={l_r!r} ell={ell_q!r}"
+            self.assertEqual((r_h_lo, r_h_hi), (h.lo, h.hi), msg)
+            self.assertEqual((r_s_lo, r_s_hi), (s.lo, s.hi), msg)
+            checked += 1
+        self.assertEqual(checked, len(enumeration_grid()))
 
 
 # =============================================================================================

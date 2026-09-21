@@ -6,7 +6,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from winstats import Tier, compare
 from wincs import (classify, cell_counts, cell_signs, functionals, MultinomialCS, linear_bound, ratio_bound,
                    cs_threshold, loglik, log_mixture_martingale, ternary_constrained_loglik, ternary_log_eprocess_nb,
-                   task_level_scores, clustered_summary, task_bootstrap, compare_censored, pairs_for_power, nb_from_win_ratio)
+                   task_level_scores, clustered_summary, task_bootstrap, compare_censored, pairs_for_power, nb_from_win_ratio,
+                   pairs_for_guardrail, guardrail_information_floor, guardrail_certifiable_margin)
 
 
 def simplex_grid(m=400):
@@ -252,3 +253,152 @@ def test_endpoint_normalization_round10():
 if __name__ == '__main__':
     test_endpoint_normalization_round10()
     print('round 10 endpoint tests passed')
+
+
+# ----------------------------------------------------------------------------
+# Coordinator ruling 51: the sizing trap in pairs_for_power, and its companion
+# ----------------------------------------------------------------------------
+
+#: The frozen live A/B setting, so the checks below are against numbers established
+#: independently by the coordinator's sizing investigation, not against this code.
+_A = 0.00625            # per-band alpha: 4 trials x 2 bands x .00625 = .05
+_RHO = 100.0
+_DELTA = 0.03
+_Q_CROSS = 0.392        # measured discordance of the success difference, cross-arrival
+_Q_PAIRED = 0.135       # ... same-task
+
+
+def test_pairs_for_power_guards_its_inputs():
+    """The kept function must still answer its own question, and must refuse the inputs
+    for which it silently returned garbage (contributed_wincs_verification_session60 D5)."""
+    n = pairs_for_power(0.1, 0.5)
+    assert 200 < n < 400, n                       # unchanged behaviour on a valid call
+    assert pairs_for_power(-0.1, 0.5) == n, 'sizing is symmetric in the sign of the effect'
+    # net_benefit = 0 has no finite horizon; p_tie = .999 with nb = .1 implies a negative
+    # score variance, so the pair of inputs cannot both describe one ternary score.
+    for bad in ((0.0, 0.5), (np.nan, 0.5), (0.1, 0.999)):
+        try:
+            pairs_for_power(*bad)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError('pairs_for_power accepted %r' % (bad,))
+    print('pairs_for_power input guards ok')
+
+
+def test_guardrail_sizing_reproduces_the_investigation():
+    """The companion must reproduce the figures ruling 51 / ruling 50 established."""
+    # 1. Range-only anytime band = the FROZEN live guardrail. 17,097 is the first n whose
+    #    normal-mixture radius drops below delta, and is distribution-free.
+    n_range = pairs_for_guardrail(_DELTA, alpha=_A, rho=_RHO)
+    assert n_range == 17097, n_range
+    from winstats import normal_mixture_radius as r
+    assert float(r(17097, alpha=_A, rho=_RHO, variance_process=17097)) < _DELTA
+    assert float(r(17096, alpha=_A, rho=_RHO, variance_process=17096)) >= _DELTA
+    # the tie mass is genuinely irrelevant here (V_n = n is forced); that is the defect
+    for q in (0.05, _Q_PAIRED, _Q_CROSS, 1.0):
+        assert pairs_for_guardrail(_DELTA, q, alpha=_A, rho=_RHO) == 17097
+
+    # 2. Betting gate: the investigation's 6,697 at a discordance reported as .392.
+    n_bet = pairs_for_guardrail(_DELTA, _Q_CROSS, alpha=_A, construction='betting')
+    n_bet_unrounded = pairs_for_guardrail(_DELTA, 0.3914, alpha=_A, construction='betting')
+    assert 6600 <= n_bet_unrounded <= n_bet <= 6800, (n_bet_unrounded, n_bet)
+    # ... and the 2.55x conservatism of the frozen boundary that ruling 46 reports
+    assert 2.4 < n_range / n_bet < 2.7, n_range / n_bet
+
+    # 3. Information floor: 3,099 cross-arrival and 1,079 paired, at power .8.
+    #    We ceil where the investigation floored, so allow the one-pair difference.
+    f_cross = guardrail_information_floor(_DELTA, 0.39139313, alpha=_A, power=0.8)
+    f_paired = guardrail_information_floor(_DELTA, 0.13398650, alpha=_A, power=0.8)
+    assert 3099 <= f_cross <= 3100, f_cross
+    assert 1079 <= f_paired <= 1080, f_paired
+    assert guardrail_information_floor(_DELTA, _Q_CROSS, alpha=_A, power=0.8) == 3104
+
+    # 4. The certifiable-margin inversion: at the live horizon an equal candidate can
+    #    certify only delta = .158 (ruling 50), and 568 is a pre-exclusion bound: the
+    #    post-exclusion ceiling of 565 certifies slightly less, never more.
+    m568 = guardrail_certifiable_margin(568, alpha=_A, rho=_RHO)
+    m565 = guardrail_certifiable_margin(565, alpha=_A, rho=_RHO)
+    assert abs(m568 - 0.1579515124940428) < 1e-12, m568
+    assert abs(m568 - _DELTA - 0.1279515124940428) < 1e-12, 'r(568) - delta, the frozen threshold'
+    assert m565 > m568, (m565, m568)
+    assert abs(m565 - 0.1584036325586779) < 1e-12, m565
+
+    # 5. The whole point: pairs_for_power under-sizes a guarded trial by over an order of
+    #    magnitude, on the very inputs a practitioner would reach for.
+    assert pairs_for_power(0.1, 1 - _Q_CROSS, alpha=_A) * 10 < n_range
+    print('guardrail sizing reproduces 17,097 / ~6,697 / ~3,099 / ~1,079 / .158 ok')
+
+
+def test_guardrail_sizing_orderings():
+    """No construction may beat the information floor, and monitoring is never free.
+
+    Checked over a grid rather than at one point, because the ordering is the property
+    that makes the companion trustworthy. The fixed-horizon branch is only compared with
+    the floor where its normal approximation is valid (implied n >= 100); below that it can
+    and does return a number under the floor, which the docstring flags as the signal that
+    the approximation has broken down.
+    """
+    checked = 0
+    for alpha in (0.05, 0.025, _A):
+        for delta in (0.005, 0.01, 0.03, 0.05, 0.10, 0.2):
+            for q in (0.05, _Q_PAIRED, _Q_CROSS, 0.7, 1.0):
+                for mu in (0.0, 0.05, -0.004, 0.2):
+                    if q < abs(mu) or delta + mu <= 1e-3:
+                        continue
+                    kw = dict(alpha=alpha, mean_diff=mu)
+                    floor8 = guardrail_information_floor(delta, q, power=0.8, **kw)
+                    floor5 = guardrail_information_floor(delta, q, power=0.5, **kw)
+                    fixed8 = pairs_for_guardrail(delta, q, anytime=False, power=0.8, **kw)
+                    fixedN = pairs_for_guardrail(delta, q, anytime=False, **kw)
+                    betting = pairs_for_guardrail(delta, q, construction='betting', **kw)
+                    if fixed8 >= 100:
+                        assert floor8 <= fixed8, (alpha, delta, q, mu, floor8, fixed8)
+                    if fixedN >= 100:
+                        assert floor5 <= fixedN, (alpha, delta, q, mu, floor5, fixedN)
+                    assert fixedN <= betting, (alpha, delta, q, mu, fixedN, betting)
+                    assert floor8 <= betting, (alpha, delta, q, mu, floor8, betting)
+                    checked += 1
+    assert checked > 250, checked
+    # requiring power costs pairs; a smaller alpha costs pairs
+    assert (pairs_for_guardrail(_DELTA, _Q_CROSS, alpha=_A, power=0.8)
+            > pairs_for_guardrail(_DELTA, _Q_CROSS, alpha=_A))
+    assert pairs_for_guardrail(_DELTA, alpha=_A) > pairs_for_guardrail(_DELTA, alpha=0.05)
+    print(f'guardrail sizing orderings ok over {checked} grid points')
+
+
+def test_guardrail_sizing_refusals():
+    """The companion must refuse what it cannot answer instead of returning a number."""
+    cases = [
+        dict(delta=0.03, mean_diff=-0.03),                       # margin 0: never fires
+        dict(delta=0.03, mean_diff=-0.5),                        # margin negative
+        dict(delta=0.0),                                         # delta out of range
+        dict(delta=0.03, alpha=0.0),                             # alpha out of range
+        dict(delta=0.03, anytime=False),                         # needs the discordance
+        dict(delta=0.03, power=0.8),                             # needs the discordance
+        dict(delta=0.03, construction='betting'),                # needs the discordance
+        dict(delta=0.03, discordance=0.392, construction='betting', power=0.8),  # no closed form
+        dict(delta=0.03, discordance=1.5),                       # not a probability
+        dict(delta=0.03, construction='wishful'),                # unknown construction
+    ]
+    for kw in cases:
+        try:
+            pairs_for_guardrail(**kw)
+        except ValueError:
+            continue
+        raise AssertionError('pairs_for_guardrail accepted %r' % (kw,))
+    for kw in (dict(n=0,), dict(n=568, alpha=1.0)):
+        try:
+            guardrail_certifiable_margin(**kw)
+        except ValueError:
+            continue
+        raise AssertionError('guardrail_certifiable_margin accepted %r' % (kw,))
+    print('guardrail sizing refusals ok')
+
+
+if __name__ == '__main__':
+    test_pairs_for_power_guards_its_inputs()
+    test_guardrail_sizing_reproduces_the_investigation()
+    test_guardrail_sizing_orderings()
+    test_guardrail_sizing_refusals()
+    print('ruling-51 guardrail sizing tests passed')

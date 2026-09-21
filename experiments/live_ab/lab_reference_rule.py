@@ -16,9 +16,12 @@ Rule, restated from the protocol so that this file is self-contained:
          the number of fully enrolled (i.e. RANDOMIZED) pairs, never the number completed.
   * 7.5  Enclosures start at [-1, 1] and are narrowed ONLY by enumerating feasible
          completions.  Success enclosure [sA_low - sB_high, sA_high - sB_low] with A the
-         candidate.  Cost certificate: with the revealed episode successful and the partner
-         pending at certified elapsed `ell`, (1 - tol) * ell > L_r + 1e-9 collapses the
-         hierarchy enclosure to [sgn, sgn].
+         candidate.  With the revealed episode successful and the partner pending at
+         certified elapsed `ell`, TWO cost certificates apply, because a certified elapsed
+         cost can only grow: the forward one, (1 - tol) * ell > L_r + 1e-9, collapses the
+         hierarchy enclosure to [sgn, sgn]; the reverse one, ell > (1 - tol) * L_r + 1e-9,
+         proves the pending partner can no longer win the cost tier and narrows the
+         enclosure to the two-value run {0, sgn}.
   * 8.2  r = normal_mixture_radius(n, alpha=alpha_gate, rho=rho, variance_process=n);
          L_j = sum(lower_j[:n])/n - r, U_j = sum(upper_j[:n])/n + r, clipped to [-1, 1].
   * 8.3  The prefix `n` grows at `coin_drawn`, NEVER at `pair_enrolled`: a pair whose
@@ -185,7 +188,9 @@ def _success_enclosure(cand: _Episode | None, inc: _Episode | None) -> tuple[flo
 
 def _hierarchy_enclosure(cand: _Episode | None, inc: _Episode | None,
                          tiers: list, tol: float) -> tuple[float, float, int]:
-    """protocol 7.5 item 5 by enumeration.  Returns (lo, hi, decisive_tier)."""
+    """protocol 7.5 item 5 by enumeration: [min, max] over every completion of the pending
+    episode (its success in {0, 1}, and its final cost anywhere in [ell, inf) when it
+    succeeds).  Returns (lo, hi, decisive_tier)."""
     both = (cand is not None and cand.revealed and inc is not None and inc.revealed)
     if both:
         assert cand is not None and inc is not None
@@ -212,16 +217,39 @@ def _hierarchy_enclosure(cand: _Episode | None, inc: _Episode | None,
         # a tie: Z = 0)
         feasible = (0.0, -sgn)
         return min(feasible), max(feasible), -1
-    # revealed episode succeeded
+    # The revealed episode succeeded.  Tier 1 is reached only if the pending partner also
+    # succeeds, and then it compares the partner's FINAL cost x against L_r.  The only thing the
+    # partial state knows about x is item 4's: x >= ell, because a certified elapsed cost can
+    # only grow.  Enumerate what is still reachable under that constraint.
+    #
+    #   partner wins tier 1   <=>   L_r - x > tol * max(x, L_r)   <=>   x <  (1 - tol) * L_r
+    #   revealed wins tier 1  <=>   x - L_r > tol * max(x, L_r)   <=>   x >  L_r / (1 - tol)
+    #   between the two the tier ties, and so does the pair.
+    #
+    # Two one-sided certificates follow, each demanding a 1e-9 margin so that float error below
+    # that margin cannot forge an exclusion.
     l_r = float(revealed.latency_s or 0.0)
     if (1.0 - tol) * ell > l_r + 1e-9:
-        # The cost certificate binds: the SCORE is certain (every feasible completion gives
-        # `sgn`), but the DECISIVE TIER is not.  If the pending partner ultimately fails, the
-        # pair is decided at tier 0 (success), not at tier 1 (cost) -- the certificate proves
-        # only that the revealed episode wins either way.  So the score collapses and the tier
-        # stays -1, "not yet determined", until both outcomes are known.  This matches the live
-        # path, which also holds tier -1 while a partner is open (statistics review section 4).
+        # FORWARD certificate: every reachable x already exceeds L_r / (1 - tol), so the revealed
+        # episode wins tier 1; and if the partner fails it wins tier 0 instead.  The SCORE is
+        # certain (every feasible completion gives `sgn`), but the DECISIVE TIER is not.  If the
+        # pending partner ultimately fails, the pair is decided at tier 0 (success), not at tier
+        # 1 (cost) -- the certificate proves only that the revealed episode wins either way.  So
+        # the score collapses and the tier stays -1, "not yet determined", until both outcomes
+        # are known.  This matches the live path, which also holds tier -1 while a partner is
+        # open (statistics review section 4).
         return sgn, sgn, -1
+    if ell > (1.0 - tol) * l_r + 1e-9:
+        # REVERSE certificate (protocol 7.5 item 5, completed under COORDINATOR_DECISIONS
+        # revision 12 ruling 54): the partner would have to FINISH below (1 - tol) * L_r to win
+        # the cost tier, and it has already spent more than that.  No reachable x can satisfy
+        # x < (1 - tol) * L_r <= ell <= x, so the partner's win is infeasible and -sgn leaves the
+        # enclosure.  A tie and a revealed win both remain reachable, so the score does NOT
+        # collapse: the enclosure is the two-value run {0, sgn}.
+        return min(0.0, sgn), max(0.0, sgn), -1
+    # Neither certificate: x = ell itself still wins for the partner, the tie window
+    # [(1 - tol) * L_r, L_r / (1 - tol)] is still reachable, and a large x still wins for the
+    # revealed episode.  All three values are feasible.
     return FULL_LO, FULL_HI, -1
 
 
@@ -292,7 +320,7 @@ def _look(trigger: str, pairs: Sequence[_Pair], tiers: list, tol: float,
 # ---------------------------------------------------------------------------
 def looks_from_chain(events: Sequence[Mapping], cfg: Mapping, trial: str) -> list[RefLook]:
     """[pure] The whole rule, rebuilt independently: enrollment-indexed records, the
-    enclosure enumeration of protocol 7.5 (including the 0.95 cost certificate), math.fsum
+    enclosure enumeration of protocol 7.5 (including both 0.95 cost certificates), math.fsum
     over the full prefix, winstats.normal_mixture_radius(n, alpha, rho,
     variance_process=n), the clip to [-1, 1], and the decision order harm-then-deploy at
     n >= n_min.  Scores of resolved pairs are computed ONLY through winstats.compare.  No

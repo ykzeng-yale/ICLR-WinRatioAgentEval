@@ -1322,7 +1322,7 @@ document refers to a file that will never be created under that name.
 | `vgen.py` | exists | the data-generating process of sections 4 and 5: atoms, delays, reveal schedule, elapsed-cost accrual |
 | `vrun.py` | exists | the grid runner of sections 7-9; writes only `results/live_ab_validation/` |
 | `vcompare.py` | exists | the pinned comparison of section 12; the only module permitted to load `pinned/` |
-| `REPORT.md` | **specified, not written** | the study report of 13.3 item 6 |
+| `REPORT.md` | exists (WRITTEN AFTER THE FREEZE COMMIT, NOT AT IT; status correction 2026-09-20, coordinator ruling 43/61, changes no value) | the study report of 13.3 item 6 |
 
 ### 13.1 The commands
 
@@ -1485,3 +1485,13 @@ and is withdrawn** (coordinator ruling 35(b), 2026-09-20). The fact: sections 6.
 closed-form paraphrase of the preceding paragraph, which differs from the governing predicate in exactly the 128
 named boundary states.
 ```
+
+### 14.1 correction 3 (status only, changes no value)
+
+Coordinator rulings 43 and 61. Section 13.0's status column for `REPORT.md`.
+
+BEFORE: `| `REPORT.md` | **specified, not written** |`
+
+AFTER:  `| `REPORT.md` | exists (WRITTEN AFTER THE FREEZE COMMIT, NOT AT IT; status correction 2026-09-20, coordinator ruling 43/61, changes no value) |`
+
+Writing `REPORT.md` is required by section 13.3 item 6, and writing it falsifies a status sentence about the freeze commit. No cell, parameter, seed, grid, estimator, reported quantity, flag rule or positive control moves. This is the third such correction and the same kind as corrections 1 and 2.

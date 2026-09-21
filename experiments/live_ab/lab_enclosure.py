@@ -103,6 +103,11 @@ _FROZEN_HIERARCHY: tuple[dict, ...] = (
 )
 
 # protocol 7.5 item 5 / config 'enclosure.cost_certificate': (1 - tol) * ell > L_r + 1e-9.
+# The SAME epsilon guards the reverse certificate `ell > (1 - tol) * L_r + 1e-9` (protocol 7.5
+# item 5, completed under COORDINATOR_DECISIONS revision 12 ruling 54).  Both are one-sided: each
+# fires only when its exclusion holds with a margin of `eps`, so a float rounding error smaller
+# than `eps` can never forge either.  Neither constant changes: `tol` is 0.05, the certificate
+# constant is 0.95 = 1 - tol, and `eps` is 1e-9.
 CERTIFICATE_EPS: float = 1e-9
 
 
@@ -451,15 +456,45 @@ def hierarchy_enclosure(candidate: EpisodeView, incumbent: EpisodeView,
     completions.  The closed list of cases is protocol 7.5 item 5; the result is
     [min(feasible z), max(feasible z)].  No other narrowing exists.
 
+    The enumeration is over EVERY completion of the pending episode: its success in {0, 1} and,
+    when it succeeds, every final cost x in [ell, inf).  The single fact a pending state supplies
+    is protocol 7.5 item 4's -- a certified elapsed cost CAN ONLY GROW, so x >= ell and nothing
+    else is known.  Everything below is derived from that and from the frozen hierarchy (success
+    then cost; cost eligible only on joint success; a tier decides iff |a - b| > tol * max(|a|,
+    |b|) STRICTLY; joint failure is a tie).
+
+    The two cost thresholds, derived once.  With both episodes successful and the partner
+    finishing at x >= 0 against the revealed latency L_r >= 0:
+      * the REVEALED episode wins tier 1  iff  x - L_r > tol * max(x, L_r)  iff  x > L_r/(1 - tol)
+      * the PENDING partner wins tier 1   iff  L_r - x > tol * max(x, L_r)  iff  x < (1 - tol)*L_r
+      * otherwise (1 - tol)*L_r <= x <= L_r/(1 - tol) and tier 1 ties, so the pair ties.
+
       (a) both revealed  -> [z, z] with z = final_scores(...)[0]
-      (b) neither revealed -> [-1, 1]
+      (b) neither revealed -> [-1, 1]; nothing is excluded, because on joint success every cost
+          ordering is still attainable and either episode may still fail
       (c) one revealed (arm r, sgn = +1 if r is the candidate else -1), partner pending with
           certified ell:
-            * s_r == 0: feasible = {-sgn, 0}
-            * s_r == 1: feasible = {+sgn} iff (1 - tol) * ell > L_r + 1e-9, else {-1, 0, +1}
+            * s_r == 0: feasible = {-sgn, 0}.  Tier 1 is not eligible in any completion (it needs
+              JOINT success and the revealed episode already failed), so `ell` is irrelevant here.
+            * s_r == 1, FORWARD certificate (1 - tol) * ell > L_r + 1e-9: every feasible x >= ell
+              exceeds L_r/(1 - tol), so the revealed episode wins tier 1; and if the partner fails
+              it wins tier 0.  feasible = {+sgn}: the score is certain and the enclosure collapses.
+            * s_r == 1, REVERSE certificate ell > (1 - tol) * L_r + 1e-9 (and no forward one): a
+              partner win would need x < (1 - tol) * L_r <= ell <= x, which is impossible, so the
+              PARTNER'S WIN IS INFEASIBLE and that value leaves the enclosure.
+              feasible = {0, +sgn} -- a narrowing, not a collapse.
+            * s_r == 1, neither certificate: x = ell itself gives a partner win, a cost inside
+              [(1 - tol)*L_r, L_r/(1 - tol)] gives a tie and a large cost gives a revealed win.
+              feasible = {-1, 0, +1}.
 
-    At the frozen tolerance 0.05 the certificate constant is 0.95 (protocol 14.3 names it).  No
-    certificate is ever derived from tokens: tokens are not a tier at all.
+    Every feasible set above is a CONTIGUOUS run of {-1, 0, +1}, so [min, max] equals the feasible
+    set exactly and is never a relaxation of it.  (The one non-contiguous set {-sgn, +sgn} cannot
+    arise: a tie is infeasible only when ell > L_r/(1 - tol), which is the forward certificate,
+    and that already excludes the partner's win.)
+
+    At the frozen tolerance 0.05 the forward certificate constant is 0.95 (protocol 14.3 names it)
+    and the reverse certificate reads `ell > 0.95 * L_r + 1e-9`.  No certificate is ever derived
+    from tokens: tokens are not a tier at all.
     """
     tol = _check_tiers(tiers)
     if candidate.arm != "candidate" or incumbent.arm != "incumbent":
@@ -483,19 +518,30 @@ def hierarchy_enclosure(candidate: EpisodeView, incumbent: EpisodeView,
 
     if s_r == 0:
         # The partner either succeeds (it wins at tier 0: z = -sgn) or fails (joint failure: tie).
+        # Tier 1 is never reached, so `ell` cannot narrow this and is deliberately not consulted.
         feasible = {-sgn, 0.0}
     else:
         # The partner fails -> the revealed episode wins tier 0 (z = +sgn).
         # The partner succeeds -> both succeed and tier 1 decides on latency with relative
         # tolerance `tol`; the partner's final latency x >= ell.
         if (1.0 - tol) * ell > l_r + CERTIFICATE_EPS:
-            # For every feasible x >= ell: x - L_r > tol * x = tol * max(x, L_r), so the revealed
-            # episode wins in EVERY feasible completion and the SCORE is certain: exactly one
-            # feasible value, sgn.  The TIER is not certain, and this certificate does not claim
-            # it is: the partner succeeding decides the pair at tier 1 (latency), the partner
-            # failing decides it at tier 0 (success).  `pair_enclosure` therefore keeps
-            # decisive_tier = -1 until both episodes are revealed (statistics review section 4).
+            # FORWARD certificate.  For every feasible x >= ell: x - L_r > tol * x =
+            # tol * max(x, L_r), so the revealed episode wins in EVERY feasible completion and the
+            # SCORE is certain: exactly one feasible value, sgn.  The TIER is not certain, and
+            # this certificate does not claim it is: the partner succeeding decides the pair at
+            # tier 1 (latency), the partner failing decides it at tier 0 (success).
+            # `pair_enclosure` therefore keeps decisive_tier = -1 until both episodes are
+            # revealed (statistics review section 4).
             feasible = {sgn}
+        elif ell > (1.0 - tol) * l_r + CERTIFICATE_EPS:
+            # REVERSE certificate.  The partner can only win tier 1 at a final cost
+            # x < (1 - tol) * L_r, and it has ALREADY spent ell >= (1 - tol) * L_r, which it can
+            # never un-spend (item 4).  Its win is therefore infeasible from this state and -sgn
+            # leaves the enclosure; a tie and a revealed win both remain feasible, so this
+            # NARROWS and does not collapse.  Without this branch the rule would answer [-1, 1]
+            # to a state whose own certified evidence has already excluded one of the three
+            # values -- the incompleteness of the superseded two-case text (protocol 7.5a).
+            feasible = {0.0, sgn}
         else:
             feasible = {-1.0, 0.0, 1.0}
     return Enclosure(min(feasible), max(feasible))
@@ -507,9 +553,11 @@ def pair_enclosure(candidate: EpisodeView, incumbent: EpisodeView,
 
     `collapsed` is True iff lo == hi for BOTH scores, which (see `success_enclosure`) happens
     exactly when both episodes are revealed: a pending episode always leaves the success
-    enclosure at least one unit wide.  A cost certificate therefore collapses `h` while `s`
-    stays open, and `collapsed` stays False -- which is what ARCHITECTURE 3.7's worked invariant
-    says ("the success enclosure of such a pair is still open until both episodes are revealed").
+    enclosure at least one unit wide.  The FORWARD cost certificate therefore collapses `h` while
+    `s` stays open, and `collapsed` stays False -- which is what ARCHITECTURE 3.7's worked
+    invariant says ("the success enclosure of such a pair is still open until both episodes are
+    revealed").  The REVERSE certificate moves one endpoint of `h` and leaves it open, so it is a
+    narrowing and `collapsed` stays False for that reason too.
 
     `decisive_tier` is the tier that decided the point value, and -1 for a tie or while the pair
     is open.  Under a cost certificate the VALUE of z is certain but the TIER is not (the partner

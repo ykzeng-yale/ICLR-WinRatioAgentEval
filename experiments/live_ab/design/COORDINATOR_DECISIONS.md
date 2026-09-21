@@ -493,3 +493,54 @@ wherever they differ. All of the following are adopted literally; none is negoti
     common signature is a specification asserting a general property while the implementation satisfies a
     special case, with tests written against the special case. Tests written from the IMPLEMENTATION cannot catch
     this; only a second implementation from the PROMISE can, which is exactly what #12 did.
+
+# ===== REVISION 13, 2026-09-20: item 5 completed; the root's last-look witness REPRODUCES; two pin rulings =====
+58. ITEM 5 IS COMPLETE (ruling 54 discharged). The enumeration is now closed and derived rather than asserted:
+    with both episodes successful the revealed episode wins tier 1 iff x > L_r/(1-tol), the pending partner wins
+    iff x < (1-tol)*L_r, and between them the pair ties. Six rows, including the NEW REVERSE CERTIFICATE
+    `ell > (1-tol)*L_r + 1e-9` that removes an infeasible partner win. Every feasible set is a contiguous run of
+    {-1,0,+1}, so [min,max] IS the feasible set and not a relaxation. The coordinator's reproducer now returns
+    [-1, 0] from both code paths, which remain separate modules and agree bitwise at all 1,140 grid states.
+    Proof, not example: 16,000 states re-derived in EXACT RATIONAL arithmetic with 0 mismatches; equality against
+    brute force at 1,120 of 1,140 states, with the other 20 inside the declared 1e-9 band where the enclosure is
+    wider by at most one value and NEVER narrower; both invariants asserted over 21,784 completion chains.
+    No scientific rule moved.
+59. THE ROOT'S LAST-LOOK WITNESS REPRODUCES EXACTLY (ruling 56 discharged), and the root is right: the claim that
+    keeping only the final look at each enrolled prefix is an EXACT reduction is FALSE. My own protocol asserted
+    it and I approved it. The damage is bounded and I am not going to understate or overstate it:
+      (a) it fails for BOTH completed-data baselines, CPREFIX and NAIVE;
+      (b) it does NOT fail for the ADAPTER, the object actually under test -- proven by the monotonicity argument,
+          which is valid there, and checked by brute force over every drain tick of 16,000 real grid trials:
+          0 non-monotone. NOT ONE ADAPTER NUMBER MOVES UNDER ANY READING;
+      (c) 12 deposited rows are affected under the batched reading and 77 under the finest, and EVERY ONE IS
+          UNDERSTATED in the deposited files, which is the direction that flatters the baselines rather than us;
+      (d) THE POSITIVE CONTROL SURVIVES DECISIVELY: NAIVE is flagged in all three of C2, C4 and C6 under all
+          three schedules, Wilson lower limits 0.8098 to 0.9996 against a nominal 0.00625. The apparatus is NOT
+          unvalidated and the ADAPTER results are NOT uninterpretable.
+    Ruling 56's blanket "every baseline number is provisional" is therefore REPLACED by the specific list in
+    experiments/live_ab_validation/LASTLOOK_CHECK.md section 4, and the protocol's exactness claim is withdrawn.
+60. PIN RULING 1: DO NOT RE-PIN #12's vocabulary_alignment HASH. Completing item 5 changed protocol_FINAL.md from
+    3c76e8eb... to b1ff97cc..., so #12's F18 now reports a stale pin and 3 tests fail. THAT FAILURE IS THE PIN
+    DOING ITS JOB AND MUST NOT BE PAPERED OVER. #12's grid has ALREADY RUN; it validated the #11 monitor as it
+    stood at commit 5776877, against #11's protocol as it stood at 3c76e8eb. Updating the pin now would assert
+    that the completed run covered a version of #11 that did not exist when it ran, which is false. The honest
+    record is: #12 v1 validated #11 at 5776877 / 3c76e8eb; #11 has since moved; a comparison against the
+    COMPLETED enclosure requires a re-pin, a re-snapshot of pinned/, and a RE-RUN, and that is #12 v2 under its
+    own section 14 version bump, not an edit. Until then the equality contract of revision 12 item 55 remains
+    unmeasured, and the 122,786 disagreements remain a contract mismatch between two declared policies.
+61. PIN RULING 2: APPLY ruling 43 at last. F15 has been failing on "13.0 REPORT.md is listed as not written but
+    exists" since the report was written, and it PRE-DATES the item 5 work. Ruling 43 already authorized it as a
+    status correction that changes no value; it was simply never applied. Apply it now with before/after text.
+62. TWO MISATTRIBUTIONS TO CORRECT, both mine to own.
+    (a) Task A reported that "another session is editing this same working tree concurrently" and listed
+        lab_data.py, tests_lab_design.py, src/wincs.py, src/test_wincs.py, vlastlook_check.py and
+        LASTLOOK_CHECK.md. Those are EXACTLY the files owned by my own Tasks B and C in the same workflow. There
+        is no other session. Parallel agents sharing one working tree observe each other and can misdiagnose it
+        as outside interference; reporting it rather than silently working around it was the right instinct and
+        the conclusion was simply wrong. The lesson is mine: give parallel agents the roster of what their
+        siblings own.
+    (b) The "#11 461 passing" baseline I gave the workflow did not reproduce, for the same reason: siblings were
+        adding tests while it ran. The honest figure is a moving target during a parallel workflow, and a
+        baseline count must be taken on a quiescent tree or not quoted at all.
+63. One unexplained flaky full-suite failure was reported at 474 tests and did not recur in six subsequent runs.
+    It overlapped a sibling's writes. It is recorded rather than omitted, and it is NOT closed.

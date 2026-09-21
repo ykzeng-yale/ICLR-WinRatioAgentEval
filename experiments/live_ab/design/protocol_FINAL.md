@@ -855,7 +855,8 @@ previous invocation (up to the remaining hard cap) and then ingests the unlogged
    ingested (after hidden-test verification), and each reveal **updates the existing enrollment-indexed record of pair
    `i`** and triggers an evaluation of the rule (8.3). Every ingested call line of a **pending** episode that raises
    that episode's certified elapsed time `ell` is also an evaluation trigger (8.3), because it can narrow the pair's
-   hierarchy enclosure through the cost certificate of 7.5 item 5;
+   hierarchy enclosure through either cost certificate of 7.5 item 5 (the forward one collapses it, the reverse one
+   removes the pending partner's win);
 5. pair `i+1` is pre-enrolled only after both episodes of pair `i` are revealed, the `/metrics` scrape of the pair
    boundary is logged or timed out (13.1), and the evaluation at the prefix containing pair `i` has been made.
 
@@ -1542,6 +1543,11 @@ enclosure `[lower_j, upper_j]` at every event; a resolved pair's enclosure is th
    certificate, which can bind while the partner is still pending). **No other collapse exists**, and in particular
    nothing collapses on a guess, a prediction or an imputed outcome. The guidance's own words - "collapse only with a
    valid final-score certificate" - cover both cases, and item 5 is the enumeration that produces the second one.
+   **Narrowing is not collapsing.** When the enumeration of item 5 leaves **two** feasible values - the reverse
+   certificate, which proves the pending partner can no longer win the cost tier - the enclosure moves one endpoint
+   and stays open, `collapsed` stays false, and no point value is claimed. The promise of this item is that the
+   enclosure is **the feasible set**, so a value that the state has already excluded must leave it whether or not
+   what remains is a point.
 2. **Success enclosure, the exact formula:**
    `[lower_s, upper_s] = [sA_low - sB_high, sA_high - sB_low]`,
    where A = candidate, B = incumbent; a revealed episode has `s_low = s_high = s`; an unresolved episode has
@@ -1565,18 +1571,55 @@ enclosure `[lower_j, upper_j]` at every event; a resolved pair's enclosure is th
    **refuses to start** (`preflight_refused(clock_equivalence)`) if they differ by more than
    `clock_equivalence_tolerance_ms = 1`.
 5. **Hierarchy enclosure by enumeration.** Let the revealed episode of the pair have arm `r`, `sgn = +1` if `r` is the
-   candidate and `-1` otherwise, success `s_r` and latency `L_r`; let the partner be pending with certified elapsed
-   `ell`. Write `tol = 0.05` (the frozen cost tolerance).
-   - **Neither revealed:** `[-1, 1]` for both scores.
-   - **`s_r = 0`:** the partner either succeeds (it wins at tier 0: `Z_i = -sgn`) or fails (joint failure: tie,
-     `Z_i = 0`). So `Z_i` lies in `{0, -sgn}` and the enclosure is `[-1, 0]` if `sgn = +1`, `[0, 1]` if `sgn = -1`.
-   - **`s_r = 1`:** if the partner fails, `Z_i = +sgn`. If the partner succeeds, its latency `x >= ell` and tier 1
-     decides iff `|x - L_r| > tol * max(x, L_r)`.
-     **Certificate:** if `(1 - tol) * ell > L_r + 1e-9` then, for every feasible `x >= ell > L_r`,
-     `x - L_r > tol * x = tol * max(x, L_r)`, so the revealed episode wins at tier 1 and `Z_i = +sgn` in **every**
-     feasible completion; the enclosure collapses to `[sgn, sgn]`. At `tol = 0.05` the certificate is
-     **`0.95 * ell > L_r + 1e-9`**. Otherwise the enclosure stays `[-1, 1]`.
-   - **Both revealed:** the point value from `compare`.
+   candidate and `-1` otherwise, success `s_r` and latency `L_r >= 0`; let the partner be pending with certified
+   elapsed `ell >= 0`. Write `tol = 0.05` (the frozen cost tolerance) and `eps = 1e-9` (the frozen certificate
+   margin). The enclosure is `[min F, max F]`, where `F` is the set of scores attainable over **every** completion of
+   the pending episode: its success `s_p` over `{0, 1}` and, when `s_p = 1`, its final cost `x` over `[ell, inf)`.
+   **The one fact a pending state supplies is item 4's - a certified elapsed cost can only grow, so `x >= ell` and
+   nothing narrower is known.** Everything below is derived from that and from the frozen hierarchy of 6.2 (tier 0
+   success, then tier 1 cost; tier 1 eligible **only on joint success**; a tier decides iff
+   `|a - b| > tol * max(|a|, |b|)` **strictly**, so exact threshold equality is a tie; joint failure is a tie).
+
+   **The two tier-1 thresholds, derived once.** With both episodes successful and the partner finishing at `x >= 0`,
+   costs being nonnegative so that `max(|x|, |L_r|) = max(x, L_r)`:
+   - the **revealed** episode wins tier 1 iff `x - L_r > tol * max(x, L_r)`, which is exactly **`x > L_r / (1 - tol)`**;
+   - the **pending** partner wins tier 1 iff `L_r - x > tol * max(x, L_r)`, which is exactly **`x < (1 - tol) * L_r`**;
+   - between them, `(1 - tol) * L_r <= x <= L_r / (1 - tol)`, tier 1 ties and so does the pair.
+
+   **The closed enumeration.** Exactly one row applies to any state, and the rows are tested in this order.
+
+   | state | what the completions give | `F` | enclosure |
+   |---|---|---|---|
+   | **neither revealed** | either episode may still fail, and on joint success every cost ordering is still attainable | `{-1, 0, +1}` | `[-1, 1]` |
+   | **`s_r = 0`**, any `ell` | partner succeeds -> it wins tier 0; partner fails -> joint failure, a tie. Tier 1 is not eligible in any completion, so `ell` cannot narrow this and is not consulted | `{0, -sgn}` | `[-1, 0]` if `sgn = +1`, `[0, 1]` if `sgn = -1` |
+   | **`s_r = 1`, FORWARD certificate**: `(1 - tol) * ell > L_r + eps` | partner fails -> `+sgn` at tier 0; partner succeeds -> every feasible `x >= ell` exceeds `L_r / (1 - tol)`, so the revealed episode wins tier 1 -> `+sgn` again | `{+sgn}` | `[sgn, sgn]` - **collapse** |
+   | **`s_r = 1`, REVERSE certificate**: not the above, and `ell > (1 - tol) * L_r + eps` | a partner win would need `x < (1 - tol) * L_r <= ell <= x`, which is impossible: **the partner's win is infeasible and that value leaves the enclosure.** A tie and a revealed win both remain | `{0, +sgn}` | `[0, 1]` if `sgn = +1`, `[-1, 0]` if `sgn = -1` - a **narrowing**, not a collapse |
+   | **`s_r = 1`, neither certificate**: `ell <= (1 - tol) * L_r + eps` | `x = ell` itself is a partner win; the tie window `[(1 - tol) * L_r, L_r / (1 - tol)]` is still reachable; a large `x`, or the partner failing, is a revealed win | `{-1, 0, +1}` | `[-1, 1]` |
+   | **both revealed** | one completion | the point value from `compare` | `[z, z]` |
+
+   At `tol = 0.05` the forward certificate is **`0.95 * ell > L_r + 1e-9`** (the constant 14.3 names) and the reverse
+   certificate is **`ell > 0.95 * L_r + 1e-9`**.
+
+   **Why `[min F, max F]` is the feasible set and not a relaxation of it.** Every `F` above is a **contiguous run** of
+   `{-1, 0, +1}`, so the interval contains no value that is not itself feasible. The one non-contiguous set
+   `{-sgn, +sgn}` cannot arise: a tie is infeasible only when `ell > L_r / (1 - tol)`, which is the forward
+   certificate, and that already excludes the partner's win.
+
+   **The margin `eps`, stated because it is the one place the rule is deliberately loose.** Both certificates are
+   one-sided and each demands its exclusion with a further `1e-9`, so a rounding error below that margin can never
+   forge an exclusion; each is also written multiplied out (`(1 - tol) * ell > L_r`, not `ell - L_r > tol * ell`),
+   which is the same inequality in exact arithmetic but not the same rounding. Within a band of about `eps` around
+   either threshold the enclosure therefore keeps **one value it could have excluded**. That is conservative in the
+   only direction that matters - it never excludes a feasible score - and it is the residual difference recorded in
+   the root's CPU statistics review section 1 (the `ell = 200/19` state). `tests_lab_stats.py` asserts **equality**
+   with the brute-force feasible set at every grid state outside those bands, and asserts containment, with counts,
+   at the boundary states inside them.
+
+   **The two invariants this enumeration must satisfy, and does.** As `ell` rises the state can only move *neither ->
+   reverse -> forward*, whose enclosures are nested (`[-1, 1] ⊇ [0, 1] ⊇ [1, 1]` for `sgn = +1`), so **an enclosure
+   never widens**; and every row's `F` is by construction the set of attainable completions, so **the ultimately
+   revealed score lies inside every earlier enclosure**. Both are asserted by exhaustive enumeration over a dense
+   grid of states and completions, not only by example.
 6. **Containment audit.** The verifier checks, for every pair and **every recorded evaluation**, that the ultimately
    revealed score lies inside the enclosure recorded at that evaluation, and that no enclosure ever widened between
    consecutive evaluations. **A violation is a proven defect of decision-defining code** (the enclosure kernel is in
@@ -1587,6 +1630,74 @@ enclosure `[lower_j, upper_j]` at every event; a resolved pair's enclosure is th
 7. **`compare` is never fed a partial outcome.** It requires complete finite outcomes (`src/winstats.py:34`); pending
    success and pending resources are **never imputed**. Enclosures are computed by the enumeration above, not by
    calling `compare` on a guess.
+
+### 7.5a Record: item 5 was COMPLETED, not changed (2026-09-20)
+
+**What this is.** `COORDINATOR_DECISIONS.md` revision 12 ruling 54, which supersedes revision 10's framing. Item 5 as
+written was **incomplete relative to item 1 of the same section**: item 1 promises that an unresolved score is
+"narrowed **only by enumerating feasible completions**", and a two-case rule ending "Otherwise the enclosure stays
+`[-1, 1]`" is not an enumeration. The protocol contradicted itself and item 1 is the promise. **The code conformed to
+its own declared rule and was not defective**; the defect was in the specification. Nothing here changes a scientific
+rule: the hierarchy, the eligibility rule, the tie rule, `tol = 0.05`, the `0.95` certificate constant and the `1e-9`
+margin are all exactly as they were, and 14.3 is untouched.
+
+**The missing case, named.** Item 5 carried a certificate for the **revealed** episode winning tier 1 and **none for
+the pending partner being unable to win it**. Worked reproducer (revision 12 item 53c): revealed incumbent, success 1,
+cost `10.0`; pending candidate with certified elapsed `9.6`; `tol = 0.05`. The forward certificate
+`0.95 * 9.6 = 9.120 > 10.0` is **false**, so the superseded text prescribed `[-1, 1]` and the code emitted `[-1, 1]`.
+But a candidate win needs a **final** cost below `10.0 * (1 - 0.05) = 9.50`, and `9.60` is **already spent and cannot
+be un-spent** (item 4), so a candidate win is infeasible and the tight enclosure is `[-1, 0]`.
+
+**BEFORE** (the superseded third bullet of item 5, verbatim):
+
+> - **`s_r = 1`:** if the partner fails, `Z_i = +sgn`. If the partner succeeds, its latency `x >= ell` and tier 1
+>   decides iff `|x - L_r| > tol * max(x, L_r)`.
+>   **Certificate:** if `(1 - tol) * ell > L_r + 1e-9` then, for every feasible `x >= ell > L_r`,
+>   `x - L_r > tol * x = tol * max(x, L_r)`, so the revealed episode wins at tier 1 and `Z_i = +sgn` in **every**
+>   feasible completion; the enclosure collapses to `[sgn, sgn]`. At `tol = 0.05` the certificate is
+>   **`0.95 * ell > L_r + 1e-9`**. Otherwise the enclosure stays `[-1, 1]`.
+
+**AFTER**: the `s_r = 1` state is split into the three exhaustive rows of the table above - forward certificate
+(`F = {+sgn}`), **reverse certificate `ell > (1 - tol) * L_r + eps`** (`F = {0, +sgn}`), and neither
+(`F = {-1, 0, +1}`) - together with the derivation of the two tier-1 thresholds, the contiguity argument that makes
+`[min F, max F]` the feasible set itself, and the statement of the `eps` conservatism. The `s_r = 0` and
+"neither revealed" rows are unchanged in content; they now carry the reason `ell` cannot narrow them.
+
+**Direction, so that nothing is claimed that was not measured.** This is a **power** improvement, not a validity fix.
+The #12 comparison measured the old rule to be **wider in 151,032 of 151,032 disagreeing per-pair rows and never
+narrower** (revision 10 item 39), so no enclosure the old rule produced was wrong and no result it produced would
+have been invalid.
+
+**How outcome-free it is, stated exactly.** No trial episode has ever run, nothing is frozen, and there is no live
+data whose analysis this could move: 14.3 binds from the freeze and this completion precedes it. That is the sense in
+which it is outcome-free, and it is the only sense claimed. It is **not** globally outcome-free prespecification, and
+the root's CPU grid review says so in terms this record adopts rather than softens
+(`reviews/cpu_grid_scientific_delivery_review.md` section 1): the incompleteness was surfaced **by the v1 CPU grid
+comparison**, so completing item 5 is **post-v1-CPU-result development and a pre-live amendment**. The v1 CPU results
+computed under the superseded live policy are preserved and stay labelled as what they are; the same review makes
+**detailed enclosure-boundary validation a prerequisite**, which is what the exhaustive-enumeration and boundary
+tests above are for. No alpha, margin, horizon, threshold or seed changes, and none is needed.
+
+**What was verified, and how.** (i) The case analysis was re-derived and checked in **exact rational arithmetic**,
+independent of floating point and of the implementation: 16,000 states, 0 mismatches between the closed form and the
+feasible set swept over rational completions. (ii) `tests_lab_stats.py` asserts **equality** with the brute-force
+feasible set over a 1,140-state grid (1,120 exact; the 20 remaining are the `eps` band, asserted conservative with
+counts), plus the two invariants over 21,784 completion chains, plus bitwise agreement between `lab_enclosure` and the
+independently written `lab_reference_rule` on the whole grid. (iii) On that same grid the completed rule is **strictly
+narrower than the superseded one at 220 of 1,140 states and wider at none** - a property of the grid, which is a test
+construction and not a sample of the trial.
+
+**Consequences elsewhere.** The `#12` validation contract that demanded exact numerical agreement between an adapter
+built from the guidance formula and an adapter built from the superseded item 5 was comparing **two different declared
+policies**; until this completion its disagreements were a contract mismatch and not findings (revision 12 item 55).
+After it the two policies coincide and the equality contract becomes meaningful. Agreement would then mean the two
+implementations agree - **not** that the rule is correct (revision 10 item 42). Two documents still state the
+superseded two-case form and are **not** in this change's ownership: `design/ARCHITECTURE_FINAL.md:798-799` (and its
+superseded twin `design/ARCHITECTURE.md:712-713`), whose `hierarchy_enclosure` docstring mirror ends "otherwise: every
+outcome in `{-1, 0, +1}` stays feasible"; and `config.json`'s descriptive `enclosure.cost_certificate` string, which
+names only the forward certificate. Neither is executed - ARCHITECTURE_FINAL is subordinate to this protocol (its §0)
+and the config string is documentation, not the rule - but both should be brought into line by their owners. The
+config edit also changes `rule_block_sha256`, so it needs the coordinator's sign-off rather than a silent fix.
 
 ---
 
@@ -1632,9 +1743,10 @@ the current full enrolled prefix; no substitution of the number of completed pai
      different orders about the re-enrolled pair;
   2. every **`episode_revealed`** of a pair of the randomized phase;
   3. every ingested **`llm_request`, `llm_response` or `llm_error`** that **raises the certified elapsed `ell`** of a
-     still-pending episode of an enrolled pair - because that is exactly when the cost certificate of 7.5 item 5 can
-     bind and collapse the pair's hierarchy enclosure mid-pair. This trigger is the reason the enclosure machinery
-     exists; without it every decision would be taken on a completed prefix and the enclosures would be dead weight.
+     still-pending episode of an enrolled pair - because that is exactly when a cost certificate of 7.5 item 5 can
+     bind and narrow the pair's hierarchy enclosure mid-pair (the forward one collapsing it to a point, the reverse
+     one removing the pending partner's win). This trigger is the reason the enclosure machinery exists; without it
+     every decision would be taken on a completed prefix and the enclosures would be dead weight.
   4. every **resume**, once, at the last fully enrolled prefix before any new enrollment (14.5 item 4);
   5. every **drain reveal** after a decision (9.1 item 4) updates the enclosure and is recorded as a `monitor_update`
      with `trigger = 'drain'`, but **no decision is evaluated at it**: the decision prefix is closed at the crossing.
@@ -3111,7 +3223,13 @@ caught by the replay as `LIVE_DECISION_INVALID`; **the evaluation-trigger set of
 raises `ell` each produce exactly one `monitor_update`); and **a certificate that binds at an `llm_response` produces
 a look and can decide**, with the partner episode still pending.
 
-*Enclosures:* the 0.95 certificate at `tol = 0.05`, including the boundary case; the success formula in all four
+*Enclosures:* **both** 0.95 certificates at `tol = 0.05` - forward (`0.95 * ell > L_r + 1e-9`, collapse) and reverse
+(`ell > 0.95 * L_r + 1e-9`, the pending partner's win removed) - including the boundary cases; **the enumeration of
+7.5 item 5 proved by EXHAUSTIVE ENUMERATION against the brute-force feasible set**, swept over both orientations, both
+revealed successes, a dense grid of `(L_r, ell)` and, for each state, the pending episode's success in `{0, 1}` and its
+final cost from `ell` upward, asserting **equality** and not merely containment, plus the two invariants (an enclosure
+never widens, and the ultimately revealed score lies inside every earlier enclosure) and bitwise agreement of
+`lab_enclosure` with the independently written `lab_reference_rule` over the same grid; the success formula in all four
 resolution states; "absence of failure is not success" (a trace with all calls returned and self-tests passed still has
 `s_low = 0`); terminal failures; `compare` is never called with a partial outcome.
 
