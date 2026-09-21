@@ -839,6 +839,26 @@ supports → recorded as sampled CPU with **serving/accelerator activity unknown
 corrected: protocol 5.7.2 fails on **presence** of foreign consumers, not on load, so **no quiet sample
 can ever clear it**.
 
+**Preparation manifest — 12 of 26 components** (`results/live_ab/PREPARATION_MANIFEST_20260921_1855.json`,
+`results/live_ab/FREEZE_STATUS_20260921_1856.json`; branch head `29cae7d`). `environment_lock_sha256`,
+`hardware_allowlist` and `sandbox_profile_sha256` resolved from real facts: CPython 3.12.13, **83
+distributions**, numpy **2.4.1**, **Apple M5**, 10 cores, arm64-darwin, Seatbelt. Profile **hash published,
+text withheld** (it embeds absolute local paths). Serving intent recorded offline for this study's own
+8091/8092; DTR's 8191/8193 recorded as **foreign contention**, not a dependency.
+
+**Two further defects, both mine:**
+- **D8** — `HARNESS_FILES` is a **glob** over `experiments/live_ab/*.py`, so the `freeze_status.py`
+  reporting tool I added last cycle was **inside the set the freeze pins** (26 → 27). Every improvement to
+  it would have moved a freeze pin; after a deposit it would have broken preflight. Moved to
+  `experiments/live_ab_tools/`; set is 26 again. Caught before any bundle existed.
+- **D9** — my first environment lock **hashed zero packages and reported success**: `pip` isn't installed
+  in this venv, so `pip freeze` emitted an error string and I hashed that. Rebuilt from
+  `importlib.metadata` with an **explicit refusal below ten distributions**. Fourth instance this session
+  of a check that passed while proving nothing — the refusal exists because noticing is not a control.
+
+`containment_probe_sha256` left as a **gap on purpose**: no probe implementation exists, and writing one
+would add a `.py` to the globbed harness set — which is exactly how D8 happened.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
