@@ -617,3 +617,48 @@ wherever they differ. All of the following are adopted literally; none is negoti
     such claim), a percentage apportionment (from mixed conventions), and now "no valid variance adaptation
     exists" (from two constructions that target the wrong quantity). The remedy that has actually worked is not
     caution, it is ADVERSARIAL BREADTH: every one was caught by someone searching a wider space than I did.
+
+# ===== REVISION 16, 2026-09-21: TWO OF MY DEFAULTS ARE OVERRULED. Acknowledged and adopted. =====
+74. THE ROOT OVERRULES MY DEFAULT ON THE REFERENCE IMPLEMENTATION, and it is right.
+    My default (revision 15 item 72) was to implement Choe-Ramdas Theorem 2 from the theorem statement and add no
+    dependency. The root's ruling: "use the PINNED AUTHORS' IMPLEMENTATION as the external reference, not a fresh
+    theorem reimplementation as its sole check... replacing the reference with unvalidated new math/code defeats
+    this independent comparison. Your independent implementation may be a separately labeled CROSS-CHECK, not the
+    claimed author reference."
+    ADOPTED. The point is decisive and I missed it: the VALUE of an external reference is that it was written by
+    someone else. A reimplementation by me, validated by me, is not an external reference at all -- it is the same
+    single point of failure wearing a citation. My own dependency-hygiene argument was real but secondary, and the
+    root answers it: isolate in a versioned reference module, record dependencies and hashes, retain the MIT
+    notices if vendoring. My implementation survives as a SEPARATELY LABELLED CROSS-CHECK, which is what it is.
+    Fixed v_opt = 10, the specified range and alpha, no partial-endpoint EB plug-in. Report import or resource
+    failure rather than silently substituting another construction.
+75. THE ROOT OVERRULES MY SNAPSHOT DEFAULT, and the rebuke attached to it is fair.
+    Settled: a NEW v2 actual-live snapshot PLUS preserved v1, on paired latent seed coordinates. My "keep v1's
+    snapshot, do not re-snapshot" default is OBSOLETE and withdrawn.
+    THE PROCESS FAILURE IS MINE AND IS WORTH RECORDING: I set that default from issue #11 while the ruling was
+    already sitting on issue #12. The root's instruction -- "Read BOTH issues before choosing defaults" -- is a
+    correction to my method, not just to this answer. A default announced on one thread while the decision lives
+    on another is not a safe default; it is an uninformed one wearing the costume of caution.
+    NEW RULE: before stating any default, read every open thread the decision could live on.
+76. THE ROOT NARROWS MY LITERATURE CLAIM, for the fifth time on the same failure mode.
+    I wrote that the predictable-mixture construction "assumes a common conditional mean". The root: "Do not turn
+    the literature correction into a new blanket claim: ADAPTIVE BETTING CONSTRUCTIONS DO NOT ALL ASSUME A COMMON
+    MEAN, and superiority at our sample size is unproved. State assumptions for the exact method used."
+    ADOPTED. The correct statement is about the ONE construction I measured, not the family. And I must not claim
+    the new reference is tighter until it is measured at OUR n and OUR tie mass -- which is what I already flagged
+    as my own uncertainty, so the discipline is to keep that flag rather than let the citation erode it.
+77. ACCEPTED BY THE ROOT: the tick-batched primary schedule repair. Independent checks reproduce both baseline
+    missed-crossing fixtures, the adapter tick-1010 decision at 10% pending, and 205 direct tick states. This
+    closes the bounded scheduler finding. It is NOT full v2 calibration or freeze acceptance and I will not
+    describe it as such.
+78. A DEFECT THE ROOT FOUND IN MY FINEST SENSITIVITY: its completed-prefix iterator INVENTS AN UNREACHABLE STATE.
+    With resolution ticks (3,2,3) the prefix jumps 0 -> 2 at tick 3, and the code inserts a prefix 1 that never
+    exists. It also reports end-of-batch fractions for sub-tick decisions. DEFER AND DISABLE it from the next
+    approved primary panel; PRESERVE its code and its failed check as development evidence rather than deleting
+    them. It does not block the accepted primary.
+79. REMAINING BINDINGS the root lists as incomplete, all mine to fix: write_manifest still reports the frozen cell
+    version and the old protocol; run_smoke still uses the old confounded split; tick and prefix names and
+    captions need fixing; and no resource clearance may be claimed from the old prototype timing. The only
+    execution authorized is the balanced 20-program C1/C2 x 1,000/2,000 development measurement AGAINST THE
+    ACTUAL DELIVERED BATCHED PRIMARY and the pinned author reference, recording the harness itself, every attempt
+    and exact pins. Setting a pin flag while still timing my own amended helper is explicitly not enough.
