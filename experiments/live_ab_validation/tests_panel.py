@@ -837,18 +837,53 @@ class TestCompleteConformanceGate(unittest.TestCase):
             self.assertTrue(set(int(x) for x in np.unique(d.d)) <= delays)
             self.assertTrue(bool(np.all((d.f >= 0) & (d.f <= d.d))))
 
-    def test_the_preflight_path_records_the_complete_gate(self):
+    def test_the_diagnostic_is_NOT_called_from_the_runtime_path(self):
+        """Root removed the unconditional call; the smoke test stays."""
         tmp = Path(tempfile.mkdtemp(prefix="pfgate_"))
         try:
             cfg = vpanel.PanelConfig(cells=("C1",), n_max=300, programs=1,
                                      mode=vpanel.MODE_FIXTURE,
                                      verification_mode=vpanel.VERIFY_PREFLIGHT)
             r = vpanel.run_panel(cfg, tmp / "run")
-            g = r["guard"]["preflight_verification"]["complete_conformance_gate"]
-            self.assertGreater(g["pair_states_compared"], 30000)
-            self.assertIn("resolved", g["branches_covered"])
+            pf = r["guard"]["preflight_verification"]
+            self.assertNotIn("complete_conformance_gate", pf)
+            self.assertGreater(pf["one_draw_smoke_pair_states"], 0)
+            self.assertIn("STANDALONE OPTIONAL", pf["conformance_diagnostic"])
         finally:
             shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_vpanel_source_contains_no_live_call_to_the_diagnostic(self):
+        """Read off the source, not asserted in prose."""
+        src = (HERE / "vpanel.py").read_text()
+        for line in src.splitlines():
+            stripped = line.strip()
+            if stripped.startswith("#") or '"' in stripped:
+                continue
+            self.assertNotIn("vconformance.", stripped)
+            self.assertNotIn("import vconformance", stripped)
+
+    def test_the_receipt_pins_the_checker_itself(self):
+        """A checker that does not pin itself cannot say the CHECK is unchanged."""
+        r = self.vc.run()
+        self.assertIn("vconformance.py", r["source_fingerprint"])
+        self.assertEqual(r["checker_version"], self.vc.CHECKER_VERSION)
+
+    def test_the_receipt_states_the_narrowed_claim_and_its_limits(self):
+        r = self.vc.run()
+        self.assertIn("representative per-pair states", r["claim"])
+        self.assertIn("relies on the reviewed branch structure", r["claim"])
+        for absent in ("universally complete conformance", "aggregation",
+                       "empirical calibration"):
+            self.assertIn(absent, r["not_claimed"])
+        self.assertTrue(r["runtime_use"].startswith("NONE"))
+
+    def test_the_coverage_argument_names_the_branch_restriction(self):
+        """My claim omitted f and d; vgen.BREAKPOINTS_PER_PAIR = 5, not 2."""
+        arg = self.vc.run()["vpolicy_agreement"]["coverage_argument"]
+        self.assertIn("PARTIAL-OBSERVATION BRANCH", arg)
+        self.assertIn("first-reveal boundary f", arg)
+        self.assertIn("resolution boundary d", arg)
+        self.assertEqual(vgen.BREAKPOINTS_PER_PAIR, 5)
 
 
 class TestT1Launcher(unittest.TestCase):

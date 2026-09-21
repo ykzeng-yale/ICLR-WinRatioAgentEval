@@ -1,14 +1,28 @@
 {
-  "elapsed_seconds": 0.8565500006079674,
+  "checker_version": "vconformance-2",
+  "claim": "Threshold tables and representative per-pair states agree on the checked finite design; extension across ages relies on the reviewed branch structure of the pinned implementation.",
+  "elapsed_seconds": 0.8383167078718543,
   "gates": "nothing scientific; computes no effect and authorizes nothing",
-  "purpose": "pinned preflight gate: COMPLETE operational-policy conformance, independent of which coordinates any draw happens to contain",
+  "not_claimed": [
+    "universally complete conformance",
+    "a new theoretical result",
+    "aggregation",
+    "the event schedule",
+    "the full generation-to-state mapping",
+    "stopping inference",
+    "empirical calibration",
+    "absence of untested transitions after future code changes"
+  ],
+  "purpose": "STANDALONE OPTIONAL DIAGNOSTIC. Not a runtime gate and not called by run_panel.",
+  "runtime_use": "NONE. run_panel does not call this module; it retains the original one-draw smoke test. assert_pinned_receipt_matches() is available for a caller that wants to reuse a stored receipt, and is NOT currently consumed by any runtime path.",
   "schema": "live_ab_validation_v2.conformance.1",
   "source_fingerprint": {
     "vband.py": "55a9894ff5694099c05cedbdf695ecdad3ac4bd5025328cd445e0b1d3df8cd9c",
+    "vconformance.py": "fc8b6494bcff5e95f3e5ae330066713bfb8b8cd163c42eb7db0f12c5d23944d2",
     "vgen.py": "08d1a8146023e348817a5cb02d04b9e209540456e2481889b98b8f31a5686987",
     "vpolicy.py": "210956feb1c5831c09c82ef09a70fb0728e2b86c8bf6119cdc5ad03146eb962c"
   },
-  "supersedes": "the one-draw preflight as the COVERAGE argument. The one-draw live check is retained as a smoke test, not as the coverage claim.",
+  "supersedes": "NOTHING. The previously accepted preflight-only workload and its one-draw smoke test stand unchanged.",
   "threshold_tables": {
     "claim": "the operational threshold tables equal the first age at which each certificate fires, at every reachable (combo, delay)",
     "combo_delay_pairs_checked": 1857,
@@ -22,7 +36,8 @@
       "partial"
     ],
     "claim": "vgen's vectorised operational rule equals vpolicy's everywhere",
-    "coverage_argument": "the enclosure is piecewise constant in age with breakpoints only at the two certificate thresholds, so boundary+interior per piece covers every reachable age",
-    "pair_states_compared": 36734
+    "coverage_argument": "WITHIN THE PARTIAL-OBSERVATION BRANCH (age in [f, d), positive delay), elapsed cost is monotone in age and each strict certificate predicate switches at most once, giving a three-piece partition. The FULL pair process additionally has the first-reveal boundary f and the resolution boundary d (vgen.BREAKPOINTS_PER_PAIR = 5), which are checked here as separate cases, not covered by that argument.",
+    "pair_states_compared": 36734,
+    "representative_not_exhaustive": "resolved and unrevealed cases use selected delays/ages; the partial branch uses f=0 representatives"
   }
 }

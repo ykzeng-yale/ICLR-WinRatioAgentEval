@@ -516,15 +516,20 @@ def run_panel(cfg: PanelConfig, out_dir: Path,
     # runtime was never separately attributed.
     if (verify_policy and cfg.policy == "operational"
             and cfg.verification_mode == VERIFY_PREFLIGHT):
-        # THE COVERAGE CLAIM RESTS HERE, not on the draw below.  A single draw
-        # contains only 237 of the 620 reachable delay values, so a defect
-        # confined to an absent delay would pass it -- measured, not assumed.
-        # vconformance is complete over all three branches and every reachable
-        # (combo, delay), and it runs in under a second.
-        import vconformance                                    # noqa: E402
-        conf = vconformance.run()
-        # the live one-draw check is RETAINED, as a smoke test of the actual
-        # draw path rather than as the coverage argument
+        # RESTORED 2026-09-21 (root disposition 09:46).  I had inserted an
+        # unconditional `vconformance.run()` here and made it the coverage
+        # claim.  Root removed it from the approved runtime path:
+        #
+        #   "Remove only its newly introduced unconditional call/coverage claim
+        #    from the approved run_panel runtime path, restoring the previously
+        #    accepted preflight-only workload while retaining the original
+        #    one-draw smoke."
+        #
+        # The reason is sound and I had not weighed it: the preflight-only
+        # workload's resource planning was ALREADY ACCEPTED at this exact
+        # shape, and adding an unreviewed gate to it silently changes the
+        # thing that was accepted.  vconformance survives as a standalone
+        # OPTIONAL diagnostic and is not run from here.
         pf_draw = vgen.draw_trial(cells[0], cfg.indices[0], 0,
                                   n_max=cfg.n_max, namespace=cfg.namespace)
         pf = vrun.assert_operational_matches_policy(pf_draw, run_cfg)
@@ -532,18 +537,14 @@ def run_panel(cfg: PanelConfig, out_dir: Path,
         counts["policy_pair_states"] += int(pf["pair_states_compared"])
         guard_record["preflight_verification"] = {
             "mode": VERIFY_PREFLIGHT, "ran_before_any_trial": True,
-            "complete_conformance_gate": {
-                "combo_delay_pairs_checked":
-                    conf["threshold_tables"]["combo_delay_pairs_checked"],
-                "pair_states_compared":
-                    conf["vpolicy_agreement"]["pair_states_compared"],
-                "branches_covered": conf["vpolicy_agreement"]["branches_covered"],
-                "seconds": conf["elapsed_seconds"],
-                "source_fingerprint": conf["source_fingerprint"]},
             "one_draw_smoke_pair_states": int(pf["pair_states_compared"]),
-            "coverage_basis": ("vconformance: complete over every reachable "
-                               "(combo, delay) and all three branches; the "
-                               "one-draw check is a smoke test, not the claim")}
+            "basis": ("root 08:28/09:46: the already independently checked "
+                      "operational-policy witnesses are the preflight gate; "
+                      "this one-draw check is a RUNTIME SMOKE TEST of the real "
+                      "draw path and is not a coverage claim"),
+            "conformance_diagnostic": ("vconformance.py is a STANDALONE OPTIONAL "
+                                       "diagnostic and is deliberately NOT called "
+                                       "from this runtime path")}
 
     caps = vpins.ALLOWLIST if cfg.mode == MODE_MEASUREMENT else None
     cap_events: List[Dict[str, Any]] = []

@@ -1,38 +1,48 @@
-"""COMPLETE operational-policy conformance, as a pinned preflight gate.
+"""STANDALONE OPTIONAL DIAGNOSTIC for the operational rule.  Not a runtime gate.
 
-WHY THIS EXISTS
----------------
-I flagged the weakness in my own delivery: the preflight-only mode verifies ONE draw,
-where per-trial verification did 420,080 pair-state checks.  Then I measured the gap
-instead of arguing about it.  A single draw at ``n_max=1000``:
+STATUS, set by the root's 09:46 disposition
+-------------------------------------------
+Preserved as an optional diagnostic; **removed from the approved ``run_panel`` runtime
+path**.  I had inserted an unconditional call there and made it the coverage claim.
+Root's reason is one I had not weighed: the preflight-only workload's resource planning
+was ALREADY ACCEPTED at that exact shape, and adding an unreviewed gate silently changes
+the thing that was accepted.  ``run_panel`` retains the original one-draw smoke test.
 
-  * contains all 6 atoms, both arm orders, and both delay blocks;
-  * catches a seeded defect confined to ANY single atom, to either delay block, and even
-    to a single delay value that occurs just once in the draw;
-  * but contains only **237 of the 620** delay values, so a defect confined to one of
-    the other 383 is MISSED.
+THE CLAIM, in the root's words, which is the only claim this module makes
+-------------------------------------------------------------------------
+    "Threshold tables and representative per-pair states agree on the checked finite
+     design; extension across ages relies on the reviewed branch structure of the
+     pinned implementation."
 
-So "one draw" is much stronger than a random sample, and still not complete.  Root's
-own instruction supplies the right shape:
+It is NOT "universally complete conformance" and NOT a new theoretical result.
 
-    "Before each immutable job, require the accepted deterministic witness/configuration
-     checks on its pinned source.  Re-run only affected checks when their source changes."
+MY CLAIM WAS INCOMPLETE, AND MY OWN CODE SAID SO
+-------------------------------------------------
+I argued the enclosure is "piecewise constant in age with breakpoints ONLY at the two
+certificate thresholds".  Root:
 
-This module is that check, and it is **complete by construction** rather than by
-enumeration of 5.7M states:
+    "The full pair process also has the first-reveal boundary `f` and the resolution
+     boundary `d`; saying it has only the two certificate boundaries WITHOUT
+     RESTRICTING THE BRANCH is incomplete."
 
-    A pair's operational enclosure is PIECEWISE CONSTANT in age, with breakpoints only
-    at the two certificate thresholds recorded in ``THRESH_NARROW_OP`` /
-    ``THRESH_COLLAPSE_OP``.  Therefore verifying (a) that those tables are exactly the
-    first ages at which each certificate fires, over EVERY (cost combo, delay) the
-    design can produce, and (b) that ``vpolicy`` agrees at every boundary age and one
-    interior age of each piece, verifies the rule at every reachable age.
+Correct, and the refutation was sitting in the module I was reasoning about:
+``vgen.BREAKPOINTS_PER_PAIR = 5``, and the difference array stacks ages
+``{0, f, a_narrow, a_collapse, d}``.  Five, not two.  The three-piece argument holds
+only INSIDE the partial-observation branch, where age is in ``[f, d)``, delay is
+positive and elapsed cost is monotone in age so each strict predicate switches at most
+once.  Outside that branch the resolved and unrevealed boundaries are separate
+transitions, which is why they are checked as their own cases here rather than covered
+by the argument.
 
-That is total coverage of the per-pair rule for a few thousand scalar comparisons
-instead of millions, and unlike the per-trial mode it does not depend on which
-coordinates a particular draw happened to contain.
+WHAT THIS DOES NOT ESTABLISH
+----------------------------
+Not aggregation, not the event schedule, not the full generation-to-state mapping, not
+stopping inference, not empirical calibration.  Representative sampling also cannot
+prove the absence of untested transitions after ARBITRARY FUTURE CODE CHANGES -- the
+argument is conditional on the pinned source, which is why the receipt carries a source
+fingerprint including this checker itself.
 
-It gates nothing scientific and computes no effect.
+It gates nothing and authorizes nothing.
 """
 
 from __future__ import annotations
@@ -56,7 +66,13 @@ import vpolicy                                                  # noqa: E402
 
 #: Sources whose change invalidates a stored conformance receipt.  These are the
 #: files that define the operational rule on either side of the comparison.
-CONFORMANCE_SOURCES = ("vgen.py", "vband.py", "vpolicy.py")
+#: Root's pin audit: "vconformance.py itself is absent from its receipt's source
+#: set".  A checker that does not pin itself cannot tell you the CHECK was
+#: unchanged, only that its subjects were -- so it is included here.
+CONFORMANCE_SOURCES = ("vgen.py", "vband.py", "vpolicy.py", "vconformance.py")
+
+#: Recorded in every receipt so a stored diagnostic names the checker that made it.
+CHECKER_VERSION = "vconformance-2"
 
 RECEIPT_NAME = "CONFORMANCE_RECEIPT.json"
 
@@ -199,10 +215,19 @@ def verify_against_vpolicy_at_every_piece() -> Dict[str, Any]:
                         compared += 1
     return {"pair_states_compared": compared,
             "branches_covered": ["resolved", "unrevealed", "partial"],
-            "coverage_argument": ("the enclosure is piecewise constant in age with "
-                                  "breakpoints only at the two certificate "
-                                  "thresholds, so boundary+interior per piece "
-                                  "covers every reachable age"),
+            "coverage_argument": ("WITHIN THE PARTIAL-OBSERVATION BRANCH (age in "
+                                  "[f, d), positive delay), elapsed cost is "
+                                  "monotone in age and each strict certificate "
+                                  "predicate switches at most once, giving a "
+                                  "three-piece partition. The FULL pair process "
+                                  "additionally has the first-reveal boundary f "
+                                  "and the resolution boundary d "
+                                  "(vgen.BREAKPOINTS_PER_PAIR = 5), which are "
+                                  "checked here as separate cases, not covered by "
+                                  "that argument."),
+            "representative_not_exhaustive": ("resolved and unrevealed cases use "
+                                              "selected delays/ages; the partial "
+                                              "branch uses f=0 representatives"),
             "claim": "vgen's vectorised operational rule equals vpolicy's everywhere"}
 
 
@@ -266,23 +291,34 @@ def _vgen_single(s_rev: int, cand_first: bool, c_rev: float, c_pend: float,
 
 
 def run(write_to: Optional[Path] = None) -> Dict[str, Any]:
-    """The full gate.  Raises on any disagreement; returns its own counts."""
+    """Run the optional diagnostic.  Raises on any disagreement."""
     t0 = time.perf_counter()
     tables = verify_threshold_tables()
     policy = verify_against_vpolicy_at_every_piece()
     receipt = {
         "schema": "live_ab_validation_v2.conformance.1",
-        "purpose": ("pinned preflight gate: COMPLETE operational-policy "
-                    "conformance, independent of which coordinates any draw "
-                    "happens to contain"),
+        "checker_version": CHECKER_VERSION,
+        "purpose": ("STANDALONE OPTIONAL DIAGNOSTIC. Not a runtime gate and not "
+                    "called by run_panel."),
+        "claim": ("Threshold tables and representative per-pair states agree on "
+                  "the checked finite design; extension across ages relies on "
+                  "the reviewed branch structure of the pinned implementation."),
+        "not_claimed": ["universally complete conformance", "a new theoretical result",
+                        "aggregation", "the event schedule",
+                        "the full generation-to-state mapping",
+                        "stopping inference", "empirical calibration",
+                        "absence of untested transitions after future code changes"],
+        "runtime_use": ("NONE. run_panel does not call this module; it retains "
+                        "the original one-draw smoke test. assert_pinned_receipt_"
+                        "matches() is available for a caller that wants to reuse "
+                        "a stored receipt, and is NOT currently consumed by any "
+                        "runtime path."),
         "source_fingerprint": source_fingerprint(),
         "threshold_tables": tables,
         "vpolicy_agreement": policy,
         "elapsed_seconds": time.perf_counter() - t0,
         "gates": "nothing scientific; computes no effect and authorizes nothing",
-        "supersedes": ("the one-draw preflight as the COVERAGE argument. The "
-                       "one-draw live check is retained as a smoke test, not as "
-                       "the coverage claim."),
+        "supersedes": "NOTHING. The previously accepted preflight-only workload and its one-draw smoke test stand unchanged.",
     }
     if write_to is not None:
         Path(write_to).write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
