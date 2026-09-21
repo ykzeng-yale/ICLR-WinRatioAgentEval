@@ -1,0 +1,58 @@
+{
+  "unchanged_prior_numeric_fields_mismatches": [],
+  "wilson_marginals_checked": 8,
+  "newcombe_gaps_checked": 4,
+  "coordinate_stub_checks": {
+    "both_missing": "P05N: the original arm is not the intended 2000x4 grid (7999 rows; missing e.g. [(0, 0)], extra e.g. [])",
+    "both_extra": "P05N: the original arm is not the intended 2000x4 grid (8001 rows; missing e.g. [], extra e.g. [(2000, 0)])",
+    "combine_marginal": "refused"
+  },
+  "contrasts": {
+    "mu_h=0.05": {
+      "A_minus_N_disabled": {
+        "ci95_hi": 0.051175454321650354,
+        "ci95_lo": 0.04166591632718431,
+        "difference": 0.04625,
+        "interval_method": "Newcombe hybrid score, independent cells"
+      },
+      "A_minus_N_original": {
+        "ci95_hi": 0.05263353597448468,
+        "ci95_lo": 0.042661351917392565,
+        "difference": 0.0475,
+        "interval_method": "Newcombe hybrid score, independent cells"
+      },
+      "change_in_A_minus_N_deploy_contrast": {
+        "ci95_hi": 0.0027975250225038186,
+        "ci95_lo": -0.00029752502250381834,
+        "difference": 0.0012500000000000002,
+        "interval_method": "normal, independent cell-specific paired variances",
+        "mc_se": 0.0007895680914090762
+      },
+      "independence": "P05N/P05A and P10N/P10A carry different cell indices, hence different spawn keys and disjoint draws, so the cell-specific paired variances add",
+      "reading": "how much of the informative-minus-non-informative deployment gap is removed when the two elapsed-cost certificate branches are disabled"
+    },
+    "mu_h=0.10": {
+      "A_minus_N_disabled": {
+        "ci95_hi": 0.46446709213231474,
+        "ci95_lo": 0.4377517420390083,
+        "difference": 0.45125,
+        "interval_method": "Newcombe hybrid score, independent cells"
+      },
+      "A_minus_N_original": {
+        "ci95_hi": 0.33217150795498496,
+        "ci95_lo": 0.3051546623031152,
+        "difference": 0.31875,
+        "interval_method": "Newcombe hybrid score, independent cells"
+      },
+      "change_in_A_minus_N_deploy_contrast": {
+        "ci95_hi": -0.12482335340232732,
+        "ci95_lo": -0.1401766465976727,
+        "difference": -0.1325,
+        "interval_method": "normal, independent cell-specific paired variances",
+        "mc_se": 0.003916728398187465
+      },
+      "independence": "P05N/P05A and P10N/P10A carry different cell indices, hence different spawn keys and disjoint draws, so the cell-specific paired variances add",
+      "reading": "how much of the informative-minus-non-informative deployment gap is removed when the two elapsed-cost certificate branches are disabled"
+    }
+  }
+}
