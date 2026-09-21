@@ -129,6 +129,19 @@ modified.
 
 **Still true:** zero live episodes, zero v2 calibration cells, no freeze. Host contention ~38 h.
 
+**Identity reconciliation, 2026-09-21** (`results/live_ab_validation_v2/IDENTITY_RECONCILIATION_20260921.json`,
+tool `experiments/live_ab_validation/videntity.py`). *Convention: deterministic-path; no timing measured.*
+- The combined receipt's pinned **`vrun.py` source exists in NO object in the repository** (all 1,341 blobs,
+  reachable and unreachable, hashed). It was timed against an uncommitted file. `vgen.py`, `vband.py`,
+  `vresource_check.py` pins **are** recoverable. The root's requested reconciliation is permanently
+  impossible for `vrun`.
+- **The timed core DID change** across the operational-policy work: 5 members changed
+  (`vgen.adapter_tick_sums`, `vgen.state_at_age`, `vrun.RunConfig`, `vrun.build_series`,
+  `vrun.build_series_v2`), 2 added. So "a whole-file difference alone does not prove the timed core
+  changed" does **not** rescue the old projection — the executable structure of the timed scope moved.
+- **Consequence:** guard v2's `identity_unverifiable` refusal is correct **on the merits**, not on a
+  technicality. 33 panel tests pass (6 new identity tests, both directions).
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
