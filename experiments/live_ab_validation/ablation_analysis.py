@@ -26,13 +26,19 @@ MONTE CARLO uncertainty over this panel's own finite draws.  Not a confidence
 statement about agent systems, about informative delay in general, or about any
 population outside this fixed synthetic replay design.
 
-THREE INTERVAL CONVENTIONS, AND WHY EACH ONE IS WHERE IT IS
------------------------------------------------------------
-They are not interchangeable and are never mixed within a single reported number:
+FOUR ESTIMANDS, EACH WITH ITS OWN LABELLED INTERVAL
+---------------------------------------------------
+Root, 18:17: "use Wilson marginals, Newcombe independent-cell differences and
+paired-variance Monte Carlo intervals for paired contrasts with explicit method
+labels.  Different estimands need not share one interval formula."  They do not,
+and they are never mixed within a single reported number:
 
   * PAIRED differences (the headline D, and the change in the A-minus-N
     contrast) use the NORMAL interval on the paired mean.  This is what root
     specified, and D is a bounded three-valued variate over 8,000 pairs.
+  * SINGLE-ARM means (``tau_tick_original``, ``tau_tick_disabled``) use the same
+    one-sample normal arithmetic but are NOT paired and are NOT contrasts, and
+    they now say so.  Sharing the helper is fine; sharing the label was not.
   * MARGINAL deployment proportions use WILSON, because the delivered coarse
     panel reports Wilson for the identical counts and a second interval on the
     same count under a different convention is a defect, not a supplement.
@@ -40,9 +46,14 @@ They are not interchangeable and are never mixed within a single reported number
     proportions, uses NEWCOMBE's hybrid score, as this project already did for
     the CPREFIX comparison.
 
-The middle and last of these were wrong in the first delivered version of this
-file, which put normal intervals on all three.  Corrected by self-audit after
-delivery; the headline paired numbers never moved.
+Three of these four were mislabelled or misapplied in the first delivered
+version of this file.  Corrected after delivery -- two by self-audit, the
+single-arm label by root's review.  The headline paired numbers never moved, and
+no rerun was required for any of the three.
+
+An alternative approximation is not wrong merely because it differs from this
+project's convention.  These labels record WHICH estimator produced a number, so
+that two numbers are never compared across conventions by accident.
 
 TWO ASYMMETRIES THAT ARE NOT SYMMETRIC
 --------------------------------------
@@ -111,14 +122,36 @@ def _load_adapter(root: Path, cell: str) -> Dict[Tuple[int, int], Dict[str, str]
     return rows
 
 
-def _mc(values: np.ndarray) -> Dict[str, float]:
-    """Mean and its Monte Carlo standard error, with a normal 95% interval.
+def _mc(values: np.ndarray, kind: str = "paired") -> Dict[str, float]:
+    """Sample mean and its Monte Carlo standard error, with a normal 95% interval.
 
-    Correct for the PAIRED DIFFERENCE D, which is a bounded three-valued variate
-    averaged over 8,000 pairs, and it is the method root specified: "estimate
-    meanD and its Monte Carlo uncertainty from the paired variance."  NOT used
-    for a marginal proportion -- see ``_rate``.
+    The arithmetic is the generic one-sample normal interval.  ``kind`` names the
+    ESTIMAND so the emitted label describes what was actually averaged.
+
+    CORRECTION, root 2026-09-21 18:17: "Correct the generic sample-mean helper
+    label so single-arm timing means are not called paired."  This helper
+    hardcoded "normal on the paired mean", which was true of the paired
+    differences it was written for and FALSE of ``tau_tick_original`` and
+    ``tau_tick_disabled``, which are one arm's own mean over 8,000 trials and
+    involve no pairing at all.  The numbers were right; the label was not, and a
+    reader could have taken a single-arm mean for a paired contrast.  No rerun
+    was needed and none was done.
+
+    ``kind="paired"``   -- a within-cell paired difference; the estimator root
+                           specified: "estimate meanD and its Monte Carlo
+                           uncertainty from the paired variance."
+    ``kind="single_arm"`` -- one arm's own mean; NOT a contrast of any kind.
+
+    Never used for a marginal proportion -- see ``_rate``.
     """
+    labels = {
+        "paired": "normal on the paired mean (within-cell paired difference)",
+        "single_arm": ("normal on a single-arm sample mean; NOT a paired "
+                       "quantity and not a contrast"),
+    }
+    if kind not in labels:
+        raise ValueError(f"unknown estimand kind {kind!r}; "
+                         f"expected one of {sorted(labels)}")
     v = np.asarray(values, dtype=np.float64)
     n = int(v.size)
     mean = float(v.mean())
@@ -126,7 +159,7 @@ def _mc(values: np.ndarray) -> Dict[str, float]:
     se = sd / math.sqrt(n) if n else float("nan")
     return {"n": n, "mean": mean, "sd": sd, "mc_se": se,
             "ci95_lo": mean - Z95 * se, "ci95_hi": mean + Z95 * se,
-            "interval_method": "normal on the paired mean"}
+            "estimand": kind, "interval_method": labels[kind]}
 
 
 def _rate(indicator: np.ndarray) -> Dict[str, float]:
@@ -179,6 +212,12 @@ def _combine(a: Dict[str, float], b: Dict[str, float]) -> Dict[str, float]:
         raise TypeError("_combine takes paired-difference estimates from _mc, "
                         "not marginal rates; combining a paired variance with a "
                         "binomial one would describe neither")
+    if a.get("estimand") != "paired" or b.get("estimand") != "paired":
+        raise TypeError(
+            f"_combine requires PAIRED estimands, got "
+            f"{a.get('estimand')!r} and {b.get('estimand')!r}; combining "
+            f"single-arm variances here would silently report a difference of "
+            f"two independent means as a change in a paired contrast")
     diff = a["mean"] - b["mean"]
     se = math.sqrt(a["mc_se"] ** 2 + b["mc_se"] ** 2)
     return {"difference": diff, "mc_se": se,
@@ -262,8 +301,8 @@ def analyse_cell(cell: str, original_root: Path = ORIGINAL_ROOT,
                      f"{FINALIZATION_TICK} and tau_prefix = {HORIZON} by the "
                      "capped-decision rule, so this reading is driven by the "
                      "decision RATE as much as by decision speed"),
-            "tau_tick_original": _mc(tick_o),
-            "tau_tick_disabled": _mc(tick_d),
+            "tau_tick_original": _mc(tick_o, "single_arm"),
+            "tau_tick_disabled": _mc(tick_d, "single_arm"),
             "tau_tick_paired_difference": _mc(tick_o - tick_d),
             "tau_prefix_paired_difference": _mc(pre_o - pre_d)},
         "timing_decision_conditional": {

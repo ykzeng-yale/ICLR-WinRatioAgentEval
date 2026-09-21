@@ -764,6 +764,41 @@ self-consistent — `prior_failed_attempt null` describes the delivered director
 prove no earlier attempt existed, the same limit I recorded in `PROVENANCE_ADDENDUM.gap_2`. Unknowns
 retained; the disclosed decision-count exposure is **not** claimed to have influenced nothing.
 
+## Live feasibility freeze (root handoff item 2) — STARTED, branch `session60/live-ab`
+
+**Nothing is frozen and no bundle is published.** Two committed artifacts, both on
+`session60/live-ab` (head `aa7eded`):
+
+**Capacity receipt** (`results/live_ab/CAPACITY_RECEIPT_20260921_1749.json`, `descriptive`, **one
+sample**). 17:49:46Z: load 3.90 on 10 cores, **NOT quiescent** → live execution **not cleared** under the
+gate `5776877` already requires. Foreign DTR-AgentEvals `llama-server` processes idle at 0.0% but holding
+ports 8193/8191; observed with `ps`/`lsof` only, never signalled. Contention here is **variable** (load was
+7.86 at 12:54Z), which is why no single sample may clear a run.
+
+**Freeze status** (`results/live_ab/FREEZE_STATUS_20260921_1815.json`, `deterministic-path`). The gap list
+is produced by `lab_common.build_freeze_bundle` itself, which fails closed and names every hole — not by
+my opinion. **9 of 26 components resolved offline; 17 still required; 0 unexplained gaps.**
+
+Two checks came back clean rather than merely being recorded:
+- Both installed GGUFs hash to **exactly** the sha256 the config froze, at exactly the frozen byte counts
+  (Qwen2.5-Coder-7B q4_k_m 4,683,073,536 B; Granite-3.3-8B Q4_K_M 4,942,873,344 B). Local I/O only — no
+  model loaded, no server contacted.
+- `src/winstats.py` hashes to the value `config.monitor.winstats_sha256` pins.
+
+Against root's requested components: **error allocation and guardrails are already frozen and preserved
+unchanged** (α 0.05 / 0.0125 / 0.00625, δ 0.03, n_min 100, ρ 100.0, `variance_process = n`). **Model-side
+identity resolved**; server side blocked. **Roster, exclusions, horizon and arrival orders** are offline
+work needing no quiescence — next cycle. **Serving manifest, golden props/generation settings** need a
+server of my own. **Prefreeze head/bytes/file** need the 240-episode calibration, which is model calls.
+
+**Fixed AB/BA assignment is PARTIAL by design, not omission:** the stratified arrival order is write-once
+and freezable from the roster, but the coin is drawn per pre-enrolled pair at dispatch from `os.urandom`
+and never redrawn. Freezing it in advance would *change* the design rather than record it.
+
+**Serving identity — default taken in the absence of a root answer:** the 8193/8191 servers belong to
+DTR-AgentEvals and are declared an **external dependency I do not control**, recorded as an open blocker,
+**not** asserted as my serving identity. `config.json` already names my own ports 8091/8092.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
