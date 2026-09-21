@@ -1,0 +1,59 @@
+{
+  "attempt_id": "a1",
+  "child_counters": {
+    "elapsed_seconds": 2394.6584424171597,
+    "output_bytes": 91387324,
+    "primary_rows": 336000,
+    "reference_calls": 224000,
+    "reference_rows": 672000,
+    "shards_completed": 56,
+    "trials": 112000
+  },
+  "conditions": {
+    "all_expected_shard_ids_exactly_once": true,
+    "bindings_equal_frozen_context": true,
+    "coordinate_coverage_complete": true,
+    "coordinate_coverage_disjoint": true,
+    "coordinates_match_plan_entries": true,
+    "counts_reconciled": true,
+    "every_shard_complete_with_clean_attempts": true,
+    "hashes_reconciled": true,
+    "pins_present_and_consistent": true
+  },
+  "cumulative_job": {
+    "elapsed_seconds": 2394.657972042449,
+    "output_bytes": 91387324,
+    "primary_rows": 336000,
+    "reference_calls": 224000,
+    "reference_rows": 672000,
+    "shards_completed": 56,
+    "trials": 112000
+  },
+  "data_completion": true,
+  "expected_totals": {
+    "primary_rows": 336000,
+    "reference_calls": 224000,
+    "reference_rows": 672000,
+    "trials": 112000
+  },
+  "insufficiency_note": "within_caps or process exit zero alone is NOT scientific completion; every condition above must hold. Final paper/calibration acceptance remains independent of successful execution.",
+  "job_id": "T1-18ad53988456",
+  "job_started_perf": 5142381.737795166,
+  "job_started_utc": "2026-09-21T12:47:04Z",
+  "missing_shard_ids": [],
+  "observed_totals": {
+    "primary_rows": 336000,
+    "reference_calls": 224000,
+    "reference_rows": 672000,
+    "trials": 112000
+  },
+  "schema": "live_ab_validation_v2.t1_child_data_receipt.1",
+  "scientific_completion": false,
+  "scientific_completion_note": "a CHILD data receipt never asserts scientific completion; only the parent, with an actual terminal supervisor result, can",
+  "shards_expected": 56,
+  "shards_published": 56,
+  "stage": "data",
+  "supervision": null,
+  "unique_coordinates": 28000,
+  "written_utc": "2026-09-21T13:26:58Z"
+}
