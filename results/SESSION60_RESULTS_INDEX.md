@@ -187,6 +187,48 @@ receipt was discarded uncommitted (`41c5991`).
 
 Tests: 184 validation + 48 panel + 86 design.
 
+**Preflight-only amendment returns T1 under the cap, 2026-09-21.** Head `4f62df1`. Root disposition
+`reviews/v2_measurement_root_disposition_20260921_0828.md` (milestone accepted, +5 → **65%**).
+
+*Convention: **descriptive** measurement, then **deterministic same-horizon extrapolation** by program
+count (root's own method, no fitted exponent), conditional on recorded load. NOT a measured grid, NOT
+calibration, NOT clearance.*
+
+`results/live_ab_validation_v2/measurement_preflight_20260921/FINDING.json`
+
+| | verified mode (delivered) | preflight-only (new) |
+|---|---:|---:|
+| h2000 s/program | 0.530730 | **0.095585** |
+| **T1 @ 28,000 programs** | 14,860 s — **ABOVE** 5,400 s cap | **2,676 s — BELOW** |
+| pair-state checks | 420,080 | **10,502** |
+| persisted primary + reference digests | baseline | **all four IDENTICAL** |
+
+**The amendment changed no persisted scientific byte** — that is the proof the root required, done over
+whole-file digests with no effect value displayed. *Caution kept with the number:* the 5.55× ratio is a
+difference of **two single passes at different times under possibly different load**, not an interleaved
+paired causal estimate.
+
+Parent-supervised whole operation (`vsupervise.py`): **1.747 s** / 300 s cap, **69.2 MiB simultaneous
+process-tree RSS** / 2 GiB, 103,713 B / 200 MiB. No breach; no foreign process touched. Supervisor
+signals only the process group it creates. Four synthetic fixtures prove the caps trip — including a
+tight loop an in-worker check could never interrupt — and a clean run passes, so they are not
+always-fail. Counts exactly as authorized: 20 units / 80 trials / 160 reference calls.
+
+**Pins now cover what actually ran:** nine `sys.modules` entries (comparecast, submodules, `confseq`,
+the real compiled `.so`, and `__pycache__` bytecode), replacing a manifest hash and a `.so` glob.
+Verification and reference modes are bound into the pin identity. Reference rows are **streamed**, so
+reference memory is O(1) in grid size.
+
+**Accounting corrected without rerunning** (`measurement_20260921/ACCOUNTING_CORRECTION.json`): the
+`uncompressed_total` of 3,291 was the *compressed* sum; true decompressed primary **48,262 B**, all
+uncompressed data **110,374 B**, data artifacts **65,403 B**, all seven files **99,631 B** — all
+independently recomputed and matching the root's figures. RSS relabelled as getrusage self/reaped-child
+scope. **Attempts restated: 6 cumulative measurement-mode executions, not 2** (a cap control, two
+contaminated passes, a leak check, two delivered). Discarded artifacts confirmed **irrecoverable**
+after searching Trash, scratchpad, system temp and all git objects.
+
+Tests: 184 validation + 58 panel + 86 design.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
