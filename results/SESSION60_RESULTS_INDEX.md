@@ -398,6 +398,24 @@ missing-identity cases all remaining incomplete. Plus 83 panel + 184 validation 
 **Environment stays in the identity binding**, per the root's ruling — it describes the execution host,
 not the reviewer's. New identity `18ad539884566215ff…` at clean `f63553a`. **Clearance: NOT CLEARED.**
 
+**Per-shard count derivation — read-only, identity undisturbed. 2026-09-21, head at post time.**
+`results/live_ab_validation_v2/T1_COUNT_DERIVATION.json`. *Convention: **design-based** derivation from
+frozen constants; not a measurement.*
+
+Closes an uncertainty I had flagged twice: the plan **asserts** 6,000 primary / 12,000 reference rows
+per shard and the runner **independently produces** them, with nothing cross-checking the two. A
+disagreement would fail every shard at reconciliation *after* burning budget. They agree exactly —
+500 × 4 × 3 = 6,000; × 2 scores × 3 prefixes = 12,000; job totals derive to the declared
+112,000 / 224,000 / 336,000 / 672,000.
+
+Residual assumption also closed: the runner's `n > arr.size` prefix-skip branch would silently emit
+fewer reference rows. Draw arrays are exactly `n_max` long and the largest prefix equals the horizon, so
+**the branch is unreachable at horizon 2000** — checked in the **fixture** namespace, deliberately not
+the T1 replay namespace.
+
+Establishes nothing about runtime, coverage, power or effects, and nothing about C3–C6 cost. Manifest
+identity verified unchanged at `18ad539884566215ff…` before and after.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
