@@ -859,6 +859,42 @@ text withheld** (it embeds absolute local paths). Serving intent recorded offlin
 `containment_probe_sha256` left as a **gap on purpose**: no probe implementation exists, and writing one
 would add a `.py` to the globbed harness set — which is exactly how D8 happened.
 
+### D2 repaired, prefreeze plan delivered, and a protocol self-contradiction found
+
+Branch `session60/live-ab` head `b50bcd6`. Root's 18:54 decisions authorized repairs without further
+permission loops and **ranked D2 first**; root also **corrected its own 18:17 instruction** — *"Do not
+substitute an unloaded sweep"* — confirming the call to stop before the write-once deposit.
+
+**D2 REPAIRED** (`lab_verify_log.py`, +8 tests). The per-pair enrollment comparison was guarded by
+`isinstance(order, list)` while **both** production writers emit dicts, with `col.ok()` firing
+unconditionally — every real freeze reported that check passed **having compared zero pairs**. New
+`_order_slots()` reads all three shapes and **refuses** anything else, including a document whose declared
+`n_pairs` disagrees with its own list. Suites: chain **66** (was 58), design **86**, isolation **12**.
+
+**Consolidated finite prefreeze plan** (`results/live_ab/PREFREEZE_EXECUTION_PLAN_20260921_1910.json`,
+`design-based`). **240 is item 3 of eight.** Items 3+4 = **360 episodes, 660–1020 calls**. Overlap analysed,
+not asserted: item 4's solo half is **fully reusable** from item 3's concurrency-1 cells and T4's paired
+half from its concurrency-2 cell, because T4 is homogeneous; T1/T2 and T3 are **not** reusable because no
+item-3 cell is heterogeneous. Genuinely new: **120 episodes, 300–420 calls**.
+
+**A protocol self-contradiction that decides the calibration budget.** §5.8 item 3 says the fixed plan is
+"**240 episodes** (a `self_test_repair` episode is 2 to 4 calls, so the number of calls is larger)";
+finding **N21**, same document, says the identical arithmetic is "**240 calls**". They cannot both hold.
+I did not pick — the plan uses the self-consistent episode reading and records the disagreement.
+
+**Two gaps closed:** the format-conformance denominator is **ten** (§2.4 rule 6, ≥9 of 10 per model, over
+6 smoke + 4 hand-written prompts — so ≥8 of the 20 responses cannot be reused from calibration); and
+golden-object capture is quantified from §13.2 as **2 objects per server, 4 total, 2 model calls minimum**.
+
+**Also flagged:** I may be claiming a saving the design does not permit — T1 and T2 are the same pair with
+roles swapped, and since `median(1/X) = 1/median(X)`, computing both C's from one measurement set forces
+`C_T1 = 1/C_T2` as an **algebraic identity** rather than a measured fact. They differ genuinely only if
+side-by-side latency depends on slot. The protocol is silent; separate measurement costs +60 episodes.
+
+**Design authority map** (`results/live_ab/DESIGN_AUTHORITY_MAP_20260921_1915.json`). Supersession checked
+**before** binding any digest: 4 authoritative, **9 must-not-bind**, 5 currency-unverified. Supersession is
+enforced by a test — `tests_lab_isolation.py` fails on any citation of the superseded drafts.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
