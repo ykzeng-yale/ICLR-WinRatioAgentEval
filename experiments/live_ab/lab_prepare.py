@@ -365,62 +365,126 @@ def assert_prescribed_tmpdir(cfg: dict, *, tmp_root: str = '/private/tmp') -> Di
             'checked': True}
 
 
+def _finite(x: object) -> "float | None":
+    """A finite float, or None. NaN and infinities are NOT numbers we may order."""
+    try:
+        v = float(x)                      # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return None
+    if v != v or v in (float('inf'), float('-inf')):
+        return None
+    return v
+
+
 def _coverage_verdict(obs: object, record: dict) -> Dict[str, Any]:
-    """Whether an observation actually COVERS the attempt's interval.
+    """Whether the observation's certified active intervals CONTAIN the attempt.
 
-    Root, 2026-09-21 21:17: "Required load coverage is still metadata presence,
-    not interval validation. `_coverage_is_valid` checks `active is True` and
-    nonempty `window_id`/`resolution_ms` only. It does not compare actual
-    verifier start/end times with active-load windows on the agreed clock. A
-    post-attempt result containing those three fields passes."
+    Root, 2026-09-21 21:50, on the arithmetic domain -- all three reproduced:
+      * ``resolution_ms=-500`` EXPANDED a window and falsely certified coverage;
+      * a reversed attempt ``[100.5, 100]`` returned valid;
+      * a NaN attempt start returned valid, because comparisons on NaN do not
+        establish the intended order.
+    Finite ordered endpoints and a finite NONNEGATIVE error bound are now
+    required before any coverage is computed.
 
-    That was exactly right. Presence of three fields is not coverage. This
-    compares the attempt's own monotonic endpoints against the observation's
-    active windows on the same clock, and requires the windows to span the whole
-    interval -- with the stated timing resolution charged AGAINST the claim, so
-    a coarse sampler cannot certify a gap it could not have seen.
+    AND A CLAIM OF MINE THAT ROOT CORRECTED. I wrote that this discount meant
+    "a coarse sampler cannot certify a gap it could not have seen". That
+    overstates it. Root: "A series of active samples cannot become proof of
+    continuous activity merely by shrinking the ends ... A sampler's cadence is
+    not automatically an endpoint-error bound and says nothing about unobserved
+    interior gaps."
+
+    So the contract is now explicit and the arithmetic is conditional on it:
+    each window must MEAN a continuously active interval on the verifier's own
+    monotonic clock, and ``endpoint_error_s`` must be an INDEPENDENTLY JUSTIFIED
+    bound on the uncertainty of that interval's endpoints -- not a sampling
+    cadence reinterpreted as one. Under that contract, narrowing [a,b] to
+    [a+e, b-e] is conservative. Without it, this function computes a union that
+    means nothing, which is why the contract fields are required rather than
+    defaulted.
     """
     if not isinstance(obs, dict):
         return {'valid': False, 'reason': 'observation is not a mapping'}
     if obs.get('active') is not True:
         return {'valid': False, 'reason': 'observation does not report active load'}
-    for key in ('window_id', 'resolution_ms'):
-        if obs.get(key) in (None, ''):
-            return {'valid': False, 'reason': 'observation omits %s' % key}
+    if obs.get('window_id') in (None, ''):
+        return {'valid': False, 'reason': 'observation omits window_id'}
 
-    start, end = record.get('started_monotonic'), record.get('ended_monotonic')
+    # --- the endpoint error bound: finite and NONNEGATIVE -------------------
+    # `resolution_ms` is accepted as the legacy spelling, but it is read as an
+    # endpoint ERROR BOUND, which root required be independently justified.
+    raw_e = obs.get('endpoint_error_s')
+    if raw_e is None and obs.get('resolution_ms') is not None:
+        ms = _finite(obs.get('resolution_ms'))
+        raw_e = None if ms is None else ms / 1000.0
+    e = _finite(raw_e)
+    if e is None:
+        return {'valid': False,
+                'reason': 'endpoint error bound is missing or not a finite number'}
+    if e < 0:
+        return {'valid': False,
+                'reason': 'endpoint error bound is negative (%r); a negative bound '
+                          'would EXPAND each window and certify coverage that was '
+                          'never observed' % (raw_e,)}
+
+    # --- the attempt interval: finite and ordered --------------------------
+    start = _finite(record.get('started_monotonic'))
+    end = _finite(record.get('ended_monotonic'))
     if start is None or end is None:
         return {'valid': False,
-                'reason': 'the attempt carries no monotonic endpoints, so no '
-                          'window can be shown to cover it'}
+                'reason': 'the attempt carries no finite monotonic endpoints, so no '
+                          'window can be shown to contain it'}
+    if end < start:
+        return {'valid': False,
+                'reason': 'the attempt interval is reversed (start %r > end %r)'
+                          % (start, end)}
+    # Root: "Uncertainty in verifier endpoints, if any, must EXPAND the verifier
+    # interval rather than make coverage easier."
+    v_err = _finite(record.get('endpoint_error_s')) or 0.0
+    if v_err < 0:
+        return {'valid': False, 'reason': 'verifier endpoint error bound is negative'}
+    start, end = start - v_err, end + v_err
+
     windows = obs.get('active_windows')
     if not isinstance(windows, list) or not windows:
         return {'valid': False,
-                'reason': 'observation carries no active_windows to compare against '
-                          "the attempt's interval; a post-attempt sample is not "
-                          'coverage of the interval'}
-    try:
-        res_s = float(obs['resolution_ms']) / 1000.0
-    except (TypeError, ValueError):
-        return {'valid': False, 'reason': 'resolution_ms is not numeric'}
-
-    # Charge the sampling resolution against the claim: a window is only credited
-    # over the span it could actually have observed.
-    covered: List[tuple] = []
+                'reason': 'observation carries no active_windows; a post-attempt '
+                          'sample is not coverage of the interval'}
+    certified: List[tuple] = []
     for w in windows:
-        try:
-            ws, we = float(w['start']), float(w['end'])
-        except (TypeError, ValueError, KeyError):
-            return {'valid': False, 'reason': 'an active window lacks numeric endpoints'}
-        covered.append((ws + res_s, we - res_s))
-    covered.sort()
-    cursor = float(start)
-    for ws, we in covered:
-        if ws > cursor:
-            break                       # a gap the windows do not span
-        cursor = max(cursor, we)
-    if cursor < float(end):
+        if not isinstance(w, dict):
+            return {'valid': False, 'reason': 'an active window is not a mapping'}
+        ws, we = _finite(w.get('start')), _finite(w.get('end'))
+        if ws is None or we is None:
+            return {'valid': False,
+                    'reason': 'an active window lacks finite numeric endpoints'}
+        if we < ws:
+            return {'valid': False,
+                    'reason': 'an active window is reversed (start %r > end %r)'
+                              % (ws, we)}
+        lo, hi = ws + e, we - e          # inward contraction, e >= 0 guaranteed
+        if hi > lo:
+            certified.append((lo, hi))   # empty certified intervals contribute nothing
+    if not certified:
         return {'valid': False,
-                'reason': 'active windows leave %.3fs of the attempt interval '
-                          'uncovered at the stated resolution' % (float(end) - cursor)}
-    return {'valid': True, 'reason': 'active windows span the attempt interval'}
+                'reason': 'no window survives its own endpoint error bound; nothing '
+                          'is certified'}
+
+    certified.sort()
+    cursor = start
+    for lo, hi in certified:
+        if lo > cursor:
+            break
+        cursor = max(cursor, hi)
+    if cursor < end:
+        return {'valid': False,
+                'reason': 'certified intervals do not contain the attempt: first '
+                          'uncovered point at %.6f, attempt ends %.6f (this is the '
+                          'distance to the end, NOT a measured total gap length)'
+                          % (cursor, end)}
+    return {'valid': True,
+            'reason': 'certified active intervals contain the attempt interval',
+            'conditional_on': 'each window meaning a CONTINUOUSLY ACTIVE interval on '
+                              'the verifier clock, with an independently justified '
+                              'endpoint error bound. This arithmetic does not turn '
+                              'periodic samples into continuous evidence.'}

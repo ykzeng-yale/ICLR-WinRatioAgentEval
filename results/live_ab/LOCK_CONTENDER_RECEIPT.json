@@ -1,0 +1,82 @@
+{
+  "authority": "root 2026-09-21 21:50: 'use two separate probe processes through the actual production execution lock and sandbox route ... Show that the second cannot enter while the first holds the lock ... Label this a production-lock/sandbox fixture, not two live model episodes.'",
+  "closes": "the gap root found in CONTAINMENT_PROBE_RECEIPT: the earlier probe started ONE sandbox program and inferred exclusion from an empty peer glob, which establishes nothing. A real contender now attempts the lock.",
+  "findings": {
+    "contender_blocked_while_holder_held": true,
+    "contender_error": "PreflightError: execution lock not acquired within 1.0 s",
+    "control_never_touched_production_config": "the control uses a THROWAWAY lock path inside the synthetic fixture and bypasses locking in the child only. config.sandbox.execution_lock_path and the production lock file are never modified or disabled.",
+    "overlapping_entry_observed_in_control": true,
+    "readiness_handshake_observed": true
+  },
+  "negative_control_run": {
+    "bypass_lock_control": true,
+    "contender": {
+      "acquired_monotonic": 5176534.291283125,
+      "attempted_monotonic": 5176534.291278125,
+      "lock": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab/_lockfixture/control.lock",
+      "outcome": "acquired",
+      "pid": 42070,
+      "released_monotonic": 5176534.291283458,
+      "role": "contender"
+    },
+    "contender_blocked_while_holder_held": null,
+    "contender_wait_s": 1.0,
+    "elapsed_s": 1.5342077082023025,
+    "hold_s": 1.5,
+    "holder": {
+      "acquired_monotonic": 5176534.263146,
+      "attempted_monotonic": 5176534.263141416,
+      "lock": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab/_lockfixture/control.lock",
+      "outcome": "acquired",
+      "pid": 42069,
+      "released_monotonic": 5176535.766370125,
+      "role": "holder"
+    },
+    "label": "PRODUCTION-LOCK/SANDBOX FIXTURE with two probe processes. NOT two live model episodes. No model, server or serving process is involved.",
+    "lock_identity": "<WORK>/_lockfixture/control.lock",
+    "overlapping_entry_observed": true,
+    "readiness_handshake_observed": true,
+    "schema": "live_ab/lock_contender_fixture-v1"
+  },
+  "production_lock_run": {
+    "bypass_lock_control": false,
+    "contender": {
+      "attempted_monotonic": 5176532.762389916,
+      "error": "PreflightError: execution lock not acquired within 1.0 s",
+      "gave_up_monotonic": 5176533.815590041,
+      "lock": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab/_lockfixture/sandbox.lock",
+      "outcome": "blocked",
+      "pid": 42057,
+      "role": "contender"
+    },
+    "contender_blocked_while_holder_held": true,
+    "contender_wait_s": 1.0,
+    "elapsed_s": 1.5418267091736197,
+    "hold_s": 1.5,
+    "holder": {
+      "acquired_monotonic": 5176532.724385458,
+      "attempted_monotonic": 5176532.724257541,
+      "lock": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab/_lockfixture/sandbox.lock",
+      "outcome": "acquired",
+      "pid": 42056,
+      "released_monotonic": 5176534.231407208,
+      "role": "holder"
+    },
+    "label": "PRODUCTION-LOCK/SANDBOX FIXTURE with two probe processes. NOT two live model episodes. No model, server or serving process is involved.",
+    "lock_identity": "<WORK>/_lockfixture/sandbox.lock",
+    "overlapping_entry_observed": null,
+    "readiness_handshake_observed": true,
+    "schema": "live_ab/lock_contender_fixture-v1"
+  },
+  "schema": "live_ab.lock_contender_receipt.1",
+  "what_this_does_NOT_establish": [
+    "anything about live model episodes: both processes are probes and no model, server or serving process is involved",
+    "containment properties of the sandbox profile, which are the separate and separately bounded 15 repository-target denials",
+    "behaviour under contention patterns other than the one holder / one contender case exercised here"
+  ],
+  "what_this_establishes": [
+    "two separate processes, through the real _ExecutionLock, cannot hold the production lock simultaneously",
+    "the exclusion is observed via an actual blocked contender with its wait timeout and error, not inferred from an absent peer",
+    "the same fixture with locking removed DOES show overlapping entry, so the test can detect the failure it is asserting against"
+  ]
+}
