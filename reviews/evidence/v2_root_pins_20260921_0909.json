@@ -1,0 +1,38 @@
+{
+  "source_commit": "3341f2107b9ff9a5d67c9a09c3c27e9a4fe74d7d",
+  "source_config_digests": {
+    "reference/MANIFEST.json": true,
+    "reference/eb_reference.py": true,
+    "reference/vendor.py": true,
+    "vband.py": true,
+    "vgen.py": true,
+    "videntity.py": true,
+    "vpanel.py": true,
+    "vpins.py": true,
+    "vpolicy.py": true,
+    "vresource_check.py": true,
+    "vrun.py": true,
+    "vtotalguard.py": true,
+    "PROTOCOL_V2.md": true,
+    "cells.json": true
+  },
+  "loaded_python_digests": {
+    "comparecast": true,
+    "comparecast.confseq": true,
+    "comparecast.utils": true,
+    "confseq": true
+  },
+  "loaded_native_and_cache": "recorded on owner host; not independently executed or copied here",
+  "missing_current_wrapper_pin_members": [
+    "vmeasure.py",
+    "vsupervise.py"
+  ],
+  "arxiv_artifacts_unchanged": {
+    "paper.pdf": true,
+    "main_paper.pdf": true,
+    "supplement.pdf": true,
+    "arxiv_source.tar.gz": true,
+    "reproducibility_code.zip": true
+  },
+  "native_or_scientific_runs": 0
+}
