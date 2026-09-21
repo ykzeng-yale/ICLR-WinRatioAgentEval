@@ -1,0 +1,13 @@
+{
+  "enumeration_nonzero_partial_rejected": true,
+  "partial_rss_default_rejected": true,
+  "terminal_elapsed_exceeds_limit": {
+    "within_caps": true,
+    "breach": null,
+    "wall_seconds": 2
+  },
+  "production_partial_rejected": {
+    "within_caps": false,
+    "breach": "measurement_failed"
+  }
+}

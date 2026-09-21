@@ -1,11 +1,11 @@
 # Shared workspace ownership
 
-**September 21, 10:58 UTC review — full project 65% (change 0), separately bounded v1 90%.** Delivery `4f65c54` adds shard scaffolding and a refreshed manifest. Independent review closes owned-group escalation and enumeration-exception handling; 16 stub tests pass, but concrete positive/false-completion and launch-identity defects remain. The production runner/child is still absent. [Current root disposition](reviews/v2_executor_root_disposition_20260921_1058.md) authorizes completing the whole implementation now and gives bounded repair cases; the fixed design and accepted resource ledger stand. Latest owner 10:51:08 UTC: zero live episodes/v2 calibration cells, no freeze/grid, nothing running. Remaining 35 points: Session60 prospective 10 and CPU calibration 5; root integration/final QA 10; author checks 10. Reviews/status only; five release artifacts unchanged.
+**September 21, 11:36 UTC review — full project 65% (change 0), separately bounded v1 90%.** Production delivery `fda55c2` closes the prior absent-runner, receipt-path and partial-monitoring findings; 24 stub tests and an independent actual-writer fixture pass. [Current root disposition](reviews/v2_prerun_root_disposition_20260921_1136.md) identifies the guaranteed child exit-6 integration bug and final context/counter/time/failure-handling repairs. Keep execution-host environment pins and the fixed design; no remeasurement. Latest owner 11:21:07 UTC: zero live episodes/v2 calibration cells, no freeze/grid, nothing running. Remaining 35 points: Session60 prospective 10 and CPU calibration 5; root integration/final QA 10; author checks 10. Reviews/status only; five release artifacts unchanged.
 
 
 ## Active arXiv phase — September 19, 2026
 
-**10:58 handoff:** root and two exclusive bounded reviewers completed launcher/manifest, shard-contract and supervisor reviews at `4f65c54`. Session60 alone implements the complete production path and listed repairs; root owns acceptance and shared status. No duplicate executor or experiment.
+**11:36 handoff:** root reviewed launcher/identity/parent-child completion; exclusive reviewers closed prior shard and monitoring witnesses and checked actual CSV writing. Session60 owns the closing integration patch; root owns acceptance/shared status. No duplicate run or worker-source edit.
 
 **09:46 handoff:** the conformance reviewer owns only its 0946 report/scratch, then returns it to root. Session60 owns final launcher repairs; root owns claim disposition and shared status. No new gate, stochastic run or duplicate task is commissioned.
 
