@@ -1,0 +1,45 @@
+{
+  "schema": "live_ab.capacity_receipt.1",
+  "measured_utc": "2026-09-21T17:49:46Z",
+  "requested_by_root": "reviews/ablation_root_disposition_20260921_1737.md, handoff item 2 -- 'current capacity ... If capacity is unavailable, report that specific blocker with timestamp and the completed freeze materials.'",
+  "what_this_is": "A HOST OBSERVATION ONLY. No trial episode was started, no model was called, no freeze material is asserted complete by this file.",
+
+  "host": {
+    "cores": 10,
+    "memsize_bytes": 34359738368,
+    "uptime": "59 days, 17:41",
+    "load_average_1_5_15": [3.90, 3.58, 3.20],
+    "pages_free": 5999,
+    "page_size_bytes": 16384,
+    "free_pages_note": "~98 MiB genuinely free; 776,245 inactive pages are reclaimable. This is a vm_stat-derived estimate, not a guarantee of availability at dispatch time."
+  },
+
+  "foreign_processes_untouched": {
+    "policy": "Not signalled, not inspected beyond ps/lsof, not killed. They belong to DTR-AgentEvals.",
+    "llama_servers": [
+      {"pid": 63657, "port": 8193, "pcpu": 0.0, "rss_kb": 297456, "elapsed": "02-00:08:41", "role": "models.small per DTR-AgentEvals code_routing/config.json"},
+      {"pid": 63658, "port": 8191, "pcpu": 0.0, "rss_kb": 13184, "elapsed": "02-00:08:41", "role": "models.large per the same config"}
+    ],
+    "both_idle": "0.0% CPU at this sample; they hold their ports and their resident memory but are not currently serving."
+  },
+
+  "other_load_holders": [
+    {"pid": 4392, "pcpu": 99.8, "comm": "Xcode-bundled Python 3.9", "note": "foreign; one core saturated"},
+    {"pid": 475, "pcpu": 38.4, "comm": "WindowServer", "note": "system"}
+  ],
+
+  "capacity_reading": {
+    "verdict": "NOT QUIESCENT, and therefore NOT CLEARED for live trial execution under the gate this branch already requires.",
+    "gate": "commit 5776877 'live_ab: host contention finding blocks trial execution; require a quiescence gate' -- the blocker is pre-existing and recorded on this branch, not newly discovered here.",
+    "detail": "Load average 3.90 on 10 cores with one foreign process holding a core continuously. Earlier this session four DTR-AgentEvals processes sat at ~99% each (load 7.86 at 12:54Z); they have since dropped off the >20% list. Contention is therefore VARIABLE on this host, which is itself the reason a single spot reading cannot clear a live run.",
+    "what_would_change_it": "A quiescence window observed over time, not a single sample. This file is one sample and is labelled as one.",
+    "what_is_unaffected": "Freeze PREPARATION is CPU-light and needs no quiescence: roster, exclusions, horizon, AB/BA assignment, bounds, allocation, serving assumptions and accounting are all paperwork over committed artifacts. Only trial EPISODES need the gate, and none were started."
+  },
+
+  "not_claimed": [
+    "that the freeze bundle is complete -- it is not yet assembled; this is the capacity component only",
+    "that the host will be quiescent at any future time",
+    "that the foreign servers' idleness now implies they will stay idle",
+    "that a single ps/vm_stat sample bounds anything continuously"
+  ]
+}
