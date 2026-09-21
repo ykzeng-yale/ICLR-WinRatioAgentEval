@@ -1,0 +1,422 @@
+[
+  {
+    "mu_h": 0.05,
+    "delay": "non-informative",
+    "construction": "ADAPTER",
+    "trials": 8000,
+    "deploy": 26,
+    "retain": 0,
+    "abstain": 7974,
+    "rate": 0.00325,
+    "wilson95": [
+      0.002218921562585225,
+      0.004757910638301714
+    ]
+  },
+  {
+    "mu_h": 0.05,
+    "delay": "non-informative",
+    "construction": "CPREFIX",
+    "trials": 8000,
+    "deploy": 242,
+    "retain": 0,
+    "abstain": 7758,
+    "rate": 0.03025,
+    "wilson95": [
+      0.02671644294336529,
+      0.03423447185556101
+    ]
+  },
+  {
+    "mu_h": 0.05,
+    "delay": "non-informative",
+    "construction": "NAIVE",
+    "trials": 8000,
+    "deploy": 517,
+    "retain": 0,
+    "abstain": 7483,
+    "rate": 0.064625,
+    "wilson95": [
+      0.05944358911311471,
+      0.07022432899350058
+    ]
+  },
+  {
+    "mu_h": 0.05,
+    "delay": "informative",
+    "construction": "ADAPTER",
+    "trials": 8000,
+    "deploy": 406,
+    "retain": 0,
+    "abstain": 7594,
+    "rate": 0.05075,
+    "wilson95": [
+      0.046152313541114716,
+      0.055778923230397015
+    ]
+  },
+  {
+    "mu_h": 0.05,
+    "delay": "informative",
+    "construction": "CPREFIX",
+    "trials": 8000,
+    "deploy": 255,
+    "retain": 0,
+    "abstain": 7745,
+    "rate": 0.031875,
+    "wilson95": [
+      0.028244640799941097,
+      0.03595471415534868
+    ]
+  },
+  {
+    "mu_h": 0.05,
+    "delay": "informative",
+    "construction": "NAIVE",
+    "trials": 8000,
+    "deploy": 7991,
+    "retain": 0,
+    "abstain": 9,
+    "rate": 0.998875,
+    "wilson95": [
+      0.997863121102734,
+      0.9994080069008542
+    ]
+  },
+  {
+    "mu_h": 0.1,
+    "delay": "non-informative",
+    "construction": "ADAPTER",
+    "trials": 8000,
+    "deploy": 4212,
+    "retain": 0,
+    "abstain": 3788,
+    "rate": 0.5265,
+    "wilson95": [
+      0.5155487673177344,
+      0.5374257952321931
+    ]
+  },
+  {
+    "mu_h": 0.1,
+    "delay": "non-informative",
+    "construction": "CPREFIX",
+    "trials": 8000,
+    "deploy": 5344,
+    "retain": 0,
+    "abstain": 2656,
+    "rate": 0.668,
+    "wilson95": [
+      0.6576019889846538,
+      0.6782367471809245
+    ]
+  },
+  {
+    "mu_h": 0.1,
+    "delay": "non-informative",
+    "construction": "NAIVE",
+    "trials": 8000,
+    "deploy": 6859,
+    "retain": 0,
+    "abstain": 1141,
+    "rate": 0.857375,
+    "wilson95": [
+      0.8495406168071685,
+      0.8648663375807691
+    ]
+  },
+  {
+    "mu_h": 0.1,
+    "delay": "informative",
+    "construction": "ADAPTER",
+    "trials": 8000,
+    "deploy": 6762,
+    "retain": 0,
+    "abstain": 1238,
+    "rate": 0.84525,
+    "wilson95": [
+      0.8371592518493948,
+      0.8530093413718306
+    ]
+  },
+  {
+    "mu_h": 0.1,
+    "delay": "informative",
+    "construction": "CPREFIX",
+    "trials": 8000,
+    "deploy": 5462,
+    "retain": 0,
+    "abstain": 2538,
+    "rate": 0.68275,
+    "wilson95": [
+      0.6724658952087195,
+      0.692858682376158
+    ]
+  },
+  {
+    "mu_h": 0.1,
+    "delay": "informative",
+    "construction": "NAIVE",
+    "trials": 8000,
+    "deploy": 8000,
+    "retain": 0,
+    "abstain": 0,
+    "rate": 1.0,
+    "wilson95": [
+      0.9995200481118399,
+      1.0
+    ]
+  },
+  {
+    "mu_h": 0.15,
+    "delay": "non-informative",
+    "construction": "ADAPTER",
+    "trials": 8000,
+    "deploy": 7969,
+    "retain": 0,
+    "abstain": 31,
+    "rate": 0.996125,
+    "wilson95": [
+      0.9945051074473908,
+      0.9972686602915825
+    ]
+  },
+  {
+    "mu_h": 0.15,
+    "delay": "non-informative",
+    "construction": "CPREFIX",
+    "trials": 8000,
+    "deploy": 7982,
+    "retain": 0,
+    "abstain": 18,
+    "rate": 0.99775,
+    "wilson95": [
+      0.9964459592083273,
+      0.9985762486870093
+    ]
+  },
+  {
+    "mu_h": 0.15,
+    "delay": "non-informative",
+    "construction": "NAIVE",
+    "trials": 8000,
+    "deploy": 7999,
+    "retain": 0,
+    "abstain": 1,
+    "rate": 0.999875,
+    "wilson95": [
+      0.999292234009974,
+      0.9999779340898377
+    ]
+  },
+  {
+    "mu_h": 0.15,
+    "delay": "informative",
+    "construction": "ADAPTER",
+    "trials": 8000,
+    "deploy": 7999,
+    "retain": 0,
+    "abstain": 1,
+    "rate": 0.999875,
+    "wilson95": [
+      0.999292234009974,
+      0.9999779340898377
+    ]
+  },
+  {
+    "mu_h": 0.15,
+    "delay": "informative",
+    "construction": "CPREFIX",
+    "trials": 8000,
+    "deploy": 7974,
+    "retain": 0,
+    "abstain": 26,
+    "rate": 0.99675,
+    "wilson95": [
+      0.9952420893616983,
+      0.9977810784374147
+    ]
+  },
+  {
+    "mu_h": 0.15,
+    "delay": "informative",
+    "construction": "NAIVE",
+    "trials": 8000,
+    "deploy": 8000,
+    "retain": 0,
+    "abstain": 0,
+    "rate": 1.0,
+    "wilson95": [
+      0.9995200481118399,
+      1.0
+    ]
+  },
+  {
+    "mu_h": 0.2,
+    "delay": "non-informative",
+    "construction": "ADAPTER",
+    "trials": 8000,
+    "deploy": 8000,
+    "retain": 0,
+    "abstain": 0,
+    "rate": 1.0,
+    "wilson95": [
+      0.9995200481118399,
+      1.0
+    ]
+  },
+  {
+    "mu_h": 0.2,
+    "delay": "non-informative",
+    "construction": "CPREFIX",
+    "trials": 8000,
+    "deploy": 8000,
+    "retain": 0,
+    "abstain": 0,
+    "rate": 1.0,
+    "wilson95": [
+      0.9995200481118399,
+      1.0
+    ]
+  },
+  {
+    "mu_h": 0.2,
+    "delay": "non-informative",
+    "construction": "NAIVE",
+    "trials": 8000,
+    "deploy": 8000,
+    "retain": 0,
+    "abstain": 0,
+    "rate": 1.0,
+    "wilson95": [
+      0.9995200481118399,
+      1.0
+    ]
+  },
+  {
+    "mu_h": 0.2,
+    "delay": "informative",
+    "construction": "ADAPTER",
+    "trials": 8000,
+    "deploy": 8000,
+    "retain": 0,
+    "abstain": 0,
+    "rate": 1.0,
+    "wilson95": [
+      0.9995200481118399,
+      1.0
+    ]
+  },
+  {
+    "mu_h": 0.2,
+    "delay": "informative",
+    "construction": "CPREFIX",
+    "trials": 8000,
+    "deploy": 8000,
+    "retain": 0,
+    "abstain": 0,
+    "rate": 1.0,
+    "wilson95": [
+      0.9995200481118399,
+      1.0
+    ]
+  },
+  {
+    "mu_h": 0.2,
+    "delay": "informative",
+    "construction": "NAIVE",
+    "trials": 8000,
+    "deploy": 8000,
+    "retain": 0,
+    "abstain": 0,
+    "rate": 1.0,
+    "wilson95": [
+      0.9995200481118399,
+      1.0
+    ]
+  },
+  {
+    "mu_h": 0.3,
+    "delay": "non-informative",
+    "construction": "ADAPTER",
+    "trials": 8000,
+    "deploy": 8000,
+    "retain": 0,
+    "abstain": 0,
+    "rate": 1.0,
+    "wilson95": [
+      0.9995200481118399,
+      1.0
+    ]
+  },
+  {
+    "mu_h": 0.3,
+    "delay": "non-informative",
+    "construction": "CPREFIX",
+    "trials": 8000,
+    "deploy": 8000,
+    "retain": 0,
+    "abstain": 0,
+    "rate": 1.0,
+    "wilson95": [
+      0.9995200481118399,
+      1.0
+    ]
+  },
+  {
+    "mu_h": 0.3,
+    "delay": "non-informative",
+    "construction": "NAIVE",
+    "trials": 8000,
+    "deploy": 8000,
+    "retain": 0,
+    "abstain": 0,
+    "rate": 1.0,
+    "wilson95": [
+      0.9995200481118399,
+      1.0
+    ]
+  },
+  {
+    "mu_h": 0.3,
+    "delay": "informative",
+    "construction": "ADAPTER",
+    "trials": 8000,
+    "deploy": 8000,
+    "retain": 0,
+    "abstain": 0,
+    "rate": 1.0,
+    "wilson95": [
+      0.9995200481118399,
+      1.0
+    ]
+  },
+  {
+    "mu_h": 0.3,
+    "delay": "informative",
+    "construction": "CPREFIX",
+    "trials": 8000,
+    "deploy": 8000,
+    "retain": 0,
+    "abstain": 0,
+    "rate": 1.0,
+    "wilson95": [
+      0.9995200481118399,
+      1.0
+    ]
+  },
+  {
+    "mu_h": 0.3,
+    "delay": "informative",
+    "construction": "NAIVE",
+    "trials": 8000,
+    "deploy": 8000,
+    "retain": 0,
+    "abstain": 0,
+    "rate": 1.0,
+    "wilson95": [
+      0.9995200481118399,
+      1.0
+    ]
+  }
+]

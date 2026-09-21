@@ -1,0 +1,42 @@
+{
+  "argv": [
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/.venv/bin/python",
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/run_powercurve.py",
+    "--child",
+    "--out",
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/results/live_ab_validation_v2/powercurve_20260921"
+  ],
+  "available_ram_bytes_at_start": 14052130816,
+  "breach": null,
+  "caps": {
+    "output_bytes": 209715200,
+    "seconds": 5400.0,
+    "tree_rss_bytes": 2147483648
+  },
+  "child_stderr_tail": "",
+  "child_stdout_tail": "",
+  "deadline_monotonic": 5153260.654643958,
+  "foreign_processes_touched": false,
+  "label": "power_curve_panel",
+  "measured_window": "process spawn through exit, INCLUDING interpreter startup, imports, reference calls, output writes, close and the child's receipt write",
+  "observed": {
+    "final_output_bytes_actual_child_dir": 72669336,
+    "peak_output_bytes_including_reserve": 72931480,
+    "peak_tree_rss_bytes": 72138752,
+    "poll_interval_seconds": 0.15,
+    "poll_samples": 9393,
+    "wall_seconds": 1669.1369600417092
+  },
+  "receipt_reserve_bytes": 262144,
+  "returncode": 0,
+  "rss_scope": "SAMPLED simultaneous summed RSS over the child's own process tree at a 0.15s poll interval; NOT a getrusage self/reaped-child maximum, and NOT an instantaneous hard bound -- a spike between samples can be missed. Root was explicit: do not describe polling as a hard memory bound.",
+  "safety": "the supervisor signals only the process group it created; it never signals or inspects a process it did not spawn",
+  "schema": "live_ab_validation_v2.supervision.1",
+  "started_perf": 5147860.654643958,
+  "terminated_by_supervisor": false,
+  "timestamps": {
+    "ended_utc": "2026-09-21T14:46:12Z",
+    "started_utc": "2026-09-21T14:18:22Z"
+  },
+  "within_caps": true
+}

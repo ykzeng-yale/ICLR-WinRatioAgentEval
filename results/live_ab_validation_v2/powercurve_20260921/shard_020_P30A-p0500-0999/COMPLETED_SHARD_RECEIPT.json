@@ -1,0 +1,260 @@
+{
+  "attempt_counts": {
+    "attempted": 2000,
+    "completed": 2000,
+    "failed": 0,
+    "missing": 0,
+    "skipped": 0
+  },
+  "attempt_id": "20260921T141823Z",
+  "coordinates": {
+    "alpha_gate": 0.00625,
+    "cell": "P30A",
+    "exposure_label": "namespace-3 power-curve coordinates, FRESH for this panel; not poolable with the namespace-0 T1 replay set",
+    "horizon": 2000,
+    "namespace": 3,
+    "policy": "operational",
+    "prefixes": [
+      100,
+      500,
+      2000
+    ],
+    "program_start_inclusive": 500,
+    "program_stop_exclusive": 1000,
+    "reference_modes": [
+      "H",
+      "D"
+    ],
+    "schedule": "v2_tick_batched",
+    "trial_indices": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  "errors": [],
+  "files": {
+    "primary_rows.csv.gz": {
+      "compressed_bytes": 274368,
+      "relative_name": "primary_rows.csv.gz",
+      "sha256": "cde800a936c090f6ea7d8c393d444138fc68b005295966cb0d81fabad81c8439",
+      "status": "complete",
+      "uncompressed_bytes": 1471445
+    },
+    "reference_bands.csv": {
+      "compressed_bytes": 1557551,
+      "relative_name": "reference_bands.csv",
+      "sha256": "c24d76704e75b699fd1a670292ec909b1279e99bcc87d10643a3942f41f4661a",
+      "status": "complete",
+      "uncompressed_bytes": 1557551
+    }
+  },
+  "imputation": "NONE; missing or failed trials are not imputed into complete rows",
+  "job_id": "PC-af12822fdc61",
+  "manifest_digest": "d228f53bbf5ab4e511332a3f3f5c3a858899a269d5b20b4040bb04c5727aaeb6",
+  "observed": {
+    "primary_rows": 6000,
+    "programs": 500,
+    "reference_calls": 4000,
+    "reference_rows": 12000,
+    "trials": 2000
+  },
+  "pins": {
+    "binding_method": "whole_file_pins_of_complete_entry_point",
+    "code": "2c270fdb07b445df0a8deb0b6b2415ce33addeaa3344fbc17b79c1285effc14c",
+    "config": "f845429fc887b6e6246ebb90a0a31cf9fbf2a02e1c6f2456c672d61772de7ffc",
+    "detail": {
+      "environment": {
+        "cpu_count": 10,
+        "executable_sha256_note": "interpreter not hashed; version pinned above",
+        "implementation": "CPython",
+        "machine": "arm64",
+        "numpy": "2.4.1",
+        "platform": "macOS-26.5.2-arm64-arm-64bit",
+        "python": "3.12.13"
+      },
+      "repo": {
+        "branch": "session60/live-ab-validation",
+        "dirty_paths": [
+          "M experiments/live_ab_validation/vprod.py",
+          "?? experiments/live_ab_validation/run_powercurve.py",
+          "?? experiments/live_ab_validation/vpowercurve.py"
+        ],
+        "head": "3b14a4477cbc4c054e7e5eb81bf856abacd40cae",
+        "validation_tree_dirty": true
+      },
+      "run_identity": {
+        "alpha_gate": 0.00625,
+        "cells": [
+          "P05N",
+          "P05A",
+          "P10N",
+          "P10A",
+          "P15N",
+          "P15A",
+          "P20N",
+          "P20A",
+          "P30N",
+          "P30A"
+        ],
+        "expected_reference_calls": 160000,
+        "expected_trial_evaluations": 80000,
+        "namespace": 3,
+        "normalized_horizon": 2000,
+        "policy": "operational",
+        "prefixes": [
+          100,
+          500,
+          2000
+        ],
+        "programs": [],
+        "reference_mode": "vendored_complete_information_two_score",
+        "schedule": "v2_tick_batched",
+        "trials_per_program": 4,
+        "verification_mode": "preflight_only"
+      },
+      "source": {
+        "aggregate_sha256": "2c270fdb07b445df0a8deb0b6b2415ce33addeaa3344fbc17b79c1285effc14c",
+        "candidate_binaries_not_authoritative": {
+          "reference/_build/boundaries.cpython-312-darwin.so": "f1c65419fd9785be308eb762e86444effa52a168631a9f39cd377178eab55657"
+        },
+        "config": {
+          "PROTOCOL_V2.md": "259863aa4fc070d652db6ada3513676f97bc27ed7887f4e32e762ccde909bcc4",
+          "cells.json": "96ebf7e47f790031d5d125cedcc9a9973bccfc78ea8e159798d69fcca9d61e97"
+        },
+        "files": {
+          "reference/MANIFEST.json": "ab353bac7d658d4c52aab2b34cef91bb7c302667331773f7884ec064ab0f43e3",
+          "reference/eb_reference.py": "41498a28e67fb37b5a5b07a8e8afb1f98d7aa2459531b6cad5c51a2af35a22a8",
+          "reference/vendor.py": "6f792463a1b4b63827f65fb95cd4696d4612ffd05b7c519132f595184cc7cb0f",
+          "vband.py": "55a9894ff5694099c05cedbdf695ecdad3ac4bd5025328cd445e0b1d3df8cd9c",
+          "vconformance.py": "fc8b6494bcff5e95f3e5ae330066713bfb8b8cd163c42eb7db0f12c5d23944d2",
+          "vgen.py": "08d1a8146023e348817a5cb02d04b9e209540456e2481889b98b8f31a5686987",
+          "videntity.py": "1090a92ffc4316cf955454ac7a9f5acfddad6a52fec65446f7fec10e208242f4",
+          "vlaunch.py": "4411bb5d36921c14df0eb6b488b5ad9d407d88b8410487d64f9a911ab12fe88d",
+          "vmeasure.py": "cec8e3d8eb0d443c759e017389428704c45e1aa9316862071d474831e2df529b",
+          "vpanel.py": "dd475cf5e293ebbd451e56e4b755217ff3febbccdbb85437bd22a6076058c8e4",
+          "vpins.py": "246cd57f3e547c9ebcec325d07f61ea3f63fffc5ab9e396073e68e6151cef33e",
+          "vpolicy.py": "210956feb1c5831c09c82ef09a70fb0728e2b86c8bf6119cdc5ad03146eb962c",
+          "vprod.py": "5eeb1b16767443140a54439e099682904f4a204a97ba93f26b232ebb1ad0ebda",
+          "vresource_check.py": "fb071eb0d616af5d352ae4d4d1bdb278cf409f47445901f64f64bcec94b9e7a9",
+          "vrun.py": "a90c0083ec74088ea496c6a179afc843a6686291964ae903be379fc52265cf90",
+          "vshard.py": "9217d209ea2857ced4622dab721fc5b992b38309136cd1df996e456d28cfeab1",
+          "vsupervise.py": "6b364945f5c46565cde898d781d31491bc1e6246a0309b3ceba5f6e95bc48942",
+          "vtotalguard.py": "fdaea0edce9991a966ad731f480d53044575c74bc6bf7f8b4157676fcb715e05"
+        },
+        "loaded_reference_modules": {
+          "aggregate_sha256": "4fdec5a774e2a571b7c312d522add589718e4303bd1ba2582f3af22fb6e1bc2c",
+          "files": {
+            "comparecast": "314fd68a18a1218537664a71da6bd103caf612f93fdc56b667cbcf5e58692cb5",
+            "comparecast.confseq": "8ea07278021cd06223fa1aa95c3a2aa46ab5be4d5a859d5ed49b5ef5218baef4",
+            "comparecast.confseq::__pycache__": "b403eadbe98bf025f7ea1d443cd1772fc015b1beadebdc9ce47b72c21e2919ab",
+            "comparecast.utils": "5bc239e18f13deb8b064df9a82b859f8556a11f1f91a39145c1cfba8ade37838",
+            "comparecast.utils::__pycache__": "7729c0904a066f86ed0bb55b51dd9f485e3dfe8b872b2ecb1957a8d09fbe1cbe",
+            "comparecast::__pycache__": "be36942d0127d5245f091521860d5904d46c43e562ad0a1d673e7e852957a76b",
+            "confseq": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "confseq.boundaries": "f1c65419fd9785be308eb762e86444effa52a168631a9f39cd377178eab55657",
+            "confseq::__pycache__": "430ce4d15c745f73bfab39b3b9a9ec72d84952c9aaa27f435b451896a5aab438"
+          },
+          "method": "sys.modules __file__/__cached__ after forcing the import",
+          "module_count": 9,
+          "origins": {
+            "comparecast": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/upstream/comparecast/__init__.py",
+            "comparecast.confseq": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/upstream/comparecast/confseq.py",
+            "comparecast.confseq::__pycache__": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/upstream/comparecast/__pycache__/confseq.cpython-312.pyc",
+            "comparecast.utils": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/upstream/comparecast/utils.py",
+            "comparecast.utils::__pycache__": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/upstream/comparecast/__pycache__/utils.cpython-312.pyc",
+            "comparecast::__pycache__": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/upstream/comparecast/__pycache__/__init__.cpython-312.pyc",
+            "confseq": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/upstream/confseq/__init__.py",
+            "confseq.boundaries": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/_build/boundaries.cpython-312-darwin.so",
+            "confseq::__pycache__": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/upstream/confseq/__pycache__/__init__.cpython-312.pyc"
+          }
+        },
+        "roles": {
+          "conformance_preflight": [
+            "vconformance.py"
+          ],
+          "diagnostic_not_authorizing": [
+            "videntity.py"
+          ],
+          "guard": [
+            "vrun.py",
+            "vtotalguard.py",
+            "vresource_check.py",
+            "vpins.py"
+          ],
+          "launcher": [
+            "vlaunch.py"
+          ],
+          "orchestrator": [
+            "vpanel.py"
+          ],
+          "output_accumulator": [
+            "vpanel.py",
+            "vrun.py"
+          ],
+          "primary": [
+            "vrun.py",
+            "vgen.py",
+            "vband.py",
+            "vpolicy.py"
+          ],
+          "reference_bridge": [
+            "reference/eb_reference.py",
+            "reference/vendor.py"
+          ],
+          "shard_executor_and_runner": [
+            "vshard.py",
+            "vprod.py"
+          ],
+          "supervisor_and_driver": [
+            "vsupervise.py",
+            "vmeasure.py"
+          ]
+        }
+      }
+    },
+    "not_used": "videntity call-graph fingerprint; refuted 2026-09-21 and retained only as an exploratory source-difference diagnostic",
+    "policy": "operational",
+    "receipt": "d228f53bbf5ab4e511332a3f3f5c3a858899a269d5b20b4040bb04c5727aaeb6",
+    "workload": "2_calls_per_trial"
+  },
+  "planned": {
+    "primary_rows": 6000,
+    "programs": 500,
+    "reference_calls": 4000,
+    "reference_rows": 12000,
+    "trials": 2000
+  },
+  "prior_attempt_rerun": false,
+  "prior_failed_attempt": null,
+  "published_dir": "shard_020_P30A-p0500-0999",
+  "resources": {
+    "cumulative_output_bytes": 35963571,
+    "per_shard_peak_memory": "unknown",
+    "sampled_scope": "parent-sampled simultaneous process-tree RSS, job-level, recorded in SUPERVISION.json",
+    "this_shard_output_bytes": 1831919,
+    "why_unknown": "the supervisor samples the whole process tree for the whole job; a per-shard figure is NOT derived from the whole-job maximum because that would attribute another shard's peak to this one"
+  },
+  "root_clearance_reference": "OWNER-AUTHORIZED (power-curve panel)",
+  "schema": "live_ab_validation_v2.completed_shard_receipt.1",
+  "sequence": 20,
+  "shard_id": "P30A-p0500-0999",
+  "source_commit": "3b14a4477cbc4c054e7e5eb81bf856abacd40cae",
+  "status": "complete",
+  "timing": {
+    "cumulative_job": {
+      "elapsed_seconds": 832.4799358751625,
+      "output_bytes": 35963571,
+      "primary_rows": 120000,
+      "reference_calls": 80000,
+      "reference_rows": 240000,
+      "shards_completed": 20,
+      "trials": 40000
+    },
+    "elapsed_seconds": 41.23051670752466,
+    "ended_utc": "2026-09-21T14:32:15Z",
+    "started_utc": "2026-09-21T14:31:34Z"
+  },
+  "unique_coordinate_coverage": 500
+}
