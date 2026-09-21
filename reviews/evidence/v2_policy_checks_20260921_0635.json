@@ -1,0 +1,44 @@
+{
+  "partial_states": 96,
+  "partial_state_errors": [],
+  "saved": {
+    "comparison_v2_alllook": {
+      "rows": 24115,
+      "agree": 24115,
+      "nonfinal_drain": 1592,
+      "drain_n_values": [
+        "2000"
+      ]
+    },
+    "comparison_v2_alllook_oracle": {
+      "rows": 24115,
+      "agree": 24013,
+      "nonfinal_drain": 1592,
+      "drain_n_values": [
+        "2000"
+      ],
+      "pair_rows": 103,
+      "live_contains_oracle": 103
+    }
+  },
+  "witness": {
+    "False": {
+      "looks": 1001,
+      "tau_12": 1000,
+      "tau_11": 1000,
+      "disagreements": 0,
+      "aborted": null,
+      "first_decision_tick_12": 1200,
+      "first_decision_tick_11": 1200
+    },
+    "True": {
+      "looks": 1200,
+      "tau_12": 1000,
+      "tau_11": 1000,
+      "disagreements": 0,
+      "aborted": null,
+      "first_decision_tick_12": 1010,
+      "first_decision_tick_11": 1010
+    }
+  }
+}

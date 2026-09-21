@@ -1,0 +1,73 @@
+{
+  "source_commit": "63be271af3e01bf7743efd23e2bfddce47a2016c",
+  "drain_states": [
+    {
+      "cell": "C2",
+      "tick": 2011,
+      "oracle": [
+        -1.0,
+        -1.0
+      ],
+      "operational": [
+        -1.0,
+        0.0
+      ],
+      "band_difference": 0.0005,
+      "contained": true
+    },
+    {
+      "cell": "C3",
+      "tick": 2160,
+      "oracle": [
+        0.0,
+        1.0
+      ],
+      "operational": [
+        -1.0,
+        1.0
+      ],
+      "band_difference": 0.0005,
+      "contained": true
+    },
+    {
+      "cell": "C7",
+      "tick": 2090,
+      "oracle": [
+        -1.0,
+        0.0
+      ],
+      "operational": [
+        -1.0,
+        1.0
+      ],
+      "band_difference": 0.0005,
+      "contained": true
+    }
+  ],
+  "live_doc_only": {
+    "lab_data.py": true,
+    "lab_enclosure.py": true
+  },
+  "snapshot": {
+    "lab_monitor.py": {
+      "files_hash_matches": true,
+      "matches_live_bytes": true,
+      "detail_hash_matches": true,
+      "detail_bytes_matches": true
+    },
+    "lab_enclosure.py": {
+      "files_hash_matches": true,
+      "matches_live_bytes": true,
+      "detail_hash_matches": false,
+      "detail_bytes_matches": false
+    },
+    "lab_reference_rule.py": {
+      "files_hash_matches": true,
+      "matches_live_bytes": true,
+      "detail_hash_matches": true,
+      "detail_bytes_matches": true
+    }
+  },
+  "independent_prefix_variance_and_clock_rows": 48,
+  "snapshot_note": "files mapping and live bytes match, detail metadata stale; executable AST unchanged in live edits"
+}
