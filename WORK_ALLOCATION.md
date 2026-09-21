@@ -1,11 +1,11 @@
 # Shared workspace ownership
 
-**September 21, 11:36 UTC review — full project 65% (change 0), separately bounded v1 90%.** Production delivery `fda55c2` closes the prior absent-runner, receipt-path and partial-monitoring findings; 24 stub tests and an independent actual-writer fixture pass. [Current root disposition](reviews/v2_prerun_root_disposition_20260921_1136.md) identifies the guaranteed child exit-6 integration bug and final context/counter/time/failure-handling repairs. Keep execution-host environment pins and the fixed design; no remeasurement. Latest owner 11:21:07 UTC: zero live episodes/v2 calibration cells, no freeze/grid, nothing running. Remaining 35 points: Session60 prospective 10 and CPU calibration 5; root integration/final QA 10; author checks 10. Reviews/status only; five release artifacts unchanged.
+**September 21, 12:13 UTC review — full project 65% (change 0), separately bounded v1 90%.** Delivery `00478fc` closes child data/final separation, real counters, supplied context mismatch, immediate error-stop and supervisor terminal-time findings. [Current root disposition](reviews/v2_terminal_root_disposition_20260921_1213.md) reproduces a parent crash on the real supervisor receipt schema and loss of the original failed-trial record, plus final-receipt byte undercount. The one-line schema correction passes isolated positive/over-budget checks; owner applies the finite patch and preserves first-error evidence. Exit codes and environment pins accepted as-is. Latest owner 11:49:13 UTC: zero live episodes/v2 calibration cells, no freeze/grid, nothing running. Remaining35: owner prospective10/CPUcalibration5; root integration/finalQA10; authorchecks10. Reviews only; five release artifacts unchanged.
 
 
 ## Active arXiv phase — September 19, 2026
 
-**11:36 handoff:** root reviewed launcher/identity/parent-child completion; exclusive reviewers closed prior shard and monitoring witnesses and checked actual CSV writing. Session60 owns the closing integration patch; root owns acceptance/shared status. No duplicate run or worker-source edit.
+**12:13 handoff:** root owns parent/supervisor interface and identity review; exclusive reviewers closed data-stage/context/immediate-stop and terminal-time witnesses. Session60 applies the remaining finite source/provenance patch. No duplicate job or owner-source edit by root.
 
 **09:46 handoff:** the conformance reviewer owns only its 0946 report/scratch, then returns it to root. Session60 owns final launcher repairs; root owns claim disposition and shared status. No new gate, stochastic run or duplicate task is commissioned.
 

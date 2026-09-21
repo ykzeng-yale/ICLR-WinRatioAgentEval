@@ -1,0 +1,69 @@
+{
+  "data_no_supervisor": {
+    "stage": "data",
+    "data_completion": true,
+    "scientific_completion": false,
+    "conditions": {
+      "all_expected_shard_ids_exactly_once": true,
+      "coordinate_coverage_disjoint": true,
+      "coordinate_coverage_complete": true,
+      "counts_reconciled": true,
+      "coordinates_match_plan_entries": true,
+      "hashes_reconciled": true,
+      "pins_present_and_consistent": true,
+      "every_shard_complete_with_clean_attempts": true,
+      "bindings_equal_frozen_context": true
+    }
+  },
+  "final_no_supervisor": {
+    "stage": "final",
+    "data_completion": true,
+    "scientific_completion": false,
+    "conditions": {
+      "all_expected_shard_ids_exactly_once": true,
+      "coordinate_coverage_disjoint": true,
+      "coordinate_coverage_complete": true,
+      "counts_reconciled": true,
+      "coordinates_match_plan_entries": true,
+      "hashes_reconciled": true,
+      "pins_present_and_consistent": true,
+      "every_shard_complete_with_clean_attempts": true,
+      "bindings_equal_frozen_context": true,
+      "supervisor_completed_successfully": false,
+      "no_cap_event": false
+    }
+  },
+  "final_with_stub_supervisor": {
+    "data_completion": true,
+    "scientific_completion": true,
+    "conditions": {
+      "all_expected_shard_ids_exactly_once": true,
+      "coordinate_coverage_disjoint": true,
+      "coordinate_coverage_complete": true,
+      "counts_reconciled": true,
+      "coordinates_match_plan_entries": true,
+      "hashes_reconciled": true,
+      "pins_present_and_consistent": true,
+      "every_shard_complete_with_clean_attempts": true,
+      "bindings_equal_frozen_context": true,
+      "supervisor_completed_successfully": true,
+      "no_cap_event": true
+    }
+  },
+  "wrong_job_id": {
+    "data_completion": false,
+    "bindings_equal_frozen_context": false
+  },
+  "wrong_attempt_id": {
+    "data_completion": false,
+    "bindings_equal_frozen_context": false
+  },
+  "wrong_manifest_digest": {
+    "data_completion": false,
+    "bindings_equal_frozen_context": false
+  },
+  "wrong_source_commit": {
+    "data_completion": false,
+    "bindings_equal_frozen_context": false
+  }
+}

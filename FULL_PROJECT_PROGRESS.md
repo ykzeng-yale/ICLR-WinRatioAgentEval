@@ -1,6 +1,6 @@
 # Full-project arXiv readiness
 
-**September 21, 11:36 UTC review — full project 65% (change 0), separately bounded v1 90%.** Production delivery `fda55c2` closes the prior absent-runner, receipt-path and partial-monitoring findings; 24 stub tests and an independent actual-writer fixture pass. [Current root disposition](reviews/v2_prerun_root_disposition_20260921_1136.md) identifies the guaranteed child exit-6 integration bug and final context/counter/time/failure-handling repairs. Keep execution-host environment pins and the fixed design; no remeasurement. Latest owner 11:21:07 UTC: zero live episodes/v2 calibration cells, no freeze/grid, nothing running. Remaining 35 points: Session60 prospective 10 and CPU calibration 5; root integration/final QA 10; author checks 10. Reviews/status only; five release artifacts unchanged.
+**September 21, 12:13 UTC review — full project 65% (change 0), separately bounded v1 90%.** Delivery `00478fc` closes child data/final separation, real counters, supplied context mismatch, immediate error-stop and supervisor terminal-time findings. [Current root disposition](reviews/v2_terminal_root_disposition_20260921_1213.md) reproduces a parent crash on the real supervisor receipt schema and loss of the original failed-trial record, plus final-receipt byte undercount. The one-line schema correction passes isolated positive/over-budget checks; owner applies the finite patch and preserves first-error evidence. Exit codes and environment pins accepted as-is. Latest owner 11:49:13 UTC: zero live episodes/v2 calibration cells, no freeze/grid, nothing running. Remaining35: owner prospective10/CPUcalibration5; root integration/finalQA10; authorchecks10. Reviews only; five release artifacts unchanged.
 
 
 **Full project: 65/100 points (65%). Existing bounded-v1 package: 90/100 (90%).** Established September 19, 2026 at the author's request for a percentage covering the full project after every completed work cycle.
@@ -40,7 +40,7 @@ Report unchanged percentages when no milestone closes. Report the first 60% asse
 
 ## Current remaining sequence
 
-Follow the current 11:36 disposition above. Earlier dated checkpoints below are historical and retain their original scores; their open deterministic-milestone statements are superseded.
+Follow the current 12:13 disposition above. Earlier dated checkpoints below are historical and retain their original scores; their open deterministic-milestone statements are superseded.
 
 **September21, 02:26 UTC cycle — full project60% (change0), bounded v190%.** Incoming `d8b2a4d3141f0180473761671d3ffa57437225ad` receives bounded acceptance for its primary tick-batched scheduler repair: both baseline witnesses, the ADAPTER first-decision/pending-state witness and205 direct ticks passed. The optional finest sensitivity contains unreachable prefix states and is deferred from the approved primary plan. Root's [binding disposition](reviews/v2_batched_schedule_root_disposition_20260921_0226.md) identifies the remaining actual-live snapshot/epsilon, v2 manifest/budget, external-reference and resource-measurement bindings. It authorizes only the existing balanced20-program development measurement of the actual delivered primary; no full-grid/live clearance.
 

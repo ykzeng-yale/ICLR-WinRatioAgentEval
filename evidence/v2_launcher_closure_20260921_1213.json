@@ -1,0 +1,49 @@
+{
+  "owner_commit": "00478fcc8c3b590f5931b5b4bbb21444248facce",
+  "scope": "intercepted process boundary, saved manifest and injected scientific stubs; no native/scientific/model/process calls",
+  "manifest_identity": "18ad539884566215ff106ddfa6fdb6170a245e4ba2fa3d7946c3f8062155fd98",
+  "actual_schema_result": {
+    "error_type": "KeyError",
+    "message": "'started_perf'",
+    "child_rc": [
+      0
+    ],
+    "child_receipt_preserved": true,
+    "final_receipt_exists": false
+  },
+  "owner_test_schema_result": {
+    "complete": true,
+    "reported_all_artifact_bytes": 50787,
+    "actual_all_artifact_bytes": 53030,
+    "final_receipt_bytes": 2243,
+    "cumulative_trials": 8
+  },
+  "source_hash_mismatches": [],
+  "canonical_identity_matches": true,
+  "manifest_source_head": "f63553a8dbf40428fbe04af9fb0bfc7848d1fc6e",
+  "one_line_schema_candidate_in_memory_only": [
+    {
+      "synthetic_extra_elapsed": 0.0,
+      "child_rc": [
+        0
+      ],
+      "complete": true,
+      "terminal_breaches": []
+    },
+    {
+      "synthetic_extra_elapsed": 5401.0,
+      "child_rc": [
+        0
+      ],
+      "complete": false,
+      "terminal_breaches": [
+        {
+          "cap": "seconds",
+          "limit": 5400.0,
+          "observed": 5401.011801959015,
+          "detected": "including parent finalization"
+        }
+      ]
+    }
+  ]
+}

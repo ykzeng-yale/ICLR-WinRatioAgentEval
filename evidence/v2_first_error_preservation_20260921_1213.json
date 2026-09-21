@@ -1,0 +1,40 @@
+{
+  "child_exit": 5,
+  "draw_calls": [
+    [
+      0,
+      0
+    ]
+  ],
+  "files": [
+    "T1_FAILURE_RECEIPT.json",
+    "partial_a1_001_S/primary_rows.csv.gz",
+    "partial_a1_001_S/reference_bands.csv"
+  ],
+  "first_error_marker_in_any_artifact": false,
+  "failure_receipt": {
+    "attempt_id": "a1",
+    "cumulative_job": {
+      "elapsed_seconds": 0.0027585839852690697,
+      "output_bytes": 0,
+      "primary_rows": 0,
+      "reference_calls": 0,
+      "reference_rows": 0,
+      "shards_completed": 0,
+      "trials": 0
+    },
+    "detail": {
+      "message": "shard S counts do not reconcile: {'trials': {'planned': 4, 'observed': 0}, 'reference_calls': {'planned': 8, 'observed': 0}, 'primary_rows': {'planned': 12, 'observed': 0}, 'reference_rows': {'planned': 16, 'observed': 0}}. Partial attempt retained at /Users/yukang/Documents/Codex/2026-09-17/i-x20/work/shard_closure_1213/first_error_0y83wj_0/partial_a1_001_S; not published."
+    },
+    "disposition": "returned to root as an INCOMPLETE STUDY. No retry, no resume, no tier change, and no completed subset selected by outcome.",
+    "job_id": "T1-stubidentity",
+    "partial_inventory": [
+      "partial_a1_001_S/primary_rows.csv.gz",
+      "partial_a1_001_S/reference_bands.csv"
+    ],
+    "reason": "ShardError",
+    "schema": "live_ab_validation_v2.t1_failure_receipt.1",
+    "status": "failed_incomplete_study",
+    "written_utc": "2026-09-21T12:15:48Z"
+  }
+}

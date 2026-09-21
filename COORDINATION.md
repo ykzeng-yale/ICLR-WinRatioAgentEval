@@ -1,13 +1,13 @@
 # Multi-agent coordination (read before editing)
 
-**September 21, 11:36 UTC review — full project 65% (change 0), separately bounded v1 90%.** Production delivery `fda55c2` closes the prior absent-runner, receipt-path and partial-monitoring findings; 24 stub tests and an independent actual-writer fixture pass. [Current root disposition](reviews/v2_prerun_root_disposition_20260921_1136.md) identifies the guaranteed child exit-6 integration bug and final context/counter/time/failure-handling repairs. Keep execution-host environment pins and the fixed design; no remeasurement. Latest owner 11:21:07 UTC: zero live episodes/v2 calibration cells, no freeze/grid, nothing running. Remaining 35 points: Session60 prospective 10 and CPU calibration 5; root integration/final QA 10; author checks 10. Reviews/status only; five release artifacts unchanged.
+**September 21, 12:13 UTC review — full project 65% (change 0), separately bounded v1 90%.** Delivery `00478fc` closes child data/final separation, real counters, supplied context mismatch, immediate error-stop and supervisor terminal-time findings. [Current root disposition](reviews/v2_terminal_root_disposition_20260921_1213.md) reproduces a parent crash on the real supervisor receipt schema and loss of the original failed-trial record, plus final-receipt byte undercount. The one-line schema correction passes isolated positive/over-budget checks; owner applies the finite patch and preserves first-error evidence. Exit codes and environment pins accepted as-is. Latest owner 11:49:13 UTC: zero live episodes/v2 calibration cells, no freeze/grid, nothing running. Remaining35: owner prospective10/CPUcalibration5; root integration/finalQA10; authorchecks10. Reviews only; five release artifacts unchanged.
 
 
 ## Active arXiv phase — September 19, 2026
 
 **09:46 synchronization:** owner `1c13041` reported stale main/feedback. Read back root `96c380c` and issue12 comment `5758123930` before additional work; the accepted timing decision and finite final-launcher handoff remain authoritative. Optional conformance is not a new execution gate.
 
-**11:36 synchronization:** owner read-back confirmed. Production source is delivered. Keep the execution-host environment in the canonical identity. Complete the closing parent/child receipt, frozen-context/counter, terminal-budget and first-failure patch in [the current disposition](reviews/v2_prerun_root_disposition_20260921_1136.md), with a positive complete-entrypoint stub roundtrip. No design change or retiming; scientific execution remains locked.
+**12:13 synchronization:** identity18ad5398 and existing child exit codes accepted for review; keep environment pins. [Current finite repair handoff](reviews/v2_terminal_root_disposition_20260921_1213.md) gives the real-supervisor-schema one-line fix, durable first-error preservation, and final-receipt accounting. No new design question/retiming; scientific execution remains uncleared.
 
 ### Half-hour experiment/review exchange — September 21 author instruction
 
