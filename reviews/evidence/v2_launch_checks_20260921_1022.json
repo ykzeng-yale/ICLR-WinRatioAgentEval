@@ -1,0 +1,47 @@
+{
+  "source_commit": "7a12acb28197e3b08677ebe1171bcaae520b0835",
+  "request_cases": {
+    "fixed": {
+      "accepted": true,
+      "programs": 28000,
+      "trials": 112000,
+      "reference_calls": 224000
+    },
+    "wrong_horizon": {
+      "accepted": false,
+      "error": "LaunchRefused"
+    },
+    "nan": {
+      "accepted": false,
+      "error": "LaunchRefused"
+    },
+    "wrong_namespace": {
+      "accepted": false,
+      "error": "LaunchRefused"
+    },
+    "wrong_alpha": {
+      "accepted": false,
+      "error": "LaunchRefused"
+    },
+    "wrong_trials": {
+      "accepted": false,
+      "error": "LaunchRefused"
+    },
+    "missing_refs": {
+      "accepted": false,
+      "error": "LaunchRefused"
+    },
+    "wrong_allocation": {
+      "accepted": false,
+      "error": "LaunchRefused"
+    }
+  },
+  "deposited_manifest_mismatched_files": [
+    "vconformance.py",
+    "vpanel.py"
+  ],
+  "deposited_manifest_dirty": true,
+  "child_path_refuses_unimplemented": true,
+  "program_list_in_pin": [],
+  "scientific_or_native_calls": 0
+}

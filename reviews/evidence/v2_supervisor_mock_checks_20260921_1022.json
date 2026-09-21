@@ -1,0 +1,13 @@
+{
+  "descendant_ps_error": [
+    123456
+  ],
+  "rss_exception_failclosed": true,
+  "rss_nonzero_partial_bytes": 125952,
+  "leader_exited_cleanup_signals": [
+    [
+      123456,
+      15
+    ]
+  ]
+}

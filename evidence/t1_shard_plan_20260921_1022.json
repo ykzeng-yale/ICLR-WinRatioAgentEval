@@ -1,0 +1,1040 @@
+{
+  "schema": "root.T1_shard_plan.1",
+  "status": "AUTHORIZED_TO_IMPLEMENT_NOT_EXECUTE",
+  "namespace": 0,
+  "horizon": 2000,
+  "programs_per_shard": 500,
+  "order": "ascending block index, then C1 through C8, skip cells whose frozen allocation is complete",
+  "allocation": {
+    "C1": 2000,
+    "C2": 2000,
+    "C3": 5000,
+    "C4": 5000,
+    "C5": 5000,
+    "C6": 5000,
+    "C7": 2000,
+    "C8": 2000
+  },
+  "total_shards": 56,
+  "total_programs": 28000,
+  "total_trials": 112000,
+  "total_reference_calls": 224000,
+  "total_primary_rows": 336000,
+  "total_reference_rows": 672000,
+  "job_caps": {
+    "seconds": 5400,
+    "sampled_process_tree_bytes": 2147483648,
+    "total_output_bytes": 209715200,
+    "reset_per_shard": false
+  },
+  "shards": [
+    {
+      "sequence": 1,
+      "id": "C1-p0000-0499",
+      "cell": "C1",
+      "program_start_inclusive": 0,
+      "program_stop_exclusive": 500,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 2,
+      "id": "C2-p0000-0499",
+      "cell": "C2",
+      "program_start_inclusive": 0,
+      "program_stop_exclusive": 500,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 3,
+      "id": "C3-p0000-0499",
+      "cell": "C3",
+      "program_start_inclusive": 0,
+      "program_stop_exclusive": 500,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 4,
+      "id": "C4-p0000-0499",
+      "cell": "C4",
+      "program_start_inclusive": 0,
+      "program_stop_exclusive": 500,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 5,
+      "id": "C5-p0000-0499",
+      "cell": "C5",
+      "program_start_inclusive": 0,
+      "program_stop_exclusive": 500,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 6,
+      "id": "C6-p0000-0499",
+      "cell": "C6",
+      "program_start_inclusive": 0,
+      "program_stop_exclusive": 500,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 7,
+      "id": "C7-p0000-0499",
+      "cell": "C7",
+      "program_start_inclusive": 0,
+      "program_stop_exclusive": 500,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 8,
+      "id": "C8-p0000-0499",
+      "cell": "C8",
+      "program_start_inclusive": 0,
+      "program_stop_exclusive": 500,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 9,
+      "id": "C1-p0500-0999",
+      "cell": "C1",
+      "program_start_inclusive": 500,
+      "program_stop_exclusive": 1000,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 10,
+      "id": "C2-p0500-0999",
+      "cell": "C2",
+      "program_start_inclusive": 500,
+      "program_stop_exclusive": 1000,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 11,
+      "id": "C3-p0500-0999",
+      "cell": "C3",
+      "program_start_inclusive": 500,
+      "program_stop_exclusive": 1000,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 12,
+      "id": "C4-p0500-0999",
+      "cell": "C4",
+      "program_start_inclusive": 500,
+      "program_stop_exclusive": 1000,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 13,
+      "id": "C5-p0500-0999",
+      "cell": "C5",
+      "program_start_inclusive": 500,
+      "program_stop_exclusive": 1000,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 14,
+      "id": "C6-p0500-0999",
+      "cell": "C6",
+      "program_start_inclusive": 500,
+      "program_stop_exclusive": 1000,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 15,
+      "id": "C7-p0500-0999",
+      "cell": "C7",
+      "program_start_inclusive": 500,
+      "program_stop_exclusive": 1000,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 16,
+      "id": "C8-p0500-0999",
+      "cell": "C8",
+      "program_start_inclusive": 500,
+      "program_stop_exclusive": 1000,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 17,
+      "id": "C1-p1000-1499",
+      "cell": "C1",
+      "program_start_inclusive": 1000,
+      "program_stop_exclusive": 1500,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 18,
+      "id": "C2-p1000-1499",
+      "cell": "C2",
+      "program_start_inclusive": 1000,
+      "program_stop_exclusive": 1500,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 19,
+      "id": "C3-p1000-1499",
+      "cell": "C3",
+      "program_start_inclusive": 1000,
+      "program_stop_exclusive": 1500,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 20,
+      "id": "C4-p1000-1499",
+      "cell": "C4",
+      "program_start_inclusive": 1000,
+      "program_stop_exclusive": 1500,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 21,
+      "id": "C5-p1000-1499",
+      "cell": "C5",
+      "program_start_inclusive": 1000,
+      "program_stop_exclusive": 1500,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 22,
+      "id": "C6-p1000-1499",
+      "cell": "C6",
+      "program_start_inclusive": 1000,
+      "program_stop_exclusive": 1500,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 23,
+      "id": "C7-p1000-1499",
+      "cell": "C7",
+      "program_start_inclusive": 1000,
+      "program_stop_exclusive": 1500,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 24,
+      "id": "C8-p1000-1499",
+      "cell": "C8",
+      "program_start_inclusive": 1000,
+      "program_stop_exclusive": 1500,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 25,
+      "id": "C1-p1500-1999",
+      "cell": "C1",
+      "program_start_inclusive": 1500,
+      "program_stop_exclusive": 2000,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 26,
+      "id": "C2-p1500-1999",
+      "cell": "C2",
+      "program_start_inclusive": 1500,
+      "program_stop_exclusive": 2000,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 27,
+      "id": "C3-p1500-1999",
+      "cell": "C3",
+      "program_start_inclusive": 1500,
+      "program_stop_exclusive": 2000,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 28,
+      "id": "C4-p1500-1999",
+      "cell": "C4",
+      "program_start_inclusive": 1500,
+      "program_stop_exclusive": 2000,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 29,
+      "id": "C5-p1500-1999",
+      "cell": "C5",
+      "program_start_inclusive": 1500,
+      "program_stop_exclusive": 2000,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 30,
+      "id": "C6-p1500-1999",
+      "cell": "C6",
+      "program_start_inclusive": 1500,
+      "program_stop_exclusive": 2000,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 31,
+      "id": "C7-p1500-1999",
+      "cell": "C7",
+      "program_start_inclusive": 1500,
+      "program_stop_exclusive": 2000,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 32,
+      "id": "C8-p1500-1999",
+      "cell": "C8",
+      "program_start_inclusive": 1500,
+      "program_stop_exclusive": 2000,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 33,
+      "id": "C3-p2000-2499",
+      "cell": "C3",
+      "program_start_inclusive": 2000,
+      "program_stop_exclusive": 2500,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 34,
+      "id": "C4-p2000-2499",
+      "cell": "C4",
+      "program_start_inclusive": 2000,
+      "program_stop_exclusive": 2500,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 35,
+      "id": "C5-p2000-2499",
+      "cell": "C5",
+      "program_start_inclusive": 2000,
+      "program_stop_exclusive": 2500,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 36,
+      "id": "C6-p2000-2499",
+      "cell": "C6",
+      "program_start_inclusive": 2000,
+      "program_stop_exclusive": 2500,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 37,
+      "id": "C3-p2500-2999",
+      "cell": "C3",
+      "program_start_inclusive": 2500,
+      "program_stop_exclusive": 3000,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 38,
+      "id": "C4-p2500-2999",
+      "cell": "C4",
+      "program_start_inclusive": 2500,
+      "program_stop_exclusive": 3000,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 39,
+      "id": "C5-p2500-2999",
+      "cell": "C5",
+      "program_start_inclusive": 2500,
+      "program_stop_exclusive": 3000,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 40,
+      "id": "C6-p2500-2999",
+      "cell": "C6",
+      "program_start_inclusive": 2500,
+      "program_stop_exclusive": 3000,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 41,
+      "id": "C3-p3000-3499",
+      "cell": "C3",
+      "program_start_inclusive": 3000,
+      "program_stop_exclusive": 3500,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 42,
+      "id": "C4-p3000-3499",
+      "cell": "C4",
+      "program_start_inclusive": 3000,
+      "program_stop_exclusive": 3500,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 43,
+      "id": "C5-p3000-3499",
+      "cell": "C5",
+      "program_start_inclusive": 3000,
+      "program_stop_exclusive": 3500,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 44,
+      "id": "C6-p3000-3499",
+      "cell": "C6",
+      "program_start_inclusive": 3000,
+      "program_stop_exclusive": 3500,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 45,
+      "id": "C3-p3500-3999",
+      "cell": "C3",
+      "program_start_inclusive": 3500,
+      "program_stop_exclusive": 4000,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 46,
+      "id": "C4-p3500-3999",
+      "cell": "C4",
+      "program_start_inclusive": 3500,
+      "program_stop_exclusive": 4000,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 47,
+      "id": "C5-p3500-3999",
+      "cell": "C5",
+      "program_start_inclusive": 3500,
+      "program_stop_exclusive": 4000,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 48,
+      "id": "C6-p3500-3999",
+      "cell": "C6",
+      "program_start_inclusive": 3500,
+      "program_stop_exclusive": 4000,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 49,
+      "id": "C3-p4000-4499",
+      "cell": "C3",
+      "program_start_inclusive": 4000,
+      "program_stop_exclusive": 4500,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 50,
+      "id": "C4-p4000-4499",
+      "cell": "C4",
+      "program_start_inclusive": 4000,
+      "program_stop_exclusive": 4500,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 51,
+      "id": "C5-p4000-4499",
+      "cell": "C5",
+      "program_start_inclusive": 4000,
+      "program_stop_exclusive": 4500,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 52,
+      "id": "C6-p4000-4499",
+      "cell": "C6",
+      "program_start_inclusive": 4000,
+      "program_stop_exclusive": 4500,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 53,
+      "id": "C3-p4500-4999",
+      "cell": "C3",
+      "program_start_inclusive": 4500,
+      "program_stop_exclusive": 5000,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 54,
+      "id": "C4-p4500-4999",
+      "cell": "C4",
+      "program_start_inclusive": 4500,
+      "program_stop_exclusive": 5000,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 55,
+      "id": "C5-p4500-4999",
+      "cell": "C5",
+      "program_start_inclusive": 4500,
+      "program_stop_exclusive": 5000,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    },
+    {
+      "sequence": 56,
+      "id": "C6-p4500-4999",
+      "cell": "C6",
+      "program_start_inclusive": 4500,
+      "program_stop_exclusive": 5000,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "expected_programs": 500,
+      "expected_trials": 2000,
+      "expected_reference_calls": 4000,
+      "expected_primary_rows": 6000,
+      "expected_reference_rows": 12000
+    }
+  ]
+}
