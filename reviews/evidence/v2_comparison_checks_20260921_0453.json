@@ -1,0 +1,119 @@
+{
+  "source_commit": "b96f965b993e0e153acc88e3da31dd29ed847c40",
+  "defect_rows": 198,
+  "per_pair_rows": 100,
+  "distinct_states": [
+    {
+      "revealed_arm": "incumbent",
+      "ell": "10.526315789473685",
+      "revealed_cost": "10.0",
+      "enc12_lo": "-1.0",
+      "enc12_hi": "-1.0",
+      "enc11_lo": "-1.0",
+      "enc11_hi": "0.0",
+      "count": 36,
+      "reproduced": true,
+      "live_zero_eps": [
+        -1.0,
+        0.0
+      ],
+      "same_at_zero_eps": true
+    },
+    {
+      "revealed_arm": "incumbent",
+      "ell": "9.5",
+      "revealed_cost": "10.0",
+      "enc12_lo": "-1.0",
+      "enc12_hi": "0.0",
+      "enc11_lo": "-1.0",
+      "enc11_hi": "1.0",
+      "count": 4,
+      "reproduced": true,
+      "live_zero_eps": [
+        -1.0,
+        1.0
+      ],
+      "same_at_zero_eps": true
+    },
+    {
+      "revealed_arm": "candidate",
+      "ell": "10.526315789473685",
+      "revealed_cost": "10.0",
+      "enc12_lo": "1.0",
+      "enc12_hi": "1.0",
+      "enc11_lo": "0.0",
+      "enc11_hi": "1.0",
+      "count": 54,
+      "reproduced": true,
+      "live_zero_eps": [
+        0.0,
+        1.0
+      ],
+      "same_at_zero_eps": true
+    },
+    {
+      "revealed_arm": "candidate",
+      "ell": "9.5",
+      "revealed_cost": "10.0",
+      "enc12_lo": "0.0",
+      "enc12_hi": "1.0",
+      "enc11_lo": "-1.0",
+      "enc11_hi": "1.0",
+      "count": 3,
+      "reproduced": true,
+      "live_zero_eps": [
+        -1.0,
+        1.0
+      ],
+      "same_at_zero_eps": true
+    },
+    {
+      "revealed_arm": "incumbent",
+      "ell": "38.0",
+      "revealed_cost": "40.0",
+      "enc12_lo": "-1.0",
+      "enc12_hi": "0.0",
+      "enc11_lo": "-1.0",
+      "enc11_hi": "1.0",
+      "count": 1,
+      "reproduced": true,
+      "live_zero_eps": [
+        -1.0,
+        1.0
+      ],
+      "same_at_zero_eps": true
+    },
+    {
+      "revealed_arm": "candidate",
+      "ell": "38.0",
+      "revealed_cost": "40.0",
+      "enc12_lo": "0.0",
+      "enc12_hi": "1.0",
+      "enc11_lo": "-1.0",
+      "enc11_hi": "1.0",
+      "count": 2,
+      "reproduced": true,
+      "live_zero_eps": [
+        -1.0,
+        1.0
+      ],
+      "same_at_zero_eps": true
+    }
+  ],
+  "all_saved_pairs_live_contains_cpu": true,
+  "saved_look_rows": 16011,
+  "saved_cell_looks": 16008,
+  "cell_nonfinal_drain_looks": 0,
+  "saved_status_counts": {
+    "AGREE": 15912,
+    "DISAGREE": 99
+  },
+  "input_hashes": {
+    "results/live_ab_validation_v2/comparison_v2/comparison_defects.csv": "348338858f4b9fcb1640bc01d38b5319cd343d9b9ee4a60b28789e5b78e1d341",
+    "results/live_ab_validation_v2/comparison_v2/comparison_summary.json": "37b784acd35e810813f6213866db8bf510ca0407575f42e42ceb24b5fb87d334",
+    "results/live_ab_validation_v2/comparison_v2/comparison_vs_live_ab.csv": "41dcab8c36279a9b1d35e2e34c31e2cb5893deb55e82e4b8ca05af2ed6b55279",
+    "experiments/live_ab_validation/vcompare.py": "98d4013b2dae7cb846da5838f3d239d6aee68b42b64c73986c69f57acc517467",
+    "experiments/live_ab_validation/vband.py": "55a9894ff5694099c05cedbdf695ecdad3ac4bd5025328cd445e0b1d3df8cd9c",
+    "experiments/live_ab_validation/pinned_v2/lab_enclosure.py": "da1b300d0fc99608f3b4c919d33ed546d20f2547c9339bd03e6ce6c7b9290d74"
+  }
+}

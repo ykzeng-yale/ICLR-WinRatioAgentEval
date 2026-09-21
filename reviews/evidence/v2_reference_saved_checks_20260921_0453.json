@@ -1,0 +1,351 @@
+{
+  "hashchecks": {
+    "cells_json_sha256": true,
+    "eb_reference_sha256": true,
+    "reference_manifest_sha256": true,
+    "winstats_sha256": true,
+    "vcompare_sha256": true,
+    "this_file_sha256": true
+  },
+  "errors": [],
+  "variance_rows": [
+    {
+      "cell": "C1",
+      "n": 100,
+      "true_variance_sum": 68.75999999999999,
+      "reported_variance_sum": 65.18182008382344,
+      "clock": 74.67063302318914
+    },
+    {
+      "cell": "C1",
+      "n": 200,
+      "true_variance_sum": 143.01999999999998,
+      "reported_variance_sum": 138.9245826760309,
+      "clock": 149.45165464246082
+    },
+    {
+      "cell": "C1",
+      "n": 500,
+      "true_variance_sum": 367.558,
+      "reported_variance_sum": 362.77969405075095,
+      "clock": 374.67478378326217
+    },
+    {
+      "cell": "C1",
+      "n": 1000,
+      "true_variance_sum": 727.6709999999999,
+      "reported_variance_sum": 722.396079388466,
+      "clock": 735.2851130248625
+    },
+    {
+      "cell": "C1",
+      "n": 1500,
+      "true_variance_sum": 1093.9093333333335,
+      "reported_variance_sum": 1088.336362363384,
+      "clock": 1101.8217429203444
+    },
+    {
+      "cell": "C1",
+      "n": 2000,
+      "true_variance_sum": 1470.5795000000003,
+      "reported_variance_sum": 1464.7896996526013,
+      "clock": 1478.7088646917323
+    },
+    {
+      "cell": "C2",
+      "n": 100,
+      "true_variance_sum": 79.96,
+      "reported_variance_sum": 76.98486918861359,
+      "clock": 83.42613082930613
+    },
+    {
+      "cell": "C2",
+      "n": 200,
+      "true_variance_sum": 159.92,
+      "reported_variance_sum": 156.39582593184133,
+      "clock": 163.93912623960023
+    },
+    {
+      "cell": "C2",
+      "n": 500,
+      "true_variance_sum": 380.90200000000004,
+      "reported_variance_sum": 376.70176062709714,
+      "clock": 385.5994151663409
+    },
+    {
+      "cell": "C2",
+      "n": 1000,
+      "true_variance_sum": 760.9749999999998,
+      "reported_variance_sum": 756.24893331015,
+      "clock": 766.1990004945088
+    },
+    {
+      "cell": "C2",
+      "n": 1500,
+      "true_variance_sum": 1135.677333333333,
+      "reported_variance_sum": 1130.647225103374,
+      "clock": 1141.2056256684573
+    },
+    {
+      "cell": "C2",
+      "n": 2000,
+      "true_variance_sum": 1518.6355,
+      "reported_variance_sum": 1513.3851738771186,
+      "clock": 1524.384137826185
+    },
+    {
+      "cell": "C3",
+      "n": 100,
+      "true_variance_sum": 89.95999999999998,
+      "reported_variance_sum": 86.46215773922765,
+      "clock": 94.81923682352948
+    },
+    {
+      "cell": "C3",
+      "n": 200,
+      "true_variance_sum": 180.755,
+      "reported_variance_sum": 176.63108597267995,
+      "clock": 186.24483662398382
+    },
+    {
+      "cell": "C3",
+      "n": 500,
+      "true_variance_sum": 451.71200000000005,
+      "reported_variance_sum": 446.7591531141924,
+      "clock": 458.0334989562378
+    },
+    {
+      "cell": "C3",
+      "n": 1000,
+      "true_variance_sum": 912.471,
+      "reported_variance_sum": 906.8790319975136,
+      "clock": 919.4325446652306
+    },
+    {
+      "cell": "C3",
+      "n": 1500,
+      "true_variance_sum": 1360.85,
+      "reported_variance_sum": 1354.8948068201887,
+      "clock": 1368.1750684003227
+    },
+    {
+      "cell": "C3",
+      "n": 2000,
+      "true_variance_sum": 1811.4880000000003,
+      "reported_variance_sum": 1805.273709503738,
+      "clock": 1819.0723157790846
+    },
+    {
+      "cell": "C4",
+      "n": 100,
+      "true_variance_sum": 88.99,
+      "reported_variance_sum": 85.10116795236465,
+      "clock": 94.58072897873701
+    },
+    {
+      "cell": "C4",
+      "n": 200,
+      "true_variance_sum": 181.01999999999998,
+      "reported_variance_sum": 176.49381003166377,
+      "clock": 187.25271702336548
+    },
+    {
+      "cell": "C4",
+      "n": 500,
+      "true_variance_sum": 442.998,
+      "reported_variance_sum": 437.67354056106143,
+      "clock": 450.03160055575853
+    },
+    {
+      "cell": "C4",
+      "n": 1000,
+      "true_variance_sum": 886.1589999999997,
+      "reported_variance_sum": 880.2227239807407,
+      "clock": 893.8052962917251
+    },
+    {
+      "cell": "C4",
+      "n": 1500,
+      "true_variance_sum": 1340.056,
+      "reported_variance_sum": 1333.7518861863805,
+      "clock": 1348.0704366016505
+    },
+    {
+      "cell": "C4",
+      "n": 2000,
+      "true_variance_sum": 1794.7555000000002,
+      "reported_variance_sum": 1788.1903440949716,
+      "clock": 1803.0311296765797
+    },
+    {
+      "cell": "C5",
+      "n": 100,
+      "true_variance_sum": 63.31000000000001,
+      "reported_variance_sum": 61.272896413923775,
+      "clock": 66.51716689544863
+    },
+    {
+      "cell": "C5",
+      "n": 200,
+      "true_variance_sum": 128.38000000000002,
+      "reported_variance_sum": 125.9061067033417,
+      "clock": 132.02700711506557
+    },
+    {
+      "cell": "C5",
+      "n": 500,
+      "true_variance_sum": 344.342,
+      "reported_variance_sum": 341.20066873089615,
+      "clock": 348.6586651172006
+    },
+    {
+      "cell": "C5",
+      "n": 1000,
+      "true_variance_sum": 693.5039999999999,
+      "reported_variance_sum": 689.8804497658147,
+      "clock": 698.3035780311847
+    },
+    {
+      "cell": "C5",
+      "n": 1500,
+      "true_variance_sum": 1019.0693333333332,
+      "reported_variance_sum": 1015.1798711291478,
+      "clock": 1024.1350437782135
+    },
+    {
+      "cell": "C5",
+      "n": 2000,
+      "true_variance_sum": 1364.8555000000001,
+      "reported_variance_sum": 1360.7661372662924,
+      "clock": 1370.1212274289333
+    },
+    {
+      "cell": "C6",
+      "n": 100,
+      "true_variance_sum": 72.24000000000001,
+      "reported_variance_sum": 69.39792156682151,
+      "clock": 76.61903631096023
+    },
+    {
+      "cell": "C6",
+      "n": 200,
+      "true_variance_sum": 143.15499999999997,
+      "reported_variance_sum": 139.81937527609196,
+      "clock": 148.0311709457962
+    },
+    {
+      "cell": "C6",
+      "n": 500,
+      "true_variance_sum": 355.328,
+      "reported_variance_sum": 351.34749928131583,
+      "clock": 360.85115528229846
+    },
+    {
+      "cell": "C6",
+      "n": 1000,
+      "true_variance_sum": 701.616,
+      "reported_variance_sum": 697.1513102369754,
+      "clock": 707.6240490570232
+    },
+    {
+      "cell": "C6",
+      "n": 1500,
+      "true_variance_sum": 1048.9173333333333,
+      "reported_variance_sum": 1044.1700550351388,
+      "clock": 1055.2082042816767
+    },
+    {
+      "cell": "C6",
+      "n": 2000,
+      "true_variance_sum": 1404.9755,
+      "reported_variance_sum": 1400.022977054774,
+      "clock": 1411.471734768053
+    },
+    {
+      "cell": "C7",
+      "n": 100,
+      "true_variance_sum": 69.79000000000002,
+      "reported_variance_sum": 67.7857805130895,
+      "clock": 72.8869201194884
+    },
+    {
+      "cell": "C7",
+      "n": 200,
+      "true_variance_sum": 129.59499999999997,
+      "reported_variance_sum": 127.1708667703777,
+      "clock": 133.11494151272908
+    },
+    {
+      "cell": "C7",
+      "n": 500,
+      "true_variance_sum": 346.72800000000007,
+      "reported_variance_sum": 343.6458263718609,
+      "clock": 350.9081278047195
+    },
+    {
+      "cell": "C7",
+      "n": 1000,
+      "true_variance_sum": 676.944,
+      "reported_variance_sum": 673.4121274043678,
+      "clock": 681.5744648780758
+    },
+    {
+      "cell": "C7",
+      "n": 1500,
+      "true_variance_sum": 972.7333333333336,
+      "reported_variance_sum": 968.9617872039195,
+      "clock": 977.603669038345
+    },
+    {
+      "cell": "C7",
+      "n": 2000,
+      "true_variance_sum": 1308.062,
+      "reported_variance_sum": 1304.0967435542902,
+      "clock": 1313.1261587655495
+    },
+    {
+      "cell": "C8",
+      "n": 100,
+      "true_variance_sum": 74.19000000000001,
+      "reported_variance_sum": 71.27779395699477,
+      "clock": 77.69615064979195
+    },
+    {
+      "cell": "C8",
+      "n": 200,
+      "true_variance_sum": 135.50000000000003,
+      "reported_variance_sum": 132.17886736002563,
+      "clock": 139.41794250542264
+    },
+    {
+      "cell": "C8",
+      "n": 500,
+      "true_variance_sum": 342.54999999999995,
+      "reported_variance_sum": 338.60293630300356,
+      "clock": 347.0959106855252
+    },
+    {
+      "cell": "C8",
+      "n": 1000,
+      "true_variance_sum": 704.7640000000001,
+      "reported_variance_sum": 700.3113568010479,
+      "clock": 709.8162256267372
+    },
+    {
+      "cell": "C8",
+      "n": 1500,
+      "true_variance_sum": 1002.3333333333331,
+      "reported_variance_sum": 997.6410532945104,
+      "clock": 1007.6253918725489
+    },
+    {
+      "cell": "C8",
+      "n": 2000,
+      "true_variance_sum": 1332.8874999999998,
+      "reported_variance_sum": 1328.0053387752139,
+      "clock": 1338.369549643862
+    }
+  ],
+  "narrower": 3,
+  "rows": 48
+}

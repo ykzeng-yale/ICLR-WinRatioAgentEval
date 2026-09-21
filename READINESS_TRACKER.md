@@ -1,6 +1,6 @@
 # Bounded-v1 arXiv package readiness tracker
 
-Current full-project review remains60% (change0); bounded v190%. See [September21 root disposition](reviews/v2_bindings_root_disposition_20260921_0343.md). New source/resource provenance is bounded-verified; successor experiments and release integration remain pending.
+Current full-project review remains60% (change0); bounded v190%. See [September21 root disposition](reviews/v2_comparison_root_disposition_20260921_0453.md). New source/resource provenance is bounded-verified; successor experiments and release integration remain pending.
 
 **For overall progress, report [FULL_PROJECT_PROGRESS.md](FULL_PROJECT_PROGRESS.md) first: 60% across the expanded project, including issues #11/#12 and their final integration. This file retains the separate existing-package score of 90%.**
 
