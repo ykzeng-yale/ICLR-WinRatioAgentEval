@@ -1,0 +1,96 @@
+{
+  "applies_to": "results/live_ab_validation_v2/powercurve_fine_20260921",
+  "authority": "root fine-power disposition 2026-09-21 15:50",
+  "authorizes": "NOTHING. Archival and reporting correction.",
+  "erratum_1_namespace_mismatch_in_the_receipts": {
+    "cannot_be_established": "that the originally executed pin utility computed anything else. The receipts are what they are and are not edited.",
+    "cause": "run_powercurve.run_child called entry_point_pins(namespace=PC.NAMESPACE_POWER) -- the COARSE constant -- while the rest of the function used the fine ns, and the exposure label hardcoded the string 'namespace-3'.",
+    "consequence": "the fine receipts carry an internally inconsistent identity: coordinates say 4, run_identity says 3, exposure text says 3. The DATA coordinates are correct at ns 4 (root independently verified 12,000 program coordinates and 48,000 trial identities); the IDENTITY FIELD is wrong.",
+    "fixed_forward": "both sites now take ns; no hardcoded coarse constant remains",
+    "what_actually_ran": "namespace 4. The plan, runner and context all used ns=4; only the PIN call and the exposure string used 3.",
+    "what_the_receipts_say": {
+      "coordinates.namespace": 4,
+      "exposure_label": "namespace-3 power-curve coordinates, FRESH for this panel; not poolable with the namespace-0 T1 replay set",
+      "pins.detail.run_identity.namespace": 3
+    }
+  },
+  "erratum_2_my_contemporaneous_pinning_claim_was_FALSE": {
+    "cannot_be_established": "that these bytes are the ones that executed",
+    "retrospective_blobs": {
+      "run_powercurve.py": "5b6bd37b7347113f3c96dde2ce3c2e0dc0192eb34f4e1476dbfa0f9ce5bca960",
+      "vpowercurve.py": "c88c7470c5986fa85e715297a91e2106ea645af94b832c97a51aee620107a76f"
+    },
+    "status": "the FINE panel's driver/law binding is RETROSPECTIVE, exactly as the coarse panel's is",
+    "verified": {
+      "run_powercurve.py_in_fine_receipt_source_map": false,
+      "vpowercurve.py_in_fine_receipt_source_map": false
+    },
+    "what_I_claimed": "in my 15:45 update: 'the fine panel's [provenance] is contemporaneous, since both entrypoint files are now pinned'",
+    "why_it_is_false": "the pin repair adding run_powercurve.py and vpowercurve.py to PINNED_SOURCES landed AFTER the fine run had started. A running process keeps the utility it already imported, so the repair could not and did not affect the fine receipts."
+  },
+  "erratum_3_runtime_laws_and_cells_not_in_any_receipt": {
+    "cell_index_base": 200,
+    "laws": {
+      "P06": {
+        "BB+": 1300,
+        "BB-": 2700,
+        "BB0": 1000,
+        "C>I": 2500,
+        "FF": 2000,
+        "I>C": 500
+      },
+      "P07": {
+        "BB+": 1350,
+        "BB-": 2650,
+        "BB0": 1000,
+        "C>I": 2500,
+        "FF": 2000,
+        "I>C": 500
+      },
+      "P08": {
+        "BB+": 1400,
+        "BB-": 2600,
+        "BB0": 1000,
+        "C>I": 2500,
+        "FF": 2000,
+        "I>C": 500
+      },
+      "P09": {
+        "BB+": 1450,
+        "BB-": 2550,
+        "BB0": 1000,
+        "C>I": 2500,
+        "FF": 2000,
+        "I>C": 500
+      },
+      "P11": {
+        "BB+": 1550,
+        "BB-": 2450,
+        "BB0": 1000,
+        "C>I": 2500,
+        "FF": 2000,
+        "I>C": 500
+      },
+      "P12": {
+        "BB+": 1600,
+        "BB-": 2400,
+        "BB0": 1000,
+        "C>I": 2500,
+        "FF": 2000,
+        "I>C": 500
+      }
+    },
+    "namespace": 4,
+    "note": "the complete atom table, supplied because no receipt contains it"
+  },
+  "original_receipts": "IMMUTABLE and unedited; this file records what they get wrong",
+  "schema": "live_ab_validation_v2.fine_panel_erratum.1",
+  "scientific_reporting_correction": {
+    "crossing_wording": "say 'observed proportions straddle 50% at these adjacent measured settings', with the finite-law-family and provenance qualifications. NOT 'resolved to +/-0.01'. An observed crossing between grid points is not automatically a confidence interval for a unique underlying 50% crossing.",
+    "non_informative_upper_endpoint": "0.10 comes from the PROVENANCE-QUALIFIED coarse panel",
+    "peak_gain_wording": "the largest observed gain near mu_h 0.09 is an EXPLORATORY SELECTED MAXIMUM, not proof of a unique optimum nor of the cost-certificate mechanism. Saturation limits the size of a rate difference but does not identify why one procedure saturates first.",
+    "the_fine_panel_is_OUTCOME_INFORMED": "its rungs were chosen AFTER inspecting the coarse results. It must be reported as an exploratory follow-up, NOT as part of a single prospectively specified eleven-rung study."
+  },
+  "version": 1,
+  "written_utc": "2026-09-21T16:16:23Z"
+}

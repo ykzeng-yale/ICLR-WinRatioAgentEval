@@ -19,7 +19,10 @@ def run_child(out: Path, fine: bool = False) -> int:
     (out / "POWERCURVE_PLAN.json").write_text(json.dumps(plan, indent=2, sort_keys=True) + "\n")
     pins = vpins.entry_point_pins(
         policy="operational", schedule=vrun_sched(), prefixes=plan["prefixes"],
-        programs=[], cells=[c.id for c in cells], namespace=PC.NAMESPACE_POWER,
+        # BUG, found by root: this passed PC.NAMESPACE_POWER (3) while the run
+        # actually used ns (4 for the fine ladder), so every fine receipt records
+        # coordinates.namespace = 4 beside pins.run_identity.namespace = 3.
+        programs=[], cells=[c.id for c in cells], namespace=ns,
         alpha_gate=vband.ALPHA_GATE, trials_per_program=plan["trials_per_program"],
         workload="2_calls_per_trial", verification_mode=vpanel.VERIFY_PREFLIGHT,
         reference_mode=vpanel.REFERENCE_MODE, normalized_horizon=plan["horizon"],
@@ -38,8 +41,10 @@ def run_child(out: Path, fine: bool = False) -> int:
            "prefixes": plan["prefixes"], "policy": "operational",
            "schedule": vrun_sched(), "alpha_gate": vband.ALPHA_GATE,
            "reference_modes": ["H", "D"],
-           "exposure_label": ("namespace-3 power-curve coordinates, FRESH for this "
-                              "panel; not poolable with the namespace-0 T1 replay set")}
+           # was hardcoded to "namespace-3", wrong for any panel not on ns 3
+           "exposure_label": (f"namespace-{ns} power-curve coordinates, FRESH for "
+                              f"this panel; not poolable with the namespace-0 T1 "
+                              f"replay set or with another power namespace")}
     runner = vprod.make_runner(
         horizon=plan["horizon"], namespace=ns, policy="operational",
         schedule=vrun_sched(), alpha_gate=vband.ALPHA_GATE,

@@ -1,4 +1,29 @@
 {
+  "CORRECTIONS_v2": {
+    "authority": "root 15:14 and 15:50 reviews",
+    "correction_1_no_advantage_was_wrong": {
+      "corrected": "CPREFIX shows a SMALL BUT NONZERO informative-delay difference at mu_h 0.10.",
+      "what_I_wrote": "CPREFIX ... 'no informative-delay advantage, as predicted'",
+      "why_wrong": "a point difference without uncertainty is not an absence. At mu_h 0.10 CPREFIX is A 5462/8000 = 0.68275 vs N 5344/8000 = 0.66800, difference +0.01475, and the unpaired Newcombe 95% interval is [0.0002395, 0.0292519], which EXCLUDES ZERO."
+    },
+    "correction_2_generic_delay_exclusion_was_wrong": {
+      "corrected": "this comparison does NOT rule out generic delay effects.",
+      "what_I_wrote": "'it rules out a generic delay effect, which would have moved CPREFIX too'",
+      "why_wrong": "CPREFIX did move, and in any case CPREFIX differs from ADAPTER in observation rule and running target, not only in cost certificates. It is not a control differing in one thing."
+    },
+    "correction_3_identical_fractions_was_a_rounding_artifact": {
+      "corrected": "the final fractions are SIMILAR, not identical, and similarity of aggregates is weak evidence about paths.",
+      "what_I_wrote": "'unresolved/unrevealed/certified identical to 4 dp between arms'",
+      "why_wrong": "rounding hid a real difference, and equal aggregates would not imply identical pair identities, reveal order, signed partial bounds or stopping histories in any case. Measured: P05N mean final_n_certified 1949.314625 vs P05A 1949.336500, difference 0.021875."
+    },
+    "correction_4_cross_panel_table_is_illustrative": {
+      "corrected": "that table is ILLUSTRATIVE ACROSS SCENARIOS, not a matched comparison.",
+      "what_I_wrote": "the NAIVE-tracking table juxtaposing T1 C4/C1 with power-family rungs",
+      "why_wrong": "moving between T1 and the power family changes success truth AND law composition, so it is not a matched causal effect ladder."
+    },
+    "note": "the original fields are left as written; these corrections supersede them",
+    "what_survives": "the descriptive finite-design observation that ADAPTER's informative-delay detection exceeds its non-informative detection at intermediate effects. The CAUSE remains unestablished, and the matched certificate ablation specified by root is the test that addresses it."
+  },
   "convention": "descriptive rates with design-based Wilson 95% intervals; namespace-3 power curve and namespace-0 T1, reported SEPARATELY and never pooled",
   "decisive_check_naive_does_not_track_the_effect": {
     "informative_delay": [
