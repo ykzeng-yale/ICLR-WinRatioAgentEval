@@ -1,0 +1,11 @@
+{
+  "authorized_by": "PROJECT OWNER (Yukang Zeng), in-session, 2026-09-21",
+  "not_authorized_by": "the root review session. Its 11:36 disposition said execution remained uncleared pending its own check. The owner overrode that, which is theirs to do: the root is a peer agent following this session's experimental design, not the principal.",
+  "schema": "live_ab_validation_v2.execution_authorization.1",
+  "scope": "one T1 attempt, 56 shards, identity 18ad539884566215ff106ddfa6fdb6170a245e4ba2fa3d7946c3f8062155fd98",
+  "sentinel_naming_defect": "the sentinel is named for the root, so passing it under owner authorization makes the artifact read as though the root cleared it. That is a naming defect of mine and it is recorded rather than quietly reused. A future launcher should take an explicit authority field instead of a single root-named token.",
+  "sentinel_used": "ROOT-CLEARED-T1-ATTEMPT",
+  "what": "who authorized this T1 execution, recorded because every shard receipt says NOT CLEARED",
+  "why_the_receipts_say_NOT_CLEARED": "vlaunch.build_manifest() hardcodes clearance.status='NOT CLEARED' and each shard receipt copies it via root_clearance_reference. That string reflects the ROOT's position at manifest-build time and was NOT updated when the owner authorized the run. The receipts are therefore accurate about the root and silent about the owner. This file supplies what they omit; the receipts are NOT edited.",
+  "written_utc": "2026-09-21T13:18:27Z"
+}
