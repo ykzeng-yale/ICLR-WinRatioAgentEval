@@ -1,6 +1,6 @@
 {
   "authority": "root disposition 2026-09-21 09:09, handoff item 1. DELIVERED FOR REVIEW; execution is NOT cleared by it.",
-  "built_utc": "2026-09-21T11:20:12Z",
+  "built_utc": "2026-09-21T11:48:22Z",
   "caps_cumulative_over_whole_job": {
     "not_reset_per_cell_or_shard": true,
     "output_bytes": 209715200,
@@ -56,20 +56,20 @@
         "vconformance.py": "fc8b6494bcff5e95f3e5ae330066713bfb8b8cd163c42eb7db0f12c5d23944d2",
         "vgen.py": "08d1a8146023e348817a5cb02d04b9e209540456e2481889b98b8f31a5686987",
         "videntity.py": "1090a92ffc4316cf955454ac7a9f5acfddad6a52fec65446f7fec10e208242f4",
-        "vlaunch.py": "7018f2535e318c6dc524792eb78d6a4caf69d3560e200e14c32be442db6cc448",
+        "vlaunch.py": "f2f6a8fb0066886109b54f89d67e7c7ffabd8cfab9aedf4f20da6e2edb8c2424",
         "vmeasure.py": "cec8e3d8eb0d443c759e017389428704c45e1aa9316862071d474831e2df529b",
         "vpanel.py": "dd475cf5e293ebbd451e56e4b755217ff3febbccdbb85437bd22a6076058c8e4",
         "vpins.py": "246cd57f3e547c9ebcec325d07f61ea3f63fffc5ab9e396073e68e6151cef33e",
         "vpolicy.py": "210956feb1c5831c09c82ef09a70fb0728e2b86c8bf6119cdc5ad03146eb962c",
-        "vprod.py": "a6c29d8d89c0b9bd99842e911af55abfdda55b0d2383aad2dfe50271a3a2a3e6",
+        "vprod.py": "b29b278edcbb9b0b6e8ea3399fc4137eb1b7b0c801578c021efec4c5ba99ee9d",
         "vresource_check.py": "fb071eb0d616af5d352ae4d4d1bdb278cf409f47445901f64f64bcec94b9e7a9",
         "vrun.py": "a90c0083ec74088ea496c6a179afc843a6686291964ae903be379fc52265cf90",
-        "vshard.py": "f09f1e07eedaeb73f7b258d73efcada166d5b14a4fd11c9a140ffeb832003a34",
-        "vsupervise.py": "5f8f0739bc01ee5763be432a718df6f9639976a9324049063df41138a991cf17",
+        "vshard.py": "9217d209ea2857ced4622dab721fc5b992b38309136cd1df996e456d28cfeab1",
+        "vsupervise.py": "6b364945f5c46565cde898d781d31491bc1e6246a0309b3ceba5f6e95bc48942",
         "vtotalguard.py": "fdaea0edce9991a966ad731f480d53044575c74bc6bf7f8b4157676fcb715e05"
       }
     },
-    "canonical_digest": "c3d4bce5021d3a3f37ec899629e22c3f2858154ecfde514e03c5871b5d8f5509",
+    "canonical_digest": "18ad539884566215ff106ddfa6fdb6170a245e4ba2fa3d7946c3f8062155fd98",
     "caps_cumulative": {
       "output_bytes": 209715200,
       "reset_per_shard": false,
@@ -529,7 +529,7 @@
   },
   "pins": {
     "binding_method": "whole_file_pins_of_complete_entry_point",
-    "code": "fbe03b835ebb43f847b88979a42dfa7ed3426e7483e7b722171a31c440fb1572",
+    "code": "5dbba7113fc9d6316feeeab57c985b6c740794a05c554a759f3bf84f273340b9",
     "config": "f845429fc887b6e6246ebb90a0a31cf9fbf2a02e1c6f2456c672d61772de7ffc",
     "detail": {
       "environment": {
@@ -544,7 +544,7 @@
       "repo": {
         "branch": "session60/live-ab-validation",
         "dirty_paths": [],
-        "head": "a137d39e2b4f3c5f853efb7bfc6e276b8e6c5f6e",
+        "head": "f63553a8dbf40428fbe04af9fb0bfc7848d1fc6e",
         "validation_tree_dirty": false
       },
       "run_identity": {
@@ -576,7 +576,7 @@
         "verification_mode": "preflight_only"
       },
       "source": {
-        "aggregate_sha256": "fbe03b835ebb43f847b88979a42dfa7ed3426e7483e7b722171a31c440fb1572",
+        "aggregate_sha256": "5dbba7113fc9d6316feeeab57c985b6c740794a05c554a759f3bf84f273340b9",
         "candidate_binaries_not_authoritative": {
           "reference/_build/boundaries.cpython-312-darwin.so": "f1c65419fd9785be308eb762e86444effa52a168631a9f39cd377178eab55657"
         },
@@ -592,16 +592,16 @@
           "vconformance.py": "fc8b6494bcff5e95f3e5ae330066713bfb8b8cd163c42eb7db0f12c5d23944d2",
           "vgen.py": "08d1a8146023e348817a5cb02d04b9e209540456e2481889b98b8f31a5686987",
           "videntity.py": "1090a92ffc4316cf955454ac7a9f5acfddad6a52fec65446f7fec10e208242f4",
-          "vlaunch.py": "7018f2535e318c6dc524792eb78d6a4caf69d3560e200e14c32be442db6cc448",
+          "vlaunch.py": "f2f6a8fb0066886109b54f89d67e7c7ffabd8cfab9aedf4f20da6e2edb8c2424",
           "vmeasure.py": "cec8e3d8eb0d443c759e017389428704c45e1aa9316862071d474831e2df529b",
           "vpanel.py": "dd475cf5e293ebbd451e56e4b755217ff3febbccdbb85437bd22a6076058c8e4",
           "vpins.py": "246cd57f3e547c9ebcec325d07f61ea3f63fffc5ab9e396073e68e6151cef33e",
           "vpolicy.py": "210956feb1c5831c09c82ef09a70fb0728e2b86c8bf6119cdc5ad03146eb962c",
-          "vprod.py": "a6c29d8d89c0b9bd99842e911af55abfdda55b0d2383aad2dfe50271a3a2a3e6",
+          "vprod.py": "b29b278edcbb9b0b6e8ea3399fc4137eb1b7b0c801578c021efec4c5ba99ee9d",
           "vresource_check.py": "fb071eb0d616af5d352ae4d4d1bdb278cf409f47445901f64f64bcec94b9e7a9",
           "vrun.py": "a90c0083ec74088ea496c6a179afc843a6686291964ae903be379fc52265cf90",
-          "vshard.py": "f09f1e07eedaeb73f7b258d73efcada166d5b14a4fd11c9a140ffeb832003a34",
-          "vsupervise.py": "5f8f0739bc01ee5763be432a718df6f9639976a9324049063df41138a991cf17",
+          "vshard.py": "9217d209ea2857ced4622dab721fc5b992b38309136cd1df996e456d28cfeab1",
+          "vsupervise.py": "6b364945f5c46565cde898d781d31491bc1e6246a0309b3ceba5f6e95bc48942",
           "vtotalguard.py": "fdaea0edce9991a966ad731f480d53044575c74bc6bf7f8b4157676fcb715e05"
         },
         "loaded_reference_modules": {
