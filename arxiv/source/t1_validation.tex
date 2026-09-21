@@ -1,0 +1,92 @@
+\section{Additional delayed-observation calibration panel}
+\label{app:t1_validation}
+This supplementary CPU study evaluates the operational pending-outcome adapter
+(ADAPTER), a completed-prefix construction (CPREFIX), and a naive completed-only
+construction (NAIVE). It uses 28,000 programs, each containing four independently
+generated trial paths, for 112,000 trials at an enrollment horizon of 2,000 pairs.
+Constructions share the same path within a trial; cells use separate random streams.
+The primary observation schedule processes events in tick batches, including the
+fixed finalization window. This is a synthetic calibration study, not a live-agent
+experiment. Namespace-0 coordinates had prior development exposure and are reported
+as replay evidence, not a fresh confirmatory holdout.
+
+The eight cells cross four outcome laws with non-informative (odd cell numbers)
+and informative (even cell numbers) delay. Their hierarchy/success means are
+$(0,0)$ for C1--C2, $(0,0.25)$ for C3--C4, $(0.40,-0.03)$ for C5--C6,
+and $(0.45,0.20)$ for C7--C8. Deployment requires a positive hierarchy contrast
+and success noninferiority with margin $0.03$; C5--C6 are exactly at that
+noninferiority boundary. The frozen allocations are 2,000 programs per cell
+for C1, C2, C7 and C8, and 5,000 for C3--C6.
+
+A false deployment is a deployment when the conjunction of hierarchy superiority
+and success noninferiority is false. A false-harm decision retains the incumbent
+when the hierarchy mean is nonnegative. Trial error is the union of those events;
+program-family error is their union across its four trials. The nominal per-band,
+per-trial union and per-program levels are respectively $0.00625$, $0.0125$ and
+$0.05$. Ever-miscoverage and decision error are distinct readouts.
+
+\begin{table}[ht]
+\centering\small
+\begin{tabular}{lrrrrrr}
+\toprule
+& Trials & \multicolumn{2}{c}{Trial errors} & \multicolumn{2}{c}{Hierarchy miscoverage} & Correct deploys\\
+Cell & per cell & ADAPTER & NAIVE & ADAPTER & NAIVE & ADAPTER\\
+\midrule
+C1 & 8,000 & 0 & 2 & 0 & 2 & 0\\
+C2 & 8,000 & 0 & 404 & 1 & 7,910 & 0\\
+C3 & 20,000 & 0 & 23 & 0 & 23 & 0\\
+C4 & 20,000 & 5 & 19,998 & 7 & 19,998 & 0\\
+C5 & 20,000 & 0 & 0 & 0 & 0 & 0\\
+C6 & 20,000 & 0 & 0 & 0 & 16,272 & 0\\
+C7 & 8,000 & 0 & 0 & 0 & 2 & 8,000\\
+C8 & 8,000 & 0 & 0 & 0 & 5,550 & 8,000\\
+\bottomrule
+\end{tabular}
+\caption{Counts on committed trial paths. Each construction has the listed trial
+denominator; constructions are paired, not pooled. Hierarchy miscoverage is an
+indicator of any two-sided exclusion on the recorded path. These selected laws
+supply finite-design calibration evidence, not a universal validity guarantee.}
+\label{tab:t1_validation}
+\end{table}
+
+Under informative delay, NAIVE's program-family error is $376/2{,}000=0.188$
+in C2 (marginal Wilson 95\% interval $[0.1715,0.2057]$) and $5{,}000/5{,}000$
+in C4 ($[0.9992,1]$). ADAPTER's only trial errors are five false deployments in
+C4: $5/20{,}000=0.00025$, with interval $[0.0001068,0.0005852]$.
+All five records also flag eligible-look hierarchy miscoverage; five distinct
+programs are affected. This nonzero count does not demonstrate violation of the
+nominal error bound. CPREFIX has 15 false-harm records (C1: 1; C3: 10; C4: 4),
+and NAIVE has 14 (C1: 2; C3: 12); all 29 retention records are included in the
+corrected summaries. Intervals describe Monte Carlo uncertainty under the stated
+generator, are marginal rather than simultaneous, and do not acquire anytime
+coverage from the underlying monitoring rule.
+
+ADAPTER abstains in every C1, C2, C3, C5 and C6 trial and in 19,995 of 20,000
+C4 trials, while deploying correctly in every C7 and C8 trial. Thus the result
+combines low observed errors with substantial abstention outside strong
+alternatives. It does not identify a power curve or minimum detectable effect.
+Zero deployments at the success boundary describe the full guarded procedure;
+no hierarchy-only ablation is used to attribute that result solely to the guardrail.
+C6 and C8 further show why low decision error cannot by itself establish valid
+bands: NAIVE has extensive hierarchy miscoverage in both, despite no wrong
+first decision in those cells. The complete-information H/D reference records
+were checked for identities and hashes, but no reference-width or reference-power
+comparison is claimed here.
+
+\paragraph{Reproducibility and limitations.}
+The accepted snapshot is \texttt{35ab9d1}, with independent aggregation and
+provenance reports at \texttt{97ad956} in the repository. All 56 shards, 112 raw
+file hashes, trial/program coordinates, and source/configuration pins were
+reconciled; key event counts and Wilson intervals were independently recomputed
+from committed records. This reproduction checks exported outcomes and flags,
+not an independent regeneration of every latent path or band. The code archive
+includes unchanged primary records and a standard-library table reproducer;
+full original receipts and reference outputs remain linked to the exact Git snapshot.
+The parent failed after the child completed; finalization was recovered without
+repeating the scientific trials. Child supervision recorded 2,395.19 seconds and
+a sampled peak tree RSS of 75.77 MiB. Continuous monitoring of the recovery stage
+was not established. Original worker native/bytecode hashes were not re-executed
+locally. An owner's later mention of a discarded T1 pass remains unmapped to the
+development history; no unknown attempts or usage are assigned zero values.
+The accepted completed-panel records remain unchanged. These limitations, prior
+coordinate exposure and the finite simulated design restrict the claims above.

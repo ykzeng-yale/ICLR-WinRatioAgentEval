@@ -75,7 +75,11 @@ def prepare_sources():
         r"Code and versioned evidence are available at "
         r"\url{https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval}; "
         "the accompanying archive records the exact released files.", 1)
+    main = main.replace(r"\end{document}", r"\input{t1_validation.tex}" + "\n" + r"\end{document}", 1)
     changes = []
+    addition = OUT / "additions/t1_validation.tex"
+    (SOURCE / addition.name).write_bytes(addition.read_bytes())
+    changes.append({"path": addition.name, "addition": "Accepted bounded T1 replay calibration, reviewed at 97ad956", "preprint_sha256": digest(addition.read_bytes())})
     for p in sorted((ROOT / "paper").glob("*.tex")):
         text = main if p.name == "main.tex" else p.read_text()
         if p.name == "asynchronous.tex":
@@ -167,16 +171,35 @@ THRESHOLDS = [0., -.03, -.01]"""
         if p.is_file():
             payload["paper/" + str(p.relative_to(SOURCE))] = p.read_bytes()
     payload["paper/manuscript.pdf"] = (OUT / "paper.pdf").read_bytes()
+    t1 = ROOT / "results/live_ab_validation_v2/t1_run_20260921"
+    accepted = json.loads((t1 / "T1_ANALYSIS.json").read_text())
+    t1_manifest = {"accepted_snapshot": "35ab9d111123382db8997d4a0ccf4d5e36dbc876", "review_commit": "97ad9562e68305d6b668630fb512d9d2eafc6bef", "scope": "Unchanged primary records and saved-record table reproduction only; full original provenance and reference records at exact Git snapshot. No latent/native rerun.", "primary_files": [], "expected": {}}
+    for f in sorted(t1.glob("shard_*/primary_rows.csv.gz")):
+        name = f"data/{f.parent.name}.csv.gz"
+        data = f.read_bytes()
+        frozen = subprocess.check_output(["git", "show", t1_manifest["accepted_snapshot"] + ":" + str(f.relative_to(ROOT))], cwd=ROOT)
+        if data != frozen:
+            raise ValueError("T1 raw record differs from accepted snapshot: " + str(f))
+        payload["t1_validation/" + name] = data
+        t1_manifest["primary_files"].append({"path": name, "sha256": digest(data)})
+    for r in accepted["rows"]:
+        t1_manifest["expected"].setdefault(r["cell"], {})[r["construction"]] = {"trials": r["trials"], "errors": r["trial_any_error"]["k"], "hierarchy_miscoverage": r["miscover_h_twosided"]["k"], **r["decisions"]}
+    payload["t1_validation/manifest.json"] = (json.dumps(t1_manifest, indent=2) + "\n").encode()
+    payload["t1_validation/reproduce_t1.py"] = (OUT / "additions/reproduce_t1.py").read_bytes()
     provenance = {"baseline_scientific_commit": BASELINE,
         "historical_code_archive_sha256": digest((ROOT / "submission/anonymous_code.zip").read_bytes()),
         "source_transformations": changes,
         "code_transformations": code_changes,
-        "scope": "Preprint formatting/metadata plus one explicit CPU-runner dependency repair; original numerical records and algorithms preserved.",
+        "scope": "Preprint formatting/metadata, recorded CPU dependency repair, and accepted T1 replay appendix with unchanged primary records and saved-record table reproduction; historical baseline preserved.",
         "commercial_model_execution": "prohibited"}
     payload["arxiv_source_provenance.json"] = (json.dumps(provenance, indent=2) + "\n").encode()
     readme = """# Guarded Win Statistics: reproducibility supplement
 
 Author: Yukang Zeng. Start with REPRODUCIBILITY.md and `python reproduce.py`.
+Run `python t1_validation/reproduce_t1.py` to reproduce the added T1 table from
+unchanged primary records. Complete original provenance/reference records are at
+https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/tree/35ab9d111123382db8997d4a0ccf4d5e36dbc876/results/live_ab_validation_v2/t1_run_20260921 .
+This separate check does not rerun latent paths or native reference computations.
 `python reproduce.py --coding --airline` reconstructs the open-weight summaries
 from archived metric projections without running any model or candidate code.
 `python reproduce.py --build-pdf` rebuilds the named preprint in paper/.

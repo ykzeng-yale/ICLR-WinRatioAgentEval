@@ -4,13 +4,18 @@
   "authors": [
     "Yukang Zeng"
   ],
-  "pages": 45,
+  "pages": 47,
   "main_pages": 13,
-  "supplement_pages": 32,
+  "supplement_pages": 34,
   "appendix_first_page": 14,
-  "source_files": 35,
-  "code_payload_files": 246,
+  "source_files": 36,
+  "code_payload_files": 305,
   "source_transformations": [
+    {
+      "path": "t1_validation.tex",
+      "addition": "Accepted bounded T1 replay calibration, reviewed at 97ad956",
+      "preprint_sha256": "1230cdd1f066770d733508149f777fa870d371d8df8f0420ab944936088fc633"
+    },
     {
       "path": "async_appendix.tex",
       "original_sha256": "afcc51c9e1dfb5d75aa9e45cf09381987cdc41c4f57cbd90d6ab9426bdbf2e93",
@@ -59,7 +64,7 @@
     {
       "path": "main.tex",
       "original_sha256": "d1f93aef0068c7fabe3ba71ae52a12fc9bcdc4b9dc00ad7ac3bb05f1dd1260d3",
-      "preprint_sha256": "efaf5c393f8a6c9a2337effc3bfd784e4d565b15fe4e6ae9b32ccf1ac29bd5e6"
+      "preprint_sha256": "b88a962fb0d2e35975197dd4c2d8e7b2924ed6bfaa3e6a96125563ba042470c9"
     },
     {
       "path": "open_airline_appendix.tex",
@@ -158,28 +163,28 @@
   "artifacts": [
     {
       "path": "paper.pdf",
-      "bytes": 508541,
-      "sha256": "8d75610e9e2183a63ab9e64b4e4b697da6aea4ebe343a9ee11d0363bf8777399"
+      "bytes": 514152,
+      "sha256": "80992fb182b4ca3b7af2a495a274bf6cf46725621093b724a233e458a4225b6d"
     },
     {
       "path": "main_paper.pdf",
       "bytes": 300004,
-      "sha256": "5e37e7744c79dcc76e4afa872f47000162e538349a3d4ae9083725d9dcaae3b5"
+      "sha256": "dd3d2136eda092ee4d52ff483b9eb59afeb1adf049942ebb732f710087643f14"
     },
     {
       "path": "supplement.pdf",
-      "bytes": 432047,
-      "sha256": "0ceaf58a0fcb90c9440e14d3e6c9445f9d11feba2b16365ee4d7ddcfa5bb128d"
+      "bytes": 437718,
+      "sha256": "6af17cfc77cb8a95ffbd86b41ec8d711bdfbde0a2cd5a8bd265447d862d38766"
     },
     {
       "path": "arxiv_source.tar.gz",
-      "bytes": 142708,
-      "sha256": "fd82e3e117a855c7a3f968ecb42e1022148bc8f37804018b2394e961afb43a9d"
+      "bytes": 144970,
+      "sha256": "f98013fee42d6fb7d0e88abb8c826f971fe9a2948f5f79688aedcaa45f84ef5a"
     },
     {
       "path": "reproducibility_code.zip",
-      "bytes": 3061624,
-      "sha256": "408b129f0fb5e029d881059458cdf8b83f3524b56f54498c6c1d6f57d8f46165"
+      "bytes": 8283411,
+      "sha256": "50b3fd3bb8866a4d05e2aeae0e84a1606fece8aaeb1c89836ab1130aa4936aed"
     }
   ]
 }

@@ -6,9 +6,9 @@
 
 | File | Use |
 |---|---|
-| `paper.pdf` | Canonical 45-page preprint, including references and all supplementary proofs/results. |
+| `paper.pdf` | Canonical 47-page preprint, including references and all supplementary proofs/results. |
 | `main_paper.pdf` | 13-page reading copy: main text, statements and references. |
-| `supplement.pdf` | 32-page reading copy: appendices, retaining pages 14–45 and original numbering. Read with the main paper. |
+| `supplement.pdf` | 34-page reading copy: appendices, retaining pages 14–47 and original numbering. Read with the main paper. |
 | `arxiv_source.tar.gz` | Upload this source archive to arXiv; select `main.tex` and pdfLaTeX. It builds the entire paper and supplement as one article. |
 | `reproducibility_code.zip` | Audited code/results and the named paper sources; available from this repository. It is not the arXiv TeX upload archive. |
 | `abstract.txt` | Plain-text metadata abstract matching the PDF. |
@@ -29,7 +29,7 @@ Official requirements and checked sources are summarized in [the arXiv requireme
 
 ## Evidence and checks
 
-The scientific content preserves the reviewed baseline. Conversion changes are the article layout, author/title metadata, figure paths, a layout break, an abstract summary of already included open-weight studies, and the public reproducibility pointer. No new experimental outcome was added. Independent clean compilation reproduced all 45 pages of text; six analytic checks and 127 saved-result checks passed. All 47 packaged CSVs and all 55 repository CSVs at the frozen baseline were preserved. Root inspected all 45 pages in contact sheets and enlarged selected equation/table/reference pages. See [release audit](../reviews/arxiv_release_audit.md) and [visual QA](../reviews/arxiv_visual_qa.md).
+The September19 baseline conversion preserved the reviewed scientific content. Its conversion changes are the article layout, author/title metadata, figure paths, a layout break, an abstract summary of already included open-weight studies, and the public reproducibility pointer. No new experimental outcome was added in that baseline conversion; the September21 T1 addition is documented below. The baseline independent clean compilation reproduced all 45 pages of text; six analytic checks and 127 saved-result checks passed. All 47 packaged CSVs and all 55 repository CSVs at the frozen baseline were preserved. Root inspected all 45 pages in contact sheets and enlarged selected equation/table/reference pages. See [release audit](../reviews/arxiv_release_audit.md) and [visual QA](../reviews/arxiv_visual_qa.md).
 
 The **full project is 65/100** under [the expanded-scope tracker](../FULL_PROJECT_PROGRESS.md), including the prospective trial, independent CPU validation and their final integration. The separate fixed checklist for this already assembled bounded-v1 package is **90/100**: technical science/empirical/manuscript/release items verified, ten author-only points pending. This is not an acceptance probability or a claim that all conceivable experiments have been performed. See [readiness](../READINESS_TRACKER.md).
 
@@ -44,3 +44,9 @@ The current bounded v1 paper does not depend on a new study. A new prospective r
 Run `python3 arxiv/build_arxiv_package.py` from the repository root with PyMuPDF and pdfLaTeX/latexmk installed. The builder reads the frozen original paper and anonymous code package, writes only the arXiv output and ignored scratch, and makes no network/model call. Rebuilding may alter PDF byte hashes through TeX metadata; recheck the newly generated manifest and PDF before publishing. The standalone code archive's default `python reproduce.py` runs analytic tests and validates retained saved results; it does not collect new model episodes.
 
 For a code-archive-only repair with existing source/PDF artifacts, `python3 arxiv/build_arxiv_package.py --code-only` refreshes the code ZIP and manifest without recompiling or changing the source upload.
+
+## September21 T1 supplement integration
+
+The current47-page article (13-page main reading extract plus34-page supplement) adds AppendixO, a bounded synthetic delayed-observation calibration replay:112,000trials, with prior-development exposure and recovery/provenance limitations explicit. This is not the prospective live study. The historical ICLR release is unchanged.
+
+The code ZIP adds unchanged T1 primary records and `python t1_validation/reproduce_t1.py`, which independently reconstructs the manuscript counts without model, native-reference or simulation calls. Full original receipts/reference records remain at the exact accepted Git snapshot named in its manifest; the ZIP does not claim full native/latent execution reproduction. Existing `python reproduce.py` remains the baseline saved-result check. Clean-source compilation, all305payload hashes, the127baseline archived-output checks and336,000T1primary records passed. Changed PDF pages were visually inspected. Power/ablation studies remain outside this release.
