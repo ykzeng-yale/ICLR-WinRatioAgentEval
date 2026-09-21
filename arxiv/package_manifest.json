@@ -14,7 +14,7 @@
     {
       "path": "t1_validation.tex",
       "addition": "Accepted bounded T1 replay calibration, reviewed at 97ad956",
-      "preprint_sha256": "1230cdd1f066770d733508149f777fa870d371d8df8f0420ab944936088fc633"
+      "preprint_sha256": "19dde34f0f05a2538b78dd8d8b4f8bb1eea443d623486c0e904a23758a7adbfa"
     },
     {
       "path": "async_appendix.tex",
@@ -163,28 +163,28 @@
   "artifacts": [
     {
       "path": "paper.pdf",
-      "bytes": 514152,
-      "sha256": "80992fb182b4ca3b7af2a495a274bf6cf46725621093b724a233e458a4225b6d"
+      "bytes": 514336,
+      "sha256": "f2765a3f11c082b9c16f19fe4c8193c4494a31ff065e4a0ca7a52323868e1cf9"
     },
     {
       "path": "main_paper.pdf",
       "bytes": 300004,
-      "sha256": "dd3d2136eda092ee4d52ff483b9eb59afeb1adf049942ebb732f710087643f14"
+      "sha256": "343dac55f8b175c92b53c05e2ec64321e43ece83a55474ee90805def0781e113"
     },
     {
       "path": "supplement.pdf",
-      "bytes": 437718,
-      "sha256": "6af17cfc77cb8a95ffbd86b41ec8d711bdfbde0a2cd5a8bd265447d862d38766"
+      "bytes": 437912,
+      "sha256": "508335c920f8bc5bbf28f6d71e0fca5bd6568c45b0ed7045057683d55e08d739"
     },
     {
       "path": "arxiv_source.tar.gz",
-      "bytes": 144970,
-      "sha256": "f98013fee42d6fb7d0e88abb8c826f971fe9a2948f5f79688aedcaa45f84ef5a"
+      "bytes": 145068,
+      "sha256": "7f6c404444fd82e20693229b492442923973b11141cbb5ffea27a2e8f8d847ca"
     },
     {
       "path": "reproducibility_code.zip",
-      "bytes": 8283411,
-      "sha256": "50b3fd3bb8866a4d05e2aeae0e84a1606fece8aaeb1c89836ab1130aa4936aed"
+      "bytes": 8283683,
+      "sha256": "bce9786300d59bdadf861d92b951813cb0ad128396c8c2c50abcc0a83f642873"
     }
   ]
 }

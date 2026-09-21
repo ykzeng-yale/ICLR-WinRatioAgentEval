@@ -1,0 +1,490 @@
+{
+  "commit": "7b4d17ffe8c60b7738a9fd9d4e5cede2d95ba123",
+  "original_primary_files": 16,
+  "disabled_primary_files": 16,
+  "paired_trial_coordinates": 32000,
+  "duplicates_original": 0,
+  "duplicates_disabled": 0,
+  "identical_coordinate_sets": true,
+  "exact_expected_program_trial_grids": true,
+  "nondecider_cap_errors": [],
+  "saved_numerical_mismatches": [],
+  "cells": {
+    "P05N": {
+      "paired_trials": 8000,
+      "deploy_rate_original": {
+        "n": 8000,
+        "mean": 0.00325,
+        "sd": 0.056919614196777886,
+        "mc_se": 0.0006363806329852872,
+        "ci95_lo": 0.0020027168788900344,
+        "ci95_hi": 0.004497283121109965
+      },
+      "deploy_rate_disabled": {
+        "n": 8000,
+        "mean": 0.001375,
+        "sd": 0.03705780666916744,
+        "mc_se": 0.0004143188740465173,
+        "ci95_lo": 0.0005629499287536391,
+        "ci95_hi": 0.0021870500712463607
+      },
+      "paired_difference_original_minus_disabled": {
+        "n": 8000,
+        "mean": 0.001875,
+        "sd": 0.04326336024619995,
+        "mc_se": 0.0004836990722278256,
+        "ci95_lo": 0.0009269672390780235,
+        "ci95_hi": 0.002823032760921976
+      },
+      "discordant_pairs": {
+        "deploy_only_original": 15,
+        "deploy_only_disabled": 0,
+        "concordant": 7985
+      },
+      "joint_first_decision_categories": {
+        "original=NO_DECISION -> disabled=NO_DECISION": 7974,
+        "original=DEPLOY -> disabled=NO_DECISION": 15,
+        "original=DEPLOY -> disabled=DEPLOY": 11
+      },
+      "timing_capped_all_trials": {
+        "tau_tick_original": {
+          "n": 8000,
+          "mean": 2199.74125,
+          "sd": 7.359743145307152,
+          "mc_se": 0.08228442984922452,
+          "ci95_lo": 2199.5799754810073,
+          "ci95_hi": 2199.902524518993
+        },
+        "tau_tick_disabled": {
+          "n": 8000,
+          "mean": 2199.942125,
+          "sd": 2.4386510332010842,
+          "mc_se": 0.027264947418188603,
+          "ci95_lo": 2199.88868668502,
+          "ci95_hi": 2199.9955633149802
+        },
+        "tau_tick_paired_difference": {
+          "n": 8000,
+          "mean": -0.200875,
+          "sd": 5.15292085215158,
+          "mc_se": 0.05761140654043538,
+          "ci95_lo": -0.31379128191794864,
+          "ci95_hi": -0.08795871808205134
+        },
+        "tau_prefix_paired_difference": {
+          "n": 8000,
+          "mean": -0.0445,
+          "sd": 3.9802009999496257,
+          "mc_se": 0.0445,
+          "ci95_lo": -0.1317183973120324,
+          "ci95_hi": 0.042718397312032405
+        }
+      },
+      "timing_decision_conditional": {
+        "trials_deciding_in_both_arms": 11,
+        "tau_tick_paired_difference": {
+          "n": 11,
+          "mean": -86.72727272727273,
+          "sd": 99.69562769659551,
+          "mc_se": 30.059362755324642,
+          "ci95_lo": -145.64254112593372,
+          "ci95_hi": -27.81200432861175
+        },
+        "tau_prefix_paired_difference": {
+          "n": 11,
+          "mean": -32.36363636363637,
+          "sd": 107.33803866968385,
+          "mc_se": 32.36363636363637,
+          "ci95_lo": -95.79519804511449,
+          "ci95_hi": 31.067925317841755
+        }
+      }
+    },
+    "P05A": {
+      "paired_trials": 8000,
+      "deploy_rate_original": {
+        "n": 8000,
+        "mean": 0.05075,
+        "sd": 0.21950047849038323,
+        "mc_se": 0.0024540899549911365,
+        "ci95_lo": 0.04594007207339586,
+        "ci95_hi": 0.05555992792660415
+      },
+      "deploy_rate_disabled": {
+        "n": 8000,
+        "mean": 0.047625,
+        "sd": 0.2129848109401499,
+        "mc_se": 0.00238124257718558,
+        "ci95_lo": 0.042957850310262925,
+        "ci95_hi": 0.052292149689737076
+      },
+      "paired_difference_original_minus_disabled": {
+        "n": 8000,
+        "mean": 0.003125,
+        "sd": 0.05581777340577549,
+        "mc_se": 0.0006240616784399698,
+        "ci95_lo": 0.001901861586126043,
+        "ci95_hi": 0.004348138413873957
+      },
+      "discordant_pairs": {
+        "deploy_only_original": 25,
+        "deploy_only_disabled": 0,
+        "concordant": 7975
+      },
+      "joint_first_decision_categories": {
+        "original=NO_DECISION -> disabled=NO_DECISION": 7594,
+        "original=DEPLOY -> disabled=DEPLOY": 381,
+        "original=DEPLOY -> disabled=NO_DECISION": 25
+      },
+      "timing_capped_all_trials": {
+        "tau_tick_original": {
+          "n": 8000,
+          "mean": 2166.780375,
+          "sd": 165.20809182379622,
+          "mc_se": 1.8470826187551777,
+          "ci95_lo": 2163.1601595907696,
+          "ci95_hi": 2170.40059040923
+        },
+        "tau_tick_disabled": {
+          "n": 8000,
+          "mean": 2170.7465,
+          "sd": 152.7412017829186,
+          "mc_se": 1.7076985507580904,
+          "ci95_lo": 2167.3994723440633,
+          "ci95_hi": 2174.093527655937
+        },
+        "tau_tick_paired_difference": {
+          "n": 8000,
+          "mean": -3.966125,
+          "sd": 52.604311887791326,
+          "mc_se": 0.5881340864535084,
+          "ci95_lo": -5.118846627529242,
+          "ci95_hi": -2.813403372470757
+        },
+        "tau_prefix_paired_difference": {
+          "n": 8000,
+          "mean": -3.326,
+          "sd": 44.08782077844883,
+          "mc_se": 0.4929168212021964,
+          "ci95_lo": -4.292099216930274,
+          "ci95_hi": -2.359900783069726
+        }
+      },
+      "timing_decision_conditional": {
+        "trials_deciding_in_both_arms": 381,
+        "tau_tick_paired_difference": {
+          "n": 381,
+          "mean": -33.40419947506562,
+          "sd": 105.24032338665882,
+          "mc_se": 5.391625095645178,
+          "ci95_lo": -43.97159048067249,
+          "ci95_hi": -22.836808469458745
+        },
+        "tau_prefix_paired_difference": {
+          "n": 381,
+          "mean": -33.08661417322835,
+          "sd": 105.04640756066219,
+          "mc_se": 5.381690486930181,
+          "ci95_lo": -43.63453370355333,
+          "ci95_hi": -22.538694642903366
+        }
+      }
+    },
+    "P10N": {
+      "paired_trials": 8000,
+      "deploy_rate_original": {
+        "n": 8000,
+        "mean": 0.5265,
+        "sd": 0.4993284651554669,
+        "mc_se": 0.005582661955941295,
+        "ci95_lo": 0.5155581836284931,
+        "ci95_hi": 0.5374418163715068
+      },
+      "deploy_rate_disabled": {
+        "n": 8000,
+        "mean": 0.3895,
+        "sd": 0.48766738401771276,
+        "mc_se": 0.005452287105365501,
+        "ci95_lo": 0.3788137136401115,
+        "ci95_hi": 0.4001862863598885
+      },
+      "paired_difference_original_minus_disabled": {
+        "n": 8000,
+        "mean": 0.137,
+        "sd": 0.34386884232595183,
+        "mc_se": 0.003844570533924926,
+        "ci95_lo": 0.12946478021748323,
+        "ci95_hi": 0.1445352197825168
+      },
+      "discordant_pairs": {
+        "deploy_only_original": 1096,
+        "deploy_only_disabled": 0,
+        "concordant": 6904
+      },
+      "joint_first_decision_categories": {
+        "original=DEPLOY -> disabled=NO_DECISION": 1096,
+        "original=DEPLOY -> disabled=DEPLOY": 3116,
+        "original=NO_DECISION -> disabled=NO_DECISION": 3788
+      },
+      "timing_capped_all_trials": {
+        "tau_tick_original": {
+          "n": 8000,
+          "mean": 2089.68625,
+          "sd": 182.84251142427325,
+          "mc_se": 2.0442414236072843,
+          "ci95_lo": 2085.679610434025,
+          "ci95_hi": 2093.6928895659753
+        },
+        "tau_tick_disabled": {
+          "n": 8000,
+          "mean": 2143.929125,
+          "sd": 116.80685695610241,
+          "mc_se": 1.3059403619596957,
+          "ci95_lo": 2141.369528924602,
+          "ci95_hi": 2146.488721075398
+        },
+        "tau_tick_paired_difference": {
+          "n": 8000,
+          "mean": -54.242875,
+          "sd": 91.81462779682255,
+          "mc_se": 1.0265187454126847,
+          "ci95_lo": -56.2548147704641,
+          "ci95_hi": -52.230935229535895
+        },
+        "tau_prefix_paired_difference": {
+          "n": 8000,
+          "mean": -27.42175,
+          "sd": 83.33788920658884,
+          "mc_se": 0.9317459268363932,
+          "ci95_lo": -29.24793845934122,
+          "ci95_hi": -25.595561540658778
+        }
+      },
+      "timing_decision_conditional": {
+        "trials_deciding_in_both_arms": 3116,
+        "tau_tick_paired_difference": {
+          "n": 3116,
+          "mean": -122.78498074454428,
+          "sd": 113.65723291092887,
+          "mc_se": 2.0360964843946276,
+          "ci95_lo": -126.77565652300638,
+          "ci95_hi": -118.7943049660822
+        },
+        "tau_prefix_paired_difference": {
+          "n": 3116,
+          "mean": -70.26957637997432,
+          "sd": 121.53734546288226,
+          "mc_se": 2.1772636503790417,
+          "ci95_lo": -74.53693471956545,
+          "ci95_hi": -66.0022180403832
+        }
+      }
+    },
+    "P10A": {
+      "paired_trials": 8000,
+      "deploy_rate_original": {
+        "n": 8000,
+        "mean": 0.84525,
+        "sd": 0.3616888024928766,
+        "mc_se": 0.0040438037453728376,
+        "ci95_lo": 0.837324290298521,
+        "ci95_hi": 0.8531757097014789
+      },
+      "deploy_rate_disabled": {
+        "n": 8000,
+        "mean": 0.84075,
+        "sd": 0.365931927784351,
+        "mc_se": 0.004091243328316764,
+        "ci95_lo": 0.8327313104245093,
+        "ci95_hi": 0.8487686895754907
+      },
+      "paired_difference_original_minus_disabled": {
+        "n": 8000,
+        "mean": 0.0045,
+        "sd": 0.06693511812759312,
+        "mc_se": 0.0007483573710763832,
+        "ci95_lo": 0.0030332465051252115,
+        "ci95_hi": 0.005966753494874788
+      },
+      "discordant_pairs": {
+        "deploy_only_original": 36,
+        "deploy_only_disabled": 0,
+        "concordant": 7964
+      },
+      "joint_first_decision_categories": {
+        "original=NO_DECISION -> disabled=NO_DECISION": 1238,
+        "original=DEPLOY -> disabled=DEPLOY": 6726,
+        "original=DEPLOY -> disabled=NO_DECISION": 36
+      },
+      "timing_capped_all_trials": {
+        "tau_tick_original": {
+          "n": 8000,
+          "mean": 1416.596,
+          "sd": 494.9838397960154,
+          "mc_se": 5.53408756773878,
+          "ci95_lo": 1405.749387679941,
+          "ci95_hi": 1427.442612320059
+        },
+        "tau_tick_disabled": {
+          "n": 8000,
+          "mean": 1443.34425,
+          "sd": 489.75782365641345,
+          "mc_se": 5.475658931040475,
+          "ci95_lo": 1432.6121557035358,
+          "ci95_hi": 1454.0763442964644
+        },
+        "tau_tick_paired_difference": {
+          "n": 8000,
+          "mean": -26.74825,
+          "sd": 76.28213088511652,
+          "mc_se": 0.8528601506382836,
+          "ci95_lo": -28.41982517910044,
+          "ci95_hi": -25.07667482089956
+        },
+        "tau_prefix_paired_difference": {
+          "n": 8000,
+          "mean": -25.7675,
+          "sd": 72.34890800358471,
+          "mc_se": 0.80888538196947,
+          "ci95_lo": -27.352886216281085,
+          "ci95_hi": -24.18211378371891
+        }
+      },
+      "timing_decision_conditional": {
+        "trials_deciding_in_both_arms": 6726,
+        "tau_tick_paired_difference": {
+          "n": 6726,
+          "mean": -29.41495688373476,
+          "sd": 74.96693383138945,
+          "mc_se": 0.9140949653734404,
+          "ci95_lo": -31.206550094316093,
+          "ci95_hi": -27.623363673153428
+        },
+        "tau_prefix_paired_difference": {
+          "n": 6726,
+          "mean": -29.318911685994646,
+          "sd": 74.93330162786484,
+          "mc_se": 0.9136848775341082,
+          "ci95_lo": -31.109701139180387,
+          "ci95_hi": -27.528122232808904
+        }
+      }
+    }
+  },
+  "joint_16_categories": {
+    "P05N": {
+      "NO_DECISION->NO_DECISION": 7974,
+      "NO_DECISION->DEPLOY": 0,
+      "NO_DECISION->RETAIN_INCUMBENT": 0,
+      "NO_DECISION->CONFLICT": 0,
+      "DEPLOY->NO_DECISION": 15,
+      "DEPLOY->DEPLOY": 11,
+      "DEPLOY->RETAIN_INCUMBENT": 0,
+      "DEPLOY->CONFLICT": 0,
+      "RETAIN_INCUMBENT->NO_DECISION": 0,
+      "RETAIN_INCUMBENT->DEPLOY": 0,
+      "RETAIN_INCUMBENT->RETAIN_INCUMBENT": 0,
+      "RETAIN_INCUMBENT->CONFLICT": 0,
+      "CONFLICT->NO_DECISION": 0,
+      "CONFLICT->DEPLOY": 0,
+      "CONFLICT->RETAIN_INCUMBENT": 0,
+      "CONFLICT->CONFLICT": 0
+    },
+    "P05A": {
+      "NO_DECISION->NO_DECISION": 7594,
+      "NO_DECISION->DEPLOY": 0,
+      "NO_DECISION->RETAIN_INCUMBENT": 0,
+      "NO_DECISION->CONFLICT": 0,
+      "DEPLOY->NO_DECISION": 25,
+      "DEPLOY->DEPLOY": 381,
+      "DEPLOY->RETAIN_INCUMBENT": 0,
+      "DEPLOY->CONFLICT": 0,
+      "RETAIN_INCUMBENT->NO_DECISION": 0,
+      "RETAIN_INCUMBENT->DEPLOY": 0,
+      "RETAIN_INCUMBENT->RETAIN_INCUMBENT": 0,
+      "RETAIN_INCUMBENT->CONFLICT": 0,
+      "CONFLICT->NO_DECISION": 0,
+      "CONFLICT->DEPLOY": 0,
+      "CONFLICT->RETAIN_INCUMBENT": 0,
+      "CONFLICT->CONFLICT": 0
+    },
+    "P10N": {
+      "NO_DECISION->NO_DECISION": 3788,
+      "NO_DECISION->DEPLOY": 0,
+      "NO_DECISION->RETAIN_INCUMBENT": 0,
+      "NO_DECISION->CONFLICT": 0,
+      "DEPLOY->NO_DECISION": 1096,
+      "DEPLOY->DEPLOY": 3116,
+      "DEPLOY->RETAIN_INCUMBENT": 0,
+      "DEPLOY->CONFLICT": 0,
+      "RETAIN_INCUMBENT->NO_DECISION": 0,
+      "RETAIN_INCUMBENT->DEPLOY": 0,
+      "RETAIN_INCUMBENT->RETAIN_INCUMBENT": 0,
+      "RETAIN_INCUMBENT->CONFLICT": 0,
+      "CONFLICT->NO_DECISION": 0,
+      "CONFLICT->DEPLOY": 0,
+      "CONFLICT->RETAIN_INCUMBENT": 0,
+      "CONFLICT->CONFLICT": 0
+    },
+    "P10A": {
+      "NO_DECISION->NO_DECISION": 1238,
+      "NO_DECISION->DEPLOY": 0,
+      "NO_DECISION->RETAIN_INCUMBENT": 0,
+      "NO_DECISION->CONFLICT": 0,
+      "DEPLOY->NO_DECISION": 36,
+      "DEPLOY->DEPLOY": 6726,
+      "DEPLOY->RETAIN_INCUMBENT": 0,
+      "DEPLOY->CONFLICT": 0,
+      "RETAIN_INCUMBENT->NO_DECISION": 0,
+      "RETAIN_INCUMBENT->DEPLOY": 0,
+      "RETAIN_INCUMBENT->RETAIN_INCUMBENT": 0,
+      "RETAIN_INCUMBENT->CONFLICT": 0,
+      "CONFLICT->NO_DECISION": 0,
+      "CONFLICT->DEPLOY": 0,
+      "CONFLICT->RETAIN_INCUMBENT": 0,
+      "CONFLICT->CONFLICT": 0
+    }
+  },
+  "contrasts": {
+    "0.05": {
+      "change_in_A_minus_N_deploy_contrast": {
+        "difference": 0.0012500000000000002,
+        "mc_se": 0.0007895680914090762,
+        "ci95_lo": -0.00029752502250381834,
+        "ci95_hi": 0.0027975250225038186
+      },
+      "A_minus_N_original": {
+        "difference": 0.0475,
+        "mc_se": 0.0025352589250857895,
+        "ci95_lo": 0.042530983815348124,
+        "ci95_hi": 0.05246901618465188
+      },
+      "A_minus_N_disabled": {
+        "difference": 0.04625,
+        "mc_se": 0.0024170180679491406,
+        "ci95_lo": 0.0415127316368371,
+        "ci95_hi": 0.0509872683631629
+      }
+    },
+    "0.10": {
+      "change_in_A_minus_N_deploy_contrast": {
+        "difference": -0.1325,
+        "mc_se": 0.003916728398187465,
+        "ci95_lo": -0.1401766465976727,
+        "ci95_hi": -0.12482335340232732
+      },
+      "A_minus_N_original": {
+        "difference": 0.31875,
+        "mc_se": 0.006893363710512138,
+        "ci95_lo": 0.3052392553950608,
+        "ci95_hi": 0.33226074460493915
+      },
+      "A_minus_N_disabled": {
+        "difference": 0.45125,
+        "mc_se": 0.006816575874354466,
+        "ci95_lo": 0.4378897567883806,
+        "ci95_hi": 0.46461024321161937
+      }
+    }
+  }
+}
