@@ -258,6 +258,48 @@ clean source still passes. A stale receipt is refused whenever any conformance s
 
 Tests: 184 validation + 65 panel + 86 design.
 
+**T1 LAUNCHER AND MANIFEST DELIVERED FOR REVIEW — execution uncleared. 2026-09-21, head `dedab44`.**
+Root disposition `reviews/v2_precalibration_root_disposition_20260921_0909.md`: **resource ledger
+accepted, timing objection CLOSED.**
+
+*Accepted planning ledger (root's own figure): T1 = **2,676.3868 s (44.61 min)** at horizon 2000.
+Convention: descriptive measurement + deterministic same-horizon extrapolation, conditional on the
+C1/C2 mixture and recorded load. **Does not guarantee all eight cells finish within 5,400 s** — C3–C6
+are unmeasured at this scale.*
+
+`results/live_ab_validation_v2/T1_MANIFEST.json`, `T1_DRY_RUN.json`, code `experiments/live_ab_validation/vlaunch.py`
+
+| frozen T1 request | |
+|---|---|
+| cells | C1/C2/C7/C8 @ 2000 · C3–C6 @ 5000 |
+| programs / trials / reference calls | **28,000 / 112,000 / 224,000** |
+| horizon · trials/program · namespace | 2000 · 4 · **0 (replay seeds)** |
+| policy · schedule · verification | operational · tick-batched · **preflight-only** |
+| caps, **cumulative over the whole job** | 5,400 s / 2 GiB tree RSS / 200 MiB — **not reset per shard** |
+| exposure | **`fresh_holdout = False`**, prior development exposure, no switch |
+| clearance | **NOT CLEARED**; dry run evaluates **0 trials** |
+
+**13 malformed/unsupported requests refused by name** (changed allocation, partial grid, unknown cell,
+non-integral / negative / boolean counts, NaN and infinite horizons, wrong namespace, oracle policy,
+per-trial verification, non-frozen alpha, reference disabled) — and the frozen request still validates,
+so they are not always-fail.
+
+**Four named defects repaired.** `verify_policy=False` refused in measurement/full-grid (unpinned, so
+disabling verification would be invisible); an **absent baseline file now raises instead of counting as
+a match**, and a hash mismatch returns nonzero; supervisor/driver/conformance/launcher added to
+whole-file pins; `uncompressed_bytes` repaired at source (it repeated the *compressed* size) and
+additively for deposited receipts without rerunning.
+
+**Supervisor hardened:** available RAM measured (not inferred from total/free) and a shortfall or
+unmeasurable value refuses to start; a failed `ps` call is now a **breach, not a zero** — it previously
+read as "no memory in use" and silently stopped enforcing the cap; process-group id captured while the
+leader is alive; receipt bytes reserved; sampled RSS explicitly **not** an instantaneous hard bound.
+
+**Attempts kept separate:** 2 preflight executions recorded apart from the old 6 (different
+executable), cumulative 8 — not summed.
+
+Tests: 184 validation + 79 panel + 86 design.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
