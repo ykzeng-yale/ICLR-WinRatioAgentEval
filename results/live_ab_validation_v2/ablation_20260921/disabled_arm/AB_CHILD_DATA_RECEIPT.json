@@ -1,0 +1,95 @@
+{
+  "attempt_id": "20260921T165632Z",
+  "child_counters": {
+    "elapsed_seconds": 52.32176449988037,
+    "output_bytes": 1884074,
+    "primary_rows": 96000,
+    "reference_calls": 0,
+    "reference_rows": 0,
+    "shards_completed": 16,
+    "trials": 32000
+  },
+  "conditions": {
+    "all_expected_shard_ids_exactly_once": true,
+    "bindings_equal_frozen_context": true,
+    "coordinate_coverage_complete": true,
+    "coordinate_coverage_disjoint": true,
+    "coordinates_match_plan_entries": true,
+    "counts_reconciled": true,
+    "every_shard_complete_with_clean_attempts": true,
+    "hashes_reconciled": true,
+    "pins_present_and_consistent": true
+  },
+  "cumulative_job": {
+    "elapsed_seconds": 52.321611208841205,
+    "output_bytes": 1884074,
+    "primary_rows": 96000,
+    "reference_calls": 0,
+    "reference_rows": 0,
+    "shards_completed": 16,
+    "trials": 32000
+  },
+  "data_completion": true,
+  "expected_totals": {
+    "primary_rows": 96000,
+    "reference_calls": 0,
+    "reference_rows": 0,
+    "trials": 32000
+  },
+  "insufficiency_note": "within_caps or process exit zero alone is NOT scientific completion; every condition above must hold. Final paper/calibration acceptance remains independent of successful execution.",
+  "job_id": "AB-ce5bdceea131",
+  "job_started_utc": "2026-09-21T16:56:32Z",
+  "missing_shard_ids": [],
+  "observed_totals": {
+    "primary_rows": 96000,
+    "reference_calls": 0,
+    "reference_rows": 0,
+    "trials": 32000
+  },
+  "operator_entries_total": 109515,
+  "operator_uninstalled_after_run": true,
+  "pin_drift_across_measurement": {
+    "drift": false,
+    "files_compared": [
+      "reference/MANIFEST.json",
+      "reference/eb_reference.py",
+      "reference/vendor.py",
+      "run_ablation.py",
+      "run_powercurve.py",
+      "vablation.py",
+      "vband.py",
+      "vconformance.py",
+      "vgen.py",
+      "videntity.py",
+      "vlaunch.py",
+      "vmeasure.py",
+      "vpanel.py",
+      "vpins.py",
+      "vpolicy.py",
+      "vpowercurve.py",
+      "vprod.py",
+      "vresource_check.py",
+      "vrun.py",
+      "vshard.py",
+      "vsupervise.py",
+      "vtotalguard.py"
+    ],
+    "identities_compared": [
+      "code",
+      "config",
+      "policy",
+      "workload",
+      "receipt"
+    ]
+  },
+  "schema": "live_ab_validation_v2.t1_child_data_receipt.1",
+  "scientific_completion": false,
+  "scientific_completion_note": "a CHILD data receipt never asserts scientific completion; only the parent, with an actual terminal supervisor result, can",
+  "shards_expected": 16,
+  "shards_published": 16,
+  "stage": "data",
+  "supervision": null,
+  "unique_coordinates": 8000,
+  "variant": "ADAPTER_NOCERT",
+  "written_utc": "2026-09-21T16:57:24Z"
+}

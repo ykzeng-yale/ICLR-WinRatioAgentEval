@@ -632,6 +632,50 @@ elapsed-cost branches. Four invariants pass over **768,000 pair states**: contai
 scores, identical success intervals, untouched schedule. **Both negative controls fire** (narrower variant
 refused; perturbed success interval refused).
 
+**MATCHED CERTIFICATE ABLATION — EXECUTED, AND IT FALSIFIES MY HYPOTHESIS**
+(`ablation_20260921/{ABLATION_FINDING.json, ABLATION_ANALYSIS.json, disabled_arm/}`,
+`run_ablation.py`, `ablation_analysis.py`). 32,000 paired trials, 16 shards, 53 s, **0 reference calls,
+0 model calls, 0 new draws**. All numbers **design-based Monte Carlo, POST-HOC EXPLORATORY**.
+
+| cell | original deploy | disabled deploy | paired D = orig − disabled | MC 95% |
+|---|---|---|---|---|
+| P05N | 0.00325 | 0.00137 | **+0.00187** | [+0.00093, +0.00282] |
+| P05A | 0.05075 | 0.04763 | **+0.00313** | [+0.00190, +0.00435] |
+| P10N | 0.52650 | 0.38950 | **+0.13700** | [+0.12946, +0.14454] |
+| P10A | 0.84525 | 0.84075 | **+0.00450** | [+0.00303, +0.00597] |
+
+The hypothesis was that elapsed-cost narrowing **causes** the informative-delay gain, so disabling it
+should **shrink** the A−N gap. It does not shrink at either rung. At μ_h = 0.10 the gap **widens**,
++0.31875 → +0.45125, change **−0.13250**, MC 95% [−0.14018, −0.12482] (excludes zero). At μ_h = 0.05 the
+change is +0.00125, [−0.00030, +0.00280] (includes zero). **Hypothesis falsified, in the direction I did
+not anticipate.**
+
+What *is* established: the certificates are load-bearing everywhere (all four paired intervals exclude
+zero); the label change is **one-directional** — across 32,000 pairs there is **not one** pair where the
+disabled arm deploys and the original does not, and **not one retention** in either arm, so only 3 of the
+16 joint first-decision categories are populated; surviving decisions arrive **29–123 ticks later**.
+What is **not** established: that certificates matter more under one delay regime. The four cells sit at
+0.003 / 0.051 / 0.527 / 0.845 baseline deployment — a floor, a low point, a mid-curve point and a
+near-ceiling point — so the difference-of-differences mixes mechanism with **power-curve position**, and
+a ceiling effect alone reproduces the μ_h = 0.10 pattern.
+
+Pre-outcome, executed: **branch witness** through `vgen.adapter_tick_sums` itself (contained at all 2,201
+ticks, success sums identical at all 2,201, 2,174 strictly different, so it can distinguish the arms);
+**schedule-identity witness** — 160 CPREFIX/NAIVE rows reproduce the delivered coarse-panel rows character
+for character outside the six shared certificate-diagnostic columns, which is the schedule equality root
+noted had been *described but not exercised*; three negative controls fire. Original-arm cross-check:
+26/406/4212/6762 of 8000 deploys, retain 0 — identical to the delivered `PC_ANALYSIS.json`.
+
+**Deviations, all recorded in `ABLATION_FINDING.json`:** attempt 1 wrote to the wrong directory
+(`vsupervise` runs the child with its own cwd; `--out` was passed unresolved) — **retained in full** at
+`disabled_arm_attempt1_misplaced_cwd/`, path fixed, repeat produced **identical counters** (determinism
+check); `vpins.entry_point_pins` gained `variant`/`law_weights`, so its `receipt` aggregate is not
+comparable with pre-2026-09-21 receipts; the pre-registered wrapper's default `policy` was corrected from
+`operational` to `oracle` **before any outcome was read** (under installation `_look_fractions` would have
+silently switched policy); host not quiescent — **wall time only**, every reported quantity deterministic.
+Latent and **not** repaired here: `run_powercurve.py` passes `--out` to its child the same way; delivered
+runs used absolute paths and are unaffected, and repairing it moves a digest that delivered receipts pin.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.

@@ -1,0 +1,91 @@
+{
+  "attempt_id": "20260921T165632Z",
+  "conditions": {
+    "all_expected_shard_ids_exactly_once": true,
+    "bindings_equal_frozen_context": true,
+    "coordinate_coverage_complete": true,
+    "coordinate_coverage_disjoint": true,
+    "coordinates_match_plan_entries": true,
+    "counts_reconciled": true,
+    "every_shard_complete_with_clean_attempts": true,
+    "hashes_reconciled": true,
+    "no_cap_event": true,
+    "pins_present_and_consistent": true,
+    "supervisor_completed_successfully": true
+  },
+  "cumulative_job": {
+    "elapsed_seconds": 52.32577587477863,
+    "output_bytes": 1884074,
+    "primary_rows": 96000,
+    "reference_calls": 0,
+    "reference_rows": 0,
+    "shards_completed": 16,
+    "trials": 32000
+  },
+  "data_completion": true,
+  "expected_totals": {
+    "primary_rows": 96000,
+    "reference_calls": 0,
+    "reference_rows": 0,
+    "trials": 32000
+  },
+  "insufficiency_note": "within_caps or process exit zero alone is NOT scientific completion; every condition above must hold. Final paper/calibration acceptance remains independent of successful execution.",
+  "job_id": "AB-ce5bdceea131",
+  "missing_shard_ids": [],
+  "observed_totals": {
+    "primary_rows": 96000,
+    "reference_calls": 0,
+    "reference_rows": 0,
+    "trials": 32000
+  },
+  "schema": "live_ab_validation_v2.t1_job_receipt.1",
+  "scientific_completion": true,
+  "scientific_completion_note": "a CHILD data receipt never asserts scientific completion; only the parent, with an actual terminal supervisor result, can",
+  "shards_expected": 16,
+  "shards_published": 16,
+  "stage": "final",
+  "supervision": {
+    "argv": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/.venv/bin/python",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/run_ablation.py",
+      "--child",
+      "--out",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/results/live_ab_validation_v2/ablation_20260921/disabled_arm"
+    ],
+    "available_ram_bytes_at_start": 13718290432,
+    "breach": null,
+    "caps": {
+      "output_bytes": 209715200,
+      "seconds": 3600.0,
+      "tree_rss_bytes": 2147483648
+    },
+    "child_stderr_tail": "",
+    "child_stdout_tail": "",
+    "deadline_monotonic": 5160949.619257041,
+    "foreign_processes_touched": false,
+    "label": "certificate_ablation_disabled_arm",
+    "measured_window": "process spawn through exit, INCLUDING interpreter startup, imports, reference calls, output writes, close and the child's receipt write",
+    "observed": {
+      "final_output_bytes_actual_child_dir": 2118377,
+      "peak_output_bytes_including_reserve": 2380521,
+      "peak_tree_rss_bytes": 80248832,
+      "poll_interval_seconds": 0.15,
+      "poll_samples": 282,
+      "wall_seconds": 52.97473454196006
+    },
+    "receipt_reserve_bytes": 262144,
+    "returncode": 0,
+    "rss_scope": "SAMPLED simultaneous summed RSS over the child's own process tree at a 0.15s poll interval; NOT a getrusage self/reaped-child maximum, and NOT an instantaneous hard bound -- a spike between samples can be missed. Root was explicit: do not describe polling as a hard memory bound.",
+    "safety": "the supervisor signals only the process group it created; it never signals or inspects a process it did not spawn",
+    "schema": "live_ab_validation_v2.supervision.1",
+    "started_perf": 5157349.619257041,
+    "terminated_by_supervisor": false,
+    "timestamps": {
+      "ended_utc": "2026-09-21T16:57:25Z",
+      "started_utc": "2026-09-21T16:56:32Z"
+    },
+    "within_caps": true
+  },
+  "unique_coordinates": 8000,
+  "written_utc": "2026-09-21T16:57:25Z"
+}

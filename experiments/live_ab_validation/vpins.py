@@ -62,6 +62,12 @@ PINNED_SOURCES: Dict[str, Tuple[str, ...]] = {
     # not have.  That is this project's recurring defect shape, in the very
     # mechanism built to prevent it.
     "power_curve_entrypoint": ("vpowercurve.py", "run_powercurve.py"),
+    # The certificate-ablation arm REPLACES a function inside the pinned
+    # primary module at runtime.  An unchanged, pinned vgen.py does not describe
+    # what evaluated the disabled arm -- the same hole the power-curve entry
+    # point had -- so the operator and its driver are pinned by name here, and
+    # `run_identity.variant` below records WHICH arm a receipt belongs to.
+    "ablation_entrypoint": ("vablation.py", "run_ablation.py"),
     "diagnostic_not_authorizing": ("videntity.py",),
 }
 
@@ -230,7 +236,9 @@ def entry_point_pins(policy: str, schedule: str,
                      reference_mode: str = "unspecified",
                      normalized_horizon: int = 0,
                      expected_trials: int = 0,
-                     expected_reference_calls: int = 0) -> Dict[str, Any]:
+                     expected_reference_calls: int = 0,
+                     variant: str = "original",
+                     law_weights: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """The five guard identities plus everything the root enumerated.
 
     ``code`` is the WHOLE-FILE aggregate over the complete entry point, not a
@@ -251,6 +259,15 @@ def entry_point_pins(policy: str, schedule: str,
         "normalized_horizon": int(normalized_horizon),
         "expected_trial_evaluations": int(expected_trials),
         "expected_reference_calls": int(expected_reference_calls),
+        # WHICH ESTIMATOR ARM produced the receipt.  Two arms that share every
+        # source file, every coordinate and every config differ only by a runtime
+        # rebinding, so without this key their receipt digests would be equal and
+        # a disabled-arm record would be indistinguishable from an original one.
+        "variant": variant,
+        # The laws P05/P10 are registered into vgen's RUNTIME tables by
+        # vpowercurve; vgen.py's pinned bytes do not contain them.  Recording the
+        # realised integer weights is what pins the law actually sampled.
+        "law_weights": law_weights if law_weights is not None else {},
     }
     return {
         "code": src["aggregate_sha256"],

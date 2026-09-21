@@ -1,0 +1,80 @@
+{
+  "schema": "live_ab_validation_v2.certificate_ablation_finding.1",
+  "label": "POST-HOC EXPLORATORY MECHANISM ANALYSIS, selected after the reported informative-delay gap. Not a prospectively specified study. All numbers are DESIGN-BASED MONTE CARLO over this panel's own finite draws.",
+  "authority": "root specification, issue 12 comment 5762860561; runtime handoff reviews/ablation_root_handoff_20260921_1625.md",
+  "numbers_live_in": "ABLATION_ANALYSIS.json (this file interprets them and adds nothing arithmetic)",
+
+  "hypothesis_under_test": "ADAPTER's advantage under INFORMATIVE delay is produced by the two elapsed-cost certificate branches -- the narrowing and collapse of a partially-revealed pair's hierarchy enclosure when the revealed arm succeeded.",
+  "prediction_if_true": "Disabling those two branches on the SAME draws should SHRINK the informative-minus-non-informative (A minus N) deployment gap.",
+
+  "outcome": "THE PREDICTION FAILS AT BOTH RUNGS. At mu_h = 0.10 the A-minus-N gap does not shrink; it WIDENS, from +0.31875 to +0.45125, a change of -0.13250 with Monte Carlo 95% interval [-0.14018, -0.12482], which excludes zero. At mu_h = 0.05 the change is +0.00125 with interval [-0.00030, +0.00280], which includes zero. There is no rung at which disabling the certificates closes the gap.",
+
+  "what_the_ablation_does_establish": [
+    "The certificates produce REAL deploy decisions in every one of the four cells. The paired within-cell difference D = original-deploy minus disabled-deploy is positive with a Monte Carlo interval excluding zero in all four: P05N +0.00187 [+0.00093, +0.00282], P05A +0.00313 [+0.00190, +0.00435], P10N +0.13700 [+0.12946, +0.14454], P10A +0.00450 [+0.00303, +0.00597].",
+    "The label change is ONE-DIRECTIONAL on this delivered subset: across all 32,000 paired trials there is not one pair in which the disabled arm deploys and the original does not, and not one retention in either arm. Only three of the sixteen joint first-decision categories are populated, all of the form DEPLOY->DEPLOY, DEPLOY->NO_DECISION, or NO_DECISION->NO_DECISION.",
+    "Decisions that survive the ablation arrive LATER under it. Among trials deciding in both arms the disabled arm's elapsed decision time is greater by 29 to 123 ticks depending on cell, every interval excluding zero."
+  ],
+
+  "what_it_does_not_establish": [
+    "It does NOT show that the certificates matter more for non-informative delay. That reading comes from comparing cells sitting at 0.00325, 0.05075, 0.52650 and 0.84525 baseline deployment -- a floor, a low point, a mid-curve point and a near-ceiling point. A difference of differences on the probability scale between cells at such different curve positions mixes the mechanism with position on the power curve.",
+    "The mu_h = 0.10 widening is exactly the pattern a CEILING EFFECT alone would produce: P10A at 0.84525 has little room to fall, while P10N at 0.52650 sits on the steepest part of its own curve, so equal loss of evidence moves them unequally. The ablation as specified cannot separate that from a delay-specific mechanism, and this analysis does not claim to.",
+    "It does not generalise beyond these four fixed synthetic coordinates, and it repairs none of the coarse panel's inherited provenance qualifications."
+  ],
+
+  "conclusion": "The elapsed-cost certificates are load-bearing -- removing them removes real deployments and delays the rest, everywhere. But they are NOT the explanation of the informative-delay advantage: the advantage survives their removal and at mu_h = 0.10 is larger without them. My cost-narrowing hypothesis is falsified in the direction I did not anticipate. Because the four cells are not matched on baseline deployment rate, the contrast does not establish the reverse claim either; the clean result of this experiment is the within-cell paired effect, and the between-cell contrast is reported as specified but read only as 'no shrinkage anywhere'.",
+
+  "self_falsification_record": "This is the second mechanism hypothesis of mine that the evidence has refused. The first was the CPREFIX comparison, which I had described as showing no advantage when its Newcombe interval [0.00024, 0.02925] excludes zero. The matched ablation was built precisely because CPREFIX was never a one-thing control. It is a one-thing control, and the one thing is not what I said it was.",
+
+  "run_provenance": {
+    "disabled_arm": "results/live_ab_validation_v2/ablation_20260921/disabled_arm",
+    "original_arm": "results/live_ab_validation_v2/powercurve_20260921 -- the DELIVERED records, not a recomputation",
+    "original_arm_cross_check": "the four original-arm deploy rates reproduced by this analysis are identical to the counts published in the delivered PC_ANALYSIS.json: 26/406/4212/6762 of 8000, retain 0 in all four",
+    "variant": "ADAPTER_NOCERT",
+    "namespace": 3,
+    "paired_trials": 32000,
+    "reference_calls": 0,
+    "model_calls": 0,
+    "new_draws": 0,
+    "wall_seconds": 52.97473454196006,
+    "operator_entries": 109515
+  },
+
+  "preflight_executed_before_any_outcome_was_read": {
+    "branch_witness": "vgen.adapter_tick_sums -- the function vrun.build_series_v2 actually calls -- entered the ablation operator; hierarchy sums contained at all 2201 ticks of the full axis; success sums identical at all 2201; 2174 ticks strictly different, so the witness can distinguish the variant from the original",
+    "schedule_identity_witness": "160 CPREFIX and NAIVE rows of the disabled arm reproduce the delivered coarse-panel rows character for character outside the six shared certificate-diagnostic columns, in all four cells. CPREFIX and NAIVE take their bands from vgen.completion_tick_states, which never calls state_at_age, so this is an EXECUTED check that the two arms share draws, reveal ticks, enrollment and look schedule -- the equality root noted had been described but not exercised.",
+    "deterministic_invariants": "768,000 array-state comparisons over 384 age snapshots: containment, resolved-score equality and success-interval equality all hold; 5,631 pair states strictly changed. These are SAMPLED regression checks at four ticks, not an exhaustive sweep; the all-age property rests on the branch-level containment argument the independent review accepted.",
+    "negative_controls": "the per-shard runner refuses to run when the operator is not installed; a second install() refuses; the operator calls a callable captured at import, so installation cannot recurse"
+  },
+
+  "deviations": [
+    {
+      "what": "Attempt 1 of the run wrote its output to experiments/live_ab_validation/results/... instead of the intended results/... directory.",
+      "cause": "vsupervise.supervise runs the child with cwd set to the module directory, not the parent's cwd, and run_ablation.py passed the --out path through to the child unresolved. The two processes did not mean the same directory by the same relative string.",
+      "consequence": "None scientific. The child completed all 16 shards and reconciled; the parent reconciled an empty directory and correctly reported no completion.",
+      "disposition": "The attempt is RETAINED in full at disabled_arm_attempt1_misplaced_cwd/, not deleted. run_ablation.py now resolves --out to an absolute path in both parent and child, and the run was repeated. The repeat produced identical counters -- 109,515 operator entries, 1,884,074 output bytes, 32,000 trials -- which is a determinism check across the two attempts.",
+      "latent_elsewhere": "run_powercurve.py passes --out to its child the same way and has the same latent defect; the delivered power-curve runs were invoked with absolute paths and are unaffected. Not repaired in this commit, because repairing it changes the digest of a file pinned by the delivered power-curve receipts and that is a separate, recorded decision."
+    },
+    {
+      "what": "vpins.entry_point_pins gained two keys, `variant` and `law_weights`, inside run_identity.",
+      "why": "Two arms that share every source file, coordinate and config differ only by a runtime rebinding, so without `variant` their receipt digests would be EQUAL and a disabled-arm record would be indistinguishable from an original one. `law_weights` records the P05/P10 weight vectors, which vpowercurve registers into vgen's runtime tables and which vgen.py's pinned bytes therefore do not contain.",
+      "consequence": "The `receipt` aggregate is not comparable with receipts written before this change. The source files it digests are unchanged in meaning, and no delivered receipt is altered."
+    },
+    {
+      "what": "The pre-registered wrapper declared policy='operational' as its default while vgen.state_at_age's default is 'oracle'.",
+      "why_it_mattered": "Under global installation vrun._look_fractions calls vgen.state_at_age(sub, ages) with NO policy argument, so the wrapper would have silently evaluated that per-look diagnostic under the operational policy while the original panel evaluated it under the oracle one -- a difference between the arms having nothing to do with the ablation.",
+      "disposition": "Corrected before any disabled outcome was evaluated. The transformation itself is unchanged; only the signature now mirrors the function it replaces."
+    },
+    {
+      "what": "The host was not quiescent during the run: four foreign DTR-AgentEvals processes at ~99% CPU and a load average of 7.86.",
+      "consequence": "Affects WALL TIME only. Every quantity reported here is a deterministic function of the draws; the repeat attempt reproduced attempt 1's counters exactly under the same load. No foreign process was signalled or inspected."
+    }
+  ],
+
+  "must_not_claim": [
+    "that cost narrowing explains the informative-delay advantage -- this experiment was built to test that and the test came back negative",
+    "that cost narrowing is irrelevant -- it removes real deployments in every cell",
+    "that the certificates matter more under one delay regime than the other -- the cells are not matched on baseline rate and floor/ceiling alone can produce the observed pattern",
+    "that any of this was prospectively predicted, or generalises beyond these four synthetic coordinates",
+    "that the paired intervals are coverage statements; they are Monte Carlo uncertainty over this panel's finite draws"
+  ]
+}

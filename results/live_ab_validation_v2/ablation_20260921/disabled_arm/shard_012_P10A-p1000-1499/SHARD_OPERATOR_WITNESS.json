@@ -1,0 +1,18 @@
+{
+  "completed_trials": 2000,
+  "conformance_smoke_against_original": {
+    "epsilon": 1e-09,
+    "pair_states_compared": 7001,
+    "ticks_checked": [
+      1,
+      1000,
+      2000,
+      2001,
+      2200
+    ],
+    "tol": 0.05
+  },
+  "operator_entries": 8996,
+  "operator_installed_throughout": true,
+  "variant": "ADAPTER_NOCERT"
+}
