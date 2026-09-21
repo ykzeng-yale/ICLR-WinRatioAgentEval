@@ -58,7 +58,15 @@
     ],
     "the_one_T1_failure_event_and_what_it_was_not": {
       "event": "The parent process raised KeyError: 'started_perf' in vlaunch.launch AFTER the child had published all 56 shards.",
-      "surviving_artifact": "results/t1_run_stdout.log -- 11 lines, TWO identical tracebacks, one per parent invocation. Committed with this mapping; it had been sitting untracked.",
+      "surviving_artifact": "results/t1_run_stdout.log -- 11 lines, ONE traceback. Committed with this mapping; it had been sitting untracked.",
+      "CORRECTED_2026_09_21": {
+        "i_wrote": "'11 lines, TWO identical tracebacks, one per parent invocation.'",
+        "truth": "The file is 11 lines and contains exactly ONE traceback. `grep -c '^Traceback'` returns 1.",
+        "how_i_got_it_wrong": "I inspected the file with `head -30` followed by `tail -20`. On an 11-line file BOTH commands print the entire file, so the same traceback was printed twice in my terminal and I read it as two. The window sizes were larger than the file and I did not notice.",
+        "consequence_of_the_error": "I asserted a second parent invocation that no artifact supports. There may or may not have been one; the log does not say, and I am not inferring one.",
+        "found_by": "root, ablation_root_disposition_20260921_1737.md -- 'the deposited 11-line T1 log contains ONE traceback, not the asserted two.'",
+        "no_rerun": "Nothing re-run; no accepted T1 count is affected. The parent-finalization narrative is unchanged in substance: the crash happened after all 56 shards had published, and finalization was re-run against immutable shards."
+      },
       "what_it_was_not": "Not a discarded science pass. The shards were already immutable and complete, so FINALIZATION was re-run against them and no trial was re-evaluated. Recorded contemporaneously in T1_JOB_RECEIPT.parent_finalization_note."
     },
     "LIMIT_OF_THIS_NEGATIVE": "prior_failed_attempt = null describes the delivered directory's own local history. It cannot establish that no earlier attempt ever existed -- this is exactly the limitation I recorded for the power-curve panel in PROVENANCE_ADDENDUM.gap_2, and it applies here unchanged. What is established is that no RECORD of a discarded calibration pass exists and that the delivered pass is self-consistent as attempt a1; that is weaker than proof of no such pass, and it is stated as the weaker thing."

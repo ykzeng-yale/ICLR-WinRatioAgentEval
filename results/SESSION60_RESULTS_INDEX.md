@@ -699,6 +699,32 @@ wording — "prediction fails at both rungs" → "no clear shrinkage at 0.05 and
 paired contrast, not invalidity; the 0.10 widening reported as a result rather than a caveat; no universal
 negative about certificates across regimes; and the counter-based determinism claim replaced by digests.
 
+**ROOT ACCEPTED THE ABLATION, 2026-09-21 17:37** (`1b4cdc9`, `reviews/ablation_root_disposition_20260921_1737.md`
+plus independent scientific and provenance reviews). Accepted as **post-hoc exploratory synthetic
+evidence** — a diagnostic of the specified certificate branches, **not** a new independent 32,000-trial
+sample, not a confirmatory study, not evidence of general production benefit; inherited coarse-panel
+retrospective source-binding and lost-attempt qualifications carry over. **All 32,000 paired keys and
+numeric summaries independently reproduced**; all 16 gzip containers and decompressed files agree between
+attempts — root recomputed the digests rather than taking mine, as I had asked.
+
+Root's framings I adopt because they are more precise than mine:
+- **Compute vs science accounting:** both attempts count — **64,000 evaluations, 32,000 unique
+  coordinates**, 106.22635 supervisor seconds, 4,246,701 retained attempt-directory bytes. My "never
+  64,000 trials" was right about the science and wrong about the compute ledger.
+- *"A correctly implemented ablation can contradict a proposed explanation without refuting the enclosure
+  theory."* A **mechanism-interpretation correction**, not a result about the estimator.
+- **A curve-position explanation remains untested** — my account is still an account.
+- Intervals are **nominal pointwise normal Monte Carlo approximations, not simultaneous post-selection
+  coverage guarantees**; simulated ticks are **not measured live runtime savings**.
+- The observed absence of reverse discordance **does not prove first-decision-label monotonicity for
+  other streams**.
+
+Two limitations root's provenance review found that I had not recorded: **attempt 1's monitoring watched
+the wrong directory**, so it does not prove continuous output-budget compliance; and **attempt 1's exact
+driver blob is unrecovered** — I edited `run_ablation.py` between attempts and attempt 1's source was
+never committed, so its recorded digest cannot be checked against bytes. Corrected 22-source/2-config
+pins match `6bdefd1`.
+
 **SELF-AUDIT OF MY OWN ABLATION ANALYSIS — two convention defects and a vacuous check**
 (`CORRECTIONS_v2` in `ABLATION_FINDING.json`; not requested by root). **All six headline numbers are
 exactly unchanged**; only secondary interval *conventions* moved.
@@ -729,7 +755,10 @@ For the 112,000-trial calibration panel: all 56 shard receipts carry `attempt_id
 T1-18ad53988456`, `prior_failed_attempt null`; the job receipt has all twelve conditions true. The only
 T1 failure event was the parent `KeyError: 'started_perf'` **after** all 56 shards had published —
 finalization was re-run against immutable shards, **no science re-run**. `results/t1_run_stdout.log`
-(two tracebacks, one per parent invocation) is now **committed**; it had been untracked. **Stated as the
+(11 lines, **one** traceback) is now **committed**; it had been untracked. *Corrected:* I first wrote
+"two tracebacks, one per parent invocation" — I had inspected an 11-line file with `head -30` then
+`tail -20`, so both printed the whole file and I counted the same traceback twice. Caught by root. No
+artifact supports a second parent invocation and none is inferred. **Stated as the
 weaker claim it is:** no *record* of a discarded calibration pass exists and the delivered pass is
 self-consistent — `prior_failed_attempt null` describes the delivered directory's own history and cannot
 prove no earlier attempt existed, the same limit I recorded in `PROVENANCE_ADDENDUM.gap_2`. Unknowns
