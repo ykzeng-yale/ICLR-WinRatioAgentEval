@@ -1,0 +1,70 @@
+{
+  "revision": "2c09a16",
+  "shards": 24,
+  "coords": 12000,
+  "counts": {
+    "primary_rows": 144000,
+    "programs": 12000,
+    "reference_calls": 96000,
+    "reference_rows": 288000,
+    "trials": 48000
+  },
+  "unique_primary_keys": 144000,
+  "unique_reference_keys": 288000,
+  "all_hashes_sizes_match": true,
+  "data_bytes": {
+    "primary_rows.csv.gz": 4522482,
+    "reference_bands.csv": 37497063
+  },
+  "all_files": 77,
+  "all_bytes": 42310617,
+  "source_matches_at_delivery": {
+    "reference/MANIFEST.json": true,
+    "reference/eb_reference.py": true,
+    "reference/vendor.py": true,
+    "vband.py": true,
+    "vconformance.py": true,
+    "vgen.py": true,
+    "videntity.py": true,
+    "vlaunch.py": true,
+    "vmeasure.py": true,
+    "vpanel.py": true,
+    "vpins.py": false,
+    "vpolicy.py": true,
+    "vprod.py": true,
+    "vresource_check.py": true,
+    "vrun.py": true,
+    "vshard.py": true,
+    "vsupervise.py": true,
+    "vtotalguard.py": true
+  },
+  "retrospective_source_hashes": {
+    "run_powercurve.py": "5b6bd37b7347113f3c96dde2ce3c2e0dc0192eb34f4e1476dbfa0f9ce5bca960",
+    "vpowercurve.py": "c88c7470c5986fa85e715297a91e2106ea645af94b832c97a51aee620107a76f"
+  },
+  "omitted_driver_law_pins": [
+    "run_powercurve.py",
+    "vpowercurve.py"
+  ],
+  "plan_namespace": 4,
+  "shard_namespace": 4,
+  "run_identity_namespace": 3,
+  "fine_failed_files": [
+    "results/live_ab_validation_v2/powercurve_fine_20260921_failed_attempt1/PC_JOB_RECEIPT.json",
+    "results/live_ab_validation_v2/powercurve_fine_20260921_failed_attempt1/POWERCURVE_PLAN.json",
+    "results/live_ab_validation_v2/powercurve_fine_20260921_failed_attempt1/SUPERVISION.json",
+    "results/live_ab_validation_v2/powercurve_fine_20260921_failed_attempt1/SUPERVISION_FAILURE.json"
+  ],
+  "fine_failed_bytes": 20590,
+  "failed_plan_equal_success_plan": true,
+  "failed_wall": 5.263294707983732,
+  "successful_wall": 1001.2789552500471,
+  "combined_observed_attempt_walls": 1006.5422499580309,
+  "top_bytes": {
+    "COMBINED_CURVE.json": 5159,
+    "PC_CHILD_DATA_RECEIPT.json": 1937,
+    "PC_JOB_RECEIPT.json": 3638,
+    "POWERCURVE_PLAN.json": 11180,
+    "SUPERVISION.json": 1836
+  }
+}

@@ -1,0 +1,504 @@
+{
+  "commit": "2c09a167afd3bdfa404512d668aa1b2b5502fe1b",
+  "primary_files": 24,
+  "primary_row_count": 144000,
+  "duplicate_coordinates": 0,
+  "all_programs_four_trials": true,
+  "combined_fine_mismatches": [],
+  "addendum_retrospective_hashes_match": {
+    "run_powercurve.py": true,
+    "vpowercurve.py": true
+  },
+  "addendum_laws": {
+    "P05": {
+      "sum": 10000,
+      "mu_h": 0.05,
+      "mu_s": 0.2
+    },
+    "P10": {
+      "sum": 10000,
+      "mu_h": 0.1,
+      "mu_s": 0.2
+    },
+    "P15": {
+      "sum": 10000,
+      "mu_h": 0.15,
+      "mu_s": 0.2
+    },
+    "P20": {
+      "sum": 10000,
+      "mu_h": 0.2,
+      "mu_s": 0.2
+    },
+    "P30": {
+      "sum": 10000,
+      "mu_h": 0.3,
+      "mu_s": 0.2
+    }
+  },
+  "rows": [
+    {
+      "cell": "P06A",
+      "construction": "ADAPTER",
+      "n": 4000,
+      "NO_DECISION": 3444,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "DEPLOY": 556,
+      "wilson95": [
+        0.12862511012439132,
+        0.15006760793077312
+      ]
+    },
+    {
+      "cell": "P06A",
+      "construction": "CPREFIX",
+      "n": 4000,
+      "NO_DECISION": 3660,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "DEPLOY": 340,
+      "wilson95": [
+        0.07675066988275132,
+        0.09404566804770091
+      ]
+    },
+    {
+      "cell": "P06A",
+      "construction": "NAIVE",
+      "n": 4000,
+      "DEPLOY": 4000,
+      "ever_miscover_h": 3799,
+      "ever_miscover_s": 0,
+      "wilson95": [
+        0.9990405567102985,
+        1.0
+      ]
+    },
+    {
+      "cell": "P06N",
+      "construction": "ADAPTER",
+      "n": 4000,
+      "NO_DECISION": 3934,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "DEPLOY": 66,
+      "wilson95": [
+        0.012990881826410117,
+        0.020936899834731224
+      ]
+    },
+    {
+      "cell": "P06N",
+      "construction": "CPREFIX",
+      "n": 4000,
+      "NO_DECISION": 3687,
+      "ever_miscover_h": 1,
+      "ever_miscover_s": 0,
+      "DEPLOY": 313,
+      "wilson95": [
+        0.0703260532535062,
+        0.08698323716135699
+      ]
+    },
+    {
+      "cell": "P06N",
+      "construction": "NAIVE",
+      "n": 4000,
+      "NO_DECISION": 3349,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "DEPLOY": 651,
+      "wilson95": [
+        0.1516350067669117,
+        0.17451213773199195
+      ]
+    },
+    {
+      "cell": "P07A",
+      "construction": "ADAPTER",
+      "n": 4000,
+      "NO_DECISION": 2853,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "DEPLOY": 1147,
+      "wilson95": [
+        0.2729449096067007,
+        0.30096429295635696
+      ]
+    },
+    {
+      "cell": "P07A",
+      "construction": "CPREFIX",
+      "n": 4000,
+      "NO_DECISION": 3273,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "DEPLOY": 727,
+      "wilson95": [
+        0.17010633860101726,
+        0.19400434705287772
+      ]
+    },
+    {
+      "cell": "P07A",
+      "construction": "NAIVE",
+      "n": 4000,
+      "DEPLOY": 3999,
+      "ever_miscover_h": 3741,
+      "ever_miscover_s": 0,
+      "NO_DECISION": 1,
+      "wilson95": [
+        0.998585168933901,
+        0.9999558674980423
+      ]
+    },
+    {
+      "cell": "P07N",
+      "construction": "ADAPTER",
+      "n": 4000,
+      "NO_DECISION": 3769,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "DEPLOY": 231,
+      "wilson95": [
+        0.05093635214531622,
+        0.06541227544442474
+      ]
+    },
+    {
+      "cell": "P07N",
+      "construction": "CPREFIX",
+      "n": 4000,
+      "NO_DECISION": 3355,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "DEPLOY": 645,
+      "wilson95": [
+        0.15017901043941853,
+        0.17297101238935417
+      ]
+    },
+    {
+      "cell": "P07N",
+      "construction": "NAIVE",
+      "n": 4000,
+      "NO_DECISION": 2791,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "DEPLOY": 1209,
+      "wilson95": [
+        0.2882137772164184,
+        0.31666568260465855
+      ]
+    },
+    {
+      "cell": "P08A",
+      "construction": "ADAPTER",
+      "n": 4000,
+      "NO_DECISION": 2115,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "DEPLOY": 1885,
+      "wilson95": [
+        0.45581574246589984,
+        0.486739425523258
+      ]
+    },
+    {
+      "cell": "P08A",
+      "construction": "CPREFIX",
+      "n": 4000,
+      "NO_DECISION": 2765,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "DEPLOY": 1235,
+      "wilson95": [
+        0.2946226111367366,
+        0.3232443759215742
+      ]
+    },
+    {
+      "cell": "P08A",
+      "construction": "NAIVE",
+      "n": 4000,
+      "DEPLOY": 4000,
+      "ever_miscover_h": 3744,
+      "ever_miscover_s": 0,
+      "wilson95": [
+        0.9990405567102985,
+        1.0
+      ]
+    },
+    {
+      "cell": "P08N",
+      "construction": "ADAPTER",
+      "n": 4000,
+      "NO_DECISION": 3361,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "DEPLOY": 639,
+      "wilson95": [
+        0.14872336365143368,
+        0.17142953750720813
+      ]
+    },
+    {
+      "cell": "P08N",
+      "construction": "CPREFIX",
+      "n": 4000,
+      "DEPLOY": 1251,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "NO_DECISION": 2749,
+      "wilson95": [
+        0.2985681600711569,
+        0.32729115144083637
+      ]
+    },
+    {
+      "cell": "P08N",
+      "construction": "NAIVE",
+      "n": 4000,
+      "DEPLOY": 2018,
+      "ever_miscover_h": 1,
+      "ever_miscover_s": 0,
+      "NO_DECISION": 1982,
+      "wilson95": [
+        0.4890088683609149,
+        0.5199824966494778
+      ]
+    },
+    {
+      "cell": "P09A",
+      "construction": "ADAPTER",
+      "n": 4000,
+      "DEPLOY": 2681,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "NO_DECISION": 1319,
+      "wilson95": [
+        0.6555237573907036,
+        0.6846495521691531
+      ]
+    },
+    {
+      "cell": "P09A",
+      "construction": "CPREFIX",
+      "n": 4000,
+      "DEPLOY": 1958,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "NO_DECISION": 2042,
+      "wilson95": [
+        0.47402604543811044,
+        0.5049941028709732
+      ]
+    },
+    {
+      "cell": "P09A",
+      "construction": "NAIVE",
+      "n": 4000,
+      "DEPLOY": 4000,
+      "ever_miscover_h": 3679,
+      "ever_miscover_s": 0,
+      "wilson95": [
+        0.9990405567102985,
+        1.0
+      ]
+    },
+    {
+      "cell": "P09N",
+      "construction": "ADAPTER",
+      "n": 4000,
+      "DEPLOY": 1284,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "NO_DECISION": 2716,
+      "wilson95": [
+        0.30670976279640993,
+        0.33563371790130325
+      ]
+    },
+    {
+      "cell": "P09N",
+      "construction": "CPREFIX",
+      "n": 4000,
+      "DEPLOY": 1874,
+      "ever_miscover_h": 1,
+      "ever_miscover_s": 0,
+      "NO_DECISION": 2126,
+      "wilson95": [
+        0.4530735175036908,
+        0.48398692742356036
+      ]
+    },
+    {
+      "cell": "P09N",
+      "construction": "NAIVE",
+      "n": 4000,
+      "DEPLOY": 2771,
+      "ever_miscover_h": 1,
+      "ever_miscover_s": 0,
+      "NO_DECISION": 1229,
+      "wilson95": [
+        0.6782734877661645,
+        0.7068566468456556
+      ]
+    },
+    {
+      "cell": "P11A",
+      "construction": "ADAPTER",
+      "n": 4000,
+      "NO_DECISION": 249,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "DEPLOY": 3751,
+      "wilson95": [
+        0.9298344157334566,
+        0.9448255916664097
+      ]
+    },
+    {
+      "cell": "P11A",
+      "construction": "CPREFIX",
+      "n": 4000,
+      "NO_DECISION": 696,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "DEPLOY": 3304,
+      "wilson95": [
+        0.8139401853606485,
+        0.8374342576144662
+      ]
+    },
+    {
+      "cell": "P11A",
+      "construction": "NAIVE",
+      "n": 4000,
+      "DEPLOY": 4000,
+      "ever_miscover_h": 3634,
+      "ever_miscover_s": 0,
+      "wilson95": [
+        0.9990405567102985,
+        1.0
+      ]
+    },
+    {
+      "cell": "P11N",
+      "construction": "ADAPTER",
+      "n": 4000,
+      "NO_DECISION": 1082,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "DEPLOY": 2918,
+      "wilson95": [
+        0.7155184419492117,
+        0.7430411735808155
+      ]
+    },
+    {
+      "cell": "P11N",
+      "construction": "CPREFIX",
+      "n": 4000,
+      "DEPLOY": 3220,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "NO_DECISION": 780,
+      "wilson95": [
+        0.7924316114560411,
+        0.8169831281372409
+      ]
+    },
+    {
+      "cell": "P11N",
+      "construction": "NAIVE",
+      "n": 4000,
+      "DEPLOY": 3768,
+      "ever_miscover_h": 1,
+      "ever_miscover_s": 0,
+      "NO_DECISION": 232,
+      "wilson95": [
+        0.9343233415419585,
+        0.9488285105899454
+      ]
+    },
+    {
+      "cell": "P12A",
+      "construction": "ADAPTER",
+      "n": 4000,
+      "DEPLOY": 3911,
+      "ever_miscover_h": 1,
+      "ever_miscover_s": 0,
+      "NO_DECISION": 89,
+      "wilson95": [
+        0.9727000319580752,
+        0.9818832199786149
+      ]
+    },
+    {
+      "cell": "P12A",
+      "construction": "CPREFIX",
+      "n": 4000,
+      "DEPLOY": 3674,
+      "ever_miscover_h": 1,
+      "ever_miscover_s": 0,
+      "NO_DECISION": 326,
+      "wilson95": [
+        0.9096141940000566,
+        0.9265827519664631
+      ]
+    },
+    {
+      "cell": "P12A",
+      "construction": "NAIVE",
+      "n": 4000,
+      "DEPLOY": 4000,
+      "ever_miscover_h": 3594,
+      "ever_miscover_s": 0,
+      "wilson95": [
+        0.9990405567102985,
+        1.0
+      ]
+    },
+    {
+      "cell": "P12N",
+      "construction": "ADAPTER",
+      "n": 4000,
+      "DEPLOY": 3501,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "NO_DECISION": 499,
+      "wilson95": [
+        0.8646484467228728,
+        0.8851314910882062
+      ]
+    },
+    {
+      "cell": "P12N",
+      "construction": "CPREFIX",
+      "n": 4000,
+      "DEPLOY": 3648,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "NO_DECISION": 352,
+      "wilson95": [
+        0.9028207845388784,
+        0.9203886341904076
+      ]
+    },
+    {
+      "cell": "P12N",
+      "construction": "NAIVE",
+      "n": 4000,
+      "DEPLOY": 3928,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "NO_DECISION": 72,
+      "wilson95": [
+        0.9773935187577546,
+        0.9856815779109732
+      ]
+    }
+  ]
+}
