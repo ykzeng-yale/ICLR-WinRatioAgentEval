@@ -1,0 +1,44 @@
+[
+  {
+    "repo": "gostevehoward/confseq",
+    "accessed_utc": "2026-09-21T01:15:29.292262+00:00",
+    "default_branch": "master",
+    "commit": "5ffe733ca2447a2e28c2c91f3b00086173f2ab2c",
+    "commit_date": "2026-01-07T01:46:06Z",
+    "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "spdx_id": "MIT",
+      "url": "https://api.github.com/licenses/mit",
+      "node_id": "MDc6TGljZW5zZTEz"
+    }
+  },
+  {
+    "repo": "yjchoe/ComparingForecasters",
+    "accessed_utc": "2026-09-21T01:15:31.072975+00:00",
+    "default_branch": "release",
+    "commit": "52748c86e0429a9612dc79892c3be6156a524132",
+    "commit_date": "2023-10-24T23:13:32Z",
+    "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "spdx_id": "MIT",
+      "url": "https://api.github.com/licenses/mit",
+      "node_id": "MDc6TGljZW5zZTEz"
+    }
+  },
+  {
+    "repo": "yjchoe/CombiningEvidenceAcrossFiltrations",
+    "accessed_utc": "2026-09-21T01:15:31.875999+00:00",
+    "default_branch": "main",
+    "commit": "279128f222e09f04484a1ccb14537431752a16ea",
+    "commit_date": "2026-03-15T16:29:09Z",
+    "license": {
+      "key": "mit",
+      "name": "MIT License",
+      "spdx_id": "MIT",
+      "url": "https://api.github.com/licenses/mit",
+      "node_id": "MDc6TGljZW5zZTEz"
+    }
+  }
+]

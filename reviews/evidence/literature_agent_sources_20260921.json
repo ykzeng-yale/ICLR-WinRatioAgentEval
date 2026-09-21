@@ -1,0 +1,218 @@
+[
+  {
+    "repository": "evalplus/evalplus",
+    "commit": "26d6d00bb1fd0fa37f39c99d5290da67891d1c5e",
+    "path": "evalplus/evaluate.py",
+    "url": "https://raw.githubusercontent.com/evalplus/evalplus/26d6d00bb1fd0fa37f39c99d5290da67891d1c5e/evalplus/evaluate.py",
+    "bytes": 12935,
+    "sha256": "47f766df2dbb2280f7dd2c1040bfff0396c2b414a8d44b639424aa941bee7eab"
+  },
+  {
+    "repository": "evalplus/evalplus",
+    "commit": "26d6d00bb1fd0fa37f39c99d5290da67891d1c5e",
+    "path": "evalplus/eval/__init__.py",
+    "url": "https://raw.githubusercontent.com/evalplus/evalplus/26d6d00bb1fd0fa37f39c99d5290da67891d1c5e/evalplus/eval/__init__.py",
+    "bytes": 10651,
+    "sha256": "3c833c39b842e33f251c83db4347e0a95191909f23b390c12d73ab29a28a4daf"
+  },
+  {
+    "repository": "evalplus/evalplus",
+    "commit": "26d6d00bb1fd0fa37f39c99d5290da67891d1c5e",
+    "path": "evalplus/eval/utils.py",
+    "url": "https://raw.githubusercontent.com/evalplus/evalplus/26d6d00bb1fd0fa37f39c99d5290da67891d1c5e/evalplus/eval/utils.py",
+    "bytes": 5467,
+    "sha256": "5bf8925c8dd7c8f06b05c0ff4f28672e8e3b61d1b567b6a86b90e80bd8b780a4"
+  },
+  {
+    "repository": "evalplus/evalplus",
+    "commit": "26d6d00bb1fd0fa37f39c99d5290da67891d1c5e",
+    "path": "evalplus/data/humaneval.py",
+    "url": "https://raw.githubusercontent.com/evalplus/evalplus/26d6d00bb1fd0fa37f39c99d5290da67891d1c5e/evalplus/data/humaneval.py",
+    "bytes": 3454,
+    "sha256": "105969e0c700fa77f18b1ae7dd06230e22f81540cf030ddca2cbfeb2630055b4"
+  },
+  {
+    "repository": "evalplus/evalplus",
+    "commit": "26d6d00bb1fd0fa37f39c99d5290da67891d1c5e",
+    "path": "evalplus/data/mbpp.py",
+    "url": "https://raw.githubusercontent.com/evalplus/evalplus/26d6d00bb1fd0fa37f39c99d5290da67891d1c5e/evalplus/data/mbpp.py",
+    "bytes": 5504,
+    "sha256": "186e09b7b14dcf12ed259dfca1d6644a1c266c1bbac41c917fd3c0449a734b24"
+  },
+  {
+    "repository": "evalplus/evalplus",
+    "commit": "26d6d00bb1fd0fa37f39c99d5290da67891d1c5e",
+    "path": "evalplus/codegen.py",
+    "url": "https://raw.githubusercontent.com/evalplus/evalplus/26d6d00bb1fd0fa37f39c99d5290da67891d1c5e/evalplus/codegen.py",
+    "bytes": 10515,
+    "sha256": "d5d0383ec4146d641f282104bcccf3641dc81f6efeaf2979ca4b0978e5125625"
+  },
+  {
+    "repository": "UKGovernmentBEIS/inspect_ai",
+    "commit": "ec4dfc6953784dc45b79de3147530c89868c6e26",
+    "path": "src/inspect_ai/_eval/task/epochs.py",
+    "url": "https://raw.githubusercontent.com/UKGovernmentBEIS/inspect_ai/ec4dfc6953784dc45b79de3147530c89868c6e26/src/inspect_ai/_eval/task/epochs.py",
+    "bytes": 1060,
+    "sha256": "d8d9016a7e840822c0610b3a3b3c43f079f5fb1a6593b50b3b775e24ab1d8194"
+  },
+  {
+    "repository": "UKGovernmentBEIS/inspect_ai",
+    "commit": "ec4dfc6953784dc45b79de3147530c89868c6e26",
+    "path": "src/inspect_ai/_eval/task/error.py",
+    "url": "https://raw.githubusercontent.com/UKGovernmentBEIS/inspect_ai/ec4dfc6953784dc45b79de3147530c89868c6e26/src/inspect_ai/_eval/task/error.py",
+    "bytes": 3076,
+    "sha256": "638bba968c19e690891a1ba42205fec6a550db61adbaf8433479a7775a3095e3"
+  },
+  {
+    "repository": "UKGovernmentBEIS/inspect_ai",
+    "commit": "ec4dfc6953784dc45b79de3147530c89868c6e26",
+    "path": "src/inspect_ai/_eval/task/run.py",
+    "url": "https://raw.githubusercontent.com/UKGovernmentBEIS/inspect_ai/ec4dfc6953784dc45b79de3147530c89868c6e26/src/inspect_ai/_eval/task/run.py",
+    "bytes": 176039,
+    "sha256": "145e1accd696bd6f0069efbdfd73977b655e2ebd0ecaed22f1747b7210b315a9"
+  },
+  {
+    "repository": "UKGovernmentBEIS/inspect_ai",
+    "commit": "ec4dfc6953784dc45b79de3147530c89868c6e26",
+    "path": "src/inspect_ai/model/_generate_config.py",
+    "url": "https://raw.githubusercontent.com/UKGovernmentBEIS/inspect_ai/ec4dfc6953784dc45b79de3147530c89868c6e26/src/inspect_ai/model/_generate_config.py",
+    "bytes": 23550,
+    "sha256": "d4d85204a44fc41b7686fba46ef363410693a525ab63fea19b24b92b106f1a04"
+  },
+  {
+    "repository": "UKGovernmentBEIS/inspect_ai",
+    "commit": "ec4dfc6953784dc45b79de3147530c89868c6e26",
+    "path": "src/inspect_ai/model/_model_output.py",
+    "url": "https://raw.githubusercontent.com/UKGovernmentBEIS/inspect_ai/ec4dfc6953784dc45b79de3147530c89868c6e26/src/inspect_ai/model/_model_output.py",
+    "bytes": 14864,
+    "sha256": "1e90d1ca41ca707c1de3b7393cafa69e322fa507fdd1a1fc80264cebc87fca73"
+  },
+  {
+    "repository": "UKGovernmentBEIS/inspect_ai",
+    "commit": "ec4dfc6953784dc45b79de3147530c89868c6e26",
+    "path": "src/inspect_ai/model/_providers/vllm.py",
+    "url": "https://raw.githubusercontent.com/UKGovernmentBEIS/inspect_ai/ec4dfc6953784dc45b79de3147530c89868c6e26/src/inspect_ai/model/_providers/vllm.py",
+    "bytes": 31558,
+    "sha256": "38e5c377ea49dd92fb8c9befd42331797100f84e66c1114b9357f5f8f13dd5cc"
+  },
+  {
+    "repository": "UKGovernmentBEIS/inspect_ai",
+    "commit": "ec4dfc6953784dc45b79de3147530c89868c6e26",
+    "path": "src/inspect_ai/model/_providers/ollama.py",
+    "url": "https://raw.githubusercontent.com/UKGovernmentBEIS/inspect_ai/ec4dfc6953784dc45b79de3147530c89868c6e26/src/inspect_ai/model/_providers/ollama.py",
+    "bytes": 2252,
+    "sha256": "c839763ca4955b9ae038eec42e0766cee43fbcfdd47b9fdcb397a99cefc04064"
+  },
+  {
+    "repository": "UKGovernmentBEIS/inspect_ai",
+    "commit": "ec4dfc6953784dc45b79de3147530c89868c6e26",
+    "path": "src/inspect_ai/_eval/score.py",
+    "url": "https://raw.githubusercontent.com/UKGovernmentBEIS/inspect_ai/ec4dfc6953784dc45b79de3147530c89868c6e26/src/inspect_ai/_eval/score.py",
+    "bytes": 26281,
+    "sha256": "ff4f8301c9bef36e8c026a77774d942086f8d14360306cc185a9b6f30fc05b99"
+  },
+  {
+    "repository": "sierra-research/tau2-bench",
+    "commit": "b7ea9074c1cba482b30687fecdb5c8425fd6f619",
+    "path": "src/tau2/config.py",
+    "url": "https://raw.githubusercontent.com/sierra-research/tau2-bench/b7ea9074c1cba482b30687fecdb5c8425fd6f619/src/tau2/config.py",
+    "bytes": 10932,
+    "sha256": "6a53f8895b3dd4bffa01c73e11d4b8755181c5bfe46aba5351f89b59143d9ae4"
+  },
+  {
+    "repository": "sierra-research/tau2-bench",
+    "commit": "b7ea9074c1cba482b30687fecdb5c8425fd6f619",
+    "path": "src/tau2/evaluator/evaluator.py",
+    "url": "https://raw.githubusercontent.com/sierra-research/tau2-bench/b7ea9074c1cba482b30687fecdb5c8425fd6f619/src/tau2/evaluator/evaluator.py",
+    "bytes": 14218,
+    "sha256": "204d95a82812402f2fee989250392d3c66de702a8bcc20258c7e2a8153a1ea8d"
+  },
+  {
+    "repository": "sierra-research/tau2-bench",
+    "commit": "b7ea9074c1cba482b30687fecdb5c8425fd6f619",
+    "path": "src/tau2/evaluator/evaluator_communicate.py",
+    "url": "https://raw.githubusercontent.com/sierra-research/tau2-bench/b7ea9074c1cba482b30687fecdb5c8425fd6f619/src/tau2/evaluator/evaluator_communicate.py",
+    "bytes": 7462,
+    "sha256": "7a082f91c746b84cc37c6994eb6ff78f297222fd067503a4cc86d45750696507"
+  },
+  {
+    "repository": "sierra-research/tau2-bench",
+    "commit": "b7ea9074c1cba482b30687fecdb5c8425fd6f619",
+    "path": "src/tau2/evaluator/evaluator_nl_assertions.py",
+    "url": "https://raw.githubusercontent.com/sierra-research/tau2-bench/b7ea9074c1cba482b30687fecdb5c8425fd6f619/src/tau2/evaluator/evaluator_nl_assertions.py",
+    "bytes": 8843,
+    "sha256": "cb6b3758cdceb02a726732b4ee1af618affcc08f8ab84b44f060146b8f3ad90a"
+  },
+  {
+    "repository": "sierra-research/tau2-bench",
+    "commit": "b7ea9074c1cba482b30687fecdb5c8425fd6f619",
+    "path": "src/tau2/runner/batch.py",
+    "url": "https://raw.githubusercontent.com/sierra-research/tau2-bench/b7ea9074c1cba482b30687fecdb5c8425fd6f619/src/tau2/runner/batch.py",
+    "bytes": 42078,
+    "sha256": "a75853aa6a982aaceb1faad4f5c96ec21545795636d68df7dcb59ea0902a39bd"
+  },
+  {
+    "repository": "sierra-research/tau2-bench",
+    "commit": "b7ea9074c1cba482b30687fecdb5c8425fd6f619",
+    "path": "src/tau2/runner/work.py",
+    "url": "https://raw.githubusercontent.com/sierra-research/tau2-bench/b7ea9074c1cba482b30687fecdb5c8425fd6f619/src/tau2/runner/work.py",
+    "bytes": 8617,
+    "sha256": "f11fa55bf873e064bc1103afc316bcd91790d701f909726d8c95f898a1766f41"
+  },
+  {
+    "repository": "sierra-research/tau2-bench",
+    "commit": "b7ea9074c1cba482b30687fecdb5c8425fd6f619",
+    "path": "src/tau2/runner/simulation.py",
+    "url": "https://raw.githubusercontent.com/sierra-research/tau2-bench/b7ea9074c1cba482b30687fecdb5c8425fd6f619/src/tau2/runner/simulation.py",
+    "bytes": 3240,
+    "sha256": "1b98532199a05d87dcc14aead9d59c320d20f11d3d8e4c8458663ed5964eafef"
+  },
+  {
+    "repository": "sierra-research/tau2-bench",
+    "commit": "b7ea9074c1cba482b30687fecdb5c8425fd6f619",
+    "path": "src/tau2/utils/llm_utils.py",
+    "url": "https://raw.githubusercontent.com/sierra-research/tau2-bench/b7ea9074c1cba482b30687fecdb5c8425fd6f619/src/tau2/utils/llm_utils.py",
+    "bytes": 17314,
+    "sha256": "fa7d61e34ef9c668452ec44e8ba9efafec14a349a530481fac1dc19eff275c65"
+  },
+  {
+    "repository": "sierra-research/tau2-bench",
+    "commit": "b7ea9074c1cba482b30687fecdb5c8425fd6f619",
+    "path": "src/tau2/metrics/agent_metrics.py",
+    "url": "https://raw.githubusercontent.com/sierra-research/tau2-bench/b7ea9074c1cba482b30687fecdb5c8425fd6f619/src/tau2/metrics/agent_metrics.py",
+    "bytes": 18374,
+    "sha256": "136b5ebcc0c115b5817a4f6d6b485a871aba199ddedf56458f35f339569a54dc"
+  },
+  {
+    "repository": "sierra-research/tau2-bench",
+    "commit": "b7ea9074c1cba482b30687fecdb5c8425fd6f619",
+    "path": "src/tau2/data_model/simulation.py",
+    "url": "https://raw.githubusercontent.com/sierra-research/tau2-bench/b7ea9074c1cba482b30687fecdb5c8425fd6f619/src/tau2/data_model/simulation.py",
+    "bytes": 60834,
+    "sha256": "95ddbd12111061a1de6baa570257c2bfcb5fa6f9a468d87b2a424a502004ee9e"
+  },
+  {
+    "repository": "THUDM/AgentBench",
+    "commit": "d1e4a10db08c87075c78972e48ecc182be03e2d5",
+    "path": "configs/agents/openai-chat.yaml",
+    "url": "https://raw.githubusercontent.com/THUDM/AgentBench/d1e4a10db08c87075c78972e48ecc182be03e2d5/configs/agents/openai-chat.yaml",
+    "bytes": 366,
+    "sha256": "a6d397fd16be1ac7e5ecf6b5d3b24c5de82a36ed0dbc68717f8d00432fb8000c"
+  },
+  {
+    "repository": "THUDM/AgentBench",
+    "commit": "d1e4a10db08c87075c78972e48ecc182be03e2d5",
+    "path": "configs/agents/api_agents.yaml",
+    "url": "https://raw.githubusercontent.com/THUDM/AgentBench/d1e4a10db08c87075c78972e48ecc182be03e2d5/configs/agents/api_agents.yaml",
+    "bytes": 548,
+    "sha256": "54f63381e1eb60639755ca5727c7f292aaaa95db400e4b84a9dfaf6b53619744"
+  },
+  {
+    "repository": "THUDM/AgentBench",
+    "commit": "d1e4a10db08c87075c78972e48ecc182be03e2d5",
+    "path": "configs/agents/fs_agent.yaml",
+    "url": "https://raw.githubusercontent.com/THUDM/AgentBench/d1e4a10db08c87075c78972e48ecc182be03e2d5/configs/agents/fs_agent.yaml",
+    "bytes": 431,
+    "sha256": "7dbd0b6871b14168d96cbf1f9858cbb009033ed4aeaea9b286bd124be78eed1b"
+  }
+]

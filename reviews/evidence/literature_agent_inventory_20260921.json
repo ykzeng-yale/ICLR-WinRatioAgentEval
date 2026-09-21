@@ -1,0 +1,241 @@
+{
+  "checked_utc": "2026-09-21T01:18:48Z",
+  "scope": "Read-only primary-source audit; no downloaded code executed; no installs or model calls. Source URLs and repository commits are in metadata.json and source_manifest.json.",
+  "files": [
+    {
+      "path": "AgentBench/LICENSE",
+      "bytes": 11357,
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+    },
+    {
+      "path": "AgentBench/README.md",
+      "bytes": 11704,
+      "sha256": "1b7d1f1cd7a74ac9497c639324ec342dd3f8769e9c0c4cd2cd92a4eb6740ac98"
+    },
+    {
+      "path": "AgentBench/configs/agents/api_agents.yaml",
+      "bytes": 548,
+      "sha256": "54f63381e1eb60639755ca5727c7f292aaaa95db400e4b84a9dfaf6b53619744"
+    },
+    {
+      "path": "AgentBench/configs/agents/fs_agent.yaml",
+      "bytes": 431,
+      "sha256": "7dbd0b6871b14168d96cbf1f9858cbb009033ed4aeaea9b286bd124be78eed1b"
+    },
+    {
+      "path": "AgentBench/configs/agents/openai-chat.yaml",
+      "bytes": 366,
+      "sha256": "a6d397fd16be1ac7e5ecf6b5d3b24c5de82a36ed0dbc68717f8d00432fb8000c"
+    },
+    {
+      "path": "AgentBench/metadata.json",
+      "bytes": 354,
+      "sha256": "98303d181a88526957e342e9e99d2759e3cc435bc46f8db9b77e373e0a7286bf"
+    },
+    {
+      "path": "AgentBench/tree.json",
+      "bytes": 94913,
+      "sha256": "0c7f054379659c0520f10954fba3e2100d3f42333012a0199e3f7b71f678f3cf"
+    },
+    {
+      "path": "evalplus/LICENSE",
+      "bytes": 11558,
+      "sha256": "fcc1f77fe5443b21bfc4dfcc3d66f7654f599b91582df771850e5e876986a103"
+    },
+    {
+      "path": "evalplus/README.md",
+      "bytes": 15259,
+      "sha256": "667f3f937cf8dfa67dd6624c24c22cb0e938c9b31179cf2e40457d2708ff2260"
+    },
+    {
+      "path": "evalplus/evalplus/codegen.py",
+      "bytes": 10515,
+      "sha256": "d5d0383ec4146d641f282104bcccf3641dc81f6efeaf2979ca4b0978e5125625"
+    },
+    {
+      "path": "evalplus/evalplus/data/humaneval.py",
+      "bytes": 3454,
+      "sha256": "105969e0c700fa77f18b1ae7dd06230e22f81540cf030ddca2cbfeb2630055b4"
+    },
+    {
+      "path": "evalplus/evalplus/data/mbpp.py",
+      "bytes": 5504,
+      "sha256": "186e09b7b14dcf12ed259dfca1d6644a1c266c1bbac41c917fd3c0449a734b24"
+    },
+    {
+      "path": "evalplus/evalplus/eval/__init__.py",
+      "bytes": 10651,
+      "sha256": "3c833c39b842e33f251c83db4347e0a95191909f23b390c12d73ab29a28a4daf"
+    },
+    {
+      "path": "evalplus/evalplus/eval/utils.py",
+      "bytes": 5467,
+      "sha256": "5bf8925c8dd7c8f06b05c0ff4f28672e8e3b61d1b567b6a86b90e80bd8b780a4"
+    },
+    {
+      "path": "evalplus/evalplus/evaluate.py",
+      "bytes": 12935,
+      "sha256": "47f766df2dbb2280f7dd2c1040bfff0396c2b414a8d44b639424aa941bee7eab"
+    },
+    {
+      "path": "evalplus/metadata.json",
+      "bytes": 357,
+      "sha256": "ad1b28ec1c95115d27baee75b4c1ae3713429ac311f1c9a6482a99c688ca30ce"
+    },
+    {
+      "path": "evalplus/pyproject.toml",
+      "bytes": 246,
+      "sha256": "39083b726dc4b931974c3defb886352a23b1c1a887e36fdb025d138a2cf1ee81"
+    },
+    {
+      "path": "evalplus/tree.json",
+      "bytes": 41877,
+      "sha256": "36757558c18eb0549af3e833d3e48a9dd88eaa8f7698fd299554c465e475111d"
+    },
+    {
+      "path": "inspect_ai/LICENSE",
+      "bytes": 1081,
+      "sha256": "c593c2afc81388521eaeb03f0d1a4b01bc3e5147ed9cb16c1f129e5be353b6af"
+    },
+    {
+      "path": "inspect_ai/README.md",
+      "bytes": 3099,
+      "sha256": "a9a1e07b955d869137d8ad109f1c238268f361dcdfac30cfcc94983a51a99b17"
+    },
+    {
+      "path": "inspect_ai/metadata.json",
+      "bytes": 337,
+      "sha256": "0699ae68e8a54459b67a5fc4e509e87eb830f3575eca1f21b3fdd5d3431d9837"
+    },
+    {
+      "path": "inspect_ai/pyproject.toml",
+      "bytes": 5660,
+      "sha256": "ce5713f4a354c3d2fd3b01f08e247a06b240a21eda481581b3cd270c867c1d2b"
+    },
+    {
+      "path": "inspect_ai/src/inspect_ai/_eval/score.py",
+      "bytes": 26281,
+      "sha256": "ff4f8301c9bef36e8c026a77774d942086f8d14360306cc185a9b6f30fc05b99"
+    },
+    {
+      "path": "inspect_ai/src/inspect_ai/_eval/task/epochs.py",
+      "bytes": 1060,
+      "sha256": "d8d9016a7e840822c0610b3a3b3c43f079f5fb1a6593b50b3b775e24ab1d8194"
+    },
+    {
+      "path": "inspect_ai/src/inspect_ai/_eval/task/error.py",
+      "bytes": 3076,
+      "sha256": "638bba968c19e690891a1ba42205fec6a550db61adbaf8433479a7775a3095e3"
+    },
+    {
+      "path": "inspect_ai/src/inspect_ai/_eval/task/run.py",
+      "bytes": 176039,
+      "sha256": "145e1accd696bd6f0069efbdfd73977b655e2ebd0ecaed22f1747b7210b315a9"
+    },
+    {
+      "path": "inspect_ai/src/inspect_ai/model/_generate_config.py",
+      "bytes": 23550,
+      "sha256": "d4d85204a44fc41b7686fba46ef363410693a525ab63fea19b24b92b106f1a04"
+    },
+    {
+      "path": "inspect_ai/src/inspect_ai/model/_model_output.py",
+      "bytes": 14864,
+      "sha256": "1e90d1ca41ca707c1de3b7393cafa69e322fa507fdd1a1fc80264cebc87fca73"
+    },
+    {
+      "path": "inspect_ai/src/inspect_ai/model/_providers/ollama.py",
+      "bytes": 2252,
+      "sha256": "c839763ca4955b9ae038eec42e0766cee43fbcfdd47b9fdcb397a99cefc04064"
+    },
+    {
+      "path": "inspect_ai/src/inspect_ai/model/_providers/vllm.py",
+      "bytes": 31558,
+      "sha256": "38e5c377ea49dd92fb8c9befd42331797100f84e66c1114b9357f5f8f13dd5cc"
+    },
+    {
+      "path": "inspect_ai/tree.json",
+      "bytes": 792431,
+      "sha256": "60411f172df2d190fef2e41b3228926eba4b43ec82e163e181ffc788393b0d41"
+    },
+    {
+      "path": "source_manifest.json",
+      "bytes": 10888,
+      "sha256": "76822d9c13df92d9dce4e33da6f3c4f3f5f3bf45d557b8af4febb5c3860f9d3d"
+    },
+    {
+      "path": "tau2-bench/LICENSE",
+      "bytes": 1072,
+      "sha256": "e67c5aa0074dfcaefd3c3a1aedb94cb539234aecd15d5a972574e3200e6252fe"
+    },
+    {
+      "path": "tau2-bench/README.md",
+      "bytes": 10443,
+      "sha256": "ed39688aa5d40bd73007355df65f4e41a6c250960642e56764c3ad44da1df8d2"
+    },
+    {
+      "path": "tau2-bench/metadata.json",
+      "bytes": 336,
+      "sha256": "94f74e9a4fc0eab15549e883113b88fed91065143d300a4edb3ff469701c4b13"
+    },
+    {
+      "path": "tau2-bench/pyproject.toml",
+      "bytes": 2503,
+      "sha256": "3c718fbc3c1e350a4e36b465fee8f33db34eae75c97a18880cef46c14b96c77f"
+    },
+    {
+      "path": "tau2-bench/src/tau2/config.py",
+      "bytes": 10932,
+      "sha256": "6a53f8895b3dd4bffa01c73e11d4b8755181c5bfe46aba5351f89b59143d9ae4"
+    },
+    {
+      "path": "tau2-bench/src/tau2/data_model/simulation.py",
+      "bytes": 60834,
+      "sha256": "95ddbd12111061a1de6baa570257c2bfcb5fa6f9a468d87b2a424a502004ee9e"
+    },
+    {
+      "path": "tau2-bench/src/tau2/evaluator/evaluator.py",
+      "bytes": 14218,
+      "sha256": "204d95a82812402f2fee989250392d3c66de702a8bcc20258c7e2a8153a1ea8d"
+    },
+    {
+      "path": "tau2-bench/src/tau2/evaluator/evaluator_communicate.py",
+      "bytes": 7462,
+      "sha256": "7a082f91c746b84cc37c6994eb6ff78f297222fd067503a4cc86d45750696507"
+    },
+    {
+      "path": "tau2-bench/src/tau2/evaluator/evaluator_nl_assertions.py",
+      "bytes": 8843,
+      "sha256": "cb6b3758cdceb02a726732b4ee1af618affcc08f8ab84b44f060146b8f3ad90a"
+    },
+    {
+      "path": "tau2-bench/src/tau2/metrics/agent_metrics.py",
+      "bytes": 18374,
+      "sha256": "136b5ebcc0c115b5817a4f6d6b485a871aba199ddedf56458f35f339569a54dc"
+    },
+    {
+      "path": "tau2-bench/src/tau2/runner/batch.py",
+      "bytes": 42078,
+      "sha256": "a75853aa6a982aaceb1faad4f5c96ec21545795636d68df7dcb59ea0902a39bd"
+    },
+    {
+      "path": "tau2-bench/src/tau2/runner/simulation.py",
+      "bytes": 3240,
+      "sha256": "1b98532199a05d87dcc14aead9d59c320d20f11d3d8e4c8458663ed5964eafef"
+    },
+    {
+      "path": "tau2-bench/src/tau2/runner/work.py",
+      "bytes": 8617,
+      "sha256": "f11fa55bf873e064bc1103afc316bcd91790d701f909726d8c95f898a1766f41"
+    },
+    {
+      "path": "tau2-bench/src/tau2/utils/llm_utils.py",
+      "bytes": 17314,
+      "sha256": "fa7d61e34ef9c668452ec44e8ba9efafec14a349a530481fac1dc19eff275c65"
+    },
+    {
+      "path": "tau2-bench/tree.json",
+      "bytes": 604681,
+      "sha256": "01fafa9d203a86c0e7c1d8dbc182a737300a2f6b7e00c03934d853bc787a47df"
+    }
+  ]
+}

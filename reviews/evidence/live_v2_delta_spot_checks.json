@@ -1,0 +1,33 @@
+{
+  "reverse_certificate_9_6": [
+    -1.0,
+    0.0
+  ],
+  "threshold_9_5_conservative": [
+    -1.0,
+    1.0
+  ],
+  "adapter_timing_witness": {
+    "runner_decided_at_finalization": true,
+    "runner_unresolved_fraction": 0.0,
+    "runner_tau": 1000,
+    "omitted_tick": 1010,
+    "omitted_lower_h": 0.18251354463772163,
+    "omitted_lower_s": 0.18251354463772163,
+    "omitted_unresolved_fraction": 0.1
+  },
+  "proportional_stop_witness": {
+    "equal_roster_mean": 0,
+    "means_by_two_orders": [
+      1.0,
+      0.0
+    ],
+    "expected_stopped_prefix_mean": 0.5
+  },
+  "vocabulary_supersession": {
+    "historical_pin": "3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0dd7d2c2",
+    "actual": "b1ff97cc163ce7ea121ebd578a4c37de09d5ed7223f2029e5d56118cdc790822",
+    "successor_matches": true,
+    "supersedes_matches": true
+  }
+}
