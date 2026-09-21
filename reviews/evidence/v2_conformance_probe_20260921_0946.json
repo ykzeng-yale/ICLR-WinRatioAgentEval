@@ -1,0 +1,31 @@
+{
+  "review_scope": "Captured diagnostic output; embedded completeness claims are disputed, not endorsed. See v2_conformance_delta_20260921_0946.md.",
+  "source_commit": "1c1304118a84827c46d29deeb9543683e1411863",
+  "captured_output": {
+    "schema": "live_ab_validation_v2.conformance.1",
+    "purpose": "pinned preflight gate: COMPLETE operational-policy conformance, independent of which coordinates any draw happens to contain",
+    "source_fingerprint": {
+      "vgen.py": "08d1a8146023e348817a5cb02d04b9e209540456e2481889b98b8f31a5686987",
+      "vband.py": "55a9894ff5694099c05cedbdf695ecdad3ac4bd5025328cd445e0b1d3df8cd9c",
+      "vpolicy.py": "210956feb1c5831c09c82ef09a70fb0728e2b86c8bf6119cdc5ad03146eb962c"
+    },
+    "threshold_tables": {
+      "combo_delay_pairs_checked": 1857,
+      "cost_combos": 3,
+      "delays": 620,
+      "claim": "the operational threshold tables equal the first age at which each certificate fires, at every reachable (combo, delay)"
+    },
+    "vpolicy_agreement": {
+      "pair_states_compared": 36734,
+      "branches_covered": [
+        "resolved",
+        "unrevealed",
+        "partial"
+      ],
+      "coverage_argument": "the enclosure is piecewise constant in age with breakpoints only at the two certificate thresholds, so boundary+interior per piece covers every reachable age",
+      "claim": "vgen's vectorised operational rule equals vpolicy's everywhere"
+    },
+    "gates": "nothing scientific; computes no effect and authorizes nothing",
+    "supersedes": "the one-draw preflight as the COVERAGE argument. The one-draw live check is retained as a smoke test, not as the coverage claim."
+  }
+}

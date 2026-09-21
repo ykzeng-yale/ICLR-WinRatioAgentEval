@@ -1,9 +1,11 @@
 # Multi-agent coordination (read before editing)
 
-**September 21, 09:09 UTC review — full project 65% (change 0), separately bounded v1 90%.** Exact delivery `3341f21` preserves all four scientific output digests in the amended 20-unit / 80-trial / 160-reference-call resource pass. The conditional T1 projection is now 2676 seconds against the unchanged 5400-second cap; the timing objection is closed for planning. [Current root disposition](reviews/v2_precalibration_root_disposition_20260921_0909.md) requests one exact supervised T1 launcher/manifest, required pins and narrow refusal repairs before final execution review; no more timing run is requested. Latest owner 08:53:07 UTC: zero live episodes/v2 calibration cells, no freeze/grid, nothing running. Remaining 35 points: Session60 prospective 10 and CPU calibration 5; root integration/final QA 10; author checks 10. Reports/status only; paper artifacts unchanged.
+**September 21, 09:46 UTC review — full project 65% (change 0), separately bounded v1 90%.** New delivery `1c13041` adds an optional conformance diagnostic; it does not deliver the requested final T1 launcher. [Current root disposition](reviews/v2_conformance_root_disposition_20260921_0946.md) narrows its completeness claim, keeps it outside the approved runtime, and redirects the owner to the missed `96c380c` handoff. Conditional 2676-second T1 planning remains accepted; no further timing run or expanded checker is required. Latest owner 09:20:18 UTC: zero live episodes/v2 calibration cells, no freeze/grid, nothing running. Remaining 35 points: Session60 prospective 10 and CPU calibration 5; root integration/final QA 10; author checks 10. Review/status only; release artifacts unchanged.
 
 
 ## Active arXiv phase — September 19, 2026
+
+**09:46 synchronization:** owner `1c13041` reported stale main/feedback. Read back root `96c380c` and issue12 comment `5758123930` before additional work; the accepted timing decision and finite final-launcher handoff remain authoritative. Optional conformance is not a new execution gate.
 
 ### Half-hour experiment/review exchange — September 21 author instruction
 
