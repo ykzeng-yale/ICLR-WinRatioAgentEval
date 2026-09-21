@@ -1,0 +1,91 @@
+{
+  "source_commit": "57482e317c42e971e33871e7d879e6ca61c8eac0",
+  "scope": "Deterministic bounded witness; not Monte Carlo event frequency",
+  "drain_witness": {
+    "construction": "C1-support deterministic sequence, no outcome draws",
+    "looks_evaluated": 1001,
+    "runner": {
+      "ADAPTER": {
+        "decision": "NO_DECISION",
+        "ever_miscover_h": false,
+        "ever_miscover_s": false,
+        "tau": 1000,
+        "unresolved_fraction": 0.0
+      },
+      "CPREFIX": {
+        "decision": "NO_DECISION",
+        "ever_miscover_h": false,
+        "ever_miscover_s": false,
+        "tau": 1000,
+        "unresolved_fraction": 0.0
+      },
+      "NAIVE": {
+        "decision": "NO_DECISION",
+        "ever_miscover_h": false,
+        "ever_miscover_s": false,
+        "tau": 1000,
+        "unresolved_fraction": 0.0
+      }
+    },
+    "independent_intermediate": [
+      {
+        "tick": 1000,
+        "completed_prefix": 500,
+        "h_mean": 0.0,
+        "s_mean": 0.0,
+        "h_lower": -0.1692957679307717,
+        "s_lower": -0.1692957679307717,
+        "deploy": false
+      },
+      {
+        "tick": 1010,
+        "completed_prefix": 600,
+        "h_mean": 0.16666666666666666,
+        "s_mean": 0.16666666666666666,
+        "h_lower": 0.013302716411199761,
+        "s_lower": 0.013302716411199761,
+        "deploy": true
+      },
+      {
+        "tick": 1100,
+        "completed_prefix": 700,
+        "h_mean": 0.0,
+        "s_mean": 0.0,
+        "h_lower": -0.1413046451113222,
+        "s_lower": -0.1413046451113222,
+        "deploy": false
+      },
+      {
+        "tick": 1200,
+        "completed_prefix": 1000,
+        "h_mean": 0.0,
+        "s_mean": 0.0,
+        "h_lower": -0.11748645536227836,
+        "s_lower": -0.11748645536227836,
+        "deploy": false
+      }
+    ]
+  },
+  "complete_score_law_fixtures": {
+    "L3": {
+      "mean_h": 0.4,
+      "mean_s": -0.03,
+      "lower_h": 0.28251354463772166,
+      "lower_s": -0.14748645536227836,
+      "deploy_final": false
+    },
+    "L4": {
+      "mean_h": 0.45,
+      "mean_s": 0.2,
+      "lower_h": 0.33251354463772165,
+      "lower_s": 0.08251354463772165,
+      "deploy_final": true
+    }
+  },
+  "mc_flag_counterexample": {
+    "true_rate": 0.007,
+    "trials": 8000,
+    "flag_count_threshold": 64,
+    "flag_probability": 0.15715238342504315
+  }
+}
