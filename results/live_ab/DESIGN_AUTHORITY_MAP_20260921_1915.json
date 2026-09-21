@@ -1,0 +1,94 @@
+{
+  "MUST_NOT_BIND": {
+    "ARCHITECTURE.md": {
+      "sha256": "917f426ed6a1dc66e80bff7c311e3f064f8dbe585f5f00b0ac29f9af43404fc7",
+      "why": "superseded by ARCHITECTURE_FINAL.md"
+    },
+    "audit_response_v1.md": {
+      "sha256": "2169d8cdfcc6ffa049c6144b2859641c227a0f0d001c9c0e04401edf99beecf6",
+      "why": "v1 audit round"
+    },
+    "audit_v1_claims.md": {
+      "sha256": "8fafde1a1d18a64a041a8eb57bcb652ff8e2a0c8c28caa9f80cafd01574ec612",
+      "why": "v1 audit round"
+    },
+    "audit_v1_provenance.md": {
+      "sha256": "b0917a62de03ddf2ff9431700f9ccccdb36d97ccda0c7f613ea9090248f9e633",
+      "why": "v1 audit round"
+    },
+    "audit_v1_statistics.md": {
+      "sha256": "e13eda4d660645a220f61488023bf69c7ed2473fa5567cbff5f14e90c2cbc429",
+      "why": "v1 audit round"
+    },
+    "critic_v2.md": {
+      "sha256": "f0fb97e56640067693db1b54454bf2513aaf3fe92025974ee4efd053ff7df49f",
+      "why": "v2 critic round"
+    },
+    "protocol_draft_v1.md": {
+      "sha256": "def9c2dc208b87a810bba8f773889ed5bd599478ce4acf69e4c3a7e74b15a1b7",
+      "why": "superseded"
+    },
+    "protocol_draft_v2.md": {
+      "sha256": "ffd6791e5e8dc94f562807a738368dade935cda965b86c94341dcbe28bb244f6",
+      "why": "superseded by protocol_FINAL.md"
+    },
+    "protocol_v3.md": {
+      "sha256": "52fe76bcb95d1ec7342dc94233946eeea7f2e88ca1ba606e0f7da9cf1bd4082f",
+      "why": "superseded by protocol_FINAL.md"
+    }
+  },
+  "WHY_THIS_EXISTS_BEFORE_THE_INDEX": "Binding a document digest to a SUPERSEDED draft would be worse than leaving the freeze key open. This map is the supersession check, done before any digest is bound.",
+  "authoritative": {
+    "ARCHITECTURE_FINAL.md": {
+      "bytes": 198199,
+      "sha256": "1384d02b7bbfc2320b70bde746fadff6490175453255744cb84f4c27f5528dfd",
+      "why": "supersedes ARCHITECTURE.md (its own header); the interface contract for everything the protocol does not fix"
+    },
+    "COORDINATOR_DECISIONS.md": {
+      "bytes": 79090,
+      "sha256": "177c23b244e8940e453102a86210f16320017080e7460a4d55878702fbecccb5",
+      "why": "REVISION 2, adopts the arXiv design guidance"
+    },
+    "audit_response_v3.md": {
+      "bytes": 43623,
+      "sha256": "6c28d7e1f2fa32f248c54217596bebd9cc8e8c8778596b986c435b79803ba567",
+      "why": "final editor's response; the document that RECORDS the supersessions above"
+    },
+    "protocol_FINAL.md": {
+      "bytes": 314088,
+      "sha256": "b1ff97cc163ce7ea121ebd578a4c37de09d5ed7223f2029e5d56118cdc790822",
+      "why": "supersedes protocol_v3.md and protocol_draft_v2.md COMPLETELY (its own header); version string v3-nm-guarded matches config.protocol_version"
+    }
+  },
+  "authority": "root 18:17 item 4: 'Use existing authoritative design material where complete. A short versioned index may bind exact existing file paths/hashes and fill only missing content.'",
+  "currency_not_yet_verified": {
+    "R1_accepted_method.md": "43c36d7480e8159cb4f554b3f98bfa87b9c93f7f84245c1b59a03689156e7fdb",
+    "R2_constraints_checklist.md": "728c5a1c3fd357694c287ada070d186bc0cc0c94a0f4ff86965fb12e749452ff",
+    "R3_harness_plan.md": "b0162a06a838d1f0b17901bd37b50263b41b1a27608d3a0da817dfb6b75d3801",
+    "R4_power_analysis.md": "4adba709397c4c45dc2840a0cf83f2856277349778f418f462ff03a06b75dab7",
+    "audit_v3.md": "ee74970531a68df0f36eaf52c1c6e262499a106fdf36cb239979bc8715416ec3"
+  },
+  "currency_note": "these five carry no supersession marker either way. Not bound until their currency is established; an unmarked file is not the same as a current one.",
+  "generated_utc": "2026-09-21T19:00:17Z",
+  "not_claimed": [
+    "that the authoritative set is complete -- five files' currency is explicitly unverified",
+    "that any document digest has been bound; none has"
+  ],
+  "protocol_sha256_binding_verified": {
+    "bound_to": "design/protocol_FINAL.md",
+    "checked": "its version string v3-nm-guarded equals config.protocol_version, and it declares the supersession itself. The binding already used by freeze_status is therefore correct.",
+    "sha256": "b1ff97cc163ce7ea121ebd578a4c37de09d5ed7223f2029e5d56118cdc790822"
+  },
+  "schema": "live_ab.design_authority_map.1",
+  "supersession_is_documented_not_inferred": {
+    "ARCHITECTURE_FINAL.md header": "'FINAL (supersedes ARCHITECTURE.md)'",
+    "ENFORCED_BY_A_TEST": "audit_response_v3.md M16: the drafts have 'no residual force and must not be cited', and tests_lab_isolation.py greps every module for protocol_draft_v2 / protocol_v3 and FAILS on a hit. The supersession is executable, not just documentary.",
+    "audit_response_v3.md:3-4": "names both supersessions explicitly",
+    "protocol_FINAL.md header": "'This file supersedes protocol_v3.md and protocol_draft_v2.md completely. It is not a diff and neither draft has...'"
+  },
+  "what_the_three_documents_still_need_written": {
+    "derivation": "root requires final roster/exclusion/group counts, resulting horizon and conditional gate arithmetic, plus timeout/cap formulas with measured inputs explicitly pending. The stage-1 counts exist (1138/8/1130, ceiling 564) but the FINAL counts and horizon do not, because rule 4 has not run.",
+    "planning": "root requires accepted CPU evidence plus the bounded prefreeze/trial resource-and-attempt plan. The prefreeze half now exists as PREFREEZE_EXECUTION_PLAN_20260921_1910.json; the CPU-evidence half is a digest of already-accepted material.",
+    "run_book": "root requires the existing ordered commands, prerequisites, refusal/resume/failure-accounting rules and authority boundaries. Material exists across README.md, IMPLEMENTATION_STATUS.md and ARCHITECTURE_FINAL.md; no single ordered command sequence is deposited."
+  }
+}
