@@ -67,14 +67,25 @@ def make_runner(*, horizon: int, namespace: int, policy: str, schedule: str,
                 rows_fn: Callable = vrun.trial_rows,
                 reference_fn: Callable = _default_reference,
                 smoke_fn: Optional[Callable] = vrun.assert_operational_matches_policy,
+                cells: Optional[Sequence[Any]] = None,
                 ) -> Callable[..., vshard.ShardOutcome]:
     """Build the per-shard runner bound to the frozen execution parameters."""
 
     run_cfg = vrun.make_config(horizon, namespace, schedule=schedule, policy=policy)
     prefixes = run_cfg.horizons
-    cells_by_id = {c.id: c for c in vgen.CELLS}
+    # The cell set is INJECTABLE.  It defaulted to vgen.CELLS, which holds only
+    # the frozen eight, so a panel with its own cells failed with a bare KeyError
+    # on the cell id at the first shard.  The failure machinery handled it
+    # correctly -- caught at shard 1, failure receipt written, partial retained,
+    # nothing published -- but the runner should accept the cells it is asked to
+    # run rather than assume the frozen set.
+    cells_by_id = {c.id: c for c in (cells if cells is not None else vgen.CELLS)}
 
     def runner(*, spec: Dict[str, Any], out_dir: Path) -> vshard.ShardOutcome:
+        if spec["cell"] not in cells_by_id:
+            raise KeyError(
+                f"cell {spec['cell']!r} is not in this runner's cell set "
+                f"{sorted(cells_by_id)}; pass cells= when the panel defines its own")
         cell = cells_by_id[spec["cell"]]
         out_dir = Path(out_dir)
         primary_path = out_dir / "primary_rows.csv.gz"
