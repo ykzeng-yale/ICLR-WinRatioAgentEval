@@ -1,0 +1,111 @@
+{
+  "attempts": {
+    "failed": 0,
+    "note": "single supervised pass; no auto-repeat, no timing sweep, no tier change, no cap change, no grid launch",
+    "retries": 0,
+    "this_pass": 1
+  },
+  "authority": "root disposition 2026-09-21 08:28, ranked action 3",
+  "authorized_vs_actual": {
+    "matches_authorization": true,
+    "reference_calls_actual": 160,
+    "trial_evaluations_actual": 80,
+    "units": {
+      "reference_calls": 160,
+      "seed_program_identities": 10,
+      "trial_evaluations": 80,
+      "units": 20
+    }
+  },
+  "authorizes": "NOTHING. Delivered for root's explicit pre-calibration resource/workload decision.",
+  "byte_identity_proof": {
+    "conclusion": "all four persisted data digests match the delivered verified-mode baseline, so the execution-verification amendment changed NO persisted scientific byte. No effect value was displayed or compared; the comparison is over whole-file digests.",
+    "requirement": "root: 'Prove the amendment preserves persisted scientific bytes by comparing hashes against the existing final measurement; do not display effect values.'",
+    "result": {
+      "all_identical": true,
+      "meaning": "identical hashes mean the execution-verification amendment changed no persisted scientific byte, which is what root required it to prove",
+      "method": "whole-file digests of decompressed primary and reference text; no effect value inspected",
+      "per_horizon": {
+        "1000": {
+          "baseline_decompressed_primary_sha256": "9dd82799d8df7e74b187e30795be14192e3726617d76a3126652646ff2ec6e44",
+          "baseline_reference_csv_sha256": "6509398c88a658a1f9aa173a0ac2021ea3a007116a0f10b75d2fc21d25edef60",
+          "decompressed_primary_sha256": "9dd82799d8df7e74b187e30795be14192e3726617d76a3126652646ff2ec6e44",
+          "primary_identical": true,
+          "reference_csv_sha256": "6509398c88a658a1f9aa173a0ac2021ea3a007116a0f10b75d2fc21d25edef60",
+          "reference_identical": true
+        },
+        "2000": {
+          "baseline_decompressed_primary_sha256": "d9fd343f7153acf0fd1b34c8bcb1dc057c2b8923f1ecf5b20e999792b18d425a",
+          "baseline_reference_csv_sha256": "779828779853dbfbdca0e62f493078e22b31ab03e68f26cf651ab4fa123e3108",
+          "decompressed_primary_sha256": "d9fd343f7153acf0fd1b34c8bcb1dc057c2b8923f1ecf5b20e999792b18d425a",
+          "primary_identical": true,
+          "reference_csv_sha256": "779828779853dbfbdca0e62f493078e22b31ab03e68f26cf651ab4fa123e3108",
+          "reference_identical": true
+        }
+      }
+    }
+  },
+  "convention": "descriptive measurement, then DETERMINISTIC same-horizon extrapolation by program count, root's own method, no fitted horizon exponent. Conditional on the recorded load. NOT a measured full grid, NOT a guaranteed bound, NOT calibration, NOT clearance to run.",
+  "cost_change": {
+    "CAUTION": "this ratio is the difference between TWO SINGLE PASSES run at different times under possibly different load. It is NOT an interleaved paired causal overhead estimate, and root has previously and correctly objected to treating successive-block differences as causal. It is reported as what it is: two observations, each conditional on its own recorded load.",
+    "pair_states_checked_preflight_mode": 10502,
+    "pair_states_checked_verified_mode": 420080,
+    "preflight_mode_h2000_seconds_per_program": 0.09558524172753095,
+    "ratio": 5.552428112723699,
+    "verified_mode_h2000_seconds_per_program": 0.5307301833294332
+  },
+  "headline": "The preflight-only verification amendment brings T1 back UNDER the 5,400 s cap, with BYTE-IDENTICAL persisted scientific output.",
+  "projection_note": "deterministic extrapolation of one observed C1/C2 mixture at the measured horizon, multiplied by existing tier program counts. It cannot certify full-grid resource use for all cells. It supplies planning evidence only.",
+  "projection_same_horizon_no_fitted_exponent": {
+    "T1": {
+      "horizon": 2000,
+      "minutes": 44.606446139514446,
+      "programs": 28000,
+      "seconds": 2676.386768370867,
+      "within_5400s_cap": true
+    },
+    "T2": {
+      "horizon": 2000,
+      "minutes": 25.489397794008255,
+      "programs": 16000,
+      "seconds": 1529.3638676404953,
+      "within_5400s_cap": true
+    },
+    "T3": {
+      "horizon": 2000,
+      "minutes": 12.744698897004128,
+      "programs": 8000,
+      "seconds": 764.6819338202477,
+      "within_5400s_cap": true
+    },
+    "T4": {
+      "horizon": 1000,
+      "minutes": 6.823880560696125,
+      "programs": 8000,
+      "seconds": 409.4328336417675,
+      "within_5400s_cap": true
+    }
+  },
+  "schema": "live_ab_validation_v2.preflight_measurement_finding.1",
+  "supervision": {
+    "breach": null,
+    "caps": {
+      "output_bytes": 209715200,
+      "seconds": 300.0,
+      "tree_rss_bytes": 2147483648
+    },
+    "foreign_processes_touched": false,
+    "measured_window": "process spawn through exit, INCLUDING interpreter startup, imports, reference calls, output writes, close and the child's receipt write",
+    "observed": {
+      "final_output_bytes": 103713,
+      "peak_output_bytes": 103713,
+      "peak_tree_rss_bytes": 72597504,
+      "poll_interval_seconds": 0.15,
+      "poll_samples": 11,
+      "wall_seconds": 1.7469734996557236
+    },
+    "rss_scope": "simultaneous summed RSS over the child's own process tree, sampled; NOT a getrusage self/reaped-child maximum",
+    "within_caps": true
+  },
+  "what_changed_scientifically": "NOTHING. Tier, cells, seeds, four trials, alpha, margins, operational enclosure, all legal looks, shared latent arrays and both H/D reference paths are unchanged."
+}

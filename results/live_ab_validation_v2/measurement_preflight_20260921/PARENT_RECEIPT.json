@@ -1,0 +1,86 @@
+{
+  "capacity_at_start": {
+    "concurrent_top_processes": [
+      "475  43.7  84768 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer",
+      "69854  21.9  70960 /Users/yukangzengcmac/ICLR-WinRatioAgentEvals/.venv/bin/python",
+      "61790  10.8 572368 /Users/yukangzengcmac/Library/Application Support/Claude/claude-code/2.1.274/claude.app/Contents/MacOS/claude",
+      "61728  10.0 906448 /Applications/Claude.app/Contents/Frameworks/Claude Helper (Renderer).app/Contents/MacOS/Claude Helper (Renderer)",
+      "61714   4.6  82848 /Applications/Claude.app/Contents/Frameworks/Claude Helper.app/Contents/MacOS/Claude Helper",
+      "69852   1.6   2448 /bin/zsh",
+      "62295   1.0 474992 /Users/yukangzengcmac/Library/Application Support/Claude/claude-code/2.1.275/claude.app/Contents/MacOS/claude",
+      "61700   1.0 480128 /Applications/Claude.app/Contents/MacOS/Claude"
+    ],
+    "cpu_cores": 10,
+    "disk_free_bytes": 266512015360,
+    "disk_free_bytes_at_target": 266512015360,
+    "interpretation": "observed time is CONDITIONAL ON THIS LOAD; it is not an uncontended benchmark and not a guaranteed upper bound",
+    "load_average": {
+      "15m": 2.03369140625,
+      "1m": 2.44287109375,
+      "5m": 2.109375
+    },
+    "load_fraction_of_cores_1m": 0.244287109375,
+    "total_ram_bytes": 34359738368
+  },
+  "comparison_against_baseline": {
+    "all_identical": true,
+    "meaning": "identical hashes mean the execution-verification amendment changed no persisted scientific byte, which is what root required it to prove",
+    "method": "whole-file digests of decompressed primary and reference text; no effect value inspected",
+    "per_horizon": {
+      "1000": {
+        "baseline_decompressed_primary_sha256": "9dd82799d8df7e74b187e30795be14192e3726617d76a3126652646ff2ec6e44",
+        "baseline_reference_csv_sha256": "6509398c88a658a1f9aa173a0ac2021ea3a007116a0f10b75d2fc21d25edef60",
+        "decompressed_primary_sha256": "9dd82799d8df7e74b187e30795be14192e3726617d76a3126652646ff2ec6e44",
+        "primary_identical": true,
+        "reference_csv_sha256": "6509398c88a658a1f9aa173a0ac2021ea3a007116a0f10b75d2fc21d25edef60",
+        "reference_identical": true
+      },
+      "2000": {
+        "baseline_decompressed_primary_sha256": "d9fd343f7153acf0fd1b34c8bcb1dc057c2b8923f1ecf5b20e999792b18d425a",
+        "baseline_reference_csv_sha256": "779828779853dbfbdca0e62f493078e22b31ab03e68f26cf651ab4fa123e3108",
+        "decompressed_primary_sha256": "d9fd343f7153acf0fd1b34c8bcb1dc057c2b8923f1ecf5b20e999792b18d425a",
+        "primary_identical": true,
+        "reference_csv_sha256": "779828779853dbfbdca0e62f493078e22b31ab03e68f26cf651ab4fa123e3108",
+        "reference_identical": true
+      }
+    }
+  },
+  "supervision": {
+    "argv": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/.venv/bin/python",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/vmeasure.py",
+      "--child",
+      "--out",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/results/live_ab_validation_v2/measurement_preflight_20260921"
+    ],
+    "breach": null,
+    "caps": {
+      "output_bytes": 209715200,
+      "seconds": 300.0,
+      "tree_rss_bytes": 2147483648
+    },
+    "child_stderr_tail": "",
+    "child_stdout_tail": "",
+    "foreign_processes_touched": false,
+    "label": "authorized_preflight_only_measurement",
+    "measured_window": "process spawn through exit, INCLUDING interpreter startup, imports, reference calls, output writes, close and the child's receipt write",
+    "observed": {
+      "final_output_bytes": 103713,
+      "peak_output_bytes": 103713,
+      "peak_tree_rss_bytes": 72597504,
+      "poll_interval_seconds": 0.15,
+      "poll_samples": 11,
+      "wall_seconds": 1.7469734996557236
+    },
+    "returncode": 0,
+    "rss_scope": "simultaneous summed RSS over the child's own process tree, sampled; NOT a getrusage self/reaped-child maximum",
+    "safety": "the supervisor signals only the process group it created; it never signals or inspects a process it did not spawn",
+    "schema": "live_ab_validation_v2.supervision.1",
+    "terminated_by_supervisor": false,
+    "timestamps": {
+      "ended_utc": "2026-09-21T08:51:08Z",
+      "started_utc": "2026-09-21T08:51:06Z"
+    },
+    "within_caps": true
+  }
+}

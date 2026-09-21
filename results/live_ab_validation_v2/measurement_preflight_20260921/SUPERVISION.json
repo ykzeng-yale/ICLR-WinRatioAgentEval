@@ -1,0 +1,38 @@
+{
+  "argv": [
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/.venv/bin/python",
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/vmeasure.py",
+    "--child",
+    "--out",
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/results/live_ab_validation_v2/measurement_preflight_20260921"
+  ],
+  "breach": null,
+  "caps": {
+    "output_bytes": 209715200,
+    "seconds": 300.0,
+    "tree_rss_bytes": 2147483648
+  },
+  "child_stderr_tail": "",
+  "child_stdout_tail": "",
+  "foreign_processes_touched": false,
+  "label": "authorized_preflight_only_measurement",
+  "measured_window": "process spawn through exit, INCLUDING interpreter startup, imports, reference calls, output writes, close and the child's receipt write",
+  "observed": {
+    "final_output_bytes": 103713,
+    "peak_output_bytes": 103713,
+    "peak_tree_rss_bytes": 72597504,
+    "poll_interval_seconds": 0.15,
+    "poll_samples": 11,
+    "wall_seconds": 1.7469734996557236
+  },
+  "returncode": 0,
+  "rss_scope": "simultaneous summed RSS over the child's own process tree, sampled; NOT a getrusage self/reaped-child maximum",
+  "safety": "the supervisor signals only the process group it created; it never signals or inspects a process it did not spawn",
+  "schema": "live_ab_validation_v2.supervision.1",
+  "terminated_by_supervisor": false,
+  "timestamps": {
+    "ended_utc": "2026-09-21T08:51:08Z",
+    "started_utc": "2026-09-21T08:51:06Z"
+  },
+  "within_caps": true
+}

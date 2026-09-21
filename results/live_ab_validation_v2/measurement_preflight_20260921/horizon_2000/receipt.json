@@ -1,0 +1,329 @@
+{
+  "cap_events": [],
+  "claims": {
+    "convention": "deterministic-path",
+    "is_calibration": false,
+    "is_coverage_rate": false,
+    "reference_role": "labelled complete-information diagnostic; gates no decision and is written to a separate file"
+  },
+  "code_sha256": {
+    "vband.py": "55a9894ff5694099c05cedbdf695ecdad3ac4bd5025328cd445e0b1d3df8cd9c",
+    "vgen.py": "08d1a8146023e348817a5cb02d04b9e209540456e2481889b98b8f31a5686987",
+    "vpanel.py": "9f30472855d633d7e59ab58f1e4abec016b01dda315e9168090471b711f698fb",
+    "vpolicy.py": "210956feb1c5831c09c82ef09a70fb0728e2b86c8bf6119cdc5ad03146eb962c",
+    "vrun.py": "a90c0083ec74088ea496c6a179afc843a6686291964ae903be379fc52265cf90"
+  },
+  "completed_fully": true,
+  "config": {
+    "alpha_gate": 0.00625,
+    "cells": [
+      "C1",
+      "C2"
+    ],
+    "label": "preflight_only_measurement_h2000",
+    "mode": "measurement",
+    "n_max": 2000,
+    "namespace": 1,
+    "panel_version": "v2-panel-1",
+    "policy": "operational",
+    "program_indices": [
+      1000,
+      1001,
+      1002,
+      1003,
+      1004
+    ],
+    "programs": 5,
+    "reference_calls_per_trial": 2,
+    "reference_mode": "vendored_complete_information_two_score",
+    "schedule": "v2_tick_batched",
+    "trials_per_program": 4,
+    "verification_mode": "preflight_only",
+    "with_reference": true
+  },
+  "counts": {
+    "enclosure_updates": 230784,
+    "generation_calls": 40,
+    "looks": 264000,
+    "policy_checks": 1,
+    "policy_pair_states": 7001,
+    "primary_trial_calls": 40,
+    "programs": 10,
+    "reference_calls_d": 40,
+    "reference_calls_h": 40,
+    "reference_rows": 240,
+    "trials": 40
+  },
+  "decisions": "WITHHELD under the measurement-only contract: resource receipts must not retain or reveal newly selected effect summaries. Not accumulated during this run.",
+  "declared_prefixes": [
+    100,
+    500,
+    2000
+  ],
+  "elapsed_seconds": 0.7344180410727859,
+  "environment": {
+    "numpy": "2.4.1",
+    "platform": "macOS-26.5.2-arm64-arm-64bit",
+    "python": "3.12.13"
+  },
+  "guard": {
+    "allowlist": {
+      "reference_calls": 160,
+      "seed_program_identities": 10,
+      "trial_evaluations": 80,
+      "units": 20
+    },
+    "caps": {
+      "output_bytes": 209715200,
+      "peak_rss_bytes": 2147483648,
+      "seconds": 300.0
+    },
+    "mode": "measurement",
+    "preflight_verification": {
+      "basis": "root 08:28: the already independently checked operational-policy witnesses serve as the preflight gate",
+      "mode": "preflight_only",
+      "pair_states_compared": 7001,
+      "ran_before_any_trial": true
+    }
+  },
+  "host_capacity_at_end": {
+    "concurrent_top_processes": [
+      "69858  98.7  70928 /Users/yukangzengcmac/ICLR-WinRatioAgentEvals/.venv/bin/python",
+      "475  43.6  84784 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer",
+      "69854   1.9  71264 /Users/yukangzengcmac/ICLR-WinRatioAgentEvals/.venv/bin/python",
+      "777   1.9 232448 /System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/Metadata.framework/Versions/A/Support/mds_stores",
+      "61714   1.0  82848 /Applications/Claude.app/Contents/Frameworks/Claude Helper.app/Contents/MacOS/Claude Helper",
+      "1   0.9  24624 /sbin/launchd",
+      "431   0.8  33552 /System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/Metadata.framework/Versions/A/Support/mds",
+      "443   0.7  14256 /usr/libexec/opendirectoryd"
+    ],
+    "cpu_cores": 10,
+    "disk_free_bytes": 266511925248,
+    "interpretation": "observed time is CONDITIONAL ON THIS LOAD; it is not an uncontended benchmark and not a guaranteed upper bound",
+    "load_average": {
+      "15m": 2.02734375,
+      "1m": 2.3271484375,
+      "5m": 2.0908203125
+    },
+    "load_fraction_of_cores_1m": 0.23271484375,
+    "total_ram_bytes": 34359738368
+  },
+  "host_capacity_at_start": {
+    "concurrent_top_processes": [
+      "69858  83.5  69392 /Users/yukangzengcmac/ICLR-WinRatioAgentEvals/.venv/bin/python",
+      "475  43.5  84768 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer",
+      "69854   6.0  71200 /Users/yukangzengcmac/ICLR-WinRatioAgentEvals/.venv/bin/python",
+      "61728   1.5 906464 /Applications/Claude.app/Contents/Frameworks/Claude Helper (Renderer).app/Contents/MacOS/Claude Helper (Renderer)",
+      "61714   1.5  82848 /Applications/Claude.app/Contents/Frameworks/Claude Helper.app/Contents/MacOS/Claude Helper",
+      "61790   1.1 572368 /Users/yukangzengcmac/Library/Application Support/Claude/claude-code/2.1.274/claude.app/Contents/MacOS/claude",
+      "598   0.2  44640 /System/Library/DriverExtensions/com.apple.DriverKit-AppleBCMWLAN.dext/com.apple.DriverKit-AppleBCMWLAN",
+      "96891   0.1  56080 /Applications/ChatGPT.app/Contents/Frameworks/Codex Framework.framework/Versions/152.0.7977.83/Helpers/Codex (Service).app/Contents/MacOS/Codex (Service)"
+    ],
+    "cpu_cores": 10,
+    "disk_free_bytes": 266511962112,
+    "interpretation": "observed time is CONDITIONAL ON THIS LOAD; it is not an uncontended benchmark and not a guaranteed upper bound",
+    "load_average": {
+      "15m": 2.03369140625,
+      "1m": 2.44287109375,
+      "5m": 2.109375
+    },
+    "load_fraction_of_cores_1m": 0.244287109375,
+    "total_ram_bytes": 34359738368
+  },
+  "outputs": {
+    "primary_rows.csv.gz": {
+      "bytes": 1620,
+      "sha256": "969fd2b8a16d181876a787f4bbeb52810d949cbe7f80af14fd9719ebbdd65d69",
+      "uncompressed_bytes": 1620
+    },
+    "reference_bands.csv": {
+      "bytes": 31105,
+      "sha256": "779828779853dbfbdca0e62f493078e22b31ab03e68f26cf651ab4fa123e3108"
+    }
+  },
+  "panel_version": "v2-panel-1",
+  "peak_rss_bytes": 72630272,
+  "pin_drift_check": {
+    "drift": false,
+    "files_compared": [
+      "reference/MANIFEST.json",
+      "reference/eb_reference.py",
+      "reference/vendor.py",
+      "vband.py",
+      "vgen.py",
+      "videntity.py",
+      "vpanel.py",
+      "vpins.py",
+      "vpolicy.py",
+      "vresource_check.py",
+      "vrun.py",
+      "vtotalguard.py"
+    ],
+    "identities_compared": [
+      "code",
+      "config",
+      "policy",
+      "workload",
+      "receipt"
+    ]
+  },
+  "pins": {
+    "binding_method": "whole_file_pins_of_complete_entry_point",
+    "code": "47f745e24f70f3a0060834c849fb69b5614cdcb7a1445097bf94e86a02c77c1e",
+    "config": "f845429fc887b6e6246ebb90a0a31cf9fbf2a02e1c6f2456c672d61772de7ffc",
+    "detail": {
+      "environment": {
+        "cpu_count": 10,
+        "executable_sha256_note": "interpreter not hashed; version pinned above",
+        "implementation": "CPython",
+        "machine": "arm64",
+        "numpy": "2.4.1",
+        "platform": "macOS-26.5.2-arm64-arm-64bit",
+        "python": "3.12.13"
+      },
+      "repo": {
+        "branch": "session60/live-ab-validation",
+        "dirty_paths": [],
+        "head": "9485a1ef805b5b8854e173dd0c72b8f244e2c6eb",
+        "validation_tree_dirty": false
+      },
+      "run_identity": {
+        "alpha_gate": 0.00625,
+        "cells": [
+          "C1",
+          "C2"
+        ],
+        "expected_reference_calls": 80,
+        "expected_trial_evaluations": 40,
+        "namespace": 1,
+        "normalized_horizon": 2000,
+        "policy": "operational",
+        "prefixes": [
+          100,
+          500,
+          2000
+        ],
+        "programs": [
+          1000,
+          1001,
+          1002,
+          1003,
+          1004
+        ],
+        "reference_mode": "vendored_complete_information_two_score",
+        "schedule": "v2_tick_batched",
+        "trials_per_program": 4,
+        "verification_mode": "preflight_only"
+      },
+      "source": {
+        "aggregate_sha256": "47f745e24f70f3a0060834c849fb69b5614cdcb7a1445097bf94e86a02c77c1e",
+        "candidate_binaries_not_authoritative": {
+          "reference/_build/boundaries.cpython-312-darwin.so": "f1c65419fd9785be308eb762e86444effa52a168631a9f39cd377178eab55657"
+        },
+        "config": {
+          "PROTOCOL_V2.md": "259863aa4fc070d652db6ada3513676f97bc27ed7887f4e32e762ccde909bcc4",
+          "cells.json": "96ebf7e47f790031d5d125cedcc9a9973bccfc78ea8e159798d69fcca9d61e97"
+        },
+        "files": {
+          "reference/MANIFEST.json": "ab353bac7d658d4c52aab2b34cef91bb7c302667331773f7884ec064ab0f43e3",
+          "reference/eb_reference.py": "41498a28e67fb37b5a5b07a8e8afb1f98d7aa2459531b6cad5c51a2af35a22a8",
+          "reference/vendor.py": "6f792463a1b4b63827f65fb95cd4696d4612ffd05b7c519132f595184cc7cb0f",
+          "vband.py": "55a9894ff5694099c05cedbdf695ecdad3ac4bd5025328cd445e0b1d3df8cd9c",
+          "vgen.py": "08d1a8146023e348817a5cb02d04b9e209540456e2481889b98b8f31a5686987",
+          "videntity.py": "1090a92ffc4316cf955454ac7a9f5acfddad6a52fec65446f7fec10e208242f4",
+          "vpanel.py": "9f30472855d633d7e59ab58f1e4abec016b01dda315e9168090471b711f698fb",
+          "vpins.py": "0467b16d064fbeaf41732cf52cdcaa9a40b6f9f04d38481175d99174c16fcf45",
+          "vpolicy.py": "210956feb1c5831c09c82ef09a70fb0728e2b86c8bf6119cdc5ad03146eb962c",
+          "vresource_check.py": "fb071eb0d616af5d352ae4d4d1bdb278cf409f47445901f64f64bcec94b9e7a9",
+          "vrun.py": "a90c0083ec74088ea496c6a179afc843a6686291964ae903be379fc52265cf90",
+          "vtotalguard.py": "fdaea0edce9991a966ad731f480d53044575c74bc6bf7f8b4157676fcb715e05"
+        },
+        "loaded_reference_modules": {
+          "aggregate_sha256": "4fdec5a774e2a571b7c312d522add589718e4303bd1ba2582f3af22fb6e1bc2c",
+          "files": {
+            "comparecast": "314fd68a18a1218537664a71da6bd103caf612f93fdc56b667cbcf5e58692cb5",
+            "comparecast.confseq": "8ea07278021cd06223fa1aa95c3a2aa46ab5be4d5a859d5ed49b5ef5218baef4",
+            "comparecast.confseq::__pycache__": "b403eadbe98bf025f7ea1d443cd1772fc015b1beadebdc9ce47b72c21e2919ab",
+            "comparecast.utils": "5bc239e18f13deb8b064df9a82b859f8556a11f1f91a39145c1cfba8ade37838",
+            "comparecast.utils::__pycache__": "7729c0904a066f86ed0bb55b51dd9f485e3dfe8b872b2ecb1957a8d09fbe1cbe",
+            "comparecast::__pycache__": "be36942d0127d5245f091521860d5904d46c43e562ad0a1d673e7e852957a76b",
+            "confseq": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "confseq.boundaries": "f1c65419fd9785be308eb762e86444effa52a168631a9f39cd377178eab55657",
+            "confseq::__pycache__": "430ce4d15c745f73bfab39b3b9a9ec72d84952c9aaa27f435b451896a5aab438"
+          },
+          "method": "sys.modules __file__/__cached__ after forcing the import",
+          "module_count": 9,
+          "origins": {
+            "comparecast": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/upstream/comparecast/__init__.py",
+            "comparecast.confseq": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/upstream/comparecast/confseq.py",
+            "comparecast.confseq::__pycache__": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/upstream/comparecast/__pycache__/confseq.cpython-312.pyc",
+            "comparecast.utils": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/upstream/comparecast/utils.py",
+            "comparecast.utils::__pycache__": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/upstream/comparecast/__pycache__/utils.cpython-312.pyc",
+            "comparecast::__pycache__": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/upstream/comparecast/__pycache__/__init__.cpython-312.pyc",
+            "confseq": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/upstream/confseq/__init__.py",
+            "confseq.boundaries": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/_build/boundaries.cpython-312-darwin.so",
+            "confseq::__pycache__": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/upstream/confseq/__pycache__/__init__.cpython-312.pyc"
+          }
+        },
+        "roles": {
+          "diagnostic_not_authorizing": [
+            "videntity.py"
+          ],
+          "guard": [
+            "vrun.py",
+            "vtotalguard.py",
+            "vresource_check.py",
+            "vpins.py"
+          ],
+          "orchestrator": [
+            "vpanel.py"
+          ],
+          "output_accumulator": [
+            "vpanel.py",
+            "vrun.py"
+          ],
+          "primary": [
+            "vrun.py",
+            "vgen.py",
+            "vband.py",
+            "vpolicy.py"
+          ],
+          "reference_bridge": [
+            "reference/eb_reference.py",
+            "reference/vendor.py"
+          ]
+        }
+      }
+    },
+    "not_used": "videntity call-graph fingerprint; refuted 2026-09-21 and retained only as an exploratory source-difference diagnostic",
+    "policy": "operational",
+    "receipt": "c64f7abaa398423feba21afbf47d692b4f07a195eb71a602d484b7b4d1a093e9",
+    "workload": "2_calls_per_trial"
+  },
+  "reference_sha256": {
+    "manifest": "ab353bac7d658d4c52aab2b34cef91bb7c302667331773f7884ec064ab0f43e3",
+    "module": "41498a28e67fb37b5a5b07a8e8afb1f98d7aa2459531b6cad5c51a2af35a22a8"
+  },
+  "reference_tuning": {
+    "alpha_split": "internal to confseq_eb; not pre-halved",
+    "boundary_type": "mixture",
+    "v_opt": 10.0
+  },
+  "seeds": {
+    "cell_indices": {
+      "C1": 0,
+      "C2": 1
+    },
+    "namespace": 1,
+    "stream_rule": "vgen.stream(namespace, cell.index, program, trial)"
+  },
+  "structural_checks": {
+    "primary_sources_checked": [
+      "vrun.py",
+      "vgen.py",
+      "vband.py",
+      "vpolicy.py"
+    ],
+    "reference_named_in_primary": false
+  }
+}
