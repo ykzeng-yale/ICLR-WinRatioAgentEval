@@ -1,0 +1,101 @@
+{
+  "claims": {
+    "convention": "deterministic-path",
+    "is_calibration": false,
+    "is_coverage_rate": false,
+    "reference_role": "labelled complete-information diagnostic; gates no decision and is written to a separate file"
+  },
+  "code_sha256": {
+    "vband.py": "55a9894ff5694099c05cedbdf695ecdad3ac4bd5025328cd445e0b1d3df8cd9c",
+    "vgen.py": "08d1a8146023e348817a5cb02d04b9e209540456e2481889b98b8f31a5686987",
+    "vpanel.py": "b40c35def69f311ae13b07bdde6f37e5e92f6150c7582c22efff98b990cd872d",
+    "vpolicy.py": "210956feb1c5831c09c82ef09a70fb0728e2b86c8bf6119cdc5ad03146eb962c",
+    "vrun.py": "e881f27b061d6ad5cb333afe031ec7ff0d572ce76984ae03c8054c10b8f85d88"
+  },
+  "config": {
+    "alpha_gate": 0.00625,
+    "cells": [
+      "C2",
+      "C3",
+      "C7"
+    ],
+    "label": "integration_fixture",
+    "n_max": 300,
+    "namespace": 0,
+    "panel_version": "v2-panel-1",
+    "policy": "operational",
+    "programs": 1,
+    "reference_calls_per_trial": 2,
+    "schedule": "v2_tick_batched",
+    "trials_per_program": 4,
+    "with_reference": true
+  },
+  "counts": {
+    "enclosure_updates": 10428,
+    "generation_calls": 12,
+    "looks": 18000,
+    "policy_checks": 12,
+    "policy_pair_states": 12612,
+    "primary_trial_calls": 12,
+    "programs": 3,
+    "reference_calls_d": 12,
+    "reference_calls_h": 12,
+    "reference_rows": 48,
+    "trials": 12
+  },
+  "decisions": {
+    "ADAPTER:NO_DECISION": 12,
+    "CPREFIX:NO_DECISION": 12,
+    "NAIVE:DEPLOY": 3,
+    "NAIVE:NO_DECISION": 9
+  },
+  "declared_prefixes": [
+    100,
+    300
+  ],
+  "elapsed_seconds": 0.2107351664453745,
+  "environment": {
+    "numpy": "2.4.1",
+    "platform": "macOS-26.5.2-arm64-arm-64bit",
+    "python": "3.12.13"
+  },
+  "outputs": {
+    "primary_rows.csv.gz": {
+      "bytes": 933,
+      "sha256": "50844830b5631988b34d9195c16fc0b50ee71daa741aa4602c01780493c87e66",
+      "uncompressed_bytes": 933
+    },
+    "reference_bands.csv": {
+      "bytes": 6296,
+      "sha256": "bce8ae4b3cea5db74e6a48a1a0b1fe811d7a71df26b01dc37e293f8de82428f1"
+    }
+  },
+  "panel_version": "v2-panel-1",
+  "reference_sha256": {
+    "manifest": "ab353bac7d658d4c52aab2b34cef91bb7c302667331773f7884ec064ab0f43e3",
+    "module": "41498a28e67fb37b5a5b07a8e8afb1f98d7aa2459531b6cad5c51a2af35a22a8"
+  },
+  "reference_tuning": {
+    "alpha_split": "internal to confseq_eb; not pre-halved",
+    "boundary_type": "mixture",
+    "v_opt": 10.0
+  },
+  "seeds": {
+    "cell_indices": {
+      "C2": 1,
+      "C3": 2,
+      "C7": 6
+    },
+    "namespace": 0,
+    "stream_rule": "vgen.stream(namespace, cell.index, program, trial)"
+  },
+  "structural_checks": {
+    "primary_sources_checked": [
+      "vrun.py",
+      "vgen.py",
+      "vband.py",
+      "vpolicy.py"
+    ],
+    "reference_named_in_primary": false
+  }
+}
