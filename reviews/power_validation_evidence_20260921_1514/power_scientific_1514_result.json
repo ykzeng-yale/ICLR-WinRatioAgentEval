@@ -1,0 +1,571 @@
+{
+  "commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+  "primary_files": 40,
+  "rows": [
+    {
+      "cell": "P05A",
+      "construction": "ADAPTER",
+      "n": 8000,
+      "NO_DECISION": 7594,
+      "final_unresolved_fraction": 202.65399999999943,
+      "final_unrevealed_fraction": 61.13050000000178,
+      "final_cost_narrowed_fraction": 70.6770000000012,
+      "final_n_certified": 15594692.0,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "DEPLOY": 406,
+      "power": 0.05075,
+      "wilson": [
+        0.04615231354111472,
+        0.055778923230397015
+      ]
+    },
+    {
+      "cell": "P05A",
+      "construction": "CPREFIX",
+      "n": 8000,
+      "NO_DECISION": 7745,
+      "final_unresolved_fraction": 202.65399999999943,
+      "final_unrevealed_fraction": 61.13050000000178,
+      "final_cost_narrowed_fraction": 70.6770000000012,
+      "final_n_certified": 15594692.0,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "DEPLOY": 255,
+      "power": 0.031875,
+      "wilson": [
+        0.0282446407999411,
+        0.03595471415534868
+      ]
+    },
+    {
+      "cell": "P05A",
+      "construction": "NAIVE",
+      "n": 8000,
+      "DEPLOY": 7991,
+      "final_unresolved_fraction": 202.65399999999943,
+      "final_unrevealed_fraction": 61.13050000000178,
+      "final_cost_narrowed_fraction": 70.6770000000012,
+      "final_n_certified": 15594692.0,
+      "ever_miscover_h": 7607,
+      "ever_miscover_s": 0,
+      "NO_DECISION": 9,
+      "power": 0.998875,
+      "wilson": [
+        0.9978631211027341,
+        0.9994080069008543
+      ]
+    },
+    {
+      "cell": "P05N",
+      "construction": "ADAPTER",
+      "n": 8000,
+      "NO_DECISION": 7974,
+      "final_unresolved_fraction": 202.7414999999998,
+      "final_unrevealed_fraction": 61.040000000001825,
+      "final_cost_narrowed_fraction": 51.1915000000015,
+      "final_n_certified": 15594517.0,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "DEPLOY": 26,
+      "power": 0.00325,
+      "wilson": [
+        0.0022189215625852262,
+        0.004757910638301715
+      ]
+    },
+    {
+      "cell": "P05N",
+      "construction": "CPREFIX",
+      "n": 8000,
+      "NO_DECISION": 7758,
+      "final_unresolved_fraction": 202.7414999999998,
+      "final_unrevealed_fraction": 61.040000000001825,
+      "final_cost_narrowed_fraction": 51.1915000000015,
+      "final_n_certified": 15594517.0,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "DEPLOY": 242,
+      "power": 0.03025,
+      "wilson": [
+        0.02671644294336529,
+        0.03423447185556101
+      ]
+    },
+    {
+      "cell": "P05N",
+      "construction": "NAIVE",
+      "n": 8000,
+      "NO_DECISION": 7483,
+      "final_unresolved_fraction": 202.7414999999998,
+      "final_unrevealed_fraction": 61.040000000001825,
+      "final_cost_narrowed_fraction": 51.1915000000015,
+      "final_n_certified": 15594517.0,
+      "ever_miscover_h": 1,
+      "ever_miscover_s": 0,
+      "DEPLOY": 517,
+      "power": 0.064625,
+      "wilson": [
+        0.05944358911311471,
+        0.07022432899350058
+      ]
+    },
+    {
+      "cell": "P10A",
+      "construction": "ADAPTER",
+      "n": 8000,
+      "NO_DECISION": 1238,
+      "final_unresolved_fraction": 186.93299999999954,
+      "final_unrevealed_fraction": 56.099000000001304,
+      "final_cost_narrowed_fraction": 65.54450000000136,
+      "final_n_certified": 15626134.0,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "DEPLOY": 6762,
+      "power": 0.84525,
+      "wilson": [
+        0.8371592518493949,
+        0.8530093413718307
+      ]
+    },
+    {
+      "cell": "P10A",
+      "construction": "CPREFIX",
+      "n": 8000,
+      "NO_DECISION": 2538,
+      "final_unresolved_fraction": 186.93299999999954,
+      "final_unrevealed_fraction": 56.099000000001304,
+      "final_cost_narrowed_fraction": 65.54450000000136,
+      "final_n_certified": 15626134.0,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "DEPLOY": 5462,
+      "power": 0.68275,
+      "wilson": [
+        0.6724658952087195,
+        0.692858682376158
+      ]
+    },
+    {
+      "cell": "P10A",
+      "construction": "NAIVE",
+      "n": 8000,
+      "DEPLOY": 8000,
+      "final_unresolved_fraction": 186.93299999999954,
+      "final_unrevealed_fraction": 56.099000000001304,
+      "final_cost_narrowed_fraction": 65.54450000000136,
+      "final_n_certified": 15626134.0,
+      "ever_miscover_h": 7420,
+      "ever_miscover_s": 0,
+      "power": 1.0,
+      "wilson": [
+        0.99952004811184,
+        1.0
+      ]
+    },
+    {
+      "cell": "P10N",
+      "construction": "ADAPTER",
+      "n": 8000,
+      "DEPLOY": 4212,
+      "final_unresolved_fraction": 186.8879999999989,
+      "final_unrevealed_fraction": 56.045500000001546,
+      "final_cost_narrowed_fraction": 47.46400000000131,
+      "final_n_certified": 15626224.0,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "NO_DECISION": 3788,
+      "power": 0.5265,
+      "wilson": [
+        0.5155487673177345,
+        0.5374257952321931
+      ]
+    },
+    {
+      "cell": "P10N",
+      "construction": "CPREFIX",
+      "n": 8000,
+      "NO_DECISION": 2656,
+      "final_unresolved_fraction": 186.8879999999989,
+      "final_unrevealed_fraction": 56.045500000001546,
+      "final_cost_narrowed_fraction": 47.46400000000131,
+      "final_n_certified": 15626224.0,
+      "ever_miscover_h": 1,
+      "ever_miscover_s": 0,
+      "DEPLOY": 5344,
+      "power": 0.668,
+      "wilson": [
+        0.6576019889846537,
+        0.6782367471809244
+      ]
+    },
+    {
+      "cell": "P10N",
+      "construction": "NAIVE",
+      "n": 8000,
+      "DEPLOY": 6859,
+      "final_unresolved_fraction": 186.8879999999989,
+      "final_unrevealed_fraction": 56.045500000001546,
+      "final_cost_narrowed_fraction": 47.46400000000131,
+      "final_n_certified": 15626224.0,
+      "ever_miscover_h": 2,
+      "ever_miscover_s": 0,
+      "NO_DECISION": 1141,
+      "power": 0.857375,
+      "wilson": [
+        0.8495406168071685,
+        0.8648663375807691
+      ]
+    },
+    {
+      "cell": "P15A",
+      "construction": "ADAPTER",
+      "n": 8000,
+      "DEPLOY": 7999,
+      "final_unresolved_fraction": 171.22649999999854,
+      "final_unrevealed_fraction": 51.59250000000139,
+      "final_cost_narrowed_fraction": 60.013000000001426,
+      "final_n_certified": 15657547.0,
+      "ever_miscover_h": 1,
+      "ever_miscover_s": 0,
+      "NO_DECISION": 1,
+      "power": 0.999875,
+      "wilson": [
+        0.9992922340099741,
+        0.9999779340898378
+      ]
+    },
+    {
+      "cell": "P15A",
+      "construction": "CPREFIX",
+      "n": 8000,
+      "DEPLOY": 7974,
+      "final_unresolved_fraction": 171.22649999999854,
+      "final_unrevealed_fraction": 51.59250000000139,
+      "final_cost_narrowed_fraction": 60.013000000001426,
+      "final_n_certified": 15657547.0,
+      "ever_miscover_h": 1,
+      "ever_miscover_s": 0,
+      "NO_DECISION": 26,
+      "power": 0.99675,
+      "wilson": [
+        0.9952420893616982,
+        0.9977810784374148
+      ]
+    },
+    {
+      "cell": "P15A",
+      "construction": "NAIVE",
+      "n": 8000,
+      "DEPLOY": 8000,
+      "final_unresolved_fraction": 171.22649999999854,
+      "final_unrevealed_fraction": 51.59250000000139,
+      "final_cost_narrowed_fraction": 60.013000000001426,
+      "final_n_certified": 15657547.0,
+      "ever_miscover_h": 6983,
+      "ever_miscover_s": 0,
+      "power": 1.0,
+      "wilson": [
+        0.99952004811184,
+        1.0
+      ]
+    },
+    {
+      "cell": "P15N",
+      "construction": "ADAPTER",
+      "n": 8000,
+      "DEPLOY": 7969,
+      "final_unresolved_fraction": 171.46549999999945,
+      "final_unrevealed_fraction": 51.70000000000131,
+      "final_cost_narrowed_fraction": 43.424000000001264,
+      "final_n_certified": 15657069.0,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "NO_DECISION": 31,
+      "power": 0.996125,
+      "wilson": [
+        0.9945051074473908,
+        0.9972686602915825
+      ]
+    },
+    {
+      "cell": "P15N",
+      "construction": "CPREFIX",
+      "n": 8000,
+      "DEPLOY": 7982,
+      "final_unresolved_fraction": 171.46549999999945,
+      "final_unrevealed_fraction": 51.70000000000131,
+      "final_cost_narrowed_fraction": 43.424000000001264,
+      "final_n_certified": 15657069.0,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "NO_DECISION": 18,
+      "power": 0.99775,
+      "wilson": [
+        0.9964459592083275,
+        0.9985762486870093
+      ]
+    },
+    {
+      "cell": "P15N",
+      "construction": "NAIVE",
+      "n": 8000,
+      "DEPLOY": 7999,
+      "final_unresolved_fraction": 171.46549999999945,
+      "final_unrevealed_fraction": 51.70000000000131,
+      "final_cost_narrowed_fraction": 43.424000000001264,
+      "final_n_certified": 15657069.0,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "NO_DECISION": 1,
+      "power": 0.999875,
+      "wilson": [
+        0.9992922340099741,
+        0.9999779340898378
+      ]
+    },
+    {
+      "cell": "P20A",
+      "construction": "ADAPTER",
+      "n": 8000,
+      "DEPLOY": 8000,
+      "final_unresolved_fraction": 155.65349999999918,
+      "final_unrevealed_fraction": 46.96550000000133,
+      "final_cost_narrowed_fraction": 54.4370000000016,
+      "final_n_certified": 15688693.0,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "power": 1.0,
+      "wilson": [
+        0.99952004811184,
+        1.0
+      ]
+    },
+    {
+      "cell": "P20A",
+      "construction": "CPREFIX",
+      "n": 8000,
+      "DEPLOY": 8000,
+      "final_unresolved_fraction": 155.65349999999918,
+      "final_unrevealed_fraction": 46.96550000000133,
+      "final_cost_narrowed_fraction": 54.4370000000016,
+      "final_n_certified": 15688693.0,
+      "ever_miscover_h": 1,
+      "ever_miscover_s": 0,
+      "power": 1.0,
+      "wilson": [
+        0.99952004811184,
+        1.0
+      ]
+    },
+    {
+      "cell": "P20A",
+      "construction": "NAIVE",
+      "n": 8000,
+      "DEPLOY": 8000,
+      "final_unresolved_fraction": 155.65349999999918,
+      "final_unrevealed_fraction": 46.96550000000133,
+      "final_cost_narrowed_fraction": 54.4370000000016,
+      "final_n_certified": 15688693.0,
+      "ever_miscover_h": 6228,
+      "ever_miscover_s": 0,
+      "power": 1.0,
+      "wilson": [
+        0.99952004811184,
+        1.0
+      ]
+    },
+    {
+      "cell": "P20N",
+      "construction": "ADAPTER",
+      "n": 8000,
+      "DEPLOY": 8000,
+      "final_unresolved_fraction": 156.18799999999885,
+      "final_unrevealed_fraction": 46.87150000000123,
+      "final_cost_narrowed_fraction": 39.70000000000119,
+      "final_n_certified": 15687624.0,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "power": 1.0,
+      "wilson": [
+        0.99952004811184,
+        1.0
+      ]
+    },
+    {
+      "cell": "P20N",
+      "construction": "CPREFIX",
+      "n": 8000,
+      "DEPLOY": 8000,
+      "final_unresolved_fraction": 156.18799999999885,
+      "final_unrevealed_fraction": 46.87150000000123,
+      "final_cost_narrowed_fraction": 39.70000000000119,
+      "final_n_certified": 15687624.0,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "power": 1.0,
+      "wilson": [
+        0.99952004811184,
+        1.0
+      ]
+    },
+    {
+      "cell": "P20N",
+      "construction": "NAIVE",
+      "n": 8000,
+      "DEPLOY": 8000,
+      "final_unresolved_fraction": 156.18799999999885,
+      "final_unrevealed_fraction": 46.87150000000123,
+      "final_cost_narrowed_fraction": 39.70000000000119,
+      "final_n_certified": 15687624.0,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "power": 1.0,
+      "wilson": [
+        0.99952004811184,
+        1.0
+      ]
+    },
+    {
+      "cell": "P30A",
+      "construction": "ADAPTER",
+      "n": 8000,
+      "DEPLOY": 8000,
+      "final_unresolved_fraction": 124.73099999999887,
+      "final_unrevealed_fraction": 37.53550000000095,
+      "final_cost_narrowed_fraction": 43.66150000000126,
+      "final_n_certified": 15750538.0,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "power": 1.0,
+      "wilson": [
+        0.99952004811184,
+        1.0
+      ]
+    },
+    {
+      "cell": "P30A",
+      "construction": "CPREFIX",
+      "n": 8000,
+      "DEPLOY": 8000,
+      "final_unresolved_fraction": 124.73099999999887,
+      "final_unrevealed_fraction": 37.53550000000095,
+      "final_cost_narrowed_fraction": 43.66150000000126,
+      "final_n_certified": 15750538.0,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "power": 1.0,
+      "wilson": [
+        0.99952004811184,
+        1.0
+      ]
+    },
+    {
+      "cell": "P30A",
+      "construction": "NAIVE",
+      "n": 8000,
+      "DEPLOY": 8000,
+      "final_unresolved_fraction": 124.73099999999887,
+      "final_unrevealed_fraction": 37.53550000000095,
+      "final_cost_narrowed_fraction": 43.66150000000126,
+      "final_n_certified": 15750538.0,
+      "ever_miscover_h": 3645,
+      "ever_miscover_s": 0,
+      "power": 1.0,
+      "wilson": [
+        0.99952004811184,
+        1.0
+      ]
+    },
+    {
+      "cell": "P30N",
+      "construction": "ADAPTER",
+      "n": 8000,
+      "DEPLOY": 8000,
+      "final_unresolved_fraction": 124.86549999999878,
+      "final_unrevealed_fraction": 37.40100000000089,
+      "final_cost_narrowed_fraction": 31.716000000000747,
+      "final_n_certified": 15750269.0,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "power": 1.0,
+      "wilson": [
+        0.99952004811184,
+        1.0
+      ]
+    },
+    {
+      "cell": "P30N",
+      "construction": "CPREFIX",
+      "n": 8000,
+      "DEPLOY": 8000,
+      "final_unresolved_fraction": 124.86549999999878,
+      "final_unrevealed_fraction": 37.40100000000089,
+      "final_cost_narrowed_fraction": 31.716000000000747,
+      "final_n_certified": 15750269.0,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "power": 1.0,
+      "wilson": [
+        0.99952004811184,
+        1.0
+      ]
+    },
+    {
+      "cell": "P30N",
+      "construction": "NAIVE",
+      "n": 8000,
+      "DEPLOY": 8000,
+      "final_unresolved_fraction": 124.86549999999878,
+      "final_unrevealed_fraction": 37.40100000000089,
+      "final_cost_narrowed_fraction": 31.716000000000747,
+      "final_n_certified": 15750269.0,
+      "ever_miscover_h": 0,
+      "ever_miscover_s": 0,
+      "power": 1.0,
+      "wilson": [
+        0.99952004811184,
+        1.0
+      ]
+    }
+  ],
+  "duplicate_coordinates": 0,
+  "all_programs_four_trials": true,
+  "mechanism_count_mismatches": [],
+  "contrasts_at_point1": {
+    "ADAPTER": {
+      "A_deploy": 6762,
+      "N_deploy": 4212,
+      "n_each": 8000,
+      "A_minus_N": 0.31875,
+      "unpaired_SE": 0.00689293286181579,
+      "newcombe95": [
+        0.3051546623031153,
+        0.33217150795498496
+      ]
+    },
+    "CPREFIX": {
+      "A_deploy": 5462,
+      "N_deploy": 5344,
+      "n_each": 8000,
+      "A_minus_N": 0.01474999999999993,
+      "unpaired_SE": 0.0074025201578584035,
+      "newcombe95": [
+        0.0002395277745965898,
+        0.02925186513719216
+      ]
+    },
+    "NAIVE": {
+      "A_deploy": 8000,
+      "N_deploy": 6859,
+      "n_each": 8000,
+      "A_minus_N": 0.142625,
+      "unpaired_SE": 0.003909653267474623,
+      "newcombe95": [
+        0.1351183034852878,
+        0.15045938319283148
+      ]
+    }
+  },
+  "primary_row_count": 240000
+}

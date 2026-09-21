@@ -1,0 +1,197 @@
+{
+  "reviewed_delivery": "0c17857",
+  "shards": 40,
+  "programs": 20000,
+  "counts": {
+    "primary_rows": 240000,
+    "programs": 20000,
+    "reference_calls": 160000,
+    "reference_rows": 480000,
+    "trials": 80000
+  },
+  "primary_keys": 240000,
+  "reference_keys": 480000,
+  "all_data_hashes_sizes_match": true,
+  "all_pins_equal": true,
+  "source_matches": [
+    {
+      "name": "reference/MANIFEST.json",
+      "matches": {
+        "3b14a4477cbc4c054e7e5eb81bf856abacd40cae": true,
+        "35ab9d1": true,
+        "0c17857": true
+      }
+    },
+    {
+      "name": "reference/eb_reference.py",
+      "matches": {
+        "3b14a4477cbc4c054e7e5eb81bf856abacd40cae": true,
+        "35ab9d1": true,
+        "0c17857": true
+      }
+    },
+    {
+      "name": "reference/vendor.py",
+      "matches": {
+        "3b14a4477cbc4c054e7e5eb81bf856abacd40cae": true,
+        "35ab9d1": true,
+        "0c17857": true
+      }
+    },
+    {
+      "name": "vband.py",
+      "matches": {
+        "3b14a4477cbc4c054e7e5eb81bf856abacd40cae": true,
+        "35ab9d1": true,
+        "0c17857": true
+      }
+    },
+    {
+      "name": "vconformance.py",
+      "matches": {
+        "3b14a4477cbc4c054e7e5eb81bf856abacd40cae": true,
+        "35ab9d1": true,
+        "0c17857": true
+      }
+    },
+    {
+      "name": "vgen.py",
+      "matches": {
+        "3b14a4477cbc4c054e7e5eb81bf856abacd40cae": true,
+        "35ab9d1": true,
+        "0c17857": true
+      }
+    },
+    {
+      "name": "videntity.py",
+      "matches": {
+        "3b14a4477cbc4c054e7e5eb81bf856abacd40cae": true,
+        "35ab9d1": true,
+        "0c17857": true
+      }
+    },
+    {
+      "name": "vlaunch.py",
+      "matches": {
+        "3b14a4477cbc4c054e7e5eb81bf856abacd40cae": true,
+        "35ab9d1": true,
+        "0c17857": true
+      }
+    },
+    {
+      "name": "vmeasure.py",
+      "matches": {
+        "3b14a4477cbc4c054e7e5eb81bf856abacd40cae": true,
+        "35ab9d1": true,
+        "0c17857": true
+      }
+    },
+    {
+      "name": "vpanel.py",
+      "matches": {
+        "3b14a4477cbc4c054e7e5eb81bf856abacd40cae": true,
+        "35ab9d1": true,
+        "0c17857": true
+      }
+    },
+    {
+      "name": "vpins.py",
+      "matches": {
+        "3b14a4477cbc4c054e7e5eb81bf856abacd40cae": true,
+        "35ab9d1": true,
+        "0c17857": true
+      }
+    },
+    {
+      "name": "vpolicy.py",
+      "matches": {
+        "3b14a4477cbc4c054e7e5eb81bf856abacd40cae": true,
+        "35ab9d1": true,
+        "0c17857": true
+      }
+    },
+    {
+      "name": "vprod.py",
+      "matches": {
+        "3b14a4477cbc4c054e7e5eb81bf856abacd40cae": false,
+        "35ab9d1": true,
+        "0c17857": true
+      }
+    },
+    {
+      "name": "vresource_check.py",
+      "matches": {
+        "3b14a4477cbc4c054e7e5eb81bf856abacd40cae": true,
+        "35ab9d1": true,
+        "0c17857": true
+      }
+    },
+    {
+      "name": "vrun.py",
+      "matches": {
+        "3b14a4477cbc4c054e7e5eb81bf856abacd40cae": true,
+        "35ab9d1": true,
+        "0c17857": true
+      }
+    },
+    {
+      "name": "vshard.py",
+      "matches": {
+        "3b14a4477cbc4c054e7e5eb81bf856abacd40cae": true,
+        "35ab9d1": true,
+        "0c17857": true
+      }
+    },
+    {
+      "name": "vsupervise.py",
+      "matches": {
+        "3b14a4477cbc4c054e7e5eb81bf856abacd40cae": true,
+        "35ab9d1": true,
+        "0c17857": true
+      }
+    },
+    {
+      "name": "vtotalguard.py",
+      "matches": {
+        "3b14a4477cbc4c054e7e5eb81bf856abacd40cae": true,
+        "35ab9d1": true,
+        "0c17857": true
+      }
+    },
+    {
+      "name": "PROTOCOL_V2.md",
+      "matches": {
+        "3b14a4477cbc4c054e7e5eb81bf856abacd40cae": true,
+        "35ab9d1": true,
+        "0c17857": true
+      }
+    },
+    {
+      "name": "cells.json",
+      "matches": {
+        "3b14a4477cbc4c054e7e5eb81bf856abacd40cae": true,
+        "35ab9d1": true,
+        "0c17857": true
+      }
+    }
+  ],
+  "runtime_registration_files_pinned": [],
+  "data_bytes": {
+    "primary_rows.csv.gz": 9541006,
+    "reference_bands.csv": 62664463
+  },
+  "all_bytes": 72693479,
+  "top_bytes": {
+    "MECHANISM_TEST.json": 11196,
+    "PC_JOB_RECEIPT.json": 3620,
+    "POWERCURVE_PLAN.json": 17878,
+    "PC_CHILD_DATA_RECEIPT.json": 1942,
+    "PC_ANALYSIS.json": 7510,
+    "SUPERVISION.json": 1817
+  },
+  "supervisor_child_bytes": 72669336,
+  "child_snapshot_recomputed": 72669336,
+  "source_commit": "3b14a4477cbc4c054e7e5eb81bf856abacd40cae",
+  "attempt": "20260921T141823Z",
+  "all_prior_failed_attempt_null": true
+}
