@@ -1,0 +1,101 @@
+{
+  "baseline_witness_1000": {
+    "ADAPTER": {
+      "v1": "NO_DECISION",
+      "v2": "NO_DECISION",
+      "tau_prefix": 1000,
+      "tau_tick": 1200,
+      "ever_miscover_h": false
+    },
+    "CPREFIX": {
+      "v1": "NO_DECISION",
+      "v2": "DEPLOY",
+      "tau_prefix": 1000,
+      "tau_tick": 1010,
+      "ever_miscover_h": true
+    },
+    "NAIVE": {
+      "v1": "NO_DECISION",
+      "v2": "DEPLOY",
+      "tau_prefix": 1000,
+      "tau_tick": 1010,
+      "ever_miscover_h": true
+    }
+  },
+  "baseline_witness_2000": {
+    "ADAPTER": {
+      "v1": "NO_DECISION",
+      "v2": "NO_DECISION",
+      "tau_prefix": 2000,
+      "tau_tick": 2200,
+      "ever_miscover_h": false
+    },
+    "CPREFIX": {
+      "v1": "NO_DECISION",
+      "v2": "DEPLOY",
+      "tau_prefix": 2000,
+      "tau_tick": 2010,
+      "ever_miscover_h": true
+    },
+    "NAIVE": {
+      "v1": "NO_DECISION",
+      "v2": "DEPLOY",
+      "tau_prefix": 2000,
+      "tau_tick": 2010,
+      "ever_miscover_h": true
+    }
+  },
+  "adapter_timing": {
+    "v1": {
+      "tau_prefix": 1000,
+      "tau_tick": 1200,
+      "unresolved": 0.0,
+      "final_unresolved": 0.0,
+      "decided_at_finalization": true
+    },
+    "v2": {
+      "tau_prefix": 1000,
+      "tau_tick": 1010,
+      "unresolved": 0.1,
+      "final_unresolved": 0.0,
+      "decided_at_finalization": false
+    }
+  },
+  "independent_tick_states_checked": 205,
+  "finest_cprefix_phantom": {
+    "function": [
+      [
+        3,
+        1
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        3,
+        3
+      ]
+    ],
+    "actual_declared_order": [
+      [
+        2,
+        0
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        3,
+        3
+      ]
+    ],
+    "phantom": [
+      [
+        3,
+        1
+      ]
+    ]
+  }
+}

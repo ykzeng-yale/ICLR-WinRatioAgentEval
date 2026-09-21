@@ -1,0 +1,13 @@
+{
+  "pin": "d8b2a4d3141f0180473761671d3ffa57437225ad",
+  "sha256": {
+    "experiments/live_ab_validation/vgen.py": "513ac967c0d25b31a1922b40543d1add39f79633a5d4453eef9f9cb7c6f77be7",
+    "experiments/live_ab_validation/vrun.py": "3f7fbcdaf5c9b9e09b0e7b758bbc5ee44424af297a6fe32bdf0e0b9ccfa70892",
+    "experiments/live_ab_validation/vband.py": "55a9894ff5694099c05cedbdf695ecdad3ac4bd5025328cd445e0b1d3df8cd9c",
+    "experiments/live_ab_validation/cells.json": "96ebf7e47f790031d5d125cedcc9a9973bccfc78ea8e159798d69fcca9d61e97",
+    "experiments/live_ab_validation/PROTOCOL_V2.md": "7a5d1f3d40e49d4942428a3c47952684f2c908e192ace25cbb5927746cf00815",
+    "experiments/live_ab_validation/V2_VERIFICATION.md": "a8a171a8f99f18780c5f11dd595de73af4c2efe566893545b1d6ffb9e3576169",
+    "experiments/live_ab_validation/tests_validation.py": "43b8f1316efcd9216a1b2d33df30bc976f128ad21231663f81a1a31a4c8ae915",
+    "src/winstats.py": "56955ce09a8ac7afb15f2bd251048537eabcc04ea75e7579bdb825594f41fc69"
+  }
+}
