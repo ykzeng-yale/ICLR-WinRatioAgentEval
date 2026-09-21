@@ -107,6 +107,30 @@
     ]
   },
 
+  "CORRECTIONS_v2": {
+    "authority": "OWNER SELF-AUDIT, 2026-09-21, after delivery and before root's independent validation. Not requested by root.",
+    "why_self_audited": "Root's next milestone is independent validation of these records. Two defects in my own analysis were cheaper for me to find than for root to find, and both are the kind this project keeps producing.",
+    "headline_unaffected": "The four paired differences and both contrast changes are EXACTLY unchanged: P05N +0.00187, P05A +0.00313, P10N +0.13700, P10A +0.00450; change in A-minus-N +0.00125 at mu_h 0.05 and -0.13250 at 0.10. Only interval CONVENTIONS on secondary quantities moved, plus one strengthened check.",
+    "corrections": [
+      {
+        "defect": "I published marginal deployment-rate intervals under a DIFFERENT convention than the delivered coarse panel uses for the identical counts. My normal interval gave [0.0020027, 0.0044973] for P05N's 26/8000 where PC_ANALYSIS.json reports Wilson [0.0022189, 0.0047579].",
+        "why_it_matters": "A reader comparing my interval with the panel's on the same count sees two different answers, and at rates this small the normal interval is the wrong one -- symmetric where the true interval is not. This is precisely the convention-mixing these readouts exist to prevent, committed in my own headline table.",
+        "fix": "Marginal proportions now use Wilson, via t1_analysis.wilson -- the panel's own function, not a reimplementation. All four cells' original-arm intervals are now BIT-IDENTICAL to PC_ANALYSIS.json's wilson95, which is an executed cross-check rather than a claim of agreement."
+      },
+      {
+        "defect": "The A-minus-N contrast WITHIN one arm -- a difference of two INDEPENDENT proportions -- used a normal combination of binomial standard errors.",
+        "why_it_matters": "This project already used Newcombe's hybrid-score method for exactly this shape of comparison (the CPREFIX difference at mu_h 0.10). Using a different method here without saying so makes two unpaired differences in the same body of work incomparable.",
+        "fix": "Newcombe hybrid score. mu_h 0.05: [+0.04253, +0.05247] -> [+0.04266, +0.05263]. mu_h 0.10: [+0.30524, +0.33226] -> [+0.30515, +0.33217]. Small moves; the point is consistency, not magnitude.",
+        "explicitly_not_changed": "The CHANGE in the A-minus-N contrast keeps the normal combination of independent cell-specific PAIRED variances, because that is the estimator root specified and a paired variance is not a binomial one. _combine now REFUSES marginal-rate inputs rather than silently combining the wrong variances."
+      },
+      {
+        "defect": "analyse_cell asserted only that the two arms cover the SAME coordinates. If both arms were short by the same coordinates, the check would pass and prove nothing.",
+        "why_it_matters": "A check that agrees with itself is this project's recurring defect shape -- the same one as invariants that compare an operator with itself.",
+        "fix": "The intended 2000 x 4 grid is now asserted ABSOLUTELY for each arm before the arms are compared with each other. Verified: all four cells, both arms, exactly 8,000 coordinates, programs 0-1999 x trials 0-3, no gaps and no extras."
+      }
+    ]
+  },
+
   "must_not_claim": [
     "that cost narrowing explains the informative-delay advantage at these rungs -- the experiment was built to test that and the contrast does not support it",
     "that certificates explain NONE of the delay effect in all regimes -- two rungs of one law family cannot support a universal negative",

@@ -699,6 +699,23 @@ wording — "prediction fails at both rungs" → "no clear shrinkage at 0.05 and
 paired contrast, not invalidity; the 0.10 widening reported as a result rather than a caveat; no universal
 negative about certificates across regimes; and the counter-based determinism claim replaced by digests.
 
+**SELF-AUDIT OF MY OWN ABLATION ANALYSIS — two convention defects and a vacuous check**
+(`CORRECTIONS_v2` in `ABLATION_FINDING.json`; not requested by root). **All six headline numbers are
+exactly unchanged**; only secondary interval *conventions* moved.
+
+1. I published **marginal rate intervals under a different convention than the delivered panel uses for
+   the identical counts** — normal [0.0020027, 0.0044973] against `PC_ANALYSIS.json`'s Wilson
+   [0.0022189, 0.0047579] for P05N's 26/8000. Two different intervals on the same count is a defect, and
+   at these rates the normal one is wrong. Now Wilson, via the panel's own `t1_analysis.wilson`: all four
+   cells' original-arm intervals are **bit-identical to `PC_ANALYSIS.json`** — an executed cross-check.
+2. The **A−N contrast within one arm** (difference of two *independent* proportions) used a normal
+   combination; this project already used **Newcombe** for that shape. Now Newcombe. The *change* in the
+   contrast keeps the paired-variance combination root specified, and `_combine` now **refuses**
+   marginal-rate inputs rather than silently mixing a binomial variance with a paired one.
+3. `analyse_cell` asserted only that the two arms covered the **same** coordinates — vacuous if both were
+   short. The intended **2000 × 4 grid is now asserted absolutely** per arm; verified 8,000 coordinates,
+   programs 0–1999 × trials 0–3, no gaps, no extras, all four cells.
+
 **DISCARDED-T1-PASS MAPPING — IDENTIFIED** (`live_ab_validation_v2/DISCARDED_T1_PASS_MAPPING.json`).
 Root's 15:50 request: *"The owner alludes to a discarded T1 pass: identification against existing
 development history, with unknowns retained."* **The allusion was to the discarded T1 MEASUREMENT-mode

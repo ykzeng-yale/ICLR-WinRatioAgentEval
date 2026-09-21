@@ -24,9 +24,25 @@ WHAT "UNCERTAINTY" MEANS IN THIS FILE
 ------------------------------------
 MONTE CARLO uncertainty over this panel's own finite draws.  Not a confidence
 statement about agent systems, about informative delay in general, or about any
-population outside this fixed synthetic replay design.  Every interval below is
-a normal approximation on a bounded three-valued difference; at these counts that
-is adequate for reading the sign and rough magnitude and is not a coverage claim.
+population outside this fixed synthetic replay design.
+
+THREE INTERVAL CONVENTIONS, AND WHY EACH ONE IS WHERE IT IS
+-----------------------------------------------------------
+They are not interchangeable and are never mixed within a single reported number:
+
+  * PAIRED differences (the headline D, and the change in the A-minus-N
+    contrast) use the NORMAL interval on the paired mean.  This is what root
+    specified, and D is a bounded three-valued variate over 8,000 pairs.
+  * MARGINAL deployment proportions use WILSON, because the delivered coarse
+    panel reports Wilson for the identical counts and a second interval on the
+    same count under a different convention is a defect, not a supplement.
+  * The A-minus-N contrast WITHIN one arm, a difference of two INDEPENDENT
+    proportions, uses NEWCOMBE's hybrid score, as this project already did for
+    the CPREFIX comparison.
+
+The middle and last of these were wrong in the first delivered version of this
+file, which put normal intervals on all three.  Corrected by self-audit after
+delivery; the headline paired numbers never moved.
 
 TWO ASYMMETRIES THAT ARE NOT SYMMETRIC
 --------------------------------------
@@ -72,6 +88,9 @@ LABELS = ("NO_DECISION", "DEPLOY", "RETAIN_INCUMBENT", "CONFLICT")
 Z95 = 1.959963984540054
 FINALIZATION_TICK = 2200
 HORIZON = 2000
+#: The intended coordinate grid of every ablation cell.
+EXPECTED_PROGRAMS = 2000
+EXPECTED_TRIALS = 4
 
 
 def _load_adapter(root: Path, cell: str) -> Dict[Tuple[int, int], Dict[str, str]]:
@@ -93,34 +112,98 @@ def _load_adapter(root: Path, cell: str) -> Dict[Tuple[int, int], Dict[str, str]
 
 
 def _mc(values: np.ndarray) -> Dict[str, float]:
-    """Mean and its Monte Carlo standard error, with a normal 95% interval."""
+    """Mean and its Monte Carlo standard error, with a normal 95% interval.
+
+    Correct for the PAIRED DIFFERENCE D, which is a bounded three-valued variate
+    averaged over 8,000 pairs, and it is the method root specified: "estimate
+    meanD and its Monte Carlo uncertainty from the paired variance."  NOT used
+    for a marginal proportion -- see ``_rate``.
+    """
     v = np.asarray(values, dtype=np.float64)
     n = int(v.size)
     mean = float(v.mean())
     sd = float(v.std(ddof=1)) if n > 1 else 0.0
     se = sd / math.sqrt(n) if n else float("nan")
     return {"n": n, "mean": mean, "sd": sd, "mc_se": se,
-            "ci95_lo": mean - Z95 * se, "ci95_hi": mean + Z95 * se}
+            "ci95_lo": mean - Z95 * se, "ci95_hi": mean + Z95 * se,
+            "interval_method": "normal on the paired mean"}
+
+
+def _rate(indicator: np.ndarray) -> Dict[str, float]:
+    """A marginal deployment proportion, with a WILSON score interval.
+
+    CONVENTION FIX, 2026-09-21 (self-audit, after delivery).  The first version
+    of this file put a normal interval on these proportions.  The delivered
+    coarse panel reports WILSON for the identical counts -- PC_ANALYSIS.json
+    gives [0.0022189, 0.0047579] for P05N's 26/8000 where the normal interval
+    gives [0.0020027, 0.0044973].  Publishing a second, different interval on the
+    SAME count is exactly the convention-mixing these readouts exist to prevent,
+    and at rates this small the normal interval is the wrong one.  The paired
+    difference is unaffected and stays on the method root specified.
+    """
+    from t1_analysis import wilson                             # the panel's own
+    k = int(np.count_nonzero(indicator))
+    n = int(indicator.size)
+    lo, hi = wilson(k, n)
+    return {"n": n, "events": k, "mean": k / n if n else float("nan"),
+            "ci95_lo": lo, "ci95_hi": hi,
+            "interval_method": "Wilson score, matching PC_ANALYSIS.json"}
+
+
+def _newcombe(a: Dict[str, float], b: Dict[str, float]) -> Dict[str, float]:
+    """Difference of two INDEPENDENT proportions, Newcombe's hybrid-score method.
+
+    Used for the A-minus-N contrast WITHIN one arm, where the two cells are
+    independent samples: P05N/P05A and P10N/P10A carry different cell indices,
+    hence different spawn keys and disjoint draws.  Newcombe rather than a normal
+    combination, for the same reason and with the same authority as ``_rate``:
+    it is the method this project already used for the CPREFIX comparison.
+    """
+    d = a["mean"] - b["mean"]
+    lo = d - math.sqrt((a["mean"] - a["ci95_lo"]) ** 2 + (b["ci95_hi"] - b["mean"]) ** 2)
+    hi = d + math.sqrt((a["ci95_hi"] - a["mean"]) ** 2 + (b["mean"] - b["ci95_lo"]) ** 2)
+    return {"difference": d, "ci95_lo": lo, "ci95_hi": hi,
+            "interval_method": "Newcombe hybrid score, independent cells"}
 
 
 def _combine(a: Dict[str, float], b: Dict[str, float]) -> Dict[str, float]:
-    """Difference of two INDEPENDENT cell estimates, variances added.
+    """Difference of two INDEPENDENT PAIRED means, variances added.
 
-    P05N and P05A carry different cell indices, hence different spawn keys and
-    disjoint draws; the same holds for the P10 pair.  So the delay arms are
-    independent and their paired variances combine additively.  The pairing is
-    WITHIN a cell, across arms -- never across cells.
+    This is the estimator root specified for the change in the A-minus-N
+    contrast: "For the change in A-minus-N contrast, combine the independent
+    cell-specific paired variances."  Both inputs must be ``_mc`` results on
+    paired differences, never ``_rate`` results -- a paired variance and a
+    binomial variance are not interchangeable.
     """
+    if "mc_se" not in a or "mc_se" not in b:
+        raise TypeError("_combine takes paired-difference estimates from _mc, "
+                        "not marginal rates; combining a paired variance with a "
+                        "binomial one would describe neither")
     diff = a["mean"] - b["mean"]
     se = math.sqrt(a["mc_se"] ** 2 + b["mc_se"] ** 2)
     return {"difference": diff, "mc_se": se,
-            "ci95_lo": diff - Z95 * se, "ci95_hi": diff + Z95 * se}
+            "ci95_lo": diff - Z95 * se, "ci95_hi": diff + Z95 * se,
+            "interval_method": "normal, independent cell-specific paired variances"}
 
 
 def analyse_cell(cell: str, original_root: Path = ORIGINAL_ROOT,
                  disabled_root: Path = DISABLED_ROOT) -> Dict[str, Any]:
     orig = _load_adapter(original_root, cell)
     dis = _load_adapter(disabled_root, cell)
+    # THE ABSOLUTE GRID, not merely agreement between the arms.  The set-equality
+    # check below would pass vacuously if BOTH arms were short by the same
+    # coordinates -- a check that agrees with itself and proves nothing, which is
+    # this project's recurring defect shape.  Assert the intended grid first.
+    want = {(p, t) for p in range(EXPECTED_PROGRAMS)
+            for t in range(EXPECTED_TRIALS)}
+    for name, got in (("original", orig), ("disabled", dis)):
+        if set(got) != want:
+            missing = sorted(want - set(got))[:3]
+            extra = sorted(set(got) - want)[:3]
+            raise ValueError(
+                f"{cell}: the {name} arm is not the intended "
+                f"{EXPECTED_PROGRAMS}x{EXPECTED_TRIALS} grid ({len(got)} rows; "
+                f"missing e.g. {missing}, extra e.g. {extra})")
     if set(orig) != set(dis):
         only_o = sorted(set(orig) - set(dis))[:3]
         only_d = sorted(set(dis) - set(orig))[:3]
@@ -162,8 +245,8 @@ def analyse_cell(cell: str, original_root: Path = ORIGINAL_ROOT,
     return {
         "cell": cell,
         "paired_trials": len(keys),
-        "deploy_rate_original": _mc(dep_o),
-        "deploy_rate_disabled": _mc(dep_d),
+        "deploy_rate_original": _rate(dep_o),
+        "deploy_rate_disabled": _rate(dep_d),
         "paired_difference_original_minus_disabled": _mc(d_paired),
         "discordant_pairs": {
             "deploy_only_original": int(np.count_nonzero(d_paired > 0)),
@@ -210,10 +293,10 @@ def analyse(original_root: Path = ORIGINAL_ROOT,
             "reading": ("how much of the informative-minus-non-informative "
                         "deployment gap is removed when the two elapsed-cost "
                         "certificate branches are disabled"),
-            "A_minus_N_original": _combine(
+            "A_minus_N_original": _newcombe(
                 cells[a_cell]["deploy_rate_original"],
                 cells[n_cell]["deploy_rate_original"]),
-            "A_minus_N_disabled": _combine(
+            "A_minus_N_disabled": _newcombe(
                 cells[a_cell]["deploy_rate_disabled"],
                 cells[n_cell]["deploy_rate_disabled"]),
             "independence": ("P05N/P05A and P10N/P10A carry different cell "
