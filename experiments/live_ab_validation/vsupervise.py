@@ -80,9 +80,13 @@ def _descendant_pids(root_pid: int) -> List[int]:
         raise MeasurementFailure(
             f"process-tree enumeration failed: {exc}. Unavailable live-tree "
             f"coverage cannot count as a passing complete observation.")
-    if res.returncode != 0 and not res.stdout.strip():
+    # Root: "Also refuse nonzero enumeration status with partial output."  A
+    # nonzero status with SOME rows is exactly the partial observation that
+    # must not count as complete coverage.
+    if res.returncode != 0:
         raise MeasurementFailure(
-            f"process-tree enumeration returned no data (rc={res.returncode})")
+            f"process-tree enumeration returned nonzero status "
+            f"(rc={res.returncode}); partial output is not complete coverage")
     out = res.stdout
     kids: Dict[int, List[int]] = {}
     for line in out.splitlines():
@@ -251,9 +255,13 @@ def supervise(argv: Sequence[str], out_dir: Path, caps: Optional[Caps] = None,
             # sat OUTSIDE it, so only the RSS failure reached the cleanup path.
             try:
                 pids = _descendant_pids(proc.pid) if rc is None else []
-                # a process may exit between enumeration and sampling; that
-                # verified race is the one permitted gap
-                rss = _tree_rss_bytes(pids, allow_missing=True) if pids else 0
+                # ROOT WAS RIGHT: this caller set allow_missing=True
+                # UNCONDITIONALLY, "without establishing an exit race", which
+                # re-opened by default the very gap the flag exists to narrow.
+                # Conservative failure on an incomplete observation suffices:
+                # a breach here stops the job, and stopping on an unmeasurable
+                # moment is the correct direction to fail.
+                rss = _tree_rss_bytes(pids) if pids else 0
             except MeasurementFailure as exc:
                 breach = {"cap": "measurement_failed", "limit": None,
                           "observed": str(exc),

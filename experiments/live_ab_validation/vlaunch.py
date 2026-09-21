@@ -60,6 +60,7 @@ import vgen                                                     # noqa: E402
 import vpanel                                                   # noqa: E402
 import vpins                                                    # noqa: E402
 import vrun                                                     # noqa: E402
+import vprod                                                    # noqa: E402
 import vshard                                                   # noqa: E402
 import vsupervise                                               # noqa: E402
 
@@ -222,6 +223,39 @@ def _execution_spec(spec: Dict[str, Any]) -> Dict[str, Any]:
         "verification_mode": spec["verification_mode"],
         "alpha_gate": spec["alpha_gate"],
     }
+    if ledger_digest is None:
+        raise LaunchRefused(
+            "the accepted resource-ledger artifact is absent; its digest may not "
+            "be null. A projection nothing points at cannot bind a launch.")
+
+    # Root: "changing the source code pin leaves that identity unchanged."  It
+    # did, because the identity hashed the execution spec only.  The BINDINGS
+    # are folded in, with volatile fields excluded so a rebuild of identical
+    # source does not move the identity.
+    pins = vpins.entry_point_pins(
+        policy=spec["policy"], schedule=spec["schedule"],
+        prefixes=vrun.make_config(spec["horizon"], spec["namespace"],
+                                  schedule=spec["schedule"]).horizons,
+        programs=[], cells=sorted(spec["allocation"]), namespace=spec["namespace"],
+        alpha_gate=spec["alpha_gate"],
+        trials_per_program=spec["trials_per_program"],
+        workload=f"{vpanel.REFERENCE_CALLS_PER_TRIAL}_calls_per_trial",
+        verification_mode=spec["verification_mode"],
+        reference_mode=vpanel.REFERENCE_MODE,
+        normalized_horizon=spec["horizon"],
+        expected_trials=spec["trials"],
+        expected_reference_calls=spec["reference_calls"])
+    detail = pins["detail"]
+    body["bindings"] = {
+        "source_files_sha256": detail["source"]["files"],
+        "config_sha256": detail["source"]["config"],
+        "loaded_reference_sha256": detail["source"]["loaded_reference_modules"]["files"],
+        "environment": {k: detail["environment"][k] for k in
+                        ("python", "implementation", "numpy", "machine")},
+    }
+    body["excluded_from_identity"] = [
+        "built_utc", "created_unix", "repo head", "platform string",
+        "any wall-clock or build timestamp"]
     canonical = json.dumps(body, sort_keys=True, separators=(",", ":"))
     body["canonical_digest"] = hashlib.sha256(canonical.encode()).hexdigest()
     return body
@@ -327,7 +361,16 @@ def launch(out_dir: Path, request: Optional[Dict[str, Any]] = None,
     # treating a reusable clearance string as the identity check."  The
     # sentinel says a decision was made; only the digest says WHAT was
     # reviewed. Both are required and they answer different questions.
-    if reviewed_manifest_identity is not None:
+    # MANDATORY.  Root: "The current reviewed identity argument is optional,
+    # not exposed by CLI ... Missing identity still invokes the mocked
+    # supervisor."  An optional identity check is not an identity check.
+    if not reviewed_manifest_identity:
+        raise LaunchRefused(
+            "no reviewed manifest identity supplied. The identity is REQUIRED: "
+            "without it a launch cannot show that what would run is what was "
+            "reviewed. Obtain it from the deposited manifest's "
+            "execution_spec.canonical_digest.")
+    if True:
         got = manifest_identity(manifest)
         if got != reviewed_manifest_identity:
             raise LaunchRefused(
@@ -355,12 +398,84 @@ def launch(out_dir: Path, request: Optional[Dict[str, Any]] = None,
                            output_bytes=T1_CAP_OUTPUT_BYTES)
     sup = vsupervise.supervise(
         [sys.executable, str(HERE / "vlaunch.py"), "--child",
-         "--out", str(out_dir)],
+         "--out", str(out_dir),
+         "--reviewed-identity", manifest_identity(manifest)],
         out_dir, caps, label="t1_full_grid",
         require_available_ram_bytes=T1_CAP_TREE_RSS_BYTES)
-    return {"manifest": manifest, "supervision": sup,
-            "complete": bool(sup["within_caps"]),
+    # Root: "launch() still reports completion solely from within_caps and
+    # never invokes shard reconciliation ... Root's isolated mocked launcher
+    # returned complete with ZERO shards."  It did. Completion is now the
+    # conjunction of supervision AND full shard reconciliation.
+    plan = vshard.load_plan()
+    job = vshard.JobCounters(started_perf=0.0)
+    final = vshard.finalize_job(out_dir, plan, job, supervision=sup,
+                                context={"job_id": "T1"})
+    (out_dir / "T1_JOB_RECEIPT.json").write_text(
+        json.dumps(final, indent=2, sort_keys=True) + "\n")
+    return {"manifest": manifest, "supervision": sup, "job_receipt": final,
+            "complete": bool(final["scientific_completion"]),
             "on_breach": manifest["on_cap_breach"]}
+
+
+def run_child(out_dir: Path,
+              reviewed_manifest_identity: Optional[str] = None,
+              runner: Optional[Any] = None,
+              plan: Optional[Dict[str, Any]] = None) -> int:
+    """ONE serial child iterating the fixed plan, then final reconciliation.
+
+    The parent supervises this whole call.  On any shard error the attempt
+    stops, a failure receipt is published, and the incomplete study is returned
+    to root -- no retry, no resume, no completed subset selected by outcome.
+    """
+    out_dir = Path(out_dir)
+    manifest = build_manifest()
+    if reviewed_manifest_identity and manifest_identity(manifest) != reviewed_manifest_identity:
+        raise LaunchRefused(
+            "manifest identity mismatch inside the child; refusing to run")
+
+    plan = plan or vshard.load_plan()
+    spec = manifest["frozen_request"]
+    job_id = f"T1-{manifest_identity(manifest)[:12]}"
+    attempt = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
+    job = vshard.JobCounters(started_perf=time.perf_counter())
+
+    context = {
+        "source_commit": manifest["pins"]["detail"]["repo"]["head"],
+        "manifest_digest": manifest_identity(manifest),
+        "root_clearance_reference": manifest["clearance"]["status"],
+        "pins": manifest["pins"],
+        "namespace": spec["namespace"], "horizon": spec["horizon"],
+        "prefixes": list(vrun.make_config(spec["horizon"], spec["namespace"],
+                                          schedule=spec["schedule"]).horizons),
+        "policy": spec["policy"], "schedule": spec["schedule"],
+        "alpha_gate": spec["alpha_gate"],
+        "reference_modes": ["H", "D"],
+        "exposure_label": EXPOSURE_LABEL,
+    }
+    if runner is None:
+        runner = vprod.make_runner(
+            horizon=spec["horizon"], namespace=spec["namespace"],
+            policy=spec["policy"], schedule=spec["schedule"],
+            alpha_gate=spec["alpha_gate"],
+            trials_per_program=spec["trials_per_program"],
+            verification_mode=spec["verification_mode"])
+
+    try:
+        for entry in plan["shards"]:
+            admitted = vshard.admit_shard(plan, entry["id"])
+            vshard.run_shard(admitted, out_dir, runner, job=job,
+                             attempt=attempt, job_id=job_id, context=context)
+    except Exception as exc:
+        vshard.write_failure_receipt(
+            out_dir, job_id, attempt, f"{type(exc).__name__}",
+            {"message": str(exc)}, job)
+        return 5
+
+    final = vshard.finalize_job(out_dir, plan, job, supervision=None,
+                                context={"job_id": job_id})
+    (out_dir / "T1_JOB_RECEIPT.json").write_text(
+        json.dumps(final, indent=2, sort_keys=True) + "\n")
+    return 0 if final["scientific_completion"] else 6
 
 
 def main(argv: Optional[List[str]] = None) -> int:
@@ -371,6 +486,9 @@ def main(argv: Optional[List[str]] = None) -> int:
                     help="inspect the manifest and report refusals; runs nothing")
     ap.add_argument("--out", type=Path, default=None)
     ap.add_argument("--clearance", default=None)
+    ap.add_argument("--reviewed-identity", dest="reviewed_identity", default=None,
+                    help="REQUIRED to launch: execution_spec.canonical_digest "
+                         "from the reviewed manifest")
     ap.add_argument("--child", action="store_true", help=argparse.SUPPRESS)
     a = ap.parse_args(argv)
 
@@ -380,14 +498,16 @@ def main(argv: Optional[List[str]] = None) -> int:
     if a.dry_run:
         print(json.dumps(dry_run(), indent=2, sort_keys=True))
         return 0
-    if a.child:                                                # pragma: no cover
-        raise SystemExit("the T1 child path is not implemented while execution "
-                         "is uncleared; the launcher must not be able to run a "
-                         "grid it has no clearance for")
+    if a.child:
+        if a.out is None:
+            ap.error("--child requires --out")
+        rc = run_child(a.out, reviewed_manifest_identity=a.reviewed_identity)
+        return rc
     if a.out is None:
         ap.error("--out is required to launch")
     try:
-        r = launch(a.out, clearance=a.clearance)
+        r = launch(a.out, clearance=a.clearance,
+                   reviewed_manifest_identity=a.reviewed_identity)
     except LaunchRefused as exc:
         print(json.dumps({"refused": True, "reason": str(exc)}, indent=2))
         return 3

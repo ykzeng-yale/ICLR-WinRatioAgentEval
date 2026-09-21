@@ -157,6 +157,8 @@ class ShardOutcome:
     observed: Dict[str, int]
     unique_coordinates: int
     errors: List[Dict[str, Any]] = field(default_factory=list)
+    #: The exact (cell, program) pairs emitted, for coordinate reconciliation.
+    coordinates: Optional[Sequence[Tuple[str, int]]] = None
     attempted: int = 0
     completed: int = 0
     failed: int = 0
@@ -208,6 +210,49 @@ def run_shard(spec: Dict[str, Any], out_root: Path, runner: Callable[..., ShardO
         raise ShardError(
             f"shard {spec['id']} unique coordinate coverage "
             f"{outcome.unique_coordinates} != {spec['expected_programs']}")
+
+    # THE EXACT COORDINATES, not a cardinality.  Root: "Reconcile actual
+    # emitted coordinates against each exact shard plan entry, not only a
+    # claimed cardinality."  A shifted range of the right SIZE passed before.
+    want_coords = {(spec["cell"], i) for i in
+                   range(spec["program_start_inclusive"],
+                         spec["program_stop_exclusive"])}
+    if outcome.coordinates is not None:
+        got = set(outcome.coordinates)
+        if got != want_coords:
+            extra = sorted(got - want_coords)[:3]
+            missing = sorted(want_coords - got)[:3]
+            raise ShardError(
+                f"shard {spec['id']} emitted the wrong coordinates: "
+                f"{len(got)} emitted, extra e.g. {extra}, missing e.g. {missing}")
+
+    # ATTEMPT ACCOUNTING MUST BE CONSISTENT.  Root: "A failed outcome with
+    # completed=0 and failed=4 currently publishes as complete when its claimed
+    # row totals match."  It did -- only `observed` was reconciled.
+    if outcome.attempted != outcome.completed + outcome.failed + outcome.skipped:
+        raise ShardError(
+            f"shard {spec['id']} attempt accounting is inconsistent: attempted "
+            f"{outcome.attempted} != completed {outcome.completed} + failed "
+            f"{outcome.failed} + skipped {outcome.skipped}")
+    if outcome.failed or outcome.skipped:
+        raise ShardError(
+            f"shard {spec['id']} has {outcome.failed} failed and "
+            f"{outcome.skipped} skipped trials; a shard with any failure is "
+            f"NOT complete and is not published")
+    if outcome.completed != spec["expected_trials"]:
+        raise ShardError(
+            f"shard {spec['id']} completed {outcome.completed} of "
+            f"{spec['expected_trials']} expected trials")
+
+    # REQUIRED PINS must be present and match the frozen context.
+    ctx_check = dict(context or {})
+    required = ("source_commit", "manifest_digest", "pins", "namespace",
+                "horizon", "policy", "schedule", "alpha_gate", "exposure_label")
+    absent = [k for k in required if ctx_check.get(k) in (None, "", {})]
+    if absent:
+        raise ShardError(
+            f"shard {spec['id']} is missing required pinned context {absent}; "
+            f"a receipt without its bindings cannot be reproduced")
     for p in (outcome.primary_path, outcome.reference_path):
         if not p.is_file():
             raise ShardError(f"shard {spec['id']} data file missing: {p}")
@@ -276,13 +321,18 @@ def run_shard(spec: Dict[str, Any], out_root: Path, runner: Callable[..., ShardO
         "prior_failed_attempt": prior_failed_attempt,
         "prior_attempt_rerun": False,
     }
+    # published_dir MUST be inside the serialized bytes.  It was set AFTER the
+    # write and the rename, so the ON-DISK receipt never carried it and
+    # finalize_job could not resolve any file path -- an ordinary successful
+    # publication could never finalize.  Root found this; it is a real bug and
+    # every stub test passed straight over it because they read the returned
+    # dict rather than the file.
+    receipt["published_dir"] = final_dir.name
     (partial_dir / "COMPLETED_SHARD_RECEIPT.json").write_text(
         json.dumps(receipt, indent=2, sort_keys=True) + "\n")
-    # fsync the directory so the rename cannot precede the data on disk
     _fsync_dir(partial_dir)
     os.rename(partial_dir, final_dir)          # ATOMIC publication
     _fsync_dir(out_root)
-    receipt["published_dir"] = final_dir.name
     return receipt
 
 
@@ -347,23 +397,55 @@ def finalize_job(out_root: Path, plan: Dict[str, Any], job: JobCounters,
     disjoint = all(v == 1 for v in covered.values())
     complete_cover = len(covered) == plan["total_programs"]
 
-    counts_ok = (
-        sum(r["observed"]["trials"] for r in receipts) == plan.get("total_trials",
-                                                                   112_000)
-        and sum(r["observed"]["reference_calls"] for r in receipts)
-        == plan["total_reference_calls"]
-        and sum(r["observed"]["primary_rows"] for r in receipts)
-        == plan["total_primary_rows"])
+    # ALL FOUR totals.  reference_rows was omitted, so a shard emitting none
+    # of them reconciled.  Root named exactly that witness.
+    expected_totals = {
+        "trials": plan.get("total_trials", 112_000),
+        "reference_calls": plan["total_reference_calls"],
+        "primary_rows": plan["total_primary_rows"],
+        "reference_rows": plan.get("total_reference_rows", 672_000),
+    }
+    observed_totals = {k: sum(r["observed"].get(k, 0) for r in receipts)
+                       for k in expected_totals}
+    counts_ok = observed_totals == expected_totals
 
-    hashes_ok = True
+    # Coordinates must match the PLAN ENTRY for each shard id, not merely be
+    # disjoint among themselves: a uniformly shifted set is disjoint too.
+    plan_by_id = {s["id"]: s for s in plan["shards"]}
+    coords_match_plan = True
     for r in receipts:
-        d = out_root / r["published_dir"] if "published_dir" in r else None
+        entry = plan_by_id.get(r["shard_id"])
+        c = r["coordinates"]
+        if (entry is None
+                or c.get("cell") != entry["cell"]
+                or c.get("program_start_inclusive") != entry["program_start_inclusive"]
+                or c.get("program_stop_exclusive") != entry["program_stop_exclusive"]):
+            coords_match_plan = False
+
+    hashes_ok = bool(receipts)
+    for r in receipts:
+        pub = r.get("published_dir")
+        if not pub:
+            hashes_ok = False
+            continue
+        d = out_root / pub
         for name, meta in r["files"].items():
-            path = (d / name) if d else None
-            if path is None or not path.is_file() or _sha256_file(path) != meta["sha256"]:
+            path = d / name
+            if not path.is_file() or _sha256_file(path) != meta["sha256"]:
                 hashes_ok = False
 
-    pins_ok = len({json.dumps(r.get("pins"), sort_keys=True) for r in receipts}) <= 1
+    # A null pin set is not a consistent pin set.
+    pin_blobs = {json.dumps(r.get("pins"), sort_keys=True) for r in receipts}
+    pins_present = all(r.get("pins") for r in receipts)
+    pins_ok = bool(receipts) and pins_present and len(pin_blobs) == 1
+
+    # Every shard must itself claim complete status with clean attempt counts.
+    statuses_ok = bool(receipts) and all(
+        r.get("status") == "complete"
+        and r["attempt_counts"]["failed"] == 0
+        and r["attempt_counts"]["skipped"] == 0
+        and r["attempt_counts"]["missing"] == 0
+        for r in receipts)
     sup_ok = bool(supervision and supervision.get("within_caps"))
     no_cap_event = bool(supervision and supervision.get("breach") is None)
 
@@ -372,8 +454,10 @@ def finalize_job(out_root: Path, plan: Dict[str, Any], job: JobCounters,
         "coordinate_coverage_disjoint": disjoint,
         "coordinate_coverage_complete": complete_cover,
         "counts_reconciled": counts_ok,
+        "coordinates_match_plan_entries": coords_match_plan,
         "hashes_reconciled": hashes_ok,
-        "pins_consistent_across_shards": pins_ok,
+        "pins_present_and_consistent": pins_ok,
+        "every_shard_complete_with_clean_attempts": statuses_ok,
         "supervisor_completed_successfully": sup_ok,
         "no_cap_event": no_cap_event,
     }
@@ -387,6 +471,8 @@ def finalize_job(out_root: Path, plan: Dict[str, Any], job: JobCounters,
         "shards_expected": len(expected_ids),
         "missing_shard_ids": sorted(set(expected_ids) - set(seen_ids)),
         "unique_coordinates": len(covered),
+        "expected_totals": expected_totals,
+        "observed_totals": observed_totals,
         "cumulative_job": job.snapshot(),
         "supervision": supervision,
         "insufficiency_note": ("within_caps or process exit zero alone is NOT "

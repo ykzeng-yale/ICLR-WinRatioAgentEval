@@ -50,6 +50,8 @@ PINNED_SOURCES: Dict[str, Tuple[str, ...]] = {
     # code to explicit whole-file pins."  These execute during a measured pass
     # and were omitted, so the pin described less than what ran.
     "supervisor_and_driver": ("vsupervise.py", "vmeasure.py"),
+    # Root: "Include vshard.py and the final production runner in whole-file pins."
+    "shard_executor_and_runner": ("vshard.py", "vprod.py"),
     "conformance_preflight": ("vconformance.py",),
     "launcher": ("vlaunch.py",),
     "diagnostic_not_authorizing": ("videntity.py",),
