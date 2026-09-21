@@ -2030,9 +2030,14 @@ class PreparationWiringTests(unittest.TestCase):
     def _stub_sweep(self, uid='t/1'):
         """A sweep that emits one attempt through the sink and one exclusion."""
         def sweep(tasks, cfg, *, on_progress=None, on_attempt=None):
-            rec = lab_data.attempt_record(uid, 0, self._payload(),
-                                          started_monotonic=100.0,
-                                          ended_monotonic=100.5)
+            # Root 2026-09-21 22:56: "Update intended test fixtures/callers ...
+            # do not retain silent fallback merely to preserve a misleading
+            # fixture label." The production sweep supplies the NAMED v2
+            # endpoints, so the fixture does too.
+            rec = lab_data.attempt_record(
+                uid, 0, self._payload(),
+                verification_started_monotonic=100.0,
+                verification_ended_monotonic=100.5)
             if on_attempt is not None:
                 on_attempt(rec)
             return [lab_data._exclusion(uid, 'reference_fails_verify',
@@ -2255,3 +2260,98 @@ class TmpdirEnforcementTests(unittest.TestCase):
             with mock.patch.object(tempfile, 'gettempdir', lambda: '/private/tmp/OTHER'):
                 with self.assertRaises(lab_prepare.PreparationRefused):
                     lab_prepare.assert_prescribed_tmpdir(self.cfg)
+
+
+class CoverageSchemaDomainMatrixTests(unittest.TestCase):
+    """The presence/version/domain matrix root suggested (2026-09-21 22:56).
+
+    Closes together: explicit-null uncertainty, schema-directed parsing, refusal
+    of alias rescue for a malformed v2 record, and the explicit legacy audit route.
+    """
+
+    OBS = {'active': True, 'window_id': 'w', 'endpoint_error_s': 0.0,
+           'active_windows': [{'start': 99.0, 'end': 101.0}]}
+
+    def _v(self, record, **kw):
+        return lab_prepare._coverage_verdict(self.OBS, record, **kw)
+
+    # -- version branch ------------------------------------------------------
+    def test_v2_with_valid_named_endpoints_is_certified_as_v2(self):
+        v = self._v({'interval_schema': lab_prepare.INTERVAL_SCHEMA_V2,
+                     'verification_started_monotonic': 100.0,
+                     'verification_ended_monotonic': 100.5})
+        self.assertTrue(v['valid'])
+        self.assertEqual(v['interval_version'], lab_prepare.INTERVAL_SCHEMA_V2)
+        self.assertIn('verifier call', v['certified_interval'])
+
+    def test_malformed_v2_is_NOT_rescued_by_valid_legacy_aliases(self):
+        """The exact defect: a NaN named start plus good aliases returned valid."""
+        for bad in (float('nan'), None, 'invalid'):
+            with self.subTest(bad=bad):
+                v = self._v({'interval_schema': lab_prepare.INTERVAL_SCHEMA_V2,
+                             'verification_started_monotonic': bad,
+                             'verification_ended_monotonic': 100.5,
+                             'started_monotonic': 100.0, 'ended_monotonic': 100.5})
+                self.assertFalse(v['valid'])
+                self.assertIn('may not rescue', v['reason'])
+
+    def test_v2_missing_named_endpoints_refuses_despite_aliases(self):
+        v = self._v({'interval_schema': lab_prepare.INTERVAL_SCHEMA_V2,
+                     'started_monotonic': 100.0, 'ended_monotonic': 100.5})
+        self.assertFalse(v['valid'])
+
+    def test_legacy_refuses_in_production_and_is_readable_only_by_audit(self):
+        rec = {'interval_schema': lab_prepare.INTERVAL_SCHEMA_V1,
+               'started_monotonic': 100.0, 'ended_monotonic': 100.5}
+        self.assertFalse(self._v(rec)['valid'])
+        audit = self._v(rec, allow_legacy_audit=True)
+        self.assertTrue(audit['valid'])
+        self.assertEqual(audit['interval_version'], lab_prepare.INTERVAL_SCHEMA_V1)
+        self.assertIn('wider span', audit['certified_interval'],
+                      'the audit route must NAME the interval it certified')
+
+    def test_unknown_schema_is_a_schema_error_not_a_guess(self):
+        v = self._v({'interval_schema': 'live_ab/attempt_interval-v9',
+                     'started_monotonic': 100.0, 'ended_monotonic': 100.5})
+        self.assertFalse(v['valid'])
+        self.assertIn('unsupported interval schema', v['reason'])
+
+    # -- uncertainty presence/domain ----------------------------------------
+    def _v2(self, **extra):
+        return {'interval_schema': lab_prepare.INTERVAL_SCHEMA_V2,
+                'verification_started_monotonic': 100.0,
+                'verification_ended_monotonic': 100.5, **extra}
+
+    def test_absent_uncertainty_defaults_to_zero(self):
+        self.assertTrue(self._v(self._v2())['valid'])
+
+    def test_explicit_null_uncertainty_REFUSES(self):
+        """Root: 'explicit null is unknown and must refuse, not be treated as absent.'"""
+        v = self._v(self._v2(endpoint_error_s=None))
+        self.assertFalse(v['valid'])
+        self.assertIn('not a finite number', v['reason'])
+
+    def test_explicit_malformed_uncertainty_refuses(self):
+        for bad in (float('nan'), float('inf'), 'invalid'):
+            with self.subTest(bad=bad):
+                self.assertFalse(self._v(self._v2(endpoint_error_s=bad))['valid'])
+
+    def test_zero_and_positive_finite_uncertainty_remain_valid(self):
+        self.assertTrue(self._v(self._v2(endpoint_error_s=0.0))['valid'])
+        # a large positive bound EXPANDS the verifier interval, so it stops fitting
+        self.assertFalse(self._v(self._v2(endpoint_error_s=2.0))['valid'])
+
+    # -- the constructor must label honestly ---------------------------------
+    def test_constructor_labels_v1_when_only_legacy_endpoints_supplied(self):
+        payload = {'success': True, 'sentinel_seen': True, 'timed_out': False,
+                   'verify_seconds': 0.1,
+                   'run': {'passed': True, 'returncode': 0, 'stdout_tail': '',
+                           'stderr': '', 'timed_out': False}}
+        legacy = lab_data.attempt_record('u', 0, payload,
+                                         started_monotonic=1.0, ended_monotonic=2.0)
+        self.assertEqual(legacy['interval_schema'], lab_prepare.INTERVAL_SCHEMA_V1,
+                         'a record built from legacy endpoints must not claim v2')
+        modern = lab_data.attempt_record('u', 0, payload,
+                                         verification_started_monotonic=1.0,
+                                         verification_ended_monotonic=2.0)
+        self.assertEqual(modern['interval_schema'], lab_prepare.INTERVAL_SCHEMA_V2)

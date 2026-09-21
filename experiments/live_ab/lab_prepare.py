@@ -328,6 +328,8 @@ def _record_access(dest: Path, kind: str, mode: "str | None",
 
 
 PRESCRIBED_TMPDIR_TOKEN = '<TMP>/labsbx'
+INTERVAL_SCHEMA_V1 = 'live_ab/attempt_interval-v1'
+INTERVAL_SCHEMA_V2 = 'live_ab/attempt_interval-v2'
 
 
 def assert_prescribed_tmpdir(cfg: dict, *, tmp_root: str = '/private/tmp') -> Dict[str, Any]:
@@ -376,7 +378,8 @@ def _finite(x: object) -> "float | None":
     return v
 
 
-def _coverage_verdict(obs: object, record: dict) -> Dict[str, Any]:
+def _coverage_verdict(obs: object, record: dict, *,
+                      allow_legacy_audit: bool = False) -> Dict[str, Any]:
     """Whether the observation's certified active intervals CONTAIN the attempt.
 
     Root, 2026-09-21 21:50, on the arithmetic domain -- all three reproduced:
@@ -428,16 +431,48 @@ def _coverage_verdict(obs: object, record: dict) -> Dict[str, Any]:
                           'never observed' % (raw_e,)}
 
     # --- the attempt interval: finite and ordered --------------------------
-    # ROOT 2026-09-21 22:23: "Use the verifier-call interval AFTER acquiring the
-    # execution lock for required load coverage ... protocol 3.2(4) asks for
-    # verification under load, not waiting for the lock under load."  The wider
-    # lock_requested..lock_released span stays in the ledger; only this named
-    # interval is certified.
-    start = _finite(record.get('verification_started_monotonic'))
-    end = _finite(record.get('verification_ended_monotonic'))
-    if start is None or end is None:        # pre-v2 records carried the wider span
+    # SCHEMA-DIRECTED PARSING, root 2026-09-21 22:56: "Use a declared
+    # interval-version branch, NOT a fallback after failed numeric conversion ...
+    # Missing, null or invalid v2 verifier endpoints refuse; older aliases cannot
+    # rescue a malformed v2 record."
+    #
+    # My previous code fell back to the v1 aliases whenever either named endpoint
+    # was nonfinite, so a v2-labelled record with a NaN named start and valid
+    # aliases returned VALID. That is invalid-data substitution.
+    #
+    # Root also corrected my reasoning: certifying a genuinely WIDER legacy
+    # interval is STRICTER, not looser, because activity must be proved
+    # throughout it. Legacy evidence is therefore retained -- behind an explicit
+    # audit route that names the version it certified, never as a silent rescue.
+    schema = record.get('interval_schema')
+    if schema == INTERVAL_SCHEMA_V2:
+        start = _finite(record.get('verification_started_monotonic'))
+        end = _finite(record.get('verification_ended_monotonic'))
+        if start is None or end is None:
+            return {'valid': False, 'interval_version': INTERVAL_SCHEMA_V2,
+                    'reason': 'record declares %s but its named verifier endpoints '
+                              'are missing, null or nonfinite; legacy aliases may '
+                              'not rescue a malformed v2 record'
+                              % INTERVAL_SCHEMA_V2}
+        certified_version = INTERVAL_SCHEMA_V2
+    elif schema in (None, INTERVAL_SCHEMA_V1) and allow_legacy_audit:
         start = _finite(record.get('started_monotonic'))
         end = _finite(record.get('ended_monotonic'))
+        if start is None or end is None:
+            return {'valid': False, 'interval_version': INTERVAL_SCHEMA_V1,
+                    'reason': 'legacy audit record has no finite wider interval'}
+        certified_version = INTERVAL_SCHEMA_V1
+    elif schema in (None, INTERVAL_SCHEMA_V1):
+        return {'valid': False, 'interval_version': schema,
+                'reason': 'record is legacy (%r) and this is a PRODUCTION check; '
+                          'legacy evidence is readable only through the explicit '
+                          'audit route (allow_legacy_audit=True), which names the '
+                          'version it certifies' % (schema,)}
+    else:
+        return {'valid': False, 'interval_version': schema,
+                'reason': 'unsupported interval schema %r; an unknown version is a '
+                          'schema error, not an invitation to guess an interval '
+                          'from whatever field names are present' % (schema,)}
     if start is None or end is None:
         return {'valid': False,
                 'reason': 'the attempt carries no finite monotonic endpoints, so no '
@@ -454,7 +489,10 @@ def _coverage_verdict(obs: object, record: dict) -> Dict[str, Any]:
     # malformed value." Reproduced: NaN, +inf and the string 'invalid' all
     # returned valid coverage. An ABSENT field means "no stated uncertainty";
     # a PRESENT unusable one means the bound is unknown, which is not zero.
-    if 'endpoint_error_s' not in record or record.get('endpoint_error_s') is None:
+    # Root 2026-09-21 22:56: "explicit null is unknown and must REFUSE, not be
+    # treated as absent." Absence means the contract's default of no stated
+    # uncertainty; a present null means the bound was not determined.
+    if 'endpoint_error_s' not in record:
         v_err = 0.0
     else:
         v_err = _finite(record.get('endpoint_error_s'))
@@ -505,6 +543,10 @@ def _coverage_verdict(obs: object, record: dict) -> Dict[str, Any]:
                           'distance to the end, NOT a measured total gap length)'
                           % (cursor, end)}
     return {'valid': True,
+            'interval_version': certified_version,
+            'certified_interval': 'the verifier call inside the lock'
+                                  if certified_version == INTERVAL_SCHEMA_V2
+                                  else 'the legacy wider span including lock wait',
             'reason': 'certified active intervals contain the attempt interval',
             'conditional_on': 'each window meaning a CONTINUOUSLY ACTIVE interval on '
                               'the verifier clock, with an independently justified '

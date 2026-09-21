@@ -526,7 +526,13 @@ def attempt_record(uid: str, run_index: int, result: dict,
         # Root 21:17 requires comparing verifier start/end times against active
         # load windows. Without endpoints on a single clock there is nothing to
         # compare, and coverage degenerates to metadata presence.
-        'interval_schema': 'live_ab/attempt_interval-v2',
+        # Root 22:56: "The new constructor always marks interval_schema v2 even
+        # when invoked with only legacy positional endpoints." It no longer does:
+        # the label follows what was actually supplied.
+        'interval_schema': ('live_ab/attempt_interval-v2'
+                            if (verification_started_monotonic is not None
+                                and verification_ended_monotonic is not None)
+                            else 'live_ab/attempt_interval-v1'),
         # the CERTIFIED interval: the verifier call itself, inside the lock
         'verification_started_monotonic': verification_started_monotonic,
         'verification_ended_monotonic': verification_ended_monotonic,
