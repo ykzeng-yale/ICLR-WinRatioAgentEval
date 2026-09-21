@@ -1,0 +1,263 @@
+{
+  "normal_roundtrip": {
+    "schema": "live_ab_validation_v2.t1_job_receipt.1",
+    "job_id": null,
+    "scientific_completion": false,
+    "conditions": {
+      "all_expected_shard_ids_exactly_once": true,
+      "coordinate_coverage_disjoint": true,
+      "coordinate_coverage_complete": true,
+      "counts_reconciled": true,
+      "hashes_reconciled": false,
+      "pins_consistent_across_shards": true,
+      "supervisor_completed_successfully": true,
+      "no_cap_event": true
+    },
+    "shards_published": 1,
+    "shards_expected": 1,
+    "missing_shard_ids": [],
+    "unique_coordinates": 1,
+    "cumulative_job": {
+      "elapsed_seconds": 0.001290624961256981,
+      "shards_completed": 1,
+      "trials": 4,
+      "reference_calls": 8,
+      "primary_rows": 12,
+      "reference_rows": 24,
+      "output_bytes": 311
+    },
+    "supervision": {
+      "within_caps": true,
+      "breach": null,
+      "returncode": 0
+    },
+    "insufficiency_note": "within_caps or process exit zero alone is NOT scientific completion; every condition above must hold. Final paper/calibration acceptance remains independent of successful execution.",
+    "written_utc": "2026-09-21T11:02:05Z"
+  },
+  "published_dir_saved": false,
+  "isolated_after_path_repair": {
+    "schema": "live_ab_validation_v2.t1_job_receipt.1",
+    "job_id": null,
+    "scientific_completion": true,
+    "conditions": {
+      "all_expected_shard_ids_exactly_once": true,
+      "coordinate_coverage_disjoint": true,
+      "coordinate_coverage_complete": true,
+      "counts_reconciled": true,
+      "hashes_reconciled": true,
+      "pins_consistent_across_shards": true,
+      "supervisor_completed_successfully": true,
+      "no_cap_event": true
+    },
+    "shards_published": 1,
+    "shards_expected": 1,
+    "missing_shard_ids": [],
+    "unique_coordinates": 1,
+    "cumulative_job": {
+      "elapsed_seconds": 0.0017617922276258469,
+      "shards_completed": 1,
+      "trials": 4,
+      "reference_calls": 8,
+      "primary_rows": 12,
+      "reference_rows": 24,
+      "output_bytes": 311
+    },
+    "supervision": {
+      "within_caps": true,
+      "breach": null,
+      "returncode": 0
+    },
+    "insufficiency_note": "within_caps or process exit zero alone is NOT scientific completion; every condition above must hold. Final paper/calibration acceptance remains independent of successful execution.",
+    "written_utc": "2026-09-21T11:02:05Z"
+  },
+  "shifted_coordinates": {
+    "schema": "live_ab_validation_v2.t1_job_receipt.1",
+    "job_id": null,
+    "scientific_completion": true,
+    "conditions": {
+      "all_expected_shard_ids_exactly_once": true,
+      "coordinate_coverage_disjoint": true,
+      "coordinate_coverage_complete": true,
+      "counts_reconciled": true,
+      "hashes_reconciled": true,
+      "pins_consistent_across_shards": true,
+      "supervisor_completed_successfully": true,
+      "no_cap_event": true
+    },
+    "shards_published": 1,
+    "shards_expected": 1,
+    "missing_shard_ids": [],
+    "unique_coordinates": 1,
+    "cumulative_job": {
+      "elapsed_seconds": 0.0020578326657414436,
+      "shards_completed": 1,
+      "trials": 4,
+      "reference_calls": 8,
+      "primary_rows": 12,
+      "reference_rows": 24,
+      "output_bytes": 311
+    },
+    "supervision": {
+      "within_caps": true,
+      "breach": null,
+      "returncode": 0
+    },
+    "insufficiency_note": "within_caps or process exit zero alone is NOT scientific completion; every condition above must hold. Final paper/calibration acceptance remains independent of successful execution.",
+    "written_utc": "2026-09-21T11:02:05Z"
+  },
+  "wrong_reference_row_count": {
+    "schema": "live_ab_validation_v2.t1_job_receipt.1",
+    "job_id": null,
+    "scientific_completion": true,
+    "conditions": {
+      "all_expected_shard_ids_exactly_once": true,
+      "coordinate_coverage_disjoint": true,
+      "coordinate_coverage_complete": true,
+      "counts_reconciled": true,
+      "hashes_reconciled": true,
+      "pins_consistent_across_shards": true,
+      "supervisor_completed_successfully": true,
+      "no_cap_event": true
+    },
+    "shards_published": 1,
+    "shards_expected": 1,
+    "missing_shard_ids": [],
+    "unique_coordinates": 1,
+    "cumulative_job": {
+      "elapsed_seconds": 0.002318332903087139,
+      "shards_completed": 1,
+      "trials": 4,
+      "reference_calls": 8,
+      "primary_rows": 12,
+      "reference_rows": 24,
+      "output_bytes": 311
+    },
+    "supervision": {
+      "within_caps": true,
+      "breach": null,
+      "returncode": 0
+    },
+    "insufficiency_note": "within_caps or process exit zero alone is NOT scientific completion; every condition above must hold. Final paper/calibration acceptance remains independent of successful execution.",
+    "written_utc": "2026-09-21T11:02:05Z"
+  },
+  "failed_receipt_status": {
+    "schema": "live_ab_validation_v2.t1_job_receipt.1",
+    "job_id": null,
+    "scientific_completion": true,
+    "conditions": {
+      "all_expected_shard_ids_exactly_once": true,
+      "coordinate_coverage_disjoint": true,
+      "coordinate_coverage_complete": true,
+      "counts_reconciled": true,
+      "hashes_reconciled": true,
+      "pins_consistent_across_shards": true,
+      "supervisor_completed_successfully": true,
+      "no_cap_event": true
+    },
+    "shards_published": 1,
+    "shards_expected": 1,
+    "missing_shard_ids": [],
+    "unique_coordinates": 1,
+    "cumulative_job": {
+      "elapsed_seconds": 0.0025489581748843193,
+      "shards_completed": 1,
+      "trials": 4,
+      "reference_calls": 8,
+      "primary_rows": 12,
+      "reference_rows": 24,
+      "output_bytes": 311
+    },
+    "supervision": {
+      "within_caps": true,
+      "breach": null,
+      "returncode": 0
+    },
+    "insufficiency_note": "within_caps or process exit zero alone is NOT scientific completion; every condition above must hold. Final paper/calibration acceptance remains independent of successful execution.",
+    "written_utc": "2026-09-21T11:02:05Z"
+  },
+  "missing_pins_vs_required_context": {
+    "schema": "live_ab_validation_v2.t1_job_receipt.1",
+    "job_id": null,
+    "scientific_completion": true,
+    "conditions": {
+      "all_expected_shard_ids_exactly_once": true,
+      "coordinate_coverage_disjoint": true,
+      "coordinate_coverage_complete": true,
+      "counts_reconciled": true,
+      "hashes_reconciled": true,
+      "pins_consistent_across_shards": true,
+      "supervisor_completed_successfully": true,
+      "no_cap_event": true
+    },
+    "shards_published": 1,
+    "shards_expected": 1,
+    "missing_shard_ids": [],
+    "unique_coordinates": 1,
+    "cumulative_job": {
+      "elapsed_seconds": 0.002738417126238346,
+      "shards_completed": 1,
+      "trials": 4,
+      "reference_calls": 8,
+      "primary_rows": 12,
+      "reference_rows": 24,
+      "output_bytes": 311
+    },
+    "supervision": {
+      "within_caps": true,
+      "breach": null,
+      "returncode": 0
+    },
+    "insufficiency_note": "within_caps or process exit zero alone is NOT scientific completion; every condition above must hold. Final paper/calibration acceptance remains independent of successful execution.",
+    "written_utc": "2026-09-21T11:02:05Z"
+  },
+  "nonzero_exit": {
+    "schema": "live_ab_validation_v2.t1_job_receipt.1",
+    "job_id": null,
+    "scientific_completion": true,
+    "conditions": {
+      "all_expected_shard_ids_exactly_once": true,
+      "coordinate_coverage_disjoint": true,
+      "coordinate_coverage_complete": true,
+      "counts_reconciled": true,
+      "hashes_reconciled": true,
+      "pins_consistent_across_shards": true,
+      "supervisor_completed_successfully": true,
+      "no_cap_event": true
+    },
+    "shards_published": 1,
+    "shards_expected": 1,
+    "missing_shard_ids": [],
+    "unique_coordinates": 1,
+    "cumulative_job": {
+      "elapsed_seconds": 0.0028649577870965004,
+      "shards_completed": 1,
+      "trials": 4,
+      "reference_calls": 8,
+      "primary_rows": 12,
+      "reference_rows": 24,
+      "output_bytes": 311
+    },
+    "supervision": {
+      "within_caps": true,
+      "breach": null,
+      "returncode": 1
+    },
+    "insufficiency_note": "within_caps or process exit zero alone is NOT scientific completion; every condition above must hold. Final paper/calibration acceptance remains independent of successful execution.",
+    "written_utc": "2026-09-21T11:02:05Z"
+  },
+  "failed_runner_publication": {
+    "status": "complete",
+    "attempt_counts": {
+      "attempted": 4,
+      "completed": 0,
+      "failed": 4,
+      "skipped": 0,
+      "missing": 4
+    },
+    "errors": [
+      {
+        "message": "stub failure"
+      }
+    ]
+  }
+}

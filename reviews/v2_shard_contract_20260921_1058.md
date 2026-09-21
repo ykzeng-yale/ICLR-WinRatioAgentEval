@@ -1,0 +1,27 @@
+# Independent bounded review: T1 shard completion contract
+
+Reviewed exact owner commit `4f65c54ea95ec85e8fb384bc79e0f1802260cd6f`, immutable export `work/v2_review_1058`, scoped to `experiments/live_ab_validation/vshard.py` and `tests_shard.py`. No scientific draw, effect inspection, native reference, model, grid, or owner-source modification was performed. This is an orchestration review, not calibration acceptance or a reopening of the accepted deterministic scientific milestone.
+
+## Disposition
+
+Accept the bounded test delivery and partial-directory/receipt scaffolding, but **do not accept the completion predicate as implemented**. The normal positive roundtrip fails, and independent isolated false-completion cases are reproducible. Repair these checks in the already authorized production integration; no additional permission or broader scientific experiment is needed.
+
+## Evidence and findings
+
+The delivered 16 stub-only tests pass (`Ran 16 tests ... OK`). They cover incomplete jobs but omit a complete-job positive roundtrip. Independent tiny one-program/four-trial fixtures are recorded in `work/shard_contract_1058/check.py` and `work/shard_contract_1058/result.json` outside the repository; all data are synthetic stubs.
+
+1. **Normal successful publication cannot pass final hash reconciliation.** At `vshard.py:279–285`, `published_dir` is appended only after the receipt has been serialized and the directory renamed. `finalize_job` loads that serialized receipt and requires its `published_dir` at lines 358–364. The ordinary successful stub produces `scientific_completion=false` with only `hashes_reconciled=false`; the stored receipt lacks the field. Persist the field before serialization or derive the directory from the actual receipt location. Add a positive roundtrip test.
+
+2. **A failed outcome can be published as complete.** Lines 194–210 check aggregate `observed` values and coordinate cardinality, but not the separate attempted/completed/failed/skipped/error accounting. An actual `ShardOutcome` with full observed row counts, attempted 4, completed 0, failed 4, and an error is accepted and publishes `status="complete"`, while its own receipt says missing 4. This does not require editing any stored receipt. Require internally consistent attempt accounting and the defined no-failure/no-missing completion condition before publication; preserve the partial directory on refusal. At finalization, also require complete receipt status and consistent accounting. Isolating the missing-path defect, a stored `status="failed"` currently still yields scientific completion.
+
+3. **Exact coordinate coverage is not reconciled with the plan.** Lines 342–348 check only disjointness and total cardinality. In the one-program fixture, the plan requests `(C1,0)`. After adding the missing path field solely in synthetic scratch to isolate the first defect, changing the receipt range to `(C1,9)` makes all completion conditions true. Match each shard's coordinates and trial indices to its exact plan entry and compare the covered set to the planned set. The publication interface supplies only an integer `unique_coordinates`; it cannot itself establish that the observed coordinate set is the planned set. The production runner must derive and reconcile actual coordinates, not populate that number from the plan.
+
+4. **Reference-row counts and expected pins are omitted from the final predicate.** Lines 350–356 exclude `total_reference_rows`; changing a synthetic stored receipt's observed reference rows to zero still yields scientific completion. Lines 366 checks only mutual equality of receipt pins: all null pins pass even when the supplied finalization context requests an exact non-null pin. Check all contracted totals, require necessary provenance fields, and compare pins/manifest/source/attempt identity against the frozen execution context rather than only across shards. Null contexts may remain appropriate for explicit stub tests, but must not establish production completion.
+
+5. **“Supervisor completed successfully” currently means only `within_caps`.** Lines 367–368 do not inspect a successful terminal status. A synthetic supervision record with `within_caps=true`, no breach, and nonzero return code is accepted after isolating the missing-path defect. Reconcile the actual supervisor's terminal success field when the production launcher is connected; do not interpret this synthetic field name as a claim about that launcher's schema. Parent review owns that integration.
+
+For isolated finalization checks, only the temporary synthetic receipt's missing `published_dir` was added first; this made the clean tiny baseline pass. Each subsequent mutation was applied separately and restored. These counterexamples identify omitted checks, not evidence that any scientific data have been corrupted or that a calibration run has completed.
+
+## Accepted subset and minimal follow-up
+
+The delivered suite verifies plan ID uniqueness/declared allocation, refusal of existing final or partial directories, retention of the tested incomplete partial, file-byte hashing in returned receipts, and cumulative counters across successful stubs. It does not verify the positive end-to-end completion contract. Extend only the stub suite with the positive case and the concrete refusal cases above, then connect the already authorized production runner and frozen manifest. No new mathematical or empirical milestone is implied by this repair.

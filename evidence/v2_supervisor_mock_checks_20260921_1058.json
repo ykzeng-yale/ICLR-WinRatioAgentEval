@@ -1,0 +1,15 @@
+{
+  "enumeration_exception_failclosed": true,
+  "partial_default_failclosed": true,
+  "partial_actual_caller_allow_missing_true_bytes": 125952,
+  "exited_leader_persistent_group_signals": [
+    [
+      123456,
+      15
+    ],
+    [
+      123456,
+      9
+    ]
+  ]
+}
