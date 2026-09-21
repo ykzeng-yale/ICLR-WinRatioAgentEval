@@ -5,6 +5,28 @@ own output directory:
 
     .venv/bin/python experiments/live_ab_validation/vrun.py --out results/live_ab_validation
 
+THE v2 EVENT-SCHEDULE AMENDMENT (root disposition section B)
+------------------------------------------------------------
+The root's open finding is that the deposited v1 runner OMITS the intermediate
+looks at which a completed-data baseline's completion index changes: at horizon
+1,000 there is a permitted tick at which BOTH baseline lower bounds are
++0.0133027164 and BOTH deploy gates cross, and v1 never evaluates it.  The
+schedule declaration below is the repair.  It is a VERSIONED AMENDMENT that sits
+beside v1 (PROTOCOL 14): v1's schedule stays reachable and bit-exact, and both
+are reported.  Three commands matter here:
+
+    vrun.py --witness                      the missed crossing, both schedules
+    vrun.py --schedule v2_tick_batched     the v2 primary (the runner default)
+    vrun.py --schedule v1_reduced          reproduce v1, to report beside v2
+
+NOTHING SCIENTIFIC MOVED WITH IT.  A schedule is a measurement contract -- it
+says which states are looked at, not what is computed at one.  The margins, the
+alpha allocation .00625, rho 100, delta 0.03, n_min 100, the gates, the episode
+stopping, deadline and finalization rules, the cells, the weights, the delay
+rules, the seeds, the estimators, the flag rule and the positive control are all
+exactly as frozen, and ``assert_v2_reduces_to_v1`` checks state for state that
+every v1 look is still on the v2 axis carrying the same numbers.
+
 It runs, in this order and no other:
 
   1. the deterministic fixture gate (section 11), by invoking the frozen
@@ -245,6 +267,112 @@ def peak_rss_bytes() -> int:
     return int(raw) if sys.platform == "darwin" else int(raw) * 1024
 
 
+# ===========================================================================
+# THE LEGAL EVENT SCHEDULE  (v2 amendment; root disposition section B)
+# ===========================================================================
+# The root's open witness: the v1 runner OMITS the intermediate looks at which a
+# completed-data baseline's index changes.  At horizon 1,000, with delays inside
+# their declared support, there is a permitted tick at which BOTH baseline lower
+# bounds are +0.0133027164 and BOTH deploy gates cross, and the v1 runner never
+# evaluates it.  Disposition section B requires v2 to "declare the legal event
+# schedule and simultaneous-event batching, include every required completion-
+# index change through the fixed finalization window, and record both enrollment
+# prefix and elapsed decision time".  This block is that declaration.
+#
+# THE TICK AXIS.  Time is measured in enrollment ticks and in nothing else.
+# Pair j is enrolled at tick j.  Enrollment stops at tick N_max (PROTOCOL 7.3),
+# the finalization window is the W = 200 further ticks N_max+1 .. N_max+W, and
+# the run ends at the finalization tick N_max+W.  The enrolled prefix at tick t
+# is n(t) = min(t, N_max) -- it is PINNED through the whole drain, while
+# completions keep arriving.  That gap between a pinned prefix and a moving
+# completion index is exactly what v1 could not see.
+#
+# THE THREE DECLARED SCHEDULES.
+#
+#   v1_reduced        PRESERVED, NOT PRIMARY.  One look at each enrolled prefix
+#                     n = 1 .. N_max, plus one look at the finalization tick.
+#                     N_max + 1 looks.  The drain interior is not on the axis at
+#                     all.  This is the schedule every deposited v1 result was
+#                     produced under; it is kept so that v1 can be reproduced
+#                     and reported BESIDE v2, per PROTOCOL 14.
+#
+#   v2_tick_batched   THE v2 PRIMARY.  One look at every tick t = 1 .. N_max+W.
+#                     N_max + W looks.
+#                     SIMULTANEOUS-EVENT BATCHING, declared: every event dated
+#                     tick t -- the enrollment of pair t, and every reveal, cost
+#                     threshold crossing and resolution dated t -- is applied
+#                     ATOMICALLY, and exactly one look is taken, at the
+#                     resulting end-of-tick state.  No tie order is needed, so
+#                     this reading is a function of the path alone and requires
+#                     no choice the protocol does not make.
+#                     v1_reduced's look set is a SUBSET of this one (ticks
+#                     1..N_max and the tick N_max+W), state for state, so no v1
+#                     event can be lost and every union-over-looks quantity can
+#                     only rise.  ``assert_v2_reduces_to_v1`` checks that.
+#
+#   v2_event_finest   DECLARED SENSITIVITY, not the primary.  v2_tick_batched
+#                     plus every intermediate completion-index state the two
+#                     completed-data baselines pass through inside a tick, under
+#                     the declared sub-tick order of
+#                     ``vgen.completion_event_states``: enrollment first, then
+#                     every other event of that tick in ascending enrollment
+#                     position.  It is NOT the primary because for NAIVE the
+#                     intermediate partial sums depend on that order, so the
+#                     reading is one admissible schedule rather than a bound
+#                     over all of them; for CPREFIX and for the ADAPTER it is
+#                     order-free.  Reported beside the primary, never instead.
+#
+# WHY THE ADAPTER'S LOOK SET IS THE SAME UNDER BOTH v2 SCHEDULES, and why the
+# sub-tick order above is the one that makes this true.  At a FIXED enrolled
+# prefix the adapter's denominator and radius are frozen and every further fact
+# replaces an enclosure by a subinterval of itself, so sum(lower) is
+# nondecreasing and sum(upper) nonincreasing: L_h, L_s rise and U_h falls, and
+# every event of PROTOCOL 9.1/9.2 that holds at an intermediate state still
+# holds at the end-of-tick state.  The ONE event that can widen the band is the
+# enrollment of a new pair, which adds a [-1,+1] enclosure and raises the
+# denominator -- and that is precisely why the declared order applies it FIRST
+# within its tick.  Under any other order there would be intermediate states at
+# prefix t-1 carrying more information than the end of tick t-1, and the
+# domination argument would fail.  ``assert_adapter_intratick_domination``
+# checks the consequence rather than trusting the argument.
+#
+# WHAT THIS DOES NOT CHANGE.  No margin, no alpha (.00625), no rho (100), no
+# delta (0.03), no n_min (100), no gate, no episode stopping, deadline or
+# finalization rule, no cell, no weight, no delay rule, no seed, no estimator,
+# no flag rule and not the positive control.  A schedule is a MEASUREMENT
+# CONTRACT: it says which states are looked at, not what is computed at one.
+# ===========================================================================
+SCHEDULE_V1 = "v1_reduced"
+SCHEDULE_V2 = "v2_tick_batched"
+SCHEDULE_V2_FINEST = "v2_event_finest"
+SCHEDULES = (SCHEDULE_V1, SCHEDULE_V2, SCHEDULE_V2_FINEST)
+V2_SCHEDULES = (SCHEDULE_V2, SCHEDULE_V2_FINEST)
+
+SCHEDULE_LABEL = {
+    SCHEDULE_V1: "v1: one look per enrolled prefix + the finalization look "
+                 "(the drain interior is not on the axis)",
+    SCHEDULE_V2: "v2 PRIMARY: one look per tick 1..N_max+W, simultaneous events "
+                 "batched atomically at the end of their tick",
+    SCHEDULE_V2_FINEST: "v2 sensitivity: v2 primary + every intermediate "
+                        "completion-index state, declared sub-tick order",
+}
+
+#: The LIBRARY default stays ``v1_reduced`` on purpose.  ``vlastlook_check.py``,
+#: ``vcompare.py`` and every deposited-record audit call into this module to
+#: reproduce v1's own numbers, and they must keep getting v1's own numbers.  The
+#: RUNNER default is ``v2_tick_batched`` (see ``main``'s ``--schedule``), so the
+#: new primary is what a run produces and v1 is one explicit flag away.
+LIBRARY_DEFAULT_SCHEDULE = SCHEDULE_V1
+RUNNER_DEFAULT_SCHEDULE = SCHEDULE_V2
+
+
+def check_schedule(schedule: str) -> str:
+    if schedule not in SCHEDULES:
+        raise ValueError(f"unknown schedule {schedule!r}; declared schedules are "
+                         f"{', '.join(SCHEDULES)}")
+    return schedule
+
+
 # ---------------------------------------------------------------------------
 # Run configuration
 # ---------------------------------------------------------------------------
@@ -256,6 +384,7 @@ class RunConfig:
     n_min: int = vband.N_MIN
     delta: float = vband.DELTA
     trials_per_program: int = vgen.TRIALS_PER_PROGRAM
+    schedule: str = LIBRARY_DEFAULT_SCHEDULE
 
     @property
     def horizons(self) -> Tuple[int, ...]:
@@ -268,13 +397,15 @@ class RunConfig:
         return self.n_max + vgen.DRAIN_W
 
 
-def make_config(n_max: int, namespace: int) -> RunConfig:
+def make_config(n_max: int, namespace: int,
+                schedule: str = LIBRARY_DEFAULT_SCHEDULE) -> RunConfig:
     """Radii come from ``vband.radius_from_formula``, i.e. from the pinned primitive."""
     radius = np.empty(n_max + 1)
     radius[0] = math.inf
     for n in range(1, n_max + 1):
         radius[n] = vband.radius_from_formula(n)
-    return RunConfig(n_max=n_max, namespace=namespace, radius=radius)
+    return RunConfig(n_max=n_max, namespace=namespace, radius=radius,
+                     schedule=check_schedule(schedule))
 
 
 # ---------------------------------------------------------------------------
@@ -282,8 +413,26 @@ def make_config(n_max: int, namespace: int) -> RunConfig:
 # ---------------------------------------------------------------------------
 @dataclass
 class Series:
+    """One construction at every look of the schedule in force.
+
+    ``prefix`` and ``tick`` are kept as SEPARATE recorded quantities and are
+    never collapsed into one another (disposition section B: v1 conflated them).
+
+      * ``prefix`` is the enrolled prefix, ``n(t) = min(t, N_max)``: the number
+        of randomised pairs the denominator counts.  It is pinned at ``N_max``
+        for the whole finalization window.
+      * ``tick``   is the ELAPSED DECISION TIME in enrollment ticks, which keeps
+        running through the drain after the prefix has stopped.  A decision at
+        tick 1,010 of a horizon-1,000 trial has prefix 1,000 and elapsed time
+        1,010; under v1 only the first of those two numbers existed.
+
+    ``index`` is the construction's own denominator: ``n`` for the ADAPTER,
+    ``k`` for CPREFIX, ``m`` for NAIVE.
+    """
+
     index: np.ndarray       # the construction's own index at each look
     prefix: np.ndarray      # the ENROLLED prefix at each look
+    tick: np.ndarray        # the enrollment tick at each look (elapsed time)
     l_h: np.ndarray
     u_h: np.ndarray
     l_s: np.ndarray
@@ -305,7 +454,13 @@ def _band(sum_lo: np.ndarray, sum_hi: np.ndarray, index: np.ndarray,
 
 def build_series(draw: vgen.TrialDraw, cfg: RunConfig
                  ) -> Tuple[Dict[str, Series], np.ndarray, np.ndarray, int]:
-    """All three constructions at all 2,001 looks of one trial."""
+    """All three constructions at all 2,001 looks of one trial, v1 SCHEDULE.
+
+    Left exactly as it was, and reachable under that name forever: this is the
+    schedule every deposited v1 result was produced under, and ``vlastlook_check``
+    and the deposited-record audits call it to reproduce those results.  The v2
+    schedules are ``build_series_v2``; ``build_series_for`` dispatches.
+    """
     n = cfg.n_max
     fin_tick = cfg.finalization_tick
     sums = vgen.adapter_prefix_sums(draw, n)
@@ -317,6 +472,7 @@ def build_series(draw: vgen.TrialDraw, cfg: RunConfig
     done_final = draw.resolution_tick <= fin_tick
 
     prefix = np.append(np.arange(1, n + 1, dtype=np.int64), n)
+    tick = np.append(np.arange(1, n + 1, dtype=np.int64), fin_tick)
 
     # -- ADAPTER: the current full enrolled prefix, enclosures and all -------
     idx_a = prefix
@@ -326,7 +482,7 @@ def build_series(draw: vgen.TrialDraw, cfg: RunConfig
     a_s_hi = np.append(sums.s_hi[1:], float(fin_state.s_hi.sum(dtype=np.int64)))
     l_h, u_h = _band(a_h_lo, a_h_hi, idx_a, cfg.radius)
     l_s, u_s = _band(a_s_lo, a_s_hi, idx_a, cfg.radius)
-    out = {ADAPTER: Series(idx_a, prefix, l_h, u_h, l_s, u_s)}
+    out = {ADAPTER: Series(idx_a, prefix, tick, l_h, u_h, l_s, u_s)}
 
     # -- CPREFIX: the longest fully resolved prefix --------------------------
     k_fin = int(np.searchsorted(running_max, fin_tick, side="right"))
@@ -335,7 +491,7 @@ def build_series(draw: vgen.TrialDraw, cfg: RunConfig
     k_s = cum_d[idx_k]
     l_h, u_h = _band(k_h, k_h, idx_k, cfg.radius)
     l_s, u_s = _band(k_s, k_s, idx_k, cfg.radius)
-    out[CPREFIX] = Series(idx_k, prefix, l_h, u_h, l_s, u_s)
+    out[CPREFIX] = Series(idx_k, prefix, tick, l_h, u_h, l_s, u_s)
 
     # -- NAIVE: completed-only.  INVALID under informative delay -------------
     idx_m = np.append(resolved[1:], int(done_final.sum()))
@@ -343,20 +499,100 @@ def build_series(draw: vgen.TrialDraw, cfg: RunConfig
     m_s = np.append(naive_s[1:], float(draw.dsc[done_final].sum(dtype=np.int64)))
     l_h, u_h = _band(m_h, m_h, idx_m, cfg.radius)
     l_s, u_s = _band(m_s, m_s, idx_m, cfg.radius)
-    out[NAIVE] = Series(idx_m, prefix, l_h, u_h, l_s, u_s)
+    out[NAIVE] = Series(idx_m, prefix, tick, l_h, u_h, l_s, u_s)
     return out, resolved, revealed, sums.updates
 
 
-def _look_fractions(draw: vgen.TrialDraw, cfg: RunConfig, look: int,
+def build_series_v2(draw: vgen.TrialDraw, cfg: RunConfig, finest: bool = False
+                    ) -> Tuple[Dict[str, Series], np.ndarray, np.ndarray, int]:
+    """All three constructions on the FULL tick axis, through the drain window.
+
+    The v2 schedule of the block above.  Every tick ``t = 1 .. N_max+W`` carries
+    one look at the end-of-tick state; with ``finest`` the two completed-data
+    baselines additionally carry every intermediate completion-index state they
+    pass through inside a tick, under the declared sub-tick order.
+
+    The ADAPTER's look set is the tick-batched one under both, which is a
+    theorem and not a shortcut -- see the domination argument in the schedule
+    declaration and ``assert_adapter_intratick_domination``.
+    """
+    n = cfg.n_max
+    fin_tick = cfg.finalization_tick
+    sums = vgen.adapter_tick_sums(draw, n, fin_tick)
+    resolved, revealed, _, _ = vgen.resolution_counts(draw, n)
+    cpref, naive = vgen.completion_tick_states(draw, n, fin_tick)
+
+    ticks = np.arange(1, fin_tick + 1, dtype=np.int64)
+    prefix = np.minimum(ticks, n)
+
+    # -- ADAPTER -----------------------------------------------------------
+    l_h, u_h = _band(sums.h_lo[1:], sums.h_hi[1:], prefix, cfg.radius)
+    l_s, u_s = _band(sums.s_lo[1:], sums.s_hi[1:], prefix, cfg.radius)
+    out = {ADAPTER: Series(prefix, prefix, ticks, l_h, u_h, l_s, u_s)}
+
+    # -- the two completed-data baselines ----------------------------------
+    states = {CPREFIX: cpref, NAIVE: naive}
+    if finest:
+        f_cpref, f_naive = vgen.completion_event_states(draw, n, fin_tick)
+        states = {CPREFIX: _merge_states(cpref, f_cpref),
+                  NAIVE: _merge_states(naive, f_naive)}
+    for name, st in states.items():
+        l_h, u_h = _band(st.sum_h, st.sum_h, st.index, cfg.radius)
+        l_s, u_s = _band(st.sum_s, st.sum_s, st.index, cfg.radius)
+        out[name] = Series(st.index, np.minimum(st.tick, n), st.tick,
+                           l_h, u_h, l_s, u_s)
+    return out, resolved, revealed, sums.updates
+
+
+def _merge_states(batched: "vgen.CompletionStates", finest: "vgen.CompletionStates"
+                  ) -> "vgen.CompletionStates":
+    """Union of the two look sets, ordered by (tick, index).
+
+    The batched set is what the primary looks at; the finest set adds the
+    intermediate index values a tick's batch skips over.  Sorting by
+    ``(tick, index)`` puts each added state at the tick it is first attained and
+    immediately before that tick's end state, which is the order the declared
+    sub-tick rule produces.  Duplicates are harmless -- the band at a repeated
+    state is the same number -- but are dropped so that look COUNTS mean what
+    they say.
+    """
+    tick = np.concatenate([batched.tick, finest.tick])
+    index = np.concatenate([batched.index, finest.index])
+    sum_h = np.concatenate([batched.sum_h, finest.sum_h])
+    sum_s = np.concatenate([batched.sum_s, finest.sum_s])
+    order = np.lexsort((index, tick))
+    tick, index = tick[order], index[order]
+    sum_h, sum_s = sum_h[order], sum_s[order]
+    keep = np.ones(tick.size, dtype=bool)
+    if tick.size > 1:
+        keep[1:] = ~((tick[1:] == tick[:-1]) & (index[1:] == index[:-1])
+                     & (sum_h[1:] == sum_h[:-1]) & (sum_s[1:] == sum_s[:-1]))
+    return vgen.CompletionStates(index=index[keep], sum_h=sum_h[keep],
+                                 sum_s=sum_s[keep], tick=tick[keep])
+
+
+def build_series_for(draw: vgen.TrialDraw, cfg: RunConfig,
+                     schedule: Optional[str] = None
+                     ) -> Tuple[Dict[str, Series], np.ndarray, np.ndarray, int]:
+    """Dispatch on the declared schedule.  ``None`` means ``cfg.schedule``."""
+    sched = check_schedule(cfg.schedule if schedule is None else schedule)
+    if sched == SCHEDULE_V1:
+        return build_series(draw, cfg)
+    return build_series_v2(draw, cfg, finest=(sched == SCHEDULE_V2_FINEST))
+
+
+def _look_fractions(draw: vgen.TrialDraw, cfg: RunConfig, tick: int,
                     cache: Dict[int, Tuple[float, float, float, float, int, int]]
                     ) -> Tuple[float, float, float, float, int, int]:
-    """Resolution quantities at one look (PROTOCOL 9.5), by its look index."""
-    if look in cache:
-        return cache[look]
-    if look < cfg.n_max:
-        tick, prefix = look + 1, look + 1
-    else:
-        tick, prefix = cfg.finalization_tick, cfg.n_max
+    """Resolution quantities at one look (PROTOCOL 9.5), keyed by its TICK.
+
+    v1 keyed this by look index and reconstructed the tick from it; that only
+    worked because v1's look index and tick coincided.  On the v2 axis they do
+    not, so the tick is passed in.  The prefix is ``min(tick, N_max)``.
+    """
+    if tick in cache:
+        return cache[tick]
+    prefix = min(int(tick), cfg.n_max)
     ages = tick - np.arange(1, prefix + 1, dtype=np.int64)
     sub = vgen.TrialDraw(
         cell=draw.cell, namespace=draw.namespace,
@@ -374,15 +610,27 @@ def _look_fractions(draw: vgen.TrialDraw, cfg: RunConfig, look: int,
     value = ((prefix - n_res) / prefix, n_unrev / prefix,
              n_point_cost / prefix, n_narrow / prefix,
              n_res, n_res + n_point_cost)
-    cache[look] = value
+    cache[tick] = value
     return value
 
 
 @dataclass
 class TrialRecord:
-    decision: int = NO_DECISION
+    #: PROTOCOL 9.5's decision prefix: the ENROLLED PREFIX at the first firing
+    #: look, capped at ``N_max`` for a non-decider.  Never a time.
     tau: int = 0
+    #: v2, disposition section B: the ELAPSED DECISION TIME at the same look, in
+    #: enrollment ticks, capped at the finalization tick ``N_max + W`` for a
+    #: non-decider.  Distinct from ``tau`` for every decision taken in the drain,
+    #: where the prefix is pinned and the clock is not.  Under the v1 schedule
+    #: the two can differ only at the finalization look.
+    tau_tick: int = 0
+    decision: int = NO_DECISION
     decided_at_finalization: bool = False
+    #: the decision fired inside the finalization window (tick > N_max).  Always
+    #: false under the v1 schedule except at the finalization look itself, which
+    #: is what makes the v1/v2 difference countable rather than asserted.
+    decided_in_drain: bool = False
     ever_below_h: bool = False
     ever_above_h: bool = False
     ever_below_s: bool = False
@@ -398,6 +646,22 @@ class TrialRecord:
     n_certified: int = 0
     n_point_resolved: int = 0
     look_prefix: int = 0
+    look_tick: int = 0
+    #: v2, disposition section B ("retain unresolved units at finalization"):
+    #: the PROTOCOL 9.5 resolution quantities at the finalization look, recorded
+    #: for EVERY trial whether or not it decided earlier.  v1 recorded them only
+    #: at the reporting look, so a trial that decides in the drain -- which is
+    #: precisely what v2 makes possible -- would otherwise take its unresolved
+    #: record away from the finalization look and leave nothing there.  The
+    #: denominator is always N_max; nothing is censored, dropped or imputed.
+    final_unresolved_fraction: float = 0.0
+    final_unrevealed_fraction: float = 0.0
+    final_cost_collapsed_fraction: float = 0.0
+    final_cost_narrowed_fraction: float = 0.0
+    final_n_certified: int = 0
+    final_n_point_resolved: int = 0
+    #: looks this construction actually evaluated under the schedule in force
+    n_looks: int = 0
     horizon: Dict[int, Tuple[float, ...]] = field(default_factory=dict)
 
     @property
@@ -409,18 +673,36 @@ class TrialRecord:
         return self.ever_below_s or self.ever_above_s
 
 
-def evaluate_trial(draw: vgen.TrialDraw, cfg: RunConfig
+def evaluate_trial(draw: vgen.TrialDraw, cfg: RunConfig,
+                   schedule: Optional[str] = None
                    ) -> Tuple[Dict[str, TrialRecord], int, int]:
-    """Every reported quantity of PROTOCOL section 9 for one trial."""
-    series, resolved, revealed, updates = build_series(draw, cfg)
+    """Every reported quantity of PROTOCOL section 9 for one trial.
+
+    ``schedule`` names the declared event schedule; ``None`` takes
+    ``cfg.schedule``, which defaults to ``v1_reduced`` so that every existing v1
+    reproduction path keeps returning v1's own numbers.  Nothing computed AT a
+    look depends on the schedule: the same band, the same gates, the same
+    truths.  The schedule decides only WHICH states are looked at.
+
+    The returned ``n_looks`` is the number of looks on the SHARED tick axis of
+    the schedule in force -- ``N_max + 1`` under v1, ``N_max + W`` under both v2
+    schedules -- which is what PROTOCOL 9.5's "looks" column has always counted.
+    Under ``v2_event_finest`` the two baselines carry further looks that the
+    shared axis does not; ``look_counts`` reports those per construction and
+    ``run_block`` accounts for them separately, so no v1 counter changes meaning.
+    """
+    sched = check_schedule(cfg.schedule if schedule is None else schedule)
+    series, resolved, revealed, updates = build_series_for(draw, cfg, sched)
     mu_h, mu_s = draw.cell.mu_h, draw.cell.mu_s
     n = cfg.n_max
+    fin_tick = cfg.finalization_tick
     cache: Dict[int, Tuple] = {}
     out: Dict[str, TrialRecord] = {}
-    n_looks = n + 1
+    n_looks = int(series[ADAPTER].index.size)
     for name in CONSTRUCTIONS:
         s = series[name]
         rec = TrialRecord()
+        rec.n_looks = int(s.index.size)
         below_h = mu_h < s.l_h
         above_h = mu_h > s.u_h
         below_s = mu_s < s.l_s
@@ -452,6 +734,10 @@ def evaluate_trial(draw: vgen.TrialDraw, cfg: RunConfig
             deploy_cond.any() and guard_cond.any()
             and not (deploy_cond & guard_cond).any())
 
+        # -- the decision, and its TWO separate coordinates ------------------
+        # PROTOCOL 9.5's tau is the ENROLLED PREFIX.  tau_tick is the ELAPSED
+        # DECISION TIME on the same look.  v1 emitted one number for both, which
+        # was harmless only because v1 never looked anywhere the two differ.
         if fired.any():
             i = int(np.argmax(fired))
             if deploy[i] and harm[i]:
@@ -461,46 +747,159 @@ def evaluate_trial(draw: vgen.TrialDraw, cfg: RunConfig
             else:
                 rec.decision = RETAIN_INCUMBENT
             rec.tau = int(s.prefix[i])
-            rec.decided_at_finalization = (i == n_looks - 1)
+            rec.tau_tick = int(s.tick[i])
+            rec.decided_at_finalization = bool(int(s.tick[i]) == fin_tick)
+            rec.decided_in_drain = bool(int(s.tick[i]) > n)
             report_look = i
         else:
             rec.decision = NO_DECISION
             rec.tau = int(cfg.n_max)          # the capped decision prefix rule
-            report_look = n_looks - 1
+            rec.tau_tick = int(fin_tick)      # its elapsed-time counterpart
+            report_look = int(s.index.size) - 1
 
         (rec.unresolved_fraction, rec.unrevealed_fraction,
          rec.cost_collapsed_fraction, rec.cost_narrowed_fraction,
          rec.n_certified, rec.n_point_resolved) = _look_fractions(
-            draw, cfg, report_look, cache)
+            draw, cfg, int(s.tick[report_look]), cache)
         rec.look_prefix = int(s.prefix[report_look])
+        rec.look_tick = int(s.tick[report_look])
+        if sched != SCHEDULE_V1:
+            (rec.final_unresolved_fraction, rec.final_unrevealed_fraction,
+             rec.final_cost_collapsed_fraction, rec.final_cost_narrowed_fraction,
+             rec.final_n_certified, rec.final_n_point_resolved) = \
+                _look_fractions(draw, cfg, fin_tick, cache)
 
-        first_fire = int(np.argmax(fired)) if fired.any() else n_looks
+        # -- fixed-horizon summaries (PROTOCOL 9.6) --------------------------
+        # A horizon is a prefix, so a horizon look is the LAST look at or before
+        # tick h.  On the v1 axis and on the v2 tick axis that is look h-1; on a
+        # finest axis it is found by search.  Stated in ticks so the three
+        # schedules read the same rule rather than three coincidences.
+        fire_tick = int(s.tick[int(np.argmax(fired))]) if fired.any() else None
         for h in cfg.horizons:
-            i = h - 1
+            i = int(np.searchsorted(s.tick, h, side="right")) - 1
             unres = 1.0 - resolved[h] / h
             unrev = 1.0 - revealed[h] / h
+            by_h = fire_tick is not None and fire_tick <= h
             rec.horizon[h] = (
                 float(s.l_h[i]), float(s.u_h[i]), float(s.l_s[i]), float(s.u_s[i]),
-                float(bool((below_h[:h] | above_h[:h]).any())),
-                float(bool((below_s[:h] | above_s[:h]).any())),
-                float(first_fire < h and rec.decision == DEPLOY),
-                float(first_fire < h and rec.decision == RETAIN_INCUMBENT),
+                float(bool((below_h[:i + 1] | above_h[:i + 1]).any())),
+                float(bool((below_s[:i + 1] | above_s[:i + 1]).any())),
+                float(by_h and rec.decision == DEPLOY),
+                float(by_h and rec.decision == RETAIN_INCUMBENT),
                 float(unres), float(unrev))
         out[name] = rec
     return out, n_looks, int(updates)
 
 
+def look_counts(series: Dict[str, Series]) -> Dict[str, int]:
+    """Looks actually evaluated, per construction, under the schedule in force."""
+    return {name: int(series[name].index.size) for name in CONSTRUCTIONS}
+
+
+# ---------------------------------------------------------------------------
+# The two reductions the v2 schedule must satisfy, checked rather than claimed
+# ---------------------------------------------------------------------------
+def assert_v2_reduces_to_v1(draw: vgen.TrialDraw, cfg: RunConfig) -> None:
+    """v1's look set is a SUBSET of v2's, state for state.
+
+    If this ever fails, v2 is not an amendment of v1 but a different
+    measurement, and no comparison between the two means anything.  It checks
+    the states, not a summary of them: at every one of v1's ``N_max + 1`` looks,
+    the v2 axis must carry a look at the same tick with the same index and the
+    same four band endpoints, bitwise.
+    """
+    v1, _, _, _ = build_series(draw, cfg)
+    v2, _, _, _ = build_series_v2(draw, cfg, finest=False)
+    for name in CONSTRUCTIONS:
+        a, b = v1[name], v2[name]
+        pos = np.searchsorted(b.tick, a.tick)
+        if not np.array_equal(b.tick[pos], a.tick):
+            raise AssertionError(f"{name}: a v1 look tick is absent from the v2 axis")
+        for field_name in ("index", "prefix", "l_h", "u_h", "l_s", "u_s"):
+            got = getattr(b, field_name)[pos]
+            want = getattr(a, field_name)
+            if not np.array_equal(got, want):
+                bad = int(np.flatnonzero(got != want)[0])
+                raise AssertionError(
+                    f"{name}.{field_name}: v2 differs from v1 at v1 look {bad} "
+                    f"(tick {int(a.tick[bad])}): {got[bad]!r} != {want[bad]!r}")
+
+
+def assert_adapter_intratick_domination(draw: vgen.TrialDraw, cfg: RunConfig,
+                                        ticks: Optional[Sequence[int]] = None
+                                        ) -> int:
+    """The end-of-tick adapter state dominates every intra-tick state of its tick.
+
+    The declared sub-tick order applies the enrollment of pair ``t`` first, so
+    every later event of tick ``t`` sits at the same prefix and can only shrink
+    an enclosure.  This drives that claim through ``vgen.state_at_age`` directly:
+    for each checked tick it forms the partial state in which only the first
+    ``j`` events of the tick have landed and asserts ``sum(lower)`` nondecreasing
+    and ``sum(upper)`` nonincreasing in ``j``.  Returns the number of intra-tick
+    states checked.
+    """
+    n, fin = cfg.n_max, cfg.finalization_tick
+    if ticks is None:
+        ticks = range(1, fin + 1)
+    positions = np.arange(1, draw.n + 1, dtype=np.int64)
+    checked = 0
+    for t in ticks:
+        prefix = min(int(t), n)
+        ages_now = int(t) - positions[:prefix]
+        ages_prev = ages_now - 1                       # before this tick's events
+        st_now = vgen.state_at_age(_head(draw, prefix), ages_now)
+        st_prev = vgen.state_at_age(_head(draw, prefix), np.maximum(ages_prev, 0))
+        moved = np.flatnonzero((st_now.h_lo != st_prev.h_lo)
+                               | (st_now.h_hi != st_prev.h_hi)
+                               | (st_now.s_lo != st_prev.s_lo)
+                               | (st_now.s_hi != st_prev.s_hi))
+        if moved.size == 0:
+            continue
+        lo_h = np.array(st_prev.h_lo, dtype=np.int64)
+        hi_h = np.array(st_prev.h_hi, dtype=np.int64)
+        lo_s = np.array(st_prev.s_lo, dtype=np.int64)
+        hi_s = np.array(st_prev.s_hi, dtype=np.int64)
+        prev = (lo_h.sum(), hi_h.sum(), lo_s.sum(), hi_s.sum())
+        for j in moved:                                # ascending enrollment position
+            lo_h[j], hi_h[j] = st_now.h_lo[j], st_now.h_hi[j]
+            lo_s[j], hi_s[j] = st_now.s_lo[j], st_now.s_hi[j]
+            cur = (lo_h.sum(), hi_h.sum(), lo_s.sum(), hi_s.sum())
+            if cur[0] < prev[0] or cur[2] < prev[2]:
+                raise AssertionError(f"tick {t}: sum(lower) fell intra-tick")
+            if cur[1] > prev[1] or cur[3] > prev[3]:
+                raise AssertionError(f"tick {t}: sum(upper) rose intra-tick")
+            prev = cur
+            checked += 1
+    return checked
+
+
+def _head(draw: vgen.TrialDraw, prefix: int) -> vgen.TrialDraw:
+    """The first ``prefix`` enrolled pairs of a draw, as a draw."""
+    return vgen.TrialDraw(
+        cell=draw.cell, namespace=draw.namespace,
+        program_index=draw.program_index, trial_index=draw.trial_index,
+        n=prefix, atom=draw.atom[:prefix], z=draw.z[:prefix],
+        dsc=draw.dsc[:prefix], d=draw.d[:prefix], f=draw.f[:prefix],
+        cand_first=draw.cand_first[:prefix], s_rev=draw.s_rev[:prefix],
+        c_rev=draw.c_rev[:prefix], c_pend=draw.c_pend[:prefix],
+        a_narrow=draw.a_narrow[:prefix], a_collapse=draw.a_collapse[:prefix])
+
+
 # ---------------------------------------------------------------------------
 # Accumulators
 # ---------------------------------------------------------------------------
-TRIAL_FIELDS = ("decision", "tau", "decided_at_finalization",
+TRIAL_FIELDS = ("decision", "tau", "tau_tick", "decided_at_finalization",
+                "decided_in_drain",
                 "ever_below_h", "ever_above_h", "ever_miscover_h",
                 "ever_below_s", "ever_above_s", "ever_miscover_s",
                 "ever_miscover_h_elig", "ever_miscover_s_elig",
                 "never_conjunct", "never_conjunct_all_looks",
                 "unresolved_fraction", "unrevealed_fraction",
                 "cost_collapsed_fraction", "cost_narrowed_fraction",
-                "n_certified", "n_point_resolved", "look_prefix")
+                "n_certified", "n_point_resolved", "look_prefix", "look_tick",
+                "final_unresolved_fraction", "final_unrevealed_fraction",
+                "final_cost_collapsed_fraction", "final_cost_narrowed_fraction",
+                "final_n_certified", "final_n_point_resolved")
 HORIZON_FIELDS = ("L_h", "U_h", "L_s", "U_s", "miscover_h_so_far",
                   "miscover_s_so_far", "deploy_by", "retain_by",
                   "unresolved_fraction", "unrevealed_fraction")
@@ -509,10 +908,12 @@ HORIZON_FIELDS = ("L_h", "U_h", "L_s", "U_s", "miscover_h_so_far",
 class CellAccumulator:
     """Per-cell arrays; the per-trial CSV rows themselves stream to disk."""
 
-    def __init__(self, cell: vgen.CellSpec, n_trials: int, horizons):
+    def __init__(self, cell: vgen.CellSpec, n_trials: int, horizons,
+                 schedule: str = SCHEDULE_V1):
         self.cell = cell
         self.n_trials = n_trials
         self.horizons = tuple(horizons)
+        self.schedule = check_schedule(schedule)
         self.i = 0
         self.data = {c: {f: np.zeros(n_trials) for f in TRIAL_FIELDS}
                      for c in CONSTRUCTIONS}
@@ -526,7 +927,9 @@ class CellAccumulator:
             d = self.data[c]
             d["decision"][i] = rec.decision
             d["tau"][i] = rec.tau
+            d["tau_tick"][i] = rec.tau_tick
             d["decided_at_finalization"][i] = rec.decided_at_finalization
+            d["decided_in_drain"][i] = rec.decided_in_drain
             d["ever_below_h"][i] = rec.ever_below_h
             d["ever_above_h"][i] = rec.ever_above_h
             d["ever_miscover_h"][i] = rec.ever_miscover_h
@@ -544,6 +947,13 @@ class CellAccumulator:
             d["n_certified"][i] = rec.n_certified
             d["n_point_resolved"][i] = rec.n_point_resolved
             d["look_prefix"][i] = rec.look_prefix
+            d["look_tick"][i] = rec.look_tick
+            d["final_unresolved_fraction"][i] = rec.final_unresolved_fraction
+            d["final_unrevealed_fraction"][i] = rec.final_unrevealed_fraction
+            d["final_cost_collapsed_fraction"][i] = rec.final_cost_collapsed_fraction
+            d["final_cost_narrowed_fraction"][i] = rec.final_cost_narrowed_fraction
+            d["final_n_certified"][i] = rec.final_n_certified
+            d["final_n_point_resolved"][i] = rec.final_n_point_resolved
             for h in self.horizons:
                 vals = rec.horizon[h]
                 for f, v in zip(HORIZON_FIELDS, vals):
@@ -569,6 +979,8 @@ def _fmt(v: float) -> str:
     return repr(f)
 
 
+#: v1's per-trial record layout, frozen.  A v1 re-run must reproduce the
+#: deposited ``trials.csv`` byte for byte, so this string may not be touched.
 TRIAL_HEADER = ("cell,law,delay,program,trial,construction,construction_status,"
                 "decision,tau,decided_at_finalization,ever_below_h,ever_above_h,"
                 "ever_miscover_h,ever_below_s,ever_above_s,ever_miscover_s,"
@@ -577,23 +989,62 @@ TRIAL_HEADER = ("cell,law,delay,program,trial,construction,construction_status,"
                 "unrevealed_fraction,cost_collapsed_fraction,cost_narrowed_fraction,"
                 "n_certified,n_point_resolved,look_prefix\n")
 
+#: v2's layout.  ``tau`` is gone as a bare name, because that single column is
+#: exactly the conflation the disposition names: it is split into ``tau_prefix``
+#: (enrolled pairs) and ``tau_tick`` (elapsed enrollment ticks), and the look the
+#: record is taken at likewise carries both coordinates.  ``decided_in_drain``
+#: makes the new looks countable rather than merely available.
+TRIAL_HEADER_V2 = (
+    "schedule,cell,law,delay,program,trial,construction,construction_status,"
+    "decision,tau_prefix,tau_tick,decided_at_finalization,decided_in_drain,"
+    "ever_below_h,ever_above_h,"
+    "ever_miscover_h,ever_below_s,ever_above_s,ever_miscover_s,"
+    "ever_miscover_h_decision_eligible,ever_miscover_s_decision_eligible,"
+    "never_conjunct,never_conjunct_all_looks,unresolved_fraction,"
+    "unrevealed_fraction,cost_collapsed_fraction,cost_narrowed_fraction,"
+    "n_certified,n_point_resolved,look_prefix,look_tick,n_looks,"
+    "final_unresolved_fraction,final_unrevealed_fraction,"
+    "final_cost_collapsed_fraction,final_cost_narrowed_fraction,"
+    "final_n_certified,final_n_point_resolved\n")
 
-def trial_rows(cell, program, trial, records: Dict[str, TrialRecord]) -> str:
+
+def trial_header(schedule: str = SCHEDULE_V1) -> str:
+    return TRIAL_HEADER if check_schedule(schedule) == SCHEDULE_V1 \
+        else TRIAL_HEADER_V2
+
+
+def trial_rows(cell, program, trial, records: Dict[str, TrialRecord],
+               schedule: str = SCHEDULE_V1) -> str:
+    """One CSV row per construction, in the layout of the schedule in force."""
+    v2 = check_schedule(schedule) != SCHEDULE_V1
     out = []
     for c in CONSTRUCTIONS:
         r = records[c]
-        out.append(",".join([
-            cell.id, cell.law, cell.delay, str(program), str(trial), c,
-            CONSTRUCTION_STATUS[c], DECISION_LABEL[r.decision], str(r.tau),
-            _fmt(r.decided_at_finalization), _fmt(r.ever_below_h),
+        head = [schedule] if v2 else []
+        head += [cell.id, cell.law, cell.delay, str(program), str(trial), c,
+                 CONSTRUCTION_STATUS[c], DECISION_LABEL[r.decision], str(r.tau)]
+        if v2:
+            head += [str(r.tau_tick)]
+        head += [_fmt(r.decided_at_finalization)]
+        if v2:
+            head += [_fmt(r.decided_in_drain)]
+        head += [
+            _fmt(r.ever_below_h),
             _fmt(r.ever_above_h), _fmt(r.ever_miscover_h), _fmt(r.ever_below_s),
             _fmt(r.ever_above_s), _fmt(r.ever_miscover_s),
             _fmt(r.ever_miscover_h_elig), _fmt(r.ever_miscover_s_elig),
             _fmt(r.never_conjunct), _fmt(r.never_conjunct_all_looks),
             _fmt(r.unresolved_fraction), _fmt(r.unrevealed_fraction),
             _fmt(r.cost_collapsed_fraction), _fmt(r.cost_narrowed_fraction),
-            str(r.n_certified), str(r.n_point_resolved), str(r.look_prefix),
-        ]) + "\n")
+            str(r.n_certified), str(r.n_point_resolved), str(r.look_prefix)]
+        if v2:
+            head += [str(r.look_tick), str(r.n_looks),
+                     _fmt(r.final_unresolved_fraction),
+                     _fmt(r.final_unrevealed_fraction),
+                     _fmt(r.final_cost_collapsed_fraction),
+                     _fmt(r.final_cost_narrowed_fraction),
+                     str(r.final_n_certified), str(r.final_n_point_resolved)]
+        out.append(",".join(head) + "\n")
     return "".join(out)
 
 
@@ -605,6 +1056,11 @@ class BlockCounts:
     looks: int = 0
     band_evaluations: int = 0
     enclosure_updates: int = 0
+    #: looks summed over the three constructions.  Under v1 and under the v2
+    #: primary the three share one axis and this is exactly ``3 * looks``, so it
+    #: is suppressed from the emitted record and no v1 counter changes; under
+    #: ``v2_event_finest`` the baselines carry more and it is reported.
+    construction_looks: int = 0
 
     def add(self, other: "BlockCounts") -> None:
         self.programs += other.programs
@@ -613,12 +1069,16 @@ class BlockCounts:
         self.looks += other.looks
         self.band_evaluations += other.band_evaluations
         self.enclosure_updates += other.enclosure_updates
+        self.construction_looks += other.construction_looks
 
     def as_dict(self) -> Dict[str, int]:
-        return {"programs": self.programs, "trials": self.trials,
-                "enrolled_pairs": self.pairs, "looks": self.looks,
-                "band_evaluations": self.band_evaluations,
-                "enclosure_updates": self.enclosure_updates}
+        out = {"programs": self.programs, "trials": self.trials,
+               "enrolled_pairs": self.pairs, "looks": self.looks,
+               "band_evaluations": self.band_evaluations,
+               "enclosure_updates": self.enclosure_updates}
+        if self.construction_looks != self.looks * len(CONSTRUCTIONS):
+            out["construction_looks"] = self.construction_looks
+        return out
 
 
 def run_block(cell: vgen.CellSpec, programs: Sequence[int], cfg: RunConfig,
@@ -634,10 +1094,13 @@ def run_block(cell: vgen.CellSpec, programs: Sequence[int], cfg: RunConfig,
             counts.trials += 1
             counts.pairs += cfg.n_max
             counts.looks += n_looks
-            counts.band_evaluations += n_looks * len(CONSTRUCTIONS) * 2
+            total = sum(records[c].n_looks for c in CONSTRUCTIONS)
+            counts.construction_looks += total
+            counts.band_evaluations += total * 2
             counts.enclosure_updates += updates
             if sink is not None:
-                sink.write(trial_rows(cell, program, trial, records))
+                sink.write(trial_rows(cell, program, trial, records,
+                                      cfg.schedule))
             if accum is not None:
                 accum.add(records)
         counts.programs += 1
@@ -735,7 +1198,12 @@ def decision_rows(acc: CellAccumulator, delta: float) -> List[Dict[str, object]]
                 ("never_conjunct_all_looks", d["never_conjunct_all_looks"] > 0,
                  "trial", None),
                 ("decided_at_finalization", d["decided_at_finalization"] > 0,
-                 "trial", None)):
+                 "trial", None)) + (
+                # v2 only: decisions taken inside the finalization window, i.e.
+                # at the looks v1 had no axis for.  This is the count that makes
+                # the schedule repair audit itself.
+                (("decided_in_drain", d["decided_in_drain"] > 0, "trial", None),)
+                if acc.schedule != SCHEDULE_V1 else ()):
             rows.append(_rate_row(cell, c, {"quantity": quantity, "unit": unit},
                                   int(np.count_nonzero(vec)), n, nominal))
         rows.append(_rate_row(
@@ -751,38 +1219,70 @@ def _quartiles(v: np.ndarray) -> Tuple[float, float, float]:
     return (float(q[0]), float(q[1]), float(q[2]))
 
 
+#: The two coordinates a decision carries, and the cap each one takes for a
+#: non-deciding trial.  v1 emitted only the first row and called it "tau"; the
+#: disposition requires both, separately, everywhere a decision time is emitted.
+DECISION_COORDINATES = (
+    ("tau", "enrollment prefix, in enrolled pairs (never wall clock)"),
+    ("tau_tick", "elapsed decision time, in enrollment ticks "
+                 "(a simulation clock, never wall clock, never a latency)"),
+)
+
+
 def decision_time_rows(acc: CellAccumulator) -> List[Dict[str, object]]:
+    """One row per (construction, coordinate).
+
+    Under v1 the ``tau_tick`` row is not emitted, so a v1 re-run reproduces the
+    deposited ``decision_time.csv`` byte for byte.  Under v2 both coordinates
+    are emitted and are labelled with their own unit, because in the drain the
+    prefix is pinned at ``N_max`` while the clock keeps running: a decision at
+    tick 1,010 of a 1,000-pair trial has ``tau = 1,000`` and ``tau_tick = 1,010``
+    and reporting either one alone misstates the other.
+    """
     rows = []
     cell = acc.cell
+    coords = DECISION_COORDINATES if acc.schedule != SCHEDULE_V1 \
+        else DECISION_COORDINATES[:1]
     for c in CONSTRUCTIONS:
         d = acc.data[c]
         decided = d["decision"] != NO_DECISION
-        capped = d["tau"]
-        cond = d["tau"][decided]
-        cq = _quartiles(capped)
-        kq = _quartiles(cond)
-        rows.append({
-            "cell": cell.id, "law": cell.law, "law_name": cell.law_name,
-            "delay": cell.delay, "construction": c,
-            "construction_status": CONSTRUCTION_STATUS[c],
-            "unit": "enrolled pairs (never wall clock)",
-            "n_trials": acc.n_trials, "n_deciding": int(decided.sum()),
-            "deciding_fraction": float(decided.mean()),
-            "capped_fraction": float(1.0 - decided.mean()),
-            "capped_q1": cq[0], "capped_median": cq[1], "capped_q3": cq[2],
-            "conditional_q1": kq[0], "conditional_median": kq[1],
-            "conditional_q3": kq[2]})
+        for field_name, unit in coords:
+            capped = d[field_name]
+            cond = d[field_name][decided]
+            cq = _quartiles(capped)
+            kq = _quartiles(cond)
+            row = {
+                "cell": cell.id, "law": cell.law, "law_name": cell.law_name,
+                "delay": cell.delay, "construction": c,
+                "construction_status": CONSTRUCTION_STATUS[c],
+                "unit": unit,
+                "n_trials": acc.n_trials, "n_deciding": int(decided.sum()),
+                "deciding_fraction": float(decided.mean()),
+                "capped_fraction": float(1.0 - decided.mean()),
+                "capped_q1": cq[0], "capped_median": cq[1], "capped_q3": cq[2],
+                "conditional_q1": kq[0], "conditional_median": kq[1],
+                "conditional_q3": kq[2]}
+            if acc.schedule != SCHEDULE_V1:
+                row = {"schedule": acc.schedule, "coordinate": field_name, **row}
+            rows.append(row)
     return rows
 
 
 def unresolved_rows(acc: CellAccumulator) -> List[Dict[str, object]]:
     rows = []
     cell = acc.cell
+    # v2 also reports the PROTOCOL 7.3 finalization record for EVERY trial, not
+    # only for the non-deciders: v2 lets a trial decide inside the drain, and
+    # without these rows such a trial would leave no record at finalization.
+    extra = (("look_tick", "final_unresolved_fraction",
+              "final_unrevealed_fraction", "final_cost_collapsed_fraction",
+              "final_cost_narrowed_fraction", "final_n_certified",
+              "final_n_point_resolved") if acc.schedule != SCHEDULE_V1 else ())
     for c in CONSTRUCTIONS:
         d = acc.data[c]
         for quantity in ("unresolved_fraction", "unrevealed_fraction",
                          "cost_collapsed_fraction", "cost_narrowed_fraction",
-                         "n_certified", "n_point_resolved", "look_prefix"):
+                         "n_certified", "n_point_resolved", "look_prefix") + extra:
             v = d[quantity]
             q = _quartiles(v)
             rows.append({
@@ -853,17 +1353,32 @@ SMOKE_PERMITTED_KEYS = {
     "record_bytes_measured_not_written", "trials", "enrolled_pairs", "looks",
     "band_evaluations", "enclosure_updates", "enclosure_updates_per_pair",
     "measures_only", "seeds", "note", "total_seconds", "total_programs",
+    # v2: the name of the schedule that was measured.  A label, not an effect
+    # column -- but a required one, because a resource projection taken under
+    # one schedule must never be read as the cost of another.
+    "event_schedule",
 }
 
 
-def run_smoke(guard: WriteGuard, programs: int,
-              verbose: bool = True) -> Dict[str, object]:
+def run_smoke(guard: WriteGuard, programs: int, verbose: bool = True,
+              schedule: str = SCHEDULE_V1) -> Dict[str, object]:
     """PROTOCOL 8.1: exactly one 20-program smoke run, measuring only.
 
     Its seeds come from namespace 1 and are discarded.  Its effect columns are
     computed (they are what makes the timing representative) but are never
     formed into a per-trial record on disk and are never read: the only values
     that leave this function are seconds, bytes, memory and counts.
+
+    ``schedule`` must be the schedule the grid will actually run, or the budget
+    ladder is projecting the cost of a different runner.  v2 evaluates
+    ``N_max + W`` looks per trial instead of ``N_max + 1``, so its cost is not
+    v1's and must not be read off v1's measurement.
+
+    STILL OPEN, and NOT addressed here: the root disposition's section C asks
+    for a BALANCED 20-program resource check -- C1/C2 crossed with horizons
+    1,000/2,000, five programs per group -- because this split confounds cell
+    with horizon and its ratio cannot isolate the horizon exponent.  That is
+    section C work and a separate deliverable; the split below is unchanged.
     """
     half = programs // 2
     split = ((vgen.CELL_BY_ID["C1"], max(half, 1), 2000),
@@ -873,8 +1388,8 @@ def run_smoke(guard: WriteGuard, programs: int,
     for cell, n_programs, n_max in split:
         if n_programs <= 0:
             continue
-        cfg = make_config(n_max, vgen.NAMESPACE_SMOKE)
-        sink = RowSink(None, TRIAL_HEADER, discard=True)
+        cfg = make_config(n_max, vgen.NAMESPACE_SMOKE, schedule=schedule)
+        sink = RowSink(None, trial_header(schedule), discard=True)
         t0 = time.perf_counter()
         counts = run_block(cell, range(n_programs), cfg, sink, None)
         seconds = time.perf_counter() - t0
@@ -894,6 +1409,7 @@ def run_smoke(guard: WriteGuard, programs: int,
                   f"{seconds:.2f}s ({seconds / n_programs:.3f}s/program)")
     record = {
         "protocol_smoke": programs == 20,
+        "event_schedule": schedule,
         "namespace": vgen.NAMESPACE_SMOKE,
         "measures_only": ["wall_clock_seconds", "peak_rss", "output_bytes",
                           "counts"],
@@ -1060,6 +1576,13 @@ def write_manifest(guard: WriteGuard, tier: Optional[str], cfg: RunConfig,
         "repo_commit": repo_commit(),
         "selected_budget_tier": tier,
         "N_max": cfg.n_max,
+        # PROTOCOL 14: every result keeps the label of the version that produced
+        # it.  The event schedule is that label, and it is recorded here so that
+        # a v1 file and a v2 file can never be read as the same measurement.
+        "event_schedule": cfg.schedule,
+        "event_schedule_meaning": SCHEDULE_LABEL[cfg.schedule],
+        "drain_W": vgen.DRAIN_W,
+        "finalization_tick": cfg.finalization_tick,
         "programs_per_cell": grid,
         "reported_grid": guard.reported,
         "coverage_target_boundary": json.loads(
@@ -1070,14 +1593,23 @@ def write_manifest(guard: WriteGuard, tier: Optional[str], cfg: RunConfig,
 # ---------------------------------------------------------------------------
 # Correctness cross-checks (no output files, nothing reported)
 # ---------------------------------------------------------------------------
-def _drive_vband(draw: vgen.TrialDraw, n_pairs: int):
-    """Replay a whole trial through ``vband.ValidationMonitor``, event by event."""
+def _drive_vband(draw: vgen.TrialDraw, n_pairs: int,
+                 last_tick: Optional[int] = None):
+    """Replay a whole trial through ``vband.ValidationMonitor``, event by event.
+
+    With ``last_tick`` past ``n_pairs`` the replay continues through the
+    finalization window: enrollment stops at ``n_pairs`` (PROTOCOL 7.3) and the
+    remaining ticks only age the pairs already enrolled, which is exactly what
+    the v2 schedule looks at and what v1 never did.  Returns one look per tick.
+    """
     mon = vband.ValidationMonitor(cost_cap=vgen.COST_CAP)
     s_c, s_i = vgen.ATOM_SC[draw.atom], vgen.ATOM_SI[draw.atom]
     looks = []
-    for n in range(1, n_pairs + 1):
-        mon.enroll(n, "AB", (n, "C"), (n, "I"))
-        for j in range(1, n + 1):
+    last = n_pairs if last_tick is None else int(last_tick)
+    for n in range(1, last + 1):
+        if n <= n_pairs:
+            mon.enroll(n, "AB", (n, "C"), (n, "I"))
+        for j in range(1, min(n, n_pairs) + 1):
             k, age = j - 1, n - j
             first = (j, "C") if draw.cand_first[k] else (j, "I")
             second = (j, "I") if draw.cand_first[k] else (j, "C")
@@ -1095,6 +1627,80 @@ def _drive_vband(draw: vgen.TrialDraw, n_pairs: int):
                     second, (float(draw.c_pend[k]) * age) / int(draw.d[k]))
         looks.append(mon.look())
     return mon, looks
+
+
+def selfcheck_v2_drain(n_pairs: int = 30, programs: int = 2,
+                       verbose: bool = True) -> List[str]:
+    """The v2 drain arithmetic against ``vband`` and against the definitions.
+
+    The looks v2 adds are ones no v1 code path ever produced, so they get their
+    own cross-check rather than inheriting v1's.  For every tick of the whole
+    window, including all ``W`` drain ticks:
+
+      * the ADAPTER's four sums and four band endpoints must equal
+        ``vband.ValidationMonitor``'s, at STRICT float equality, with the
+        monitor driven event by event and enrolling nothing after the cap;
+      * both baselines' index and score sums must equal a from-scratch
+        recomputation of their PROTOCOL 3 definitions at that tick.
+    """
+    fails: List[str] = []
+    cfg = make_config(n_pairs, vgen.NAMESPACE_SMOKE)
+    fin = cfg.finalization_tick
+    checked = drain_checked = 0
+    for cell in vgen.CELLS:
+        for program in range(programs):
+            draw = vgen.draw_trial(cell, program, 0, n_max=n_pairs,
+                                   namespace=vgen.NAMESPACE_SMOKE)
+            series, _, _, _ = build_series_v2(draw, cfg)
+            sums = vgen.adapter_tick_sums(draw, n_pairs, fin)
+            a = series[ADAPTER]
+            _, looks = _drive_vband(draw, n_pairs, last_tick=fin)
+            for i, look in enumerate(looks):
+                checked += 1
+                if i + 1 > n_pairs:
+                    drain_checked += 1
+                for got, want, nm in (
+                        (sums.h_lo[i + 1], look.hierarchy.sum_lower, "sum_h_lo"),
+                        (sums.h_hi[i + 1], look.hierarchy.sum_upper, "sum_h_hi"),
+                        (sums.s_lo[i + 1], look.success.sum_lower, "sum_s_lo"),
+                        (sums.s_hi[i + 1], look.success.sum_upper, "sum_s_hi"),
+                        (a.l_h[i], look.hierarchy.lower, "L_h"),
+                        (a.u_h[i], look.hierarchy.upper, "U_h"),
+                        (a.l_s[i], look.success.lower, "L_s"),
+                        (a.u_s[i], look.success.upper, "U_s")):
+                    if float(got) != float(want):
+                        fails.append(f"{cell.id}/p{program} tick {i + 1} {nm}: "
+                                     f"v2 {got!r} != vband {want!r}")
+                if fails:
+                    return fails
+            # the two baselines, from their definitions, at every tick
+            positions = np.arange(1, n_pairs + 1, dtype=np.int64)
+            for t in range(1, fin + 1):
+                done = (positions + draw.d) <= t
+                m = int(done.sum())
+                k = int(np.argmin(done)) if not done.all() else n_pairs
+                for nm, idx_want, sh_want in (
+                        (CPREFIX, k, int(draw.z[:k].sum())),
+                        (NAIVE, m, int(draw.z[done].sum()))):
+                    s = series[nm]
+                    if int(s.index[t - 1]) != idx_want:
+                        fails.append(f"{cell.id}/p{program} tick {t}: {nm} index "
+                                     f"{int(s.index[t - 1])} != {idx_want}")
+                    got = s.l_h[t - 1]
+                    want = _band(np.array([float(sh_want)]),
+                                 np.array([float(sh_want)]),
+                                 np.array([idx_want]), cfg.radius)[0][0]
+                    if float(got) != float(want):
+                        fails.append(f"{cell.id}/p{program} tick {t}: {nm} L_h "
+                                     f"{got!r} != {want!r}")
+                if fails:
+                    return fails
+    if verbose:
+        print(f"  v2 drain: {checked} ticks cross-checked against "
+              f"vband.ValidationMonitor at strict float equality, of which "
+              f"{drain_checked} are drain ticks v1 never evaluated: "
+              f"{len(fails)} mismatch(es)")
+    return fails
 
 
 def selfcheck_brute_force(n_pairs: int = 300, verbose: bool = True) -> List[str]:
@@ -1232,6 +1838,110 @@ def selfcheck(n_pairs: int = 35, programs: int = 2,
 
 
 # ---------------------------------------------------------------------------
+# The missed-crossing witness, as a runnable report
+# ---------------------------------------------------------------------------
+#: The exact lower bound both baselines stand at, at the missed tick of the
+#: horizon-1,000 witness: ``clip(100/600 - r(600), -1, 1)``.  Pinned as a literal
+#: so that a change of the radius, the clip, the index or the block sizes is a
+#: test failure and not a silently different number.  The root's disposition
+#: prints it rounded to ten places as +0.0133027164.
+WITNESS_LOWER_BOUND_1000 = 0.013302716411199761
+WITNESS_TICK_1000 = 1010
+WITNESS_INDEX_1000 = 600
+
+
+def witness_report(n_max: int = 1000) -> Dict[str, object]:
+    """The witness, both schedules, as data.  Draws nothing and writes nothing."""
+    draw = vgen.build_missed_crossing_witness(n_max)
+    cfg = make_config(n_max, vgen.NAMESPACE_FIXTURE)
+    cell = draw.cell
+    out: Dict[str, object] = {
+        "n_max": n_max, "finalization_tick": cfg.finalization_tick,
+        "drain_interior": [n_max + 1, cfg.finalization_tick - 1],
+        "reachability": vgen.witness_reachability(draw),
+        "blocks": [list(b) for b in vgen.MISSED_CROSSING_BLOCKS[n_max]],
+        "by_schedule": {},
+    }
+    for sched in SCHEDULES:
+        series, _, _, _ = build_series_for(draw, cfg, sched)
+        recs, _, _ = evaluate_trial(draw, cfg, sched)
+        per: Dict[str, object] = {}
+        for name in CONSTRUCTIONS:
+            s, r = series[name], recs[name]
+            elig = s.index >= cfg.n_min
+            fired = (elig & (s.l_h > 0.0) & (s.l_s > -cfg.delta)) | (elig & (s.u_h < 0.0))
+            first = int(np.argmax(fired)) if fired.any() else None
+            per[name] = {
+                "looks": int(s.index.size),
+                "decision": DECISION_LABEL[r.decision],
+                "tau_prefix": r.tau, "tau_tick": r.tau_tick,
+                "decided_in_drain": r.decided_in_drain,
+                "ever_miscover_h": r.ever_miscover_h,
+                "ever_miscover_s": r.ever_miscover_s,
+                "first_firing_tick": None if first is None else int(s.tick[first]),
+                "first_firing_index": None if first is None else int(s.index[first]),
+                "L_h_at_first_firing": None if first is None else float(s.l_h[first]),
+                "L_s_at_first_firing": None if first is None else float(s.l_s[first]),
+                "max_L_h_over_all_looks": float(s.l_h.max()),
+                "firing_looks": int(fired.sum()),
+            }
+        out["by_schedule"][sched] = per
+    out["truth"] = {"mu_h": cell.mu_h, "mu_s": cell.mu_s}
+    return out
+
+
+def report_missed_crossing_witness(n_max: int = 1000) -> bool:
+    """Print the witness and return True iff v2 sees what v1 missed."""
+    rep = witness_report(n_max)
+    reach = rep["reachability"]
+    print("=" * 78)
+    print("THE MISSED-CROSSING WITNESS (root disposition section B)")
+    print("=" * 78)
+    print(f"  cell {reach['cell']} = {reach['law']}/{reach['delay_rule']}, "
+          f"N_max = {rep['n_max']:,}, finalization tick "
+          f"{rep['finalization_tick']:,}, drain interior "
+          f"{rep['drain_interior'][0]:,}..{rep['drain_interior'][1]:,}")
+    for lo, hi, atom, tick in rep["blocks"]:
+        z, dsc = vgen.ATOM_TABLE[atom][4], vgen.ATOM_TABLE[atom][5]
+        when = "enrollment" if tick == 0 else f"tick {tick:,}"
+        print(f"    pairs {lo:>5,}-{hi:<5,} {atom:<4} Z={z:+d} D={dsc:+d}  "
+              f"resolve at {when}")
+    print(f"  SHORT offsets {reach['short_offsets_used']} in support "
+          f"{reach['short_support']}: {reach['every_short_offset_in_support']}; "
+          f"LONG offsets {reach['long_offsets_used']} in support "
+          f"{reach['long_support']}: {reach['every_long_offset_in_support']}")
+    print(f"  f == d (first reveal is the full reveal, probability 1/(d+1) > 0): "
+          f"{reach['first_reveal_equals_full_reveal']}; atoms {reach['atoms_used']} "
+          f"all carry positive weight: {reach['every_atom_has_positive_weight']}")
+    print(f"  realized sum Z = {reach['realized_sum_z']}, sum D = "
+          f"{reach['realized_sum_d']}, against the truth mu_h = "
+          f"{reach['true_mu_h']:+.4f}, mu_s = {reach['true_mu_s']:+.4f}")
+    for sched in SCHEDULES:
+        print(f"\n  {sched}  --  {SCHEDULE_LABEL[sched]}")
+        for name in CONSTRUCTIONS:
+            p = rep["by_schedule"][sched][name]
+            tick = "-" if p["first_firing_tick"] is None else f"{p['first_firing_tick']:,}"
+            lo = "-" if p["L_h_at_first_firing"] is None \
+                else f"{p['L_h_at_first_firing']:+.12f}"
+            ls = "-" if p["L_s_at_first_firing"] is None \
+                else f"{p['L_s_at_first_firing']:+.12f}"
+            print(f"    {name:<8} looks={p['looks']:>6,}  "
+                  f"{p['decision']:<16} tau_prefix={p['tau_prefix']:<6,} "
+                  f"tau_tick={p['tau_tick']:<6,} drain={str(p['decided_in_drain']):<5} "
+                  f"miscover_h={str(p['ever_miscover_h']):<5} "
+                  f"miscover_s={str(p['ever_miscover_s']):<5}")
+            print(f"             first firing tick {tick:>7}  L_h={lo}  L_s={ls}  "
+                  f"firing looks {p['firing_looks']}")
+    v1 = rep["by_schedule"][SCHEDULE_V1]
+    v2 = rep["by_schedule"][SCHEDULE_V2]
+    ok = all(v1[b]["decision"] == "NO_DECISION" and not v1[b]["ever_miscover_h"]
+             and v2[b]["decision"] == "DEPLOY" and v2[b]["ever_miscover_h"]
+             and v2[b]["ever_miscover_s"] for b in (CPREFIX, NAIVE))
+    print(f"\n  v1 misses the crossing and v2 catches it, for BOTH baselines: {ok}")
+    return ok
+
+
+# ---------------------------------------------------------------------------
 # main
 # ---------------------------------------------------------------------------
 def positive_control(rows: List[Dict[str, object]]) -> Dict[str, object]:
@@ -1270,12 +1980,27 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                     help="ad-hoc: programs per cell")
     ap.add_argument("--n-max", type=int, default=None, help="ad-hoc: horizon")
     ap.add_argument("--tier", default=None, help="ad-hoc: force a budget tier")
+    ap.add_argument(
+        "--schedule", default=RUNNER_DEFAULT_SCHEDULE, choices=list(SCHEDULES),
+        help=("the declared legal event schedule. Default "
+              f"{RUNNER_DEFAULT_SCHEDULE!r} (the v2 primary: one look per tick "
+              "through the finalization window, simultaneous events batched). "
+              f"{SCHEDULE_V1!r} reproduces the deposited v1 results and is kept "
+              "so the two can be run side by side; it is preserved, not "
+              f"primary. {SCHEDULE_V2_FINEST!r} is the declared sensitivity."))
+    ap.add_argument("--witness", action="store_true",
+                    help="run the missed-crossing witness and the two schedule "
+                         "reductions, print them, and stop. Draws no grid.")
     args = ap.parse_args(argv)
+
+    if args.witness:
+        return 0 if report_missed_crossing_witness() else 1
 
     if args.selfcheck:
         print("vrun selfcheck: the vectorized path against vband, event by event")
         fails = selfcheck()
         fails += selfcheck_brute_force()
+        fails += selfcheck_v2_drain()
         for f in fails[:20]:
             print(f"  MISMATCH {f}")
         print(f"\nvgen against the frozen PROTOCOL 6 tables:")
@@ -1328,8 +2053,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     # ---- 2. the smoke run ---------------------------------------------------
     n_smoke = args.smoke if args.smoke is not None else 20
     print(f"\n[2/6] smoke run (PROTOCOL 8.1), namespace {vgen.NAMESPACE_SMOKE}, "
-          f"{n_smoke} programs, measuring runtime and memory only")
-    smoke = run_smoke(guard, n_smoke)
+          f"{n_smoke} programs, measuring runtime and memory only, "
+          f"under schedule {args.schedule}")
+    smoke = run_smoke(guard, n_smoke, schedule=args.schedule)
     assert_smoke_holds_no_effect_record(guard)
     incremental = assert_incremental(smoke)
     print(f"  peak RSS {smoke['peak_rss_bytes'] / 2**20:.0f} MiB; "
@@ -1392,12 +2118,18 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 else [c["id"] for c in cfg_json["cells"]])
     grid = {cid: (args.programs if args.programs is not None
                   else tier["programs"][cid]) for cid in cell_ids}
-    cfg = make_config(n_max, grid_namespace)
+    cfg = make_config(n_max, grid_namespace, schedule=args.schedule)
     write_manifest(guard, tier_name, cfg, grid)
     print(f"\n[4/6] the reported grid: tier {tier_name}, N_max {n_max}, "
           f"{sum(grid.values())} programs over {len(grid)} cells")
+    print(f"      event schedule: {cfg.schedule}")
+    print(f"      {SCHEDULE_LABEL[cfg.schedule]}")
+    if cfg.schedule == SCHEDULE_V1:
+        print("      v1 IS NOT THE PRIMARY. It is kept runnable so that the "
+              "deposited v1 results can be reproduced and reported BESIDE v2 "
+              "(PROTOCOL 14), not replaced by it.")
 
-    sink = RowSink(guard.path("trials.csv.gz"), TRIAL_HEADER)
+    sink = RowSink(guard.path("trials.csv.gz"), trial_header(cfg.schedule))
     totals = BlockCounts()
     per_cell_counts: Dict[str, Dict[str, int]] = {}
     mis_rows: List[Dict[str, object]] = []
@@ -1412,7 +2144,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         cell = vgen.CELL_BY_ID[cid]
         n_programs = grid[cid]
         acc = CellAccumulator(cell, n_programs * cfg.trials_per_program,
-                              cfg.horizons)
+                              cfg.horizons, schedule=cfg.schedule)
         cell_counts = BlockCounts()
         t0 = time.perf_counter()
         for start in range(0, n_programs, 100):

@@ -4,6 +4,31 @@
 
 **This report is deliverable 6 of `PROTOCOL.md` section 13.3.** It reports every quantity section 9 requires, with its Wilson interval, for all eight cells and all three constructions, **including every unfavourable and every inconclusive row**. No row is omitted for brevity and no row is omitted because it is unfavourable (section 13.4).
 
+> ## READ THIS FIRST: this is the `v1` report, and seven of its sentences have been corrected
+>
+> This file is the report of **`v1-cpu-validation`** and it keeps that label. It is **not** withdrawn, **not**
+> rewritten and **not** replaced: every `v1` number it prints is the number the `v1` run produced, and every one of
+> them stays. What has changed is what some of those numbers were said to **mean**.
+>
+> **The amendment is `PROTOCOL_V2.md`** (`v2-cpu-validation`), a versioned amendment under `PROTOCOL.md` section 14.
+> It changes exactly three things - the tighter feasible-completion enclosure becomes the primary object, the event
+> schedule is corrected, and the enrolled prefix is separated from the elapsed decision time - and it changes no
+> margin, no alpha, no `rho`, no `delta`, no `n_min`, no gate, and no stopping, deadline or finalization rule.
+>
+> **Section 16 of this file is the errata**, with the before/after text of every sentence corrected here. The three
+> corrections a reader is most likely to be misled by without it:
+>
+> 1. The `122,786` disagreeing looks are a **contract mismatch between two differently-declared policies**, not
+>    `122,786` findings (coordinator ruling 55). They were never evidence that either side was wrong.
+> 2. **A flag is an alert, not proof of a defect**, and the absence of one is not a bound. The `1.280x` and `1.176x`
+>    ratios are **not** minimum detectable true rates: at a true rate of exactly `1.280x` the nominal the flag fires
+>    only about **52%** of the time, and at a rate exactly **equal** to the nominal it fires about **3%** of the time.
+>    See section 16 correction 4 and `PROTOCOL_V2.md` section 6.
+> 3. **Every `CPREFIX` and `NAIVE` number in this file is a LOWER BOUND**, because the `v1` runner omitted the drain
+>    looks at which a completed-data baseline's completion index changes. The exact list of affected rows is in
+>    `LASTLOOK_CHECK.md` section 4. **Not one `ADAPTER` number moves under any reading**, and the positive control
+>    can only fire harder, never softer (`PROTOCOL_V2.md` section 6.4).
+
 ---
 
 ## 0. The headline, stated first
@@ -12,17 +37,18 @@
 |---|---|
 | fixture gate (section 11), at the grid run and at the comparison | **18/18 passed** |
 | unit and property tests, at the grid run | **88 ran, 0 failures, 0 errors, 0 skipped** |
-| fixture gate **now**, after this file was written | **17/18** - `F15` reports `13.0 REPORT.md is listed as not written but exists`; see section 14 item 2 |
-| unit and property tests **now** | **88 ran, 2 failures, 0 errors, 0 skipped** - both failures are that same one `F15` message and nothing else |
+| fixture gate **now**, re-measured 2026-09-20 after coordinator ruling 61 was applied | **18/18 passed** - `F01`-`F18`, measured twice. The `17/18` this row used to report is corrected in section 16 correction 1 |
+| unit and property tests **now**, re-measured 2026-09-20 | **0 failures, 0 errors, 0 skipped** on all three of three runs - at **88**, **106** and **107** tests, because a sibling session was adding tests throughout. The tree was **not quiescent**, so the count is not a baseline; see section 16 correction 1. The `2 failures` this row used to report is corrected there |
+| `#11`'s own suite, measured on a tree with `experiments/live_ab/` clean at `db930d7` | **474 tests, OK**, in 243.195 s |
 | budget tier selected by the section 8.2 ladder | **T1** (28,000 programs, `N_max = 2,000`) |
 | grid | **ran to completion**, reported namespace 0 |
 | determinism re-run | **byte-identical** (154,912 bytes compared) |
 | **positive control (section 9.4)** | **PASSED** - `NAIVE` hierarchy ever-miscoverage is FLAGGED in **`C2`, `C4`, `C6`**, and the precommitment required at least one of `C2`, `C4`, `C6` |
-| `ADAPTER` exceedance flags | **none, in any cell, on any gate, at any horizon** - which is reported below as *no exceedance was detected at this resolution*, and never as *the bound holds* |
-| **comparison against the pinned #11 monitor (section 12)** | **DISAGREEMENT = DEFECT.** 122,786 of 400,203 compared looks, over 926 streams, failed at least one frozen criterion |
-| consequence, in the protocol's own words | **until a disagreement is adjudicated, #11's results do not count as validated**, which is the whole purpose of this study (section 12.3 item 4) |
+| `ADAPTER` exceedance flags | **none, in any cell, on any gate, at any horizon** - which is reported below as *no exceedance was detected at this resolution*, and never as *the bound holds*. What that absence does **not** license is section 8.3 as corrected |
+| **comparison against the pinned #11 monitor (section 12)** | **The two implementations DISAGREE: 122,786 of 400,203 compared looks, over 926 streams, failed at least one frozen criterion.** Adjudicated since: this is a **CONTRACT MISMATCH between two differently-declared policies, not 122,786 findings** (section 16 correction 3) |
+| consequence, in the protocol's own words | **until a disagreement is adjudicated, #11's results do not count as validated**, which is the whole purpose of this study (section 12.3 item 4). It has since been adjudicated: see section 16 correction 3 |
 
-**The two results above must be read together.** The measuring apparatus validated itself (the positive control fired, in all three precommitted cells). The `ADAPTER` construction - the #12 re-implementation - produced no exceedance flag anywhere. And the #12 and #11 implementations **do not compute the same enclosure**, so this run does **not** validate #11. Which side is wrong is **not decided here** (section 12.3 item 3).
+**The two results above must be read together.** The precommitted positive control **fired, in all three precommitted cells**, so the apparatus can detect a violation *of that size, on that gate, in those cells* - which is what a positive control establishes and **not** that the apparatus as a whole is validated (section 16 correction 2). The `ADAPTER` construction - the #12 re-implementation - produced no exceedance flag anywhere. And the #12 and #11 implementations **do not compute the same enclosure**, so this run does **not** validate #11. Which side is wrong was **not decided here**, and has since been adjudicated elsewhere: `#11` conformed to its own declared rule and was not defective; its **specification** was incomplete relative to its own item 1, and completing it is a **power** improvement, not a validity fix (section 16 correction 3).
 
 ---
 
@@ -167,6 +193,11 @@ Wall-clock seconds are **never** reported as a decision prefix, a latency, a thr
 Unit: trial. `N = programs x 4`. Nominal bound `alpha_gate = 0.00625` for `ever_miscover`, and each one-sided component is separately bounded by it. Wilson score 95% intervals at `z = 1.959963984540054`.
 
 > **These intervals quantify Monte Carlo error of this simulation only.** They are not confidence intervals for the statistical guarantee, and a Wilson interval lying below a nominal level is not a proof that the level holds. Coverage here is coverage of a **bounded arbitrary-running-mean target of a synthetic stream** and establishes nothing causal. `NAIVE` is **invalid** under informative delay and is reported only to exhibit the failure mode. **An unflagged row means no exceedance was detected at this resolution, never that the bound holds.**
+
+> **ADDED 2026-09-20, and it applies to every table in this section** (section 16 corrections 4 and 5). Two qualifiers that the tables below cannot carry in a cell:
+>
+> - **Every `CPREFIX` and `NAIVE` row is a LOWER BOUND.** The `v1` look set omits the drain looks at which a completed-data baseline's completion index changes, and ever-miscoverage is a union over looks, so restoring them can only raise `x`. The affected rows, with both readings, are listed exactly in `LASTLOOK_CHECK.md` section 4. **No `ADAPTER` row moves under any reading.**
+> - **A flag is an alert, not a defect verdict, and the flag threshold is not a minimum detectable true rate.** `x >= 64` at `N = 8,000` and `x >= 147` at `N = 20,000` are observed-count thresholds: a true rate of `.007`, which *exceeds* the nominal `.00625`, reaches the first of them with probability only `0.1571523834`, and a true rate at exactly the `1.280x` ratio reaches it with probability `0.5168241304`. The `verdict` column below records whether the frozen rule fired, and nothing more.
 
 ### 6.1 Look set: all looks to the finalization look
 
@@ -715,7 +746,9 @@ Every quantity, every cell, every construction. Unfavourable and inconclusive ro
 
 > **Precommitted positive control (section 9.4, frozen text).** `NAIVE`'s hierarchy ever-miscoverage must be FLAGGED in at least one of `C2`, `C4`, `C6`. If it is not, the **measurement apparatus itself is reported as unvalidated**, the `ADAPTER` results of this run are reported as uninterpretable, and the cause is investigated before any of them is cited.
 
-**VERDICT: PASSED.** `NAIVE`'s hierarchy ever-miscoverage is FLAGGED in **`C2`, `C4`, `C6`** - all three of the precommitted cells, not merely one - and additionally in `C8`. The measuring apparatus can detect a real violation, so the `ADAPTER` results of this run are interpretable under the limits of section 1.3.
+**VERDICT: PASSED.** `NAIVE`'s hierarchy ever-miscoverage is FLAGGED in **`C2`, `C4`, `C6`** - all three of the precommitted cells, not merely one - and additionally in `C8`. The precommitted contingency therefore does not trigger and the `ADAPTER` results of this run are interpretable under the limits of section 1.3.
+
+> **What this PASS establishes, and what it does not** (section 16 correction 2; `PROTOCOL_V2.md` section 6.3 item 5). The apparatus detects a violation **of that size, on that gate, in those cells** - an exceedance two to three orders of magnitude above nominal. **A passing sensitivity contrast does not validate the apparatus as a whole**: it audits neither truth construction, nor event completeness, nor the implemented primary object. Event completeness in particular was **defective while this control was passing** - the `v1` runner omitted the drain looks at which a completed-data baseline's completion index changes (`LASTLOOK_CHECK.md`; `PROTOCOL_V2.md` section 1.2) - and the control could not have caught it, because the omitted looks can only make ever-miscoverage counts **rise**, so the control can only ever fire **harder**. The verdict stands; the inference from it is the narrow one.
 
 The magnitudes, for the record: `C2` 0.988750 [0.986193, 0.990838], `C4` 0.999900 [0.999635, 0.999973], `C6` 0.813600 [0.808143, 0.818937], against a nominal `0.00625`. The exceedance is not marginal; it is two to three orders of magnitude.
 
@@ -723,7 +756,18 @@ The control is stated on the **hierarchy gate only**. No success-gate positive c
 
 ### 8.3 What the absence of an `ADAPTER` flag does and does not mean
 
-Every unflagged `ADAPTER` and `CPREFIX` row above is reported as **no exceedance was detected at this resolution**. It is **not** reported as *the bound holds*, and this report does not say the bound holds anywhere. Section 9.3 fixes the resolution: with `x = 0` events the Wilson interval is `[0, 0.000480]` at `N = 8,000` and `[0, 0.000192]` at `N = 20,000`; the design can only flag a per-gate rate at or above `1.280x` nominal at 2,000 programs and `1.176x` nominal at 5,000. **A violation smaller than that would pass unflagged** (section 1.3 item 5).
+Every unflagged `ADAPTER` and `CPREFIX` row above is reported as **no exceedance was detected at this resolution**. It is **not** reported as *the bound holds*, and this report does not say the bound holds anywhere. With `x = 0` events the Wilson interval is `[0, 0.000480]` at `N = 8,000` and `[0, 0.000192]` at `N = 20,000`.
+
+> **CORRECTED, 2026-09-20** (section 16 correction 4; root disposition section C; `PROTOCOL_V2.md` section 6). The sentence that used to close this section - *"the design can only flag a per-gate rate at or above `1.280x` nominal at 2,000 programs and `1.176x` nominal at 5,000. A violation smaller than that would pass unflagged"* - **reads the flag threshold as a minimum detectable true rate, and it is not one.** `x >= 64` at `N = 8,000` and `x >= 147` at `N = 20,000` are **observed-count** thresholds. The **true** rate that produces them is a random variable, so the ratios `1.280x` and `1.176x` bound neither direction:
+>
+> | true per-gate rate | relation to the nominal `0.00625` | `P(flag)` at `N = 8,000` | `P(flag)` at `N = 20,000` |
+> |---|---|---|---|
+> | `0.00625` | **equal to it** | **0.0314151088** | **0.0292396037** |
+> | `0.00700` | above it, below the `1.280x` ratio | **0.1571523834** | 0.2874093726 |
+> | `0.00800` | **exactly** the `1.280x` ratio | **0.5168241304** | 0.8585531745 |
+> | `0.01000` | `1.6x` it | 0.9715571681 | 0.9999655074 |
+>
+> So a violation **smaller** than the ratio does not "pass unflagged" - it flags with positive probability, and a rate of `.007`, which genuinely exceeds the nominal, flags about **16%** of the time. And a violation **at** the ratio is not detected either - it flags only about **52%** of the time. Both halves of the old sentence are wrong. **A flag is a sampling alert requiring diagnosis on four axes - truth, assumptions, implementation, and Monte Carlo uncertainty - and never proof of a defect; the absence of one is never a bound on the true rate.** The four probabilities above were computed twice here, once with `scipy.stats.binom.sf` and once in exact rational arithmetic, and agree to every digit printed.
 
 ---
 
@@ -972,7 +1016,9 @@ Every entry above is *no exceedance detected at this resolution*, not *the bound
 
 > The two implementations DISAGREE: 122786 of 400203 compared looks, over 926 streams, failed at least one frozen criterion.
 
-**This is a DEFECT and is reported as one. It is not reconciled by editing either side, and neither side was edited.**
+**Neither side was edited to reconcile it.** The measurement stands exactly as printed.
+
+> **CORRECTED, 2026-09-20** (section 16 correction 3; coordinator ruling 55; root disposition section A). This section used to close the sentence above with *"This is a DEFECT and is reported as one"*, and section 0 used to head it **DISAGREEMENT = DEFECT**. **That reading is withdrawn.** The `122,786` disagreeing looks are a **CONTRACT MISMATCH between two differently-declared policies, not 122,786 findings.** `#11`'s code conformed to `#11`'s own declared rule, whose item 5 prescribed `[-1, 1]` on the reproducer below; `#12`'s adapter was built from the guidance formula, which prescribes the enumeration. **Demanding exact numerical agreement to `1e-12` between two adapters built from two different declared policies validates nothing while the policies differ: every disagreement is guaranteed and none of them is evidence.** The defect was in `#11`'s **specification**, which promised in its item 1 to narrow "only by enumerating feasible completions" and delivered a two-case rule ending "otherwise `[-1, 1]`" - not in `#11`'s code and not in either theory. `#11`'s item 5 has since been **completed** with the reverse certificate (`protocol_FINAL.md` section 7.5a), which is a **power** improvement and not a validity fix: the `151,032` per-pair endpoint disagreements below are `151,032` of `151,032` rows in which the `#11` interval **contains** the `#12` interval, never the reverse, so **nothing `#11` produced was wrong.** The equality contract becomes meaningful only in `v2`, after the two policies coincide **and** the pins are matched; see `PROTOCOL_V2.md` sections 1.1 and 4.2.
 
 | | |
 |---|---|
@@ -991,8 +1037,8 @@ Criteria, all frozen before any stream was replayed: band endpoints `L_h`, `U_h`
 
 | class | rows | streams affected | disposition |
 |---|---|---|---|
-| `per_pair_enclosure_endpoint` | 151,032 | 200 | DEFECT -- escalated, never reconciled by editing either side |
-| `band_endpoint` | 131,352 | 200 | DEFECT -- escalated, never reconciled by editing either side |
+| `per_pair_enclosure_endpoint` | 151,032 | 200 | escalated, never reconciled by editing either side. Adjudicated since as a **contract mismatch**, not a defect of either side (section 16 correction 3) |
+| `band_endpoint` | 131,352 | 200 | escalated, never reconciled by editing either side. Adjudicated since as a **contract mismatch**, and in any case the consequence of the first class rather than an independent one |
 
 **Value-pair histogram, `per_pair_enclosure_endpoint`:**
 
@@ -1082,6 +1128,8 @@ First occurrence in the frozen stream set, with the coordinates needed to replay
 
 > Until a disagreement is adjudicated, #11's results do not count as validated, which is the whole purpose of this study.
 
+**It has since been adjudicated** (coordinator rulings 52-55 and 58; root disposition section A). The adjudication is in section 16 correction 3 and it does not restore validation: `v1` validated the **tighter `#12` adapter at sampled enrollment and finalization looks**, against `#11` **as it stood at commit `5776877`**, under a policy `#11` has since superseded. A comparison against the completed `#11` enclosure needs a re-pin, a re-snapshot of `pinned/`, and a **re-run** - which is `v2` under its own section 14 version bump, not an edit to this file (coordinator ruling 60). Until then the equality contract remains **unmeasured**.
+
 ### 11.6 Differences within tolerance, and what is out of scope
 
 Section 12.3 item 5 requires a difference *within* tolerance but systematic to be reported with its magnitude rather than silently accepted. Band-endpoint differences within tolerance: **0**, maximum magnitude **0.0**. There are none to report.
@@ -1121,7 +1169,7 @@ Four of the 730 captured fixture scripts were **not comparable**, and they are n
 
 ## 13. Limitations - `PROTOCOL.md` section 1.3, repeated in full
 
-Section 13.3 item 6 requires this section to be repeated **in full and not summarized away**. It is reproduced verbatim below.
+Section 13.3 item 6 requires this section to be repeated **in full and not summarized away**. It is reproduced verbatim below. **The quotation is verbatim and is not edited**, including where the quoted text is now known to be wrong; two editorial notes follow it rather than being inserted into it.
 
 > ### 1.3 What it CANNOT establish, stated before any outcome exists
 > 1. **It establishes nothing causal.** Coverage here is coverage of `mubar_n = (1/n) sum_{i<=n} E[Z_i | F_{i-1}]`, a
@@ -1159,14 +1207,22 @@ Section 13.3 item 6 requires this section to be repeated **in full and not summa
 >    definitions of the collapse flag, so this study compares enclosure endpoints and leaves the flag out of scope,
 >    as a named and reported difference rather than a silent one.
 
+**Editorial note 1 on quoted item 5, which is quoted verbatim and is wrong as written.** "At 2,000 programs the design can only flag a per-gate rate at or above 1.280x its nominal value ... A violation smaller than that would pass unflagged" **reads an observed-count threshold as a minimum detectable true rate.** It is not one, in either direction: a true rate of `.007` - above the nominal, below the ratio - flags with probability `0.1571523834`, and a true rate of exactly `.008`, the ratio itself, flags with probability only `0.5168241304`. Section 8.3 as corrected carries the full table. The frozen text of `PROTOCOL.md` section 1.3 is **not edited** by this report; its correction belongs to `PROTOCOL_V2.md` section 6, which supersedes its **interpretation** for `v2` and for the reading of `v1`, while leaving the flag rule itself untouched.
+
+**Editorial note 2 on quoted item 5's companion in `PROTOCOL.md` section 7.1, which this section does not quote.** Section 7.1's claim that one look per enrollment prefix is an **exact** reduction of the all-triggers rule is **false for the two completed-data baselines** and is withdrawn for them; it survives for the `ADAPTER`, by the monotonicity argument, checked over every drain tick of 16,000 real grid trials with 0 non-monotone. Consequently **every `CPREFIX` and `NAIVE` count in this report is a lower bound** on its all-triggers counterpart. The exact list of affected rows, with both readings, is `LASTLOOK_CHECK.md` section 4; the repair is `PROTOCOL_V2.md` section 1.2. **Not one `ADAPTER` number in this report moves under any reading.**
+
 ---
 
 ## 14. What did not close
 
-1. **The comparison defect is open.** It is escalated, not resolved, and neither side was edited. Until it is adjudicated, #11's results do not count as validated.
-2. **`F15` fails on this file, and this is the one thing left open in the repository.** Measured after writing it: `vfixtures.py` reports **17/18**, with the single message `13.0 REPORT.md is listed as not written but exists`, and `tests_validation.py` reports **88 ran, 2 failures, 0 errors, 0 skipped**, both failures carrying that same one message (`TestFixtures.test_every_fixture_passes` and `TestProtocolConfigAgreement.test_the_two_documents_agree`). `cells.json` still lists `REPORT.md` under `specified_here_but_do_not_exist_at_the_freeze_commit`, and `PROTOCOL.md` section 13.0 still gives it the status `specified, not written`. Writing this report - which section 13.3 item 6 requires - therefore reintroduces exactly the contradiction coordinator ruling 34 resolved for `vgen.py`, `vrun.py` and `vcompare.py`. **The same status correction has deliberately NOT been extended to `REPORT.md` here**, because ruling 34 names three files and this author does not get to widen a ruling on a frozen document. It needs the coordinator's decision, and it is the one-line change of moving `REPORT.md`'s status the same way. Every result in this report was produced while the fixture gate was green: `18/18` at the grid run and `18/18` at the comparison.
+1. ~~**The comparison defect is open.**~~ **CLOSED as stated, but not in the direction this item expected.** It was escalated, not resolved, and neither side was edited - and the adjudication that followed found it to be a **contract mismatch between two differently-declared policies**, not a defect of either side (section 16 correction 3). `#11`'s results still do not count as validated by this run, for the different reason in section 11.5: `v1` compared against a `#11` policy that has since been superseded, and the matched-pin comparison is `v2`'s job.
+2. ~~**`F15` fails on this file, and this is the one thing left open in the repository.**~~ **CLOSED.** Coordinator ruling 61 applied ruling 43 at last, as `PROTOCOL.md` section 14.1 correction 3, a status-only correction that changes no value. Re-measured 2026-09-20 on a quiescent tree: `vfixtures.py` reports **18/18**, and `tests_validation.py` reports **88 ran, 0 failures, 0 errors, 0 skipped**. The original text of this item is preserved in section 16 correction 1. Every result in this report was produced while the fixture gate was green: `18/18` at the grid run and `18/18` at the comparison.
 3. **The section 6.4 expectation versus the measured `cost_collapsed_fraction`** is not compared numerically here, for the conditioning reason given in section 9.2 above. Section 9.5 calls such a discrepancy a defect to investigate; no discrepancy is asserted either way, because the comparison a reader would need was not made.
 4. **The `N_max = 1,000` (`T4`) grid was not run**, and was not required to be: the ladder selected `T1`. The `T4` variant of section 6 remains a pre-registered table in `cells.json`, recomputed under both readings in `ADDENDUM_SECTION6.md`.
+5. **NEW, and open: the `v1` event schedule is incomplete, so every baseline number here is a lower bound.** The runner omits the drain looks at which a completed-data baseline's completion index changes. This is not repaired in `v1` and `v1` is not re-run to repair it: the repair is `PROTOCOL_V2.md` section 1.2, and it needs explicit clearance before any re-run. The affected rows are listed exactly in `LASTLOOK_CHECK.md` section 4 - **12** deposited rows under the batched reading and **77** under the finest - and **every one of them is understated here**. No `ADAPTER` number moves.
+6. **NEW, and open: the `v1` pin is deliberately stale and is not updated.** `#11` has moved since this run; `protocol_FINAL.md` went from `3c76e8eb...` to `b1ff97cc...` and all three pinned monitor sources have changed. Re-pinning now would assert that the completed run covered a version of `#11` that did not exist when it ran (coordinator ruling 60). The supersession is recorded in `cells.json -> vocabulary_alignment.superseded_by`; `F18` passes on that record; the matched-pin comparison is `PROTOCOL_V2.md` section 4.2 and belongs to `v2`.
+7. **NEW, and open: the smoke `beta` is confounded and is not an identified horizon exponent.** Section 4.2's `beta = 0.617648` came from ten `C1` programs at horizon 2,000 against ten `C2` programs at horizon 1,000, so it absorbs the `N -> A` delay branch as well as the horizon. `PREREG_CHECK_2` raised this against `PROTOCOL.md` section 8.1, section 8.1 still reads as it did, and the balanced replacement - `C1`/`C2` x horizons 1,000/2,000, five programs per group - is `PROTOCOL_V2.md` section 9.1. The measured runtime was far below the cap, which does not retroactively identify the exponent.
+8. **NEW, and open, recorded rather than omitted: one unexplained flaky full-suite failure** was reported at 474 tests and did not recur in six subsequent runs. It overlapped a sibling session's writes to the same working tree. It is **NOT closed** (coordinator rulings 62 and 63).
 
 ---
 
@@ -1174,9 +1230,12 @@ Section 13.3 item 6 requires this section to be repeated **in full and not summa
 
 | file | content |
 |---|---|
-| `experiments/live_ab_validation/PROTOCOL.md` | the frozen pre-registration, with section 14.1 recording both post-freeze status corrections with their before/after text |
+| `experiments/live_ab_validation/PROTOCOL.md` | the frozen `v1` pre-registration, with section 14.1 recording the three post-freeze status corrections with their before/after text |
+| `experiments/live_ab_validation/PROTOCOL_V2.md` | **the `v2` versioned amendment** under `PROTOCOL.md` section 14: the three substantive changes, what does not change, the root's three conditions, the horizon rule, the Monte Carlo wording, the planning-quantity conventions, the secondary, and the run gate. Not frozen and not cleared to run |
 | `experiments/live_ab_validation/cells.json` | the machine-readable twin, normative for every numeric value |
 | `experiments/live_ab_validation/ADDENDUM_SECTION6.md` | the post-freeze predicate-reading recomputation of 6.3 and 6.4, deposited beside the frozen tables and replacing nothing |
+| `experiments/live_ab_validation/LASTLOOK_CHECK.md` | the reproduction of the root's last-look witness, the proof that the reduction fails for `CPREFIX` and `NAIVE` and holds for the `ADAPTER`, and the **exact list of affected deposited rows** |
+| `experiments/live_ab_validation/vlastlook_check.py` | the script behind that check; writes nothing |
 | `results/live_ab_validation/manifest.json` | seed, hashes, platform, commit, selected tier |
 | `results/live_ab_validation/budget.json` | smoke measurements, projection and selected tier, written before the grid |
 | `results/live_ab_validation/fixtures_report.json` | per-case `F01`-`F18` |
@@ -1188,4 +1247,293 @@ Section 13.3 item 6 requires this section to be repeated **in full and not summa
 | `results/live_ab_validation/trials.csv.gz` | one record per (cell, program, trial, construction) |
 | `results/live_ab_validation/compute.json` | section 9.5 compute counts, seconds, peak RSS, output bytes |
 | `results/live_ab_validation/comparison_vs_live_ab.csv`, `comparison_defects.csv`, `comparison_summary.json` | section 12 |
+
+---
+
+## 16. Errata under the `v2` amendment
+
+**What this section is.** `PROTOCOL.md` section 14 requires that "every result produced under the old version keeps
+the old version's label and is reported beside the new one rather than replaced". This report keeps its `v1` label
+and **every `v1` number in it stands**. What is corrected here is **wording that read a number as more than it is**,
+each entry carrying its authority, its BEFORE text and its AFTER text, in the same form section 14.1 of
+`PROTOCOL.md` uses. **No entry below changes a measured value, a cell, a parameter, a seed, the grid, an estimator,
+a reported quantity, the flag rule or the positive control.** A reader who cites a corrected sentence from an older
+copy of this file meets the correction here.
+
+The binding authorities are `reviews/cpu_v1_delivery_root_disposition.md` sections A, B, C, D and E;
+`reviews/cpu_grid_scientific_delivery_review.md`; `reviews/power_diagnostic_theory_review.md`; and
+`experiments/live_ab/design/COORDINATOR_DECISIONS.md` revisions 12, 13 and 14. The amendment is `PROTOCOL_V2.md`.
+
+---
+
+### Correction 1 - STATUS CORRECTION, CHANGES NO VALUE
+
+Authority: coordinator ruling 61, applying ruling 43; `PROTOCOL.md` section 14.1 correction 3.
+
+Cause: section 0's two "now" rows and section 14 item 2 reported `F15` failing on this file's existence. Ruling 43
+had already authorized the status correction and it had simply never been applied; ruling 61 applied it.
+
+BEFORE (section 0, two rows):
+
+```
+| fixture gate **now**, after this file was written | **17/18** - `F15` reports `13.0 REPORT.md is listed as not written but exists`; see section 14 item 2 |
+| unit and property tests **now** | **88 ran, 2 failures, 0 errors, 0 skipped** - both failures are that same one `F15` message and nothing else |
+```
+
+AFTER: **18/18 fixtures**, measured twice; **0 failures, 0 errors, 0 skipped** on `tests_validation.py`, measured
+twice; and `#11`'s own **474 tests, OK** in 243.195 s on a tree with `experiments/live_ab/` clean at `db930d7`.
+
+BEFORE (section 14 item 2, opening clause): "**`F15` fails on this file, and this is the one thing left open in the
+repository.**" AFTER: struck through and marked CLOSED, with the original text preserved in place.
+
+**THE `#12` TEST COUNT IS NOT A BASELINE, AND THIS ENTRY WILL NOT PRETEND OTHERWISE.** `tests_validation.py` was run
+three times across this errata work and reported **88** tests in 4.531 s, then **106** in 6.028 s, then **107** -
+because a sibling agent in the same workflow, the owner of `vrun.py`, `vgen.py` and the corrected event schedule,
+was adding tests to the same file in the same working tree throughout. **The tree was not quiescent.** All three
+measurements are printed and none is presented as *the* count. **0 failures at all three**, and **18/18 fixtures at
+all three** - which are the parts that do not depend on the count.
+
+This is the failure coordinator ruling 62(b) already named once: a `#11` "461 passing" baseline that did not
+reproduce, for exactly this reason. Its remedy is the one applied here - **a baseline count must be taken on a
+quiescent tree or not quoted at all** - and the `v2` freeze must re-take all three counts on a quiescent tree and
+record that it was quiescent. Ruling 62(a) is the companion lesson and it is worth keeping beside this one: a
+parallel agent that observes a sibling's writes and diagnoses them as outside interference is reporting something
+real and concluding the wrong thing about it.
+
+---
+
+### Correction 2 - THE POSITIVE CONTROL'S SCOPE, CHANGES NO VALUE AND NOT THE VERDICT
+
+Authority: root disposition section C, "Positive-control sensitivity does not validate the whole apparatus";
+`reviews/cpu_grid_scientific_delivery_review.md` section 4.
+
+**The PASS verdict is preserved and is not weakened.** `NAIVE`'s hierarchy ever-miscoverage was FLAGGED in `C2`,
+`C4` and `C6`, all three precommitted cells, with Wilson lower limits `0.986193`, `0.999635` and `0.808143` against
+a nominal `0.00625`. What is corrected is the inference drawn from it.
+
+BEFORE (section 0):
+
+```
+The measuring apparatus validated itself (the positive control fired, in all three precommitted cells).
+```
+
+AFTER: "The precommitted positive control **fired, in all three precommitted cells**, so the apparatus can detect a
+violation *of that size, on that gate, in those cells* - which is what a positive control establishes and **not**
+that the apparatus as a whole is validated."
+
+BEFORE (section 8.2): "The measuring apparatus can detect a real violation, so the `ADAPTER` results of this run are
+interpretable under the limits of section 1.3."
+
+AFTER: "The precommitted contingency therefore does not trigger and the `ADAPTER` results of this run are
+interpretable under the limits of section 1.3", followed by the scope note now in section 8.2.
+
+**Why this is not pedantry.** A passing sensitivity contrast audits neither truth construction, nor event
+completeness, nor the implemented primary object - and **event completeness was defective while this control was
+passing** (correction 5). The control could not have caught it: the omitted looks can only make ever-miscoverage
+counts rise, so the control can only ever fire **harder**.
+
+---
+
+### Correction 3 - "DISAGREEMENT = DEFECT" IS WITHDRAWN; IT IS A CONTRACT MISMATCH
+
+Authority: coordinator revision 12 rulings 52-55, discharged by ruling 58; root disposition section A;
+`reviews/cpu_grid_scientific_delivery_review.md` section 1.
+
+**The measurement stands unchanged**: `122,786` of `400,203` compared looks, over `926` streams, failed at least one
+frozen criterion; `151,032` per-pair endpoint rows and `131,352` band-endpoint rows. **The reading of it is what
+changes.**
+
+BEFORE (section 0, headline row):
+
+```
+| **comparison against the pinned #11 monitor (section 12)** | **DISAGREEMENT = DEFECT.** 122,786 of 400,203 compared looks, over 926 streams, failed at least one frozen criterion |
+```
+
+BEFORE (section 11.1):
+
+```
+**This is a DEFECT and is reported as one. It is not reconciled by editing either side, and neither side was edited.**
+```
+
+AFTER: both now state the measurement and then record the adjudication - **a contract mismatch between two
+differently-declared policies, not `122,786` findings.**
+
+**The four facts that produce that reading, each checkable:**
+
+1. `#11`'s item 5 had exactly two outcomes: collapse to `[sgn, sgn]` when the forward certificate
+   `(1-tol)*ell > L_r + 1e-9` fires, "otherwise the enclosure stays `[-1, 1]`". On the reproducer of section 11.3,
+   `0.95 * 9.6 = 9.120 > 10.0` is **false**, so item 5 **prescribed** `[-1, 1]` and the code emitted `[-1, 1]`.
+   **`#11`'s code conformed to `#11`'s own declared rule.**
+2. Item 5 was nevertheless **incomplete relative to item 1 of the same protocol**, which promises that an unresolved
+   score is narrowed "ONLY BY ENUMERATING FEASIBLE COMPLETIONS". A two-case rule ending "otherwise `[-1,1]`" is not
+   an enumeration. **The defect was in the specification, not the code and not the theory.**
+3. Demanding exact numerical agreement to `1e-12` between an adapter built from the guidance formula and an adapter
+   built from item 5 **validates nothing while the two policies differ**: every disagreement is guaranteed and none
+   is evidence.
+4. The direction was measured and is one-sided: `#11` was wider in **151,032 of 151,032** disagreeing per-pair rows
+   and **never narrower**, so **nothing `#11` produced was wrong**, and completing item 5 is a **power** improvement,
+   not a validity fix.
+
+**What has changed on `#11`'s side since**: item 5 is complete (`protocol_FINAL.md` section 7.5a), with the reverse
+certificate `ell > (1 - tol)*L_r + eps`; the enumeration is closed and derived, verified at 16,000 states in exact
+rational arithmetic with 0 mismatches. **This does not retroactively validate `#11` through this run**: `v1`
+compared against the superseded policy, the pins are now mismatched (correction 6), and the matched comparison is
+`v2`'s (`PROTOCOL_V2.md` sections 1.1 and 4.2).
+
+---
+
+### Correction 4 - A FLAG IS AN ALERT; THE FLAG RATIOS ARE NOT MINIMUM DETECTABLE TRUE RATES
+
+Authority: root disposition section C; `reviews/cpu_grid_scientific_delivery_review.md` section 4;
+`PROTOCOL_V2.md` section 6. **The flag rule itself does not move**: same Wilson limit, same nominal, same
+comparison, same thresholds `x >= 64` at `N = 8,000` and `x >= 147` at `N = 20,000`.
+
+BEFORE (section 8.3, closing sentence):
+
+```
+Section 9.3 fixes the resolution: with `x = 0` events the Wilson interval is `[0, 0.000480]` at `N = 8,000` and `[0, 0.000192]` at `N = 20,000`; the design can only flag a per-gate rate at or above `1.280x` nominal at 2,000 programs and `1.176x` nominal at 5,000. **A violation smaller than that would pass unflagged** (section 1.3 item 5).
+```
+
+AFTER: the Wilson intervals at `x = 0` are retained as measured, and the inference from the ratios is replaced by
+the table now in section 8.3. **The old sentence is wrong in both directions**, and the numbers are computed rather
+than asserted:
+
+| true per-gate rate | relation to the nominal `0.00625` | `P(flag)` at `N = 8,000` | `P(flag)` at `N = 20,000` |
+|---|---|---|---|
+| `0.00625` | equal to it | `0.0314151088` | `0.0292396037` |
+| `0.00700` | above it, below the `1.280x` ratio | `0.1571523834` | `0.2874093726` |
+| `0.00800` | exactly the `1.280x` ratio | `0.5168241304` | `0.8585531745` |
+| `0.01000` | `1.6x` it | `0.9715571681` | `0.9999655074` |
+
+A violation **smaller** than the ratio flags with positive probability; a violation **at** the ratio goes unflagged
+about half the time. The root's own illustration is the second row: **a true rate of `.007`, which exceeds the
+nominal `.00625`, reaches the 64-event threshold with probability `0.1571523834`.** Computed twice here - once with
+`scipy.stats.binom.sf`, once in exact rational arithmetic - agreeing to every digit printed.
+
+**The rules that follow, and they bind `v2`:** do not require zero errors, all cells unflagged, or a favourable
+decision as a success criterion; investigate every alert on truth, assumptions, implementation **and** Monte Carlo
+uncertainty; report an unflagged result as "no exceedance was detected at this resolution" and never as "the bound
+holds"; never convert the absence of a flag into a bound on the true rate, nor a flag into a demonstrated violation;
+and remember that multiple inspected flags are **not** a simultaneous Monte Carlo theorem - each interval is
+marginal.
+
+The frozen text of `PROTOCOL.md` sections 1.3 item 5 and 9.3 is **not edited** by this report. Section 13 quotes it
+verbatim, as section 13.3 item 6 requires, with two editorial notes beneath the quotation.
+
+---
+
+### Correction 5 - EVERY `CPREFIX` AND `NAIVE` NUMBER IN THIS REPORT IS A LOWER BOUND
+
+Authority: root disposition section B and its witness; coordinator ruling 56, discharged by ruling 59;
+`LASTLOOK_CHECK.md`. **No number in this report is edited**; what is added is the qualifier every baseline number
+must now carry.
+
+`PROTOCOL.md` section 7.1 claimed that one look per enrollment prefix is an **exact** reduction of the all-triggers
+rule. **That claim is false for `CPREFIX` and `NAIVE` and is withdrawn for them.** The runner omits (i) the interior
+of the drain, ticks `2,001-2,199`, where completions keep arriving while the enrolled prefix is pinned at `N_max`,
+and (ii) intra-tick intermediate states when several pairs complete at one tick. A completed-data baseline's band
+depends on its completion index and not on the enrolled prefix, so those omitted looks are exactly the ones at which
+its index changes.
+
+The root's witness, reproduced here to every digit: at horizon 1,000 with permitted delays, at the omitted tick
+`1,010`, both baselines stand at index `600`, both means are `1/6`, `r(600) = 0.153363950255`, and **both lower
+bounds are `+0.013302716411`** - so both gates cross and both bands exclude the truth, while the `v1` runner records
+`NO_DECISION` and no miscoverage for both. The same construction fires at `T1`, the horizon that actually ran.
+
+**Therefore:** every `CPREFIX` and `NAIVE` count in sections 6, 7, 9 and 10 is a **lower bound** on its all-triggers
+counterpart, and every affected row is **understated** here. The exact list - **12** deposited rows under the batched
+reading and **77** under the finest, with both readings printed - is `LASTLOOK_CHECK.md` section 4.
+
+**Three things this does NOT touch, each checked rather than assumed:**
+
+- **Not one `ADAPTER` number moves, under any reading.** At a fixed prefix the adapter's radius and denominator are
+  frozen and each enclosure can only shrink, so `L` is nondecreasing and `U` nonincreasing to the last look at that
+  prefix - and the last look at prefix `N_max` **is** the finalization look. Brute-forced over every drain tick of
+  16,000 real grid trials: **0 non-monotone, 0 adapter events the finalization look does not also carry.**
+- **No Wilson flag changes state**, anywhere in the grid, under any of the three schedules.
+- **The positive control survives decisively**, and by an argument that needs no recomputation (correction 2).
+
+The repair is `PROTOCOL_V2.md` section 1.2 and it requires a `v2` run. **`v1` is not re-run to repair it**, and `v1`
+keeps its numbers and its label.
+
+---
+
+### Correction 6 - THE PIN IS STALE ON PURPOSE, AND THIS REPORT SAYS SO WHERE IT NAMES THE COMMIT
+
+Authority: coordinator ruling 60. Section 1 of this report already says, correctly, that commit `5776877` is **not**
+validated by this run. What is added is why re-pinning would make that worse rather than better.
+
+`#11` has moved since this run: `protocol_FINAL.md` went from `3c76e8eb...` to `b1ff97cc...`, and all three pinned
+monitor sources differ from their live counterparts. **The pin is deliberately not updated**, because updating it
+would assert that the completed run covered a version of `#11` that did not exist when it ran. The supersession is
+recorded in `cells.json -> vocabulary_alignment.superseded_by` with its reason and its ruling; `F18` passes on that
+record, and the fixture gate is **18/18**. A comparison against the completed enclosure needs a re-pin, a
+re-snapshot of `pinned/`, and a **re-run**: that is `v2` (`PROTOCOL_V2.md` section 4.2), not an edit here.
+
+---
+
+### Correction 7 - PLANNING QUANTITIES CARRY THEIR CONVENTIONS, AND THE PERCENTAGE APPORTIONMENT IS WITHDRAWN
+
+Authority: root disposition section D; `reviews/power_diagnostic_theory_review.md` sections 2 and 3; coordinator
+revision 14 rulings 64 and 65.
+
+**This report never quoted these numbers**, and this entry exists so that they are not imported into it later. The
+full statement is `PROTOCOL_V2.md` section 7; the short form binds here:
+
+- **`17,097` is a DETERMINISTIC PATH calculation** - the first `n` with `r(n) < 0.03`, assuming the observed
+  difference stays exactly zero. `r(17,097) = 0.029999847357`, `r(17,096) = 0.030000672819`, recomputed here. It is
+  **not** a sufficient powered horizon and **not** a guarantee over all outcomes.
+- **`6,697` is a DETERMINISTIC PATH calculation** - the first `n` at which a fixed 40-stake ternary mixture,
+  evaluated on **fractional expected pilot counts under ONE illustrative law**, crosses `log(1/0.00625)`. Recomputed
+  here exactly. It is **neither demonstrated 80% power nor an expected stopping time**.
+- **`3,100` is a POWERED quantity and an ORACLE bound** - the integer ceiling of the `3099.178817` necessary horizon
+  from binary-KL data processing at an **80% power target**, and the derived `0.235108980920` at `n = 568` and
+  `0.148516462122` at `n = 295` are **upper bounds, not attainable maxima**. Recomputed here exactly.
+- **Permitted:** `17,097` against `6,697`, both path calculations under the same convention, ratio
+  **`2.552934149619`** - labelled as a ratio of two deterministic path crossings and nothing else.
+- **WITHDRAWN and not to reappear:** the percentage apportionment "estimator `27.5%`, anytime-validity price
+  `22.6%`, genuine no-difference `49.8%`". It was built by dividing a deterministic path calculation by a powered
+  quantity. Those are different kinds of number and the division is not meaningful. The middle term is **not** a
+  proved irreducible price of anytime validity: a fixed-horizon test that can reject only at its horizon is itself
+  anytime valid, so no universal positive monitoring penalty follows merely from demanding anytime validity.
+
+**The discipline, stated as a rule rather than a resolution:** before any number leaves this study, state its
+convention - deterministic path, powered, oracle, or observed - and refuse to combine terms whose conventions differ.
+
+---
+
+### Correction 8 - THE HORIZON IS A RULE, AND THIS REPORT QUOTES NO NUMBER AS "THE HORIZON"
+
+Authority: root disposition section A. **This report never quoted a live horizon**; this entry fixes the wording for
+anything that cites one from here.
+
+The rule is `N_P = floor(n_S1 / 2) + floor(n_S2 / 2)`, evaluated on the **verified roster after every exclusion**,
+with pairs formed inside a stratum and each stratum keeping its own leftover. **`565` is an upper ceiling, not a
+guaranteed final count**: it is the value under the *documented* allocation of the six smoke exclusions to
+previously unobserved MBPP, giving group counts `427 / 164 / 541` and floors `213 + 82 + 270 = 565`. Enumerated here
+over all 28 allocations of those six exclusions, `N_P` is **565 or 566** under both the two-stratum and the
+three-group reading - so six *unspecified* exclusions would not justify the grouped ceiling - and rules 2-4 of
+`protocol_FINAL.md` section 3.2 have not been applied yet, so the verified count can only go **down**. **`568` is a
+labelled historical pre-exclusion example** (`floor(591/2) + floor(547/2)`), not a horizon; `569` is the
+unstratified `1138 // 2` and is a reference row only.
+
+---
+
+### Correction 9 - THE OPTIONAL SECONDARY IS DESCRIPTIVE, AND IS NOT PROMOTED
+
+Authority: root disposition section E; `reviews/power_diagnostic_theory_review.md` section 5.
+
+The fixed positive-stake lower-wealth domination argument is **sound** under the stated bounded-support and
+enclosure assumptions, and no mathematical defect was found in it. **Its implementation and inferential
+specifications remain incomplete**, so it is an optional exploratory lower-wealth curve at the existing primary
+looks, with **no extra deployment trigger and no jointly calibrated secondary claim**. It is descriptive sensitivity
+**first**. It is not a prerequisite for the live study and not a reason to enlarge its sample. What must be frozen
+before any prospective use - threshold, grid, weights, clipping, support, endpoint-product calculation,
+recomputation rule, the current enrolled-prefix target, the legal looks, and a secondary alpha with its own family
+accounting - is listed in `PROTOCOL_V2.md` section 8. **Do not promote it.**
+
+---
+
+**Files this errata section writes:** this section of this file. No `v1` measured value, no deposited result, no
+`PROTOCOL.md` clause, no `cells.json` entry, no `#11` source and no Git state was touched.
 

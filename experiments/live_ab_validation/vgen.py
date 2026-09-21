@@ -18,6 +18,16 @@ frozen and with no discretion left to the implementer:
                  (namespace, cell, program, trial) and the frozen five-array
                  draw order.
 
+v2 AMENDMENT (root disposition section B).  ``adapter_tick_sums``,
+``completion_tick_states`` and ``completion_event_states`` put the SAME
+quantities on the full tick axis, so that the finalization window's interior --
+where the enrolled prefix is pinned and completions keep arriving -- stops being
+invisible.  ``build_missed_crossing_witness`` is the root's own witness, frozen
+here as a permanent named path, with ``witness_reachability`` beside it so that
+its legality is reported rather than assumed.  None of this changes a law, a
+weight, a delay rule, a reveal schedule, an enclosure, a seed or a draw order:
+every one of them adds LOOKS and computes nothing new at a look.
+
 SOURCE DECLARATION -- files read while writing this module
 ----------------------------------------------------------
 Read (the only sources used):
@@ -570,6 +580,258 @@ def finalization_ages(draw: TrialDraw, n_max: Optional[int] = None) -> np.ndarra
     """PROTOCOL 7.3: the drain look at tick ``N_max + W``, prefix still ``N_max``."""
     n = draw.n if n_max is None else int(n_max)
     return (n + DRAIN_W) - np.arange(1, draw.n + 1, dtype=np.int64)
+
+
+# ===========================================================================
+# v2 AMENDMENT (root disposition section B): the same quantities on the FULL
+# tick axis, carried through the whole finalization window
+# ===========================================================================
+# v1 evaluated the three constructions at one look per enrolled prefix plus the
+# single finalization look, so the drain interior -- ticks N_max+1 .. N_max+W-1,
+# where the enrolled prefix is pinned but completions keep arriving -- was never
+# looked at.  The three kernels below put every tick of that window on the axis.
+# They ADD looks; they change no law, no enclosure, no radius and no gate, and
+# each one reduces to its v1 counterpart on the ticks v1 already had.  ``vrun``
+# asserts both of those reductions.
+# ===========================================================================
+def adapter_tick_sums(draw: TrialDraw, n_max: Optional[int] = None,
+                      last_tick: Optional[int] = None) -> PrefixSums:
+    """``sum(lower)``/``sum(upper)`` at EVERY tick ``t = 0 .. last_tick``.
+
+    The same difference array over the same at-most-five breakpoints per pair as
+    ``adapter_prefix_sums``, simply not truncated at the enrollment cap.  The
+    enrolled prefix at tick ``t`` is ``min(t, n_max)``: no pair enrolls after the
+    cap, so past it the sums move only because pending pairs keep narrowing,
+    which is exactly PROTOCOL 7.3's drain.
+
+    Reduction, asserted by ``vrun._assert_v2_reduces_to_v1``:
+    ``adapter_tick_sums(draw, n, T)[t] == adapter_prefix_sums(draw, n)[t]`` for
+    every ``t <= n``, and the value at ``t = n + DRAIN_W`` equals the sum of
+    ``state_at_age(draw, finalization_ages(draw, n))``.
+    """
+    n = draw.n if n_max is None else int(n_max)
+    last = (n + DRAIN_W) if last_tick is None else int(last_tick)
+    positions = np.arange(1, draw.n + 1, dtype=np.int64)
+    ages = np.stack([np.zeros(draw.n, dtype=np.int64), draw.f,
+                     draw.a_narrow, draw.a_collapse, draw.d])
+    st = state_at_age(draw, ages)
+    ticks = np.minimum(positions[None, :] + ages, last + 1).ravel()
+
+    out: List[np.ndarray] = []
+    for values in (st.h_lo, st.h_hi, st.s_lo, st.s_hi):
+        v = values.astype(np.int64)
+        delta = v.copy()
+        delta[1:] -= v[:-1]
+        totals = np.bincount(ticks, weights=delta.ravel().astype(np.float64),
+                             minlength=last + 2)[:last + 1]
+        out.append(np.cumsum(totals))
+    updates = int(np.count_nonzero(
+        np.concatenate([np.ones((1, draw.n), dtype=bool),
+                        (np.diff(st.h_lo, axis=0) != 0)
+                        | (np.diff(st.h_hi, axis=0) != 0)
+                        | (np.diff(st.s_lo, axis=0) != 0)
+                        | (np.diff(st.s_hi, axis=0) != 0)])))
+    return PrefixSums(h_lo=out[0], h_hi=out[1], s_lo=out[2], s_hi=out[3],
+                      updates=updates)
+
+
+@dataclass
+class CompletionStates:
+    """A completed-data construction's index and score sums at a set of looks.
+
+    ``index`` is the construction's own denominator (``k`` for the longest fully
+    resolved prefix, ``m`` for the completed count), ``sum_h``/``sum_s`` are the
+    exact integer score sums it carries there, and ``tick`` is the enrollment
+    tick at which that state holds.  All four arrays have the same length.
+    """
+
+    index: np.ndarray
+    sum_h: np.ndarray
+    sum_s: np.ndarray
+    tick: np.ndarray
+
+
+def completion_tick_states(draw: TrialDraw, n_max: Optional[int] = None,
+                           last_tick: Optional[int] = None
+                           ) -> Tuple[CompletionStates, CompletionStates]:
+    """``(cprefix, naive)`` end-of-tick states at every tick ``1 .. last_tick``.
+
+    This is the TICK-BATCHED reading: every event carrying tick ``t`` -- the
+    enrollment of pair ``t``, and every resolution and reveal dated ``t`` -- is
+    applied atomically and exactly one look is taken, at the resulting
+    end-of-tick state.  It needs no tie order, so it is well defined without any
+    choice the protocol does not make.
+    """
+    n = draw.n if n_max is None else int(n_max)
+    last = (n + DRAIN_W) if last_tick is None else int(last_tick)
+    ticks = np.arange(1, last + 1, dtype=np.int64)
+    res_tick = draw.resolution_tick
+    cum_z, cum_d = prefix_sums_of_scores(draw)
+
+    running_max = np.maximum.accumulate(res_tick)
+    k = np.searchsorted(running_max, ticks, side="right")
+    cpref = CompletionStates(index=k, sum_h=cum_z[k], sum_s=cum_d[k], tick=ticks)
+
+    order = np.argsort(res_tick, kind="stable")
+    rt_sorted = res_tick[order]
+    cz = np.concatenate([[0.0], np.cumsum(draw.z[order].astype(np.float64))])
+    cd = np.concatenate([[0.0], np.cumsum(draw.dsc[order].astype(np.float64))])
+    m = np.searchsorted(rt_sorted, ticks, side="right")
+    naive = CompletionStates(index=m, sum_h=cz[m], sum_s=cd[m], tick=ticks)
+    return cpref, naive
+
+
+def completion_event_states(draw: TrialDraw, n_max: Optional[int] = None,
+                            last_tick: Optional[int] = None
+                            ) -> Tuple[CompletionStates, CompletionStates]:
+    """``(cprefix, naive)`` at EVERY distinct completion-index state.
+
+    This is the one-event-at-a-time reading of the same window, and it is the
+    strictly larger look set: the completed-data index can jump by more than one
+    at a tick (100 pairs can resolve together), and the intermediate values it
+    skips are states no tick-batched look ever occupies.
+
+    **The declared sub-tick order**, without which this reading is not a
+    function: within one tick the enrollment of that tick's pair is applied
+    first, and every other event of the tick follows in ascending enrollment
+    position.  For ``cprefix`` the state is a function of ``k`` alone, so this
+    set is the exact union over every admissible order and the declaration costs
+    nothing; for ``naive`` the intermediate partial sums do depend on the order,
+    and this is one admissible schedule rather than a bound over all of them.
+    That asymmetry is why the tick-batched reading, not this one, is the
+    primary.  Each state is dated with the tick at which it is first attained.
+    """
+    n = draw.n if n_max is None else int(n_max)
+    last = (n + DRAIN_W) if last_tick is None else int(last_tick)
+    res_tick = draw.resolution_tick
+    cum_z, cum_d = prefix_sums_of_scores(draw)
+
+    running_max = np.maximum.accumulate(res_tick)
+    k_last = int(np.searchsorted(running_max, last, side="right"))
+    k = np.arange(1, k_last + 1, dtype=np.int64)
+    cpref = CompletionStates(
+        index=k, sum_h=cum_z[k], sum_s=cum_d[k],
+        tick=(running_max[:k_last] if k_last
+              else np.zeros(0, dtype=np.int64)).astype(np.int64))
+
+    order = np.argsort(res_tick, kind="stable")
+    rt = res_tick[order]
+    keep = rt <= last
+    rt, order = rt[keep], order[keep]
+    m = np.arange(1, len(rt) + 1, dtype=np.int64)
+    naive = CompletionStates(
+        index=m, sum_h=np.cumsum(draw.z[order].astype(np.float64)),
+        sum_s=np.cumsum(draw.dsc[order].astype(np.float64)),
+        tick=rt.astype(np.int64))
+    return cpref, naive
+
+
+# ===========================================================================
+# THE MISSED-CROSSING WITNESS -- a permanent, frozen deterministic path
+# ===========================================================================
+#: Enrollment blocks of the witness, per horizon: (first pair, last pair, atom,
+#: full-reveal tick; tick 0 means "resolves at its own enrollment tick").
+MISSED_CROSSING_BLOCKS: Dict[int, Tuple[Tuple[int, int, str, int], ...]] = {
+    1000: ((1, 500, "BB0", 0), (501, 600, "C>I", 1010),
+           (601, 700, "I>C", 1100), (701, 1000, "BB0", 1200)),
+    2000: ((1, 1400, "BB0", 0), (1401, 1600, "C>I", 2010),
+           (1601, 1800, "I>C", 2100), (1801, 2000, "BB0", 2200)),
+}
+
+
+def build_missed_crossing_witness(n_max: int = 1000) -> TrialDraw:
+    """The root's witness: a permitted path whose crossing v1 cannot see.
+
+    Cell ``C1`` (``L1`` outcome law, ``N`` noninformative delay), every pair
+    with ``f = d`` so that the first reveal IS the full reveal, which has
+    probability ``1/(d+1) > 0`` under PROTOCOL 4.3.  At ``n_max = 1,000``:
+
+        pairs      1-  500  BB0  Z=0  D=0   resolve at their own enrollment tick
+        pairs    501-  600  C>I  Z=+1 D=+1  all resolve together at tick 1,010
+        pairs    601-  700  I>C  Z=-1 D=-1  all resolve together at tick 1,100
+        pairs    701-1,000  BB0  Z=0  D=0   all resolve together at tick 1,200
+
+    Enrollment stops at tick 1,000 and the finalization tick is 1,200, so ticks
+    1,010 and 1,100 lie in the drain interior, where the enrolled prefix is
+    pinned at 1,000 and the v1 schedule takes no look at all.  At tick 1,010
+    both completed-data baselines stand at index 600 carrying score sum +100, so
+    both means are 1/6 and both lower bounds are ``1/6 - r(600)``.  The realized
+    path sums to ``sum Z = sum D = 0`` against the cell's true ``mu_h = mu_s = 0``,
+    so the crossing is a genuine miscoverage and a genuine false DEPLOY.
+
+    Every delay used is inside its declared support (SHORT ``0-19``, LONG
+    ``100-699``) and every atom used carries positive weight under ``L1``;
+    ``witness_reachability`` returns those checks rather than asserting them
+    here, so a caller can print them.  Only the five drawn arrays are supplied
+    by hand -- ``s_rev``, the cost columns and the two cost-tier thresholds are
+    computed by the frozen code path below, so the witness cannot be built out
+    of a shortcut.
+    """
+    blocks = MISSED_CROSSING_BLOCKS.get(int(n_max))
+    if blocks is None:
+        raise ValueError(f"no witness is frozen at N_max = {n_max}; "
+                         f"available: {sorted(MISSED_CROSSING_BLOCKS)}")
+    n_max = int(n_max)
+    names: List[str] = [""] * n_max
+    d = np.zeros(n_max, dtype=np.int64)
+    for lo, hi, atom, tick in blocks:
+        for j in range(lo, hi + 1):
+            names[j - 1] = atom
+            d[j - 1] = 0 if tick == 0 else tick - j
+    f = d.copy()                                   # first reveal == full reveal
+    cand_first = np.zeros(n_max, dtype=bool)
+    cand_first[::2] = True                         # the fair coin is free here
+
+    atom = np.array([ATOM_ORDER.index(a) for a in names], dtype=np.int8)
+    s_c, s_i = ATOM_SC[atom], ATOM_SI[atom]
+    c_c, c_i = ATOM_CC[atom], ATOM_CI[atom]
+    s_rev = np.where(cand_first, s_c, s_i).astype(np.int8)
+    c_rev = np.where(cand_first, c_c, c_i)
+    c_pend = np.where(cand_first, c_i, c_c)
+    code = (c_rev > 20.0).astype(np.int8) * 2 + (c_pend > 20.0).astype(np.int8)
+    combo = np.where(s_rev == 1, _COMBO_CODE[code], -1)
+    safe = np.maximum(combo, 0)
+    a_narrow = np.where(combo >= 0, THRESH_NARROW[safe, d], d)
+    a_collapse = np.where(combo >= 0, THRESH_COLLAPSE[safe, d], d)
+    return TrialDraw(
+        cell=CELL_BY_ID["C1"], namespace=NAMESPACE_FIXTURE, program_index=0,
+        trial_index=0, n=n_max, atom=atom, z=ATOM_Z[atom], dsc=ATOM_D[atom],
+        d=d, f=f, cand_first=cand_first, s_rev=s_rev, c_rev=c_rev,
+        c_pend=c_pend, a_narrow=np.clip(a_narrow, f, d),
+        a_collapse=np.clip(a_collapse, f, d))
+
+
+def witness_reachability(draw: TrialDraw) -> Dict[str, object]:
+    """Is every delay of a hand-built path inside its declared support?
+
+    A witness outside the support would prove nothing about this study, so this
+    is reported with the witness rather than assumed.  It also returns the
+    realized score sums, which must equal the cell's truth for the crossing to
+    be a miscoverage rather than a correct reading of a different path.
+    """
+    d = draw.d
+    short, long_ = d[d < LONG_LOW], d[d >= LONG_LOW]
+    atoms = sorted({ATOM_ORDER[a] for a in draw.atom})
+    return {
+        "cell": draw.cell.id, "law": draw.cell.law, "delay_rule": draw.cell.delay,
+        "short_offsets_used": [int(short.min()), int(short.max())] if short.size
+                              else [],
+        "short_support": [SHORT_LOW, SHORT_HIGH],
+        "every_short_offset_in_support": bool(
+            short.size == 0 or ((short >= SHORT_LOW) & (short <= SHORT_HIGH)).all()),
+        "long_offsets_used": [int(long_.min()), int(long_.max())] if long_.size
+                             else [],
+        "long_support": [LONG_LOW, LONG_HIGH],
+        "every_long_offset_in_support": bool(
+            long_.size == 0 or ((long_ >= LONG_LOW) & (long_ <= LONG_HIGH)).all()),
+        "first_reveal_equals_full_reveal": bool(np.array_equal(draw.f, draw.d)),
+        "atoms_used": atoms,
+        "every_atom_has_positive_weight": all(
+            LAW_WEIGHTS[draw.cell.law][a] > 0 for a in atoms),
+        "p_long_under_rule_N": float(p_long_rule_n(draw.cell.law)),
+        "realized_sum_z": int(draw.z.sum()), "realized_sum_d": int(draw.dsc.sum()),
+        "true_mu_h": float(draw.cell.mu_h), "true_mu_s": float(draw.cell.mu_s),
+    }
 
 
 # ===========================================================================

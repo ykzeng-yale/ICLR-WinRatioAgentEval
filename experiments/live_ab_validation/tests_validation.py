@@ -3,11 +3,12 @@
 SOURCE DECLARATION -- files read while writing this module
 ----------------------------------------------------------
 Read: reviews/arxiv_live_design_guidance.md, src/winstats.py, the issue-#12 task
-text, and this directory's own ``vband.py`` / ``vfixtures.py``.  NOT read,
-opened, grepped or imported: experiments/live_ab/lab_monitor.py,
-experiments/live_ab/lab_enclosure.py, experiments/live_ab/lab_reference_rule.py,
-experiments/live_ab/design/protocol_FINAL.md sections 7-8, or anything else
-under experiments/live_ab/.
+text, and this directory's own ``vband.py`` / ``vfixtures.py`` / ``vgen.py`` /
+``vrun.py``, plus, for the v2 event-schedule regression only,
+reviews/cpu_v1_delivery_root_disposition.md section B and this directory's
+PROTOCOL.md sections 7.1, 7.3 and 9.  NOT read, opened, grepped or imported:
+the #11 monitor, enclosure and reference-rule modules, the #11 frozen protocol's
+monitor sections, or anything else under that experiment's directory.
 
 What is checked here, beyond replaying every deterministic fixture:
 
@@ -69,6 +70,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import vband  # noqa: E402
 import vfixtures  # noqa: E402
+import vgen  # noqa: E402
+import vrun  # noqa: E402
 from vband import (  # noqa: E402
     ALPHA_GATE, CONTINUE, DELTA, DEPLOY, Enclosure, EnclosureContradiction,
     Episode, N_MIN, ProtocolViolation, RETAIN_INCUMBENT, RHO, SwitchPhaseError,
@@ -1330,6 +1333,396 @@ class TestLargeProgramSmoke(unittest.TestCase):
             self.assertGreaterEqual(band.mean_upper, mean - 1e-12)
         # with a large unresolved fraction the conservative band must abstain
         self.assertEqual(final.decision, CONTINUE)
+
+
+# ===========================================================================
+# THE MISSED-CROSSING REGRESSION  (root disposition section B)
+# ===========================================================================
+# The root's open finding: the deposited v1 runner OMITS the intermediate drain
+# looks at which a completed-data baseline's completion index changes.  At
+# horizon 1,000, using delays inside their declared support, there is a
+# permitted tick at which BOTH baseline lower bounds are +0.0133027164 and BOTH
+# deploy gates cross -- and the v1 runner never evaluates it, so it records no
+# decision and no miscoverage for either baseline.
+#
+# These tests are the permanent regression.  They are written so that they FAIL
+# against the v1 schedule and PASS against v2: if the v2 event schedule is ever
+# reverted, narrowed back to the enrollment prefixes, or loses the drain
+# interior, ``test_v2_evaluates_the_missed_tick_and_both_gates_cross`` fails on
+# exactly the tick the root named.  The v1 behaviour is pinned too, from the
+# other side, so the difference between the two schedules is a measured fact in
+# this suite rather than a claim in a document.
+#
+# This is a DETERMINISTIC PATH.  It refutes the claim that the v1 look set is
+# complete; it is not an estimate of how often such a path occurs, and no rate,
+# power or operating characteristic is claimed anywhere below.
+# ===========================================================================
+class TestMissedCrossingWitness(unittest.TestCase):
+    """The root's witness at N_max = 1,000, and the schedule repair that sees it."""
+
+    N_MAX = 1000
+    TICK = 1010                 # the permitted drain tick v1 never evaluates
+    INDEX = 600                 # both baselines' completion index there
+    #: clip(100/600 - r(600), -1, 1), pinned as a literal.  The root's
+    #: disposition prints it rounded to ten places as +0.0133027164.
+    LOWER = 0.013302716411199761
+
+    @classmethod
+    def setUpClass(cls):
+        cls.draw = vgen.build_missed_crossing_witness(cls.N_MAX)
+        cls.cfg = vrun.make_config(cls.N_MAX, vgen.NAMESPACE_FIXTURE)
+
+    # -- the path is legal --------------------------------------------------
+    def test_the_witness_is_a_permitted_path_of_the_frozen_process(self):
+        """A witness outside the declared support would prove nothing."""
+        r = vgen.witness_reachability(self.draw)
+        self.assertEqual(r["cell"], "C1")
+        self.assertTrue(r["every_short_offset_in_support"], r)
+        self.assertTrue(r["every_long_offset_in_support"], r)
+        self.assertTrue(r["first_reveal_equals_full_reveal"])
+        self.assertTrue(r["every_atom_has_positive_weight"], r)
+        self.assertGreater(r["p_long_under_rule_N"], 0.0)
+        # the realized path sums to the truth, so the crossing IS a miscoverage
+        self.assertEqual(r["realized_sum_z"], 0)
+        self.assertEqual(r["realized_sum_d"], 0)
+        self.assertEqual(r["true_mu_h"], 0.0)
+        self.assertEqual(r["true_mu_s"], 0.0)
+
+    def test_the_missed_tick_lies_in_the_drain_interior(self):
+        """v1 takes no look between the enrollment cap and finalization."""
+        self.assertEqual(self.cfg.finalization_tick, self.N_MAX + vgen.DRAIN_W)
+        self.assertGreater(self.TICK, self.N_MAX)
+        self.assertLess(self.TICK, self.cfg.finalization_tick)
+
+    # -- v1: the defect, pinned from its own side ---------------------------
+    def test_v1_schedule_misses_the_crossing_entirely(self):
+        """The v1 runner returns NO_DECISION and no miscoverage on this path."""
+        recs, n_looks, _ = vrun.evaluate_trial(self.draw, self.cfg,
+                                               vrun.SCHEDULE_V1)
+        self.assertEqual(n_looks, self.N_MAX + 1)
+        series, _, _, _ = vrun.build_series(self.draw, self.cfg)
+        for name in (vrun.CPREFIX, vrun.NAIVE):
+            rec, s = recs[name], series[name]
+            self.assertEqual(rec.decision, vrun.NO_DECISION, name)
+            self.assertFalse(rec.ever_miscover_h, name)
+            self.assertFalse(rec.ever_miscover_s, name)
+            # not "it decided late": the gate never opens at ANY v1 look
+            self.assertLess(float(s.l_h.max()), 0.0, name)
+            self.assertNotIn(self.TICK, set(s.tick.tolist()),
+                             f"{name}: the missed tick must be absent from the "
+                             f"v1 axis, or there is nothing to repair")
+
+    # -- v2: THE REGRESSION -------------------------------------------------
+    def test_v2_evaluates_the_missed_tick_and_both_gates_cross(self):
+        """THE regression.  Reverting the schedule to v1 fails this test.
+
+        At tick 1,010 both completed-data baselines stand at completion index
+        600 with score sum +100, so both means are 1/6 and both lower bounds are
+        1/6 - r(600).  L_h > 0 and L_s > -delta hold at the SAME look, so the
+        deploy gate fires; the truth is 0 in both gates, so both bands exclude
+        it.  Every number below is asserted at strict float equality.
+        """
+        series, _, _, _ = vrun.build_series_v2(self.draw, self.cfg)
+        for name in (vrun.CPREFIX, vrun.NAIVE):
+            s = series[name]
+            pos = int(np.flatnonzero(s.tick == self.TICK)[0])
+            self.assertEqual(int(s.index[pos]), self.INDEX, name)
+            self.assertEqual(int(s.prefix[pos]), self.N_MAX,
+                             f"{name}: the enrolled prefix is pinned in the drain")
+            self.assertEqual(float(s.l_h[pos]), self.LOWER, name)
+            self.assertEqual(float(s.l_s[pos]), self.LOWER, name)
+            self.assertEqual(f"{float(s.l_h[pos]):+.10f}", "+0.0133027164", name)
+            # both gates, at the same look
+            self.assertGreater(float(s.l_h[pos]), 0.0, name)
+            self.assertGreater(float(s.l_s[pos]), -self.cfg.delta, name)
+            self.assertGreaterEqual(int(s.index[pos]), self.cfg.n_min, name)
+            # and the band excludes the truth in both gates
+            self.assertLess(0.0, float(s.l_h[pos]), name)
+            self.assertLess(0.0, float(s.l_s[pos]), name)
+
+    def test_v2_records_the_decision_and_both_miscoverages(self):
+        """The same crossing, read through the reported per-trial record."""
+        recs, n_looks, _ = vrun.evaluate_trial(self.draw, self.cfg,
+                                               vrun.SCHEDULE_V2)
+        self.assertEqual(n_looks, self.cfg.finalization_tick)
+        for name in (vrun.CPREFIX, vrun.NAIVE):
+            rec = recs[name]
+            self.assertEqual(rec.decision, vrun.DEPLOY, name)
+            self.assertTrue(rec.ever_miscover_h, name)
+            self.assertTrue(rec.ever_miscover_s, name)
+            self.assertTrue(rec.ever_below_h, name)
+            self.assertTrue(rec.ever_below_s, name)
+            self.assertTrue(rec.decided_in_drain, name)
+            self.assertFalse(rec.decided_at_finalization,
+                             f"{name}: it decides in the drain INTERIOR, not at "
+                             f"the finalization look")
+
+    def test_enrollment_prefix_and_elapsed_time_are_two_separate_records(self):
+        """v1 conflated them; on this path they differ by 10 ticks."""
+        recs, _, _ = vrun.evaluate_trial(self.draw, self.cfg, vrun.SCHEDULE_V2)
+        for name in (vrun.CPREFIX, vrun.NAIVE):
+            rec = recs[name]
+            self.assertEqual(rec.tau, self.N_MAX, f"{name}: enrolled prefix")
+            self.assertEqual(rec.tau_tick, self.TICK, f"{name}: elapsed time")
+            self.assertNotEqual(rec.tau, rec.tau_tick, name)
+            self.assertEqual(rec.look_prefix, self.N_MAX, name)
+            self.assertEqual(rec.look_tick, self.TICK, name)
+        # a non-decider takes the two declared caps, also separately
+        adapter = recs[vrun.ADAPTER]
+        self.assertEqual(adapter.decision, vrun.NO_DECISION)
+        self.assertEqual(adapter.tau, self.N_MAX)
+        self.assertEqual(adapter.tau_tick, self.cfg.finalization_tick)
+
+    def test_the_regression_discriminates_the_two_schedules(self):
+        """A guard that cannot fail proves nothing: show it separates them."""
+        v1, _, _ = vrun.evaluate_trial(self.draw, self.cfg, vrun.SCHEDULE_V1)
+        v2, _, _ = vrun.evaluate_trial(self.draw, self.cfg, vrun.SCHEDULE_V2)
+        for name in (vrun.CPREFIX, vrun.NAIVE):
+            self.assertNotEqual(v1[name].decision, v2[name].decision, name)
+            self.assertNotEqual(v1[name].ever_miscover_h,
+                                v2[name].ever_miscover_h, name)
+            self.assertNotEqual(v1[name].tau_tick, v2[name].tau_tick, name)
+
+    def test_the_finest_reading_also_sees_it_and_sees_more(self):
+        """The declared sensitivity is a strict superset, and fires no later."""
+        batched, _, _, _ = vrun.build_series_v2(self.draw, self.cfg, finest=False)
+        finest, _, _, _ = vrun.build_series_v2(self.draw, self.cfg, finest=True)
+        recs, _, _ = vrun.evaluate_trial(self.draw, self.cfg,
+                                         vrun.SCHEDULE_V2_FINEST)
+        for name in (vrun.CPREFIX, vrun.NAIVE):
+            self.assertGreater(finest[name].index.size, batched[name].index.size,
+                               name)
+            self.assertEqual(recs[name].decision, vrun.DEPLOY, name)
+            self.assertLessEqual(recs[name].tau_tick, self.TICK, name)
+        # the ADAPTER's look set is unchanged by the finest reading, which is the
+        # domination theorem of the schedule declaration, not a convenience
+        self.assertEqual(finest[vrun.ADAPTER].index.size,
+                         batched[vrun.ADAPTER].index.size)
+
+    def test_the_adapter_is_untouched_by_the_repair(self):
+        """LASTLOOK_CHECK (b): not one ADAPTER reading moves, under any schedule."""
+        out = {}
+        for sched in vrun.SCHEDULES:
+            recs, _, _ = vrun.evaluate_trial(self.draw, self.cfg, sched)
+            rec = recs[vrun.ADAPTER]
+            out[sched] = (rec.decision, rec.ever_miscover_h, rec.ever_miscover_s)
+        self.assertEqual(len(set(out.values())), 1, out)
+        self.assertEqual(out[vrun.SCHEDULE_V1],
+                         (vrun.NO_DECISION, False, False))
+
+    def test_the_witness_is_frozen_at_the_horizon_that_actually_ran(self):
+        """The same construction at N_max = 2,000, the deposited horizon."""
+        draw = vgen.build_missed_crossing_witness(2000)
+        cfg = vrun.make_config(2000, vgen.NAMESPACE_FIXTURE)
+        r = vgen.witness_reachability(draw)
+        self.assertTrue(r["every_long_offset_in_support"], r)
+        self.assertEqual(r["realized_sum_z"], 0)
+        v1, _, _ = vrun.evaluate_trial(draw, cfg, vrun.SCHEDULE_V1)
+        v2, _, _ = vrun.evaluate_trial(draw, cfg, vrun.SCHEDULE_V2)
+        for name in (vrun.CPREFIX, vrun.NAIVE):
+            self.assertEqual(v1[name].decision, vrun.NO_DECISION, name)
+            self.assertEqual(v2[name].decision, vrun.DEPLOY, name)
+            self.assertEqual(v2[name].tau_tick, 2010, name)
+            self.assertEqual(v2[name].tau, 2000, name)
+
+
+class TestV2EventSchedule(unittest.TestCase):
+    """The declared schedule's two structural promises, checked not asserted."""
+
+    def _draws(self, n_max=300, programs=2):
+        for cell in vgen.CELLS:
+            for p in range(programs):
+                for t in range(vgen.TRIALS_PER_PROGRAM):
+                    yield vgen.draw_trial(cell, p, t, n_max=n_max,
+                                          namespace=vgen.NAMESPACE_SMOKE)
+
+    def test_v1_look_set_is_a_subset_of_v2_state_for_state(self):
+        """If this fails, v2 is a different measurement, not an amendment."""
+        cfg = vrun.make_config(300, vgen.NAMESPACE_SMOKE)
+        n = 0
+        for draw in self._draws():
+            vrun.assert_v2_reduces_to_v1(draw, cfg)
+            n += 1
+        self.assertGreaterEqual(n, 64)
+        for n_max in sorted(vgen.MISSED_CROSSING_BLOCKS):
+            vrun.assert_v2_reduces_to_v1(
+                vgen.build_missed_crossing_witness(n_max),
+                vrun.make_config(n_max, vgen.NAMESPACE_FIXTURE))
+
+    def test_every_completion_index_change_is_on_the_v2_axis(self):
+        """Disposition section B: EVERY required completion-index change.
+
+        For each baseline, collect every tick through the finalization window at
+        which its own index changes, and require the v2 axis to carry a look at
+        that tick carrying that index.  The check is made live by also asserting
+        that changes occur in the drain interior, where v1 had no axis at all.
+        """
+        n_max = 300
+        cfg = vrun.make_config(n_max, vgen.NAMESPACE_SMOKE)
+        fin = cfg.finalization_tick
+        drain_changes = 0
+        for draw in self._draws(n_max=n_max):
+            series, _, _, _ = vrun.build_series_v2(draw, cfg)
+            cpref, naive = vgen.completion_tick_states(draw, n_max, fin)
+            for name, st in ((vrun.CPREFIX, cpref), (vrun.NAIVE, naive)):
+                changed = np.flatnonzero(np.diff(st.index, prepend=0) != 0)
+                s = series[name]
+                axis = dict(zip(s.tick.tolist(), s.index.tolist()))
+                for i in changed:
+                    tick = int(st.tick[i])
+                    self.assertIn(tick, axis, f"{name}: tick {tick} is off the axis")
+                    self.assertEqual(axis[tick], int(st.index[i]), name)
+                    if tick > n_max:
+                        drain_changes += 1
+        self.assertGreater(drain_changes, 0,
+                           "no completion-index change landed in the drain, so "
+                           "this check is vacuous on these draws")
+
+    def test_the_declared_batching_makes_the_adapter_end_of_tick_dominant(self):
+        """The domination argument, driven through the frozen enclosure code."""
+        cfg = vrun.make_config(120, vgen.NAMESPACE_SMOKE)
+        checked = 0
+        for draw in self._draws(n_max=120, programs=1):
+            checked += vrun.assert_adapter_intratick_domination(draw, cfg)
+        self.assertGreater(checked, 500,
+                           "no intra-tick adapter state was exercised")
+
+    def test_the_v2_axis_covers_the_whole_finalization_window(self):
+        cfg = vrun.make_config(300, vgen.NAMESPACE_SMOKE)
+        draw = next(self._draws(n_max=300, programs=1))
+        series, _, _, _ = vrun.build_series_v2(draw, cfg)
+        ticks = series[vrun.ADAPTER].tick
+        self.assertEqual(int(ticks[0]), 1)
+        self.assertEqual(int(ticks[-1]), cfg.finalization_tick)
+        self.assertEqual(ticks.size, cfg.finalization_tick)
+        self.assertTrue(np.array_equal(
+            ticks, np.arange(1, cfg.finalization_tick + 1)))
+        # the enrolled prefix is pinned through the window, the clock is not
+        prefix = series[vrun.ADAPTER].prefix
+        self.assertEqual(int(prefix[-1]), cfg.n_max)
+        self.assertEqual(int(prefix[cfg.n_max - 1]), cfg.n_max)
+
+    def test_no_scientific_rule_moved_with_the_schedule(self):
+        """A schedule says WHICH states are looked at, not what is computed."""
+        self.assertEqual(vband.ALPHA_GATE, 0.00625)
+        self.assertEqual(vband.RHO, 100.0)
+        self.assertEqual(vband.DELTA, 0.03)
+        self.assertEqual(vband.N_MIN, 100)
+        self.assertEqual(vgen.DRAIN_W, 200)
+        cfg = vrun.make_config(300, vgen.NAMESPACE_SMOKE)
+        draw = next(self._draws(n_max=300, programs=1))
+        v1, _, _, _ = vrun.build_series(draw, cfg)
+        v2, _, _, _ = vrun.build_series_v2(draw, cfg)
+        # identical band arithmetic wherever the two axes meet
+        for name in vrun.CONSTRUCTIONS:
+            a, b = v1[name], v2[name]
+            pos = np.searchsorted(b.tick, a.tick)
+            for f in ("l_h", "u_h", "l_s", "u_s"):
+                self.assertTrue(np.array_equal(getattr(b, f)[pos],
+                                               getattr(a, f)), f"{name}.{f}")
+
+    def test_v1_output_layout_is_frozen(self):
+        """A v1 re-run must still write v1's own record layout."""
+        self.assertEqual(vrun.trial_header(vrun.SCHEDULE_V1), vrun.TRIAL_HEADER)
+        self.assertIn("decision,tau,decided_at_finalization", vrun.TRIAL_HEADER)
+        self.assertNotIn("tau_tick", vrun.TRIAL_HEADER)
+        v2 = vrun.trial_header(vrun.SCHEDULE_V2)
+        self.assertIn("tau_prefix", v2)
+        self.assertIn("tau_tick", v2)
+        self.assertIn("schedule", v2)
+
+    def test_it_agrees_with_the_independent_last_look_harness(self):
+        """Two implementations of the same amendment, state for state.
+
+        ``vlastlook_check.py`` measured the drain reading (``all_ticks``) and
+        the one-event-at-a-time reading (``finest``) independently of this
+        runner, and its numbers are already on the record.  If the v2 schedule
+        implemented here disagreed with that harness, one of the two is wrong
+        and neither measurement could be cited.
+        """
+        import vlastlook_check as VL
+
+        n_max = 300
+        cfg = vrun.make_config(n_max, vgen.NAMESPACE_SMOKE)
+        fin = cfg.finalization_tick
+        drain = finest = 0
+        for cell in vgen.CELLS:
+            for t in range(vgen.TRIALS_PER_PROGRAM):
+                draw = vgen.draw_trial(cell, 0, t, n_max=n_max,
+                                       namespace=vgen.NAMESPACE_SMOKE)
+                mine, _, _, _ = vrun.build_series_v2(draw, cfg)
+                ticks, states = VL.drain_states(draw, cfg)
+                pos = ticks - 1                     # my axis is ticks 1..fin
+                for name in (vrun.CPREFIX, vrun.NAIVE):
+                    idx, sh, ss = states[name]
+                    s = mine[name]
+                    self.assertTrue(np.array_equal(s.index[pos], idx), name)
+                    self.assertTrue(np.array_equal(s.tick[pos], ticks), name)
+                    ev = VL.band_events(idx, sh, ss, cfg, cell.mu_h, cell.mu_s)
+                    for theirs, ours in (("lo_h", "l_h"), ("hi_h", "u_h"),
+                                         ("lo_s", "l_s"), ("hi_s", "u_s")):
+                        self.assertTrue(
+                            np.array_equal(ev[theirs], getattr(s, ours)[pos]),
+                            f"{cell.id}/{name}/{theirs}")
+                    drain += len(ticks)
+                theirs = VL.finest_states(draw, cfg)
+                pair = dict(zip((vrun.CPREFIX, vrun.NAIVE),
+                                vgen.completion_event_states(draw, n_max, fin)))
+                for name, ms in pair.items():
+                    i2, sh2, ss2, rt2 = theirs[name]
+                    self.assertTrue(np.array_equal(ms.index, i2), name)
+                    self.assertTrue(np.array_equal(ms.sum_h, sh2), name)
+                    self.assertTrue(np.array_equal(ms.sum_s, ss2), name)
+                    self.assertTrue(np.array_equal(ms.tick, rt2), name)
+                    finest += ms.index.size
+        self.assertGreater(drain, 5000)
+        self.assertGreater(finest, 5000)
+
+    def test_the_finalization_record_is_retained_for_every_trial(self):
+        """Disposition section B: retain unresolved units at finalization.
+
+        v2 lets a trial decide inside the drain, and PROTOCOL 9.5 reports the
+        resolution quantities at the DECIDING look.  Without a separate
+        finalization record such a trial would leave nothing at the finalization
+        look, so v2 records both.  Checked on the witness, where the baselines
+        decide at tick 1,010 and the finalization look is tick 1,200.
+        """
+        draw = vgen.build_missed_crossing_witness(1000)
+        cfg = vrun.make_config(1000, vgen.NAMESPACE_FIXTURE)
+        recs, _, _ = vrun.evaluate_trial(draw, cfg, vrun.SCHEDULE_V2)
+        for name in (vrun.CPREFIX, vrun.NAIVE):
+            rec = recs[name]
+            self.assertEqual(rec.look_tick, 1010, name)
+            # at the deciding look 400 of 1,000 pairs are still unresolved:
+            # the 100 of block 601-700 and the 300 of block 701-1,000
+            self.assertAlmostEqual(rec.unresolved_fraction, 0.4, places=12)
+            self.assertEqual(rec.n_certified, 600, name)
+            # and the finalization record is still there, and is different
+            self.assertEqual(rec.final_unresolved_fraction, 0.0, name)
+            self.assertEqual(rec.final_n_certified, 1000, name)
+            self.assertNotEqual(rec.unresolved_fraction,
+                                rec.final_unresolved_fraction, name)
+        # nothing is censored: the denominator is N_max at both looks
+        self.assertEqual(recs[vrun.ADAPTER].look_tick, cfg.finalization_tick)
+        self.assertEqual(recs[vrun.ADAPTER].final_unresolved_fraction,
+                         recs[vrun.ADAPTER].unresolved_fraction)
+
+    def test_the_drain_arithmetic_agrees_with_the_monitor_itself(self):
+        """The looks v2 adds are new code, so they get their own cross-check.
+
+        ``vband.ValidationMonitor`` is driven event by event through the whole
+        window -- enrolling nothing after the cap, per PROTOCOL 7.3 -- and every
+        sum and band endpoint of the v2 adapter must equal its, at strict float
+        equality; both baselines are recomputed from their definitions.
+        """
+        fails = vrun.selfcheck_v2_drain(n_pairs=25, programs=1, verbose=False)
+        self.assertEqual(fails, [], fails[:5])
+
+    def test_unknown_schedules_are_refused(self):
+        with self.assertRaises(ValueError):
+            vrun.check_schedule("every_look")
+        with self.assertRaises(ValueError):
+            vrun.make_config(100, 0, schedule="v2")
 
 
 def _run() -> int:
