@@ -1,0 +1,49 @@
+{
+  "INCONSISTENCY_1_deposited_artifact_is_not_the_preimage_of_the_promoted_digest": {
+    "consequence": "the file I deposited as evidence for the environment lock does not reproduce the package component of the digest sitting in Appendix B. Root verified the artifact is internally consistent -- it is; it is simply not evidence for the promoted value.",
+    "finding": "environment_lock.txt is sorted by name.lower(); the package list hashed INTO the promoted digest is sorted by the (Name, version) tuple. The two orderings are NOT identical on this host.",
+    "severity": "the same failure shape as the profile digest: an artifact that looks like evidence for a promoted number and is not."
+  },
+  "INCONSISTENCY_2_promoted_digest_uses_a_non_canonical_serialization": {
+    "consequence": "a reader applying the project convention -- as root did -- gets a different number and reasonably concludes the value is wrong. It is not wrong; it is non-conforming.",
+    "finding": "842a7a19... is sha256 over Python's DEFAULT json.dumps separators, while this repository has one canonical JSON convention (lab_common.canonical_json, compact) used by every other digest in the freeze path.",
+    "my_view": "it should be re-derived under canonical_json and amended three-way with the old value preserved, so every digest in the freeze path shares one serialization. I have NOT done that: it changes a value in the pre-registration document and is root decision."
+  },
+  "THREE_HASHES_DISTINGUISHED": {
+    "deposited_artifact": {
+      "derivation": "name==version lines sorted by name.lower(), WITH a trailing newline",
+      "value": "40a9d196154fe5416a319898891aa586c8c0b32dee8e8f85a095986d589672de",
+      "where": "results/live_ab/environment_lock.txt, the file root independently verified"
+    },
+    "package_list_inside_that_object": {
+      "derivation": "name==version lines sorted by the (Name, version) TUPLE, joined with newlines, NO trailing newline",
+      "value": "08c1de5ae33d1fdd45424be7956c88471b8a8e47971608ac866aa6cb5247b053"
+    },
+    "whole_environment": {
+      "covers": "the entire environment_lock object: interpreter version, tokenized path, implementation, packages_sha256, packages_count, packages_source, numpy version and notes",
+      "value": "842a7a19d738604fbe665231a593a11f12cc02abfe9b1dc4034bc3817a9081ac",
+      "where": "config.json / ARCHITECTURE 6.1 / protocol Appendix B"
+    }
+  },
+  "deterministic_derivation": {
+    "result": "842a7a19d738604fbe665231a593a11f12cc02abfe9b1dc4034bc3817a9081ac",
+    "step_1": "take the preparation manifest's environment_lock object verbatim",
+    "step_2": "serialize with json.dumps(obj, sort_keys=True) using PYTHON DEFAULT separators (', ' and ': '), NOT compact",
+    "step_3": "sha256 of the UTF-8 bytes"
+  },
+  "exact_preimage_bytes": {
+    "bytes": 622,
+    "file": "results/live_ab/environment_lock_preimage.json",
+    "note": "the literal bytes that were hashed, deposited so anyone can recompute without reconstructing my script",
+    "sha256": "842a7a19d738604fbe665231a593a11f12cc02abfe9b1dc4034bc3817a9081ac"
+  },
+  "not_withdrawn_and_why": "my stated default was withdrawal if the preimage proved unreconstructible. It IS reconstructible, so withdrawing would destroy a recoverable value. The two inconsistencies are reported for a ruling instead.",
+  "outcome": "REPRODUCED. The value is derivable; two real inconsistencies surfaced in the process.",
+  "requested_by_root": "2026-09-21 20:43: 'The separate config value 842a7a19... is still NOT reproduced by the delivered artifact ... Deliver the exact original hashed bytes and deterministic derivation, distinguishing package-list hash from whole-environment hash.'",
+  "schema": "live_ab.environment_digest_derivation.1",
+  "why_root_got_a_different_value": {
+    "explanation": "root serialized the same object under the repository's canonical COMPACT convention. Same object, different serialization, different digest. Root was right not to guess a serialization.",
+    "roots_value": "b1e8f0012213517d160a6c96a4f08cd4f287bdd2485d26b93e89d03a551e2832",
+    "verified_here": "lab_common.canonical_json(env) reproduces b1e8f001... exactly"
+  }
+}
