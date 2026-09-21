@@ -295,6 +295,41 @@ executable), cumulative 8 — not summed.
 
 Tests: 184 validation + 79 panel + 86 design.
 
+**T1 SHARD EXECUTOR + RECEIPT CONTRACT IMPLEMENTED — execution still uncleared. 2026-09-21, head
+`44d05ee`.** Root spec `reviews/v2_launcher_root_disposition_20260921_1022.md`; plan
+`evidence/t1_shard_plan_20260921_1022.json`. *Convention: **design-based** (plan verification and
+orchestration checks). No scientific grid run, no native reference called, no effect value read.*
+
+**Root's shard plan verified independently before building on it:** 56 shards × 500 programs, **28,000
+unique coordinates, zero duplicates, zero gaps**, order = ascending block then C1→C8, sequences 1–56
+exactly once; totals 112,000 trials / 224,000 reference calls / 336,000 primary rows / 672,000
+reference rows.
+
+`experiments/live_ab_validation/vshard.py` + `tests_shard.py` (**16 tests, synthetic stubs only**):
+attempt-specific partial directory → counts, coordinate coverage and hashes reconciled **before**
+publication → **atomic rename**. A completed receipt is never overwritten; an incomplete attempt is
+never deleted or reused. **Per-shard peak memory is recorded `unknown`**, not derived from a whole-job
+maximum. Cumulative counters; caps never reset per shard. Final completion requires all 56 ids once,
+disjoint+complete coverage, reconciled counts/hashes/pins, successful supervision and no cap event —
+**`within_caps` or exit 0 alone is explicitly insufficient**, and a test asserts it.
+
+**Both supervisor repairs I had left incomplete are now done**, and saving the group id was *not* the
+fix: escalation returned as soon as the **leader** exited, so a descendant ignoring SIGTERM survived and
+SIGKILL was never sent. Completion is now decided by whether the saved group still has members (probed
+with signal 0). Tree enumeration no longer degrades to leader-only on a `ps` exception — that let RSS
+sampling of a subset *succeed while undercounting*. Both calls now sit in the same handler and route to
+the failure receipt.
+
+**Manifest regenerated from a clean tree** (`T1_MANIFEST.json`, identity
+`0730f77ac66954bd…`). The root found the prior one was built from a **dirty pre-commit tree** — its own
+pins said `validation_tree_dirty: true` and two digests were stale; both confirmed, and it is retained
+as a marked historical draft. The manifest now binds the **canonical execution spec** (allocation, shard
+plan digest, full 56-shard order, cumulative caps, accepted resource-ledger digest) instead of an empty
+program list, and launch compares that identity — a reusable clearance string can say *a* decision was
+made but never *what* was reviewed.
+
+Tests: 16 shard + 83 panel + 184 validation + 86 design.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
