@@ -142,6 +142,51 @@ tool `experiments/live_ab_validation/videntity.py`). *Convention: deterministic-
 - **Consequence:** guard v2's `identity_unverifiable` refusal is correct **on the merits**, not on a
   technicality. 33 panel tests pass (6 new identity tests, both directions).
 
+**Root's identity ruling acted on, and the AUTHORIZED BOUNDED MEASUREMENT delivered, 2026-09-21.**
+Head `93cc628`. Root disposition `reviews/v2_panel_root_disposition_20260921_0750.md`.
+
+*My timed-core identity was refuted and is withdrawn from any authorizing role.* I reproduced all
+three of the root's counterexamples against this tree first: changing `vgen.OPERATIONAL_EPS` from
+`1e-9` to `1.0` leaves the fingerprint **identical** while flipping the forward certificate at
+revealed cost 10 vs pending 11; a partly-missing entry point still returned a digest; `vpanel` and
+`eb_reference` were outside its own scope. `videntity.identities()` is **removed**; the three
+counterexamples are kept as regression tests asserted in the refuting direction. Binding is now
+`vpins.py`: **whole-file pins** over orchestrator, primary, reference bridge, vendored manifest,
+compiled `.so`, output/accumulator and guard, with a before/after drift check.
+
+*The entry point now calls the guard* — the root's sharpest point was that a correct helper protects
+nothing if nothing calls it. Three modes: fixture (bounded, enforced), measurement (allowlist +
+caps), full_grid (refused through the real guard). Non-frozen `alpha_gate` and `trials_per_program`
+are **refused**: alpha was used by the reference and *ignored* by the primary, so a run at 0.5 would
+have paired a 0.5 reference with a 0.00625 primary and called them one experiment.
+
+**THE MEASUREMENT** — `results/live_ab_validation_v2/measurement_20260921/MEASUREMENT_RECEIPT.json`.
+*Convention: **descriptive**. One observed pass under recorded concurrent load. NOT calibration, NOT
+a coverage rate, NOT an uncontended benchmark, NOT a guaranteed upper bound.*
+
+| quantity | observed | cap | authorized |
+|---|---|---|---|
+| wall clock | **7.901 s** | 300 s | — |
+| peak process-tree RSS | **69 MiB** | 2 GiB | — |
+| output bytes | **63.9 KiB** | 200 MiB | — |
+| trial evaluations | **80** | — | 80 |
+| reference calls | **160** | — | 160 |
+| units / seed-program identities | 20 / 10 | — | 20 / 10 |
+
+Per horizon: 65 ms/trial at n=1000, 133 ms/trial at n=2000 — the ratio of **two measured points**,
+not a fitted exponent and not a full-grid projection. Both passes complete, zero cap events, 2
+attempts / 0 failures, no retry, no alternative seed selection. Source pins identical before and
+after each pass. Host load 2.49 on 10 cores; the two foreign `llama-server` processes (DTR-AgentEvals
+— its `code_routing/config.json` declares ports 8193/8191, exactly those held) sat at 0.0% CPU and
+~11.7 MiB RSS and were not touched.
+
+Effect summaries withheld and never accumulated. **Disclosed rather than left to inference:** the raw
+primary output does carry per-trial decision labels, because writing it is part of the measured
+workload; I did not aggregate or inspect them. A first pass that wrote decision *counts* into the
+receipt was discarded uncommitted (`41c5991`).
+
+Tests: 184 validation + 48 panel + 86 design.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
