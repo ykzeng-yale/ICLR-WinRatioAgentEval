@@ -1,0 +1,448 @@
+{
+  "convention": "descriptive rates with design-based Wilson 95% intervals; namespace-3 power curve and namespace-0 T1, reported SEPARATELY and never pooled",
+  "decisive_check_naive_does_not_track_the_effect": {
+    "informative_delay": [
+      {
+        "cell": "C4",
+        "delay": "informative",
+        "mu_h": 0.0,
+        "rate": 0.9999,
+        "source": "T1"
+      },
+      {
+        "cell": "P05A",
+        "delay": "informative",
+        "mu_h": 0.05,
+        "rate": 0.998875,
+        "source": "powercurve"
+      },
+      {
+        "cell": "P10A",
+        "delay": "informative",
+        "mu_h": 0.1,
+        "rate": 1.0,
+        "source": "powercurve"
+      },
+      {
+        "cell": "P15A",
+        "delay": "informative",
+        "mu_h": 0.15,
+        "rate": 1.0,
+        "source": "powercurve"
+      },
+      {
+        "cell": "P20A",
+        "delay": "informative",
+        "mu_h": 0.2,
+        "rate": 1.0,
+        "source": "powercurve"
+      },
+      {
+        "cell": "P30A",
+        "delay": "informative",
+        "mu_h": 0.3,
+        "rate": 1.0,
+        "source": "powercurve"
+      }
+    ],
+    "non_informative_delay": [
+      {
+        "cell": "C1",
+        "delay": "non-informative",
+        "mu_h": 0.0,
+        "rate": 0.0,
+        "source": "T1"
+      },
+      {
+        "cell": "P05N",
+        "delay": "non-informative",
+        "mu_h": 0.05,
+        "rate": 0.064625,
+        "source": "powercurve"
+      },
+      {
+        "cell": "P10N",
+        "delay": "non-informative",
+        "mu_h": 0.1,
+        "rate": 0.857375,
+        "source": "powercurve"
+      },
+      {
+        "cell": "P15N",
+        "delay": "non-informative",
+        "mu_h": 0.15,
+        "rate": 0.999875,
+        "source": "powercurve"
+      },
+      {
+        "cell": "P20N",
+        "delay": "non-informative",
+        "mu_h": 0.2,
+        "rate": 1.0,
+        "source": "powercurve"
+      },
+      {
+        "cell": "P30N",
+        "delay": "non-informative",
+        "mu_h": 0.3,
+        "rate": 1.0,
+        "source": "powercurve"
+      }
+    ],
+    "reading": "Under INFORMATIVE delay NAIVE deploys 0.9999 at mu_h=0.00 (T1 C4) and 0.9989-1.0000 across mu_h = 0.05..0.30. Its rate is SATURATED from zero effect upward, so it does not track the effect at all. Under NON-informative delay, where its band is intact, the same construction traces a proper curve: 0.0000, 0.0646, 0.8574, 0.9999, 1.0000, 1.0000. The informative-delay 'gain' is the bias, not detection."
+  },
+  "delay_gain_by_construction": [
+    {
+      "construction": "ADAPTER",
+      "gain_A_minus_N": 0.0475,
+      "informative": {
+        "deploy": 406,
+        "n": 8000,
+        "rate": 0.05075,
+        "wilson95": [
+          0.046152313541114716,
+          0.055778923230397015
+        ]
+      },
+      "mu_h": 0.05,
+      "non_informative": {
+        "deploy": 26,
+        "n": 8000,
+        "rate": 0.00325,
+        "wilson95": [
+          0.002218921562585225,
+          0.004757910638301714
+        ]
+      }
+    },
+    {
+      "construction": "CPREFIX",
+      "gain_A_minus_N": 0.0016250000000000014,
+      "informative": {
+        "deploy": 255,
+        "n": 8000,
+        "rate": 0.031875,
+        "wilson95": [
+          0.028244640799941097,
+          0.03595471415534868
+        ]
+      },
+      "mu_h": 0.05,
+      "non_informative": {
+        "deploy": 242,
+        "n": 8000,
+        "rate": 0.03025,
+        "wilson95": [
+          0.02671644294336529,
+          0.03423447185556101
+        ]
+      }
+    },
+    {
+      "construction": "NAIVE",
+      "gain_A_minus_N": 0.9342499999999999,
+      "informative": {
+        "deploy": 7991,
+        "n": 8000,
+        "rate": 0.998875,
+        "wilson95": [
+          0.997863121102734,
+          0.9994080069008542
+        ]
+      },
+      "mu_h": 0.05,
+      "non_informative": {
+        "deploy": 517,
+        "n": 8000,
+        "rate": 0.064625,
+        "wilson95": [
+          0.05944358911311471,
+          0.07022432899350058
+        ]
+      }
+    },
+    {
+      "construction": "ADAPTER",
+      "gain_A_minus_N": 0.31875,
+      "informative": {
+        "deploy": 6762,
+        "n": 8000,
+        "rate": 0.84525,
+        "wilson95": [
+          0.8371592518493948,
+          0.8530093413718306
+        ]
+      },
+      "mu_h": 0.1,
+      "non_informative": {
+        "deploy": 4212,
+        "n": 8000,
+        "rate": 0.5265,
+        "wilson95": [
+          0.5155487673177344,
+          0.5374257952321931
+        ]
+      }
+    },
+    {
+      "construction": "CPREFIX",
+      "gain_A_minus_N": 0.01474999999999993,
+      "informative": {
+        "deploy": 5462,
+        "n": 8000,
+        "rate": 0.68275,
+        "wilson95": [
+          0.6724658952087195,
+          0.692858682376158
+        ]
+      },
+      "mu_h": 0.1,
+      "non_informative": {
+        "deploy": 5344,
+        "n": 8000,
+        "rate": 0.668,
+        "wilson95": [
+          0.6576019889846538,
+          0.6782367471809245
+        ]
+      }
+    },
+    {
+      "construction": "NAIVE",
+      "gain_A_minus_N": 0.142625,
+      "informative": {
+        "deploy": 8000,
+        "n": 8000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9995200481118399,
+          1.0
+        ]
+      },
+      "mu_h": 0.1,
+      "non_informative": {
+        "deploy": 6859,
+        "n": 8000,
+        "rate": 0.857375,
+        "wilson95": [
+          0.8495406168071685,
+          0.8648663375807691
+        ]
+      }
+    },
+    {
+      "construction": "ADAPTER",
+      "gain_A_minus_N": 0.00374999999999992,
+      "informative": {
+        "deploy": 7999,
+        "n": 8000,
+        "rate": 0.999875,
+        "wilson95": [
+          0.999292234009974,
+          0.9999779340898377
+        ]
+      },
+      "mu_h": 0.15,
+      "non_informative": {
+        "deploy": 7969,
+        "n": 8000,
+        "rate": 0.996125,
+        "wilson95": [
+          0.9945051074473908,
+          0.9972686602915825
+        ]
+      }
+    },
+    {
+      "construction": "CPREFIX",
+      "gain_A_minus_N": -0.0010000000000000009,
+      "informative": {
+        "deploy": 7974,
+        "n": 8000,
+        "rate": 0.99675,
+        "wilson95": [
+          0.9952420893616983,
+          0.9977810784374147
+        ]
+      },
+      "mu_h": 0.15,
+      "non_informative": {
+        "deploy": 7982,
+        "n": 8000,
+        "rate": 0.99775,
+        "wilson95": [
+          0.9964459592083273,
+          0.9985762486870093
+        ]
+      }
+    },
+    {
+      "construction": "NAIVE",
+      "gain_A_minus_N": 0.00012500000000004174,
+      "informative": {
+        "deploy": 8000,
+        "n": 8000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9995200481118399,
+          1.0
+        ]
+      },
+      "mu_h": 0.15,
+      "non_informative": {
+        "deploy": 7999,
+        "n": 8000,
+        "rate": 0.999875,
+        "wilson95": [
+          0.999292234009974,
+          0.9999779340898377
+        ]
+      }
+    },
+    {
+      "construction": "ADAPTER",
+      "gain_A_minus_N": 0.0,
+      "informative": {
+        "deploy": 8000,
+        "n": 8000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9995200481118399,
+          1.0
+        ]
+      },
+      "mu_h": 0.2,
+      "non_informative": {
+        "deploy": 8000,
+        "n": 8000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9995200481118399,
+          1.0
+        ]
+      }
+    },
+    {
+      "construction": "CPREFIX",
+      "gain_A_minus_N": 0.0,
+      "informative": {
+        "deploy": 8000,
+        "n": 8000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9995200481118399,
+          1.0
+        ]
+      },
+      "mu_h": 0.2,
+      "non_informative": {
+        "deploy": 8000,
+        "n": 8000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9995200481118399,
+          1.0
+        ]
+      }
+    },
+    {
+      "construction": "NAIVE",
+      "gain_A_minus_N": 0.0,
+      "informative": {
+        "deploy": 8000,
+        "n": 8000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9995200481118399,
+          1.0
+        ]
+      },
+      "mu_h": 0.2,
+      "non_informative": {
+        "deploy": 8000,
+        "n": 8000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9995200481118399,
+          1.0
+        ]
+      }
+    },
+    {
+      "construction": "ADAPTER",
+      "gain_A_minus_N": 0.0,
+      "informative": {
+        "deploy": 8000,
+        "n": 8000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9995200481118399,
+          1.0
+        ]
+      },
+      "mu_h": 0.3,
+      "non_informative": {
+        "deploy": 8000,
+        "n": 8000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9995200481118399,
+          1.0
+        ]
+      }
+    },
+    {
+      "construction": "CPREFIX",
+      "gain_A_minus_N": 0.0,
+      "informative": {
+        "deploy": 8000,
+        "n": 8000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9995200481118399,
+          1.0
+        ]
+      },
+      "mu_h": 0.3,
+      "non_informative": {
+        "deploy": 8000,
+        "n": 8000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9995200481118399,
+          1.0
+        ]
+      }
+    },
+    {
+      "construction": "NAIVE",
+      "gain_A_minus_N": 0.0,
+      "informative": {
+        "deploy": 8000,
+        "n": 8000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9995200481118399,
+          1.0
+        ]
+      },
+      "mu_h": 0.3,
+      "non_informative": {
+        "deploy": 8000,
+        "n": 8000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9995200481118399,
+          1.0
+        ]
+      }
+    }
+  ],
+  "prediction": "if cost-narrowing is the channel then only a construction that USES pending pairs should gain from informative delay. ADAPTER uses them; CPREFIX (resolved prefix only) and NAIVE (completed-only) structurally cannot.",
+  "question": "I hypothesised that informative delay raises ADAPTER detection because MORE PENDING PAIRS get their cost branch narrowed by the elapsed-cost certificate. I flagged it as single-sourced and unproven. This is my attempt to falsify it.",
+  "result_cprefix": "CONFIRMS the prediction. Gain is +0.0016, +0.0147, -0.0010, 0.0000, 0.0000 across the ladder -- no informative-delay advantage, as predicted for a valid construction that cannot see pending pairs.",
+  "result_naive": "APPEARS to refute it (+0.9342 at mu_h=0.05), but NAIVE IS NOT A VALID CONTROL and my test was mis-specified. I treated 'cannot use pending pairs' as NAIVE's only relevant property. It has a second: its band BREAKS under informative delay (T1: hierarchy miscoverage 0.9999 at C4). Extra deploys from a broken band are not detection.",
+  "schema": "live_ab_validation_v2.mechanism_test.1",
+  "still_not_established": "that cost-narrowing CAUSES the ADAPTER gain. The dissociation is consistent with it and CPREFIX rules out a generic delay effect, but I have not manipulated cost-narrowing directly while holding everything else fixed.",
+  "verdict": "The hypothesis SURVIVES with CPREFIX as the valid control. NAIVE's apparent refutation is an artefact of my control choice, and the artefact is itself further evidence for the T1 finding that the completed-only band collapses under informative delay."
+}
