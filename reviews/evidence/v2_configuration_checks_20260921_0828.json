@@ -1,0 +1,43 @@
+{
+  "config_checks": {
+    "frozen": {
+      "accepted": true,
+      "alpha": 0.00625,
+      "trials": 4,
+      "policy": "operational"
+    },
+    "alpha_half": {
+      "accepted": false,
+      "error": "PanelError"
+    },
+    "alpha_other": {
+      "accepted": false,
+      "error": "PanelError"
+    },
+    "alpha_nan": {
+      "accepted": false,
+      "error": "PanelError"
+    },
+    "trials3": {
+      "accepted": false,
+      "error": "PanelError"
+    },
+    "trials8": {
+      "accepted": false,
+      "error": "PanelError"
+    },
+    "operational_v1": {
+      "accepted": false,
+      "error": "PanelError"
+    }
+  },
+  "unchanged_scientific_paths": {
+    "vgen.py": true,
+    "vrun.py": true,
+    "vpolicy.py": true,
+    "vband.py": true,
+    "cells.json": true
+  },
+  "reference_rows_ast_unchanged": true,
+  "executed_panel": false
+}

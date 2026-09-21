@@ -1,9 +1,11 @@
 # Shared workspace ownership
 
-**September 21, 07:50 UTC review — full project 60% (change 0), separately bounded v1 90%.** At exact `5336f8b`, actual operational-policy wiring and retained H/D outputs receive bounded acceptance: 36 saved primary rows reproduce, the actual runner passes the tick-1010 decision witness, and target/snapshot corrections close. [Current root disposition](reviews/v2_panel_root_disposition_20260921_0750.md) identifies the remaining frozen-configuration and actual-entry-point guard gaps, rejects incomplete AST identity as execution authority, and explicitly authorizes one bounded CPU resource-measurement pass after the fixed allowlist/caps are implemented. No full-grid/live clearance or new paper integration. Latest owner 07:49:11 UTC reports zero live episodes/v2 calibration cells, no freeze, host contention. Remaining 40 points: prospective/CPU 20, root integration/final QA 10, author checks 10.
+**September 21, 08:28 UTC review — full project 65% (+5 points), separately bounded v1 90%.** At exact `0281eb2`, the deterministic CPU specification/fixture milestone is accepted after fixed-configuration checks; calibration remains pending. The received 20-unit / 80-trial / 160-reference-call resource pass is reconciled, but is not a qualifying full-grid ledger. [Current root disposition](reviews/v2_measurement_root_disposition_20260921_0828.md) retains T1 and authorizes one preflight-only verification measurement after parent-cap and pin repairs. Latest owner 08:25:02 UTC: zero live episodes/v2 calibration cells, no freeze/grid, nothing running. Remaining 35 points: Session60 prospective 10 and CPU calibration 5; root integration/final QA 10; author checks 10. No new paper results or full-grid/live clearance.
 
 
 ## Active arXiv phase — September 19, 2026
+
+**08:28 reviewer handoff:** configuration and resource reviewers returned the two `reviews/*_delta_20260921_0828.md` reports. Root accepts ownership of those reports and shared-status integration. Session60 retains source repairs and the single amended resource pass; no overlapping execution.
 
 **September21 02:26 review handoff:** the independent schedule and protocol/resource reviewers returned `reviews/v2_schedule_delta_review_20260921_0226.md` and `reviews/v2_protocol_resource_review_20260921_0226.md`. Root owns these reports, portable receipts, current disposition and shared-status integration. Session60 retains all source repairs and resource/experiment execution; no contributor code is merged in this review.
 

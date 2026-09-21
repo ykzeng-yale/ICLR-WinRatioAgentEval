@@ -1,8 +1,8 @@
 # Bounded-v1 arXiv package readiness tracker
 
-Full-project readiness remains **60% (change 0)**; separately bounded v1 **90%**. See the [September 21, 07:50 root disposition](reviews/v2_panel_root_disposition_20260921_0750.md): actual operational/reference wiring and timing witness are bounded-verified; fixed-configuration, execution guard and resource-measurement completion remain pending.
+**September 21, 08:28 UTC review — full project 65% (+5 points), separately bounded v1 90%.** At exact `0281eb2`, the deterministic CPU specification/fixture milestone is accepted after fixed-configuration checks; calibration remains pending. The received 20-unit / 80-trial / 160-reference-call resource pass is reconciled, but is not a qualifying full-grid ledger. [Current root disposition](reviews/v2_measurement_root_disposition_20260921_0828.md) retains T1 and authorizes one preflight-only verification measurement after parent-cap and pin repairs. Latest owner 08:25:02 UTC: zero live episodes/v2 calibration cells, no freeze/grid, nothing running. Remaining 35 points: Session60 prospective 10 and CPU calibration 5; root integration/final QA 10; author checks 10. No new paper results or full-grid/live clearance.
 
-**For overall progress, report [FULL_PROJECT_PROGRESS.md](FULL_PROJECT_PROGRESS.md) first: 60% across the expanded project, including issues #11/#12 and their final integration. This file retains the separate existing-package score of 90%.**
+**For overall progress, report [FULL_PROJECT_PROGRESS.md](FULL_PROJECT_PROGRESS.md) first: 65% across the expanded project, including issues #11/#12 and their final integration. This file retains the separate existing-package score of 90%.**
 
 **September 19, 2026: 90/100 verified checklist points (90%).** The author redirected the project to arXiv after the ICLR deadline. This score applies to the technically verified, scientifically bounded v1 preprint, not a future stronger experiment program. It is not an acceptance probability, human scientific signoff, submission confirmation or a measure of hours spent.
 
