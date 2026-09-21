@@ -1,4 +1,4 @@
-"""Two-process contender fixture for the production execution lock.
+"""Two-process fixture of the production LOCK IMPLEMENTATION, on an isolated lock file.
 
 Root, 2026-09-21 21:50: "Yes: use two separate probe processes through the actual
 production execution lock and sandbox route. No model or serving process is
@@ -124,9 +124,17 @@ def run_fixture(work: Optional[Path] = None, *, bypass_lock: bool = False,
 
     return {
         'schema': FIXTURE_SCHEMA,
-        'label': ('PRODUCTION-LOCK/SANDBOX FIXTURE with two probe processes. '
-                  'NOT two live model episodes. No model, server or serving '
-                  'process is involved.'),
+        'label': ('TWO-PROCESS FIXTURE OF THE PRODUCTION LOCK IMPLEMENTATION ON AN '
+                  'ISOLATED LOCK FILE. Corrected by root 2026-09-21 22:23: my '
+                  'earlier "PRODUCTION-LOCK/SANDBOX FIXTURE" overstated it. The '
+                  'children are ORDINARY PYTHON SUBPROCESSES that enter '
+                  'lab_data._ExecutionLock; they never invoke the sandbox '
+                  'execution function, and the lock file is a synthetic fixture '
+                  'path, not the production lock the reference sweep resolves. '
+                  'Same lock CLASS, not the combined lock/sandbox route. NOT two '
+                  'live model episodes.'),
+        'combined_lock_sandbox_route': 'NOT EXERCISED -- still pending',
+        'invocation_parameters': None,      # filled by the caller; see receipt
         'bypass_lock_control': bypass_lock,
         'lock_identity': lab_common.tokenize_path(lock),
         'readiness_handshake_observed': handshake_ok,

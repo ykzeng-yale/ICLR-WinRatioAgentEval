@@ -1,4 +1,27 @@
 {
+  "CORRECTION_root_22_23": {
+    "MY_REPORTING_ERROR": {
+      "cause": "I quoted an exploratory run from my terminal rather than the run that produced the committed receipt.",
+      "root": "\"Keep receipt process identifiers authoritative ... This is a reporting mismatch, not evidence by itself that the lock outcome is false.\"",
+      "standing_rule_for_me": "cite the deposited receipt, never a terminal run that was not committed.",
+      "what": "my GitHub comment quoted PIDs 42023/42024; the deposited receipt records 42056/42057."
+    },
+    "actual_invocation_parameters": {
+      "contender_wait_s": 1.0,
+      "hold_s": 1.5,
+      "note": "recorded beside the receipt because the source DEFAULT wait of 4.0 s would NOT reproduce a timeout against a 1.5 s hold. Root: 'Record the actual invocation beside the receipt rather than relying on defaults.'"
+    },
+    "combined_two_probe_lock_sandbox_path": "STILL PENDING. Root: \"If the existing required milestone is the combined two-probe lock/sandbox path, it remains pending that exact integration.\"",
+    "label_now": "a two-process fixture of the production LOCK IMPLEMENTATION on an ISOLATED lock file.",
+    "label_was": "\"PRODUCTION-LOCK/SANDBOX FIXTURE\"; the receipt also asserted the contender attempted \"the production lock\".",
+    "not_rerun": "root: 'do not rerun the same lock-only measurement to improve its label.' The saved receipt stands; only its label and scope are corrected.",
+    "what_the_saved_timings_DO_establish": "the exercised production _ExecutionLock implementation shows one-holder/one-contender exclusion on the fixture lock, with a distinct contender process timing out while the holder remained in its recorded critical section, and a lock-bypassed control showing observable overlap.",
+    "why_mine_overstated": [
+      "the children are ordinary subprocess.Popen / subprocess.run Python processes; they enter lab_data._ExecutionLock but NEVER invoke the sandbox execution function, so no sandbox route is exercised",
+      "the fixture lock is <WORK>/_lockfixture/sandbox.lock, while the reference sweep resolves its configured lock or defaults to <WORK>/sandbox.lock -- the same lock CLASS, not the same lock FILE",
+      "source comments quoting authorization to use the combined route are not evidence that the combined route was implemented"
+    ]
+  },
   "authority": "root 2026-09-21 21:50: 'use two separate probe processes through the actual production execution lock and sandbox route ... Show that the second cannot enter while the first holds the lock ... Label this a production-lock/sandbox fixture, not two live model episodes.'",
   "closes": "the gap root found in CONTAINMENT_PROBE_RECEIPT: the earlier probe started ONE sandbox program and inferred exclusion from an empty peer glob, which establishes nothing. A real contender now attempts the lock.",
   "findings": {
@@ -8,6 +31,7 @@
     "overlapping_entry_observed_in_control": true,
     "readiness_handshake_observed": true
   },
+  "label": "TWO-PROCESS FIXTURE OF THE PRODUCTION LOCK IMPLEMENTATION ON AN ISOLATED LOCK FILE. Not the combined lock/sandbox route; not two live model episodes.",
   "negative_control_run": {
     "bypass_lock_control": true,
     "contender": {

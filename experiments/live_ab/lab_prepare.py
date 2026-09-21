@@ -428,8 +428,16 @@ def _coverage_verdict(obs: object, record: dict) -> Dict[str, Any]:
                           'never observed' % (raw_e,)}
 
     # --- the attempt interval: finite and ordered --------------------------
-    start = _finite(record.get('started_monotonic'))
-    end = _finite(record.get('ended_monotonic'))
+    # ROOT 2026-09-21 22:23: "Use the verifier-call interval AFTER acquiring the
+    # execution lock for required load coverage ... protocol 3.2(4) asks for
+    # verification under load, not waiting for the lock under load."  The wider
+    # lock_requested..lock_released span stays in the ledger; only this named
+    # interval is certified.
+    start = _finite(record.get('verification_started_monotonic'))
+    end = _finite(record.get('verification_ended_monotonic'))
+    if start is None or end is None:        # pre-v2 records carried the wider span
+        start = _finite(record.get('started_monotonic'))
+        end = _finite(record.get('ended_monotonic'))
     if start is None or end is None:
         return {'valid': False,
                 'reason': 'the attempt carries no finite monotonic endpoints, so no '
@@ -440,7 +448,21 @@ def _coverage_verdict(obs: object, record: dict) -> Dict[str, Any]:
                           % (start, end)}
     # Root: "Uncertainty in verifier endpoints, if any, must EXPAND the verifier
     # interval rather than make coverage easier."
-    v_err = _finite(record.get('endpoint_error_s')) or 0.0
+    # Root 2026-09-21 22:23: "`_finite(record.get('endpoint_error_s')) or 0.0`
+    # collapses an explicitly invalid value to the same zero used for absence.
+    # ... Default to zero only when the field is ABSENT; reject an explicitly
+    # malformed value." Reproduced: NaN, +inf and the string 'invalid' all
+    # returned valid coverage. An ABSENT field means "no stated uncertainty";
+    # a PRESENT unusable one means the bound is unknown, which is not zero.
+    if 'endpoint_error_s' not in record or record.get('endpoint_error_s') is None:
+        v_err = 0.0
+    else:
+        v_err = _finite(record.get('endpoint_error_s'))
+        if v_err is None:
+            return {'valid': False,
+                    'reason': 'verifier endpoint_error_s is present but not a finite '
+                              'number (%r); an unusable bound is not zero'
+                              % (record.get('endpoint_error_s'),)}
     if v_err < 0:
         return {'valid': False, 'reason': 'verifier endpoint error bound is negative'}
     start, end = start - v_err, end + v_err
