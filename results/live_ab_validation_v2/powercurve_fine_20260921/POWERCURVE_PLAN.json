@@ -1,0 +1,482 @@
+{
+  "allocation": {
+    "P06A": 1000,
+    "P06N": 1000,
+    "P07A": 1000,
+    "P07N": 1000,
+    "P08A": 1000,
+    "P08N": 1000,
+    "P09A": 1000,
+    "P09N": 1000,
+    "P11A": 1000,
+    "P11N": 1000,
+    "P12A": 1000,
+    "P12N": 1000
+  },
+  "guardrail_note": "mu_s is held at +0.20, comfortably above -delta, so detection probability is not confounded by the success guardrail",
+  "horizon": 2000,
+  "job_caps": {
+    "reset_per_shard": false,
+    "sampled_process_tree_bytes": 2147483648,
+    "seconds": 5400,
+    "total_output_bytes": 209715200
+  },
+  "mu_h_ladder": [
+    0.06,
+    0.07,
+    0.08,
+    0.09,
+    0.11,
+    0.12
+  ],
+  "mu_s_held": 0.2,
+  "namespace": 4,
+  "not_poolable_with_T1": "different namespace and different law family; these numbers must never be pooled with the T1 calibration panel",
+  "prefixes": [
+    100,
+    500,
+    2000
+  ],
+  "programs_per_shard": 500,
+  "schema": "live_ab_validation_v2.power_curve_plan.1",
+  "shards": [
+    {
+      "cell": "P06N",
+      "expected_primary_rows": 6000,
+      "expected_programs": 500,
+      "expected_reference_calls": 4000,
+      "expected_reference_rows": 12000,
+      "expected_trials": 2000,
+      "id": "P06N-p0000-0499",
+      "program_start_inclusive": 0,
+      "program_stop_exclusive": 500,
+      "sequence": 1,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "cell": "P06A",
+      "expected_primary_rows": 6000,
+      "expected_programs": 500,
+      "expected_reference_calls": 4000,
+      "expected_reference_rows": 12000,
+      "expected_trials": 2000,
+      "id": "P06A-p0000-0499",
+      "program_start_inclusive": 0,
+      "program_stop_exclusive": 500,
+      "sequence": 2,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "cell": "P07N",
+      "expected_primary_rows": 6000,
+      "expected_programs": 500,
+      "expected_reference_calls": 4000,
+      "expected_reference_rows": 12000,
+      "expected_trials": 2000,
+      "id": "P07N-p0000-0499",
+      "program_start_inclusive": 0,
+      "program_stop_exclusive": 500,
+      "sequence": 3,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "cell": "P07A",
+      "expected_primary_rows": 6000,
+      "expected_programs": 500,
+      "expected_reference_calls": 4000,
+      "expected_reference_rows": 12000,
+      "expected_trials": 2000,
+      "id": "P07A-p0000-0499",
+      "program_start_inclusive": 0,
+      "program_stop_exclusive": 500,
+      "sequence": 4,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "cell": "P08N",
+      "expected_primary_rows": 6000,
+      "expected_programs": 500,
+      "expected_reference_calls": 4000,
+      "expected_reference_rows": 12000,
+      "expected_trials": 2000,
+      "id": "P08N-p0000-0499",
+      "program_start_inclusive": 0,
+      "program_stop_exclusive": 500,
+      "sequence": 5,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "cell": "P08A",
+      "expected_primary_rows": 6000,
+      "expected_programs": 500,
+      "expected_reference_calls": 4000,
+      "expected_reference_rows": 12000,
+      "expected_trials": 2000,
+      "id": "P08A-p0000-0499",
+      "program_start_inclusive": 0,
+      "program_stop_exclusive": 500,
+      "sequence": 6,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "cell": "P09N",
+      "expected_primary_rows": 6000,
+      "expected_programs": 500,
+      "expected_reference_calls": 4000,
+      "expected_reference_rows": 12000,
+      "expected_trials": 2000,
+      "id": "P09N-p0000-0499",
+      "program_start_inclusive": 0,
+      "program_stop_exclusive": 500,
+      "sequence": 7,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "cell": "P09A",
+      "expected_primary_rows": 6000,
+      "expected_programs": 500,
+      "expected_reference_calls": 4000,
+      "expected_reference_rows": 12000,
+      "expected_trials": 2000,
+      "id": "P09A-p0000-0499",
+      "program_start_inclusive": 0,
+      "program_stop_exclusive": 500,
+      "sequence": 8,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "cell": "P11N",
+      "expected_primary_rows": 6000,
+      "expected_programs": 500,
+      "expected_reference_calls": 4000,
+      "expected_reference_rows": 12000,
+      "expected_trials": 2000,
+      "id": "P11N-p0000-0499",
+      "program_start_inclusive": 0,
+      "program_stop_exclusive": 500,
+      "sequence": 9,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "cell": "P11A",
+      "expected_primary_rows": 6000,
+      "expected_programs": 500,
+      "expected_reference_calls": 4000,
+      "expected_reference_rows": 12000,
+      "expected_trials": 2000,
+      "id": "P11A-p0000-0499",
+      "program_start_inclusive": 0,
+      "program_stop_exclusive": 500,
+      "sequence": 10,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "cell": "P12N",
+      "expected_primary_rows": 6000,
+      "expected_programs": 500,
+      "expected_reference_calls": 4000,
+      "expected_reference_rows": 12000,
+      "expected_trials": 2000,
+      "id": "P12N-p0000-0499",
+      "program_start_inclusive": 0,
+      "program_stop_exclusive": 500,
+      "sequence": 11,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "cell": "P12A",
+      "expected_primary_rows": 6000,
+      "expected_programs": 500,
+      "expected_reference_calls": 4000,
+      "expected_reference_rows": 12000,
+      "expected_trials": 2000,
+      "id": "P12A-p0000-0499",
+      "program_start_inclusive": 0,
+      "program_stop_exclusive": 500,
+      "sequence": 12,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "cell": "P06N",
+      "expected_primary_rows": 6000,
+      "expected_programs": 500,
+      "expected_reference_calls": 4000,
+      "expected_reference_rows": 12000,
+      "expected_trials": 2000,
+      "id": "P06N-p0500-0999",
+      "program_start_inclusive": 500,
+      "program_stop_exclusive": 1000,
+      "sequence": 13,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "cell": "P06A",
+      "expected_primary_rows": 6000,
+      "expected_programs": 500,
+      "expected_reference_calls": 4000,
+      "expected_reference_rows": 12000,
+      "expected_trials": 2000,
+      "id": "P06A-p0500-0999",
+      "program_start_inclusive": 500,
+      "program_stop_exclusive": 1000,
+      "sequence": 14,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "cell": "P07N",
+      "expected_primary_rows": 6000,
+      "expected_programs": 500,
+      "expected_reference_calls": 4000,
+      "expected_reference_rows": 12000,
+      "expected_trials": 2000,
+      "id": "P07N-p0500-0999",
+      "program_start_inclusive": 500,
+      "program_stop_exclusive": 1000,
+      "sequence": 15,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "cell": "P07A",
+      "expected_primary_rows": 6000,
+      "expected_programs": 500,
+      "expected_reference_calls": 4000,
+      "expected_reference_rows": 12000,
+      "expected_trials": 2000,
+      "id": "P07A-p0500-0999",
+      "program_start_inclusive": 500,
+      "program_stop_exclusive": 1000,
+      "sequence": 16,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "cell": "P08N",
+      "expected_primary_rows": 6000,
+      "expected_programs": 500,
+      "expected_reference_calls": 4000,
+      "expected_reference_rows": 12000,
+      "expected_trials": 2000,
+      "id": "P08N-p0500-0999",
+      "program_start_inclusive": 500,
+      "program_stop_exclusive": 1000,
+      "sequence": 17,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "cell": "P08A",
+      "expected_primary_rows": 6000,
+      "expected_programs": 500,
+      "expected_reference_calls": 4000,
+      "expected_reference_rows": 12000,
+      "expected_trials": 2000,
+      "id": "P08A-p0500-0999",
+      "program_start_inclusive": 500,
+      "program_stop_exclusive": 1000,
+      "sequence": 18,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "cell": "P09N",
+      "expected_primary_rows": 6000,
+      "expected_programs": 500,
+      "expected_reference_calls": 4000,
+      "expected_reference_rows": 12000,
+      "expected_trials": 2000,
+      "id": "P09N-p0500-0999",
+      "program_start_inclusive": 500,
+      "program_stop_exclusive": 1000,
+      "sequence": 19,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "cell": "P09A",
+      "expected_primary_rows": 6000,
+      "expected_programs": 500,
+      "expected_reference_calls": 4000,
+      "expected_reference_rows": 12000,
+      "expected_trials": 2000,
+      "id": "P09A-p0500-0999",
+      "program_start_inclusive": 500,
+      "program_stop_exclusive": 1000,
+      "sequence": 20,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "cell": "P11N",
+      "expected_primary_rows": 6000,
+      "expected_programs": 500,
+      "expected_reference_calls": 4000,
+      "expected_reference_rows": 12000,
+      "expected_trials": 2000,
+      "id": "P11N-p0500-0999",
+      "program_start_inclusive": 500,
+      "program_stop_exclusive": 1000,
+      "sequence": 21,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "cell": "P11A",
+      "expected_primary_rows": 6000,
+      "expected_programs": 500,
+      "expected_reference_calls": 4000,
+      "expected_reference_rows": 12000,
+      "expected_trials": 2000,
+      "id": "P11A-p0500-0999",
+      "program_start_inclusive": 500,
+      "program_stop_exclusive": 1000,
+      "sequence": 22,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "cell": "P12N",
+      "expected_primary_rows": 6000,
+      "expected_programs": 500,
+      "expected_reference_calls": 4000,
+      "expected_reference_rows": 12000,
+      "expected_trials": 2000,
+      "id": "P12N-p0500-0999",
+      "program_start_inclusive": 500,
+      "program_stop_exclusive": 1000,
+      "sequence": 23,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "cell": "P12A",
+      "expected_primary_rows": 6000,
+      "expected_programs": 500,
+      "expected_reference_calls": 4000,
+      "expected_reference_rows": 12000,
+      "expected_trials": 2000,
+      "id": "P12A-p0500-0999",
+      "program_start_inclusive": 500,
+      "program_stop_exclusive": 1000,
+      "sequence": 24,
+      "trial_indices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    }
+  ],
+  "total_primary_rows": 144000,
+  "total_programs": 12000,
+  "total_reference_calls": 96000,
+  "total_reference_rows": 288000,
+  "total_trials": 48000,
+  "trials_per_program": 4
+}

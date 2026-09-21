@@ -1,0 +1,288 @@
+[
+  {
+    "mu_h": 0.05,
+    "delay": "non-informative",
+    "panel": "coarse(ns3)",
+    "deploy": 26,
+    "n": 8000,
+    "rate": 0.00325,
+    "wilson95": [
+      0.002218921562585225,
+      0.004757910638301714
+    ],
+    "abstain": 0.99675
+  },
+  {
+    "mu_h": 0.05,
+    "delay": "informative",
+    "panel": "coarse(ns3)",
+    "deploy": 406,
+    "n": 8000,
+    "rate": 0.05075,
+    "wilson95": [
+      0.046152313541114716,
+      0.055778923230397015
+    ],
+    "abstain": 0.94925
+  },
+  {
+    "mu_h": 0.06,
+    "delay": "non-informative",
+    "panel": "fine(ns4)",
+    "deploy": 66,
+    "n": 4000,
+    "rate": 0.0165,
+    "wilson95": [
+      0.012990881826410113,
+      0.020936899834731227
+    ],
+    "abstain": 0.9835
+  },
+  {
+    "mu_h": 0.06,
+    "delay": "informative",
+    "panel": "fine(ns4)",
+    "deploy": 556,
+    "n": 4000,
+    "rate": 0.139,
+    "wilson95": [
+      0.12862511012439135,
+      0.15006760793077314
+    ],
+    "abstain": 0.861
+  },
+  {
+    "mu_h": 0.07,
+    "delay": "non-informative",
+    "panel": "fine(ns4)",
+    "deploy": 231,
+    "n": 4000,
+    "rate": 0.05775,
+    "wilson95": [
+      0.05093635214531623,
+      0.06541227544442475
+    ],
+    "abstain": 0.94225
+  },
+  {
+    "mu_h": 0.07,
+    "delay": "informative",
+    "panel": "fine(ns4)",
+    "deploy": 1147,
+    "n": 4000,
+    "rate": 0.28675,
+    "wilson95": [
+      0.27294490960670076,
+      0.300964292956357
+    ],
+    "abstain": 0.71325
+  },
+  {
+    "mu_h": 0.08,
+    "delay": "non-informative",
+    "panel": "fine(ns4)",
+    "deploy": 639,
+    "n": 4000,
+    "rate": 0.15975,
+    "wilson95": [
+      0.1487233636514337,
+      0.17142953750720816
+    ],
+    "abstain": 0.84025
+  },
+  {
+    "mu_h": 0.08,
+    "delay": "informative",
+    "panel": "fine(ns4)",
+    "deploy": 1885,
+    "n": 4000,
+    "rate": 0.47125,
+    "wilson95": [
+      0.4558157424658999,
+      0.48673942552325805
+    ],
+    "abstain": 0.52875
+  },
+  {
+    "mu_h": 0.09,
+    "delay": "non-informative",
+    "panel": "fine(ns4)",
+    "deploy": 1284,
+    "n": 4000,
+    "rate": 0.321,
+    "wilson95": [
+      0.30670976279640993,
+      0.3356337179013033
+    ],
+    "abstain": 0.679
+  },
+  {
+    "mu_h": 0.09,
+    "delay": "informative",
+    "panel": "fine(ns4)",
+    "deploy": 2681,
+    "n": 4000,
+    "rate": 0.67025,
+    "wilson95": [
+      0.6555237573907036,
+      0.6846495521691531
+    ],
+    "abstain": 0.32975
+  },
+  {
+    "mu_h": 0.1,
+    "delay": "non-informative",
+    "panel": "coarse(ns3)",
+    "deploy": 4212,
+    "n": 8000,
+    "rate": 0.5265,
+    "wilson95": [
+      0.5155487673177344,
+      0.5374257952321931
+    ],
+    "abstain": 0.4735
+  },
+  {
+    "mu_h": 0.1,
+    "delay": "informative",
+    "panel": "coarse(ns3)",
+    "deploy": 6762,
+    "n": 8000,
+    "rate": 0.84525,
+    "wilson95": [
+      0.8371592518493948,
+      0.8530093413718306
+    ],
+    "abstain": 0.15475
+  },
+  {
+    "mu_h": 0.11,
+    "delay": "non-informative",
+    "panel": "fine(ns4)",
+    "deploy": 2918,
+    "n": 4000,
+    "rate": 0.7295,
+    "wilson95": [
+      0.7155184419492117,
+      0.7430411735808155
+    ],
+    "abstain": 0.2705
+  },
+  {
+    "mu_h": 0.11,
+    "delay": "informative",
+    "panel": "fine(ns4)",
+    "deploy": 3751,
+    "n": 4000,
+    "rate": 0.93775,
+    "wilson95": [
+      0.9298344157334566,
+      0.9448255916664098
+    ],
+    "abstain": 0.06225
+  },
+  {
+    "mu_h": 0.12,
+    "delay": "non-informative",
+    "panel": "fine(ns4)",
+    "deploy": 3501,
+    "n": 4000,
+    "rate": 0.87525,
+    "wilson95": [
+      0.8646484467228729,
+      0.8851314910882062
+    ],
+    "abstain": 0.12475
+  },
+  {
+    "mu_h": 0.12,
+    "delay": "informative",
+    "panel": "fine(ns4)",
+    "deploy": 3911,
+    "n": 4000,
+    "rate": 0.97775,
+    "wilson95": [
+      0.9727000319580753,
+      0.981883219978615
+    ],
+    "abstain": 0.02225
+  },
+  {
+    "mu_h": 0.15,
+    "delay": "non-informative",
+    "panel": "coarse(ns3)",
+    "deploy": 7969,
+    "n": 8000,
+    "rate": 0.996125,
+    "wilson95": [
+      0.9945051074473908,
+      0.9972686602915825
+    ],
+    "abstain": 0.003875
+  },
+  {
+    "mu_h": 0.15,
+    "delay": "informative",
+    "panel": "coarse(ns3)",
+    "deploy": 7999,
+    "n": 8000,
+    "rate": 0.999875,
+    "wilson95": [
+      0.999292234009974,
+      0.9999779340898377
+    ],
+    "abstain": 0.000125
+  },
+  {
+    "mu_h": 0.2,
+    "delay": "non-informative",
+    "panel": "coarse(ns3)",
+    "deploy": 8000,
+    "n": 8000,
+    "rate": 1.0,
+    "wilson95": [
+      0.9995200481118399,
+      1.0
+    ],
+    "abstain": 0.0
+  },
+  {
+    "mu_h": 0.2,
+    "delay": "informative",
+    "panel": "coarse(ns3)",
+    "deploy": 8000,
+    "n": 8000,
+    "rate": 1.0,
+    "wilson95": [
+      0.9995200481118399,
+      1.0
+    ],
+    "abstain": 0.0
+  },
+  {
+    "mu_h": 0.3,
+    "delay": "non-informative",
+    "panel": "coarse(ns3)",
+    "deploy": 8000,
+    "n": 8000,
+    "rate": 1.0,
+    "wilson95": [
+      0.9995200481118399,
+      1.0
+    ],
+    "abstain": 0.0
+  },
+  {
+    "mu_h": 0.3,
+    "delay": "informative",
+    "panel": "coarse(ns3)",
+    "deploy": 8000,
+    "n": 8000,
+    "rate": 1.0,
+    "wilson95": [
+      0.9995200481118399,
+      1.0
+    ],
+    "abstain": 0.0
+  }
+]
