@@ -799,6 +799,46 @@ and never redrawn. Freezing it in advance would *change* the design rather than 
 DTR-AgentEvals and are declared an **external dependency I do not control**, recorded as an open blocker,
 **not** asserted as my serving identity. `config.json` already names my own ports 8091/8092.
 
+### Live freeze, stage 1 executed — and seven defects caught before any write-once deposit
+
+Branch `session60/live-ab` head `748efff`. Root's binding answer 6 said to deposit the roster now. I ran
+the offline stages, found the deposit cannot honestly happen yet, and **stopped before it**.
+
+**Stage 1** (`results/live_ab/ROSTER_STAGE1_20260921_1830.json`, `descriptive`). All three pinned sources
+verify byte-for-byte offline; `roster_mode = EXT`. **1,138 candidates** (S1 591, S2 547) → **8 prospective
+exclusions** (6 smoke, 2 duplicate prompt; rule 3 excluded zero) → **1,130 survivors** (S1 591, S2 539) →
+**n_pairs CEILING 564**. Root warned against asserting 568 or 565; **neither is attainable** — 564 is the
+ceiling *before* rule 4 removes anything, and rule 4 can only remove.
+
+**Why no deposit.** Protocol 3.2 rule 4 requires the sweep to run *under the trial's load regime* (a
+1,024-token generation on the coder server). `reference_timeout` is a **wall-time** threshold of 2.5 s, so
+an idle machine excludes fewer tasks and yields a **larger roster that looks entirely correct** — and
+`write_roster` is write-once. The load regime needs this study's own server on 8091, which root's report
+does not approve, and the gate fails on **presence** of foreign accelerator consumers.
+
+**Seven defects** (`results/live_ab/FREEZE_PATH_DEFECTS_20260921_1840.json`, `deterministic-path`). A
+five-agent read-only survey proposed them; I verified each against source and kept only those. The survey
+independently reproduced the stage-1 counts.
+
+| # | defect | why it matters |
+|---|---|---|
+| **D1** | `roster_sha256` **not reproducible** once the sweep excludes anything — exclusion detail carries a random `token_hex(8)` sentinel and a random `mkdtemp` path, both hashed into the roster identity | the central hash of a **write-once** artifact, unreproducible forever |
+| **D2** | `lab_verify_log` guards per-pair enrollment with `isinstance(order, list)`, but **both** production writers emit dicts, while `col.ok('order.enrollment')` fires unconditionally | a real freeze **verifies clean having compared zero pairs**; only the dry run enters the branch |
+| **D3** | a genuine hang sets `passed=False` → filed `reference_fails_verify`; `reference_timeout` can only fire when the program **succeeded** but was slow | the two reasons do not mean what their names say |
+| **D4** | the S2 source is in **no version-controlled location** — only gitignored `work/` and a session temp dir | if both go, the build **silently** yields 295 pairs instead of 564, no exception |
+| **D5** | `fetch_sources` is not idempotent; its own write-once guard fails the second call | any repeated/resumed preparation run |
+| **D6** | rule 2 compares only `benchmark=='mbpp'` S1 tasks, never HumanEval | no-op on this data; narrower than the rule |
+| **D7** | no test pins any real roster value; the sweep is tested on 3 synthetic tasks | **no oracle** — a wrong roster passes the suite |
+
+**None repaired here** — `lab_data.py`, `lab_design.py` and `lab_verify_log.py` are pinned by
+`harness_file_sha256`, so touching them moves the freeze pins. **D1, D2 and D4 need a root ruling before
+any deposit.**
+
+**Capacity receipt corrected per root:** "not currently serving" was stronger than a 0% CPU sample
+supports → recorded as sampled CPU with **serving/accelerator activity unknown**. Gate criterion also
+corrected: protocol 5.7.2 fails on **presence** of foreign consumers, not on load, so **no quiet sample
+can ever clear it**.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
