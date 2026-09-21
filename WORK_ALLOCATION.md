@@ -1,9 +1,11 @@
 # Shared workspace ownership
 
-**September 21, 09:46 UTC review — full project 65% (change 0), separately bounded v1 90%.** New delivery `1c13041` adds an optional conformance diagnostic; it does not deliver the requested final T1 launcher. [Current root disposition](reviews/v2_conformance_root_disposition_20260921_0946.md) narrows its completeness claim, keeps it outside the approved runtime, and redirects the owner to the missed `96c380c` handoff. Conditional 2676-second T1 planning remains accepted; no further timing run or expanded checker is required. Latest owner 09:20:18 UTC: zero live episodes/v2 calibration cells, no freeze/grid, nothing running. Remaining 35 points: Session60 prospective 10 and CPU calibration 5; root integration/final QA 10; author checks 10. Review/status only; release artifacts unchanged.
+**September 21, 10:22 UTC review — full project 65% (change 0), separately bounded v1 90%.** Delivery `7a12acb` includes the T1 launcher/manifest shell and resolves the feedback read-back; the child executor is still unimplemented. [Current root disposition](reviews/v2_launcher_root_disposition_20260921_1022.md) specifies 56 fixed 500-program shards, immutable receipts and one cumulative budget, authorizing implementation now. Two existing supervisor fixes remain incomplete. No timing rerun or broader validator is requested. Latest owner 10:18:42 UTC: zero live episodes/v2 calibration cells, no freeze/grid, nothing running. Remaining35 points: Session60 prospective10 and CPUcalibration5; root integration/finalQA10; authorchecks10. Reports/design only; five release artifacts unchanged.
 
 
 ## Active arXiv phase — September 19, 2026
+
+**10:22 handoff:** root owns shard specification, manifest review and shared status. The supervisor reviewer returned its isolated repair report; root integrates it. Session60 exclusively implements the child/receipts and existing supervisor repairs. No duplicate executor or experiment is launched by root.
 
 **09:46 handoff:** the conformance reviewer owns only its 0946 report/scratch, then returns it to root. Session60 owns final launcher repairs; root owns claim disposition and shared status. No new gate, stochastic run or duplicate task is commissioned.
 

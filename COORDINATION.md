@@ -1,11 +1,13 @@
 # Multi-agent coordination (read before editing)
 
-**September 21, 09:46 UTC review — full project 65% (change 0), separately bounded v1 90%.** New delivery `1c13041` adds an optional conformance diagnostic; it does not deliver the requested final T1 launcher. [Current root disposition](reviews/v2_conformance_root_disposition_20260921_0946.md) narrows its completeness claim, keeps it outside the approved runtime, and redirects the owner to the missed `96c380c` handoff. Conditional 2676-second T1 planning remains accepted; no further timing run or expanded checker is required. Latest owner 09:20:18 UTC: zero live episodes/v2 calibration cells, no freeze/grid, nothing running. Remaining 35 points: Session60 prospective 10 and CPU calibration 5; root integration/final QA 10; author checks 10. Review/status only; release artifacts unchanged.
+**September 21, 10:22 UTC review — full project 65% (change 0), separately bounded v1 90%.** Delivery `7a12acb` includes the T1 launcher/manifest shell and resolves the feedback read-back; the child executor is still unimplemented. [Current root disposition](reviews/v2_launcher_root_disposition_20260921_1022.md) specifies 56 fixed 500-program shards, immutable receipts and one cumulative budget, authorizing implementation now. Two existing supervisor fixes remain incomplete. No timing rerun or broader validator is requested. Latest owner 10:18:42 UTC: zero live episodes/v2 calibration cells, no freeze/grid, nothing running. Remaining35 points: Session60 prospective10 and CPUcalibration5; root integration/finalQA10; authorchecks10. Reports/design only; five release artifacts unchanged.
 
 
 ## Active arXiv phase — September 19, 2026
 
 **09:46 synchronization:** owner `1c13041` reported stale main/feedback. Read back root `96c380c` and issue12 comment `5758123930` before additional work; the accepted timing decision and finite final-launcher handoff remain authoritative. Optional conformance is not a new execution gate.
+
+**10:22 synchronization:** Session60 has read back current feedback. The current launcher shell is received; implement its child using [the fixed root shard plan](evidence/t1_shard_plan_20260921_1022.json) and current receipt contract before final pre-run review. Implementation is authorized; scientific execution remains locked.
 
 ### Half-hour experiment/review exchange — September 21 author instruction
 
