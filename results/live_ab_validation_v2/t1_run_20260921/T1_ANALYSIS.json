@@ -1,825 +1,4288 @@
 {
   "MUST_NOT_CLAIM": [
-    "a power curve or minimum detectable effect: the grid has NO partially-powered operating point (mu_h in {0,0.40,0.45}, nothing between 0 and 0.40)",
-    "that the bands are well-calibrated: a 0/1 decision function cannot distinguish a correctly-targeted band from a correctly-targeted AND vacuously wide one",
-    "that this is a fresh confirmatory result: it is replay data with prior exposure",
-    "pooling constructions into one denominator, or pooling cells with different truth"
+    "a power curve or a minimum detectable effect at a prespecified target power: this FINITE GRID does not identify one. (Narrowed after review: the earlier claim that no partially-powered operating point EXISTS did not follow from effect spacing alone, since detection probability also depends on the joint outcome law, variance, delay, guardrail effect, horizon and boundary width.)",
+    "that the bands are demonstrated well-calibrated by near-boundary decision rates alone",
+    "that this is a fresh confirmatory result: replay data with prior exposure",
+    "pooling constructions into one denominator, or pooling cells with different truth",
+    "that marginal Wilson intervals are simultaneous or anytime-valid"
   ],
-  "complete_panel": true,
-  "conventions": {
-    "miscover_*": "descriptive counts of an ever-event over the trial's look sequence",
-    "program_deploy_rate": "descriptive (observed rate) with design-based Wilson 95% interval",
-    "trial_abstention_rate": "descriptive"
-  },
-  "exposure": "namespace-0 replay coordinates with PRIOR DEVELOPMENT EXPOSURE; NOT a fresh confirmatory holdout",
-  "frozen_constants": {
-    "alpha_gate": 0.00625,
-    "alpha_per_trial": 0.0125,
-    "delta": 0.03,
-    "program_alpha": 0.05
-  },
-  "guardrail_cells": [
+  "alert_rule": "Wilson LOWER limit exceeds the nominal level; a flag prompts diagnosis and neither a flag nor its absence establishes a theorem",
+  "alerts": [
     {
-      "cell": "C5",
-      "construction": "ADAPTER",
-      "delay_kind": "non-informative",
-      "deploy_is_error": false,
-      "deploy_is_guardrail_breach": true,
-      "kind": "guardrail boundary",
-      "law": "success_boundary",
-      "miscover_h": 0,
-      "miscover_h_eligible": 0,
-      "miscover_s": 0,
-      "miscover_s_eligible": 0,
-      "mu_h": 0.4,
-      "mu_s": -0.03,
-      "program_any_deploy": 0,
-      "program_deploy_rate": 0.0,
-      "program_deploy_wilson95": [
-        0.0,
-        0.0007677019450571244
-      ],
-      "programs": 5000,
-      "trial_abstention_rate": 1.0,
-      "trial_deploy": 0,
-      "trial_no_decision": 20000,
-      "trial_retain": 0,
-      "trials": 20000
+      "cell": "C2",
+      "construction": "NAIVE",
+      "nominal": 0.0125,
+      "observed": 0.0505,
+      "readout": "trial_any_error",
+      "rule": "Wilson LOWER limit exceeds the nominal level",
+      "scope": "trial",
+      "wilson95": [
+        0.04591364340432155,
+        0.05551783334313426
+      ]
+    },
+    {
+      "cell": "C2",
+      "construction": "NAIVE",
+      "nominal": 0.05,
+      "observed": 0.188,
+      "readout": "program_family_any_erroneous",
+      "rule": "Wilson LOWER limit exceeds the nominal level",
+      "scope": "program",
+      "wilson95": [
+        0.17148068565539723,
+        0.20571555184810456
+      ]
+    },
+    {
+      "cell": "C2",
+      "construction": "NAIVE",
+      "nominal": 0.00625,
+      "observed": 0.98875,
+      "readout": "miscover_h_twosided",
+      "rule": "Wilson LOWER limit exceeds the nominal level",
+      "scope": "band",
+      "wilson95": [
+        0.9861929806287272,
+        0.9908378664005965
+      ]
+    },
+    {
+      "cell": "C4",
+      "construction": "NAIVE",
+      "nominal": 0.0125,
+      "observed": 0.9999,
+      "readout": "trial_any_error",
+      "rule": "Wilson LOWER limit exceeds the nominal level",
+      "scope": "trial",
+      "wilson95": [
+        0.9996354263863794,
+        0.9999725759647272
+      ]
+    },
+    {
+      "cell": "C4",
+      "construction": "NAIVE",
+      "nominal": 0.05,
+      "observed": 1.0,
+      "readout": "program_family_any_erroneous",
+      "rule": "Wilson LOWER limit exceeds the nominal level",
+      "scope": "program",
+      "wilson95": [
+        0.999232298054943,
+        1.0000000000000002
+      ]
+    },
+    {
+      "cell": "C4",
+      "construction": "NAIVE",
+      "nominal": 0.00625,
+      "observed": 0.9999,
+      "readout": "miscover_h_twosided",
+      "rule": "Wilson LOWER limit exceeds the nominal level",
+      "scope": "band",
+      "wilson95": [
+        0.9996354263863794,
+        0.9999725759647272
+      ]
     },
     {
       "cell": "C6",
-      "construction": "ADAPTER",
-      "delay_kind": "informative",
-      "deploy_is_error": false,
-      "deploy_is_guardrail_breach": true,
-      "kind": "guardrail boundary",
-      "law": "success_boundary",
-      "miscover_h": 0,
-      "miscover_h_eligible": 0,
-      "miscover_s": 0,
-      "miscover_s_eligible": 0,
-      "mu_h": 0.4,
-      "mu_s": -0.03,
-      "program_any_deploy": 0,
-      "program_deploy_rate": 0.0,
-      "program_deploy_wilson95": [
-        0.0,
-        0.0007677019450571244
-      ],
-      "programs": 5000,
-      "trial_abstention_rate": 1.0,
-      "trial_deploy": 0,
-      "trial_no_decision": 20000,
-      "trial_retain": 0,
-      "trials": 20000
-    }
-  ],
-  "headline_contrast_informative_delay": [
-    {
-      "adapter_program_deploy_rate": 0.0,
-      "adapter_wilson95": [
-        1.0821237056584124e-19,
-        0.0019170472812529342
-      ],
-      "cell": "C2",
-      "kind": "TRUE NULL",
-      "naive_program_deploy_rate": 0.188,
-      "naive_wilson95": [
-        0.17148068565539723,
-        0.20571555184810456
-      ],
-      "note": "both are FALSE CERTIFICATION rates: the true hierarchy effect is not positive in this cell"
-    },
-    {
-      "adapter_program_deploy_rate": 0.001,
-      "adapter_wilson95": [
-        0.0004272134911087996,
-        0.0023389530500582106
-      ],
-      "cell": "C4",
-      "kind": "hierarchy null",
-      "naive_program_deploy_rate": 1.0,
-      "naive_wilson95": [
-        0.999232298054943,
-        1.0000000000000002
-      ],
-      "note": "both are FALSE CERTIFICATION rates: the true hierarchy effect is not positive in this cell"
-    }
-  ],
-  "power_cells": [
-    {
-      "cell": "C7",
-      "construction": "ADAPTER",
-      "delay_kind": "non-informative",
-      "deploy_is_error": false,
-      "deploy_is_guardrail_breach": false,
-      "kind": "favourable alternative",
-      "law": "favorable_alt",
-      "miscover_h": 0,
-      "miscover_h_eligible": 0,
-      "miscover_s": 0,
-      "miscover_s_eligible": 0,
-      "mu_h": 0.45,
-      "mu_s": 0.2,
-      "program_any_deploy": 2000,
-      "program_deploy_rate": 1.0,
-      "program_deploy_wilson95": [
-        0.9980829527187468,
-        0.9999999999999998
-      ],
-      "programs": 2000,
-      "trial_abstention_rate": 0.0,
-      "trial_deploy": 8000,
-      "trial_no_decision": 0,
-      "trial_retain": 0,
-      "trials": 8000
+      "construction": "NAIVE",
+      "nominal": 0.00625,
+      "observed": 0.8136,
+      "readout": "miscover_h_twosided",
+      "rule": "Wilson LOWER limit exceeds the nominal level",
+      "scope": "band",
+      "wilson95": [
+        0.8081428466501541,
+        0.818936708335457
+      ]
     },
     {
       "cell": "C8",
-      "construction": "ADAPTER",
-      "delay_kind": "informative",
-      "deploy_is_error": false,
-      "deploy_is_guardrail_breach": false,
-      "kind": "favourable alternative",
-      "law": "favorable_alt",
-      "miscover_h": 0,
-      "miscover_h_eligible": 0,
-      "miscover_s": 0,
-      "miscover_s_eligible": 0,
-      "mu_h": 0.45,
-      "mu_s": 0.2,
-      "program_any_deploy": 2000,
-      "program_deploy_rate": 1.0,
-      "program_deploy_wilson95": [
-        0.9980829527187468,
-        0.9999999999999998
-      ],
-      "programs": 2000,
-      "trial_abstention_rate": 0.0,
-      "trial_deploy": 8000,
-      "trial_no_decision": 0,
-      "trial_retain": 0,
-      "trials": 8000
+      "construction": "NAIVE",
+      "nominal": 0.00625,
+      "observed": 0.69375,
+      "readout": "miscover_h_twosided",
+      "rule": "Wilson LOWER limit exceeds the nominal level",
+      "scope": "band",
+      "wilson95": [
+        0.6835585106520834,
+        0.7037555079912545
+      ]
     }
   ],
+  "completeness_note": "shard count alone is NOT scientific completion; the accepted terminal job receipt supplies that",
+  "exposure": "namespace-0 replay coordinates with PRIOR DEVELOPMENT EXPOSURE; NOT a fresh confirmatory holdout",
+  "frozen_event_definitions": {
+    "false_deploy": "DEPLOY AND NOT(mu_h > 0 AND mu_s > -delta)",
+    "false_harm": "RETAIN_INCUMBENT AND mu_h >= 0",
+    "family_any_erroneous": "any over a program's trials of (false_deploy OR false_harm)"
+  },
+  "nominal_levels": {
+    "delta": 0.03,
+    "per_band": 0.00625,
+    "per_trial": 0.0125,
+    "program": 0.05
+  },
+  "provisional_unless_root_accepts_snapshot": true,
   "rows": [
     {
       "cell": "C1",
       "construction": "ADAPTER",
+      "decided_at_finalization": 0,
+      "decided_in_drain": 0,
+      "deciding_fraction": 0.0,
+      "deciding_trials": 0,
+      "decisions": {
+        "CONFLICT": 0,
+        "DEPLOY": 0,
+        "NO_DECISION": 8000,
+        "RETAIN_INCUMBENT": 0
+      },
+      "decisions_reconcile": true,
       "delay_kind": "non-informative",
+      "deploy_error_reason": "hierarchy not positive",
+      "deploy_is_correct": false,
       "deploy_is_error": true,
-      "deploy_is_guardrail_breach": false,
       "kind": "TRUE NULL",
       "law": "aa_null",
-      "miscover_h": 0,
-      "miscover_h_eligible": 0,
-      "miscover_s": 0,
-      "miscover_s_eligible": 0,
+      "mean_final_cost_narrowed_fraction": 0.007780312500000218,
+      "mean_final_unresolved_fraction": 0.029234312500000005,
+      "miscover_h_above": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_h_below": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_h_decision_eligible": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_h_twosided": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_above": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_below": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_decision_eligible": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_twosided": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
       "mu_h": 0.0,
       "mu_s": 0.0,
-      "program_any_deploy": 0,
-      "program_deploy_rate": 0.0,
-      "program_deploy_wilson95": [
-        1.0821237056584124e-19,
-        0.0019170472812529342
-      ],
+      "program_any_correct_deploy": {
+        "k": 0,
+        "n": 2000,
+        "rate": 0.0,
+        "wilson95": [
+          1.0821237056584124e-19,
+          0.0019170472812529342
+        ]
+      },
+      "program_any_deploy_DESCRIPTIVE": {
+        "k": 0,
+        "n": 2000,
+        "rate": 0.0,
+        "wilson95": [
+          1.0821237056584124e-19,
+          0.0019170472812529342
+        ]
+      },
+      "program_family_any_erroneous": {
+        "k": 0,
+        "n": 2000,
+        "rate": 0.0,
+        "wilson95": [
+          1.0821237056584124e-19,
+          0.0019170472812529342
+        ]
+      },
       "programs": 2000,
-      "trial_abstention_rate": 1.0,
-      "trial_deploy": 0,
-      "trial_no_decision": 8000,
-      "trial_retain": 0,
+      "retain_is_false_harm": true,
+      "tau_prefix_median_DECIDING_ONLY": null,
+      "trial_abstention": {
+        "k": 8000,
+        "n": 8000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9995200481118399,
+          1.0
+        ]
+      },
+      "trial_any_error": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "trial_correct_deploy": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "trial_false_deploy": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "trial_false_harm": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
       "trials": 8000
     },
     {
       "cell": "C1",
       "construction": "CPREFIX",
+      "decided_at_finalization": 0,
+      "decided_in_drain": 1,
+      "deciding_fraction": 0.000125,
+      "deciding_trials": 1,
+      "decisions": {
+        "CONFLICT": 0,
+        "DEPLOY": 0,
+        "NO_DECISION": 7999,
+        "RETAIN_INCUMBENT": 1
+      },
+      "decisions_reconcile": true,
       "delay_kind": "non-informative",
+      "deploy_error_reason": "hierarchy not positive",
+      "deploy_is_correct": false,
       "deploy_is_error": true,
-      "deploy_is_guardrail_breach": false,
       "kind": "TRUE NULL",
       "law": "aa_null",
-      "miscover_h": 2,
-      "miscover_h_eligible": 2,
-      "miscover_s": 0,
-      "miscover_s_eligible": 0,
+      "mean_final_cost_narrowed_fraction": 0.007780312500000218,
+      "mean_final_unresolved_fraction": 0.029234312500000005,
+      "miscover_h_above": {
+        "k": 1,
+        "n": 8000,
+        "rate": 0.000125,
+        "wilson95": [
+          2.206591016216933e-05,
+          0.0007077659900257712
+        ]
+      },
+      "miscover_h_below": {
+        "k": 1,
+        "n": 8000,
+        "rate": 0.000125,
+        "wilson95": [
+          2.206591016216933e-05,
+          0.0007077659900257712
+        ]
+      },
+      "miscover_h_decision_eligible": {
+        "k": 2,
+        "n": 8000,
+        "rate": 0.00025,
+        "wilson95": [
+          6.856169466181564e-05,
+          0.000911150217554085
+        ]
+      },
+      "miscover_h_twosided": {
+        "k": 2,
+        "n": 8000,
+        "rate": 0.00025,
+        "wilson95": [
+          6.856169466181564e-05,
+          0.000911150217554085
+        ]
+      },
+      "miscover_s_above": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_below": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_decision_eligible": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_twosided": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
       "mu_h": 0.0,
       "mu_s": 0.0,
-      "program_any_deploy": 0,
-      "program_deploy_rate": 0.0,
-      "program_deploy_wilson95": [
-        1.0821237056584124e-19,
-        0.0019170472812529342
-      ],
+      "program_any_correct_deploy": {
+        "k": 0,
+        "n": 2000,
+        "rate": 0.0,
+        "wilson95": [
+          1.0821237056584124e-19,
+          0.0019170472812529342
+        ]
+      },
+      "program_any_deploy_DESCRIPTIVE": {
+        "k": 0,
+        "n": 2000,
+        "rate": 0.0,
+        "wilson95": [
+          1.0821237056584124e-19,
+          0.0019170472812529342
+        ]
+      },
+      "program_family_any_erroneous": {
+        "k": 1,
+        "n": 2000,
+        "rate": 0.0005,
+        "wilson95": [
+          8.826773070546781e-05,
+          0.0028268625032662133
+        ]
+      },
       "programs": 2000,
-      "trial_abstention_rate": 0.999875,
-      "trial_deploy": 0,
-      "trial_no_decision": 7999,
-      "trial_retain": 0,
+      "retain_is_false_harm": true,
+      "tau_prefix_median_DECIDING_ONLY": 2000,
+      "trial_abstention": {
+        "k": 7999,
+        "n": 8000,
+        "rate": 0.999875,
+        "wilson95": [
+          0.999292234009974,
+          0.9999779340898377
+        ]
+      },
+      "trial_any_error": {
+        "k": 1,
+        "n": 8000,
+        "rate": 0.000125,
+        "wilson95": [
+          2.206591016216933e-05,
+          0.0007077659900257712
+        ]
+      },
+      "trial_correct_deploy": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "trial_false_deploy": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "trial_false_harm": {
+        "k": 1,
+        "n": 8000,
+        "rate": 0.000125,
+        "wilson95": [
+          2.206591016216933e-05,
+          0.0007077659900257712
+        ]
+      },
       "trials": 8000
     },
     {
       "cell": "C1",
       "construction": "NAIVE",
+      "decided_at_finalization": 0,
+      "decided_in_drain": 0,
+      "deciding_fraction": 0.00025,
+      "deciding_trials": 2,
+      "decisions": {
+        "CONFLICT": 0,
+        "DEPLOY": 0,
+        "NO_DECISION": 7998,
+        "RETAIN_INCUMBENT": 2
+      },
+      "decisions_reconcile": true,
       "delay_kind": "non-informative",
+      "deploy_error_reason": "hierarchy not positive",
+      "deploy_is_correct": false,
       "deploy_is_error": true,
-      "deploy_is_guardrail_breach": false,
       "kind": "TRUE NULL",
       "law": "aa_null",
-      "miscover_h": 2,
-      "miscover_h_eligible": 2,
-      "miscover_s": 0,
-      "miscover_s_eligible": 0,
+      "mean_final_cost_narrowed_fraction": 0.007780312500000218,
+      "mean_final_unresolved_fraction": 0.029234312500000005,
+      "miscover_h_above": {
+        "k": 2,
+        "n": 8000,
+        "rate": 0.00025,
+        "wilson95": [
+          6.856169466181564e-05,
+          0.000911150217554085
+        ]
+      },
+      "miscover_h_below": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_h_decision_eligible": {
+        "k": 2,
+        "n": 8000,
+        "rate": 0.00025,
+        "wilson95": [
+          6.856169466181564e-05,
+          0.000911150217554085
+        ]
+      },
+      "miscover_h_twosided": {
+        "k": 2,
+        "n": 8000,
+        "rate": 0.00025,
+        "wilson95": [
+          6.856169466181564e-05,
+          0.000911150217554085
+        ]
+      },
+      "miscover_s_above": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_below": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_decision_eligible": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_twosided": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
       "mu_h": 0.0,
       "mu_s": 0.0,
-      "program_any_deploy": 0,
-      "program_deploy_rate": 0.0,
-      "program_deploy_wilson95": [
-        1.0821237056584124e-19,
-        0.0019170472812529342
-      ],
+      "program_any_correct_deploy": {
+        "k": 0,
+        "n": 2000,
+        "rate": 0.0,
+        "wilson95": [
+          1.0821237056584124e-19,
+          0.0019170472812529342
+        ]
+      },
+      "program_any_deploy_DESCRIPTIVE": {
+        "k": 0,
+        "n": 2000,
+        "rate": 0.0,
+        "wilson95": [
+          1.0821237056584124e-19,
+          0.0019170472812529342
+        ]
+      },
+      "program_family_any_erroneous": {
+        "k": 2,
+        "n": 2000,
+        "rate": 0.001,
+        "wilson95": [
+          0.0002742789176520344,
+          0.0036389342690383943
+        ]
+      },
       "programs": 2000,
-      "trial_abstention_rate": 0.99975,
-      "trial_deploy": 0,
-      "trial_no_decision": 7998,
-      "trial_retain": 0,
+      "retain_is_false_harm": true,
+      "tau_prefix_median_DECIDING_ONLY": 1420,
+      "trial_abstention": {
+        "k": 7998,
+        "n": 8000,
+        "rate": 0.99975,
+        "wilson95": [
+          0.9990888497824459,
+          0.999931438305338
+        ]
+      },
+      "trial_any_error": {
+        "k": 2,
+        "n": 8000,
+        "rate": 0.00025,
+        "wilson95": [
+          6.856169466181564e-05,
+          0.000911150217554085
+        ]
+      },
+      "trial_correct_deploy": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "trial_false_deploy": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "trial_false_harm": {
+        "k": 2,
+        "n": 8000,
+        "rate": 0.00025,
+        "wilson95": [
+          6.856169466181564e-05,
+          0.000911150217554085
+        ]
+      },
       "trials": 8000
     },
     {
       "cell": "C2",
       "construction": "ADAPTER",
+      "decided_at_finalization": 0,
+      "decided_in_drain": 0,
+      "deciding_fraction": 0.0,
+      "deciding_trials": 0,
+      "decisions": {
+        "CONFLICT": 0,
+        "DEPLOY": 0,
+        "NO_DECISION": 8000,
+        "RETAIN_INCUMBENT": 0
+      },
+      "decisions_reconcile": true,
       "delay_kind": "informative",
+      "deploy_error_reason": "hierarchy not positive",
+      "deploy_is_correct": false,
       "deploy_is_error": true,
-      "deploy_is_guardrail_breach": false,
       "kind": "TRUE NULL",
       "law": "aa_null",
-      "miscover_h": 1,
-      "miscover_h_eligible": 1,
-      "miscover_s": 0,
-      "miscover_s_eligible": 0,
+      "mean_final_cost_narrowed_fraction": 0.010219250000000039,
+      "mean_final_unresolved_fraction": 0.029179249999999938,
+      "miscover_h_above": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_h_below": {
+        "k": 1,
+        "n": 8000,
+        "rate": 0.000125,
+        "wilson95": [
+          2.206591016216933e-05,
+          0.0007077659900257712
+        ]
+      },
+      "miscover_h_decision_eligible": {
+        "k": 1,
+        "n": 8000,
+        "rate": 0.000125,
+        "wilson95": [
+          2.206591016216933e-05,
+          0.0007077659900257712
+        ]
+      },
+      "miscover_h_twosided": {
+        "k": 1,
+        "n": 8000,
+        "rate": 0.000125,
+        "wilson95": [
+          2.206591016216933e-05,
+          0.0007077659900257712
+        ]
+      },
+      "miscover_s_above": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_below": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_decision_eligible": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_twosided": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
       "mu_h": 0.0,
       "mu_s": 0.0,
-      "program_any_deploy": 0,
-      "program_deploy_rate": 0.0,
-      "program_deploy_wilson95": [
-        1.0821237056584124e-19,
-        0.0019170472812529342
-      ],
+      "program_any_correct_deploy": {
+        "k": 0,
+        "n": 2000,
+        "rate": 0.0,
+        "wilson95": [
+          1.0821237056584124e-19,
+          0.0019170472812529342
+        ]
+      },
+      "program_any_deploy_DESCRIPTIVE": {
+        "k": 0,
+        "n": 2000,
+        "rate": 0.0,
+        "wilson95": [
+          1.0821237056584124e-19,
+          0.0019170472812529342
+        ]
+      },
+      "program_family_any_erroneous": {
+        "k": 0,
+        "n": 2000,
+        "rate": 0.0,
+        "wilson95": [
+          1.0821237056584124e-19,
+          0.0019170472812529342
+        ]
+      },
       "programs": 2000,
-      "trial_abstention_rate": 1.0,
-      "trial_deploy": 0,
-      "trial_no_decision": 8000,
-      "trial_retain": 0,
+      "retain_is_false_harm": true,
+      "tau_prefix_median_DECIDING_ONLY": null,
+      "trial_abstention": {
+        "k": 8000,
+        "n": 8000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9995200481118399,
+          1.0
+        ]
+      },
+      "trial_any_error": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "trial_correct_deploy": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "trial_false_deploy": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "trial_false_harm": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
       "trials": 8000
     },
     {
       "cell": "C2",
       "construction": "CPREFIX",
+      "decided_at_finalization": 0,
+      "decided_in_drain": 0,
+      "deciding_fraction": 0.0,
+      "deciding_trials": 0,
+      "decisions": {
+        "CONFLICT": 0,
+        "DEPLOY": 0,
+        "NO_DECISION": 8000,
+        "RETAIN_INCUMBENT": 0
+      },
+      "decisions_reconcile": true,
       "delay_kind": "informative",
+      "deploy_error_reason": "hierarchy not positive",
+      "deploy_is_correct": false,
       "deploy_is_error": true,
-      "deploy_is_guardrail_breach": false,
       "kind": "TRUE NULL",
       "law": "aa_null",
-      "miscover_h": 1,
-      "miscover_h_eligible": 1,
-      "miscover_s": 0,
-      "miscover_s_eligible": 0,
+      "mean_final_cost_narrowed_fraction": 0.010219250000000039,
+      "mean_final_unresolved_fraction": 0.029179249999999938,
+      "miscover_h_above": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_h_below": {
+        "k": 1,
+        "n": 8000,
+        "rate": 0.000125,
+        "wilson95": [
+          2.206591016216933e-05,
+          0.0007077659900257712
+        ]
+      },
+      "miscover_h_decision_eligible": {
+        "k": 1,
+        "n": 8000,
+        "rate": 0.000125,
+        "wilson95": [
+          2.206591016216933e-05,
+          0.0007077659900257712
+        ]
+      },
+      "miscover_h_twosided": {
+        "k": 1,
+        "n": 8000,
+        "rate": 0.000125,
+        "wilson95": [
+          2.206591016216933e-05,
+          0.0007077659900257712
+        ]
+      },
+      "miscover_s_above": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_below": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_decision_eligible": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_twosided": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
       "mu_h": 0.0,
       "mu_s": 0.0,
-      "program_any_deploy": 0,
-      "program_deploy_rate": 0.0,
-      "program_deploy_wilson95": [
-        1.0821237056584124e-19,
-        0.0019170472812529342
-      ],
+      "program_any_correct_deploy": {
+        "k": 0,
+        "n": 2000,
+        "rate": 0.0,
+        "wilson95": [
+          1.0821237056584124e-19,
+          0.0019170472812529342
+        ]
+      },
+      "program_any_deploy_DESCRIPTIVE": {
+        "k": 0,
+        "n": 2000,
+        "rate": 0.0,
+        "wilson95": [
+          1.0821237056584124e-19,
+          0.0019170472812529342
+        ]
+      },
+      "program_family_any_erroneous": {
+        "k": 0,
+        "n": 2000,
+        "rate": 0.0,
+        "wilson95": [
+          1.0821237056584124e-19,
+          0.0019170472812529342
+        ]
+      },
       "programs": 2000,
-      "trial_abstention_rate": 1.0,
-      "trial_deploy": 0,
-      "trial_no_decision": 8000,
-      "trial_retain": 0,
+      "retain_is_false_harm": true,
+      "tau_prefix_median_DECIDING_ONLY": null,
+      "trial_abstention": {
+        "k": 8000,
+        "n": 8000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9995200481118399,
+          1.0
+        ]
+      },
+      "trial_any_error": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "trial_correct_deploy": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "trial_false_deploy": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "trial_false_harm": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
       "trials": 8000
     },
     {
       "cell": "C2",
       "construction": "NAIVE",
+      "decided_at_finalization": 0,
+      "decided_in_drain": 0,
+      "deciding_fraction": 0.0505,
+      "deciding_trials": 404,
+      "decisions": {
+        "CONFLICT": 0,
+        "DEPLOY": 404,
+        "NO_DECISION": 7596,
+        "RETAIN_INCUMBENT": 0
+      },
+      "decisions_reconcile": true,
       "delay_kind": "informative",
+      "deploy_error_reason": "hierarchy not positive",
+      "deploy_is_correct": false,
       "deploy_is_error": true,
-      "deploy_is_guardrail_breach": false,
       "kind": "TRUE NULL",
       "law": "aa_null",
-      "miscover_h": 7910,
-      "miscover_h_eligible": 7910,
-      "miscover_s": 10,
-      "miscover_s_eligible": 10,
+      "mean_final_cost_narrowed_fraction": 0.010219250000000039,
+      "mean_final_unresolved_fraction": 0.029179249999999938,
+      "miscover_h_above": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_h_below": {
+        "k": 7910,
+        "n": 8000,
+        "rate": 0.98875,
+        "wilson95": [
+          0.9861929806287272,
+          0.9908378664005965
+        ]
+      },
+      "miscover_h_decision_eligible": {
+        "k": 7910,
+        "n": 8000,
+        "rate": 0.98875,
+        "wilson95": [
+          0.9861929806287272,
+          0.9908378664005965
+        ]
+      },
+      "miscover_h_twosided": {
+        "k": 7910,
+        "n": 8000,
+        "rate": 0.98875,
+        "wilson95": [
+          0.9861929806287272,
+          0.9908378664005965
+        ]
+      },
+      "miscover_s_above": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_below": {
+        "k": 10,
+        "n": 8000,
+        "rate": 0.00125,
+        "wilson95": [
+          0.0006791348013851289,
+          0.0022996172070544516
+        ]
+      },
+      "miscover_s_decision_eligible": {
+        "k": 10,
+        "n": 8000,
+        "rate": 0.00125,
+        "wilson95": [
+          0.0006791348013851289,
+          0.0022996172070544516
+        ]
+      },
+      "miscover_s_twosided": {
+        "k": 10,
+        "n": 8000,
+        "rate": 0.00125,
+        "wilson95": [
+          0.0006791348013851289,
+          0.0022996172070544516
+        ]
+      },
       "mu_h": 0.0,
       "mu_s": 0.0,
-      "program_any_deploy": 376,
-      "program_deploy_rate": 0.188,
-      "program_deploy_wilson95": [
-        0.17148068565539723,
-        0.20571555184810456
-      ],
+      "program_any_correct_deploy": {
+        "k": 0,
+        "n": 2000,
+        "rate": 0.0,
+        "wilson95": [
+          1.0821237056584124e-19,
+          0.0019170472812529342
+        ]
+      },
+      "program_any_deploy_DESCRIPTIVE": {
+        "k": 376,
+        "n": 2000,
+        "rate": 0.188,
+        "wilson95": [
+          0.17148068565539723,
+          0.20571555184810456
+        ]
+      },
+      "program_family_any_erroneous": {
+        "k": 376,
+        "n": 2000,
+        "rate": 0.188,
+        "wilson95": [
+          0.17148068565539723,
+          0.20571555184810456
+        ]
+      },
       "programs": 2000,
-      "trial_abstention_rate": 0.9495,
-      "trial_deploy": 404,
-      "trial_no_decision": 7596,
-      "trial_retain": 0,
+      "retain_is_false_harm": true,
+      "tau_prefix_median_DECIDING_ONLY": 599,
+      "trial_abstention": {
+        "k": 7596,
+        "n": 8000,
+        "rate": 0.9495,
+        "wilson95": [
+          0.9444821666568657,
+          0.9540863565956784
+        ]
+      },
+      "trial_any_error": {
+        "k": 404,
+        "n": 8000,
+        "rate": 0.0505,
+        "wilson95": [
+          0.04591364340432155,
+          0.05551783334313426
+        ]
+      },
+      "trial_correct_deploy": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "trial_false_deploy": {
+        "k": 404,
+        "n": 8000,
+        "rate": 0.0505,
+        "wilson95": [
+          0.04591364340432155,
+          0.05551783334313426
+        ]
+      },
+      "trial_false_harm": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
       "trials": 8000
     },
     {
       "cell": "C3",
       "construction": "ADAPTER",
+      "decided_at_finalization": 0,
+      "decided_in_drain": 0,
+      "deciding_fraction": 0.0,
+      "deciding_trials": 0,
+      "decisions": {
+        "CONFLICT": 0,
+        "DEPLOY": 0,
+        "NO_DECISION": 20000,
+        "RETAIN_INCUMBENT": 0
+      },
+      "decisions_reconcile": true,
       "delay_kind": "non-informative",
+      "deploy_error_reason": "hierarchy not positive",
+      "deploy_is_correct": false,
       "deploy_is_error": true,
-      "deploy_is_guardrail_breach": false,
       "kind": "hierarchy null",
       "law": "pref_boundary",
-      "miscover_h": 0,
-      "miscover_h_eligible": 0,
-      "miscover_s": 0,
-      "miscover_s_eligible": 0,
+      "mean_final_cost_narrowed_fraction": 0.011201849999999567,
+      "mean_final_unresolved_fraction": 0.03510052499999977,
+      "miscover_h_above": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_h_below": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_h_decision_eligible": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_h_twosided": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_above": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_below": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_decision_eligible": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_twosided": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
       "mu_h": 0.0,
       "mu_s": 0.25,
-      "program_any_deploy": 0,
-      "program_deploy_rate": 0.0,
-      "program_deploy_wilson95": [
-        0.0,
-        0.0007677019450571244
-      ],
+      "program_any_correct_deploy": {
+        "k": 0,
+        "n": 5000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.0007677019450571244
+        ]
+      },
+      "program_any_deploy_DESCRIPTIVE": {
+        "k": 0,
+        "n": 5000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.0007677019450571244
+        ]
+      },
+      "program_family_any_erroneous": {
+        "k": 0,
+        "n": 5000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.0007677019450571244
+        ]
+      },
       "programs": 5000,
-      "trial_abstention_rate": 1.0,
-      "trial_deploy": 0,
-      "trial_no_decision": 20000,
-      "trial_retain": 0,
+      "retain_is_false_harm": true,
+      "tau_prefix_median_DECIDING_ONLY": null,
+      "trial_abstention": {
+        "k": 20000,
+        "n": 20000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9998079639438954,
+          1.0
+        ]
+      },
+      "trial_any_error": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "trial_correct_deploy": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "trial_false_deploy": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "trial_false_harm": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
       "trials": 20000
     },
     {
       "cell": "C3",
       "construction": "CPREFIX",
+      "decided_at_finalization": 0,
+      "decided_in_drain": 2,
+      "deciding_fraction": 0.0006,
+      "deciding_trials": 12,
+      "decisions": {
+        "CONFLICT": 0,
+        "DEPLOY": 2,
+        "NO_DECISION": 19988,
+        "RETAIN_INCUMBENT": 10
+      },
+      "decisions_reconcile": true,
       "delay_kind": "non-informative",
+      "deploy_error_reason": "hierarchy not positive",
+      "deploy_is_correct": false,
       "deploy_is_error": true,
-      "deploy_is_guardrail_breach": false,
       "kind": "hierarchy null",
       "law": "pref_boundary",
-      "miscover_h": 12,
-      "miscover_h_eligible": 12,
-      "miscover_s": 0,
-      "miscover_s_eligible": 0,
+      "mean_final_cost_narrowed_fraction": 0.011201849999999567,
+      "mean_final_unresolved_fraction": 0.03510052499999977,
+      "miscover_h_above": {
+        "k": 10,
+        "n": 20000,
+        "rate": 0.0005,
+        "wilson95": [
+          0.000271621145015576,
+          0.0009202228750329449
+        ]
+      },
+      "miscover_h_below": {
+        "k": 2,
+        "n": 20000,
+        "rate": 0.0001,
+        "wilson95": [
+          2.742403527272682e-05,
+          0.0003645736136206778
+        ]
+      },
+      "miscover_h_decision_eligible": {
+        "k": 12,
+        "n": 20000,
+        "rate": 0.0006,
+        "wilson95": [
+          0.0003432700669267663,
+          0.0010485355459105335
+        ]
+      },
+      "miscover_h_twosided": {
+        "k": 12,
+        "n": 20000,
+        "rate": 0.0006,
+        "wilson95": [
+          0.0003432700669267663,
+          0.0010485355459105335
+        ]
+      },
+      "miscover_s_above": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_below": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_decision_eligible": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_twosided": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
       "mu_h": 0.0,
       "mu_s": 0.25,
-      "program_any_deploy": 2,
-      "program_deploy_rate": 0.0004,
-      "program_deploy_wilson95": [
-        0.00010970128207763503,
-        0.0014573865014234437
-      ],
+      "program_any_correct_deploy": {
+        "k": 0,
+        "n": 5000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.0007677019450571244
+        ]
+      },
+      "program_any_deploy_DESCRIPTIVE": {
+        "k": 2,
+        "n": 5000,
+        "rate": 0.0004,
+        "wilson95": [
+          0.00010970128207763503,
+          0.0014573865014234437
+        ]
+      },
+      "program_family_any_erroneous": {
+        "k": 12,
+        "n": 5000,
+        "rate": 0.0024,
+        "wilson95": [
+          0.0013734655564128324,
+          0.004190551419308018
+        ]
+      },
       "programs": 5000,
-      "trial_abstention_rate": 0.9994,
-      "trial_deploy": 2,
-      "trial_no_decision": 19988,
-      "trial_retain": 0,
+      "retain_is_false_harm": true,
+      "tau_prefix_median_DECIDING_ONLY": 1413,
+      "trial_abstention": {
+        "k": 19988,
+        "n": 20000,
+        "rate": 0.9994,
+        "wilson95": [
+          0.9989514644540894,
+          0.9996567299330732
+        ]
+      },
+      "trial_any_error": {
+        "k": 12,
+        "n": 20000,
+        "rate": 0.0006,
+        "wilson95": [
+          0.0003432700669267663,
+          0.0010485355459105335
+        ]
+      },
+      "trial_correct_deploy": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "trial_false_deploy": {
+        "k": 2,
+        "n": 20000,
+        "rate": 0.0001,
+        "wilson95": [
+          2.742403527272682e-05,
+          0.0003645736136206778
+        ]
+      },
+      "trial_false_harm": {
+        "k": 10,
+        "n": 20000,
+        "rate": 0.0005,
+        "wilson95": [
+          0.000271621145015576,
+          0.0009202228750329449
+        ]
+      },
       "trials": 20000
     },
     {
       "cell": "C3",
       "construction": "NAIVE",
+      "decided_at_finalization": 0,
+      "decided_in_drain": 0,
+      "deciding_fraction": 0.00115,
+      "deciding_trials": 23,
+      "decisions": {
+        "CONFLICT": 0,
+        "DEPLOY": 11,
+        "NO_DECISION": 19977,
+        "RETAIN_INCUMBENT": 12
+      },
+      "decisions_reconcile": true,
       "delay_kind": "non-informative",
+      "deploy_error_reason": "hierarchy not positive",
+      "deploy_is_correct": false,
       "deploy_is_error": true,
-      "deploy_is_guardrail_breach": false,
       "kind": "hierarchy null",
       "law": "pref_boundary",
-      "miscover_h": 23,
-      "miscover_h_eligible": 23,
-      "miscover_s": 0,
-      "miscover_s_eligible": 0,
+      "mean_final_cost_narrowed_fraction": 0.011201849999999567,
+      "mean_final_unresolved_fraction": 0.03510052499999977,
+      "miscover_h_above": {
+        "k": 12,
+        "n": 20000,
+        "rate": 0.0006,
+        "wilson95": [
+          0.0003432700669267663,
+          0.0010485355459105335
+        ]
+      },
+      "miscover_h_below": {
+        "k": 11,
+        "n": 20000,
+        "rate": 0.00055,
+        "wilson95": [
+          0.00030714858193327043,
+          0.00098467623450964
+        ]
+      },
+      "miscover_h_decision_eligible": {
+        "k": 23,
+        "n": 20000,
+        "rate": 0.00115,
+        "wilson95": [
+          0.0007664595208507285,
+          0.0017251348523248567
+        ]
+      },
+      "miscover_h_twosided": {
+        "k": 23,
+        "n": 20000,
+        "rate": 0.00115,
+        "wilson95": [
+          0.0007664595208507285,
+          0.0017251348523248567
+        ]
+      },
+      "miscover_s_above": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_below": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_decision_eligible": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_twosided": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
       "mu_h": 0.0,
       "mu_s": 0.25,
-      "program_any_deploy": 11,
-      "program_deploy_rate": 0.0022,
-      "program_deploy_wilson95": [
-        0.0012289154071388128,
-        0.003935408649360061
-      ],
+      "program_any_correct_deploy": {
+        "k": 0,
+        "n": 5000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.0007677019450571244
+        ]
+      },
+      "program_any_deploy_DESCRIPTIVE": {
+        "k": 11,
+        "n": 5000,
+        "rate": 0.0022,
+        "wilson95": [
+          0.0012289154071388128,
+          0.003935408649360061
+        ]
+      },
+      "program_family_any_erroneous": {
+        "k": 23,
+        "n": 5000,
+        "rate": 0.0046,
+        "wilson95": [
+          0.003067252025343836,
+          0.0068933870618187645
+        ]
+      },
       "programs": 5000,
-      "trial_abstention_rate": 0.99885,
-      "trial_deploy": 11,
-      "trial_no_decision": 19977,
-      "trial_retain": 0,
+      "retain_is_false_harm": true,
+      "tau_prefix_median_DECIDING_ONLY": 720,
+      "trial_abstention": {
+        "k": 19977,
+        "n": 20000,
+        "rate": 0.99885,
+        "wilson95": [
+          0.998274865147675,
+          0.9992335404791494
+        ]
+      },
+      "trial_any_error": {
+        "k": 23,
+        "n": 20000,
+        "rate": 0.00115,
+        "wilson95": [
+          0.0007664595208507285,
+          0.0017251348523248567
+        ]
+      },
+      "trial_correct_deploy": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "trial_false_deploy": {
+        "k": 11,
+        "n": 20000,
+        "rate": 0.00055,
+        "wilson95": [
+          0.00030714858193327043,
+          0.00098467623450964
+        ]
+      },
+      "trial_false_harm": {
+        "k": 12,
+        "n": 20000,
+        "rate": 0.0006,
+        "wilson95": [
+          0.0003432700669267663,
+          0.0010485355459105335
+        ]
+      },
       "trials": 20000
     },
     {
       "cell": "C4",
       "construction": "ADAPTER",
+      "decided_at_finalization": 0,
+      "decided_in_drain": 0,
+      "deciding_fraction": 0.00025,
+      "deciding_trials": 5,
+      "decisions": {
+        "CONFLICT": 0,
+        "DEPLOY": 5,
+        "NO_DECISION": 19995,
+        "RETAIN_INCUMBENT": 0
+      },
+      "decisions_reconcile": true,
       "delay_kind": "informative",
+      "deploy_error_reason": "hierarchy not positive",
+      "deploy_is_correct": false,
       "deploy_is_error": true,
-      "deploy_is_guardrail_breach": false,
       "kind": "hierarchy null",
       "law": "pref_boundary",
-      "miscover_h": 7,
-      "miscover_h_eligible": 7,
-      "miscover_s": 0,
-      "miscover_s_eligible": 0,
+      "mean_final_cost_narrowed_fraction": 0.012260249999999634,
+      "mean_final_unresolved_fraction": 0.03509547499999944,
+      "miscover_h_above": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_h_below": {
+        "k": 7,
+        "n": 20000,
+        "rate": 0.00035,
+        "wilson95": [
+          0.0001695531775955528,
+          0.0007223484532697995
+        ]
+      },
+      "miscover_h_decision_eligible": {
+        "k": 7,
+        "n": 20000,
+        "rate": 0.00035,
+        "wilson95": [
+          0.0001695531775955528,
+          0.0007223484532697995
+        ]
+      },
+      "miscover_h_twosided": {
+        "k": 7,
+        "n": 20000,
+        "rate": 0.00035,
+        "wilson95": [
+          0.0001695531775955528,
+          0.0007223484532697995
+        ]
+      },
+      "miscover_s_above": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_below": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_decision_eligible": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_twosided": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
       "mu_h": 0.0,
       "mu_s": 0.25,
-      "program_any_deploy": 5,
-      "program_deploy_rate": 0.001,
-      "program_deploy_wilson95": [
-        0.0004272134911087996,
-        0.0023389530500582106
-      ],
+      "program_any_correct_deploy": {
+        "k": 0,
+        "n": 5000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.0007677019450571244
+        ]
+      },
+      "program_any_deploy_DESCRIPTIVE": {
+        "k": 5,
+        "n": 5000,
+        "rate": 0.001,
+        "wilson95": [
+          0.0004272134911087996,
+          0.0023389530500582106
+        ]
+      },
+      "program_family_any_erroneous": {
+        "k": 5,
+        "n": 5000,
+        "rate": 0.001,
+        "wilson95": [
+          0.0004272134911087996,
+          0.0023389530500582106
+        ]
+      },
       "programs": 5000,
-      "trial_abstention_rate": 0.99975,
-      "trial_deploy": 5,
-      "trial_no_decision": 19995,
-      "trial_retain": 0,
+      "retain_is_false_harm": true,
+      "tau_prefix_median_DECIDING_ONLY": 760,
+      "trial_abstention": {
+        "k": 19995,
+        "n": 20000,
+        "rate": 0.99975,
+        "wilson95": [
+          0.9994148495964674,
+          0.999893210365456
+        ]
+      },
+      "trial_any_error": {
+        "k": 5,
+        "n": 20000,
+        "rate": 0.00025,
+        "wilson95": [
+          0.00010678963454394951,
+          0.0005851504035326238
+        ]
+      },
+      "trial_correct_deploy": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "trial_false_deploy": {
+        "k": 5,
+        "n": 20000,
+        "rate": 0.00025,
+        "wilson95": [
+          0.00010678963454394951,
+          0.0005851504035326238
+        ]
+      },
+      "trial_false_harm": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
       "trials": 20000
     },
     {
       "cell": "C4",
       "construction": "CPREFIX",
+      "decided_at_finalization": 0,
+      "decided_in_drain": 0,
+      "deciding_fraction": 0.0007,
+      "deciding_trials": 14,
+      "decisions": {
+        "CONFLICT": 0,
+        "DEPLOY": 10,
+        "NO_DECISION": 19986,
+        "RETAIN_INCUMBENT": 4
+      },
+      "decisions_reconcile": true,
       "delay_kind": "informative",
+      "deploy_error_reason": "hierarchy not positive",
+      "deploy_is_correct": false,
       "deploy_is_error": true,
-      "deploy_is_guardrail_breach": false,
       "kind": "hierarchy null",
       "law": "pref_boundary",
-      "miscover_h": 14,
-      "miscover_h_eligible": 14,
-      "miscover_s": 0,
-      "miscover_s_eligible": 0,
+      "mean_final_cost_narrowed_fraction": 0.012260249999999634,
+      "mean_final_unresolved_fraction": 0.03509547499999944,
+      "miscover_h_above": {
+        "k": 4,
+        "n": 20000,
+        "rate": 0.0002,
+        "wilson95": [
+          7.77787560502284e-05,
+          0.0005141804856319553
+        ]
+      },
+      "miscover_h_below": {
+        "k": 10,
+        "n": 20000,
+        "rate": 0.0005,
+        "wilson95": [
+          0.000271621145015576,
+          0.0009202228750329449
+        ]
+      },
+      "miscover_h_decision_eligible": {
+        "k": 14,
+        "n": 20000,
+        "rate": 0.0007,
+        "wilson95": [
+          0.0004170369228828132,
+          0.0011747302827432658
+        ]
+      },
+      "miscover_h_twosided": {
+        "k": 14,
+        "n": 20000,
+        "rate": 0.0007,
+        "wilson95": [
+          0.0004170369228828132,
+          0.0011747302827432658
+        ]
+      },
+      "miscover_s_above": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_below": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_decision_eligible": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_twosided": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
       "mu_h": 0.0,
       "mu_s": 0.25,
-      "program_any_deploy": 10,
-      "program_deploy_rate": 0.002,
-      "program_deploy_wilson95": [
-        0.0010867468609438852,
-        0.0036778842763330113
-      ],
+      "program_any_correct_deploy": {
+        "k": 0,
+        "n": 5000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.0007677019450571244
+        ]
+      },
+      "program_any_deploy_DESCRIPTIVE": {
+        "k": 10,
+        "n": 5000,
+        "rate": 0.002,
+        "wilson95": [
+          0.0010867468609438852,
+          0.0036778842763330113
+        ]
+      },
+      "program_family_any_erroneous": {
+        "k": 14,
+        "n": 5000,
+        "rate": 0.0028,
+        "wilson95": [
+          0.0016686770757911354,
+          0.00469472573837367
+        ]
+      },
       "programs": 5000,
-      "trial_abstention_rate": 0.9993,
-      "trial_deploy": 10,
-      "trial_no_decision": 19986,
-      "trial_retain": 0,
+      "retain_is_false_harm": true,
+      "tau_prefix_median_DECIDING_ONLY": 1368,
+      "trial_abstention": {
+        "k": 19986,
+        "n": 20000,
+        "rate": 0.9993,
+        "wilson95": [
+          0.9988252697172567,
+          0.9995829630771171
+        ]
+      },
+      "trial_any_error": {
+        "k": 14,
+        "n": 20000,
+        "rate": 0.0007,
+        "wilson95": [
+          0.0004170369228828132,
+          0.0011747302827432658
+        ]
+      },
+      "trial_correct_deploy": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "trial_false_deploy": {
+        "k": 10,
+        "n": 20000,
+        "rate": 0.0005,
+        "wilson95": [
+          0.000271621145015576,
+          0.0009202228750329449
+        ]
+      },
+      "trial_false_harm": {
+        "k": 4,
+        "n": 20000,
+        "rate": 0.0002,
+        "wilson95": [
+          7.77787560502284e-05,
+          0.0005141804856319553
+        ]
+      },
       "trials": 20000
     },
     {
       "cell": "C4",
       "construction": "NAIVE",
+      "decided_at_finalization": 0,
+      "decided_in_drain": 0,
+      "deciding_fraction": 0.9999,
+      "deciding_trials": 19998,
+      "decisions": {
+        "CONFLICT": 0,
+        "DEPLOY": 19998,
+        "NO_DECISION": 2,
+        "RETAIN_INCUMBENT": 0
+      },
+      "decisions_reconcile": true,
       "delay_kind": "informative",
+      "deploy_error_reason": "hierarchy not positive",
+      "deploy_is_correct": false,
       "deploy_is_error": true,
-      "deploy_is_guardrail_breach": false,
       "kind": "hierarchy null",
       "law": "pref_boundary",
-      "miscover_h": 19998,
-      "miscover_h_eligible": 19998,
-      "miscover_s": 126,
-      "miscover_s_eligible": 126,
+      "mean_final_cost_narrowed_fraction": 0.012260249999999634,
+      "mean_final_unresolved_fraction": 0.03509547499999944,
+      "miscover_h_above": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_h_below": {
+        "k": 19998,
+        "n": 20000,
+        "rate": 0.9999,
+        "wilson95": [
+          0.9996354263863794,
+          0.9999725759647272
+        ]
+      },
+      "miscover_h_decision_eligible": {
+        "k": 19998,
+        "n": 20000,
+        "rate": 0.9999,
+        "wilson95": [
+          0.9996354263863794,
+          0.9999725759647272
+        ]
+      },
+      "miscover_h_twosided": {
+        "k": 19998,
+        "n": 20000,
+        "rate": 0.9999,
+        "wilson95": [
+          0.9996354263863794,
+          0.9999725759647272
+        ]
+      },
+      "miscover_s_above": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_below": {
+        "k": 126,
+        "n": 20000,
+        "rate": 0.0063,
+        "wilson95": [
+          0.005294265681343146,
+          0.007495350720454561
+        ]
+      },
+      "miscover_s_decision_eligible": {
+        "k": 126,
+        "n": 20000,
+        "rate": 0.0063,
+        "wilson95": [
+          0.005294265681343146,
+          0.007495350720454561
+        ]
+      },
+      "miscover_s_twosided": {
+        "k": 126,
+        "n": 20000,
+        "rate": 0.0063,
+        "wilson95": [
+          0.005294265681343146,
+          0.007495350720454561
+        ]
+      },
       "mu_h": 0.0,
       "mu_s": 0.25,
-      "program_any_deploy": 5000,
-      "program_deploy_rate": 1.0,
-      "program_deploy_wilson95": [
-        0.999232298054943,
-        1.0000000000000002
-      ],
+      "program_any_correct_deploy": {
+        "k": 0,
+        "n": 5000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.0007677019450571244
+        ]
+      },
+      "program_any_deploy_DESCRIPTIVE": {
+        "k": 5000,
+        "n": 5000,
+        "rate": 1.0,
+        "wilson95": [
+          0.999232298054943,
+          1.0000000000000002
+        ]
+      },
+      "program_family_any_erroneous": {
+        "k": 5000,
+        "n": 5000,
+        "rate": 1.0,
+        "wilson95": [
+          0.999232298054943,
+          1.0000000000000002
+        ]
+      },
       "programs": 5000,
-      "trial_abstention_rate": 0.0001,
-      "trial_deploy": 19998,
-      "trial_no_decision": 2,
-      "trial_retain": 0,
+      "retain_is_false_harm": true,
+      "tau_prefix_median_DECIDING_ONLY": 169,
+      "trial_abstention": {
+        "k": 2,
+        "n": 20000,
+        "rate": 0.0001,
+        "wilson95": [
+          2.742403527272682e-05,
+          0.0003645736136206778
+        ]
+      },
+      "trial_any_error": {
+        "k": 19998,
+        "n": 20000,
+        "rate": 0.9999,
+        "wilson95": [
+          0.9996354263863794,
+          0.9999725759647272
+        ]
+      },
+      "trial_correct_deploy": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "trial_false_deploy": {
+        "k": 19998,
+        "n": 20000,
+        "rate": 0.9999,
+        "wilson95": [
+          0.9996354263863794,
+          0.9999725759647272
+        ]
+      },
+      "trial_false_harm": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
       "trials": 20000
     },
     {
       "cell": "C5",
       "construction": "ADAPTER",
+      "decided_at_finalization": 0,
+      "decided_in_drain": 0,
+      "deciding_fraction": 0.0,
+      "deciding_trials": 0,
+      "decisions": {
+        "CONFLICT": 0,
+        "DEPLOY": 0,
+        "NO_DECISION": 20000,
+        "RETAIN_INCUMBENT": 0
+      },
+      "decisions_reconcile": true,
       "delay_kind": "non-informative",
-      "deploy_is_error": false,
-      "deploy_is_guardrail_breach": true,
+      "deploy_error_reason": "success guardrail violated",
+      "deploy_is_correct": false,
+      "deploy_is_error": true,
       "kind": "guardrail boundary",
       "law": "success_boundary",
-      "miscover_h": 0,
-      "miscover_h_eligible": 0,
-      "miscover_s": 0,
-      "miscover_s_eligible": 0,
+      "mean_final_cost_narrowed_fraction": 0.005083699999999764,
+      "mean_final_unresolved_fraction": 0.017161449999999218,
+      "miscover_h_above": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_h_below": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_h_decision_eligible": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_h_twosided": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_above": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_below": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_decision_eligible": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_twosided": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
       "mu_h": 0.4,
       "mu_s": -0.03,
-      "program_any_deploy": 0,
-      "program_deploy_rate": 0.0,
-      "program_deploy_wilson95": [
-        0.0,
-        0.0007677019450571244
-      ],
+      "program_any_correct_deploy": {
+        "k": 0,
+        "n": 5000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.0007677019450571244
+        ]
+      },
+      "program_any_deploy_DESCRIPTIVE": {
+        "k": 0,
+        "n": 5000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.0007677019450571244
+        ]
+      },
+      "program_family_any_erroneous": {
+        "k": 0,
+        "n": 5000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.0007677019450571244
+        ]
+      },
       "programs": 5000,
-      "trial_abstention_rate": 1.0,
-      "trial_deploy": 0,
-      "trial_no_decision": 20000,
-      "trial_retain": 0,
+      "retain_is_false_harm": true,
+      "tau_prefix_median_DECIDING_ONLY": null,
+      "trial_abstention": {
+        "k": 20000,
+        "n": 20000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9998079639438954,
+          1.0
+        ]
+      },
+      "trial_any_error": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "trial_correct_deploy": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "trial_false_deploy": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "trial_false_harm": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
       "trials": 20000
     },
     {
       "cell": "C5",
       "construction": "CPREFIX",
+      "decided_at_finalization": 0,
+      "decided_in_drain": 0,
+      "deciding_fraction": 0.0,
+      "deciding_trials": 0,
+      "decisions": {
+        "CONFLICT": 0,
+        "DEPLOY": 0,
+        "NO_DECISION": 20000,
+        "RETAIN_INCUMBENT": 0
+      },
+      "decisions_reconcile": true,
       "delay_kind": "non-informative",
-      "deploy_is_error": false,
-      "deploy_is_guardrail_breach": true,
+      "deploy_error_reason": "success guardrail violated",
+      "deploy_is_correct": false,
+      "deploy_is_error": true,
       "kind": "guardrail boundary",
       "law": "success_boundary",
-      "miscover_h": 1,
-      "miscover_h_eligible": 1,
-      "miscover_s": 0,
-      "miscover_s_eligible": 0,
+      "mean_final_cost_narrowed_fraction": 0.005083699999999764,
+      "mean_final_unresolved_fraction": 0.017161449999999218,
+      "miscover_h_above": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_h_below": {
+        "k": 1,
+        "n": 20000,
+        "rate": 5e-05,
+        "wilson95": [
+          8.826282272974844e-06,
+          0.0002831905702260402
+        ]
+      },
+      "miscover_h_decision_eligible": {
+        "k": 1,
+        "n": 20000,
+        "rate": 5e-05,
+        "wilson95": [
+          8.826282272974844e-06,
+          0.0002831905702260402
+        ]
+      },
+      "miscover_h_twosided": {
+        "k": 1,
+        "n": 20000,
+        "rate": 5e-05,
+        "wilson95": [
+          8.826282272974844e-06,
+          0.0002831905702260402
+        ]
+      },
+      "miscover_s_above": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_below": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_decision_eligible": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_twosided": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
       "mu_h": 0.4,
       "mu_s": -0.03,
-      "program_any_deploy": 0,
-      "program_deploy_rate": 0.0,
-      "program_deploy_wilson95": [
-        0.0,
-        0.0007677019450571244
-      ],
+      "program_any_correct_deploy": {
+        "k": 0,
+        "n": 5000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.0007677019450571244
+        ]
+      },
+      "program_any_deploy_DESCRIPTIVE": {
+        "k": 0,
+        "n": 5000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.0007677019450571244
+        ]
+      },
+      "program_family_any_erroneous": {
+        "k": 0,
+        "n": 5000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.0007677019450571244
+        ]
+      },
       "programs": 5000,
-      "trial_abstention_rate": 1.0,
-      "trial_deploy": 0,
-      "trial_no_decision": 20000,
-      "trial_retain": 0,
+      "retain_is_false_harm": true,
+      "tau_prefix_median_DECIDING_ONLY": null,
+      "trial_abstention": {
+        "k": 20000,
+        "n": 20000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9998079639438954,
+          1.0
+        ]
+      },
+      "trial_any_error": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "trial_correct_deploy": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "trial_false_deploy": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "trial_false_harm": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
       "trials": 20000
     },
     {
       "cell": "C5",
       "construction": "NAIVE",
+      "decided_at_finalization": 0,
+      "decided_in_drain": 0,
+      "deciding_fraction": 0.0,
+      "deciding_trials": 0,
+      "decisions": {
+        "CONFLICT": 0,
+        "DEPLOY": 0,
+        "NO_DECISION": 20000,
+        "RETAIN_INCUMBENT": 0
+      },
+      "decisions_reconcile": true,
       "delay_kind": "non-informative",
-      "deploy_is_error": false,
-      "deploy_is_guardrail_breach": true,
+      "deploy_error_reason": "success guardrail violated",
+      "deploy_is_correct": false,
+      "deploy_is_error": true,
       "kind": "guardrail boundary",
       "law": "success_boundary",
-      "miscover_h": 0,
-      "miscover_h_eligible": 0,
-      "miscover_s": 0,
-      "miscover_s_eligible": 0,
+      "mean_final_cost_narrowed_fraction": 0.005083699999999764,
+      "mean_final_unresolved_fraction": 0.017161449999999218,
+      "miscover_h_above": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_h_below": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_h_decision_eligible": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_h_twosided": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_above": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_below": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_decision_eligible": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_twosided": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
       "mu_h": 0.4,
       "mu_s": -0.03,
-      "program_any_deploy": 0,
-      "program_deploy_rate": 0.0,
-      "program_deploy_wilson95": [
-        0.0,
-        0.0007677019450571244
-      ],
+      "program_any_correct_deploy": {
+        "k": 0,
+        "n": 5000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.0007677019450571244
+        ]
+      },
+      "program_any_deploy_DESCRIPTIVE": {
+        "k": 0,
+        "n": 5000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.0007677019450571244
+        ]
+      },
+      "program_family_any_erroneous": {
+        "k": 0,
+        "n": 5000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.0007677019450571244
+        ]
+      },
       "programs": 5000,
-      "trial_abstention_rate": 1.0,
-      "trial_deploy": 0,
-      "trial_no_decision": 20000,
-      "trial_retain": 0,
+      "retain_is_false_harm": true,
+      "tau_prefix_median_DECIDING_ONLY": null,
+      "trial_abstention": {
+        "k": 20000,
+        "n": 20000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9998079639438954,
+          1.0
+        ]
+      },
+      "trial_any_error": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "trial_correct_deploy": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "trial_false_deploy": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "trial_false_harm": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
       "trials": 20000
     },
     {
       "cell": "C6",
       "construction": "ADAPTER",
+      "decided_at_finalization": 0,
+      "decided_in_drain": 0,
+      "deciding_fraction": 0.0,
+      "deciding_trials": 0,
+      "decisions": {
+        "CONFLICT": 0,
+        "DEPLOY": 0,
+        "NO_DECISION": 20000,
+        "RETAIN_INCUMBENT": 0
+      },
+      "decisions_reconcile": true,
       "delay_kind": "informative",
-      "deploy_is_error": false,
-      "deploy_is_guardrail_breach": true,
+      "deploy_error_reason": "success guardrail violated",
+      "deploy_is_correct": false,
+      "deploy_is_error": true,
       "kind": "guardrail boundary",
       "law": "success_boundary",
-      "miscover_h": 0,
-      "miscover_h_eligible": 0,
-      "miscover_s": 0,
-      "miscover_s_eligible": 0,
+      "mean_final_cost_narrowed_fraction": 0.0059990999999996195,
+      "mean_final_unresolved_fraction": 0.017150624999999385,
+      "miscover_h_above": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_h_below": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_h_decision_eligible": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_h_twosided": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_above": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_below": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_decision_eligible": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_twosided": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
       "mu_h": 0.4,
       "mu_s": -0.03,
-      "program_any_deploy": 0,
-      "program_deploy_rate": 0.0,
-      "program_deploy_wilson95": [
-        0.0,
-        0.0007677019450571244
-      ],
+      "program_any_correct_deploy": {
+        "k": 0,
+        "n": 5000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.0007677019450571244
+        ]
+      },
+      "program_any_deploy_DESCRIPTIVE": {
+        "k": 0,
+        "n": 5000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.0007677019450571244
+        ]
+      },
+      "program_family_any_erroneous": {
+        "k": 0,
+        "n": 5000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.0007677019450571244
+        ]
+      },
       "programs": 5000,
-      "trial_abstention_rate": 1.0,
-      "trial_deploy": 0,
-      "trial_no_decision": 20000,
-      "trial_retain": 0,
+      "retain_is_false_harm": true,
+      "tau_prefix_median_DECIDING_ONLY": null,
+      "trial_abstention": {
+        "k": 20000,
+        "n": 20000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9998079639438954,
+          1.0
+        ]
+      },
+      "trial_any_error": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "trial_correct_deploy": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "trial_false_deploy": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "trial_false_harm": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
       "trials": 20000
     },
     {
       "cell": "C6",
       "construction": "CPREFIX",
+      "decided_at_finalization": 0,
+      "decided_in_drain": 0,
+      "deciding_fraction": 0.0,
+      "deciding_trials": 0,
+      "decisions": {
+        "CONFLICT": 0,
+        "DEPLOY": 0,
+        "NO_DECISION": 20000,
+        "RETAIN_INCUMBENT": 0
+      },
+      "decisions_reconcile": true,
       "delay_kind": "informative",
-      "deploy_is_error": false,
-      "deploy_is_guardrail_breach": true,
+      "deploy_error_reason": "success guardrail violated",
+      "deploy_is_correct": false,
+      "deploy_is_error": true,
       "kind": "guardrail boundary",
       "law": "success_boundary",
-      "miscover_h": 0,
-      "miscover_h_eligible": 0,
-      "miscover_s": 0,
-      "miscover_s_eligible": 0,
+      "mean_final_cost_narrowed_fraction": 0.0059990999999996195,
+      "mean_final_unresolved_fraction": 0.017150624999999385,
+      "miscover_h_above": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_h_below": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_h_decision_eligible": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_h_twosided": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_above": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_below": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_decision_eligible": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_twosided": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
       "mu_h": 0.4,
       "mu_s": -0.03,
-      "program_any_deploy": 0,
-      "program_deploy_rate": 0.0,
-      "program_deploy_wilson95": [
-        0.0,
-        0.0007677019450571244
-      ],
+      "program_any_correct_deploy": {
+        "k": 0,
+        "n": 5000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.0007677019450571244
+        ]
+      },
+      "program_any_deploy_DESCRIPTIVE": {
+        "k": 0,
+        "n": 5000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.0007677019450571244
+        ]
+      },
+      "program_family_any_erroneous": {
+        "k": 0,
+        "n": 5000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.0007677019450571244
+        ]
+      },
       "programs": 5000,
-      "trial_abstention_rate": 1.0,
-      "trial_deploy": 0,
-      "trial_no_decision": 20000,
-      "trial_retain": 0,
+      "retain_is_false_harm": true,
+      "tau_prefix_median_DECIDING_ONLY": null,
+      "trial_abstention": {
+        "k": 20000,
+        "n": 20000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9998079639438954,
+          1.0
+        ]
+      },
+      "trial_any_error": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "trial_correct_deploy": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "trial_false_deploy": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "trial_false_harm": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
       "trials": 20000
     },
     {
       "cell": "C6",
       "construction": "NAIVE",
+      "decided_at_finalization": 0,
+      "decided_in_drain": 0,
+      "deciding_fraction": 0.0,
+      "deciding_trials": 0,
+      "decisions": {
+        "CONFLICT": 0,
+        "DEPLOY": 0,
+        "NO_DECISION": 20000,
+        "RETAIN_INCUMBENT": 0
+      },
+      "decisions_reconcile": true,
       "delay_kind": "informative",
-      "deploy_is_error": false,
-      "deploy_is_guardrail_breach": true,
+      "deploy_error_reason": "success guardrail violated",
+      "deploy_is_correct": false,
+      "deploy_is_error": true,
       "kind": "guardrail boundary",
       "law": "success_boundary",
-      "miscover_h": 16272,
-      "miscover_h_eligible": 16272,
-      "miscover_s": 0,
-      "miscover_s_eligible": 0,
+      "mean_final_cost_narrowed_fraction": 0.0059990999999996195,
+      "mean_final_unresolved_fraction": 0.017150624999999385,
+      "miscover_h_above": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_h_below": {
+        "k": 16272,
+        "n": 20000,
+        "rate": 0.8136,
+        "wilson95": [
+          0.8081428466501541,
+          0.818936708335457
+        ]
+      },
+      "miscover_h_decision_eligible": {
+        "k": 16272,
+        "n": 20000,
+        "rate": 0.8136,
+        "wilson95": [
+          0.8081428466501541,
+          0.818936708335457
+        ]
+      },
+      "miscover_h_twosided": {
+        "k": 16272,
+        "n": 20000,
+        "rate": 0.8136,
+        "wilson95": [
+          0.8081428466501541,
+          0.818936708335457
+        ]
+      },
+      "miscover_s_above": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_below": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_decision_eligible": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "miscover_s_twosided": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
       "mu_h": 0.4,
       "mu_s": -0.03,
-      "program_any_deploy": 0,
-      "program_deploy_rate": 0.0,
-      "program_deploy_wilson95": [
-        0.0,
-        0.0007677019450571244
-      ],
+      "program_any_correct_deploy": {
+        "k": 0,
+        "n": 5000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.0007677019450571244
+        ]
+      },
+      "program_any_deploy_DESCRIPTIVE": {
+        "k": 0,
+        "n": 5000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.0007677019450571244
+        ]
+      },
+      "program_family_any_erroneous": {
+        "k": 0,
+        "n": 5000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.0007677019450571244
+        ]
+      },
       "programs": 5000,
-      "trial_abstention_rate": 1.0,
-      "trial_deploy": 0,
-      "trial_no_decision": 20000,
-      "trial_retain": 0,
+      "retain_is_false_harm": true,
+      "tau_prefix_median_DECIDING_ONLY": null,
+      "trial_abstention": {
+        "k": 20000,
+        "n": 20000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9998079639438954,
+          1.0
+        ]
+      },
+      "trial_any_error": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "trial_correct_deploy": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "trial_false_deploy": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
+      "trial_false_harm": {
+        "k": 0,
+        "n": 20000,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019203605610462553
+        ]
+      },
       "trials": 20000
     },
     {
       "cell": "C7",
       "construction": "ADAPTER",
+      "decided_at_finalization": 0,
+      "decided_in_drain": 0,
+      "deciding_fraction": 1.0,
+      "deciding_trials": 8000,
+      "decisions": {
+        "CONFLICT": 0,
+        "DEPLOY": 8000,
+        "NO_DECISION": 0,
+        "RETAIN_INCUMBENT": 0
+      },
+      "decisions_reconcile": true,
       "delay_kind": "non-informative",
+      "deploy_error_reason": null,
+      "deploy_is_correct": true,
       "deploy_is_error": false,
-      "deploy_is_guardrail_breach": false,
       "kind": "favourable alternative",
       "law": "favorable_alt",
-      "miscover_h": 0,
-      "miscover_h_eligible": 0,
-      "miscover_s": 0,
-      "miscover_s_eligible": 0,
+      "mean_final_cost_narrowed_fraction": 0.004775000000000143,
+      "mean_final_unresolved_fraction": 0.015590124999999814,
+      "miscover_h_above": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_h_below": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_h_decision_eligible": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_h_twosided": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_above": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_below": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_decision_eligible": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_twosided": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
       "mu_h": 0.45,
       "mu_s": 0.2,
-      "program_any_deploy": 2000,
-      "program_deploy_rate": 1.0,
-      "program_deploy_wilson95": [
-        0.9980829527187468,
-        0.9999999999999998
-      ],
+      "program_any_correct_deploy": {
+        "k": 2000,
+        "n": 2000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9980829527187468,
+          0.9999999999999998
+        ]
+      },
+      "program_any_deploy_DESCRIPTIVE": {
+        "k": 2000,
+        "n": 2000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9980829527187468,
+          0.9999999999999998
+        ]
+      },
+      "program_family_any_erroneous": {
+        "k": 0,
+        "n": 2000,
+        "rate": 0.0,
+        "wilson95": [
+          1.0821237056584124e-19,
+          0.0019170472812529342
+        ]
+      },
       "programs": 2000,
-      "trial_abstention_rate": 0.0,
-      "trial_deploy": 8000,
-      "trial_no_decision": 0,
-      "trial_retain": 0,
+      "retain_is_false_harm": true,
+      "tau_prefix_median_DECIDING_ONLY": 683,
+      "trial_abstention": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "trial_any_error": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "trial_correct_deploy": {
+        "k": 8000,
+        "n": 8000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9995200481118399,
+          1.0
+        ]
+      },
+      "trial_false_deploy": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "trial_false_harm": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
       "trials": 8000
     },
     {
       "cell": "C7",
       "construction": "CPREFIX",
+      "decided_at_finalization": 0,
+      "decided_in_drain": 0,
+      "deciding_fraction": 1.0,
+      "deciding_trials": 8000,
+      "decisions": {
+        "CONFLICT": 0,
+        "DEPLOY": 8000,
+        "NO_DECISION": 0,
+        "RETAIN_INCUMBENT": 0
+      },
+      "decisions_reconcile": true,
       "delay_kind": "non-informative",
+      "deploy_error_reason": null,
+      "deploy_is_correct": true,
       "deploy_is_error": false,
-      "deploy_is_guardrail_breach": false,
       "kind": "favourable alternative",
       "law": "favorable_alt",
-      "miscover_h": 1,
-      "miscover_h_eligible": 1,
-      "miscover_s": 0,
-      "miscover_s_eligible": 0,
+      "mean_final_cost_narrowed_fraction": 0.004775000000000143,
+      "mean_final_unresolved_fraction": 0.015590124999999814,
+      "miscover_h_above": {
+        "k": 1,
+        "n": 8000,
+        "rate": 0.000125,
+        "wilson95": [
+          2.206591016216933e-05,
+          0.0007077659900257712
+        ]
+      },
+      "miscover_h_below": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_h_decision_eligible": {
+        "k": 1,
+        "n": 8000,
+        "rate": 0.000125,
+        "wilson95": [
+          2.206591016216933e-05,
+          0.0007077659900257712
+        ]
+      },
+      "miscover_h_twosided": {
+        "k": 1,
+        "n": 8000,
+        "rate": 0.000125,
+        "wilson95": [
+          2.206591016216933e-05,
+          0.0007077659900257712
+        ]
+      },
+      "miscover_s_above": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_below": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_decision_eligible": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_twosided": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
       "mu_h": 0.45,
       "mu_s": 0.2,
-      "program_any_deploy": 2000,
-      "program_deploy_rate": 1.0,
-      "program_deploy_wilson95": [
-        0.9980829527187468,
-        0.9999999999999998
-      ],
+      "program_any_correct_deploy": {
+        "k": 2000,
+        "n": 2000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9980829527187468,
+          0.9999999999999998
+        ]
+      },
+      "program_any_deploy_DESCRIPTIVE": {
+        "k": 2000,
+        "n": 2000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9980829527187468,
+          0.9999999999999998
+        ]
+      },
+      "program_family_any_erroneous": {
+        "k": 0,
+        "n": 2000,
+        "rate": 0.0,
+        "wilson95": [
+          1.0821237056584124e-19,
+          0.0019170472812529342
+        ]
+      },
       "programs": 2000,
-      "trial_abstention_rate": 0.0,
-      "trial_deploy": 8000,
-      "trial_no_decision": 0,
-      "trial_retain": 0,
+      "retain_is_false_harm": true,
+      "tau_prefix_median_DECIDING_ONLY": 917,
+      "trial_abstention": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "trial_any_error": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "trial_correct_deploy": {
+        "k": 8000,
+        "n": 8000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9995200481118399,
+          1.0
+        ]
+      },
+      "trial_false_deploy": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "trial_false_harm": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
       "trials": 8000
     },
     {
       "cell": "C7",
       "construction": "NAIVE",
+      "decided_at_finalization": 0,
+      "decided_in_drain": 0,
+      "deciding_fraction": 1.0,
+      "deciding_trials": 8000,
+      "decisions": {
+        "CONFLICT": 0,
+        "DEPLOY": 8000,
+        "NO_DECISION": 0,
+        "RETAIN_INCUMBENT": 0
+      },
+      "decisions_reconcile": true,
       "delay_kind": "non-informative",
+      "deploy_error_reason": null,
+      "deploy_is_correct": true,
       "deploy_is_error": false,
-      "deploy_is_guardrail_breach": false,
       "kind": "favourable alternative",
       "law": "favorable_alt",
-      "miscover_h": 2,
-      "miscover_h_eligible": 2,
-      "miscover_s": 0,
-      "miscover_s_eligible": 0,
+      "mean_final_cost_narrowed_fraction": 0.004775000000000143,
+      "mean_final_unresolved_fraction": 0.015590124999999814,
+      "miscover_h_above": {
+        "k": 2,
+        "n": 8000,
+        "rate": 0.00025,
+        "wilson95": [
+          6.856169466181564e-05,
+          0.000911150217554085
+        ]
+      },
+      "miscover_h_below": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_h_decision_eligible": {
+        "k": 2,
+        "n": 8000,
+        "rate": 0.00025,
+        "wilson95": [
+          6.856169466181564e-05,
+          0.000911150217554085
+        ]
+      },
+      "miscover_h_twosided": {
+        "k": 2,
+        "n": 8000,
+        "rate": 0.00025,
+        "wilson95": [
+          6.856169466181564e-05,
+          0.000911150217554085
+        ]
+      },
+      "miscover_s_above": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_below": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_decision_eligible": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_twosided": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
       "mu_h": 0.45,
       "mu_s": 0.2,
-      "program_any_deploy": 2000,
-      "program_deploy_rate": 1.0,
-      "program_deploy_wilson95": [
-        0.9980829527187468,
-        0.9999999999999998
-      ],
+      "program_any_correct_deploy": {
+        "k": 2000,
+        "n": 2000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9980829527187468,
+          0.9999999999999998
+        ]
+      },
+      "program_any_deploy_DESCRIPTIVE": {
+        "k": 2000,
+        "n": 2000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9980829527187468,
+          0.9999999999999998
+        ]
+      },
+      "program_family_any_erroneous": {
+        "k": 0,
+        "n": 2000,
+        "rate": 0.0,
+        "wilson95": [
+          1.0821237056584124e-19,
+          0.0019170472812529342
+        ]
+      },
       "programs": 2000,
-      "trial_abstention_rate": 0.0,
-      "trial_deploy": 8000,
-      "trial_no_decision": 0,
-      "trial_retain": 0,
+      "retain_is_false_harm": true,
+      "tau_prefix_median_DECIDING_ONLY": 340,
+      "trial_abstention": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "trial_any_error": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "trial_correct_deploy": {
+        "k": 8000,
+        "n": 8000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9995200481118399,
+          1.0
+        ]
+      },
+      "trial_false_deploy": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "trial_false_harm": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
       "trials": 8000
     },
     {
       "cell": "C8",
       "construction": "ADAPTER",
+      "decided_at_finalization": 0,
+      "decided_in_drain": 0,
+      "deciding_fraction": 1.0,
+      "deciding_trials": 8000,
+      "decisions": {
+        "CONFLICT": 0,
+        "DEPLOY": 8000,
+        "NO_DECISION": 0,
+        "RETAIN_INCUMBENT": 0
+      },
+      "decisions_reconcile": true,
       "delay_kind": "informative",
+      "deploy_error_reason": null,
+      "deploy_is_correct": true,
       "deploy_is_error": false,
-      "deploy_is_guardrail_breach": false,
       "kind": "favourable alternative",
       "law": "favorable_alt",
-      "miscover_h": 0,
-      "miscover_h_eligible": 0,
-      "miscover_s": 0,
-      "miscover_s_eligible": 0,
+      "mean_final_cost_narrowed_fraction": 0.005502437500000148,
+      "mean_final_unresolved_fraction": 0.015652874999999775,
+      "miscover_h_above": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_h_below": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_h_decision_eligible": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_h_twosided": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_above": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_below": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_decision_eligible": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_twosided": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
       "mu_h": 0.45,
       "mu_s": 0.2,
-      "program_any_deploy": 2000,
-      "program_deploy_rate": 1.0,
-      "program_deploy_wilson95": [
-        0.9980829527187468,
-        0.9999999999999998
-      ],
+      "program_any_correct_deploy": {
+        "k": 2000,
+        "n": 2000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9980829527187468,
+          0.9999999999999998
+        ]
+      },
+      "program_any_deploy_DESCRIPTIVE": {
+        "k": 2000,
+        "n": 2000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9980829527187468,
+          0.9999999999999998
+        ]
+      },
+      "program_family_any_erroneous": {
+        "k": 0,
+        "n": 2000,
+        "rate": 0.0,
+        "wilson95": [
+          1.0821237056584124e-19,
+          0.0019170472812529342
+        ]
+      },
       "programs": 2000,
-      "trial_abstention_rate": 0.0,
-      "trial_deploy": 8000,
-      "trial_no_decision": 0,
-      "trial_retain": 0,
+      "retain_is_false_harm": true,
+      "tau_prefix_median_DECIDING_ONLY": 550,
+      "trial_abstention": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "trial_any_error": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "trial_correct_deploy": {
+        "k": 8000,
+        "n": 8000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9995200481118399,
+          1.0
+        ]
+      },
+      "trial_false_deploy": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "trial_false_harm": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
       "trials": 8000
     },
     {
       "cell": "C8",
       "construction": "CPREFIX",
+      "decided_at_finalization": 0,
+      "decided_in_drain": 0,
+      "deciding_fraction": 1.0,
+      "deciding_trials": 8000,
+      "decisions": {
+        "CONFLICT": 0,
+        "DEPLOY": 8000,
+        "NO_DECISION": 0,
+        "RETAIN_INCUMBENT": 0
+      },
+      "decisions_reconcile": true,
       "delay_kind": "informative",
+      "deploy_error_reason": null,
+      "deploy_is_correct": true,
       "deploy_is_error": false,
-      "deploy_is_guardrail_breach": false,
       "kind": "favourable alternative",
       "law": "favorable_alt",
-      "miscover_h": 0,
-      "miscover_h_eligible": 0,
-      "miscover_s": 0,
-      "miscover_s_eligible": 0,
+      "mean_final_cost_narrowed_fraction": 0.005502437500000148,
+      "mean_final_unresolved_fraction": 0.015652874999999775,
+      "miscover_h_above": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_h_below": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_h_decision_eligible": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_h_twosided": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_above": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_below": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_decision_eligible": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_twosided": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
       "mu_h": 0.45,
       "mu_s": 0.2,
-      "program_any_deploy": 2000,
-      "program_deploy_rate": 1.0,
-      "program_deploy_wilson95": [
-        0.9980829527187468,
-        0.9999999999999998
-      ],
+      "program_any_correct_deploy": {
+        "k": 2000,
+        "n": 2000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9980829527187468,
+          0.9999999999999998
+        ]
+      },
+      "program_any_deploy_DESCRIPTIVE": {
+        "k": 2000,
+        "n": 2000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9980829527187468,
+          0.9999999999999998
+        ]
+      },
+      "program_family_any_erroneous": {
+        "k": 0,
+        "n": 2000,
+        "rate": 0.0,
+        "wilson95": [
+          1.0821237056584124e-19,
+          0.0019170472812529342
+        ]
+      },
       "programs": 2000,
-      "trial_abstention_rate": 0.0,
-      "trial_deploy": 8000,
-      "trial_no_decision": 0,
-      "trial_retain": 0,
+      "retain_is_false_harm": true,
+      "tau_prefix_median_DECIDING_ONLY": 915,
+      "trial_abstention": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "trial_any_error": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "trial_correct_deploy": {
+        "k": 8000,
+        "n": 8000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9995200481118399,
+          1.0
+        ]
+      },
+      "trial_false_deploy": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "trial_false_harm": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
       "trials": 8000
     },
     {
       "cell": "C8",
       "construction": "NAIVE",
+      "decided_at_finalization": 0,
+      "decided_in_drain": 0,
+      "deciding_fraction": 1.0,
+      "deciding_trials": 8000,
+      "decisions": {
+        "CONFLICT": 0,
+        "DEPLOY": 8000,
+        "NO_DECISION": 0,
+        "RETAIN_INCUMBENT": 0
+      },
+      "decisions_reconcile": true,
       "delay_kind": "informative",
+      "deploy_error_reason": null,
+      "deploy_is_correct": true,
       "deploy_is_error": false,
-      "deploy_is_guardrail_breach": false,
       "kind": "favourable alternative",
       "law": "favorable_alt",
-      "miscover_h": 5550,
-      "miscover_h_eligible": 5550,
-      "miscover_s": 0,
-      "miscover_s_eligible": 0,
+      "mean_final_cost_narrowed_fraction": 0.005502437500000148,
+      "mean_final_unresolved_fraction": 0.015652874999999775,
+      "miscover_h_above": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_h_below": {
+        "k": 5550,
+        "n": 8000,
+        "rate": 0.69375,
+        "wilson95": [
+          0.6835585106520834,
+          0.7037555079912545
+        ]
+      },
+      "miscover_h_decision_eligible": {
+        "k": 5550,
+        "n": 8000,
+        "rate": 0.69375,
+        "wilson95": [
+          0.6835585106520834,
+          0.7037555079912545
+        ]
+      },
+      "miscover_h_twosided": {
+        "k": 5550,
+        "n": 8000,
+        "rate": 0.69375,
+        "wilson95": [
+          0.6835585106520834,
+          0.7037555079912545
+        ]
+      },
+      "miscover_s_above": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_below": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_decision_eligible": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "miscover_s_twosided": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
       "mu_h": 0.45,
       "mu_s": 0.2,
-      "program_any_deploy": 2000,
-      "program_deploy_rate": 1.0,
-      "program_deploy_wilson95": [
-        0.9980829527187468,
-        0.9999999999999998
-      ],
+      "program_any_correct_deploy": {
+        "k": 2000,
+        "n": 2000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9980829527187468,
+          0.9999999999999998
+        ]
+      },
+      "program_any_deploy_DESCRIPTIVE": {
+        "k": 2000,
+        "n": 2000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9980829527187468,
+          0.9999999999999998
+        ]
+      },
+      "program_family_any_erroneous": {
+        "k": 0,
+        "n": 2000,
+        "rate": 0.0,
+        "wilson95": [
+          1.0821237056584124e-19,
+          0.0019170472812529342
+        ]
+      },
       "programs": 2000,
-      "trial_abstention_rate": 0.0,
-      "trial_deploy": 8000,
-      "trial_no_decision": 0,
-      "trial_retain": 0,
+      "retain_is_false_harm": true,
+      "tau_prefix_median_DECIDING_ONLY": 225,
+      "trial_abstention": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "trial_any_error": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "trial_correct_deploy": {
+        "k": 8000,
+        "n": 8000,
+        "rate": 1.0,
+        "wilson95": [
+          0.9995200481118399,
+          1.0
+        ]
+      },
+      "trial_false_deploy": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
+      "trial_false_harm": {
+        "k": 0,
+        "n": 8000,
+        "rate": 0.0,
+        "wilson95": [
+          2.709204519014182e-20,
+          0.0004799518881599805
+        ]
+      },
       "trials": 8000
     }
   ],
   "run_dir": "../../results/live_ab_validation_v2/t1_run_20260921",
-  "schema": "live_ab_validation_v2.t1_analysis.1",
+  "schema": "live_ab_validation_v2.t1_analysis.2",
   "shards_analysed": 56,
-  "shards_expected": 56,
-  "unit_of_replication": {
-    "cell": "BETWEEN-unit, unpaired; delay contrasts are unpaired",
-    "construction": "WITHIN-trial, paired; never stacked into one denominator",
-    "independent_draw": "trial (structural: spawn_key includes trial_index)",
-    "reporting_unit": "program (PROGRAM_ALPHA is defined per program)"
-  }
+  "shards_expected": 56
 }

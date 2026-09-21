@@ -17,12 +17,16 @@ UNIT OF REPLICATION
   prohibited.  CELL is BETWEEN-unit and unpaired, so delay contrasts (C1/C2, C3/C4,
   C5/C6, C7/C8) are unpaired and McNemar is prohibited.
 
-WHAT THIS PANEL CANNOT DO
-  The grid has mu_h in {0, 0.40, 0.45} and mu_s in {0, 0.25, -0.03, 0.20}.  There is NO
-  cell with mu_h strictly between 0 and 0.40 and none with mu_s strictly between -0.03
-  and +0.20, so there is no partially-powered operating point anywhere.  No power curve
-  and no minimum detectable effect are estimable from it.  That is a limitation of the
-  grid I specified, and it is reported rather than worked around.
+WHAT THIS PANEL CANNOT DO -- NARROWED AFTER REVIEW
+  This FINITE GRID does not identify a power curve or a minimum detectable effect at a
+  prespecified target power.  It CAN estimate cell-specific correct-deployment and
+  abstention probabilities with Monte Carlo uncertainty.
+
+  My first version claimed more: that NO partially-powered operating point EXISTS,
+  inferred from the spacing of mu_h alone.  That does not follow.  Detection probability
+  also depends on the joint outcome law, variance, delay, guardrail effect, horizon and
+  the conservative boundary width, so a nonzero fixed effect can have intermediate power
+  at this horizon.  The narrower statement is the supported one.
 
 EXPOSURE
   These are namespace-0 replay coordinates with prior development exposure.  Not a
@@ -48,6 +52,11 @@ import vband                                                    # noqa: E402
 import vgen                                                     # noqa: E402
 
 CONSTRUCTIONS = ("ADAPTER", "CPREFIX", "NAIVE")
+
+#: The writer's ACTUAL labels (vrun.DECISION_LABEL).  My first version read
+#: "RETAIN", which matches nothing, so 29 real RETAIN_INCUMBENT events vanished
+#: and the table showed zero retentions everywhere -- which read like a finding.
+DECISION_LABELS = ("NO_DECISION", "DEPLOY", "RETAIN_INCUMBENT", "CONFLICT")
 EXPOSURE = ("namespace-0 replay coordinates with PRIOR DEVELOPMENT EXPOSURE; "
             "NOT a fresh confirmatory holdout")
 
@@ -64,21 +73,30 @@ def wilson(k: int, n: int, z: float = 1.959963984540054) -> Tuple[float, float]:
 
 
 def cell_truth() -> Dict[str, Dict[str, Any]]:
-    """Ground truth per cell, and what a DEPLOY there means."""
+    """Ground truth per cell and the FROZEN error events of PROTOCOL 9.2.
+
+        false_deploy = DEPLOY           AND NOT(mu_h > 0 AND mu_s > -delta)
+        false_harm   = RETAIN_INCUMBENT AND mu_h >= 0
+        family_any_erroneous = any over the program's trials of (false_deploy OR false_harm)
+
+    Two corrections from the root's 13:20 review, both of which changed results:
+
+    * ``deploy_is_error`` was HIERARCHY-ONLY, so a deploy in C5/C6 -- where the
+      hierarchy truth is +0.40 but the success truth is -0.03, at the guardrail
+      -- did not count as an error.  It is one: the full conjunction fails.
+    * EVERY law here has mu_h >= 0, so a retention is a false harm in EVERY
+      cell, including the favourable ones.  There was no such event in my table
+      because of the label bug above.
+    """
     out = {}
+    delta = vband.DELTA
     for c in vgen.CELLS:
-        delta = vband.DELTA
-        # The guarded rule deploys iff the hierarchy lower bound is positive AND the
-        # success lower bound exceeds -delta.  A deploy is an ERROR when the true
-        # hierarchy effect is not positive, and it is a GUARDRAIL BREACH when the true
-        # success effect is at or below -delta.
-        hier_null = (c.mu_h <= 0.0)
-        guard_at_or_past = (c.mu_s <= -delta)
-        if hier_null and c.mu_s == 0.0 and c.mu_h == 0.0:
+        deploy_correct = (c.mu_h > 0.0) and (c.mu_s > -delta)
+        if c.mu_h == 0.0 and c.mu_s == 0.0:
             kind = "TRUE NULL"
-        elif hier_null:
+        elif c.mu_h <= 0.0:
             kind = "hierarchy null"
-        elif guard_at_or_past:
+        elif c.mu_s <= -delta:
             kind = "guardrail boundary"
         else:
             kind = "favourable alternative"
@@ -86,15 +104,19 @@ def cell_truth() -> Dict[str, Dict[str, Any]]:
             "law": vgen.LAW_NAMES[c.law], "delay": c.delay,
             "delay_kind": "informative" if c.delay == "A" else "non-informative",
             "mu_h": c.mu_h, "mu_s": c.mu_s, "kind": kind,
-            "deploy_is_error": hier_null,
-            "deploy_is_guardrail_breach": guard_at_or_past,
+            "deploy_is_correct": deploy_correct,
+            "deploy_is_error": not deploy_correct,          # FULL conjunction
+            "deploy_error_reason": (None if deploy_correct else
+                                    ("hierarchy not positive" if c.mu_h <= 0.0
+                                     else "success guardrail violated")),
+            "retain_is_false_harm": (c.mu_h >= 0.0),
         }
     return out
 
 
-def load(run_dir: Path) -> Tuple[Dict, Dict, List[str]]:
-    """Frozen set: only shards whose receipt reconciles. Partials are excluded by
-    ABSENCE OF A RECEIPT, never by swallowing a read error."""
+def load(run_dir: Path, truth: Dict[str, Any]) -> Tuple[Dict, List[str]]:
+    """Accumulate the FROZEN trial and program events. Partials excluded by absence
+    of a receipt, never by swallowing a read error."""
     run_dir = Path(run_dir)
     shards = []
     for d in sorted(run_dir.glob("shard_*")):
@@ -102,143 +124,191 @@ def load(run_dir: Path) -> Tuple[Dict, Dict, List[str]]:
         if not rp.is_file():
             continue
         r = json.loads(rp.read_text())
-        if r.get("status") != "complete":
-            continue
         a = r["attempt_counts"]
-        if a["failed"] or a["skipped"] or a["missing"]:
-            continue
-        if r["planned"] != r["observed"]:
+        if (r.get("status") != "complete" or a["failed"] or a["skipped"]
+                or a["missing"] or r["planned"] != r["observed"]):
             continue
         shards.append((d, r))
 
-    # trial-level decisions, and program-level union events
-    trial = defaultdict(lambda: defaultdict(int))          # (cell,constr) -> decision -> n
-    prog_any_deploy = defaultdict(set)                     # (cell,constr) -> {program}
+    A = lambda: defaultdict(int)
+    trial_dec = defaultdict(A)          # (cell,con) -> label -> n
+    trial_ev = defaultdict(A)           # (cell,con) -> event -> n
+    prog_ev = defaultdict(lambda: defaultdict(set))   # (cell,con) -> event -> {prog}
     prog_seen = defaultdict(set)
-    miscover = defaultdict(lambda: defaultdict(int))       # (cell,constr) -> field -> n
     ntrial = defaultdict(int)
+    timing = defaultdict(list)          # (cell,con) -> [tau_prefix] for DECIDING trials
+    frac = defaultdict(A)               # (cell,con) -> field -> running sum
+
+    MIS = ("ever_below_h", "ever_above_h", "ever_miscover_h",
+           "ever_below_s", "ever_above_s", "ever_miscover_s",
+           "ever_miscover_h_decision_eligible", "ever_miscover_s_decision_eligible")
+    FRACS = ("final_unresolved_fraction", "final_unrevealed_fraction",
+             "final_cost_collapsed_fraction", "final_cost_narrowed_fraction")
+
     for d, _r in shards:
         with gzip.open(d / "primary_rows.csv.gz", "rt") as fh:
-            head = fh.readline().rstrip("\n").split(",")
-            ix = {k: i for i, k in enumerate(head)}
+            ix = {k: i for i, k in enumerate(fh.readline().rstrip("\n").split(","))}
             for line in fh:
                 f = line.rstrip("\n").split(",")
-                cell, con, dec = f[ix["cell"]], f[ix["construction"]], f[ix["decision"]]
-                prog = int(f[ix["program"]])
+                cell, con = f[ix["cell"]], f[ix["construction"]]
+                dec, prog = f[ix["decision"]], int(f[ix["program"]])
                 key = (cell, con)
-                trial[key][dec] += 1
+                t = truth[cell]
                 ntrial[key] += 1
+                trial_dec[key][dec] += 1
                 prog_seen[key].add(prog)
+
+                # ---- FROZEN EVENTS (PROTOCOL 9.2) --------------------------
+                fd = (dec == "DEPLOY") and t["deploy_is_error"]
+                fh_ = (dec == "RETAIN_INCUMBENT") and t["retain_is_false_harm"]
+                cd = (dec == "DEPLOY") and t["deploy_is_correct"]
+                if fd:
+                    trial_ev[key]["false_deploy"] += 1
+                    prog_ev[key]["false_deploy"].add(prog)
+                if fh_:
+                    trial_ev[key]["false_harm"] += 1
+                    prog_ev[key]["false_harm"].add(prog)
+                if fd or fh_:
+                    trial_ev[key]["any_error"] += 1
+                    prog_ev[key]["family_any_erroneous"].add(prog)
+                if cd:
+                    trial_ev[key]["correct_deploy"] += 1
+                    prog_ev[key]["any_correct_deploy"].add(prog)
                 if dec == "DEPLOY":
-                    prog_any_deploy[key].add(prog)
-                for fld in ("ever_miscover_h", "ever_miscover_s",
-                            "ever_miscover_h_decision_eligible",
-                            "ever_miscover_s_decision_eligible"):
-                    if f[ix[fld]] not in ("0", ""):
-                        miscover[key][fld] += 1
-    return ({"trial": trial, "ntrial": ntrial, "prog_any_deploy": prog_any_deploy,
-             "prog_seen": prog_seen, "miscover": miscover},
-            {d.name: r for d, r in shards}, [d.name for d, _ in shards])
+                    prog_ev[key]["any_deploy"].add(prog)
+                if dec == "NO_DECISION":
+                    trial_ev[key]["abstain"] += 1
+
+                for m in MIS:
+                    if f[ix[m]] not in ("0", ""):
+                        trial_ev[key][m] += 1
+                if dec != "NO_DECISION":
+                    trial_ev[key]["deciding"] += 1
+                    try:
+                        timing[key].append(int(f[ix["tau_prefix"]]))
+                    except (ValueError, KeyError):
+                        pass
+                    if f[ix["decided_in_drain"]] not in ("0", ""):
+                        trial_ev[key]["decided_in_drain"] += 1
+                    if f[ix["decided_at_finalization"]] not in ("0", ""):
+                        trial_ev[key]["decided_at_finalization"] += 1
+                for fl in FRACS:
+                    try:
+                        frac[key][fl] += float(f[ix[fl]])
+                    except (ValueError, KeyError):
+                        pass
+
+    return ({"dec": trial_dec, "ev": trial_ev, "prog": prog_ev,
+             "prog_seen": prog_seen, "n": ntrial, "timing": timing, "frac": frac},
+            [d.name for d, _ in shards])
+
+
+def _rate(k: int, n: int) -> Dict[str, Any]:
+    lo, hi = wilson(k, n)
+    return {"k": k, "n": n, "rate": (k / n if n else float("nan")),
+            "wilson95": [lo, hi]}
 
 
 def analyse(run_dir: Path) -> Dict[str, Any]:
-    agg, receipts, names = load(run_dir)
     truth = cell_truth()
-    cells = sorted({k[0] for k in agg["ntrial"]})
-    delta = vband.DELTA
+    agg, names = load(run_dir, truth)
+    cells = sorted({k[0] for k in agg["n"]})
 
-    rows = []
+    # FROZEN ALERT RULE: flag when the Wilson LOWER limit exceeds the nominal
+    # level.  This replaces the ">0.01 star" of my first version, which was
+    # neither the frozen rule nor a labelled descriptive threshold.
+    nom_trial = vband.ALPHA_PER_TRIAL
+    nom_prog = vband.PROGRAM_ALPHA
+    nom_band = vband.ALPHA_GATE
+
+    rows, alerts = [], []
     for cell in cells:
+        t = truth[cell]
         for con in CONSTRUCTIONS:
             key = (cell, con)
-            n_t = agg["ntrial"].get(key, 0)
-            if not n_t:
+            n = agg["n"].get(key, 0)
+            if not n:
                 continue
-            t = agg["trial"][key]
-            n_p = len(agg["prog_seen"][key])
-            k_p = len(agg["prog_any_deploy"][key])
-            lo, hi = wilson(k_p, n_p)
-            rows.append({
-                "cell": cell, "construction": con, **{k: truth[cell][k] for k in
-                    ("law", "delay_kind", "mu_h", "mu_s", "kind",
-                     "deploy_is_error", "deploy_is_guardrail_breach")},
-                "trials": n_t, "programs": n_p,
-                "trial_deploy": t.get("DEPLOY", 0),
-                "trial_retain": t.get("RETAIN", 0),
-                "trial_no_decision": t.get("NO_DECISION", 0),
-                "trial_abstention_rate": t.get("NO_DECISION", 0) / n_t,
-                "program_any_deploy": k_p,
-                "program_deploy_rate": k_p / n_p,
-                "program_deploy_wilson95": [lo, hi],
-                "miscover_h": agg["miscover"][key].get("ever_miscover_h", 0),
-                "miscover_s": agg["miscover"][key].get("ever_miscover_s", 0),
-                "miscover_h_eligible":
-                    agg["miscover"][key].get("ever_miscover_h_decision_eligible", 0),
-                "miscover_s_eligible":
-                    agg["miscover"][key].get("ever_miscover_s_decision_eligible", 0),
-            })
-
-    def rate(cell, con):
-        for r in rows:
-            if r["cell"] == cell and r["construction"] == con:
-                return r
-        return None
-
-    # The headline contrast: informative delay, hierarchy null.
-    contrasts = []
-    for cell in cells:
-        if truth[cell]["delay_kind"] != "informative" or not truth[cell]["deploy_is_error"]:
-            continue
-        a, nv = rate(cell, "ADAPTER"), rate(cell, "NAIVE")
-        if a and nv:
-            contrasts.append({
-                "cell": cell, "kind": truth[cell]["kind"],
-                "adapter_program_deploy_rate": a["program_deploy_rate"],
-                "adapter_wilson95": a["program_deploy_wilson95"],
-                "naive_program_deploy_rate": nv["program_deploy_rate"],
-                "naive_wilson95": nv["program_deploy_wilson95"],
-                "note": ("both are FALSE CERTIFICATION rates: the true hierarchy "
-                         "effect is not positive in this cell"),
-            })
-
-    guardrail = [r for r in rows
-                 if r["deploy_is_guardrail_breach"] and r["construction"] == "ADAPTER"]
-    power = [r for r in rows
-             if r["kind"] == "favourable alternative" and r["construction"] == "ADAPTER"]
-
+            d, e, P = agg["dec"][key], agg["ev"][key], agg["prog"][key]
+            np_ = len(agg["prog_seen"][key])
+            tm = agg["timing"][key]
+            row = {
+                "cell": cell, "construction": con,
+                **{k2: t[k2] for k2 in ("law", "delay_kind", "mu_h", "mu_s", "kind",
+                                        "deploy_is_correct", "deploy_is_error",
+                                        "deploy_error_reason", "retain_is_false_harm")},
+                "trials": n, "programs": np_,
+                "decisions": {lab: d.get(lab, 0) for lab in DECISION_LABELS},
+                "decisions_reconcile": sum(d.get(l, 0) for l in DECISION_LABELS) == n,
+                # ---- frozen TRIAL-denominator events ----------------------
+                "trial_false_deploy": _rate(e.get("false_deploy", 0), n),
+                "trial_false_harm": _rate(e.get("false_harm", 0), n),
+                "trial_any_error": _rate(e.get("any_error", 0), n),
+                "trial_correct_deploy": _rate(e.get("correct_deploy", 0), n),
+                "trial_abstention": _rate(e.get("abstain", 0), n),
+                # ---- frozen PROGRAM family event -------------------------
+                "program_family_any_erroneous": _rate(len(P["family_any_erroneous"]), np_),
+                "program_any_correct_deploy": _rate(len(P["any_correct_deploy"]), np_),
+                "program_any_deploy_DESCRIPTIVE": _rate(len(P["any_deploy"]), np_),
+                # ---- coverage: two-sided AND directional -----------------
+                "miscover_h_twosided": _rate(e.get("ever_miscover_h", 0), n),
+                "miscover_h_below": _rate(e.get("ever_below_h", 0), n),
+                "miscover_h_above": _rate(e.get("ever_above_h", 0), n),
+                "miscover_s_twosided": _rate(e.get("ever_miscover_s", 0), n),
+                "miscover_s_below": _rate(e.get("ever_below_s", 0), n),
+                "miscover_s_above": _rate(e.get("ever_above_s", 0), n),
+                "miscover_h_decision_eligible":
+                    _rate(e.get("ever_miscover_h_decision_eligible", 0), n),
+                "miscover_s_decision_eligible":
+                    _rate(e.get("ever_miscover_s_decision_eligible", 0), n),
+                # ---- timing / resolution, with denominators --------------
+                "deciding_trials": e.get("deciding", 0),
+                "deciding_fraction": e.get("deciding", 0) / n,
+                "tau_prefix_median_DECIDING_ONLY": (sorted(tm)[len(tm) // 2] if tm else None),
+                "decided_in_drain": e.get("decided_in_drain", 0),
+                "decided_at_finalization": e.get("decided_at_finalization", 0),
+                "mean_final_unresolved_fraction": agg["frac"][key]["final_unresolved_fraction"] / n,
+                "mean_final_cost_narrowed_fraction": agg["frac"][key]["final_cost_narrowed_fraction"] / n,
+            }
+            rows.append(row)
+            for name, nominal, scope in (
+                    ("trial_any_error", nom_trial, "trial"),
+                    ("program_family_any_erroneous", nom_prog, "program"),
+                    ("miscover_h_twosided", nom_band, "band"),
+                    ("miscover_s_twosided", nom_band, "band")):
+                r = row[name]
+                if r["n"] and r["wilson95"][0] > nominal:
+                    alerts.append({"cell": cell, "construction": con,
+                                   "readout": name, "observed": r["rate"],
+                                   "wilson95": r["wilson95"], "nominal": nominal,
+                                   "scope": scope,
+                                   "rule": "Wilson LOWER limit exceeds the nominal level"})
     return {
-        "schema": "live_ab_validation_v2.t1_analysis.1",
-        "run_dir": str(run_dir),
-        "shards_analysed": len(names),
-        "shards_expected": 56,
-        "complete_panel": len(names) == 56,
+        "schema": "live_ab_validation_v2.t1_analysis.2",
+        "run_dir": str(run_dir), "shards_analysed": len(names), "shards_expected": 56,
+        "provisional_unless_root_accepts_snapshot": True,
+        "completeness_note": ("shard count alone is NOT scientific completion; the "
+                              "accepted terminal job receipt supplies that"),
         "exposure": EXPOSURE,
-        "frozen_constants": {"program_alpha": vband.PROGRAM_ALPHA,
-                             "alpha_per_trial": vband.ALPHA_PER_TRIAL,
-                             "alpha_gate": vband.ALPHA_GATE,
-                             "delta": delta},
-        "unit_of_replication": {
-            "independent_draw": "trial (structural: spawn_key includes trial_index)",
-            "reporting_unit": "program (PROGRAM_ALPHA is defined per program)",
-            "construction": "WITHIN-trial, paired; never stacked into one denominator",
-            "cell": "BETWEEN-unit, unpaired; delay contrasts are unpaired",
-        },
+        "nominal_levels": {"program": nom_prog, "per_trial": nom_trial, "per_band": nom_band,
+                           "delta": vband.DELTA},
+        "frozen_event_definitions": {
+            "false_deploy": "DEPLOY AND NOT(mu_h > 0 AND mu_s > -delta)",
+            "false_harm": "RETAIN_INCUMBENT AND mu_h >= 0",
+            "family_any_erroneous": "any over a program's trials of (false_deploy OR false_harm)"},
+        "alert_rule": "Wilson LOWER limit exceeds the nominal level; a flag prompts diagnosis and neither a flag nor its absence establishes a theorem",
+        "alerts": alerts,
         "rows": rows,
-        "headline_contrast_informative_delay": contrasts,
-        "guardrail_cells": guardrail,
-        "power_cells": power,
-        "conventions": {
-            "program_deploy_rate": "descriptive (observed rate) with design-based Wilson 95% interval",
-            "trial_abstention_rate": "descriptive",
-            "miscover_*": "descriptive counts of an ever-event over the trial's look sequence",
-        },
         "MUST_NOT_CLAIM": [
-            "a power curve or minimum detectable effect: the grid has NO partially-powered "
-            "operating point (mu_h in {0,0.40,0.45}, nothing between 0 and 0.40)",
-            "that the bands are well-calibrated: a 0/1 decision function cannot distinguish "
-            "a correctly-targeted band from a correctly-targeted AND vacuously wide one",
-            "that this is a fresh confirmatory result: it is replay data with prior exposure",
+            "a power curve or a minimum detectable effect at a prespecified target power: "
+            "this FINITE GRID does not identify one. (Narrowed after review: the earlier "
+            "claim that no partially-powered operating point EXISTS did not follow from "
+            "effect spacing alone, since detection probability also depends on the joint "
+            "outcome law, variance, delay, guardrail effect, horizon and boundary width.)",
+            "that the bands are demonstrated well-calibrated by near-boundary decision rates alone",
+            "that this is a fresh confirmatory result: replay data with prior exposure",
             "pooling constructions into one denominator, or pooling cells with different truth",
+            "that marginal Wilson intervals are simultaneous or anytime-valid",
         ],
     }
 
