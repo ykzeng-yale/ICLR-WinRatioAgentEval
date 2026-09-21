@@ -365,6 +365,39 @@ science) + 83 panel + 184 validation + 86 design.
 
 Manifest regenerated at clean `a137d39`; identity `c3d4bce5021d3a3f…`. **Clearance: NOT CLEARED.**
 
+**T1 PARENT-CHILD INTEGRATION CLOSED — executor complete and unrun. 2026-09-21, head `8582e58`.**
+Root spec `reviews/v2_prerun_root_disposition_20260921_1136.md`. *Convention: **design-based**
+(orchestration checks, stub scientific functions). No grid run, no native reference, no effect read.*
+
+**The blocker: a successful child could not exit successfully.** `run_child` passed `supervision=None`
+into `finalize_job`, which then required successful supervision and no cap event — two conditions the
+child cannot observe — so it returned 6, and the nonzero exit failed the parent too. Finalization is now
+two-stage: the child's **data** stage reconciles data/pins/accounting only; the parent's **final** stage
+adds actual terminal supervision. Both receipts are preserved separately (`T1_CHILD_DATA_RECEIPT.json`
+and `T1_JOB_RECEIPT.json`) — **they previously wrote the same filename, so the parent overwrote the
+child's.**
+
+| other defect | what it did |
+|---|---|
+| parent finalized with `job_id="T1"` and **fresh zero counters** | observed totals real, cumulative counters zero, elapsed = monotonic clock − 0 |
+| bindings checked against **each other**, not the context | a fixture with a different manifest, source pin and job passed finalization |
+| `run_child` without identity | **published a shard against unreviewed source** |
+| terminal elapsed **recomputed but never compared** | a 2 s run under a 1 s cap reported `within_caps: true` |
+| runner caught a trial exception and **continued** | an injected first-trial failure still ran the three later trials |
+
+All repaired: deterministic `job_identity()` carried through both stages with the child's real counters
+restored; bindings must equal the frozen context and an unbound finalization fails outright; identity
+mandatory in the child; terminal elapsed checked with earlier breaches preserved, plus a parent-side
+check covering its **own** hashing and metadata writes and the final all-artifact byte total with no
+reset; the runner stops at the first failure, still closing both handles.
+
+**31 shard tests**, including a positive roundtrip through `launch` → **actual** `run_child` with an
+intercepted supervisor reaching **child exit 0 and final completion true**, and shard-error / cap /
+missing-identity cases all remaining incomplete. Plus 83 panel + 184 validation + 86 design.
+
+**Environment stays in the identity binding**, per the root's ruling — it describes the execution host,
+not the reviewer's. New identity `18ad539884566215ff…` at clean `f63553a`. **Clearance: NOT CLEARED.**
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
