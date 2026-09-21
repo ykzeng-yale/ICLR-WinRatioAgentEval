@@ -30,7 +30,7 @@ import json
 import platform
 import sys
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 HERE = Path(__file__).resolve().parent
 REPO_ROOT = HERE.parents[1]
@@ -44,8 +44,19 @@ COMMITTED = (REPO_ROOT / "results" / "live_ab_validation_v2"
              / "resource_check_committed" / "balanced_analysis.json")
 SAVED_PROJECTION = (REPO_ROOT / "results" / "live_ab_validation_v2"
                     / "budget_projection_repaired.json")
+#: v1's demonstration is COMMITTED and is left exactly where it is.  Guard
+#: v2 writes its own file rather than re-running into a deposited receipt --
+#: the rule adopted after I clobbered one by doing precisely that.
 OUT = (REPO_ROOT / "results" / "live_ab_validation_v2"
-       / "total_workload_guard_demonstration.json")
+       / "total_workload_guard_demonstration_v2.json")
+OUT_V1 = (REPO_ROOT / "results" / "live_ab_validation_v2"
+          / "total_workload_guard_demonstration.json")
+
+#: A fully bound proposal, used ONLY as the positive control: it shows the
+#: strengthened guard can still authorize, so its refusals mean something.
+CONTROL_IDENTITIES = {"code": "control", "config": "control",
+                      "policy": "operational", "workload": "eight_call",
+                      "receipt": "control"}
 
 
 def smoke_from_saved_projection() -> Dict[str, Any]:
@@ -76,11 +87,11 @@ def smoke_from_saved_projection() -> Dict[str, Any]:
 
 
 def _trip(name: str, budget: Dict[str, Any], cfg_json: dict,
-          mutate) -> Dict[str, Any]:
+          mutate, proposed: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """Trip the guard one way and record whether it actually REFUSED."""
     b = copy.deepcopy(budget)
     mutate(b)
-    verdict = vrun.total_workload_guard(b, cfg_json)
+    verdict = vrun.total_workload_guard(b, cfg_json, proposed)
     raised: str = ""
     try:
         vrun.enforce_total_workload_guard(verdict)
@@ -138,11 +149,63 @@ def run() -> Dict[str, Any]:
         b["selected_tier"] = None
         b["paused"] = True
 
+    # ---- the four failures root NAMED as still authorizing under v1 -------
+    def _nan_reference(b: Dict[str, Any]) -> None:
+        for e in b["ladder"]:
+            e["reference_seconds_projected"] = float("nan")
+            e["total_seconds_projected"] = float("nan")
+
+    def _negative_reference(b: Dict[str, Any]) -> None:
+        for e in b["ladder"]:
+            e["reference_seconds_projected"] = -1.0e9
+            e["total_seconds_projected"] = -1.0e9
+
+    def _huge_bytes(b: Dict[str, Any]) -> None:
+        for e in b["ladder"]:
+            e["bytes_projected"] = 1.0e12
+
+    def _huge_rss(b: Dict[str, Any]) -> None:
+        for e in b["ladder"]:
+            e["peak_rss_projected"] = 1.0e12
+
+    def _no_combined_receipt(b: Dict[str, Any]) -> None:
+        ref = dict(b["reference_workload"])
+        ref["combined_workload_receipt"] = {"present": False}
+        b["reference_workload"] = ref
+
+    def _bind(b: Dict[str, Any], **over) -> None:
+        ref = dict(b["reference_workload"])
+        c = dict(ref.get("combined_workload_receipt") or {})
+        c["present"] = True
+        c["identities"] = dict(CONTROL_IDENTITIES)
+        c.setdefault("planned_groups", 12)
+        c["groups_total"] = over.get("groups_total", 12)
+        ref["combined_workload_receipt"] = c
+        b["reference_workload"] = ref
+
+    def _short_groups(b: Dict[str, Any]) -> None:
+        _bind(b, groups_total=5)
+
+    bound = {"identities": dict(CONTROL_IDENTITIES)}
     cases = [
         _trip("unresolved_reference_cost", budget, cfg_json, _unresolved),
         _trip("total_over_cap_with_admissible_primary", budget, cfg_json,
               _over_cap),
         _trip("no_tier_selected", budget, cfg_json, _no_tier),
+        # --- newly closed in v2 -------------------------------------------
+        _trip("nan_reference_time", budget, cfg_json, _nan_reference, bound),
+        _trip("negative_reference_time", budget, cfg_json, _negative_reference,
+              bound),
+        _trip("excessive_output_bytes", budget, cfg_json, _huge_bytes, bound),
+        _trip("excessive_peak_rss", budget, cfg_json, _huge_rss, bound),
+        _trip("missing_combined_receipt", budget, cfg_json, _no_combined_receipt,
+              bound),
+        _trip("identity_mismatch_on_policy", budget, cfg_json, _bind,
+              {"identities": dict(CONTROL_IDENTITIES, policy="oracle")}),
+        _trip("identities_absent_entirely", budget, cfg_json, _bind, {}),
+        _trip("group_accounting_short", budget, cfg_json, _short_groups, bound),
+        _trip("proposal_larger_than_priced_tier", budget, cfg_json, _bind,
+              dict(bound, programs_total=280000)),
     ]
     all_refused = all(c["enforcement_raised"] and not c["authorized"]
                       for c in cases)

@@ -12,20 +12,24 @@ Scope, stated once:
   from this module, ever, and nothing in it depends on an arm.
 * `n_pairs = n_S1 // 2 + n_S2 // 2` (protocol 3.3). It is never `n_total // 2`: pairs are formed inside
   a stratum and each stratum keeps its own leftover.
-* **Allocation across strata must stay PROPORTIONAL.** Each stratum contributes `floor(n_s / 2)` pairs
-  and protocol 3.4 then permutes the whole pair list as ONE sequence, so every enrolled prefix is an
-  exchangeable sample of the strata in proportion to their pair counts. The guardrail's target is the
-  mean guarded score over the pairs actually enrolled. If allocation drifted away from proportional --
-  by weighting a stratum, by enrolling the strata in blocks, or by any rule that makes the stratum mix
-  of a stopping prefix differ from the roster's -- then the quantity the band brackets at the stopping
-  time would drift further from the roster contrast the design is named for. **CORRECTED 2026-09-21
-  (root disposition 04:53, "correct its exactness and stopped-roster wording"):** proportionality does
-  NOT make the stopped estimand equal to the roster's. The target is, and remains, the mean guarded
-  score over the pairs ACTUALLY ENROLLED at the look in question; proportional allocation makes that
-  prefix's stratum mix match the roster's IN EXPECTATION ONLY, and the REALISED mix at a stopping time
-  can differ from it. What proportionality buys is that the target does not acquire a stratum-weighting
-  bias BY CONSTRUCTION; it does not make the estimand invariant to when you stop, which
-  is a separate requirement from the anytime validity of the band itself.
+* **Allocation across strata must stay PROPORTIONAL.** **CORRECTED 2026-09-21 (root disposition
+  06:35). This paragraph is the root's dictated statement; my two earlier attempts are withdrawn.**
+  The first claimed proportionality made the stopped estimand invariant to the stopping time. The
+  second withdrew that but still called the target the mean of the OBSERVED SCORES of enrolled pairs
+  and still claimed absence of stratum-weighting bias "by construction", neither of which matches
+  authoritative protocol section 10.1. The governing statement:
+
+      Each stratum contributes `floor(n_s / 2)` pairs, and the combined pair list is uniformly
+      permuted. At any fixed, non-random prefix length, the expected stratum proportions equal the
+      pair-roster proportions. This does not imply the same expectation at an outcome-selected
+      stopping time. The monitored targets are the enrollment-running averages of the
+      history-conditional means of the hierarchical score and the success-difference score, under
+      the paired serving regime defined in protocol sections 7.2 and 10.1. They are NOT the realized
+      sample means and NOT a fixed full-roster contrast. No unbiasedness or stopping-time invariance
+      follows merely from proportional allocation.
+
+  Nothing in this module may weight a stratum, enroll the strata in blocks, or otherwise make a
+  prefix's stratum mix depend on the arm or the outcome.
   (`ProportionalAllocationTests` in `tests_lab_design.py`.)
 
 **Known, deliberately NOT applied here: the MBPP/HumanEval stratum separation.** Coordinator ruling 49
@@ -593,12 +597,16 @@ def build_roster(tasks: list[Task], exclusions: list[Exclusion], cfg: dict) -> d
     `(n_S1 % 2) + (n_S2 % 2)`, which is 0, 1 or 2.
 
     The per-stratum pair counts `floor(n_s / 2)` are what makes the allocation PROPORTIONAL (module
-    docstring): protocol 3.4 permutes the combined pair list, so the stratum mix of every enrolled
-    prefix is the roster's own mix IN EXPECTATION. **CORRECTED 2026-09-21: the previous sentence here
-    claimed "the guarded estimand does not move with the stopping time". That is withdrawn.** The
-    estimand IS the mean over the pairs actually enrolled, so it moves with the stopping time by
-    definition; what proportional allocation prevents is a stratum-weighting bias by construction, not
-    stopping-time dependence. Nothing in this function may weight a stratum.
+    docstring). **CORRECTED 2026-09-21 (root disposition 06:35); this is the root's dictated
+    statement and supersedes both of my earlier wordings here.** Each stratum contributes
+    `floor(n_s / 2)` pairs, and the combined pair list is uniformly permuted. At any fixed,
+    non-random prefix length, the expected stratum proportions equal the pair-roster proportions.
+    This does not imply the same expectation at an outcome-selected stopping time. The monitored
+    targets are the enrollment-running averages of the history-conditional means of the hierarchical
+    score and the success-difference score, under the paired serving regime defined in protocol
+    sections 7.2 and 10.1. They are NOT the realized sample means and NOT a fixed full-roster
+    contrast. No unbiasedness or stopping-time invariance follows merely from proportional
+    allocation. Nothing in this function may weight a stratum.
 
     The top-level `'S1'` and `'S2'` keys are the lists protocol 3.4's code path indexes as
     `roster[stratum]`; `'tasks'` is the flat frozen order ARCHITECTURE 3.4 names.

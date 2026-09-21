@@ -2151,26 +2151,86 @@ class TotalResourceRefusal(SystemExit):
     """Raised when the projected TOTAL workload is unresolved or over cap."""
 
 
+def _finite_nonneg(value: object) -> bool:
+    """A projected total must be a real, finite, nonnegative number.
+
+    WHY THIS EXISTS.  ``float("nan") > cap`` is **False**, so a NaN projection
+    walked straight through the v1 cap test and AUTHORIZED; so did a negative
+    total.  Guard v1 therefore had a cap test that a missing measurement could
+    satisfy.  Every numeric total now passes through here first.
+    """
+    try:
+        x = float(value)                                       # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return False
+    return math.isfinite(x) and x >= 0.0
+
+
+#: Every hard limit declared in the config, paired with the ladder field that
+#: projects it.  Guard v1 checked ONLY ``seconds`` while the config also caps
+#: output bytes and peak RSS, so a workload could be authorized while projected
+#: to blow either of the other two.  Adding a cap to the config now adds it to
+#: the guard.
+_CAP_FIELDS = (
+    ("seconds", "seconds_projected", "total_seconds_projected"),
+    ("output_bytes", "bytes_projected", None),
+    ("peak_rss_bytes", "peak_rss_projected", None),
+)
+
+#: Identities that must match before a projection may authorize execution.  A
+#: projection priced against different code, a different config, a different
+#: policy or a different reference workload is not a projection OF the run
+#: being proposed.
+_REQUIRED_IDENTITIES = ("code", "config", "policy", "workload", "receipt")
+
+
 def total_workload_guard(budget: Dict[str, object],
-                         cfg_json: dict) -> Dict[str, object]:
-    """[pure] Authorize, or REFUSE, the entire declared execution workload."""
+                         cfg_json: dict,
+                         proposed: Optional[Dict[str, object]] = None
+                         ) -> Dict[str, object]:
+    """[pure] Authorize, or REFUSE, the entire declared execution workload.
+
+    ``proposed`` carries the ACTUAL arguments execution would run with -- any
+    tier override, the programs and horizon, and the identity fingerprints of
+    the code, config, policy and reference workload the projection was priced
+    against.  Guard v1 priced the AUTOMATIC tier and then let an execution
+    override change what actually ran, so the authorized number and the
+    executed number could differ.  The override is now resolved FIRST and the
+    pricing follows it.
+    """
     limits = cfg_json["budget"]["hard_limits"]
     cap_seconds = float(limits["seconds"])
-    selected = budget.get("selected_tier")
+    proposed = dict(proposed or {})
     ladder = list(budget.get("ladder") or [])
+
+    # ---- 1. RESOLVE THE OVERRIDE BEFORE PRICING ANYTHING ------------------
+    automatic = budget.get("selected_tier")
+    override = proposed.get("tier_override")
+    selected = override if override is not None else automatic
+
     verdict: Dict[str, object] = {
         "guard": "fail_closed_total_workload_resource_guard",
-        "version": "1.0.0",
-        "authority": ("root disposition 2026-09-21 04:53; "
-                      "COORDINATOR_DECISIONS revision 18 item 94"),
+        "version": "2.0.0",
+        "authority": ("root disposition 2026-09-21 06:35 "
+                      "('close the named guard and provenance failures'); "
+                      "COORDINATOR_DECISIONS revision 19"),
         "separate_from_the_scientific_tier_selection": True,
         "frozen_selection_rule_unchanged": True,
         "gives_the_comparator_no_inferential_authority": True,
         "exemptions": [],
         "cap_seconds": cap_seconds,
+        "caps_checked": [name for name, _, _ in _CAP_FIELDS],
+        "automatic_tier": automatic,
+        "tier_override": override,
         "selected_tier": selected,
+        "priced_after_override": True,
         "covers": list(REFERENCE_WORKLOAD["accounted_components"]),
     }
+    if override is not None and override != automatic:
+        verdict["override_note"] = (
+            f"execution proposes tier {override!r} while the frozen primary "
+            f"rule selected {automatic!r}; the TOTAL is priced against "
+            f"{override!r}, which is what would actually run")
     if selected is None:
         verdict.update({
             "authorized": False,
@@ -2204,24 +2264,80 @@ def total_workload_guard(budget: Dict[str, object],
             "reference_cost_note": entry.get("reference_cost_note"),
         })
         return verdict
+    # ---- 2. EVERY PROJECTED TOTAL MUST BE A REAL NUMBER -------------------
+    # NaN slid through the v1 cap test because ``nan > cap`` is False; so did a
+    # negative total.  A cap test a missing measurement can satisfy is not a
+    # cap test.
+    nonfinite = [name for name, own, tot in _CAP_FIELDS
+                 for field in ((tot or own),)
+                 if not _finite_nonneg(entry.get(field))]
+    if not _finite_nonneg(primary) or not _finite_nonneg(ref) or nonfinite:
+        verdict.update({
+            "authorized": False,
+            "refusal_class": "non_finite_projection",
+            "total_seconds_projected": None,
+            "nonfinite_fields": nonfinite,
+            "refusal": (
+                "a projected total is not a finite nonnegative number "
+                f"(primary={primary!r}, reference={ref!r}, "
+                f"nonfinite={nonfinite}). NaN is not a small number and a "
+                "negative projection is not headroom: both silently PASSED the "
+                "v1 cap comparison. Execution is REFUSED until every projected "
+                "total is measured as a real quantity."),
+        })
+        return verdict
+
     total = float(primary) + float(ref)
     verdict["total_seconds_projected"] = total
     verdict["reference_share_of_total"] = (float(ref) / total) if total else None
     verdict["primary_only_admissible"] = bool(entry.get("admissible"))
-    if total > cap_seconds:
+
+    # ---- 3. EVERY DECLARED CAP, AGAINST THE ACTUAL PROPOSED ARGUMENTS -----
+    breaches: List[Dict[str, object]] = []
+    for name, own_field, total_field in _CAP_FIELDS:
+        if name not in limits:
+            continue
+        cap = float(limits[name])
+        value = total if total_field == "total_seconds_projected" \
+            else float(entry.get(own_field))
+        scale = _proposed_scale(proposed, entry)
+        value = value * scale
+        verdict.setdefault("checked", {})[name] = {          # type: ignore[union-attr]
+            "cap": cap, "projected": value, "scale_from_proposed": scale}
+        if value > cap:
+            breaches.append({"cap_name": name, "cap": cap, "projected": value})
+    if breaches:
+        first = breaches[0]
         verdict.update({
             "authorized": False,
-            "refusal_class": "total_over_cap",
+            "refusal_class": ("total_over_cap"
+                              if first["cap_name"] == "seconds"
+                              else "projected_over_cap"),
+            "cap_breaches": breaches,
             "refusal": (
-                f"the projected TOTAL workload is {total:.1f} s against a cap "
-                f"of {cap_seconds:.1f} s. The primary-only tier is "
+                "the proposed workload breaches "
+                + "; ".join(f"{b['cap_name']} ({b['projected']:.1f} > {b['cap']:.1f})"
+                            for b in breaches)
+                + ". The primary-only tier is "
                 f"{'admissible' if entry.get('admissible') else 'not admissible'}, "
-                f"which does not matter here: the total is what is being "
-                f"authorized. Execution is REFUSED. Report it for a scoped "
-                f"decision; do not drop the comparator and do not choose a "
-                f"different workload after outcomes."),
+                "which does not matter here: the total is what is being "
+                "authorized. Execution is REFUSED. Report it for a scoped "
+                "decision; do not drop the comparator and do not choose a "
+                "different workload after outcomes."),
         })
         return verdict
+
+    # ---- 4. PROVENANCE: the projection must be OF this run ----------------
+    prov = _provenance_verdict(budget, proposed)
+    verdict["provenance"] = prov
+    if not prov["ok"]:
+        verdict.update({
+            "authorized": False,
+            "refusal_class": prov["refusal_class"],
+            "refusal": prov["refusal"],
+        })
+        return verdict
+
     verdict.update({
         "authorized": True,
         "refusal_class": None,
@@ -2229,6 +2345,113 @@ def total_workload_guard(budget: Dict[str, object],
         "headroom_seconds": cap_seconds - total,
     })
     return verdict
+
+
+def _proposed_scale(proposed: Dict[str, object],
+                    entry: Dict[str, object]) -> float:
+    """How much bigger the PROPOSED run is than the tier that was priced.
+
+    A cap checked against the ladder's own numbers is checked against the tier
+    as priced, not against what execution was actually asked to do.  If the
+    proposal names more programs than the entry was priced for, every cap is
+    checked against the larger figure.  Absent a proposal this is 1.0 and the
+    behaviour is the ladder's own.
+    """
+    want = proposed.get("programs_total")
+    priced = entry.get("programs_total")
+    if want is None or not priced:
+        return 1.0
+    try:
+        return max(1.0, float(want) / float(priced))
+    except (TypeError, ValueError, ZeroDivisionError):        # pragma: no cover
+        return 1.0
+
+
+def _provenance_verdict(budget: Dict[str, object],
+                        proposed: Dict[str, object]) -> Dict[str, object]:
+    """Identities and group accounting, required rather than assumed.
+
+    Guard v1 would authorize on the old scaled H-only arithmetic with NO
+    contemporaneous combined receipt behind it.  Root: "Retain old arithmetic
+    as historical description rather than authority to execute an unresolved
+    workload."  So route A stays in the record and route B is what authorizes.
+    """
+    ref = dict(budget.get("reference_workload") or {})
+    combined = dict(ref.get("combined_workload_receipt") or {})
+    out: Dict[str, object] = {"ok": True, "refusal_class": None, "refusal": None,
+                              "combined_receipt_present": bool(combined.get("present")),
+                              "identities_checked": list(_REQUIRED_IDENTITIES)}
+
+    if not combined.get("present"):
+        out.update({
+            "ok": False,
+            "refusal_class": "missing_combined_receipt",
+            "refusal": (
+                "no contemporaneous COMBINED workload receipt backs this "
+                "projection. The scaled H-only arithmetic is retained as "
+                "historical DESCRIPTION and is not authority to execute an "
+                "unresolved workload. Execution is REFUSED until the combined "
+                "scope is measured."),
+        })
+        return out
+
+    declared = dict(proposed.get("identities") or {})
+    recorded = dict(combined.get("identities") or ref.get("identities") or {})
+    mismatched = []
+    missing = []
+    for name in _REQUIRED_IDENTITIES:
+        want, got = declared.get(name), recorded.get(name)
+        if want is None or got is None:
+            missing.append(name)
+        elif want != got:
+            mismatched.append({"identity": name, "proposed": want, "priced": got})
+    out["identity_mismatches"] = mismatched
+    out["identities_missing"] = missing
+    if mismatched:
+        out.update({
+            "ok": False,
+            "refusal_class": "identity_mismatch",
+            "refusal": (
+                f"the projection was priced against different {', '.join(m['identity'] for m in mismatched)}"
+                " than the run being proposed, so it is not a projection OF "
+                "this run. Execution is REFUSED."),
+        })
+        return out
+    if missing:
+        out.update({
+            "ok": False,
+            "refusal_class": "identity_unverifiable",
+            "refusal": (
+                f"identities {missing} are absent from the proposal or the "
+                "receipt, so the projection cannot be shown to price THIS run. "
+                "Unverifiable is not verified. Execution is REFUSED."),
+        })
+        return out
+
+    planned = combined.get("planned_groups")
+    attempts = combined.get("attempts_total")
+    recorded_groups = combined.get("groups_total")
+    out["group_accounting"] = {"planned": planned, "recorded": recorded_groups,
+                               "attempts": attempts}
+    if planned is None or recorded_groups is None:
+        out.update({
+            "ok": False,
+            "refusal_class": "group_accounting_absent",
+            "refusal": ("the combined receipt does not account for its planned "
+                        "timing groups, so its total cannot be shown to cover "
+                        "the declared workload. Execution is REFUSED."),
+        })
+        return out
+    if int(recorded_groups) < int(planned):
+        out.update({
+            "ok": False,
+            "refusal_class": "group_accounting_short",
+            "refusal": (
+                f"the combined receipt records {recorded_groups} timing groups "
+                f"against {planned} planned, so part of the declared workload "
+                "was never measured. Execution is REFUSED."),
+        })
+    return out
 
 
 def enforce_total_workload_guard(verdict: Dict[str, object]) -> None:

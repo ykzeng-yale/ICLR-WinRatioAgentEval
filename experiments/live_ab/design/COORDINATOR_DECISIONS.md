@@ -762,3 +762,45 @@ wherever they differ. All of the following are adopted literally; none is negoti
     enclosure and recorded ZERO errors, and confirmed 24,115/24,115 agreement under matched policy and
     103/103 live-contains-oracle under the oracle comparison. That is someone else's code checking my adapter
     against the live rule, which is worth more than my own 175 passing tests.
+
+# ===== REVISION 20, 2026-09-21: ranked action 1 delivered; guard v2 closes the named failures =====
+99. RANKED ACTION 1, BOTH HALVES. (a) vgen/vrun now execute the OPERATIONAL policy: an "operational"
+    reading in the threshold-table builder, and breakpoint_ages() recomputing the per-policy threshold
+    AGES -- reusing the draw's frozen oracle ages would have produced sums belonging to neither policy.
+    Verified against vpolicy on 5,772,240 reachable pair-states via 3,570,720 distinct evaluations, zero
+    mismatches; difference array == brute force on 16 (draw,policy) pairs; the seam differs at 127 ticks
+    across 48 draws with operational containing oracle at every one. (b) vpanel.py is the versioned
+    end-to-end entry point: operational primary plus BOTH complete-information reference bands on the
+    SAME latent draws, 8 calls/program, indexed at declared prefixes, written to a separate artifact
+    under an immutable receipt. 27-test fixture drives the real entry point, never vcompare.
+100. A NEAR MISS I AM RECORDING BECAUSE IT WAS THE SAME ERROR. My first check of whether the policy seam
+    was live was ONE cell at n=60. It returned zero differing ticks. Had I stopped there I would have
+    reported the seam as decorative or as working; scanning all eight cells is what showed it live at
+    127 ticks. Caught before it became a claim, which is the first time in this project that has
+    happened rather than the correction arriving from the root.
+101. AND ONE I DID NOT CATCH UNTIL THE OUTPUT WAS IN FRONT OF ME: summarising the guard demonstration, I
+    extracted the wrong JSON key, got an EMPTY case list, and printed "all refused: True" -- because
+    all() over an empty sequence is vacuously true. A check that passes on no data is the same defect as
+    the hash fixture that never opened a file, committed by me, one cycle after I wrote that sentence
+    about someone else's code. The summary now asserts the case list is non-empty first.
+102. GUARD v2.0.0 closes every failure the root named. v1's cap test was `total > cap`, and
+    `float("nan") > cap` is False, so a NaN reference time AUTHORIZED; so did a negative total. v1 also
+    checked ONLY seconds while the config caps output_bytes and peak_rss_bytes too, authorized on the
+    scaled H-only arithmetic with no contemporaneous combined receipt behind it, and priced the
+    AUTOMATIC tier before an execution override could change what actually ran. Now: every projected
+    total must be finite and nonnegative; all three declared caps are checked, against the ACTUAL
+    proposed arguments rather than the priced tier; the combined receipt is REQUIRED and route A is
+    retained as historical description only; code/config/policy/workload/receipt identities must match
+    and planned group accounting must be complete; the override is resolved BEFORE pricing. Twelve
+    tripped cases all refuse and all raise; nine new unit tests; the positive control still authorizes,
+    so the refusals mean something.
+103. CONSEQUENCE WORTH STATING PLAINLY: under guard v2 the CURRENT committed projection does NOT
+    authorize execution. The committed combined receipt carries no identity fingerprints and no planned
+    group accounting, so the verdict is `identity_unverifiable`. That is the correct fail-closed answer
+    and not a regression -- the projection was never bound to the run it prices. No full grid, no
+    calibration panel, no live trial is authorized by any artifact currently in the repository.
+104. The root DICTATED the lab_data target paragraph; it is applied verbatim at both sites, and both my
+    earlier wordings are withdrawn. The second one still called the target the mean of the OBSERVED
+    SCORES of enrolled pairs and still claimed absence of stratum-weighting bias "by construction";
+    neither matches protocol 10.1. The monitored targets are the enrollment-running averages of the
+    HISTORY-CONDITIONAL MEANS, not realized sample means and not a fixed full-roster contrast.

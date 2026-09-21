@@ -2353,12 +2353,103 @@ class TestFailClosedTotalWorkloadGuard(unittest.TestCase):
                  "total_seconds_projected": 300.0,
                  "reference_cost_unresolved": False}
         entry.update(over)
-        return {"selected_tier": "T1", "ladder": [entry], "paused": False}
+        return {"selected_tier": "T1", "ladder": [entry], "paused": False,
+                "reference_workload": {"combined_workload_receipt": {
+                    "present": True, "identities": dict(self.IDS),
+                    "planned_groups": 12, "groups_total": 12}}}
+
+    #: Guard v2 requires the projection to be BOUND to the run it prices.  An
+    #: unbound proposal is refused as `identity_unverifiable`, which is the
+    #: point, so the positive control has to supply identities.
+    IDS = {"code": "t", "config": "t", "policy": "operational",
+           "workload": "eight_call", "receipt": "t"}
+
+    def _proposed(self, **over):
+        p = {"identities": dict(self.IDS)}
+        p.update(over)
+        return p
 
     def test_an_authorized_total_passes_and_does_not_raise(self):
-        v = self.vrun.total_workload_guard(self._budget(), self.cfg_json)
-        self.assertTrue(v["authorized"])
+        v = self.vrun.total_workload_guard(self._budget(), self.cfg_json,
+                                           self._proposed())
+        self.assertTrue(v["authorized"], v.get("refusal"))
         self.vrun.enforce_total_workload_guard(v)        # must not raise
+
+    def test_an_unbound_projection_is_refused(self):
+        """v2: a projection nothing ties to this run cannot authorize it."""
+        v = self.vrun.total_workload_guard(self._budget(), self.cfg_json)
+        self.assertFalse(v["authorized"])
+        self.assertEqual(v["refusal_class"], "identity_unverifiable")
+
+    def test_a_nan_projection_is_refused(self):
+        """``nan > cap`` is False, so v1 AUTHORIZED this."""
+        v = self.vrun.total_workload_guard(
+            self._budget(reference_seconds_projected=float("nan"),
+                         total_seconds_projected=float("nan")),
+            self.cfg_json, self._proposed())
+        self.assertFalse(v["authorized"])
+        self.assertEqual(v["refusal_class"], "non_finite_projection")
+
+    def test_a_negative_projection_is_refused(self):
+        v = self.vrun.total_workload_guard(
+            self._budget(reference_seconds_projected=-1e9,
+                         total_seconds_projected=-1e9),
+            self.cfg_json, self._proposed())
+        self.assertFalse(v["authorized"])
+        self.assertEqual(v["refusal_class"], "non_finite_projection")
+
+    def test_the_byte_and_rss_caps_are_checked_too(self):
+        """v1 checked ONLY seconds while the config caps three things."""
+        for field in ("bytes_projected", "peak_rss_projected"):
+            v = self.vrun.total_workload_guard(
+                self._budget(**{field: 1.0e12}), self.cfg_json, self._proposed())
+            self.assertFalse(v["authorized"], field)
+            self.assertEqual(v["refusal_class"], "projected_over_cap", field)
+
+    def test_a_missing_combined_receipt_is_refused(self):
+        b = self._budget()
+        b["reference_workload"] = {"combined_workload_receipt": {"present": False}}
+        v = self.vrun.total_workload_guard(b, self.cfg_json, self._proposed())
+        self.assertFalse(v["authorized"])
+        self.assertEqual(v["refusal_class"], "missing_combined_receipt")
+
+    def test_an_identity_mismatch_is_refused(self):
+        v = self.vrun.total_workload_guard(
+            self._budget(), self.cfg_json,
+            self._proposed(identities=dict(self.IDS, policy="oracle")))
+        self.assertFalse(v["authorized"])
+        self.assertEqual(v["refusal_class"], "identity_mismatch")
+
+    def test_short_group_accounting_is_refused(self):
+        b = self._budget()
+        b["reference_workload"]["combined_workload_receipt"]["groups_total"] = 5
+        v = self.vrun.total_workload_guard(b, self.cfg_json, self._proposed())
+        self.assertFalse(v["authorized"])
+        self.assertEqual(v["refusal_class"], "group_accounting_short")
+
+    def test_the_tier_is_priced_after_the_override_not_before(self):
+        """v1 priced the AUTOMATIC tier and let an override change what ran."""
+        b = self._budget()
+        b["ladder"].append({"tier": "T4", "programs_total": 28000, "N_max": 1000,
+                            "seconds_projected": 10.0, "bytes_projected": 1.0,
+                            "peak_rss_projected": 1, "admissible": True,
+                            "reference_seconds_projected": 20.0,
+                            "total_seconds_projected": 30.0,
+                            "reference_cost_unresolved": False})
+        v = self.vrun.total_workload_guard(b, self.cfg_json,
+                                           self._proposed(tier_override="T4"))
+        self.assertEqual(v["automatic_tier"], "T1")
+        self.assertEqual(v["selected_tier"], "T4")
+        self.assertEqual(v["total_seconds_projected"], 30.0)
+        self.assertTrue(v["priced_after_override"])
+
+    def test_a_proposal_larger_than_the_priced_tier_is_rescaled(self):
+        """Caps must meet the ACTUAL proposed arguments, not the priced tier."""
+        v = self.vrun.total_workload_guard(
+            self._budget(), self.cfg_json,
+            self._proposed(programs_total=28000 * 100))
+        self.assertFalse(v["authorized"])
+        self.assertEqual(v["refusal_class"], "total_over_cap")
 
     def test_an_unresolved_total_refuses_and_raises(self):
         v = self.vrun.total_workload_guard(
