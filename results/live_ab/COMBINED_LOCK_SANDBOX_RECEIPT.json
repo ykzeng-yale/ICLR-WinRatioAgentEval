@@ -1,0 +1,60 @@
+{
+  "a_design_error_of_mine_that_containment_caught": {
+    "fix": "the marker is written into the program's OWN run directory under the writable sandbox base, the only place the profile permits.",
+    "note": "containment behaving exactly as the 15 repository-target denials describe. The fixture was wrong, not the sandbox.",
+    "result": "the Seatbelt profile DENIED it -- that directory is under HOME. The fixture reported payload_ok=False and a 0.021 s protected section.",
+    "what": "my first version had the sandboxed program write its liveness marker into the fixture work directory."
+  },
+  "authority": "root 2026-09-21 23:29: 'follow the real execution topology: trusted supervisor acquires the lock OUTSIDE the sandbox and holds it throughout sandbox execution. Do NOT ask sandboxed candidate code to open or acquire the supervisor lock itself.'",
+  "contender": {
+    "error": "PreflightError: execution lock not acquired within 1.0 s",
+    "gave_up": 5181941.879813791,
+    "lock": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab/_combined_fixture/combined.lock",
+    "lock_requested": 5181940.852066958,
+    "outcome": "blocked",
+    "pid": 53117,
+    "role": "contender",
+    "sandbox_started": null
+  },
+  "contender_blocked": true,
+  "contender_sandbox_never_started": true,
+  "contender_wait_s": 1.0,
+  "hold_s": 2.0,
+  "holder": {
+    "lock": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab/_combined_fixture/combined.lock",
+    "lock_acquired": 5181940.794978458,
+    "lock_released": 5181942.827771958,
+    "lock_requested": 5181940.794909458,
+    "outcome": "acquired",
+    "pid": 53113,
+    "role": "holder",
+    "sandbox_ended": 5181942.827757875,
+    "sandbox_kind": "seatbelt",
+    "sandbox_ok": true,
+    "sandbox_started": 5181940.794980708
+  },
+  "holder_sandbox_active_before_contender_tried": true,
+  "label": "SYNTHETIC INTEGRATION CHECK of the combined lock+sandbox route. Two independent TRUSTED SUPERVISORS; the lock is held OUTSIDE the sandbox and the sandboxed program never references it. NOT live model evidence, NOT a general concurrency or security theorem.",
+  "liveness_marker": "written by the sandboxed program into its OWN run directory under the writable sandbox base -- the only place the profile permits. An earlier version had it write into the fixture work dir and the profile correctly DENIED that, which is containment working.",
+  "lock_identity": "<WORK>/_combined_fixture/combined.lock",
+  "my_proposed_design_was_rejected": {
+    "i_proposed": "both processes through the sandbox route, each attempting the lock from inside.",
+    "outcome": "built to root topology instead. My default would have measured an architecture this system does not have.",
+    "root_refused": "that tests a different architecture, could be denied by intended containment, and is not required. In production the supervisor is trusted and the sandboxed program never knows the lock exists."
+  },
+  "same_lock_file_for_both": true,
+  "sandbox_active_observed_monotonic": 5181940.821870708,
+  "schema": "live_ab/combined_lock_sandbox_fixture-v1",
+  "topology": "supervisor acquires lock -> launches sandbox program -> holds until it ends -> releases; contender attempts the same lock through the same wrapper",
+  "what_this_does_NOT_establish": [
+    "live model evidence: no model, server or serving process is involved",
+    "a general concurrency or security theorem: one holder, one contender, one contention pattern",
+    "anything about the sandbox profile beyond the separately bounded 15 repository-target denials",
+    "that sandboxed code cannot reach the lock: it is never asked to, by design"
+  ],
+  "what_this_establishes": [
+    "a trusted supervisor holds the production lock class OUTSIDE the sandbox while a real sandboxed program runs inside its protected section (payload confirmed active, seatbelt kind, 2.029 s section)",
+    "a second independent supervisor attempting the SAME lock file through the SAME wrapper is BLOCKED with its timeout, and its sandbox program NEVER STARTS",
+    "the exclusion is therefore demonstrated over the combined lock+sandbox route, not the lock class alone"
+  ]
+}
