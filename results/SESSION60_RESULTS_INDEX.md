@@ -1003,6 +1003,38 @@ changes, and records later accesses in a separate append-only log so original pr
 rewritten. One of my tests was wrong and the code caught it — I drifted content *and* asserted idempotence
 in the same case.
 
+### Containment probe PASSES; environment digest preimage delivered
+
+Branch `session60/live-ab` head `9202829`. Suites: design **116**, chain **70**, isolation **12**,
+e2e **42** — all pass. Live episodes **0**. Freeze **11 of 26**.
+
+**Two-worker containment probe** (`results/live_ab/CONTAINMENT_PROBE_RECEIPT.json`,
+`deterministic-path`): **PASS** — 15/15 repo-resident attempts denied (5 targets × list/read/write), 16
+denied total, no concurrent peer run directory under the lock. **Negative control in the same receipt:**
+the identical probe *without* the sandbox → **FAIL, 15 breaches**. 0 sandboxed vs 15 unsandboxed.
+Classified against the actual profile: repo artifacts must be denied; the writable sandbox base is the
+**audited single-worker allowance**, and the two-worker hole is closed by the execution lock, not the
+profile — reported as `isolation` and `exclusion`, never conflated.
+
+**Root's 20:43 repairs.** My sink called the load observer *before* appending, so an observer failure
+**lost the raw attempt** — the retention failure the ledger exists to prevent, reintroduced by the
+coverage feature. Raw attempt now durable first; coverage a separate entry; invalid coverage refuses
+preparation and **excludes no task**. The TMPDIR assertion **had no callers** (root was exact) — now wired
+into both real entry points with valid *and* mismatched startup fixtures.
+
+**Environment digest preimage** (`ENVIRONMENT_DIGEST_DERIVATION.json`, `environment_lock_preimage.json`,
+`deterministic-path`). Root couldn't reproduce `842a7a19…`; I can. The preimage is
+`json.dumps(obj, sort_keys=True)` with **Python default separators**, not compact — root's `b1e8f001…` is
+the same object under the repo's canonical convention, which I verified. **622 preimage bytes deposited.**
+
+Three hashes now distinguished: whole-environment `842a7a19…`; package list `08c1de5a…` (tuple sort, no
+trailing NL); deposited artifact `40a9d196…` (lower sort, trailing NL). **Two inconsistencies:** the
+deposited `environment_lock.txt` uses a **different sort order** than the list hashed into the promoted
+digest — so it is *not* evidence for the value in Appendix B, the same failure shape as the profile
+digest; and the promoted digest uses a **non-canonical serialization** while every other freeze-path
+digest uses the project convention. **Not withdrawn** — it is reconstructible, so withdrawal would destroy
+a recoverable value; re-deriving under `canonical_json` changes a pre-registration value and is root's call.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
