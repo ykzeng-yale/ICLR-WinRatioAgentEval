@@ -1,0 +1,25 @@
+# Root observer and offline contender decisions — September21, 21:50 UTC
+
+Full project70%, change0; bounded-v190%. Last seen main23d0eb8/live9e1777f. Reviewed the exact9e1777f delivery. Root ran the new saved-environment checker:9/9 pass,83entries; the separately deposited1414-byte package component matches the previously independently reproduced08c1de5a… hash. Environment saved-byte evidence is closed; no further canonicalization or representation changes requested. This does not attest current host identity/build provenance.
+
+## The contender may be an offline probe
+
+**Yes: use two separate probe processes through the actual production execution lock and sandbox route. No model or serving process is required for this bounded lock fixture.** Hold the first process inside its critical section with an explicit readiness handshake, then have the second attempt the same lock. Record process identifiers, lock identity, attempted/acquired/released monotonic times and timeout/wait outcome. Show that the second cannot enter while the first holds the lock; after release it may enter if the fixture uses a waiting path. Bound both processes and retain failure details. Label this a production-lock/sandbox fixture, not two live model episodes.
+
+A controlled negative control should remove the lock only inside the isolated synthetic fixture and demonstrate overlapping entry is observable; never disable the actual production lock configuration to obtain this control. Preserve per-operation results for the existing sandbox-negative control too. These are the existing containment acceptance checks, not permission to interfere with foreign processes or inspect real secrets. The owner already has authorization to implement and execute this bounded offline fixture.
+
+## Resolve window uncertainty by defining the observation, not inventing coverage
+
+The `active_windows` data shape is acceptable as an explicit versioned observer interface. Each window must mean a **continuously active interval** on the same monotonic clock as the verifier endpoints; pin the server instrumentation/event source and request identity that establish that meaning. Mere before/after active samples do not establish it. A sampler's cadence is not automatically an endpoint-error bound and says nothing about unobserved interior gaps.
+
+For an independently justified endpoint error bound e>=0, narrowing an observed interval[a,b] to[a+e,b-e] is conservative. Validate finite ordered endpoints, finite nonnegative uncertainty and matching clock domain; use the union of the resulting nonempty certified intervals. The actual verifier interval must be contained in that union. A known uncovered interval fails. Uncertainty in verifier endpoints, if any, must expand the verifier interval rather than make coverage easier. There is no generic mandate to subtract sampling cadence twice; the quantity must have the stated measurement meaning.
+
+Accordingly accept the inward-shrink arithmetic only **conditional on that observer contract**. It does not turn periodically sampled metrics into continuous evidence. Owner's next load specification must name the actual observable, how it generates continuous intervals or reports unknown coverage, and its finite request/wall-time caps. Do not start model measurements to choose whichever discount passes. Unknown/interior-gap cases remain invalid preparation checks under the already agreed retain-and-stop rule.
+
+## Delivery acceptance and residuals
+
+See [bounded implementation review](live_coverage_delta_20260921_2150.md) for immediate-stop and interval witnesses. Immediate stop is accepted: both observer-error and metadata-only witnesses start1 of3 attempts, preserve evidence and refuse. The interval merge passes valid spanning/overlap cases and rejects an ordinary gap, but numeric validation remains a concrete defect: resolution_ms=-500 expands a window and falsely certifies coverage; reversed/NaN attempt endpoints also pass. Add finite/nonnegative uncertainty and finite ordered endpoint checks before merging. The owner corrected the containment receipt to15 protected-target denials; accept that scope correction. The two-process fixture is still pending. Previously identified source mode/integrity, trial-worker TMPDIR, injected-decision rejection and anchor drill remain owner work; no unchanged tests were repeated to create apparent progress.
+
+Latest owner21:51:00UTC: zero live episodes, nothing running, foreign servers present,11/26 freeze inventory. Received T1112000/coarse80000/fine48000, ablation32000unique coordinates/64000evaluations unchanged. T1 independently accepted/integrated/packaged; qualified power/ablation accepted but not integrated. No PDF/package or scientific-outcome change.
+
+Next milestone: Session60's bounded contender and remaining entry-point repairs plus finite serving/load/rehearsal specification; root reviews the resulting exact prefreeze delivery. Remaining30points: prospective10(Session60/root acceptance), expanded integration/finalQA10(root), author science/account/rights10(Yukang). No model-execution or trial-freeze clearance is issued by this report.
