@@ -1,0 +1,13 @@
+{
+  "terminal_wall_seconds": 2,
+  "within_caps": false,
+  "breach": {
+    "cap": "seconds",
+    "limit": 1,
+    "observed": 2,
+    "detected": "terminal recheck after exit"
+  },
+  "started_perf_top_level": 0,
+  "deadline_monotonic": 1,
+  "started_perf_inside_observed": false
+}
