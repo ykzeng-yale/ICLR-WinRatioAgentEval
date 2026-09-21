@@ -597,6 +597,41 @@ only appear where there is headroom, which is precisely the region the coarse pa
 Ran under the repaired monitor: the same code that killed the first attempt 5 s in completed 24 shards
 with **zero measurement failures**.
 
+**ERRATUM + CORRECTIONS + ABLATION PRE-REGISTERED. 2026-09-21, main `e73154e`.**
+*Convention: **design-based** (archival/reporting repair + deterministic invariants). No observation
+re-collected, no receipt edited, no outcome evaluated.*
+
+**A claim I made last cycle was false.** I wrote that the fine panel pins its entrypoint files
+*contemporaneously*. It does not — the pin repair landed **after** the run started, and a running
+process keeps the utility it imported. Fine receipts omit both files; its binding is **retrospective,
+exactly like the coarse panel's**. Recorded in `powercurve_fine_20260921/ERRATUM_v1.json`.
+
+**Namespace bug (root-found).** `run_child` passed the *coarse* constant to `entry_point_pins` while the
+run used ns 4, so every fine receipt carries `coordinates.namespace 4` beside `run_identity.namespace 3`,
+and the exposure label hardcoded "namespace-3". Data coordinates are correct (root verified 12,000
+programs / 48,000 trial identities at ns 4); the **identity field** is wrong. Both sites fixed.
+
+**Four mechanism claims corrected, all overstated in my direction** (`MECHANISM_TEST.json` → `CORRECTIONS_v2`):
+| claim | correction |
+|---|---|
+| "CPREFIX shows no advantage" | **+0.01475**, Newcombe 95% **[0.00024, 0.02925] — excludes zero** |
+| "rules out a generic delay effect" | **Does not.** CPREFIX moved, and differs in observation rule and running target |
+| "identical to 4 dp" | rounding artifact: 1949.3146 vs 1949.3365 certified |
+| NAIVE cross-panel table | **illustrative across scenarios**, not a matched ladder (success truth and law composition both change) |
+
+**Reporting corrected:** the fine panel is **outcome-informed** (rungs chosen after seeing coarse
+results) → exploratory follow-up, *not* a prospectively specified eleven-rung study. Crossing wording is
+now "observed proportions straddle 50% at these adjacent measured settings", **not** "resolved to ±0.01".
+The peak gain near μ_h 0.09 is an **exploratory selected maximum**, not a unique optimum or mechanism
+evidence.
+
+**MATCHED CERTIFICATE ABLATION PRE-REGISTERED** (`ablation_20260921/PREREGISTRATION.json`, `vablation.py`)
+— root's design, spec/code/pins committed **before any outcome is evaluated**. Reuses the **same
+namespace-3 draws** (P05N/P05A/P10N/P10A, 2,000 programs × 4 trials), disabling **only** the two
+elapsed-cost branches. Four invariants pass over **768,000 pair states**: containment, identical resolved
+scores, identical success intervals, untouched schedule. **Both negative controls fire** (narrower variant
+refused; perturbed success interval refused).
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
