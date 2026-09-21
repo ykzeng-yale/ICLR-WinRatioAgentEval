@@ -42,14 +42,26 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 HERE = Path(__file__).resolve().parent
-if str(HERE) not in sys.path:                                  # pragma: no cover
-    sys.path.insert(0, str(HERE))
+#: THE LIVE_AB HARNESS DIRECTORY -- deliberately NOT this file's own directory.
+#: lab_common.HARNESS_FILES is a GLOB over experiments/live_ab/*.py plus
+#: config.json (lab_common.py:317-324), and it feeds harness_file_sha256, a
+#: freeze-bundle key.  This module is a REPORTING tool: if it lived in that
+#: directory, every improvement to it would move a freeze pin, and after a bundle
+#: was deposited it would break preflight outright.  It lived there for one
+#: cycle by my mistake -- HARNESS_FILES went 26 -> 27 -- and was moved out before
+#: any bundle existed.  Nothing reporting on the freeze may sit inside the set
+#: the freeze pins.
+LAB = HERE.parent / "live_ab"
+for _p in (str(LAB),):
+    if _p not in sys.path:                                     # pragma: no cover
+        sys.path.insert(0, _p)
 
 import lab_common                                              # noqa: E402
 from lab_common import (canonical_json, sha256_canonical,      # noqa: E402
                         sha256_file, sha256_text)
 
 REPO = HERE.parents[1]
+HERE = LAB   # every path below refers to the harness dir, not this tool's dir
 
 #: The GGUF files named by config.json, as installed.  Hashing them is pure local
 #: I/O: no model is loaded and no server is contacted.
@@ -192,6 +204,17 @@ def resolve_offline() -> Tuple[Dict[str, Any], Dict[str, Any]]:
         "receipt_mask_sha256": sha256_canonical(cfg["receipt"]["mask"]),
         "gguf_sha256": {k: v["sha256"] for k, v in gguf.items()},
     }
+    # Filled by PREPARATION_MANIFEST once they are real artifacts rather than
+    # nulls.  Each is read from config ONLY when non-null: a null here must stay
+    # a reported gap, never a silently-supplied None that build_freeze_bundle
+    # would then name as a hole in a confusing place.
+    if cfg.get("environment_lock_sha256"):
+        parts["environment_lock_sha256"] = cfg["environment_lock_sha256"]
+    if cfg.get("hardware_allowlist"):
+        parts["hardware_allowlist"] = list(cfg["hardware_allowlist"])
+    if (cfg.get("sandbox") or {}).get("profile_sha256"):
+        parts["sandbox_profile_sha256"] = cfg["sandbox"]["profile_sha256"]
+
     protocol = HERE / "design" / "protocol_FINAL.md"
     if protocol.is_file():
         parts["protocol_sha256"] = sha256_file(protocol)
@@ -205,6 +228,9 @@ def resolve_offline() -> Tuple[Dict[str, Any], Dict[str, Any]]:
         "reused_files_hashed": len(parts["reused_file_sha256"]),
         "protocol_document": str(protocol.relative_to(REPO)) if protocol.is_file()
                              else "ABSENT at design/protocol_FINAL.md",
+        "from_preparation_manifest": sorted(
+            k for k in ("environment_lock_sha256", "hardware_allowlist",
+                        "sandbox_profile_sha256") if k in parts),
     }
     return parts, evidence
 
