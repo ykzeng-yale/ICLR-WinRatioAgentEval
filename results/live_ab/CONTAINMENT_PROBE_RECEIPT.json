@@ -1,0 +1,144 @@
+{
+  "allowed_by_audited_profile": [],
+  "attempts": [
+    {
+      "error": "PermissionError",
+      "op": "list",
+      "succeeded": false,
+      "target": "event_chain"
+    },
+    {
+      "error": "PermissionError",
+      "op": "read",
+      "succeeded": false,
+      "target": "event_chain"
+    },
+    {
+      "error": "PermissionError",
+      "op": "write",
+      "succeeded": false,
+      "target": "event_chain"
+    },
+    {
+      "error": "PermissionError",
+      "op": "list",
+      "succeeded": false,
+      "target": "records_dir"
+    },
+    {
+      "error": "PermissionError",
+      "op": "read",
+      "succeeded": false,
+      "target": "records_dir"
+    },
+    {
+      "error": "PermissionError",
+      "op": "write",
+      "succeeded": false,
+      "target": "records_dir"
+    },
+    {
+      "error": "PermissionError",
+      "op": "list",
+      "succeeded": false,
+      "target": "spools"
+    },
+    {
+      "error": "PermissionError",
+      "op": "read",
+      "succeeded": false,
+      "target": "spools"
+    },
+    {
+      "error": "PermissionError",
+      "op": "write",
+      "succeeded": false,
+      "target": "spools"
+    },
+    {
+      "error": "PermissionError",
+      "op": "list",
+      "succeeded": false,
+      "target": "task_file"
+    },
+    {
+      "error": "PermissionError",
+      "op": "read",
+      "succeeded": false,
+      "target": "task_file"
+    },
+    {
+      "error": "PermissionError",
+      "op": "write",
+      "succeeded": false,
+      "target": "task_file"
+    },
+    {
+      "error": "PermissionError",
+      "op": "list",
+      "succeeded": false,
+      "target": "server_log"
+    },
+    {
+      "error": "PermissionError",
+      "op": "read",
+      "succeeded": false,
+      "target": "server_log"
+    },
+    {
+      "error": "PermissionError",
+      "op": "write",
+      "succeeded": false,
+      "target": "server_log"
+    },
+    {
+      "detail": "[]",
+      "op": "enumerate",
+      "succeeded": false,
+      "target": "peer_run_dir"
+    }
+  ],
+  "concurrent_peer_run_dir_found": false,
+  "denied_attempts": 16,
+  "elapsed_s": 0.023899078369140625,
+  "exclusion_ok": true,
+  "fixtures": {
+    "marker": "SYNTHETIC-NONSECRET-CONTAINMENT-FIXTURE-DO-NOT-TREAT-AS-DATA",
+    "root": "<WORK>/_containment_fixtures",
+    "synthetic_and_nonsecret": true
+  },
+  "isolation_breaches": [],
+  "isolation_ok": true,
+  "negative_control": {
+    "breaches_detected": 15,
+    "verdict": "FAIL",
+    "what": "the IDENTICAL probe program run WITHOUT the Seatbelt sandbox",
+    "why_it_is_here": "a probe that passes proves nothing unless it can fail. Sandboxed: 0 breaches. Unsandboxed: 15. The probe detects a breach when one exists, so its PASS is evidence rather than decoration."
+  },
+  "not_weakened": "no fixture, profile, target or expectation was relaxed to obtain the pass. The six target kinds of protocol 5.7 item 3 were probed with list, read and write, and every repo-resident attempt was denied.",
+  "probe_source_sha256": "1a5f2db09d797c46b80bbb3f00340a1c426b63d125f93947cf05b4de934b065e",
+  "profile_sha256": "527d267e1c50c4f66a23312e2a836125395367ddd1398ec7f3c79117803c410b",
+  "protocol": "5.7 item 3",
+  "rule": "protocol 5.7 item 3: any success of the probe other than those the audited profile already allowed for a single worker stops the freeze",
+  "sandbox_kind": "seatbelt",
+  "schema": "live_ab/containment_probe-v1",
+  "target_kinds": [
+    "peer_run_dir",
+    "event_chain",
+    "records_dir",
+    "spools",
+    "task_file",
+    "server_log"
+  ],
+  "tmpdir": {
+    "checked": true,
+    "prescribed_tmpdir": "/private/tmp/labsbx",
+    "sandbox_base_dir": "/private/tmp/labsbx/ls_sbx"
+  },
+  "verdict": "PASS",
+  "what_this_does_NOT_establish": [
+    "that a LIVE WORKER running a real episode has the same containment: this is the production lock and sandbox path, but the program inside it is a probe, not an agent episode",
+    "that the peer-run-dir result generalises: it shows no concurrent peer directory existed while THIS probe held the lock, which is the property the lock provides, not a proof about arbitrary interleavings",
+    "anything about the loaded reference sweep, which remains uncleared and capacity-blocked"
+  ]
+}
