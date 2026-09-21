@@ -1,0 +1,59 @@
+[
+  {
+    "cell": "C2",
+    "sum_errors": [],
+    "operational_differs_from_oracle_ticks": 1,
+    "policy": {
+      "ticks_checked": [
+        1,
+        100,
+        200,
+        300,
+        350,
+        400,
+        500
+      ],
+      "pair_states_compared": 1501,
+      "epsilon": 1e-09,
+      "tol": 0.05
+    }
+  },
+  {
+    "cell": "C3",
+    "sum_errors": [],
+    "operational_differs_from_oracle_ticks": 5,
+    "policy": {
+      "ticks_checked": [
+        1,
+        100,
+        200,
+        300,
+        350,
+        400,
+        500
+      ],
+      "pair_states_compared": 1501,
+      "epsilon": 1e-09,
+      "tol": 0.05
+    }
+  },
+  {
+    "cell": "C7",
+    "sum_errors": [],
+    "operational_differs_from_oracle_ticks": 2,
+    "policy": {
+      "ticks_checked": [
+        1,
+        100,
+        200,
+        300,
+        350,
+        400,
+        500
+      ],
+      "pair_states_compared": 1501,
+      "epsilon": 1e-09,
+      "tol": 0.05
+    }
+  }
+]

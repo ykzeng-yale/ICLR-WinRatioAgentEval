@@ -1,0 +1,38 @@
+{
+  "primary_saved_rows": 36,
+  "regenerated_rows": 36,
+  "primary_exact_row_agreement": true,
+  "reference_means_checked": 48,
+  "errors": [],
+  "witness": {
+    "decision": 1,
+    "tau_prefix": 1000,
+    "tau_tick": 1010,
+    "pending_fraction": null
+  },
+  "all1200tick_sum_errors": [],
+  "policy_check": {
+    "ticks_checked": [
+      1,
+      500,
+      1000,
+      1009,
+      1010,
+      1011,
+      1199,
+      1200
+    ],
+    "pair_states_compared": 6501,
+    "epsilon": 1e-09,
+    "tol": 0.05
+  },
+  "reference_routing_only": {
+    "calls_h": 1,
+    "calls_d": 1,
+    "h_array_match": true,
+    "d_array_match": true,
+    "rows": 6
+  },
+  "gzip_disk_bytes": 933,
+  "gzip_uncompressed_bytes": 9919
+}
