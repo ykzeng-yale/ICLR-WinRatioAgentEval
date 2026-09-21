@@ -416,6 +416,44 @@ the T1 replay namespace.
 Establishes nothing about runtime, coverage, power or effects, and nothing about C3–C6 cost. Manifest
 identity verified unchanged at `18ad539884566215ff…` before and after.
 
+**T1 CALIBRATION PANEL — COMPLETE, EVIDENCE PUBLISHED, ANALYSIS CORRECTED. 2026-09-21, main `f0052ad`.**
+`results/live_ab_validation_v2/t1_run_20260921/` (174 files, 119 MB, all committed).
+
+56/56 shards · 28,000 programs · **112,000 trials** · 224,000 reference calls · 336,000 primary rows ·
+672,000 reference rows. All twelve completion conditions true. 2,395 s of 5,400 · 92 MB of 200 MB ·
+75.8 MiB peak tree RSS of 2 GiB.
+
+*Convention: **descriptive** rates with **design-based** Wilson 95% intervals. Trial is the independent
+draw; program is the reporting unit. Constructions paired (within-trial), cells unpaired.
+**namespace-0 replay coordinates with prior development exposure — not a fresh confirmatory holdout.**
+Frozen §9.2 events: `false_deploy = DEPLOY AND NOT(μ_h>0 AND μ_s>−δ)`, `false_harm = RETAIN_INCUMBENT
+AND μ_h≥0`, `family_any_erroneous = any over the program's trials`.*
+
+**Eight alerts (Wilson lower limit > nominal) — every one on NAIVE, none on ADAPTER.**
+
+The mechanism is the band. Hierarchy-band miscoverage vs nominal **0.00625**:
+
+| cell | delay | ADAPTER | CPREFIX | NAIVE |
+|---|---|---:|---:|---:|
+| C2 | informative | 0.0001 | 0.0001 | **0.9888** |
+| C4 | informative | 0.0003 | 0.0007 | **0.9999** |
+| C6 | informative | 0.0000 | 0.0000 | **0.8136** |
+| C8 | informative | 0.0000 | 0.0000 | **0.6937** |
+| C1/C3/C5/C7 | non-informative | ≤0.0000 | ≤0.0006 | ≤0.0011 |
+
+The naive band collapses **only** under informative delay — the regime the method exists for — and the
+false certifications follow from it. Trial any-error, NAIVE: **0.0505** at C2 (nominal 0.0125) and
+**0.9999** at C4. ADAPTER trial any-error is **0.0000** in seven cells and **0.00025** at C4.
+
+**ADAPTER abstains on essentially every trial in C1–C6 and decides correctly on every trial in C7/C8.**
+An abstention-dominated panel outside the favourable cells; stated as such, not as calibration.
+
+**Four analysis defects found by root review, all real, two changed results:** the retain label read
+`RETAIN` where the writer emits `RETAIN_INCUMBENT`, hiding **29 retention events** (all false harms, all
+in CPREFIX/NAIVE, none in ADAPTER); the error event was hierarchy-only so C5/C6 guardrail violations
+weren't errors; the prespecified readouts were missing; and I had overstated "no partially-powered
+operating point exists" — narrowed to "this finite grid does not identify a power curve or MDE."
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
