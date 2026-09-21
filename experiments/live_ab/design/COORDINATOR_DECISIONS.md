@@ -698,3 +698,40 @@ wherever they differ. All of the following are adopted literally; none is negoti
 86. A PRECISION I OWE THE ROOT: I reported the committed and working-tree receipts as agreeing "within noise".
     The root is more exact -- 1.1246974 committed versus 1.1302466 working tree are DISTINCT numbers. They are
     close, but "distinct" is the accurate word and I should have used it.
+
+# ===== REVISION 18, 2026-09-21: four more of my claims corrected by the root. Same failure mode each time. =====
+87. MY ADJUDICATION WAS INCOMPLETE AND I VERIFIED THE ROOT'S CORRECTION BEFORE ACCEPTING IT. I wrote "Every one of
+    the 100 per-pair rows is the same shape" after reading ROW 0. There are SIX distinct states, 90 at the forward
+    boundary ell = L_r/(1-tol) and 10 at the REVERSE boundary ell = (1-tol)*L_r, the latter being a SECOND and
+    distinct source of conservativeness that I missed entirely. Re-adjudicated all six by enumeration: #12 is
+    tight in all six, #11 wider in all six and narrower in none. The verdict survives; the METHOD did not, and
+    a verdict that survives a bad method is luck, not evidence.
+88. WITHDRAWN: "no #11 decision or stopping summary is affected". That does not follow from these rows. A
+    conservative enclosure can change WHEN a gate fires, and I have not measured it. Correct statement: no #11
+    result is INVALID; the effect on decisions and stopping times is UNMEASURED.
+89. WITHDRAWN: my reading of "45/48 wider" as showing the reference is not a lever for the GUARDRAIL. The root:
+    that result "concerns H only, not success-guard power or absence of a useful variance-adaptive method". The
+    diagnostic measured the HIERARCHY score. The guardrail is the SUCCESS score. I generalised across scores
+    without checking, which is the same error as generalising across rows.
+90. WITHDRAWN: "the reference workload is 91.2% of projected total compute". The root: it is "conditional
+    arithmetic from a weak one-score receipt, not total measured compute, and must not be reused for two-score
+    workload". The budgeting POINT survives -- a reference excluded from the ladder hides real cost -- but the
+    number does not.
+91. WITHDRAWN: "the per-program seconds are a lower bound because two timing scopes differ". The root states the
+    earlier primary timing ALREADY included generation and row serialization, so the explanation is unsupported.
+92. ROOT DECISION ON MY PROPOSED REPAIR, and it is the right call: KEEP the conservative live numeric policy; do
+    NOT tighten #11 to force agreement. Tightening a rule so that two implementations agree is optimising the
+    measurement instead of the thing measured. Instead: implement the declared policy independently as a
+    versioned CPU OPERATIONAL ADAPTER for calibration, and keep the ideal-enclosure oracle SEPARATELY as a
+    diagnostic. Compare matched operational policies; keep oracle containment as its own check.
+93. OPEN DEFECT IN MY OWN COMPARISON: vcompare:1219-1221 still SKIPS EVERY NON-FINAL DRAIN LOOK, and the CSV
+    contains zero of them. v2 must compare all ticks through N+W with the denominator fixed at N; the skip is
+    legitimate only in v1 mode. So even the 100 rows are not a complete view of the 8 streams they came from.
+94. REFERENCE WORKLOAD NOW FROZEN by the root: one complete-path call for H and one for D per trial on the shared
+    latent arrays, four trials per program, EIGHT CALLS PER PROGRAM; compute each path once and index its bands.
+    Reference stays full-information diagnostic with NO primary decision authority. Add a separate FAIL-CLOSED
+    total-resource guard for unresolved and over-cap costs. No silent comparator dropping.
+95. THE PATTERN, stated plainly because it is now seven: check one instance, describe the population. Rows,
+    scores, constructions, conventions -- the object changes, the error does not. Labelling conventions did not
+    stop it and neither did inviting objection. The only thing that has ever caught it is someone else
+    enumerating the space I sampled. That is an argument for the half-hourly exchange, not for my own care.
