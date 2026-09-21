@@ -51,7 +51,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -95,14 +95,23 @@ def law_id(mu_h: float) -> str:
     return f"P{int(round(mu_h * 100)):02d}"
 
 
-def register_laws() -> Dict[str, Dict[str, int]]:
+#: The FINE ladder, sited where the coarse panel measured the curve to be steep:
+#: the non-informative 50% point sits near mu_h 0.10 and the informative one near
+#: 0.08, so these six rungs bracket BOTH.  Its own namespace and cell-index block
+#: keep every coordinate disjoint from the coarse panel's.
+MU_H_LADDER_FINE: Tuple[float, ...] = (0.06, 0.07, 0.08, 0.09, 0.11, 0.12)
+NAMESPACE_POWER_FINE = 4
+CELL_INDEX_BASE_FINE = 200
+
+
+def register_laws(ladder: Optional[Tuple[float, ...]] = None) -> Dict[str, Dict[str, int]]:
     """Add the ladder's laws to vgen's runtime tables. ADDITIVE ONLY.
 
     Refuses to touch an existing law id, so L1..L4 and every accepted T1 number
     remain exactly what they were.  ``vgen.py`` on disk is not modified.
     """
     added = {}
-    for mu_h in MU_H_LADDER:
+    for mu_h in (ladder if ladder is not None else MU_H_LADDER):
         lid = law_id(mu_h)
         w = law_weights_for(mu_h)
         if lid in vgen.LAW_WEIGHTS and vgen.LAW_WEIGHTS[lid] != w:
@@ -121,16 +130,18 @@ def register_laws() -> Dict[str, Dict[str, int]]:
     return added
 
 
-def build_cells(start_index: int = 100) -> Tuple[Any, ...]:
+def build_cells(start_index: int = 100,
+                ladder: Optional[Tuple[float, ...]] = None) -> Tuple[Any, ...]:
     """Ten CellSpecs: the ladder crossed with both delay arms.
 
     ``index`` starts well past the frozen cells so the spawn key of a power-curve
     cell can never collide with a T1 cell even if the namespace were confused.
     """
-    register_laws()
+    ladder = ladder if ladder is not None else MU_H_LADDER
+    register_laws(ladder)
     out = []
     idx = start_index
-    for mu_h in MU_H_LADDER:
+    for mu_h in ladder:
         lid = law_id(mu_h)
         for delay in ("N", "A"):
             out.append(vgen.CellSpec(
@@ -143,11 +154,12 @@ def build_cells(start_index: int = 100) -> Tuple[Any, ...]:
 
 def build_plan(cells: Tuple[Any, ...], programs_per_cell: int = 2000,
                programs_per_shard: int = 500, horizon: int = 2000,
-               trials: int = 4) -> Dict[str, Any]:
+               trials: int = 4, namespace: Optional[int] = None) -> Dict[str, Any]:
     """A shard plan of the same shape the T1 executor already consumes."""
     import vpanel
     import vrun
-    prefixes = list(vrun.make_config(horizon, NAMESPACE_POWER,
+    ns = NAMESPACE_POWER if namespace is None else namespace
+    prefixes = list(vrun.make_config(horizon, ns,
                                      schedule=vrun.SCHEDULE_V2).horizons)
     per_primary = programs_per_shard * trials * len(vrun.CONSTRUCTIONS)
     per_ref_rows = (programs_per_shard * trials
@@ -173,7 +185,7 @@ def build_plan(cells: Tuple[Any, ...], programs_per_cell: int = 2000,
     n = len(shards)
     return {
         "schema": "live_ab_validation_v2.power_curve_plan.1",
-        "namespace": NAMESPACE_POWER, "horizon": horizon,
+        "namespace": ns, "horizon": horizon,
         "trials_per_program": trials,
         "programs_per_shard": programs_per_shard,
         "allocation": {c.id: programs_per_cell for c in cells},
@@ -184,7 +196,7 @@ def build_plan(cells: Tuple[Any, ...], programs_per_cell: int = 2000,
         "total_primary_rows": per_primary * n,
         "total_reference_rows": per_ref_rows * n,
         "prefixes": prefixes,
-        "mu_h_ladder": list(MU_H_LADDER), "mu_s_held": MU_S_HELD,
+        "mu_h_ladder": sorted({c.mu_h for c in cells}), "mu_s_held": MU_S_HELD,
         "guardrail_note": ("mu_s is held at +0.20, comfortably above -delta, so "
                            "detection probability is not confounded by the "
                            "success guardrail"),

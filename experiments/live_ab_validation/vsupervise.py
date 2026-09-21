@@ -180,10 +180,37 @@ def _tree_rss_bytes(pids: Sequence[int], allow_missing: bool = False) -> int:
         raise MeasurementFailure(
             f"process-tree RSS measurement returned no data (rc={out.returncode})")
     if len(lines) < len(pids) and not allow_missing:
-        raise MeasurementFailure(
-            f"process-tree RSS covered {len(lines)} of {len(pids)} requested "
-            f"pids (rc={out.returncode}); incomplete coverage is not a passing "
-            f"observation")
+        # THE VERIFIED CHILD-EXITED RACE, which root asked for as a narrow
+        # exception and I failed to implement when I removed the blanket
+        # allow_missing override.  Both instructions were right and they are in
+        # tension: an unexplained shortfall must fail closed, but a process that
+        # legitimately exited between enumeration and sampling must not kill a
+        # job.  Dropping the exception made a benign exit fatal -- it killed a
+        # real panel five seconds in, and the earlier panels survived it only by
+        # luck of timing.
+        #
+        # So the shortfall is EXPLAINED rather than excused: re-probe each pid
+        # with signal 0, which delivers nothing.  If every missing pid is gone,
+        # this is the race and the remaining processes are a complete
+        # observation of what is still alive.  If any missing pid is STILL
+        # ALIVE, ps failed to report a live process and that is a genuine
+        # measurement failure.
+        gone, alive = [], []
+        for pid in pids:
+            try:
+                os.kill(pid, 0)
+                alive.append(pid)
+            except ProcessLookupError:
+                gone.append(pid)
+            except PermissionError:                            # pragma: no cover
+                alive.append(pid)
+        shortfall = len(pids) - len(lines)
+        if len(gone) < shortfall:
+            raise MeasurementFailure(
+                f"process-tree RSS covered {len(lines)} of {len(pids)} requested "
+                f"pids (rc={out.returncode}) and only {len(gone)} of the missing "
+                f"are confirmed exited; a live process ps did not report is a "
+                f"genuine measurement failure")
     total_kb = 0
     for line in lines:
         try:

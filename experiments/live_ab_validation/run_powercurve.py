@@ -8,9 +8,14 @@ import vband, vgen, vpanel, vpins, vprod, vshard, vsupervise           # noqa: E
 import vpowercurve as PC                                               # noqa: E402
 
 
-def run_child(out: Path) -> int:
-    cells = PC.build_cells()
-    plan = PC.build_plan(cells)
+def run_child(out: Path, fine: bool = False) -> int:
+    if fine:
+        cells = PC.build_cells(PC.CELL_INDEX_BASE_FINE, PC.MU_H_LADDER_FINE)
+        plan = PC.build_plan(cells, programs_per_cell=1000,
+                             namespace=PC.NAMESPACE_POWER_FINE)
+        ns = PC.NAMESPACE_POWER_FINE
+    else:
+        cells = PC.build_cells(); plan = PC.build_plan(cells); ns = PC.NAMESPACE_POWER
     (out / "POWERCURVE_PLAN.json").write_text(json.dumps(plan, indent=2, sort_keys=True) + "\n")
     pins = vpins.entry_point_pins(
         policy="operational", schedule=vrun_sched(), prefixes=plan["prefixes"],
@@ -29,14 +34,14 @@ def run_child(out: Path) -> int:
            "manifest_digest": pins["receipt"], "pins": pins,
            "job_id": job_id, "attempt_id": attempt,
            "root_clearance_reference": "OWNER-AUTHORIZED (power-curve panel)",
-           "namespace": PC.NAMESPACE_POWER, "horizon": plan["horizon"],
+           "namespace": ns, "horizon": plan["horizon"],
            "prefixes": plan["prefixes"], "policy": "operational",
            "schedule": vrun_sched(), "alpha_gate": vband.ALPHA_GATE,
            "reference_modes": ["H", "D"],
            "exposure_label": ("namespace-3 power-curve coordinates, FRESH for this "
                               "panel; not poolable with the namespace-0 T1 replay set")}
     runner = vprod.make_runner(
-        horizon=plan["horizon"], namespace=PC.NAMESPACE_POWER, policy="operational",
+        horizon=plan["horizon"], namespace=ns, policy="operational",
         schedule=vrun_sched(), alpha_gate=vband.ALPHA_GATE,
         trials_per_program=plan["trials_per_program"], cells=cells)
     try:
@@ -64,10 +69,11 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", required=True, type=Path)
     ap.add_argument("--child", action="store_true")
+    ap.add_argument("--fine", action="store_true")
     a = ap.parse_args(argv)
     if a.child:
         a.out.mkdir(parents=True, exist_ok=True)
-        return run_child(a.out)
+        return run_child(a.out, fine=a.fine)
     out = Path(a.out)
     if out.exists() and any(out.iterdir()):
         print(f"REFUSING: {out} non-empty", file=sys.stderr); return 2
@@ -75,10 +81,16 @@ def main(argv=None) -> int:
     caps = vsupervise.Caps(seconds=5400.0, tree_rss_bytes=2 * 1024 ** 3,
                            output_bytes=200 * 1024 ** 2)
     sup = vsupervise.supervise(
-        [sys.executable, str(HERE / "run_powercurve.py"), "--child", "--out", str(out)],
+        [sys.executable, str(HERE / "run_powercurve.py"), "--child", "--out", str(out)]
+        + (["--fine"] if a.fine else []),
         out, caps, label="power_curve_panel",
         require_available_ram_bytes=2 * 1024 ** 3)
-    cells = PC.build_cells(); plan = PC.build_plan(cells)
+    if a.fine:
+        cells = PC.build_cells(PC.CELL_INDEX_BASE_FINE, PC.MU_H_LADDER_FINE)
+        plan = PC.build_plan(cells, programs_per_cell=1000,
+                             namespace=PC.NAMESPACE_POWER_FINE)
+    else:
+        cells = PC.build_cells(); plan = PC.build_plan(cells)
     child_p = out / "PC_CHILD_DATA_RECEIPT.json"
     child = json.loads(child_p.read_text()) if child_p.is_file() else None
     job = vshard.JobCounters(started_perf=time.perf_counter())
