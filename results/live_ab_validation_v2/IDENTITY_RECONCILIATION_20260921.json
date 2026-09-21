@@ -1,0 +1,43 @@
+{
+  "authority": "root disposition 2026-09-21 06:35: 'Reconcile the recorded vrun hash with the exact measured source; a whole-file hash difference alone does not prove the timed core changed.'",
+  "consequence": "Guard v2's identity_unverifiable refusal of the committed projection is correct ON THE MERITS, not on a technicality. Carrying the old timing forward would require either re-measuring the timed scope or an explicit root decision to treat the prior arithmetic as applicable despite a changed timed core.",
+  "not_claimed": "A matching timed core would NOT have established that the timing is still valid; environment, data and call counts are separate facts. This artifact makes no timing measurement and authorizes nothing.",
+  "question_1_is_the_measured_source_recoverable": {
+    "finding": "vgen.py, vband.py and vresource_check.py pins ARE recoverable. vrun.py's pinned source is present in NO object in the repository, so the combined-workload timing was measured against a vrun.py that was never committed and no longer exists. The reconciliation the root asked for is therefore impossible for vrun, permanently, and no future work can repair it.",
+    "method": "sha256 of every blob object in the repository (1341 objects, reachable and unreachable)",
+    "recorded_pins": {
+      "vband.py": "55a9894ff5694099c05cedbdf695ecdad3ac4bd5025328cd445e0b1d3df8cd9c",
+      "vgen.py": "513ac967c0d25b31a1922b40543d1add39f79633a5d4453eef9f9cb7c6f77be7",
+      "vresource_check.py": "fb071eb0d616af5d352ae4d4d1bdb278cf409f47445901f64f64bcec94b9e7a9",
+      "vrun.py": "a8c0e9f5775219366fca15ee9d63c1d5b59c7601e8f7deeb0e49d2f3698fe3f1"
+    },
+    "recoverable": {
+      "vband.py": "5b733cafd617ba61e3a6448b3394c48a5240a143",
+      "vgen.py": "48fa1fd6c4941aa2bb244fe6213570d7ca1cfd42",
+      "vresource_check.py": "155ae18ed477c45e06308221c6ae914dfcb3d8ac",
+      "vrun.py": null
+    }
+  },
+  "question_2_did_the_timed_core_change": {
+    "added": [
+      "vgen._policy_tables",
+      "vgen.breakpoint_ages"
+    ],
+    "changed": [
+      "vgen.adapter_tick_sums",
+      "vgen.state_at_age",
+      "vrun.RunConfig",
+      "vrun.build_series",
+      "vrun.build_series_v2"
+    ],
+    "finding": "The timed core DID change: 5 members changed and 2 were added. So the root's caution that a whole-file difference alone does not prove the timed core changed does NOT rescue the old timing here -- the executable structure of the timed scope genuinely moved. The old projection does not describe the current code.",
+    "identical": false,
+    "interval": "08b4aa2 (before the operational-policy work) -> current",
+    "members_after": 36,
+    "members_before": 34,
+    "method": "sha256 over docstring-stripped AST of the transitive closure of those entry points",
+    "removed": [],
+    "timed_scope_declared_by_the_receipt": "vgen.draw_trial + vrun.evaluate_trial + vrun.trial_rows into a discard RowSink"
+  },
+  "schema": "live_ab_validation_v2.identity_reconciliation.1"
+}

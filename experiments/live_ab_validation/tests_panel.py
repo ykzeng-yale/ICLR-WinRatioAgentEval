@@ -362,6 +362,88 @@ class TestDrainAndFirstDecisionWitness(unittest.TestCase):
                          "rewritten to assert it rather than its absence")
 
 
+class TestTimedCoreIdentity(unittest.TestCase):
+    """F6.  The identity that binds a projection to the run it prices.
+
+    Guard v2 refuses `identity_unverifiable`.  The root supplied the principle
+    -- "a whole-file hash difference alone does not prove the timed core
+    changed" -- so the identity has to distinguish the two, and these tests
+    check that it actually does rather than that it claims to.
+    """
+
+    def setUp(self):
+        import videntity
+        self.vi = videntity
+        self.src = {m: (HERE / f"{m}.py").read_text() for m in videntity.TIMED_MODULES}
+
+    def test_the_closure_is_not_empty(self):
+        """An identity over nothing matches anything."""
+        closure = self.vi.timed_core_closure(self.src)
+        self.assertGreater(len(closure), 10)
+        names = {f"{m}.{n}" for m, n in closure}
+        for entry in ("vgen.draw_trial", "vrun.evaluate_trial", "vrun.trial_rows"):
+            self.assertIn(entry, names)
+
+    def test_an_empty_closure_raises_rather_than_returning_a_digest(self):
+        with self.assertRaises(self.vi.IdentityError):
+            self.vi.timed_core_identity(self.src, entry_points=(("vgen", "nope"),))
+
+    def test_a_docstring_edit_does_NOT_move_the_timed_core(self):
+        """The whole point: documentation is not executable change."""
+        before = self.vi.timed_core_identity(self.src)["timed_core_sha256"]
+        edited = dict(self.src)
+        edited["vgen"] = edited["vgen"].replace(
+            '"""PROTOCOL 4.3: ``ell(a) = (c * a) / D``, in that evaluation order.',
+            '"""ENTIRELY DIFFERENT PROSE that changes no executable structure.',
+            1)
+        self.assertNotEqual(edited["vgen"], self.src["vgen"], "the edit must land")
+        after = self.vi.timed_core_identity(edited)["timed_core_sha256"]
+        self.assertEqual(before, after)
+
+    def test_an_executable_edit_DOES_move_the_timed_core(self):
+        """And the converse, or the identity would be decorative."""
+        before = self.vi.timed_core_identity(self.src)["timed_core_sha256"]
+        edited = dict(self.src)
+        edited["vgen"] = edited["vgen"].replace(
+            "return (c_pend * age) / np.where(d > 0, d, 1)",
+            "return (c_pend * age) / np.where(d > 0, d, 2)", 1)
+        self.assertNotEqual(edited["vgen"], self.src["vgen"], "the edit must land")
+        after = self.vi.timed_core_identity(edited)["timed_core_sha256"]
+        self.assertNotEqual(before, after)
+
+    def test_identities_supplies_every_field_guard_v2_requires(self):
+        ids = self.vi.identities(HERE, policy="operational",
+                                 workload="eight_call", receipt="r")
+        for field in ("code", "config", "policy", "workload", "receipt"):
+            self.assertIsNotNone(ids[field], field)
+        self.assertRegex(ids["code"], r"^[0-9a-f]{64}$")
+        self.assertNotEqual(ids["code"], ids["code_whole_file"]["vrun.py"],
+                            "timed core and whole file must be different objects")
+
+    def test_those_identities_satisfy_the_guard(self):
+        """End to end: a bound proposal authorizes, an unbound one does not."""
+        import json as _json
+        cfg = _json.loads((HERE / "cells.json").read_text())
+        ids = self.vi.identities(HERE, policy="operational",
+                                 workload="eight_call", receipt="r")
+        bound = {k: ids[k] for k in ("code", "config", "policy", "workload", "receipt")}
+        entry = {"tier": "T1", "programs_total": 10, "N_max": 2000,
+                 "seconds_projected": 100.0, "bytes_projected": 1.0,
+                 "peak_rss_projected": 1, "admissible": True,
+                 "reference_seconds_projected": 200.0,
+                 "total_seconds_projected": 300.0,
+                 "reference_cost_unresolved": False}
+        budget = {"selected_tier": "T1", "ladder": [entry], "paused": False,
+                  "reference_workload": {"combined_workload_receipt": {
+                      "present": True, "identities": dict(bound),
+                      "planned_groups": 12, "groups_total": 12}}}
+        ok = vrun.total_workload_guard(budget, cfg, {"identities": bound})
+        self.assertTrue(ok["authorized"], ok.get("refusal"))
+        bad = vrun.total_workload_guard(budget, cfg, {})
+        self.assertFalse(bad["authorized"])
+        self.assertEqual(bad["refusal_class"], "identity_unverifiable")
+
+
 if __name__ == "__main__":
     r = unittest.main(verbosity=2, exit=False).result
     print(f"\nran={r.testsRun} failures={len(r.failures)} errors={len(r.errors)}")
