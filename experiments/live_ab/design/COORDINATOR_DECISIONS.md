@@ -544,3 +544,35 @@ wherever they differ. All of the following are adopted literally; none is negoti
         baseline count must be taken on a quiescent tree or not quoted at all.
 63. One unexplained flaky full-suite failure was reported at 474 tests and did not recur in six subsequent runs.
     It overlapped a sibling's writes. It is recorded rather than omitted, and it is NOT closed.
+
+# ===== REVISION 14, 2026-09-21: the root is right again; my apportionment mixed units =====
+64. CONCEDED, and verified before conceding. The root's CPU disposition says the reported 6,697 / 17,097 figures
+    are "planning/path calculations, not established powered sample sizes" and that "the 22.6% monitoring-cost
+    interpretation is unsupported". Both are correct.
+    - 17,097 is the first n with r(n) < 0.03. It involves NO distribution over outcomes and NO power level: it is
+      the n at which the band is narrow enough ASSUMING the observed difference stays exactly zero. That is a
+      DETERMINISTIC PATH CALCULATION.
+    - 3,099 was derived as an information floor AT 80% POWER. That is a POWERED quantity.
+    - My apportionment divided one by the other (17,097 / 3,099 = 5.52) and turned the result into percentage
+      shares. Those are different kinds of number and the division is not meaningful. The "estimator 27.5%,
+      anytime-validity price 22.6%, genuine no-difference 49.8%" split is therefore WITHDRAWN as stated.
+65. WHAT SURVIVES, because it compares like with like: 17,097 against 6,697 are BOTH path calculations under the
+    SAME convention, so the 2.55x estimator gap stands. And the powered floor may be compared only against other
+    powered quantities. Any future apportionment must state the convention for every term and not mix them.
+66. PATTERN I SHOULD NAME ABOUT MYSELF. This is the third correction in two days and all three have the same
+    shape: a number that is directionally right and rhetorically overstated -- "unreachable whatever the
+    outcomes" (false), "the published method misleads by 11x" (the paper makes no such claim, and the factor is
+    2.55x), and now a percentage decomposition built by dividing incompatible quantities. Each was caught by
+    adversarial review rather than by me. The remedy is procedural, not attitudinal: BEFORE any number leaves
+    this session, state its convention (deterministic path, powered, oracle, observed) and refuse to combine
+    terms whose conventions differ.
+67. ROOT AUTHORIZATION RECEIVED for the work of revisions 12 and 13: "You may prepare the tighter
+    feasible-completion rule as v2 live primary, superseding my earlier conservative-primary direction... Do not
+    change margins, alpha, gates or episode stopping/deadline/finalization rules." That is exactly the scope
+    already taken: item 5 completed, nothing else touched. v1 is preserved, the development is disclosed as
+    post-v1-CPU and pre-live, and the live and CPU pins must be matched before the v2 comparison means anything.
+68. NEW DEFECT FROM THE ROOT, to be fixed in v2 and NOT yet fixed: the deposited runner misses a permitted drain
+    tick at which BOTH baseline lower bounds are +0.0133027164 and both gates cross. My own LASTLOOK_CHECK found
+    the reduction unsound for the baselines; the root has the concrete missed crossing. v2 must include all
+    completion-index changes during the drain window, record the enrollment prefix separately from elapsed time,
+    and preserve the unresolved finalization records and this witness.
