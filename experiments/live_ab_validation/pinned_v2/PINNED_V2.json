@@ -2,11 +2,11 @@
   "schema": "live_ab_validation_v2.pinned.1",
   "purpose": "read-only copy of the #11 monitor at its exact current reviewed commit, loaded ONLY at the comparison step of the v2 protocol; never imported by vband.py, vgen.py, vrun.py or vfixtures.py",
   "version": "v2-cpu-validation",
-  "created_unix": 1789960227.666374,
-  "source_commit": "a266c6201e3c94fc50c6646ca741e5e1da9b409b",
+  "created_unix": 1789976386.62835,
+  "source_commit": "ddebb68c0571d02d9fac8f1ea55cab22857b882c",
   "source_branch": "session60/live-ab-validation",
   "builder": "experiments/live_ab_validation/vsnapshot_v2.py",
-  "builder_sha256": "5159b4c91931ad2903c249288bfcfbc5a790632a31406d8f1b324ef045a17387",
+  "builder_sha256": "29250e9127a709817b61818e22c46a5e1fe172b63d0a5d358e39cf2a24eaf1ce",
   "files": {
     "lab_monitor.py": "94d70b8d766376a697271087a1879de32170d4827bb25211c33f550232c2af91",
     "lab_enclosure.py": "42f1b57dff684988cc0725bc0e64d982cd4b8b24f7ff68198c77d8d8a53966c6",
@@ -25,11 +25,11 @@
     {
       "name": "lab_enclosure.py",
       "source_path": "experiments/live_ab/lab_enclosure.py",
-      "sha256": "da1b300d0fc99608f3b4c919d33ed546d20f2547c9339bd03e6ce6c7b9290d74",
-      "git_blob": "eb261f2fcd3b575efc419a2cbed560604079f9c7",
+      "sha256": "42f1b57dff684988cc0725bc0e64d982cd4b8b24f7ff68198c77d8d8a53966c6",
+      "git_blob": "e66ca5c4aca170ae923587795ca8c980194ee6b4",
       "v1_sha256": "47c523128b0abf91165670772940ee096827e12d533556ef1fd26c60dc578d0a",
       "changed_since_v1_pin": true,
-      "bytes": 29348
+      "bytes": 29895
     },
     {
       "name": "lab_reference_rule.py",
@@ -39,6 +39,19 @@
       "v1_sha256": "6219cc64f439e7bf64b4da20e4076429ccf7ea9f3d5655090f27b4a20ae360b1",
       "changed_since_v1_pin": true,
       "bytes": 22980
+    }
+  ],
+  "regenerations": [
+    {
+      "utc": "2026-09-21",
+      "reason": "root disposition 04:53 ranked action 1: update live exactness and stopped-roster wording and regenerate the snapshot",
+      "changed": [
+        {
+          "file": "lab_enclosure.py",
+          "from": "da1b300d0fc99608",
+          "to": "42f1b57dff684988"
+        }
+      ]
     }
   ],
   "parent_v1_snapshot": {
@@ -63,19 +76,5 @@
     "v1_did_not_validate_11": "v1 COMPARED AGAINST, and TESTED AGAINST, the #11 pin. It did not validate it. A failed comparison does not become validation because its provenance is honest.",
     "timing_summaries_not_invariant": "Monotone ever-events do not make every operational summary invariant; absence of a Monte Carlo alert does not certify validity."
   },
-  "not_done_here": "The comparison grid is NOT run by this script. Building the snapshot and running the comparison are separate steps and only the first is authorized.",
-  "regenerations": [
-    {
-      "utc": "2026-09-21",
-      "reason": "root disposition 04:53 ranked action 1: update live exactness and stopped-roster wording and regenerate the snapshot",
-      "changed": [
-        {
-          "file": "lab_enclosure.py",
-          "from": "da1b300d0fc99608",
-          "to": "42f1b57dff684988"
-        }
-      ]
-    }
-  ],
-  "source_commit_note": "regenerated from the working tree after the wording corrections; the coordinator commits immediately after, so the recorded hashes are the committed bytes"
+  "not_done_here": "The comparison grid is NOT run by this script. Building the snapshot and running the comparison are separate steps and only the first is authorized."
 }

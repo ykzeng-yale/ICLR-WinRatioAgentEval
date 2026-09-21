@@ -60,6 +60,14 @@ def git(*args: str) -> str:
                           capture_output=True, text=True).stdout.strip()
 
 
+#: Why the current rebuild is happening.  Set by the caller for the record; a
+#: regeneration with no stated reason is a regeneration nobody can audit.
+REGENERATION_REASON = (
+    "root disposition 06:35: reconcile the complete manifest with the exact "
+    "source used; detail carried a stale lab_enclosure sha256, byte count and "
+    "git blob while files carried the current one")
+
+
 def build(write: bool) -> Dict[str, object]:
     head = git("rev-parse", "HEAD")
     dirty = git("status", "--porcelain", "--", str(LIVE_AB.relative_to(REPO_ROOT)))
@@ -69,6 +77,24 @@ def build(write: bool) -> Dict[str, object]:
             f"snapshot would not correspond to any commit.\n{dirty}")
 
     v1 = json.loads((PINNED_V1 / "PINNED.json").read_text())
+
+    # ---- carry the regeneration history FORWARD, never drop it ------------
+    # ``regenerations`` was never produced by this builder, only hand-written
+    # into the deposited manifest.  A rebuild would therefore have silently
+    # DELETED the provenance of every earlier regeneration.  It is read back
+    # and appended to instead, and a rebuild that changes a pinned hash must
+    # record that change here or the history stops matching the hashes.
+    prior_manifest: Dict[str, object] = {}
+    existing = PINNED_V2 / "PINNED_V2.json"
+    if existing.exists():
+        try:
+            prior_manifest = json.loads(existing.read_text())
+        except json.JSONDecodeError:                           # pragma: no cover
+            prior_manifest = {}
+    regenerations: List[Dict[str, object]] = list(
+        prior_manifest.get("regenerations") or [])
+    prior_files: Dict[str, str] = dict(prior_manifest.get("files") or {})
+
     files: List[Dict[str, object]] = []
     for name in MODULES:
         src = LIVE_AB / name
@@ -87,6 +113,19 @@ def build(write: bool) -> Dict[str, object]:
             "bytes": src.stat().st_size,
         })
 
+    changed_now = [
+        {"file": f["name"],
+         "from": str(prior_files.get(f["name"]))[:16],
+         "to": str(f["sha256"])[:16]}
+        for f in files
+        if prior_files.get(f["name"]) and prior_files[f["name"]] != f["sha256"]]
+    if changed_now:
+        regenerations.append({
+            "utc": time.strftime("%Y-%m-%d", time.gmtime()),
+            "reason": REGENERATION_REASON,
+            "changed": changed_now,
+        })
+
     manifest = {
         "schema": "live_ab_validation_v2.pinned.1",
         "purpose":
@@ -101,6 +140,7 @@ def build(write: bool) -> Dict[str, object]:
         "builder_sha256": sha256_file(Path(__file__).resolve()),
         "files": {f["name"]: f["sha256"] for f in files},
         "detail": files,
+        "regenerations": regenerations,
 
         # ---- the relationship to v1, stated rather than implied ------------
         "parent_v1_snapshot": {
@@ -174,7 +214,24 @@ def build(write: bool) -> Dict[str, object]:
 
 
 def verify() -> int:
-    """Check the deposited snapshot against its own manifest, and v1 against v1's."""
+    """Check the deposited snapshot against its own manifest, and v1 against v1's.
+
+    STRENGTHENED 2026-09-21 (root: "reconcile the complete manifest with the
+    exact source used").  The previous version compared ONLY the ``files`` map
+    against the deposited copies.  It therefore passed while ``detail`` carried
+    a stale ``lab_enclosure`` sha256, byte count and git blob -- the manifest
+    disagreed WITH ITSELF and the verifier could not see it, because it never
+    looked at the fields that were wrong.  A verifier that names the manifest
+    but checks one of its maps is the same defect as a gate that always reports
+    clean, so it now checks:
+
+      * every deposited copy against ``files``           (as before)
+      * ``files`` against ``detail``, entry by entry     (the disagreement)
+      * every ``detail`` sha256/bytes/git_blob against the LIVE source
+      * that the recorded ``source_commit`` actually exists
+
+    Returns nonzero on any of them.
+    """
     rc = 0
     for label, path, key in (("v2", PINNED_V2 / "PINNED_V2.json", "files"),
                              ("v1", PINNED_V1 / "PINNED.json", "files")):
@@ -187,7 +244,41 @@ def verify() -> int:
             got = sha256_file(path.parent / name)
             ok = got == want
             rc |= 0 if ok else 1
-            print(f"  {label} {name:<24} {'OK' if ok else 'MISMATCH'}")
+            print(f"  {label} {name:<24} deposited-copy {'OK' if ok else 'MISMATCH'}")
+
+        detail = {e["name"]: e for e in man.get("detail", [])}
+        if not detail:
+            print(f"  {label}: no detail block to cross-check")
+            continue
+        for name, want in man[key].items():
+            e = detail.get(name)
+            if e is None:
+                print(f"  {label} {name:<24} MISSING from detail")
+                rc = 1
+                continue
+            if e.get("sha256") != want:
+                print(f"  {label} {name:<24} files/detail DISAGREE "
+                      f"({want[:12]} vs {str(e.get('sha256'))[:12]})")
+                rc = 1
+            src = REPO_ROOT / str(e.get("source_path", ""))
+            if not src.exists():
+                print(f"  {label} {name:<24} source_path missing: {src}")
+                rc = 1
+                continue
+            live_sha = sha256_file(src)
+            live_bytes = src.stat().st_size
+            live_blob = git("hash-object", str(src))
+            for field, got_v, want_v in (("sha256", live_sha, e.get("sha256")),
+                                         ("bytes", live_bytes, e.get("bytes")),
+                                         ("git_blob", live_blob, e.get("git_blob"))):
+                if got_v != want_v:
+                    print(f"  {label} {name:<24} detail.{field} STALE "
+                          f"(manifest {str(want_v)[:12]} != live {str(got_v)[:12]})")
+                    rc = 1
+        commit = man.get("source_commit")
+        if commit and not git("cat-file", "-t", commit):
+            print(f"  {label}: source_commit {commit[:12]} is not a reachable object")
+            rc = 1
     return rc
 
 
