@@ -1,6 +1,6 @@
 # Full-project arXiv readiness
 
-**September 21, 08:28 UTC review — full project 65% (+5 points), separately bounded v1 90%.** At exact `0281eb2`, the deterministic CPU specification/fixture milestone is accepted after fixed-configuration checks; calibration remains pending. The received 20-unit / 80-trial / 160-reference-call resource pass is reconciled, but is not a qualifying full-grid ledger. [Current root disposition](reviews/v2_measurement_root_disposition_20260921_0828.md) retains T1 and authorizes one preflight-only verification measurement after parent-cap and pin repairs. Latest owner 08:25:02 UTC: zero live episodes/v2 calibration cells, no freeze/grid, nothing running. Remaining 35 points: Session60 prospective 10 and CPU calibration 5; root integration/final QA 10; author checks 10. No new paper results or full-grid/live clearance.
+**September 21, 09:09 UTC review — full project 65% (change 0), separately bounded v1 90%.** Exact delivery `3341f21` preserves all four scientific output digests in the amended 20-unit / 80-trial / 160-reference-call resource pass. The conditional T1 projection is now 2676 seconds against the unchanged 5400-second cap; the timing objection is closed for planning. [Current root disposition](reviews/v2_precalibration_root_disposition_20260921_0909.md) requests one exact supervised T1 launcher/manifest, required pins and narrow refusal repairs before final execution review; no more timing run is requested. Latest owner 08:53:07 UTC: zero live episodes/v2 calibration cells, no freeze/grid, nothing running. Remaining 35 points: Session60 prospective 10 and CPU calibration 5; root integration/final QA 10; author checks 10. Reports/status only; paper artifacts unchanged.
 
 
 **Full project: 65/100 points (65%). Existing bounded-v1 package: 90/100 (90%).** Established September 19, 2026 at the author's request for a percentage covering the full project after every completed work cycle.
@@ -40,7 +40,7 @@ Report unchanged percentages when no milestone closes. Report the first 60% asse
 
 ## Current remaining sequence
 
-Follow the current 08:28 disposition above. Earlier dated checkpoints below are historical and retain their original scores; their open deterministic-milestone statements are superseded.
+Follow the current 09:09 disposition above. Earlier dated checkpoints below are historical and retain their original scores; their open deterministic-milestone statements are superseded.
 
 **September21, 02:26 UTC cycle — full project60% (change0), bounded v190%.** Incoming `d8b2a4d3141f0180473761671d3ffa57437225ad` receives bounded acceptance for its primary tick-batched scheduler repair: both baseline witnesses, the ADAPTER first-decision/pending-state witness and205 direct ticks passed. The optional finest sensitivity contains unreachable prefix states and is deferred from the approved primary plan. Root's [binding disposition](reviews/v2_batched_schedule_root_disposition_20260921_0226.md) identifies the remaining actual-live snapshot/epsilon, v2 manifest/budget, external-reference and resource-measurement bindings. It authorizes only the existing balanced20-program development measurement of the actual delivered primary; no full-grid/live clearance.
 

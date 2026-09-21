@@ -1,0 +1,33 @@
+{
+  "unchanged_scientific_files": {
+    "vgen.py": true,
+    "vrun.py": true,
+    "vpolicy.py": true,
+    "vband.py": true,
+    "cells.json": true
+  },
+  "unchanged_panel_functions": {
+    "reference_rows": true,
+    "_ref_row_text": true,
+    "assert_reference_call_budget": true
+  },
+  "configuration": {
+    "preflight": {
+      "accepted": true,
+      "recorded_mode": "preflight_only"
+    },
+    "unknown": {
+      "accepted": false,
+      "error": "PanelError"
+    },
+    "wrongalpha": {
+      "accepted": false,
+      "error": "PanelError"
+    },
+    "wrongtrials": {
+      "accepted": false,
+      "error": "PanelError"
+    }
+  },
+  "panel_or_reference_executed": false
+}

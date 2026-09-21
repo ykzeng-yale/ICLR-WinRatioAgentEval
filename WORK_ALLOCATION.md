@@ -1,9 +1,11 @@
 # Shared workspace ownership
 
-**September 21, 08:28 UTC review — full project 65% (+5 points), separately bounded v1 90%.** At exact `0281eb2`, the deterministic CPU specification/fixture milestone is accepted after fixed-configuration checks; calibration remains pending. The received 20-unit / 80-trial / 160-reference-call resource pass is reconciled, but is not a qualifying full-grid ledger. [Current root disposition](reviews/v2_measurement_root_disposition_20260921_0828.md) retains T1 and authorizes one preflight-only verification measurement after parent-cap and pin repairs. Latest owner 08:25:02 UTC: zero live episodes/v2 calibration cells, no freeze/grid, nothing running. Remaining 35 points: Session60 prospective 10 and CPU calibration 5; root integration/final QA 10; author checks 10. No new paper results or full-grid/live clearance.
+**September 21, 09:09 UTC review — full project 65% (change 0), separately bounded v1 90%.** Exact delivery `3341f21` preserves all four scientific output digests in the amended 20-unit / 80-trial / 160-reference-call resource pass. The conditional T1 projection is now 2676 seconds against the unchanged 5400-second cap; the timing objection is closed for planning. [Current root disposition](reviews/v2_precalibration_root_disposition_20260921_0909.md) requests one exact supervised T1 launcher/manifest, required pins and narrow refusal repairs before final execution review; no more timing run is requested. Latest owner 08:53:07 UTC: zero live episodes/v2 calibration cells, no freeze/grid, nothing running. Remaining 35 points: Session60 prospective 10 and CPU calibration 5; root integration/final QA 10; author checks 10. Reports/status only; paper artifacts unchanged.
 
 
 ## Active arXiv phase — September 19, 2026
+
+**09:09 handoff:** independent preflight and supervisor reviewers own only their named 0909 reports/evidence until handed back; root integrates review/status. Session60 exclusively owns the final supervised T1 launcher/manifest and source repairs. No additional resource run or calibration execution is currently cleared.
 
 **08:28 reviewer handoff:** configuration and resource reviewers returned the two `reviews/*_delta_20260921_0828.md` reports. Root accepts ownership of those reports and shared-status integration. Session60 retains source repairs and the single amended resource pass; no overlapping execution.
 
