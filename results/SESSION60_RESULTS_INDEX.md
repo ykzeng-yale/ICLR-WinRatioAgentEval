@@ -934,6 +934,41 @@ that promotion is root's call.
 Third time this session (after D8, D9) that I changed a pinned or contracted artifact through a
 convenience path. Each was caught by something that checks, not by me noticing.
 
+### Root's 20:05 review: a reproduced defect in my ledger, and the wiring it exposed
+
+Branch `session60/live-ab` head `8c62b6f`. Suites: chain **70**, design **107**, isolation **12**,
+e2e **42**, serving **89**, stats **70**, hostcheck **117** — all pass. Live episodes **0**.
+
+**Root accepted D1 and D2** and independently closed the D2 production-dictionary path (valid dict → 0
+enrollment findings; changed uid / stratum / arrivals → 1 each; swapped pairs → 2).
+
+**Short writes silently succeeded — root reproduced it, and so did I.** `AttemptLedger.append` issued one
+`os.write` and ignored the returned count; `os.write` may legally accept part of the buffer and return a
+positive count without raising. Confirmed: append returned normally, `count` became 1, 219 bytes with no
+trailing newline, `load()` raised `JSONDecodeError`. **My own fail-closed contract, broken by the class
+that exists to provide it.** Repaired: write until every byte is accepted, fail on zero/no-progress, sync,
+*then* count; a failed append leaves its tail on disk as evidence and `load()` **refuses** it rather than
+skipping; new files fsync the directory via the project's existing `_fullsync_dir`.
+
+**Production wiring was genuinely absent** — `AttemptLedger` appeared only in tests, so they showed the
+sink *could* be connected, not that the entry point *did*. New `lab_prepare.py` creates the ledger before
+the first attempt, refuses without a load observer, refuses an unresolved malformed tail, propagates a
+failed append, and re-reads the ledger **from disk** to confirm every exclusion digest reconstructs. It
+sits **inside** the pinned harness set deliberately — root: *"Do not move execution-relevant code outside
+the pin set just to avoid changing a hash."*
+
+**One effective plan.** Root found a real stale-field defect: my amendment left the top-level `headline`
+and totals still saying 360 episodes / item 4 = 120, so the superseded design was still readable from the
+current file. Now a single `EFFECTIVE_PLAN` (**480 episodes**, counter probes **4**, ≤**2260** verifier
+attempts, capped rehearsal + labelled injected fixture) with everything superseded quarantined under
+`NONOPERATIVE_HISTORY`, plus an **executed consistency check** that per-item sums equal the effective
+totals — a stale operative field can no longer survive.
+
+**Load coverage resolved by root:** per-attempt coverage evidenced by **reusable load windows**, not one
+request per attempt. Gaps *between* attempts are a scheduling rule; a gap *intersecting* a check
+invalidates that check, which is retained for diagnosis and never becomes a scientific reference failure.
+My earlier default — hard stop on the first gap of any kind — was stricter and wrong.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
