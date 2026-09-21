@@ -1,0 +1,159 @@
+{
+  "head": "35ab9d111123382db8997d4a0ccf4d5e36dbc876",
+  "manifest_digest_recomputed": "18ad539884566215ff106ddfa6fdb6170a245e4ba2fa3d7946c3f8062155fd98",
+  "shards": 56,
+  "coordinate_count": 28000,
+  "allocation": {
+    "C1": 2000,
+    "C2": 2000,
+    "C3": 5000,
+    "C4": 5000,
+    "C5": 5000,
+    "C6": 5000,
+    "C7": 2000,
+    "C8": 2000
+  },
+  "totals": {
+    "primary_rows": 336000,
+    "programs": 28000,
+    "reference_calls": 224000,
+    "reference_rows": 672000,
+    "trials": 112000
+  },
+  "primary_key_count": 336000,
+  "reference_key_count": 672000,
+  "constructions": [
+    "ADAPTER",
+    "CPREFIX",
+    "NAIVE"
+  ],
+  "reference_score_prefixes": [
+    [
+      "D",
+      100
+    ],
+    [
+      "D",
+      500
+    ],
+    [
+      "D",
+      2000
+    ],
+    [
+      "H",
+      100
+    ],
+    [
+      "H",
+      500
+    ],
+    [
+      "H",
+      2000
+    ]
+  ],
+  "source_pin_checks": [
+    {
+      "path": "reference/MANIFEST.json",
+      "pass": true
+    },
+    {
+      "path": "reference/eb_reference.py",
+      "pass": true
+    },
+    {
+      "path": "reference/vendor.py",
+      "pass": true
+    },
+    {
+      "path": "vband.py",
+      "pass": true
+    },
+    {
+      "path": "vconformance.py",
+      "pass": true
+    },
+    {
+      "path": "vgen.py",
+      "pass": true
+    },
+    {
+      "path": "videntity.py",
+      "pass": true
+    },
+    {
+      "path": "vlaunch.py",
+      "pass": true
+    },
+    {
+      "path": "vmeasure.py",
+      "pass": true
+    },
+    {
+      "path": "vpanel.py",
+      "pass": true
+    },
+    {
+      "path": "vpins.py",
+      "pass": true
+    },
+    {
+      "path": "vpolicy.py",
+      "pass": true
+    },
+    {
+      "path": "vprod.py",
+      "pass": true
+    },
+    {
+      "path": "vresource_check.py",
+      "pass": true
+    },
+    {
+      "path": "vrun.py",
+      "pass": true
+    },
+    {
+      "path": "vshard.py",
+      "pass": true
+    },
+    {
+      "path": "vsupervise.py",
+      "pass": true
+    },
+    {
+      "path": "vtotalguard.py",
+      "pass": true
+    },
+    {
+      "path": "PROTOCOL_V2.md",
+      "pass": true
+    },
+    {
+      "path": "cells.json",
+      "pass": true
+    }
+  ],
+  "source_pin_all_match": true,
+  "data_bytes": {
+    "primary_rows.csv.gz": 5266998,
+    "reference_bands.csv": 86120326
+  },
+  "data_bytes_total": 91387324,
+  "file_count": 174,
+  "stored_all_bytes": 92126182,
+  "top_level_bytes": {
+    "T1_CHILD_DATA_RECEIPT.json": 1972,
+    "T1_JOB_RECEIPT.json": 4440,
+    "AUTHORIZATION.json": 1480,
+    "T1_MANIFEST.json": 24136,
+    "T1_ANALYSIS.json": 97816,
+    "SUPERVISION.json": 1928
+  },
+  "shard_receipt_bytes": 607086,
+  "supervisor_child_bytes": 92021998,
+  "terminal_claimed_bytes": 92023926,
+  "all_minus_analysis_job_supervision": 92021998,
+  "all_minus_analysis_job": 92023926
+}
