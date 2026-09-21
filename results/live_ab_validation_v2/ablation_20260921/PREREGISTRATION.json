@@ -1,0 +1,66 @@
+{
+  "committed_before_outcomes_evaluated": true,
+  "deterministic_invariants": {
+    "age_snapshots_compared": 384,
+    "cells": [
+      "P05N",
+      "P05A",
+      "P10N",
+      "P10A"
+    ],
+    "containment_disabled_contains_original": true,
+    "namespace": 3,
+    "pair_states_compared": 768000,
+    "resolved_final_scores_identical": true,
+    "schedule_untouched": "the ablation replaces only per-pair hierarchy bounds; look sets, horizon, margins and alpha are config and are not referenced here",
+    "success_intervals_identical": true
+  },
+  "disabled_arm": "to be collected on the SAME draws",
+  "negative_controls": {
+    "changed_success_interval": "refused",
+    "clean_ablation": "passes",
+    "narrower_variant": "refused (containment)"
+  },
+  "original_arm": "already collected in powercurve_20260921 at namespace 3 (P05N/P05A/P10N/P10A)",
+  "schema": "live_ab_validation_v2.ablation_preregistration.1",
+  "source_sha256": {
+    "vablation.py": "bea5dd7713896d16fd3c8f6ea855f9a740888f0bb6c5af458058e842c2ab648d",
+    "vband.py": "55a9894ff5694099c05cedbdf695ecdad3ac4bd5025328cd445e0b1d3df8cd9c",
+    "vgen.py": "08d1a8146023e348817a5cb02d04b9e209540456e2481889b98b8f31a5686987",
+    "vpolicy.py": "210956feb1c5831c09c82ef09a70fb0728e2b86c8bf6119cdc5ad03146eb962c",
+    "vpowercurve.py": "c88c7470c5986fa85e715297a91e2106ea645af94b832c97a51aee620107a76f",
+    "vrun.py": "a90c0083ec74088ea496c6a179afc843a6686291964ae903be379fc52265cf90"
+  },
+  "spec": {
+    "authority": "root 2026-09-21 15:16, issue 12 comment 5762860561",
+    "cells": [
+      "P05N",
+      "P05A",
+      "P10N",
+      "P10A"
+    ],
+    "deterministic_invariants": [
+      "disabled enclosure CONTAINS original at every checked state",
+      "resolved final scores identical",
+      "success intervals identical",
+      "schedule, horizon, margins and alpha untouched"
+    ],
+    "horizon": 2000,
+    "interpretation_limit": "a difference between original and disabled is attributable to the two disabled branches WITHIN THIS FIXED DESIGN. It is not a general claim about informative delay, and the comparison is post-hoc.",
+    "label": "POST-HOC EXPLORATORY MECHANISM ANALYSIS, selected after the reported informative-delay gap. Not a prospectively specified study.",
+    "namespace": 3,
+    "programs_per_cell": 2000,
+    "reuses_original_draws": true,
+    "schema": "live_ab_validation_v2.certificate_ablation_spec.1",
+    "trials_per_program": 4,
+    "variant_name": "ADAPTER_NOCERT",
+    "what_is_disabled": "in exactly-one-revealed hierarchy states with revealed success == 1, the hierarchy enclosure becomes [-1, +1] regardless of elapsed cost. The revealed-failure feasible set, both-revealed final scores, both-pending bounds and ALL success enclosures are unchanged.",
+    "what_is_not_done": [
+      "no model calls",
+      "no new reference calls",
+      "no new task draws",
+      "no change to frozen accepted modules"
+    ]
+  },
+  "written_utc": "2026-09-21T16:18:08Z"
+}
