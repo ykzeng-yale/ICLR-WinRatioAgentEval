@@ -9,7 +9,7 @@
   "builder_sha256": "5159b4c91931ad2903c249288bfcfbc5a790632a31406d8f1b324ef045a17387",
   "files": {
     "lab_monitor.py": "94d70b8d766376a697271087a1879de32170d4827bb25211c33f550232c2af91",
-    "lab_enclosure.py": "da1b300d0fc99608f3b4c919d33ed546d20f2547c9339bd03e6ce6c7b9290d74",
+    "lab_enclosure.py": "42f1b57dff684988cc0725bc0e64d982cd4b8b24f7ff68198c77d8d8a53966c6",
     "lab_reference_rule.py": "8f8b69f01e09a92ca77a665e19bbd8f8eeba0ceef1ddab0bc3cb09b0fb9ee6fd"
   },
   "detail": [
@@ -63,5 +63,19 @@
     "v1_did_not_validate_11": "v1 COMPARED AGAINST, and TESTED AGAINST, the #11 pin. It did not validate it. A failed comparison does not become validation because its provenance is honest.",
     "timing_summaries_not_invariant": "Monotone ever-events do not make every operational summary invariant; absence of a Monte Carlo alert does not certify validity."
   },
-  "not_done_here": "The comparison grid is NOT run by this script. Building the snapshot and running the comparison are separate steps and only the first is authorized."
+  "not_done_here": "The comparison grid is NOT run by this script. Building the snapshot and running the comparison are separate steps and only the first is authorized.",
+  "regenerations": [
+    {
+      "utc": "2026-09-21",
+      "reason": "root disposition 04:53 ranked action 1: update live exactness and stopped-roster wording and regenerate the snapshot",
+      "changed": [
+        {
+          "file": "lab_enclosure.py",
+          "from": "da1b300d0fc99608",
+          "to": "42f1b57dff684988"
+        }
+      ]
+    }
+  ],
+  "source_commit_note": "regenerated from the working tree after the wording corrections; the coordinator commits immediately after, so the recorded hashes are the committed bytes"
 }

@@ -18,8 +18,13 @@ Scope, stated once:
   mean guarded score over the pairs actually enrolled. If allocation drifted away from proportional --
   by weighting a stratum, by enrolling the strata in blocks, or by any rule that makes the stratum mix
   of a stopping prefix differ from the roster's -- then the quantity the band brackets at the stopping
-  time would no longer be the intended contrast, and **the guardrail would certify something other
-  than what it names**. Proportionality is what makes optional stopping safe for the ESTIMAND, which
+  time would drift further from the roster contrast the design is named for. **CORRECTED 2026-09-21
+  (root disposition 04:53, "correct its exactness and stopped-roster wording"):** proportionality does
+  NOT make the stopped estimand equal to the roster's. The target is, and remains, the mean guarded
+  score over the pairs ACTUALLY ENROLLED at the look in question; proportional allocation makes that
+  prefix's stratum mix match the roster's IN EXPECTATION ONLY, and the REALISED mix at a stopping time
+  can differ from it. What proportionality buys is that the target does not acquire a stratum-weighting
+  bias BY CONSTRUCTION; it does not make the estimand invariant to when you stop, which
   is a separate requirement from the anytime validity of the band itself.
   (`ProportionalAllocationTests` in `tests_lab_design.py`.)
 
@@ -589,8 +594,11 @@ def build_roster(tasks: list[Task], exclusions: list[Exclusion], cfg: dict) -> d
 
     The per-stratum pair counts `floor(n_s / 2)` are what makes the allocation PROPORTIONAL (module
     docstring): protocol 3.4 permutes the combined pair list, so the stratum mix of every enrolled
-    prefix is the roster's own mix in expectation, and the guarded estimand does not move with the
-    stopping time. Nothing in this function may weight a stratum.
+    prefix is the roster's own mix IN EXPECTATION. **CORRECTED 2026-09-21: the previous sentence here
+    claimed "the guarded estimand does not move with the stopping time". That is withdrawn.** The
+    estimand IS the mean over the pairs actually enrolled, so it moves with the stopping time by
+    definition; what proportional allocation prevents is a stratum-weighting bias by construction, not
+    stopping-time dependence. Nothing in this function may weight a stratum.
 
     The top-level `'S1'` and `'S2'` keys are the lists protocol 3.4's code path indexes as
     `roster[stratum]`; `'tasks'` is the flat frozen order ARCHITECTURE 3.4 names.

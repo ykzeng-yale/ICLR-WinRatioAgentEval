@@ -9,7 +9,13 @@ The one rule that governs the whole file: an enclosure is a set of LOGICALLY FEA
 completions, never a prediction.  It starts at [-1, 1], it is narrowed only by enumerating
 feasible completions, it never widens, and it collapses to a point only on a valid final-score
 certificate (protocol 7.5 item 1) -- which is either "both episodes revealed with complete finite
-outcomes" or "the enumeration of 7.5 item 5 leaves exactly one feasible value".
+outcomes" or "the enumeration of 7.5 item 5 leaves exactly one feasible value".  EXACTNESS SCOPE,
+CORRECTED 2026-09-21: "exactly one feasible value" describes THIS MODULE'S declared operational
+policy, which is epsilon-conservative by design (CERTIFICATE_EPS) and deliberately retained as such
+by the root's 04:53 disposition.  It does NOT claim that the enclosure equals the mathematically
+exact feasible set at every state: at the certificate boundaries it is strictly wider, which the
+separate ideal-enclosure oracle diagnostic measures and reports.  Conservative containment, not
+exactness, is what this module guarantees.
 """
 
 from __future__ import annotations
