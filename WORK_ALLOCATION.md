@@ -1,5 +1,8 @@
 # Shared workspace ownership
 
+**September21, 03:43 UTC review — full project60% (change0), bounded v190%.** Exact `a10dba2` brings a verified three-file v2 snapshot, eight verified upstream reference files, and committed primary resource records whose saved arithmetic independently reconciles. These are bounded provenance/development acceptances. The CLI still rejects its smoke metadata, discards one cell in budget selection, changes v1 seed coordinates and lacks v2 comparison/snapshot bindings. Late docs-only `3c6982c` sizing claims use the wrong boundary/scale and are not accepted. [Current root disposition](reviews/v2_bindings_root_disposition_20260921_0343.md) gives the ranked repair decisions; no full-grid/live clearance or paper integration. Latest owner status03:46:27UTC: zero live episodes/v2 grid cells, no freeze, host contention (owner-reported). Next milestone: corrected executable v2 specification and comparison/budget fixtures. Remaining40 points: prospective/CPU20, root integration/finalQA10, author checks10.
+
+
 ## Active arXiv phase — September 19, 2026
 
 **September21 02:26 review handoff:** the independent schedule and protocol/resource reviewers returned `reviews/v2_schedule_delta_review_20260921_0226.md` and `reviews/v2_protocol_resource_review_20260921_0226.md`. Root owns these reports, portable receipts, current disposition and shared-status integration. Session60 retains all source repairs and resource/experiment execution; no contributor code is merged in this review.

@@ -1,0 +1,46 @@
+[
+  {
+    "path": "upstream/comparecast/confseq.py",
+    "local_manifest_match": true,
+    "upstream_match": true
+  },
+  {
+    "path": "upstream/comparecast/utils.py",
+    "local_manifest_match": true,
+    "upstream_match": true
+  },
+  {
+    "path": "licenses/ComparingForecasters-LICENSE.txt",
+    "local_manifest_match": true,
+    "upstream_match": true
+  },
+  {
+    "path": "upstream/confseq/__init__.py",
+    "local_manifest_match": true,
+    "upstream_match": true
+  },
+  {
+    "path": "upstream/confseq/boundaries.cpp",
+    "local_manifest_match": true,
+    "upstream_match": true
+  },
+  {
+    "path": "upstream/confseq/uniform_boundaries.h",
+    "local_manifest_match": true,
+    "upstream_match": true
+  },
+  {
+    "path": "licenses/confseq-LICENSE",
+    "local_manifest_match": true,
+    "upstream_match": true
+  },
+  {
+    "path": "upstream/confseq/CMakeLists.txt",
+    "local_manifest_match": true,
+    "upstream_match": true
+  },
+  {
+    "path": "upstream/comparecast/__init__.py",
+    "local_manifest_match": true
+  }
+]
