@@ -495,6 +495,37 @@ justify fitting one.
 28,000 disjoint coordinates, all 112 file hashes matching, 336,000 unique primary and 672,000 unique
 reference row identities, and the execution identity `18ad5398…` independently recomputed and agreeing.
 
+**MECHANISM TEST — I attacked my own claim; it survives, my control did not. 2026-09-21, main `0aef257`.**
+`results/live_ab_validation_v2/powercurve_20260921/MECHANISM_TEST.json`. *Convention: **descriptive**
+rates, **design-based** Wilson 95%. Power curve is namespace-3, T1 namespace-0 — reported separately,
+never pooled.*
+
+I hypothesised informative delay raises adapter detection via **cost narrowing** of pending pairs, and
+flagged it unproven. Prediction: only a construction that *uses* pending pairs should gain.
+
+| μ_h | ADAPTER gain (A−N) | CPREFIX gain | NAIVE gain |
+|---:|---:|---:|---:|
+| 0.05 | **+0.0475** | +0.0016 | +0.9342 |
+| 0.10 | **+0.3187** | +0.0147 | +0.1426 |
+| 0.15 | +0.0037 | −0.0010 | +0.0001 |
+| 0.20–0.30 | 0.0000 | 0.0000 | 0.0000 |
+
+**CPREFIX confirms cleanly** — no advantage, as predicted for a valid construction blind to pending
+pairs. This also **rules out a generic delay effect**, which would have moved CPREFIX too.
+
+**NAIVE appears to refute it — but my control was mis-specified.** I treated "cannot use pending pairs"
+as NAIVE's only relevant property; it has a second — *its band breaks under informative delay* (T1: 0.9999
+miscoverage at C4). Deploys from a broken band are not detection.
+
+**Decisive check — does NAIVE track the truth?** Under informative delay: **0.9999 at μ_h=0.00** (T1 C4),
+then 0.9989 / 1.0000 / 1.0000 / 1.0000 / 1.0000 across μ_h 0.05→0.30. **Saturated from zero effect
+upward — tracking nothing.** Under non-informative delay, band intact, the same construction traces a
+proper curve: 0.0000 → 0.0646 → 0.8574 → 0.9999 → 1.0000. So the "gain" is the bias, and the apparent
+refutation is **further evidence for the T1 finding**.
+
+**Verdict:** hypothesis survives with CPREFIX as the valid control. **Still NOT established:** causation
+— cost-narrowing has not been manipulated directly with everything else held fixed. The receipt says so.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
