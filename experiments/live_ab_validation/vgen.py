@@ -96,6 +96,13 @@ COST_CAP = 100.0
 RTOL = vband.COST_RELATIVE_TOLERANCE        # 0.05
 ATOL = vband.COST_ABSOLUTE_TOLERANCE        # 0.0
 
+#: The one-sided certificate margin of the OPERATIONAL policy.  Duplicated from
+#: ``vpolicy.CERTIFICATE_EPS`` by VALUE rather than imported, because vgen must
+#: not import vpolicy: the generator is the primary path and the policy module
+#: is layered above it.  ``assert_operational_matches_policy`` fails loudly if
+#: the two ever drift apart, so the duplication cannot go silently stale.
+OPERATIONAL_EPS: float = 1e-9
+
 SHORT_LOW, SHORT_HIGH = 0, 19
 LONG_LOW, LONG_HIGH = 100, 699
 MAX_DELAY = LONG_HIGH
@@ -263,6 +270,15 @@ def _build_threshold_tables(reading: str = "predicate"
         elif reading == "closed_form":
             dead_pend = inside & ~(ell < (1.0 - RTOL) * c_rev)
             dead_tie = inside & (ell > c_rev / (1.0 - RTOL))
+        elif reading == "operational":
+            # PROTOCOL 7.1's DEPLOYED certificates, transcribed from
+            # vpolicy.operational_hierarchy_bounds in the same float order.
+            # The pending-cheaper branch dies when the REVERSE certificate
+            # fires; the tie dies when the FORWARD certificate fires.  Forward
+            # implies reverse for every 0 <= tol < 1, so narrow <= collapse
+            # holds structurally and the shared assertion below still governs.
+            dead_pend = inside & (ell > (1.0 - RTOL) * c_rev + OPERATIONAL_EPS)
+            dead_tie = inside & ((1.0 - RTOL) * ell > c_rev + OPERATIONAL_EPS)
         else:                                               # pragma: no cover
             raise ValueError(f"unknown reading {reading!r}")
         a1 = np.where(dead_pend, a_row, big).min(axis=1)
@@ -276,6 +292,46 @@ def _build_threshold_tables(reading: str = "predicate"
 
 THRESH_NARROW, THRESH_COLLAPSE = _build_threshold_tables("predicate")
 THRESH_NARROW_CF, THRESH_COLLAPSE_CF = _build_threshold_tables("closed_form")
+#: The DEPLOYED policy's own breakpoints.  These -- not the predicate tables --
+#: are what an operational run must use: the certificates fire at different ages
+#: than the exact feasibility test does, which is precisely the conservatism the
+#: operational policy is declared to have.
+THRESH_NARROW_OP, THRESH_COLLAPSE_OP = _build_threshold_tables("operational")
+
+#: The policy names ``state_at_age``/``adapter_tick_sums`` accept.  ``oracle``
+#: is the exact feasible set and is a LABELLED DIAGNOSTIC; ``operational`` is
+#: the rule the live system executes and is what calibration must run.
+POLICIES = ("oracle", "operational")
+
+
+def _policy_tables(policy: str) -> Tuple[np.ndarray, np.ndarray]:
+    if policy == "oracle":
+        return THRESH_NARROW, THRESH_COLLAPSE
+    if policy == "operational":
+        return THRESH_NARROW_OP, THRESH_COLLAPSE_OP
+    raise ValueError(f"unknown policy {policy!r}; expected one of {POLICIES}")
+
+
+def breakpoint_ages(draw: "TrialDraw", policy: str = "oracle"
+                    ) -> Tuple[np.ndarray, np.ndarray]:
+    """``(a_narrow, a_collapse)`` per pair UNDER THE NAMED POLICY.
+
+    ``draw.a_narrow``/``draw.a_collapse`` are the ORACLE ages, frozen into the
+    draw when it was generated.  Under the operational policy the certificates
+    fire at different ages, so a run that reuses the draw's own fields silently
+    evaluates the oracle no matter which policy it claims -- which is exactly
+    the defect this function exists to remove.
+    """
+    if policy == "oracle":
+        return draw.a_narrow, draw.a_collapse
+    narrow_t, collapse_t = _policy_tables(policy)
+    d, f = draw.d, draw.f
+    code = (draw.c_rev > 20.0).astype(np.int8) * 2 + (draw.c_pend > 20.0).astype(np.int8)
+    combo = np.where(draw.s_rev == 1, _COMBO_CODE[code], -1)
+    safe = np.maximum(combo, 0)
+    a_n = np.where(combo >= 0, narrow_t[safe, d], d)
+    a_c = np.where(combo >= 0, collapse_t[safe, d], d)
+    return np.clip(a_n, f, d), np.clip(a_c, f, d)
 
 
 def boundary_state_count() -> int:
@@ -439,12 +495,27 @@ def elapsed_cost(c_pend, age, d):
     return (c_pend * age) / np.where(d > 0, d, 1)
 
 
-def state_at_age(draw: TrialDraw, ages) -> PairState:
+def state_at_age(draw: TrialDraw, ages, policy: str = "oracle") -> PairState:
     """Every pair's enclosure at the given per-pair age, from the frozen table.
 
     ``ages`` broadcasts against the per-pair arrays, so a whole stack of ages
     can be evaluated at once.  Endpoints are integers in {-1, 0, +1} in every
     row of PROTOCOL 2.5, which is what makes the running sums exact.
+
+    ``policy`` selects WHICH RULE decides a partial pair's cost branch:
+
+      * ``"oracle"`` -- the exact feasible set of PROTOCOL 2.5.  A LABELLED
+        DIAGNOSTIC.  This is the default only so that every v1 caller keeps the
+        behaviour it was validated under; it is NOT what the live system runs.
+      * ``"operational"`` -- the two certificates the deployed monitor actually
+        executes (``vpolicy.operational_hierarchy_bounds``).  Conservative: its
+        interval always contains the oracle's, and is strictly wider at the
+        certificate boundaries.
+
+    Everything outside the partial-and-succeeded branch -- resolved pairs,
+    unrevealed pairs, and revealed failures -- is policy-INDEPENDENT, and the
+    equality of the two policies off that branch is asserted by
+    ``assert_operational_matches_policy``.
     """
     age = np.asarray(ages)
     d, f = draw.d, draw.f
@@ -453,8 +524,16 @@ def state_at_age(draw: TrialDraw, ages) -> PairState:
     partial = ~resolved & ~unrevealed
 
     ell = elapsed_cost(draw.c_pend, age, d)
-    q = np.where(pending_cheaper_feasible(draw.c_rev, ell), -1,
-                 np.where(tie_feasible(draw.c_rev, ell), 0, 1)).astype(np.int8)
+    if policy == "oracle":
+        q = np.where(pending_cheaper_feasible(draw.c_rev, ell), -1,
+                     np.where(tie_feasible(draw.c_rev, ell), 0, 1)).astype(np.int8)
+    elif policy == "operational":
+        # transcribed from vpolicy.operational_hierarchy_bounds, same order
+        forward = (1.0 - RTOL) * ell > draw.c_rev + OPERATIONAL_EPS
+        reverse = ell > (1.0 - RTOL) * draw.c_rev + OPERATIONAL_EPS
+        q = np.where(forward, 1, np.where(reverse, 0, -1)).astype(np.int8)
+    else:
+        raise ValueError(f"unknown policy {policy!r}; expected one of {POLICIES}")
 
     succeeded = draw.s_rev == 1
     first_is_candidate = draw.cand_first
@@ -595,7 +674,8 @@ def finalization_ages(draw: TrialDraw, n_max: Optional[int] = None) -> np.ndarra
 # asserts both of those reductions.
 # ===========================================================================
 def adapter_tick_sums(draw: TrialDraw, n_max: Optional[int] = None,
-                      last_tick: Optional[int] = None) -> PrefixSums:
+                      last_tick: Optional[int] = None,
+                      policy: str = "oracle") -> PrefixSums:
     """``sum(lower)``/``sum(upper)`` at EVERY tick ``t = 0 .. last_tick``.
 
     The same difference array over the same at-most-five breakpoints per pair as
@@ -612,9 +692,14 @@ def adapter_tick_sums(draw: TrialDraw, n_max: Optional[int] = None,
     n = draw.n if n_max is None else int(n_max)
     last = (n + DRAIN_W) if last_tick is None else int(last_tick)
     positions = np.arange(1, draw.n + 1, dtype=np.int64)
+    # THE POLICY'S OWN BREAKPOINTS.  Using draw.a_narrow/draw.a_collapse here
+    # would pin the difference array to the ORACLE's threshold ages while the
+    # per-age rule below claimed to be operational, so the sums would be a
+    # blend of two policies and belong to neither.
+    a_narrow, a_collapse = breakpoint_ages(draw, policy)
     ages = np.stack([np.zeros(draw.n, dtype=np.int64), draw.f,
-                     draw.a_narrow, draw.a_collapse, draw.d])
-    st = state_at_age(draw, ages)
+                     a_narrow, a_collapse, draw.d])
+    st = state_at_age(draw, ages, policy)
     ticks = np.minimum(positions[None, :] + ages, last + 1).ravel()
 
     out: List[np.ndarray] = []

@@ -489,6 +489,20 @@ class RunConfig:
     delta: float = vband.DELTA
     trials_per_program: int = vgen.TRIALS_PER_PROGRAM
     schedule: str = LIBRARY_DEFAULT_SCHEDULE
+    #: WHICH ENCLOSURE RULE THE PRIMARY EVALUATION EXECUTES.  ``"oracle"`` is
+    #: the exact feasible set and is a LABELLED DIAGNOSTIC; ``"operational"``
+    #: is the certificate rule the deployed monitor runs and is what an actual
+    #: calibration must use.  The default stays ``"oracle"`` ONLY so that every
+    #: deposited v1 result reproduces bit for bit under its own config; the v2
+    #: calibration entry point sets ``"operational"`` explicitly and records it
+    #: in the run receipt, so no run can be operational by accident or oracle
+    #: by accident.
+    policy: str = "oracle"
+
+    def __post_init__(self) -> None:
+        if self.policy not in vgen.POLICIES:
+            raise ValueError(f"unknown policy {self.policy!r}; "
+                             f"expected one of {vgen.POLICIES}")
 
     @property
     def horizons(self) -> Tuple[int, ...]:
@@ -502,14 +516,15 @@ class RunConfig:
 
 
 def make_config(n_max: int, namespace: int,
-                schedule: str = LIBRARY_DEFAULT_SCHEDULE) -> RunConfig:
+                schedule: str = LIBRARY_DEFAULT_SCHEDULE,
+                policy: str = "oracle") -> RunConfig:
     """Radii come from ``vband.radius_from_formula``, i.e. from the pinned primitive."""
     radius = np.empty(n_max + 1)
     radius[0] = math.inf
     for n in range(1, n_max + 1):
         radius[n] = vband.radius_from_formula(n)
     return RunConfig(n_max=n_max, namespace=namespace, radius=radius,
-                     schedule=check_schedule(schedule))
+                     schedule=check_schedule(schedule), policy=policy)
 
 
 # ---------------------------------------------------------------------------
@@ -565,6 +580,14 @@ def build_series(draw: vgen.TrialDraw, cfg: RunConfig
     and the deposited-record audits call it to reproduce those results.  The v2
     schedules are ``build_series_v2``; ``build_series_for`` dispatches.
     """
+    if cfg.policy != "oracle":
+        # v1 IS the oracle schedule and the oracle rule; there is no operational
+        # v1.  Running it under an operational config would hand back oracle
+        # numbers wearing an operational label, which is precisely the class of
+        # defect this delivery exists to remove.  Refuse instead.
+        raise ValueError(
+            f"the v1 schedule is defined only for policy='oracle', not "
+            f"{cfg.policy!r}; use the v2 schedule for operational runs")
     n = cfg.n_max
     fin_tick = cfg.finalization_tick
     sums = vgen.adapter_prefix_sums(draw, n)
@@ -622,7 +645,11 @@ def build_series_v2(draw: vgen.TrialDraw, cfg: RunConfig, finest: bool = False
     """
     n = cfg.n_max
     fin_tick = cfg.finalization_tick
-    sums = vgen.adapter_tick_sums(draw, n, fin_tick)
+    # THE CONFIGURED POLICY, not the oracle by default.  This one argument is
+    # the whole of the defect the root named: the comparison tool selected the
+    # operational monitor while this path silently kept the exact oracle, so a
+    # "matched-policy" claim rested on a runner that never ran the policy.
+    sums = vgen.adapter_tick_sums(draw, n, fin_tick, policy=cfg.policy)
     resolved, revealed, _, _ = vgen.resolution_counts(draw, n)
     cpref, naive = vgen.completion_tick_states(draw, n, fin_tick)
 
@@ -898,6 +925,79 @@ def evaluate_trial(draw: vgen.TrialDraw, cfg: RunConfig,
 def look_counts(series: Dict[str, Series]) -> Dict[str, int]:
     """Looks actually evaluated, per construction, under the schedule in force."""
     return {name: int(series[name].index.size) for name in CONSTRUCTIONS}
+
+
+# ---------------------------------------------------------------------------
+# The primary's operational rule IS the deployed policy, checked not claimed
+# ---------------------------------------------------------------------------
+def assert_operational_matches_policy(draw: vgen.TrialDraw, cfg: RunConfig,
+                                      ticks: Optional[Sequence[int]] = None
+                                      ) -> Dict[str, object]:
+    """``vgen``'s vectorised operational states equal ``vpolicy``'s, pair by pair.
+
+    WHY THIS EXISTS.  ``vgen`` reimplements the two certificates in vectorised
+    form and duplicates ``vpolicy.CERTIFICATE_EPS`` by value, because the
+    generator must not import the policy module.  Duplication that nothing
+    checks is how a constant drifts silently, so this compares the two
+    implementations on EVERY enrolled pair at the given ticks -- not on a
+    sampled pair, and not on one tick.
+
+    Returns the counts it actually checked, so a caller cannot mistake an empty
+    comparison for a passing one.
+    """
+    import vpolicy                                             # noqa: E402
+
+    if vgen.OPERATIONAL_EPS != vpolicy.CERTIFICATE_EPS:
+        raise AssertionError(
+            f"certificate epsilon drifted: vgen {vgen.OPERATIONAL_EPS!r} != "
+            f"vpolicy {vpolicy.CERTIFICATE_EPS!r}")
+    if vgen.RTOL != vpolicy.OPERATIONAL_TOL:
+        raise AssertionError(
+            f"cost tolerance drifted: vgen {vgen.RTOL!r} != "
+            f"vpolicy {vpolicy.OPERATIONAL_TOL!r}")
+
+    n = cfg.n_max
+    if ticks is None:
+        ticks = (1, n // 2, n, n + 1, cfg.finalization_tick)
+    pos = np.arange(1, draw.n + 1, dtype=np.int64)
+    cap = float(vgen.COST_CAP)
+    pairs = 0
+    for t in ticks:
+        t = int(t)
+        enrolled = pos <= min(t, n)
+        ages = np.maximum(np.where(enrolled, t - pos, 0), 0)
+        st = vgen.state_at_age(draw, ages, policy="operational")
+        idx = np.flatnonzero(enrolled)
+        ell = vgen.elapsed_cost(draw.c_pend, ages, draw.d)
+        for i in idx:
+            age, d_i, f_i = int(ages[i]), int(draw.d[i]), int(draw.f[i])
+            if age >= d_i:                                     # resolved
+                a_i = int(draw.atom[i])
+                ep_c = vband.Episode.pending("c", cap).finalized(
+                    int(vgen.ATOM_SC[a_i]), float(vgen.ATOM_CC[a_i]))
+                ep_i = vband.Episode.pending("i", cap).finalized(
+                    int(vgen.ATOM_SI[a_i]), float(vgen.ATOM_CI[a_i]))
+            elif age >= f_i:                                   # exactly one revealed
+                rev = vband.Episode.pending("rev", cap).finalized(
+                    int(draw.s_rev[i]), float(draw.c_rev[i]))
+                pen = vband.Episode.pending("pend", cap).with_elapsed_cost(float(ell[i]))
+                ep_c, ep_i = (rev, pen) if bool(draw.cand_first[i]) else (pen, rev)
+            else:                                              # neither revealed
+                ep_c = vband.Episode.pending("c", cap).with_elapsed_cost(0.0)
+                ep_i = vband.Episode.pending("i", cap).with_elapsed_cost(0.0)
+            h = vpolicy.operational_hierarchy_bounds(ep_c, ep_i)
+            sb = vpolicy.operational_success_bounds(ep_c, ep_i)
+            got = (float(st.h_lo[i]), float(st.h_hi[i]),
+                   float(st.s_lo[i]), float(st.s_hi[i]))
+            if got != (h[0], h[1], sb[0], sb[1]):
+                raise AssertionError(
+                    f"operational mismatch at tick {t}, pair {i + 1}: "
+                    f"vgen {got} != vpolicy {(h[0], h[1], sb[0], sb[1])}")
+            pairs += 1
+    if pairs == 0:
+        raise AssertionError("no pair was compared; the check proves nothing")
+    return {"ticks_checked": [int(t) for t in ticks], "pair_states_compared": pairs,
+            "epsilon": float(vgen.OPERATIONAL_EPS), "tol": float(vgen.RTOL)}
 
 
 # ---------------------------------------------------------------------------
