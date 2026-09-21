@@ -208,6 +208,19 @@ MODE_MEASUREMENT = "measurement"  # the bounded, allowlisted resource measuremen
 MODE_FULL_GRID = "full_grid"      # refused until the qualifying ledger matches
 MODES = (MODE_FIXTURE, MODE_MEASUREMENT, MODE_FULL_GRID)
 
+#: NAMED, PINNED verification modes.  Root, 08:28: "Code pins alone cannot
+#: distinguish the expensive per-trial-verification run from a preflight-only
+#: run of the same file. Add an explicit pinned verification policy before
+#: interpreting any new timing."  The mode is bound into the pins, so a timing
+#: can never be silently attributed to the wrong amount of verification work.
+VERIFY_PER_TRIAL = "per_trial"     # what the delivered pass ran: 420,080 checks
+VERIFY_PREFLIGHT = "preflight_only"  # root-adopted: verify once, before the job
+VERIFY_MODES = (VERIFY_PER_TRIAL, VERIFY_PREFLIGHT)
+
+#: The reference is always the vendored complete-information path; named so the
+#: pin records it rather than leaving it implicit.
+REFERENCE_MODE = "vendored_complete_information_two_score"
+
 
 @dataclass
 class PanelConfig:
@@ -225,12 +238,17 @@ class PanelConfig:
     label: str = "fixture"
     mode: str = MODE_FIXTURE
     program_indices: Optional[Tuple[int, ...]] = None
+    verification_mode: str = VERIFY_PER_TRIAL
 
     def __post_init__(self) -> None:
         if self.policy not in vgen.POLICIES:
             raise PanelError(f"unknown policy {self.policy!r}")
         if self.mode not in MODES:
             raise PanelError(f"unknown mode {self.mode!r}; expected one of {MODES}")
+        if self.verification_mode not in VERIFY_MODES:
+            raise PanelError(
+                f"unknown verification_mode {self.verification_mode!r}; "
+                f"expected one of {VERIFY_MODES}")
         if self.schedule == vrun.SCHEDULE_V1 and self.policy != "oracle":
             raise PanelError(
                 "v1 is the oracle schedule; an operational v1 run is not defined")
@@ -294,6 +312,8 @@ class PanelConfig:
                 "cells": list(self.cells), "n_max": self.n_max,
                 "programs": self.programs,
                 "program_indices": list(self.indices), "policy": self.policy,
+                "verification_mode": self.verification_mode,
+                "reference_mode": REFERENCE_MODE,
                 "schedule": self.schedule, "namespace": self.namespace,
                 "alpha_gate": self.alpha_gate,
                 "trials_per_program": self.trials_per_program,
@@ -386,13 +406,20 @@ def run_panel(cfg: PanelConfig, out_dir: Path,
     # actual entry point, not just an unused helper."
     # That was exactly right and it is the same defect class as a gate nothing
     # calls. The guard now runs here, before any work.
-    pins_before = vpins.entry_point_pins(
+    _expected_trials = len(cfg.cells) * len(cfg.indices) * cfg.trials_per_program
+    _pin_kw = dict(
         policy=cfg.policy, schedule=cfg.schedule,
-        prefixes=vrun.make_config(cfg.n_max, cfg.namespace,
-                                  schedule=cfg.schedule).horizons,
         programs=cfg.indices, cells=cfg.cells, namespace=cfg.namespace,
         alpha_gate=cfg.alpha_gate, trials_per_program=cfg.trials_per_program,
-        workload=f"{REFERENCE_CALLS_PER_TRIAL}_calls_per_trial")
+        workload=f"{REFERENCE_CALLS_PER_TRIAL}_calls_per_trial",
+        verification_mode=cfg.verification_mode,
+        reference_mode=REFERENCE_MODE,
+        normalized_horizon=cfg.n_max,
+        expected_trials=_expected_trials,
+        expected_reference_calls=_expected_trials * REFERENCE_CALLS_PER_TRIAL)
+    pins_before = vpins.entry_point_pins(
+        prefixes=vrun.make_config(cfg.n_max, cfg.namespace,
+                                  schedule=cfg.schedule).horizons, **_pin_kw)
 
     host_at_start = host_capacity()
     guard_record: Dict[str, Any] = {"mode": cfg.mode}
@@ -444,13 +471,38 @@ def run_panel(cfg: PanelConfig, out_dir: Path,
     primary_path = out_dir / "primary_rows.csv.gz"
     ref_path = out_dir / "reference_bands.csv"
     sink = vrun.RowSink(primary_path, header)
-    ref_lines: List[str] = [REFERENCE_HEADER + "\n"]
+    # STREAMED, not buffered.  Root: "Current reference output is still
+    # accumulated in ref_lines and joined at the end. Small-run 69 MiB is not a
+    # memory bound for T1's 672,000 reference rows. Either stream those rows or
+    # provide a deterministic full-size memory bound."  Streaming makes the
+    # reference output O(1) in memory regardless of grid size.
+    ref_fh = ref_path.open("w")
+    ref_fh.write(REFERENCE_HEADER + "\n")
 
     counts = {"generation_calls": 0, "primary_trial_calls": 0, "looks": 0,
               "enclosure_updates": 0, "reference_calls_h": 0,
               "reference_calls_d": 0, "reference_rows": 0, "trials": 0,
               "programs": 0, "policy_checks": 0, "policy_pair_states": 0}
     decisions: Dict[str, int] = {}
+    # ---- PREFLIGHT-ONLY VERIFICATION -----------------------------------
+    # Root adopted this mode: the conditional verifier "only runs duplicate
+    # conformance checks and updates verification counters; it does not supply
+    # primary records or reference inputs", so running it once on the pinned
+    # source is sufficient and the per-trial repeat is redundant work whose
+    # runtime was never separately attributed.
+    if (verify_policy and cfg.policy == "operational"
+            and cfg.verification_mode == VERIFY_PREFLIGHT):
+        pf_draw = vgen.draw_trial(cells[0], cfg.indices[0], 0,
+                                  n_max=cfg.n_max, namespace=cfg.namespace)
+        pf = vrun.assert_operational_matches_policy(pf_draw, run_cfg)
+        counts["policy_checks"] += 1
+        counts["policy_pair_states"] += int(pf["pair_states_compared"])
+        guard_record["preflight_verification"] = {
+            "mode": VERIFY_PREFLIGHT, "ran_before_any_trial": True,
+            "pair_states_compared": int(pf["pair_states_compared"]),
+            "basis": ("root 08:28: the already independently checked "
+                      "operational-policy witnesses serve as the preflight gate")}
+
     caps = vpins.ALLOWLIST if cfg.mode == MODE_MEASUREMENT else None
     cap_events: List[Dict[str, Any]] = []
     peak_rss = 0
@@ -502,7 +554,8 @@ def run_panel(cfg: PanelConfig, out_dir: Path,
                                            cfg.schedule))
 
                 # -- the policy the primary claims to run, verified ---------
-                if verify_policy and cfg.policy == "operational":
+                if (verify_policy and cfg.policy == "operational"
+                        and cfg.verification_mode == VERIFY_PER_TRIAL):
                     chk = vrun.assert_operational_matches_policy(draw, run_cfg)
                     counts["policy_checks"] += 1
                     counts["policy_pair_states"] += int(chk["pair_states_compared"])
@@ -511,7 +564,7 @@ def run_panel(cfg: PanelConfig, out_dir: Path,
                 if cfg.with_reference:
                     rows, ch, cd = reference_rows(cell, program, trial, draw,
                                                   prefixes, cfg.alpha_gate)
-                    ref_lines.append(_ref_row_text(rows))
+                    ref_fh.write(_ref_row_text(rows))
                     counts["reference_calls_h"] += ch
                     counts["reference_calls_d"] += cd
                     counts["reference_rows"] += len(rows)
@@ -524,7 +577,9 @@ def run_panel(cfg: PanelConfig, out_dir: Path,
     seconds = time.perf_counter() - t0
     peak_rss = max(peak_rss, _peak_rss_bytes())
     primary_bytes = sink.close()
-    ref_path.write_text("".join(ref_lines))
+    ref_fh.flush()
+    os.fsync(ref_fh.fileno())
+    ref_fh.close()
 
     if cfg.with_reference and not cap_events:
         assert_reference_call_budget(counts, counts["trials"])
@@ -536,11 +591,7 @@ def run_panel(cfg: PanelConfig, out_dir: Path,
                 f"x {len(prefixes)} prefixes")
 
     # ---- the root's before/after requirement, executed ------------------
-    pins_after = vpins.entry_point_pins(
-        policy=cfg.policy, schedule=cfg.schedule, prefixes=prefixes,
-        programs=cfg.indices, cells=cfg.cells, namespace=cfg.namespace,
-        alpha_gate=cfg.alpha_gate, trials_per_program=cfg.trials_per_program,
-        workload=f"{REFERENCE_CALLS_PER_TRIAL}_calls_per_trial")
+    pins_after = vpins.entry_point_pins(prefixes=prefixes, **_pin_kw)
     drift = vpins.assert_unchanged(pins_before, pins_after)
 
     receipt = {

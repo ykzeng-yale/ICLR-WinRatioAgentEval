@@ -468,10 +468,42 @@ class TestWholeFilePinsBindExecution(unittest.TestCase):
                        "vgen.py", "vband.py", "vpolicy.py", "vtotalguard.py"):
             self.assertIn(needed, files, needed)
 
-    def test_the_compiled_reference_binary_is_pinned(self):
-        b = self._pins()["detail"]["source"]["binaries"]
-        self.assertTrue(b, "a rebuilt .so must not be invisible")
-        self.assertTrue(any(k.endswith(".so") for k in b))
+    def test_the_ACTUALLY_LOADED_reference_modules_are_pinned(self):
+        """Root: hashing a manifest does not check the Python it describes."""
+        loaded = self._pins()["detail"]["source"]["loaded_reference_modules"]
+        origins = loaded["origins"]
+        self.assertIn("comparecast.confseq", origins)
+        self.assertIn("confseq.boundaries", origins)
+        self.assertTrue(origins["confseq.boundaries"].endswith(".so"),
+                        "the COMPILED module must be pinned by what was imported")
+        # cached bytecode that could shadow a source file is pinned too
+        self.assertTrue(any(k.endswith("::__pycache__") for k in loaded["files"]))
+
+    def test_candidate_binaries_are_labelled_non_authoritative(self):
+        """A glob matches candidates; only the loaded module binds."""
+        src = self._pins()["detail"]["source"]
+        self.assertIn("candidate_binaries_not_authoritative", src)
+        self.assertNotIn("binaries", src)
+
+    def test_the_verification_and_reference_modes_are_PINNED(self):
+        """Code pins alone cannot tell per-trial from preflight-only."""
+        a = self.vpins.entry_point_pins(
+            policy="operational", schedule=vrun.SCHEDULE_V2, prefixes=[100],
+            programs=[1000], cells=["C1"], namespace=1,
+            alpha_gate=vband.ALPHA_GATE, trials_per_program=4,
+            workload="2_calls_per_trial", verification_mode="per_trial",
+            reference_mode="x", normalized_horizon=1000,
+            expected_trials=4, expected_reference_calls=8)
+        b = self.vpins.entry_point_pins(
+            policy="operational", schedule=vrun.SCHEDULE_V2, prefixes=[100],
+            programs=[1000], cells=["C1"], namespace=1,
+            alpha_gate=vband.ALPHA_GATE, trials_per_program=4,
+            workload="2_calls_per_trial", verification_mode="preflight_only",
+            reference_mode="x", normalized_horizon=1000,
+            expected_trials=4, expected_reference_calls=8)
+        self.assertNotEqual(a["receipt"], b["receipt"],
+                            "the same file in two verification modes must not "
+                            "produce the same receipt identity")
 
     def test_a_module_level_constant_edit_DOES_move_the_whole_file_pin(self):
         """The whole point of choosing whole-file over the fingerprint."""
@@ -582,6 +614,141 @@ class TestModesAndBounds(unittest.TestCase):
                 vpanel.run_panel(cfg, tmp / "run")
         finally:
             shutil.rmtree(tmp, ignore_errors=True)
+
+
+class TestParentSupervisor(unittest.TestCase):
+    """F9.  The cap the entry point could not enforce from inside itself.
+
+    Root: the per-trial in-worker check "cannot interrupt a native call and
+    misses setup/final output".  Each fixture below is synthetic -- no
+    scientific measurement is repeated to demonstrate guard code.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        import vsupervise
+        cls.vs = vsupervise
+        cls.tmp = Path(tempfile.mkdtemp(prefix="sup_tests_"))
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.tmp, ignore_errors=True)
+
+    def _child(self, body: str) -> Path:
+        import textwrap
+        p = self.tmp / f"c{abs(hash(body)) % 100000}.py"
+        p.write_text(textwrap.dedent(body))
+        return p
+
+    def test_a_clean_run_passes(self):
+        """First: the caps must not be always-fail, or the rest proves nothing."""
+        c = self._child("""
+            import pathlib, sys
+            out = pathlib.Path(sys.argv[1]); out.mkdir(parents=True, exist_ok=True)
+            (out / 'ok.txt').write_text('done')
+        """)
+        d = self.tmp / "clean"
+        r = self.vs.supervise([sys.executable, str(c), str(d)], d, self.vs.Caps())
+        self.assertIsNone(r["breach"])
+        self.assertTrue(r["within_caps"])
+        self.assertFalse((d / "SUPERVISION_FAILURE.json").exists())
+
+    def test_a_tight_loop_is_terminated_on_the_wall_clock_cap(self):
+        """An in-worker per-trial check could never interrupt this."""
+        c = self._child("""
+            import time, pathlib, sys
+            out = pathlib.Path(sys.argv[1]); out.mkdir(parents=True, exist_ok=True)
+            (out / 'partial.txt').write_text('started')
+            t = time.time()
+            while time.time() - t < 60:
+                pass
+        """)
+        d = self.tmp / "timeout"
+        r = self.vs.supervise([sys.executable, str(c), str(d)], d,
+                              self.vs.Caps(seconds=1.0))
+        self.assertEqual(r["breach"]["cap"], "seconds")
+        self.assertTrue(r["terminated_by_supervisor"])
+        self.assertTrue((d / "partial.txt").exists(), "partial artifacts preserved")
+        self.assertTrue((d / "SUPERVISION_FAILURE.json").exists())
+
+    def test_oversize_output_is_caught(self):
+        c = self._child("""
+            import pathlib, sys
+            out = pathlib.Path(sys.argv[1]); out.mkdir(parents=True, exist_ok=True)
+            with open(out / 'big.bin', 'wb') as fh:
+                for _ in range(400):
+                    fh.write(b'x' * 1_000_000); fh.flush()
+        """)
+        d = self.tmp / "oversize"
+        r = self.vs.supervise([sys.executable, str(c), str(d)], d,
+                              self.vs.Caps(output_bytes=5 * 1024 * 1024))
+        self.assertEqual(r["breach"]["cap"], "output_bytes")
+
+    def test_it_reports_it_touched_no_foreign_process(self):
+        c = self._child("""
+            import pathlib, sys
+            out = pathlib.Path(sys.argv[1]); out.mkdir(parents=True, exist_ok=True)
+        """)
+        d = self.tmp / "safety"
+        r = self.vs.supervise([sys.executable, str(c), str(d)], d, self.vs.Caps())
+        self.assertFalse(r["foreign_processes_touched"])
+        self.assertIn("only the process group it created", r["safety"])
+
+    def test_the_measured_window_covers_startup_and_close(self):
+        c = self._child("""
+            import pathlib, sys
+            out = pathlib.Path(sys.argv[1]); out.mkdir(parents=True, exist_ok=True)
+        """)
+        d = self.tmp / "window"
+        r = self.vs.supervise([sys.executable, str(c), str(d)], d, self.vs.Caps())
+        self.assertIn("interpreter", r["measured_window"])
+        self.assertIn("close", r["measured_window"])
+        self.assertGreater(r["observed"]["wall_seconds"], 0.0)
+        self.assertIn("simultaneous", r["rss_scope"])
+
+
+class TestPreflightVerificationMode(unittest.TestCase):
+    """F10.  The named mode root adopted, and proof it changes the work done."""
+
+    def _run(self, mode, out):
+        cfg = vpanel.PanelConfig(cells=("C1",), n_max=300, programs=1,
+                                 mode=vpanel.MODE_FIXTURE, verification_mode=mode)
+        return vpanel.run_panel(cfg, out)
+
+    def test_preflight_does_far_fewer_pair_state_checks(self):
+        tmp = Path(tempfile.mkdtemp(prefix="pf_"))
+        try:
+            a = self._run(vpanel.VERIFY_PER_TRIAL, tmp / "per_trial")
+            b = self._run(vpanel.VERIFY_PREFLIGHT, tmp / "preflight")
+            self.assertEqual(a["counts"]["policy_checks"], 4)
+            self.assertEqual(b["counts"]["policy_checks"], 1)
+            self.assertLess(b["counts"]["policy_pair_states"],
+                            a["counts"]["policy_pair_states"])
+            self.assertTrue(b["guard"]["preflight_verification"]["ran_before_any_trial"])
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_preflight_does_not_change_the_persisted_scientific_bytes(self):
+        """Root: prove the amendment preserves persisted bytes."""
+        import gzip, hashlib
+        tmp = Path(tempfile.mkdtemp(prefix="pfb_"))
+        try:
+            self._run(vpanel.VERIFY_PER_TRIAL, tmp / "a")
+            self._run(vpanel.VERIFY_PREFLIGHT, tmp / "b")
+            for name in ("primary_rows.csv.gz", "reference_bands.csv"):
+                a = (tmp / "a" / name).read_bytes()
+                b = (tmp / "b" / name).read_bytes()
+                if name.endswith(".gz"):
+                    a, b = gzip.decompress(a), gzip.decompress(b)
+                self.assertEqual(hashlib.sha256(a).hexdigest(),
+                                 hashlib.sha256(b).hexdigest(), name)
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_an_unknown_verification_mode_is_refused(self):
+        with self.assertRaises(vpanel.PanelError):
+            vpanel.PanelConfig(cells=("C1",), n_max=300, programs=1,
+                               verification_mode="whatever")
 
 
 if __name__ == "__main__":

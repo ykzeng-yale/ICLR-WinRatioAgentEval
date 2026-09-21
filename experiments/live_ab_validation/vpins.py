@@ -74,6 +74,69 @@ def _git(*args: str) -> str:
         return ""
 
 
+#: Modules whose ACTUALLY LOADED files must be pinned, by import-name prefix.
+#: Root: "hashing reference/MANIFEST.json does not check the actual vendored
+#: Python it describes. Validate actual loaded comparecast/confseq Python files
+#: and compiled module origins/digests, INCLUDING CACHED IMPORTS; do not merely
+#: hash a glob of candidate binaries."
+LOADED_MODULE_PREFIXES = ("comparecast", "confseq")
+
+
+def loaded_reference_pins() -> Dict[str, Any]:
+    """Digest every file the reference implementation is ACTUALLY loaded from.
+
+    The previous pin hashed ``reference/MANIFEST.json`` (a description) and a
+    GLOB of candidate ``.so`` files (candidates, not the loaded one). Neither
+    establishes which bytes ran. This imports the reference, then reads
+    ``sys.modules`` and pins each real ``__file__``, so a second copy on the
+    path, a stale ``.pyc``, or a differently-built ``.so`` cannot hide.
+
+    Raises rather than returning a partial map: an unpinned loaded module is a
+    hole, and a hole that reports success is the defect this project keeps
+    finding.
+    """
+    from reference import eb_reference                        # noqa: E402
+    eb_reference.load_reference()                             # force the import
+
+    files: Dict[str, str] = {}
+    origins: Dict[str, str] = {}
+    unpinnable: List[str] = []
+    for name, mod in sorted(sys.modules.items()):
+        if not any(name == p or name.startswith(p + ".")
+                   for p in LOADED_MODULE_PREFIXES):
+            continue
+        f = getattr(mod, "__file__", None)
+        if not f:
+            unpinnable.append(f"{name} (no __file__)")
+            continue
+        path = Path(f)
+        if not path.is_file():
+            unpinnable.append(f"{name} -> {f} (missing)")
+            continue
+        files[name] = _sha256(path)
+        origins[name] = str(path)
+        # a cached bytecode file that shadows the source is pinned too
+        cached = getattr(mod, "__cached__", None)
+        if cached and Path(cached).is_file():
+            files[f"{name}::__pycache__"] = _sha256(Path(cached))
+            origins[f"{name}::__pycache__"] = str(cached)
+    if unpinnable:
+        raise PinError(
+            f"loaded reference modules could not be pinned: {unpinnable}. "
+            f"An unpinned loaded module means the executed bytes are unknown.")
+    if not any(o.endswith(".so") or o.endswith(".pyd") for o in origins.values()):
+        raise PinError(
+            "no COMPILED reference module was found among the loaded modules; "
+            "the vendored native boundary implementation must be pinned by the "
+            "file actually imported, not by a glob of candidates")
+    if not files:
+        raise PinError("no reference module was loaded; nothing to pin")
+    return {"files": files, "origins": origins,
+            "module_count": len(origins),
+            "aggregate_sha256": _aggregate(files),
+            "method": "sys.modules __file__/__cached__ after forcing the import"}
+
+
 def source_pins() -> Dict[str, Any]:
     """Whole-file digests for every role, plus the vendored binary."""
     files: Dict[str, str] = {}
@@ -90,22 +153,25 @@ def source_pins() -> Dict[str, Any]:
         if not p.is_file():
             raise PinError(f"pinned vendored file missing: {p}")
         files[name] = _sha256(p)
+    # Candidate binaries are recorded for completeness, but they are CANDIDATES.
+    # What binds is `loaded_reference_pins()`, which pins the module actually
+    # imported. A glob can match a file nothing loads and miss the one that ran.
     binaries: Dict[str, str] = {}
     for pattern in PINNED_BINARY_GLOBS:
         for p in sorted(HERE.glob(pattern)):
             binaries[str(p.relative_to(HERE))] = _sha256(p)
-    if not binaries:
-        raise PinError(
-            "no compiled reference artifact found; the loaded implementation "
-            "would be unpinned and a rebuilt binary would be invisible")
+    loaded = loaded_reference_pins()
     config = {name: _sha256(HERE / name) for name in PINNED_CONFIG
               if (HERE / name).is_file()}
     missing_cfg = [n for n in PINNED_CONFIG if not (HERE / n).is_file()]
     if missing_cfg:
         raise PinError(f"pinned config missing: {missing_cfg}")
-    return {"roles": roles, "files": files, "binaries": binaries,
+    return {"roles": roles, "files": files,
+            "candidate_binaries_not_authoritative": binaries,
+            "loaded_reference_modules": loaded,
             "config": config,
-            "aggregate_sha256": _aggregate({**files, **binaries, **config})}
+            "aggregate_sha256": _aggregate(
+                {**files, **loaded["files"], **config})}
 
 
 def _aggregate(d: Dict[str, str]) -> str:
@@ -143,7 +209,12 @@ def entry_point_pins(policy: str, schedule: str,
                      namespace: int,
                      alpha_gate: float,
                      trials_per_program: int,
-                     workload: str) -> Dict[str, Any]:
+                     workload: str,
+                     verification_mode: str = "unspecified",
+                     reference_mode: str = "unspecified",
+                     normalized_horizon: int = 0,
+                     expected_trials: int = 0,
+                     expected_reference_calls: int = 0) -> Dict[str, Any]:
     """The five guard identities plus everything the root enumerated.
 
     ``code`` is the WHOLE-FILE aggregate over the complete entry point, not a
@@ -155,6 +226,15 @@ def entry_point_pins(policy: str, schedule: str,
         "prefixes": list(prefixes), "programs": list(programs),
         "cells": list(cells), "namespace": namespace,
         "alpha_gate": alpha_gate, "trials_per_program": trials_per_program,
+        # Root: "Code pins alone cannot distinguish the expensive
+        # per-trial-verification run from a preflight-only run of the same
+        # file. Add an explicit pinned verification policy before interpreting
+        # any new timing."
+        "verification_mode": verification_mode,
+        "reference_mode": reference_mode,
+        "normalized_horizon": int(normalized_horizon),
+        "expected_trial_evaluations": int(expected_trials),
+        "expected_reference_calls": int(expected_reference_calls),
     }
     return {
         "code": src["aggregate_sha256"],
