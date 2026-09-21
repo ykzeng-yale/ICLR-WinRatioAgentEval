@@ -1,0 +1,132 @@
+{
+  "applies_to": "MEASUREMENT_RECEIPT.json in this directory, which is RETAINED UNALTERED.",
+  "authority": "root disposition 2026-09-21 08:28, ranked action 4: 'Repair accounting without rerunning old observations.'",
+  "authorizes": "NOTHING. Accounting repair only.",
+  "correction_to_attempt_accounting": {
+    "cumulative_measurement_mode_executions": 6,
+    "delivered": 2,
+    "enumerated": [
+      {
+        "artifacts": "temp directory, deleted",
+        "cap_override": "cap_seconds set to 0.001 to prove the cap trips",
+        "coordinates": "C1+C2, horizon 1000, programs 1000-1004",
+        "mode": "measurement",
+        "n": 1,
+        "outcome": "stopped by wall-clock cap as intended; partial artifacts written",
+        "recoverable": false,
+        "trials_completed": 1,
+        "what": "cap negative control"
+      },
+      {
+        "artifacts": "deleted uncommitted",
+        "compressed_primary_bytes": 1671,
+        "inner_seconds": 2.3254594998434186,
+        "mode": "measurement",
+        "n": 2,
+        "outcome": "CONTAMINATED: receipt retained decision counts, breaching the measurement-only contract",
+        "peak_rss_bytes": 70270976,
+        "recoverable": false,
+        "reference_calls": 80,
+        "reference_csv_bytes": 31007,
+        "trials_completed": 40,
+        "what": "first measurement pass, horizon 1000"
+      },
+      {
+        "artifacts": "deleted uncommitted",
+        "compressed_primary_bytes": "UNKNOWN",
+        "inner_seconds": "UNKNOWN - not recorded before deletion",
+        "mode": "measurement",
+        "n": 3,
+        "outcome": "CONTAMINATED, same breach",
+        "outer_seconds_approx": 5.1,
+        "peak_rss_mib_approx": 69,
+        "recoverable": false,
+        "reference_calls": 80,
+        "reference_csv_bytes": "UNKNOWN",
+        "trials_completed": 40,
+        "what": "first measurement pass, horizon 2000"
+      },
+      {
+        "artifacts": "temp directory, deleted",
+        "coordinates": "C1, horizon 1000, program 1000 only",
+        "mode": "measurement",
+        "n": 4,
+        "outcome": "confirmed no DEPLOY/RETAIN/NO_DECISION token in a measurement receipt",
+        "recoverable": false,
+        "trials_completed": 4,
+        "what": "leak verification run"
+      },
+      {
+        "artifacts": "deposited here",
+        "mode": "measurement",
+        "n": 5,
+        "outcome": "complete, no cap event",
+        "recoverable": true,
+        "reference_calls": 80,
+        "trials_completed": 40,
+        "what": "DELIVERED pass, horizon 1000"
+      },
+      {
+        "artifacts": "deposited here",
+        "mode": "measurement",
+        "n": 6,
+        "outcome": "complete, no cap event",
+        "recoverable": true,
+        "reference_calls": 80,
+        "trials_completed": 40,
+        "what": "DELIVERED pass, horizon 2000"
+      }
+    ],
+    "note": "Fixture-mode runs inside tests_panel.py are bounded developer checks, not measurements, and are not counted here.",
+    "what_was_wrong": "MEASUREMENT_RECEIPT.attempts.total = 2 counted only the two DELIVERED final horizon passes. It is not the cumulative execution-attempt total, and the phrase 'one pass initially' does not describe all work attempted on this design."
+  },
+  "correction_to_rss_scope": {
+    "correct_label": "peak of self and REAPED children, as reported by getrusage; not a verified tree-wide simultaneous peak",
+    "host_metadata_scope": "total RAM, load and free disk were recorded; AVAILABLE RAM was not.",
+    "recorded_values_unchanged": {
+      "1000": 70926336,
+      "2000": 72351744,
+      "max_bytes": 72351744,
+      "max_mib": 69
+    },
+    "what_was_wrong": "_peak_rss_bytes takes max(RUSAGE_SELF, RUSAGE_CHILDREN) and the receipt called it a process-tree peak. It is not simultaneous summed process-tree RSS, and an UNREAPED child is invisible to it.",
+    "why_it_is_still_usable": "the measured work is in-process and forks nothing, so the scope limitation is not believed to bite here -- but 'not believed to bite' is not 'verified', and the value is NOT upgraded to a tree-wide peak."
+  },
+  "corrections_to_byte_labels": {
+    "all_deposited_files_bytes_7_files": 99631,
+    "cap_comparison_unchanged": "Both scopes remain far below the 200 MiB output cap.",
+    "data_artifacts_bytes_4_files": 65403,
+    "decompressed_primary_bytes": {
+      "1000": 23727,
+      "2000": 24535,
+      "total": 48262
+    },
+    "independently_recomputed_by_owner": true,
+    "reproduces_root_figures_exactly": true,
+    "scope_note": "65,403 is the FOUR data artifacts; 99,631 is all seven deposited files including receipts. They are different scopes and were previously conflated under one 'output' label. The reference CSV is not compressed, so it contributes identically to both byte views.",
+    "uncompressed_data_bytes_including_reference_text": 110374,
+    "what_was_wrong": "MEASUREMENT_RECEIPT.observed.output_bytes_uncompressed_total was 3291, which is the sum of the two gzip files' COMPRESSED sizes. The per-file 'uncompressed_bytes' field it summed repeats the compressed size. The label said uncompressed and the number was compressed."
+  },
+  "effect_exposure_deviation": {
+    "counts_not_reproduced_here": "deliberately withheld; this file does not restate them",
+    "epistemic_status": "OWNER REPORT, NOT INDEPENDENTLY ESTABLISHED. Root is correct to hold it at that status and I am not asserting it as verified fact. What is checkable: the coordinates, caps and single-pass scope were fixed by the 07:50 authorization before any pass ran, and the delivered run matches that authorization exactly.",
+    "owner_claim": "that the exposure influenced no parameter of the delivered measurement",
+    "retroactive_relabeling": "NONE. The earlier executions happened and are enumerated above.",
+    "what_happened": "The discarded passes wrote decision COUNTS into the resource receipt. I saw them while diagnosing the breach."
+  },
+  "no_rerun": "No observation was repeated to produce this file. Every number below is recomputed from the already-deposited bytes.",
+  "recovery_attempt": {
+    "known_fields": "recorded per attempt above",
+    "not_done": "No missing observation is reconstructed, inferred, or re-created by rerunning.",
+    "requested_by_root": "'Recover the disclosed discarded first-pass artifacts/logs if possible, otherwise record their irrecoverability.'",
+    "result": "NOT RECOVERABLE. The directory was removed with rm -rf and the temp dirs were removed by their own cleanup; nothing was ever staged, so no git object exists.",
+    "searched": [
+      "~/.Trash",
+      "session scratchpad temp dirs",
+      "/var/folders system temp dirs",
+      "all git objects for the measurement path"
+    ],
+    "unknown_fields": "marked UNKNOWN per attempt above"
+  },
+  "schema": "live_ab_validation_v2.measurement_accounting_correction.1"
+}
