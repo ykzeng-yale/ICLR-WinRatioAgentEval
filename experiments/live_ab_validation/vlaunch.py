@@ -446,8 +446,16 @@ def launch(out_dir: Path, request: Optional[Dict[str, Any]] = None,
 
     # THE BUDGET APPLIES THROUGH TERMINAL ACCEPTANCE, including this parent's
     # own hashing and metadata writes, with NO reset.
-    total_elapsed = time.perf_counter() - sup["observed"]["started_perf"] \
-        if "started_perf" in sup else sup["observed"]["wall_seconds"]
+    # FIXED after the first real T1 run crashed here with KeyError.  The guard
+    # tested `"started_perf" in sup` (TOP LEVEL, true) and then indexed
+    # `sup["observed"]["started_perf"]` (absent).  It checked one location and
+    # indexed another -- the same defect shape this project keeps turning up,
+    # and my roundtrip fixture missed it because I wrote the fixture to match
+    # my wrong assumption instead of the real supervisor's record.
+    if "started_perf" in sup:
+        total_elapsed = time.perf_counter() - float(sup["started_perf"])
+    else:
+        total_elapsed = float(sup["observed"]["wall_seconds"])
     all_artifact_bytes = sum(p.stat().st_size for p in out_dir.rglob("*")
                              if p.is_file())
     over = []

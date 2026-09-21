@@ -1,0 +1,114 @@
+{
+  "attempt_id": "a1",
+  "child_data_receipt": {
+    "data_completion": true,
+    "present": true,
+    "preserved_at": "T1_CHILD_DATA_RECEIPT.json"
+  },
+  "conditions": {
+    "all_expected_shard_ids_exactly_once": true,
+    "bindings_equal_frozen_context": true,
+    "coordinate_coverage_complete": true,
+    "coordinate_coverage_disjoint": true,
+    "coordinates_match_plan_entries": true,
+    "counts_reconciled": true,
+    "every_shard_complete_with_clean_attempts": true,
+    "hashes_reconciled": true,
+    "no_cap_event": true,
+    "pins_present_and_consistent": true,
+    "supervisor_completed_successfully": true,
+    "terminal_budget_within_caps": true
+  },
+  "cumulative_job": {
+    "elapsed_seconds": 2394.700000417419,
+    "output_bytes": 91387324,
+    "primary_rows": 336000,
+    "reference_calls": 224000,
+    "reference_rows": 672000,
+    "shards_completed": 56,
+    "trials": 112000
+  },
+  "data_completion": true,
+  "expected_totals": {
+    "primary_rows": 336000,
+    "reference_calls": 224000,
+    "reference_rows": 672000,
+    "trials": 112000
+  },
+  "insufficiency_note": "within_caps or process exit zero alone is NOT scientific completion; every condition above must hold. Final paper/calibration acceptance remains independent of successful execution.",
+  "job_id": "T1-18ad53988456",
+  "missing_shard_ids": [],
+  "observed_totals": {
+    "primary_rows": 336000,
+    "reference_calls": 224000,
+    "reference_rows": 672000,
+    "trials": 112000
+  },
+  "parent_finalization_note": "the parent crashed on a KeyError after the child published all 56 shards; the shards are immutable and complete, so finalization was re-run against them rather than re-running any science",
+  "schema": "live_ab_validation_v2.t1_job_receipt.1",
+  "scientific_completion": true,
+  "scientific_completion_note": "a CHILD data receipt never asserts scientific completion; only the parent, with an actual terminal supervisor result, can",
+  "shards_expected": 56,
+  "shards_published": 56,
+  "stage": "final",
+  "supervision": {
+    "argv": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/.venv/bin/python",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/vlaunch.py",
+      "--child",
+      "--out",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/results/live_ab_validation_v2/t1_run_20260921",
+      "--reviewed-identity",
+      "18ad539884566215ff106ddfa6fdb6170a245e4ba2fa3d7946c3f8062155fd98",
+      "--attempt",
+      "a1"
+    ],
+    "available_ram_bytes_at_start": 14487502848,
+    "breach": null,
+    "caps": {
+      "output_bytes": 209715200,
+      "seconds": 5400.0,
+      "tree_rss_bytes": 2147483648
+    },
+    "child_stderr_tail": "",
+    "child_stdout_tail": "",
+    "deadline_monotonic": 5147781.381551083,
+    "foreign_processes_touched": false,
+    "label": "t1_full_grid",
+    "measured_window": "process spawn through exit, INCLUDING interpreter startup, imports, reference calls, output writes, close and the child's receipt write",
+    "observed": {
+      "final_output_bytes_actual_child_dir": 92021998,
+      "peak_output_bytes_including_reserve": 92284142,
+      "peak_tree_rss_bytes": 79446016,
+      "poll_interval_seconds": 0.15,
+      "poll_samples": 13367,
+      "wall_seconds": 2395.1885614581406
+    },
+    "receipt_reserve_bytes": 262144,
+    "returncode": 0,
+    "rss_scope": "SAMPLED simultaneous summed RSS over the child's own process tree at a 0.15s poll interval; NOT a getrusage self/reaped-child maximum, and NOT an instantaneous hard bound -- a spike between samples can be missed. Root was explicit: do not describe polling as a hard memory bound.",
+    "safety": "the supervisor signals only the process group it created; it never signals or inspects a process it did not spawn",
+    "schema": "live_ab_validation_v2.supervision.1",
+    "started_perf": 5142381.381551083,
+    "terminated_by_supervisor": false,
+    "timestamps": {
+      "ended_utc": "2026-09-21T13:26:58Z",
+      "started_utc": "2026-09-21T12:47:03Z"
+    },
+    "within_caps": true
+  },
+  "terminal_budget": {
+    "all_artifact_bytes": 92023926,
+    "caps": {
+      "output_bytes": 209715200,
+      "seconds": 5400.0,
+      "tree_rss_bytes": 2147483648
+    },
+    "earlier_breach_preserved": null,
+    "supervisor_wall_seconds": 2395.1885614581406,
+    "within_output": true,
+    "within_seconds": true
+  },
+  "unique_coordinates": 28000,
+  "written_utc": "2026-09-21T13:58:24Z"
+}
