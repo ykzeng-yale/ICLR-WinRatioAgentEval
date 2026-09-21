@@ -488,9 +488,16 @@ def run_panel(cfg: PanelConfig, out_dir: Path,
                 counts["primary_trial_calls"] += 1
                 counts["looks"] += looks * len(vrun.CONSTRUCTIONS)
                 counts["enclosure_updates"] += updates
-                for name in vrun.CONSTRUCTIONS:
-                    lab = vrun.DECISION_LABEL[records[name].decision]
-                    decisions[f"{name}:{lab}"] = decisions.get(f"{name}:{lab}", 0) + 1
+                # MEASUREMENT-ONLY CONTRACT.  Root, 07:50: "Resource receipts
+                # must not retain or reveal newly selected effect summaries."
+                # In measurement mode the decision labels are never ACCUMULATED,
+                # not merely omitted from the receipt at the end -- an effect
+                # summary that exists in memory is one edit away from being
+                # written, and the contract is about not selecting on it at all.
+                if cfg.mode != MODE_MEASUREMENT:
+                    for name in vrun.CONSTRUCTIONS:
+                        lab = vrun.DECISION_LABEL[records[name].decision]
+                        decisions[f"{name}:{lab}"] = decisions.get(f"{name}:{lab}", 0) + 1
                 sink.write(vrun.trial_rows(cell, program, trial, records,
                                            cfg.schedule))
 
@@ -555,7 +562,10 @@ def run_panel(cfg: PanelConfig, out_dir: Path,
                              "v_opt": eb_reference.V_OPT,
                              "alpha_split": "internal to confseq_eb; not pre-halved"},
         "counts": counts,
-        "decisions": decisions,
+        "decisions": (decisions if cfg.mode != MODE_MEASUREMENT else
+                      "WITHHELD under the measurement-only contract: resource "
+                      "receipts must not retain or reveal newly selected effect "
+                      "summaries. Not accumulated during this run."),
         "outputs": {
             "primary_rows.csv.gz": {"sha256": _sha256(primary_path),
                                     "bytes": primary_path.stat().st_size,
