@@ -1,0 +1,1 @@
+defect_class,guidance_ref,stream_id,kind,cell,namespace,program,trial,tick,n,finalization,quantity,value_12,value_11,abs_diff,pair_position,atom,revealed_arm,d,f,age,ell,revealed_cost,enc12_lo,enc12_hi,enc11_lo,enc11_hi,label_12,label_11_raw,exception_side,exception_type,exception_message,replay_command

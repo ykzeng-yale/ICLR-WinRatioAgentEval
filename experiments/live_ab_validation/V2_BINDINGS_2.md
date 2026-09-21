@@ -234,9 +234,17 @@ separation. **Decision authority: unchanged and still zero**; the frozen `cells.
 scientific rule and is not authorized. **Resource accounting: counted**; the reference's measured cost is priced
 into a separate total and any tier it would push over the cap is named (none, here).
 
-**The reference is 91.2% of the projected total at T1–T3 and 88.4% at T4.** `reference/panel.py` excludes it from
-every ladder because it cannot decide; on these numbers that exclusion hides roughly ten times the primary's own
-cost. An absent receipt yields `resolved: false` with a reason and is **never rendered as zero**.
+**WITHDRAWN 2026-09-21: the 91.2% share.** It was reproducible conditional arithmetic on a weak **one-score**
+reference receipt, not observed full-run compute, and it must not be carried into the two-score workload. It is
+not reused, reproduced or repaired here. The surviving point is only this: **a reference excluded from every
+ladder hides real cost**, and `reference/panel.py` excludes it because it cannot decide. An absent receipt
+yields `resolved: false` with a reason and is **never rendered as zero**.
+
+**Superseded by the frozen workload and a measurement.** `vrun.REFERENCE_WORKLOAD` now freezes one complete-path
+call per score per trial for both H and D — **eight calls per program** — and
+`reference/combined_workload.py` measures the combined scope on the authorized 20-unit design. The two
+independent routes to the reference-attributable per-program cost agree to 2.7% at horizon 1,000 and 0.23% at
+horizon 2,000; the larger is used per horizon. See `V2_ADAPTER_RECEIPT.md` for the numbers and the commands.
 
 Receipt provenance is recorded exactly, including its weaknesses: min/median/max summaries only, no raw timing
 vectors, no interpreter or environment record, no code or harness hashes — so it is **not** an exact-pin receipt
@@ -264,8 +272,8 @@ interpreter), so the correct comparison was constructible without any proxy. It 
 | withdrawn defect | closure |
 |---|---|
 | **wrong family** — `poly_stitching_bound`, stitched, `c=0` | the selected reference is **called**, through `eb_reference.reference_bands`, so family (`mixture`), scale (`lo=-1, hi=+1, c=2`) and tuning (`v_opt=10`) are whatever that module fixes and cannot drift. A test asserts by AST that the diagnostic **never names a stitched boundary**. |
-| **wrong error budget** — alpha pre-halved | alpha is passed **unhalved**; `confseq_eb` applies `alpha/2` internally. The primary is evaluated at the same **total two-sided** `alpha_gate = 0.00625`. A test fails the file if `alpha` is ever divided in it. |
-| **wrong clock** — `n × pilot variance` | **no proxy at all.** The reference runs on actual fully specified score paths and accumulates its own clock. That clock is reported beside the realized variance so the two can be seen to differ — the audit's own example is a regression test: `(+1,+1,-1,-1)` and `(+1,-1,+1,-1)` have equal terminal variance and clocks `61/9` vs `70/9`. |
+| **wrong error budget** — **CORRECTED**: the withdrawn calculation passed the **full** `alpha = 0.00625` to `poly_stitching_bound`, which applies **no** split, and compared it against the selected wrapper `confseq_eb`, which splits `alpha/2` internally. It did **not** pre-halve anything; the earlier description here reversed the direction of the error. | alpha is passed **unhalved** to `confseq_eb`, which applies `alpha/2` internally. The primary is evaluated at the same **total two-sided** `alpha_gate = 0.00625`. A test fails the file if `alpha` is ever divided in it. |
+| **wrong clock** — `n × pilot variance` | **no proxy at all.** The reference runs on actual fully specified score paths and accumulates its own clock. That clock is reported beside **two named sums of squares** so all three can be seen to differ — the audit's own example is a regression test: `(+1,+1,-1,-1)` and `(+1,-1,+1,-1)` have equal terminal variance and clocks `61/9` vs `70/9`. **CORRECTED 2026-09-21:** the column previously called `realized_variance_sum` is a sum of **contemporaneously centred** squared residuals, each term centred by its own running mean — not the ordinary prefix sum of squares. It is renamed and the correctly defined prefix sum is emitted beside it. At C8, `n = 2000`: prefix-centred `1332.8875`, contemporaneously centred `1328.0053387752`, residual clock `1338.3695496439`. The mislabel never entered the reference call, so **no saved width changes**. |
 
 ### What the two sides are, at the same level
 
@@ -311,9 +319,15 @@ other way at this operating point, and the crossover it denied is present.
 
 The mechanism is visible in the clock: the reference's `V_n / n` runs about **0.66 to 0.95**, so its adaptivity
 does buy it a smaller clock than the primary's worst-case `V_n = n` — but at our `n` its boundary constant, tuned
-at `v_opt = 10` with scale `c = 2`, costs more than the adaptivity saves. The clock also differs from the realized
-variance by roughly 10–14 units at `n = 2,000`, which is the concrete reason a variance proxy could not have
-identified it.
+at `v_opt = 10` with scale `c = 2`, costs more than the adaptivity saves. The clock also differs from **both**
+descriptive sums of squares at `n = 2,000`, which is the concrete reason a variance proxy could not have
+identified it. **CORRECTED 2026-09-21:** the quantity this sentence previously called "the realized variance"
+was the sum of **contemporaneously centred** squared residuals, not the ordinary prefix sum of squares, so the
+"roughly 10–14 units" figure was a gap against the wrong object and is withdrawn. Both gaps are now computed
+and deposited per path and `n` in
+`results/live_ab_validation_v2/reference_width_diagnostic_descriptive_correction.json`. At C8, `n = 2,000` the
+clock is `1338.3695496439` against a contemporaneously centred sum of `1328.0053387752` (gap `10.364`) and a
+prefix-centred sum of `1332.8875` (gap `5.482`) — two different gaps, which is exactly why the label mattered.
 
 **What this does not establish, and none of these is a hedge.** It is complete-data only — the ADAPTER never sees
 `z_true`, it sees enclosures, so this prices boundary constructions and says nothing about partial-information
@@ -359,11 +373,15 @@ a family.
 3. **`lab_data.py`'s stopped-roster claim is disclosed, not repaired.** It is outside this session's write scope.
 4. **`pinned_v2/lab_enclosure.py`'s "exact" wording is disclosed, not repaired.** The snapshot is read-only and
    `#11` owns the source.
-5. **The budget projection inherits an unresolved scope mismatch.** The committed receipt times
-   `vrun.evaluate_trial` + `vrun.trial_rows`; `run_smoke`'s timed region is `run_block`, which also includes
-   stream generation and the row sink. **Every per-program second in section 2 is therefore a lower bound**, and
-   the ladder inherits that. Closing it needs a receipt whose timed region matches `run_smoke`'s. It was not
-   taken, because taking it means re-timing and the instruction was to repair with non-timed fixtures.
+5. **CORRECTED 2026-09-21 — the lower-bound explanation was unsupported and is withdrawn.** This item
+   previously asserted that the accepted primary timing omitted stream generation and the row sink, and that
+   every per-program second was therefore a lower bound. **That premise is false**: the accepted measurement's
+   timed region already called `vgen.draw_trial`, `vrun.evaluate_trial` and
+   `sink.write(vrun.trial_rows(...))` (`vresource_check.py:739-760`). There is no certified inequality between
+   two noisy timings. The **genuine** remaining scope differences, named rather than bounded, are: the grid's
+   block accumulator, output path and per-batch summary work; a disk-backed sink versus a discard sink; and
+   warm-up and process context. `reference/combined_workload.py` measures the previously unpriced part — the
+   reference calls — contemporaneously and paired against the primary-only scope on the same draws.
 6. **The reference workload is not predeclared.** The totals assume **one** reference evaluation per program at
    the tier's horizon. That assumption is stated in the artifact and is not a prespecified workload. A planned
    two-gate panel would execute more calls than this prices, and the receipt measures one score stream only.

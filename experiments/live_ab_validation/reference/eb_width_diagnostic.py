@@ -23,8 +23,14 @@ failed in three ways, each of which is closed here by construction:
       -> HERE: no proxy is used at all.  The reference is run on ACTUAL,
          fully specified score paths, so it accumulates its own real clock
          ``V_n = max(1, sum (z_i - gamma_i)^2)`` with lagged predictable
-         centres.  That clock is REPORTED beside the widths, together with the
-         realized variance, precisely so the two can be seen to differ.
+         centres.  That clock is REPORTED beside the widths, together with TWO
+         descriptive sums of squares, precisely so all three can be seen to
+         differ.  The two sums are named exactly: the sum of
+         CONTEMPORANEOUSLY CENTRED squared residuals ``sum_i (z_i - mu_i)^2``,
+         each term centred by its own running mean, and the ordinary PREFIX
+         CENTRED sum of squares ``sum_{i<=n} (z_i - mu_n)^2``.  An earlier
+         version reported the first of these under the name of the second; the
+         mislabel is corrected and both are now emitted.
 
 WHAT THE TWO SIDES ARE.  Both are two-sided anytime-valid confidence sequences
 for the running mean of the SAME bounded scores ``z`` in ``[-1, +1]``,
@@ -174,9 +180,20 @@ def run() -> dict:
         clock = residual_clock(z)
         t = np.arange(1, z.size + 1, dtype=np.float64)
         mus = np.cumsum(z) / t
-        # realized variance about the running mean, reported ONLY to show that
-        # it is not the clock.  It is never used as one.
-        realized_var = np.cumsum((z - mus) ** 2)
+        # TWO different descriptive sums, reported ONLY to show that neither is
+        # the clock.  Neither is ever used as one.
+        #
+        # THE CORRECTION.  The first of these was previously labelled
+        # ``realized_variance_sum``, which it is NOT: each term is centred by a
+        # DIFFERENT contemporaneous running mean, so it is a sum of
+        # contemporaneously centred squared residuals, not the ordinary prefix
+        # sum of squares about the prefix mean.  The reference-delta review of
+        # 2026-09-21 04:53 found the mislabel and the root ordered it repaired.
+        # Both quantities are now computed and each is named for what it is.
+        # The mislabel never entered the reference call or its residual clock,
+        # so no saved mixture width changes.
+        contemporaneous_sum = np.cumsum((z - mus) ** 2)
+        prefix_centered_sum = np.cumsum(z * z) - t * mus * mus
         for n in N_GRID:
             if n > z.size:
                 continue
@@ -191,9 +208,14 @@ def run() -> dict:
                 "cell": cell_id, "program": prog, "trial": trial, "n": n,
                 "running_mean": float(mus[i]),
                 "reference_clock_V_n": float(clock[i]),
-                "realized_variance_sum": float(realized_var[i]),
-                "clock_minus_realized_variance":
-                    float(clock[i] - realized_var[i]),
+                "contemporaneously_centered_squared_residual_sum":
+                    float(contemporaneous_sum[i]),
+                "prefix_centered_sum_of_squares":
+                    float(prefix_centered_sum[i]),
+                "clock_minus_contemporaneously_centered_sum":
+                    float(clock[i] - contemporaneous_sum[i]),
+                "clock_minus_prefix_centered_sum_of_squares":
+                    float(clock[i] - prefix_centered_sum[i]),
                 "clock_over_n": float(clock[i] / n),
                 "primary_width_unclipped": prim_w,
                 "reference_width_unclipped": float(ref_w[i]),
@@ -235,10 +257,36 @@ def run() -> dict:
                        "crossover', the 1.93x ratio, the revised certifiable "
                        "margin and the proposed sizing paragraph -- are NOT "
                        "reused, reproduced or repaired here."),
+            # CORRECTED 2026-09-21: the old entry stated the alpha error
+            # BACKWARDS.  The withdrawn calculation did NOT pre-halve alpha.
+            # It passed the FULL alpha = 0.00625 into poly_stitching_bound,
+            # which applies NO split at all, and then compared that against a
+            # selected wrapper (confseq_eb) that DOES split internally. The two
+            # sides were therefore not at the same error level. The reversed
+            # wording is repaired here; the executable comparison in this module
+            # was already correct and is unchanged (see this file's own
+            # docstring item (b)).
             "why_it_failed": ["wrong family (stitched c=0 vs mixture c=2)",
-                              "wrong error budget (alpha pre-halved against a "
-                              "wrapper that halves internally)",
+                              "wrong error budget (the FULL alpha = 0.00625 "
+                              "was passed to poly_stitching_bound, which "
+                              "applies NO split, and compared against the "
+                              "selected wrapper confseq_eb, which splits "
+                              "alpha/2 internally; the two were not at the "
+                              "same level)",
                               "wrong clock (n x pilot variance as a proxy)"],
+            "correction_history": {
+                "corrected_on": "2026-09-21",
+                "what_was_wrong": (
+                    "the previous why_it_failed entry read 'alpha pre-halved "
+                    "against a wrapper that halves internally', which reverses "
+                    "the direction of the error"),
+                "who_found_it": ("the bounded reference-delta review of the "
+                                 "04:53 cycle; the root ordered the repair"),
+                "affects_any_number": False,
+                "note": ("a description of a withdrawn calculation was wrong; "
+                         "the withdrawn calculation stays withdrawn and no "
+                         "current number depends on this text"),
+            },
         },
         "object_compared": {
             "both_sides": ("two-sided anytime-valid confidence sequences for "

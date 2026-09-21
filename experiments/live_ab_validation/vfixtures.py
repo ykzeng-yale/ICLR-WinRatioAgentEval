@@ -947,7 +947,7 @@ def _f16_import_graph_independence() -> List[str]:
     probe = (
         "import json, sys\n"
         f"sys.path.insert(0, {str(HERE)!r})\n"
-        "import vband, vfixtures, tests_validation\n"
+        "import vband, vpolicy, vfixtures, tests_validation\n"
         "bad = []\n"
         "for name, mod in list(sys.modules.items()):\n"
         "    f = getattr(mod, '__file__', None)\n"

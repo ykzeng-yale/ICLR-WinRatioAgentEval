@@ -1,0 +1,675 @@
+{
+  "schema": "live_ab_validation_v2.reference.width_diagnostic_descriptive_correction.1",
+  "what_this_corrects": "the column previously emitted as 'realized_variance_sum' is a sum of CONTEMPORANEOUSLY CENTRED squared residuals, not the ordinary prefix sum of squares about the prefix mean. It is renamed, and the correctly defined prefix sum is computed beside it.",
+  "what_it_does_not_change": [
+    "no reference call is made here",
+    "no mixture width, ratio, running mean or residual clock changes",
+    "the saved receipt is preserved unedited and keeps its label",
+    "no scientific rule, alpha, margin, seed or stopping rule is touched"
+  ],
+  "preserved_receipt": {
+    "path": "results/live_ab_validation_v2/reference_width_diagnostic.json",
+    "sha256": "8300e76b15b7e5e94faeb262fb329236383432a986821ba3248d6dc786fd97f9",
+    "status": "PRESERVED, unedited"
+  },
+  "reconciliation_against_the_preserved_receipt": {
+    "checked": 48,
+    "mismatches": [],
+    "all_preserved_values_reproduce": true
+  },
+  "review_witness_C8_n2000": {
+    "prefix_centered_sum_of_squares": 1332.8875,
+    "contemporaneously_centered_squared_residual_sum": 1328.0053387752139,
+    "reference_clock_V_n": 1338.369549643862,
+    "note": "the reference-delta review reported 1332.8875, 1328.0053387752 and 1338.3695496439 for these three quantities; they are reproduced here independently"
+  },
+  "alpha_error_history_correction": {
+    "old_text": "wrong error budget (alpha pre-halved against a wrapper that halves internally)",
+    "new_text": "wrong error budget (the FULL alpha = 0.00625 was passed to poly_stitching_bound, which applies NO split, and compared against the selected wrapper confseq_eb, which splits alpha/2 internally; the two were not at the same level)",
+    "why": "the old entry reversed the direction of the error. The withdrawn document declared a DIRECT stitched-boundary call at the full alpha with no internal split; it did not pre-halve anything.",
+    "affects_any_current_number": false,
+    "repaired_in": "reference/eb_width_diagnostic.py"
+  },
+  "scope": {
+    "streams": [
+      [
+        "C1",
+        0,
+        0
+      ],
+      [
+        "C2",
+        0,
+        0
+      ],
+      [
+        "C3",
+        0,
+        0
+      ],
+      [
+        "C4",
+        0,
+        0
+      ],
+      [
+        "C5",
+        0,
+        0
+      ],
+      [
+        "C6",
+        0,
+        0
+      ],
+      [
+        "C7",
+        0,
+        0
+      ],
+      [
+        "C8",
+        0,
+        0
+      ]
+    ],
+    "n_grid": [
+      100,
+      200,
+      500,
+      1000,
+      1500,
+      2000
+    ],
+    "rows": 48,
+    "hierarchy_score_only": true,
+    "success_guard_note": "these are hierarchy-score paths only. Nothing here speaks to success-guard power or to the absence of a useful variance-adaptive method for the success gate."
+  },
+  "rows": [
+    {
+      "cell": "C1",
+      "program": 0,
+      "trial": 0,
+      "n": 100,
+      "running_mean": -0.18,
+      "reference_clock_V_n": 74.67063302318914,
+      "contemporaneously_centered_squared_residual_sum": 65.18182008382344,
+      "prefix_centered_sum_of_squares": 68.76,
+      "clock_minus_contemporaneously_centered_sum": 9.488812939365701,
+      "clock_minus_prefix_centered_sum_of_squares": 5.910633023189135
+    },
+    {
+      "cell": "C1",
+      "program": 0,
+      "trial": 0,
+      "n": 200,
+      "running_mean": -0.07,
+      "reference_clock_V_n": 149.45165464246082,
+      "contemporaneously_centered_squared_residual_sum": 138.9245826760309,
+      "prefix_centered_sum_of_squares": 143.02,
+      "clock_minus_contemporaneously_centered_sum": 10.52707196642993,
+      "clock_minus_prefix_centered_sum_of_squares": 6.431654642460813
+    },
+    {
+      "cell": "C1",
+      "program": 0,
+      "trial": 0,
+      "n": 500,
+      "running_mean": -0.122,
+      "reference_clock_V_n": 374.67478378326217,
+      "contemporaneously_centered_squared_residual_sum": 362.77969405075095,
+      "prefix_centered_sum_of_squares": 367.558,
+      "clock_minus_contemporaneously_centered_sum": 11.895089732511224,
+      "clock_minus_prefix_centered_sum_of_squares": 7.1167837832621785
+    },
+    {
+      "cell": "C1",
+      "program": 0,
+      "trial": 0,
+      "n": 1000,
+      "running_mean": -0.073,
+      "reference_clock_V_n": 735.2851130248625,
+      "contemporaneously_centered_squared_residual_sum": 722.396079388466,
+      "prefix_centered_sum_of_squares": 727.671,
+      "clock_minus_contemporaneously_centered_sum": 12.889033636396562,
+      "clock_minus_prefix_centered_sum_of_squares": 7.61411302486249
+    },
+    {
+      "cell": "C1",
+      "program": 0,
+      "trial": 0,
+      "n": 1500,
+      "running_mean": -0.037333333333333336,
+      "reference_clock_V_n": 1101.8217429203444,
+      "contemporaneously_centered_squared_residual_sum": 1088.336362363384,
+      "prefix_centered_sum_of_squares": 1093.9093333333333,
+      "clock_minus_contemporaneously_centered_sum": 13.485380556960308,
+      "clock_minus_prefix_centered_sum_of_squares": 7.912409587011098
+    },
+    {
+      "cell": "C1",
+      "program": 0,
+      "trial": 0,
+      "n": 2000,
+      "running_mean": -0.0145,
+      "reference_clock_V_n": 1478.7088646917323,
+      "contemporaneously_centered_squared_residual_sum": 1464.7896996526013,
+      "prefix_centered_sum_of_squares": 1470.5795,
+      "clock_minus_contemporaneously_centered_sum": 13.91916503913103,
+      "clock_minus_prefix_centered_sum_of_squares": 8.129364691732235
+    },
+    {
+      "cell": "C2",
+      "program": 0,
+      "trial": 0,
+      "n": 100,
+      "running_mean": -0.02,
+      "reference_clock_V_n": 83.42613082930613,
+      "contemporaneously_centered_squared_residual_sum": 76.98486918861359,
+      "prefix_centered_sum_of_squares": 79.96,
+      "clock_minus_contemporaneously_centered_sum": 6.441261640692545,
+      "clock_minus_prefix_centered_sum_of_squares": 3.466130829306138
+    },
+    {
+      "cell": "C2",
+      "program": 0,
+      "trial": 0,
+      "n": 200,
+      "running_mean": 0.02,
+      "reference_clock_V_n": 163.93912623960023,
+      "contemporaneously_centered_squared_residual_sum": 156.39582593184133,
+      "prefix_centered_sum_of_squares": 159.92,
+      "clock_minus_contemporaneously_centered_sum": 7.543300307758898,
+      "clock_minus_prefix_centered_sum_of_squares": 4.01912623960024
+    },
+    {
+      "cell": "C2",
+      "program": 0,
+      "trial": 0,
+      "n": 500,
+      "running_mean": 0.014,
+      "reference_clock_V_n": 385.5994151663409,
+      "contemporaneously_centered_squared_residual_sum": 376.70176062709714,
+      "prefix_centered_sum_of_squares": 380.902,
+      "clock_minus_contemporaneously_centered_sum": 8.897654539243774,
+      "clock_minus_prefix_centered_sum_of_squares": 4.697415166340932
+    },
+    {
+      "cell": "C2",
+      "program": 0,
+      "trial": 0,
+      "n": 1000,
+      "running_mean": -0.005,
+      "reference_clock_V_n": 766.1990004945088,
+      "contemporaneously_centered_squared_residual_sum": 756.24893331015,
+      "prefix_centered_sum_of_squares": 760.975,
+      "clock_minus_contemporaneously_centered_sum": 9.950067184358772,
+      "clock_minus_prefix_centered_sum_of_squares": 5.2240004945088
+    },
+    {
+      "cell": "C2",
+      "program": 0,
+      "trial": 0,
+      "n": 1500,
+      "running_mean": -0.014666666666666666,
+      "reference_clock_V_n": 1141.2056256684573,
+      "contemporaneously_centered_squared_residual_sum": 1130.647225103374,
+      "prefix_centered_sum_of_squares": 1135.6773333333333,
+      "clock_minus_contemporaneously_centered_sum": 10.558400565083275,
+      "clock_minus_prefix_centered_sum_of_squares": 5.528292335123979
+    },
+    {
+      "cell": "C2",
+      "program": 0,
+      "trial": 0,
+      "n": 2000,
+      "running_mean": -0.0135,
+      "reference_clock_V_n": 1524.384137826185,
+      "contemporaneously_centered_squared_residual_sum": 1513.3851738771186,
+      "prefix_centered_sum_of_squares": 1518.6355,
+      "clock_minus_contemporaneously_centered_sum": 10.998963949066365,
+      "clock_minus_prefix_centered_sum_of_squares": 5.748637826184904
+    },
+    {
+      "cell": "C3",
+      "program": 0,
+      "trial": 0,
+      "n": 100,
+      "running_mean": -0.02,
+      "reference_clock_V_n": 94.81923682352948,
+      "contemporaneously_centered_squared_residual_sum": 86.46215773922765,
+      "prefix_centered_sum_of_squares": 89.96,
+      "clock_minus_contemporaneously_centered_sum": 8.35707908430183,
+      "clock_minus_prefix_centered_sum_of_squares": 4.859236823529486
+    },
+    {
+      "cell": "C3",
+      "program": 0,
+      "trial": 0,
+      "n": 200,
+      "running_mean": -0.035,
+      "reference_clock_V_n": 186.24483662398382,
+      "contemporaneously_centered_squared_residual_sum": 176.63108597267995,
+      "prefix_centered_sum_of_squares": 180.755,
+      "clock_minus_contemporaneously_centered_sum": 9.61375065130386,
+      "clock_minus_prefix_centered_sum_of_squares": 5.48983662398382
+    },
+    {
+      "cell": "C3",
+      "program": 0,
+      "trial": 0,
+      "n": 500,
+      "running_mean": -0.024,
+      "reference_clock_V_n": 458.0334989562378,
+      "contemporaneously_centered_squared_residual_sum": 446.7591531141924,
+      "prefix_centered_sum_of_squares": 451.712,
+      "clock_minus_contemporaneously_centered_sum": 11.27434584204542,
+      "clock_minus_prefix_centered_sum_of_squares": 6.321498956237804
+    },
+    {
+      "cell": "C3",
+      "program": 0,
+      "trial": 0,
+      "n": 1000,
+      "running_mean": 0.023,
+      "reference_clock_V_n": 919.4325446652306,
+      "contemporaneously_centered_squared_residual_sum": 906.8790319975136,
+      "prefix_centered_sum_of_squares": 912.471,
+      "clock_minus_contemporaneously_centered_sum": 12.553512667716973,
+      "clock_minus_prefix_centered_sum_of_squares": 6.961544665230576
+    },
+    {
+      "cell": "C3",
+      "program": 0,
+      "trial": 0,
+      "n": 1500,
+      "running_mean": -0.01,
+      "reference_clock_V_n": 1368.1750684003227,
+      "contemporaneously_centered_squared_residual_sum": 1354.8948068201887,
+      "prefix_centered_sum_of_squares": 1360.85,
+      "clock_minus_contemporaneously_centered_sum": 13.280261580134038,
+      "clock_minus_prefix_centered_sum_of_squares": 7.325068400322834
+    },
+    {
+      "cell": "C3",
+      "program": 0,
+      "trial": 0,
+      "n": 2000,
+      "running_mean": -0.016,
+      "reference_clock_V_n": 1819.0723157790846,
+      "contemporaneously_centered_squared_residual_sum": 1805.273709503738,
+      "prefix_centered_sum_of_squares": 1811.488,
+      "clock_minus_contemporaneously_centered_sum": 13.798606275346629,
+      "clock_minus_prefix_centered_sum_of_squares": 7.584315779084591
+    },
+    {
+      "cell": "C4",
+      "program": 0,
+      "trial": 0,
+      "n": 100,
+      "running_mean": -0.01,
+      "reference_clock_V_n": 94.58072897873701,
+      "contemporaneously_centered_squared_residual_sum": 85.10116795236465,
+      "prefix_centered_sum_of_squares": 88.99,
+      "clock_minus_contemporaneously_centered_sum": 9.479561026372366,
+      "clock_minus_prefix_centered_sum_of_squares": 5.590728978737019
+    },
+    {
+      "cell": "C4",
+      "program": 0,
+      "trial": 0,
+      "n": 200,
+      "running_mean": -0.07,
+      "reference_clock_V_n": 187.25271702336548,
+      "contemporaneously_centered_squared_residual_sum": 176.49381003166377,
+      "prefix_centered_sum_of_squares": 181.02,
+      "clock_minus_contemporaneously_centered_sum": 10.758906991701707,
+      "clock_minus_prefix_centered_sum_of_squares": 6.232717023365467
+    },
+    {
+      "cell": "C4",
+      "program": 0,
+      "trial": 0,
+      "n": 500,
+      "running_mean": 0.002,
+      "reference_clock_V_n": 450.03160055575853,
+      "contemporaneously_centered_squared_residual_sum": 437.67354056106143,
+      "prefix_centered_sum_of_squares": 442.998,
+      "clock_minus_contemporaneously_centered_sum": 12.3580599946971,
+      "clock_minus_prefix_centered_sum_of_squares": 7.0336005557585395
+    },
+    {
+      "cell": "C4",
+      "program": 0,
+      "trial": 0,
+      "n": 1000,
+      "running_mean": -0.029,
+      "reference_clock_V_n": 893.8052962917251,
+      "contemporaneously_centered_squared_residual_sum": 880.2227239807407,
+      "prefix_centered_sum_of_squares": 886.159,
+      "clock_minus_contemporaneously_centered_sum": 13.582572310984347,
+      "clock_minus_prefix_centered_sum_of_squares": 7.646296291725093
+    },
+    {
+      "cell": "C4",
+      "program": 0,
+      "trial": 0,
+      "n": 1500,
+      "running_mean": -0.036,
+      "reference_clock_V_n": 1348.0704366016505,
+      "contemporaneously_centered_squared_residual_sum": 1333.7518861863805,
+      "prefix_centered_sum_of_squares": 1340.056,
+      "clock_minus_contemporaneously_centered_sum": 14.31855041527001,
+      "clock_minus_prefix_centered_sum_of_squares": 8.01443660165046
+    },
+    {
+      "cell": "C4",
+      "program": 0,
+      "trial": 0,
+      "n": 2000,
+      "running_mean": -0.0335,
+      "reference_clock_V_n": 1803.0311296765797,
+      "contemporaneously_centered_squared_residual_sum": 1788.1903440949716,
+      "prefix_centered_sum_of_squares": 1794.7555,
+      "clock_minus_contemporaneously_centered_sum": 14.840785581608088,
+      "clock_minus_prefix_centered_sum_of_squares": 8.275629676579683
+    },
+    {
+      "cell": "C5",
+      "program": 0,
+      "trial": 0,
+      "n": 100,
+      "running_mean": 0.37,
+      "reference_clock_V_n": 66.51716689544863,
+      "contemporaneously_centered_squared_residual_sum": 61.272896413923775,
+      "prefix_centered_sum_of_squares": 63.31,
+      "clock_minus_contemporaneously_centered_sum": 5.24427048152485,
+      "clock_minus_prefix_centered_sum_of_squares": 3.2071668954486228
+    },
+    {
+      "cell": "C5",
+      "program": 0,
+      "trial": 0,
+      "n": 200,
+      "running_mean": 0.41,
+      "reference_clock_V_n": 132.02700711506557,
+      "contemporaneously_centered_squared_residual_sum": 125.9061067033417,
+      "prefix_centered_sum_of_squares": 128.38,
+      "clock_minus_contemporaneously_centered_sum": 6.120900411723866,
+      "clock_minus_prefix_centered_sum_of_squares": 3.647007115065577
+    },
+    {
+      "cell": "C5",
+      "program": 0,
+      "trial": 0,
+      "n": 500,
+      "running_mean": 0.354,
+      "reference_clock_V_n": 348.6586651172006,
+      "contemporaneously_centered_squared_residual_sum": 341.20066873089615,
+      "prefix_centered_sum_of_squares": 344.342,
+      "clock_minus_contemporaneously_centered_sum": 7.457996386304444,
+      "clock_minus_prefix_centered_sum_of_squares": 4.316665117200614
+    },
+    {
+      "cell": "C5",
+      "program": 0,
+      "trial": 0,
+      "n": 1000,
+      "running_mean": 0.364,
+      "reference_clock_V_n": 698.3035780311847,
+      "contemporaneously_centered_squared_residual_sum": 689.8804497658147,
+      "prefix_centered_sum_of_squares": 693.504,
+      "clock_minus_contemporaneously_centered_sum": 8.423128265369996,
+      "clock_minus_prefix_centered_sum_of_squares": 4.799578031184637
+    },
+    {
+      "cell": "C5",
+      "program": 0,
+      "trial": 0,
+      "n": 1500,
+      "running_mean": 0.39066666666666666,
+      "reference_clock_V_n": 1024.1350437782135,
+      "contemporaneously_centered_squared_residual_sum": 1015.1798711291478,
+      "prefix_centered_sum_of_squares": 1019.0693333333334,
+      "clock_minus_contemporaneously_centered_sum": 8.955172649065616,
+      "clock_minus_prefix_centered_sum_of_squares": 5.0657104448800965
+    },
+    {
+      "cell": "C5",
+      "program": 0,
+      "trial": 0,
+      "n": 2000,
+      "running_mean": 0.3835,
+      "reference_clock_V_n": 1370.1212274289333,
+      "contemporaneously_centered_squared_residual_sum": 1360.7661372662924,
+      "prefix_centered_sum_of_squares": 1364.8555000000001,
+      "clock_minus_contemporaneously_centered_sum": 9.355090162640863,
+      "clock_minus_prefix_centered_sum_of_squares": 5.265727428933133
+    },
+    {
+      "cell": "C6",
+      "program": 0,
+      "trial": 0,
+      "n": 100,
+      "running_mean": 0.24,
+      "reference_clock_V_n": 76.61903631096023,
+      "contemporaneously_centered_squared_residual_sum": 69.39792156682151,
+      "prefix_centered_sum_of_squares": 72.24,
+      "clock_minus_contemporaneously_centered_sum": 7.221114744138717,
+      "clock_minus_prefix_centered_sum_of_squares": 4.379036310960231
+    },
+    {
+      "cell": "C6",
+      "program": 0,
+      "trial": 0,
+      "n": 200,
+      "running_mean": 0.315,
+      "reference_clock_V_n": 148.0311709457962,
+      "contemporaneously_centered_squared_residual_sum": 139.81937527609196,
+      "prefix_centered_sum_of_squares": 143.155,
+      "clock_minus_contemporaneously_centered_sum": 8.21179566970423,
+      "clock_minus_prefix_centered_sum_of_squares": 4.87617094579619
+    },
+    {
+      "cell": "C6",
+      "program": 0,
+      "trial": 0,
+      "n": 500,
+      "running_mean": 0.312,
+      "reference_clock_V_n": 360.85115528229846,
+      "contemporaneously_centered_squared_residual_sum": 351.34749928131583,
+      "prefix_centered_sum_of_squares": 355.328,
+      "clock_minus_contemporaneously_centered_sum": 9.50365600098263,
+      "clock_minus_prefix_centered_sum_of_squares": 5.5231552822984895
+    },
+    {
+      "cell": "C6",
+      "program": 0,
+      "trial": 0,
+      "n": 1000,
+      "running_mean": 0.372,
+      "reference_clock_V_n": 707.6240490570232,
+      "contemporaneously_centered_squared_residual_sum": 697.1513102369754,
+      "prefix_centered_sum_of_squares": 701.616,
+      "clock_minus_contemporaneously_centered_sum": 10.472738820047766,
+      "clock_minus_prefix_centered_sum_of_squares": 6.008049057023186
+    },
+    {
+      "cell": "C6",
+      "program": 0,
+      "trial": 0,
+      "n": 1500,
+      "running_mean": 0.37866666666666665,
+      "reference_clock_V_n": 1055.2082042816767,
+      "contemporaneously_centered_squared_residual_sum": 1044.1700550351388,
+      "prefix_centered_sum_of_squares": 1048.9173333333333,
+      "clock_minus_contemporaneously_centered_sum": 11.038149246537841,
+      "clock_minus_prefix_centered_sum_of_squares": 6.290870948343354
+    },
+    {
+      "cell": "C6",
+      "program": 0,
+      "trial": 0,
+      "n": 2000,
+      "running_mean": 0.3715,
+      "reference_clock_V_n": 1411.471734768053,
+      "contemporaneously_centered_squared_residual_sum": 1400.022977054774,
+      "prefix_centered_sum_of_squares": 1404.9755,
+      "clock_minus_contemporaneously_centered_sum": 11.448757713279065,
+      "clock_minus_prefix_centered_sum_of_squares": 6.496234768053
+    },
+    {
+      "cell": "C7",
+      "program": 0,
+      "trial": 0,
+      "n": 100,
+      "running_mean": 0.39,
+      "reference_clock_V_n": 72.8869201194884,
+      "contemporaneously_centered_squared_residual_sum": 67.7857805130895,
+      "prefix_centered_sum_of_squares": 69.78999999999999,
+      "clock_minus_contemporaneously_centered_sum": 5.101139606398888,
+      "clock_minus_prefix_centered_sum_of_squares": 3.096920119488402
+    },
+    {
+      "cell": "C7",
+      "program": 0,
+      "trial": 0,
+      "n": 200,
+      "running_mean": 0.455,
+      "reference_clock_V_n": 133.11494151272908,
+      "contemporaneously_centered_squared_residual_sum": 127.1708667703777,
+      "prefix_centered_sum_of_squares": 129.595,
+      "clock_minus_contemporaneously_centered_sum": 5.944074742351376,
+      "clock_minus_prefix_centered_sum_of_squares": 3.5199415127290763
+    },
+    {
+      "cell": "C7",
+      "program": 0,
+      "trial": 0,
+      "n": 500,
+      "running_mean": 0.388,
+      "reference_clock_V_n": 350.9081278047195,
+      "contemporaneously_centered_squared_residual_sum": 343.6458263718609,
+      "prefix_centered_sum_of_squares": 346.728,
+      "clock_minus_contemporaneously_centered_sum": 7.262301432858635,
+      "clock_minus_prefix_centered_sum_of_squares": 4.180127804719518
+    },
+    {
+      "cell": "C7",
+      "program": 0,
+      "trial": 0,
+      "n": 1000,
+      "running_mean": 0.416,
+      "reference_clock_V_n": 681.5744648780758,
+      "contemporaneously_centered_squared_residual_sum": 673.4121274043678,
+      "prefix_centered_sum_of_squares": 676.944,
+      "clock_minus_contemporaneously_centered_sum": 8.162337473708021,
+      "clock_minus_prefix_centered_sum_of_squares": 4.630464878075827
+    },
+    {
+      "cell": "C7",
+      "program": 0,
+      "trial": 0,
+      "n": 1500,
+      "running_mean": 0.44666666666666666,
+      "reference_clock_V_n": 977.603669038345,
+      "contemporaneously_centered_squared_residual_sum": 968.9617872039195,
+      "prefix_centered_sum_of_squares": 972.7333333333333,
+      "clock_minus_contemporaneously_centered_sum": 8.641881834425476,
+      "clock_minus_prefix_centered_sum_of_squares": 4.870335705011598
+    },
+    {
+      "cell": "C7",
+      "program": 0,
+      "trial": 0,
+      "n": 2000,
+      "running_mean": 0.437,
+      "reference_clock_V_n": 1313.1261587655495,
+      "contemporaneously_centered_squared_residual_sum": 1304.0967435542902,
+      "prefix_centered_sum_of_squares": 1308.062,
+      "clock_minus_contemporaneously_centered_sum": 9.02941521125922,
+      "clock_minus_prefix_centered_sum_of_squares": 5.064158765549564
+    },
+    {
+      "cell": "C8",
+      "program": 0,
+      "trial": 0,
+      "n": 100,
+      "running_mean": 0.41,
+      "reference_clock_V_n": 77.69615064979195,
+      "contemporaneously_centered_squared_residual_sum": 71.27779395699477,
+      "prefix_centered_sum_of_squares": 74.19,
+      "clock_minus_contemporaneously_centered_sum": 6.418356692797175,
+      "clock_minus_prefix_centered_sum_of_squares": 3.506150649791948
+    },
+    {
+      "cell": "C8",
+      "program": 0,
+      "trial": 0,
+      "n": 200,
+      "running_mean": 0.45,
+      "reference_clock_V_n": 139.41794250542264,
+      "contemporaneously_centered_squared_residual_sum": 132.17886736002563,
+      "prefix_centered_sum_of_squares": 135.5,
+      "clock_minus_contemporaneously_centered_sum": 7.23907514539701,
+      "clock_minus_prefix_centered_sum_of_squares": 3.917942505422644
+    },
+    {
+      "cell": "C8",
+      "program": 0,
+      "trial": 0,
+      "n": 500,
+      "running_mean": 0.43,
+      "reference_clock_V_n": 347.0959106855252,
+      "contemporaneously_centered_squared_residual_sum": 338.60293630300356,
+      "prefix_centered_sum_of_squares": 342.55,
+      "clock_minus_contemporaneously_centered_sum": 8.492974382521652,
+      "clock_minus_prefix_centered_sum_of_squares": 4.5459106855252
+    },
+    {
+      "cell": "C8",
+      "program": 0,
+      "trial": 0,
+      "n": 1000,
+      "running_mean": 0.394,
+      "reference_clock_V_n": 709.8162256267372,
+      "contemporaneously_centered_squared_residual_sum": 700.3113568010479,
+      "prefix_centered_sum_of_squares": 704.764,
+      "clock_minus_contemporaneously_centered_sum": 9.5048688256893,
+      "clock_minus_prefix_centered_sum_of_squares": 5.05222562673714
+    },
+    {
+      "cell": "C8",
+      "program": 0,
+      "trial": 0,
+      "n": 1500,
+      "running_mean": 0.43333333333333335,
+      "reference_clock_V_n": 1007.6253918725489,
+      "contemporaneously_centered_squared_residual_sum": 997.6410532945104,
+      "prefix_centered_sum_of_squares": 1002.3333333333333,
+      "clock_minus_contemporaneously_centered_sum": 9.984338578038546,
+      "clock_minus_prefix_centered_sum_of_squares": 5.292058539215645
+    },
+    {
+      "cell": "C8",
+      "program": 0,
+      "trial": 0,
+      "n": 2000,
+      "running_mean": 0.4325,
+      "reference_clock_V_n": 1338.369549643862,
+      "contemporaneously_centered_squared_residual_sum": 1328.0053387752139,
+      "prefix_centered_sum_of_squares": 1332.8875,
+      "clock_minus_contemporaneously_centered_sum": 10.364210868648115,
+      "clock_minus_prefix_centered_sum_of_squares": 5.482049643861956
+    }
+  ],
+  "provenance": {
+    "diagnostic_module_sha256": "fe1b6be11fbda87cef77918499217a0dfe8aadee1067af921fe850611f279944",
+    "corrector_sha256": "76d21b7259b51f7b887a81730b11b21b83e4e3669adee06b9ec6f7efbec55b9a",
+    "vcompare_sha256": "6f21d42119b5137eae4710d58ca33ce9b4b8296a1449d90c95a3f63a6649930c",
+    "cells_json_sha256": "96ebf7e47f790031d5d125cedcc9a9973bccfc78ea8e159798d69fcca9d61e97",
+    "python": "3.12.13",
+    "numpy": "2.4.1",
+    "platform": "macOS-26.5.2-arm64-arm-64bit"
+  }
+}

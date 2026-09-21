@@ -46,5 +46,33 @@ The honest statement is the one the root supplied and I am adopting verbatim: th
 conservative containment and do not demonstrate an undercoverage defect, and they do not certify all `#11`
 results. The effect on decisions and stopping times is **unmeasured**.
 
-Scope: 100 rows from a bounded partial run of 8 of 200 cell streams, and the v2 comparison currently **skips
-every non-final drain look**, so this is not even a complete view of the streams it did run. Not a rate.
+Scope: 100 rows from a bounded partial run of 8 of 200 cell streams, and the v2 comparison at the time this file
+was written **skipped every non-final drain look**, so it was not even a complete view of the streams it did run.
+Not a rate.
+
+## UPDATE 2026-09-21 — the skip is repaired and the comparison is now matched
+
+Two things changed after the paragraph above was written, both on the root's ranked instruction, and the numbers
+below supersede the 100-row count as *the* view of these eight streams.
+
+**The drain-look skip is repaired.** `vcompare` now compares every declared tick through `N + W` with the
+enrolled denominator fixed at `N`; the skip survives only in v1 reproduction mode. Re-running the *same* bounded
+partial comparison with the *unchanged* ideal-enclosure oracle and the repaired schedule gives **17,603 compared
+looks** (was 16,011), **102 disagreeing** (was 99), **204 defect rows** (was 198: 103 per-pair endpoint rows and
+101 aggregate-band rows). Of the **1,592 newly included drain looks, 3 disagree** — three disagreements the old
+schedule concealed. So the 100-row ledger above was, as suspected, incomplete; it is now 103 rows.
+
+**The comparison is now between matched operational policies.** The root's decision is to keep the conservative
+live numeric policy and *not* tighten it to force agreement; instead the declared policy is implemented
+independently as a versioned CPU adapter (`vpolicy.py`), and the ideal oracle is retained separately as a
+diagnostic. Under the matched comparison the same eight streams give **17,603 compared looks, 0 disagreeing, 0
+defect rows**. Oracle containment is then its own check, not a disagreement count: **0 containment violations in
+19,208,000 pair-state checks**, with **103 pair states where the oracle is strictly narrower**.
+
+**What that does and does not mean.** The disagreements did not turn out to be arithmetic errors that were
+fixed; they were **reclassified** from a disagreement count into the separate oracle-versus-operational
+diagnostic, which is what they always were. The adapter reproduces all six states of the table above on the
+`#11` side exactly, and both boundary margins are exactly `0.0`, so the difference survives `eps = 0` and is a
+difference of algebraic form, not of epsilon. The verdict of this file is unchanged: `#12`'s oracle is tight in
+all six states, `#11` is wider in all six and narrower in none, and **the effect on decisions and stopping times
+remains unmeasured**.

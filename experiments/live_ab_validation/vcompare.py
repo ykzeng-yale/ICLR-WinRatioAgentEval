@@ -148,6 +148,60 @@ def select_snapshot(name: str) -> Dict[str, Any]:
     RESULTS_ROOT = SNAPSHOT["results_root"]
     return SNAPSHOT
 
+
+# -----------------------------------------------------------------------------
+# The OBSERVATION POLICY the #12 side runs, and the LOOK SCHEDULE it runs on.
+#
+# Root disposition of 2026-09-21 04:53, ranked action 1, and COORDINATOR_DECISIONS
+# revision 18 items 92-93.  Two separate repairs live here:
+#
+#   POLICY.  Until now the #12 side was always the IDEAL ENCLOSURE ORACLE, and it
+#   was compared against an OPERATIONAL policy.  The root's ruling is to keep the
+#   conservative live numeric policy and to compare MATCHED operational policies,
+#   with oracle containment kept as its own separate check.  ``operational`` binds
+#   the independently written adapter in vpolicy.py; ``oracle`` keeps vband's own
+#   enumeration, unchanged, as the explicitly different observation policy it is.
+#
+#   SCHEDULE.  v1 took NO look at a non-final drain tick.  v2 must compare every
+#   declared tick through N + W with the enrolled denominator fixed at N.  The
+#   skip is preserved ONLY under v1, so v1 reproduces byte for byte.
+#
+# Neither switch changes a scientific rule: scoring, alpha, rho, delta, n_min,
+# margins, gates, seeds, stopping, deadline and finalization are untouched.
+# -----------------------------------------------------------------------------
+POLICIES = ("oracle", "operational")
+
+#: The default policy and drain schedule of each snapshot.  v1 is frozen to what
+#: it deposited; v2 takes the repaired behaviour the root ordered.
+SNAPSHOT_DEFAULTS: Dict[str, Dict[str, Any]] = {
+    "v1": {"policy": "oracle", "compare_drain_looks": False},
+    "v2": {"policy": "operational", "compare_drain_looks": True},
+}
+
+
+def resolve_policy(snapshot_id: str, requested: str) -> str:
+    """``auto`` means the snapshot's own default; anything else is explicit."""
+    if requested == "auto":
+        return SNAPSHOT_DEFAULTS[snapshot_id]["policy"]
+    if requested not in POLICIES:
+        raise ComparisonRefusal(
+            f"REFUSING TO RUN: unknown policy {requested!r}; "
+            f"choose one of {sorted(POLICIES)} or 'auto'.")
+    return requested
+
+
+def resolve_drain_schedule(snapshot_id: str, requested: str) -> bool:
+    """``auto`` means the snapshot's own default; ``all``/``final-only`` override."""
+    if requested == "auto":
+        return bool(SNAPSHOT_DEFAULTS[snapshot_id]["compare_drain_looks"])
+    if requested == "all":
+        return True
+    if requested == "final-only":
+        return False
+    raise ComparisonRefusal(
+        f"REFUSING TO RUN: unknown drain schedule {requested!r}; "
+        f"choose 'auto', 'all' or 'final-only'.")
+
 #: PROTOCOL 12.2, frozen: endpoints lie in [-1, 1], so an absolute criterion is the
 #: meaningful one.  The tolerance covers floating-point summation order only and is
 #: itself frozen (12.3 item 5).
@@ -793,15 +847,36 @@ def crosscheck_vgen(gen: FrozenGenerator, sample: Sequence[Stream]) -> Dict[str,
 # 4.  The two sides, each driven through its own constructors
 # =============================================================================
 class Side12:
-    """The #12 implementation under test: ``vband``, and nothing else."""
+    """The #12 side under test, under ONE named observation policy.
 
-    def __init__(self, cfg: FrozenConfig) -> None:
+    ``policy='oracle'`` runs ``vband.ValidationMonitor``: the ideal-enclosure
+    oracle, unchanged, which enumerates the feasible cost box directly.
+    ``policy='operational'`` runs ``vpolicy.OperationalMonitor``: the separately
+    versioned independent CPU implementation of the DECLARED live observation
+    policy, certificate-gated with epsilon headroom.  Everything else -- the
+    enrollment ledger, the denominator, the band arithmetic and the decision
+    rule -- is the same shared code in both cases, because only the observation
+    policy is supposed to differ.
+    """
+
+    def __init__(self, cfg: FrozenConfig, policy: str = "oracle") -> None:
         import vband                                             # noqa: E402
         self.vband = vband
         self.cfg = cfg
-        self.mon = vband.ValidationMonitor(
-            cost_cap=cfg.cost_cap, alpha_gate=cfg.alpha_gate, rho=cfg.rho,
-            delta=cfg.delta, n_min=cfg.n_min)
+        if policy not in POLICIES:
+            raise ComparisonRefusal(f"REFUSING TO RUN: unknown policy {policy!r}")
+        self.policy = policy
+        self.vpolicy = None
+        if policy == "operational":
+            import vpolicy                                       # noqa: E402
+            self.vpolicy = vpolicy
+            self.mon: Any = vpolicy.OperationalMonitor(
+                cost_cap=cfg.cost_cap, alpha_gate=cfg.alpha_gate, rho=cfg.rho,
+                delta=cfg.delta, n_min=cfg.n_min)
+        else:
+            self.mon = vband.ValidationMonitor(
+                cost_cap=cfg.cost_cap, alpha_gate=cfg.alpha_gate, rho=cfg.rho,
+                delta=cfg.delta, n_min=cfg.n_min)
         # Enrollment-indexed mirrors of the monitor's OWN enclosure endpoints, kept so
         # that the band can be assembled without rebuilding the list at every look.
         # ``normal_mixture_band`` below is the monitor's own band function and
@@ -971,6 +1046,11 @@ LOOK_FIELDS = [
     "label_12", "label_11_raw", "label_11_mapped", "labels_agree",
     "pairs_compared", "pairs_within_tol", "max_abs_pair_diff", "first_bad_pair",
     "checkpoint", "status",
+    # v2: a look taken at a NON-FINAL drain tick (t > N, t != finalization_tick).
+    # v1's CSV contains zero rows with drain_look = True; that is the defect the
+    # root identified, and this column is how the repair is checkable from the
+    # CSV alone rather than from the summary's word for it.
+    "drain_look",
 ]
 
 
@@ -1068,11 +1148,20 @@ class StreamOutcome:
     enclosure_checkpoints: int = 0
     pair_endpoint_comparisons: int = 0
     defect_classes: Dict[str, int] = field(default_factory=dict)
+    #: looks taken at a NON-FINAL drain tick (t > N, t != finalization_tick).
+    #: v1 skipped every one of them; v2 compares them with the denominator at N.
+    drain_looks: int = 0
+    drain_looks_disagreeing: int = 0
+    #: the SEPARATE oracle-containment check (never a disagreement count)
+    oracle_containment_checks: int = 0
+    oracle_containment_violations: int = 0
+    oracle_strictly_narrower_pairs: int = 0
 
 
 def compare_cell_stream(st: Stream, cfg: FrozenConfig, pinned: PinnedLoad,
                         ledger: DefectLedger, look_writer, checkpoint_every: int,
-                        verbose: bool = False) -> StreamOutcome:
+                        verbose: bool = False, policy: str = "oracle",
+                        compare_drain_looks: bool = False) -> StreamOutcome:
     """Drive both sides over one frozen stream and compare at every look.
 
     The event stream is the one PROTOCOL 4.3 and cells.json fix: both episodes of a pair
@@ -1083,8 +1172,15 @@ def compare_cell_stream(st: Stream, cfg: FrozenConfig, pinned: PinnedLoad,
     """
     t0 = time.perf_counter()
     out = StreamOutcome(stream_id=st.stream_id, kind=st.kind, cell=st.cell_id)
-    s12 = Side12(cfg)
+    s12 = Side12(cfg, policy=policy)
     s11 = Side11(cfg, pinned, st.n_max)
+    # The ORACLE SHADOW.  When the compared #12 side runs the operational policy,
+    # the ideal-enclosure oracle is still driven over the SAME events -- but its
+    # result is a separate CONTAINMENT CHECK, never a disagreement count.  The
+    # oracle is expected to be tighter; the only finding that matters is whether
+    # the operational enclosure ever FAILS to contain it, which would be an
+    # unsound narrowing.
+    s_or = Side12(cfg, policy="oracle") if policy == "operational" else None
 
     n_max = st.n_max
     d_arr = st.d.astype(np.int64)
@@ -1100,6 +1196,8 @@ def compare_cell_stream(st: Stream, cfg: FrozenConfig, pinned: PinnedLoad,
     # per-pair mirrors of each side's own endpoints, compared vectorised at every look
     m12 = np.full((4, n_max), np.nan)
     m11 = np.full((4, n_max), np.nan)
+    #: the oracle shadow's own endpoints, for the separate containment check
+    m_or = np.full((4, n_max), np.nan)
 
     active: List[int] = []
     revealed_c = np.zeros(n_max + 1, dtype=bool)
@@ -1117,8 +1215,11 @@ def compare_cell_stream(st: Stream, cfg: FrozenConfig, pinned: PinnedLoad,
                 s11.enroll(t)
             except Exception as exc:                             # noqa: BLE001
                 return _exc_row(st, t, t, "enroll", "11", exc)
+            if s_or is not None:
+                s_or.enroll(t)
             m12[:, t - 1] = (-1.0, 1.0, -1.0, 1.0)
             m11[:, t - 1] = (-1.0, 1.0, -1.0, 1.0)
+            m_or[:, t - 1] = (-1.0, 1.0, -1.0, 1.0)
             active.append(t)
 
         for j in active:
@@ -1139,6 +1240,8 @@ def compare_cell_stream(st: Stream, cfg: FrozenConfig, pinned: PinnedLoad,
                     s11.reveal(j, arm, int(succ[i]), float(cost[i]))
                 except Exception as exc:                         # noqa: BLE001
                     return _exc_row(st, t, j, f"reveal_{arm}", "11", exc)
+                if s_or is not None:
+                    s_or.reveal(j, arm, int(succ[i]), float(cost[i]))
                 revealed[j] = True
                 changed = True
             # --- elapsed lower bound of every pending episode -----------------------
@@ -1155,6 +1258,8 @@ def compare_cell_stream(st: Stream, cfg: FrozenConfig, pinned: PinnedLoad,
                     s11.elapsed(j, arm, ell)
                 except Exception as exc:                         # noqa: BLE001
                     return _exc_row(st, t, j, f"elapsed_{arm}", "11", exc)
+                if s_or is not None:
+                    s_or.elapsed(j, arm, ell)
                 changed = True
             if changed:
                 try:
@@ -1165,6 +1270,8 @@ def compare_cell_stream(st: Stream, cfg: FrozenConfig, pinned: PinnedLoad,
                     m11[:, i] = s11.refresh(j)
                 except Exception as exc:                         # noqa: BLE001
                     return _exc_row(st, t, j, "enclosure", "11", exc)
+                if s_or is not None:
+                    m_or[:, i] = s_or.refresh(j)
         active = [j for j in active if (t - j) < d_arr[j - 1]]
         return None
 
@@ -1217,8 +1324,16 @@ def compare_cell_stream(st: Stream, cfg: FrozenConfig, pinned: PinnedLoad,
                 out.defect_classes.get(bad["defect_class"], 0) + 1
             break
         is_final = (t == st.finalization_tick)
-        if t > n_max and not is_final:
-            continue                                             # drain ticks take no look
+        is_drain_look = (t > n_max and not is_final)
+        if is_drain_look and not compare_drain_looks:
+            # v1 REPRODUCTION MODE ONLY.  The deposited v1 comparison took no
+            # look at a non-final drain tick, so its CSV contains zero of them.
+            # That is preserved here byte for byte and NOWHERE ELSE: v2 compares
+            # every declared tick through N + W (root disposition 04:53,
+            # COORDINATOR_DECISIONS revision 18 item 93).
+            continue
+        # The denominator is the ENROLLED PREFIX and it is fixed at N through the
+        # whole drain: enrollment stops at N, and min() is what fixes it.
         n = min(t, n_max)
 
         exc12 = exc11 = None
@@ -1232,11 +1347,45 @@ def compare_cell_stream(st: Stream, cfg: FrozenConfig, pinned: PinnedLoad,
             exc11 = exc
 
         out.looks += 1
+        out.drain_looks += int(is_drain_look)
+        # ---- the SEPARATE oracle-containment check ---------------------------
+        # Not a disagreement count.  The operational policy is EXPECTED to be
+        # wider than the ideal-enclosure oracle; the only defect is a failure to
+        # contain, which would mean the operational rule narrowed unsoundly.
+        if s_or is not None and n:
+            op_lo_h, op_hi_h = m12[0, :n], m12[1, :n]
+            or_lo_h, or_hi_h = m_or[0, :n], m_or[1, :n]
+            op_lo_s, op_hi_s = m12[2, :n], m12[3, :n]
+            or_lo_s, or_hi_s = m_or[2, :n], m_or[3, :n]
+            bad_mask = ((op_lo_h > or_lo_h + TOL) | (op_hi_h < or_hi_h - TOL)
+                        | (op_lo_s > or_lo_s + TOL) | (op_hi_s < or_hi_s - TOL))
+            wider_mask = ((or_lo_h - op_lo_h > TOL) | (op_hi_h - or_hi_h > TOL)
+                          | (or_lo_s - op_lo_s > TOL) | (op_hi_s - or_hi_s > TOL))
+            out.oracle_containment_checks += int(n)
+            n_bad = int(np.count_nonzero(bad_mask))
+            out.oracle_strictly_narrower_pairs += int(np.count_nonzero(wider_mask))
+            if n_bad:
+                out.oracle_containment_violations += n_bad
+                col = int(np.where(bad_mask)[0][0])
+                row = _blank_defect(st, t, n)
+                row.update({
+                    "defect_class": "oracle_containment_violation",
+                    "guidance_ref": ("root disposition 2026-09-21 04:53: oracle "
+                                     "containment is a SEPARATE check"),
+                    "quantity": "operational_encloses_oracle",
+                    "pair_position": col + 1,
+                    "enc12_lo": m12[0, col], "enc12_hi": m12[1, col],
+                    "enc11_lo": m_or[0, col], "enc11_hi": m_or[1, col],
+                    "value_12": n_bad, "value_11": 0})
+                ledger.add(row)
+                out.defect_classes["oracle_containment_violation"] = \
+                    out.defect_classes.get("oracle_containment_violation", 0) + n_bad
         if exc12 is not None or exc11 is not None:
             # PROTOCOL 12.2: an exception on one side where the other returns a value IS
             # a disagreement.  It is never a skip, a filter or a harness detail.
             side = "12" if exc12 is not None else "11"
             both = exc12 is not None and exc11 is not None
+            out.drain_looks_disagreeing += int(is_drain_look)
             row = _blank_defect(st, t, n)
             row.update({
                 "defect_class": "both_sides_raised" if both else "exception_asymmetry",
@@ -1251,7 +1400,7 @@ def compare_cell_stream(st: Stream, cfg: FrozenConfig, pinned: PinnedLoad,
             look_writer.writerow(_look_row(st, t, n, is_final, None, None, None, None,
                                            "", raw11 if exc11 is None else "",
                                            "", False, n, 0, float("nan"), "",
-                                           "EXCEPTION"))
+                                           "EXCEPTION", drain_look=is_drain_look))
             continue
 
         # ---- per-pair enclosure endpoints (all pairs, every look) ------------
@@ -1337,11 +1486,12 @@ def compare_cell_stream(st: Stream, cfg: FrozenConfig, pinned: PinnedLoad,
             out.looks_agreeing += 1
         else:
             out.disagreeing_looks += 1
+            out.drain_looks_disagreeing += int(is_drain_look)
         look_writer.writerow(_look_row(
             st, t, n, is_final, (bh12, bs12), (bh11, bs11), deltas, band_ok,
             label12, "" if raw11 is None else raw11, mapped11, labels_ok,
             n, int(np.sum(np.all(diff <= TOL, axis=0))), max_pair, first_bad,
-            "AGREE" if agree else "DISAGREE"))
+            "AGREE" if agree else "DISAGREE", drain_look=is_drain_look))
 
         if checkpoint_every and (t % checkpoint_every == 0 or is_final):
             msg = s12.verify_band()
@@ -1407,12 +1557,14 @@ def compare_cell_stream(st: Stream, cfg: FrozenConfig, pinned: PinnedLoad,
 
 def _look_row(st: Stream, t: int, n: int, is_final: bool, b12, b11, deltas, band_ok,
               label12, raw11, mapped11, labels_ok, pairs_compared, pairs_ok,
-              max_pair, first_bad, status, checkpoint: str = "look") -> Dict[str, Any]:
+              max_pair, first_bad, status, checkpoint: str = "look",
+              drain_look: bool = False) -> Dict[str, Any]:
     row = {
         "checkpoint": checkpoint,
         "stream_id": st.stream_id, "kind": st.kind, "cell": st.cell_id,
         "cell_index": st.cell_index, "namespace": st.namespace, "program": st.program,
         "trial": st.trial, "tick": t, "n": n, "finalization": is_final,
+        "drain_look": drain_look,
         "label_12": label12, "label_11_raw": raw11, "label_11_mapped": mapped11,
         "labels_agree": labels_ok, "pairs_compared": pairs_compared,
         "pairs_within_tol": pairs_ok, "max_abs_pair_diff": max_pair,
@@ -1540,7 +1692,8 @@ def convert_fixture_script(name: str, events: Sequence[tuple],
 
 
 def compare_fixture_stream(conv: Dict[str, Any], cfg: FrozenConfig, pinned: PinnedLoad,
-                           ledger: DefectLedger, look_writer) -> StreamOutcome:
+                           ledger: DefectLedger, look_writer,
+                           policy: str = "oracle") -> StreamOutcome:
     """Replay one converted fixture script through both sides and compare at each look."""
     t0 = time.perf_counter()
     name = conv["name"]
@@ -1553,7 +1706,7 @@ def compare_fixture_stream(conv: Dict[str, Any], cfg: FrozenConfig, pinned: Pinn
                 d_true=np.zeros(0))
     out = StreamOutcome(stream_id=name, kind="fixture", cell="fixture")
     n_pairs = len(conv["pairs"])
-    s12 = Side12(cfg)
+    s12 = Side12(cfg, policy=policy)
     s11 = Side11(cfg, pinned, max(n_pairs, cfg.n_max))
     m12 = np.full((4, n_pairs), np.nan)
     m11 = np.full((4, n_pairs), np.nan)
@@ -1920,14 +2073,34 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     ap.add_argument("--max-defect-rows", type=int, default=0,
                     help="0 (default) writes every disagreement; a positive value "
                          "truncates the CSV and records the truncation loudly")
+    ap.add_argument("--policy", default="auto",
+                    choices=("auto",) + POLICIES,
+                    help="which OBSERVATION POLICY the #12 side runs. 'operational' "
+                         "is the separately versioned independent CPU adapter for "
+                         "the declared live policy (vpolicy.py) and is what "
+                         "calibration claims about the live monitor use. 'oracle' "
+                         "is vband's ideal enclosure enumeration, kept unchanged as "
+                         "a diagnostic. 'auto' (default) takes the snapshot's own "
+                         "default: oracle under v1, operational under v2.")
+    ap.add_argument("--drain-looks", default="auto",
+                    choices=("auto", "all", "final-only"),
+                    help="which drain ticks are compared. 'all' compares every "
+                         "tick through N+W with the denominator fixed at N; "
+                         "'final-only' is the v1 behaviour and skips every "
+                         "non-final drain look. 'auto' (default) takes the "
+                         "snapshot's default: final-only under v1, all under v2.")
     args = ap.parse_args(argv)
 
     snap = select_snapshot(args.snapshot)
+    policy = resolve_policy(snap["id"], args.policy)
+    compare_drain_looks = resolve_drain_schedule(snap["id"], args.drain_looks)
     out_dir = guarded_out_dir(args.out if args.out else str(RESULTS_ROOT))
     cfg = load_frozen_config()
     print(f"[snapshot] {snap['id']} -> {PINNED_DIR.relative_to(REPO_ROOT)} | "
           f"operative document {PROTOCOL_PATH.name} | "
           f"writes under {RESULTS_ROOT.relative_to(REPO_ROOT)}")
+    print(f"[policy] observation policy = {policy} | drain looks = "
+          f"{'ALL ticks through N+W, denominator fixed at N' if compare_drain_looks else 'FINAL ONLY (v1 reproduction)'}")
     print(f"[config] cells.json alpha_gate={cfg.alpha_gate} rho={cfg.rho} "
           f"delta={cfg.delta} n_min={cfg.n_min} N_max={cfg.n_max} "
           f"finalization_tick={cfg.finalization_tick} namespace={cfg.namespace}")
@@ -1972,7 +2145,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 print(f"  [{i}/{len(streams)}] {st.stream_id} ...", flush=True)
                 outcomes.append(compare_cell_stream(
                     st, cfg, pinned, ledger, look_writer, args.checkpoint_every,
-                    verbose=True))
+                    verbose=True, policy=policy,
+                    compare_drain_looks=compare_drain_looks))
         else:
             xcheck = {"status": "not probed (fixture-only run)", "vgen_present":
                       (HERE / "vgen.py").is_file(), "checked_streams": 0,
@@ -1996,7 +2170,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                     fixture_report.setdefault("notes", []).append(
                         {"script": name, "note": conv["note"]})
                 outcomes.append(compare_fixture_stream(
-                    conv, cfg, pinned, ledger, look_writer))
+                    conv, cfg, pinned, ledger, look_writer, policy=policy))
             print(f"[fixtures] {fixture_report['comparable']} comparable, "
                   f"{len(fixture_report['not_comparable'])} not comparable")
 
@@ -2025,10 +2199,71 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         f"The two implementations DISAGREE: {total_looks - agreeing} of {total_looks} "
         f"compared looks, over {n_streams} streams, failed at least one frozen criterion.")
 
+    import vpolicy                                               # noqa: E402
+    drain_looks = sum(o.drain_looks for o in outcomes)
+    drain_disagreeing = sum(o.drain_looks_disagreeing for o in outcomes)
+    oracle_checks = sum(o.oracle_containment_checks for o in outcomes)
+    oracle_violations = sum(o.oracle_containment_violations for o in outcomes)
+    oracle_narrower = sum(o.oracle_strictly_narrower_pairs for o in outcomes)
+
     summary: Dict[str, Any] = {
         "protocol": snap["protocol_section"],
         "version": snap["version"],
         "snapshot_binding": bindings,
+        "observation_policy": {
+            "policy_compared": policy,
+            "requested": args.policy,
+            "snapshot_default": SNAPSHOT_DEFAULTS[snap["id"]]["policy"],
+            "adapter": vpolicy.policy_constants(),
+            "adapter_sha256": sha256_file(HERE / "vpolicy.py"),
+            "why": (
+                "Root disposition 2026-09-21 04:53, ranked action 1, and "
+                "COORDINATOR_DECISIONS revision 18 item 92: keep the conservative "
+                "live numeric policy, do NOT tighten the monitored rule to force "
+                "agreement, and compare MATCHED OPERATIONAL POLICIES by "
+                "implementing the declared policy independently. The ideal "
+                "enclosure oracle is retained unchanged as a separately named "
+                "diagnostic; its containment is checked separately and is NOT a "
+                "disagreement count."),
+            "matched": policy == "operational",
+            "when_oracle_is_selected": (
+                "the comparison is then between an OPERATIONAL policy and an "
+                "IDEAL ORACLE, which is the mismatched comparison the root "
+                "corrected. It remains selectable because v1 must reproduce and "
+                "because the oracle is still a wanted diagnostic."),
+        },
+        "oracle_containment_check": {
+            "role": (
+                "SEPARATE CHECK, never a disagreement count. The operational "
+                "policy is EXPECTED to be wider than the ideal oracle; the only "
+                "defect is a failure to CONTAIN it, which would be an unsound "
+                "narrowing."),
+            "ran": policy == "operational",
+            "pair_state_checks": oracle_checks,
+            "containment_violations": oracle_violations,
+            "pair_states_where_the_oracle_is_strictly_narrower": oracle_narrower,
+            "not_evidence_of": (
+                "containment at the states visited here is not evidence that "
+                "every feasible state, operational decision or future stopping "
+                "summary is unchanged. A wider band can delay a decision even "
+                "when its validity is retained."),
+        },
+        "look_schedule": {
+            "compare_drain_looks": compare_drain_looks,
+            "requested": args.drain_looks,
+            "snapshot_default":
+                SNAPSHOT_DEFAULTS[snap["id"]]["compare_drain_looks"],
+            "rule": (
+                "v2 compares EVERY declared tick through N + W with the enrolled "
+                "denominator fixed at N through the drain. v1 skipped every "
+                "non-final drain look and that skip is preserved ONLY in v1 "
+                "reproduction mode (root disposition 04:53; COORDINATOR_DECISIONS "
+                "revision 18 item 93)."),
+            "drain_looks_compared": drain_looks,
+            "drain_looks_disagreeing": drain_disagreeing,
+            "csv_column": "drain_look",
+            "denominator_during_drain": cfg.n_max,
+        },
         "run": {
             "partial": partial,
             "streams_run": n_streams,
@@ -2046,6 +2281,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             "looks_compared": total_looks,
             "looks_agreeing": agreeing,
             "looks_disagreeing": total_looks - agreeing,
+            "drain_looks_compared": drain_looks,
+            "drain_looks_disagreeing": drain_disagreeing,
             "enclosure_checkpoints": sum(o.enclosure_checkpoints for o in outcomes),
             "pair_endpoint_comparisons": sum(
                 o.pair_endpoint_comparisons for o in outcomes),
@@ -2078,6 +2315,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             "cells_json_sha256": sha256_file(CELLS_PATH),
             "protocol_sha256": sha256_file(PROTOCOL_PATH),
             "vband_sha256": sha256_file(HERE / "vband.py"),
+            "vpolicy_sha256": sha256_file(HERE / "vpolicy.py"),
+            "vcompare_sha256": sha256_file(HERE / "vcompare.py"),
             "winstats_sha256": sha256_file(SRC_DIR / "winstats.py"),
             "python": platform.python_version(),
             "numpy": np.__version__,
@@ -2155,7 +2394,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         "streams": [
             {"stream_id": o.stream_id, "kind": o.kind, "cell": o.cell,
              "looks": o.looks, "agreeing": o.looks_agreeing,
-             "disagreeing": o.disagreeing_looks, "tau_12": o.tau_12, "tau_11": o.tau_11,
+             "disagreeing": o.disagreeing_looks,
+             "drain_looks": o.drain_looks,
+             "drain_looks_disagreeing": o.drain_looks_disagreeing,
+             "oracle_containment_violations": o.oracle_containment_violations,
+             "tau_12": o.tau_12, "tau_11": o.tau_11,
              "enclosure_checkpoints": o.enclosure_checkpoints,
              "aborted": o.aborted, "seconds": round(o.seconds, 3),
              "defect_classes": o.defect_classes}
@@ -2188,6 +2431,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     print(f"PROTOCOL 12 comparison {'(PARTIAL RUN)' if partial else '(full frozen set)'}")
     print("=" * 78)
     print(agreement_sentence)
+    print(f"observation policy compared: {policy} "
+          f"({'MATCHED operational policies' if policy == 'operational' else 'operational vs IDEAL ORACLE'})")
+    print(f"drain looks: {drain_looks} compared, {drain_disagreeing} disagreeing "
+          f"(schedule: {'all ticks through N+W' if compare_drain_looks else 'final only, v1 reproduction'})")
+    if policy == "operational":
+        print(f"oracle containment (SEPARATE check): {oracle_checks} pair-state "
+              f"checks, {oracle_violations} containment violations, "
+              f"{oracle_narrower} pair states where the oracle is strictly narrower")
     if ledger.counts:
         print("\nDEFECT CLASSES (a disagreement is a defect; neither side is edited):")
         for cls, count in sorted(ledger.counts.items(), key=lambda kv: -kv[1]):

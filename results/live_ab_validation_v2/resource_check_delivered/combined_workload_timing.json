@@ -1,0 +1,1632 @@
+{
+  "schema": "live_ab_validation_v2.combined_workload.1",
+  "what_this_is": "the bounded measurement of the MISSING COMBINED WORKLOAD SCOPE, on the authorized balanced 20-unit development design, after the reference workload was bound in executable form",
+  "what_this_is_not": [
+    "not a resource clearance, not a calibration, not a live trial",
+    "not a blanket retiming sweep: only the 20 authorized design units",
+    "not a reuse of the withdrawn 91.2% share, which was conditional arithmetic on a weak one-score receipt",
+    "not a lower-bound claim: the earlier primary timing already included generation and row serialization"
+  ],
+  "timed_scope": {
+    "primary_only": "vgen.draw_trial + vrun.evaluate_trial + vrun.trial_rows into a discard RowSink",
+    "combined": "the same, plus the frozen reference workload: one complete-path call on H and one on D per trial, on the shared latent arrays",
+    "missing_scope": "combined minus primary_only, measured paired",
+    "remaining_scope_differences_named_not_bounded": [
+      "the grid's block accumulator, output path and per-batch summary work are not in either scope",
+      "a disk-backed sink differs from this discard sink",
+      "process context and warm-up differ from a full grid run"
+    ]
+  },
+  "design": "balanced 2x2, cells C1/C2 x horizons 1,000/2,000, five programs per group, namespace 1, program indices 1000-1004",
+  "seed_identity_note": "the 20 design units rest on TEN distinct (namespace, cell, program) seed identities: all groups use program indices 1000-1004 and the RNG key excludes the horizon. Repetitions are not independent experimental outcomes.",
+  "reference_available": true,
+  "reference_label": "DECLARED REFERENCE (authors' code): comparecast.confseq.confseq_eb, Choe & Ramdas Comparing Sequential Forecasters Theorem 2, yjchoe/ComparingForecasters@52748c8 + gostevehoward/confseq@5ffe733, MIT. Reported beside the primary; never overrides any decision.",
+  "alpha_passed_unhalved": 0.00625,
+  "inner_reps": 20,
+  "outer_reps": 3,
+  "attempts": [
+    {
+      "attempt": 1,
+      "status": "OK",
+      "what": "import the vendored authors' reference"
+    },
+    {
+      "attempt": 2,
+      "status": "OK",
+      "what": "measure_group(cell=C1, N_max=1000, inner=20)",
+      "rep": 0,
+      "seconds_median_combined": 0.16935639549046755
+    },
+    {
+      "attempt": 3,
+      "status": "OK",
+      "what": "measure_group(cell=C1, N_max=2000, inner=20)",
+      "rep": 0,
+      "seconds_median_combined": 0.35173414554446936
+    },
+    {
+      "attempt": 4,
+      "status": "OK",
+      "what": "measure_group(cell=C2, N_max=1000, inner=20)",
+      "rep": 0,
+      "seconds_median_combined": 0.1723812292329967
+    },
+    {
+      "attempt": 5,
+      "status": "OK",
+      "what": "measure_group(cell=C2, N_max=2000, inner=20)",
+      "rep": 0,
+      "seconds_median_combined": 0.35797127103433013
+    },
+    {
+      "attempt": 6,
+      "status": "OK",
+      "what": "measure_group(cell=C1, N_max=2000, inner=20)",
+      "rep": 1,
+      "seconds_median_combined": 0.36005395790562034
+    },
+    {
+      "attempt": 7,
+      "status": "OK",
+      "what": "measure_group(cell=C2, N_max=1000, inner=20)",
+      "rep": 1,
+      "seconds_median_combined": 0.1760774995200336
+    },
+    {
+      "attempt": 8,
+      "status": "OK",
+      "what": "measure_group(cell=C2, N_max=2000, inner=20)",
+      "rep": 1,
+      "seconds_median_combined": 0.3638801253400743
+    },
+    {
+      "attempt": 9,
+      "status": "OK",
+      "what": "measure_group(cell=C1, N_max=1000, inner=20)",
+      "rep": 1,
+      "seconds_median_combined": 0.1768849790096283
+    },
+    {
+      "attempt": 10,
+      "status": "OK",
+      "what": "measure_group(cell=C2, N_max=1000, inner=20)",
+      "rep": 2,
+      "seconds_median_combined": 0.17738024983555079
+    },
+    {
+      "attempt": 11,
+      "status": "OK",
+      "what": "measure_group(cell=C2, N_max=2000, inner=20)",
+      "rep": 2,
+      "seconds_median_combined": 0.36709416657686234
+    },
+    {
+      "attempt": 12,
+      "status": "OK",
+      "what": "measure_group(cell=C1, N_max=1000, inner=20)",
+      "rep": 2,
+      "seconds_median_combined": 0.17817647848278284
+    },
+    {
+      "attempt": 13,
+      "status": "OK",
+      "what": "measure_group(cell=C1, N_max=2000, inner=20)",
+      "rep": 2,
+      "seconds_median_combined": 0.3675584997981787
+    }
+  ],
+  "attempts_total": 13,
+  "attempts_failed": 0,
+  "points": [
+    {
+      "cell": "C1",
+      "N_max": 1000,
+      "programs": 5,
+      "program_base": 1000,
+      "trials": 20,
+      "inner_reps": 20,
+      "scopes": {
+        "primary_only": {
+          "seconds_each": [
+            0.010410667397081852,
+            0.01000941637903452,
+            0.009913083165884018,
+            0.009895957075059414,
+            0.009964458644390106,
+            0.010100041516125202,
+            0.009941709227859974,
+            0.010004540905356407,
+            0.00990858394652605,
+            0.009930167347192764,
+            0.00993574969470501,
+            0.0098173338919878,
+            0.00994595792144537,
+            0.01003995817154646,
+            0.009983166120946407,
+            0.009872999973595142,
+            0.00992004107683897,
+            0.009844583459198475,
+            0.009870500303804874,
+            0.009879374876618385
+          ],
+          "seconds_median": 0.009932958520948887,
+          "seconds_min": 0.0098173338919878,
+          "seconds_max": 0.010410667397081852,
+          "seconds_mean": 0.00995941455475986,
+          "seconds_stdev": 0.0001261554217269882,
+          "seconds_per_program": 0.0019865917041897775
+        },
+        "combined": {
+          "seconds_each": [
+            0.169856708496809,
+            0.16945395804941654,
+            0.16899724956601858,
+            0.16865158267319202,
+            0.1694223741069436,
+            0.17006437480449677,
+            0.1701458329334855,
+            0.16949549969285727,
+            0.16988216526806355,
+            0.16989170853048563,
+            0.1697985427454114,
+            0.16982862539589405,
+            0.16913341730833054,
+            0.168956583365798,
+            0.1692904168739915,
+            0.169106375426054,
+            0.16916087549179792,
+            0.16917675081640482,
+            0.16916120890527964,
+            0.16926124971359968
+          ],
+          "seconds_median": 0.16935639549046755,
+          "seconds_min": 0.16865158267319202,
+          "seconds_max": 0.1701458329334855,
+          "seconds_mean": 0.1694367750082165,
+          "seconds_stdev": 0.0004154948013506155,
+          "seconds_per_program": 0.03387127909809351
+        }
+      },
+      "call_counts": {
+        "primary_only": {
+          "generation_calls": 20,
+          "primary_trial_calls": 20,
+          "serialization_calls": 20,
+          "reference_calls_h": 0,
+          "reference_calls_d": 0,
+          "looks": 72000,
+          "band_evaluations": 144000,
+          "enclosure_updates": 57599,
+          "programs": 5,
+          "trials": 20,
+          "reference_calls_total": 0,
+          "reference_calls_per_program": 0
+        },
+        "combined": {
+          "generation_calls": 20,
+          "primary_trial_calls": 20,
+          "serialization_calls": 20,
+          "reference_calls_h": 20,
+          "reference_calls_d": 20,
+          "looks": 72000,
+          "band_evaluations": 144000,
+          "enclosure_updates": 57599,
+          "programs": 5,
+          "trials": 20,
+          "reference_calls_total": 40,
+          "reference_calls_per_program": 8
+        }
+      },
+      "record_bytes_measured_not_written": {
+        "primary_only": 996,
+        "combined": 996
+      },
+      "bytes_per_program": {
+        "primary_only": 199.2,
+        "combined": 199.2
+      },
+      "missing_scope_seconds_median": 0.15942343696951866,
+      "missing_scope_seconds_per_program": 0.03188468739390373,
+      "missing_scope_share_of_combined": 0.9413487840705256,
+      "seconds_per_program": 0.03387127909809351,
+      "baseline_rss_bytes": 69730304,
+      "peak_rss_bytes": 70123520,
+      "rss_delta_bytes": 393216,
+      "rep": 0
+    },
+    {
+      "cell": "C1",
+      "N_max": 2000,
+      "programs": 5,
+      "program_base": 1000,
+      "trials": 20,
+      "inner_reps": 20,
+      "scopes": {
+        "primary_only": {
+          "seconds_each": [
+            0.016049500554800034,
+            0.01584362518042326,
+            0.01590566709637642,
+            0.015902208164334297,
+            0.015854124911129475,
+            0.015808625146746635,
+            0.015859958715736866,
+            0.015813084319233894,
+            0.015771999955177307,
+            0.01574566587805748,
+            0.015916083939373493,
+            0.01584845781326294,
+            0.015730791725218296,
+            0.015757792629301548,
+            0.015713167376816273,
+            0.0157666252925992,
+            0.015693167224526405,
+            0.01573150046169758,
+            0.015820542350411415,
+            0.016033083200454712
+          ],
+          "seconds_median": 0.015816813334822655,
+          "seconds_min": 0.015693167224526405,
+          "seconds_max": 0.016049500554800034,
+          "seconds_mean": 0.015828283596783878,
+          "seconds_stdev": 9.791959501043371e-05,
+          "seconds_per_program": 0.0031633626669645308
+        },
+        "combined": {
+          "seconds_each": [
+            0.3492937497794628,
+            0.3487635403871536,
+            0.3500534174963832,
+            0.35007891710847616,
+            0.35096358321607113,
+            0.35154808312654495,
+            0.3518675835803151,
+            0.3516104584559798,
+            0.3512695422396064,
+            0.3518578326329589,
+            0.35156954172998667,
+            0.3511707913130522,
+            0.35287979058921337,
+            0.35425645764917135,
+            0.360061458311975,
+            0.3560304595157504,
+            0.4045508746057749,
+            0.3540913322940469,
+            0.35447420831769705,
+            0.3546242918819189
+          ],
+          "seconds_median": 0.35173414554446936,
+          "seconds_min": 0.3487635403871536,
+          "seconds_max": 0.4045508746057749,
+          "seconds_mean": 0.35505079571157694,
+          "seconds_stdev": 0.011938613811872686,
+          "seconds_per_program": 0.07034682910889387
+        }
+      },
+      "call_counts": {
+        "primary_only": {
+          "generation_calls": 20,
+          "primary_trial_calls": 20,
+          "serialization_calls": 20,
+          "reference_calls_h": 0,
+          "reference_calls_d": 0,
+          "looks": 132000,
+          "band_evaluations": 264000,
+          "enclosure_updates": 115650,
+          "programs": 5,
+          "trials": 20,
+          "reference_calls_total": 0,
+          "reference_calls_per_program": 0
+        },
+        "combined": {
+          "generation_calls": 20,
+          "primary_trial_calls": 20,
+          "serialization_calls": 20,
+          "reference_calls_h": 20,
+          "reference_calls_d": 20,
+          "looks": 132000,
+          "band_evaluations": 264000,
+          "enclosure_updates": 115650,
+          "programs": 5,
+          "trials": 20,
+          "reference_calls_total": 40,
+          "reference_calls_per_program": 8
+        }
+      },
+      "record_bytes_measured_not_written": {
+        "primary_only": 1007,
+        "combined": 1007
+      },
+      "bytes_per_program": {
+        "primary_only": 201.4,
+        "combined": 201.4
+      },
+      "missing_scope_seconds_median": 0.3359173322096467,
+      "missing_scope_seconds_per_program": 0.06718346644192934,
+      "missing_scope_share_of_combined": 0.9550319082318866,
+      "seconds_per_program": 0.07034682910889387,
+      "baseline_rss_bytes": 71172096,
+      "peak_rss_bytes": 71876608,
+      "rss_delta_bytes": 704512,
+      "rep": 0
+    },
+    {
+      "cell": "C2",
+      "N_max": 1000,
+      "programs": 5,
+      "program_base": 1000,
+      "trials": 20,
+      "inner_reps": 20,
+      "scopes": {
+        "primary_only": {
+          "seconds_each": [
+            0.010446959175169468,
+            0.010162624530494213,
+            0.010292749851942062,
+            0.010182749480009079,
+            0.010227750055491924,
+            0.010427375324070454,
+            0.010181667283177376,
+            0.010124458000063896,
+            0.010135708376765251,
+            0.010437458753585815,
+            0.010359125211834908,
+            0.010221708565950394,
+            0.010263499803841114,
+            0.010228415951132774,
+            0.010251707397401333,
+            0.010156666859984398,
+            0.010100667364895344,
+            0.010160916484892368,
+            0.01007974985986948,
+            0.010076249949634075
+          ],
+          "seconds_median": 0.010202229022979736,
+          "seconds_min": 0.010076249949634075,
+          "seconds_max": 0.010446959175169468,
+          "seconds_mean": 0.010225910414010286,
+          "seconds_stdev": 0.00011544948987878597,
+          "seconds_per_program": 0.0020404458045959473
+        },
+        "combined": {
+          "seconds_each": [
+            0.17580250091850758,
+            0.17219779174774885,
+            0.1712344577535987,
+            0.17275233380496502,
+            0.17248375061899424,
+            0.17169837560504675,
+            0.1721457913517952,
+            0.17227870784699917,
+            0.1717713326215744,
+            0.17210862506181002,
+            0.17272841650992632,
+            0.17209504172205925,
+            0.17222908232361078,
+            0.17285133339464664,
+            0.17296058405190706,
+            0.17254470940679312,
+            0.17204370815306902,
+            0.17611329164355993,
+            0.17402437515556812,
+            0.1736719161272049
+          ],
+          "seconds_median": 0.1723812292329967,
+          "seconds_min": 0.1712344577535987,
+          "seconds_max": 0.17611329164355993,
+          "seconds_mean": 0.17278680629096926,
+          "seconds_stdev": 0.001258815318438299,
+          "seconds_per_program": 0.03447624584659934
+        }
+      },
+      "call_counts": {
+        "primary_only": {
+          "generation_calls": 20,
+          "primary_trial_calls": 20,
+          "serialization_calls": 20,
+          "reference_calls_h": 0,
+          "reference_calls_d": 0,
+          "looks": 72000,
+          "band_evaluations": 144000,
+          "enclosure_updates": 57763,
+          "programs": 5,
+          "trials": 20,
+          "reference_calls_total": 0,
+          "reference_calls_per_program": 0
+        },
+        "combined": {
+          "generation_calls": 20,
+          "primary_trial_calls": 20,
+          "serialization_calls": 20,
+          "reference_calls_h": 20,
+          "reference_calls_d": 20,
+          "looks": 72000,
+          "band_evaluations": 144000,
+          "enclosure_updates": 57763,
+          "programs": 5,
+          "trials": 20,
+          "reference_calls_total": 40,
+          "reference_calls_per_program": 8
+        }
+      },
+      "record_bytes_measured_not_written": {
+        "primary_only": 1134,
+        "combined": 1134
+      },
+      "bytes_per_program": {
+        "primary_only": 226.8,
+        "combined": 226.8
+      },
+      "missing_scope_seconds_median": 0.16217900021001697,
+      "missing_scope_seconds_per_program": 0.032435800042003395,
+      "missing_scope_share_of_combined": 0.9408158935379789,
+      "seconds_per_program": 0.03447624584659934,
+      "baseline_rss_bytes": 71876608,
+      "peak_rss_bytes": 71958528,
+      "rss_delta_bytes": 81920,
+      "rep": 0
+    },
+    {
+      "cell": "C2",
+      "N_max": 2000,
+      "programs": 5,
+      "program_base": 1000,
+      "trials": 20,
+      "inner_reps": 20,
+      "scopes": {
+        "primary_only": {
+          "seconds_each": [
+            0.016431916505098343,
+            0.01634320802986622,
+            0.01634008251130581,
+            0.016367499716579914,
+            0.016331125050783157,
+            0.016274457797408104,
+            0.016361125744879246,
+            0.016423500142991543,
+            0.01614008378237486,
+            0.016075583174824715,
+            0.016154791228473186,
+            0.016327666118741035,
+            0.016245916485786438,
+            0.016199790872633457,
+            0.016143458895385265,
+            0.016037709079682827,
+            0.016101292334496975,
+            0.016187166795134544,
+            0.016168500296771526,
+            0.0161769175902009
+          ],
+          "seconds_median": 0.016222853679209948,
+          "seconds_min": 0.016037709079682827,
+          "seconds_max": 0.016431916505098343,
+          "seconds_mean": 0.016241589607670904,
+          "seconds_stdev": 0.0001184370193386863,
+          "seconds_per_program": 0.0032445707358419893
+        },
+        "combined": {
+          "seconds_each": [
+            0.3557086670771241,
+            0.35704058315604925,
+            0.35616462491452694,
+            0.3559330003336072,
+            0.35733029153198004,
+            0.356432999484241,
+            0.357232291251421,
+            0.3583891671150923,
+            0.3593795830383897,
+            0.35769924987107515,
+            0.3567510414868593,
+            0.36263516545295715,
+            0.3593744579702616,
+            0.4261113749817014,
+            0.35958150029182434,
+            0.3583187498152256,
+            0.3588472902774811,
+            0.3582045417279005,
+            0.35773800034075975,
+            0.36885329242795706
+          ],
+          "seconds_median": 0.35797127103433013,
+          "seconds_min": 0.3557086670771241,
+          "seconds_max": 0.4261113749817014,
+          "seconds_mean": 0.3618862936273217,
+          "seconds_stdev": 0.015394296649085606,
+          "seconds_per_program": 0.07159425420686602
+        }
+      },
+      "call_counts": {
+        "primary_only": {
+          "generation_calls": 20,
+          "primary_trial_calls": 20,
+          "serialization_calls": 20,
+          "reference_calls_h": 0,
+          "reference_calls_d": 0,
+          "looks": 132000,
+          "band_evaluations": 264000,
+          "enclosure_updates": 114841,
+          "programs": 5,
+          "trials": 20,
+          "reference_calls_total": 0,
+          "reference_calls_per_program": 0
+        },
+        "combined": {
+          "generation_calls": 20,
+          "primary_trial_calls": 20,
+          "serialization_calls": 20,
+          "reference_calls_h": 20,
+          "reference_calls_d": 20,
+          "looks": 132000,
+          "band_evaluations": 264000,
+          "enclosure_updates": 114841,
+          "programs": 5,
+          "trials": 20,
+          "reference_calls_total": 40,
+          "reference_calls_per_program": 8
+        }
+      },
+      "record_bytes_measured_not_written": {
+        "primary_only": 1083,
+        "combined": 1083
+      },
+      "bytes_per_program": {
+        "primary_only": 216.6,
+        "combined": 216.6
+      },
+      "missing_scope_seconds_median": 0.3417484173551202,
+      "missing_scope_seconds_per_program": 0.06834968347102403,
+      "missing_scope_share_of_combined": 0.9546811294874717,
+      "seconds_per_program": 0.07159425420686602,
+      "baseline_rss_bytes": 71958528,
+      "peak_rss_bytes": 72007680,
+      "rss_delta_bytes": 49152,
+      "rep": 0
+    },
+    {
+      "cell": "C1",
+      "N_max": 2000,
+      "programs": 5,
+      "program_base": 1000,
+      "trials": 20,
+      "inner_reps": 20,
+      "scopes": {
+        "primary_only": {
+          "seconds_each": [
+            0.017448916099965572,
+            0.017245500348508358,
+            0.016839750111103058,
+            0.01696412544697523,
+            0.016427666880190372,
+            0.016690458171069622,
+            0.016534125432372093,
+            0.016501917503774166,
+            0.016461416147649288,
+            0.016606083139777184,
+            0.016385000199079514,
+            0.01641841698437929,
+            0.01637466624379158,
+            0.016274333000183105,
+            0.016536000184714794,
+            0.0163783747702837,
+            0.016163582913577557,
+            0.016437499783933163,
+            0.016379209235310555,
+            0.01648900005966425
+          ],
+          "seconds_median": 0.01647520810365677,
+          "seconds_min": 0.016163582913577557,
+          "seconds_max": 0.017448916099965572,
+          "seconds_mean": 0.016577802132815123,
+          "seconds_stdev": 0.0003208382415104761,
+          "seconds_per_program": 0.0032950416207313538
+        },
+        "combined": {
+          "seconds_each": [
+            0.3589288340881467,
+            0.3590690419077873,
+            0.3593782912939787,
+            0.35963662527501583,
+            0.35958537459373474,
+            0.35980791691690683,
+            0.36040074937045574,
+            0.36001470778137445,
+            0.3591339588165283,
+            0.3600914999842644,
+            0.3600164158269763,
+            0.3629655418917537,
+            0.36216316744685173,
+            0.36088770907372236,
+            0.3594344584271312,
+            0.3618574161082506,
+            0.3608570843935013,
+            0.36028808262199163,
+            0.3674255833029747,
+            0.3631488336250186
+          ],
+          "seconds_median": 0.36005395790562034,
+          "seconds_min": 0.3589288340881467,
+          "seconds_max": 0.3674255833029747,
+          "seconds_mean": 0.36075456463731825,
+          "seconds_stdev": 0.0020023302115772528,
+          "seconds_per_program": 0.07201079158112407
+        }
+      },
+      "call_counts": {
+        "primary_only": {
+          "generation_calls": 20,
+          "primary_trial_calls": 20,
+          "serialization_calls": 20,
+          "reference_calls_h": 0,
+          "reference_calls_d": 0,
+          "looks": 132000,
+          "band_evaluations": 264000,
+          "enclosure_updates": 115650,
+          "programs": 5,
+          "trials": 20,
+          "reference_calls_total": 0,
+          "reference_calls_per_program": 0
+        },
+        "combined": {
+          "generation_calls": 20,
+          "primary_trial_calls": 20,
+          "serialization_calls": 20,
+          "reference_calls_h": 20,
+          "reference_calls_d": 20,
+          "looks": 132000,
+          "band_evaluations": 264000,
+          "enclosure_updates": 115650,
+          "programs": 5,
+          "trials": 20,
+          "reference_calls_total": 40,
+          "reference_calls_per_program": 8
+        }
+      },
+      "record_bytes_measured_not_written": {
+        "primary_only": 1007,
+        "combined": 1007
+      },
+      "bytes_per_program": {
+        "primary_only": 201.4,
+        "combined": 201.4
+      },
+      "missing_scope_seconds_median": 0.34357874980196357,
+      "missing_scope_seconds_per_program": 0.06871574996039272,
+      "missing_scope_share_of_combined": 0.9542423913363136,
+      "seconds_per_program": 0.07201079158112407,
+      "baseline_rss_bytes": 72007680,
+      "peak_rss_bytes": 72007680,
+      "rss_delta_bytes": 0,
+      "rep": 1
+    },
+    {
+      "cell": "C2",
+      "N_max": 1000,
+      "programs": 5,
+      "program_base": 1000,
+      "trials": 20,
+      "inner_reps": 20,
+      "scopes": {
+        "primary_only": {
+          "seconds_each": [
+            0.010650957934558392,
+            0.010525625199079514,
+            0.010668749921023846,
+            0.01068737544119358,
+            0.01090404111891985,
+            0.017377291806042194,
+            0.02192029170691967,
+            0.015595999546349049,
+            0.013424040749669075,
+            0.018438166938722134,
+            0.01994162518531084,
+            0.014442499727010727,
+            0.01344624999910593,
+            0.013417832553386688,
+            0.011180125176906586,
+            0.011323832906782627,
+            0.010965333320200443,
+            0.010965917259454727,
+            0.010710249654948711,
+            0.010571375489234924
+          ],
+          "seconds_median": 0.011251979041844606,
+          "seconds_min": 0.010525625199079514,
+          "seconds_max": 0.02192029170691967,
+          "seconds_mean": 0.013357879081740975,
+          "seconds_stdev": 0.003521816659079914,
+          "seconds_per_program": 0.0022503958083689214
+        },
+        "combined": {
+          "seconds_each": [
+            0.17798258271068335,
+            0.17594516649842262,
+            0.17539875023066998,
+            0.17607074975967407,
+            0.17605016753077507,
+            0.17578266747295856,
+            0.17611770797520876,
+            0.17612562514841557,
+            0.17533783428370953,
+            0.17608424928039312,
+            0.17511900048702955,
+            0.1754251243546605,
+            0.17695158254355192,
+            0.1760852923616767,
+            0.17654016707092524,
+            0.17643570806831121,
+            0.17548108287155628,
+            0.17609770875424147,
+            0.1762952907010913,
+            0.17553995829075575
+          ],
+          "seconds_median": 0.1760774995200336,
+          "seconds_min": 0.17511900048702955,
+          "seconds_max": 0.17798258271068335,
+          "seconds_mean": 0.17604332081973553,
+          "seconds_stdev": 0.0006434392586467591,
+          "seconds_per_program": 0.03521549990400672
+        }
+      },
+      "call_counts": {
+        "primary_only": {
+          "generation_calls": 20,
+          "primary_trial_calls": 20,
+          "serialization_calls": 20,
+          "reference_calls_h": 0,
+          "reference_calls_d": 0,
+          "looks": 72000,
+          "band_evaluations": 144000,
+          "enclosure_updates": 57763,
+          "programs": 5,
+          "trials": 20,
+          "reference_calls_total": 0,
+          "reference_calls_per_program": 0
+        },
+        "combined": {
+          "generation_calls": 20,
+          "primary_trial_calls": 20,
+          "serialization_calls": 20,
+          "reference_calls_h": 20,
+          "reference_calls_d": 20,
+          "looks": 72000,
+          "band_evaluations": 144000,
+          "enclosure_updates": 57763,
+          "programs": 5,
+          "trials": 20,
+          "reference_calls_total": 40,
+          "reference_calls_per_program": 8
+        }
+      },
+      "record_bytes_measured_not_written": {
+        "primary_only": 1134,
+        "combined": 1134
+      },
+      "bytes_per_program": {
+        "primary_only": 226.8,
+        "combined": 226.8
+      },
+      "missing_scope_seconds_median": 0.164825520478189,
+      "missing_scope_seconds_per_program": 0.0329651040956378,
+      "missing_scope_share_of_combined": 0.936096440076011,
+      "seconds_per_program": 0.03521549990400672,
+      "baseline_rss_bytes": 72007680,
+      "peak_rss_bytes": 72007680,
+      "rss_delta_bytes": 0,
+      "rep": 1
+    },
+    {
+      "cell": "C2",
+      "N_max": 2000,
+      "programs": 5,
+      "program_base": 1000,
+      "trials": 20,
+      "inner_reps": 20,
+      "scopes": {
+        "primary_only": {
+          "seconds_each": [
+            0.01667812466621399,
+            0.016849749721586704,
+            0.0164987500756979,
+            0.016826334409415722,
+            0.01645312551409006,
+            0.01650645863264799,
+            0.016499374993145466,
+            0.016447042115032673,
+            0.01670591626316309,
+            0.016621625050902367,
+            0.01652504224330187,
+            0.016690917313098907,
+            0.016401125118136406,
+            0.016397791914641857,
+            0.016409792006015778,
+            0.016404207795858383,
+            0.01646504085510969,
+            0.01645062491297722,
+            0.0164960827678442,
+            0.016311291605234146
+          ],
+          "seconds_median": 0.01649741642177105,
+          "seconds_min": 0.016311291605234146,
+          "seconds_max": 0.016849749721586704,
+          "seconds_mean": 0.01653192089870572,
+          "seconds_stdev": 0.00014802333741907188,
+          "seconds_per_program": 0.00329948328435421
+        },
+        "combined": {
+          "seconds_each": [
+            0.36238079238682985,
+            0.36253474932163954,
+            0.3632409172132611,
+            0.3636605842038989,
+            0.3625545408576727,
+            0.3637796677649021,
+            0.36274320911616087,
+            0.36289191711694,
+            0.36304129101336,
+            0.3650635415688157,
+            0.3641090411692858,
+            0.364422750659287,
+            0.3639805829152465,
+            0.3635028749704361,
+            0.3650102922692895,
+            0.37077479157596827,
+            0.4004298746585846,
+            0.36986750084906816,
+            0.3652017079293728,
+            0.36473620776087046
+          ],
+          "seconds_median": 0.3638801253400743,
+          "seconds_min": 0.36238079238682985,
+          "seconds_max": 0.4004298746585846,
+          "seconds_mean": 0.3661963417660445,
+          "seconds_stdev": 0.00835679181708218,
+          "seconds_per_program": 0.07277602506801487
+        }
+      },
+      "call_counts": {
+        "primary_only": {
+          "generation_calls": 20,
+          "primary_trial_calls": 20,
+          "serialization_calls": 20,
+          "reference_calls_h": 0,
+          "reference_calls_d": 0,
+          "looks": 132000,
+          "band_evaluations": 264000,
+          "enclosure_updates": 114841,
+          "programs": 5,
+          "trials": 20,
+          "reference_calls_total": 0,
+          "reference_calls_per_program": 0
+        },
+        "combined": {
+          "generation_calls": 20,
+          "primary_trial_calls": 20,
+          "serialization_calls": 20,
+          "reference_calls_h": 20,
+          "reference_calls_d": 20,
+          "looks": 132000,
+          "band_evaluations": 264000,
+          "enclosure_updates": 114841,
+          "programs": 5,
+          "trials": 20,
+          "reference_calls_total": 40,
+          "reference_calls_per_program": 8
+        }
+      },
+      "record_bytes_measured_not_written": {
+        "primary_only": 1083,
+        "combined": 1083
+      },
+      "bytes_per_program": {
+        "primary_only": 216.6,
+        "combined": 216.6
+      },
+      "missing_scope_seconds_median": 0.34738270891830325,
+      "missing_scope_seconds_per_program": 0.06947654178366065,
+      "missing_scope_share_of_combined": 0.9546624965945779,
+      "seconds_per_program": 0.07277602506801487,
+      "baseline_rss_bytes": 72007680,
+      "peak_rss_bytes": 72007680,
+      "rss_delta_bytes": 0,
+      "rep": 1
+    },
+    {
+      "cell": "C1",
+      "N_max": 1000,
+      "programs": 5,
+      "program_base": 1000,
+      "trials": 20,
+      "inner_reps": 20,
+      "scopes": {
+        "primary_only": {
+          "seconds_each": [
+            0.010623791255056858,
+            0.010380624793469906,
+            0.010483291931450367,
+            0.010474583134055138,
+            0.010573083534836769,
+            0.010525709018111229,
+            0.010466708801686764,
+            0.010295707732439041,
+            0.010476416908204556,
+            0.010420416481792927,
+            0.010314958170056343,
+            0.010401874780654907,
+            0.010660417377948761,
+            0.010311291553080082,
+            0.010263333097100258,
+            0.01037987507879734,
+            0.010343583300709724,
+            0.010374416597187519,
+            0.010327249765396118,
+            0.010442708618938923
+          ],
+          "seconds_median": 0.010411145631223917,
+          "seconds_min": 0.010263333097100258,
+          "seconds_max": 0.010660417377948761,
+          "seconds_mean": 0.010427002096548676,
+          "seconds_stdev": 0.0001097074324473167,
+          "seconds_per_program": 0.0020822291262447834
+        },
+        "combined": {
+          "seconds_each": [
+            0.17688916623592377,
+            0.17741112504154444,
+            0.1769223753362894,
+            0.17688079178333282,
+            0.17589583434164524,
+            0.17570374999195337,
+            0.1767561249434948,
+            0.1764164576306939,
+            0.1769611667841673,
+            0.17672666627913713,
+            0.17653395794332027,
+            0.17870591767132282,
+            0.17825237475335598,
+            0.17642925027757883,
+            0.1765210423618555,
+            0.17749183345586061,
+            0.17707333248108625,
+            0.17640754207968712,
+            0.17689025029540062,
+            0.17712283320724964
+          ],
+          "seconds_median": 0.1768849790096283,
+          "seconds_min": 0.17570374999195337,
+          "seconds_max": 0.17870591767132282,
+          "seconds_mean": 0.176899589644745,
+          "seconds_stdev": 0.0006978133877370966,
+          "seconds_per_program": 0.03537699580192566
+        }
+      },
+      "call_counts": {
+        "primary_only": {
+          "generation_calls": 20,
+          "primary_trial_calls": 20,
+          "serialization_calls": 20,
+          "reference_calls_h": 0,
+          "reference_calls_d": 0,
+          "looks": 72000,
+          "band_evaluations": 144000,
+          "enclosure_updates": 57599,
+          "programs": 5,
+          "trials": 20,
+          "reference_calls_total": 0,
+          "reference_calls_per_program": 0
+        },
+        "combined": {
+          "generation_calls": 20,
+          "primary_trial_calls": 20,
+          "serialization_calls": 20,
+          "reference_calls_h": 20,
+          "reference_calls_d": 20,
+          "looks": 72000,
+          "band_evaluations": 144000,
+          "enclosure_updates": 57599,
+          "programs": 5,
+          "trials": 20,
+          "reference_calls_total": 40,
+          "reference_calls_per_program": 8
+        }
+      },
+      "record_bytes_measured_not_written": {
+        "primary_only": 996,
+        "combined": 996
+      },
+      "bytes_per_program": {
+        "primary_only": 199.2,
+        "combined": 199.2
+      },
+      "missing_scope_seconds_median": 0.16647383337840438,
+      "missing_scope_seconds_per_program": 0.033294766675680876,
+      "missing_scope_share_of_combined": 0.9411417199497917,
+      "seconds_per_program": 0.03537699580192566,
+      "baseline_rss_bytes": 72007680,
+      "peak_rss_bytes": 72007680,
+      "rss_delta_bytes": 0,
+      "rep": 1
+    },
+    {
+      "cell": "C2",
+      "N_max": 1000,
+      "programs": 5,
+      "program_base": 1000,
+      "trials": 20,
+      "inner_reps": 20,
+      "scopes": {
+        "primary_only": {
+          "seconds_each": [
+            0.010555041953921318,
+            0.010549915954470634,
+            0.010574458166956902,
+            0.010518540628254414,
+            0.010603750124573708,
+            0.01046695839613676,
+            0.010596874170005322,
+            0.010538875125348568,
+            0.01047291699796915,
+            0.010445124469697475,
+            0.010496207512915134,
+            0.01045279111713171,
+            0.010471374727785587,
+            0.010471290908753872,
+            0.010369916446506977,
+            0.010484916158020496,
+            0.010425540618598461,
+            0.010503374971449375,
+            0.010408749803900719,
+            0.010356749407947063
+          ],
+          "seconds_median": 0.010478916577994823,
+          "seconds_min": 0.010356749407947063,
+          "seconds_max": 0.010603750124573708,
+          "seconds_mean": 0.010488168383017183,
+          "seconds_stdev": 6.903265118830925e-05,
+          "seconds_per_program": 0.002095783315598965
+        },
+        "combined": {
+          "seconds_each": [
+            0.17738670762628317,
+            0.1773737920448184,
+            0.1772417090833187,
+            0.17686745896935463,
+            0.17726070899516344,
+            0.17689491622149944,
+            0.17714570742100477,
+            0.17807037476450205,
+            0.17694808263331652,
+            0.17746754176914692,
+            0.1775980843231082,
+            0.17750570829957724,
+            0.17717349994927645,
+            0.17723575048148632,
+            0.1781458342447877,
+            0.17760762479156256,
+            0.1771071245893836,
+            0.1775091253221035,
+            0.177650167606771,
+            0.17751879151910543
+          ],
+          "seconds_median": 0.17738024983555079,
+          "seconds_min": 0.17686745896935463,
+          "seconds_max": 0.1781458342447877,
+          "seconds_mean": 0.1773854355327785,
+          "seconds_stdev": 0.0003406723285042701,
+          "seconds_per_program": 0.03547604996711016
+        }
+      },
+      "call_counts": {
+        "primary_only": {
+          "generation_calls": 20,
+          "primary_trial_calls": 20,
+          "serialization_calls": 20,
+          "reference_calls_h": 0,
+          "reference_calls_d": 0,
+          "looks": 72000,
+          "band_evaluations": 144000,
+          "enclosure_updates": 57763,
+          "programs": 5,
+          "trials": 20,
+          "reference_calls_total": 0,
+          "reference_calls_per_program": 0
+        },
+        "combined": {
+          "generation_calls": 20,
+          "primary_trial_calls": 20,
+          "serialization_calls": 20,
+          "reference_calls_h": 20,
+          "reference_calls_d": 20,
+          "looks": 72000,
+          "band_evaluations": 144000,
+          "enclosure_updates": 57763,
+          "programs": 5,
+          "trials": 20,
+          "reference_calls_total": 40,
+          "reference_calls_per_program": 8
+        }
+      },
+      "record_bytes_measured_not_written": {
+        "primary_only": 1134,
+        "combined": 1134
+      },
+      "bytes_per_program": {
+        "primary_only": 226.8,
+        "combined": 226.8
+      },
+      "missing_scope_seconds_median": 0.16690133325755596,
+      "missing_scope_seconds_per_program": 0.03338026665151119,
+      "missing_scope_share_of_combined": 0.9409239947079236,
+      "seconds_per_program": 0.03547604996711016,
+      "baseline_rss_bytes": 72007680,
+      "peak_rss_bytes": 72007680,
+      "rss_delta_bytes": 0,
+      "rep": 2
+    },
+    {
+      "cell": "C2",
+      "N_max": 2000,
+      "programs": 5,
+      "program_base": 1000,
+      "trials": 20,
+      "inner_reps": 20,
+      "scopes": {
+        "primary_only": {
+          "seconds_each": [
+            0.01681529078632593,
+            0.016795958392322063,
+            0.01660895813256502,
+            0.016522749327123165,
+            0.01655558403581381,
+            0.01659745816141367,
+            0.016830874606966972,
+            0.016566332429647446,
+            0.016920292750000954,
+            0.016761207953095436,
+            0.01677245832979679,
+            0.01663870830088854,
+            0.016584541648626328,
+            0.016713875345885754,
+            0.016874833032488823,
+            0.01667933352291584,
+            0.016553041525185108,
+            0.016683083958923817,
+            0.01659345906227827,
+            0.016629207879304886
+          ],
+          "seconds_median": 0.01665902091190219,
+          "seconds_min": 0.016522749327123165,
+          "seconds_max": 0.016920292750000954,
+          "seconds_mean": 0.01668486245907843,
+          "seconds_stdev": 0.00011877310546465571,
+          "seconds_per_program": 0.003331804182380438
+        },
+        "combined": {
+          "seconds_each": [
+            0.36527341697365046,
+            0.37244054209440947,
+            0.3831039173528552,
+            0.38506145775318146,
+            0.3696592506021261,
+            0.3676782501861453,
+            0.36696162447333336,
+            0.3666140418499708,
+            0.3675200827419758,
+            0.36574104242026806,
+            0.3669290831312537,
+            0.36655279248952866,
+            0.3675252078101039,
+            0.367528167553246,
+            0.3666380001232028,
+            0.366927832365036,
+            0.3666364997625351,
+            0.3667899165302515,
+            0.3672685408964753,
+            0.3672267086803913
+          ],
+          "seconds_median": 0.36709416657686234,
+          "seconds_min": 0.36527341697365046,
+          "seconds_max": 0.38506145775318146,
+          "seconds_mean": 0.369003818789497,
+          "seconds_stdev": 0.005373230895913143,
+          "seconds_per_program": 0.07341883331537247
+        }
+      },
+      "call_counts": {
+        "primary_only": {
+          "generation_calls": 20,
+          "primary_trial_calls": 20,
+          "serialization_calls": 20,
+          "reference_calls_h": 0,
+          "reference_calls_d": 0,
+          "looks": 132000,
+          "band_evaluations": 264000,
+          "enclosure_updates": 114841,
+          "programs": 5,
+          "trials": 20,
+          "reference_calls_total": 0,
+          "reference_calls_per_program": 0
+        },
+        "combined": {
+          "generation_calls": 20,
+          "primary_trial_calls": 20,
+          "serialization_calls": 20,
+          "reference_calls_h": 20,
+          "reference_calls_d": 20,
+          "looks": 132000,
+          "band_evaluations": 264000,
+          "enclosure_updates": 114841,
+          "programs": 5,
+          "trials": 20,
+          "reference_calls_total": 40,
+          "reference_calls_per_program": 8
+        }
+      },
+      "record_bytes_measured_not_written": {
+        "primary_only": 1083,
+        "combined": 1083
+      },
+      "bytes_per_program": {
+        "primary_only": 216.6,
+        "combined": 216.6
+      },
+      "missing_scope_seconds_median": 0.35043514566496015,
+      "missing_scope_seconds_per_program": 0.07008702913299203,
+      "missing_scope_share_of_combined": 0.9546192164608692,
+      "seconds_per_program": 0.07341883331537247,
+      "baseline_rss_bytes": 72007680,
+      "peak_rss_bytes": 72007680,
+      "rss_delta_bytes": 0,
+      "rep": 2
+    },
+    {
+      "cell": "C1",
+      "N_max": 1000,
+      "programs": 5,
+      "program_base": 1000,
+      "trials": 20,
+      "inner_reps": 20,
+      "scopes": {
+        "primary_only": {
+          "seconds_each": [
+            0.010544542223215103,
+            0.01044370885938406,
+            0.010587457567453384,
+            0.01048570778220892,
+            0.010484750382602215,
+            0.010446624830365181,
+            0.010392624884843826,
+            0.010406042449176311,
+            0.010502999648451805,
+            0.010394750162959099,
+            0.010526624508202076,
+            0.010454999282956123,
+            0.010568332858383656,
+            0.01045637484639883,
+            0.01050487533211708,
+            0.010407375171780586,
+            0.01045191753655672,
+            0.0104994997382164,
+            0.010556749999523163,
+            0.010254709050059319
+          ],
+          "seconds_median": 0.010470562614500523,
+          "seconds_min": 0.010254709050059319,
+          "seconds_max": 0.010587457567453384,
+          "seconds_mean": 0.010468533355742693,
+          "seconds_stdev": 7.655001819344206e-05,
+          "seconds_per_program": 0.0020941125229001047
+        },
+        "combined": {
+          "seconds_each": [
+            0.18203904200345278,
+            0.1776530835777521,
+            0.1778842080384493,
+            0.17848591692745686,
+            0.17814849968999624,
+            0.17766745947301388,
+            0.17773608304560184,
+            0.17817274946719408,
+            0.178164791315794,
+            0.1780840838328004,
+            0.17828804161399603,
+            0.1778535833582282,
+            0.1781802074983716,
+            0.17880237475037575,
+            0.17827604245394468,
+            0.17832574993371964,
+            0.18029779102653265,
+            0.18077604100108147,
+            0.17820579186081886,
+            0.17816216591745615
+          ],
+          "seconds_median": 0.17817647848278284,
+          "seconds_min": 0.1776530835777521,
+          "seconds_max": 0.18203904200345278,
+          "seconds_mean": 0.17856018533930182,
+          "seconds_stdev": 0.0011399868832500147,
+          "seconds_per_program": 0.03563529569655657
+        }
+      },
+      "call_counts": {
+        "primary_only": {
+          "generation_calls": 20,
+          "primary_trial_calls": 20,
+          "serialization_calls": 20,
+          "reference_calls_h": 0,
+          "reference_calls_d": 0,
+          "looks": 72000,
+          "band_evaluations": 144000,
+          "enclosure_updates": 57599,
+          "programs": 5,
+          "trials": 20,
+          "reference_calls_total": 0,
+          "reference_calls_per_program": 0
+        },
+        "combined": {
+          "generation_calls": 20,
+          "primary_trial_calls": 20,
+          "serialization_calls": 20,
+          "reference_calls_h": 20,
+          "reference_calls_d": 20,
+          "looks": 72000,
+          "band_evaluations": 144000,
+          "enclosure_updates": 57599,
+          "programs": 5,
+          "trials": 20,
+          "reference_calls_total": 40,
+          "reference_calls_per_program": 8
+        }
+      },
+      "record_bytes_measured_not_written": {
+        "primary_only": 996,
+        "combined": 996
+      },
+      "bytes_per_program": {
+        "primary_only": 199.2,
+        "combined": 199.2
+      },
+      "missing_scope_seconds_median": 0.16770591586828232,
+      "missing_scope_seconds_per_program": 0.033541183173656466,
+      "missing_scope_share_of_combined": 0.941234877332519,
+      "seconds_per_program": 0.03563529569655657,
+      "baseline_rss_bytes": 72007680,
+      "peak_rss_bytes": 72007680,
+      "rss_delta_bytes": 0,
+      "rep": 2
+    },
+    {
+      "cell": "C1",
+      "N_max": 2000,
+      "programs": 5,
+      "program_base": 1000,
+      "trials": 20,
+      "inner_reps": 20,
+      "scopes": {
+        "primary_only": {
+          "seconds_each": [
+            0.01956237480044365,
+            0.025836083106696606,
+            0.02544724941253662,
+            0.02494683302938938,
+            0.020915458910167217,
+            0.019848291762173176,
+            0.017806249670684338,
+            0.01741191651672125,
+            0.017260417342185974,
+            0.017034167423844337,
+            0.016994042322039604,
+            0.016882666386663914,
+            0.016851374879479408,
+            0.01696700043976307,
+            0.01683666743338108,
+            0.016882458701729774,
+            0.016847625374794006,
+            0.01678366679698229,
+            0.016688457690179348,
+            0.01680016703903675
+          ],
+          "seconds_median": 0.01701410487294197,
+          "seconds_min": 0.016688457690179348,
+          "seconds_max": 0.025836083106696606,
+          "seconds_mean": 0.01873015845194459,
+          "seconds_stdev": 0.003111084672870843,
+          "seconds_per_program": 0.0034028209745883943
+        },
+        "combined": {
+          "seconds_each": [
+            0.36840491741895676,
+            0.36768208257853985,
+            0.36741350032389164,
+            0.36772229243069887,
+            0.3690841654315591,
+            0.36783033329993486,
+            0.36646345909684896,
+            0.36786150000989437,
+            0.3679064167663455,
+            0.3685025414451957,
+            0.367835458368063,
+            0.36858641542494297,
+            0.3673512926325202,
+            0.3666788339614868,
+            0.36686541698873043,
+            0.3667314173653722,
+            0.3669376662001014,
+            0.3674349170178175,
+            0.3663979582488537,
+            0.36679499968886375
+          ],
+          "seconds_median": 0.3675584997981787,
+          "seconds_min": 0.3663979582488537,
+          "seconds_max": 0.3690841654315591,
+          "seconds_mean": 0.36752427923493086,
+          "seconds_stdev": 0.0007576226422841145,
+          "seconds_per_program": 0.07351169995963573
+        }
+      },
+      "call_counts": {
+        "primary_only": {
+          "generation_calls": 20,
+          "primary_trial_calls": 20,
+          "serialization_calls": 20,
+          "reference_calls_h": 0,
+          "reference_calls_d": 0,
+          "looks": 132000,
+          "band_evaluations": 264000,
+          "enclosure_updates": 115650,
+          "programs": 5,
+          "trials": 20,
+          "reference_calls_total": 0,
+          "reference_calls_per_program": 0
+        },
+        "combined": {
+          "generation_calls": 20,
+          "primary_trial_calls": 20,
+          "serialization_calls": 20,
+          "reference_calls_h": 20,
+          "reference_calls_d": 20,
+          "looks": 132000,
+          "band_evaluations": 264000,
+          "enclosure_updates": 115650,
+          "programs": 5,
+          "trials": 20,
+          "reference_calls_total": 40,
+          "reference_calls_per_program": 8
+        }
+      },
+      "record_bytes_measured_not_written": {
+        "primary_only": 1007,
+        "combined": 1007
+      },
+      "bytes_per_program": {
+        "primary_only": 201.4,
+        "combined": 201.4
+      },
+      "missing_scope_seconds_median": 0.3505443949252367,
+      "missing_scope_seconds_per_program": 0.07010887898504733,
+      "missing_scope_share_of_combined": 0.9537104845016938,
+      "seconds_per_program": 0.07351169995963573,
+      "baseline_rss_bytes": 72007680,
+      "peak_rss_bytes": 72007680,
+      "rss_delta_bytes": 0,
+      "rep": 2
+    }
+  ],
+  "by_horizon": {
+    "1000": {
+      "cells": {
+        "C1": [
+          0.03387127909809351,
+          0.03537699580192566,
+          0.03563529569655657
+        ],
+        "C2": [
+          0.03447624584659934,
+          0.03521549990400672,
+          0.03547604996711016
+        ]
+      },
+      "seconds_per_program_by_cell": {
+        "C1": 0.03537699580192566,
+        "C2": 0.03521549990400672
+      },
+      "selected_cell": "C1",
+      "seconds_per_program": 0.03537699580192566
+    },
+    "2000": {
+      "cells": {
+        "C1": [
+          0.07034682910889387,
+          0.07201079158112407,
+          0.07351169995963573
+        ],
+        "C2": [
+          0.07159425420686602,
+          0.07277602506801487,
+          0.07341883331537247
+        ]
+      },
+      "seconds_per_program_by_cell": {
+        "C1": 0.07201079158112407,
+        "C2": 0.07277602506801487
+      },
+      "selected_cell": "C2",
+      "seconds_per_program": 0.07277602506801487
+    }
+  },
+  "measures_only": [
+    "wall_clock_seconds",
+    "peak_rss",
+    "output_bytes",
+    "call_counts"
+  ],
+  "pins": {
+    "code_sha256": {
+      "vrun.py": "a8c0e9f5775219366fca15ee9d63c1d5b59c7601e8f7deeb0e49d2f3698fe3f1",
+      "vgen.py": "513ac967c0d25b31a1922b40543d1add39f79633a5d4453eef9f9cb7c6f77be7",
+      "vband.py": "55a9894ff5694099c05cedbdf695ecdad3ac4bd5025328cd445e0b1d3df8cd9c",
+      "vresource_check.py": "fb071eb0d616af5d352ae4d4d1bdb278cf409f47445901f64f64bcec94b9e7a9"
+    },
+    "harness_sha256": "f4d18981785bd860e8b251e16502fd23a04250875cd935a03941f4f9f1a789b2",
+    "reference_module_sha256": "41498a28e67fb37b5a5b07a8e8afb1f98d7aa2459531b6cad5c51a2af35a22a8",
+    "reference_manifest_sha256": "ab353bac7d658d4c52aab2b34cef91bb7c302667331773f7884ec064ab0f43e3",
+    "config_sha256": {
+      "cells.json": "96ebf7e47f790031d5d125cedcc9a9973bccfc78ea8e159798d69fcca9d61e97",
+      "PROTOCOL_V2.md": "259863aa4fc070d652db6ada3513676f97bc27ed7887f4e32e762ccde909bcc4"
+    },
+    "compiled_binary": [
+      {
+        "path": "experiments/live_ab_validation/reference/_build/boundaries.cpython-312-darwin.so",
+        "sha256": "f1c65419fd9785be308eb762e86444effa52a168631a9f39cd377178eab55657",
+        "bytes": 356208
+      }
+    ],
+    "reference_module_origins": {
+      "comparecast": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/upstream/comparecast/__init__.py",
+      "comparecast.confseq": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/upstream/comparecast/confseq.py",
+      "comparecast.utils": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/upstream/comparecast/utils.py",
+      "confseq": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/upstream/confseq/__init__.py",
+      "confseq.boundaries": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/_build/boundaries.cpython-312-darwin.so",
+      "eb_reference": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/eb_reference.py"
+    },
+    "environment": {
+      "python": "3.12.13",
+      "python_build": "main May 10 2026 19:20:41",
+      "numpy": "2.4.1",
+      "platform": "macOS-26.5.2-arm64-arm-64bit",
+      "machine": "arm64",
+      "processor": "arm",
+      "cpu_count": 10,
+      "sys_platform": "darwin",
+      "rss_unit_convention": "ru_maxrss is BYTES on darwin and KIBIBYTES on linux; this harness converts to bytes and records which branch ran",
+      "rss_branch": "darwin: bytes"
+    },
+    "schedule": "v2_tick_batched",
+    "namespace": 1,
+    "frozen_reference_workload": {
+      "status": "DECLARED AND FROZEN",
+      "frozen_as": "post-development, pre-full-calibration amendment",
+      "authority": "root disposition 2026-09-21 04:53; COORDINATOR_DECISIONS revision 18 item 94",
+      "scores_per_trial": [
+        "H",
+        "D"
+      ],
+      "calls_per_score_per_trial": 1,
+      "calls_per_trial": 2,
+      "trials_per_program": 4,
+      "calls_per_program": 8,
+      "path_rule": "ONE complete-path call per score per trial on the SHARED latent arrays and the fixed prefix grid already used by the corresponding full-information diagnostics. Each full path is computed ONCE and its returned bands are INDEXED at every look; the path is never recomputed per look and never recomputed per baseline.",
+      "shared_draws": "the reference consumes the SAME latent arrays the primary is evaluated on; generation is shared, not repeated",
+      "decision_authority": "NONE, and unchanged. The reference remains a FULL-INFORMATION DIAGNOSTIC. It gates no tier, overrides no decision and has no authority to alter primary trial stopping.",
+      "may_be_silently_dropped": false,
+      "drop_rule": "The comparator may not be silently dropped and the workload may not be changed after outcomes are seen. If its cost cannot be met, the TOTAL-WORKLOAD GUARD refuses and the matter is escalated for a scoped decision.",
+      "accounted_components": [
+        "shared stream generation",
+        "primary evaluation and its looks",
+        "the H reference call",
+        "the D reference call",
+        "row serialization and output volume",
+        "combined peak resident memory"
+      ]
+    }
+  }
+}

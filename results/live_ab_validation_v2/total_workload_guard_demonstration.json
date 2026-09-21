@@ -1,0 +1,226 @@
+{
+  "schema": "live_ab_validation_v2.total_workload_guard.demonstration.1",
+  "what_this_is": "A demonstration that the separate total-workload resource guard actually REFUSES. Seconds are re-expressions of the accepted committed receipt; no clock was read here.",
+  "what_this_is_not": "not a resource clearance, not a calibration, not a measurement, and not an authorization of any grid",
+  "frozen_reference_workload": {
+    "status": "DECLARED AND FROZEN",
+    "frozen_as": "post-development, pre-full-calibration amendment",
+    "authority": "root disposition 2026-09-21 04:53; COORDINATOR_DECISIONS revision 18 item 94",
+    "scores_per_trial": [
+      "H",
+      "D"
+    ],
+    "calls_per_score_per_trial": 1,
+    "calls_per_trial": 2,
+    "trials_per_program": 4,
+    "calls_per_program": 8,
+    "path_rule": "ONE complete-path call per score per trial on the SHARED latent arrays and the fixed prefix grid already used by the corresponding full-information diagnostics. Each full path is computed ONCE and its returned bands are INDEXED at every look; the path is never recomputed per look and never recomputed per baseline.",
+    "shared_draws": "the reference consumes the SAME latent arrays the primary is evaluated on; generation is shared, not repeated",
+    "decision_authority": "NONE, and unchanged. The reference remains a FULL-INFORMATION DIAGNOSTIC. It gates no tier, overrides no decision and has no authority to alter primary trial stopping.",
+    "may_be_silently_dropped": false,
+    "drop_rule": "The comparator may not be silently dropped and the workload may not be changed after outcomes are seen. If its cost cannot be met, the TOTAL-WORKLOAD GUARD refuses and the matter is escalated for a scoped decision.",
+    "accounted_components": [
+      "shared stream generation",
+      "primary evaluation and its looks",
+      "the H reference call",
+      "the D reference call",
+      "row serialization and output volume",
+      "combined peak resident memory"
+    ]
+  },
+  "amendment": {
+    "kind": "post-development, pre-full-calibration amendment",
+    "date_utc": "2026-09-21",
+    "before": "NOT YET DECLARED. How many reference calls the primary grid will actually make is not fixed by any frozen document. The totals below assume ONE reference evaluation per program at the tier's horizon, which is stated as an ASSUMPTION and is not a prespecified workload. It must be predeclared before any tier is relied on.",
+    "after": "DECLARED AND FROZEN. One complete-path reference call per score per trial, for BOTH the hierarchy score H and the success-difference score D, on the shared latent arrays and the fixed prefix grid. Four trials per program therefore mean EIGHT reference calls per program. Each full path is computed once and its bands are indexed; it is not rerun at each look or separately for each baseline. The reference keeps its complete-information status and has no primary decision authority.",
+    "why": "The old text was not merely imprecise, it was numerically wrong in two directions at once. The resource review established that the receipt behind it already contained FOUR trial calls per program, not one, and that each of those was ONE SCORE STREAM (H only). A two-score panel executes twice that again. 'One evaluation per program' understated the executed workload by a factor of eight.",
+    "what_did_not_change": [
+      "the scientific design and the outcome-independent primary tier",
+      "alpha, margins, seeds, scoring, stopping, deadline, finalization",
+      "the reference's zero decision authority",
+      "every previously deposited receipt, which is preserved unedited"
+    ],
+    "supersedes_field": "reference_workload_costs()['workload_declaration_status']"
+  },
+  "hard_limits": {
+    "peak_rss_bytes": 2147483648,
+    "output_bytes": 209715200,
+    "seconds": 5400
+  },
+  "frozen_primary_selection_unchanged": {
+    "selected_tier": "T1",
+    "paused": false,
+    "selection_rule": "the highest tier whose projection satisfies ALL of seconds_projected <= 5400, peak_rss_projected <= 2 GiB, bytes_projected <= 200 MiB; written to budget.json BEFORE the reported grid starts",
+    "note": "this is the frozen scientific rule and it reads the PRIMARY projection only; the guard below does not move it"
+  },
+  "ladder_with_declared_two_score_reference": [
+    {
+      "tier": "T1",
+      "programs_total": 28000,
+      "N_max": 2000,
+      "primary_seconds_projected": 94.04860218055546,
+      "primary_admissible": true,
+      "reference_seconds_projected": 1949.8649299144745,
+      "total_seconds_projected": 2043.91353209503,
+      "reference_share_of_total": 0.9539860171657287
+    },
+    {
+      "tier": "T2",
+      "programs_total": 16000,
+      "N_max": 2000,
+      "primary_seconds_projected": 53.742058388888836,
+      "primary_admissible": true,
+      "reference_seconds_projected": 1114.2085313796997,
+      "total_seconds_projected": 1167.9505897685885,
+      "reference_share_of_total": 0.9539860171657287
+    },
+    {
+      "tier": "T3",
+      "programs_total": 8000,
+      "N_max": 2000,
+      "primary_seconds_projected": 26.871029194444418,
+      "primary_admissible": true,
+      "reference_seconds_projected": 557.1042656898499,
+      "total_seconds_projected": 583.9752948842943,
+      "reference_share_of_total": 0.9539860171657287
+    },
+    {
+      "tier": "T4",
+      "programs_total": 8000,
+      "N_max": 1000,
+      "primary_seconds_projected": 16.96318332105875,
+      "primary_admissible": true,
+      "reference_seconds_projected": 266.358133405447,
+      "total_seconds_projected": 283.32131672650576,
+      "reference_share_of_total": 0.9401274019298959
+    }
+  ],
+  "reference_cost_routes": {
+    "route_a_scaled_arithmetic": {
+      "what": "the H-only reference receipt (4 calls/program) scaled by the declared score count to the frozen 8-call workload",
+      "is_a_measurement": false,
+      "seconds_per_program_by_horizon": {
+        "1000": 0.032404616847634314,
+        "2000": 0.06963803321123123
+      },
+      "seconds_per_program_measured_h_only_by_horizon": {
+        "1000": 0.016202308423817157,
+        "2000": 0.034819016605615614
+      }
+    },
+    "route_b_measured_missing_scope": {
+      "what": "the contemporaneously measured COMBINED workload minus the contemporaneously measured primary-only scope, on the authorized 20-unit design. That difference is the reference-attributable share, which is the same object route A estimates.",
+      "is_a_measurement": true,
+      "present": true,
+      "missing_scope_seconds_per_program_by_horizon": {
+        "1000": 0.033294766675680876,
+        "2000": 0.06947654178366065
+      },
+      "whole_combined_seconds_per_program_by_horizon": {
+        "1000": 0.03537699580192566,
+        "2000": 0.07277602506801487
+      },
+      "attempts_total": 13,
+      "attempts_failed": 0
+    },
+    "route_reconciliation": {
+      "routes_by_horizon": {
+        "1000": {
+          "scaled_arithmetic": 0.032404616847634314,
+          "measured_missing_scope": 0.033294766675680876,
+          "ratio_measured_over_arithmetic": 1.027469845801048,
+          "used": "measured_missing_scope",
+          "rule": "the larger of the two, per horizon"
+        },
+        "2000": {
+          "scaled_arithmetic": 0.06963803321123123,
+          "measured_missing_scope": 0.06947654178366065,
+          "ratio_measured_over_arithmetic": 0.9976809881019941,
+          "used": "scaled_arithmetic",
+          "rule": "the larger of the two, per horizon"
+        }
+      },
+      "rule": "the larger of the scaled arithmetic and the measured missing scope, per horizon; neither route is discarded",
+      "is_a_resource_rule_only": true,
+      "withdrawn_91_2_percent": "NOT reused, NOT reproduced and NOT repaired. It was conditional arithmetic on a weak one-score receipt and does not carry into a two-score workload."
+    },
+    "which_the_guard_used": "the LARGER of the two at each horizon, per the resource rule in reference_workload_costs. The two routes do NOT agree exactly and neither dominates: the measured missing scope is the larger at horizon 1,000 and the scaled arithmetic is the larger at horizon 2,000. Both are retained; nothing is discarded.",
+    "the_withdrawn_91_2_percent": "NOT reused, NOT reproduced and NOT repaired here. It was conditional arithmetic on a weak one-score receipt and it does not carry into a two-score workload."
+  },
+  "guard_verdict_as_projected": {
+    "case": "as_projected",
+    "verdict": {
+      "guard": "fail_closed_total_workload_resource_guard",
+      "version": "1.0.0",
+      "authority": "root disposition 2026-09-21 04:53; COORDINATOR_DECISIONS revision 18 item 94",
+      "separate_from_the_scientific_tier_selection": true,
+      "frozen_selection_rule_unchanged": true,
+      "gives_the_comparator_no_inferential_authority": true,
+      "exemptions": [],
+      "cap_seconds": 5400.0,
+      "selected_tier": "T1",
+      "covers": [
+        "shared stream generation",
+        "primary evaluation and its looks",
+        "the H reference call",
+        "the D reference call",
+        "row serialization and output volume",
+        "combined peak resident memory"
+      ],
+      "primary_seconds_projected": 94.04860218055546,
+      "reference_seconds_projected": 1949.8649299144745,
+      "total_seconds_projected": 2043.91353209503,
+      "reference_share_of_total": 0.9539860171657287,
+      "primary_only_admissible": true,
+      "authorized": true,
+      "refusal_class": null,
+      "refusal": null,
+      "headroom_seconds": 3356.08646790497
+    },
+    "enforcement_raised": false
+  },
+  "tripped_cases": [
+    {
+      "case": "unresolved_reference_cost",
+      "authorized": false,
+      "refusal_class": "unresolved_total_cost",
+      "total_seconds_projected": null,
+      "primary_only_admissible": null,
+      "enforcement_raised": true,
+      "exception_message": "TOTAL-WORKLOAD RESOURCE GUARD REFUSED (unresolved_total_cost): the declared reference workload has NO resolved cost at this tier, so the TOTAL is unresolved. Unresolved is not zero and is not a pass: execution is REFUSED until the cost is measured or the workload is rescoped by a decision on the record. This guard is separate from the frozen scientific tier selection and carries no exemption.",
+      "demonstration_result": "PASS: the guard refused and execution could not proceed"
+    },
+    {
+      "case": "total_over_cap_with_admissible_primary",
+      "authorized": false,
+      "refusal_class": "total_over_cap",
+      "total_seconds_projected": 10894.048602180555,
+      "primary_only_admissible": true,
+      "enforcement_raised": true,
+      "exception_message": "TOTAL-WORKLOAD RESOURCE GUARD REFUSED (total_over_cap): the projected TOTAL workload is 10894.0 s against a cap of 5400.0 s. The primary-only tier is admissible, which does not matter here: the total is what is being authorized. Execution is REFUSED. Report it for a scoped decision; do not drop the comparator and do not choose a different workload after outcomes. This guard is separate from the frozen scientific tier selection and carries no exemption.",
+      "demonstration_result": "PASS: the guard refused and execution could not proceed"
+    },
+    {
+      "case": "no_tier_selected",
+      "authorized": false,
+      "refusal_class": "no_tier_selected",
+      "total_seconds_projected": null,
+      "primary_only_admissible": null,
+      "enforcement_raised": true,
+      "exception_message": "TOTAL-WORKLOAD RESOURCE GUARD REFUSED (no_tier_selected): no tier was selected by the frozen primary rule, so there is no total workload to authorize. REFUSED. This guard is separate from the frozen scientific tier selection and carries no exemption.",
+      "demonstration_result": "PASS: the guard refused and execution could not proceed"
+    }
+  ],
+  "every_tripped_case_refused": true,
+  "demonstration_result": "PASS: every way of tripping the guard refused and raised",
+  "provenance": {
+    "vrun_sha256": "3bd89add7c401a99dde711e8d8d54c14f427a17c6233401fef7c8ac318a154a9",
+    "cells_json_sha256": "96ebf7e47f790031d5d125cedcc9a9973bccfc78ea8e159798d69fcca9d61e97",
+    "committed_receipt": "results/live_ab_validation_v2/resource_check_committed/balanced_analysis.json",
+    "committed_receipt_sha256": "31d8a0cb0a0809bf894c7ecbff26a8afeb8bee8a403ff2540fdb31bd2debafe9",
+    "saved_projection": "results/live_ab_validation_v2/budget_projection_repaired.json",
+    "saved_projection_sha256": "6d515f5a4f835c022b454f338adbdd10cb9330a42c22859f84ff0bf44b1cf99d",
+    "python": "3.12.13",
+    "platform": "macOS-26.5.2-arm64-arm-64bit"
+  }
+}

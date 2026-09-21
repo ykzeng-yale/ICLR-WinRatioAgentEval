@@ -2292,8 +2292,286 @@ class TestSmokeToBudgetRepairs(unittest.TestCase):
         if not w["resolved"]:
             self.skipTest("no reference receipt deposited on this host")
         self.assertIn("workload_declaration_status", w)
-        self.assertIn("NOT YET DECLARED", w["workload_declaration_status"])
+        # AMENDED 2026-09-21.  This test previously asserted the workload was
+        # "NOT YET DECLARED", which was the correct assertion while it was not
+        # declared.  The root has now specified it exactly and it is frozen, so
+        # the test asserts the frozen declaration instead.
+        self.assertEqual(w["workload_declaration_status"], "DECLARED AND FROZEN")
         self.assertTrue(w["receipt_provenance_limits"])
+
+    def test_the_reference_workload_is_frozen_at_eight_calls_per_program(self):
+        """The root's specification, checked as a number and not as prose."""
+        wl = self.vrun.REFERENCE_WORKLOAD
+        self.assertEqual(tuple(wl["scores_per_trial"]), ("H", "D"))
+        self.assertEqual(wl["calls_per_score_per_trial"], 1)
+        self.assertEqual(wl["calls_per_trial"], 2)
+        self.assertEqual(wl["trials_per_program"], 4)
+        self.assertEqual(wl["calls_per_program"], 8)
+        self.assertFalse(wl["may_be_silently_dropped"])
+        self.assertIn("NONE", wl["decision_authority"])
+
+    def test_the_frozen_amendment_carries_before_and_after_text(self):
+        am = self.vrun.REFERENCE_WORKLOAD_AMENDMENT
+        self.assertIn("pre-full-calibration", am["kind"])
+        self.assertIn("NOT YET DECLARED", am["before"])
+        self.assertIn("EIGHT reference calls per program", am["after"])
+        self.assertTrue(am["what_did_not_change"])
+
+    def test_the_false_lower_bound_explanation_is_gone(self):
+        """The root established the premise was false; it must not survive."""
+        w = self.vrun.reference_workload_costs()
+        if not w["resolved"]:
+            self.skipTest("no reference receipt deposited on this host")
+        blob = " ".join(w["receipt_provenance_limits"]).lower()
+        self.assertNotIn("lower bound", blob)
+        self.assertIn("also included generation and row serialization", blob)
+
+
+class TestFailClosedTotalWorkloadGuard(unittest.TestCase):
+    """The SEPARATE total-workload resource guard must actually REFUSE.
+
+    A gate that has never fired is not known to be a gate, so every refusal
+    class is fired here and the enforcement is asserted to RAISE.
+    """
+
+    HERE = pathlib.Path(__file__).resolve().parent
+
+    def setUp(self):
+        sys.path.insert(0, str(self.HERE))
+        import vrun
+        self.vrun = vrun
+        self.cfg_json = json.loads((self.HERE / "cells.json").read_text())
+        self.cap = float(self.cfg_json["budget"]["hard_limits"]["seconds"])
+
+    def _budget(self, **over):
+        entry = {"tier": "T1", "programs_total": 28000, "N_max": 2000,
+                 "seconds_projected": 100.0, "bytes_projected": 1.0,
+                 "peak_rss_projected": 1, "within_seconds": True,
+                 "within_bytes": True, "within_peak_rss": True,
+                 "admissible": True,
+                 "reference_seconds_projected": 200.0,
+                 "total_seconds_projected": 300.0,
+                 "reference_cost_unresolved": False}
+        entry.update(over)
+        return {"selected_tier": "T1", "ladder": [entry], "paused": False}
+
+    def test_an_authorized_total_passes_and_does_not_raise(self):
+        v = self.vrun.total_workload_guard(self._budget(), self.cfg_json)
+        self.assertTrue(v["authorized"])
+        self.vrun.enforce_total_workload_guard(v)        # must not raise
+
+    def test_an_unresolved_total_refuses_and_raises(self):
+        v = self.vrun.total_workload_guard(
+            self._budget(reference_cost_unresolved=True,
+                         reference_seconds_projected=None,
+                         total_seconds_projected=None), self.cfg_json)
+        self.assertFalse(v["authorized"])
+        self.assertEqual(v["refusal_class"], "unresolved_total_cost")
+        with self.assertRaises(self.vrun.TotalResourceRefusal):
+            self.vrun.enforce_total_workload_guard(v)
+
+    def test_an_over_cap_total_refuses_even_when_the_primary_is_admissible(self):
+        v = self.vrun.total_workload_guard(
+            self._budget(reference_seconds_projected=self.cap * 2,
+                         total_seconds_projected=self.cap * 2 + 100.0),
+            self.cfg_json)
+        self.assertTrue(v["primary_only_admissible"])
+        self.assertFalse(v["authorized"])
+        self.assertEqual(v["refusal_class"], "total_over_cap")
+        with self.assertRaises(self.vrun.TotalResourceRefusal):
+            self.vrun.enforce_total_workload_guard(v)
+
+    def test_no_selected_tier_refuses_and_raises(self):
+        b = self._budget()
+        b["selected_tier"] = None
+        v = self.vrun.total_workload_guard(b, self.cfg_json)
+        self.assertFalse(v["authorized"])
+        self.assertEqual(v["refusal_class"], "no_tier_selected")
+        with self.assertRaises(self.vrun.TotalResourceRefusal):
+            self.vrun.enforce_total_workload_guard(v)
+
+    def test_the_guard_carries_no_exemption_list(self):
+        v = self.vrun.total_workload_guard(self._budget(), self.cfg_json)
+        self.assertEqual(v["exemptions"], [])
+        self.assertTrue(v["separate_from_the_scientific_tier_selection"])
+        self.assertTrue(v["frozen_selection_rule_unchanged"])
+
+
+class TestOperationalPolicyAdapter(unittest.TestCase):
+    """The versioned CPU adapter for the DECLARED live observation policy."""
+
+    HERE = pathlib.Path(__file__).resolve().parent
+    CAP = 100.0
+
+    def setUp(self):
+        sys.path.insert(0, str(self.HERE))
+        import vband, vpolicy
+        self.vband, self.vpolicy = vband, vpolicy
+
+    def _state(self, ell, cost, revealed_arm, success=1):
+        vb = self.vband
+        rev = vb.Episode.pending("r", self.CAP).finalized(int(success), cost)
+        pend = vb.Episode.pending("p", self.CAP).with_elapsed_cost(ell)
+        return (rev, pend) if revealed_arm == "candidate" else (pend, rev)
+
+    def test_the_adapter_is_versioned(self):
+        c = self.vpolicy.policy_constants()
+        self.assertEqual(c["policy_id"], "cpu-operational-policy-adapter")
+        self.assertRegex(c["policy_version"], r"^\d+\.\d+\.\d+$")
+        self.assertFalse(c["imports_the_monitored_source"])
+        self.assertEqual(c["certificate_eps"], 1e-9)
+        self.assertEqual(c["tol"], 0.05)
+
+    def test_the_executed_predicates_are_not_the_division_form(self):
+        """The root's 05:32 correction, asserted against the source text."""
+        text = (self.HERE / "vpolicy.py").read_text()
+        self.assertIn("(1.0 - tol) * ell > l_r + eps", text)
+        self.assertIn("ell > (1.0 - tol) * l_r + eps", text)
+
+    def test_the_six_reproduced_states_of_the_root_ledger(self):
+        """All six states the root enumerated, adapter side, by enumeration."""
+        expect = {
+            (10.526315789473685, 10.0, "incumbent"): (-1.0, 0.0),
+            (10.526315789473685, 10.0, "candidate"): (0.0, 1.0),
+            (9.5, 10.0, "incumbent"): (-1.0, 1.0),
+            (9.5, 10.0, "candidate"): (-1.0, 1.0),
+            (38.0, 40.0, "incumbent"): (-1.0, 1.0),
+            (38.0, 40.0, "candidate"): (-1.0, 1.0),
+        }
+        for (ell, cost, arm), want in expect.items():
+            cand, inc = self._state(ell, cost, arm)
+            got = self.vpolicy.operational_hierarchy_bounds(cand, inc)
+            self.assertEqual(got, want, f"ell={ell} cost={cost} arm={arm}")
+
+    def test_both_boundaries_survive_epsilon_zero(self):
+        """A margin of exactly zero is a difference of FORM, not of epsilon."""
+        for ell, cost in ((10.526315789473685, 10.0), (9.5, 10.0), (38.0, 40.0)):
+            cand, inc = self._state(ell, cost, "candidate")
+            m = self.vpolicy.certificate_margins(cand, inc)
+            self.assertTrue(m["forward_margin"] == 0.0
+                            or m["reverse_margin"] == 0.0,
+                            f"ell={ell} cost={cost}: {m}")
+            at_eps_0 = self.vpolicy.operational_hierarchy_bounds(
+                cand, inc, eps=0.0)
+            at_eps = self.vpolicy.operational_hierarchy_bounds(cand, inc)
+            self.assertEqual(at_eps_0, at_eps)
+
+    def test_the_operational_enclosure_always_contains_the_oracles(self):
+        """Containment is the SEPARATE check; a failure would be unsound."""
+        import itertools
+        costs = (0.0, 1.0, 9.5, 10.0, 10.526315789473685, 38.0, 40.0, 41.0)
+        checked = wider = 0
+        for ell, cost, arm, succ in itertools.product(
+                costs, costs, ("candidate", "incumbent"), (0, 1)):
+            if ell > self.CAP or cost > self.CAP:
+                continue
+            cand, inc = self._state(ell, cost, arm, success=succ)
+            rep = self.vpolicy.containment_report(cand, inc)
+            for score in ("hierarchy", "success"):
+                checked += 1
+                self.assertTrue(rep[score]["operational_contains_oracle"],
+                                f"{score} ell={ell} cost={cost} arm={arm} "
+                                f"succ={succ}: {rep[score]}")
+                wider += int(rep[score]["operational_strictly_wider"])
+        self.assertGreater(checked, 200)
+        self.assertGreater(wider, 0, "the two policies must actually differ "
+                                     "somewhere, or this check is vacuous")
+
+    def test_the_monitor_shares_everything_except_the_policy(self):
+        vb, vp = self.vband, self.vpolicy
+        mon = vp.OperationalMonitor(cost_cap=self.CAP)
+        self.assertIsInstance(mon, vb.ValidationMonitor)
+        self.assertEqual(mon.alpha_gate, vb.ALPHA_GATE)
+        self.assertEqual(mon.rho, vb.RHO)
+        self.assertEqual(mon.delta, vb.DELTA)
+        self.assertEqual(mon.n_min, vb.N_MIN)
+        self.assertEqual(vp.OperationalMonitor._refresh.__qualname__,
+                         "OperationalMonitor._refresh")
+        # everything else must be INHERITED, not re-implemented
+        for name in ("enroll", "finalize", "observe_elapsed_cost", "band",
+                     "look", "score_bounds"):
+            self.assertIs(getattr(vp.OperationalMonitor, name),
+                          getattr(vb.ValidationMonitor, name), name)
+
+    def test_the_certificate_branches_actually_fire(self):
+        """A branch that never fires is not known to be implemented."""
+        mon = self.vpolicy.OperationalMonitor(cost_cap=self.CAP)
+        mon.enroll(1, "AB", ("C", 1), ("I", 1))
+        mon.finalize(("I", 1), 1, 10.0)
+        mon.observe_elapsed_cost(("C", 1), 9.6)      # reverse certificate
+        self.assertEqual(mon.branch_counts["reverse_certificate"], 1)
+        mon.observe_elapsed_cost(("C", 1), 11.0)     # forward certificate
+        self.assertEqual(mon.branch_counts["forward_certificate"], 1)
+        enc = mon.pairs[0].hierarchy
+        self.assertEqual((enc.lo, enc.hi), (-1.0, -1.0))
+
+
+class TestV2AllLookSchedule(unittest.TestCase):
+    """v2 must compare every tick through N+W; v1 must keep its skip."""
+
+    HERE = pathlib.Path(__file__).resolve().parent
+
+    def setUp(self):
+        sys.path.insert(0, str(self.HERE))
+        import vcompare
+        self.vcompare = vcompare
+
+    def tearDown(self):
+        self.vcompare.select_snapshot("v1")
+
+    def test_the_snapshot_defaults_are_the_two_the_root_specified(self):
+        d = self.vcompare.SNAPSHOT_DEFAULTS
+        self.assertEqual(d["v1"]["policy"], "oracle")
+        self.assertFalse(d["v1"]["compare_drain_looks"])
+        self.assertEqual(d["v2"]["policy"], "operational")
+        self.assertTrue(d["v2"]["compare_drain_looks"])
+
+    def test_resolution_of_auto_and_of_explicit_overrides(self):
+        vc = self.vcompare
+        self.assertEqual(vc.resolve_policy("v1", "auto"), "oracle")
+        self.assertEqual(vc.resolve_policy("v2", "auto"), "operational")
+        self.assertEqual(vc.resolve_policy("v2", "oracle"), "oracle")
+        self.assertFalse(vc.resolve_drain_schedule("v1", "auto"))
+        self.assertTrue(vc.resolve_drain_schedule("v2", "auto"))
+        self.assertTrue(vc.resolve_drain_schedule("v1", "all"))
+        self.assertFalse(vc.resolve_drain_schedule("v2", "final-only"))
+        with self.assertRaises(vc.ComparisonRefusal):
+            vc.resolve_policy("v2", "whatever")
+        with self.assertRaises(vc.ComparisonRefusal):
+            vc.resolve_drain_schedule("v2", "whatever")
+
+    def test_the_csv_carries_a_drain_look_column(self):
+        self.assertIn("drain_look", self.vcompare.LOOK_FIELDS)
+
+    def test_the_drain_schedule_changes_the_number_of_looks(self):
+        """The repair is asserted on executed look counts, not on prose."""
+        vc = self.vcompare
+        vc.select_snapshot("v2")
+        cfg = vc.load_frozen_config()
+        pinned = vc.verify_and_load_pinned(verbose=False)
+        gen = vc.FrozenGenerator(cfg)
+        st = gen.build("C1", 0, 0)
+        n_max, fin = st.n_max, st.finalization_tick
+        seen = {}
+        for drain in (False, True):
+            ledger = vc.DefectLedger()
+            rows = []
+
+            class _W:
+                def writerow(self, row):
+                    rows.append(row)
+
+            out = vc.compare_cell_stream(st, cfg, pinned, ledger, _W(), 10**9,
+                                         verbose=False, policy="oracle",
+                                         compare_drain_looks=drain)
+            seen[drain] = (out.looks, out.drain_looks,
+                           sum(1 for r in rows if r.get("drain_look")))
+        self.assertEqual(seen[False][1], 0, "v1 mode must take no drain look")
+        self.assertEqual(seen[False][2], 0, "v1 mode must write no drain row")
+        self.assertEqual(seen[False][0], n_max + 1)
+        self.assertEqual(seen[True][0], fin)
+        self.assertEqual(seen[True][1], fin - n_max - 1)
+        self.assertEqual(seen[True][2], fin - n_max - 1)
 
 
 class TestV2ComparisonBinding(unittest.TestCase):

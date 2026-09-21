@@ -77,6 +77,7 @@ import math
 
 import platform
 import resource
+import statistics
 import subprocess
 import sys
 import time
@@ -1712,6 +1713,95 @@ def aggregate_horizon_costs(smoke: Dict[str, object]) -> Dict[str, object]:
 REFERENCE_TIMING = (REPO_ROOT / "results" / "live_ab_validation_v2"
                     / "resource_check_delivered" / "reference_timing.json")
 
+#: Where the MEASURED combined-workload receipt is deposited, when one exists.
+#: This is the receipt whose timed region covers the whole declared workload --
+#: shared generation, the primary evaluation, BOTH reference calls and row
+#: serialization -- rather than the primary alone or the reference alone.
+COMBINED_TIMING = (REPO_ROOT / "results" / "live_ab_validation_v2"
+                   / "resource_check_delivered" / "combined_workload_timing.json")
+
+
+# ---------------------------------------------------------------------------
+# THE FROZEN REFERENCE WORKLOAD
+#
+# Post-development, PRE-FULL-CALIBRATION amendment.  Root disposition of
+# 2026-09-21 04:53 ("Root's resource and reference decisions") and
+# COORDINATOR_DECISIONS revision 18 item 94.  Frozen here, in executable form,
+# BEFORE any calibration run; the before/after text is carried in
+# ``REFERENCE_WORKLOAD_AMENDMENT`` so the change is auditable rather than
+# merely asserted.
+# ---------------------------------------------------------------------------
+REFERENCE_WORKLOAD: Dict[str, object] = {
+    "status": "DECLARED AND FROZEN",
+    "frozen_as": "post-development, pre-full-calibration amendment",
+    "authority": ("root disposition 2026-09-21 04:53; COORDINATOR_DECISIONS "
+                  "revision 18 item 94"),
+    "scores_per_trial": ("H", "D"),
+    "calls_per_score_per_trial": 1,
+    "calls_per_trial": 2,
+    "trials_per_program": vgen.TRIALS_PER_PROGRAM,
+    "calls_per_program": 2 * vgen.TRIALS_PER_PROGRAM,
+    "path_rule": ("ONE complete-path call per score per trial on the SHARED "
+                  "latent arrays and the fixed prefix grid already used by the "
+                  "corresponding full-information diagnostics. Each full path "
+                  "is computed ONCE and its returned bands are INDEXED at every "
+                  "look; the path is never recomputed per look and never "
+                  "recomputed per baseline."),
+    "shared_draws": ("the reference consumes the SAME latent arrays the primary "
+                     "is evaluated on; generation is shared, not repeated"),
+    "decision_authority": (
+        "NONE, and unchanged. The reference remains a FULL-INFORMATION "
+        "DIAGNOSTIC. It gates no tier, overrides no decision and has no "
+        "authority to alter primary trial stopping."),
+    "may_be_silently_dropped": False,
+    "drop_rule": ("The comparator may not be silently dropped and the workload "
+                  "may not be changed after outcomes are seen. If its cost "
+                  "cannot be met, the TOTAL-WORKLOAD GUARD refuses and the "
+                  "matter is escalated for a scoped decision."),
+    "accounted_components": [
+        "shared stream generation",
+        "primary evaluation and its looks",
+        "the H reference call",
+        "the D reference call",
+        "row serialization and output volume",
+        "combined peak resident memory",
+    ],
+}
+
+REFERENCE_WORKLOAD_AMENDMENT: Dict[str, object] = {
+    "kind": "post-development, pre-full-calibration amendment",
+    "date_utc": "2026-09-21",
+    "before": (
+        "NOT YET DECLARED. How many reference calls the primary grid will "
+        "actually make is not fixed by any frozen document. The totals below "
+        "assume ONE reference evaluation per program at the tier's horizon, "
+        "which is stated as an ASSUMPTION and is not a prespecified workload. "
+        "It must be predeclared before any tier is relied on."),
+    "after": (
+        "DECLARED AND FROZEN. One complete-path reference call per score per "
+        "trial, for BOTH the hierarchy score H and the success-difference "
+        "score D, on the shared latent arrays and the fixed prefix grid. Four "
+        "trials per program therefore mean EIGHT reference calls per program. "
+        "Each full path is computed once and its bands are indexed; it is not "
+        "rerun at each look or separately for each baseline. The reference "
+        "keeps its complete-information status and has no primary decision "
+        "authority."),
+    "why": (
+        "The old text was not merely imprecise, it was numerically wrong in "
+        "two directions at once. The resource review established that the "
+        "receipt behind it already contained FOUR trial calls per program, not "
+        "one, and that each of those was ONE SCORE STREAM (H only). A two-score "
+        "panel executes twice that again. 'One evaluation per program' "
+        "understated the executed workload by a factor of eight."),
+    "what_did_not_change": [
+        "the scientific design and the outcome-independent primary tier",
+        "alpha, margins, seeds, scoring, stopping, deadline, finalization",
+        "the reference's zero decision authority",
+        "every previously deposited receipt, which is preserved unedited",
+    ],
+    "supersedes_field": "reference_workload_costs()['workload_declaration_status']",
+}
+
 
 def reference_workload_costs() -> Dict[str, object]:
     """The PLANNED external-reference compute, priced from its own receipt.
@@ -1792,24 +1882,268 @@ def reference_workload_costs() -> Dict[str, object]:
             "no generation timestamp, interpreter or environment record",
             "no code, harness or binary hashes, so it is NOT an exact-pin "
             "receipt and must not be described as one",
-            "panel.py times the band call on PRE-GENERATED draws, whereas the "
-            "primary timed region includes generation and row formatting, so "
-            "the two cost scopes are different and are not additive without "
-            "that caveat",
+            "panel.py times the band call on PRE-GENERATED draws. The primary "
+            "receipt's timed region ALSO included generation and row "
+            "serialization -- that was established from its own source and is "
+            "not in doubt -- so the two scopes overlap rather than nest, and "
+            "adding them double-counts nothing but also certifies nothing. The "
+            "genuine remaining scope differences are the grid's accumulator, "
+            "its output path and its per-batch summary work, a disk-backed "
+            "sink against a discard sink, and warm-up and process context. "
+            "These are named limitations, NOT a mathematical bound in either "
+            "direction.",
             "its four groups share one process, so its RSS is a cumulative "
             "high-water mark and is not attributable per group",
-            "it measures ONE score stream (hierarchy H only); a planned "
-            "two-gate panel would execute more calls than this prices",
+            "it measures ONE score stream (hierarchy H only) and FOUR trial "
+            "calls per program; the frozen workload is TWO scores, so it "
+            "prices HALF the declared calls",
         ],
-        "workload_declaration_status": (
-            "NOT YET DECLARED. How many reference calls the primary grid will "
-            "actually make is not fixed by any frozen document. The totals "
-            "below assume ONE reference evaluation per program at the tier's "
-            "horizon, which is stated as an ASSUMPTION and is not a "
-            "prespecified workload. It must be predeclared before any tier is "
-            "relied on."),
+        "measured_scope_vs_declared_workload": {
+            "receipt_calls_per_program": int(vgen.TRIALS_PER_PROGRAM),
+            "declared_calls_per_program":
+                int(REFERENCE_WORKLOAD["calls_per_program"]),
+            "scale_factor_applied": 2.0,
+            "this_is_arithmetic_not_measurement": (
+                "the H-only receipt is scaled by the declared score count. "
+                "That is conditional arithmetic on a weak receipt, exactly the "
+                "kind of number the root withdrew when it was presented as "
+                "measured compute. It is labelled as arithmetic here and a "
+                "MEASURED combined receipt supersedes it when one exists."),
+        },
+        "workload_declaration_status": "DECLARED AND FROZEN",
+        "workload": dict(REFERENCE_WORKLOAD),
+        "workload_amendment": dict(REFERENCE_WORKLOAD_AMENDMENT),
     })
+    # Scale the H-only receipt onto the DECLARED two-score workload.  Labelled
+    # arithmetic, never presented as a measurement.
+    scale = float(REFERENCE_WORKLOAD["calls_per_program"]) / float(
+        vgen.TRIALS_PER_PROGRAM)
+    for slot in out["seconds_per_program_by_horizon"].values():   # type: ignore[union-attr]
+        slot["seconds_per_program_measured_h_only"] = slot["seconds_per_program"]
+        slot["seconds_per_program"] = slot["seconds_per_program"] * scale
+    # A MEASURED combined receipt, if one has been deposited, is reported beside
+    # the scaled arithmetic and never silently replaces it.
+    combined = _combined_workload_receipt()
+    out["combined_workload_receipt"] = combined
+    # CONSERVATIVE RECONCILIATION.  Two independent routes reach the
+    # reference-attributable per-program cost: the scaled H-only arithmetic and
+    # the measured missing scope.  Neither is discarded and the LARGER is used,
+    # per horizon -- the same conservative convention the primary projection
+    # already uses across cells.  This is a RESOURCE rule; it moves no tier and
+    # touches no scientific parameter.
+    routes: Dict[str, object] = {}
+    if combined.get("present"):
+        meas_by_h = combined["seconds_per_program_by_horizon"]    # type: ignore[index]
+        for h, slot in out["seconds_per_program_by_horizon"].items():  # type: ignore[union-attr]
+            arith = float(slot["seconds_per_program"])
+            meas = meas_by_h.get(h)
+            if meas is None:
+                routes[h] = {"scaled_arithmetic": arith, "measured": None,
+                             "used": "scaled_arithmetic",
+                             "reason": "no measurement at this horizon"}
+                continue
+            meas_v = float(meas["seconds_per_program"])
+            chosen = max(arith, meas_v)
+            slot["seconds_per_program_scaled_arithmetic"] = arith
+            slot["seconds_per_program_measured_missing_scope"] = meas_v
+            slot["seconds_per_program"] = chosen
+            routes[h] = {
+                "scaled_arithmetic": arith,
+                "measured_missing_scope": meas_v,
+                "ratio_measured_over_arithmetic": (meas_v / arith
+                                                   if arith else None),
+                "used": ("measured_missing_scope" if chosen == meas_v
+                         else "scaled_arithmetic"),
+                "rule": "the larger of the two, per horizon",
+            }
+    out["reference_cost_route_reconciliation"] = {
+        "routes_by_horizon": routes,
+        "rule": ("the larger of the scaled arithmetic and the measured "
+                 "missing scope, per horizon; neither route is discarded"),
+        "is_a_resource_rule_only": True,
+        "withdrawn_91_2_percent": (
+            "NOT reused, NOT reproduced and NOT repaired. It was conditional "
+            "arithmetic on a weak one-score receipt and does not carry into a "
+            "two-score workload."),
+    }
     return out
+
+
+def _combined_workload_receipt() -> Dict[str, object]:
+    """The measured combined-workload receipt, or an explicit absence."""
+    if not COMBINED_TIMING.is_file():
+        return {"present": False,
+                "path": str(COMBINED_TIMING.relative_to(REPO_ROOT)),
+                "note": ("no measured combined-workload receipt on this host; "
+                         "the scaled arithmetic above is all there is, and it "
+                         "is arithmetic")}
+    try:
+        rec = json.loads(COMBINED_TIMING.read_text())
+    except (OSError, ValueError) as exc:                         # pragma: no cover
+        return {"present": False, "unreadable": f"{exc!r}"}
+    by_h: Dict[str, Dict[str, object]] = {}
+    for p in rec.get("points", []):
+        h = str(int(p["N_max"]))
+        slot = by_h.setdefault(h, {"combined_cells": {}, "missing_cells": {}})
+        cell = str(p["cell"])
+        slot["combined_cells"].setdefault(cell, []).append(          # type: ignore[union-attr]
+            float(p["seconds_per_program"]))
+        slot["missing_cells"].setdefault(cell, []).append(           # type: ignore[union-attr]
+            float(p["missing_scope_seconds_per_program"]))
+    for slot in by_h.values():
+        for key, src in (("combined", "combined_cells"),
+                         ("missing_scope", "missing_cells")):
+            per_cell = {c: statistics.median(v)                      # type: ignore[union-attr]
+                        for c, v in slot[src].items()}
+            worst = max(per_cell, key=lambda c: per_cell[c])
+            slot[f"{key}_seconds_per_program_by_cell"] = per_cell
+            slot[f"{key}_selected_cell"] = worst
+            slot[f"{key}_seconds_per_program"] = per_cell[worst]
+            slot.pop(src)
+        # the field the guard's reconciliation reads: the REFERENCE-ONLY share
+        # of the combined workload, which is the object route A also estimates
+        slot["seconds_per_program"] = slot["missing_scope_seconds_per_program"]
+    return {
+        "present": True,
+        "path": str(COMBINED_TIMING.relative_to(REPO_ROOT)),
+        "receipt_sha256": sha256_file(COMBINED_TIMING),
+        "schema": rec.get("schema"),
+        "scope": rec.get("timed_scope"),
+        "aggregation_rule": ("median over repetitions, then the MAXIMUM "
+                             "measured cell per horizon"),
+        "seconds_per_program_is": (
+            "the MISSING SCOPE (combined minus primary-only), which is the "
+            "reference-attributable share and is the object comparable with "
+            "the scaled arithmetic. The whole combined cost is reported "
+            "separately under combined_seconds_per_program."),
+        "seconds_per_program_by_horizon": by_h,
+        "attempts_total": rec.get("attempts_total"),
+        "attempts_failed": rec.get("attempts_failed"),
+        "bytes_per_program": rec.get("bytes_per_program"),
+        "pins": (rec.get("pins") or {}).get("environment"),
+    }
+
+
+# ---------------------------------------------------------------------------
+# THE FAIL-CLOSED TOTAL-WORKLOAD RESOURCE GUARD
+#
+# Root disposition of 2026-09-21 04:53 and COORDINATOR_DECISIONS revision 18
+# item 94: "Add a separate FAIL-CLOSED total-resource guard for unresolved and
+# over-cap costs."  The resource review states the requirement precisely --
+# there must be TWO DIFFERENT DECISIONS: the frozen scientific tier selection,
+# which is unchanged and reads the primary projection only, and a SEPARATE
+# authorization of the ENTIRE DECLARED EXECUTION WORKLOAD, which refuses.
+#
+# What makes this fail-closed rather than advisory:
+#   * an UNRESOLVED total refuses.  Unresolved is not zero and is not a pass.
+#   * an OVER-CAP total refuses, even when the primary-only tier is admissible.
+#   * a MISSING or unselected tier refuses.
+#   * the caller cannot proceed past it: ``enforce_total_workload_guard`` raises
+#     ``TotalResourceRefusal``, which is a SystemExit, before the grid starts.
+#   * it carries NO exemption list.  A gate with an exemption is the defect this
+#     study exists to find.
+#
+# What it deliberately does NOT do: it does not move a tier, change alpha,
+# margins, seeds, scoring or stopping, and it gives the comparator no
+# inferential authority.  Respecting a compute cap is not a scientific decision.
+# ---------------------------------------------------------------------------
+class TotalResourceRefusal(SystemExit):
+    """Raised when the projected TOTAL workload is unresolved or over cap."""
+
+
+def total_workload_guard(budget: Dict[str, object],
+                         cfg_json: dict) -> Dict[str, object]:
+    """[pure] Authorize, or REFUSE, the entire declared execution workload."""
+    limits = cfg_json["budget"]["hard_limits"]
+    cap_seconds = float(limits["seconds"])
+    selected = budget.get("selected_tier")
+    ladder = list(budget.get("ladder") or [])
+    verdict: Dict[str, object] = {
+        "guard": "fail_closed_total_workload_resource_guard",
+        "version": "1.0.0",
+        "authority": ("root disposition 2026-09-21 04:53; "
+                      "COORDINATOR_DECISIONS revision 18 item 94"),
+        "separate_from_the_scientific_tier_selection": True,
+        "frozen_selection_rule_unchanged": True,
+        "gives_the_comparator_no_inferential_authority": True,
+        "exemptions": [],
+        "cap_seconds": cap_seconds,
+        "selected_tier": selected,
+        "covers": list(REFERENCE_WORKLOAD["accounted_components"]),
+    }
+    if selected is None:
+        verdict.update({
+            "authorized": False,
+            "refusal_class": "no_tier_selected",
+            "refusal": ("no tier was selected by the frozen primary rule, so "
+                        "there is no total workload to authorize. REFUSED."),
+        })
+        return verdict
+    entry = next((e for e in ladder if e.get("tier") == selected), None)
+    if entry is None:                                            # pragma: no cover
+        verdict.update({
+            "authorized": False,
+            "refusal_class": "selected_tier_missing_from_ladder",
+            "refusal": f"tier {selected!r} is not in the ladder. REFUSED.",
+        })
+        return verdict
+    primary = entry.get("seconds_projected")
+    ref = entry.get("reference_seconds_projected")
+    verdict["primary_seconds_projected"] = primary
+    verdict["reference_seconds_projected"] = ref
+    if entry.get("reference_cost_unresolved") or ref is None:
+        verdict.update({
+            "authorized": False,
+            "refusal_class": "unresolved_total_cost",
+            "total_seconds_projected": None,
+            "refusal": (
+                "the declared reference workload has NO resolved cost at this "
+                "tier, so the TOTAL is unresolved. Unresolved is not zero and "
+                "is not a pass: execution is REFUSED until the cost is measured "
+                "or the workload is rescoped by a decision on the record."),
+            "reference_cost_note": entry.get("reference_cost_note"),
+        })
+        return verdict
+    total = float(primary) + float(ref)
+    verdict["total_seconds_projected"] = total
+    verdict["reference_share_of_total"] = (float(ref) / total) if total else None
+    verdict["primary_only_admissible"] = bool(entry.get("admissible"))
+    if total > cap_seconds:
+        verdict.update({
+            "authorized": False,
+            "refusal_class": "total_over_cap",
+            "refusal": (
+                f"the projected TOTAL workload is {total:.1f} s against a cap "
+                f"of {cap_seconds:.1f} s. The primary-only tier is "
+                f"{'admissible' if entry.get('admissible') else 'not admissible'}, "
+                f"which does not matter here: the total is what is being "
+                f"authorized. Execution is REFUSED. Report it for a scoped "
+                f"decision; do not drop the comparator and do not choose a "
+                f"different workload after outcomes."),
+        })
+        return verdict
+    verdict.update({
+        "authorized": True,
+        "refusal_class": None,
+        "refusal": None,
+        "headroom_seconds": cap_seconds - total,
+    })
+    return verdict
+
+
+def enforce_total_workload_guard(verdict: Dict[str, object]) -> None:
+    """REFUSE to proceed unless the total workload was authorized.
+
+    This is the half that makes the guard fail-closed rather than advisory: it
+    raises, and the caller cannot continue past it.
+    """
+    if verdict.get("authorized"):
+        return
+    raise TotalResourceRefusal(
+        "TOTAL-WORKLOAD RESOURCE GUARD REFUSED "
+        f"({verdict.get('refusal_class')}): {verdict.get('refusal')} "
+        "This guard is separate from the frozen scientific tier selection and "
+        "carries no exemption.")
 
 
 def select_tier(smoke: Dict[str, object], cfg_json: dict) -> Dict[str, object]:
@@ -2650,8 +2984,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         "fail_closed_for_the_reported_grid": True,
         "exemptions": [],
     }
+    # ---- the SEPARATE fail-closed total-workload resource guard ------------
+    # Two different decisions, kept apart on purpose: the frozen scientific tier
+    # selection above (primary projection only, unchanged), and this
+    # authorization of the ENTIRE declared workload, which refuses.
+    total_guard = total_workload_guard(budget, cfg_json)
+    budget["total_workload_guard"] = total_guard
     budget["grid_may_start"] = bool(not fixture_failures
-                                    and not budget["paused"])
+                                    and not budget["paused"]
+                                    and total_guard["authorized"])
     if overrides:
         budget["reported_grid"] = False
         budget["note"] = ("this run carries grid overrides; it is a shakedown, "
@@ -2665,6 +3006,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         print(f"  {entry['tier']}: {entry['seconds_projected'] / 60:8.1f} min, "
               f"{entry['bytes_projected'] / 2**20:7.1f} MiB -> "
               f"{'admissible' if entry['admissible'] else 'over budget'}")
+    print(f"  TOTAL-WORKLOAD GUARD (separate, fail-closed): "
+          f"{'AUTHORIZED' if total_guard['authorized'] else 'REFUSED'}"
+          + ("" if total_guard["authorized"]
+             else f" [{total_guard['refusal_class']}]"))
     if args.smoke is not None:
         print(f"\nsmoke run complete; selected tier would be "
               f"{budget['selected_tier']}")
@@ -2676,6 +3021,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         return 3
 
     # ---- 4. the reported grid ----------------------------------------------
+    # The fail-closed TOTAL-workload guard runs before anything is executed, and
+    # it raises rather than warning.  It is deliberately checked separately from
+    # (and after) the frozen primary selection, so that a primary-admissible
+    # tier whose TOTAL is unresolved or over cap still cannot start.
+    enforce_total_workload_guard(total_guard)
     if fixture_failures:
         raise SystemExit(
             "the fixture gate is fail-closed and these cases did not pass: "
