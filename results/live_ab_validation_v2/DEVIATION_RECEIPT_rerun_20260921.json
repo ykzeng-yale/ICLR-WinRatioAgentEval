@@ -1,0 +1,83 @@
+{
+  "authority": "root disposition 2026-09-21 06:35 and delta review 07:19",
+  "authorizes": "NOTHING. No full grid, no calibration panel, no live trial.",
+  "committed_receipts_unmodified": {
+    "means": "no TRACKED file under results/live_ab_validation_v2/ is modified or deleted. An earlier draft of this receipt recorded a bare `git status` emptiness check, which reported False merely because this receipt and the guard-v2 demonstration are new untracked files -- that would have implied the deposited receipts were touched, which is the opposite of the truth. The check now excludes untracked additions and names what it tests.",
+    "modified_or_deleted_tracked_paths": [],
+    "new_untracked_paths_this_delivery": [
+      "results/live_ab_validation_v2/DEVIATION_RECEIPT_rerun_20260921.json",
+      "results/live_ab_validation_v2/DEVIATION_RECEIPT_rerun_20260921.md"
+    ],
+    "value": true
+  },
+  "environment": {
+    "platform": "macOS-26.5.2-arm64-arm-64bit",
+    "python": "3.12.13"
+  },
+  "narrative_md": "results/live_ab_validation_v2/DEVIATION_RECEIPT_rerun_20260921.md",
+  "open_gap": "vcompare still accepts an output directory holding a committed receipt. Not changed in the same delivery that depends on the receipts it produced. vpanel.run_panel refuses a non-empty output directory and is tested for it.",
+  "reported_figures_without_surviving_artifact": {
+    "artifact": null,
+    "disagreements": 51,
+    "disposition": "WITHDRAWN from circulation as unsupported. Recorded so the attempt is not silently absent. Must not be cited, aggregated, or carried into paper or supplement. Not reconstructed; not re-run to recreate.",
+    "drain_looks_approx": 39800
+  },
+  "schema": "live_ab_validation_v2.deviation_receipt.1",
+  "status": "OWNER-REPORTED DEVELOPMENT ATTEMPT; not delivered evidence, not validated, not calibration",
+  "subject": "broader comparison rerun, 2026-09-21",
+  "surviving_committed_receipts": {
+    "comparison_v2": {
+      "commit": "9f8ea060772effd75491bbebf42aebfb5a6e3ee0",
+      "defect_rows": 198,
+      "drain_look_column_present": false,
+      "drain_look_rows": 0,
+      "look_rows": 22523,
+      "sha256": {
+        "comparison_defects.csv": "348338858f4b9fcb1640bc01d38b5319cd343d9b9ee4a60b28789e5b78e1d341",
+        "comparison_summary.json": "37b784acd35e810813f6213866db8bf510ca0407575f42e42ceb24b5fb87d334",
+        "comparison_vs_live_ab.csv": "41dcab8c36279a9b1d35e2e34c31e2cb5893deb55e82e4b8ca05af2ed6b55279"
+      }
+    },
+    "comparison_v2_alllook": {
+      "commit": "65e957e24b5b4f7325b06f2e099f9bf04e0f1755",
+      "defect_rows": 0,
+      "drain_look_column_present": true,
+      "drain_look_rows": 1592,
+      "look_rows": 24115,
+      "sha256": {
+        "comparison_defects.csv": "df0e402ecd9d4b406ea85c0ac2d7bdd407b1bec0c44977da3f47cba473ba1ad4",
+        "comparison_summary.json": "411504235e6cfedce8bc1837e02af29e7fb0a6e0ae2f7919eefddddfd305d6d7",
+        "comparison_vs_live_ab.csv": "086b63be3b8309b691f12d251ffba2534ac680f3b466d54966321303dfd20698"
+      }
+    },
+    "comparison_v2_alllook_oracle": {
+      "commit": "65e957e24b5b4f7325b06f2e099f9bf04e0f1755",
+      "defect_rows": 204,
+      "drain_look_column_present": true,
+      "drain_look_rows": 1592,
+      "look_rows": 24115,
+      "sha256": {
+        "comparison_defects.csv": "6bc22150196be317de79127d02266865d840d501633cd99e25224fcc922ead09",
+        "comparison_summary.json": "21727c5c326db22cfa222e315c3afbb0270d8671e18232cb9cda8e847690a34a",
+        "comparison_vs_live_ab.csv": "324cfbd4ead4e9b05c1095157c80559be437d90dd3cbacdfaeda4b3310013272"
+      }
+    }
+  },
+  "trace_search_performed": {
+    "conclusion": "the overwritten rows were never staged, so they never became a git object and are unrecoverable by construction",
+    "git_fsck_lost_found": "one dangling blob 93804424975863850bd54c69c888e1e7ab81f032, 163886 bytes, PNG magic, not a comparison CSV; dangling commits unrelated",
+    "git_stash": "empty",
+    "log_files": "none surviving in results/ or experiments/live_ab_validation/",
+    "scratchpad": "no copy of the rerun output"
+  },
+  "unavailable_exactly": [
+    "rerun comparison_vs_live_ab.csv",
+    "rerun comparison_defects.csv",
+    "rerun comparison_summary.json",
+    "seed block",
+    "config block",
+    "wall-clock timestamps",
+    "resource usage"
+  ],
+  "what_happened": "vcompare was re-run into an output directory already holding a committed receipt and overwrote it; the directory was restored from HEAD. Restoration recovered the committed bytes exactly and did NOT preserve the rerun's own outputs."
+}
