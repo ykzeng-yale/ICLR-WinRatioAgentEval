@@ -1,0 +1,80 @@
+{
+  "all_match": true,
+  "authorizes": "NOTHING. Read-only derivation.",
+  "convention": "design-based derivation from frozen constants; not a measurement",
+  "derived_per_shard": {
+    "expected_primary_rows": 6000,
+    "expected_programs": 500,
+    "expected_reference_calls": 4000,
+    "expected_reference_rows": 12000,
+    "expected_trials": 2000
+  },
+  "frozen_constants": {
+    "construction_names": [
+      "ADAPTER",
+      "CPREFIX",
+      "NAIVE"
+    ],
+    "constructions": 3,
+    "declared_prefixes": [
+      100,
+      500,
+      2000
+    ],
+    "horizon": 2000,
+    "programs_per_shard": 500,
+    "reference_calls_per_trial": 2,
+    "trials_per_program": 4
+  },
+  "job_totals_declared": {
+    "primary_rows": 336000,
+    "reference_calls": 224000,
+    "reference_rows": 672000,
+    "trials": 112000
+  },
+  "job_totals_derived": {
+    "primary_rows": 336000,
+    "reference_calls": 224000,
+    "reference_rows": 672000,
+    "trials": 112000
+  },
+  "prefix_skip_branch": {
+    "branch_reachable_at_horizon_2000": false,
+    "code": "vprod: if n < 1 or n > arr.size: continue",
+    "draw_array_lengths_checked_in_namespace": 2,
+    "max_prefix": 2000,
+    "not_the_t1_replay_namespace": 0,
+    "observed": {
+      "C1": {
+        "draw_n": 2000,
+        "len_dsc": 2000,
+        "len_z": 2000
+      },
+      "C3": {
+        "draw_n": 2000,
+        "len_dsc": 2000,
+        "len_z": 2000
+      },
+      "C7": {
+        "draw_n": 2000,
+        "len_dsc": 2000,
+        "len_z": 2000
+      }
+    },
+    "why_it_matters": "a silently skipped prefix would emit fewer reference rows than the plan expects, and EVERY shard would then fail reconciliation -- after burning time"
+  },
+  "purpose": "close the owner-flagged uncertainty that the per-shard row arithmetic was asserted but never cross-checked against the frozen constants. READ-ONLY: nothing was executed at T1 coordinates and no source changed.",
+  "root_plan_per_shard": {
+    "expected_primary_rows": 6000,
+    "expected_programs": 500,
+    "expected_reference_calls": 4000,
+    "expected_reference_rows": 12000,
+    "expected_trials": 2000
+  },
+  "schema": "live_ab_validation_v2.count_derivation.1",
+  "what_this_does_NOT_establish": [
+    "that the real evaluate/reference calls SUCCEED at horizon 2000 on T1 coordinates",
+    "any runtime, coverage, power or effect property",
+    "anything about C3-C6 cost, which remains unmeasured"
+  ]
+}
