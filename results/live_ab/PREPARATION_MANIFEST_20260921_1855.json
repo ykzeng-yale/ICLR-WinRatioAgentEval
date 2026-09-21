@@ -1,0 +1,107 @@
+{
+  "WHAT_THIS_IS": "Offline preparation facts for the freeze. No server contacted, no model call, no sandbox execution, no network.",
+  "authority": "root 2026-09-21 18:17, binding answers 1, 3 and 5",
+  "environment_lock": {
+    "implementation": "CPython",
+    "interpreter_path_tokenized": "<REPO>/.venv/bin/python",
+    "interpreter_version": "3.12.13",
+    "numpy": "2.4.1",
+    "numpy_note": "the arrival order is numpy Generator.permutation, so the numpy version is load-bearing for a reproducible design. Nothing in the freeze bundle pinned it before this artifact.",
+    "packages_count": 83,
+    "packages_list_sha256_covers": "name==version for every installed distribution, sorted",
+    "packages_sha256": "08c1de5ae33d1fdd45424be7956c88471b8a8e47971608ac866aa6cb5247b053",
+    "packages_source": "importlib.metadata.distributions() -- pip is NOT installed in this venv"
+  },
+  "environment_lock_sha256": "842a7a19d738604fbe665231a593a11f12cc02abfe9b1dc4034bc3817a9081ac",
+  "generated_utc": "2026-09-21T18:43:12Z",
+  "hardware": {
+    "allowlist": [
+      "arm64-darwin"
+    ],
+    "cpu_brand": "Apple M5",
+    "logical_cores": "10",
+    "machine": "arm64",
+    "memsize_bytes": "34359738368",
+    "physical_cores": "10",
+    "release": "25.5.0",
+    "scope_note": "root 18:17 item 3: scope to the currently intended host/runtime and record its actual hardware facts; do NOT silently broaden. An OS/architecture string alone does not establish an exact device, available capacity or a reproducible serving identity -- this is a design RESTRICTION, not evidence the machine passed its gate.",
+    "system": "Darwin"
+  },
+  "harness_set_correction": {
+    "caught_before": "any bundle was deposited, so nothing was broken.",
+    "fixed": "moved to experiments/live_ab_tools/freeze_status.py; HARNESS_FILES is 26 again.",
+    "observed": "HARNESS_FILES went 26 -> 27 with freeze_status.py included.",
+    "what": "freeze_status.py was created inside experiments/live_ab/ last cycle.",
+    "why_that_was_wrong": "lab_common.HARNESS_FILES is a GLOB over that directory's *.py plus config.json (lab_common.py:317-324) and feeds harness_file_sha256, a freeze-bundle key. A REPORTING tool sitting there means every improvement to it moves a freeze pin, and after a bundle is deposited it breaks preflight."
+  },
+  "sandbox": {
+    "base_dir_tokenized": "<TMP>/ls_sbx",
+    "containment_probe": "NOT DEPOSITED. No containment probe implementation exists in experiments/live_ab; only mock references in dryrun. Writing one would add a .py to the globbed HARNESS_FILES set and move harness_file_sha256, so it is reported as a gap, not improvised.",
+    "kind": "seatbelt",
+    "nproc_limit": 64,
+    "privacy": "the expanded Seatbelt profile embeds absolute local paths, so its sha256 is published and its text is NOT. Root 18:17 item 5: 'hash the actual expanded local profile while keeping private path contents out of public artifacts.'",
+    "profile_sha256": "6370c169267c3f31d3df6321b8acd6b3a363619634835c70854a9bf3952ed900",
+    "profile_text_published": false
+  },
+  "schema": "live_ab.preparation_manifest.1",
+  "serving_intent": {
+    "endpoints": {
+      "coder": {
+        "alias": "qwen2.5-coder-7b-instruct-q4km",
+        "bytes": 4683073536,
+        "file": "qwen2.5-coder-7b-instruct-q4_k_m.gguf",
+        "hf_repo": "Qwen/Qwen2.5-Coder-7B-Instruct-GGUF",
+        "hf_revision": "13fb94bfda8c8cf22497dc57b78f391a9acb426a",
+        "port": 8091,
+        "sha256_expected": "509287f78cb4d4cf6b3843734733b914b2c158e43e22a7f4bf5e963800894d3c"
+      },
+      "t3": {
+        "alias": "t3-candidate",
+        "bytes": 4942873344,
+        "file": "granite-3.3-8b-instruct-Q4_K_M.gguf",
+        "hf_repo": "ibm-granite/granite-3.3-8b-instruct-GGUF",
+        "hf_revision": "e40e9dd739c7be00fa965c16ce167088190ce114",
+        "port": 8092,
+        "sha256_expected": "77bcee066a76dcdd10d0d123c87e32c8ec2c74e31b6ffd87ebee49c9ac215dca"
+      }
+    },
+    "foreign_processes": {
+      "owner": "DTR-AgentEvals",
+      "ports": [
+        8191,
+        8193
+      ],
+      "status": "FOREIGN CONTENTION, not endpoints this study adopts and not dependencies it calls. Root 18:17 item 1. Never claimed, called, stopped or repurposed."
+    },
+    "gguf_verified_on_host": "both files hash to config's frozen sha256 at the frozen byte counts; see FREEZE_STATUS.",
+    "intended_launch_args": [
+      "-np",
+      "2",
+      "-c",
+      "16384",
+      "--no-kv-unified",
+      "-ngl",
+      "99",
+      "--jinja",
+      "--metrics",
+      "--no-context-shift",
+      "--offline",
+      "--no-cache-prompt",
+      "--cache-ram",
+      "0",
+      "--slot-prompt-similarity",
+      "0.0",
+      "--host",
+      "127.0.0.1",
+      "--log-timestamps"
+    ],
+    "llama_cpp_commit": "4fea119de30f6a923992780f6fd5ccb0bee5d47d",
+    "not_yet_obtained": [
+      "serving_manifest_sha256",
+      "golden_props_sha256",
+      "golden_generation_settings_sha256"
+    ],
+    "ownership": "THIS STUDY'S OWN servers. Root 18:17 item 1.",
+    "why": "each is read from a LIVE server; this study's own startup is not yet permitted."
+  }
+}
