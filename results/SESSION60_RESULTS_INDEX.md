@@ -330,6 +330,41 @@ made but never *what* was reviewed.
 
 Tests: 16 shard + 83 panel + 184 validation + 86 design.
 
+**T1 EXECUTOR COMPLETE AND UNRUN — production runner wired, completion accounting repaired.
+2026-09-21, head `6a0c2bd`.** Root spec `reviews/v2_executor_root_disposition_20260921_1058.md`.
+*Convention: **design-based** (orchestration checks with injected stub scientific functions). No grid
+run, no native reference called, no effect value read.*
+
+**Four defects the root found, all real, all verified before fixing:**
+
+| defect | consequence |
+|---|---|
+| `published_dir` assigned **after** serialization + rename | on-disk receipt lacked it → **successful publication could never finalize** |
+| `counts_ok` omitted `reference_rows` | a shard emitting **zero** reference rows reconciled |
+| coordinates checked by **cardinality** | a uniformly **shifted** range of the right size passed |
+| attempt accounting never reconciled | **`completed=0, failed=4` published as complete** when row totals matched |
+
+Also: the identity hashed the execution spec only, so **changing a source pin left it unchanged**;
+`allow_missing=True` was set **unconditionally** in the production caller, reopening by default the gap
+the flag narrows; and `launch()` reported completion from `within_caps` alone — the root's mocked
+launcher returned **complete with zero shards**.
+
+**Now:** identity folds in source/config/loaded-reference/environment bindings (volatile timestamps
+excluded) and is **mandatory** + CLI-exposed — verified both ways, a one-comment change to `vgen.py`
+moves it and restoring the file restores it exactly. Zero shards with `within_caps=True` now yields
+`scientific_completion: False` with six named failing conditions. `vshard.py`/`vprod.py` pinned; ledger
+digest may not be null.
+
+`vprod.py` is the production runner over the **accepted** scientific routines with explicit indices,
+closing both files before reconciliation. `vlaunch.run_child` iterates the fixed 56-shard plan serially
+under one parent window and writes a terminal job receipt; a shard error stops the attempt and returns
+an incomplete study — no retry, no resume.
+
+**24 shard tests** (incl. a positive roundtrip and refusals through the **real** orchestration with stub
+science) + 83 panel + 184 validation + 86 design.
+
+Manifest regenerated at clean `a137d39`; identity `c3d4bce5021d3a3f…`. **Clearance: NOT CLEARED.**
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
