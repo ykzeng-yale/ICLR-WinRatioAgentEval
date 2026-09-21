@@ -22,8 +22,10 @@ pending partner's success in {0,1} and its final cost over `x >= ell`.
 
 ## TWO distinct boundaries, not one
 
-- **90 rows at the FORWARD boundary** `ell = L_r/(1 - tol)`: `10.52631578947368496` equals the float64 value of
-  `10/0.95` exactly, so `#11`'s strict `x > L_r/(1-tol)` test fails while the comparator predicate
+- **90 rows at the FORWARD boundary** `ell = L_r/(1 - tol)` (that division is the EXPLANATORY threshold; the
+  executed float expression is `(1-tol)*ell > L_r + CERTIFICATE_EPS`, and I described a rearrangement while
+  criticising `#11` for testing one, which the root corrected): `10.52631578947368496` equals the float64 value of
+  `10/0.95` exactly, so `#11`'s executed certificate `(1-tol)*ell > L_r + CERTIFICATE_EPS` fails while the comparator predicate
   `|x - L_r| > tol*max(|x|,|L_r|)` is strictly satisfied (`0.52631578947368496` against `0.52631578947368429`).
 - **10 rows at the REVERSE boundary** `ell = (1 - tol)*L_r`, i.e. 9.5 for `L_r = 10` and 38.0 for `L_r = 40`.
   **This is a second and distinct source of conservativeness**, which my first version missed entirely: strict
@@ -32,15 +34,17 @@ pending partner's success in {0,1} and its final cost over `x >= ell`.
 
 ## Verdict, unchanged in direction and now actually checked across all six
 
-`#12` is tight in **all six** states. `#11` is wider in all six and narrower in none, in 100 of 100 rows. No
-validity consequence.
+`#12` is tight in **all six** states. `#11` is wider in all six and narrower in none, in 100 of 100 rows.
+**These six reproduced states show conservative containment and do not demonstrate an undercoverage defect; they
+do not certify all `#11` results.**
 
 ## What I am NOT entitled to conclude, and said wrongly before
 
 I wrote that no `#11` decision or stopping summary is affected. **That does not follow from these rows** and the
 root is right to say so. Conservative enclosures can change *when* a gate fires, and I have not measured that.
-The honest statement is: no `#11` result is *invalid*, and the effect on decisions and stopping times is
-**unmeasured**.
+The honest statement is the one the root supplied and I am adopting verbatim: these six reproduced states show
+conservative containment and do not demonstrate an undercoverage defect, and they do not certify all `#11`
+results. The effect on decisions and stopping times is **unmeasured**.
 
 Scope: 100 rows from a bounded partial run of 8 of 200 cell streams, and the v2 comparison currently **skips
 every non-final drain look**, so this is not even a complete view of the streams it did run. Not a rate.
