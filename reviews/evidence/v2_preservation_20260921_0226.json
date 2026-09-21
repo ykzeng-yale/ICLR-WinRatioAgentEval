@@ -1,0 +1,35 @@
+{
+  "old_source": "db930d7dc3bac0ae1644170433f769b5d3875e84",
+  "new_source": "d8b2a4d3141f0180473761671d3ffa57437225ad",
+  "frozen_areas": [
+    "results/live_ab_validation",
+    "experiments/live_ab_validation/PROTOCOL.md",
+    "experiments/live_ab_validation/cells.json",
+    "experiments/live_ab_validation/pinned"
+  ],
+  "identical_git_blob_count": 21,
+  "changed_paths": [],
+  "arxiv_artifacts": [
+    {
+      "path": "arxiv/paper.pdf",
+      "sha256": "8d75610e9e2183a63ab9e64b4e4b697da6aea4ebe343a9ee11d0363bf8777399"
+    },
+    {
+      "path": "arxiv/main_paper.pdf",
+      "sha256": "5e37e7744c79dcc76e4afa872f47000162e538349a3d4ae9083725d9dcaae3b5"
+    },
+    {
+      "path": "arxiv/supplement.pdf",
+      "sha256": "0ceaf58a0fcb90c9440e14d3e6c9445f9d11feba2b16365ee4d7ddcfa5bb128d"
+    },
+    {
+      "path": "arxiv/arxiv_source.tar.gz",
+      "sha256": "fd82e3e117a855c7a3f968ecb42e1022148bc8f37804018b2394e961afb43a9d"
+    },
+    {
+      "path": "arxiv/reproducibility_code.zip",
+      "sha256": "408b129f0fb5e029d881059458cdf8b83f3524b56f54498c6c1d6f57d8f46165"
+    }
+  ],
+  "scope": "Git object identity and current published-artifact hashes only; no scientific or full-grid acceptance."
+}

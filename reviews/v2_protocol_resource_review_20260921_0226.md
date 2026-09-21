@@ -1,0 +1,41 @@
+# Bounded v2 protocol and resource review — 2026-09-21 02:26 cycle
+
+**Reviewed pin:** `d8b2a4d3141f0180473761671d3ffa57437225ad`, against `db930d7dc3bac0ae1644170433f769b5d3875e84`. This is an independent static review of the new protocol, owner verification, resource receipt, decision notes, and directly relevant runner/resource code. Exact blobs and a SHA-256 receipt are under `work/v2_protocol_review_20260921_0226/`. No tests, simulations, timing runs, models, installations, or host/process probes were executed. Owner-reported test totals and numerical timing measurements below were not independently reproduced. The author-code EB ruling is outside this review and remains with the coordinator.
+
+**Disposition:** The delivery usefully separates post-CPU development from pre-live work and explicitly withholds full-grid/live clearance. The batched schedule can proceed through the already agreed bounded implementation/resource checks; these documents do not establish readiness of a new grid or live trial. Several declared decisions are not yet bound to the actual code and artifacts.
+
+## 1. Fresh v2 pin and epsilon-policy contract are still incomplete
+
+`PROTOCOL_V2.md:259–285` correctly acknowledges that live and CPU pins differ and calls for a fresh snapshot. The scoped diff of `lab_data.py`, `lab_enclosure.py`, `pinned/`, and `cells.json` between the reviewed commits is empty. A documented decision to repin is therefore distinct from delivery of the new snapshot.
+
+The new protocol simultaneously calls the interval the exact feasible set, “not a relaxation” (`59–65`), and admits epsilon-boundary states with a wider interval. The independent generator still uses strict algebraic comparisons without the live 1e-9 policy (`vgen.py:209–238`). The prior reviewed candidate-cost 10 / pending-incumbent 9.5 witness therefore remains relevant: the implementation can conservatively return `[-1,1]` where the exact mathematical score set is `[0,1]`. This can be a valid conservative observation policy; it cannot be described as exact enumeration under the same mathematical contract.
+
+Clearance requires one explicit epsilon-conservative policy, a distinct versioned v2 snapshot/manifest, and the matching comparison check. Preserve the historical v1 snapshot and hashes. The sentence “v1 validated #11” (`PROTOCOL_V2.md:261–265`) should say it compared or tested against that pin: the prior failed comparison does not become validation because its provenance is honest. The unchanged stopped-roster target claim in `lab_data.py`, identified in the previous review, is also not repaired by this delivery.
+
+## 2. The old resource experiment cannot discharge the delivered-runner resource gate
+
+`RESOURCE_CHECK.md:79–89,99–106` describes a separate resource implementation and says the v2 runner had not been written. The recorded source pin is the older `db930d7` (`13`). `V2_VERIFICATION.md:235–270` appropriately identifies this mismatch and distinguishes indicative later timings from a formal matched measurement. However, `PROTOCOL_V2.md:559–575,601–602` still repeats the prototype speed ratios, declares tier admissibility, and labels the resource item discharged. These statements require a current status correction, retaining the old receipt as development evidence.
+
+There is a concrete code reason that merely repeating the documented `--pin` command is insufficient. `vresource_check.py:107–146` exports and imports pinned dependencies, but amended timing calls its own `evaluate_trial_amended` (`394`, called at `589` and `606`), rather than the delivered runner's primary evaluation entry. The hash inventory (`130–139`) also omits the executing `vresource_check.py` harness. A new dependency pin does not turn this separate implementation into the actual delivered runner.
+
+The normal runner does not resolve this automatically: `vrun.py:1377–1385` explicitly retains the old C1-at-2000 / C2-at-1000 smoke split, and `main` still obtains its budget from that smoke result (`2058,2067`). Thus the balanced resource plan is documented but not wired into the primary CLI budget chain.
+
+The already planned next step remains sound: after the bounded implementation binding, measure the actual batched primary on the fixed balanced 20-program resource coordinates, with the external reference included when its reviewed implementation is available. Hash the measurement harness and all exercised dependencies, state the number of unique programs separately from timing repetitions, and label outputs development-only. No new grid, model trial, or broader resource sweep is required by this finding. The within-run timing interval and repeated-run variability are different uncertainty scopes; do not use the prototype interval as a guarantee about a different executable.
+
+## 3. Bind the v2 amendment and its coordinate definitions to outputs
+
+`vrun.write_manifest` hashes the old `PROTOCOL_MD` and obtains `protocol_version` from frozen `cells.json` (`1563–1568`), while recording a new event-schedule label (`1582–1585`). It does not hash `PROTOCOL_V2.md`. This distinguishes a schedule label but does not bind the actual v2 amendment bytes. Preserve the historical version as a parent identifier and add the actual operative version and amendment hash for v2 runs. The default output and budget route must likewise retain separate v1 reproduction and v2-development identities.
+
+The protocol's “denominator always n=N_max” at `121–123` is appropriate for the enrolled-prefix adapter after enrollment ends, not for the completed-prefix and completed-only baselines, whose indices are `k` and `m`. The runner's own direct check uses those distinct indices (`1679–1692`). Keep calendar tick, enrolled prefix, baseline sample index, and associated target explicit. `decision_time.csv` still says only “decision prefixes in ENROLLED PAIRS” (`2201–2203`) despite the added tick coordinate; update the caption to match the delivered columns.
+
+`PROTOCOL_V2.md:119–120` says all methods receive precisely the same looks, while the finest implementation adds intermediate baseline states and reduces adapter states (`vrun.py:313–337`). Logical common scheduling and a justified reduction can coexist, but the present literal claim obscures their difference. The parallel scheduler review owns the concrete finest-state defects. Deferring or disabling finest sensitivity in the primary release is a bounded resolution; those defects need not prevent development-only measurement of the reviewed batched primary.
+
+## 4. Narrow residual claims; retain the improved interpretation boundaries
+
+“Every affected deposited number was understated” (`PROTOCOL_V2.md:134–135`) remains too broad: adding valid looks can reduce nondecision or finalization counts. Describe the affected ever-crossing/miscoverage quantities and their fixed-path conditions. The owner's claim that no withdrawn assertion remains (`V2_VERIFICATION.md:206–210`) is not supported while this language and “v1 validated #11” remain. Claims that the deposited adapter rows are unchanged should remain scoped to the checked deposited rows and declared batched schedule, not every possible schedule or endpoint.
+
+Several revisions are appropriate: `PROTOCOL_V2.md:355–425` treats Monte Carlo flags as diagnostics rather than proof and does not require zero observed errors; `427–499` separates deterministic-path crossing, fractional-law planning, and a conditional information lower bound from actual power; `502–526` keeps the secondary analysis descriptive absent an allocated inferential claim. The updated horizon discussion distinguishes a pairing refinement from an unchanged estimand and accounts for stratum parity (`315–337`). These are interpretive improvements, not independently reproduced numerical results or permission to run the grid.
+
+## Bounded clearance criteria
+
+Proceed with the agreed batched-primary repair and balanced resource measurement only. Before accepting v2 results, deliver the distinct matched snapshot/epsilon policy, executable resource/manifest bindings, corrected target and coordinate prose, and the already requested MC/reference artifacts. Preserve v1 artifacts and development labels throughout. Full-grid or live execution requires the coordinator's separate clearance; this review does not grant it.
