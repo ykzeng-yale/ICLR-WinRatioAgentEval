@@ -526,6 +526,41 @@ refutation is **further evidence for the T1 finding**.
 **Verdict:** hypothesis survives with CPREFIX as the valid control. **Still NOT established:** causation
 — cost-narrowing has not been manipulated directly with everything else held fixed. The receipt says so.
 
+**PROVENANCE REPAIR + FINE LADDER RUNNING. 2026-09-21, main `411f757`.** *Convention: **design-based**
+(pin/archival repair). No scientific result changed; the verified corrected-attempt rows are untouched.*
+
+**Root's 15:14 provenance review found two real gaps in the coarse power panel** — accepted the row
+counts, coverage and byte integrity as independently verified, but flagged incomplete execution-source
+provenance. Both were real (`powercurve_20260921/PROVENANCE_ADDENDUM.json`):
+
+1. **The pin named a completeness it did not have.** The method is called
+   `whole_file_pins_of_complete_entry_point`, yet omitted `run_powercurve.py` (actual supervised
+   entrypoint) and `vpowercurve.py` (which *mutates* `vgen`'s runtime law tables and builds the cells).
+   A pinned, unchanged `vgen.py` does **not** pin those runtime definitions. **This project's recurring
+   defect shape, inside the mechanism built to prevent it.** Fixed: both pinned; an import-chain check
+   over the power entrypoint now reports **zero unpinned local modules**. For the delivered panel the
+   binding is labelled **RETROSPECTIVE** — a later hash is *not* presented as a contemporaneous pin —
+   with the complete atom table for all five laws recorded so the definitions are inspectable.
+
+2. **The first failed attempt is gone because I deleted it.** The failure machinery wrote a receipt and
+   retained the partial after the `KeyError` on the cell id; I then `rm -rf`'d the directory before
+   relaunching — the same thing I'd already done once with a discarded T1 pass and recorded a rule
+   against. Known (error, stage, cause, link to corrected attempt `20260921T141823Z`) and unknown
+   (attempt id, timestamps, failed-state hashes, usage, row counts) are both recorded; **nothing
+   invented.** Practice changed same cycle — the fine ladder's failed attempt **is preserved**.
+
+**Supervisor race fix — my own over-strict check was killing valid runs.** Root had asked for two things
+in tension: fail closed on incomplete observation, *and* retain a narrow exception for a verified
+child-exited race. I implemented the first and dropped the second. The fine panel died **5 s in** with
+`covered 1 of 2 pids (rc=0)` — `ps` **succeeded**; a transient process simply exited mid-sample. T1 and
+the coarse panel ran under this code and survived **by luck of timing**. Now the shortfall is *explained*:
+missing pids are re-probed with signal 0; all-confirmed-exited → benign race accepted, any still alive →
+genuine failure, still fails closed. Both branches tested.
+
+**Fine ladder running:** μ_h ∈ {0.06,…,0.09, 0.11, 0.12} at μ_s +0.20, namespace 4, cell indices ≥200,
+24 shards / 12,000 programs / **48,000 trials**, ~16 min. Sited where the coarse curve is steep
+(non-informative 50% near 0.10, informative near 0.08).
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
