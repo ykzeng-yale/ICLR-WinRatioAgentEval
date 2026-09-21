@@ -3115,7 +3115,7 @@ freeze cannot change it.
   "sandbox": {"timeout_s": 10.0, "cpu_s": 10, "output_cap_bytes": 65536,
               "mem_bytes_requested_not_enforced_on_macos": 2147483648,
               "tmpdir": "<TMP>/labsbx", "host_wide_execution_lock": true,
-              "profile_sha256": "6370c169267c3f31d3df6321b8acd6b3a363619634835c70854a9bf3952ed900", "containment_probe_sha256": null},
+              "profile_sha256": null, "containment_probe_sha256": null},
   "max_repair_rounds": 2,
 
   "anchor": {"branch": "session60/live-ab-anchors", "issue": 11, "comments_per_trial": 3,

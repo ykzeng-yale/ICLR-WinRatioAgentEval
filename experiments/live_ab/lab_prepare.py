@@ -31,6 +31,7 @@ afterwards.
 
 from __future__ import annotations
 
+import json
 import sys
 import time
 from pathlib import Path
@@ -146,3 +147,118 @@ def run_reference_sweep(tasks: Sequence[dict], cfg: dict, *,
             % (len(unreconstructed), unreconstructed[:3]))
     outcome['all_digests_reconstruct_from_ledger'] = True
     return {'exclusions': exclusions, 'receipt': outcome, 'coverage': coverage}
+
+
+# ---------------------------------------------------------------------------
+# D4/D5: source acquisition -- refuse-or-restore, idempotent, content-addressed
+# ---------------------------------------------------------------------------
+# Root, 2026-09-21 18:54:
+#   "Gitignored raw data is consistent with repository policy; absence from Git
+#    alone is not a scientific defect. Use durable content-addressed cache plus
+#    exact revision/hash/size and a documented retrieval path; no dependency on
+#    ephemeral temp directories. The protocol allows S1 fallback when the original
+#    S2 download fails, but this preparation has verified S2 and selected EXT. A
+#    later missing cache must REFUSE OR RESTORE the same verified bytes, not
+#    silently change to S1. ... Make repeat acquisition of identical content
+#    idempotent while retaining original acquisition provenance and recording
+#    later accesses separately. A changed filesystem origin should not overwrite
+#    or invalidate a content-identical source manifest."
+#
+# The policy lives here rather than inside `lab_data.fetch_sources` so that
+# module's ARCHITECTURE section 3.4 signature stays fixed; the driver is where
+# root asked for the wiring anyway.
+
+ACCESS_LOG_NAME = 'source_accesses.jsonl'
+
+
+def _content_key(manifest: dict) -> dict:
+    """The CONTENT identity of a source manifest: what it resolved, not where from.
+
+    ``origin`` and ``from_cache`` are deliberately excluded. They are the fields
+    that change merely because a first call copied the files into ``dest``, which
+    is what made `fetch_sources` non-idempotent (D5): a second call with identical
+    inputs produced different manifest bytes and tripped the write-once guard.
+    """
+    return {name: {k: v for k, v in (spec or {}).items()
+                   if k in ('present', 'filename', 'bytes', 'sha256', 'revision',
+                            'records', 'stratum', 'reason')}
+            for name, spec in sorted((manifest.get('sources') or {}).items())}
+
+
+def acquire_sources(dest: "str | Path", *, offline: bool = True,
+                    expect_mode: Optional[str] = None,
+                    fetch_fn: Callable = lab_data.fetch_sources) -> Dict[str, Any]:
+    """Resolve the pinned sources, refusing a silent downgrade.
+
+    ``expect_mode`` is the roster mode a previous verified acquisition established.
+    When it is ``'EXT'`` and this resolution would yield ``'S1'``, the call RAISES
+    instead of returning a half roster: that downgrade is the silent-halving defect
+    (D4), where an absent optional source quietly turns 564 pairs into 295 with no
+    exception anywhere. If ``expect_mode`` is None it is read from a prior manifest
+    in ``dest``, so the guard arms itself once a mode has ever been established.
+    """
+    dest = Path(dest)
+    prior_path = dest / 'sources.json'
+    prior = None
+    if prior_path.is_file():
+        try:
+            prior = json.loads(prior_path.read_text('utf-8'))
+        except ValueError as exc:
+            raise PreparationRefused(
+                'the existing source manifest at %s is unreadable (%s); resolve it '
+                'explicitly rather than acquiring over it'
+                % (lab_common.tokenize_path(prior_path), exc)) from None
+    if expect_mode is None and prior is not None:
+        expect_mode = prior.get('roster_mode')
+
+    if prior is not None:
+        # IDEMPOTENCE (D5): a manifest already exists. Re-verify the CONTENT on
+        # disk rather than rewriting the manifest, so a changed filesystem origin
+        # cannot invalidate a content-identical acquisition.
+        drift = []
+        for name, spec in lab_data.SOURCES.items():
+            rec = (prior.get('sources') or {}).get(name) or {}
+            if not rec.get('present'):
+                continue
+            f = dest / spec['filename']
+            if not f.is_file():
+                drift.append('%s: recorded present but absent from dest' % name)
+                continue
+            if lab_common.sha256_file(f) != spec['sha256']:
+                drift.append('%s: bytes on disk differ from the pinned sha256' % name)
+        if drift and expect_mode == 'EXT':
+            raise PreparationRefused(
+                'a previously verified EXT acquisition can no longer be restored '
+                'from %s (%s). Root: "A later missing cache must refuse or restore '
+                'the same verified bytes, not silently change to S1." Refusing.'
+                % (lab_common.tokenize_path(dest), '; '.join(drift)))
+        _record_access(dest, 'reuse', prior.get('roster_mode'), drift)
+        return {'manifest': prior, 'roster_mode': prior.get('roster_mode'),
+                'reused_existing_manifest': True, 'content_drift': drift}
+
+    manifest = fetch_fn(dest, offline=offline)
+    mode = manifest.get('roster_mode')
+    if expect_mode == 'EXT' and mode != 'EXT':
+        raise PreparationRefused(
+            'a previous acquisition established roster_mode EXT and this one '
+            'resolved %r. Silently continuing would halve the roster (564 pairs '
+            'to 295) with no exception anywhere. Restore the verified S2 bytes or '
+            'stop.' % (mode,))
+    _record_access(dest, 'acquire', mode, [])
+    return {'manifest': manifest, 'roster_mode': mode,
+            'reused_existing_manifest': False, 'content_drift': []}
+
+
+def _record_access(dest: Path, kind: str, mode: "str | None",
+                   drift: Sequence[str]) -> None:
+    """Later accesses are recorded SEPARATELY from the original acquisition.
+
+    Root: "retaining original acquisition provenance and recording later accesses
+    separately." The write-once ``sources.json`` is never rewritten; this append-only
+    log carries who looked and when.
+    """
+    entry = {'schema': 'live_ab/source_access-v1', 'kind': kind,
+             'roster_mode': mode, 'content_drift': list(drift),
+             'utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}
+    ledger = lab_data.AttemptLedger(Path(dest) / ACCESS_LOG_NAME)
+    ledger.append(entry)

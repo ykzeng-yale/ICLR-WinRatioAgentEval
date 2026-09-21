@@ -1,0 +1,33 @@
+{
+  "action_taken": "sandbox.profile_sha256 withdrawn to null across all three documents by the same synchronized three-way procedure used to add it, with the exact-text contract checked before and after.",
+  "defect_1_the_config_key_is_dead": {
+    "actually_used": "sandbox.sandbox_base_dir() computes os.path.realpath(tempfile.gettempdir()) + \"/ls_sbx\"",
+    "consequence": "the config declares one sandbox base and the code uses another, under a DIFFERENT directory name inherited from local_stream (ls_sbx, not labsbx). A freeze would pin a profile digest for a base the config does not name.",
+    "declared": "config.sandbox.tmpdir = \"<TMP>/labsbx\"",
+    "evidence": "no module under experiments/live_ab reads config.sandbox.tmpdir; grep over the package returns nothing outside tests"
+  },
+  "defect_2_the_digest_is_not_host_stable": {
+    "measured_dependence": {
+      "ambient_TMPDIR": "6370c169267c3f31d3df6321b8acd6b3a363619634835c70854a9bf3952ed900",
+      "neutral_TMPDIR_/private/tmp": "92d7f978190a498d17e187af3b62407ef06f8f5c04e26352b530eeead6d6187e",
+      "stable_across_TMPDIR": false
+    },
+    "root_warned_exactly_this": "'do not assume a direct helper observation is the live-worker profile'",
+    "what_I_promoted": "6370c169267c3f31d3df6321b8acd6b3a363619634835c70854a9bf3952ed900",
+    "what_it_actually_is": "the digest of a Seatbelt profile rooted at /private/var/folders/kh/6x1yvf7x.../T/ls_sbx -- my AMBIENT, account-specific TMPDIR",
+    "why_it_matters": "protocol 5.7 prescribes a NEUTRAL TMPDIR that the operator exports. The production worker would therefore compute the neutral digest, never mine. I promoted a value that cannot match production, into config, ARCHITECTURE 6.1 and protocol Appendix B."
+  },
+  "not_withdrawn": {
+    "environment_lock_sha256": "retained: its inputs are the interpreter version, a TOKENIZED interpreter path, and the sorted name==version list of installed distributions; none is TMPDIR-dependent. It remains pending independent verification and its package-list artifact is still owed.",
+    "hardware_allowlist": "retained: a design declaration, not a measurement."
+  },
+  "outcome": "TWO DEFECTS FOUND. The promoted profile digest is WITHDRAWN from all three documents.",
+  "pattern_worth_naming": "second value I promoted that turned out not to be what it claimed. The first was the environment lock that hashed zero packages (D9). Both were host observations I treated as settled facts. The check that caught this one was reconciling the declared configuration against the executed code -- not re-reading my own artifact.",
+  "requested_by_root": "2026-09-21 18:54: 'The preparation manifest reports sandbox base <TMP>/ls_sbx, while config/protocol specify <TMP>/labsbx. Reconcile the effective production worker's TMPDIR, sandbox base construction and profile digest; do not assume a direct helper observation is the live-worker profile.'",
+  "schema": "live_ab.sandbox_tmpdir_reconciliation.1",
+  "what_must_be_decided_before_it_can_be_filled": [
+    "the base directory NAME: reconcile config.sandbox.tmpdir (labsbx) with sandbox_base_dir (ls_sbx) -- either the config key becomes live, or it is removed as dead and the protocol names ls_sbx",
+    "the prescribed production TMPDIR value, fixed and recorded, since the digest is a function of it",
+    "whether the digest is taken from the LIVE WORKER process under that TMPDIR, rather than from a helper call in a preparation script"
+  ]
+}
