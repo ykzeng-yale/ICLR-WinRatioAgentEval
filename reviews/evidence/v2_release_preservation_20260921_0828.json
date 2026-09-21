@@ -1,0 +1,10 @@
+{
+  "artifact_hashes_unchanged": {
+    "paper.pdf": true,
+    "main_paper.pdf": true,
+    "supplement.pdf": true,
+    "arxiv_source.tar.gz": true,
+    "reproducibility_code.zip": true
+  },
+  "scientific_runs_launched_by_review": 0
+}
