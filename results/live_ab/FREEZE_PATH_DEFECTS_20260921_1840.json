@@ -1,0 +1,105 @@
+{
+  "schema": "live_ab.freeze_path_defects.1",
+  "generated_utc": "2026-09-21T18:40:00Z",
+  "context": "Found while preparing root's handoff item 2, BEFORE any write-once artifact was deposited. Every defect below would have been frozen into an unfixable artifact had the roster been deposited first.",
+  "method": "A five-agent read-only survey of the roster/design/verifier path proposed these; I then VERIFIED each one myself against the source. Only verified items appear here. The survey's count reproduction (1138 candidates, 8 blind exclusions, 1130 survivors, 564 pair ceiling) independently matches the executed stage-1 build in ROSTER_STAGE1_20260921_1830.json.",
+  "nothing_deposited": "No roster, no arrival order, no freeze bundle key. This file reports; it does not freeze.",
+
+  "D1_roster_sha256_is_not_reproducible_if_the_sweep_excludes_anything": {
+    "severity": "HIGH -- it makes the central identity of a WRITE-ONCE artifact unreproducible forever",
+    "claim": "Two identical reference sweeps over identical data produce DIFFERENT roster_sha256 whenever the sweep excludes at least one task.",
+    "chain_verified": [
+      "lab_data.py:556-560 -- each exclusion's `detail` is built from run['stdout_tail'] and run['stderr'].",
+      "lab_data.py:569 -> :455 -- _exclusion() hashes that detail into detail_sha256.",
+      "lab_data.py:635-664 -- roster_sha256 is sha256_canonical of the roster object, which CONTAINS the exclusions list, hence every detail_sha256.",
+      "experiments/local_stream/verify.py:78 -- the success sentinel is SENTINEL_PREFIX + secrets.token_hex(8): RANDOM every run, and it is printed, so it lands in stdout_tail (the last 512 bytes, sandbox.py:197).",
+      "experiments/local_stream/sandbox.py:154-155 -- the program is written into tempfile.mkdtemp(prefix='p_')/prog.py, so a failing reference's traceback in stderr carries a RANDOM directory name."
+    ],
+    "consequence": "The roster deposits cleanly, passes check_roster, and carries a hash nobody can ever reproduce. The only case where roster_sha256 IS reproducible is a sweep that excludes nothing -- implausible over 547 unsanitized mbpp_full references.",
+    "not_repaired_here": "The fix (hash a normalised detail, or exclude detail_sha256 from the roster identity) changes lab_data.py, which is pinned by harness_file_sha256. Reported for root's ruling, not silently patched."
+  },
+
+  "D2_the_verifier_reports_an_enrollment_check_it_never_performs": {
+    "severity": "HIGH -- a check that passes without running is this project's recurring defect shape",
+    "claim": "For any real freeze, lab_verify_log's `order.enrollment` check compares ZERO pairs and still reports OK.",
+    "chain_verified": [
+      "lab_verify_log.py:411 -- the per-pair uid/arrival/stratum comparison is guarded by `if isinstance(order, list):`.",
+      "lab_verify_log.py:429 -- `col.ok('order.enrollment')` is called UNCONDITIONALLY, outside that guard.",
+      "lab_design.py:146-150 -- write_order writes a DICT (schema/n_pairs/pairs/order_sha256).",
+      "lab_design.py:153-155 -- write_order_document writes a DICT too.",
+      "Only dryrun_live_ab.py:189-192 writes a bare list, i.e. only the MOCK path enters the branch."
+    ],
+    "consequence": "A trial that enrolled pairs in the wrong order, with the wrong uids, or with the wrong stratum would verify clean. The dry run exercises the branch; the real freeze cannot.",
+    "one_line_fix": "accept the dict form (order.get('pairs')) at lab_verify_log.py:411, or fail closed when the shape is unrecognised instead of reporting ok."
+  },
+
+  "D3_genuine_hangs_are_mislabelled_so_the_timeout_count_is_systematically_undercounted": {
+    "severity": "MEDIUM -- it corrupts a number protocol 3.5 item 7 requires reported",
+    "claim": "reference_timeout can only ever fire in the narrow window 2.5 s < verify_seconds <= 10.0 s AND the program still exited 0. Every reference that actually HANGS is filed as reference_fails_verify.",
+    "chain_verified": [
+      "sandbox.py:196 -- passed = (rc == 0 and not timed_out): a wall-clock timeout sets passed FALSE.",
+      "lab_data.py:562-564 -- `if not result.get('success')` fires FIRST and breaks with reason 'reference_fails_verify'.",
+      "lab_data.py:565-567 -- the `seconds > threshold` test is only reached when success was True.",
+      "result['timed_out'] exists and is never consulted by sweep_references."
+    ],
+    "consequence": "The two exclusion reasons do not mean what their names say. A protocol 3.5 item 7 report of reference_timeout counts would understate timing exclusions and overstate verification failures.",
+    "threshold_note": "the threshold is a hardcoded 0.5 * 5.0 = 2.5 s (lab_data.py:169-172, :547), deliberately NOT config.sandbox.timeout_s = 10.0."
+  },
+
+  "D4_the_S2_source_exists_only_outside_version_control_and_its_absence_fails_silently": {
+    "severity": "HIGH -- it silently halves the study",
+    "claim": "If the mbpp_full copies disappear, the build produces a VALID-LOOKING roster of 295 pairs instead of 564, with no exception anywhere.",
+    "chain_verified": [
+      "lab_data.py:138 -- mbpp_full carries required: False.",
+      "lab_data.py:271-277 -- offline absence records {'present': False, 'reason': 'absent_offline'} and CONTINUES.",
+      "lab_data.py:323-331 -- load_raw simply omits the key.",
+      "lab_data.py:398 -- build_candidate_tasks does raw.get('mbpp_full') or [], emitting no S2.",
+      "lab_data.py:641-649 -- build_roster then sets roster_mode 'S1' and n_pairs = 591//2 = 295.",
+      "lab_data.py:667-687 -- check_roster has NO non-empty-stratum condition, so it passes."
+    ],
+    "where_the_file_actually_is": {
+      "work/live_ab/sources/mbpp.jsonl": "563,743 bytes -- present, but work/ is GITIGNORED (.gitignore:26), so it is not in the repository",
+      "/tmp/claude-501/mbpp_full.jsonl": "563,743 bytes -- a session temp directory, clearable at any time",
+      "in_the_repository": "NOWHERE. Neither copy is version-controlled.",
+      "CACHE_SEARCH_DIRS": "lab_data.py:144-148 hardcodes the literal Path('/tmp/claude-501') as a search location, which is how it was found at all."
+    },
+    "consequence": "roster_mode EXT -- and therefore the entire S2 stratum and roughly half the study -- currently depends on two copies of one file, neither of which is under version control, one of which lives in a temp directory.",
+    "mitigation_required_before_deposit": "make the S2 source durable and provenance-pinned before any roster is deposited, and add a non-empty-stratum assertion so an absent S2 fails loudly instead of silently halving n_pairs."
+  },
+
+  "D5_fetch_sources_is_not_idempotent_and_its_own_write_once_guard_makes_the_second_call_fail": {
+    "severity": "LOW scientifically, MEDIUM operationally",
+    "claim": "Calling fetch_sources twice with identical inputs and identical intent raises WriteOnceViolation.",
+    "mechanism": "The manifest records each source's `origin` path. The first call finds the files in CACHE_SEARCH_DIRS and records those paths, then COPIES the files into dest. The second call finds them in dest first and records dest paths. Different bytes for the same inputs.",
+    "observed": "WriteOnceViolation: <WORK>/sources/sources.json exists with sha256 f379dba9... refusing to overwrite with 63fcacc4...",
+    "scientific_content_is_stable": "every sha256, byte count, revision and stratum is IDENTICAL between the two manifests; only a provenance path string moved.",
+    "who_it_bites": "any repeated or resumed preparation run against an already-populated sources dir.",
+    "handled_by": "stage 1 now READS the existing write-once manifest rather than regenerating it. Nothing was deleted."
+  },
+
+  "D6_protocol_rule_2_never_compares_HumanEval_prompts": {
+    "severity": "LOW on this data -- a no-op, but a real deviation",
+    "protocol": "design/protocol_FINAL.md:607-609 -- 'S2 problems whose normalized prompt duplicates an S1 task'.",
+    "implementation": "lab_data.py:467-469 builds the duplicate map only from S1 tasks whose benchmark == 'mbpp', so the 164 HumanEval prompts are never compared against.",
+    "effect_on_this_data": "ZERO additional duplicates would be found if HumanEval prompts were included, so the delivered exclusion count of 2 is unaffected. Recorded because the code is narrower than the rule it implements, not because the number moves."
+  },
+
+  "D7_no_test_pins_any_real_roster_value": {
+    "severity": "MEDIUM -- there is no oracle, so a wrong roster passes the suite",
+    "claim": "tests_lab_design.py asserts pre-exclusion 591/547/568 and smoke-only 591/541/565, and post-blind figures only as INEQUALITIES (n_S2<=541, n_pairs<=565, n_excluded>6). The sweep is exercised on three planted synthetic tasks, never on real data.",
+    "consequence": "A roster that is wrong for any of the reasons above would pass the whole suite. The assertions this project needs are the ones in the deposit driver, not in the tests.",
+    "note": "the stage-1 executed counts (1138 / 8 / 1130 / 564 ceiling) are the first real-data numbers on this path and can serve as that oracle."
+  },
+
+  "what_this_changes_about_the_plan": [
+    "D1, D2 and D4 must be ruled on BEFORE any roster is deposited, because all three are frozen by the deposit and two of them produce artifacts that look correct.",
+    "None of them is repaired here: lab_data.py, lab_design.py and lab_verify_log.py are all pinned by harness_file_sha256, so touching them moves the freeze pins. That is root's call, not a silent patch.",
+    "The rule-4 load-regime blocker recorded in ROSTER_STAGE1 stands independently of all of these."
+  ],
+
+  "must_not_claim": [
+    "that these are all the defects on this path -- five agents and one verifier pass are not a proof of absence",
+    "that the stage-1 counts are the final roster; rule 4 has not run and can only reduce them",
+    "that any of these defects affected an already-delivered result; they are all on the LIVE path, which has never been executed"
+  ]
+}

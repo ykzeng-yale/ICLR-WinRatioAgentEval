@@ -1,0 +1,88 @@
+{
+  "capacity_reading": {
+    "detail": "Load average 3.90 on 10 cores with one foreign process holding a core continuously. Earlier this session four DTR-AgentEvals processes sat at ~99% each (load 7.86 at 12:54Z); they have since dropped off the >20% list. Contention is therefore VARIABLE on this host, which is itself the reason a single spot reading cannot clear a live run.",
+    "gate": "commit 5776877 'live_ab: host contention finding blocks trial execution; require a quiescence gate' -- the blocker is pre-existing and recorded on this branch, not newly discovered here.",
+    "gate_criterion_CORRECTED": {
+      "authority": "root 18:17, binding answer 2",
+      "consequence": "the gate is failed by the PRESENCE of the DTR servers, not by the load average. A lower load or a lucky quiet sample does not clear it while they remain present. This is stronger and simpler than the load-based reading I gave, and it removes any temptation to wait for a dip.",
+      "rule": "protocol 5.7.2 rejects non-baseline FOREIGN ACCELERATOR CONSUMERS ON PRESENCE, regardless of an instantaneous 0% CPU reading.",
+      "threshold_relaxation": "NOT AUTHORIZED. No new host, paid compute or fresh weight download is authorized either."
+    },
+    "verdict": "NOT CLEARED for live trial execution: foreign accelerator consumers are PRESENT (protocol 5.7.2), which fails the gate independently of load or sampled CPU.",
+    "what_is_unaffected": "Freeze PREPARATION is CPU-light and needs no quiescence: roster, exclusions, horizon, AB/BA assignment, bounds, allocation, serving assumptions and accounting are all paperwork over committed artifacts. Only trial EPISODES need the gate, and none were started.",
+    "what_would_change_it": "A quiescence window observed over time, not a single sample. This file is one sample and is labelled as one."
+  },
+  "foreign_processes_untouched": {
+    "CORRECTED_2026_09_21_1817": {
+      "found_by": "root, reviews/live_freeze_root_guidance_20260921_1817.md",
+      "i_wrote": "'both_idle: 0.0% CPU at this sample; they hold their ports and their resident memory but are not currently serving.'",
+      "now": "sampled CPU recorded as sampled CPU; serving/accelerator activity UNKNOWN.",
+      "why_that_was_wrong": "'not currently serving' is a claim about what the processes are DOING. A 0.0%% CPU sample from ps does not support it: it is one instantaneous CPU reading, blind to accelerator work and to anything happening between samples."
+    },
+    "llama_servers": [
+      {
+        "elapsed": "02-00:08:41",
+        "pcpu": 0.0,
+        "pid": 63657,
+        "port": 8193,
+        "role": "models.small per DTR-AgentEvals code_routing/config.json",
+        "rss_kb": 297456
+      },
+      {
+        "elapsed": "02-00:08:41",
+        "pcpu": 0.0,
+        "pid": 63658,
+        "port": 8191,
+        "role": "models.large per the same config",
+        "rss_kb": 13184
+      }
+    ],
+    "policy": "Not signalled, not inspected beyond ps/lsof, not killed. They belong to DTR-AgentEvals.",
+    "sampled_cpu": "0.0% CPU for both at this single ps sample. SERVING AND ACCELERATOR ACTIVITY ARE UNKNOWN: a ps CPU sample does not observe GPU/ANE work, does not cover the interval between samples, and does not show whether a request is in flight."
+  },
+  "host": {
+    "cores": 10,
+    "free_pages_note": "~98 MiB genuinely free; 776,245 inactive pages are reclaimable. This is a vm_stat-derived estimate, not a guarantee of availability at dispatch time.",
+    "load_average_1_5_15": [
+      3.9,
+      3.58,
+      3.2
+    ],
+    "memsize_bytes": 34359738368,
+    "page_size_bytes": 16384,
+    "pages_free": 5999,
+    "uptime": "59 days, 17:41"
+  },
+  "measured_utc": "2026-09-21T17:49:46Z",
+  "not_claimed": [
+    "that the freeze bundle is complete -- it is not yet assembled; this is the capacity component only",
+    "that the host will be quiescent at any future time",
+    "that the foreign servers' idleness now implies they will stay idle",
+    "that a single ps/vm_stat sample bounds anything continuously",
+    "that a ps CPU sample observes accelerator activity or in-flight requests; it does not",
+    "that this receipt is a lifetime authorization token; it is a timestamped observation for the preparation manifest"
+  ],
+  "other_load_holders": [
+    {
+      "comm": "Xcode-bundled Python 3.9",
+      "note": "foreign; one core saturated",
+      "pcpu": 99.8,
+      "pid": 4392
+    },
+    {
+      "comm": "WindowServer",
+      "note": "system",
+      "pcpu": 38.4,
+      "pid": 475
+    }
+  ],
+  "requested_by_root": "reviews/ablation_root_disposition_20260921_1737.md, handoff item 2 -- 'current capacity ... If capacity is unavailable, report that specific blocker with timestamp and the completed freeze materials.'",
+  "schema": "live_ab.capacity_receipt.1",
+  "serving_identity_RESOLVED_BY_ROOT": {
+    "authority": "root 18:17, binding answer 1",
+    "do_not": "claim control of, call, stop or repurpose foreign servers.",
+    "my_default_was": "declare them an external dependency I do not control. Root's ruling is sharper: they are not a dependency at all, they are contention. I had framed a contention source as a dependency.",
+    "ruling": "retain THIS study's intended servers on 8091/8092, already specified in config with installed Qwen/Granite model identities. DTR's 8191/8193 are FOREIGN CONTENTION, not endpoints this study must adopt and not dependencies it needs to call."
+  },
+  "what_this_is": "A HOST OBSERVATION ONLY. No trial episode was started, no model was called, no freeze material is asserted complete by this file."
+}
