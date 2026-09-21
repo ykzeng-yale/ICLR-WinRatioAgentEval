@@ -26,6 +26,7 @@ if str(HERE) not in sys.path:
 import lab_common                                                     # noqa: E402
 import lab_eventlog                                                   # noqa: E402
 import lab_reference_rule                                             # noqa: E402
+import lab_design                                                     # noqa: E402
 import lab_verify_log                                                 # noqa: E402
 from lab_common import (ChainError, FreezeIncomplete, FrozenMismatch, SchemaError,      # noqa: E402
                         TornWrite, UntokenizablePath, WriteOnceViolation,
@@ -2069,3 +2070,98 @@ if __name__ == '__main__':                                            # pragma: 
         print(f'fixtures written to {CHAINS_DIR}')
     else:
         unittest.main()
+
+
+class OrderEnrollmentShapeTests(unittest.TestCase):
+    """D2 repair (root 2026-09-21 18:54, ranked item 1).
+
+    The verifier's per-pair enrollment comparison used to be guarded by
+    ``isinstance(order, list)``, while BOTH production writers emit a dict.  A real
+    freeze therefore skipped the comparison entirely and still reported
+    ``order.enrollment`` OK.  These tests pin the repair: every shape a production
+    writer can emit must be READ, and every shape that cannot be understood must be
+    REFUSED rather than passed.
+    """
+
+    def _slot(self, pair=1, stratum='S1', arrivals=(1, 2), uids=('a', 'b')):
+        return {'pair': int(pair), 'stratum': str(stratum),
+                'arrivals': [int(arrivals[0]), int(arrivals[1])],
+                'uids': [str(uids[0]), str(uids[1])]}
+
+    # -- the three shapes that must be READ ---------------------------------
+    def test_bare_list_is_read(self):
+        slots = lab_verify_log._order_slots([self._slot()])
+        self.assertEqual(len(slots), 1)
+
+    def test_write_order_dict_is_read(self):
+        """PRODUCTION WRITER ROUNDTRIP: the exact body lab_design.write_order emits."""
+        body = {'schema': lab_design.ORDER_SCHEMA, 'n_pairs': 1,
+                'pairs': [self._slot()], 'order_sha256': 'deadbeef'}
+        slots = lab_verify_log._order_slots(body)
+        self.assertIsNotNone(slots)
+        self.assertEqual(slots[0]['uids'], ['a', 'b'])
+
+    def test_order_document_is_read(self):
+        """PRODUCTION WRITER ROUNDTRIP: the protocol-complete document."""
+        body = {'schema': lab_design.ORDER_SCHEMA, 'trial': 'T4', 'trial_no': 4,
+                'design_seed_base': 60260919, 'n_pairs': 1, 'roster_sha256': 'x' * 64,
+                'strata': {'S1': 2, 'S2': 0}, 'pairs': [self._slot()],
+                'leftovers': [], 'order_sha256': 'deadbeef'}
+        self.assertIsNotNone(lab_verify_log._order_slots(body))
+
+    # -- every shape that must be REFUSED, never silently passed ------------
+    def test_refuses_missing_pairs_key(self):
+        self.assertIsNone(lab_verify_log._order_slots({'schema': 'x', 'n_pairs': 1}))
+
+    def test_refuses_declared_count_disagreeing_with_its_own_list(self):
+        """An internally inconsistent freeze artifact is not read past."""
+        self.assertIsNone(lab_verify_log._order_slots(
+            {'n_pairs': 5, 'pairs': [self._slot()]}))
+
+    def test_refuses_slot_missing_a_compared_field(self):
+        for missing in ('pair', 'stratum', 'arrivals', 'uids'):
+            slot = self._slot()
+            slot.pop(missing)
+            with self.subTest(missing=missing):
+                self.assertIsNone(lab_verify_log._order_slots(
+                    {'n_pairs': 1, 'pairs': [slot]}))
+
+    def test_refuses_non_document(self):
+        for bad in ('nonsense', 42, None, {'pairs': 'not-a-list'}):
+            with self.subTest(bad=repr(bad)):
+                self.assertIsNone(lab_verify_log._order_slots(bad))
+
+    # -- the perturbations root named ---------------------------------------
+    def test_each_perturbation_is_visible_to_the_comparison(self):
+        """UID, stratum, order and count perturbations must all be detectable.
+
+        The comparison the verifier performs is field-by-field against the enrolled
+        event body, so this asserts the read slots actually differ under each
+        perturbation -- a comparison against slots that did not change would pass
+        for the same reason the original defect passed.
+        """
+        base = {'schema': lab_design.ORDER_SCHEMA, 'n_pairs': 2,
+                'pairs': [self._slot(1, 'S1', (1, 2), ('a', 'b')),
+                          self._slot(2, 'S2', (3, 4), ('c', 'd'))],
+                'order_sha256': 'deadbeef'}
+        good = lab_verify_log._order_slots(base)
+        self.assertEqual(len(good), 2)
+
+        import copy
+        # UID
+        p = copy.deepcopy(base); p['pairs'][0]['uids'] = ['a', 'WRONG']
+        self.assertNotEqual(lab_verify_log._order_slots(p)[0]['uids'], good[0]['uids'])
+        # STRATUM
+        p = copy.deepcopy(base); p['pairs'][0]['stratum'] = 'S2'
+        self.assertNotEqual(lab_verify_log._order_slots(p)[0]['stratum'],
+                            good[0]['stratum'])
+        # ORDER (the two slots exchanged)
+        p = copy.deepcopy(base); p['pairs'] = [base['pairs'][1], base['pairs'][0]]
+        self.assertNotEqual(lab_verify_log._order_slots(p)[0]['pair'], good[0]['pair'])
+        # ARRIVALS
+        p = copy.deepcopy(base); p['pairs'][0]['arrivals'] = [9, 9]
+        self.assertNotEqual(lab_verify_log._order_slots(p)[0]['arrivals'],
+                            good[0]['arrivals'])
+        # COUNT -- a dropped slot with n_pairs left stale is refused outright
+        p = copy.deepcopy(base); p['pairs'] = p['pairs'][:1]
+        self.assertIsNone(lab_verify_log._order_slots(p))

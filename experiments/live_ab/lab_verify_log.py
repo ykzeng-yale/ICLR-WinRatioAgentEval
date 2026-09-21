@@ -192,6 +192,43 @@ class _Collector:
 # ---------------------------------------------------------------------------
 # helpers over a parsed chain
 # ---------------------------------------------------------------------------
+_ORDER_SLOT_KEYS = ('pair', 'stratum', 'arrivals', 'uids')
+
+
+def _order_slots(doc: object) -> "list[dict] | None":
+    """The pair slots of an arrival-order document, or None if the shape is unknown.
+
+    D2 REPAIR (root 2026-09-21 18:54, ranked item 1).  Three shapes exist in this
+    repository and the verifier must read the two the PRODUCTION writers emit:
+
+      * a bare list of slots                       -- dryrun_live_ab.py only
+      * {'schema', 'n_pairs', 'pairs', ...}        -- lab_design.write_order
+      * the protocol-complete document with the same 'pairs' key
+                                                   -- lab_design.write_order_document
+
+    Returning None is a REFUSAL, not an empty result: the caller records an
+    unsupported-document defect rather than passing a check it did not run.  A
+    document whose declared ``n_pairs`` disagrees with the length of its own
+    ``pairs`` list is also refused -- an internally inconsistent freeze artifact
+    must not be silently read past.
+    """
+    if isinstance(doc, list):
+        slots = doc
+    elif isinstance(doc, dict):
+        slots = doc.get('pairs')
+        if not isinstance(slots, list):
+            return None
+        declared = doc.get('n_pairs')
+        if isinstance(declared, int) and declared != len(slots):
+            return None
+    else:
+        return None
+    for slot in slots:
+        if not isinstance(slot, dict) or any(k not in slot for k in _ORDER_SLOT_KEYS):
+            return None
+    return list(slots)
+
+
 def _by_type(events: Sequence[Mapping], etype: str) -> list[Mapping]:
     return [e for e in events if e['type'] == etype]
 
@@ -407,14 +444,35 @@ def _verify_trial(trial: str, freeze_bundle_sha256: str, *, mode: str = 'full',
     # ---- order.enrollment --------------------------------------------------
     enrolls = [e for e in _by_type(events, 'pair_enrolled')
                if not e['body'].get('re_enrolled')]
-    order = _load_json(freeze_dir / f'arrival_order_{trial}.json')
-    if isinstance(order, list):
-        if len(enrolls) > len(order):
-            col.add('order.enrollment', {'enrolled': len(enrolls), 'order': len(order)})
+    # D2 REPAIR, root 2026-09-21 18:54 ranked item 1: "Read and validate the actual
+    # dict-format arrival-order document emitted by the production writer ... Never
+    # mark a skipped comparison as passed."
+    #
+    # THE DEFECT: this block used to be guarded by `if isinstance(order, list):`.
+    # BOTH production writers emit a DICT -- `write_order` writes
+    # {schema, n_pairs, pairs, order_sha256} and `write_order_document` writes the
+    # protocol-complete document (lab_design.py:146-155).  Only dryrun's bare-list
+    # form entered the branch.  So on every real freeze the per-pair comparison was
+    # skipped entirely while `col.ok('order.enrollment')` fired below regardless: a
+    # trial that enrolled the wrong uids, the wrong arrivals or the wrong stratum
+    # verified CLEAN.  The mock was checked and the real thing was not.
+    order_doc = _load_json(freeze_dir / f'arrival_order_{trial}.json')
+    slots = _order_slots(order_doc)
+    if slots is None:
+        # A shape we do not understand is a REFUSAL, never a silent pass.
+        col.add('order.enrollment',
+                {'unsupported_order_document': type(order_doc).__name__,
+                 'reason': 'arrival order is missing, malformed, or not a '
+                           'recognised list/dict document; the enrollment '
+                           'comparison could not be performed and is NOT passed'})
+        slots = []
+    else:
+        if len(enrolls) > len(slots):
+            col.add('order.enrollment', {'enrolled': len(enrolls), 'order': len(slots)})
         for i, ev in enumerate(enrolls):
-            if i >= len(order):
+            if i >= len(slots):
                 break
-            want = order[i]
+            want = slots[i]
             b = ev['body']
             if int(b['pair']) != int(want['pair']) \
                     or list(b['arrivals']) != list(want['arrivals']) \
