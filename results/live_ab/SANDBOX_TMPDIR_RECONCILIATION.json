@@ -1,4 +1,17 @@
 {
+  "CORRECTION_v2_MY_DEFECT_1_FRAMING_WAS_WRONG": {
+    "found_by": "reading protocol 5.7 item 2, which I had not read when I wrote the original finding. I had grepped the code for the config key and concluded from its absence, without checking what the protocol says the key is FOR.",
+    "i_wrote": "'config.sandbox.tmpdir = <TMP>/labsbx is DEAD ... the code uses ls_sbx, a DIFFERENT directory name. The config declares one sandbox base and the code uses another.'",
+    "lesson": "absence of a reader is evidence about the CODE, not about the DESIGN. I inferred a design conflict from a code fact.",
+    "my_error": "I compared two different levels of a single path and reported them as a conflict. config.sandbox.tmpdir is not dead by design -- it declares the TMPDIR the operator exports.",
+    "what_is_actually_true": "labsbx and ls_sbx are NESTED LEVELS OF ONE PATH, not competing names. Protocol 5.7 item 2: 'TMPDIR is set to the neutral path carried in config.json as the token <TMP>/labsbx, which on this host resolves to /private/tmp/labsbx'. sandbox.sandbox_base_dir() then creates ls_sbx INSIDE whatever TMPDIR is. Verified: with TMPDIR=/private/tmp/labsbx the base is /private/tmp/labsbx/ls_sbx."
+  },
+  "THE_REAL_DEFECT_IS_NARROWER_AND_STILL_REAL": {
+    "consequence": "a production run that forgets to export TMPDIR silently gets the ambient one and a DIFFERENT profile digest, with no error anywhere. That is exactly what happened to me: I computed and promoted the ambient digest without noticing.",
+    "defect": "NOTHING IN THE CODE READS config.sandbox.tmpdir OR EXPORTS TMPDIR. Protocol 5.7 item 2 uses the passive voice -- \"TMPDIR is set to...\" -- making it an unenforced operator responsibility.",
+    "repair": "lab_prepare.assert_prescribed_tmpdir() refuses to prepare unless the effective TMPDIR matches config.sandbox.tmpdir, turning an unenforced operator responsibility into a checked precondition.",
+    "the_protocol_anticipates_the_dependence": "5.7 item 2: 'This changes the profile text, so the audited profile hash does not carry over: the profile hash resulting from the trial's TMPDIR is recorded in the freeze bundle and per episode.' So TMPDIR-dependence is by design; silently getting the WRONG TMPDIR is not."
+  },
   "action_taken": "sandbox.profile_sha256 withdrawn to null across all three documents by the same synchronized three-way procedure used to add it, with the exact-text contract checked before and after.",
   "defect_1_the_config_key_is_dead": {
     "actually_used": "sandbox.sandbox_base_dir() computes os.path.realpath(tempfile.gettempdir()) + \"/ls_sbx\"",
@@ -17,6 +30,12 @@
     "what_it_actually_is": "the digest of a Seatbelt profile rooted at /private/var/folders/kh/6x1yvf7x.../T/ls_sbx -- my AMBIENT, account-specific TMPDIR",
     "why_it_matters": "protocol 5.7 prescribes a NEUTRAL TMPDIR that the operator exports. The production worker would therefore compute the neutral digest, never mine. I promoted a value that cannot match production, into config, ARCHITECTURE 6.1 and protocol Appendix B."
   },
+  "expected_digest_under_the_prescribed_TMPDIR": {
+    "NOT_PROMOTED_AND_WHY": "this is still a HELPER observation, and root's instruction stands: 'do not assume a direct helper observation is the live-worker profile'. Protocol 5.7 item 2 says the profile hash is recorded in the freeze bundle AND PER EPISODE, i.e. captured by the running worker. The key stays null until a live worker produces it under the enforced TMPDIR; this value is recorded as the EXPECTED one so a mismatch is detectable rather than discovered later.",
+    "TMPDIR": "/private/tmp/labsbx",
+    "profile_sha256": "527d267e1c50c4f66a23312e2a836125395367ddd1398ec7f3c79117803c410b",
+    "sandbox_base_dir": "/private/tmp/labsbx/ls_sbx"
+  },
   "not_withdrawn": {
     "environment_lock_sha256": "retained: its inputs are the interpreter version, a TOKENIZED interpreter path, and the sorted name==version list of installed distributions; none is TMPDIR-dependent. It remains pending independent verification and its package-list artifact is still owed.",
     "hardware_allowlist": "retained: a design declaration, not a measurement."
@@ -29,5 +48,6 @@
     "the base directory NAME: reconcile config.sandbox.tmpdir (labsbx) with sandbox_base_dir (ls_sbx) -- either the config key becomes live, or it is removed as dead and the protocol names ls_sbx",
     "the prescribed production TMPDIR value, fixed and recorded, since the digest is a function of it",
     "whether the digest is taken from the LIVE WORKER process under that TMPDIR, rather than from a helper call in a preparation script"
-  ]
+  ],
+  "withdrawal_still_correct": "the value I promoted (6370c169..., ambient TMPDIR) was wrong regardless of the framing error, so withdrawing it was right. Only my stated REASON was half wrong."
 }

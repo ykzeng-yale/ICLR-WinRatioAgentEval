@@ -262,3 +262,41 @@ def _record_access(dest: Path, kind: str, mode: "str | None",
              'utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}
     ledger = lab_data.AttemptLedger(Path(dest) / ACCESS_LOG_NAME)
     ledger.append(entry)
+
+
+PRESCRIBED_TMPDIR_TOKEN = '<TMP>/labsbx'
+
+
+def assert_prescribed_tmpdir(cfg: dict, *, tmp_root: str = '/private/tmp') -> Dict[str, Any]:
+    """Refuse to prepare unless TMPDIR is the one config declares.
+
+    Protocol 5.7 item 2 says "TMPDIR is set to the neutral path carried in
+    config.json as the token ``<TMP>/labsbx``" -- passive voice, and nothing in
+    the code enforced it. A run that forgets to export it silently gets the
+    ambient TMPDIR and a DIFFERENT Seatbelt profile digest, with no error. That
+    is not hypothetical: I computed and promoted an ambient-TMPDIR digest into
+    config, ARCHITECTURE 6.1 and protocol Appendix B before noticing.
+
+    The digest DEPENDS on TMPDIR by design -- 5.7 item 2 says so explicitly and
+    records the resulting hash in the freeze bundle and per episode. Silently
+    getting the wrong TMPDIR is the defect, not the dependence.
+    """
+    import os
+    import tempfile as _tf
+    declared = ((cfg or {}).get('sandbox') or {}).get('tmpdir')
+    if declared != PRESCRIBED_TMPDIR_TOKEN:
+        raise PreparationRefused(
+            'config.sandbox.tmpdir is %r; protocol 5.7 item 2 prescribes %r'
+            % (declared, PRESCRIBED_TMPDIR_TOKEN))
+    want = os.path.join(tmp_root, declared.split('/', 1)[1])
+    effective = os.path.realpath(_tf.gettempdir())
+    if effective != os.path.realpath(want):
+        raise PreparationRefused(
+            'TMPDIR is %s but protocol 5.7 item 2 prescribes %s. The Seatbelt '
+            'profile digest is a function of TMPDIR, so preparing under the wrong '
+            'one silently produces a profile hash that no production run can '
+            'reproduce. Export TMPDIR=%s and retry.'
+            % (lab_common.tokenize_path(Path(effective)), want, want))
+    return {'prescribed_tmpdir': want,
+            'sandbox_base_dir': os.path.join(want, 'ls_sbx'),
+            'checked': True}
