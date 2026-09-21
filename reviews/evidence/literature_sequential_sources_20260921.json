@@ -1,0 +1,162 @@
+[
+  {
+    "repo": "gostevehoward/confseq",
+    "commit": "5ffe733ca2447a2e28c2c91f3b00086173f2ab2c",
+    "path": "LICENSE",
+    "url": "https://raw.githubusercontent.com/gostevehoward/confseq/5ffe733ca2447a2e28c2c91f3b00086173f2ab2c/LICENSE",
+    "bytes": 1075,
+    "sha256": "2462eb2880ba8e4e1c8c95567939c7d7a46a517370767aade4d7c877169fbbd5"
+  },
+  {
+    "repo": "gostevehoward/confseq",
+    "commit": "5ffe733ca2447a2e28c2c91f3b00086173f2ab2c",
+    "path": "src/confseq/README.md",
+    "url": "https://raw.githubusercontent.com/gostevehoward/confseq/5ffe733ca2447a2e28c2c91f3b00086173f2ab2c/src/confseq/README.md",
+    "bytes": 1733,
+    "sha256": "d3bcf5a5938c36223da60cfe4eab2a44cbd41f6c461c0a7a87fd61504fac414e"
+  },
+  {
+    "repo": "gostevehoward/confseq",
+    "commit": "5ffe733ca2447a2e28c2c91f3b00086173f2ab2c",
+    "path": "src/confseq/betting.py",
+    "url": "https://raw.githubusercontent.com/gostevehoward/confseq/5ffe733ca2447a2e28c2c91f3b00086173f2ab2c/src/confseq/betting.py",
+    "bytes": 27290,
+    "sha256": "c75ee344da46e7652cff40f42e2c879431efd629620d856cd2189ed926cae57b"
+  },
+  {
+    "repo": "gostevehoward/confseq",
+    "commit": "5ffe733ca2447a2e28c2c91f3b00086173f2ab2c",
+    "path": "src/confseq/predmix.py",
+    "url": "https://raw.githubusercontent.com/gostevehoward/confseq/5ffe733ca2447a2e28c2c91f3b00086173f2ab2c/src/confseq/predmix.py",
+    "bytes": 9952,
+    "sha256": "70456e9a3531582a0d0e146ba9ed6c8d643667025f5f4b85864d41dbd9036fdb"
+  },
+  {
+    "repo": "gostevehoward/confseq",
+    "commit": "5ffe733ca2447a2e28c2c91f3b00086173f2ab2c",
+    "path": "src/confseq/conjmix_bounded.py",
+    "url": "https://raw.githubusercontent.com/gostevehoward/confseq/5ffe733ca2447a2e28c2c91f3b00086173f2ab2c/src/confseq/conjmix_bounded.py",
+    "bytes": 5790,
+    "sha256": "c9c358346dfd4f22c81569a07deef1b272a3e980182e2c783bab9734c75f1c32"
+  },
+  {
+    "repo": "gostevehoward/confseq",
+    "commit": "5ffe733ca2447a2e28c2c91f3b00086173f2ab2c",
+    "path": "pyproject.toml",
+    "url": "https://raw.githubusercontent.com/gostevehoward/confseq/5ffe733ca2447a2e28c2c91f3b00086173f2ab2c/pyproject.toml",
+    "bytes": 275,
+    "sha256": "e80cea6054675f7b85c465ffec38a693bc84226720c4682d3dd87f92e5121751"
+  },
+  {
+    "repo": "yjchoe/ComparingForecasters",
+    "commit": "52748c86e0429a9612dc79892c3be6156a524132",
+    "path": "LICENSE.txt",
+    "url": "https://raw.githubusercontent.com/yjchoe/ComparingForecasters/52748c86e0429a9612dc79892c3be6156a524132/LICENSE.txt",
+    "bytes": 1089,
+    "sha256": "11be31dffbbca949a64478dc821a900f6978ab37e7fca30066fc05ee5f088dc1"
+  },
+  {
+    "repo": "yjchoe/ComparingForecasters",
+    "commit": "52748c86e0429a9612dc79892c3be6156a524132",
+    "path": "README.md",
+    "url": "https://raw.githubusercontent.com/yjchoe/ComparingForecasters/52748c86e0429a9612dc79892c3be6156a524132/README.md",
+    "bytes": 7571,
+    "sha256": "389f6b9eb040b72e1f4a9761a2262475dd5b3c703a5620c1dc40f20edd1624b9"
+  },
+  {
+    "repo": "yjchoe/ComparingForecasters",
+    "commit": "52748c86e0429a9612dc79892c3be6156a524132",
+    "path": "comparecast/confseq.py",
+    "url": "https://raw.githubusercontent.com/yjchoe/ComparingForecasters/52748c86e0429a9612dc79892c3be6156a524132/comparecast/confseq.py",
+    "bytes": 12400,
+    "sha256": "8ea07278021cd06223fa1aa95c3a2aa46ab5be4d5a859d5ed49b5ef5218baef4"
+  },
+  {
+    "repo": "yjchoe/ComparingForecasters",
+    "commit": "52748c86e0429a9612dc79892c3be6156a524132",
+    "path": "comparecast/eprocess.py",
+    "url": "https://raw.githubusercontent.com/yjchoe/ComparingForecasters/52748c86e0429a9612dc79892c3be6156a524132/comparecast/eprocess.py",
+    "bytes": 16216,
+    "sha256": "5e88dd8a5584eba7a4c487e3886bd6f1d55c6725d611340c32bdd039d4a58768"
+  },
+  {
+    "repo": "yjchoe/ComparingForecasters",
+    "commit": "52748c86e0429a9612dc79892c3be6156a524132",
+    "path": "comparecast/diagnostics.py",
+    "url": "https://raw.githubusercontent.com/yjchoe/ComparingForecasters/52748c86e0429a9612dc79892c3be6156a524132/comparecast/diagnostics.py",
+    "bytes": 7500,
+    "sha256": "12b058a3d75200fe9b0eec84080900d233fe696105f7f23f06a50d5f80d7d85c"
+  },
+  {
+    "repo": "yjchoe/ComparingForecasters",
+    "commit": "52748c86e0429a9612dc79892c3be6156a524132",
+    "path": "comparecast/data_utils/synthetic.py",
+    "url": "https://raw.githubusercontent.com/yjchoe/ComparingForecasters/52748c86e0429a9612dc79892c3be6156a524132/comparecast/data_utils/synthetic.py",
+    "bytes": 7514,
+    "sha256": "6229bdd4f09399302fe7b9c0d5ba45f1ed84d1c2745054b2a6aaa9129ec0f6ed"
+  },
+  {
+    "repo": "yjchoe/ComparingForecasters",
+    "commit": "52748c86e0429a9612dc79892c3be6156a524132",
+    "path": "comparecast/comparecast.py",
+    "url": "https://raw.githubusercontent.com/yjchoe/ComparingForecasters/52748c86e0429a9612dc79892c3be6156a524132/comparecast/comparecast.py",
+    "bytes": 6318,
+    "sha256": "ba676ba3cfbcde290048126b4751ba4c7fbc06904d9c29576fe77a80cec172c2"
+  },
+  {
+    "repo": "yjchoe/ComparingForecasters",
+    "commit": "52748c86e0429a9612dc79892c3be6156a524132",
+    "path": "requirements.txt",
+    "url": "https://raw.githubusercontent.com/yjchoe/ComparingForecasters/52748c86e0429a9612dc79892c3be6156a524132/requirements.txt",
+    "bytes": 74,
+    "sha256": "5c60fe8dcdce666a326d7b7acc4df3c27d1cd1e085a9a10d00a5e9a1ad7a4b74"
+  },
+  {
+    "repo": "yjchoe/CombiningEvidenceAcrossFiltrations",
+    "commit": "279128f222e09f04484a1ccb14537431752a16ea",
+    "path": "LICENSE.txt",
+    "url": "https://raw.githubusercontent.com/yjchoe/CombiningEvidenceAcrossFiltrations/279128f222e09f04484a1ccb14537431752a16ea/LICENSE.txt",
+    "bytes": 1089,
+    "sha256": "f72fefeec02bd30a73349bd05f4a69452052542105c91426a45638bb3f96a4f5"
+  },
+  {
+    "repo": "yjchoe/CombiningEvidenceAcrossFiltrations",
+    "commit": "279128f222e09f04484a1ccb14537431752a16ea",
+    "path": "README.md",
+    "url": "https://raw.githubusercontent.com/yjchoe/CombiningEvidenceAcrossFiltrations/279128f222e09f04484a1ccb14537431752a16ea/README.md",
+    "bytes": 3739,
+    "sha256": "80a9ecbecbc177f5b0787af3ab2df69eca6353f825161d72765b439e8bc894ba"
+  },
+  {
+    "repo": "yjchoe/CombiningEvidenceAcrossFiltrations",
+    "commit": "279128f222e09f04484a1ccb14537431752a16ea",
+    "path": "ecombine/calibrators.py",
+    "url": "https://raw.githubusercontent.com/yjchoe/CombiningEvidenceAcrossFiltrations/279128f222e09f04484a1ccb14537431752a16ea/ecombine/calibrators.py",
+    "bytes": 4216,
+    "sha256": "c390fdb0ceafaa09a00a5feefde2b67d8f4550ee4795cb47a57727c43d9aa7a0"
+  },
+  {
+    "repo": "yjchoe/CombiningEvidenceAcrossFiltrations",
+    "commit": "279128f222e09f04484a1ccb14537431752a16ea",
+    "path": "ecombine/eprocesses.py",
+    "url": "https://raw.githubusercontent.com/yjchoe/CombiningEvidenceAcrossFiltrations/279128f222e09f04484a1ccb14537431752a16ea/ecombine/eprocesses.py",
+    "bytes": 6059,
+    "sha256": "f26b62b035172a3729a4d74045351540a2b89f229c26aecd6b717316593f4a4f"
+  },
+  {
+    "repo": "yjchoe/CombiningEvidenceAcrossFiltrations",
+    "commit": "279128f222e09f04484a1ccb14537431752a16ea",
+    "path": "ecombine/diagnostics.py",
+    "url": "https://raw.githubusercontent.com/yjchoe/CombiningEvidenceAcrossFiltrations/279128f222e09f04484a1ccb14537431752a16ea/ecombine/diagnostics.py",
+    "bytes": 4179,
+    "sha256": "ab64abc6b084a4adfb5f4e8bb1cecc618b22a4ab6ce97482743e35341cf934c7"
+  },
+  {
+    "repo": "yjchoe/ComparingForecasters",
+    "commit": "52748c86e0429a9612dc79892c3be6156a524132",
+    "path": "comparecast/utils.py",
+    "url": "https://raw.githubusercontent.com/yjchoe/ComparingForecasters/52748c86e0429a9612dc79892c3be6156a524132/comparecast/utils.py",
+    "bytes": 4536,
+    "sha256": "5bc239e18f13deb8b064df9a82b859f8556a11f1f91a39145c1cfba8ade37838"
+  }
+]

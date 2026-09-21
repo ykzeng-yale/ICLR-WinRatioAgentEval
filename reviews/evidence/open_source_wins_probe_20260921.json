@@ -1,0 +1,74 @@
+{
+  "assessment_date_utc": "2026-09-21",
+  "result": "PASS",
+  "scope": "Complete outcomes, success-first/tie-on-joint-failure, absolute cost tolerances; fixed-n all-pairs point summaries only.",
+  "excluded": [
+    "relative tolerance",
+    "censoring",
+    "pending outcomes",
+    "paired/cluster inference",
+    "confidence intervals",
+    "live adapter",
+    "optional stopping",
+    "power or calibration"
+  ],
+  "external": {
+    "R_version": "R version 4.4.0 (2024-04-24)",
+    "WINS_version": "1.5.1",
+    "WINS_license": "GPL (>= 2)",
+    "jsonlite_version": "2.0.0",
+    "aggregate": {
+      "A_vs_B": {
+        "p_win": 0.375,
+        "p_loss": 0.4375,
+        "p_tie": 0.1875,
+        "net_benefit": -0.0625,
+        "win_ratio": 0.8571428571428571,
+        "win_odds": 0.8823529411764706
+      },
+      "B_vs_A": {
+        "p_win": 0.4375,
+        "p_loss": 0.375,
+        "p_tie": 0.1875,
+        "net_benefit": 0.0625,
+        "win_ratio": 1.1666666666666667,
+        "win_odds": 1.1333333333333333
+      }
+    }
+  },
+  "CRAN_source_mirror": "https://github.com/cran/WINS/tree/6fec397f2ad1185ac3140b39d4eb2158d0f8d9a7",
+  "source_identity_boundary": "Installed version 1.5.1 matches source-mirror metadata; compiled package is not asserted byte-identical to that repository.",
+  "pair_scores_checked": 200,
+  "score_mismatches": 0,
+  "decisive_tier_mismatches": 0,
+  "fixed_n_point_checks": {
+    "A_vs_B": {
+      "p_win": 0.375,
+      "p_loss": 0.4375,
+      "p_tie": 0.1875,
+      "net_benefit": -0.0625,
+      "win_ratio": 0.8571428571428571,
+      "win_odds": 0.8823529411764706
+    },
+    "B_vs_A": {
+      "p_win": 0.4375,
+      "p_loss": 0.375,
+      "p_tie": 0.1875,
+      "net_benefit": 0.0625,
+      "win_ratio": 1.1666666666666667,
+      "win_odds": 1.1333333333333333
+    }
+  },
+  "underlying_observations_per_aggregate": 8,
+  "dependent_all_pairs_per_aggregate": 16,
+  "source_sha256": {
+    "experiments/audit_open_source_wins.py": "31b4861d414c752692ada13cea527efb4cae886209ab25fb22e5f106bad0c26c",
+    "experiments/audit_open_source_wins.R": "3e356d5a8c879264bfd654a0341a94785406d1178d559f8788f40fe4ed744937",
+    "src/winstats.py": "56955ce09a8ac7afb15f2bd251048537eabcc04ea75e7579bdb825594f41fc69"
+  },
+  "installed_public_strategy_deparse_sha256": "6cf97c462832feabc8a8ed587a531a47df385a31a157c3318c4d0f98e9e439d4",
+  "external_pair_csv_sha256": "7e588df75c45686e69205df8ff6e417d34ba25ba51bbc6855478adec836526bf",
+  "random_draws": 0,
+  "model_calls": 0,
+  "package_installations": 0
+}
