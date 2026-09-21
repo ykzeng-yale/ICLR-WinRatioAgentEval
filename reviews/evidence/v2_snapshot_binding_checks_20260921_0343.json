@@ -1,0 +1,122 @@
+{
+  "candidate": "a10dba219a1dee10796eb019f3e14872249fbe2e",
+  "snapshot_source": "a266c6201e3c94fc50c6646ca741e5e1da9b409b",
+  "snapshot_checks": [
+    {
+      "file": "lab_monitor.py",
+      "sha256": "94d70b8d766376a697271087a1879de32170d4827bb25211c33f550232c2af91",
+      "matches_manifest": true,
+      "matches_claimed_source": true,
+      "matches_incoming_live": true
+    },
+    {
+      "file": "lab_enclosure.py",
+      "sha256": "da1b300d0fc99608f3b4c919d33ed546d20f2547c9339bd03e6ce6c7b9290d74",
+      "matches_manifest": true,
+      "matches_claimed_source": true,
+      "matches_incoming_live": true
+    },
+    {
+      "file": "lab_reference_rule.py",
+      "sha256": "8f8b69f01e09a92ca77a665e19bbd8f8eeba0ceef1ddab0bc3cb09b0fb9ee6fd",
+      "matches_manifest": true,
+      "matches_claimed_source": true,
+      "matches_incoming_live": true
+    }
+  ],
+  "frozen_v1_files": [
+    {
+      "path": "experiments/live_ab_validation/PROTOCOL.md",
+      "unchanged": true
+    },
+    {
+      "path": "experiments/live_ab_validation/cells.json",
+      "unchanged": true
+    },
+    {
+      "path": "experiments/live_ab_validation/pinned/PINNED.json",
+      "unchanged": true
+    },
+    {
+      "path": "experiments/live_ab_validation/pinned/lab_enclosure.py",
+      "unchanged": true
+    },
+    {
+      "path": "experiments/live_ab_validation/pinned/lab_monitor.py",
+      "unchanged": true
+    },
+    {
+      "path": "experiments/live_ab_validation/pinned/lab_reference_rule.py",
+      "unchanged": true
+    },
+    {
+      "path": "results/live_ab_validation/README_OUTPUTS.md",
+      "unchanged": true
+    },
+    {
+      "path": "results/live_ab_validation/budget.json",
+      "unchanged": true
+    },
+    {
+      "path": "results/live_ab_validation/comparison_defects.csv.gz",
+      "unchanged": true
+    },
+    {
+      "path": "results/live_ab_validation/comparison_summary.json",
+      "unchanged": true
+    },
+    {
+      "path": "results/live_ab_validation/comparison_vs_live_ab.csv.gz",
+      "unchanged": true
+    },
+    {
+      "path": "results/live_ab_validation/compute.json",
+      "unchanged": true
+    },
+    {
+      "path": "results/live_ab_validation/decision_time.csv",
+      "unchanged": true
+    },
+    {
+      "path": "results/live_ab_validation/decisions.csv",
+      "unchanged": true
+    },
+    {
+      "path": "results/live_ab_validation/fixtures_report.json",
+      "unchanged": true
+    },
+    {
+      "path": "results/live_ab_validation/horizon_summaries.csv",
+      "unchanged": true
+    },
+    {
+      "path": "results/live_ab_validation/manifest.json",
+      "unchanged": true
+    },
+    {
+      "path": "results/live_ab_validation/miscoverage.csv",
+      "unchanged": true
+    },
+    {
+      "path": "results/live_ab_validation/smoke/timing.json",
+      "unchanged": true
+    },
+    {
+      "path": "results/live_ab_validation/trials.csv.gz",
+      "unchanged": true
+    },
+    {
+      "path": "results/live_ab_validation/unresolved.csv",
+      "unchanged": true
+    }
+  ],
+  "arxiv_sha256": {
+    "arxiv/paper.pdf": "8d75610e9e2183a63ab9e64b4e4b697da6aea4ebe343a9ee11d0363bf8777399",
+    "arxiv/main_paper.pdf": "5e37e7744c79dcc76e4afa872f47000162e538349a3d4ae9083725d9dcaae3b5",
+    "arxiv/supplement.pdf": "0ceaf58a0fcb90c9440e14d3e6c9445f9d11feba2b16365ee4d7ddcfa5bb128d",
+    "arxiv/reproducibility_code.zip": "408b129f0fb5e029d881059458cdf8b83f3524b56f54498c6c1d6f57d8f46165",
+    "arxiv/arxiv_source.tar.gz": "fd82e3e117a855c7a3f968ecb42e1022148bc8f37804018b2394e961afb43a9d"
+  },
+  "vcompare_unchanged": true,
+  "stopped_target_source_unchanged": true
+}

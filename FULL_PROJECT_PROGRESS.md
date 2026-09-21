@@ -1,5 +1,8 @@
 # Full-project arXiv readiness
 
+**September21, 03:43 UTC review — full project60% (change0), bounded v190%.** Exact `a10dba2` brings a verified three-file v2 snapshot, eight verified upstream reference files, and committed primary resource records whose saved arithmetic independently reconciles. These are bounded provenance/development acceptances. The CLI still rejects its smoke metadata, discards one cell in budget selection, changes v1 seed coordinates and lacks v2 comparison/snapshot bindings. Late docs-only `3c6982c` sizing claims use the wrong boundary/scale and are not accepted. [Current root disposition](reviews/v2_bindings_root_disposition_20260921_0343.md) gives the ranked repair decisions; no full-grid/live clearance or paper integration. Latest owner status03:46:27UTC: zero live episodes/v2 grid cells, no freeze, host contention (owner-reported). Next milestone: corrected executable v2 specification and comparison/budget fixtures. Remaining40 points: prospective/CPU20, root integration/finalQA10, author checks10.
+
+
 **Full project: 60/100 points (60%). Existing bounded-v1 package: 90/100 (90%).** Established September 19, 2026 at the author's request for a percentage covering the full project after every completed work cycle.
 
 The full-project target includes the already verified foundation, the authorized prospective study in issue #11, independent CPU validation in issue #12, their accepted integration and the author's final submission checks. It does not include every conceivable model/hardware/production extension. This is a weighted checklist estimate, not remaining hours, probability of acceptance, or a guarantee of arXiv moderation. Forty points remain; this does not mean forty percent of the time remains.

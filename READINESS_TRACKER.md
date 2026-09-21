@@ -1,5 +1,7 @@
 # Bounded-v1 arXiv package readiness tracker
 
+Current full-project review remains60% (change0); bounded v190%. See [September21 root disposition](reviews/v2_bindings_root_disposition_20260921_0343.md). New source/resource provenance is bounded-verified; successor experiments and release integration remain pending.
+
 **For overall progress, report [FULL_PROJECT_PROGRESS.md](FULL_PROJECT_PROGRESS.md) first: 60% across the expanded project, including issues #11/#12 and their final integration. This file retains the separate existing-package score of 90%.**
 
 **September 19, 2026: 90/100 verified checklist points (90%).** The author redirected the project to arXiv after the ICLR deadline. This score applies to the technically verified, scientifically bounded v1 preprint, not a future stronger experiment program. It is not an acceptance probability, human scientific signoff, submission confirmation or a measure of hours spent.
