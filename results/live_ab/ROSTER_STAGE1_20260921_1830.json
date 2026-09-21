@@ -1,0 +1,158 @@
+{
+  "WHAT_THIS_IS": "STAGE 1 ONLY: the offline, no-execution portion. NO write-once artifact deposited. The roster is NOT final and the horizon is NOT determined.",
+  "authority": "root 2026-09-21 18:17 binding answer 6: build and deposit roster/exclusions/arrival order/horizon now; source candidates and exclusions determine the horizon, not 568 or 565 asserted in advance.",
+  "candidates": {
+    "by_benchmark": {
+      "humaneval": 164,
+      "mbpp": 427,
+      "mbpp_full": 547
+    },
+    "by_stratum": {
+      "S1": 591,
+      "S2": 547
+    },
+    "candidate_tasks": 1138,
+    "raw_records": {
+      "humaneval": 164,
+      "mbpp_full": 974,
+      "mbpp_sanitized": 427
+    }
+  },
+  "fetch_sources_non_idempotency": {
+    "finding": "lab_data.fetch_sources is NOT idempotent, and its own write-once guard makes the second invocation FAIL with WriteOnceViolation.",
+    "mechanism": "the manifest records each source's `origin` path. On the first call the files are found in CACHE_SEARCH_DIRS, so origin names the cache. The call then COPIES them into dest. On a second call _find_cached finds them in dest first, so origin names dest. Different bytes for the same inputs and the same intent.",
+    "not_repaired_here": "fetch_sources is live_ab harness code pinned by harness_file_sha256. Changing it moves that digest. Reported, not silently patched.",
+    "s2_provenance_note": "mbpp_full resolved from an EXTERNAL cache dir, not from the repo. roster_mode EXT depends on that file, so its origin is recorded rather than assumed.",
+    "severity": "the SCIENTIFIC content is stable -- every sha256, byte count, revision and stratum is identical between runs. Only a provenance path string moves.",
+    "who_it_bites": "anyone re-running preparation against an already-populated sources dir, including a resumed or repeated freeze attempt.",
+    "workaround_used": "this stage READS the existing write-once manifest instead of regenerating it. Nothing was deleted; the original manifest stands."
+  },
+  "generated_utc": "2026-09-21T18:34:40Z",
+  "horizon": {
+    "THIS_IS_A_CEILING_NOT_THE_HORIZON": "Rule 4 can only REMOVE tasks, never add. Final n_pairs <= this. An upper bound from the offline stages, not a determined horizon.",
+    "formula": "floor(n_S1/2) + floor(n_S2/2), config.roster.n_pairs_rule",
+    "n_pairs_CEILING": 564,
+    "on_asserted_values": "root warned against asserting 568 or 565 in advance. The ceiling from the actual sources is stated here; any asserted value above it is unattainable before rule 4 removes anything."
+  },
+  "not_deposited": [
+    "roster.json (write-once)",
+    "arrival_order_*.json (write-once)",
+    "freeze keys roster_sha256, task_content_sha256, arrival_order_sha256"
+  ],
+  "nothing_executed": [
+    "no network",
+    "no model call",
+    "no server start",
+    "no sandbox execution",
+    "no reference sweep",
+    "foreign processes not signalled"
+  ],
+  "prospective_exclusions_rules_1_to_3": {
+    "by_reason": {
+      "duplicate_prompt": 2,
+      "out_of_design_smoke_task": 6
+    },
+    "count": 8,
+    "every_exclusion": [
+      {
+        "detail_sha256": "3cce07a01d756dc9146a89aa19ce917884ec487c8dff61e2eeea97a8db7562e5",
+        "reason": "out_of_design_smoke_task",
+        "uid": "mbpp_full/39"
+      },
+      {
+        "detail_sha256": "3cce07a01d756dc9146a89aa19ce917884ec487c8dff61e2eeea97a8db7562e5",
+        "reason": "out_of_design_smoke_task",
+        "uid": "mbpp_full/122"
+      },
+      {
+        "detail_sha256": "5822557fb873e2d02cffdb747ee2eff7001855379aeecec9af39badfceedd517",
+        "reason": "duplicate_prompt",
+        "uid": "mbpp_full/217"
+      },
+      {
+        "detail_sha256": "3cce07a01d756dc9146a89aa19ce917884ec487c8dff61e2eeea97a8db7562e5",
+        "reason": "out_of_design_smoke_task",
+        "uid": "mbpp_full/522"
+      },
+      {
+        "detail_sha256": "3cce07a01d756dc9146a89aa19ce917884ec487c8dff61e2eeea97a8db7562e5",
+        "reason": "out_of_design_smoke_task",
+        "uid": "mbpp_full/547"
+      },
+      {
+        "detail_sha256": "3cce07a01d756dc9146a89aa19ce917884ec487c8dff61e2eeea97a8db7562e5",
+        "reason": "out_of_design_smoke_task",
+        "uid": "mbpp_full/869"
+      },
+      {
+        "detail_sha256": "d430002bf3ddf961da8057b932f84bf47908351645b9c899374b9f235b85af7d",
+        "reason": "duplicate_prompt",
+        "uid": "mbpp_full/928"
+      },
+      {
+        "detail_sha256": "3cce07a01d756dc9146a89aa19ce917884ec487c8dff61e2eeea97a8db7562e5",
+        "reason": "out_of_design_smoke_task",
+        "uid": "mbpp_full/966"
+      }
+    ],
+    "note": "rule 3 (no_entry_point) excluded ZERO tasks; every S2 entry point resolved."
+  },
+  "remaining_resource_requirement": "One permitted startup of THIS STUDY'S own coder server on 8091 to provide protocol 3.2 rule 4's load regime, plus a sandbox sweep of the surviving tasks x 2 runs under the host-wide execution lock. Both gated on capacity, which fails on PRESENCE of foreign accelerator consumers.",
+  "schema": "live_ab.roster_stage1_offline.1",
+  "sources_verified_offline": {
+    "all_three_match_frozen_bytes_and_sha256": true,
+    "manifest_reused_not_regenerated": "the write-once sources.json from the first offline call is READ, not rewritten; see fetch_sources_non_idempotency below",
+    "network_used": false,
+    "roster_mode": "EXT",
+    "roster_mode_meaning": "EXT = S1 + surviving S2 because mbpp_full verified; protocol 3.1 says a mismatch would have meant roster S1.",
+    "sources": {
+      "humaneval": {
+        "bytes": 44877,
+        "from_cache": true,
+        "present": true,
+        "records": 164,
+        "revision": "463c980b59e818ace59f6f9803cd92c749ceae61",
+        "sha256": "b796127e635a67f93fb35c04f4cb03cf06f38c8072ee7cee8833d7bee06979ef",
+        "stratum": "S1"
+      },
+      "mbpp_full": {
+        "bytes": 563743,
+        "from_cache": true,
+        "present": true,
+        "records": 974,
+        "revision": "f82046ba5aabbbb427dbfd38a254d26bff08b533",
+        "sha256": "ccf64ceae9c5403bf50a044cb6d505bfd2a2963ee58338ba268fd65beab92a9f",
+        "stratum": "S2"
+      },
+      "mbpp_sanitized": {
+        "bytes": 255053,
+        "from_cache": true,
+        "present": true,
+        "records": 427,
+        "revision": "f82046ba5aabbbb427dbfd38a254d26bff08b533",
+        "sha256": "ca95deaa9a01ef0a6f439f88bcf0dd3db3563d22f22aad6cae04ebb9a8d8c8e9",
+        "stratum": "S1"
+      }
+    }
+  },
+  "survivors_of_rules_1_to_3": {
+    "by_benchmark": {
+      "humaneval": 164,
+      "mbpp": 427,
+      "mbpp_full": 539
+    },
+    "by_stratum": {
+      "S1": 591,
+      "S2": 539
+    },
+    "total": 1130
+  },
+  "why_stage_1_stops_here": {
+    "authorization_state": "root 18:17: 'No model call, server startup or fault injection is approved by this report.' Binding answer 2: protocol 5.7.2 rejects foreign accelerator consumers ON PRESENCE, so the gate fails while the DTR servers are present regardless of load.",
+    "conclusion": "Rule 4 cannot be executed to protocol now. I did not run it under the wrong load regime and did not deposit a roster that silently omits it.",
+    "load_regime_requires": "a 1,024-token generation on THIS STUDY'S OWN coder server, port 8091: a server startup and a model call.",
+    "rule": "PROTOCOL 3.2 rule 4, design/protocol_FINAL.md:612-615",
+    "text": "Any task whose reference solution does not pass verify() twice in a row inside the Seatbelt sandbox on the trial machine UNDER THE LOAD REGIME OF THE TRIAL (a 1,024-token generation running on the coder server during the sweep), or whose reference verification takes more than half of the 5 s verifier wall limit in either run.",
+    "why_it_blocks": "reference_timeout is a WALL-TIME threshold (0.5 x 5 s = 2.5 s) and wall time depends on load. Sweeping on an idle machine makes the verifier faster, so FEWER tasks cross the threshold, so MORE survive, so the roster is LARGER. That roster would have the right shape, right format and plausible counts and would be WRONG. write_roster is write-once, so it could not be corrected afterwards."
+  }
+}
