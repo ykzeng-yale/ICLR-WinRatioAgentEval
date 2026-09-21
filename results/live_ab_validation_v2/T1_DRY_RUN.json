@@ -1,0 +1,238 @@
+{
+  "evaluated_trials": 0,
+  "manifest": {
+    "authority": "root disposition 2026-09-21 09:09, handoff item 1. DELIVERED FOR REVIEW; execution is NOT cleared by it.",
+    "built_utc": "2026-09-21T09:48:04Z",
+    "caps_cumulative_over_whole_job": {
+      "not_reset_per_cell_or_shard": true,
+      "output_bytes": 209715200,
+      "seconds": 5400.0,
+      "tree_rss_bytes": 2147483648
+    },
+    "clearance": {
+      "note": "no receipt, cap margin or successful dry run constitutes clearance; only an explicit root decision does",
+      "required": true,
+      "sentinel": "ROOT-CLEARED-T1-ATTEMPT",
+      "status": "NOT CLEARED"
+    },
+    "exposure": {
+      "fresh_holdout": false,
+      "label": "namespace-0 replay coordinates with PRIOR DEVELOPMENT EXPOSURE; post-v1 development/paired reuse, NOT a fresh confirmatory holdout"
+    },
+    "frozen_request": {
+      "allocation": {
+        "C1": 2000,
+        "C2": 2000,
+        "C3": 5000,
+        "C4": 5000,
+        "C5": 5000,
+        "C6": 5000,
+        "C7": 2000,
+        "C8": 2000
+      },
+      "alpha_gate": 0.00625,
+      "horizon": 2000,
+      "namespace": 0,
+      "policy": "operational",
+      "programs": 28000,
+      "reference_calls": 224000,
+      "schedule": "v2_tick_batched",
+      "trials": 112000,
+      "trials_per_program": 4,
+      "verification_mode": "preflight_only",
+      "with_reference": true
+    },
+    "launcher_version": "t1-launcher-1",
+    "on_cap_breach": "INCOMPLETE STUDY, returned to root. Never an automatic retry, never a completed subset selected by outcome.",
+    "per_cell_programs": {
+      "C1": 2000,
+      "C2": 2000,
+      "C3": 5000,
+      "C4": 5000,
+      "C5": 5000,
+      "C6": 5000,
+      "C7": 2000,
+      "C8": 2000
+    },
+    "pins": {
+      "binding_method": "whole_file_pins_of_complete_entry_point",
+      "code": "f9541a58bbd9301db888f6a32c3feb86b39e409a4e00efaae3132e3074ae4a6b",
+      "config": "f845429fc887b6e6246ebb90a0a31cf9fbf2a02e1c6f2456c672d61772de7ffc",
+      "detail": {
+        "environment": {
+          "cpu_count": 10,
+          "executable_sha256_note": "interpreter not hashed; version pinned above",
+          "implementation": "CPython",
+          "machine": "arm64",
+          "numpy": "2.4.1",
+          "platform": "macOS-26.5.2-arm64-arm-64bit",
+          "python": "3.12.13"
+        },
+        "repo": {
+          "branch": "session60/live-ab-validation",
+          "dirty_paths": [
+            "M experiments/live_ab_validation/vmeasure.py",
+            " M experiments/live_ab_validation/vpanel.py",
+            " M experiments/live_ab_validation/vpins.py",
+            " M experiments/live_ab_validation/vsupervise.py",
+            "?? experiments/live_ab_validation/vlaunch.py"
+          ],
+          "head": "bb1d8caf20f6191db8b84d683d52cd5fb5161811",
+          "validation_tree_dirty": true
+        },
+        "run_identity": {
+          "alpha_gate": 0.00625,
+          "cells": [
+            "C1",
+            "C2",
+            "C3",
+            "C4",
+            "C5",
+            "C6",
+            "C7",
+            "C8"
+          ],
+          "expected_reference_calls": 224000,
+          "expected_trial_evaluations": 112000,
+          "namespace": 0,
+          "normalized_horizon": 2000,
+          "policy": "operational",
+          "prefixes": [
+            100,
+            500,
+            2000
+          ],
+          "programs": [],
+          "reference_mode": "vendored_complete_information_two_score",
+          "schedule": "v2_tick_batched",
+          "trials_per_program": 4,
+          "verification_mode": "preflight_only"
+        },
+        "source": {
+          "aggregate_sha256": "f9541a58bbd9301db888f6a32c3feb86b39e409a4e00efaae3132e3074ae4a6b",
+          "candidate_binaries_not_authoritative": {
+            "reference/_build/boundaries.cpython-312-darwin.so": "f1c65419fd9785be308eb762e86444effa52a168631a9f39cd377178eab55657"
+          },
+          "config": {
+            "PROTOCOL_V2.md": "259863aa4fc070d652db6ada3513676f97bc27ed7887f4e32e762ccde909bcc4",
+            "cells.json": "96ebf7e47f790031d5d125cedcc9a9973bccfc78ea8e159798d69fcca9d61e97"
+          },
+          "files": {
+            "reference/MANIFEST.json": "ab353bac7d658d4c52aab2b34cef91bb7c302667331773f7884ec064ab0f43e3",
+            "reference/eb_reference.py": "41498a28e67fb37b5a5b07a8e8afb1f98d7aa2459531b6cad5c51a2af35a22a8",
+            "reference/vendor.py": "6f792463a1b4b63827f65fb95cd4696d4612ffd05b7c519132f595184cc7cb0f",
+            "vband.py": "55a9894ff5694099c05cedbdf695ecdad3ac4bd5025328cd445e0b1d3df8cd9c",
+            "vconformance.py": "6f509ce5d97ccbb9dbf17d8fafca6c8b155e7d48d341b626d58cce9268e2a066",
+            "vgen.py": "08d1a8146023e348817a5cb02d04b9e209540456e2481889b98b8f31a5686987",
+            "videntity.py": "1090a92ffc4316cf955454ac7a9f5acfddad6a52fec65446f7fec10e208242f4",
+            "vlaunch.py": "6facbeb935eb19bd6838a701d9149425371844c6ddead64b45e192b1e8d38535",
+            "vmeasure.py": "cec8e3d8eb0d443c759e017389428704c45e1aa9316862071d474831e2df529b",
+            "vpanel.py": "8073e905be2a71818365039cfa97474fb187c818414fc49cb874cc22714d9d0a",
+            "vpins.py": "89e52b7b9c54fc66554e00dc107624cc4cfbcaf3ac25220d5cc38599834cc8b7",
+            "vpolicy.py": "210956feb1c5831c09c82ef09a70fb0728e2b86c8bf6119cdc5ad03146eb962c",
+            "vresource_check.py": "fb071eb0d616af5d352ae4d4d1bdb278cf409f47445901f64f64bcec94b9e7a9",
+            "vrun.py": "a90c0083ec74088ea496c6a179afc843a6686291964ae903be379fc52265cf90",
+            "vsupervise.py": "586e140abe26bf57b60a9d6a99830e20bf746ac06b4eaf288687f70e161d930c",
+            "vtotalguard.py": "fdaea0edce9991a966ad731f480d53044575c74bc6bf7f8b4157676fcb715e05"
+          },
+          "loaded_reference_modules": {
+            "aggregate_sha256": "4fdec5a774e2a571b7c312d522add589718e4303bd1ba2582f3af22fb6e1bc2c",
+            "files": {
+              "comparecast": "314fd68a18a1218537664a71da6bd103caf612f93fdc56b667cbcf5e58692cb5",
+              "comparecast.confseq": "8ea07278021cd06223fa1aa95c3a2aa46ab5be4d5a859d5ed49b5ef5218baef4",
+              "comparecast.confseq::__pycache__": "b403eadbe98bf025f7ea1d443cd1772fc015b1beadebdc9ce47b72c21e2919ab",
+              "comparecast.utils": "5bc239e18f13deb8b064df9a82b859f8556a11f1f91a39145c1cfba8ade37838",
+              "comparecast.utils::__pycache__": "7729c0904a066f86ed0bb55b51dd9f485e3dfe8b872b2ecb1957a8d09fbe1cbe",
+              "comparecast::__pycache__": "be36942d0127d5245f091521860d5904d46c43e562ad0a1d673e7e852957a76b",
+              "confseq": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "confseq.boundaries": "f1c65419fd9785be308eb762e86444effa52a168631a9f39cd377178eab55657",
+              "confseq::__pycache__": "430ce4d15c745f73bfab39b3b9a9ec72d84952c9aaa27f435b451896a5aab438"
+            },
+            "method": "sys.modules __file__/__cached__ after forcing the import",
+            "module_count": 9,
+            "origins": {
+              "comparecast": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/upstream/comparecast/__init__.py",
+              "comparecast.confseq": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/upstream/comparecast/confseq.py",
+              "comparecast.confseq::__pycache__": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/upstream/comparecast/__pycache__/confseq.cpython-312.pyc",
+              "comparecast.utils": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/upstream/comparecast/utils.py",
+              "comparecast.utils::__pycache__": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/upstream/comparecast/__pycache__/utils.cpython-312.pyc",
+              "comparecast::__pycache__": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/upstream/comparecast/__pycache__/__init__.cpython-312.pyc",
+              "confseq": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/upstream/confseq/__init__.py",
+              "confseq.boundaries": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/_build/boundaries.cpython-312-darwin.so",
+              "confseq::__pycache__": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/upstream/confseq/__pycache__/__init__.cpython-312.pyc"
+            }
+          },
+          "roles": {
+            "conformance_preflight": [
+              "vconformance.py"
+            ],
+            "diagnostic_not_authorizing": [
+              "videntity.py"
+            ],
+            "guard": [
+              "vrun.py",
+              "vtotalguard.py",
+              "vresource_check.py",
+              "vpins.py"
+            ],
+            "launcher": [
+              "vlaunch.py"
+            ],
+            "orchestrator": [
+              "vpanel.py"
+            ],
+            "output_accumulator": [
+              "vpanel.py",
+              "vrun.py"
+            ],
+            "primary": [
+              "vrun.py",
+              "vgen.py",
+              "vband.py",
+              "vpolicy.py"
+            ],
+            "reference_bridge": [
+              "reference/eb_reference.py",
+              "reference/vendor.py"
+            ],
+            "supervisor_and_driver": [
+              "vsupervise.py",
+              "vmeasure.py"
+            ]
+          }
+        }
+      },
+      "not_used": "videntity call-graph fingerprint; refuted 2026-09-21 and retained only as an exploratory source-difference diagnostic",
+      "policy": "operational",
+      "receipt": "901d4198d0397d5e1d56c68d17c9a87900096857efa32439f2e76627e0fd274a",
+      "workload": "2_calls_per_trial"
+    },
+    "planning_ledger": {
+      "convention": "descriptive measurement + deterministic same-horizon extrapolation, conditional on a C1/C2 mixture and the recorded host load",
+      "not_a_guarantee": "does NOT guarantee all eight cells finish within 5400 s; C3-C6 are unmeasured at this scale",
+      "source": "accepted preflight-only resource ledger, root 09:09: 0.9558524173 s per ten programs at horizon 2000",
+      "t1_projected_seconds": 2676.3868
+    },
+    "schema": "live_ab_validation_v2.t1_manifest.1",
+    "seed_coordinates": {
+      "cell_indices": {
+        "C1": 0,
+        "C2": 1,
+        "C3": 2,
+        "C4": 3,
+        "C5": 4,
+        "C6": 5,
+        "C7": 6,
+        "C8": 7
+      },
+      "namespace": 0,
+      "program_index_range_per_cell": "0 .. programs-1, contiguous",
+      "rule": "vgen.stream(namespace, cell.index, program_index, trial_index)"
+    }
+  },
+  "note": "manifest inspection only; no trial evaluated",
+  "refusal": null,
+  "why_not": "execution requires the explicit clearance sentinel; a valid manifest is not clearance",
+  "would_execute": false,
+  "would_validate": true
+}

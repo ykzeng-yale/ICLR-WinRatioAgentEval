@@ -46,6 +46,12 @@ PINNED_SOURCES: Dict[str, Tuple[str, ...]] = {
     "reference_bridge": ("reference/eb_reference.py", "reference/vendor.py"),
     "output_accumulator": ("vpanel.py", "vrun.py"),     # RowSink + band writer
     "guard": ("vrun.py", "vtotalguard.py", "vresource_check.py", "vpins.py"),
+    # Root: "Add vmeasure.py, vsupervise.py and the final launcher/preflight
+    # code to explicit whole-file pins."  These execute during a measured pass
+    # and were omitted, so the pin described less than what ran.
+    "supervisor_and_driver": ("vsupervise.py", "vmeasure.py"),
+    "conformance_preflight": ("vconformance.py",),
+    "launcher": ("vlaunch.py",),
     "diagnostic_not_authorizing": ("videntity.py",),
 }
 

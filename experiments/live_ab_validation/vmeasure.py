@@ -146,9 +146,17 @@ def compare_against_baseline(out_dir: Path) -> Dict[str, Any]:
         new_primary = _sha(gzip.decompress(new_p.read_bytes()))
         want_primary = BASELINE_DECOMPRESSED_PRIMARY_SHA256[h]
         new_ref = _sha(new_r.read_bytes())
-        want_ref = _sha(base_r.read_bytes()) if base_r.is_file() else None
+        # FAIL CLOSED on an absent baseline.  Root: "Fail if a required baseline
+        # reference file is absent; the current comparison treats its absence as
+        # a match."  It did, and that is the same shape as every other defect
+        # this project has found: a check that passes when it cannot run.
+        if not base_r.is_file():
+            raise FileNotFoundError(
+                f"required baseline reference file missing: {base_r}. A "
+                f"comparison that cannot run is NOT a match.")
+        want_ref = _sha(base_r.read_bytes())
         ok_p = new_primary == want_primary
-        ok_r = (want_ref is None) or (new_ref == want_ref)
+        ok_r = new_ref == want_ref
         identical &= ok_p and ok_r
         rows[str(h)] = {
             "decompressed_primary_sha256": new_primary,
@@ -202,8 +210,12 @@ def main(argv: Optional[List[str]] = None) -> int:
         out, caps, label="authorized_preflight_only_measurement")
 
     result: Dict[str, Any] = {"supervision": sup, "capacity_at_start": capacity}
+    comparison_failed = False
     if sup["within_caps"]:
-        result["comparison_against_baseline"] = compare_against_baseline(out)
+        cmp_out = compare_against_baseline(out)
+        result["comparison_against_baseline"] = cmp_out
+        comparison_failed = not cmp_out["all_identical"]
+        result["comparison_failed"] = comparison_failed
     (out / "PARENT_RECEIPT.json").write_text(
         json.dumps(result, indent=2, sort_keys=True) + "\n")
     print(json.dumps({
@@ -214,6 +226,9 @@ def main(argv: Optional[List[str]] = None) -> int:
         "final_output_bytes": sup["observed"]["final_output_bytes"],
         "hashes_identical": result.get("comparison_against_baseline", {}).get("all_identical"),
     }, indent=2, sort_keys=True))
+    # Root: "Require a nonzero failed-comparison status if hashes differ."
+    if comparison_failed:
+        return 4
     return 0 if sup["within_caps"] else 1
 
 

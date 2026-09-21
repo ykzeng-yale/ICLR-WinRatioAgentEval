@@ -141,6 +141,18 @@ def _saved_smoke() -> Dict[str, Any]:
     return vtotalguard.smoke_from_saved_projection()
 
 
+def _uncompressed_size(path: Path) -> int:
+    """Actual decompressed size of a gzip artifact, measured not inferred."""
+    import gzip as _gzip
+    with _gzip.open(path, "rb") as fh:
+        total = 0
+        while True:
+            chunk = fh.read(1 << 20)
+            if not chunk:
+                return total
+            total += len(chunk)
+
+
 def _sha256(path: Path) -> Optional[str]:
     try:
         return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -453,6 +465,18 @@ def run_panel(cfg: PanelConfig, out_dir: Path,
                                          "max_trials": FIXTURE_MAX_TRIALS,
                                          "max_n": FIXTURE_MAX_N}
 
+    # Root: "Remove/reject the unpinned verify_policy=False override for
+    # measurement/full-grid modes."  The flag is a function argument and does
+    # NOT appear in the pins, so a run with verification disabled would be
+    # indistinguishable from one with it enabled.  Refused for the two modes
+    # whose timings and receipts are treated as evidence.
+    if not verify_policy and cfg.mode in (MODE_MEASUREMENT, MODE_FULL_GRID):
+        raise PanelError(
+            f"verify_policy=False is not permitted in {cfg.mode!r} mode: the "
+            f"flag is unpinned, so disabling verification would be invisible in "
+            f"the receipt. Use verification_mode={VERIFY_PREFLIGHT!r} to reduce "
+            f"verification cost in a way that IS pinned.")
+
     structural = assert_reference_is_not_consulted()
     if cfg.with_reference and not eb_reference.reference_available():
         raise PanelError(
@@ -636,9 +660,13 @@ def run_panel(cfg: PanelConfig, out_dir: Path,
                       "receipts must not retain or reveal newly selected effect "
                       "summaries. Not accumulated during this run."),
         "outputs": {
+            # ``sink.close()`` returns the COMPRESSED byte count, so labelling
+            # it uncompressed was simply wrong (root, twice).  Measured by
+            # decompressing the file that was actually written.
             "primary_rows.csv.gz": {"sha256": _sha256(primary_path),
                                     "bytes": primary_path.stat().st_size,
-                                    "uncompressed_bytes": int(primary_bytes)},
+                                    "compressed_bytes_from_sink": int(primary_bytes),
+                                    "uncompressed_bytes": _uncompressed_size(primary_path)},
             "reference_bands.csv": {"sha256": _sha256(ref_path),
                                     "bytes": ref_path.stat().st_size}},
         "structural_checks": structural,

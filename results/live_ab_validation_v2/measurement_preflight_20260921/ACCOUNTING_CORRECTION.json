@@ -1,0 +1,70 @@
+{
+  "applies_to": "the PREFLIGHT-ONLY measurement in this directory; its receipts are RETAINED UNALTERED",
+  "authority": "root disposition 2026-09-21 09:09, handoff item 4",
+  "authorizes": "NOTHING. Accounting repair only.",
+  "correction_1_uncompressed_bytes_label": {
+    "defect": "per-horizon receipt.outputs['primary_rows.csv.gz'].uncompressed_bytes repeated the COMPRESSED size, because RowSink.close() returns compressed bytes. Root flagged this twice; the label was fixed in vpanel for future runs and is corrected here for the deposited ones.",
+    "per_horizon": {
+      "1000": {
+        "correct_compressed_bytes": 1671,
+        "correct_decompressed_primary_bytes": 23727,
+        "decompressed_primary_sha256": "9dd82799d8df7e74b187e30795be14192e3726617d76a3126652646ff2ec6e44",
+        "receipt_field_uncompressed_bytes_AS_WRITTEN": 1671,
+        "reference_csv_bytes": 31007,
+        "reference_csv_sha256": "6509398c88a658a1f9aa173a0ac2021ea3a007116a0f10b75d2fc21d25edef60",
+        "that_value_is_actually": "the COMPRESSED size returned by RowSink.close()"
+      },
+      "2000": {
+        "correct_compressed_bytes": 1620,
+        "correct_decompressed_primary_bytes": 24535,
+        "decompressed_primary_sha256": "d9fd343f7153acf0fd1b34c8bcb1dc057c2b8923f1ecf5b20e999792b18d425a",
+        "receipt_field_uncompressed_bytes_AS_WRITTEN": 1620,
+        "reference_csv_bytes": 31105,
+        "reference_csv_sha256": "779828779853dbfbdca0e62f493078e22b31ab03e68f26cf651ab4fa123e3108",
+        "that_value_is_actually": "the COMPRESSED size returned by RowSink.close()"
+      }
+    },
+    "source_fix": "vpanel._uncompressed_size measures by decompressing the written file",
+    "totals": {
+      "all_deposited_files_bytes": 115131,
+      "decompressed_primary_bytes": 48262,
+      "reference_csv_bytes": 62112,
+      "uncompressed_data_bytes": 110374
+    }
+  },
+  "correction_2_attempt_accounting_kept_separate": {
+    "cumulative_across_both_workloads": 8,
+    "instruction": "root: 'Add the two new horizon executions separately rather than conflating them with the old six.'",
+    "new_executions_this_workload": {
+      "count": 2,
+      "enumerated": [
+        {
+          "n": 1,
+          "outcome": "complete, no cap event",
+          "reference_calls": 80,
+          "trials": 40,
+          "what": "preflight-only pass, horizon 1000"
+        },
+        {
+          "n": 2,
+          "outcome": "complete, no cap event",
+          "reference_calls": 80,
+          "trials": 40,
+          "what": "preflight-only pass, horizon 2000"
+        }
+      ],
+      "failed": 0,
+      "note": "both ran inside ONE supervised parent window; they are two horizon passes of a single authorized pass, not two authorizations",
+      "retries": 0
+    },
+    "old_six": {
+      "count": 6,
+      "nature": "verified-mode development and delivery attempts, two of them contaminated and discarded",
+      "status": "unchanged; NOT merged into the totals below",
+      "where": "results/live_ab_validation_v2/measurement_20260921/ACCOUNTING_CORRECTION.json"
+    },
+    "why_not_conflated": "the old six measured a DIFFERENT executable (per-trial verification, buffered reference output). Summing them with these two would imply eight observations of one workload, which is false."
+  },
+  "no_rerun": "nothing was re-executed; every number is recomputed from deposited bytes",
+  "schema": "live_ab_validation_v2.measurement_accounting_correction.2"
+}

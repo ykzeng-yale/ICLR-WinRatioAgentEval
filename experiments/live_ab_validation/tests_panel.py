@@ -851,6 +851,155 @@ class TestCompleteConformanceGate(unittest.TestCase):
             shutil.rmtree(tmp, ignore_errors=True)
 
 
+class TestT1Launcher(unittest.TestCase):
+    """F12.  The immutable T1 launcher: refuses by default, runs nothing here."""
+
+    def setUp(self):
+        import vlaunch
+        self.L = vlaunch
+
+    def test_the_frozen_allocation_matches_the_declared_counts(self):
+        m = self.L.build_manifest()
+        fr = m["frozen_request"]
+        self.assertEqual(fr["programs"], 28_000)
+        self.assertEqual(fr["trials"], 112_000)
+        self.assertEqual(fr["reference_calls"], 224_000)
+        self.assertEqual(m["per_cell_programs"],
+                         {"C1": 2000, "C2": 2000, "C3": 5000, "C4": 5000,
+                          "C5": 5000, "C6": 5000, "C7": 2000, "C8": 2000})
+
+    def test_every_malformed_or_unsupported_request_is_REFUSED(self):
+        """Root: reject rather than silently changing tier."""
+        bad = [
+            {"allocation": dict(self.L.T1_ALLOCATION, C1=1999)},
+            {"allocation": {k: v for k, v in
+                            list(self.L.T1_ALLOCATION.items())[:4]}},
+            {"allocation": dict(self.L.T1_ALLOCATION, C9=100)},
+            {"allocation": dict(self.L.T1_ALLOCATION, C1=2000.5)},
+            {"allocation": dict(self.L.T1_ALLOCATION, C1=-2000)},
+            {"allocation": dict(self.L.T1_ALLOCATION, C1=True)},
+            {"horizon": 1000},
+            {"horizon": float("nan")},
+            {"horizon": float("inf")},
+            {"namespace": 1},
+            {"policy": "oracle"},
+            {"verification_mode": "per_trial"},
+            {"alpha_gate": 0.05},
+            {"with_reference": False},
+        ]
+        for req in bad:
+            with self.assertRaises(self.L.LaunchRefused, msg=str(req)):
+                self.L.build_manifest(req)
+
+    def test_the_frozen_request_is_accepted(self):
+        """Or the refusals above prove only that everything fails."""
+        self.assertTrue(self.L.build_manifest()["frozen_request"])
+
+    def test_launch_without_clearance_is_refused(self):
+        tmp = Path(tempfile.mkdtemp(prefix="t1_"))
+        try:
+            with self.assertRaises(self.L.LaunchRefused):
+                self.L.launch(tmp / "run")
+            with self.assertRaises(self.L.LaunchRefused):
+                self.L.launch(tmp / "run", clearance="yes please")
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_the_dry_run_evaluates_no_trial(self):
+        d = self.L.dry_run()
+        self.assertEqual(d["evaluated_trials"], 0)
+        self.assertTrue(d["would_validate"])
+        self.assertFalse(d["would_execute"])
+
+    def test_the_exposure_label_is_not_switchable(self):
+        m = self.L.build_manifest()
+        self.assertFalse(m["exposure"]["fresh_holdout"])
+        self.assertIn("PRIOR DEVELOPMENT EXPOSURE", m["exposure"]["label"])
+
+    def test_caps_are_cumulative_and_not_per_shard(self):
+        c = self.L.build_manifest()["caps_cumulative_over_whole_job"]
+        self.assertEqual(c["seconds"], 5400.0)
+        self.assertEqual(c["tree_rss_bytes"], 2 * 1024 ** 3)
+        self.assertEqual(c["output_bytes"], 200 * 1024 ** 2)
+        self.assertTrue(c["not_reset_per_cell_or_shard"])
+
+    def test_the_manifest_records_the_ledger_is_not_a_guarantee(self):
+        p = self.L.build_manifest()["planning_ledger"]
+        self.assertEqual(p["t1_projected_seconds"], 2676.3868)
+        self.assertIn("does NOT guarantee", p["not_a_guarantee"])
+
+
+class TestNamedDefectRepairs(unittest.TestCase):
+    """F13.  The four defects root named at 09:09, each with its control."""
+
+    def test_verify_policy_false_is_refused_in_measurement_and_full_grid(self):
+        """The flag is unpinned, so disabling verification would be invisible."""
+        tmp = Path(tempfile.mkdtemp(prefix="vp_"))
+        try:
+            cfg = vpanel.PanelConfig(
+                cells=("C1", "C2"), n_max=1000, programs=5,
+                mode=vpanel.MODE_MEASUREMENT, namespace=1,
+                program_indices=(1000, 1001, 1002, 1003, 1004))
+            with self.assertRaises(vpanel.PanelError):
+                vpanel.run_panel(cfg, tmp / "a", verify_policy=False)
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_verify_policy_false_is_still_allowed_in_fixture_mode(self):
+        tmp = Path(tempfile.mkdtemp(prefix="vpf_"))
+        try:
+            cfg = vpanel.PanelConfig(cells=("C1",), n_max=300, programs=1,
+                                     mode=vpanel.MODE_FIXTURE)
+            r = vpanel.run_panel(cfg, tmp / "a", verify_policy=False)
+            self.assertEqual(r["counts"]["policy_checks"], 0)
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_an_absent_baseline_file_FAILS_rather_than_matching(self):
+        import vmeasure
+        tmp = Path(tempfile.mkdtemp(prefix="base_"))
+        try:
+            saved = vmeasure.BASELINE_DIR
+            vmeasure.BASELINE_DIR = tmp / "nonexistent"
+            with self.assertRaises(FileNotFoundError):
+                vmeasure.compare_against_baseline(tmp)
+        finally:
+            vmeasure.BASELINE_DIR = saved
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_uncompressed_bytes_is_the_decompressed_size(self):
+        tmp = Path(tempfile.mkdtemp(prefix="unc_"))
+        try:
+            cfg = vpanel.PanelConfig(cells=("C1",), n_max=300, programs=1,
+                                     mode=vpanel.MODE_FIXTURE)
+            r = vpanel.run_panel(cfg, tmp / "a")
+            import gzip as _gz
+            meta = r["outputs"]["primary_rows.csv.gz"]
+            actual = len(_gz.decompress((tmp / "a" / "primary_rows.csv.gz").read_bytes()))
+            self.assertEqual(meta["uncompressed_bytes"], actual)
+            self.assertNotEqual(meta["uncompressed_bytes"], meta["bytes"])
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_the_supervisor_and_driver_are_pinned(self):
+        import vpins
+        files = vpins.source_pins()["files"]
+        for needed in ("vsupervise.py", "vmeasure.py", "vconformance.py",
+                       "vlaunch.py"):
+            self.assertIn(needed, files, needed)
+
+    def test_available_ram_is_measured_and_a_shortfall_refuses(self):
+        import vsupervise
+        self.assertIsNotNone(vsupervise.available_ram_bytes())
+        tmp = Path(tempfile.mkdtemp(prefix="ram_"))
+        try:
+            with self.assertRaises(vsupervise.MeasurementFailure):
+                vsupervise.supervise([sys.executable, "-c", "pass"], tmp / "a",
+                                     require_available_ram_bytes=2 ** 60)
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+
 if __name__ == "__main__":
     r = unittest.main(verbosity=2, exit=False).result
     print(f"\nran={r.testsRun} failures={len(r.failures)} errors={len(r.errors)}")

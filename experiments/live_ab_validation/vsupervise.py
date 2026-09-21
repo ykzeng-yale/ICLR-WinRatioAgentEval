@@ -93,6 +93,46 @@ def _descendant_pids(root_pid: int) -> List[int]:
     return seen
 
 
+class MeasurementFailure(SupervisionError):
+    """A resource measurement could not be taken.  Fail closed, never open."""
+
+
+def available_ram_bytes() -> Optional[int]:
+    """Available (not merely free) RAM, or ``None`` if it cannot be measured.
+
+    Root: "Check available RAM as well as CPU/disk before starting."  The
+    previous host record had total RAM, load and free disk -- none of which is
+    availability.  ``None`` is returned rather than a guess, and the caller
+    fails closed on it.
+    """
+    try:
+        out = subprocess.run(["vm_stat"], capture_output=True, text=True,
+                             timeout=5).stdout
+    except (OSError, subprocess.SubprocessError):              # pragma: no cover
+        return None
+    page = 4096
+    for line in out.splitlines():
+        if "page size of" in line:
+            try:
+                page = int(line.split("page size of")[1].split("bytes")[0].strip())
+            except (ValueError, IndexError):                   # pragma: no cover
+                page = 4096
+    vals = {}
+    for line in out.splitlines():
+        if ":" not in line:
+            continue
+        k, v = line.split(":", 1)
+        v = v.strip().rstrip(".")
+        if v.isdigit():
+            vals[k.strip()] = int(v)
+    if not vals:
+        return None
+    free = (vals.get("Pages free", 0) + vals.get("Pages inactive", 0)
+            + vals.get("Pages speculative", 0)
+            + vals.get("Pages purgeable", 0))
+    return free * page
+
+
 def _tree_rss_bytes(pids: Sequence[int]) -> int:
     """SIMULTANEOUS summed RSS over the given pids, in bytes.
 
@@ -105,11 +145,16 @@ def _tree_rss_bytes(pids: Sequence[int]) -> int:
     try:
         out = subprocess.run(["ps", "-o", "rss=", "-p",
                               ",".join(str(p) for p in pids)],
-                             capture_output=True, text=True, timeout=5).stdout
-    except (OSError, subprocess.SubprocessError):              # pragma: no cover
-        return 0
+                             capture_output=True, text=True, timeout=5)
+    except (OSError, subprocess.SubprocessError) as exc:
+        # FAIL CLOSED.  Returning 0 here would read as "no memory in use" and
+        # the cap would silently stop being enforced.
+        raise MeasurementFailure(f"process-tree RSS measurement failed: {exc}")
+    if out.returncode != 0 and not out.stdout.strip():
+        raise MeasurementFailure(
+            f"process-tree RSS measurement returned no data (rc={out.returncode})")
     total_kb = 0
-    for line in out.split():
+    for line in out.stdout.split():
         try:
             total_kb += int(line)
         except ValueError:                                     # pragma: no cover
@@ -124,7 +169,10 @@ def _dir_bytes(path: Path) -> int:
 
 
 def supervise(argv: Sequence[str], out_dir: Path, caps: Optional[Caps] = None,
-              label: str = "job", cwd: Optional[Path] = None) -> Dict[str, Any]:
+              label: str = "job", cwd: Optional[Path] = None,
+              receipt_reserve_bytes: int = 256 * 1024,
+              require_available_ram_bytes: Optional[int] = None
+              ) -> Dict[str, Any]:
     """Run ``argv`` as a supervised child and enforce every cap from outside.
 
     The measured window covers the WHOLE operation: process spawn, interpreter
@@ -139,6 +187,17 @@ def supervise(argv: Sequence[str], out_dir: Path, caps: Optional[Caps] = None,
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    avail = available_ram_bytes()
+    if require_available_ram_bytes is not None:
+        if avail is None:
+            raise MeasurementFailure(
+                "available RAM could not be measured; refusing to start rather "
+                "than assuming capacity")
+        if avail < require_available_ram_bytes:
+            raise MeasurementFailure(
+                f"available RAM {avail} < required {require_available_ram_bytes}; "
+                f"reporting the blocker rather than forcing the run")
+
     started_wall = time.time()
     t0 = time.perf_counter()
     proc = subprocess.Popen(
@@ -146,6 +205,12 @@ def supervise(argv: Sequence[str], out_dir: Path, caps: Optional[Caps] = None,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
         start_new_session=True,           # its own process group: see SAFETY
     )
+    # Capture the group id NOW, while the leader is certainly alive, so a
+    # breach detected after the leader exits can still reap the descendants.
+    try:
+        proc._owned_pgid = os.getpgid(proc.pid)                 # type: ignore[attr-defined]
+    except (ProcessLookupError, PermissionError):               # pragma: no cover
+        proc._owned_pgid = None                                 # type: ignore[attr-defined]
     peak_tree_rss = 0
     peak_output = 0
     samples = 0
@@ -156,8 +221,19 @@ def supervise(argv: Sequence[str], out_dir: Path, caps: Optional[Caps] = None,
             rc = proc.poll()
             elapsed = time.perf_counter() - t0
             pids = _descendant_pids(proc.pid) if rc is None else []
-            rss = _tree_rss_bytes(pids) if pids else 0
-            obytes = _dir_bytes(out_dir)
+            try:
+                rss = _tree_rss_bytes(pids) if pids else 0
+            except MeasurementFailure as exc:
+                breach = {"cap": "measurement_failed", "limit": None,
+                          "observed": str(exc),
+                          "note": ("a resource measurement that cannot be taken "
+                                   "is not a passing measurement")}
+                _terminate_own_job(proc)
+                break
+            # RESERVE the parent's own receipt bytes against the output cap, so
+            # a job that fits only until the receipt is written is refused
+            # before it writes one.
+            obytes = _dir_bytes(out_dir) + receipt_reserve_bytes
             peak_tree_rss = max(peak_tree_rss, rss)
             peak_output = max(peak_output, obytes)
             samples += 1
@@ -200,6 +276,8 @@ def supervise(argv: Sequence[str], out_dir: Path, caps: Optional[Caps] = None,
         "caps": {"seconds": caps.seconds,
                  "tree_rss_bytes": caps.tree_rss_bytes,
                  "output_bytes": caps.output_bytes},
+        "available_ram_bytes_at_start": avail,
+        "receipt_reserve_bytes": receipt_reserve_bytes,
         "observed": {
             "wall_seconds": elapsed,
             "peak_tree_rss_bytes": peak_tree_rss,
@@ -211,8 +289,12 @@ def supervise(argv: Sequence[str], out_dir: Path, caps: Optional[Caps] = None,
         "measured_window": ("process spawn through exit, INCLUDING interpreter "
                             "startup, imports, reference calls, output writes, "
                             "close and the child's receipt write"),
-        "rss_scope": ("simultaneous summed RSS over the child's own process tree, "
-                      "sampled; NOT a getrusage self/reaped-child maximum"),
+        "rss_scope": ("SAMPLED simultaneous summed RSS over the child's own "
+                      "process tree at a "
+                      f"{POLL_SECONDS}s poll interval; NOT a getrusage "
+                      "self/reaped-child maximum, and NOT an instantaneous hard "
+                      "bound -- a spike between samples can be missed. Root was "
+                      "explicit: do not describe polling as a hard memory bound."),
         "returncode": proc.returncode,
         "breach": breach,
         "within_caps": breach is None and proc.returncode == 0,
@@ -247,11 +329,19 @@ def supervise(argv: Sequence[str], out_dir: Path, caps: Optional[Caps] = None,
 
 
 def _terminate_own_job(proc: subprocess.Popen) -> None:
-    """SIGTERM then SIGKILL the child's OWN process group. Nothing else."""
-    try:
-        pgid = os.getpgid(proc.pid)
-    except (ProcessLookupError, PermissionError):              # pragma: no cover
-        return
+    """SIGTERM then SIGKILL the child's OWN process group. Nothing else.
+
+    Root: "finish termination of the owned process group even if its leader
+    exits first."  The group id is captured when the child STARTS, so a leader
+    that has already exited cannot strand its descendants: the saved id is used
+    for the kill either way.
+    """
+    pgid = getattr(proc, "_owned_pgid", None)
+    if pgid is None:
+        try:
+            pgid = os.getpgid(proc.pid)
+        except (ProcessLookupError, PermissionError):
+            return
     try:
         os.killpg(pgid, signal.SIGTERM)
     except (ProcessLookupError, PermissionError):              # pragma: no cover
