@@ -454,6 +454,47 @@ in CPREFIX/NAIVE, none in ADAPTER); the error event was hierarchy-only so C5/C6 
 weren't errors; the prespecified readouts were missing; and I had overstated "no partially-powered
 operating point exists" — narrowed to "this finite grid does not identify a power curve or MDE."
 
+**POWER-CURVE PANEL — COMPLETE. The transition sits near μ_h = 0.10. 2026-09-21, main `eac1722`.**
+`results/live_ab_validation_v2/powercurve_20260921/` (125 files) · code `vpowercurve.py`, `run_powercurve.py`.
+
+40/40 shards · 20,000 programs · **80,000 trials** · 160,000 reference calls · scientific completion
+true, no failing conditions · 1,669 s of 5,400 · 68.8 MiB peak tree RSS of 2 GiB.
+
+*Convention: **descriptive** detection rates with **design-based** Wilson 95% intervals.
+**namespace-3, fresh for this panel — MUST NOT be pooled with the namespace-0 T1 set.** Every rung has
+μ_h > 0 and μ_s > −δ, so every deploy is a **correct** deploy: these are detection probabilities, not
+error rates.*
+
+**ADAPTER detection probability (trial denominator), μ_s held open at +0.20:**
+
+| μ_h | non-informative | informative |
+|---:|---:|---:|
+| 0.05 | 0.0032 | 0.0508 |
+| 0.10 | **0.5265** | **0.8452** |
+| 0.15 | 0.9961 | 0.9999 |
+| 0.20 | 1.0000 | 1.0000 |
+| 0.30 | 1.0000 | 1.0000 |
+
+**The transition lies between 0.05 and 0.15, centred near 0.10** — the quantity T1 structurally could
+not produce. It also settles the claim I got wrong: **intermediate power plainly exists** in this family
+at this horizon.
+
+**Surprise, with its mechanism.** Detection is **higher under informative delay** at every intermediate
+rung. Not a resolution effect — unresolved fraction, unrevealed fraction and certified count are
+**identical to 4 dp** between arms at every rung. The only quantity that differs is **cost narrowing,
+~38% higher** under informative delay (0.0088 vs 0.0064 at μ_h=0.05). The same pairs resolve either way,
+but more *pending* pairs get their cost branch narrowed by the elapsed-cost certificate, tightening the
+aggregate band. This is an information gain the enclosure is entitled to — and T1 is what licenses
+saying so: adapter miscoverage stays ≤0.0003 under informative delay while the completed-only
+construction's collapses to 0.99.
+
+**Not claimed:** no fitted curve, no interpolated MDE. Five rungs bracket a transition; they do not
+justify fitting one.
+
+**T1 INDEPENDENTLY ACCEPTED by root** (`reviews/t1_provenance_validation_20260921_1428.md`): 56 shards,
+28,000 disjoint coordinates, all 112 file hashes matching, 336,000 unique primary and 672,000 unique
+reference row identities, and the execution identity `18ad5398…` independently recomputed and agreeing.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
