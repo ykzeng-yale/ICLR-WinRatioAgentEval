@@ -751,6 +751,106 @@ class TestPreflightVerificationMode(unittest.TestCase):
                                verification_mode="whatever")
 
 
+class TestCompleteConformanceGate(unittest.TestCase):
+    """F11.  The gate that closes the coverage hole I flagged in my own design.
+
+    I said the preflight verified one draw where per-trial did 420,080 checks.
+    Measured rather than argued: one draw at n_max=1000 holds all 6 atoms, both
+    arm orders and both delay blocks, and catches a defect confined to any atom
+    or either block -- but only 237 of 620 delay values, so a defect at an
+    absent delay passes it.  These tests pin the replacement.
+    """
+
+    def setUp(self):
+        import vconformance
+        self.vc = vconformance
+
+    def _catches_defect_at_delay(self, dv):
+        import dataclasses
+        orig = vgen.state_at_age
+
+        def patched(draw, ages, policy="oracle"):
+            st = orig(draw, ages, policy)
+            if policy != "operational":
+                return st
+            m = np.asarray(draw.d) == dv
+            hl = np.where(m & (st.h_lo == -1), 0, st.h_lo)
+            return dataclasses.replace(st, h_lo=hl.astype(np.int8))
+
+        vgen.state_at_age = patched
+        try:
+            try:
+                self.vc.verify_against_vpolicy_at_every_piece()
+                return False
+            except self.vc.ConformanceError:
+                return True
+        finally:
+            vgen.state_at_age = orig
+
+    def test_it_catches_a_defect_at_EVERY_delay_including_zero(self):
+        """d == 0 was missed by the first version: the partial loop skips it."""
+        for dv in (0, 19, 100, 150, 400, 699):
+            self.assertTrue(self._catches_defect_at_delay(dv), f"delay {dv}")
+
+    def test_the_clean_source_passes(self):
+        """Or the gate is merely always-fail and proves nothing."""
+        rep = self.vc.verify_against_vpolicy_at_every_piece()
+        self.assertGreater(rep["pair_states_compared"], 30000)
+        self.assertEqual(sorted(rep["branches_covered"]),
+                         ["partial", "resolved", "unrevealed"])
+
+    def test_a_tampered_threshold_table_is_caught(self):
+        saved = vgen.THRESH_COLLAPSE_OP.copy()
+        try:
+            vgen.THRESH_COLLAPSE_OP[0, 150] = int(saved[0, 150]) + 1
+            with self.assertRaises(self.vc.ConformanceError):
+                self.vc.verify_threshold_tables()
+        finally:
+            vgen.THRESH_COLLAPSE_OP[...] = saved
+
+    def test_every_reachable_combo_delay_is_checked(self):
+        rep = self.vc.verify_threshold_tables()
+        self.assertEqual(rep["delays"], 620)
+        self.assertEqual(rep["cost_combos"], len(vgen.COST_COMBOS))
+        self.assertGreater(rep["combo_delay_pairs_checked"], 1800)
+
+    def test_a_stale_receipt_is_refused(self):
+        """Root: re-run only affected checks WHEN THEIR SOURCE CHANGES."""
+        import json as _json
+        tmp = Path(tempfile.mkdtemp(prefix="conf_"))
+        try:
+            r = self.vc.run(tmp / "c.json")
+            self.assertTrue(self.vc.assert_pinned_receipt_matches(tmp / "c.json")["valid"])
+            bad = _json.loads((tmp / "c.json").read_text())
+            bad["source_fingerprint"]["vgen.py"] = "0" * 64
+            (tmp / "stale.json").write_text(_json.dumps(bad))
+            with self.assertRaises(self.vc.ConformanceError):
+                self.vc.assert_pinned_receipt_matches(tmp / "stale.json")
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_a_draw_cannot_produce_a_state_outside_the_checked_grid(self):
+        """The gate's completeness depends on this containment."""
+        delays = set(self.vc._all_delays())
+        for cell in vgen.CELLS[:4]:
+            d = vgen.draw_trial(cell, 0, 0, n_max=200)
+            self.assertTrue(set(int(x) for x in np.unique(d.d)) <= delays)
+            self.assertTrue(bool(np.all((d.f >= 0) & (d.f <= d.d))))
+
+    def test_the_preflight_path_records_the_complete_gate(self):
+        tmp = Path(tempfile.mkdtemp(prefix="pfgate_"))
+        try:
+            cfg = vpanel.PanelConfig(cells=("C1",), n_max=300, programs=1,
+                                     mode=vpanel.MODE_FIXTURE,
+                                     verification_mode=vpanel.VERIFY_PREFLIGHT)
+            r = vpanel.run_panel(cfg, tmp / "run")
+            g = r["guard"]["preflight_verification"]["complete_conformance_gate"]
+            self.assertGreater(g["pair_states_compared"], 30000)
+            self.assertIn("resolved", g["branches_covered"])
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+
 if __name__ == "__main__":
     r = unittest.main(verbosity=2, exit=False).result
     print(f"\nran={r.testsRun} failures={len(r.failures)} errors={len(r.errors)}")

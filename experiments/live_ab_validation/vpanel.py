@@ -492,6 +492,15 @@ def run_panel(cfg: PanelConfig, out_dir: Path,
     # runtime was never separately attributed.
     if (verify_policy and cfg.policy == "operational"
             and cfg.verification_mode == VERIFY_PREFLIGHT):
+        # THE COVERAGE CLAIM RESTS HERE, not on the draw below.  A single draw
+        # contains only 237 of the 620 reachable delay values, so a defect
+        # confined to an absent delay would pass it -- measured, not assumed.
+        # vconformance is complete over all three branches and every reachable
+        # (combo, delay), and it runs in under a second.
+        import vconformance                                    # noqa: E402
+        conf = vconformance.run()
+        # the live one-draw check is RETAINED, as a smoke test of the actual
+        # draw path rather than as the coverage argument
         pf_draw = vgen.draw_trial(cells[0], cfg.indices[0], 0,
                                   n_max=cfg.n_max, namespace=cfg.namespace)
         pf = vrun.assert_operational_matches_policy(pf_draw, run_cfg)
@@ -499,9 +508,18 @@ def run_panel(cfg: PanelConfig, out_dir: Path,
         counts["policy_pair_states"] += int(pf["pair_states_compared"])
         guard_record["preflight_verification"] = {
             "mode": VERIFY_PREFLIGHT, "ran_before_any_trial": True,
-            "pair_states_compared": int(pf["pair_states_compared"]),
-            "basis": ("root 08:28: the already independently checked "
-                      "operational-policy witnesses serve as the preflight gate")}
+            "complete_conformance_gate": {
+                "combo_delay_pairs_checked":
+                    conf["threshold_tables"]["combo_delay_pairs_checked"],
+                "pair_states_compared":
+                    conf["vpolicy_agreement"]["pair_states_compared"],
+                "branches_covered": conf["vpolicy_agreement"]["branches_covered"],
+                "seconds": conf["elapsed_seconds"],
+                "source_fingerprint": conf["source_fingerprint"]},
+            "one_draw_smoke_pair_states": int(pf["pair_states_compared"]),
+            "coverage_basis": ("vconformance: complete over every reachable "
+                               "(combo, delay) and all three branches; the "
+                               "one-draw check is a smoke test, not the claim")}
 
     caps = vpins.ALLOWLIST if cfg.mode == MODE_MEASUREMENT else None
     cap_events: List[Dict[str, Any]] = []
