@@ -229,34 +229,29 @@ after searching Trash, scratchpad, system temp and all git objects.
 
 Tests: 184 validation + 58 panel + 86 design.
 
-**Preflight coverage hole closed — the one I flagged, plus one inside the fix. 2026-09-21, head `de1b904`.**
-`experiments/live_ab_validation/vconformance.py`, receipt `CONFORMANCE_RECEIPT.json`.
-*Convention: **design-based** (complete enumeration over the frozen design's reachable parameter grid).
-No effect computed; gates nothing scientific.*
+**Conformance diagnostic — CLAIM NARROWED by root, and removed from the runtime path. 2026-09-21,
+head `5d744b4`.** `experiments/live_ab_validation/vconformance.py`, receipt `CONFORMANCE_RECEIPT.json`.
 
-I flagged last cycle that preflight-only verifies ONE draw where per-trial did 420,080 checks. Measured
-rather than argued:
+*Root's exact wording, which is the only claim this makes:* **"Threshold tables and representative
+per-pair states agree on the checked finite design; extension across ages relies on the reviewed branch
+structure of the pinned implementation."** Explicitly **not** universally complete conformance, and not
+a new theoretical result.
 
-| one draw, n_max=1000 | |
-|---|---|
-| atoms / arm orders / delay blocks | **all** 6 / both / both |
-| delay values held | **237 of 620** |
-| defect confined to any atom, either block, or a once-occurring delay | **caught** |
-| defect confined to an **absent** delay (d=100) | **MISSED** |
+**My earlier "complete by construction" framing here was over-claimed and is withdrawn.** I argued the
+enclosure has breakpoints only at the two certificate thresholds. The full pair process also has the
+first-reveal boundary `f` and the resolution boundary `d` — and the refutation was in the module I was
+reasoning about: `vgen.BREAKPOINTS_PER_PAIR = 5`, difference array stacking `{0, f, a_narrow,
+a_collapse, d}`. **Five, not two.** The three-piece argument holds only *within the partial-observation
+branch* (`age ∈ [f, d)`, positive delay); resolved and unrevealed are separate transitions checked as
+their own cases.
 
-`vconformance` replaces the coverage claim and is **complete by construction**: the enclosure is
-piecewise constant in age with breakpoints only at the two certificate thresholds, so verifying the
-tables are exactly where each certificate first fires at every reachable `(combo, delay)`, then
-comparing against `vpolicy` at each piece's boundaries and interior, covers every reachable age.
-**1,857 combo-delay pairs, 36,734 pair states, 0.81 s** — independent of what any draw contains.
+**Removed from `run_panel`.** The unconditional call I added is gone; the previously accepted
+preflight-only workload and its **one-draw smoke test** stand unchanged, because that workload's
+resource planning was already accepted at that exact shape. Runtime use is **NONE**. The checker now
+pins **itself** (it previously pinned only its subjects) and records its version.
 
-**A hole inside my own gate, found by varying the control:** a defect at `d == 0` was **not** caught —
-the partial-branch loop skips `d <= 0` because a zero-delay pair is resolved at every age and never
-partial. The gate claimed complete conformance while never touching that delay. All three branches
-(resolved / unrevealed / partial) are covered now; every seeded delay including 0 is caught and the
-clean source still passes. A stale receipt is refused whenever any conformance source moves.
-
-Tests: 184 validation + 65 panel + 86 design.
+Does not establish: aggregation, the event schedule, the full generation-to-state mapping, stopping
+inference, empirical calibration, or absence of untested transitions after future code changes.
 
 **T1 LAUNCHER AND MANIFEST DELIVERED FOR REVIEW — execution uncleared. 2026-09-21, head `dedab44`.**
 Root disposition `reviews/v2_precalibration_root_disposition_20260921_0909.md`: **resource ledger
