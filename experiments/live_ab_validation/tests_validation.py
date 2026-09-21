@@ -2098,6 +2098,421 @@ class TestV2Snapshot(unittest.TestCase):
         self.assertIn("PAIRED means", man["pairing"])
 
 
+# ===========================================================================
+# THE SMOKE-TO-BUDGET REPAIRS, and the v2 COMPARISON BINDING.
+# Root disposition reviews/v2_bindings_root_disposition_20260921_0343.md,
+# ranked actions 1 and 2; COORDINATOR_DECISIONS revision 17 item 85.
+#
+# Every fixture here is NON-TIMED: the seconds are synthetic constants, so the
+# repairs are checked without re-timing anything and without disturbing the
+# accepted primary measurements.
+# ===========================================================================
+class _SmokeGuard:
+    """The two methods assert_smoke_holds_no_effect_record actually uses."""
+
+    def __init__(self, root):
+        self.root = pathlib.Path(root)
+
+    def path(self, name):
+        p = self.root / name
+        p.mkdir(parents=True, exist_ok=True)
+        return p
+
+
+def _smoke_balanced(c1_1000, c1_2000, c2_1000, c2_2000):
+    pts = []
+    for cell, h, s in (("C1", 1000, c1_1000), ("C1", 2000, c1_2000),
+                       ("C2", 1000, c2_1000), ("C2", 2000, c2_2000)):
+        pts.append({"cell": cell, "N_max": h, "programs": 5,
+                    "seconds": s * 5, "seconds_per_program": s,
+                    "record_bytes_measured_not_written": 1000,
+                    "trials": 20, "enrolled_pairs": 100, "looks": 100,
+                    "band_evaluations": 100, "enclosure_updates": 100,
+                    "enclosure_updates_per_pair": 1.0})
+    return {"protocol_smoke": True, "event_schedule": "v2_all_looks_batched",
+            "design": "synthetic non-timed fixture", "balanced": True,
+            "unique_programs": 20, "unique_program_indices": 20,
+            "program_index_rule": "incrementing", "namespace": 1,
+            "measures_only": ["wall_clock_seconds"],
+            "seeds": "discarded, never reused", "note": "fixture",
+            "points": pts, "total_seconds": sum(p["seconds"] for p in pts),
+            "total_programs": 20, "peak_rss_bytes": 100_000_000}
+
+
+def _smoke_v1(c1_2000, c2_1000):
+    pts = []
+    for cell, h, s, n in (("C1", 2000, c1_2000, 10), ("C2", 1000, c2_1000, 10)):
+        pts.append({"cell": cell, "N_max": h, "programs": n,
+                    "seconds": s * n, "seconds_per_program": s,
+                    "record_bytes_measured_not_written": 1000,
+                    "trials": 40, "enrolled_pairs": 100, "looks": 100,
+                    "band_evaluations": 100, "enclosure_updates": 100,
+                    "enclosure_updates_per_pair": 1.0})
+    return {"protocol_smoke": True, "event_schedule": "v1_reduced",
+            "design": "synthetic non-timed v1 fixture", "balanced": False,
+            "unique_programs": 20, "unique_program_indices": 10,
+            "program_index_rule": "group-local", "namespace": 1,
+            "measures_only": ["wall_clock_seconds"],
+            "seeds": "discarded, never reused", "note": "fixture",
+            "points": pts, "total_seconds": sum(p["seconds"] for p in pts),
+            "total_programs": 20, "peak_rss_bytes": 100_000_000}
+
+
+class TestSmokeToBudgetRepairs(unittest.TestCase):
+
+    HERE = pathlib.Path(__file__).resolve().parent
+
+    def setUp(self):
+        sys.path.insert(0, str(self.HERE))
+        import vrun
+        self.vrun = vrun
+        self.cfg = json.loads((self.HERE / "cells.json").read_text())
+
+    # -- defect 1: the runner rejected its own metadata --------------------
+    def test_the_allowlist_accepts_the_metadata_run_smoke_writes(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as td:
+            sd = pathlib.Path(td) / "smoke"
+            sd.mkdir(parents=True)
+            (sd / "timing.json").write_text(
+                json.dumps(_smoke_balanced(1, 2, 1, 2)))
+            self.vrun.assert_smoke_holds_no_effect_record(_SmokeGuard(td))
+
+    def test_the_allowlist_still_rejects_an_effect_column(self):
+        import tempfile
+        rec = _smoke_balanced(1, 2, 1, 2)
+        rec["coverage_rate"] = 0.95          # an outcome field
+        with tempfile.TemporaryDirectory() as td:
+            sd = pathlib.Path(td) / "smoke"
+            sd.mkdir(parents=True)
+            (sd / "timing.json").write_text(json.dumps(rec))
+            with self.assertRaises(SystemExit) as cm:
+                self.vrun.assert_smoke_holds_no_effect_record(_SmokeGuard(td))
+            self.assertIn("coverage_rate", str(cm.exception))
+
+    def test_every_key_run_smoke_writes_is_on_the_allowlist(self):
+        """Read the writer's own literal keys rather than a copy of them."""
+        src = (self.HERE / "vrun.py").read_text()
+        tree = ast.parse(src)
+        fn = next(n for n in ast.walk(tree)
+                  if isinstance(n, ast.FunctionDef) and n.name == "run_smoke")
+        written = set()
+        for node in ast.walk(fn):
+            if isinstance(node, ast.Dict):
+                for k in node.keys:
+                    if isinstance(k, ast.Constant) and isinstance(k.value, str):
+                        written.add(k.value)
+        missing = written - self.vrun.SMOKE_PERMITTED_KEYS
+        self.assertEqual(missing, set(),
+                         f"run_smoke writes keys its own validator rejects: "
+                         f"{sorted(missing)}")
+
+    # -- defect 2: the tier selector overwrote C1 with C2 -------------------
+    def test_the_selector_no_longer_discards_a_cell(self):
+        """The root's own fixture: C1 100/400 against C2 1/2."""
+        b = self.vrun.select_tier(_smoke_balanced(100, 400, 1, 2), self.cfg)
+        self.assertEqual(b["projection_inputs"]["both_cells_at_2000"],
+                         {"C1": 400, "C2": 2})
+        self.assertEqual(b["projection_inputs"]["both_cells_at_1000"],
+                         {"C1": 100, "C2": 1})
+        self.assertEqual(b["s_per_program_2000"], 400)
+        self.assertEqual(b["s_per_program_1000"], 100)
+
+    def test_scaling_the_discarded_cell_now_changes_the_projection(self):
+        """Under the defect, multiplying C1 by 1,000 changed NO output."""
+        a = self.vrun.select_tier(_smoke_balanced(100, 400, 1, 2), self.cfg)
+        b = self.vrun.select_tier(
+            _smoke_balanced(100_000, 400_000, 1, 2), self.cfg)
+        self.assertNotEqual(a["s_per_program_2000"], b["s_per_program_2000"])
+        self.assertNotEqual([e["seconds_projected"] for e in a["ladder"]],
+                            [e["seconds_projected"] for e in b["ladder"]])
+
+    def test_the_aggregation_rule_is_the_maximum_and_says_so(self):
+        agg = self.vrun.aggregate_horizon_costs(
+            _smoke_balanced(1.0, 5.0, 3.0, 2.0))
+        self.assertEqual(agg["rule"], "maximum measured cell cost per horizon")
+        self.assertTrue(agg["both_cell_inputs_retained"])
+        self.assertEqual(agg["by_horizon"][1000]["selected_cell"], "C2")
+        self.assertEqual(agg["by_horizon"][2000]["selected_cell"], "C1")
+        self.assertEqual(agg["by_horizon"][1000]["seconds_per_program"], 3.0)
+        self.assertEqual(agg["by_horizon"][2000]["seconds_per_program"], 5.0)
+
+    def test_a_duplicated_cell_horizon_is_refused_not_collapsed(self):
+        rec = _smoke_balanced(1, 2, 1, 2)
+        rec["points"].append(dict(rec["points"][0]))
+        with self.assertRaises(SystemExit):
+            self.vrun.aggregate_horizon_costs(rec)
+
+    # -- the v1 path is preserved ------------------------------------------
+    def test_the_v1_selection_path_is_untouched_by_the_repair(self):
+        v1 = self.vrun.select_tier(_smoke_v1(2.0, 1.0), self.cfg)
+        self.assertEqual(v1["s_per_program_2000"], 2.0)   # C1's, as before
+        self.assertEqual(v1["s_per_program_1000"], 1.0)   # C2's, as before
+        self.assertAlmostEqual(v1["beta"], 1.0, places=12)
+        self.assertNotIn("projection_inputs", v1)
+
+    def test_v1_smoke_restores_group_local_program_indices(self):
+        """Defect 3: program_base incremented across BOTH v1 groups, moving
+        the old C2 group from indices 0-9 to 10-19."""
+        src = (self.HERE / "vrun.py").read_text()
+        tree = ast.parse(src)
+        fn = next(n for n in ast.walk(tree)
+                  if isinstance(n, ast.FunctionDef) and n.name == "run_smoke")
+        body = ast.get_source_segment(src, fn) or ""
+        self.assertIn("group_local_indices", body)
+        self.assertIn("SCHEDULE_V1", body)
+        # and the rule is recorded in the record the budget reads
+        self.assertIn("program_index_rule", self.vrun.SMOKE_PERMITTED_KEYS)
+
+    # -- the reference workload is accounted for ---------------------------
+    def test_the_reference_workload_is_priced_but_gates_nothing(self):
+        b = self.vrun.select_tier(_smoke_balanced(1, 2, 1, 2), self.cfg)
+        acct = b["reference_workload_accounting"]
+        self.assertFalse(acct["included_in_the_admissibility_gate"])
+        for e in b["ladder"]:
+            # the frozen gate still reads the primary projection alone
+            self.assertEqual(
+                e["admissible"],
+                bool(e["within_seconds"] and e["within_bytes"]
+                     and e["within_peak_rss"]))
+
+    def test_an_absent_reference_receipt_is_unresolved_not_zero(self):
+        real = self.vrun.REFERENCE_TIMING
+        try:
+            self.vrun.REFERENCE_TIMING = real.parent / "does_not_exist.json"
+            w = self.vrun.reference_workload_costs()
+            self.assertFalse(w["resolved"])
+            self.assertIn("UNRESOLVED", w["unresolved_reason"])
+            self.assertNotIn("seconds_per_program_by_horizon", w)
+        finally:
+            self.vrun.REFERENCE_TIMING = real
+
+    def test_the_reference_receipts_provenance_limits_are_recorded(self):
+        w = self.vrun.reference_workload_costs()
+        if not w["resolved"]:
+            self.skipTest("no reference receipt deposited on this host")
+        self.assertIn("workload_declaration_status", w)
+        self.assertIn("NOT YET DECLARED", w["workload_declaration_status"])
+        self.assertTrue(w["receipt_provenance_limits"])
+
+
+class TestV2ComparisonBinding(unittest.TestCase):
+    """vcompare must bind the snapshot it compares against, and say which."""
+
+    HERE = pathlib.Path(__file__).resolve().parent
+
+    def setUp(self):
+        sys.path.insert(0, str(self.HERE))
+        import vcompare
+        self.vcompare = vcompare
+
+    def tearDown(self):
+        self.vcompare.select_snapshot("v1")      # leave the default in place
+
+    def test_v1_is_the_default_and_resolves_to_v1s_own_paths(self):
+        v = self.vcompare.select_snapshot("v1")
+        self.assertEqual(v["version"], "v1-cpu-validation")
+        self.assertEqual(self.vcompare.PINNED_DIR.name, "pinned")
+        self.assertEqual(self.vcompare.PROTOCOL_PATH.name, "PROTOCOL.md")
+        self.assertEqual(self.vcompare.RESULTS_ROOT.name, "live_ab_validation")
+
+    def test_v2_resolves_to_the_regenerated_snapshot_and_the_v2_tree(self):
+        v = self.vcompare.select_snapshot("v2")
+        self.assertEqual(v["version"], "v2-cpu-validation")
+        self.assertEqual(self.vcompare.PINNED_DIR.name, "pinned_v2")
+        self.assertEqual(self.vcompare.PROTOCOL_PATH.name, "PROTOCOL_V2.md")
+        self.assertEqual(self.vcompare.RESULTS_ROOT.name,
+                         "live_ab_validation_v2")
+
+    def test_the_v2_write_guard_refuses_the_v1_results_tree(self):
+        """PRESERVE v1: a v2 comparison must not be able to write into it."""
+        self.vcompare.select_snapshot("v2")
+        with self.assertRaises(SystemExit):
+            self.vcompare.guarded_out_dir(
+                str(self.HERE.parents[1] / "results" / "live_ab_validation"))
+
+    def test_an_unknown_snapshot_is_refused(self):
+        with self.assertRaises(SystemExit):
+            self.vcompare.select_snapshot("v3")
+        self.vcompare.select_snapshot("v1")
+
+    def test_the_binding_records_recomputed_hashes_and_both_disclosures(self):
+        self.vcompare.select_snapshot("v2")
+        if not self.vcompare.PINNED_MANIFEST.is_file():
+            self.skipTest("v2 snapshot not built on this host")
+        pinned = self.vcompare.verify_and_load_pinned(verbose=False)
+        b = self.vcompare.snapshot_binding(pinned)
+        self.assertEqual(b["snapshot_id"], "v2")
+        man = json.loads(self.vcompare.PINNED_MANIFEST.read_text())
+        self.assertEqual(b["snapshot_file_sha256_recomputed_here"],
+                         man["files"])
+        self.assertEqual(b["snapshot_source_commit"], man["source_commit"])
+        self.assertIsNotNone(b["operative_protocol_sha256"])
+        self.assertIsNotNone(b["base_protocol_sha256"])
+        # the two disclosed, unrepaired limitations travel with the artifact
+        self.assertFalse(b["epsilon_policy"]["repaired_here"])
+        self.assertFalse(b["stopped_target"]["repaired_here"])
+        self.assertIn("lab_data.py", b["stopped_target"]["disclosed_unrepaired_claim"])
+
+    def test_the_replay_command_names_the_snapshot_it_came_from(self):
+        self.vcompare.select_snapshot("v2")
+        src = (self.HERE / "vcompare.py").read_text()
+        tree = ast.parse(src)
+        fn = next(n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)
+                  and n.name == "replay_command")
+        body = ast.get_source_segment(src, fn) or ""
+        self.assertIn("--snapshot", body)
+
+    def test_the_boundary_analysis_does_not_blame_epsilon_by_default(self):
+        """A zero margin is a difference of algebraic form, not of epsilon."""
+        rows = [{"defect_class": "per_pair_enclosure_endpoint",
+                 "ell": 10.0 / 0.95, "revealed_cost": 10.0,
+                 "enc12_lo": -1.0, "enc12_hi": -1.0,
+                 "enc11_lo": -1.0, "enc11_hi": 0.0}]
+        a = self.vcompare.certificate_boundary_analysis(rows, 1e-9, 0.05)
+        self.assertEqual(a["rows_classified"], 1)
+        self.assertEqual(a["margin_exactly_zero"], 1)
+        self.assertEqual(a["margin_inside_epsilon"], 0)
+        self.assertEqual(a["pinned_encloses_candidate"], 1)
+
+
+class TestCrosscheckRepairAndWidthDiagnostic(unittest.TestCase):
+    """The B**2 repair, and the replacement width diagnostic's discipline."""
+
+    HERE = pathlib.Path(__file__).resolve().parent
+
+    def setUp(self):
+        sys.path.insert(0, str(self.HERE / "reference"))
+        sys.path.insert(0, str(self.HERE))
+        import eb_crosscheck
+        self.x = eb_crosscheck
+
+    def test_the_original_defective_boundary_is_preserved_unchanged(self):
+        """A failed calculation that was quoted must stay legible."""
+        import numpy as np
+        probe = np.array([10.0, 50.0, 200.0, 1000.0, 5000.0])
+        got = self.x.stitched_boundary(probe, 0.003125)
+        # the exact values the audit tabulated for the ORIGINAL formula
+        want = [28.5871851682, 50.4559119055, 84.0291099487,
+                165.2729126644, 347.3456673770]
+        for g, w in zip(got, want):
+            self.assertAlmostEqual(float(g), w, places=8)
+
+    def test_the_repair_restores_B_squared_under_the_radical(self):
+        """sqrt(A) + B  ->  sqrt(A + B**2) + B, and nothing else moves."""
+        import numpy as np
+        probe = np.array([10.0, 50.0, 200.0, 1000.0, 5000.0])
+        a = float(0.003125)
+        k1 = (self.x.ETA_PARAM ** 0.25 + self.x.ETA_PARAM ** -0.25) / np.sqrt(2)
+        k2 = (np.sqrt(self.x.ETA_PARAM) + 1.0) / 2.0
+        v = probe
+        ell = (self.x.S_PARAM * np.log(np.log(
+            self.x.ETA_PARAM * v / self.x.V_OPT))
+            + np.log(self.x._zeta(self.x.S_PARAM)
+                     / (a * np.log(self.x.ETA_PARAM) ** self.x.S_PARAM)))
+        A = k1 * k1 * v * ell
+        B = k2 * (self.x.HI - self.x.LO) * ell
+        np.testing.assert_allclose(
+            self.x.stitched_boundary(v, a), np.sqrt(A) + B, rtol=0, atol=1e-12)
+        np.testing.assert_allclose(
+            self.x.stitched_boundary_repaired(v, a),
+            np.sqrt(A + B ** 2) + B, rtol=0, atol=1e-12)
+
+    def test_the_repaired_boundary_matches_the_authors_exactly(self):
+        """A CONSEQUENCE of the repair, never its target: nothing was tuned."""
+        import numpy as np
+        try:
+            import eb_reference as ref
+            ref.load_reference()
+            from confseq import boundaries
+        except Exception:                                   # noqa: BLE001
+            self.skipTest("the compiled author reference is not built here")
+        probe = np.array([10.0, 50.0, 200.0, 1000.0, 5000.0])
+        a = 0.003125
+        mine = self.x.stitched_boundary_repaired(probe, a)
+        theirs = np.array([boundaries.poly_stitching_bound(
+            float(v), a, self.x.V_OPT, self.x.HI - self.x.LO,
+            self.x.S_PARAM, self.x.ETA_PARAM) for v in probe])
+        np.testing.assert_array_equal(mine, theirs)
+
+    def test_the_withdrawn_note_is_preserved_with_its_banner(self):
+        p = self.HERE / "BOUNDARY_WIDTH_AT_OUR_OPERATING_POINT.md"
+        self.assertTrue(p.is_file(), "the withdrawn note must not be deleted")
+        head = p.read_text()[:4000].upper()
+        self.assertIn("WITHDRAWN", head)
+
+    def test_the_diagnostic_declares_family_scale_alpha_and_clock(self):
+        import eb_width_diagnostic as d
+        src = (self.HERE / "reference" / "eb_width_diagnostic.py").read_text()
+        # it must CALL the selected reference rather than re-specify a boundary
+        self.assertIn("reference_bands", src)
+        # The module NAMES the withdrawn note's three defects in prose, so the
+        # scan must look at what the code CALLS, not at what it says --
+        # otherwise explaining a mistake would be indistinguishable from
+        # repeating it. Identifiers only: no string literal is examined.
+        tree = ast.parse(src)
+        called = set()
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Call):
+                fn = node.func
+                name = getattr(fn, "attr", None) or getattr(fn, "id", None)
+                if name:
+                    called.add(name)
+            elif isinstance(node, (ast.Name, ast.Attribute)):
+                called.add(getattr(node, "attr", None)
+                           or getattr(node, "id", ""))
+        for forbidden in ("poly_stitching_bound", "stitched_boundary",
+                          "stitched_boundary_repaired", "crosscheck_bands"):
+            self.assertNotIn(forbidden, called,
+                             f"the replacement diagnostic must not use "
+                             f"{forbidden}: the selected reference is the "
+                             f"mixture, called through eb_reference")
+        # and it must never pre-halve alpha, which was defect (b)
+        for node in ast.walk(tree):
+            if (isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div)
+                    and isinstance(node.left, ast.Name)
+                    and node.left.id == "alpha"):
+                self.fail("alpha is divided in the replacement diagnostic; "
+                          "confseq_eb halves it internally")
+        self.assertEqual(d.N_GRID, (100, 200, 500, 1000, 1500, 2000))
+        self.assertEqual(len(d.STREAMS), 8)
+
+    def test_the_diagnostic_refuses_a_foreign_reference_module(self):
+        import eb_width_diagnostic as d
+        try:
+            import eb_reference as ref
+            ref.load_reference()
+        except Exception:                                   # noqa: BLE001
+            self.skipTest("the compiled author reference is not built here")
+        real = sys.modules.get("comparecast")
+        try:
+            import types
+            fake = types.ModuleType("comparecast")
+            fake.__file__ = "/tmp/not_the_pinned_tree/comparecast/__init__.py"
+            sys.modules["comparecast"] = fake
+            with self.assertRaises(SystemExit):
+                d.assert_reference_modules_came_from_the_pinned_tree()
+        finally:
+            if real is not None:
+                sys.modules["comparecast"] = real
+            else:                                           # pragma: no cover
+                sys.modules.pop("comparecast", None)
+
+    def test_the_diagnostics_clock_is_the_residual_clock_not_a_variance(self):
+        """The withdrawn note's third defect: a variance proxy for the clock."""
+        import numpy as np
+        import eb_width_diagnostic as d
+        # the audit's own deterministic example: same terminal variance,
+        # different residual clocks
+        a = np.array([1.0, 1.0, -1.0, -1.0])
+        b = np.array([1.0, -1.0, 1.0, -1.0])
+        self.assertAlmostEqual(float(a.var()), float(b.var()), places=12)
+        ca, cb = d.residual_clock(a)[-1], d.residual_clock(b)[-1]
+        self.assertNotAlmostEqual(float(ca), float(cb), places=6)
+        self.assertAlmostEqual(float(ca), 61.0 / 9.0, places=9)
+        self.assertAlmostEqual(float(cb), 70.0 / 9.0, places=9)
+
+
 def _run() -> int:
     loader = unittest.TestLoader()
     suite = loader.loadTestsFromModule(sys.modules[__name__])

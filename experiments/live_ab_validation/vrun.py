@@ -1463,6 +1463,20 @@ SMOKE_PERMITTED_KEYS = {
     # column -- but a required one, because a resource projection taken under
     # one schedule must never be read as the cost of another.
     "event_schedule",
+    # v2 REPAIR 1 (root resource audit 2026-09-21 03:43, required repair 1).
+    # ``run_smoke`` writes these three and the allowlist did not contain them,
+    # so ``assert_smoke_holds_no_effect_record`` exited on 'design' and THE
+    # RUNNER REJECTED ITS OWN OUTPUT.  They are added DELIBERATELY and they are
+    # all non-outcome metadata:
+    #   design           -- prose naming the measurement design that was run
+    #   balanced         -- bool: was that design the balanced 2x2
+    #   unique_programs  -- int: how many distinct program indices were timed
+    # The exclusion of effect columns is unchanged: no coverage number, no
+    # decision rate, no estimate and no band endpoint is permitted here, and
+    # nothing below is one.
+    "design", "balanced", "unique_programs", "unique_program_indices",
+    # v2 REPAIR 2 metadata, all counts and labels (see ``select_tier``).
+    "program_index_rule", "reference_workload",
 }
 
 
@@ -1519,19 +1533,39 @@ def run_smoke(guard: WriteGuard, programs: int, verbose: bool = True,
     points = []
     total_seconds = 0.0
     program_base = 0
+    seed_identities: set = set()
+    program_indices: set = set()
+    # v2 REPAIR 3 (root resource audit, required repair 3): THE INDEXING RULE IS
+    # SCHEDULE-SPECIFIC, because the new rule silently moved v1's seeds.
+    #
+    #   v1: each group starts its program indices at 0, which is what the
+    #       deposited v1 smoke actually drew.  The old C2 group used 0-9; the
+    #       incrementing rule gave it 10-19, so the "preserved" v1 reproduction
+    #       path was NOT seed-equivalent.  It is restored here.  v1's two groups
+    #       are DIFFERENT CELLS, so group-local indices still name distinct
+    #       streams -- the RNG key includes the cell.
+    #   v2: the balanced design visits the SAME cell twice, so two groups drawing
+    #       the same program indices would time the same streams twice rather
+    #       than 20 distinct programs.  The incrementing base is required there
+    #       and is kept.
+    #
+    # Deposited v1 result files are untouched either way; this is about the
+    # executable reproduction path.
+    group_local_indices = (schedule == SCHEDULE_V1)
     for cell, n_programs, n_max in split:
         if n_programs <= 0:
             continue
         cfg = make_config(n_max, vgen.NAMESPACE_SMOKE, schedule=schedule)
         sink = RowSink(None, trial_header(schedule), discard=True)
+        first = 0 if group_local_indices else program_base
         t0 = time.perf_counter()
-        # DISTINCT program bases per group: the balanced design visits the same
-        # cell twice, and two groups drawing the same program indices would time
-        # the same streams twice rather than 20 distinct programs.
-        counts = run_block(cell, range(program_base, program_base + n_programs),
+        counts = run_block(cell, range(first, first + n_programs),
                            cfg, sink, None)
         seconds = time.perf_counter() - t0
         program_base += n_programs
+        for idx in range(first, first + n_programs):
+            seed_identities.add((cell.id, idx))
+            program_indices.add(idx)
         record_bytes = sink.close()
         total_seconds += seconds
         points.append({
@@ -1551,7 +1585,20 @@ def run_smoke(guard: WriteGuard, programs: int, verbose: bool = True,
         "event_schedule": schedule,
         "design": design,
         "balanced": schedule != SCHEDULE_V1,
-        "unique_programs": program_base,
+        # Counted, not asserted.  ``unique_programs`` is the number of distinct
+        # (cell, program) SEED IDENTITIES actually timed; ``unique_program_indices``
+        # is the number of distinct program indices, which is smaller whenever a
+        # design reuses an index across cells (v1 does).  Two fields because
+        # collapsing them once let a repetition count be read as an independent
+        # experimental outcome (root resource audit, 2026-09-21).
+        "unique_programs": len(seed_identities),
+        "unique_program_indices": len(program_indices),
+        "program_index_rule": (
+            "group-local: every group starts at program index 0, which is what "
+            "the deposited v1 smoke drew"
+            if group_local_indices else
+            "incrementing: each group continues where the last stopped, because "
+            "the balanced design visits the same cell twice"),
         "namespace": vgen.NAMESPACE_SMOKE,
         "measures_only": ["wall_clock_seconds", "peak_rss", "output_bytes",
                           "counts"],
@@ -1591,22 +1638,223 @@ def assert_smoke_holds_no_effect_record(guard: WriteGuard) -> None:
                 stack.extend(node)
 
 
+def aggregate_horizon_costs(smoke: Dict[str, object]) -> Dict[str, object]:
+    """v2 REPAIR 2: collapse the balanced design to one cost per horizon,
+    WITHOUT discarding a cell.
+
+    THE DEFECT THIS REPLACES.  ``select_tier`` built ``{p['N_max']: p for p in
+    smoke['points']}``.  On the balanced 2x2 that dict has four entries written
+    into two keys, and the later C2 group SILENTLY OVERWROTE C1.  Half the
+    balanced timing design never reached the budget, and the root's fixture
+    showed the overwrite is total: multiplying both C1 costs by 1,000 changed
+    no output at all.
+
+    THE RULE, which is the root's and is binding (root disposition ranked
+    action 2; COORDINATOR_DECISIONS revision 17 item 85):
+
+      * **retain both cell inputs at each horizon**, and
+      * **project from the MAXIMUM measured cell cost at each horizon**.
+
+    It is outcome-independent -- it reads seconds only, never an effect column
+    -- and it is CONSERVATIVE: it projects from the more expensive cell, so a
+    tier admitted under it is admitted under either cell's own cost.
+
+    It is a RESOURCE rule and nothing more. It is not an inferential guarantee,
+    it is not a statement that the cells differ, and it is not a reason to
+    change the scientific horizon after outcomes are known.
+
+    The v1 path does not pass through here at all; see ``select_tier``.
+    """
+    by_horizon: Dict[int, Dict[str, object]] = {}
+    for p in smoke["points"]:
+        h = int(p["N_max"])
+        slot = by_horizon.setdefault(h, {"horizon": h, "cells": {}})
+        cells = slot["cells"]                               # type: ignore[index]
+        cell = str(p["cell"])
+        if cell in cells:                                   # pragma: no cover
+            raise SystemExit(
+                f"two smoke points share (cell={cell}, N_max={h}); the "
+                f"balanced design must visit each (cell, horizon) once, and "
+                f"collapsing them is the defect this function exists to "
+                f"prevent")
+        cells[cell] = {
+            "seconds": p["seconds"],
+            "seconds_per_program": p["seconds_per_program"],
+            "programs": p["programs"],
+            "record_bytes_measured_not_written":
+                p["record_bytes_measured_not_written"],
+        }
+    for h, slot in by_horizon.items():
+        cells = slot["cells"]                               # type: ignore[index]
+        costs = {c: v["seconds_per_program"] for c, v in cells.items()}
+        worst = max(costs, key=lambda c: costs[c])
+        slot["seconds_per_program_by_cell"] = costs
+        slot["selected_cell"] = worst
+        slot["seconds_per_program"] = costs[worst]
+        slot["cells_retained"] = sorted(cells)
+        slot["spread_ratio"] = (max(costs.values()) / min(costs.values())
+                                if min(costs.values()) > 0 else None)
+    return {
+        "rule": "maximum measured cell cost per horizon",
+        "rule_authority": (
+            "root disposition 2026-09-21 03:43 ranked action 2; "
+            "COORDINATOR_DECISIONS revision 17 item 85"),
+        "rule_is_outcome_independent": True,
+        "rule_is_not_an_inferential_guarantee": (
+            "a conservative resource aggregator. It says nothing about whether "
+            "the cells differ and licenses no change to the scientific horizon."),
+        "by_horizon": by_horizon,
+        "both_cell_inputs_retained": True,
+    }
+
+
+#: Where the reference's own resource receipt is deposited.  Read-only here.
+REFERENCE_TIMING = (REPO_ROOT / "results" / "live_ab_validation_v2"
+                    / "resource_check_delivered" / "reference_timing.json")
+
+
+def reference_workload_costs() -> Dict[str, object]:
+    """The PLANNED external-reference compute, priced from its own receipt.
+
+    WHY THIS EXISTS.  ``reference/panel.py`` excludes the reference from every
+    budget ladder on the grounds that it cannot decide anything.  The root
+    rejects that as a resource argument: "Reference-only decision authority
+    does not make its compute free", and "Scientific reference-only status does
+    not make that computation free: keep inferential decision authority
+    separate from total resource accounting."
+
+    So the two are kept separate and BOTH are reported:
+
+      * DECISION AUTHORITY -- unchanged and still zero. The reference gates
+        nothing, and ``admissible`` below is still decided by the frozen
+        ``cells.json`` selection rule on the PRIMARY projection alone. Nothing
+        here moves a tier.
+      * RESOURCE ACCOUNTING -- the reference's measured cost per program is
+        priced into a separate total, and where a tier's primary+reference
+        total would exceed the frozen cap that is FLAGGED rather than hidden.
+
+    Provenance is recorded exactly, including the receipt's weaknesses: this
+    receipt carries min/median/max summaries only, with no raw timing vectors,
+    no interpreter or environment record and no code hashes, so it is NOT an
+    exact-pin receipt of the strength of the committed primary receipt. It is
+    reported as the weaker artifact it is.
+
+    An absent or unusable receipt yields ``resolved: False`` with a reason.
+    The cost is then UNRESOLVED, which is not the same as zero and is never
+    silently rendered as zero.
+    """
+    out: Dict[str, object] = {
+        "role_for_decisions": (
+            "NONE. The reference overrides no decision and gates no tier; the "
+            "frozen selection rule reads the primary projection only."),
+        "role_for_resources": (
+            "COUNTED. Planned reference calls are real compute and are priced "
+            "into a separate total (root disposition, ranked action 2)."),
+        "receipt": str(REFERENCE_TIMING.relative_to(REPO_ROOT)),
+        "resolved": False,
+    }
+    if not REFERENCE_TIMING.is_file():
+        out["unresolved_reason"] = (
+            f"{out['receipt']} is absent on this host, so the planned "
+            f"reference workload has NO measured cost. It is reported as "
+            f"UNRESOLVED, never as zero.")
+        return out
+    try:
+        rec = json.loads(REFERENCE_TIMING.read_text())
+        pts = rec["points"]
+    except (OSError, ValueError, KeyError) as exc:           # pragma: no cover
+        out["unresolved_reason"] = f"receipt unreadable: {exc!r}"
+        return out
+    by_horizon: Dict[int, Dict[str, object]] = {}
+    for p in pts:
+        h = int(p["N_max"])
+        slot = by_horizon.setdefault(h, {"cells": {}})
+        slot["cells"][str(p["cell"])] = p["seconds_per_program"]  # type: ignore[index]
+    for h, slot in by_horizon.items():
+        costs = slot["cells"]                                # type: ignore[index]
+        worst = max(costs, key=lambda c: costs[c])
+        slot["selected_cell"] = worst
+        slot["seconds_per_program"] = costs[worst]
+    out.update({
+        "resolved": True,
+        "receipt_sha256": sha256_file(REFERENCE_TIMING),
+        "reference_available_at_measurement": rec.get("reference_available"),
+        "design": rec.get("design"),
+        "aggregation_rule": (
+            "maximum measured cell cost per horizon -- the SAME conservative "
+            "rule the primary projection uses, so the two totals are formed "
+            "the same way"),
+        "seconds_per_program_by_horizon": {
+            str(h): slot for h, slot in sorted(by_horizon.items())},
+        "receipt_provenance_limits": [
+            "min/median/max summaries only; no raw per-repetition timing "
+            "vectors, unlike the committed primary receipt",
+            "no generation timestamp, interpreter or environment record",
+            "no code, harness or binary hashes, so it is NOT an exact-pin "
+            "receipt and must not be described as one",
+            "panel.py times the band call on PRE-GENERATED draws, whereas the "
+            "primary timed region includes generation and row formatting, so "
+            "the two cost scopes are different and are not additive without "
+            "that caveat",
+            "its four groups share one process, so its RSS is a cumulative "
+            "high-water mark and is not attributable per group",
+            "it measures ONE score stream (hierarchy H only); a planned "
+            "two-gate panel would execute more calls than this prices",
+        ],
+        "workload_declaration_status": (
+            "NOT YET DECLARED. How many reference calls the primary grid will "
+            "actually make is not fixed by any frozen document. The totals "
+            "below assume ONE reference evaluation per program at the tier's "
+            "horizon, which is stated as an ASSUMPTION and is not a "
+            "prespecified workload. It must be predeclared before any tier is "
+            "relied on."),
+    })
+    return out
+
+
 def select_tier(smoke: Dict[str, object], cfg_json: dict) -> Dict[str, object]:
     """PROTOCOL 8.2: the ladder, from runtime and memory measurements alone."""
     limits = cfg_json["budget"]["hard_limits"]
-    points = {p["N_max"]: p for p in smoke["points"]}
-    if 2000 not in points or 1000 not in points:
-        return {"beta": None, "selected_tier": None, "paused": True,
-                "ladder": [], "hard_limits": limits,
-                "note": "the smoke run did not produce both horizon points, so "
-                        "the scaling exponent cannot be measured and no tier "
-                        "may be selected"}
-    s_2000 = points[2000]["seconds_per_program"]
-    s_1000 = points[1000]["seconds_per_program"]
+    balanced = bool(smoke.get("balanced"))
+    aggregation: Optional[Dict[str, object]] = None
+    if balanced:
+        # v2: cell-aware, both inputs retained, maximum cost per horizon.
+        aggregation = aggregate_horizon_costs(smoke)
+        by_h = aggregation["by_horizon"]                    # type: ignore[index]
+        if 2000 not in by_h or 1000 not in by_h:
+            return {"beta": None, "selected_tier": None, "paused": True,
+                    "ladder": [], "hard_limits": limits,
+                    "horizon_aggregation": aggregation,
+                    "note": "the smoke run did not produce both horizon points, "
+                            "so the scaling exponent cannot be measured and no "
+                            "tier may be selected"}
+        s_2000 = by_h[2000]["seconds_per_program"]
+        s_1000 = by_h[1000]["seconds_per_program"]
+    else:
+        # v1: the ORIGINAL schedule-specific path, preserved byte-for-byte in
+        # its arithmetic.  Its confounded split has exactly one cell per
+        # horizon, so keying by horizon discards nothing there and the
+        # deposited v1 selection stays reproducible.
+        points = {p["N_max"]: p for p in smoke["points"]}
+        if len(points) != len(smoke["points"]):             # pragma: no cover
+            raise SystemExit(
+                "the v1 selection path was handed a smoke record with more "
+                "than one cell per horizon; that is the balanced design and it "
+                "must set balanced=True so the cell-aware path is used")
+        if 2000 not in points or 1000 not in points:
+            return {"beta": None, "selected_tier": None, "paused": True,
+                    "ladder": [], "hard_limits": limits,
+                    "note": "the smoke run did not produce both horizon points, "
+                            "so the scaling exponent cannot be measured and no "
+                            "tier may be selected"}
+        s_2000 = points[2000]["seconds_per_program"]
+        s_1000 = points[1000]["seconds_per_program"]
     beta = math.log(s_2000 / s_1000) / math.log(2.0)
     record_bytes = sum(p["record_bytes_measured_not_written"] for p in
                        smoke["points"])
     bytes_per_program = record_bytes / max(int(smoke["total_programs"]), 1)
+    reference = reference_workload_costs()
+    ref_by_h = reference.get("seconds_per_program_by_horizon") or {}
     ladder = []
     selected = None
     for tier in cfg_json["budget"]["ladder"]:
@@ -1622,19 +1870,81 @@ def select_tier(smoke: Dict[str, object], cfg_json: dict) -> Dict[str, object]:
                  "within_bytes": out_bytes <= limits["output_bytes"],
                  "within_peak_rss":
                      int(smoke["peak_rss_bytes"]) <= limits["peak_rss_bytes"]}
+        # The FROZEN selection rule, unchanged: it reads the primary
+        # projection only.  No line below may enter this boolean.
         entry["admissible"] = bool(entry["within_seconds"]
                                    and entry["within_bytes"]
                                    and entry["within_peak_rss"])
+        # ---- resource accounting for the planned reference workload --------
+        slot = ref_by_h.get(str(n_max))
+        if slot is None:
+            entry["reference_seconds_projected"] = None
+            entry["total_seconds_projected"] = None
+            entry["reference_cost_unresolved"] = True
+            entry["reference_cost_note"] = (
+                reference.get("unresolved_reason")
+                or f"no measured reference cost at horizon {n_max}; UNRESOLVED, "
+                   f"not zero")
+        else:
+            ref_seconds = float(slot["seconds_per_program"]) * total
+            entry["reference_seconds_projected"] = ref_seconds
+            entry["total_seconds_projected"] = seconds + ref_seconds
+            entry["reference_cost_unresolved"] = False
+            entry["total_within_seconds"] = (
+                seconds + ref_seconds <= limits["seconds"])
+            entry["reference_share_of_total"] = (
+                ref_seconds / (seconds + ref_seconds)
+                if (seconds + ref_seconds) > 0 else None)
+            entry["reference_changes_admissibility"] = bool(
+                entry["within_seconds"] and not entry["total_within_seconds"])
         ladder.append(entry)
         if selected is None and entry["admissible"]:
             selected = tier["tier"]
-    return {"beta": beta, "s_per_program_2000": s_2000,
-            "s_per_program_1000": s_1000,
-            "bytes_per_program": bytes_per_program,
-            "ladder": ladder, "selected_tier": selected,
-            "paused": selected is None,
-            "selection_rule": cfg_json["budget"]["selection_rule"],
-            "hard_limits": limits}
+    flagged = [e["tier"] for e in ladder
+               if e.get("reference_changes_admissibility")]
+    out: Dict[str, object] = {
+        "beta": beta, "s_per_program_2000": s_2000,
+        "s_per_program_1000": s_1000,
+        "bytes_per_program": bytes_per_program,
+        "ladder": ladder, "selected_tier": selected,
+        "paused": selected is None,
+        "selection_rule": cfg_json["budget"]["selection_rule"],
+        "hard_limits": limits,
+        "reference_workload": reference,
+        "reference_workload_accounting": {
+            "included_in_total_seconds": bool(reference.get("resolved")),
+            "included_in_the_admissibility_gate": False,
+            "why_not": (
+                "the selection rule is frozen in cells.json and reads "
+                "seconds_projected. Changing what that gate consumes would be "
+                "a change to a scientific rule, which is not authorized. The "
+                "reference total is therefore reported BESIDE the gate, and "
+                "any tier the reference would push over the cap is named."),
+            "tiers_admissible_on_primary_but_over_cap_with_reference": flagged,
+        },
+    }
+    if aggregation is not None:
+        out["horizon_aggregation"] = aggregation
+        out["projection_inputs"] = {
+            "s_per_program_2000_from_cell":
+                aggregation["by_horizon"][2000]["selected_cell"],   # type: ignore[index]
+            "s_per_program_1000_from_cell":
+                aggregation["by_horizon"][1000]["selected_cell"],   # type: ignore[index]
+            "both_cells_at_2000":
+                aggregation["by_horizon"][2000]["seconds_per_program_by_cell"],  # type: ignore[index]
+            "both_cells_at_1000":
+                aggregation["by_horizon"][1000]["seconds_per_program_by_cell"],  # type: ignore[index]
+            "note": ("the projection uses the maximum; BOTH cell measurements "
+                     "are retained here so the discarded-cell defect cannot "
+                     "recur invisibly"),
+        }
+    else:
+        out["horizon_aggregation"] = {
+            "rule": "v1 schedule-specific path: one cell per horizon, keyed by "
+                    "horizon exactly as the deposited v1 budget was selected",
+            "both_cell_inputs_retained": "not applicable (one cell per horizon)",
+        }
+    return out
 
 
 def assert_incremental(smoke: Dict[str, object]) -> Dict[str, object]:
@@ -1742,6 +2052,37 @@ def v2_bindings(cfg: RunConfig) -> Dict[str, object]:
             out["amendment_missing_reason"] = (
                 f"{PROTOCOL_V2_MD} does not exist; a v2 run cannot bind its "
                 f"amendment and this run is NOT bound to one")
+
+    # THE COMPARISON SNAPSHOT (root resource audit, required repair 4).
+    # write_manifest's source glob is TOP-LEVEL ONLY, so neither it nor this
+    # function bound pinned_v2/PINNED_V2.json or its three snapshot files, and
+    # a v2 run's manifest therefore did not say which #11 rule its comparison
+    # would target.  The hashes are recomputed here, not copied from the
+    # manifest, so a snapshot edited after it was written cannot pass.
+    snap_dir = HERE / "pinned_v2"
+    snap_manifest = snap_dir / "PINNED_V2.json"
+    if snap_manifest.is_file():
+        snap = json.loads(snap_manifest.read_text())
+        listed = dict(snap.get("files") or {})
+        recomputed = {p.name: sha256_file(p)
+                      for p in sorted(snap_dir.glob("*.py"))}
+        out["comparison_snapshot"] = {
+            "manifest": str(snap_manifest.relative_to(REPO_ROOT)),
+            "manifest_sha256": sha256_file(snap_manifest),
+            "source_commit": snap.get("source_commit"),
+            "files_sha256_recomputed": recomputed,
+            "agrees_with_manifest": recomputed == listed,
+            "parent_v1_snapshot_source_commit":
+                (snap.get("parent_v1_snapshot") or {}).get("source_commit"),
+            "bound_by": ("vcompare.py --snapshot v2, which resolves to this "
+                         "directory, PROTOCOL_V2.md and "
+                         "results/live_ab_validation_v2/"),
+        }
+    else:
+        out["comparison_snapshot"] = None
+        out["comparison_snapshot_missing_reason"] = (
+            f"{snap_manifest} is absent: this run binds NO v2 comparison "
+            f"snapshot. Reported as absent rather than defaulted to v1's.")
 
     # the DECLARED EXTERNAL REFERENCE.  The primary does not import it; the
     # manifest records only its provenance, so that a result says which

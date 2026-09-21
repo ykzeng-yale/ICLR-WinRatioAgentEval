@@ -82,6 +82,72 @@ SRC_DIR = REPO_ROOT / "src"
 #: any path outside it.
 RESULTS_ROOT = REPO_ROOT / "results" / "live_ab_validation"
 
+# -----------------------------------------------------------------------------
+# THE v2 SNAPSHOT BINDING (root disposition 20260921_0343, ranked action 1;
+# COORDINATOR_DECISIONS revision 17 item 85).
+#
+# The defect this repairs, in the root's words: "vcompare.py is unchanged: lines
+# 76-81 load pinned/PINNED.json, the old protocol and the old output directory;
+# its v1 algorithm/configuration path remains. No v2 comparison entry binds the
+# new snapshot and corrected event/epsilon policies."
+#
+# The repair is an EXPLICIT SELECTOR, not a redirection.  ``--snapshot v1`` is
+# the default and still resolves to exactly the paths above, so every deposited
+# v1 comparison stays reproducible by the command that produced it.
+# ``--snapshot v2`` resolves to the regenerated snapshot, the amendment document
+# and the v2 results tree, and the summary records WHICH snapshot was bound
+# together with every hash it was verified against.  A comparison that does not
+# say which rule it targeted is not a binding.
+# -----------------------------------------------------------------------------
+PINNED_V2_DIR = HERE / "pinned_v2"
+PINNED_V2_MANIFEST = PINNED_V2_DIR / "PINNED_V2.json"
+PROTOCOL_V2_PATH = HERE / "PROTOCOL_V2.md"
+RESULTS_ROOT_V2 = REPO_ROOT / "results" / "live_ab_validation_v2"
+
+SNAPSHOTS: Dict[str, Dict[str, Any]] = {
+    "v1": {
+        "id": "v1",
+        "version": "v1-cpu-validation",
+        "dir": PINNED_DIR,
+        "manifest": PINNED_MANIFEST,
+        "protocol": PROTOCOL_PATH,
+        "results_root": RESULTS_ROOT,
+        "protocol_section": (
+            "experiments/live_ab_validation/PROTOCOL.md section 12"),
+    },
+    "v2": {
+        "id": "v2",
+        "version": "v2-cpu-validation",
+        "dir": PINNED_V2_DIR,
+        "manifest": PINNED_V2_MANIFEST,
+        "protocol": PROTOCOL_V2_PATH,
+        "results_root": RESULTS_ROOT_V2,
+        "protocol_section": (
+            "experiments/live_ab_validation/PROTOCOL_V2.md section 4.2, "
+            "amending PROTOCOL.md section 12"),
+    },
+}
+
+#: The live selection.  Module-level because the write guards and the frozen
+#: config loader were written against module-level roots; ``select_snapshot``
+#: is the ONLY writer and ``main`` is the only caller.
+SNAPSHOT: Dict[str, Any] = SNAPSHOTS["v1"]
+
+
+def select_snapshot(name: str) -> Dict[str, Any]:
+    """Bind the comparison to a named snapshot, or refuse."""
+    global SNAPSHOT, PINNED_DIR, PINNED_MANIFEST, PROTOCOL_PATH, RESULTS_ROOT
+    if name not in SNAPSHOTS:
+        raise ComparisonRefusal(
+            f"REFUSING TO RUN: unknown snapshot {name!r}; "
+            f"choose one of {sorted(SNAPSHOTS)}.")
+    SNAPSHOT = SNAPSHOTS[name]
+    PINNED_DIR = SNAPSHOT["dir"]
+    PINNED_MANIFEST = SNAPSHOT["manifest"]
+    PROTOCOL_PATH = SNAPSHOT["protocol"]
+    RESULTS_ROOT = SNAPSHOT["results_root"]
+    return SNAPSHOT
+
 #: PROTOCOL 12.2, frozen: endpoints lie in [-1, 1], so an absolute criterion is the
 #: meaningful one.  The tolerance covers floating-point summation order only and is
 #: itself frozen (12.3 item 5).
@@ -262,8 +328,9 @@ def verify_and_load_pinned(verbose: bool = True) -> PinnedLoad:
             "REFUSING TO RUN: the pinned copy no longer matches PINNED.json:\n  "
             + "\n  ".join(bad))
     if verbose:
-        print(f"[pinned] {len(digests)} files verified against PINNED.json "
-              f"(live_ab commit {manifest.get('source_commit', '?')[:7]})")
+        print(f"[pinned] {len(digests)} files verified against "
+              f"{PINNED_MANIFEST.name} (live_ab commit "
+              f"{str(manifest.get('source_commit', '?'))[:7]})")
 
     for extra in (str(SRC_DIR), str(PINNED_DIR)):
         if extra not in sys.path:
@@ -289,6 +356,242 @@ def verify_and_load_pinned(verbose: bool = True) -> PinnedLoad:
     return PinnedLoad(manifest=manifest, digests=digests, lab_monitor=_mon,
                       lab_enclosure=_enc,
                       lab_common_present=bool(getattr(_enc, "_LAB_COMMON_PRESENT", False)))
+
+
+# =============================================================================
+# 2b.  THE EXPLICIT BINDINGS (root disposition ranked action 1)
+# =============================================================================
+def snapshot_binding(pinned: PinnedLoad) -> Dict[str, Any]:
+    """Everything that identifies WHICH rule this comparison targeted.
+
+    Three bindings the root listed as incomplete, each recorded as a fact with
+    its hash rather than as a claim:
+
+    * the SNAPSHOT binding -- which pinned copy was loaded, its manifest digest,
+      the digests recomputed here (not copied from the manifest), the #11 commit
+      it was taken from, and the parent v1 snapshot preserved beside it;
+    * the PROTOCOL binding -- which operative document the run is under, base
+      and amendment kept as two fields and never collapsed into one;
+    * the EPSILON and STOPPED-TARGET bindings -- the two limitations the root
+      says the delivered snapshot "faithfully captures".  They are DISCLOSED
+      here, not repaired here: both live in files this session does not own.
+
+    A hash that cannot be taken is reported as ``None`` with a reason.
+    """
+    man = pinned.manifest
+    parent = man.get("parent_v1_snapshot") or {}
+    eps_v1 = _certificate_eps(PINNED_DIR)
+    record: Dict[str, Any] = {
+        "snapshot_id": SNAPSHOT["id"],
+        "snapshot_dir": str(PINNED_DIR.relative_to(REPO_ROOT)),
+        "snapshot_manifest": str(PINNED_MANIFEST.relative_to(REPO_ROOT)),
+        "snapshot_manifest_sha256": sha256_file(PINNED_MANIFEST),
+        "snapshot_source_commit": man.get("source_commit"),
+        "snapshot_builder": man.get("builder"),
+        "snapshot_builder_sha256": man.get("builder_sha256"),
+        "snapshot_file_sha256_recomputed_here": dict(pinned.digests),
+        "snapshot_manifest_agrees": True,
+        "changed_since_v1_pin": list(man.get("changed_since_v1_pin") or ()),
+        "parent_v1_snapshot": {
+            "path": parent.get("path"),
+            "source_commit": parent.get("source_commit"),
+            "files": parent.get("files"),
+            "status": parent.get("status"),
+        } if parent else None,
+        "operative_protocol_document": str(PROTOCOL_PATH.relative_to(REPO_ROOT)),
+        "operative_protocol_sha256": (sha256_file(PROTOCOL_PATH)
+                                      if PROTOCOL_PATH.is_file() else None),
+        "operative_version": SNAPSHOT["version"],
+        "base_protocol_document": str(PROTOCOL_PATH_BASE.relative_to(REPO_ROOT)),
+        "base_protocol_sha256": (sha256_file(PROTOCOL_PATH_BASE)
+                                 if PROTOCOL_PATH_BASE.is_file() else None),
+        "results_root": str(RESULTS_ROOT.relative_to(REPO_ROOT)),
+        "vband_sha256": sha256_file(HERE / "vband.py"),
+        "cells_json_sha256": sha256_file(CELLS_PATH),
+    }
+    # ---- the epsilon binding -------------------------------------------------
+    record["epsilon_policy"] = {
+        "pinned_side_constant_name": "CERTIFICATE_EPS",
+        "pinned_side_value": eps_v1,
+        "pinned_side_use": (
+            "added to the RIGHT-hand side of each cost certificate, so a "
+            "certificate fires only when it clears the exact threshold by at "
+            "least this much"),
+        "candidate_side_constants": {
+            "COST_ABSOLUTE_TOLERANCE": _vband_const("COST_ABSOLUTE_TOLERANCE"),
+            "COST_RELATIVE_TOLERANCE": _vband_const("COST_RELATIVE_TOLERANCE"),
+            "_SLACK": _vband_const("_SLACK"),
+        },
+        "candidate_side_use": (
+            "vband takes no certificate: it enumerates the feasible cost box "
+            "directly, so the tier tolerance enters the decisiveness predicate "
+            "and _SLACK guards float containment only"),
+        "the_two_are_not_the_same_convention": (
+            "the pinned side narrows only when a SUFFICIENT CERTIFICATE fires, "
+            "written as (1-tol)*ell > L_r + eps; the candidate side asks "
+            "directly whether a tier outcome is ACHIEVABLE anywhere in the "
+            "feasible cost box, written as (x-L_r) > tol*max(x,L_r). The two "
+            "predicates are algebraically the same threshold and are NOT the "
+            "same floating-point expression, and the certificate form "
+            "additionally demands eps of headroom. A pair whose certified "
+            "elapsed cost lands exactly on a threshold can therefore be "
+            "narrowed by one side and not the other. That is a DISCLOSED SCOPE "
+            "DIFFERENCE, not a tolerance to be tuned until the two agree "
+            "(PROTOCOL 12.3 item 1)."),
+        "measured_not_assumed": (
+            "this run classifies every per-pair enclosure disagreement by its "
+            "certificate margin; see summary['certificate_boundary_analysis']. "
+            "Do not read the epsilon as the cause without that table: a "
+            "disagreement whose margin is exactly zero is a difference of "
+            "ALGEBRAIC FORM and would survive eps = 0."),
+        "disclosed_overstatement_in_the_snapshot": (
+            "pinned_v2/lab_enclosure.py's docstring calls every feasible set "
+            "'exact' and 'never a relaxation'. With a strictly positive "
+            "CERTIFICATE_EPS that holds everywhere EXCEPT inside the epsilon "
+            "band at each certificate threshold, where the set computed is a "
+            "SUPERSET of the exact feasible set. The error is in the "
+            "conservative direction and the wording is still overstated. This "
+            "comparison binds the snapshot that contains that wording; it does "
+            "not edit it, because the snapshot is read-only and its source is "
+            "owned by #11."),
+        "repaired_here": False,
+    }
+    # ---- the stopped-target binding -----------------------------------------
+    record["stopped_target"] = {
+        "target_this_comparison_is_under": (
+            "the running conditional mean of the hierarchy score over the "
+            "ENROLLED PREFIX n, evaluated at the look, as cells.json fixes it. "
+            "It is not the realized sample mean and it is not a roster-wide "
+            "quantity defined after stopping."),
+        "disclosed_unrepaired_claim": (
+            "experiments/live_ab/lab_data.py lines 15-24 still state the "
+            "previously refuted stopped-roster reading -- that the guardrail's "
+            "target is the mean guarded score over the pairs actually enrolled "
+            "at the stopping time. The root has refuted that reading. The file "
+            "is outside experiments/live_ab_validation/ and outside this "
+            "session's write scope, so it is DISCLOSED here and bound to this "
+            "comparison's record rather than silently inherited."),
+        "effect_on_this_comparison": (
+            "none on the compared numbers: both sides are driven over the SAME "
+            "event stream and compared look by look at the same prefix, so a "
+            "disagreement about what the stopped quantity MEANS cannot move a "
+            "band endpoint or a tau here. It is bound because an unrepaired "
+            "target claim must travel with the artifact that depends on it."),
+        "repaired_here": False,
+    }
+    return record
+
+
+PROTOCOL_PATH_BASE = HERE / "PROTOCOL.md"
+
+
+def certificate_boundary_analysis(rows: List[Dict[str, Any]],
+                                  eps: Optional[float],
+                                  tol: float) -> Dict[str, Any]:
+    """Classify per-pair enclosure disagreements by their certificate margin.
+
+    COMPLETES THE EPSILON BINDING WITH A MEASUREMENT rather than a claim.  For
+    each disagreeing pair the two certificate margins are
+
+        forward  m_f = (1 - tol) * ell - L_r
+        reverse  m_r = ell - (1 - tol) * L_r
+
+    and each row is placed in exactly one bucket:
+
+    * ``margin_exactly_zero`` -- the certified cost sits exactly on a
+      threshold. The pinned side's certificate cannot fire AT ANY eps >= 0, so
+      this bucket is a difference of ALGEBRAIC FORM and epsilon does not
+      explain it.
+    * ``margin_inside_epsilon`` -- the margin is positive but no larger than
+      eps, so the pinned side refuses only because of the headroom it demands.
+      This bucket IS the epsilon.
+    * ``margin_outside_epsilon`` -- neither; the disagreement has some other
+      cause and must not be attributed to either.
+
+    It also reports which side is the WIDER one, because a disagreement in
+    which the pinned enclosure always contains the candidate's is a different
+    fact from one in which the containment goes both ways.
+    """
+    out: Dict[str, Any] = {
+        "rule": "computed from the disagreeing rows of THIS run, not asserted",
+        "tol": tol, "eps": eps,
+        "rows_classified": 0,
+        "margin_exactly_zero": 0,
+        "margin_inside_epsilon": 0,
+        "margin_outside_epsilon": 0,
+        "pinned_encloses_candidate": 0,
+        "candidate_encloses_pinned": 0,
+        "neither_encloses": 0,
+    }
+    if eps is None:                                         # pragma: no cover
+        out["unavailable_reason"] = "CERTIFICATE_EPS could not be read"
+        return out
+    for r in rows:
+        if r.get("defect_class") != "per_pair_enclosure_endpoint":
+            continue
+        try:
+            ell = float(r["ell"]); l_r = float(r["revealed_cost"])
+            a_lo = float(r["enc12_lo"]); a_hi = float(r["enc12_hi"])
+            b_lo = float(r["enc11_lo"]); b_hi = float(r["enc11_hi"])
+        except (KeyError, TypeError, ValueError):
+            continue
+        out["rows_classified"] += 1
+        m_f = (1.0 - tol) * ell - l_r
+        m_r = ell - (1.0 - tol) * l_r
+        if m_f == 0.0 or m_r == 0.0:
+            out["margin_exactly_zero"] += 1
+        elif (0.0 < m_f <= eps) or (0.0 < m_r <= eps):
+            out["margin_inside_epsilon"] += 1
+        else:
+            out["margin_outside_epsilon"] += 1
+        pin_wider = (b_lo <= a_lo and a_hi <= b_hi)
+        cand_wider = (a_lo <= b_lo and b_hi <= a_hi)
+        if pin_wider and not cand_wider:
+            out["pinned_encloses_candidate"] += 1
+        elif cand_wider and not pin_wider:
+            out["candidate_encloses_pinned"] += 1
+        else:
+            out["neither_encloses"] += 1
+    out["reading"] = (
+        "margin_exactly_zero rows would NOT be removed by setting eps to zero: "
+        "they are the two sides evaluating the same threshold in two different "
+        "floating-point forms. Only margin_inside_epsilon rows are attributable "
+        "to the headroom constant. Neither bucket is adjudicated here and "
+        "neither side is edited (PROTOCOL 12.3 item 1).")
+    return out
+
+
+def _certificate_eps(pinned_dir: Path) -> Optional[float]:
+    """Read CERTIFICATE_EPS out of the pinned enclosure's source, by parse.
+
+    Read rather than imported-and-getattr'd so that this works identically
+    whether or not the module was loaded, and so it cannot be satisfied by a
+    same-named attribute on some other module.
+    """
+    src = pinned_dir / "lab_enclosure.py"
+    if not src.is_file():
+        return None
+    for line in src.read_text().splitlines():
+        if line.startswith("CERTIFICATE_EPS"):
+            try:
+                return float(line.split("=", 1)[1].split("#")[0].strip())
+            except (IndexError, ValueError):                # pragma: no cover
+                return None
+    return None
+
+
+def _vband_const(name: str) -> Optional[float]:
+    """Read a named float constant out of vband.py by parse, same reasoning."""
+    src = HERE / "vband.py"
+    if not src.is_file():                                   # pragma: no cover
+        return None
+    for line in src.read_text().splitlines():
+        if line.startswith(f"{name} ") or line.startswith(f"{name}="):
+            try:
+                return float(line.split("=", 1)[1].split("#")[0].strip())
+            except (IndexError, ValueError):                # pragma: no cover
+                return None
+    return None
 
 
 # =============================================================================
@@ -731,12 +1034,18 @@ class DefectLedger:
 
 
 def replay_command(st: Stream) -> str:
+    """The exact command that reproduces this row, INCLUDING the snapshot.
+
+    A reproducer that omits ``--snapshot`` reproduces the DEFAULT snapshot,
+    which for a v2 defect row is the wrong rule and the wrong results tree.
+    The selector is therefore named here rather than left to the default.
+    """
+    base = (f".venv/bin/python experiments/live_ab_validation/vcompare.py "
+            f"--snapshot {SNAPSHOT['id']} "
+            f"--out {RESULTS_ROOT.relative_to(REPO_ROOT)}")
     if st.kind != "cell":
-        return (f".venv/bin/python experiments/live_ab_validation/vcompare.py "
-                f"--out results/live_ab_validation --only-fixture {st.stream_id}")
-    return (f".venv/bin/python experiments/live_ab_validation/vcompare.py "
-            f"--out results/live_ab_validation --only-stream "
-            f"{st.cell_id}:{st.program}:{st.trial}")
+        return f"{base} --only-fixture {st.stream_id}"
+    return f"{base} --only-stream {st.cell_id}:{st.program}:{st.trial}"
 
 
 # =============================================================================
@@ -1584,8 +1893,17 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     ap = argparse.ArgumentParser(
         description="PROTOCOL 12: compare the #12 band arithmetic against the pinned "
                     "#11 monitor on the frozen namespace-2 streams.")
-    ap.add_argument("--out", default=str(RESULTS_ROOT),
-                    help="output directory; must lie inside results/live_ab_validation/")
+    ap.add_argument("--snapshot", default="v1", choices=sorted(SNAPSHOTS),
+                    help="which pinned #11 snapshot to compare against. 'v1' "
+                         "(default) is the frozen deposit's own path: pinned/, "
+                         "PROTOCOL.md, results/live_ab_validation/. 'v2' binds "
+                         "the regenerated snapshot pinned_v2/, the amendment "
+                         "PROTOCOL_V2.md and results/live_ab_validation_v2/. "
+                         "The choice is recorded with every hash it was "
+                         "verified against.")
+    ap.add_argument("--out", default=None,
+                    help="output directory; must lie inside the selected "
+                         "snapshot's results root (default: that root)")
     ap.add_argument("--streams-per-cell", type=int, default=None,
                     help="how many of the frozen 25 per cell to replay (default: all 25). "
                          "Fewer is a PARTIAL run and is labelled as one everywhere.")
@@ -1604,12 +1922,17 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                          "truncates the CSV and records the truncation loudly")
     args = ap.parse_args(argv)
 
-    out_dir = guarded_out_dir(args.out)
+    snap = select_snapshot(args.snapshot)
+    out_dir = guarded_out_dir(args.out if args.out else str(RESULTS_ROOT))
     cfg = load_frozen_config()
+    print(f"[snapshot] {snap['id']} -> {PINNED_DIR.relative_to(REPO_ROOT)} | "
+          f"operative document {PROTOCOL_PATH.name} | "
+          f"writes under {RESULTS_ROOT.relative_to(REPO_ROOT)}")
     print(f"[config] cells.json alpha_gate={cfg.alpha_gate} rho={cfg.rho} "
           f"delta={cfg.delta} n_min={cfg.n_min} N_max={cfg.n_max} "
           f"finalization_tick={cfg.finalization_tick} namespace={cfg.namespace}")
     pinned = verify_and_load_pinned()
+    bindings = snapshot_binding(pinned)
     if str(HERE) not in sys.path:
         sys.path.insert(0, str(HERE))
     gen = FrozenGenerator(cfg)
@@ -1703,8 +2026,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         f"compared looks, over {n_streams} streams, failed at least one frozen criterion.")
 
     summary: Dict[str, Any] = {
-        "protocol": "experiments/live_ab_validation/PROTOCOL.md section 12",
-        "version": "v1-cpu-validation",
+        "protocol": snap["protocol_section"],
+        "version": snap["version"],
+        "snapshot_binding": bindings,
         "run": {
             "partial": partial,
             "streams_run": n_streams,
@@ -1746,6 +2070,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         },
         "provenance": {
             "repo_commit": git_commit(),
+            "snapshot_id": snap["id"],
             "pinned_source_commit": pinned.manifest.get("source_commit"),
             "pinned_digests": pinned.digests,
             "pinned_manifest_verified": True,
@@ -1792,6 +2117,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 "and #11 raises. Excluded by construction, not adjudicated."),
         },
         "defects": {},
+        "certificate_boundary_analysis": certificate_boundary_analysis(
+            ledger.rows, bindings["epsilon_policy"]["pinned_side_value"],
+            float(_vband_const("COST_RELATIVE_TOLERANCE") or 0.05)),
         "noted_numerical_differences": {
             "rule": ("PROTOCOL 12.3 item 5: a difference within tolerance but systematic "
                      "is reported with its magnitude, not silently accepted."),

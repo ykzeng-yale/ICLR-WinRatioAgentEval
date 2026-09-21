@@ -8,7 +8,8 @@ it says still governs except where a numbered clause below supersedes it for `v2
 | field | value |
 |---|---|
 | status | **NOT FROZEN. NOT CLEARED TO RUN.** This is the amendment prepared for review; see section 9 |
-| authority | root disposition `reviews/cpu_v1_delivery_root_disposition.md`, sections A, B, C, D and E; coordinator `experiments/live_ab/design/COORDINATOR_DECISIONS.md` revisions 12, 13 and 14 |
+| revision | **2**, 2026-09-21. Six wording corrections applied under root authorization; **before/after and authority in section 11**. Version string unchanged, because it is bound in `vrun.V2_VERSION_STRING` and `pinned_v2/PINNED_V2.json`. No scientific rule changed |
+| authority | root disposition `reviews/cpu_v1_delivery_root_disposition.md`, sections A, B, C, D and E; root disposition `reviews/v2_bindings_root_disposition_20260921_0343.md` ranked action 1; coordinator `experiments/live_ab/design/COORDINATOR_DECISIONS.md` revisions 12, 13, 14, 16 and 17 |
 | change-control clause invoked | `PROTOCOL.md` section 14, first sentence: a change to an estimator or a reported quantity is "a **new protocol version with its own freeze**, and every result produced under the old version keeps the old version's label and is reported beside the new one rather than replaced" |
 | supersedes | nothing. `v1` is preserved entire, is still cited as `v1`, and is reported **beside** `v2` |
 | substantive changes | **three**, listed in section 1, and no others |
@@ -92,8 +93,10 @@ the two completed-data baselines**. It survives for the `ADAPTER`: at a fixed pr
 radius are frozen and each pair's enclosure can only be replaced by a subinterval of itself, so `L` is nondecreasing
 and `U` nonincreasing over the looks sharing that prefix, and the last look at prefix `N_max` **is** the finalization
 look. Checked over every drain tick of 16,000 real grid trials: **0 non-monotone, 0 adapter events at a drain tick
-the finalization look does not also carry** (`LASTLOOK_CHECK.md` section 3). **Not one deposited `ADAPTER` number
-moves under any reading.**
+the finalization look does not also carry** (`LASTLOOK_CHECK.md` section 3). **No deposited `ADAPTER` number moved
+under either of the two readings of section 1.2, on the quantities and the 16,000 trials that check actually
+covered.** That is the scope of the evidence and this sentence does not exceed it: it is not a statement about every
+possible reading, nor about trials that were not run (correction **R1**, section 11).
 
 **What `v2` declares. This is the amendment's operative text for the look schedule.**
 
@@ -110,14 +113,29 @@ moves under any reading.**
    larger effect. Neither is asserted to be the unique right one; both are reported, and the batched one is primary.
    **Reason for that choice, stated so it can be overruled:** the batched reading is the one a live monitor can
    actually execute, because a live drain delivers completions in batches and the intra-batch order is a property of
-   the serving stack rather than of the design. One asymmetry must accompany any ruling here: for `CPREFIX` the
-   finest set is a function of the completed count `k` alone and is therefore the exact union over **every**
-   admissible tie order, so its column is order-independent; for `NAIVE` the intra-tick partial sums depend on the
-   order, so its finest column is **one admissible schedule and not a bound over all of them**.
+   the serving stack rather than of the design. One asymmetry must accompany any ruling here, and it is a statement
+   about the two **constructions**, not about the code that was delivered for them: **as constructions**, `CPREFIX`'s
+   finest set is a function of the completed count `k` alone, so over the tie orders that are actually *reachable* it
+   is order-independent; `NAIVE`'s intra-tick partial sums depend on the order, so its finest column is **one
+   admissible schedule and not a bound over all of them**. The claim is therefore true for one construction and not
+   the other, and it **must not be read as a property of the delivered finest iterator**: that iterator inserts
+   completed-prefix states no tie order ever reaches - with resolution ticks `(3,2,3)` the prefix jumps `0 -> 2` and
+   the code inserts a prefix `1` that does not exist (`COORDINATOR_DECISIONS.md` revision 16 item 78). **As
+   implemented, the `CPREFIX` finest column is neither the exact union over every admissible tie order nor one
+   admissible schedule**, and the finest sensitivity is consequently **deferred and disabled** from the next approved
+   primary panel, with its code and its failed check preserved as development evidence (correction **R2**,
+   section 11).
 3. **Every required completion-index change through the fixed finalization window is included**, for every
    construction, with no exception for the drain interior.
-4. **The same declared schedule applies to all three constructions.** Full and partial observations are compared at
-   the **same prefix**. No construction gets a look another does not.
+4. **The same declared schedule applies to all three constructions, and that means the same TICKS - not the same
+   index and not the same information.** Every construction is evaluated at exactly the same set of calendar ticks;
+   **no construction gets a look another does not**, and that part of the claim stands. What does **not** stand is
+   the reading that all three are therefore "compared at the same prefix": at a shared tick the `ADAPTER` reports at
+   the enrolled prefix `n`, `CPREFIX` at its completed count `k`, and `NAIVE` at its own count `m`, and these are
+   different indexes over different sample counts. **Equal calendar time is not equal information and, under a
+   changing conditional mean, not even the same target.** Any cross-construction width or ratio must therefore carry
+   its own index and target label; a column headed "the same prefix" across all three is a calendar-aligned display,
+   not a like-for-like comparison (correction **R3**, section 11).
 5. **Unresolved units are retained at finalization**, exactly as `PROTOCOL.md` section 7.3 already requires: pairs
    still unresolved keep the enclosure they have and enter `L` and `U` through it; nothing is censored, dropped,
    imputed or deleted; the denominator is always `n = N_max`.
@@ -131,9 +149,13 @@ moves under any reading.**
    `cost_collapsed_fraction` and `cost_narrowed_fraction` already carry part of the width story.
 
 **What this repairs and what it does not.** It repairs a **measurement contract**. It changes no theorem, no
-estimand and no gate, and it does not select a favourable outcome: every affected deposited number is **understated**
-in `v1`, which is the direction that flatters the baselines rather than the object under test
-(`LASTLOOK_CHECK.md` section 4). The fixed-prefix nesting argument still supports a coverage reduction for the
+estimand and no gate, and on the evidence available it does not appear to select a favourable outcome: **every
+affected deposited number that `LASTLOOK_CHECK.md` section 4 actually checked moved in the understating direction**,
+which is the direction that flatters the baselines rather than the object under test. The earlier wording here -
+"every affected deposited number is understated" - was a **blanket claim over numbers that were never examined**,
+and it is withdrawn in favour of the measured one. Numbers outside that check's scope are **unknown in direction**,
+not known to be understated (correction **R4**, section 11).
+The fixed-prefix nesting argument still supports a coverage reduction for the
 partial-enclosure adapter; it never established a **first calendar-time** decision, and changing a completed-data
 baseline's index invalidates the reduction for that baseline's crossing events.
 
@@ -260,9 +282,24 @@ A `v2` freeze that records only "item 5 was completed" does not discharge this c
 
 The `v1` pin is **deliberately not updated**, under coordinator ruling 60, and its supersession is recorded in
 `cells.json -> vocabulary_alignment.superseded_by` rather than applied. `F18_pinned_file_hashes` passes on that
-record, and **18/18 fixtures pass**, which is the pin doing its job: the honest statement is that `v1` validated
-`#11` as it stood at commit `5776877` against `protocol_FINAL.md` at `3c76e8eb...`, and re-pinning now would assert
-that the completed run covered a version of `#11` that did not exist when it ran.
+record, and **18/18 fixtures pass**, which is the pin doing its job. The honest statement is **not** that `v1`
+validated `#11`: `v1` **compared** `#12`'s band arithmetic against `#11` as it stood at commit `5776877`, under
+`protocol_FINAL.md` at `3c76e8eb...`, **and that comparison DISAGREED**. Its own deposited summary records
+**122,786 of 400,203 compared looks disagreeing over 926 streams**, in two defect classes - `per_pair_enclosure_endpoint`
+(151,032 rows) and `band_endpoint` (131,352 rows) - **affecting all 200 cell streams**
+(`results/live_ab_validation/comparison_summary.json`). A comparison that disagrees on roughly **31%** of its looks
+does not validate either side, and `vcompare.py`'s own frozen wording is that even total agreement would be reported
+as agreement and never as correctness. Re-pinning now would additionally assert that the completed run covered a
+version of `#11` that did not exist when it ran, which is the separate reason the `v1` pin is left alone
+(correction **R5**, section 11).
+
+**What repairs this condition is a second, explicitly bound comparison rather than a re-pin.** `vcompare.py` now
+takes `--snapshot {v1,v2}`: `v1` resolves to `pinned/`, `PROTOCOL.md` and `results/live_ab_validation/` exactly as
+before, and `v2` resolves to the regenerated `pinned_v2/` snapshot, this document, and
+`results/live_ab_validation_v2/`. The selected snapshot, its manifest digest, the per-file digests **recomputed at
+run time**, the `#11` source commit and the preserved parent `v1` snapshot are written into every summary under
+`snapshot_binding`, and the per-defect `replay_command` names the snapshot it came from. See section 11 for what the
+bound `v2` comparison measured.
 
 The mismatch is concrete, and it is measured here rather than assumed:
 
@@ -537,7 +574,7 @@ it.
 |---|---|
 | deterministic fixtures, including the root's witness as a regression | **permitted now** |
 | the witness and boundary witnesses | **permitted now** |
-| the balanced **20-program** resource check of section 9.1 | **permitted, and DELIVERED**: `RESOURCE_CHECK.md` |
+| the balanced **20-program** resource check of section 9.1 | **permitted, and RUN** (`RESOURCE_CHECK.md`). **Run is not discharged**: the budget pipeline it feeds was defective and the accepted receipt is the commit-anchored one, not the prototype - see section 9.1 and correction **R6** |
 | the `v2` stochastic grid, at any tier or horizon | **BLOCKED** pending explicit clearance |
 | a corrected replay of the original seed coordinates | **BLOCKED** pending explicit clearance; and when cleared, reported as a **paired comparison after development**, not fresh independent calibration |
 | any new cell, larger horizon, model change, model call, network access or new dependency | **not requested and not permitted** |
@@ -556,23 +593,42 @@ resource check run after code and specification review**. It does **not** licens
 does not license repeated timing until a preferred tier appears: the tier rule is effect-independent, fixed before
 the check, and the final run manifest must identify the **executable committed bytes** and that rule.
 
-**This check has been delivered.** It is `experiments/live_ab_validation/RESOURCE_CHECK.md`, with
-`vresource_check.py` and receipts under `results/live_ab_validation_v2/resource_check/`; it is a **sibling
-session's** measurement in this workflow, not this document's, and it is cited here rather than restated. Its
-headline results are that the corrected all-look schedule does **not** cost materially more - a paired factor of
-**x0.943, 95% CI [0.938, 0.949]** under the batched declaration of section 1.2 and **x1.911, 95% CI [1.880, 1.943]**
-under the finest - that the cell effect is **not separable from zero** (`+0.0093 +- 0.0057` in log seconds per
-program) while the horizon effect is large and precise (`+0.4053 +- 0.0054`), and that **no cap is breached at any
-tier for any of the three schedules**. Two boundaries on reading it, which that file states and this one adopts:
-twenty programs plus fixtures is **not** a grid and is **not** clearance for one; and the confounded `v1` `beta` was
-a real **measurement** defect that turned out not to be a **decision** defect, because `T1`'s projection is
-`s_2000 * programs * (2000/2000)**beta`, in which `beta` does not appear.
+**This check has been RUN; it is not discharged.** It is `experiments/live_ab_validation/RESOURCE_CHECK.md`, with
+`vresource_check.py` and receipts under `results/live_ab_validation_v2/`; it is a **sibling session's** measurement
+in this workflow, not this document's, and it is cited here rather than restated.
 
-**Consequence for section 1.2's open choice.** The batched reading is the cheaper one as well as the primary one, so
-the recommendation there is **not** a cost-driven choice and does not become one. If the coordinator rules for the
-finest reading instead, that file reports it at about double the cost and still at roughly 3% of the runtime cap, so
-**cost does not constrain that ruling in either direction** and the ruling should be made on the meaning of "each
-further fact", not on seconds. Those projections are that file's measurements and are not re-derived here.
+**The `x0.943 [0.938, 0.949]` and `x1.911 [1.880, 1.943]` ratios previously quoted here are PROTOTYPE numbers and
+are withdrawn from this position.** They come from the receipt under `resource_check/`, which timed an *amended
+helper* rather than the delivered runner, so they are **not a measurement of the runner that would execute `v2`**
+and must not be quoted for it (root resource audit, 2026-09-21 03:43). That receipt is **preserved** as development
+evidence and keeps its own label. The same withdrawal applies to the cell effect `+0.0093 +- 0.0057` and the horizon
+effect `+0.4053 +- 0.0054` **as statements about the delivered runner**; they remain valid descriptions of the
+prototype run that produced them, they are one host's timing variation, and they are not scientific effects.
+
+The measurement that **does** name the delivered runner is the commit-anchored receipt at
+`results/live_ab_validation_v2/resource_check_committed/`, whose harness calls `vrun.evaluate_trial` and
+`vrun.trial_rows` directly and whose six recorded source hashes match exact `ff60527de63e17738d8102fa41a0f47f3818e0c5`.
+Its geometric `v2/v1` runtime ratio is **`1.1246974`**, over 64 successful group records. The earlier working-tree
+receipt's ratio is **`1.1302466`**. These are **two distinct observations, not interchangeable estimates**, and
+both are retained. Twenty cell/horizon design units rest on **ten distinct `(namespace, cell, program)` seed
+identities**; repetitions do not make them independent experimental outcomes.
+
+Two boundaries on reading any of it, which `RESOURCE_CHECK.md` states and this one adopts: twenty programs plus
+fixtures is **not** a grid and is **not** clearance for one; and the confounded `v1` `beta` was a real
+**measurement** defect that turned out not to be a **decision** defect, because `T1`'s projection is
+`s_2000 * programs * (2000/2000)**beta`, in which `beta` does not appear (correction **R6**, section 11).
+
+**Consequence for section 1.2's open choice, restated on the withdrawn numbers.** The cost comparison between the
+batched and finest readings rests on the **prototype** ratios withdrawn above, so this document no longer asserts
+which reading is cheaper. What survives is the part that never depended on the ratio: the finest sensitivity is
+**deferred and disabled** on its own correctness defect (section 1.2 item 2), so the choice is not a cost question
+at all. The original paragraph, preserved because a withdrawn argument must stay legible, read:
+
+> The batched reading is the cheaper one as well as the primary one, so
+> the recommendation there is **not** a cost-driven choice and does not become one. If the coordinator rules for the
+> finest reading instead, that file reports it at about double the cost and still at roughly 3% of the runtime cap,
+> so **cost does not constrain that ruling in either direction** and the ruling should be made on the meaning of
+> "each further fact", not on seconds. Those projections are that file's measurements and are not re-derived here.
 
 ### 9.2 Receipt chronology is preserved, not rewritten
 
@@ -598,8 +654,12 @@ is **NOT closed**.
 6. Section 6's Monte Carlo wording applied everywhere, including `REPORT.md`'s errata.
 7. Section 7's convention labels on every planning quantity, and the withdrawn apportionment absent.
 8. Section 8's secondary left descriptive.
-9. Section 9.1's balanced resource check run and recorded, with its effect-independent tier rule. **Discharged**
-   by `RESOURCE_CHECK.md`, subject to the coordinator accepting it.
+9. Section 9.1's balanced resource check run and recorded, with its effect-independent tier rule. **NOT
+   discharged.** The check was run, but the chain that turns it into a budget was defective: the smoke record failed
+   the runner's own allowlist, the tier selector collapsed four balanced `(cell, horizon)` groups to two by
+   overwriting `C1` with `C2`, and the planned reference workload was excluded from the total. The repairs and the
+   binding aggregation rule are recorded in `V2_BINDINGS_2.md`; this line is discharged only when the coordinator
+   accepts that repaired chain, not when a measurement exists (correction **R6**).
 10. `v1` preserved byte-identical, reported beside `v2`, and its errata pointer in place. **Discharged** by
     `REPORT.md` section 16, subject to the same acceptance.
 11. All three test and fixture counts re-taken on a **quiescent** tree, with quiescence recorded (section 10).
@@ -644,3 +704,55 @@ its banner, and the nine sentences that section 16 records with before/after tex
 measured number, no deposited `v1` result, no `PROTOCOL.md` clause, no `cells.json` entry, no `#11` source, no
 sibling-owned module and no Git state was touched.** `RESOURCE_CHECK.md`, `vresource_check.py`, `vrun.py`,
 `vgen.py` and `tests_validation.py` belong to a sibling session in this workflow and are cited, never edited.
+
+---
+
+## 11. Revision 2 corrections log (2026-09-21)
+
+**Authority.** Root disposition `reviews/v2_bindings_root_disposition_20260921_0343.md`, ranked action 1, and issue
+12 comment `5755101250`: *"Please apply the already requested PROTOCOL_V2.md corrections now in your owned branch,
+with a versioned before/after record and exact commit. These edits were authorized in the previous disposition; an
+ongoing review of immutable `a10dba2` does not prevent a new corrective commit."* The coordinator's earlier decision
+to HOLD these corrections is recorded as reversed at `COORDINATOR_DECISIONS.md` revision 17 item 84.
+
+**Scope.** Six wording corrections, all of them **narrowings** of claims this document made. **No scientific rule is
+touched**: no margin, no `alpha`, no `rho`, no `delta`, no `n_min`, no gate, no stopping, deadline or finalization
+rule, and no frozen value in `PROTOCOL.md` or `cells.json`. The version string stays **`v2-cpu-validation`** because
+it is bound in code (`vrun.V2_VERSION_STRING`) and in `PINNED_V2.json`; this log is the revision record instead.
+
+| id | what was corrected | where | direction |
+|---|---|---|---|
+| **R1** | "Not one deposited `ADAPTER` number moves under any reading" | section 1.2 | blanket claim narrowed to the readings, quantities and 16,000 trials actually checked |
+| **R2** | "the exact union over **every** admissible tie order" | section 1.2 item 2 | separated the **construction** (where it holds for `CPREFIX` and not for `NAIVE`) from the **delivered iterator** (where it holds for neither, because it invents unreachable prefixes) |
+| **R3** | "compared at the **same prefix** / no construction gets a look another does not" | section 1.2 item 4 | same **ticks** retained as true; "same prefix" withdrawn - `ADAPTER` reports at `n`, `CPREFIX` at `k`, `NAIVE` at `m` |
+| **R4** | "every affected deposited number is **understated**" | section 1.2 closing | narrowed to the numbers `LASTLOOK_CHECK.md` section 4 checked; the rest are **unknown in direction** |
+| **R5** | "`v1` validated `#11`" | section 4.2 | replaced with the deposit's true numbers: `v1` **compared** and **disagreed**, 122,786 of 400,203 looks |
+| **R6** | prototype speed ratios and the "resource item **DELIVERED / Discharged**" labels | sections 9, 9.1, 9.3 item 9 | prototype ratios withdrawn from the delivered-runner position; the commit-anchored ratio `1.1246974` named instead, distinct from the working-tree `1.1302466`; "discharged" downgraded to "run" |
+
+Full before/after text for all six, with the command that produced every number quoted in them, is recorded in
+`experiments/live_ab_validation/V2_BINDINGS_2.md` section 2.
+
+### 11.1 What the bound `v2` comparison measured
+
+`vcompare.py` now takes `--snapshot {v1,v2}` (section 4.2). A **bounded, explicitly PARTIAL** run against the
+regenerated snapshot - **one stream per cell, eight cell streams plus 726 comparable fixture streams** - produced:
+
+```
+.venv/bin/python experiments/live_ab_validation/vcompare.py --snapshot v2 \
+    --streams-per-cell 1 --out results/live_ab_validation_v2/comparison_v2
+```
+
+| | `v1` snapshot (deposited) | `v2` snapshot (this run) |
+|---|---|---|
+| looks compared, **same 8 cell streams** | 16,008 | 16,008 |
+| looks disagreeing on those streams | **4,891 (30.55%)** | **99 (0.62%)** |
+| defect classes | `per_pair_enclosure_endpoint`, `band_endpoint` | the same two |
+
+**This is not a freeze, a calibration or a clearance, and it is not the full frozen set.** It is a bounded binding
+check: the comparison now targets the current rule and says so in its artifact. All **100** per-pair enclosure
+disagreements have a certificate margin of **exactly zero**, and in **all 100** the `#11` enclosure **strictly
+contains** the `#12` enclosure - so `#11` is uniformly the **wider, more conservative** side at these rows, and
+**none of them is attributable to the size of `CERTIFICATE_EPS`**: they would survive `eps = 0`, because the two
+sides evaluate the same threshold in two different floating-point forms. **Which side is right is not decided here**
+(`PROTOCOL.md` 12.3 item 1). This run covers **8 of the frozen 200 cell streams** and **16,011 of 400,203 looks**,
+which is why it is labelled partial and why no rate from it is presented as the rate of the full set.

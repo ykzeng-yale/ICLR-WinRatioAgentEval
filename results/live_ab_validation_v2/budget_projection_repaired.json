@@ -1,0 +1,243 @@
+{
+ "aggregation_rule": "maximum measured cell cost per horizon",
+ "aggregation_rule_authority": "root disposition 2026-09-21 03:43 ranked action 2; COORDINATOR_DECISIONS revision 17 item 85",
+ "beta": 0.663644647140228,
+ "both_cell_inputs_retained": {
+  "both_cells_at_1000": {
+   "C1": 0.0020900036790408192,
+   "C2": 0.0021203979151323436
+  },
+  "both_cells_at_2000": {
+   "C1": 0.003358878649305552,
+   "C2": 0.0033424677327275275
+  },
+  "note": "the projection uses the maximum; BOTH cell measurements are retained here so the discarded-cell defect cannot recur invisibly",
+  "s_per_program_1000_from_cell": "C2",
+  "s_per_program_2000_from_cell": "C1"
+ },
+ "bytes_per_program": 211.0,
+ "hard_limits": {
+  "output_bytes": 209715200,
+  "peak_rss_bytes": 2147483648,
+  "seconds": 5400
+ },
+ "horizon_aggregation": {
+  "both_cell_inputs_retained": true,
+  "by_horizon": {
+   "1000": {
+    "cells": {
+     "C1": {
+      "programs": 5,
+      "record_bytes_measured_not_written": 996,
+      "seconds": 0.010450018395204097,
+      "seconds_per_program": 0.0020900036790408192
+     },
+     "C2": {
+      "programs": 5,
+      "record_bytes_measured_not_written": 1134,
+      "seconds": 0.010601989575661719,
+      "seconds_per_program": 0.0021203979151323436
+     }
+    },
+    "cells_retained": [
+     "C1",
+     "C2"
+    ],
+    "horizon": 1000,
+    "seconds_per_program": 0.0021203979151323436,
+    "seconds_per_program_by_cell": {
+     "C1": 0.0020900036790408192,
+     "C2": 0.0021203979151323436
+    },
+    "selected_cell": "C2",
+    "spread_ratio": 1.0145426710949492
+   },
+   "2000": {
+    "cells": {
+     "C1": {
+      "programs": 5,
+      "record_bytes_measured_not_written": 1007,
+      "seconds": 0.01679439324652776,
+      "seconds_per_program": 0.003358878649305552
+     },
+     "C2": {
+      "programs": 5,
+      "record_bytes_measured_not_written": 1083,
+      "seconds": 0.016712338663637638,
+      "seconds_per_program": 0.0033424677327275275
+     }
+    },
+    "cells_retained": [
+     "C1",
+     "C2"
+    ],
+    "horizon": 2000,
+    "seconds_per_program": 0.003358878649305552,
+    "seconds_per_program_by_cell": {
+     "C1": 0.003358878649305552,
+     "C2": 0.0033424677327275275
+    },
+    "selected_cell": "C1",
+    "spread_ratio": 1.0049098204950009
+   }
+  },
+  "rule": "maximum measured cell cost per horizon",
+  "rule_authority": "root disposition 2026-09-21 03:43 ranked action 2; COORDINATOR_DECISIONS revision 17 item 85",
+  "rule_is_not_an_inferential_guarantee": "a conservative resource aggregator. It says nothing about whether the cells differ and licenses no change to the scientific horizon.",
+  "rule_is_outcome_independent": true
+ },
+ "ladder": [
+  {
+   "N_max": 2000,
+   "admissible": true,
+   "bytes_projected": 5908000.0,
+   "peak_rss_projected": 73742336,
+   "programs_total": 28000,
+   "reference_changes_admissibility": false,
+   "reference_cost_unresolved": false,
+   "reference_seconds_projected": 974.9324649572372,
+   "reference_share_of_total": 0.9120203293849053,
+   "seconds_projected": 94.04860218055546,
+   "tier": "T1",
+   "total_seconds_projected": 1068.9810671377927,
+   "total_within_seconds": true,
+   "within_bytes": true,
+   "within_peak_rss": true,
+   "within_seconds": true
+  },
+  {
+   "N_max": 2000,
+   "admissible": true,
+   "bytes_projected": 3376000.0,
+   "peak_rss_projected": 73742336,
+   "programs_total": 16000,
+   "reference_changes_admissibility": false,
+   "reference_cost_unresolved": false,
+   "reference_seconds_projected": 557.1042656898499,
+   "reference_share_of_total": 0.9120203293849053,
+   "seconds_projected": 53.742058388888836,
+   "tier": "T2",
+   "total_seconds_projected": 610.8463240787387,
+   "total_within_seconds": true,
+   "within_bytes": true,
+   "within_peak_rss": true,
+   "within_seconds": true
+  },
+  {
+   "N_max": 2000,
+   "admissible": true,
+   "bytes_projected": 1688000.0,
+   "peak_rss_projected": 73742336,
+   "programs_total": 8000,
+   "reference_changes_admissibility": false,
+   "reference_cost_unresolved": false,
+   "reference_seconds_projected": 278.5521328449249,
+   "reference_share_of_total": 0.9120203293849053,
+   "seconds_projected": 26.871029194444418,
+   "tier": "T3",
+   "total_seconds_projected": 305.42316203936934,
+   "total_within_seconds": true,
+   "within_bytes": true,
+   "within_peak_rss": true,
+   "within_seconds": true
+  },
+  {
+   "N_max": 1000,
+   "admissible": true,
+   "bytes_projected": 1688000.0,
+   "peak_rss_projected": 73742336,
+   "programs_total": 8000,
+   "reference_changes_admissibility": false,
+   "reference_cost_unresolved": false,
+   "reference_seconds_projected": 129.61846739053726,
+   "reference_share_of_total": 0.8842748513288724,
+   "seconds_projected": 16.96318332105875,
+   "tier": "T4",
+   "total_seconds_projected": 146.581650711596,
+   "total_within_seconds": true,
+   "within_bytes": true,
+   "within_peak_rss": true,
+   "within_seconds": true
+  }
+ ],
+ "provenance": {
+  "budget_code_sha256": "9d26752b5c642bf10f79f67d0e6da65b56accb6c03e6eeb4fbebaf7c7a43b0f0",
+  "cells_json_sha256": "96ebf7e47f790031d5d125cedcc9a9973bccfc78ea8e159798d69fcca9d61e97",
+  "distinct_seed_identities": 10,
+  "measured_source_commit": "ff60527de63e17738d8102fa41a0f47f3818e0c5",
+  "measurement_receipt": "results/live_ab_validation_v2/resource_check_committed/balanced_analysis.json",
+  "measurement_receipt_sha256": "31d8a0cb0a0809bf894c7ecbff26a8afeb8bee8a403ff2540fdb31bd2debafe9",
+  "platform": "macOS-26.5.2-arm64-arm-64bit",
+  "python": "3.12.13",
+  "raw_timing_records": "results/live_ab_validation_v2/resource_check_committed/balanced_timing.json",
+  "raw_timing_records_sha256": "13fa71fdf22fe1568377451e8de80ff6cb08b385fb999f52c3a315fc9d5f180e",
+  "receipt_group_records": 64,
+  "repo_commit_at_write": "bc9a4e0d8a46b60d19d4099120134da7ce231675",
+  "seed_identity_note": "20 cell/horizon design units rest on ten distinct (namespace, cell, program) identities: all groups use program indices 1000-1004 and the RNG key excludes horizon. Repetitions are not independent experimental outcomes."
+ },
+ "reference_workload": {
+  "aggregation_rule": "maximum measured cell cost per horizon -- the SAME conservative rule the primary projection uses, so the two totals are formed the same way",
+  "design": "balanced 2x2, cells C1/C2 x horizons 1,000/2,000, five programs per group, namespace 1, program indices 1000-1004",
+  "receipt": "results/live_ab_validation_v2/resource_check_delivered/reference_timing.json",
+  "receipt_provenance_limits": [
+   "min/median/max summaries only; no raw per-repetition timing vectors, unlike the committed primary receipt",
+   "no generation timestamp, interpreter or environment record",
+   "no code, harness or binary hashes, so it is NOT an exact-pin receipt and must not be described as one",
+   "panel.py times the band call on PRE-GENERATED draws, whereas the primary timed region includes generation and row formatting, so the two cost scopes are different and are not additive without that caveat",
+   "its four groups share one process, so its RSS is a cumulative high-water mark and is not attributable per group",
+   "it measures ONE score stream (hierarchy H only); a planned two-gate panel would execute more calls than this prices"
+  ],
+  "receipt_sha256": "68eb5f633cebffae5308147ed291714646446f937c878c4f0a5b3c66aaa62e01",
+  "reference_available_at_measurement": true,
+  "resolved": true,
+  "role_for_decisions": "NONE. The reference overrides no decision and gates no tier; the frozen selection rule reads the primary projection only.",
+  "role_for_resources": "COUNTED. Planned reference calls are real compute and are priced into a separate total (root disposition, ranked action 2).",
+  "seconds_per_program_by_horizon": {
+   "1000": {
+    "cells": {
+     "C1": 0.016003858298063278,
+     "C2": 0.016202308423817157
+    },
+    "seconds_per_program": 0.016202308423817157,
+    "selected_cell": "C2"
+   },
+   "2000": {
+    "cells": {
+     "C1": 0.03462889157235623,
+     "C2": 0.034819016605615614
+    },
+    "seconds_per_program": 0.034819016605615614,
+    "selected_cell": "C2"
+   }
+  },
+  "workload_declaration_status": "NOT YET DECLARED. How many reference calls the primary grid will actually make is not fixed by any frozen document. The totals below assume ONE reference evaluation per program at the tier's horizon, which is stated as an ASSUMPTION and is not a prespecified workload. It must be predeclared before any tier is relied on."
+ },
+ "reference_workload_accounting": {
+  "included_in_the_admissibility_gate": false,
+  "included_in_total_seconds": true,
+  "tiers_admissible_on_primary_but_over_cap_with_reference": [],
+  "why_not": "the selection rule is frozen in cells.json and reads seconds_projected. Changing what that gate consumes would be a change to a scientific rule, which is not authorized. The reference total is therefore reported BESIDE the gate, and any tier the reference would push over the cap is named."
+ },
+ "s_per_program_1000": 0.0021203979151323436,
+ "s_per_program_2000": 0.003358878649305552,
+ "schema": "live_ab_validation_v2.budget.repaired.1",
+ "scope_caveat_unresolved": "The committed receipt times vrun.evaluate_trial + vrun.trial_rows. run_smoke's timed region is run_block, which ALSO includes stream generation and the row sink. These per-program seconds are therefore a LOWER BOUND on the runner's cost, and every projection below inherits that. This is NOT closed by this receipt.",
+ "selected_tier_on_primary_only": "T1",
+ "selection_rule": "the highest tier whose projection satisfies ALL of seconds_projected <= 5400, peak_rss_projected <= 2 GiB, bytes_projected <= 200 MiB; written to budget.json BEFORE the reported grid starts",
+ "what_the_defective_keying_kept": {
+  "1000": {
+   "cell": "C2",
+   "seconds_per_program": 0.0021203979151323436
+  },
+  "2000": {
+   "cell": "C2",
+   "seconds_per_program": 0.0033424677327275275
+  }
+ },
+ "what_this_is": "The v2 budget projection after the three smoke-to-budget repairs, computed from the ACCEPTED committed primary resource receipt. No clock was read to produce it.",
+ "what_this_is_not": [
+  "not a new timing run",
+  "not a grid, not clearance for one, not a resource-gate discharge",
+  "not a tier selection for any run: the workload it prices is not yet predeclared and the scope caveat below is unresolved"
+ ]
+}
