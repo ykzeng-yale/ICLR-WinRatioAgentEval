@@ -576,3 +576,44 @@ wherever they differ. All of the following are adopted literally; none is negoti
     the reduction unsound for the baselines; the root has the concrete missed crossing. v2 must include all
     completion-index changes during the drain window, record the enrollment prefix separately from elapsed time,
     and preserve the unresolved finalization records and this witness.
+
+# ===== REVISION 15, 2026-09-21: the root's literature audit finds the construction I missed =====
+69. THE ROOT'S LITERATURE AUDIT (evidence/literature_sequential_design_20260921.md, main e6f89bc) corrects a
+    conclusion of mine, and the correction is worth more than the thing I got right.
+    WHAT I GOT RIGHT AND STANDS: `variance_process = n` in winstats.normal_mixture_radius is FORCED by that
+    theorem's predictable ranges and must not be fed an empirical variance (revision 11 item 45d). And the
+    Waudby-Smith/Ramdas predictable-mixture empirical-Bernstein construction must NOT be substituted: the root's
+    own reading confirms the mechanism I measured, "the common-mean construction assumes bounded observations with
+    the SAME conditional mean", so its failures under our drifting target are a target mismatch rather than a
+    defect of that method. The root says so explicitly: "Do not count failure under an unsupported changing
+    target as a failure." I should have framed my own finding that way instead of as a blanket prohibition.
+    WHAT I GOT WRONG: I concluded from two constructions that NO valid variance-adaptive object exists for our
+    target. That was an over-generalization from a sample of two, both of which target the wrong quantity.
+    CHOE AND RAMDAS, "Comparing Sequential Forecasters", THEOREM 2 covers the TIME-VARYING AVERAGE CONDITIONAL
+    SCORE DIFFERENCE using bounded scores, predictable centres and a sub-exponential boundary applied to
+    cumulative squared prediction residuals. That is OUR target, the unweighted running conditional mean, not a
+    lambda-weighted or common-mean surrogate. The root's judgement: "this is the closest strong full-score
+    baseline for our unweighted running conditional mean. Its confidence-sequence guarantee is the relevant
+    object; a weak-null e-process or fixed-time interval should not be substituted for it."
+70. WHY THIS MATTERS BEYOND BEING A CITATION. The guardrail is the binding constraint on every deploy route in
+    this program, and it is binding because of band width on a tie-heavy score. A variance-adaptive construction
+    that is VALID FOR OUR ACTUAL TARGET is therefore the one lever that could move the constraint without
+    touching delta, the horizon or the design -- all three of which are correctly frozen and must not move. My
+    revision 11 apportionment said the estimator term was the largest FIXABLE share; this is the fix I failed to
+    find.
+71. ACTION, scoped so it cannot become outcome-driven. Add a properly specified Choe-Ramdas Theorem 2
+    empirical-Bernstein running-mean reference to the v2 comparison panel, on the SAME latent scores, the SAME
+    prefix, the SAME error allocation and the SAME legal looks, as a declared REFERENCE and NOT as the primary
+    decision rule. The primary stays exactly as frozen. Adding a comparator after seeing that everything nulls is
+    only defensible because it changes no decision: it is reported beside the primary and can never override it.
+    If it turns out materially tighter, that is a finding for the PAPER's sizing section, not a licence to
+    re-decide any trial.
+72. IMPLEMENTATION CONSTRAINT: implement Theorem 2 FROM THE THEOREM STATEMENT rather than installing comparecast
+    or confseq. A new runtime dependency in a pre-registered pipeline is a provenance liability, and the root's
+    own audit inspected those repositories read-only. Validate the implementation against any published numbers
+    the paper provides, and state plainly if none are available to validate against.
+73. A PATTERN IN MY OWN ERRORS, now four for four. Every one has been an over-general claim from a narrow check:
+    "unreachable whatever the outcomes" (from one outcome path), "misleads by 11x" (from a paper that makes no
+    such claim), a percentage apportionment (from mixed conventions), and now "no valid variance adaptation
+    exists" (from two constructions that target the wrong quantity). The remedy that has actually worked is not
+    caution, it is ADVERSARIAL BREADTH: every one was caught by someone searching a wider space than I did.
