@@ -76,10 +76,18 @@ def main(argv=None) -> int:
     ap.add_argument("--child", action="store_true")
     ap.add_argument("--fine", action="store_true")
     a = ap.parse_args(argv)
+    # FORWARD FIX, root 2026-09-21 17:06: "a forward absolute-path fix need not
+    # rewrite old receipts or await routine permission."  vsupervise.supervise
+    # runs the child with cwd=HERE, not the parent's cwd, so a RELATIVE --out
+    # names a different directory in the two processes.  The delivered coarse and
+    # fine panels were invoked with absolute paths and are unaffected; this
+    # repairs the latent defect going forward and rewrites no receipt.  The
+    # matched ablation's attempt 1 hit exactly this, in run_ablation.py.
     if a.child:
-        a.out.mkdir(parents=True, exist_ok=True)
-        return run_child(a.out, fine=a.fine)
-    out = Path(a.out)
+        out = Path(a.out).resolve()
+        out.mkdir(parents=True, exist_ok=True)
+        return run_child(out, fine=a.fine)
+    out = Path(a.out).resolve()
     if out.exists() and any(out.iterdir()):
         print(f"REFUSING: {out} non-empty", file=sys.stderr); return 2
     out.mkdir(parents=True, exist_ok=True)

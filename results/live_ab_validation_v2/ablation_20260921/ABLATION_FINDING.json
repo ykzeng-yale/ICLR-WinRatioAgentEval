@@ -7,7 +7,7 @@
   "hypothesis_under_test": "ADAPTER's advantage under INFORMATIVE delay is produced by the two elapsed-cost certificate branches -- the narrowing and collapse of a partially-revealed pair's hierarchy enclosure when the revealed arm succeeded.",
   "prediction_if_true": "Disabling those two branches on the SAME draws should SHRINK the informative-minus-non-informative (A minus N) deployment gap.",
 
-  "outcome": "THE PREDICTION FAILS AT BOTH RUNGS. At mu_h = 0.10 the A-minus-N gap does not shrink; it WIDENS, from +0.31875 to +0.45125, a change of -0.13250 with Monte Carlo 95% interval [-0.14018, -0.12482], which excludes zero. At mu_h = 0.05 the change is +0.00125 with interval [-0.00030, +0.00280], which includes zero. There is no rung at which disabling the certificates closes the gap.",
+  "outcome": "NO CLEAR SHRINKAGE AT mu_h = 0.05, AND WIDENING AT mu_h = 0.10. At 0.05 the A-minus-N gap DOES shrink in point estimate, from +0.04750 to +0.04625, a change of +0.00125, but its Monte Carlo 95% interval [-0.00030, +0.00280] includes zero, so the direction is not resolved at this sample size. At 0.10 the gap WIDENS, from +0.31875 to +0.45125, a change of -0.13250 with interval [-0.14018, -0.12482], which excludes zero. The prediction -- shrinkage at both rungs -- is therefore not supported: unresolved at 0.05, contradicted at 0.10. Conditional throughout on these simulator laws and this post-hoc design.",
 
   "what_the_ablation_does_establish": [
     "The certificates produce REAL deploy decisions in every one of the four cells. The paired within-cell difference D = original-deploy minus disabled-deploy is positive with a Monte Carlo interval excluding zero in all four: P05N +0.00187 [+0.00093, +0.00282], P05A +0.00313 [+0.00190, +0.00435], P10N +0.13700 [+0.12946, +0.14454], P10A +0.00450 [+0.00303, +0.00597].",
@@ -16,12 +16,14 @@
   ],
 
   "what_it_does_not_establish": [
-    "It does NOT show that the certificates matter more for non-informative delay. That reading comes from comparing cells sitting at 0.00325, 0.05075, 0.52650 and 0.84525 baseline deployment -- a floor, a low point, a mid-curve point and a near-ceiling point. A difference of differences on the probability scale between cells at such different curve positions mixes the mechanism with position on the power curve.",
-    "The mu_h = 0.10 widening is exactly the pattern a CEILING EFFECT alone would produce: P10A at 0.84525 has little room to fall, while P10N at 0.52650 sits on the steepest part of its own curve, so equal loss of evidence moves them unequally. The ablation as specified cannot separate that from a delay-specific mechanism, and this analysis does not claim to.",
+    "It does not show that certificates explain NONE of the delay effect in all regimes. The contrast is measured at two rungs of one law family; a mechanism can contribute in regimes not sampled here, and the within-cell differences show the branches are active in every cell measured.",
+    "It does not decide the sign at mu_h = 0.05, where the interval includes zero.",
     "It does not generalise beyond these four fixed synthetic coordinates, and it repairs none of the coarse panel's inherited provenance qualifications."
   ],
 
-  "conclusion": "The elapsed-cost certificates are load-bearing -- removing them removes real deployments and delays the rest, everywhere. But they are NOT the explanation of the informative-delay advantage: the advantage survives their removal and at mu_h = 0.10 is larger without them. My cost-narrowing hypothesis is falsified in the direction I did not anticipate. Because the four cells are not matched on baseline deployment rate, the contrast does not establish the reverse claim either; the clean result of this experiment is the within-cell paired effect, and the between-cell contrast is reported as specified but read only as 'no shrinkage anywhere'.",
+  "heterogeneity_across_rungs": "The change in the A-minus-N contrast is +0.00125 at mu_h = 0.05 and -0.13250 at mu_h = 0.10, so the intervention's effect on the contrast is NOT constant across the ladder. The four cells sit at 0.00325, 0.05075, 0.52650 and 0.84525 baseline deployment, and that spread is a plausible account of the heterogeneity: at 0.10 the informative cell is near saturation and has little room to fall, while the non-informative cell sits on the steepest part of its own curve, so equal loss of evidence moves them unequally. This is a statement about NONLINEARITY of a correctly paired intervention contrast within a fixed design, NOT a claim that the contrast is confounded. Root, 17:06: 'Different curve positions can explain heterogeneity/nonlinearity of a correctly paired intervention contrast; they do not automatically confound that fixed-design contrast.'",
+
+  "conclusion": "The elapsed-cost certificates are load-bearing -- removing them removes real deployments and delays the rest, in every cell measured. But they do not account for the informative-delay advantage in the way the hypothesis predicted: the advantage survives their removal, and at mu_h = 0.10 it is LARGER without them, a measured widening of -0.13250 [-0.14018, -0.12482] that is reported as a result and not downgraded to 'null'. At mu_h = 0.05 the gap shrinks in point estimate by +0.00125 but the interval includes zero. The positive within-cell original-minus-disabled differences answer a DIFFERENT question -- whether the branches contribute deployments -- and they do; that is not evidence for or against the A-minus-N explanation. Conditional on these simulator laws and this post-hoc design throughout.",
 
   "self_falsification_record": "This is the second mechanism hypothesis of mine that the evidence has refused. The first was the CPREFIX comparison, which I had described as showing no advantage when its Newcombe interval [0.00024, 0.02925] excludes zero. The matched ablation was built precisely because CPREFIX was never a one-thing control. It is a one-thing control, and the one thing is not what I said it was.",
 
@@ -51,8 +53,11 @@
       "what": "Attempt 1 of the run wrote its output to experiments/live_ab_validation/results/... instead of the intended results/... directory.",
       "cause": "vsupervise.supervise runs the child with cwd set to the module directory, not the parent's cwd, and run_ablation.py passed the --out path through to the child unresolved. The two processes did not mean the same directory by the same relative string.",
       "consequence": "None scientific. The child completed all 16 shards and reconciled; the parent reconciled an empty directory and correctly reported no completion.",
-      "disposition": "The attempt is RETAINED in full at disabled_arm_attempt1_misplaced_cwd/, not deleted. run_ablation.py now resolves --out to an absolute path in both parent and child, and the run was repeated. The repeat produced identical counters -- 109,515 operator entries, 1,884,074 output bytes, 32,000 trials -- which is a determinism check across the two attempts.",
-      "latent_elsewhere": "run_powercurve.py passes --out to its child the same way and has the same latent defect; the delivered power-curve runs were invoked with absolute paths and are unaffected. Not repaired in this commit, because repairing it changes the digest of a file pinned by the delivered power-curve receipts and that is a separate, recorded decision."
+      "disposition": "BOTH attempts are RETAINED in full and remain in the ledger: disabled_arm/ and disabled_arm_attempt1_misplaced_cwd/. run_ablation.py now resolves --out to an absolute path in both parent and child.",
+      "row_equality_checked_not_inferred": "ATTEMPT_ROW_EQUALITY.json. Root, 17:06: 'identical counters alone are not proof of identical scientific rows' -- correct, so the ROWS were compared. All 16 shards are byte-identical between the attempts, both decompressed (96,000 primary rows each, aggregate digest 8e8d67305d0e61eacda6a7e8bb1ad9516ede84415e19a13e80c69c03e679aef5) and in their gzip containers. The earlier 'identical counters, therefore a determinism check' wording inferred row equality from counter equality and was not entitled to; the claim now rests on the digests.",
+      "not_64000_trials": "The two attempts are the SAME 32,000 coordinates evaluated twice. They are a reproducibility check and are never pooled, and total usage across both attempts is two executions of one 32,000-coordinate panel.",
+      "lesson_root_stated": "'Future finalization/path repairs should reuse already-complete immutable records when possible.' Attempt 1's records were complete; the right repair was to finalize against them, not to re-run. I re-ran. Recorded so the next path defect is repaired the cheaper way.",
+      "latent_elsewhere": "run_powercurve.py passed --out to its child the same way. Root, 17:06: 'a forward absolute-path fix need not rewrite old receipts or await routine permission.' Fixed forward in this commit; no delivered receipt is rewritten and no historical source identity is repaired by the fix. The delivered power-curve runs were invoked with absolute paths and are unaffected."
     },
     {
       "what": "vpins.entry_point_pins gained two keys, `variant` and `law_weights`, inside run_identity.",
@@ -66,14 +71,48 @@
     },
     {
       "what": "The host was not quiescent during the run: four foreign DTR-AgentEvals processes at ~99% CPU and a load average of 7.86.",
-      "consequence": "Affects WALL TIME only. Every quantity reported here is a deterministic function of the draws; the repeat attempt reproduced attempt 1's counters exactly under the same load. No foreign process was signalled or inspected."
+      "consequence": "Affects WALL TIME only. Every quantity reported here is a deterministic function of the draws; the repeat attempt reproduced attempt 1's rows byte for byte under the same load. No foreign process was signalled or inspected."
     }
   ],
 
+  "CORRECTIONS_v1": {
+    "authority": "root, issue 12 comment 5764409570, 2026-09-21 17:06",
+    "note": "The commit message of 6bdefd1 is immutable and carries the uncorrected wording; these are the corrections to it and to this file's first version.",
+    "corrections": [
+      {
+        "was": "'THE PREDICTION FAILS AT BOTH RUNGS' / 'shrinks at neither rung' / 'There is no rung at which disabling the certificates closes the gap.'",
+        "now": "'No clear shrinkage at 0.05 and widening at 0.10.'",
+        "why": "At mu_h = 0.05 the point estimate DOES shrink, by +0.00125; only its interval includes zero. I treated 'interval includes zero' as 'no shrinkage', which reports an unresolved direction as a resolved one -- the same convention-mixing this project's readouts exist to prevent."
+      },
+      {
+        "was": "'the difference of differences mixes the mechanism with position on the power curve' / 'the contrast does not establish the reverse claim either' / 'read only as no shrinkage anywhere'.",
+        "now": "Curve position is offered as an account of HETEROGENEITY across rungs of a correctly paired intervention contrast, not as a confound that invalidates it. See heterogeneity_across_rungs.",
+        "why": "Root: 'Different curve positions can explain heterogeneity/nonlinearity of a correctly paired intervention contrast; they do not automatically confound that fixed-design contrast.' The pairing is within-cell and exact; nothing about differing baselines breaks it."
+      },
+      {
+        "was": "The mu_h = 0.10 widening was framed as a limitation to be reported cautiously, and I asked root whether it should appear in the paper at all.",
+        "now": "The widening is a MEASURED RESULT, reported with its paired contrast and Monte Carlo uncertainty, explicitly conditional on these simulator laws and this post-hoc design.",
+        "why": "Root: 'preserve and report the measured 0.10 widening with its paired contrast and uncertainty ... Do not suppress it as merely null.'"
+      },
+      {
+        "was": "'cost narrowing ... is NOT the explanation of the informative-delay advantage' stated without regime qualification.",
+        "now": "The hypothesis is unsupported AT THESE RUNGS OF THIS LAW FAMILY. No claim that certificates explain none of the delay effect in all regimes.",
+        "why": "Root: 'Avoid a broad claim that certificates explain none of the delay effect in all regimes.' Two rungs of one law family cannot support a universal negative."
+      },
+      {
+        "was": "'The repeat produced identical counters ... which is a determinism check across the two attempts.'",
+        "now": "All 16 shards are byte-identical between attempts, checked by sha256 over decompressed and container bytes; see ATTEMPT_ROW_EQUALITY.json.",
+        "why": "Root: 'identical counters alone are not proof of identical scientific rows.' Correct. The original sentence inferred what it had not checked."
+      }
+    ]
+  },
+
   "must_not_claim": [
-    "that cost narrowing explains the informative-delay advantage -- this experiment was built to test that and the test came back negative",
-    "that cost narrowing is irrelevant -- it removes real deployments in every cell",
-    "that the certificates matter more under one delay regime than the other -- the cells are not matched on baseline rate and floor/ceiling alone can produce the observed pattern",
+    "that cost narrowing explains the informative-delay advantage at these rungs -- the experiment was built to test that and the contrast does not support it",
+    "that certificates explain NONE of the delay effect in all regimes -- two rungs of one law family cannot support a universal negative",
+    "that cost narrowing is irrelevant -- it removes real deployments in every cell measured",
+    "that the A-minus-N contrast is confounded by differing baseline rates -- the pairing is within-cell and exact; differing baselines explain heterogeneity across rungs, not invalidity",
+    "that the mu_h = 0.05 result shows no shrinkage -- it shows shrinkage whose direction is unresolved at this sample size",
     "that any of this was prospectively predicted, or generalises beyond these four synthetic coordinates",
     "that the paired intervals are coverage statements; they are Monte Carlo uncertainty over this panel's finite draws"
   ]

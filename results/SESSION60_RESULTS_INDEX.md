@@ -645,19 +645,25 @@ refused; perturbed success interval refused).
 | P10A | 0.84525 | 0.84075 | **+0.00450** | [+0.00303, +0.00597] |
 
 The hypothesis was that elapsed-cost narrowing **causes** the informative-delay gain, so disabling it
-should **shrink** the A−N gap. It does not shrink at either rung. At μ_h = 0.10 the gap **widens**,
-+0.31875 → +0.45125, change **−0.13250**, MC 95% [−0.14018, −0.12482] (excludes zero). At μ_h = 0.05 the
-change is +0.00125, [−0.00030, +0.00280] (includes zero). **Hypothesis falsified, in the direction I did
-not anticipate.**
+should **shrink** the A−N gap. **No clear shrinkage at μ_h = 0.05, and widening at μ_h = 0.10.** At 0.05
+the gap *does* shrink in point estimate, +0.04750 → +0.04625, change **+0.00125**, but MC 95%
+[−0.00030, +0.00280] includes zero, so the direction is unresolved at this sample size. At 0.10 the gap
+**widens**, +0.31875 → +0.45125, change **−0.13250**, MC 95% [−0.14018, −0.12482], excluding zero. The
+widening is a **measured result reported with its uncertainty**, not downgraded to "null"; conditional
+throughout on these simulator laws and this post-hoc design.
 
-What *is* established: the certificates are load-bearing everywhere (all four paired intervals exclude
-zero); the label change is **one-directional** — across 32,000 pairs there is **not one** pair where the
-disabled arm deploys and the original does not, and **not one retention** in either arm, so only 3 of the
-16 joint first-decision categories are populated; surviving decisions arrive **29–123 ticks later**.
-What is **not** established: that certificates matter more under one delay regime. The four cells sit at
-0.003 / 0.051 / 0.527 / 0.845 baseline deployment — a floor, a low point, a mid-curve point and a
-near-ceiling point — so the difference-of-differences mixes mechanism with **power-curve position**, and
-a ceiling effect alone reproduces the μ_h = 0.10 pattern.
+What *is* established: the certificates are load-bearing in every cell measured (all four paired intervals
+exclude zero); the label change is **one-directional** — across 32,000 pairs there is **not one** pair
+where the disabled arm deploys and the original does not, and **not one retention** in either arm, so only
+3 of the 16 joint first-decision categories are populated; surviving decisions arrive **29–123 ticks
+later**. Those within-cell differences answer a **different question** — whether the branches contribute
+deployments — and do not bear on the A−N explanation either way.
+
+The effect on the contrast is **not constant across the ladder** (+0.00125 at 0.05, −0.13250 at 0.10).
+The four cells sit at 0.003 / 0.051 / 0.527 / 0.845 baseline deployment, which plausibly accounts for that
+**heterogeneity/nonlinearity of a correctly paired intervention contrast** — it is **not** a confound: the
+pairing is within-cell and exact. No claim is made that certificates explain **none** of the delay effect
+in all regimes; two rungs of one law family cannot support a universal negative.
 
 Pre-outcome, executed: **branch witness** through `vgen.adapter_tick_sums` itself (contained at all 2,201
 ticks, success sums identical at all 2,201, 2,174 strictly different, so it can distinguish the arms);
@@ -667,14 +673,29 @@ noted had been *described but not exercised*; three negative controls fire. Orig
 26/406/4212/6762 of 8000 deploys, retain 0 — identical to the delivered `PC_ANALYSIS.json`.
 
 **Deviations, all recorded in `ABLATION_FINDING.json`:** attempt 1 wrote to the wrong directory
-(`vsupervise` runs the child with its own cwd; `--out` was passed unresolved) — **retained in full** at
-`disabled_arm_attempt1_misplaced_cwd/`, path fixed, repeat produced **identical counters** (determinism
-check); `vpins.entry_point_pins` gained `variant`/`law_weights`, so its `receipt` aggregate is not
-comparable with pre-2026-09-21 receipts; the pre-registered wrapper's default `policy` was corrected from
-`operational` to `oracle` **before any outcome was read** (under installation `_look_fractions` would have
-silently switched policy); host not quiescent — **wall time only**, every reported quantity deterministic.
-Latent and **not** repaired here: `run_powercurve.py` passes `--out` to its child the same way; delivered
-runs used absolute paths and are unaffected, and repairing it moves a digest that delivered receipts pin.
+(`vsupervise` runs the child with its own cwd; `--out` was passed unresolved) — **both attempts retained
+in full** at `disabled_arm/` and `disabled_arm_attempt1_misplaced_cwd/`, path fixed;
+`vpins.entry_point_pins` gained `variant`/`law_weights`, so its `receipt` aggregate is not comparable with
+pre-2026-09-21 receipts; the pre-registered wrapper's default `policy` was corrected from `operational` to
+`oracle` **before any outcome was read** (under installation `_look_fractions` would have silently
+switched policy); host not quiescent — **wall time only**, every reported quantity deterministic.
+
+**Attempt row equality — checked, not inferred** (`ablation_20260921/ATTEMPT_ROW_EQUALITY.json`,
+`deterministic-path`). Root: *"identical counters alone are not proof of identical scientific rows."*
+Correct, so the rows were hashed. All **16 shards byte-identical** between attempts, both decompressed
+(96,000 primary rows each; aggregate digest `8e8d6730…9aef5`) and in their gzip containers. The earlier
+"identical counters, therefore a determinism check" wording inferred what it had not checked. The two
+attempts are the **same 32,000 coordinates run twice**, never 64,000 independent trials, and never pooled.
+
+**`run_powercurve.py` path fix applied forward** — root: *"a forward absolute-path fix need not rewrite
+old receipts or await routine permission."* No receipt rewritten, no historical source identity repaired;
+delivered coarse/fine runs used absolute paths and are unaffected.
+
+**`CORRECTIONS_v1` (root 17:06), recorded in `ABLATION_FINDING.json`:** five corrections to my 17:02
+wording — "prediction fails at both rungs" → "no clear shrinkage at 0.05 and widening at 0.10" (I read
+*interval includes zero* as *no effect*); "confounded by curve position" → heterogeneity of a correctly
+paired contrast, not invalidity; the 0.10 widening reported as a result rather than a caveat; no universal
+negative about certificates across regimes; and the counter-based determinism claim replaced by digests.
 
 ## Open requests
 

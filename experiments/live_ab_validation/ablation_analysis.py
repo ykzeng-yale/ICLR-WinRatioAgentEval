@@ -247,6 +247,17 @@ def analyse(original_root: Path = ORIGINAL_ROOT,
         "must_not_claim": [
             "that cost narrowing explains every ADAPTER difference between the "
             "informative and non-informative delay arms",
+            "that certificates explain NONE of the delay effect in all regimes; "
+            "two rungs of one law family cannot support a universal negative",
+            "that an interval including zero shows NO effect -- at mu_h = 0.05 "
+            "the contrast shrinks in point estimate and its direction is simply "
+            "unresolved at this sample size",
+            "that differing baseline rates confound the contrast. The pairing is "
+            "WITHIN-cell and exact. Different curve positions explain "
+            "heterogeneity and nonlinearity of a correctly paired intervention "
+            "contrast across rungs; they do not invalidate it.",
+            "that the measured mu_h = 0.10 widening may be suppressed as 'merely "
+            "null'; it is a result and is reported with its uncertainty",
             "that any result here generalises beyond this fixed synthetic replay "
             "design to informative-delay systems at large",
             "that a difference, or the absence of one, was prospectively "
@@ -255,8 +266,9 @@ def analyse(original_root: Path = ORIGINAL_ROOT,
             "Carlo uncertainty over this panel's finite draws",
             "that the decision-conditional timing reading is anything but "
             "descriptive: its conditioning set is selected on the outcome",
-            "that a null contrast refutes the mechanism, or that a non-null one "
-            "establishes it outside these four coordinates",
+            "that the positive within-cell original-minus-disabled differences "
+            "bear on the A-minus-N explanation; they answer a DIFFERENT question "
+            "-- whether the branches contribute deployments at all",
         ],
     }
 
