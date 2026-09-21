@@ -24,17 +24,26 @@ do not certify all `#11` results.
 
 ## A REPORTING DEFECT FOUND WHILE DOING THIS
 
-`comparison_summary.json` declares `look_schedule.csv_column = "drain_look"`, and `DEFECT_FIELDS`
-(`vcompare.py:1053`) lists that field. **The emitted `comparison_defects.csv` does not contain the
-column at all**, before or after a fresh run. Anyone following the summary's own instruction to find
-the drain rows would filter on `drain_look`, get **zero rows**, and conclude there were none — while
-three are sitting in the file, identifiable only by `tick != n`.
+**CORRECTED 2026-09-21, and the correction is against me.** I originally wrote that the emitted CSV
+"does not contain the column at all". That is FALSE and it is the same error I have now made eight
+times: I checked ONE file and described the population. The root's own audit
+(`reviews/evidence/v2_policy_checks_20260921_0635.py`) reads `r['drain_look']` straight out of
+`comparison_vs_live_ab.csv`, so I verified it:
 
-This is the same failure shape as the host gate that always reported clean and the hash fixture that
-never opened a file: **a mechanism that names a check it does not perform.** It is a reporting defect
-only — the disagreements are in the file and the summary counts them correctly — but a reader
-following the documented route finds nothing. Not repaired here; `vcompare.py` belongs to the run that
-produced the committed receipt and regenerating it is a separate, declarable step.
+| file | `drain_look` column |
+|---|---|
+| `comparison_vs_live_ab.csv` (the LOOKS file) | **present** |
+| `comparison_defects.csv` (the DEFECTS file) | absent |
+
+The summary's `csv_column: "drain_look"` points at the looks file, where the column exists and works.
+**The stronger framing is withdrawn**: this is NOT a mechanism naming a check it does not perform, and
+it does not belong beside the host gate that always reported clean or the hash fixture that never
+opened a file. Comparing it to those two inflated a convenience gap into a structural defect.
+
+What remains, stated at its real size: **`comparison_defects.csv` lacks the column that its sibling
+file carries**, so filtering the DEFECT rows by `drain_look` yields nothing and the three drain
+disagreements are reachable there only via `tick != n`. A one-file inconsistency worth fixing, not a
+broken check.
 
 ## A DEVIATION OF MINE, RECORDED
 

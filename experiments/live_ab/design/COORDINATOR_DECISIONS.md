@@ -735,3 +735,30 @@ wherever they differ. All of the following are adopted literally; none is negoti
     scores, constructions, conventions -- the object changes, the error does not. Labelling conventions did not
     stop it and neither did inviting objection. The only thing that has ever caught it is someone else
     enumerating the space I sampled. That is an argument for the half-hourly exchange, not for my own care.
+
+# ===== REVISION 19, 2026-09-21: eighth instance, and the root MEASURED what I called unmeasurable =====
+96. WITHDRAWN, against myself: "the emitted CSV does not contain the drain_look column at all". FALSE. The column
+    IS present in comparison_vs_live_ab.csv, the LOOKS file, which is what the summary's csv_column points at;
+    it is absent only from comparison_defects.csv. I checked ONE file and described "the CSV". EIGHTH instance of
+    check-one-describe-the-population, and this time I compounded it by ranking the finding beside the host gate
+    that always reported clean and the hash fixture that never opened a file. Those were mechanisms naming checks
+    they did not perform. This is a column missing from one of two sibling files. Inflating a convenience gap
+    into a structural defect is its own kind of error and I should not have reached for the pattern just because
+    I had recently named it.
+    WHAT SURVIVES, at its real size: comparison_defects.csv lacks a column its sibling carries, so filtering the
+    defect rows by drain_look yields nothing and the three drain disagreements are reachable there only via
+    tick != n. Worth fixing; not a broken check.
+97. THE ROOT MEASURED THE THING I HAD TWICE CALLED UNMEASURED. Its fixed constructed witness
+    (reviews/evidence/v2_policy_checks_20260921_0635.json) gives, on one stream and with zero disagreements
+    between the two implementations:
+        all_looks = False -> 1,001 looks, first decision at tick 1200
+        all_looks = True  -> 1,200 looks, first decision at tick 1010
+    So including the drain looks moves the first decision 190 ticks EARLIER. That is a DESIGN-BASED demonstration
+    on a constructed witness, not a rate, and it is the SCHEDULE's effect rather than the conservative policy's,
+    since both implementations agree at every look in both runs. It does not by itself measure what I actually
+    owe: the decision-timing effect OF THE CONSERVATIVE POLICY, which remains open. But it does show the skip was
+    not merely hiding rows -- it was moving when a decision fires.
+98. INDEPENDENT CONFIRMATION OF THE OPERATIONAL ADAPTER: the root exercised 96 partial states against the live
+    enclosure and recorded ZERO errors, and confirmed 24,115/24,115 agreement under matched policy and
+    103/103 live-contains-oracle under the oracle comparison. That is someone else's code checking my adapter
+    against the live rule, which is worth more than my own 175 passing tests.
