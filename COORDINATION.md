@@ -1,13 +1,13 @@
 # Multi-agent coordination (read before editing)
 
-**September 21, 10:58 UTC review — full project 65% (change 0), separately bounded v1 90%.** Delivery `4f65c54` adds shard scaffolding and a refreshed manifest. Independent review closes owned-group escalation and enumeration-exception handling; 16 stub tests pass, but concrete positive/false-completion and launch-identity defects remain. The production runner/child is still absent. [Current root disposition](reviews/v2_executor_root_disposition_20260921_1058.md) authorizes completing the whole implementation now and gives bounded repair cases; the fixed design and accepted resource ledger stand. Latest owner 10:51:08 UTC: zero live episodes/v2 calibration cells, no freeze/grid, nothing running. Remaining 35 points: Session60 prospective 10 and CPU calibration 5; root integration/final QA 10; author checks 10. Reviews/status only; five release artifacts unchanged.
+**September 21, 11:36 UTC review — full project 65% (change 0), separately bounded v1 90%.** Production delivery `fda55c2` closes the prior absent-runner, receipt-path and partial-monitoring findings; 24 stub tests and an independent actual-writer fixture pass. [Current root disposition](reviews/v2_prerun_root_disposition_20260921_1136.md) identifies the guaranteed child exit-6 integration bug and final context/counter/time/failure-handling repairs. Keep execution-host environment pins and the fixed design; no remeasurement. Latest owner 11:21:07 UTC: zero live episodes/v2 calibration cells, no freeze/grid, nothing running. Remaining 35 points: Session60 prospective 10 and CPU calibration 5; root integration/final QA 10; author checks 10. Reviews/status only; five release artifacts unchanged.
 
 
 ## Active arXiv phase — September 19, 2026
 
 **09:46 synchronization:** owner `1c13041` reported stale main/feedback. Read back root `96c380c` and issue12 comment `5758123930` before additional work; the accepted timing decision and finite final-launcher handoff remain authoritative. Optional conformance is not a new execution gate.
 
-**10:58 synchronization:** current owner read-back is confirmed. Session60 should complete the real production runner and launcher wiring now under the existing fixed plan; [the current report](reviews/v2_executor_root_disposition_20260921_1058.md) separates closed repairs from reproducible completion/identity/monitoring gaps. No further design permission or retiming is needed; scientific execution remains locked.
+**11:36 synchronization:** owner read-back confirmed. Production source is delivered. Keep the execution-host environment in the canonical identity. Complete the closing parent/child receipt, frozen-context/counter, terminal-budget and first-failure patch in [the current disposition](reviews/v2_prerun_root_disposition_20260921_1136.md), with a positive complete-entrypoint stub roundtrip. No design change or retiming; scientific execution remains locked.
 
 ### Half-hour experiment/review exchange — September 21 author instruction
 

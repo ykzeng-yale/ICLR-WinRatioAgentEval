@@ -1,0 +1,45 @@
+{
+  "owner_commit": "fda55c2d7793eb521f321f99635ec555397fc543",
+  "scope": "tiny injected stub records, mocked manifest and supervisor; no scientific/native/model/process job",
+  "positive_child": {
+    "returncode": 6,
+    "shards_published": 1,
+    "false_conditions": [
+      "no_cap_event",
+      "supervisor_completed_successfully"
+    ]
+  },
+  "child_without_identity": {
+    "returncode": 6,
+    "shards_published": 1
+  },
+  "missing_parent_identity_refused": true,
+  "listed_source_hash_mismatches": [],
+  "manifest_source_head": "a137d39e2b4f3c5f853efb7bfc6e276b8e6c5f6e",
+  "reviewed_identity": "c3d4bce5021d3a3f37ec899629e22c3f2858154ecfde514e03c5871b5d8f5509",
+  "canonical_identity_recomputed_matches": true,
+  "mock_parent_child_roundtrip": {
+    "child_returncode": 6,
+    "complete": false,
+    "observed_totals": {
+      "trials": 4,
+      "reference_calls": 8,
+      "primary_rows": 12,
+      "reference_rows": 24
+    },
+    "cumulative_job": {
+      "elapsed_seconds": 5132799.219389916,
+      "shards_completed": 0,
+      "trials": 0,
+      "reference_calls": 0,
+      "primary_rows": 0,
+      "reference_rows": 0,
+      "output_bytes": 0
+    },
+    "parent_job_id": "T1"
+  },
+  "mismatched_expected_context_after_isolating_child_exit_defect": {
+    "scientific_completion": true,
+    "test_only": "synthetic success supervision to isolate context binding; no real acceptance"
+  }
+}

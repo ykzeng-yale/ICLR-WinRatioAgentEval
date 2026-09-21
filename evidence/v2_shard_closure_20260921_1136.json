@@ -1,0 +1,108 @@
+{
+  "positive": {
+    "draw_calls": [
+      [
+        10,
+        0
+      ],
+      [
+        10,
+        1
+      ],
+      [
+        11,
+        0
+      ],
+      [
+        11,
+        1
+      ]
+    ],
+    "published": true,
+    "primary_rows": 12,
+    "reference_rows": 16,
+    "primary_coordinates": [
+      [
+        "C1",
+        10,
+        0
+      ],
+      [
+        "C1",
+        10,
+        1
+      ],
+      [
+        "C1",
+        11,
+        0
+      ],
+      [
+        "C1",
+        11,
+        1
+      ]
+    ],
+    "reference_coordinates": [
+      [
+        "C1",
+        10,
+        0
+      ],
+      [
+        "C1",
+        10,
+        1
+      ],
+      [
+        "C1",
+        11,
+        0
+      ],
+      [
+        "C1",
+        11,
+        1
+      ]
+    ],
+    "scores": [
+      "D",
+      "H"
+    ],
+    "constructions": [
+      "ADAPTER",
+      "CPREFIX",
+      "NAIVE"
+    ],
+    "observed": {
+      "programs": 2,
+      "trials": 4,
+      "reference_calls": 8,
+      "primary_rows": 12,
+      "reference_rows": 16
+    }
+  },
+  "failure": {
+    "draw_calls": [
+      [
+        10,
+        0
+      ],
+      [
+        10,
+        1
+      ],
+      [
+        11,
+        0
+      ],
+      [
+        11,
+        1
+      ]
+    ],
+    "published": false,
+    "partials": 1,
+    "error": "shard S counts do not reconcile: {'trials': {'planned': 4, 'observed': 3}, 'reference_calls': {'planned': 8, 'observed': 6}, 'primary_rows': {'planned': 12, 'observed': 9}, 'reference_rows': {'planned': 16, 'observed': 12}}. Partial attempt retained at /Users/yukang/Documents/Codex/2026-09-17/i-x20/work/shard_closure_1136/failure_thqk6gge/partial_a_001_S; not published."
+  }
+}
