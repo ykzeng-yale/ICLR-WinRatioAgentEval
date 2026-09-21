@@ -1,0 +1,251 @@
+{
+  "schema": "live_ab_validation_v2.reference.manifest.2",
+  "role": "DECLARED EXTERNAL REFERENCE. Reported beside the primary, never instead of it. It can never override any decision, any gate, any margin or any stopping rule. It is not a construction in the primary panel and the primary does not import it.",
+  "ruling": "COORDINATOR_DECISIONS revision 16 items 74 and 79; root disposition 2026-09-21 02:26 decision 4; issue 12 comments 5754619899 and 5754667289.",
+  "reference_callable": "comparecast.confseq.confseq_eb",
+  "reference_paper": "Choe and Ramdas, Comparing Sequential Forecasters, Theorem 2 (Operations Research; arXiv 2110.00115v6)",
+  "bound_parameters": {
+    "v_opt": 10.0,
+    "lo": -1.0,
+    "hi": 1.0,
+    "boundary_type": "mixture",
+    "alpha": "the existing two-sided per-gate allocation, passed in by the caller; confseq_eb applies its own alpha/2 split",
+    "v_opt_none_prohibited": true,
+    "partial_endpoint_plug_in_prohibited": true,
+    "one_sided_prohibited_without_explicit_c": true
+  },
+  "generated_unix": 1789959237.146178,
+  "generated_by": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/vendor.py",
+  "vendor_py_sha256": "6f792463a1b4b63827f65fb95cd4696d4612ffd05b7c519132f595184cc7cb0f",
+  "python": "3.12.13",
+  "platform": "macOS-26.5.2-arm64-arm-64bit",
+  "compiler": "c++",
+  "build_dependencies": {
+    "boost": {
+      "version": "1.87.0",
+      "url": "https://archives.boost.io/release/1.87.0/source/boost_1_87_0.tar.gz",
+      "archive_sha256": "f55c340aa49763b1925ccf02b2e83f35fdcf634c9d5164a2acb87540173c741d",
+      "include_dir_used": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/ref/boost_1_87_0",
+      "archive_sha256_recomputed": "f55c340aa49763b1925ccf02b2e83f35fdcf634c9d5164a2acb87540173c741d",
+      "role": "build-time only; header dependency of the authors' uniform_boundaries.h. Not vendored, not a runtime dependency of the built module."
+    },
+    "pybind11": {
+      "version": "2.13.6",
+      "include_dir_used": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/ref/builddeps/pybind11/include",
+      "role": "build-time only; installed into an isolated --target directory, never into the project venv."
+    }
+  },
+  "build_product": {
+    "path": "_build/boundaries.cpython-312-darwin.so",
+    "sha256": "f1c65419fd9785be308eb762e86444effa52a168631a9f39cd377178eab55657",
+    "bytes": 356208,
+    "built_from": "upstream/confseq/boundaries.cpp (verbatim) + upstream/confseq/uniform_boundaries.h (verbatim)",
+    "note": "Binary build product, not vendored source. Rebuild with vendor.py; the sources it is built from are hashed above."
+  },
+  "vendored_files": [
+    {
+      "repository": "https://github.com/yjchoe/ComparingForecasters",
+      "commit": "52748c86e0429a9612dc79892c3be6156a524132",
+      "upstream_path": "comparecast/confseq.py",
+      "vendored_path": "upstream/comparecast/confseq.py",
+      "sha256": "8ea07278021cd06223fa1aa95c3a2aa46ab5be4d5a859d5ed49b5ef5218baef4",
+      "bytes": 12400,
+      "verbatim": true,
+      "license": "MIT"
+    },
+    {
+      "repository": "https://github.com/yjchoe/ComparingForecasters",
+      "commit": "52748c86e0429a9612dc79892c3be6156a524132",
+      "upstream_path": "comparecast/utils.py",
+      "vendored_path": "upstream/comparecast/utils.py",
+      "sha256": "5bc239e18f13deb8b064df9a82b859f8556a11f1f91a39145c1cfba8ade37838",
+      "bytes": 4536,
+      "verbatim": true,
+      "license": "MIT"
+    },
+    {
+      "repository": "https://github.com/yjchoe/ComparingForecasters",
+      "commit": "52748c86e0429a9612dc79892c3be6156a524132",
+      "upstream_path": "LICENSE.txt",
+      "vendored_path": "licenses/ComparingForecasters-LICENSE.txt",
+      "sha256": "11be31dffbbca949a64478dc821a900f6978ab37e7fca30066fc05ee5f088dc1",
+      "bytes": 1089,
+      "verbatim": true,
+      "license": "MIT"
+    },
+    {
+      "repository": "https://github.com/gostevehoward/confseq",
+      "commit": "5ffe733ca2447a2e28c2c91f3b00086173f2ab2c",
+      "upstream_path": "src/confseq/__init__.py",
+      "vendored_path": "upstream/confseq/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "verbatim": true,
+      "license": "MIT"
+    },
+    {
+      "repository": "https://github.com/gostevehoward/confseq",
+      "commit": "5ffe733ca2447a2e28c2c91f3b00086173f2ab2c",
+      "upstream_path": "src/confseq/boundaries.cpp",
+      "vendored_path": "upstream/confseq/boundaries.cpp",
+      "sha256": "75818453e7b2ad9d5019aefcc3e52fd073244d2e9459a427661bbc688ef45d7b",
+      "bytes": 4895,
+      "verbatim": true,
+      "license": "MIT"
+    },
+    {
+      "repository": "https://github.com/gostevehoward/confseq",
+      "commit": "5ffe733ca2447a2e28c2c91f3b00086173f2ab2c",
+      "upstream_path": "src/confseq/uniform_boundaries.h",
+      "vendored_path": "upstream/confseq/uniform_boundaries.h",
+      "sha256": "2dd72cbfbee7110a49c67d142a58db83750fd653b189e310156d60d65685e21e",
+      "bytes": 28473,
+      "verbatim": true,
+      "license": "MIT"
+    },
+    {
+      "repository": "https://github.com/gostevehoward/confseq",
+      "commit": "5ffe733ca2447a2e28c2c91f3b00086173f2ab2c",
+      "upstream_path": "LICENSE",
+      "vendored_path": "licenses/confseq-LICENSE",
+      "sha256": "2462eb2880ba8e4e1c8c95567939c7d7a46a517370767aade4d7c877169fbbd5",
+      "bytes": 1075,
+      "verbatim": true,
+      "license": "MIT"
+    },
+    {
+      "repository": "https://github.com/gostevehoward/confseq",
+      "commit": "5ffe733ca2447a2e28c2c91f3b00086173f2ab2c",
+      "upstream_path": "CMakeLists.txt",
+      "vendored_path": "upstream/confseq/CMakeLists.txt",
+      "sha256": "d8cd3a9580b8c9ac6b2b670c511bac28b9fb2b1b0aaf9cf7cf89740184fa43db",
+      "bytes": 1109,
+      "verbatim": true,
+      "license": "MIT"
+    },
+    {
+      "repository": null,
+      "commit": null,
+      "upstream_path": null,
+      "vendored_path": "upstream/comparecast/__init__.py",
+      "sha256": "314fd68a18a1218537664a71da6bd103caf612f93fdc56b667cbcf5e58692cb5",
+      "bytes": 667,
+      "verbatim": false,
+      "vendor_shim": true,
+      "note": "OUR shim, not author code. See VERIFIED_NOT_VENDORED for the upstream initialiser this replaces and why."
+    }
+  ],
+  "verified_not_vendored": [
+    {
+      "repository": "https://github.com/yjchoe/ComparingForecasters",
+      "commit": "52748c86e0429a9612dc79892c3be6156a524132",
+      "upstream_path": "comparecast/__init__.py",
+      "sha256": "64380b8493e070722a55cc988b822f6e4a43e78a42d27caef6054a6ed4662e08",
+      "bytes": 766,
+      "reason_not_vendored": "Upstream package initialiser. Executing it runs `from comparecast.plotting import *` and 10 sibling star-imports, pulling in pandas, matplotlib and seaborn. The literature document warns against exactly this. Replaced in upstream/comparecast/ by OUR shim (marked `vendor_shim` in the manifest), which is the only non-author Python byte in the vendored tree."
+    },
+    {
+      "repository": "https://github.com/gostevehoward/confseq",
+      "commit": "5ffe733ca2447a2e28c2c91f3b00086173f2ab2c",
+      "upstream_path": "src/confseq/betting.py",
+      "sha256": "c75ee344da46e7652cff40f42e2c879431efd629620d856cd2189ed926cae57b",
+      "bytes": 27290,
+      "reason_not_vendored": "Hash-verified because the root's literature document quotes this exact SHA-256, so verifying it confirms the pin table against the root's own record. NOT vendored: it holds betting_cs/hedged_cs, which the literature document and the coordinator both forbid substituting for the running-mean reference ('Do not use confseq_pm_eb merely because its name also includes EB'). Keeping it out of the importable tree makes that substitution impossible rather than merely discouraged."
+    }
+  ],
+  "licenses": {
+    "ComparingForecasters": "MIT, retained verbatim at licenses/ComparingForecasters-LICENSE.txt",
+    "confseq": "MIT, retained verbatim at licenses/confseq-LICENSE",
+    "pybind11": "BSD-3-Clause, build-time only, not redistributed here"
+  },
+  "attempts": [
+    {
+      "source": "https",
+      "url": "https://raw.githubusercontent.com/yjchoe/ComparingForecasters/52748c86e0429a9612dc79892c3be6156a524132/comparecast/confseq.py",
+      "ok": true,
+      "http_status": 200,
+      "bytes": 12400,
+      "seconds": 0.0824120044708252
+    },
+    {
+      "source": "https",
+      "url": "https://raw.githubusercontent.com/yjchoe/ComparingForecasters/52748c86e0429a9612dc79892c3be6156a524132/comparecast/utils.py",
+      "ok": true,
+      "http_status": 200,
+      "bytes": 4536,
+      "seconds": 0.08375716209411621
+    },
+    {
+      "source": "https",
+      "url": "https://raw.githubusercontent.com/yjchoe/ComparingForecasters/52748c86e0429a9612dc79892c3be6156a524132/LICENSE.txt",
+      "ok": true,
+      "http_status": 200,
+      "bytes": 1089,
+      "seconds": 0.08366179466247559
+    },
+    {
+      "source": "https",
+      "url": "https://raw.githubusercontent.com/gostevehoward/confseq/5ffe733ca2447a2e28c2c91f3b00086173f2ab2c/src/confseq/__init__.py",
+      "ok": true,
+      "http_status": 200,
+      "bytes": 0,
+      "seconds": 0.16135883331298828
+    },
+    {
+      "source": "https",
+      "url": "https://raw.githubusercontent.com/gostevehoward/confseq/5ffe733ca2447a2e28c2c91f3b00086173f2ab2c/src/confseq/boundaries.cpp",
+      "ok": true,
+      "http_status": 200,
+      "bytes": 4895,
+      "seconds": 0.08047294616699219
+    },
+    {
+      "source": "https",
+      "url": "https://raw.githubusercontent.com/gostevehoward/confseq/5ffe733ca2447a2e28c2c91f3b00086173f2ab2c/src/confseq/uniform_boundaries.h",
+      "ok": true,
+      "http_status": 200,
+      "bytes": 28473,
+      "seconds": 0.07900285720825195
+    },
+    {
+      "source": "https",
+      "url": "https://raw.githubusercontent.com/gostevehoward/confseq/5ffe733ca2447a2e28c2c91f3b00086173f2ab2c/LICENSE",
+      "ok": true,
+      "http_status": 200,
+      "bytes": 1075,
+      "seconds": 0.08783292770385742
+    },
+    {
+      "source": "https",
+      "url": "https://raw.githubusercontent.com/gostevehoward/confseq/5ffe733ca2447a2e28c2c91f3b00086173f2ab2c/CMakeLists.txt",
+      "ok": true,
+      "http_status": 200,
+      "bytes": 1109,
+      "seconds": 0.03574395179748535
+    },
+    {
+      "source": "https",
+      "url": "https://raw.githubusercontent.com/yjchoe/ComparingForecasters/52748c86e0429a9612dc79892c3be6156a524132/comparecast/__init__.py",
+      "ok": true,
+      "http_status": 200,
+      "bytes": 766,
+      "seconds": 0.08359503746032715
+    },
+    {
+      "source": "https",
+      "url": "https://raw.githubusercontent.com/gostevehoward/confseq/5ffe733ca2447a2e28c2c91f3b00086173f2ab2c/src/confseq/betting.py",
+      "ok": true,
+      "http_status": 200,
+      "bytes": 27290,
+      "seconds": 0.1544959545135498
+    },
+    {
+      "source": "build",
+      "command": "c++ -O3 -std=c++14 -undefined dynamic_lookup -shared -fPIC -fvisibility=hidden -I /private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/ref/builddeps/pybind11/include -I /Users/yukangzengcmac/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/include/python3.12 -I /private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/ref/boost_1_87_0 /Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/upstream/confseq/boundaries.cpp -o /Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/reference/_build/boundaries.cpython-312-darwin.so",
+      "ok": true,
+      "returncode": 0,
+      "stderr_tail": "",
+      "seconds": 1.7413687705993652
+    }
+  ]
+}

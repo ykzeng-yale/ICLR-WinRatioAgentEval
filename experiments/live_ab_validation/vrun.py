@@ -93,7 +93,20 @@ HERE = Path(__file__).resolve().parent
 REPO_ROOT = HERE.parents[1]
 CELLS_JSON = HERE / "cells.json"
 PROTOCOL_MD = HERE / "PROTOCOL.md"
+#: The v2 AMENDMENT.  ``PROTOCOL.md`` section 14 makes a change to an estimator
+#: or a reported quantity a new protocol version with its own freeze, and says
+#: every result keeps the label of the version that produced it.  A v2 run must
+#: therefore bind these bytes, not v1's; ``v2_bindings`` does that, and records
+#: base and amended identities as SEPARATE fields so the parent is preserved.
+PROTOCOL_V2_MD = HERE / "PROTOCOL_V2.md"
+#: The amendment's own version string, as declared in PROTOCOL_V2.md line 3.
+V2_VERSION_STRING = "v2-cpu-validation"
 CANONICAL_OUT = REPO_ROOT / "results" / "live_ab_validation"
+#: The v2 DEVELOPMENT output root.  Separate from ``CANONICAL_OUT`` so that a
+#: v2 development artifact can never land in v1's deposit, and so that the
+#: reported grid has exactly one permitted destination. Root disposition
+#: decision 3: "write to a new explicit v2 output location".
+V2_OUT_ROOT = REPO_ROOT / "results" / "live_ab_validation_v2"
 GUIDANCE_DOC = REPO_ROOT / "reviews" / "arxiv_live_design_guidance.md"
 PINNED_PRIMITIVE = REPO_ROOT / "src" / "winstats.py"
 
@@ -156,14 +169,32 @@ class WriteGuard:
     ``results/live_ab_validation`` directory, and the REPORTED grid must be the
     repository's own one -- an ad-hoc run is forbidden from writing there at
     all, so a shakedown can never be mistaken for the study.
+
+    THE v2 DEVELOPMENT LOCATION.  Root disposition decision 3 asks the runner to
+    "write to a new explicit v2 output location" while "preserving the v1
+    reproduction path".  So a directory under ``results/live_ab_validation_v2/``
+    is also accepted, and it can NEVER be the reported grid: the reported grid's
+    single permitted destination is still ``CANONICAL_OUT`` and nothing else.
+    That keeps v1's deposit and v2 development physically separate rather than
+    separated by a naming convention.
     """
 
     def __init__(self, out_dir: Path, reported: bool) -> None:
         resolved = Path(out_dir).expanduser().resolve()
-        if resolved.name != "live_ab_validation" or resolved.parent.name != "results":
+        v1_shaped = (resolved.name == "live_ab_validation"
+                     and resolved.parent.name == "results")
+        v2_shaped = V2_OUT_ROOT.resolve() in resolved.parents \
+            or resolved == V2_OUT_ROOT.resolve()
+        if not (v1_shaped or v2_shaped):
             raise SystemExit(
                 f"write guard: refusing to run with --out {resolved}; the output "
-                f"directory must be a 'results/live_ab_validation' directory")
+                f"directory must be a 'results/live_ab_validation' directory, or "
+                f"a development directory under {V2_OUT_ROOT}")
+        if reported and v2_shaped:
+            raise SystemExit(
+                f"write guard: {V2_OUT_ROOT} is a DEVELOPMENT location and can "
+                f"never hold the reported grid; the reported grid writes only "
+                f"to {CANONICAL_OUT}")
         if reported and resolved != CANONICAL_OUT.resolve():
             raise SystemExit(
                 f"write guard: a reported grid run must write to {CANONICAL_OUT}, "
@@ -348,13 +379,85 @@ SCHEDULE_V2_FINEST = "v2_event_finest"
 SCHEDULES = (SCHEDULE_V1, SCHEDULE_V2, SCHEDULE_V2_FINEST)
 V2_SCHEDULES = (SCHEDULE_V2, SCHEDULE_V2_FINEST)
 
+# ===========================================================================
+# THE FINEST SENSITIVITY IS DEFERRED AND DISABLED IN THE PRIMARY PANEL.
+#
+# Root disposition of 2026-09-21 02:26, decision 1, and COORDINATOR_DECISIONS
+# revision 16 item 78.  The root found, and an independent review reproduced, a
+# defect in ``vgen.completion_event_states``:
+#
+#   With resolution ticks (3, 2, 3) the completed prefix is 0 through tick 2 --
+#   pair 2 is complete but pair 1 is not, and a PREFIX requires pair 1 -- and
+#   then jumps STRAIGHT TO 2 at tick 3 when pair 1 resolves.  The iterator
+#   nevertheless emits every k from 1 upward, so it inserts a state k = 1 that
+#   is unattainable under ANY tie order.  A synthetic band at an unreachable
+#   state can manufacture a crossing the declared process never achieves.
+#
+# A second, separate limitation: ``_look_fractions`` is keyed by TICK, so a
+# finest baseline that fires partway through a tick reports that tick's
+# END-OF-BATCH unresolved/revealed fractions rather than its own sub-tick state.
+#
+# WHAT IS DONE ABOUT IT HERE.  The schedule is REMOVED FROM THE PRIMARY PANEL
+# and cannot be selected on the runner's command line: ``--schedule`` offers
+# only ``PRIMARY_PANEL_SCHEDULES`` and ``main`` refuses a deferred schedule.
+# THE CODE IS PRESERVED, NOT DELETED, together with its failing check, as
+# development evidence -- that is the root's explicit instruction.  It remains
+# reachable through the library API (``build_series_for``, ``evaluate_trial``)
+# so that the preserved failing check in ``tests_validation.py`` can keep
+# demonstrating the defect, and so that a future repair has something to repair.
+#
+# IT IS NOT REPAIRED HERE, and must not be described as repaired, validated, or
+# as a legal event schedule.  Tick-batched is the primary.
+# ===========================================================================
+DEFERRED_SCHEDULES = (SCHEDULE_V2_FINEST,)
+
+#: The schedules a RUN may select.  ``v1_reduced`` stays so v1 is reproducible.
+PRIMARY_PANEL_SCHEDULES = tuple(s for s in SCHEDULES
+                                if s not in DEFERRED_SCHEDULES)
+
+DEFERRAL_REASON = {
+    SCHEDULE_V2_FINEST:
+        "DEFERRED AND DISABLED (root disposition 2026-09-21 02:26 decision 1; "
+        "COORDINATOR_DECISIONS revision 16 item 78). "
+        "vgen.completion_event_states emits completed-prefix states that are "
+        "unattainable under any tie order: with resolution ticks (3,2,3) the "
+        "prefix jumps 0 -> 2 at tick 3 and the code inserts k=1. Its decision "
+        "summaries also report end-of-batch resolution fractions for sub-tick "
+        "decisions. Code and failing check PRESERVED as development evidence; "
+        "not repaired, not validated, not a legal event schedule.",
+}
+
+
+def is_deferred(schedule: str) -> bool:
+    """``True`` for a schedule disabled in the primary panel."""
+    return schedule in DEFERRED_SCHEDULES
+
+
+def check_primary_panel_schedule(schedule: str) -> str:
+    """Accept only a schedule the primary panel may run.
+
+    Separate from ``check_schedule`` on purpose: the library must still be able
+    to BUILD the deferred schedule so its preserved failing check can keep
+    demonstrating the defect. Only RUNS are refused.
+    """
+    schedule = check_schedule(schedule)
+    if is_deferred(schedule):
+        raise ValueError(
+            f"{schedule!r} is deferred and disabled in the primary panel and "
+            f"cannot be selected for a run. {DEFERRAL_REASON[schedule]}")
+    return schedule
+
 SCHEDULE_LABEL = {
     SCHEDULE_V1: "v1: one look per enrolled prefix + the finalization look "
                  "(the drain interior is not on the axis)",
     SCHEDULE_V2: "v2 PRIMARY: one look per tick 1..N_max+W, simultaneous events "
                  "batched atomically at the end of their tick",
-    SCHEDULE_V2_FINEST: "v2 sensitivity: v2 primary + every intermediate "
-                        "completion-index state, declared sub-tick order",
+    SCHEDULE_V2_FINEST: "v2 sensitivity, DEFERRED AND DISABLED in the primary "
+                        "panel: v2 primary + every intermediate "
+                        "completion-index state. Its iterator emits states "
+                        "unattainable under any tie order (see "
+                        "DEFERRAL_REASON); preserved as development evidence, "
+                        "not a validated or legal event schedule",
 }
 
 #: The LIBRARY default stays ``v1_reduced`` on purpose.  ``vlastlook_check.py``,
@@ -1223,8 +1326,11 @@ def _quartiles(v: np.ndarray) -> Tuple[float, float, float]:
 #: non-deciding trial.  v1 emitted only the first row and called it "tau"; the
 #: disposition requires both, separately, everywhere a decision time is emitted.
 DECISION_COORDINATES = (
-    ("tau", "enrollment prefix, in enrolled pairs (never wall clock)"),
-    ("tau_tick", "elapsed decision time, in enrollment ticks "
+    ("tau", "ENROLLED PREFIX at the deciding look, in enrolled pairs. Pinned "
+            "at N_max through the whole drain, so it is NOT the baseline "
+            "sample size and NOT elapsed time (never wall clock)"),
+    ("tau_tick", "ELAPSED CALENDAR TICK of the same look, in enrollment ticks. "
+                 "Keeps advancing through the drain after the prefix is pinned "
                  "(a simulation clock, never wall clock, never a latency)"),
 )
 
@@ -1374,25 +1480,58 @@ def run_smoke(guard: WriteGuard, programs: int, verbose: bool = True,
     ``N_max + W`` looks per trial instead of ``N_max + 1``, so its cost is not
     v1's and must not be read off v1's measurement.
 
-    STILL OPEN, and NOT addressed here: the root disposition's section C asks
-    for a BALANCED 20-program resource check -- C1/C2 crossed with horizons
-    1,000/2,000, five programs per group -- because this split confounds cell
-    with horizon and its ratio cannot isolate the horizon exponent.  That is
-    section C work and a separate deliverable; the split below is unchanged.
+    THE SPLIT IS NOW SCHEDULE-DEPENDENT, and that is the repair.  Root
+    disposition decision 3 and COORDINATOR_DECISIONS revision 16 item 79: "the
+    current smoke path still uses the old confounded resource design; wire the
+    balanced plan into the v2 path while preserving the v1 reproduction path."
+
+      * ``v1_reduced`` keeps the ORIGINAL CONFOUNDED SPLIT -- C1 at 2,000 and
+        C2 at 1,000 -- because every deposited v1 budget was selected from it
+        and changing it would silently change what v1 reproduction means.
+      * every v2 schedule uses the BALANCED 2x2 -- C1 and C2 each crossed with
+        horizons 1,000 and 2,000, five programs per group at 20 programs.
+
+    Why the old split could not stay: it varies cell and horizon together, so a
+    ratio between its two groups is a sum of a cell effect and a horizon effect
+    and cannot identify either. The balanced design is what makes the marginal
+    effects of ``vresource_check`` separable, and the budget ladder must be
+    projected from the design that was actually analysed.
     """
-    half = programs // 2
-    split = ((vgen.CELL_BY_ID["C1"], max(half, 1), 2000),
-             (vgen.CELL_BY_ID["C2"], programs - max(half, 1), 1000))
+    schedule = check_schedule(schedule)
+    if schedule == SCHEDULE_V1:
+        half = programs // 2
+        split = ((vgen.CELL_BY_ID["C1"], max(half, 1), 2000),
+                 (vgen.CELL_BY_ID["C2"], programs - max(half, 1), 1000))
+        design = ("v1 reproduction: the ORIGINAL CONFOUNDED split, C1 at 2,000 "
+                  "and C2 at 1,000. Preserved unchanged so that v1's deposited "
+                  "budget selection stays reproducible. Cell and horizon vary "
+                  "together, so its ratio identifies neither on its own.")
+    else:
+        per = max(programs // 4, 1)
+        split = ((vgen.CELL_BY_ID["C1"], per, 1000),
+                 (vgen.CELL_BY_ID["C1"], per, 2000),
+                 (vgen.CELL_BY_ID["C2"], per, 1000),
+                 (vgen.CELL_BY_ID["C2"], programs - 3 * per, 2000))
+        design = ("v2 BALANCED 2x2: cells C1 and C2 each crossed with horizons "
+                  "1,000 and 2,000, five programs per group at 20 programs. "
+                  "Cell and horizon are orthogonal, so their marginal effects "
+                  "are separately estimable.")
     points = []
     total_seconds = 0.0
+    program_base = 0
     for cell, n_programs, n_max in split:
         if n_programs <= 0:
             continue
         cfg = make_config(n_max, vgen.NAMESPACE_SMOKE, schedule=schedule)
         sink = RowSink(None, trial_header(schedule), discard=True)
         t0 = time.perf_counter()
-        counts = run_block(cell, range(n_programs), cfg, sink, None)
+        # DISTINCT program bases per group: the balanced design visits the same
+        # cell twice, and two groups drawing the same program indices would time
+        # the same streams twice rather than 20 distinct programs.
+        counts = run_block(cell, range(program_base, program_base + n_programs),
+                           cfg, sink, None)
         seconds = time.perf_counter() - t0
+        program_base += n_programs
         record_bytes = sink.close()
         total_seconds += seconds
         points.append({
@@ -1410,6 +1549,9 @@ def run_smoke(guard: WriteGuard, programs: int, verbose: bool = True,
     record = {
         "protocol_smoke": programs == 20,
         "event_schedule": schedule,
+        "design": design,
+        "balanced": schedule != SCHEDULE_V1,
+        "unique_programs": program_base,
         "namespace": vgen.NAMESPACE_SMOKE,
         "measures_only": ["wall_clock_seconds", "peak_rss", "output_bytes",
                           "counts"],
@@ -1555,17 +1697,97 @@ def repo_commit() -> str:
         return "unknown"
 
 
+def v2_bindings(cfg: RunConfig) -> Dict[str, object]:
+    """The amendment, reference and harness hashes a v2 run must bind.
+
+    Root disposition decision 3 and COORDINATOR_DECISIONS revision 16 item 79:
+    the manifest reported the FROZEN CELL-FILE version and hashed the OLD
+    protocol, so a v2 run was labelled with v1's identity.  The repair is to
+    record BASE and AMENDED versions SEPARATELY -- the parent v1 identity is
+    preserved, not overwritten -- and to hash the actual operative bytes:
+    ``PROTOCOL_V2.md``, the vendored external reference's manifest, and the
+    measurement harness that produced the budget.
+
+    A hash that is absent is reported as ``None`` with a reason, never omitted:
+    a missing binding must be visible in the artifact, not inferred from a gap.
+    """
+    base_version = json.loads(CELLS_JSON.read_text())["version"]
+    is_v2 = cfg.schedule != SCHEDULE_V1
+    out: Dict[str, object] = {
+        # the PARENT identity, preserved unchanged
+        "base_protocol_version": base_version,
+        "base_protocol_document": str(PROTOCOL_MD.relative_to(REPO_ROOT)),
+        "base_protocol_sha256": sha256_file(PROTOCOL_MD)
+        if PROTOCOL_MD.exists() else None,
+        # the OPERATIVE identity of this run
+        "amended": is_v2,
+        "amendment_version": None,
+        "amendment_document": None,
+        "amendment_sha256": None,
+        "operative_protocol_version": base_version,
+        "event_schedule": cfg.schedule,
+        "event_schedule_meaning": SCHEDULE_LABEL[cfg.schedule],
+        "deferred_schedules": list(DEFERRED_SCHEDULES),
+        "deferral_reason": DEFERRAL_REASON,
+        "primary_panel_schedules": list(PRIMARY_PANEL_SCHEDULES),
+    }
+    if is_v2:
+        if PROTOCOL_V2_MD.exists():
+            out["amendment_version"] = V2_VERSION_STRING
+            out["amendment_document"] = str(
+                PROTOCOL_V2_MD.relative_to(REPO_ROOT))
+            out["amendment_sha256"] = sha256_file(PROTOCOL_V2_MD)
+            out["operative_protocol_version"] = V2_VERSION_STRING
+        else:
+            out["amendment_missing_reason"] = (
+                f"{PROTOCOL_V2_MD} does not exist; a v2 run cannot bind its "
+                f"amendment and this run is NOT bound to one")
+
+    # the DECLARED EXTERNAL REFERENCE.  The primary does not import it; the
+    # manifest records only its provenance, so that a result says which
+    # reference was available when it was produced.
+    ref_manifest = HERE / "reference" / "MANIFEST.json"
+    if ref_manifest.exists():
+        ref = json.loads(ref_manifest.read_text())
+        out["external_reference"] = {
+            "manifest_sha256": sha256_file(ref_manifest),
+            "callable": ref.get("reference_callable"),
+            "role": ref.get("role"),
+            "bound_parameters": ref.get("bound_parameters"),
+            "vendored_files": {e["vendored_path"]: e["sha256"]
+                               for e in ref.get("vendored_files", [])},
+            "build_product_sha256": (ref.get("build_product") or {}).get("sha256"),
+            "note": "Declared reference only. Reported beside the primary, "
+                    "never instead of it; it overrides no decision and the "
+                    "primary does not import it."}
+    else:
+        out["external_reference"] = None
+        out["external_reference_missing_reason"] = (
+            "reference/MANIFEST.json absent: the authors' empirical-Bernstein "
+            "reference was not vendored on this host. Reported as absent "
+            "rather than substituted.")
+    return out
+
+
 def write_manifest(guard: WriteGuard, tier: Optional[str], cfg: RunConfig,
-                   grid: Dict[str, int]) -> None:
+                   grid: Dict[str, int],
+                   harness: Optional[Dict[str, object]] = None) -> None:
     sources = {}
     for p in sorted(HERE.glob("*.py")):
         sources[p.name] = sha256_file(p)
-    for p in (CELLS_JSON, PROTOCOL_MD, PINNED_PRIMITIVE, GUIDANCE_DOC):
+    for p in (CELLS_JSON, PROTOCOL_MD, PROTOCOL_V2_MD, PINNED_PRIMITIVE,
+              GUIDANCE_DOC):
         if p.exists():
             sources[str(p.relative_to(REPO_ROOT))] = sha256_file(p)
+    bindings = v2_bindings(cfg)
     guard.write_json("manifest.json", {
         "study": "live_ab_validation (issue 12)",
-        "protocol_version": json.loads(CELLS_JSON.read_text())["version"],
+        # PARENT identity, kept for continuity with the v1 deposit.  The
+        # OPERATIVE identity of this run is bindings["operative_protocol_version"];
+        # these are deliberately two fields and never one.
+        "protocol_version": bindings["base_protocol_version"],
+        "v2_bindings": bindings,
+        "measurement_harness": harness,
         "master_seed": vgen.MASTER_SEED,
         "grid_namespace": cfg.namespace,
         "namespace_of_the_reported_grid": vgen.NAMESPACE_GRID,
@@ -1981,17 +2203,27 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     ap.add_argument("--n-max", type=int, default=None, help="ad-hoc: horizon")
     ap.add_argument("--tier", default=None, help="ad-hoc: force a budget tier")
     ap.add_argument(
-        "--schedule", default=RUNNER_DEFAULT_SCHEDULE, choices=list(SCHEDULES),
+        "--schedule", default=RUNNER_DEFAULT_SCHEDULE,
+        choices=list(PRIMARY_PANEL_SCHEDULES),
         help=("the declared legal event schedule. Default "
               f"{RUNNER_DEFAULT_SCHEDULE!r} (the v2 primary: one look per tick "
               "through the finalization window, simultaneous events batched). "
               f"{SCHEDULE_V1!r} reproduces the deposited v1 results and is kept "
               "so the two can be run side by side; it is preserved, not "
-              f"primary. {SCHEDULE_V2_FINEST!r} is the declared sensitivity."))
+              f"primary. {SCHEDULE_V2_FINEST!r} is DEFERRED AND DISABLED and is "
+              "deliberately not offered here: its completed-prefix iterator "
+              "emits states unattainable under any tie order. Its code and its "
+              "failing check are preserved as development evidence."))
     ap.add_argument("--witness", action="store_true",
                     help="run the missed-crossing witness and the two schedule "
                          "reductions, print them, and stop. Draws no grid.")
     args = ap.parse_args(argv)
+
+    # Defence in depth: argparse ``choices`` already excludes the deferred
+    # sensitivity, but ``main`` is also called programmatically, and a disabled
+    # schedule must be refused on every route into a run, not only on the one
+    # the command line happens to take.
+    check_primary_panel_schedule(args.schedule)
 
     if args.witness:
         return 0 if report_missed_crossing_witness() else 1
@@ -2119,7 +2351,22 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     grid = {cid: (args.programs if args.programs is not None
                   else tier["programs"][cid]) for cid in cell_ids}
     cfg = make_config(n_max, grid_namespace, schedule=args.schedule)
-    write_manifest(guard, tier_name, cfg, grid)
+    # Bind the MEASUREMENT HARNESS that produced the budget, by hash.  The
+    # protocol/resource review found the old inventory omitted the executing
+    # harness, so a budget could not be traced to the code that measured it.
+    harness = {
+        "budget_measured_by": "vrun.run_smoke",
+        "design": smoke.get("design"),
+        "balanced": smoke.get("balanced"),
+        "unique_programs": smoke.get("unique_programs"),
+        "schedule_measured": smoke.get("event_schedule"),
+        "harness_sha256": {name: sha256_file(HERE / name)
+                           for name in ("vrun.py", "vgen.py", "vband.py")},
+        "note": "The budget ladder is projected from the design named here. A "
+                "budget measured under one schedule must not be read as the "
+                "cost of another; v2 evaluates N_max+W looks per trial.",
+    }
+    write_manifest(guard, tier_name, cfg, grid, harness=harness)
     print(f"\n[4/6] the reported grid: tier {tier_name}, N_max {n_max}, "
           f"{sum(grid.values())} programs over {len(grid)} cells")
     print(f"      event schedule: {cfg.schedule}")
@@ -2199,8 +2446,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     write_csv(guard, "miscoverage.csv", mis_rows, "PROTOCOL 9.1. " + caption)
     write_csv(guard, "decisions.csv", dec_rows, "PROTOCOL 9.2. " + caption)
     write_csv(guard, "decision_time.csv", time_rows,
-              "PROTOCOL 9.5: decision prefixes in ENROLLED PAIRS, never wall "
-              "clock, and never as a paired comparison between constructions.")
+              "PROTOCOL 9.5. THREE DISTINCT COORDINATES, never interchangeable: "
+              "tau is the DECISION PREFIX in ENROLLED PAIRS; tau_tick is the "
+              "ELAPSED CALENDAR TICK of the same look; and the baseline sample "
+              "index is the COMPLETED count (k for CPREFIX, m for NAIVE), which "
+              "is not the enrolled prefix once the drain begins. v1 emitted one "
+              "number for all three, which was harmless only because v1 never "
+              "looked anywhere they differ. Neither tick nor prefix is ever wall "
+              "clock, and none of these is a paired comparison between "
+              "constructions.")
     write_csv(guard, "unresolved.csv", unres_rows,
               "PROTOCOL 9.5: resolution quantities at the deciding look, or at "
               "the finalization look for non-deciding trials.")

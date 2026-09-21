@@ -1,0 +1,4 @@
+# Built C++ extension of the vendored author reference: a BUILD ARTIFACT, reproducible from the
+# vendored upstream sources + reference/MANIFEST.json + the recorded build command and toolchain.
+# Excluded because a compiled binary is not provenance; the sources and their hashes are.
+reference/_build/

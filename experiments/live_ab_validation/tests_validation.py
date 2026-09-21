@@ -53,11 +53,13 @@ Run: ``.venv/bin/python experiments/live_ab_validation/tests_validation.py``
 """
 from __future__ import annotations
 
+import ast
 import copy
 import hashlib
 import json
 import math
 import os
+import pathlib
 import random
 import re
 import sys
@@ -1723,6 +1725,377 @@ class TestV2EventSchedule(unittest.TestCase):
             vrun.check_schedule("every_look")
         with self.assertRaises(ValueError):
             vrun.make_config(100, 0, schedule="v2")
+
+
+# ===========================================================================
+# THE DEFERRED FINEST SENSITIVITY: its defect, recorded as a PERMANENT check.
+#
+# Root disposition of 2026-09-21 02:26 decision 1, and COORDINATOR_DECISIONS
+# revision 16 item 78: "Preserve this development code and its failed witness,
+# mark it unvalidated/deferred and disable it in the primary execution plan."
+#
+# So this class does two things that must not be collapsed into one:
+#
+#   1. It DEMONSTRATES the defect with a passing test, on the root's own
+#      (3,2,3) witness. That test passes today because the defect is present.
+#      If someone repairs ``completion_event_states``, this test FAILS and says
+#      so, which is the correct alarm: the recorded evidence would be stale.
+#
+#   2. It states the CONTRACT the sensitivity claims but does not meet, as an
+#      ``expectedFailure``. That test is the permanent failing check. It is
+#      reported as an expected failure for as long as the defect stands, and
+#      turns into an "unexpected success" the moment the schedule is repaired.
+#
+# NEITHER OF THESE IS A REPAIR, and passing them is not validation. The
+# sensitivity stays deferred and disabled until it is separately reviewed.
+# ===========================================================================
+class TestDeferredFinestSensitivityDefect(unittest.TestCase):
+    """PRESERVED DEVELOPMENT EVIDENCE for the deferred finest sensitivity."""
+
+    #: The root's witness: three pairs resolving at ticks (3, 2, 3). Pair 2 is
+    #: complete at tick 2, but a completed PREFIX needs pair 1, so the prefix is
+    #: still 0. At tick 3 pair 1 resolves and the prefix jumps straight to 2.
+    RESOLUTION_TICKS = (3, 2, 3)
+
+    def _witness_draw(self):
+        """Three pairs with the root's resolution ticks, built directly.
+
+        ``resolution_tick`` is a derived property, ``enrollment + d``, so the
+        (3, 2, 3) ticks are produced by the offsets ``d = (2, 0, 0)`` -- the
+        SHORT delays the independent review named as permitted values.
+        """
+        base = vgen.build_missed_crossing_witness(1000)
+        n = 3
+        res = np.array(self.RESOLUTION_TICKS, dtype=np.int64)
+        d = res - np.arange(1, n + 1, dtype=np.int64)       # (2, 0, 0)
+        self.assertTrue((d >= 0).all(), d)
+        f = np.zeros(n, dtype=np.int64)                     # f <= d, revealed early
+        draw = vgen.TrialDraw(
+            cell=base.cell, namespace=base.namespace,
+            program_index=base.program_index, trial_index=base.trial_index,
+            n=n, atom=base.atom[:n].copy(), z=base.z[:n].copy(),
+            dsc=base.dsc[:n].copy(), d=d, f=f,
+            cand_first=base.cand_first[:n].copy(),
+            s_rev=base.s_rev[:n].copy(), c_rev=base.c_rev[:n].copy(),
+            c_pend=base.c_pend[:n].copy(),
+            a_narrow=base.a_narrow[:n].copy(),
+            a_collapse=base.a_collapse[:n].copy())
+        self.assertEqual(draw.resolution_tick.tolist(),
+                         list(self.RESOLUTION_TICKS))
+        return draw
+
+    def test_the_schedule_is_deferred_and_cannot_be_selected_for_a_run(self):
+        """The disabling, checked on every route into a run."""
+        self.assertIn(vrun.SCHEDULE_V2_FINEST, vrun.DEFERRED_SCHEDULES)
+        self.assertNotIn(vrun.SCHEDULE_V2_FINEST, vrun.PRIMARY_PANEL_SCHEDULES)
+        self.assertTrue(vrun.is_deferred(vrun.SCHEDULE_V2_FINEST))
+        with self.assertRaises(ValueError):
+            vrun.check_primary_panel_schedule(vrun.SCHEDULE_V2_FINEST)
+        # ... and the primary is NOT disabled by the same mechanism
+        for keep in (vrun.SCHEDULE_V1, vrun.SCHEDULE_V2):
+            self.assertEqual(vrun.check_primary_panel_schedule(keep), keep)
+
+    def test_the_code_is_preserved_not_deleted(self):
+        """Deferral must not become deletion: the evidence has to still exist."""
+        self.assertTrue(hasattr(vgen, "completion_event_states"))
+        self.assertTrue(callable(vgen.completion_event_states))
+        self.assertIn(vrun.SCHEDULE_V2_FINEST, vrun.SCHEDULES)
+        self.assertIn(vrun.SCHEDULE_V2_FINEST, vrun.DEFERRAL_REASON)
+
+    def test_the_defect_is_present_and_this_is_what_it_looks_like(self):
+        """THE DEFECT, demonstrated on the root's (3,2,3) witness.
+
+        Passes BECAUSE the defect is present. If it ever fails, the iterator
+        has been changed and this recorded evidence is stale -- that failure is
+        the alarm, not a regression.
+        """
+        draw = self._witness_draw()
+        cpref, _ = vgen.completion_event_states(draw, n_max=3, last_tick=6)
+        emitted = list(zip(cpref.tick.tolist(), cpref.index.tolist()))
+        # every k from 1 upward is emitted, each dated at the running-max tick
+        self.assertIn((3, 1), emitted,
+                      f"the defect should emit the unreachable (tick 3, k=1): "
+                      f"{emitted}")
+        self.assertIn((3, 2), emitted, emitted)
+        self.assertIn((3, 3), emitted, emitted)
+
+    def test_the_reachable_prefix_never_takes_the_value_the_iterator_emits(self):
+        """Independent confirmation that k = 1 is unattainable at ANY tick.
+
+        Computed from the tick-batched primary, which is a function of the path
+        alone: the completed prefix goes 0, 0, 3 over ticks 1..3 and is never 1.
+        """
+        draw = self._witness_draw()
+        cpref_batched, _ = vgen.completion_tick_states(draw, n_max=3, last_tick=6)
+        reachable = set(cpref_batched.index.tolist())
+        self.assertNotIn(
+            1, reachable,
+            f"prefix 1 must be unreachable under resolution ticks "
+            f"{self.RESOLUTION_TICKS}; reachable set was {sorted(reachable)}")
+
+    @unittest.expectedFailure
+    def test_PERMANENT_FAILING_CHECK_finest_states_must_all_be_reachable(self):
+        """THE CONTRACT THE DEFERRED SENSITIVITY CLAIMS AND DOES NOT MEET.
+
+        ``completion_event_states`` documents itself as "the exact union over
+        every admissible order". This asserts exactly that: every completed
+        prefix it emits must be attainable under some tie order, and the
+        tick-batched prefix trajectory is the set of attainable values.
+
+        THIS TEST IS EXPECTED TO FAIL and is recorded as an expected failure
+        for as long as the defect stands. It is not skipped, not deleted and
+        not weakened. If it ever reports an UNEXPECTED SUCCESS, the schedule
+        has been repaired and must go back for separate review before it may
+        re-enter any panel.
+        """
+        draw = self._witness_draw()
+        cpref_event, _ = vgen.completion_event_states(draw, n_max=3, last_tick=6)
+        cpref_batched, _ = vgen.completion_tick_states(draw, n_max=3, last_tick=6)
+        reachable = set(cpref_batched.index.tolist())
+        unreachable = sorted(set(cpref_event.index.tolist()) - reachable - {0})
+        self.assertEqual(
+            unreachable, [],
+            f"completion_event_states emitted unreachable completed prefixes "
+            f"{unreachable} under resolution ticks {self.RESOLUTION_TICKS}; "
+            f"attainable prefixes are {sorted(reachable)}")
+
+    @unittest.expectedFailure
+    def test_PERMANENT_FAILING_CHECK_finest_fractions_must_be_sub_tick(self):
+        """THE SECOND DEFERRED DEFECT: end-of-batch fractions for sub-tick looks.
+
+        ``_look_fractions`` is keyed by TICK and cached by TICK, so two looks
+        inside the same tick cannot receive different resolution fractions.
+        A finest baseline deciding partway through a tick therefore reports the
+        END-OF-BATCH state. Expected to fail while that is true.
+        """
+        draw = self._witness_draw()
+        cache = {}
+        cfg = vrun.make_config(3, vgen.NAMESPACE_FIXTURE)
+        first = vrun._look_fractions(draw, cfg, 3, cache)
+        # a sub-tick look at the same tick must be distinguishable from the
+        # end-of-tick look; keyed purely by tick, it cannot be
+        self.assertNotEqual(
+            len(cache), 1,
+            "_look_fractions caches by tick alone, so sub-tick decision state "
+            "is not representable; the finest sensitivity's reported "
+            f"fractions are end-of-batch. cache={cache!r} first={first!r}")
+
+
+# ===========================================================================
+# THE DECLARED EXTERNAL REFERENCE: isolation, provenance and powerlessness.
+#
+# Root disposition decision 4 and COORDINATOR_DECISIONS revision 16 item 74.
+# These tests check the three properties that make the vendored authors' code
+# an acceptable reference rather than a new dependency risk: its bytes are the
+# pinned ones, the primary does not import it, and it cannot decide anything.
+# ===========================================================================
+class TestVendoredAuthorReference(unittest.TestCase):
+    """The vendored empirical-Bernstein reference (authors' code)."""
+
+    REF_DIR = pathlib.Path(__file__).resolve().parent / "reference"
+
+    def setUp(self):
+        if not (self.REF_DIR / "MANIFEST.json").exists():
+            self.skipTest("the reference has not been vendored on this host; "
+                          "run reference/vendor.py")
+        if str(self.REF_DIR) not in sys.path:
+            sys.path.insert(0, str(self.REF_DIR))
+
+    def test_the_primary_does_not_import_the_reference(self):
+        """THE ONE-WAY DEPENDENCY. reference -> primary, never the reverse."""
+        here = pathlib.Path(__file__).resolve().parent
+        for name in ("vrun.py", "vgen.py", "vband.py", "vcompare.py",
+                     "vfixtures.py", "vlastlook_check.py", "vresource_check.py"):
+            text = (here / name).read_text()
+            for forbidden in ("eb_reference", "eb_crosscheck", "confseq_eb",
+                              "comparecast"):
+                self.assertNotIn(
+                    forbidden, text,
+                    f"{name} must not reference the external reference "
+                    f"({forbidden!r}); the primary must stay independent of it")
+
+    def test_every_vendored_file_matches_its_pinned_hash(self):
+        """Provenance: the bytes on disk are the bytes at the pinned commits."""
+        manifest = json.loads((self.REF_DIR / "MANIFEST.json").read_text())
+        checked = 0
+        for entry in manifest["vendored_files"]:
+            path = self.REF_DIR / entry["vendored_path"]
+            self.assertTrue(path.exists(), entry["vendored_path"])
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            self.assertEqual(digest, entry["sha256"], entry["vendored_path"])
+            if entry.get("verbatim"):
+                self.assertIn(entry["commit"],
+                              (vendor_commit := entry["commit"]), vendor_commit)
+                checked += 1
+        self.assertGreaterEqual(checked, 7, "too few verbatim author files")
+
+    def test_the_mit_notices_are_retained_verbatim(self):
+        for name in ("ComparingForecasters-LICENSE.txt", "confseq-LICENSE"):
+            text = (self.REF_DIR / "licenses" / name).read_text()
+            self.assertIn("MIT License", text, name)
+            self.assertIn("Permission is hereby granted, free of charge", text,
+                          name)
+            self.assertIn("WITHOUT WARRANTY OF ANY KIND", text.upper(), name)
+
+    def test_the_forbidden_constructions_are_not_in_the_importable_tree(self):
+        """betting_cs / hedged_cs must be impossible to substitute, not merely
+        discouraged: they target a fixed common mean, not our running mean."""
+        tree = list((self.REF_DIR / "upstream").rglob("*.py"))
+        for path in tree:
+            text = path.read_text()
+            self.assertNotIn("def betting_cs", text, str(path))
+            self.assertNotIn("def hedged_cs", text, str(path))
+
+    def test_the_reference_imports_and_is_the_authors_callable(self):
+        import eb_reference
+        try:
+            fn = eb_reference.load_reference()
+        except eb_reference.ReferenceUnavailable as exc:
+            self.skipTest(f"reference not built for this interpreter: {exc}")
+        self.assertEqual(fn.__name__, "confseq_eb")
+        self.assertEqual(fn.__module__, "comparecast.confseq")
+
+    def test_the_frozen_tuning_cannot_drift(self):
+        import eb_reference
+        self.assertEqual(eb_reference.V_OPT, 10.0)
+        self.assertEqual((eb_reference.LO, eb_reference.HI), (-1.0, 1.0))
+        self.assertEqual(eb_reference.BOUNDARY_TYPE, "mixture")
+
+    def test_out_of_range_scores_are_refused(self):
+        import eb_reference
+        try:
+            eb_reference.load_reference()
+        except eb_reference.ReferenceUnavailable as exc:
+            self.skipTest(str(exc))
+        with self.assertRaises(ValueError):
+            eb_reference.reference_bands(np.array([2.0, 0.0]), 0.00625)
+        with self.assertRaises(ValueError):
+            eb_reference.reference_bands(np.array([0.0, 0.0]), 1.5)
+
+    def test_the_reference_cannot_enter_the_primary_panel(self):
+        import eb_reference
+        eb_reference.assert_reference_cannot_decide()
+        self.assertEqual(vrun.CONSTRUCTIONS,
+                         (vrun.ADAPTER, vrun.CPREFIX, vrun.NAIVE))
+
+    def test_the_crosscheck_is_labelled_as_a_crosscheck_not_the_reference(self):
+        import eb_crosscheck
+        label = eb_crosscheck.CROSSCHECK_LABEL
+        self.assertIn("CROSS-CHECK", label)
+        self.assertIn("NOT the author reference", label)
+
+    def test_crosscheck_reproduces_the_theorem_2_centre_and_clock(self):
+        """The part of Theorem 2 the cross-check DOES validate."""
+        import eb_crosscheck
+        import eb_reference
+        try:
+            eb_reference.load_reference()
+        except eb_reference.ReferenceUnavailable as exc:
+            self.skipTest(str(exc))
+        rng = np.random.default_rng(4242)
+        z = rng.choice([-1.0, 0.0, 1.0], size=300, p=[0.25, 0.5, 0.25])
+        rep = eb_crosscheck.crosscheck_report(z, 0.00625)
+        self.assertTrue(rep["reference_available"])
+        self.assertLess(rep["centre_max_abs_diff"], 1e-12)
+        self.assertLess(rep["intrinsic_time_roundtrip_max_abs_diff"], 1e-12)
+
+    def test_the_crosscheck_stitching_disagreement_is_recorded(self):
+        """The disagreement is EVIDENCE and must stay on the record."""
+        import eb_crosscheck
+        import eb_reference
+        try:
+            eb_reference.load_reference()
+        except eb_reference.ReferenceUnavailable as exc:
+            self.skipTest(str(exc))
+        rep = eb_crosscheck.crosscheck_report(
+            np.array([1.0, -1.0, 0.0, 1.0] * 50), 0.00625)
+        dis = rep["stitching_disagreement"]
+        rel = dis["relative"]
+        self.assertTrue(all(r < 0 for r in rel),
+                        f"the cross-check is narrower than the authors'; that "
+                        f"direction is the finding: {rel}")
+        self.assertTrue(abs(rel[0]) > abs(rel[-1]),
+                        "the gap should shrink with v")
+
+
+# ===========================================================================
+# THE v2 ACTUAL-LIVE SNAPSHOT, and the preservation of v1's.
+# Root, issue 12 comment 5754619899: "new v2 actual-live snapshot plus
+# preserved v1, paired latent seed coordinates".
+# ===========================================================================
+class TestV2Snapshot(unittest.TestCase):
+    """The v2 snapshot exists, verifies, and did not disturb v1's."""
+
+    HERE = pathlib.Path(__file__).resolve().parent
+    V1 = HERE / "pinned" / "PINNED.json"
+    V2 = HERE / "pinned_v2" / "PINNED_V2.json"
+
+    def test_v1_snapshot_is_preserved_and_still_verifies(self):
+        """v1 must remain byte-exact and reproducible, whatever v2 does."""
+        man = json.loads(self.V1.read_text())
+        for name, want in man["files"].items():
+            got = hashlib.sha256(
+                (self.V1.parent / name).read_bytes()).hexdigest()
+            self.assertEqual(got, want, f"v1 pinned {name} changed")
+        self.assertEqual(man["source_commit"],
+                         "577687799e8588077c036b4d94f1afc839d78e4f")
+
+    def test_v2_snapshot_verifies_against_its_manifest(self):
+        if not self.V2.exists():
+            self.skipTest("v2 snapshot not built on this host; "
+                          "run vsnapshot_v2.py --write")
+        man = json.loads(self.V2.read_text())
+        self.assertEqual(man["version"], "v2-cpu-validation")
+        for name, want in man["files"].items():
+            got = hashlib.sha256(
+                (self.V2.parent / name).read_bytes()).hexdigest()
+            self.assertEqual(got, want, f"v2 pinned {name} does not verify")
+
+    def test_the_two_snapshots_are_distinct_and_v2_records_the_difference(self):
+        """A fresh snapshot is only worth taking if it captured a change."""
+        if not self.V2.exists():
+            self.skipTest("v2 snapshot not built on this host")
+        v1 = json.loads(self.V1.read_text())
+        v2 = json.loads(self.V2.read_text())
+        self.assertNotEqual(v1["source_commit"], v2["source_commit"])
+        self.assertEqual(v2["parent_v1_snapshot"]["source_commit"],
+                         v1["source_commit"])
+        changed = set(v2["changed_since_v1_pin"])
+        actually = {n for n, h in v2["files"].items()
+                    if v1["files"].get(n) != h}
+        self.assertEqual(changed, actually,
+                         "the manifest's changed-file list must match the bytes")
+
+    def test_the_snapshot_builder_never_imports_the_forbidden_tree(self):
+        """vsnapshot_v2.py is exempt from the STATIC name scan, so the narrower
+        property -- that it never IMPORTS the live rule -- is checked here."""
+        src = (self.HERE / "vsnapshot_v2.py").read_text()
+        tree = ast.parse(src)
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                for a in node.names:
+                    self.assertFalse(a.name.startswith("lab_"), a.name)
+            elif isinstance(node, ast.ImportFrom):
+                self.assertFalse((node.module or "").startswith("lab_"),
+                                 node.module)
+            elif isinstance(node, ast.Call):
+                fn = node.func
+                name = getattr(fn, "attr", None) or getattr(fn, "id", None)
+                self.assertNotIn(name, ("import_module", "spec_from_file_location",
+                                        "module_from_spec", "run_path",
+                                        "load_module", "__import__"))
+
+    def test_the_wording_corrections_are_carried_forward(self):
+        if not self.V2.exists():
+            self.skipTest("v2 snapshot not built on this host")
+        man = json.loads(self.V2.read_text())
+        corr = man["carried_forward_corrections"]
+        for key in ("stopped_roster", "exact_feasible_set",
+                    "v1_did_not_validate_11"):
+            self.assertIn(key, corr)
+        self.assertIn("does NOT identify", corr["stopped_roster"])
+        self.assertIn("CONSERVATIVE ENCLOSURES", corr["exact_feasible_set"])
+        self.assertIn("PAIRED means", man["pairing"])
 
 
 def _run() -> int:

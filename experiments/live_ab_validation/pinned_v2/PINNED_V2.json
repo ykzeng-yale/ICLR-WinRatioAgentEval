@@ -1,0 +1,67 @@
+{
+  "schema": "live_ab_validation_v2.pinned.1",
+  "purpose": "read-only copy of the #11 monitor at its exact current reviewed commit, loaded ONLY at the comparison step of the v2 protocol; never imported by vband.py, vgen.py, vrun.py or vfixtures.py",
+  "version": "v2-cpu-validation",
+  "created_unix": 1789960227.666374,
+  "source_commit": "a266c6201e3c94fc50c6646ca741e5e1da9b409b",
+  "source_branch": "session60/live-ab-validation",
+  "builder": "experiments/live_ab_validation/vsnapshot_v2.py",
+  "builder_sha256": "5159b4c91931ad2903c249288bfcfbc5a790632a31406d8f1b324ef045a17387",
+  "files": {
+    "lab_monitor.py": "94d70b8d766376a697271087a1879de32170d4827bb25211c33f550232c2af91",
+    "lab_enclosure.py": "da1b300d0fc99608f3b4c919d33ed546d20f2547c9339bd03e6ce6c7b9290d74",
+    "lab_reference_rule.py": "8f8b69f01e09a92ca77a665e19bbd8f8eeba0ceef1ddab0bc3cb09b0fb9ee6fd"
+  },
+  "detail": [
+    {
+      "name": "lab_monitor.py",
+      "source_path": "experiments/live_ab/lab_monitor.py",
+      "sha256": "94d70b8d766376a697271087a1879de32170d4827bb25211c33f550232c2af91",
+      "git_blob": "3dab4811924c9dc9a08d05db33f8dd6936fdce3a",
+      "v1_sha256": "8c20e07205748e59dad4224420e7804103d1d73e41733ccc2a91df5f8aebeced",
+      "changed_since_v1_pin": true,
+      "bytes": 34192
+    },
+    {
+      "name": "lab_enclosure.py",
+      "source_path": "experiments/live_ab/lab_enclosure.py",
+      "sha256": "da1b300d0fc99608f3b4c919d33ed546d20f2547c9339bd03e6ce6c7b9290d74",
+      "git_blob": "eb261f2fcd3b575efc419a2cbed560604079f9c7",
+      "v1_sha256": "47c523128b0abf91165670772940ee096827e12d533556ef1fd26c60dc578d0a",
+      "changed_since_v1_pin": true,
+      "bytes": 29348
+    },
+    {
+      "name": "lab_reference_rule.py",
+      "source_path": "experiments/live_ab/lab_reference_rule.py",
+      "sha256": "8f8b69f01e09a92ca77a665e19bbd8f8eeba0ceef1ddab0bc3cb09b0fb9ee6fd",
+      "git_blob": "73ed7fd2430231911024d52fc371fd754c998ce4",
+      "v1_sha256": "6219cc64f439e7bf64b4da20e4076429ccf7ea9f3d5655090f27b4a20ae360b1",
+      "changed_since_v1_pin": true,
+      "bytes": 22980
+    }
+  ],
+  "parent_v1_snapshot": {
+    "path": "experiments/live_ab_validation/pinned",
+    "source_commit": "577687799e8588077c036b4d94f1afc839d78e4f",
+    "files": {
+      "lab_enclosure.py": "47c523128b0abf91165670772940ee096827e12d533556ef1fd26c60dc578d0a",
+      "lab_monitor.py": "8c20e07205748e59dad4224420e7804103d1d73e41733ccc2a91df5f8aebeced",
+      "lab_reference_rule.py": "6219cc64f439e7bf64b4da20e4076429ccf7ea9f3d5655090f27b4a20ae360b1"
+    },
+    "status": "PRESERVED AND IMMUTABLE. Not edited, not moved, not deleted, not superseded. v1's deposited results remain reproducible against it, and they keep v1's label."
+  },
+  "changed_since_v1_pin": [
+    "lab_monitor.py",
+    "lab_enclosure.py",
+    "lab_reference_rule.py"
+  ],
+  "pairing": "PAIRED means replaying the SAME underlying simulation seed coordinates and latent draws across the versioned algorithms -- same namespace, same program and trial indices, same latent scores. It does NOT mean reusing the old live snapshot as v2's only reference, which was the obsolete default.",
+  "carried_forward_corrections": {
+    "stopped_roster": "Random proportional ordering does NOT identify a fixed-roster effect at an outcome-selected stopping time. The root's two-order (+1,-1) witness has roster mean 0 and expected stopped-prefix mean .5. The target stays the running conditional mean; no allocation redesign follows from this.",
+    "exact_feasible_set": "Epsilon supersets are CONSERVATIVE ENCLOSURES, not exact feasible sets at every boundary. The universal exact-feasible-set language is withdrawn: the implementation can conservatively return [-1,1] where the exact mathematical score set is [0,1]. That is a valid observation policy and must not be described as exact enumeration under the same mathematical contract.",
+    "v1_did_not_validate_11": "v1 COMPARED AGAINST, and TESTED AGAINST, the #11 pin. It did not validate it. A failed comparison does not become validation because its provenance is honest.",
+    "timing_summaries_not_invariant": "Monotone ever-events do not make every operational summary invariant; absence of a Monte Carlo alert does not certify validity."
+  },
+  "not_done_here": "The comparison grid is NOT run by this script. Building the snapshot and running the comparison are separate steps and only the first is authorized."
+}

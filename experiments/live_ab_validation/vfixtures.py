@@ -899,6 +899,17 @@ _DYNAMIC_IMPORT_ATTRS = ("import_module", "run_module", "run_path", "load_module
                          "spec_from_file_location", "module_from_spec")
 #: the single module allowed to load the pinned #11 copy (PROTOCOL 12.1 item 3)
 _COMPARISON_MODULE = "vcompare.py"
+#: Modules exempt from the STATIC half of the scan only.  The dynamic half
+#: still applies to every module without exception, so an exemption here buys
+#: the right to NAME a forbidden path, never the right to import one.
+#:
+#:   vcompare.py      loads the pinned #11 copy at the comparison step, which
+#:                    is what PROTOCOL 12.1 item 3 authorises it to do.
+#:   vsnapshot_v2.py  BUILDS the v2 snapshot, so it must name the three live
+#:                    rule modules in order to copy their bytes. It reads them
+#:                    with Path.read_bytes and never imports them; it is not on
+#:                    any evaluation path and nothing imports it.
+_STATIC_SCAN_EXEMPT = (_COMPARISON_MODULE, "vsnapshot_v2.py")
 #: A line carrying this marker may name a forbidden path.  The marker is a
 #: deliberate, greppable act and every use of it is visible in review; the
 #: dynamic half of F16 still catches an actual import.  Today it exempts only
@@ -977,7 +988,7 @@ def scan_sources_for_forbidden_paths(directory: Path,
     fails: List[str] = []
     checked = 0
     for src in sorted(Path(directory).glob("*.py")):
-        if src.name == _COMPARISON_MODULE:
+        if src.name in _STATIC_SCAN_EXEMPT:
             continue
         checked += 1
         text = src.read_text()

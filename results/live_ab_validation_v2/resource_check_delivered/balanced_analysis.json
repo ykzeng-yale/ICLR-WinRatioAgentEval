@@ -1,0 +1,522 @@
+{
+  "cost_factor_amended_over_v1": {
+    "v2_all_ticks": {
+      "by_cell": {
+        "C1": {
+          "geometric_mean_factor": 1.1289094125976522,
+          "hi95": 1.1477462979883342,
+          "lo95": 1.1103816793705132
+        },
+        "C2": {
+          "geometric_mean_factor": 1.1315854668877732,
+          "hi95": 1.1582968444080421,
+          "lo95": 1.105490077999844
+        }
+      },
+      "by_horizon": {
+        "1000": {
+          "geometric_mean_factor": 1.091712483683187,
+          "hi95": 1.1057459249450192,
+          "lo95": 1.0778571461513407
+        },
+        "2000": {
+          "geometric_mean_factor": 1.170140951781066,
+          "hi95": 1.177510877913028,
+          "lo95": 1.1628171533004144
+        }
+      },
+      "factor_hi95": 1.146267936889004,
+      "factor_lo95": 1.1144492867831262,
+      "geometric_mean_factor": 1.1302466477403577,
+      "log_factor": {
+        "hi95": 0.13651139278802665,
+        "lo95": 0.1083603696977897,
+        "mean": 0.12243588124290818,
+        "n": 32,
+        "sd": 0.040624039437644165,
+        "sem": 0.007181383441386982
+      },
+      "look_factor_per_trial": {
+        "C1/1000": 1.1988011988011988,
+        "C1/2000": 1.0994502748625687,
+        "C2/1000": 1.1988011988011988,
+        "C2/2000": 1.0994502748625687
+      }
+    }
+  },
+  "projection": {
+    "hard_limits": {
+      "output_bytes": 209715200,
+      "peak_rss_bytes": 2147483648,
+      "seconds": 5400
+    },
+    "runners": {
+      "v1_reduced": {
+        "beta_balanced": 0.569410152312785,
+        "breaches_a_cap": false,
+        "bytes_per_program": 177.05,
+        "highest_admissible_tier": "T1",
+        "ladder": [
+          {
+            "N_max": 2000,
+            "admissible": true,
+            "bytes_projected": 4957400.0,
+            "peak_rss_projected": 73170944.0,
+            "programs_total": 28000,
+            "seconds_projected": 77.60210260748863,
+            "seconds_projected_hi95": 78.04047224161422,
+            "seconds_projected_worst_cell": 77.66654645092785,
+            "tier": "T1",
+            "within_bytes": true,
+            "within_peak_rss": true,
+            "within_seconds": true
+          },
+          {
+            "N_max": 2000,
+            "admissible": true,
+            "bytes_projected": 2832800.0,
+            "peak_rss_projected": 73170944.0,
+            "programs_total": 16000,
+            "seconds_projected": 44.34405863285065,
+            "seconds_projected_hi95": 44.5945555666367,
+            "seconds_projected_worst_cell": 44.38088368624449,
+            "tier": "T2",
+            "within_bytes": true,
+            "within_peak_rss": true,
+            "within_seconds": true
+          },
+          {
+            "N_max": 2000,
+            "admissible": true,
+            "bytes_projected": 1416400.0,
+            "peak_rss_projected": 73170944.0,
+            "programs_total": 8000,
+            "seconds_projected": 22.172029316425323,
+            "seconds_projected_hi95": 22.29727778331835,
+            "seconds_projected_worst_cell": 22.190441843122244,
+            "tier": "T3",
+            "within_bytes": true,
+            "within_peak_rss": true,
+            "within_seconds": true
+          },
+          {
+            "N_max": 1000,
+            "admissible": true,
+            "bytes_projected": 1416400.0,
+            "peak_rss_projected": 73170944.0,
+            "programs_total": 8000,
+            "seconds_projected": 14.941558807693937,
+            "seconds_projected_hi95": 15.025962779335329,
+            "seconds_projected_worst_cell": 14.95396686680815,
+            "tier": "T4",
+            "within_bytes": true,
+            "within_peak_rss": true,
+            "within_seconds": true
+          }
+        ],
+        "peak_rss_bytes": 73170944.0,
+        "s_per_program_2000_balanced": 0.0027715036645531653,
+        "s_per_program_2000_sem": 7.987784878381657e-06,
+        "s_per_program_2000_worst_cell": 0.0027738052303902805
+      },
+      "v2_all_ticks": {
+        "beta_balanced": 0.6694995211835104,
+        "breaches_a_cap": false,
+        "bytes_per_program": 211.0,
+        "highest_admissible_tier": "T1",
+        "ladder": [
+          {
+            "N_max": 2000,
+            "admissible": true,
+            "bytes_projected": 5908000.0,
+            "peak_rss_projected": 73682944.0,
+            "programs_total": 28000,
+            "seconds_projected": 90.80740506760776,
+            "seconds_projected_hi95": 91.31403253220783,
+            "seconds_projected_worst_cell": 91.43611383624375,
+            "tier": "T1",
+            "within_bytes": true,
+            "within_peak_rss": true,
+            "within_seconds": true
+          },
+          {
+            "N_max": 2000,
+            "admissible": true,
+            "bytes_projected": 3376000.0,
+            "peak_rss_projected": 73682944.0,
+            "programs_total": 16000,
+            "seconds_projected": 51.88994575291872,
+            "seconds_projected_hi95": 52.17944716126162,
+            "seconds_projected_worst_cell": 52.249207906425,
+            "tier": "T2",
+            "within_bytes": true,
+            "within_peak_rss": true,
+            "within_seconds": true
+          },
+          {
+            "N_max": 2000,
+            "admissible": true,
+            "bytes_projected": 1688000.0,
+            "peak_rss_projected": 73682944.0,
+            "programs_total": 8000,
+            "seconds_projected": 25.94497287645936,
+            "seconds_projected_hi95": 26.08972358063081,
+            "seconds_projected_worst_cell": 26.1246039532125,
+            "tier": "T3",
+            "within_bytes": true,
+            "within_peak_rss": true,
+            "within_seconds": true
+          },
+          {
+            "N_max": 1000,
+            "admissible": true,
+            "bytes_projected": 1688000.0,
+            "peak_rss_projected": 73682944.0,
+            "programs_total": 8000,
+            "seconds_projected": 16.31224678004408,
+            "seconds_projected_hi95": 16.40325513142194,
+            "seconds_projected_worst_cell": 16.425185285214802,
+            "tier": "T4",
+            "within_bytes": true,
+            "within_peak_rss": true,
+            "within_seconds": true
+          }
+        ],
+        "peak_rss_bytes": 73682944.0,
+        "s_per_program_2000_balanced": 0.00324312160955742,
+        "s_per_program_2000_sem": 9.231550010934348e-06,
+        "s_per_program_2000_worst_cell": 0.0032655754941515623
+      }
+    }
+  },
+  "runners": {
+    "v1_reduced": {
+      "beta_balanced": {
+        "hi95": 0.5863939940620279,
+        "lo95": 0.5524263105635422,
+        "mean": 0.569410152312785,
+        "n": 8,
+        "sd": 0.024508958513242418,
+        "sem": 0.008665225382266738
+      },
+      "beta_confounded_v1_style": {
+        "hi95": 0.5873713723144772,
+        "lo95": 0.5219253164299872,
+        "mean": 0.5546483443722322,
+        "n": 8,
+        "sd": 0.047221785630445635,
+        "sem": 0.016695422419512787
+      },
+      "marginal_effects_log_seconds_per_program": {
+        "cell_C2_minus_C1": {
+          "hi95": 0.02220756940601197,
+          "lo95": -0.001743358298088792,
+          "mean": 0.01023210555396159,
+          "n": 8,
+          "sd": 0.017281493260488164,
+          "sem": 0.0061099305367603995
+        },
+        "cell_multiplicative_factor": 1.0102846325470436,
+        "horizon_2000_minus_1000": {
+          "hi95": 0.40645734368137987,
+          "lo95": 0.382912739634252,
+          "mean": 0.3946850416578159,
+          "n": 8,
+          "sd": 0.01698831549191466,
+          "sem": 0.006006276542634667
+        },
+        "horizon_multiplicative_factor": 1.483916745353782,
+        "interaction": {
+          "hi95": 0.005830837955555515,
+          "lo95": -0.03988466741513176,
+          "mean": -0.017026914729788123,
+          "n": 8,
+          "sd": 0.03298545291120715,
+          "sem": 0.01166211871701206
+        }
+      },
+      "per_group": {
+        "C1/1000": {
+          "bytes_per_program": 166.0,
+          "enclosure_updates_per_pair": 2.87995,
+          "looks_per_trial": 3003.0,
+          "peak_rss_bytes": {
+            "hi95": 72726974.23497671,
+            "lo95": 72574529.76502329,
+            "mean": 72650752.0,
+            "n": 8,
+            "sd": 109994.40659025738,
+            "sem": 38888.895396280626
+          },
+          "rss_delta_bytes": {
+            "hi95": 484586.5621359334,
+            "lo95": 383765.4378640666,
+            "mean": 434176.0,
+            "n": 8,
+            "sd": 72746.22516274347,
+            "sem": 25719.674559149684
+          },
+          "seconds_per_program": {
+            "hi95": 0.0018716844284330592,
+            "lo95": 0.001829088454006137,
+            "mean": 0.001850386441219598,
+            "n": 8,
+            "sd": 3.073459425359745e-05,
+            "sem": 1.0866320006867925e-05
+          }
+        },
+        "C1/2000": {
+          "bytes_per_program": 168.4,
+          "enclosure_updates_per_pair": 2.89125,
+          "looks_per_trial": 6003.0,
+          "peak_rss_bytes": {
+            "hi95": 73243247.93875907,
+            "lo95": 73057680.06124093,
+            "mean": 73150464.0,
+            "n": 8,
+            "sd": 133894.18833008184,
+            "sem": 47338.74426483478
+          },
+          "rss_delta_bytes": {
+            "hi95": 482196.8318447697,
+            "lo95": 377963.1681552303,
+            "mean": 430080.0,
+            "n": 8,
+            "sd": 75208.5004314197,
+            "sem": 26590.220328964126
+          },
+          "seconds_per_program": {
+            "hi95": 0.002796306374690329,
+            "lo95": 0.0027420978227417716,
+            "mean": 0.00276920209871605,
+            "n": 8,
+            "sd": 3.911350477666156e-05,
+            "sem": 1.3828712231774902e-05
+          }
+        },
+        "C2/1000": {
+          "bytes_per_program": 192.0,
+          "enclosure_updates_per_pair": 2.88815,
+          "looks_per_trial": 3003.0,
+          "peak_rss_bytes": {
+            "hi95": 72965362.29732473,
+            "lo95": 72676109.70267527,
+            "mean": 72820736.0,
+            "n": 8,
+            "sd": 208706.60321677825,
+            "sem": 73788.927206497
+          },
+          "rss_delta_bytes": {
+            "hi95": 715022.3715672317,
+            "lo95": 505585.62843276834,
+            "mean": 610304.0,
+            "n": 8,
+            "sd": 151116.47071428996,
+            "sem": 53427.74059552637
+          },
+          "seconds_per_program": {
+            "hi95": 0.001929668185551773,
+            "lo95": 0.0018424567885053054,
+            "mean": 0.0018860624870285392,
+            "n": 8,
+            "sd": 6.29262961717445e-05,
+            "sem": 2.224780536899681e-05
+          }
+        },
+        "C2/2000": {
+          "bytes_per_program": 181.8,
+          "enclosure_updates_per_pair": 2.871025,
+          "looks_per_trial": 6003.0,
+          "peak_rss_bytes": {
+            "hi95": 73278481.96628562,
+            "lo95": 73063406.03371438,
+            "mean": 73170944.0,
+            "n": 8,
+            "sd": 155185.3575419684,
+            "sem": 54866.309329392396
+          },
+          "rss_delta_bytes": {
+            "hi95": 550633.3443737836,
+            "lo95": 416022.65562621644,
+            "mean": 483328.0,
+            "n": 8,
+            "sd": 97126.66411591471,
+            "sem": 34339.4614151957
+          },
+          "seconds_per_program": {
+            "hi95": 0.0027894834598056494,
+            "lo95": 0.0027581270009749115,
+            "mean": 0.0027738052303902805,
+            "n": 8,
+            "sd": 2.2624861911440666e-05,
+            "sem": 7.999096640494463e-06
+          }
+        }
+      }
+    },
+    "v2_all_ticks": {
+      "beta_balanced": {
+        "hi95": 0.6769803537431035,
+        "lo95": 0.6620186886239173,
+        "mean": 0.6694995211835104,
+        "n": 8,
+        "sd": 0.010795402922059997,
+        "sem": 0.0038167513059148466
+      },
+      "beta_confounded_v1_style": {
+        "hi95": 0.6640559741370983,
+        "lo95": 0.6385877942157109,
+        "mean": 0.6513218841764046,
+        "n": 8,
+        "sd": 0.018376247680502115,
+        "sem": 0.006496984673823304
+      },
+      "marginal_effects_log_seconds_per_program": {
+        "cell_C2_minus_C1": {
+          "hi95": 0.0191566888221658,
+          "lo95": 0.006042866859269374,
+          "mean": 0.012599777840717585,
+          "n": 8,
+          "sd": 0.009462114731874636,
+          "sem": 0.003345362745636843
+        },
+        "cell_multiplicative_factor": 1.0126794894726758,
+        "horizon_2000_minus_1000": {
+          "hi95": 0.46924702349150665,
+          "lo95": 0.45887638749766063,
+          "mean": 0.46406170549458364,
+          "n": 8,
+          "sd": 0.0074828030984344695,
+          "sem": 0.002645570406593361
+        },
+        "horizon_multiplicative_factor": 1.5905211113039115,
+        "interaction": {
+          "hi95": 0.01852340105114295,
+          "lo95": -0.013541232204664997,
+          "mean": 0.002491084423238976,
+          "n": 8,
+          "sd": 0.0231358363382056,
+          "sem": 0.00817975338158366
+        }
+      },
+      "per_group": {
+        "C1/1000": {
+          "bytes_per_program": 199.2,
+          "enclosure_updates_per_pair": 2.87995,
+          "looks_per_trial": 3600.0,
+          "peak_rss_bytes": {
+            "hi95": 73005778.70110516,
+            "lo95": 72836397.29889484,
+            "mean": 72921088.0,
+            "n": 8,
+            "sd": 122215.03888755146,
+            "sem": 43209.54138018262
+          },
+          "rss_delta_bytes": {
+            "hi95": 588489.236165088,
+            "lo95": 521526.763834912,
+            "mean": 555008.0,
+            "n": 8,
+            "sd": 48315.93700988171,
+            "sem": 17082.263349534718
+          },
+          "seconds_per_program": {
+            "hi95": 0.0020376219971996908,
+            "lo95": 0.0020171217062550425,
+            "mean": 0.0020273718517273666,
+            "n": 8,
+            "sd": 1.4791729329854756e-05,
+            "sem": 5.229666057308122e-06
+          }
+        },
+        "C1/2000": {
+          "bytes_per_program": 201.4,
+          "enclosure_updates_per_pair": 2.89125,
+          "looks_per_trial": 6600.0,
+          "peak_rss_bytes": {
+            "hi95": 73908937.56976034,
+            "lo95": 73456950.43023966,
+            "mean": 73682944.0,
+            "n": 8,
+            "sd": 326125.6850654799,
+            "sem": 115302.8417144546
+          },
+          "rss_delta_bytes": {
+            "hi95": 944040.0652346514,
+            "lo95": 497751.93476534856,
+            "mean": 720896.0,
+            "n": 8,
+            "sd": 322013.6361407253,
+            "sem": 113849.01287482218
+          },
+          "seconds_per_program": {
+            "hi95": 0.00324588129509896,
+            "lo95": 0.0031954541548275955,
+            "mean": 0.0032206677249632778,
+            "n": 8,
+            "sd": 3.638507432829302e-05,
+            "sem": 1.2864066395756278e-05
+          }
+        },
+        "C2/1000": {
+          "bytes_per_program": 226.8,
+          "enclosure_updates_per_pair": 2.88815,
+          "looks_per_trial": 3600.0,
+          "peak_rss_bytes": {
+            "hi95": 73572245.15428865,
+            "lo95": 72810602.84571135,
+            "mean": 73191424.0,
+            "n": 8,
+            "sd": 549553.5114628446,
+            "sem": 194296.5072901282
+          },
+          "rss_delta_bytes": {
+            "hi95": 670409.236165088,
+            "lo95": 603446.763834912,
+            "mean": 636928.0,
+            "n": 8,
+            "sd": 48315.93700988171,
+            "sem": 17082.263349534718
+          },
+          "seconds_per_program": {
+            "hi95": 0.002065393474428275,
+            "lo95": 0.0020357502098099205,
+            "mean": 0.0020505718421190977,
+            "n": 8,
+            "sd": 2.138872798790399e-05,
+            "sem": 7.562057300600705e-06
+          }
+        },
+        "C2/2000": {
+          "bytes_per_program": 216.6,
+          "enclosure_updates_per_pair": 2.871025,
+          "looks_per_trial": 6600.0,
+          "peak_rss_bytes": {
+            "hi95": 73648422.78428492,
+            "lo95": 73545433.21571508,
+            "mean": 73596928.0,
+            "n": 8,
+            "sd": 74310.83910939815,
+            "sem": 26272.849124958964
+          },
+          "rss_delta_bytes": {
+            "hi95": 708658.5736645894,
+            "lo95": 634829.4263354106,
+            "mean": 671744.0,
+            "n": 8,
+            "sd": 53270.50074049293,
+            "sem": 18833.966155402773
+          },
+          "seconds_per_program": {
+            "hi95": 0.0032915336099999092,
+            "lo95": 0.0032396173783032153,
+            "mean": 0.0032655754941515623,
+            "n": 8,
+            "sd": 3.745950967998401e-05,
+            "sem": 1.3243936657319906e-05
+          }
+        }
+      }
+    }
+  }
+}

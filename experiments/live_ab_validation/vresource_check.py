@@ -25,24 +25,43 @@ coordinator ruling 68, require the v2 runner to
   (3) record BOTH the enrollment prefix AND the elapsed decision time as
       separate quantities.
 
-The v2 runner has not been written.  What is measured here is a faithful
-implementation of the two candidate DECLARATIONS on the frozen ``vgen``/``vrun``
-arithmetic, so that the coordinator can choose the declaration on the science
-rather than have the budget choose it:
+STATUS CORRECTION, 2026-09-21.  The text here used to say "the v2 runner has
+not been written" and to time this file's OWN reimplementation
+(``evaluate_trial_amended``).  Both statements are now obsolete and the second
+was the defect.  The v2 runner HAS been written and accepted in bounded form,
+and the protocol/resource review found the mismatch precisely:
 
-  ``v1_reduced``   the deposited runner exactly (``vrun.evaluate_trial``):
-                   one look per enrollment prefix plus the finalization look,
-                   ``N_max + 1`` looks per trial per construction.
-  ``v2_all_ticks`` every tick ``1 .. N_max + W``, all three constructions,
-                   simultaneous events batched to the end of their tick.
-                   ``N_max + W`` looks per trial per construction.
-  ``v2_finest``    ``v2_all_ticks`` plus every distinct intra-tick state: every
-                   completion-index change of the two completed-data baselines
-                   and every enclosure change of the adapter, read one event at
-                   a time in enrollment-position order.
+    "amended timing calls its own ``evaluate_trial_amended`` ... rather than
+    the delivered runner's primary evaluation entry ... A new dependency pin
+    does not turn this separate implementation into the actual delivered
+    runner."
 
-All three record the enrollment prefix and the elapsed tick as separate
-columns, so requirement (3)'s byte cost is measured rather than assumed.
+WHAT IS TIMED NOW: the DELIVERED runner, ``vrun.evaluate_trial``, dispatched
+through ``vrun.build_series_for`` on the declared schedule, writing through
+``vrun.trial_rows``.  ``RUNNER_SCHEDULE`` maps each runner name onto one of
+``vrun``'s own schedules, ``delivered_path_provenance`` records the resolved
+file, line and hash of the code object that is called, and a raising sentinel
+replaces ``evaluate_trial_amended`` for the duration of every timed region so
+that a silent fall-back aborts instead of producing a plausible wrong number.
+
+  ``v1_reduced``   the deposited runner (``vrun.SCHEDULE_V1``): one look per
+                   enrollment prefix plus the finalization look, ``N_max + 1``
+                   looks per trial per construction.
+  ``v2_all_ticks`` the ACCEPTED PRIMARY (``vrun.SCHEDULE_V2``): every tick
+                   ``1 .. N_max + W``, simultaneous events batched to the end
+                   of their tick. ``N_max + W`` looks per trial.
+  ``v2_finest``    DEFERRED AND DISABLED, not in the design. Selectable by hand
+                   for development evidence only.
+
+``evaluate_trial_amended`` and its series builders are PRESERVED, not deleted:
+they are the implementation the two earlier receipts were produced with, so
+removing them would destroy the comparison base. They are simply no longer on
+the measured path.
+
+PIN WARNING.  ``--pin HEAD`` (the default) times a ``git archive`` export of a
+named COMMIT, not the working tree. Uncommitted delivered changes are NOT
+measured under that default; use ``--pin tree`` and read
+``delivered_path.is_working_tree`` in the receipt to see which was timed.
 
 MEASURES ONLY.  Seconds, peak resident memory, bytes and counts.  No effect
 column is formed into a record on disk and none is read; ``assert_resource_only``
@@ -66,6 +85,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import inspect
 import json
 import math
 import os
@@ -159,7 +179,16 @@ PROGRAMS_PER_GROUP = 5
 PROGRAM_BASE = 1000                 # disjoint from the v1 smoke's 0-9
 NAMESPACE = vgen.NAMESPACE_SMOKE    # 1: discarded, never reused in a grid
 
-RUNNERS = ("v1_reduced", "v2_all_ticks", "v2_finest")
+#: The runners the AUTHORIZED measurement covers.  ``v2_finest`` is DEFERRED
+#: AND DISABLED (root disposition 2026-09-21 02:26 decision 1): its
+#: completed-prefix iterator emits states unattainable under any tie order, so
+#: measuring its cost would be costing a schedule that will not run.  It is
+#: kept in ``ALL_RUNNERS`` and remains selectable by hand via ``--runner`` for
+#: development evidence, but it is not in the design the driver executes and no
+#: analysis or projection may treat it as a candidate.
+RUNNERS = ("v1_reduced", "v2_all_ticks")
+DEFERRED_RUNNERS = ("v2_finest",)
+ALL_RUNNERS = RUNNERS + DEFERRED_RUNNERS
 
 #: every key permitted to leave a worker.  Anything else is an effect column
 #: and aborts the check.
@@ -182,6 +211,16 @@ RESOURCE_ONLY_KEYS = {
     "band_evaluations", "enclosure_updates", "enclosure_updates_per_pair",
     # provenance of the measurement itself
     "measures_only", "seeds", "note", "points", "balanced", "design",
+    # provenance of WHICH CODE PATH was timed.  These are identifiers and
+    # hashes, not outcomes: they answer "what ran", which is precisely the
+    # question the protocol/resource review found unanswerable before.
+    "delivered_path", "timed_callable", "timed_callable_file",
+    "timed_callable_first_line", "timed_callable_is_the_measured_vrun",
+    "measured_source_dir", "measured_source_rev", "is_working_tree",
+    "working_tree_warning", "series_builder", "series_builder_file",
+    "schedule_measured", "vrun_sha256", "vgen_sha256",
+    "separate_amended_helper_used", "separate_amended_helper_guarded", "guard",
+    "harness_sha256", "attempts", "reference", "reference_available",
 }
 
 
@@ -569,59 +608,162 @@ def check_root_witness() -> Dict[str, object]:
 # ===========================================================================
 # 2.  the measurement worker: one (runner, cell, N_max) group
 # ===========================================================================
+def _sha256_file(path: Path) -> str:
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+#: The PRESERVED separate implementation, captured before any swap.  It is the
+#: one the two earlier resource receipts were produced with, so it is kept as
+#: the comparison base and as development evidence; it is simply not what the
+#: delivered-runner measurement times.
+_REAL_AMENDED = evaluate_trial_amended
+
+
+def _amended_sentinel(*args, **kwargs):
+    """Stands in for the separate helper inside a timed region.
+
+    If this ever runs, the measurement was about to time the reimplementation
+    instead of the delivered runner -- the exact substitution the root refused
+    to accept -- so it aborts rather than returning a plausible number.
+    """
+    raise AmendedHelperCalled(
+        "vresource_check.evaluate_trial_amended was called inside a timed "
+        "region. The authorized measurement must time the DELIVERED runner "
+        "vrun.evaluate_trial. Refusing to report this timing.")
+
+
 def _rss() -> int:
     return vrun.peak_rss_bytes()
 
 
+#: Which DELIVERED schedule each runner name measures.  The whole point of the
+#: repair below is that this maps onto ``vrun``'s own schedules, so that the
+#: timing is of the delivered runner and not of this file's separate helper.
+RUNNER_SCHEDULE = {
+    "v1_reduced": vrun.SCHEDULE_V1,
+    "v2_all_ticks": vrun.SCHEDULE_V2,
+    "v2_finest": vrun.SCHEDULE_V2_FINEST,
+}
+
+
+class AmendedHelperCalled(RuntimeError):
+    """Raised if the separate amended helper runs inside a timed region."""
+
+
+def delivered_path_provenance(runner: str) -> Dict[str, object]:
+    """PROVE, by inspection, which code object the measurement will time.
+
+    The protocol/resource review's finding was precise and it is the reason
+    this function exists: "``vresource_check.py:107-146`` exports and imports
+    pinned dependencies, but amended timing calls its own
+    ``evaluate_trial_amended`` (394, called at 589 and 606), rather than the
+    delivered runner's primary evaluation entry.  A new dependency pin does not
+    turn this separate implementation into the actual delivered runner."  The
+    root repeated it: "Merely setting vresource_check --pin still times its own
+    amended helper; it is not enough."
+
+    So the receipt records the resolved module file, qualified name, first line
+    number and source hash of the function that is actually called, and the
+    dispatch it resolves to.  A reader can check the receipt against ``vrun.py``
+    without rerunning anything.
+    """
+    fn = vrun.evaluate_trial
+    src = inspect.getsourcefile(fn) or "<unknown>"
+    _, lineno = inspect.getsourcelines(fn)
+    dispatch = inspect.getsourcefile(vrun.build_series_for) or "<unknown>"
+    resolved = Path(src).resolve()
+    # SOURCE_DIR is where `_install_sources` actually put the measured modules:
+    # the working tree under `--pin tree`, or a read-only `git archive` export
+    # of a named commit otherwise.  Comparing against SOURCE_DIR rather than
+    # against HERE is the point -- under a commit pin the timed file is NOT the
+    # working-tree file, and a receipt that hid that would be misleading.
+    return {
+        "timed_callable": f"{fn.__module__}.{fn.__qualname__}",
+        "timed_callable_file": str(resolved),
+        "timed_callable_first_line": lineno,
+        "timed_callable_is_the_measured_vrun":
+            resolved == (SOURCE_DIR / "vrun.py").resolve(),
+        "measured_source_dir": str(SOURCE_DIR),
+        "measured_source_rev": SOURCE_REV,
+        "is_working_tree": SOURCE_REV.startswith("WORKING TREE"),
+        "working_tree_warning": (
+            None if SOURCE_REV.startswith("WORKING TREE") else
+            "This receipt times a COMMIT EXPORT, not the working tree. If the "
+            "delivered changes are uncommitted, this does NOT measure them: "
+            "re-run with --pin tree."),
+        "series_builder": f"{vrun.build_series_for.__module__}."
+                          f"{vrun.build_series_for.__qualname__}",
+        "series_builder_file": dispatch,
+        "schedule_measured": RUNNER_SCHEDULE[runner],
+        "vrun_sha256": _sha256_file(SOURCE_DIR / "vrun.py"),
+        "vgen_sha256": _sha256_file(SOURCE_DIR / "vgen.py"),
+        "separate_amended_helper_used": False,
+        "separate_amended_helper_guarded": True,
+        "guard": "vresource_check.evaluate_trial_amended is replaced by a "
+                 "raising sentinel for the duration of every timed region, so "
+                 "a silent fall-back to the separate implementation aborts the "
+                 "measurement instead of quietly producing a wrong number.",
+    }
+
+
 def measure_group(runner: str, cell_id: str, n_max: int, programs: int,
                   program_base: int, inner: int) -> Dict[str, object]:
-    """Time and size one group of the balanced design, ``inner`` times."""
+    """Time and size one group of the balanced design, ``inner`` times.
+
+    THE DELIVERED RUNNER IS WHAT IS TIMED.  Every runner, including the v2
+    ones, now calls ``vrun.evaluate_trial`` with the corresponding declared
+    schedule and writes through ``vrun.trial_rows``.  This file's
+    ``evaluate_trial_amended`` is PRESERVED -- it is the independent
+    reimplementation the earlier receipts were produced with, and deleting it
+    would destroy the comparison base -- but it is not on this path, and a
+    sentinel makes that checkable rather than merely claimed.
+    """
     cell = vgen.CELL_BY_ID[cell_id]
-    cfg = vrun.make_config(n_max, NAMESPACE)
-    finest = runner == "v2_finest"
-    amended = runner != "v1_reduced"
-    header = AMENDED_HEADER if amended else vrun.TRIAL_HEADER
+    schedule = RUNNER_SCHEDULE[runner]
+    cfg = vrun.make_config(n_max, NAMESPACE, schedule=schedule)
+    header = vrun.trial_header(schedule)
 
     # warm every code path once, OUTSIDE the timed region, so that the first
     # timed repetition is not measuring import-time lazy work
     warm = vgen.draw_trial(cell, program_base, 0, n_max=n_max, namespace=NAMESPACE)
-    if amended:
-        evaluate_trial_amended(warm, cfg, finest)
-    else:
-        vrun.evaluate_trial(warm, cfg)
+    vrun.evaluate_trial(warm, cfg, schedule)
     baseline_rss = _rss()
 
     seconds_each: List[float] = []
     counts = vrun.BlockCounts()
     record_bytes = 0
-    for rep in range(inner):
-        sink = vrun.RowSink(None, header, discard=True)
-        counts = vrun.BlockCounts()
-        t0 = time.perf_counter()
-        for program in range(program_base, program_base + programs):
-            for trial in range(cfg.trials_per_program):
-                draw = vgen.draw_trial(cell, program, trial, n_max=n_max,
-                                       namespace=NAMESPACE)
-                if amended:
-                    records, looks, updates = evaluate_trial_amended(
-                        draw, cfg, finest)
-                    sink.write(amended_trial_rows(cell, program, trial, records))
-                else:
-                    records, looks, updates = vrun.evaluate_trial(draw, cfg)
+    # THE GUARD: for the duration of the timed region the separate amended
+    # helper cannot run without aborting the measurement.
+    globals()["evaluate_trial_amended"] = _amended_sentinel
+    try:
+        for rep in range(inner):
+            sink = vrun.RowSink(None, header, discard=True)
+            counts = vrun.BlockCounts()
+            t0 = time.perf_counter()
+            for program in range(program_base, program_base + programs):
+                for trial in range(cfg.trials_per_program):
+                    draw = vgen.draw_trial(cell, program, trial, n_max=n_max,
+                                           namespace=NAMESPACE)
+                    records, looks, updates = vrun.evaluate_trial(
+                        draw, cfg, schedule)
                     looks *= len(vrun.CONSTRUCTIONS)
-                    sink.write(vrun.trial_rows(cell, program, trial, records))
-                counts.trials += 1
-                counts.pairs += cfg.n_max
-                counts.looks += looks
-                counts.band_evaluations += looks * 2
-                counts.enclosure_updates += updates
-            counts.programs += 1
-        seconds_each.append(time.perf_counter() - t0)
-        record_bytes = sink.close()
+                    sink.write(vrun.trial_rows(cell, program, trial, records,
+                                               schedule))
+                    counts.trials += 1
+                    counts.pairs += cfg.n_max
+                    counts.looks += looks
+                    counts.band_evaluations += looks * 2
+                    counts.enclosure_updates += updates
+                counts.programs += 1
+            seconds_each.append(time.perf_counter() - t0)
+            record_bytes = sink.close()
+    finally:
+        globals()["evaluate_trial_amended"] = _REAL_AMENDED
 
     seconds = statistics.median(seconds_each)
     return {
-        "schema": "live_ab_validation_v2.resource_check.group.1",
+        "schema": "live_ab_validation_v2.resource_check.group.2",
+        "delivered_path": delivered_path_provenance(runner),
         "runner": runner, "cell": cell.id, "law": cell.law,
         "delay": cell.delay, "N_max": n_max, "namespace": NAMESPACE,
         "program_base": program_base, "programs": programs,
@@ -650,6 +792,12 @@ def measure_group(runner: str, cell_id: str, n_max: int, programs: int,
         "machine": platform.machine(),
         "source_rev": SOURCE_REV,
         "source_hashes": SOURCE_HASHES,
+        # THE EXECUTING HARNESS ITSELF.  The protocol/resource review found the
+        # old inventory omitted it, so a receipt could not be traced to the code
+        # that produced it. Recorded unconditionally, and separately from
+        # SOURCE_HASHES, because the harness always runs from the working tree
+        # even when the MEASURED modules come from a commit export.
+        "harness_sha256": _sha256_file(HERE / "vresource_check.py"),
         "measures_only": ["wall_clock_seconds", "peak_rss", "output_bytes",
                           "counts"],
         "seeds": "namespace 1, discarded, never reused in any reported grid",
@@ -822,7 +970,7 @@ def analyse(design: Dict[str, object]) -> Dict[str, object]:
 
     # ---- the paired cost factor, amended over v1, on the same coordinates --
     factors: Dict[str, object] = {}
-    for runner in ("v2_all_ticks", "v2_finest"):
+    for runner in [r for r in RUNNERS if r != "v1_reduced"]:
         overall, per_h, per_c = [], {h: [] for h in HORIZONS}, {c: [] for c in CELLS}
         for r in reps:
             for c in CELLS:
@@ -1012,7 +1160,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     ap.add_argument("--reps", type=int, default=8)
     ap.add_argument("--inner", type=int, default=20)
     ap.add_argument("--programs", type=int, default=PROGRAMS_PER_GROUP)
-    ap.add_argument("--runner", default="v1_reduced", choices=RUNNERS)
+    ap.add_argument("--runner", default="v1_reduced", choices=ALL_RUNNERS,
+                    help="the deferred v2_finest runner is selectable by hand "
+                         "for development evidence but is not in the design")
     ap.add_argument("--cell", default="C1")
     ap.add_argument("--n-max", type=int, default=2000)
     ap.add_argument("--program-base", type=int, default=PROGRAM_BASE)
@@ -1021,6 +1171,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                          "the live working tree (default: HEAD)")
     ap.add_argument("--write", action="store_true",
                     help=f"deposit the receipt under {OUT_DIR}")
+    ap.add_argument("--out", default=None,
+                    help="deposit under this directory instead, so a new "
+                         "delivered-runner receipt does not overwrite the "
+                         "preserved prototype receipt")
     args = ap.parse_args(argv)
 
     if args.pin != os.environ.get("VRESOURCE_PIN", "HEAD"):
@@ -1062,14 +1216,20 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     print_report(design, an)
 
     if args.write:
-        OUT_DIR.mkdir(parents=True, exist_ok=True)
+        # PRESERVE THE PRIOR RECEIPTS.  The root's instruction is explicit:
+        # "Preserve both prior resource receipts and the owner's withdrawal; do
+        # not call the resource gate discharged until the actual-runner receipt
+        # is checked."  The delivered-runner measurement is therefore a NEW
+        # deposit beside the prototype one, never on top of it.
+        out = Path(args.out) if args.out else OUT_DIR
+        out.mkdir(parents=True, exist_ok=True)
         assert_resource_only(design)
-        (OUT_DIR / "balanced_timing.json").write_text(
+        (out / "balanced_timing.json").write_text(
             json.dumps(design, indent=2, sort_keys=True) + "\n")
-        (OUT_DIR / "balanced_analysis.json").write_text(
+        (out / "balanced_analysis.json").write_text(
             json.dumps(an, indent=2, sort_keys=True) + "\n")
-        print(f"wrote {OUT_DIR / 'balanced_timing.json'}")
-        print(f"wrote {OUT_DIR / 'balanced_analysis.json'}")
+        print(f"wrote {out / 'balanced_timing.json'}")
+        print(f"wrote {out / 'balanced_analysis.json'}")
     return 0
 
 

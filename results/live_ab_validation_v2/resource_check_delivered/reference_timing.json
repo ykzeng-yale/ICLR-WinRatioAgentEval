@@ -1,0 +1,63 @@
+{
+  "schema": "live_ab_validation_v2.reference.resource.1",
+  "reference_available": true,
+  "reference_label": "DECLARED REFERENCE (authors' code): comparecast.confseq.confseq_eb, Choe & Ramdas Comparing Sequential Forecasters Theorem 2, yjchoe/ComparingForecasters@52748c8 + gostevehoward/confseq@5ffe733, MIT. Reported beside the primary; never overrides any decision.",
+  "role": "DECLARED REFERENCE. Its cost is reported beside the primary's and is NOT part of any budget ladder, tier decision or admissibility claim: the reference decides nothing, so it gates nothing.",
+  "design": "balanced 2x2, cells C1/C2 x horizons 1,000/2,000, five programs per group, namespace 1, program indices 1000-1004",
+  "baseline_rss_bytes": 68386816,
+  "measures_only": [
+    "wall_clock_seconds",
+    "peak_rss",
+    "counts"
+  ],
+  "points": [
+    {
+      "cell": "C1",
+      "N_max": 1000,
+      "programs": 5,
+      "trials": 20,
+      "inner_reps": 20,
+      "seconds_median": 0.08001929149031639,
+      "seconds_min": 0.0794889172539115,
+      "seconds_max": 0.08094737492501736,
+      "seconds_per_program": 0.016003858298063278,
+      "peak_rss_bytes": 69877760
+    },
+    {
+      "cell": "C1",
+      "N_max": 2000,
+      "programs": 5,
+      "trials": 20,
+      "inner_reps": 20,
+      "seconds_median": 0.17314445786178112,
+      "seconds_min": 0.17227020766586065,
+      "seconds_max": 0.20612595789134502,
+      "seconds_per_program": 0.03462889157235623,
+      "peak_rss_bytes": 72351744
+    },
+    {
+      "cell": "C2",
+      "N_max": 1000,
+      "programs": 5,
+      "trials": 20,
+      "inner_reps": 20,
+      "seconds_median": 0.08101154211908579,
+      "seconds_min": 0.0805005831643939,
+      "seconds_max": 0.08608841616660357,
+      "seconds_per_program": 0.016202308423817157,
+      "peak_rss_bytes": 72400896
+    },
+    {
+      "cell": "C2",
+      "N_max": 2000,
+      "programs": 5,
+      "trials": 20,
+      "inner_reps": 20,
+      "seconds_median": 0.17409508302807808,
+      "seconds_min": 0.1730703329667449,
+      "seconds_max": 0.1754348324611783,
+      "seconds_per_program": 0.034819016605615614,
+      "peak_rss_bytes": 72400896
+    }
+  ]
+}
