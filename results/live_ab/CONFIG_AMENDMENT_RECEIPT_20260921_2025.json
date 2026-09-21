@@ -1,0 +1,47 @@
+{
+  "amended_utc": "2026-09-21T20:25:00Z",
+  "authority": "root 2026-09-21 19:29, decision 3: \"Authorize synchronized measured-value promotion into config, architecture 6.1 and protocol Appendix B. Preserve the three-way exact-text contract in one checked owner commit, with a field-by-field receipt mapping and recorded amendment.\"",
+  "documents_amended_in_lockstep": [
+    "experiments/live_ab/config.json",
+    "experiments/live_ab/design/ARCHITECTURE_FINAL.md (section 6.1 json block)",
+    "experiments/live_ab/design/protocol_FINAL.md (Appendix B json block)"
+  ],
+  "field_by_field": [
+    {
+      "derivation": "sha256 over the canonical JSON of the environment lock block: interpreter version, tokenized path, implementation, sorted name==version list of all 83 installed distributions, numpy version",
+      "field": "environment_lock_sha256",
+      "kind": "independently checkable host fact",
+      "now": "842a7a19d738604fbe665231a593a11f12cc02abfe9b1dc4034bc3817a9081ac",
+      "source": "results/live_ab/PREPARATION_MANIFEST_20260921_1855.json .environment_lock_sha256",
+      "was": null
+    },
+    {
+      "derivation": "root 18:17 item 3: scope to the currently intended arm64-darwin host/runtime; the exact device facts (Apple M5, 10 logical cores, memsize) are recorded BESIDE it in the manifest, not inside the allowlist",
+      "field": "hardware_allowlist",
+      "kind": "DESIGN RESTRICTION scoped to the intended host, not an observation",
+      "now": [
+        "arm64-darwin"
+      ],
+      "source": "results/live_ab/PREPARATION_MANIFEST_20260921_1855.json .hardware.allowlist",
+      "was": null
+    },
+    {
+      "derivation": "sha256 of the expanded Seatbelt profile string; the profile TEXT is withheld because it embeds absolute local paths (root 18:17 item 5)",
+      "field": "sandbox.profile_sha256",
+      "kind": "independently checkable host fact",
+      "now": "6370c169267c3f31d3df6321b8acd6b3a363619634835c70854a9bf3952ed900",
+      "source": "results/live_ab/PREPARATION_MANIFEST_20260921_1855.json .sandbox.profile_sha256",
+      "was": null
+    }
+  ],
+  "not_filled_and_why": {
+    "execution.request_timeout_s / episode_hard_cap_s": "computed from c_max by the declared rules of 5.6; c_max is a prefreeze measurement that has not run",
+    "monitor.n_max": "derives from the final roster, which needs the loaded reference sweep",
+    "sandbox.containment_probe_sha256": "no containment probe implementation exists yet"
+  },
+  "postcondition_checked": "all three carry IDENTICAL text after the amendment",
+  "precondition_checked": "all three carried IDENTICAL text before the amendment",
+  "prior_versions_retained": "the pre-amendment text of all three documents remains in git history; nothing was overwritten in place without a commit",
+  "schema": "live_ab.config_amendment_receipt.1",
+  "this_is_not_a_freeze": "root 19:29: \"Null templates are not an immutable prohibition on their required prospective completion. No freeze exists yet.\""
+}

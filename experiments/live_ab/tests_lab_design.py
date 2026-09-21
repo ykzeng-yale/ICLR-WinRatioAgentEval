@@ -21,6 +21,7 @@ import inspect
 import json
 import os
 import re
+import shutil
 import sys
 import tempfile
 import time
@@ -1913,3 +1914,94 @@ class Stage1RegressionFixtureTests(unittest.TestCase):
         self.assertEqual(sv['S2'], self.EXPECTED['n_S2'])
         self.assertEqual(sv['S1'] // 2 + sv['S2'] // 2,
                          self.EXPECTED['n_pairs_ceiling'])
+
+
+class AttemptLedgerRetentionTests(unittest.TestCase):
+    """D1 closure fixture (root 2026-09-21 19:29): save / reload / reconstruct.
+
+    Root: "Save/reload/digest reconstruction with a stub closes that retention
+    check without a model run."  No model, no server, no sandbox: a STUB verifier
+    supplies the payloads, the sweep retains them through the production sink, the
+    ledger is reloaded FROM DISK, and the exclusion digest is recomputed from the
+    reloaded records alone.
+    """
+
+    def _stub_verify_module(self, payloads):
+        class _Stub:
+            def __init__(self, seq):
+                self.seq = list(seq)
+                self.calls = 0
+
+            def verify(self, task, code, **kw):
+                out = self.seq[min(self.calls, len(self.seq) - 1)]
+                self.calls += 1
+                return out
+        return _Stub(payloads)
+
+    def _payload(self, success, sentinel, timed_out, secs, out='', err=''):
+        return {'success': success, 'sentinel_seen': sentinel, 'timed_out': timed_out,
+                'entry_point_defined': True, 'sandbox_flag': False,
+                'verify_seconds': secs,
+                'run': {'passed': success, 'returncode': 0 if success else 1,
+                        'stdout_tail': out, 'stderr': err, 'timed_out': timed_out}}
+
+    def test_digest_reconstructs_from_the_reloaded_ledger(self):
+        tmp = Path(tempfile.mkdtemp(prefix='ledger_'))
+        try:
+            ledger = lab_data.AttemptLedger(tmp / 'attempts.jsonl')
+            failing = self._payload(False, False, False, 0.2,
+                                    out='partial', err='AssertionError: boom')
+            stub = self._stub_verify_module([failing])
+            task = {'uid': 'mbpp_full/1', 'benchmark': 'mbpp_full', 'stratum': 'S2',
+                    'prompt': 'p', 'entry_point': 'f',
+                    'reference': 'def f():\n    return 1\n',
+                    'test_imports': [], 'test_list': [], 'challenge_test_list': [],
+                    'test': ''}
+            cfg = {'sandbox': {'timeout_s': 10.0, 'cpu_s': 10,
+                               'output_cap_bytes': 65536,
+                               'execution_lock_path': str(tmp / 'lock')},
+                   'execution': {'max_lock_wait_s': 5}}
+            with mock.patch.object(lab_data, '_pilot_verify', lambda: stub):
+                exclusions = lab_data.sweep_references([task], cfg,
+                                                       on_attempt=ledger.append)
+            self.assertEqual(len(exclusions), 1)
+            self.assertEqual(exclusions[0]['reason'], 'reference_fails_verify')
+
+            # RELOAD FROM DISK -- not from the in-memory objects.
+            reloaded = lab_data.AttemptLedger(tmp / 'attempts.jsonl').attempts_for(
+                'mbpp_full/1')
+            self.assertTrue(reloaded, 'the ledger retained nothing')
+            self.assertEqual(lab_data.reconstruct_detail_sha256(reloaded),
+                             exclusions[0]['detail_sha256'],
+                             'the digest did not reconstruct from the reloaded '
+                             'records -- the preimage is still effectively lost')
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_a_failing_sink_stops_preparation(self):
+        """Root: 'loss/failure of the sink must stop preparation rather than
+        silently continue.'"""
+        tmp = Path(tempfile.mkdtemp(prefix='ledger_'))
+        try:
+            def broken_sink(_record):
+                raise OSError('ledger device full')
+            stub = self._stub_verify_module([self._payload(True, True, False, 0.1)])
+            task = {'uid': 'x/1', 'benchmark': 'mbpp_full', 'stratum': 'S2',
+                    'prompt': 'p', 'entry_point': 'f',
+                    'reference': 'def f():\n    return 1\n',
+                    'test_imports': [], 'test_list': [], 'challenge_test_list': [],
+                    'test': ''}
+            cfg = {'sandbox': {'execution_lock_path': str(tmp / 'lock')},
+                   'execution': {'max_lock_wait_s': 5}}
+            with mock.patch.object(lab_data, '_pilot_verify', lambda: stub):
+                with self.assertRaises(OSError):
+                    lab_data.sweep_references([task], cfg, on_attempt=broken_sink)
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_clean_exit_without_the_sentinel_is_not_a_pass(self):
+        """Root: 'A clean process exit is not a verification sentinel.'"""
+        rec = lab_data.attempt_record('u', 0, self._payload(False, False, False, 0.2))
+        rec['clean_exit'] = True
+        self.assertFalse(rec['sentinel_seen'])
+        self.assertEqual(lab_data.classify_attempt(rec, 2.5), 'reference_fails_verify')

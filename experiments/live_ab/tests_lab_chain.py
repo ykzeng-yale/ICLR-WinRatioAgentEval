@@ -2165,3 +2165,79 @@ class OrderEnrollmentShapeTests(unittest.TestCase):
         # COUNT -- a dropped slot with n_pairs left stale is refused outright
         p = copy.deepcopy(base); p['pairs'] = p['pairs'][:1]
         self.assertIsNone(lab_verify_log._order_slots(p))
+
+
+class OrderEnrollmentRefusalFixtureTests(TempTree):
+    """D2 closure fixture (root 2026-09-21 19:29).
+
+    Root: "D2 still needs the actual verifier refusal fixture: mutated inputs
+    alone do not test refusal."  The shape tests above exercise ``_order_slots``
+    directly; these drive the REAL ``verify_trial`` over a REAL materialized chain
+    with a deposited arrival-order file, and assert that:
+
+      * the production dict document is READ and the trial still passes, and
+      * an unreadable document produces an ``order.enrollment`` FAIL rather than
+        the silent OK the pre-repair code emitted.
+
+    The second is the one that matters: before the repair, replacing the order
+    file with something the verifier could not parse still yielded a PASS.
+    """
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.good = build_good_chain()
+        lab_eventlog.set_roster_uids(self.good['roster']['tasks'])
+        self.root = materialize(self.good['events'], self.tmp / 'results',
+                                FIXTURE_TRIAL, self.good)
+        self.order_path = (self.root / '_freeze'
+                           / f'arrival_order_{FIXTURE_TRIAL}.json')
+        if not self.order_path.is_file():
+            candidates = list((self.root).rglob(f'arrival_order_{FIXTURE_TRIAL}.json'))
+            if not candidates:
+                self.skipTest('fixture deposits no arrival-order file')
+            self.order_path = candidates[0]
+
+    def _verify(self):
+        return lab_verify_log.verify_trial(
+            FIXTURE_TRIAL, self.good['bundle_sha'], mode='plumbing',
+            results_root=self.root)
+
+    def _enrollment_findings(self, report):
+        return [f for f in report.findings if f.check == 'order.enrollment']
+
+    def test_baseline_fixture_has_no_enrollment_finding(self):
+        self.assertEqual(self._enrollment_findings(self._verify()), [])
+
+    def test_an_unreadable_order_document_is_REFUSED_not_passed(self):
+        """The defect in one assertion: this used to come back clean."""
+        self.order_path.write_text(json.dumps({'schema': 'live_ab/arrival_order-v1',
+                                               'n_pairs': 3}), encoding='utf-8')
+        found = self._enrollment_findings(self._verify())
+        self.assertTrue(found,
+                        'an arrival-order document with no pairs list produced NO '
+                        'order.enrollment finding -- the verifier passed a check it '
+                        'could not perform')
+        self.assertEqual(found[0].severity, 'FAIL')
+        self.assertIn('unsupported_order_document', found[0].detail)
+
+    def test_an_internally_inconsistent_document_is_REFUSED(self):
+        doc = json.loads(self.order_path.read_text('utf-8'))
+        if isinstance(doc, list):
+            doc = {'schema': 'live_ab/arrival_order-v1', 'n_pairs': len(doc),
+                   'pairs': doc}
+        doc['n_pairs'] = int(doc.get('n_pairs') or 0) + 7      # stale declared count
+        self.order_path.write_text(json.dumps(doc), encoding='utf-8')
+        found = self._enrollment_findings(self._verify())
+        self.assertTrue(found, 'a document whose declared n_pairs disagrees with its '
+                               'own pairs list was read past')
+
+    def test_a_perturbed_uid_is_CAUGHT_through_the_real_verifier(self):
+        doc = json.loads(self.order_path.read_text('utf-8'))
+        pairs = doc if isinstance(doc, list) else doc.get('pairs')
+        if not pairs:
+            self.skipTest('fixture order carries no pairs')
+        pairs[0]['uids'] = [pairs[0]['uids'][0], 'mbpp_full/NOT_THE_ENROLLED_UID']
+        self.order_path.write_text(json.dumps(doc), encoding='utf-8')
+        found = self._enrollment_findings(self._verify())
+        self.assertTrue(found, 'a perturbed task uid did not reach a finding through '
+                               'the real verifier')

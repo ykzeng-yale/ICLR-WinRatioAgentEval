@@ -482,12 +482,23 @@ ATTEMPT_RECORD_SCHEMA: str = 'live_ab/reference_attempt-v1'
 def attempt_record(uid: str, run_index: int, result: dict) -> dict:
     """The COMPLETE per-attempt verifier record, retained rather than discarded.
 
-    Carries the two fields the digest is built from (`stdout_tail`, `stderr`) plus
-    the flags and the measured duration root required kept explicitly, so a
-    genuine timeout is distinguishable from a non-timeout verifier failure after
-    the fact and not only at classification time.
+    Carries the two fields the digest is built from (`stdout_tail`, `stderr`), the
+    flags and measured duration root required kept explicitly, and the RAW
+    verifier payload, so nothing that went into a classification is lost.
+
+    CORRECTED 2026-09-21 19:29, root: "D1 must read the actual top-level sentinel
+    flag ... A clean process exit is not a verification sentinel."  My first
+    version set ``sentinel_seen`` from ``run['passed']``, which is
+    ``rc == 0 and not timed_out`` -- a CLEAN EXIT.  The sentinel exists precisely
+    to catch a candidate that exits 0 without running the tests (verify.py's own
+    docstring: "a candidate that exits early with status 0 (sys.exit,
+    SystemExit...)"), so reading `passed` as the sentinel defeated the check it
+    was named after.  ``verify()`` returns ``sentinel_seen`` and ``timed_out`` at
+    the TOP LEVEL; both are read from there now, with the nested run dict used
+    only as a fallback for the sandbox-level fields it alone carries.
     """
-    run = (result or {}).get('run') or {}
+    result = result or {}
+    run = result.get('run') or {}
     return {
         'schema': ATTEMPT_RECORD_SCHEMA,
         'uid': uid,
@@ -495,13 +506,56 @@ def attempt_record(uid: str, run_index: int, result: dict) -> dict:
         # --- the digest preimage, verbatim -------------------------------
         'stdout_tail': run.get('stdout_tail', ''),
         'stderr': run.get('stderr', ''),
-        # --- the flags and duration (D3) ---------------------------------
-        'success': bool((result or {}).get('success')),
-        'timed_out': bool(run.get('timed_out')),
+        # --- the flags and duration (D3), from the TOP LEVEL --------------
+        'success': bool(result.get('success')),
+        'timed_out': bool(result.get('timed_out', run.get('timed_out'))),
+        'sentinel_seen': bool(result.get('sentinel_seen')),
+        'entry_point_defined': bool(result.get('entry_point_defined')),
+        'sandbox_flag': bool(result.get('sandbox_flag')),
+        'clean_exit': bool(run.get('passed')),   # NOT the sentinel; kept distinctly
         'returncode': run.get('returncode'),
-        'sentinel_seen': bool(run.get('passed')),
-        'verify_seconds': float((result or {}).get('verify_seconds') or 0.0),
+        'verify_seconds': float(result.get('verify_seconds') or 0.0),
+        # --- the RAW payload, preserved whole ----------------------------
+        # Root: "preserve the raw verifier payload".  A record that keeps only the
+        # fields I thought mattered is the same defect as hashing a detail and
+        # discarding it: it decides in advance what a later question may ask.
+        'raw_verifier_payload': result,
     }
+
+
+class AttemptLedger:
+    """A durable append-only sink for retained attempt records.
+
+    Root: "wire the callback to a durable production preparation ledger ... loss
+    or failure of the sink must stop preparation rather than silently continue."
+
+    So ``append`` fsyncs and does NOT swallow errors: a sink that cannot record is
+    a preparation that must stop, because continuing would produce exclusions
+    whose preimage is again unavailable -- the very defect D1 repairs.
+    """
+
+    def __init__(self, path: "str | Path") -> None:
+        self.path = Path(path)
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.count = 0
+
+    def append(self, record: dict) -> None:
+        line = lab_common.canonical_json(record) + '\n'
+        fd = os.open(self.path, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o644)
+        try:
+            os.write(fd, line.encode('utf-8'))
+            lab_common.fullsync(fd)
+        finally:
+            os.close(fd)
+        self.count += 1
+
+    def load(self) -> list[dict]:
+        if not self.path.is_file():
+            return []
+        return [json.loads(l) for l in self.path.read_text('utf-8').splitlines() if l.strip()]
+
+    def attempts_for(self, uid: str) -> list[dict]:
+        return [r for r in self.load() if r.get('uid') == uid]
 
 
 def detail_from_attempts(attempts: Sequence[dict]) -> str:
@@ -667,6 +721,10 @@ def sweep_references(tasks: list[Task], cfg: dict, *, on_progress: Callable | No
             record = attempt_record(task['uid'], run_index, result)
             attempts.append(record)
             if on_attempt is not None:
+                # DELIBERATELY UNGUARDED.  Root: "loss/failure of the sink must
+                # stop preparation rather than silently continue."  A try/except
+                # here would let the sweep carry on producing exclusions whose
+                # preimage was never recorded -- exactly the defect D1 repairs.
                 on_attempt(record)
             # D3: documented precedence; a genuine hang is a timeout, not a
             # verifier failure.  The excluded SET is unchanged -- a timed-out
