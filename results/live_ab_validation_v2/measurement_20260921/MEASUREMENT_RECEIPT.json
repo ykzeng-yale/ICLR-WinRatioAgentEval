@@ -1,0 +1,325 @@
+{
+  "attempts": {
+    "failed": 0,
+    "note": "one pass per horizon; no automatic retry, no alternative seed selection, no model call",
+    "retries": 0,
+    "total": 2
+  },
+  "authority": "root disposition 2026-09-21 07:50, 'Explicit decision: bounded remeasurement is authorized'",
+  "authorized_design": {
+    "cells": [
+      "C1",
+      "C2"
+    ],
+    "horizons": [
+      1000,
+      2000
+    ],
+    "namespace": 1,
+    "passes": "one complete pass initially",
+    "policy": "operational",
+    "program_indices": [
+      1000,
+      1001,
+      1002,
+      1003,
+      1004
+    ],
+    "schedule": "v2_tick_batched",
+    "trials_per_program": 4
+  },
+  "authorized_vs_actual": {
+    "matches_authorization": true,
+    "reference_calls_actual": 160,
+    "trial_evaluations_actual": 80,
+    "units": {
+      "reference_calls": 160,
+      "seed_program_identities": 10,
+      "trial_evaluations": 80,
+      "units": 20
+    }
+  },
+  "authorizes": "NOTHING further. Delivered for independent acceptance before any full grid.",
+  "cap_events": [],
+  "caps": {
+    "output_bytes": 209715200,
+    "peak_rss_bytes": 2147483648,
+    "seconds": 300.0
+  },
+  "completed_fully": true,
+  "convention": "descriptive; a single observed pass under recorded concurrent load. NOT calibration, NOT a coverage rate, NOT an uncontended benchmark, NOT a guaranteed upper bound.",
+  "effect_summaries": {
+    "in_the_raw_primary_output": "PRESENT, and stated here so nobody assumes otherwise: primary_rows.csv.gz carries 120 per-trial rows per horizon including a decision label column. That output is not a leak -- the authorization requires measuring 'retained prefix output, required accumulation, serialization/compression, final disk writes/close', so writing these rows IS part of the measured workload and omitting them would have measured a different, smaller thing.",
+    "in_this_receipt": "WITHHELD and NOT ACCUMULATED during the run.",
+    "prior_disclosure": "A first pass on this design wrote decision COUNTS into the receipt itself, which did breach the contract. That pass was discarded uncommitted and the accumulation removed; I saw those counts while finding the breach and they influenced nothing. See commit 41c5991.",
+    "what_I_did_not_do": "I did not aggregate, tabulate or inspect those decisions, and nothing about the measurement -- coordinates, caps, single-pass scope -- was chosen or changed on any view of them. All of it was fixed by the authorization before the run."
+  },
+  "host": {
+    "at_end": {
+      "concurrent_top_processes": [
+        "66339 100.0  70656 /Users/yukangzengcmac/ICLR-WinRatioAgentEvals/.venv/bin/python",
+        "66357  99.7 429200 .venv/bin/python",
+        "475  47.5  84768 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer",
+        "61714   3.5  87168 /Applications/Claude.app/Contents/Frameworks/Claude Helper.app/Contents/MacOS/Claude Helper",
+        "61728   2.5 982848 /Applications/Claude.app/Contents/Frameworks/Claude Helper (Renderer).app/Contents/MacOS/Claude Helper (Renderer)",
+        "8118   1.4  86128 /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/Frameworks/MapKit.framework/XPCServices/com.apple.MapKit.SnapshotService.xpc/com.apple.MapKit.SnapshotService",
+        "477   0.7   6848 /usr/sbin/cfprefsd",
+        "96873   0.7 319088 /Applications/ChatGPT.app/Contents/MacOS/ChatGPT"
+      ],
+      "cpu_cores": 10,
+      "disk_free_bytes": 266536075264,
+      "interpretation": "observed time is CONDITIONAL ON THIS LOAD; it is not an uncontended benchmark and not a guaranteed upper bound",
+      "load_average": {
+        "15m": 2.162109375,
+        "1m": 2.69140625,
+        "5m": 2.3203125
+      },
+      "load_fraction_of_cores_1m": 0.269140625,
+      "total_ram_bytes": 34359738368
+    },
+    "at_start": {
+      "concurrent_top_processes": [
+        "475  43.6  84768 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer",
+        "61728  28.9 980416 /Applications/Claude.app/Contents/Frameworks/Claude Helper (Renderer).app/Contents/MacOS/Claude Helper (Renderer)",
+        "66339  15.0  66912 /Users/yukangzengcmac/ICLR-WinRatioAgentEvals/.venv/bin/python",
+        "61714  14.5  87168 /Applications/Claude.app/Contents/Frameworks/Claude Helper.app/Contents/MacOS/Claude Helper",
+        "66338  13.8  17392 /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/PrivateFrameworks/PairedSync.framework/Support/pairedsyncd",
+        "66337  13.8  17392 /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/PrivateFrameworks/PairedSync.framework/Support/pairedsyncd",
+        "61790   9.6 572288 /Users/yukangzengcmac/Library/Application Support/Claude/claude-code/2.1.274/claude.app/Contents/MacOS/claude",
+        "62932   2.0 617008 /Users/yukangzengcmac/Library/Application Support/Claude/claude-code/2.1.275/claude.app/Contents/MacOS/claude"
+      ],
+      "cpu_cores": 10,
+      "disk_free_bytes": 266536296448,
+      "interpretation": "observed time is CONDITIONAL ON THIS LOAD; it is not an uncontended benchmark and not a guaranteed upper bound",
+      "load_average": {
+        "15m": 2.1455078125,
+        "1m": 2.49072265625,
+        "5m": 2.275390625
+      },
+      "load_fraction_of_cores_1m": 0.249072265625,
+      "total_ram_bytes": 34359738368
+    },
+    "foreign_load_note": "two foreign llama-server processes (DTR-AgentEvals; its code_routing/config.json declares models.small.port=8193 and models.large.port=8191, the ports held) were resident at 0.0% CPU and ~11.7 MiB RSS each throughout. Not terminated, not manipulated."
+  },
+  "observed": {
+    "output_bytes_compressed_total": 65403,
+    "output_bytes_uncompressed_total": 3291,
+    "peak_rss_bytes": 72351744,
+    "per_horizon": {
+      "1000": {
+        "elapsed_seconds_inner": 2.465793584473431,
+        "enclosure_updates": 115514,
+        "looks": 144000,
+        "outputs": {
+          "primary_rows.csv.gz": {
+            "bytes": 1671,
+            "sha256": "16f4516e7276f591cad46940c8ec7c7b4710fe567a6ea4fafbf6d30c86d3ad60",
+            "uncompressed_bytes": 1671
+          },
+          "reference_bands.csv": {
+            "bytes": 31007,
+            "sha256": "6509398c88a658a1f9aa173a0ac2021ea3a007116a0f10b75d2fc21d25edef60"
+          }
+        },
+        "peak_rss_bytes": 70926336,
+        "policy_pair_states_verified": 140040,
+        "reference_calls": 80,
+        "seconds_per_trial": 0.06483601562213152,
+        "trials": 40,
+        "wall_seconds": 2.593440624885261
+      },
+      "2000": {
+        "elapsed_seconds_inner": 5.1741954162716866,
+        "enclosure_updates": 230784,
+        "looks": 264000,
+        "outputs": {
+          "primary_rows.csv.gz": {
+            "bytes": 1620,
+            "sha256": "969fd2b8a16d181876a787f4bbeb52810d949cbe7f80af14fd9719ebbdd65d69",
+            "uncompressed_bytes": 1620
+          },
+          "reference_bands.csv": {
+            "bytes": 31105,
+            "sha256": "779828779853dbfbdca0e62f493078e22b31ab03e68f26cf651ab4fa123e3108"
+          }
+        },
+        "peak_rss_bytes": 72351744,
+        "policy_pair_states_verified": 280040,
+        "reference_calls": 80,
+        "seconds_per_trial": 0.1326825458323583,
+        "trials": 40,
+        "wall_seconds": 5.307301833294332
+      }
+    },
+    "total_wall_seconds": 7.900831749662757
+  },
+  "pin_drift_check": {
+    "1000": {
+      "drift": false,
+      "files_compared": [
+        "reference/MANIFEST.json",
+        "reference/eb_reference.py",
+        "reference/vendor.py",
+        "vband.py",
+        "vgen.py",
+        "videntity.py",
+        "vpanel.py",
+        "vpins.py",
+        "vpolicy.py",
+        "vresource_check.py",
+        "vrun.py",
+        "vtotalguard.py"
+      ],
+      "identities_compared": [
+        "code",
+        "config",
+        "policy",
+        "workload",
+        "receipt"
+      ]
+    },
+    "2000": {
+      "drift": false,
+      "files_compared": [
+        "reference/MANIFEST.json",
+        "reference/eb_reference.py",
+        "reference/vendor.py",
+        "vband.py",
+        "vgen.py",
+        "videntity.py",
+        "vpanel.py",
+        "vpins.py",
+        "vpolicy.py",
+        "vresource_check.py",
+        "vrun.py",
+        "vtotalguard.py"
+      ],
+      "identities_compared": [
+        "code",
+        "config",
+        "policy",
+        "workload",
+        "receipt"
+      ]
+    }
+  },
+  "pins": {
+    "binding_method": "whole_file_pins_of_complete_entry_point",
+    "code": "e1a4326d9a1d7cadd3630e4bed8b8c63bd47d51851e92910e21d77903cab17b9",
+    "config": "f845429fc887b6e6246ebb90a0a31cf9fbf2a02e1c6f2456c672d61772de7ffc",
+    "detail": {
+      "environment": {
+        "cpu_count": 10,
+        "executable_sha256_note": "interpreter not hashed; version pinned above",
+        "implementation": "CPython",
+        "machine": "arm64",
+        "numpy": "2.4.1",
+        "platform": "macOS-26.5.2-arm64-arm-64bit",
+        "python": "3.12.13"
+      },
+      "repo": {
+        "branch": "session60/live-ab-validation",
+        "dirty_paths": [],
+        "head": "41c5991871c04393e81167d2d5567fe746ae7eaf",
+        "validation_tree_dirty": false
+      },
+      "run_identity": {
+        "alpha_gate": 0.00625,
+        "cells": [
+          "C1",
+          "C2"
+        ],
+        "namespace": 1,
+        "policy": "operational",
+        "prefixes": [
+          100,
+          500,
+          1000
+        ],
+        "programs": [
+          1000,
+          1001,
+          1002,
+          1003,
+          1004
+        ],
+        "schedule": "v2_tick_batched",
+        "trials_per_program": 4
+      },
+      "source": {
+        "aggregate_sha256": "e1a4326d9a1d7cadd3630e4bed8b8c63bd47d51851e92910e21d77903cab17b9",
+        "binaries": {
+          "reference/_build/boundaries.cpython-312-darwin.so": "f1c65419fd9785be308eb762e86444effa52a168631a9f39cd377178eab55657"
+        },
+        "config": {
+          "PROTOCOL_V2.md": "259863aa4fc070d652db6ada3513676f97bc27ed7887f4e32e762ccde909bcc4",
+          "cells.json": "96ebf7e47f790031d5d125cedcc9a9973bccfc78ea8e159798d69fcca9d61e97"
+        },
+        "files": {
+          "reference/MANIFEST.json": "ab353bac7d658d4c52aab2b34cef91bb7c302667331773f7884ec064ab0f43e3",
+          "reference/eb_reference.py": "41498a28e67fb37b5a5b07a8e8afb1f98d7aa2459531b6cad5c51a2af35a22a8",
+          "reference/vendor.py": "6f792463a1b4b63827f65fb95cd4696d4612ffd05b7c519132f595184cc7cb0f",
+          "vband.py": "55a9894ff5694099c05cedbdf695ecdad3ac4bd5025328cd445e0b1d3df8cd9c",
+          "vgen.py": "08d1a8146023e348817a5cb02d04b9e209540456e2481889b98b8f31a5686987",
+          "videntity.py": "1090a92ffc4316cf955454ac7a9f5acfddad6a52fec65446f7fec10e208242f4",
+          "vpanel.py": "6da2e2554cd09a6c1e3d905686f1b390de264ab5251fcaa7dff15fec18a1d16e",
+          "vpins.py": "17648c4a313660a49eee29e113b5fa3c71f34c695c71e71343c12513388af151",
+          "vpolicy.py": "210956feb1c5831c09c82ef09a70fb0728e2b86c8bf6119cdc5ad03146eb962c",
+          "vresource_check.py": "fb071eb0d616af5d352ae4d4d1bdb278cf409f47445901f64f64bcec94b9e7a9",
+          "vrun.py": "a90c0083ec74088ea496c6a179afc843a6686291964ae903be379fc52265cf90",
+          "vtotalguard.py": "fdaea0edce9991a966ad731f480d53044575c74bc6bf7f8b4157676fcb715e05"
+        },
+        "roles": {
+          "diagnostic_not_authorizing": [
+            "videntity.py"
+          ],
+          "guard": [
+            "vrun.py",
+            "vtotalguard.py",
+            "vresource_check.py",
+            "vpins.py"
+          ],
+          "orchestrator": [
+            "vpanel.py"
+          ],
+          "output_accumulator": [
+            "vpanel.py",
+            "vrun.py"
+          ],
+          "primary": [
+            "vrun.py",
+            "vgen.py",
+            "vband.py",
+            "vpolicy.py"
+          ],
+          "reference_bridge": [
+            "reference/eb_reference.py",
+            "reference/vendor.py"
+          ]
+        }
+      }
+    },
+    "not_used": "videntity call-graph fingerprint; refuted 2026-09-21 and retained only as an exploratory source-difference diagnostic",
+    "policy": "operational",
+    "receipt": "e55ab0fc668b1bde725592534ca44a536e24b4e8a91acb8268cc6819b78b8440",
+    "workload": "2_calls_per_trial"
+  },
+  "schema": "live_ab_validation_v2.bounded_measurement.1",
+  "timestamps": {
+    "ended_utc": "2026-09-21T08:23:17Z",
+    "started_utc": "2026-09-21T08:23:09Z"
+  },
+  "timing_observation": {
+    "convention": "descriptive; one pass under the recorded load",
+    "ms_per_trial": {
+      "1000": 65,
+      "2000": 133
+    },
+    "note": "2.05x wall time for 2x horizon on this single pass. Reported as the observed ratio of two measured points, NOT a fitted scaling exponent and NOT a basis for projecting the full grid."
+  },
+  "within_caps": {
+    "output_bytes": true,
+    "peak_rss": true,
+    "seconds": true
+  }
+}
