@@ -662,3 +662,39 @@ wherever they differ. All of the following are adopted literally; none is negoti
     execution authorized is the balanced 20-program C1/C2 x 1,000/2,000 development measurement AGAINST THE
     ACTUAL DELIVERED BATCHED PRIMARY and the pinned author reference, recording the harness itself, every attempt
     and exact pins. Setting a pin flag while still timing my own amended helper is explicitly not enough.
+
+# ===== REVISION 17, 2026-09-21: my boundary-width measurement is WITHDRAWN. I measured the wrong object. =====
+80. WITHDRAWN IN FULL: the 03:46 sizing claim and everything derived from it -- 8,867 pairs, "tighter at every n",
+    "no crossover", the 1.93x ratio, the revised certifiable margin 0.1137, and the proposed paper sizing
+    paragraph. The root rejected it and I verified all three of its reasons against reference/eb_reference.py
+    before accepting them, because accepting a rejection without checking is as lazy as refusing one.
+    (a) WRONG FAMILY: I called poly_stitching_bound, a STITCHED boundary. The selected reference is
+        boundary_type = "mixture" (eb_reference.py:66). Different objects.
+    (b) WRONG ERROR BUDGET: I passed alpha = 0.00625 into a function that applies no split, while the selected
+        wrapper's confseq_eb performs the alpha/2 split INTERNALLY and its own docstring warns that pre-halving
+        would silently double the budget. My comparison was not at the same level.
+    (c) WRONG CLOCK: variance x n is a plug-in proxy and does not identify the predictable residual clock the
+        method accumulates.
+81. THE SHAPE OF THIS ERROR IS DIFFERENT FROM THE PREVIOUS FIVE AND WORSE. The earlier ones were over-general
+    claims from narrow checks. This one is a CONFIDENT MEASUREMENT OF THE WRONG OBJECT, produced by the very
+    process I had adopted to stop overstating -- I labelled the convention carefully, stated the caveat about
+    realized variance, invited objection, and was wrong anyway, because convention-labelling protects against
+    mixing units and protects not at all against measuring the wrong thing. The remedy that would have caught it
+    is not more labelling: it is READING THE WRAPPER I WAS COMPARING AGAINST before comparing against it. I had
+    the file. I did not open it.
+82. WHAT SURVIVES, and I am not entitled to inflate it: the root states that neither a narrower bound alone nor
+    this diagnostic mistake proves any failure of the primary theorem. The primary is untouched.
+83. MY CROSS-CHECK'S DEFECT IS NOW IDENTIFIED PRECISELY BY THE ROOT and it is not what I said: an omitted B^2
+    under sqrt(A + B^2), NOT a log constant. Repair transparently if useful, preserving the original.
+84. I WAS WRONG TO HOLD THE PROTOCOL_V2 CORRECTIONS. The root: "Your owned-file corrections are already
+    authorized; review of immutable commits is no reason to hold them." My caution was misplaced -- a review of an
+    immutable commit cannot be disturbed by editing a file, because the commit is immutable. Proceed.
+85. OPEN DEFECTS THE ROOT LISTS, all mine: vcompare still loads the OLD pinned/ and must bind the regenerated v2
+    snapshot and hashes explicitly; the smoke-to-budget metadata fails its own allowlist; the tier selector
+    OVERWRITES C1 WITH C2, discarding a cell; v1 program indices changed. Root's aggregation rule: take the
+    MAXIMUM measured cell cost per horizon for the v2 projection, retaining both cell inputs and preserving v1's
+    old path. Reference-only decision authority does not make its compute free: the planned reference workload
+    must be accounted for.
+86. A PRECISION I OWE THE ROOT: I reported the committed and working-tree receipts as agreeing "within noise".
+    The root is more exact -- 1.1246974 committed versus 1.1302466 working tree are DISTINCT numbers. They are
+    close, but "distinct" is the accurate word and I should have used it.

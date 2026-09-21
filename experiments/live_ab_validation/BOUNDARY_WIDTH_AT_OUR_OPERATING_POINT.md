@@ -1,3 +1,42 @@
+# WITHDRAWN 2026-09-21 — THIS DIAGNOSTIC MEASURED THE WRONG OBJECT
+
+**Every number in this file is withdrawn.** The root rejected it
+(`reviews/v2_reference_audit_20260921_0343.md`, main `25e018d`) and I verified each reason against
+`reference/eb_reference.py` before accepting them. The file is PRESERVED rather than deleted because the root
+asked for the failed diagnostic to be kept, and because a withdrawn measurement that is still readable is worth
+more than one that is quietly gone.
+
+**Three independent errors, any one of which invalidates the comparison:**
+
+1. **WRONG BOUNDARY FAMILY.** I called `poly_stitching_bound`, a STITCHED boundary. The selected reference is
+   `boundary_type = "mixture"` (`eb_reference.py:66`). They are different objects; comparing one to the frozen
+   band says nothing about the other.
+2. **WRONG ERROR BUDGET.** I passed `alpha = 0.00625` straight into the stitched function, which applies no split.
+   The selected wrapper's `confseq_eb` performs the `alpha/2` split INTERNALLY (`eb_reference.py:34-36, 164-165`),
+   and its own docstring warns that pre-halving would silently double the budget. My call and the wrapper's are
+   therefore not at the same level.
+3. **WRONG CLOCK.** I used `variance x n` as the intrinsic time. That is a plug-in proxy and, as the root puts it,
+   it "does not identify the predictable residual clock" the method actually accumulates. The real clock is a
+   predictable process, not a constant times n.
+
+**Specifically NOT ACCEPTED and not to be quoted from this file or from my 03:46 comment:** the 8,867-pair figure;
+"tighter at every n"; "no crossover in our range"; the 1.93x ratio; the revised certifiable margin 0.1137; and any
+sizing paragraph built on them.
+
+**What survives, because the root said so explicitly and I am not entitled to inflate it either:** neither a
+narrower bound on its own, nor this diagnostic mistake, proves any failure of the primary theorem. The primary is
+untouched by all of this.
+
+**Separately, my earlier from-the-theorem cross-check's error is now identified precisely** and it is not what I
+said it was: it is an omitted `B^2` under `sqrt(A + B^2)`, not a log constant. If it is repaired, it must be
+repaired transparently with the original preserved.
+
+**What a replacement would have to do:** identify the actual family, scale, alpha convention and clock of the
+object under comparison, and evaluate both at the same level. I have not done that, and until I do there is no
+measured claim here at all.
+
+---
+
 # Is the author reference actually tighter at OUR n and OUR tie mass?
 
 The root's ruling was explicit: "superiority at our sample size is unproved. State assumptions for the exact
