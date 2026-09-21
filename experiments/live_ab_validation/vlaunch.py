@@ -41,6 +41,7 @@ confirmatory holdout.  ``FRESH_HOLDOUT`` is ``False`` and there is no switch to 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import sys
@@ -50,6 +51,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 HERE = Path(__file__).resolve().parent
+REPO_ROOT = HERE.parent.parent
 if str(HERE) not in sys.path:                                  # pragma: no cover
     sys.path.insert(0, str(HERE))
 
@@ -58,9 +60,13 @@ import vgen                                                     # noqa: E402
 import vpanel                                                   # noqa: E402
 import vpins                                                    # noqa: E402
 import vrun                                                     # noqa: E402
+import vshard                                                   # noqa: E402
 import vsupervise                                               # noqa: E402
 
-LAUNCHER_VERSION = "t1-launcher-1"
+LAUNCHER_VERSION = "t1-launcher-2"
+
+#: Path recorded in the manifest, relative to the repository root.
+SHARD_PLAN_PATH_REL = "evidence/t1_shard_plan_20260921_1022.json"
 
 #: THE FROZEN T1 ALLOCATION, transcribed from the 09:09 handoff.  Not a default,
 #: not a parameter with a default: any request that differs is refused.
@@ -182,6 +188,50 @@ def validate_request(request: Optional[Dict[str, Any]] = None) -> Dict[str, Any]
             "reference_calls": n_refs}
 
 
+def _execution_spec(spec: Dict[str, Any]) -> Dict[str, Any]:
+    """Allocation, program ranges, shard order, caps and the ledger digest.
+
+    Digested into one canonical value so a launch can compare the MANIFEST
+    IDENTITY rather than trust a reusable clearance string.
+    """
+    plan = vshard.load_plan()
+    shard_order = [{"sequence": s["sequence"], "id": s["id"], "cell": s["cell"],
+                    "program_start_inclusive": s["program_start_inclusive"],
+                    "program_stop_exclusive": s["program_stop_exclusive"]}
+                   for s in plan["shards"]]
+    ledger_path = (REPO_ROOT / "results" / "live_ab_validation_v2"
+                   / "measurement_preflight_20260921" / "FINDING.json")
+    ledger_digest = (hashlib.sha256(ledger_path.read_bytes()).hexdigest()
+                     if ledger_path.is_file() else None)
+    body = {
+        "allocation": dict(sorted(spec["allocation"].items())),
+        "shard_plan_path": str(SHARD_PLAN_PATH_REL),
+        "shard_plan_sha256": hashlib.sha256(
+            vshard.SHARD_PLAN_PATH.read_bytes()).hexdigest(),
+        "shards": len(shard_order),
+        "shard_order": shard_order,
+        "programs_per_shard": plan["programs_per_shard"],
+        "caps_cumulative": {"seconds": T1_CAP_SECONDS,
+                            "tree_rss_bytes": T1_CAP_TREE_RSS_BYTES,
+                            "output_bytes": T1_CAP_OUTPUT_BYTES,
+                            "reset_per_shard": False},
+        "accepted_resource_ledger_sha256": ledger_digest,
+        "horizon": spec["horizon"], "namespace": spec["namespace"],
+        "trials_per_program": spec["trials_per_program"],
+        "policy": spec["policy"], "schedule": spec["schedule"],
+        "verification_mode": spec["verification_mode"],
+        "alpha_gate": spec["alpha_gate"],
+    }
+    canonical = json.dumps(body, sort_keys=True, separators=(",", ":"))
+    body["canonical_digest"] = hashlib.sha256(canonical.encode()).hexdigest()
+    return body
+
+
+def manifest_identity(manifest: Dict[str, Any]) -> str:
+    """The identity a launch must match: the execution spec's canonical digest."""
+    return manifest["execution_spec"]["canonical_digest"]
+
+
 def build_manifest(request: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """The immutable T1 manifest.  Evaluates NO trial."""
     spec = validate_request(request)
@@ -230,6 +280,13 @@ def build_manifest(request: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
             "not_a_guarantee": ("does NOT guarantee all eight cells finish within "
                                 "5400 s; C3-C6 are unmeasured at this scale"),
         },
+        # ---- THE CANONICAL COMPLETE EXECUTION SPEC ----------------------
+        # Root: "Bind the canonical complete execution spec (including
+        # allocation, program ranges, shard order, caps and accepted
+        # resource-ledger digest), not only the current empty programs=[] pin."
+        # The old manifest pinned an empty program list, which identified the
+        # shape of the request but not the work.
+        "execution_spec": _execution_spec(spec),
         "pins": pins,
         "clearance": {
             "required": True,
@@ -262,9 +319,22 @@ def dry_run(request: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
 
 
 def launch(out_dir: Path, request: Optional[Dict[str, Any]] = None,
-           clearance: Optional[str] = None) -> Dict[str, Any]:
+           clearance: Optional[str] = None,
+           reviewed_manifest_identity: Optional[str] = None) -> Dict[str, Any]:
     """Refuse, or run the whole T1 job under ONE supervisor window."""
     manifest = build_manifest(request)
+    # Root: "Compare the reviewed manifest identity at launch rather than
+    # treating a reusable clearance string as the identity check."  The
+    # sentinel says a decision was made; only the digest says WHAT was
+    # reviewed. Both are required and they answer different questions.
+    if reviewed_manifest_identity is not None:
+        got = manifest_identity(manifest)
+        if got != reviewed_manifest_identity:
+            raise LaunchRefused(
+                f"manifest identity mismatch: this launcher would run "
+                f"{got[:16]}... but the reviewed identity is "
+                f"{reviewed_manifest_identity[:16]}.... The clearance string is "
+                f"reusable and therefore cannot establish WHAT was reviewed.")
     if clearance != CLEARANCE_SENTINEL:
         raise LaunchRefused(
             "T1 execution is NOT CLEARED. Root's 09:09 disposition states "

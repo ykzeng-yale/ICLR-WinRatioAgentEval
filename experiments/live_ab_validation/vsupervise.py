@@ -68,10 +68,22 @@ def _descendant_pids(root_pid: int) -> List[int]:
     supervisor created is ever considered, let alone signalled.
     """
     try:
-        out = subprocess.run(["ps", "-Ao", "pid=,ppid="],
-                             capture_output=True, text=True, timeout=5).stdout
-    except (OSError, subprocess.SubprocessError):              # pragma: no cover
-        return [root_pid]
+        res = subprocess.run(["ps", "-Ao", "pid=,ppid="],
+                             capture_output=True, text=True, timeout=5)
+    except (OSError, subprocess.SubprocessError) as exc:
+        # STILL OPEN AT THE LAST REVIEW, AND CORRECTLY SO.  The old code
+        # returned [root_pid] here, so a failed enumeration degraded to
+        # "the leader is the whole tree" and RSS sampling of that subset could
+        # then SUCCEED while undercounting descendants -- a passing observation
+        # built on an unavailable measurement.  Root reproduced it: a synthetic
+        # exception returned [123456].
+        raise MeasurementFailure(
+            f"process-tree enumeration failed: {exc}. Unavailable live-tree "
+            f"coverage cannot count as a passing complete observation.")
+    if res.returncode != 0 and not res.stdout.strip():
+        raise MeasurementFailure(
+            f"process-tree enumeration returned no data (rc={res.returncode})")
+    out = res.stdout
     kids: Dict[int, List[int]] = {}
     for line in out.splitlines():
         parts = line.split()
@@ -98,7 +110,11 @@ class MeasurementFailure(SupervisionError):
 
 
 def available_ram_bytes() -> Optional[int]:
-    """Available (not merely free) RAM, or ``None`` if it cannot be measured.
+    """A ``vm_stat``-DERIVED CAPACITY ESTIMATE, or ``None`` if unobtainable.
+
+    Root: name it as such "rather than asserted to be an exact OS guarantee of
+    allocatable memory". It sums free, inactive, speculative and purgeable
+    pages, which the OS may or may not actually hand over.
 
     Root: "Check available RAM as well as CPU/disk before starting."  The
     previous host record had total RAM, load and free disk -- none of which is
@@ -133,7 +149,7 @@ def available_ram_bytes() -> Optional[int]:
     return free * page
 
 
-def _tree_rss_bytes(pids: Sequence[int]) -> int:
+def _tree_rss_bytes(pids: Sequence[int], allow_missing: bool = False) -> int:
     """SIMULTANEOUS summed RSS over the given pids, in bytes.
 
     This is the quantity ``getrusage`` could not give: a sum taken at one
@@ -150,11 +166,22 @@ def _tree_rss_bytes(pids: Sequence[int]) -> int:
         # FAIL CLOSED.  Returning 0 here would read as "no memory in use" and
         # the cap would silently stop being enforced.
         raise MeasurementFailure(f"process-tree RSS measurement failed: {exc}")
-    if out.returncode != 0 and not out.stdout.strip():
+    lines = [x for x in out.stdout.split() if x.strip()]
+    # Root's fixture: rc=1 with ONE numeric line for TWO requested pids still
+    # returned 125,952 bytes.  A partial answer is not a complete observation.
+    # A process may legitimately exit between enumeration and sampling, so the
+    # caller passes ``allow_missing`` for that verified race; otherwise short
+    # coverage fails closed.
+    if out.returncode != 0 and not lines:
         raise MeasurementFailure(
             f"process-tree RSS measurement returned no data (rc={out.returncode})")
+    if len(lines) < len(pids) and not allow_missing:
+        raise MeasurementFailure(
+            f"process-tree RSS covered {len(lines)} of {len(pids)} requested "
+            f"pids (rc={out.returncode}); incomplete coverage is not a passing "
+            f"observation")
     total_kb = 0
-    for line in out.stdout.split():
+    for line in lines:
         try:
             total_kb += int(line)
         except ValueError:                                     # pragma: no cover
@@ -220,9 +247,13 @@ def supervise(argv: Sequence[str], out_dir: Path, caps: Optional[Caps] = None,
         while True:
             rc = proc.poll()
             elapsed = time.perf_counter() - t0
-            pids = _descendant_pids(proc.pid) if rc is None else []
+            # BOTH calls inside the handler.  Previously the enumeration call
+            # sat OUTSIDE it, so only the RSS failure reached the cleanup path.
             try:
-                rss = _tree_rss_bytes(pids) if pids else 0
+                pids = _descendant_pids(proc.pid) if rc is None else []
+                # a process may exit between enumeration and sampling; that
+                # verified race is the one permitted gap
+                rss = _tree_rss_bytes(pids, allow_missing=True) if pids else 0
             except MeasurementFailure as exc:
                 breach = {"cap": "measurement_failed", "limit": None,
                           "observed": str(exc),
@@ -281,8 +312,11 @@ def supervise(argv: Sequence[str], out_dir: Path, caps: Optional[Caps] = None,
         "observed": {
             "wall_seconds": elapsed,
             "peak_tree_rss_bytes": peak_tree_rss,
-            "peak_output_bytes": peak_output,
-            "final_output_bytes": final_output,
+            # Root: label these two distinctly.  The first INCLUDES the
+            # admission reserve during polling; the second is the actual child
+            # directory size before parent metadata.
+            "peak_output_bytes_including_reserve": peak_output,
+            "final_output_bytes_actual_child_dir": final_output,
             "poll_samples": samples,
             "poll_interval_seconds": POLL_SECONDS,
         },
@@ -346,12 +380,38 @@ def _terminate_own_job(proc: subprocess.Popen) -> None:
         os.killpg(pgid, signal.SIGTERM)
     except (ProcessLookupError, PermissionError):              # pragma: no cover
         return
+    # STILL OPEN AT THE LAST REVIEW.  The old loop returned as soon as the
+    # LEADER exited, so a descendant that ignores SIGTERM survived and SIGKILL
+    # was never sent.  Root reproduced exactly that: SIGTERM only.  Completion
+    # is now decided by whether the SAVED GROUP still exists, not by the
+    # leader's status.
     deadline = time.perf_counter() + 5.0
     while time.perf_counter() < deadline:
-        if proc.poll() is not None:
+        if not _group_alive(pgid):
             return
         time.sleep(0.05)
-    try:                                                       # pragma: no cover
+    try:
         os.killpg(pgid, signal.SIGKILL)
-    except (ProcessLookupError, PermissionError):
-        pass
+    except (ProcessLookupError, PermissionError):              # pragma: no cover
+        return
+    hard = time.perf_counter() + 5.0
+    while time.perf_counter() < hard:
+        if not _group_alive(pgid):
+            return
+        time.sleep(0.05)
+
+
+def _group_alive(pgid: int) -> bool:
+    """Does the OWNED process group still have members?
+
+    ``killpg(pgid, 0)`` raises ``ProcessLookupError`` when the group is empty.
+    Signal 0 delivers nothing; it only probes. Only the group this supervisor
+    created is ever probed.
+    """
+    try:
+        os.killpg(pgid, 0)
+        return True
+    except ProcessLookupError:
+        return False
+    except PermissionError:                                    # pragma: no cover
+        return True

@@ -1,4 +1,9 @@
 {
+  "_SUPERSEDED": {
+    "do_not": "do not use for launch identity comparison or reproducibility",
+    "reason": "root 10:22 found this was generated from a DIRTY pre-commit tree; its own pins record validation_tree_dirty=true, and its vpanel.py/vconformance.py digests do not match the committed source. Preserved unaltered per instruction; superseded by T1_MANIFEST.json regenerated from a clean tree.",
+    "status": "HISTORICAL DRAFT, NOT AUTHORITATIVE"
+  },
   "authority": "root disposition 2026-09-21 09:09, handoff item 1. DELIVERED FOR REVIEW; execution is NOT cleared by it.",
   "built_utc": "2026-09-21T09:48:04Z",
   "caps_cumulative_over_whole_job": {
