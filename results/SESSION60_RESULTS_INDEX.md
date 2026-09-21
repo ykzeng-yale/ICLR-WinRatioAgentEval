@@ -895,6 +895,45 @@ side-by-side latency depends on slot. The protocol is silent; separate measureme
 **before** binding any digest: 4 authoritative, **9 must-not-bind**, 5 currency-unverified. Supersession is
 enforced by a test — `tests_lab_isolation.py` fails on any citation of the superseded drafts.
 
+### D1/D3/D6 repaired — and a three-way contract I broke, caught by a test
+
+Branch `session60/live-ab` head `19e93cc`. Continuing root's 18:54 repair list in its order (D2 landed
+last cycle). Suites: chain **66**, design **96**, isolation **12**, e2e **42** — all pass.
+
+**D1 preimage retention.** `sweep_references` hashed a detail string inline and dropped it, so nothing
+could reconstruct what was hashed. Now `attempt_record()` retains the complete per-attempt record,
+`detail_from_attempts()` is the single explicit canonicalization rule, and `reconstruct_detail_sha256()`
+recomputes the digest from retained records. The rule is **byte-compatible with the pre-repair
+construction**, so digests recorded earlier reconstruct too — a rule that orphaned existing digests would
+be a worse retention failure than the one being fixed. I accept root's correction that "unfreezable" was
+my overstatement; the defect was retention.
+
+**D3 timeout classification.** Documented precedence: `timed_out` → `reference_timeout`, else not success
+→ `reference_fails_verify`, else over threshold → `reference_timeout`. Before, a genuine hang was filed as
+a verifier failure. **The excluded set is unchanged** — a timed-out attempt was already failing — and a
+test asserts it does not shrink.
+
+**D6 duplicate-rule scope.** Widened from `benchmark=='mbpp'` to all S1, per protocol 3.2 item 2. Root
+asked whether counts move: **they do not** — 8 exclusions, same two duplicate uids, 1,130 survivors
+(591/539), ceiling 564. That is precisely why it went unnoticed.
+
+Stage-1 receipt kept as a regression fixture **bound to its source digests** — asserted only when the
+pinned sources hash to the values it came from, skipped otherwise. Signature deviation (`on_attempt`)
+**recorded, not hidden**, matching the tolerated shape already present for two other modules.
+
+**D10 — mine, and the most instructive.** Last cycle I filled three digests into `config.json` via
+`json.dumps`. `config.json` is bound by a **three-way verbatim contract**: identical text to
+ARCHITECTURE §6.1 **and** protocol Appendix B. Reformatting breaks it; changing a **value** breaks it even
+with perfect formatting, because both design documents still carry the old one. So filling a null there is
+not a preparation convenience — it is a synchronized amendment to the **pre-registration protocol**. I
+treated a three-document design change as a one-file edit. `config.json` restored; freeze status
+**12 → 9 of 26**, an honest correction rather than a regression, since those keys were never legitimately
+resolved. The measured values remain in the preparation manifest; only their promotion is withdrawn, and
+that promotion is root's call.
+
+Third time this session (after D8, D9) that I changed a pinned or contracted artifact through a
+convenience path. Each was caught by something that checks, not by me noticing.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
