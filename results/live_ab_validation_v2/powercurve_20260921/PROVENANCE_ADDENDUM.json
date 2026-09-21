@@ -1,0 +1,94 @@
+{
+  "applies_to": "results/live_ab_validation_v2/powercurve_20260921 (COARSE power panel)",
+  "authority": "root provenance review 2026-09-21 15:14; archival repair, NOT a rerun",
+  "authorizes": "NOTHING. Archival repair only.",
+  "gap_1_source_binding_was_incomplete": {
+    "finding": "the pin method is named whole_file_pins_of_complete_entry_point but its source map omitted run_powercurve.py (the actual supervised entrypoint) and vpowercurve.py, which MUTATES vgen.LAW_WEIGHTS and the derived vectors/cumulative tables and constructs the cells.",
+    "for_THIS_delivery": {
+      "explicit_qualification": "these hashes let a reviewer inspect a concrete implementation. They do NOT prove those bytes were frozen before the observed outcomes. I am not presenting a later source hash as a contemporaneous pin, and any scientific use of this panel must carry the retrospective-binding qualification.",
+      "recoverable_blobs_at_35ab9d1": {
+        "run_powercurve.py": "3d940161be18abd57403214fddcca540e3d1b4cda5ee8dce779a26133e78055c",
+        "vpowercurve.py": "d3d7f28d8fbdf5df6728e4fd18f448bf3a597a246b2705a4fc72a384c083baae"
+      },
+      "runtime_law_and_cell_mapping": {
+        "cell_index_base": 100,
+        "laws": {
+          "P05": {
+            "BB+": 1250,
+            "BB-": 2750,
+            "BB0": 1000,
+            "C>I": 2500,
+            "FF": 2000,
+            "I>C": 500
+          },
+          "P10": {
+            "BB+": 1500,
+            "BB-": 2500,
+            "BB0": 1000,
+            "C>I": 2500,
+            "FF": 2000,
+            "I>C": 500
+          },
+          "P15": {
+            "BB+": 1750,
+            "BB-": 2250,
+            "BB0": 1000,
+            "C>I": 2500,
+            "FF": 2000,
+            "I>C": 500
+          },
+          "P20": {
+            "BB+": 2000,
+            "BB-": 2000,
+            "BB0": 1000,
+            "C>I": 2500,
+            "FF": 2000,
+            "I>C": 500
+          },
+          "P30": {
+            "BB+": 2500,
+            "BB-": 1500,
+            "BB0": 1000,
+            "C>I": 2500,
+            "FF": 2000,
+            "I>C": 500
+          }
+        },
+        "namespace": 3,
+        "note": "the COMPLETE atom table the plan omitted, supplied here so the runtime definitions are inspectable even though their binding is retrospective"
+      },
+      "status": "RETROSPECTIVE, NOT CONTEMPORANEOUS"
+    },
+    "forward_fix": "both files are now in vpins.PINNED_SOURCES under 'power_curve_entrypoint'; an import-chain check over the power entrypoint now reports zero unpinned local modules. Future panels pin them contemporaneously.",
+    "why_it_matters": "an unchanged, pinned vgen.py does NOT pin those runtime definitions. The plan records the mean ladder and allocation, not the complete atom table and its source hashes. So the pin claimed a completeness it did not have -- this project's recurring defect shape, occurring inside the mechanism built to prevent it."
+  },
+  "gap_2_first_failed_attempt_not_delivered": {
+    "finding": "the KeyError: 'P05N' first attempt was disclosed in comments but no failure receipt, supervision record or partial directory was deposited. Every delivered receipt carries prior_failed_attempt=null, which describes the corrected directory's local history and cannot establish that no earlier attempt occurred.",
+    "known": {
+      "cause": "vprod.make_runner looked cells up in vgen.CELLS, which holds only the frozen eight",
+      "corrected_attempt_linked_to": "20260921T141823Z",
+      "error": "KeyError: 'P05N'",
+      "outcome": "failure receipt written, partial retained, nothing published, no retry",
+      "stage": "first shard"
+    },
+    "not_done": "no zero first-attempt observations are invented and no usage is imputed",
+    "practice_changed": "the FINE ladder's failed attempt is PRESERVED as powercurve_fine_20260921_failed_attempt1 with its supervision failure receipt and partial inventory, rather than deleted. A run that died is part of the record.",
+    "recoverable": false,
+    "searched": [
+      "tracked result paths",
+      "the run directory",
+      "git objects"
+    ],
+    "unknown": [
+      "original attempt id",
+      "exact timestamps",
+      "failed-state source hashes",
+      "resource usage of the failed attempt",
+      "row counts of the failed attempt"
+    ],
+    "what_happened": "I removed the failed output directory with rm -rf before relaunching, exactly as I had done once before with a discarded T1 measurement pass. The failure machinery HAD written a receipt and retained the partial; I deleted it."
+  },
+  "no_rerun": "nothing was re-executed; the verified corrected-attempt rows are untouched",
+  "schema": "live_ab_validation_v2.provenance_addendum.1",
+  "written_utc": "2026-09-21T15:20:40Z"
+}

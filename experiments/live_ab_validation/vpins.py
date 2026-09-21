@@ -54,6 +54,14 @@ PINNED_SOURCES: Dict[str, Tuple[str, ...]] = {
     "shard_executor_and_runner": ("vshard.py", "vprod.py"),
     "conformance_preflight": ("vconformance.py",),
     "launcher": ("vlaunch.py",),
+    # Root's 15:14 provenance review: the pin method is CALLED
+    # whole_file_pins_of_complete_entry_point, and its map omitted the actual
+    # supervised entrypoint and the module that MUTATES vgen's runtime law
+    # tables and constructs the cells.  An unchanged, pinned vgen.py does not
+    # pin those runtime definitions -- so the pin named a completeness it did
+    # not have.  That is this project's recurring defect shape, in the very
+    # mechanism built to prevent it.
+    "power_curve_entrypoint": ("vpowercurve.py", "run_powercurve.py"),
     "diagnostic_not_authorizing": ("videntity.py",),
 }
 
