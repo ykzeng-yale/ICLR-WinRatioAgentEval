@@ -561,6 +561,42 @@ genuine failure, still fails closed. Both branches tested.
 24 shards / 12,000 programs / **48,000 trials**, ~16 min. Sited where the coarse curve is steep
 (non-informative 50% near 0.10, informative near 0.08).
 
+**FINE LADDER COMPLETE — the 50% crossing is bracketed by measurement. 2026-09-21, main `b37a5e5`.**
+`results/live_ab_validation_v2/powercurve_fine_20260921/` (77 files) · `COMBINED_CURVE.json`.
+
+24/24 shards · 12,000 programs · **48,000 trials** · scientific completion true, no failing conditions ·
+1,001 s of 5,400 · 69.3 MiB peak tree RSS.
+
+*Convention: **descriptive** rates, **design-based** Wilson 95%. Coarse = namespace 3, fine = namespace 4 —
+reported **side by side, NOT pooled**; every rate computed within its own panel and denominator.
+μ_s held open at +0.20 throughout.*
+
+**ADAPTER detection probability, eleven rungs:**
+
+| μ_h | non-informative | informative | gain |
+|---:|---:|---:|---:|
+| 0.05 | 0.0032 | 0.0508 | +0.048 |
+| 0.06 | 0.0165 | 0.1390 | +0.123 |
+| 0.07 | 0.0578 | 0.2868 | +0.229 |
+| 0.08 | 0.1598 | 0.4713 | +0.312 |
+| 0.09 | 0.3210 | 0.6703 | **+0.349** |
+| 0.10 | 0.5265 | 0.8452 | +0.319 |
+| 0.11 | 0.7295 | 0.9377 | +0.208 |
+| 0.12 | 0.8752 | 0.9778 | +0.103 |
+| 0.15 | 0.9961 | 0.9999 | +0.004 |
+| 0.20–0.30 | 1.0000 | 1.0000 | 0.000 |
+
+**50% crossing, bracketed by measurement — NOT interpolated:** non-informative in **(0.09, 0.10]**,
+informative in **(0.08, 0.09]**. No parametric fit and no MDE point estimate: adjacent rungs are what the
+design supports, and a fitted midpoint would manufacture precision it does not have.
+
+**The informative-delay advantage now has a shape:** rises to a maximum **+0.349 at μ_h = 0.09**, then
+falls to +0.004 by 0.15 and to zero once both arms saturate — a **ceiling effect**. The advantage can
+only appear where there is headroom, which is precisely the region the coarse panel could not resolve.
+
+Ran under the repaired monitor: the same code that killed the first attempt 5 s in completed 24 shards
+with **zero measurement failures**.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
