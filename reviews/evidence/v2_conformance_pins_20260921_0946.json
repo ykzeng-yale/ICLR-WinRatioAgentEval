@@ -1,0 +1,18 @@
+{
+  "source": "1c1304118a84827c46d29deeb9543683e1411863",
+  "conformance_declared_sources": [
+    "vgen.py",
+    "vband.py",
+    "vpolicy.py"
+  ],
+  "receipt_source_matches": {
+    "vgen.py": true,
+    "vband.py": true,
+    "vpolicy.py": true
+  },
+  "checker_self_in_receipt_pin": false,
+  "new_checker_in_execution_pins": false,
+  "actual_runtime_uses_cached_receipt": false,
+  "actual_runtime_calls_checker": true,
+  "scientific_or_model_experiment_runs": 0
+}
