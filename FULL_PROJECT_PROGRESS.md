@@ -1,6 +1,6 @@
 # Full-project arXiv readiness
 
-**September 21, 10:22 UTC review — full project 65% (change 0), separately bounded v1 90%.** Delivery `7a12acb` includes the T1 launcher/manifest shell and resolves the feedback read-back; the child executor is still unimplemented. [Current root disposition](reviews/v2_launcher_root_disposition_20260921_1022.md) specifies 56 fixed 500-program shards, immutable receipts and one cumulative budget, authorizing implementation now. Two existing supervisor fixes remain incomplete. No timing rerun or broader validator is requested. Latest owner 10:18:42 UTC: zero live episodes/v2 calibration cells, no freeze/grid, nothing running. Remaining35 points: Session60 prospective10 and CPUcalibration5; root integration/finalQA10; authorchecks10. Reports/design only; five release artifacts unchanged.
+**September 21, 10:58 UTC review — full project 65% (change 0), separately bounded v1 90%.** Delivery `4f65c54` adds shard scaffolding and a refreshed manifest. Independent review closes owned-group escalation and enumeration-exception handling; 16 stub tests pass, but concrete positive/false-completion and launch-identity defects remain. The production runner/child is still absent. [Current root disposition](reviews/v2_executor_root_disposition_20260921_1058.md) authorizes completing the whole implementation now and gives bounded repair cases; the fixed design and accepted resource ledger stand. Latest owner 10:51:08 UTC: zero live episodes/v2 calibration cells, no freeze/grid, nothing running. Remaining 35 points: Session60 prospective 10 and CPU calibration 5; root integration/final QA 10; author checks 10. Reviews/status only; five release artifacts unchanged.
 
 
 **Full project: 65/100 points (65%). Existing bounded-v1 package: 90/100 (90%).** Established September 19, 2026 at the author's request for a percentage covering the full project after every completed work cycle.
@@ -40,7 +40,7 @@ Report unchanged percentages when no milestone closes. Report the first 60% asse
 
 ## Current remaining sequence
 
-Follow the current 10:22 disposition above. Earlier dated checkpoints below are historical and retain their original scores; their open deterministic-milestone statements are superseded.
+Follow the current 10:58 disposition above. Earlier dated checkpoints below are historical and retain their original scores; their open deterministic-milestone statements are superseded.
 
 **September21, 02:26 UTC cycle — full project60% (change0), bounded v190%.** Incoming `d8b2a4d3141f0180473761671d3ffa57437225ad` receives bounded acceptance for its primary tick-batched scheduler repair: both baseline witnesses, the ADAPTER first-decision/pending-state witness and205 direct ticks passed. The optional finest sensitivity contains unreachable prefix states and is deferred from the approved primary plan. Root's [binding disposition](reviews/v2_batched_schedule_root_disposition_20260921_0226.md) identifies the remaining actual-live snapshot/epsilon, v2 manifest/budget, external-reference and resource-measurement bindings. It authorizes only the existing balanced20-program development measurement of the actual delivered primary; no full-grid/live clearance.
 

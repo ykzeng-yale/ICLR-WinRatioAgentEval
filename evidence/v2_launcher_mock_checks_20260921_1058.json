@@ -1,0 +1,16 @@
+{
+  "owner_head": "4f65c54ea95ec85e8fb384bc79e0f1802260cd6f",
+  "scope": "mocked supervisor and supplied saved manifest; zero trials, native-reference imports or child processes",
+  "missing_reviewed_identity_invokes_mock_supervisor": true,
+  "zero_shards_mock_within_caps_returns_complete": true,
+  "code_pin_change_leaves_manifest_identity_unchanged": true,
+  "vshard_in_pinned_sources": false,
+  "listed_source_hash_mismatches": [],
+  "recorded_repo": {
+    "branch": "session60/live-ab-validation",
+    "dirty_paths": [],
+    "head": "49891a35547c44229d3b25f88a59000a61feecd3",
+    "validation_tree_dirty": false
+  },
+  "saved_execution_spec_digest": "0730f77ac66954bd5d2da352cdab0222e2434c06910baba0b33154e7597e6c96"
+}
