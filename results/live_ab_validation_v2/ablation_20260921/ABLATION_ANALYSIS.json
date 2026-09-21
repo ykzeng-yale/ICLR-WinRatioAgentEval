@@ -36,7 +36,8 @@
       "paired_difference_original_minus_disabled": {
         "ci95_hi": 0.004348138413873957,
         "ci95_lo": 0.0019018615861260432,
-        "interval_method": "normal on the paired mean",
+        "estimand": "paired",
+        "interval_method": "normal on the paired mean (within-cell paired difference)",
         "mc_se": 0.0006240616784399697,
         "mean": 0.003125,
         "n": 8000,
@@ -48,7 +49,8 @@
         "tau_prefix_paired_difference": {
           "ci95_hi": -2.359900783069726,
           "ci95_lo": -4.292099216930274,
-          "interval_method": "normal on the paired mean",
+          "estimand": "paired",
+          "interval_method": "normal on the paired mean (within-cell paired difference)",
           "mc_se": 0.49291682120219626,
           "mean": -3.326,
           "n": 8000,
@@ -57,7 +59,8 @@
         "tau_tick_disabled": {
           "ci95_hi": 2174.093527655937,
           "ci95_lo": 2167.3994723440633,
-          "interval_method": "normal on the paired mean",
+          "estimand": "single_arm",
+          "interval_method": "normal on a single-arm sample mean; NOT a paired quantity and not a contrast",
           "mc_se": 1.7076985507580904,
           "mean": 2170.7465,
           "n": 8000,
@@ -66,7 +69,8 @@
         "tau_tick_original": {
           "ci95_hi": 2170.40059040923,
           "ci95_lo": 2163.1601595907696,
-          "interval_method": "normal on the paired mean",
+          "estimand": "single_arm",
+          "interval_method": "normal on a single-arm sample mean; NOT a paired quantity and not a contrast",
           "mc_se": 1.8470826187551777,
           "mean": 2166.780375,
           "n": 8000,
@@ -75,7 +79,8 @@
         "tau_tick_paired_difference": {
           "ci95_hi": -2.813403372470757,
           "ci95_lo": -5.118846627529242,
-          "interval_method": "normal on the paired mean",
+          "estimand": "paired",
+          "interval_method": "normal on the paired mean (within-cell paired difference)",
           "mc_se": 0.5881340864535084,
           "mean": -3.966125,
           "n": 8000,
@@ -87,7 +92,8 @@
         "tau_prefix_paired_difference": {
           "ci95_hi": -22.538694642903366,
           "ci95_lo": -43.63453370355333,
-          "interval_method": "normal on the paired mean",
+          "estimand": "paired",
+          "interval_method": "normal on the paired mean (within-cell paired difference)",
           "mc_se": 5.381690486930181,
           "mean": -33.08661417322835,
           "n": 381,
@@ -96,7 +102,8 @@
         "tau_tick_paired_difference": {
           "ci95_hi": -22.836808469458745,
           "ci95_lo": -43.97159048067249,
-          "interval_method": "normal on the paired mean",
+          "estimand": "paired",
+          "interval_method": "normal on the paired mean (within-cell paired difference)",
           "mc_se": 5.391625095645178,
           "mean": -33.40419947506562,
           "n": 381,
@@ -141,7 +148,8 @@
       "paired_difference_original_minus_disabled": {
         "ci95_hi": 0.002823032760921976,
         "ci95_lo": 0.0009269672390780235,
-        "interval_method": "normal on the paired mean",
+        "estimand": "paired",
+        "interval_method": "normal on the paired mean (within-cell paired difference)",
         "mc_se": 0.0004836990722278256,
         "mean": 0.001875,
         "n": 8000,
@@ -153,7 +161,8 @@
         "tau_prefix_paired_difference": {
           "ci95_hi": 0.042718397312032405,
           "ci95_lo": -0.1317183973120324,
-          "interval_method": "normal on the paired mean",
+          "estimand": "paired",
+          "interval_method": "normal on the paired mean (within-cell paired difference)",
           "mc_se": 0.0445,
           "mean": -0.0445,
           "n": 8000,
@@ -162,7 +171,8 @@
         "tau_tick_disabled": {
           "ci95_hi": 2199.9955633149802,
           "ci95_lo": 2199.88868668502,
-          "interval_method": "normal on the paired mean",
+          "estimand": "single_arm",
+          "interval_method": "normal on a single-arm sample mean; NOT a paired quantity and not a contrast",
           "mc_se": 0.0272649474181886,
           "mean": 2199.942125,
           "n": 8000,
@@ -171,7 +181,8 @@
         "tau_tick_original": {
           "ci95_hi": 2199.902524518993,
           "ci95_lo": 2199.5799754810073,
-          "interval_method": "normal on the paired mean",
+          "estimand": "single_arm",
+          "interval_method": "normal on a single-arm sample mean; NOT a paired quantity and not a contrast",
           "mc_se": 0.08228442984922449,
           "mean": 2199.74125,
           "n": 8000,
@@ -180,7 +191,8 @@
         "tau_tick_paired_difference": {
           "ci95_hi": -0.08795871808205134,
           "ci95_lo": -0.31379128191794864,
-          "interval_method": "normal on the paired mean",
+          "estimand": "paired",
+          "interval_method": "normal on the paired mean (within-cell paired difference)",
           "mc_se": 0.05761140654043538,
           "mean": -0.200875,
           "n": 8000,
@@ -192,7 +204,8 @@
         "tau_prefix_paired_difference": {
           "ci95_hi": 31.067925317841755,
           "ci95_lo": -95.79519804511449,
-          "interval_method": "normal on the paired mean",
+          "estimand": "paired",
+          "interval_method": "normal on the paired mean (within-cell paired difference)",
           "mc_se": 32.36363636363637,
           "mean": -32.36363636363637,
           "n": 11,
@@ -201,7 +214,8 @@
         "tau_tick_paired_difference": {
           "ci95_hi": -27.81200432861175,
           "ci95_lo": -145.64254112593372,
-          "interval_method": "normal on the paired mean",
+          "estimand": "paired",
+          "interval_method": "normal on the paired mean (within-cell paired difference)",
           "mc_se": 30.059362755324642,
           "mean": -86.72727272727273,
           "n": 11,
@@ -246,7 +260,8 @@
       "paired_difference_original_minus_disabled": {
         "ci95_hi": 0.005966753494874788,
         "ci95_lo": 0.0030332465051252115,
-        "interval_method": "normal on the paired mean",
+        "estimand": "paired",
+        "interval_method": "normal on the paired mean (within-cell paired difference)",
         "mc_se": 0.0007483573710763834,
         "mean": 0.0045,
         "n": 8000,
@@ -258,7 +273,8 @@
         "tau_prefix_paired_difference": {
           "ci95_hi": -24.18211378371891,
           "ci95_lo": -27.352886216281085,
-          "interval_method": "normal on the paired mean",
+          "estimand": "paired",
+          "interval_method": "normal on the paired mean (within-cell paired difference)",
           "mc_se": 0.80888538196947,
           "mean": -25.7675,
           "n": 8000,
@@ -267,7 +283,8 @@
         "tau_tick_disabled": {
           "ci95_hi": 1454.0763442964644,
           "ci95_lo": 1432.6121557035358,
-          "interval_method": "normal on the paired mean",
+          "estimand": "single_arm",
+          "interval_method": "normal on a single-arm sample mean; NOT a paired quantity and not a contrast",
           "mc_se": 5.475658931040475,
           "mean": 1443.34425,
           "n": 8000,
@@ -276,7 +293,8 @@
         "tau_tick_original": {
           "ci95_hi": 1427.442612320059,
           "ci95_lo": 1405.749387679941,
-          "interval_method": "normal on the paired mean",
+          "estimand": "single_arm",
+          "interval_method": "normal on a single-arm sample mean; NOT a paired quantity and not a contrast",
           "mc_se": 5.534087567738779,
           "mean": 1416.596,
           "n": 8000,
@@ -285,7 +303,8 @@
         "tau_tick_paired_difference": {
           "ci95_hi": -25.07667482089956,
           "ci95_lo": -28.41982517910044,
-          "interval_method": "normal on the paired mean",
+          "estimand": "paired",
+          "interval_method": "normal on the paired mean (within-cell paired difference)",
           "mc_se": 0.8528601506382836,
           "mean": -26.74825,
           "n": 8000,
@@ -297,7 +316,8 @@
         "tau_prefix_paired_difference": {
           "ci95_hi": -27.528122232808904,
           "ci95_lo": -31.109701139180387,
-          "interval_method": "normal on the paired mean",
+          "estimand": "paired",
+          "interval_method": "normal on the paired mean (within-cell paired difference)",
           "mc_se": 0.9136848775341084,
           "mean": -29.318911685994646,
           "n": 6726,
@@ -306,7 +326,8 @@
         "tau_tick_paired_difference": {
           "ci95_hi": -27.623363673153428,
           "ci95_lo": -31.206550094316093,
-          "interval_method": "normal on the paired mean",
+          "estimand": "paired",
+          "interval_method": "normal on the paired mean (within-cell paired difference)",
           "mc_se": 0.9140949653734405,
           "mean": -29.41495688373476,
           "n": 6726,
@@ -351,7 +372,8 @@
       "paired_difference_original_minus_disabled": {
         "ci95_hi": 0.1445352197825168,
         "ci95_lo": 0.12946478021748323,
-        "interval_method": "normal on the paired mean",
+        "estimand": "paired",
+        "interval_method": "normal on the paired mean (within-cell paired difference)",
         "mc_se": 0.003844570533924926,
         "mean": 0.137,
         "n": 8000,
@@ -363,7 +385,8 @@
         "tau_prefix_paired_difference": {
           "ci95_hi": -25.595561540658778,
           "ci95_lo": -29.24793845934122,
-          "interval_method": "normal on the paired mean",
+          "estimand": "paired",
+          "interval_method": "normal on the paired mean (within-cell paired difference)",
           "mc_se": 0.9317459268363931,
           "mean": -27.42175,
           "n": 8000,
@@ -372,7 +395,8 @@
         "tau_tick_disabled": {
           "ci95_hi": 2146.488721075398,
           "ci95_lo": 2141.369528924602,
-          "interval_method": "normal on the paired mean",
+          "estimand": "single_arm",
+          "interval_method": "normal on a single-arm sample mean; NOT a paired quantity and not a contrast",
           "mc_se": 1.3059403619596957,
           "mean": 2143.929125,
           "n": 8000,
@@ -381,7 +405,8 @@
         "tau_tick_original": {
           "ci95_hi": 2093.6928895659753,
           "ci95_lo": 2085.679610434025,
-          "interval_method": "normal on the paired mean",
+          "estimand": "single_arm",
+          "interval_method": "normal on a single-arm sample mean; NOT a paired quantity and not a contrast",
           "mc_se": 2.0442414236072843,
           "mean": 2089.68625,
           "n": 8000,
@@ -390,7 +415,8 @@
         "tau_tick_paired_difference": {
           "ci95_hi": -52.230935229535895,
           "ci95_lo": -56.2548147704641,
-          "interval_method": "normal on the paired mean",
+          "estimand": "paired",
+          "interval_method": "normal on the paired mean (within-cell paired difference)",
           "mc_se": 1.0265187454126847,
           "mean": -54.242875,
           "n": 8000,
@@ -402,7 +428,8 @@
         "tau_prefix_paired_difference": {
           "ci95_hi": -66.0022180403832,
           "ci95_lo": -74.53693471956545,
-          "interval_method": "normal on the paired mean",
+          "estimand": "paired",
+          "interval_method": "normal on the paired mean (within-cell paired difference)",
           "mc_se": 2.1772636503790417,
           "mean": -70.26957637997432,
           "n": 3116,
@@ -411,7 +438,8 @@
         "tau_tick_paired_difference": {
           "ci95_hi": -118.7943049660822,
           "ci95_lo": -126.77565652300638,
-          "interval_method": "normal on the paired mean",
+          "estimand": "paired",
+          "interval_method": "normal on the paired mean (within-cell paired difference)",
           "mc_se": 2.0360964843946276,
           "mean": -122.78498074454428,
           "n": 3116,
