@@ -125,20 +125,36 @@ def run_reference_sweep(tasks: Sequence[dict], cfg: dict, *,
         ledger.append(record)                       # (1) RAW, always, first
         if load_observer is None:
             return
+        # IMMEDIATE STOP, root 2026-09-21 21:17: "Retain the distinction between
+        # eventual refusal and IMMEDIATE STOP: the new sink accumulates
+        # invalid_coverage and returns, allowing more verifier attempts before
+        # the post-sweep refusal. Persist the raw attempt and observer
+        # failure/invalid observation, then RAISE from that sink so no next
+        # attempt starts ... do not run a whole invalid sweep to learn it is
+        # invalid." Correct: my version refused only after sweep_fn finished.
+        key = {'uid': record.get('uid'), 'run_index': record.get('run_index')}
         try:                                        # (2) then the fallible part
             obs = load_observer()
         except Exception as exc:
-            invalid_coverage.append(
-                {'uid': record.get('uid'), 'run_index': record.get('run_index'),
-                 'error': '%s: %s' % (type(exc).__name__, exc)})
-            return
-        entry = {'uid': record.get('uid'), 'run_index': record.get('run_index'),
-                 'observation': obs}
-        if not _coverage_is_valid(obs):
-            invalid_coverage.append(dict(entry, reason='observation does not '
-                                         'evidence active load over the attempt'))
+            failure = dict(key, schema='live_ab/load_coverage_failure-v1',
+                           error='%s: %s' % (type(exc).__name__, exc))
+            ledger.append(failure)                  # PERSIST the error, not only in memory
+            invalid_coverage.append(failure)
+            raise PreparationRefused(
+                'load observation failed on %s; the raw attempt and this error are '
+                'retained and NO further verifier attempt is started'
+                % (key,)) from exc
+        entry = dict(key, observation=obs)
+        verdict = _coverage_verdict(obs, record)
+        ledger.append({'schema': 'live_ab/load_coverage-v1', **entry,
+                       'valid': verdict['valid'], 'reason': verdict['reason']})
         coverage.append(entry)
-        ledger.append({'schema': 'live_ab/load_coverage-v1', **entry})
+        if not verdict['valid']:
+            invalid_coverage.append(dict(entry, reason=verdict['reason']))
+            raise PreparationRefused(
+                'load coverage is invalid on %s (%s); the raw attempt is retained, '
+                'no task is excluded on account of it, and NO further verifier '
+                'attempt is started' % (key, verdict['reason']))
 
     outcome: Dict[str, Any] = {
         'schema': 'live_ab/preparation_sweep-v1',
@@ -349,19 +365,62 @@ def assert_prescribed_tmpdir(cfg: dict, *, tmp_root: str = '/private/tmp') -> Di
             'checked': True}
 
 
-def _coverage_is_valid(obs: object) -> bool:
-    """Whether an observation actually evidences active load over an attempt.
+def _coverage_verdict(obs: object, record: dict) -> Dict[str, Any]:
+    """Whether an observation actually COVERS the attempt's interval.
 
-    Root, 2026-09-21 20:43: "a post-attempt observer value is not enforced
-    coverage". A returned dict is not evidence; these are the fields protocol
-    5.7 / root's 20:05 coverage rule requires, and their absence is invalid
-    coverage, not a pass.
+    Root, 2026-09-21 21:17: "Required load coverage is still metadata presence,
+    not interval validation. `_coverage_is_valid` checks `active is True` and
+    nonempty `window_id`/`resolution_ms` only. It does not compare actual
+    verifier start/end times with active-load windows on the agreed clock. A
+    post-attempt result containing those three fields passes."
+
+    That was exactly right. Presence of three fields is not coverage. This
+    compares the attempt's own monotonic endpoints against the observation's
+    active windows on the same clock, and requires the windows to span the whole
+    interval -- with the stated timing resolution charged AGAINST the claim, so
+    a coarse sampler cannot certify a gap it could not have seen.
     """
     if not isinstance(obs, dict):
-        return False
+        return {'valid': False, 'reason': 'observation is not a mapping'}
     if obs.get('active') is not True:
-        return False
+        return {'valid': False, 'reason': 'observation does not report active load'}
     for key in ('window_id', 'resolution_ms'):
         if obs.get(key) in (None, ''):
-            return False
-    return True
+            return {'valid': False, 'reason': 'observation omits %s' % key}
+
+    start, end = record.get('started_monotonic'), record.get('ended_monotonic')
+    if start is None or end is None:
+        return {'valid': False,
+                'reason': 'the attempt carries no monotonic endpoints, so no '
+                          'window can be shown to cover it'}
+    windows = obs.get('active_windows')
+    if not isinstance(windows, list) or not windows:
+        return {'valid': False,
+                'reason': 'observation carries no active_windows to compare against '
+                          "the attempt's interval; a post-attempt sample is not "
+                          'coverage of the interval'}
+    try:
+        res_s = float(obs['resolution_ms']) / 1000.0
+    except (TypeError, ValueError):
+        return {'valid': False, 'reason': 'resolution_ms is not numeric'}
+
+    # Charge the sampling resolution against the claim: a window is only credited
+    # over the span it could actually have observed.
+    covered: List[tuple] = []
+    for w in windows:
+        try:
+            ws, we = float(w['start']), float(w['end'])
+        except (TypeError, ValueError, KeyError):
+            return {'valid': False, 'reason': 'an active window lacks numeric endpoints'}
+        covered.append((ws + res_s, we - res_s))
+    covered.sort()
+    cursor = float(start)
+    for ws, we in covered:
+        if ws > cursor:
+            break                       # a gap the windows do not span
+        cursor = max(cursor, we)
+    if cursor < float(end):
+        return {'valid': False,
+                'reason': 'active windows leave %.3fs of the attempt interval '
+                          'uncovered at the stated resolution' % (float(end) - cursor)}
+    return {'valid': True, 'reason': 'active windows span the attempt interval'}

@@ -479,7 +479,9 @@ def _exclusion(uid: str, reason: str, detail: str) -> Exclusion:
 ATTEMPT_RECORD_SCHEMA: str = 'live_ab/reference_attempt-v1'
 
 
-def attempt_record(uid: str, run_index: int, result: dict) -> dict:
+def attempt_record(uid: str, run_index: int, result: dict,
+                   started_monotonic: "float | None" = None,
+                   ended_monotonic: "float | None" = None) -> dict:
     """The COMPLETE per-attempt verifier record, retained rather than discarded.
 
     Carries the two fields the digest is built from (`stdout_tail`, `stderr`), the
@@ -515,6 +517,12 @@ def attempt_record(uid: str, run_index: int, result: dict) -> dict:
         'clean_exit': bool(run.get('passed')),   # NOT the sentinel; kept distinctly
         'returncode': run.get('returncode'),
         'verify_seconds': float(result.get('verify_seconds') or 0.0),
+        # --- the attempt's own interval, on ONE monotonic clock -----------
+        # Root 21:17 requires comparing verifier start/end times against active
+        # load windows. Without endpoints on a single clock there is nothing to
+        # compare, and coverage degenerates to metadata presence.
+        'started_monotonic': started_monotonic,
+        'ended_monotonic': ended_monotonic,
         # --- the RAW payload, preserved whole ----------------------------
         # Root: "preserve the raw verifier payload".  A record that keeps only the
         # fields I thought mattered is the same defect as hashing a detail and
@@ -766,15 +774,18 @@ def sweep_references(tasks: list[Task], cfg: dict, *, on_progress: Callable | No
         reason: str | None = None
         attempts: list[dict] = []
         for run_index in range(REFERENCE_SWEEP_RUNS):
+            _t0 = time.monotonic()
             with _ExecutionLock(lock_path, max_lock_wait_s):
                 result = verify_mod.verify(pilot_task, task['reference'], timeout_s=timeout_s,
                                            mem_bytes=mem_bytes, cpu_seconds=cpu_s,
                                            output_cap=output_cap)
+            _t1 = time.monotonic()
             # D1: the COMPLETE record is retained, not a string that is hashed and
             # thrown away.  `on_attempt` lets the caller persist it durably; the
             # digest below is built from these same records through the one
             # canonicalization rule, so it reconstructs from what was saved.
-            record = attempt_record(task['uid'], run_index, result)
+            record = attempt_record(task['uid'], run_index, result,
+                                    started_monotonic=_t0, ended_monotonic=_t1)
             attempts.append(record)
             if on_attempt is not None:
                 # DELIBERATELY UNGUARDED.  Root: "loss/failure of the sink must

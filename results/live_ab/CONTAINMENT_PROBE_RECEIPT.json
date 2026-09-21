@@ -1,4 +1,17 @@
 {
+  "CORRECTION_root_21_17_MY_RECEIPT_CLAIMED_MORE_THAN_IT_SHOWED": {
+    "accepted_subset": "the FIFTEEN repository-target denials (5 targets x list/read/write). Root accepts these as a bounded owner result.",
+    "no_key_promoted": "no trial-profile key is promoted from this probe summary.",
+    "not_reweakened": "root: 'do not rerun or weaken the accepted fifteen-target subset merely to report a broader PASS.' The fifteen stand as measured; only my description of their scope is corrected.",
+    "overclaims_root_identified_and_I_confirm": [
+      "the receipt said all SIX target classes were probed with list, read and write. FALSE: peer_run_dir got `enumerate`, and `list` only if a peer were found. It was never read or written.",
+      "`denied_attempts: 16` counted the empty peer ENUMERATION as a denied filesystem operation. It is not one. The real figure is 15 denied operations plus one empty enumeration.",
+      "an empty peer-directory glob was presented as exclusion evidence. It is not: the probe starts ONE sandbox program under the lock and never launches a second worker attempting to acquire it. No peer being found is not a demonstration that a concurrent worker is blocked.",
+      "the negative control is a SUMMARY of fifteen detected breaches; it carries no per-operation raw execution receipt, so it supports the summary only."
+    ],
+    "still_owed": "the two-worker fixture with an ACTUAL contender blocked while the first holds the production lock, retaining timing and refusal evidence, plus per-attempt negative-control evidence rather than a summary count.",
+    "what_the_receipt_now_claims": "fifteen repository-target denials under the reported profile, on this host, from a probe program -- not a live-worker episode, not two-worker exclusion, not a general security property."
+  },
   "allowed_by_audited_profile": [],
   "attempts": [
     {
@@ -100,6 +113,12 @@
   ],
   "concurrent_peer_run_dir_found": false,
   "denied_attempts": 16,
+  "denied_attempts_corrected": {
+    "denied_filesystem_operations": 15,
+    "empty_enumerations": 1,
+    "previously_reported_as": 16,
+    "why": "an empty enumeration is not a denied operation"
+  },
   "elapsed_s": 0.023899078369140625,
   "exclusion_ok": true,
   "fixtures": {
@@ -135,7 +154,7 @@
     "prescribed_tmpdir": "/private/tmp/labsbx",
     "sandbox_base_dir": "/private/tmp/labsbx/ls_sbx"
   },
-  "verdict": "PASS",
+  "verdict": "PASS (BOUNDED: fifteen repository-target denials only; see CORRECTION_root_21_17)",
   "what_this_does_NOT_establish": [
     "that a LIVE WORKER running a real episode has the same containment: this is the production lock and sandbox path, but the program inside it is a probe, not an agent episode",
     "that the peer-run-dir result generalises: it shows no concurrent peer directory existed while THIS probe held the lock, which is the property the lock provides, not a proof about arbitrary interleavings",

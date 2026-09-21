@@ -2030,7 +2030,9 @@ class PreparationWiringTests(unittest.TestCase):
     def _stub_sweep(self, uid='t/1'):
         """A sweep that emits one attempt through the sink and one exclusion."""
         def sweep(tasks, cfg, *, on_progress=None, on_attempt=None):
-            rec = lab_data.attempt_record(uid, 0, self._payload())
+            rec = lab_data.attempt_record(uid, 0, self._payload(),
+                                          started_monotonic=100.0,
+                                          ended_monotonic=100.5)
             if on_attempt is not None:
                 on_attempt(rec)
             return [lab_data._exclusion(uid, 'reference_fails_verify',
@@ -2074,9 +2076,14 @@ class PreparationWiringTests(unittest.TestCase):
 
     def test_load_coverage_is_recorded_beside_each_attempt(self):
         def observer():
-            # a VALID observation: evidences active load, names its window, and
-            # states its timing resolution. A bare dict is not coverage.
-            return {'window_id': 'w1', 'active': True, 'resolution_ms': 50}
+            # A VALID observation must COVER THE ATTEMPT'S INTERVAL, not merely
+            # carry three fields. Root 2026-09-21 21:17: "Required load coverage
+            # is still metadata presence, not interval validation ... A
+            # post-attempt result containing those three fields passes." It no
+            # longer does; active_windows must span the attempt on one clock,
+            # with the stated resolution charged against the claim.
+            return {'window_id': 'w1', 'active': True, 'resolution_ms': 50,
+                    'active_windows': [{'start': 99.0, 'end': 101.0}]}
         res = lab_prepare.run_reference_sweep(
             [], {}, ledger_path=self.tmp / 'l.jsonl', load_observer=observer,
             enforce_tmpdir=False, sweep_fn=self._stub_sweep())
