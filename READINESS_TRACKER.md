@@ -1,6 +1,6 @@
 # Bounded-v1 arXiv package readiness tracker
 
-Full-project readiness remains **60% (change 0)**; separately bounded v1 **90%**. See the [September 21, 06:35 root disposition](reviews/v2_execution_root_disposition_20260921_0635.md): bounded comparison repairs accepted; actual calibration-runner integration, total-resource guard and successor acceptance remain pending.
+Full-project readiness remains **60% (change 0)**; separately bounded v1 **90%**. See the [September 21, 07:50 root disposition](reviews/v2_panel_root_disposition_20260921_0750.md): actual operational/reference wiring and timing witness are bounded-verified; fixed-configuration, execution guard and resource-measurement completion remain pending.
 
 **For overall progress, report [FULL_PROJECT_PROGRESS.md](FULL_PROJECT_PROGRESS.md) first: 60% across the expanded project, including issues #11/#12 and their final integration. This file retains the separate existing-package score of 90%.**
 

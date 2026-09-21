@@ -1,0 +1,10 @@
+{
+  "source_commit": "5336f8b0124b9aef0133e7facef268b8608b1e8c",
+  "executable_epsilon_mutation_leaves_identity_unchanged": true,
+  "partly_missing_requested_entry_not_rejected": true,
+  "orchestrator_included": false,
+  "reference_included": false,
+  "counterexample_forward_margin": 0.4499999999999993,
+  "forward_fires_eps_1e9": true,
+  "forward_fires_eps_1": false
+}
