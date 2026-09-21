@@ -42,6 +42,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import platform
 import sys
 import time
@@ -82,6 +83,56 @@ FIXTURE_MAX_N = 500
 
 class PanelError(RuntimeError):
     """A panel precondition failed.  Always fail closed."""
+
+
+def _peak_rss_bytes() -> int:
+    """Peak RSS of this process TREE (self + reaped children), in bytes."""
+    import resource
+    mine = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    kids = resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss
+    # macOS reports bytes, Linux kilobytes.
+    scale = 1 if sys.platform == "darwin" else 1024
+    return int(max(mine, kids) * scale)
+
+
+def host_capacity() -> Dict[str, Any]:
+    """CPU/RAM/disk capacity and concurrent load, recorded not assumed.
+
+    Root, 07:50: "Check available CPU/RAM/disk capacity and log concurrent
+    load; if adequate, this bounded CPU measurement may proceed UNDER THOSE
+    RECORDED CONDITIONS. Treat observed time as conditional on the measured
+    load, not an uncontended benchmark."
+    """
+    import shutil as _shutil
+    import subprocess as _sp
+    load = os.getloadavg()
+    cores = os.cpu_count() or 1
+    usage = _shutil.disk_usage(str(HERE))
+    try:
+        total_ram = int(_sp.run(["sysctl", "-n", "hw.memsize"],
+                                capture_output=True, text=True).stdout.strip())
+    except Exception:                                          # pragma: no cover
+        total_ram = 0
+    try:
+        top = _sp.run(["ps", "-Ao", "pid,pcpu,rss,comm", "-r"],
+                      capture_output=True, text=True).stdout.splitlines()[1:9]
+    except Exception:                                          # pragma: no cover
+        top = []
+    return {
+        "cpu_cores": cores,
+        "load_average": {"1m": load[0], "5m": load[1], "15m": load[2]},
+        "load_fraction_of_cores_1m": load[0] / cores,
+        "total_ram_bytes": total_ram,
+        "disk_free_bytes": usage.free,
+        "concurrent_top_processes": [l.strip() for l in top],
+        "interpretation": ("observed time is CONDITIONAL ON THIS LOAD; it is "
+                           "not an uncontended benchmark and not a guaranteed "
+                           "upper bound"),
+    }
+
+
+class CapExceeded(PanelError):
+    """A hard resource cap was reached; partial output is preserved."""
 
 
 def _saved_smoke() -> Dict[str, Any]:
@@ -343,6 +394,7 @@ def run_panel(cfg: PanelConfig, out_dir: Path,
         alpha_gate=cfg.alpha_gate, trials_per_program=cfg.trials_per_program,
         workload=f"{REFERENCE_CALLS_PER_TRIAL}_calls_per_trial")
 
+    host_at_start = host_capacity()
     guard_record: Dict[str, Any] = {"mode": cfg.mode}
     if cfg.mode == MODE_FULL_GRID:
         # Refuse on the real guard, with the real pins, rather than on a flag.
@@ -399,10 +451,33 @@ def run_panel(cfg: PanelConfig, out_dir: Path,
               "reference_calls_d": 0, "reference_rows": 0, "trials": 0,
               "programs": 0, "policy_checks": 0, "policy_pair_states": 0}
     decisions: Dict[str, int] = {}
+    caps = vpins.ALLOWLIST if cfg.mode == MODE_MEASUREMENT else None
+    cap_events: List[Dict[str, Any]] = []
+    peak_rss = 0
     t0 = time.perf_counter()
     for cell in cells:
         for program in cfg.indices:
             for trial in range(cfg.trials_per_program):
+                # ---- HARD CAPS, checked per trial, fail closed ------------
+                if caps is not None:
+                    elapsed = time.perf_counter() - t0
+                    peak_rss = max(peak_rss, _peak_rss_bytes())
+                    if elapsed > caps.cap_seconds:
+                        cap_events.append({"cap": "seconds", "limit": caps.cap_seconds,
+                                           "observed": elapsed,
+                                           "trials_completed": counts["trials"]})
+                    elif peak_rss > caps.cap_peak_rss_bytes:
+                        cap_events.append({"cap": "peak_rss_bytes",
+                                           "limit": caps.cap_peak_rss_bytes,
+                                           "observed": peak_rss,
+                                           "trials_completed": counts["trials"]})
+                    elif sink.raw_bytes > caps.cap_output_bytes:
+                        cap_events.append({"cap": "output_bytes",
+                                           "limit": caps.cap_output_bytes,
+                                           "observed": sink.raw_bytes,
+                                           "trials_completed": counts["trials"]})
+                    if cap_events:
+                        break
                 draw = vgen.draw_trial(cell, program, trial, n_max=cfg.n_max,
                                        namespace=cfg.namespace)
                 counts["generation_calls"] += 1
@@ -434,15 +509,20 @@ def run_panel(cfg: PanelConfig, out_dir: Path,
                     counts["reference_calls_d"] += cd
                     counts["reference_rows"] += len(rows)
                 counts["trials"] += 1
+            if cap_events:
+                break
             counts["programs"] += 1
+        if cap_events:
+            break
     seconds = time.perf_counter() - t0
+    peak_rss = max(peak_rss, _peak_rss_bytes())
     primary_bytes = sink.close()
     ref_path.write_text("".join(ref_lines))
 
-    if cfg.with_reference:
+    if cfg.with_reference and not cap_events:
         assert_reference_call_budget(counts, counts["trials"])
         want_rows = counts["trials"] * len(SCORES) * len(prefixes)
-        if counts["reference_rows"] != want_rows:
+        if counts["reference_rows"] != want_rows and not cap_events:
             raise PanelError(
                 f"retained {counts['reference_rows']} reference rows, expected "
                 f"{want_rows} = {counts['trials']} trials x {len(SCORES)} scores "
@@ -484,6 +564,11 @@ def run_panel(cfg: PanelConfig, out_dir: Path,
                                     "bytes": ref_path.stat().st_size}},
         "structural_checks": structural,
         "elapsed_seconds": seconds,
+        "peak_rss_bytes": peak_rss,
+        "cap_events": cap_events,
+        "completed_fully": not cap_events,
+        "host_capacity_at_start": host_at_start,
+        "host_capacity_at_end": host_capacity(),
         "environment": {"python": platform.python_version(),
                         "numpy": np.__version__,
                         "platform": platform.platform()},
