@@ -57,6 +57,7 @@ if str(HERE) not in sys.path:                                  # pragma: no cove
 
 import vband                                                    # noqa: E402
 import vgen                                                     # noqa: E402
+import vpins                                                    # noqa: E402
 import vrun                                                     # noqa: E402
 from reference import eb_reference                              # noqa: E402
 
@@ -73,8 +74,20 @@ SCORES = ("H", "D")
 _PRIMARY_SOURCES = ("vrun.py", "vgen.py", "vband.py", "vpolicy.py")
 
 
+#: Fixture mode is for a deterministic integration check, not a small study.
+#: Root: the entry point "does not enforce a small fixture bound".
+FIXTURE_MAX_TRIALS = 64
+FIXTURE_MAX_N = 500
+
+
 class PanelError(RuntimeError):
     """A panel precondition failed.  Always fail closed."""
+
+
+def _saved_smoke() -> Dict[str, Any]:
+    """The saved accepted projection the full-grid guard prices against."""
+    import vtotalguard                                         # noqa: E402
+    return vtotalguard.smoke_from_saved_projection()
 
 
 def _sha256(path: Path) -> Optional[str]:
@@ -136,6 +149,15 @@ def assert_reference_call_budget(counts: Dict[str, int], trials: int) -> None:
 # ---------------------------------------------------------------------------
 # 2.  Configuration
 # ---------------------------------------------------------------------------
+#: The three ways this entry point may run.  They are separated because, as the
+#: root put it, "a measurement cannot require the qualifying projection that the
+#: measurement itself is supposed to create".
+MODE_FIXTURE = "fixture"          # tiny deterministic integration check
+MODE_MEASUREMENT = "measurement"  # the bounded, allowlisted resource measurement
+MODE_FULL_GRID = "full_grid"      # refused until the qualifying ledger matches
+MODES = (MODE_FIXTURE, MODE_MEASUREMENT, MODE_FULL_GRID)
+
+
 @dataclass
 class PanelConfig:
     """What one panel run is, in full.  Every field lands in the receipt."""
@@ -150,24 +172,77 @@ class PanelConfig:
     trials_per_program: int = vgen.TRIALS_PER_PROGRAM
     with_reference: bool = True
     label: str = "fixture"
+    mode: str = MODE_FIXTURE
+    program_indices: Optional[Tuple[int, ...]] = None
 
     def __post_init__(self) -> None:
         if self.policy not in vgen.POLICIES:
             raise PanelError(f"unknown policy {self.policy!r}")
+        if self.mode not in MODES:
+            raise PanelError(f"unknown mode {self.mode!r}; expected one of {MODES}")
         if self.schedule == vrun.SCHEDULE_V1 and self.policy != "oracle":
             raise PanelError(
                 "v1 is the oracle schedule; an operational v1 run is not defined")
         if self.programs < 1 or self.n_max < 1:
             raise PanelError("programs and n_max must be positive")
 
+        # ---- THE FROZEN SETTINGS, REJECTED RATHER THAN SILENTLY SPLIT -------
+        # Root, 07:50: "the executable specification still accepts a mismatched
+        # alpha that is USED BY THE REFERENCE AND IGNORED BY THE PRIMARY.
+        # Reject non-frozen alpha and trial-count settings."
+        # The primary takes its radii from vband.radius_from_formula, which
+        # reads the frozen ALPHA_GATE; only the reference saw this field. A run
+        # with alpha_gate=0.5 would therefore have produced a reference at 0.5
+        # beside a primary at 0.00625 and called them one experiment.
+        if float(self.alpha_gate) != float(vband.ALPHA_GATE):
+            raise PanelError(
+                f"alpha_gate {self.alpha_gate!r} is not the frozen "
+                f"{vband.ALPHA_GATE!r}. The primary reads the frozen value from "
+                f"vband.radius_from_formula and would IGNORE this one while the "
+                f"reference USED it, making the two halves different "
+                f"experiments. Refused rather than split.")
+        if int(self.trials_per_program) != int(vgen.TRIALS_PER_PROGRAM):
+            raise PanelError(
+                f"trials_per_program {self.trials_per_program!r} is not the "
+                f"frozen {vgen.TRIALS_PER_PROGRAM!r}; the declared eight-calls-"
+                f"per-program reference workload is defined against the frozen "
+                f"count. Refused.")
+
+        if self.mode == MODE_MEASUREMENT:
+            # Re-raised as PanelError so the entry point has ONE failure type;
+            # the allowlist's message is preserved verbatim.
+            try:
+                vpins.ALLOWLIST.refuse_unless_allowed(
+                    namespace=self.namespace, cells=self.cells,
+                    programs=self.program_indices or (),
+                    horizon=self.n_max,
+                    trials_per_program=self.trials_per_program,
+                    policy=self.policy)
+            except vpins.PinError as exc:
+                raise PanelError(str(exc)) from exc
+            if self.program_indices is None:
+                raise PanelError(
+                    "measurement mode requires explicit program_indices from "
+                    "the authorized allowlist; defaulting to 0..n-1 would run "
+                    "coordinates nobody authorized")
+
+    @property
+    def indices(self) -> Tuple[int, ...]:
+        """Program indices actually run: explicit ones, else 0..programs-1."""
+        if self.program_indices is not None:
+            return tuple(self.program_indices)
+        return tuple(range(self.programs))
+
     @property
     def trials(self) -> int:
-        return self.programs * self.trials_per_program * len(self.cells)
+        return len(self.indices) * self.trials_per_program * len(self.cells)
 
     def identity(self) -> Dict[str, Any]:
         return {"panel_version": PANEL_VERSION, "label": self.label,
+                "mode": self.mode,
                 "cells": list(self.cells), "n_max": self.n_max,
-                "programs": self.programs, "policy": self.policy,
+                "programs": self.programs,
+                "program_indices": list(self.indices), "policy": self.policy,
                 "schedule": self.schedule, "namespace": self.namespace,
                 "alpha_gate": self.alpha_gate,
                 "trials_per_program": self.trials_per_program,
@@ -253,6 +328,52 @@ def run_panel(cfg: PanelConfig, out_dir: Path,
             "Write each run to its own fresh directory.")
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    # ---- THE GUARD, CALLED BY THE ENTRY POINT ITSELF -------------------
+    # Root, 07:50: "the actual vpanel entry point does not call that guard and
+    # does not enforce a small fixture bound ... A CORRECT HELPER DOES NOT
+    # PROTECT AN ENTRY POINT THAT NEVER USES IT. ... Wire that refusal into the
+    # actual entry point, not just an unused helper."
+    # That was exactly right and it is the same defect class as a gate nothing
+    # calls. The guard now runs here, before any work.
+    pins_before = vpins.entry_point_pins(
+        policy=cfg.policy, schedule=cfg.schedule,
+        prefixes=vrun.make_config(cfg.n_max, cfg.namespace,
+                                  schedule=cfg.schedule).horizons,
+        programs=cfg.indices, cells=cfg.cells, namespace=cfg.namespace,
+        alpha_gate=cfg.alpha_gate, trials_per_program=cfg.trials_per_program,
+        workload=f"{REFERENCE_CALLS_PER_TRIAL}_calls_per_trial")
+
+    guard_record: Dict[str, Any] = {"mode": cfg.mode}
+    if cfg.mode == MODE_FULL_GRID:
+        # Refuse on the real guard, with the real pins, rather than on a flag.
+        cfg_json = json.loads((HERE / "cells.json").read_text())
+        budget = vrun.select_tier(_saved_smoke(), cfg_json)
+        proposed = {"identities": {k: pins_before[k] for k in
+                                   ("code", "config", "policy", "workload", "receipt")},
+                    "programs_total": len(cfg.indices) * len(cfg.cells)}
+        verdict = vrun.total_workload_guard(budget, cfg_json, proposed)
+        guard_record["verdict"] = verdict
+        vrun.enforce_total_workload_guard(verdict)   # raises unless authorized
+    elif cfg.mode == MODE_MEASUREMENT:
+        counts_expected = vpins.ALLOWLIST.check_arithmetic()
+        guard_record["allowlist"] = counts_expected
+        guard_record["caps"] = {
+            "seconds": vpins.ALLOWLIST.cap_seconds,
+            "peak_rss_bytes": vpins.ALLOWLIST.cap_peak_rss_bytes,
+            "output_bytes": vpins.ALLOWLIST.cap_output_bytes}
+    else:
+        # fixture: bounded by construction, and the bound is CHECKED.
+        planned = len(cfg.cells) * len(cfg.indices) * cfg.trials_per_program
+        if planned > FIXTURE_MAX_TRIALS or cfg.n_max > FIXTURE_MAX_N:
+            raise PanelError(
+                f"fixture mode is bounded at {FIXTURE_MAX_TRIALS} trials and "
+                f"n_max {FIXTURE_MAX_N}; this proposes {planned} trials at "
+                f"n_max {cfg.n_max}. Use measurement mode with the authorized "
+                f"allowlist, or full_grid, rather than growing the fixture.")
+        guard_record["fixture_bound"] = {"trials": planned, "n_max": cfg.n_max,
+                                         "max_trials": FIXTURE_MAX_TRIALS,
+                                         "max_n": FIXTURE_MAX_N}
+
     structural = assert_reference_is_not_consulted()
     if cfg.with_reference and not eb_reference.reference_available():
         raise PanelError(
@@ -280,7 +401,7 @@ def run_panel(cfg: PanelConfig, out_dir: Path,
     decisions: Dict[str, int] = {}
     t0 = time.perf_counter()
     for cell in cells:
-        for program in range(cfg.programs):
+        for program in cfg.indices:
             for trial in range(cfg.trials_per_program):
                 draw = vgen.draw_trial(cell, program, trial, n_max=cfg.n_max,
                                        namespace=cfg.namespace)
@@ -327,9 +448,20 @@ def run_panel(cfg: PanelConfig, out_dir: Path,
                 f"{want_rows} = {counts['trials']} trials x {len(SCORES)} scores "
                 f"x {len(prefixes)} prefixes")
 
+    # ---- the root's before/after requirement, executed ------------------
+    pins_after = vpins.entry_point_pins(
+        policy=cfg.policy, schedule=cfg.schedule, prefixes=prefixes,
+        programs=cfg.indices, cells=cfg.cells, namespace=cfg.namespace,
+        alpha_gate=cfg.alpha_gate, trials_per_program=cfg.trials_per_program,
+        workload=f"{REFERENCE_CALLS_PER_TRIAL}_calls_per_trial")
+    drift = vpins.assert_unchanged(pins_before, pins_after)
+
     receipt = {
         "panel_version": PANEL_VERSION,
         "config": cfg.identity(),
+        "guard": guard_record,
+        "pins": pins_after,
+        "pin_drift_check": drift,
         "declared_prefixes": list(prefixes),
         "seeds": {"namespace": cfg.namespace,
                   "stream_rule": "vgen.stream(namespace, cell.index, program, trial)",

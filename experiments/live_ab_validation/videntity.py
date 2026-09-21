@@ -1,32 +1,41 @@
-"""Identity fingerprints for the resource guard: WHOLE-FILE and TIMED-CORE.
+"""EXPLORATORY SOURCE-DIFFERENCE DIAGNOSTIC. **NOT an authorization identity.**
 
-WHY THIS FILE EXISTS
---------------------
-Guard v2 refuses a projection that is not bound to the run it prices
-(`identity_unverifiable`).  Binding needs an answer to "identity of WHAT?", and
-the root supplied the principle rather than the mechanism:
+OVERRULED 2026-09-21 by the root (`reviews/v2_panel_root_disposition_20260921_0750.md`):
 
-    "Reconcile the recorded `vrun` hash with the exact measured source; a
-     WHOLE-FILE HASH DIFFERENCE ALONE DOES NOT PROVE THE TIMED CORE CHANGED."
+    "Keep `videntity` as an exploratory source-difference diagnostic; DO NOT USE IT
+     ALONE TO AUTHORIZE A TIMING PROJECTION. ... For automatic execution binding, use
+     exact immutable source/config/workload and loaded-reference/binary/environment
+     pins for the actual complete entry point. WHOLE-FILE PINS ARE ADEQUATE AND
+     SIMPLER HERE."
 
-and, on a different artifact, demonstrated the technique:
+I proposed binding the resource guard's `code` identity to a transitive-call-graph
+"timed core" so that documentation edits would not move it. The root refuted that with
+three counterexamples, all of which **I reproduced independently** before accepting
+(`reviews/evidence/v2_identity_checks_20260921_0750.py`, run against this tree):
 
-    "The two live source edits are executable-AST identical after removing
-     documentation."
+  1. **It misses module-level constants.** Changing `vgen.OPERATIONAL_EPS` from `1e-9`
+     to `1.0` leaves the fingerprint **identical**, yet at revealed cost 10 against a
+     pending lower cost 11 the forward certificate's truth value FLIPS (margin 0.45:
+     fires at 1e-9, does not fire at 1). A behaviour-changing edit this "identity"
+     cannot see is not an identity.
+  2. **A partly-missing entry point was silently accepted.** I raised only on a wholly
+     EMPTY closure, so requesting a nonexistent entry alongside a real one narrowed the
+     scope and still returned a digest. I had guarded the vacuous case and described it
+     as guarding the population -- my own recurring error, in my own guard.
+  3. **The measured entry point was outside its own scope.** `vpanel` (the orchestrator)
+     and `eb_reference` (the reference bridge) appear in no member, so the identity
+     omitted the very work being timed, along with the storage, accumulator and flush
+     paths.
 
-So this module computes two different identities and keeps them apart:
+Defect 2 is repaired below because it is a plain bug. Defects 1 and 3 are NOT repaired:
+chasing them would grow exactly the "fragile call-graph gate" the root ruled against.
+Whole-file pinning for the complete entry point lives in `vpins.py` and is what binds
+execution.
 
-  * ``whole_file`` -- sha256 of the bytes.  Moves when a comment moves.  It is
-    the right identity for "is this the same FILE", and the wrong one for "was
-    the timed work the same".
-  * ``timed_core`` -- sha256 over the AST of the transitive closure of the
-    functions the timing harness actually executes, with docstrings stripped.
-    Moves only when executable structure changes.
-
-NEITHER is a measurement.  A matching timed core says the timed code is the
-same, not that the timing is still valid: the environment, the data and the
-call counts are separate facts the receipt records separately.  Do not use a
-timed-core match to excuse a missing measurement.
+**This module may be used to ASK what source changed between two snapshots. It may not
+be used to decide that a projection still applies.** `identities()` is removed; the
+authorization surface it offered is gone rather than deprecated, so nothing can import
+it by habit.
 """
 
 from __future__ import annotations
@@ -138,6 +147,16 @@ def timed_core_identity(sources: Dict[str, str],
     """AST identity of the timed closure, docstrings removed."""
     trees = {m: ast.parse(s) for m, s in sources.items()}
     defs = {m: _top_level_defs(t) for m, t in trees.items()}
+    # EVERY requested entry point must resolve.  Checking only for an EMPTY
+    # closure let a nonexistent entry narrow the scope silently while a digest
+    # was still returned -- the root's counterexample 2, and my own
+    # guard-the-vacuous-case-and-call-it-guarded error inside my own guard.
+    unresolved = [f"{m}.{n}" for m, n in entry_points
+                  if n not in defs.get(m, {})]
+    if unresolved:
+        raise IdentityError(
+            f"requested entry points do not resolve: {unresolved}. A narrowed "
+            f"scope that still returns a digest is worse than no digest.")
     closure = timed_core_closure(sources, entry_points)
     if not closure:
         raise IdentityError(
@@ -163,43 +182,18 @@ def whole_file_identity(module_dir: Path,
             for m in modules}
 
 
-def identities(module_dir: Path = HERE,
-               policy: Optional[str] = None,
-               workload: Optional[str] = None,
-               receipt: Optional[str] = None,
-               config_paths: Sequence[str] = ("cells.json",)) -> Dict[str, object]:
-    """The five identities guard v2 requires, each computed rather than asserted.
+#: ``identities()`` REMOVED 2026-09-21.  It returned the five fields guard v2
+#: requires and was therefore an authorization surface built on a fingerprint
+#: that misses module-level constants and omits the orchestrator.  Deleted
+#: rather than deprecated so nothing imports it out of habit.  Use
+#: ``vpins.entry_point_pins()``.
+IDENTITIES_REMOVED = (
+    "videntity.identities() was removed; use vpins.entry_point_pins(). See the "
+    "module banner for the three counterexamples that refuted it.")
 
-    ``code`` is the TIMED-CORE identity, not the whole-file one, because the
-    guard's question is whether the priced work is the work being proposed.
-    The whole-file digests ride along under ``code_whole_file`` so a reader can
-    see both and so a documentation-only edit is visibly distinguishable from a
-    behavioural one.
-    """
-    src = _sources(module_dir, TIMED_MODULES)
-    core = timed_core_identity(src)
-    cfg = hashlib.sha256()
-    for c in config_paths:
-        cfg.update((module_dir / c).read_bytes())
-    return {
-        "code": core["timed_core_sha256"],
-        "config": cfg.hexdigest(),
-        "policy": policy,
-        "workload": workload,
-        "receipt": receipt,
-        "code_whole_file": whole_file_identity(module_dir),
-        "timed_core_detail": core,
-        "what_code_means": (
-            "sha256 over the docstring-stripped AST of the transitive closure "
-            "of the functions the delivered receipt declares it timed. A "
-            "whole-file difference does not move it; an executable change "
-            "does."),
-        "not_a_measurement": (
-            "A matching timed core says the timed CODE is unchanged. It does "
-            "not say the timing is still valid: environment, data and call "
-            "counts are separate recorded facts. Never use a timed-core match "
-            "to excuse a missing measurement."),
-    }
+
+def identities(*_a, **_k):                                     # pragma: no cover
+    raise IdentityError(IDENTITIES_REMOVED)
 
 
 def compare(before: Dict[str, str], after: Dict[str, str]) -> Dict[str, object]:

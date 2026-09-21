@@ -411,22 +411,105 @@ class TestTimedCoreIdentity(unittest.TestCase):
         after = self.vi.timed_core_identity(edited)["timed_core_sha256"]
         self.assertNotEqual(before, after)
 
-    def test_identities_supplies_every_field_guard_v2_requires(self):
-        ids = self.vi.identities(HERE, policy="operational",
-                                 workload="eight_call", receipt="r")
-        for field in ("code", "config", "policy", "workload", "receipt"):
-            self.assertIsNotNone(ids[field], field)
-        self.assertRegex(ids["code"], r"^[0-9a-f]{64}$")
-        self.assertNotEqual(ids["code"], ids["code_whole_file"]["vrun.py"],
-                            "timed core and whole file must be different objects")
+    # ---- the root's three counterexamples, kept as REGRESSION tests -------
+    # reviews/evidence/v2_identity_checks_20260921_0750.py.  They are asserted
+    # in the direction that REFUTES the fingerprint, so nobody can quietly
+    # promote it back into an authorization path and have the suite agree.
 
-    def test_those_identities_satisfy_the_guard(self):
-        """End to end: a bound proposal authorizes, an unbound one does not."""
+    def test_counterexample_1_it_misses_module_level_constants(self):
+        """The refutation: an executable edit this identity cannot see."""
+        before = self.vi.timed_core_identity(self.src)["timed_core_sha256"]
+        needle = "OPERATIONAL_EPS: float = 1e-9"
+        self.assertIn(needle, self.src["vgen"])
+        edited = dict(self.src)
+        edited["vgen"] = edited["vgen"].replace(needle, "OPERATIONAL_EPS: float = 1.0")
+        after = self.vi.timed_core_identity(edited)["timed_core_sha256"]
+        self.assertEqual(before, after,
+                         "this EQUALITY is the defect, recorded deliberately")
+        # and the mutation really does change behaviour, at revealed cost 10
+        # against pending lower cost 11:
+        self.assertTrue((1 - 0.05) * 11 > 10 + 1e-9)
+        self.assertFalse((1 - 0.05) * 11 > 10 + 1.0)
+
+    def test_counterexample_2_partly_missing_entry_is_now_REJECTED(self):
+        """The one defect of the three that is a plain bug, so it is fixed."""
+        with self.assertRaises(self.vi.IdentityError):
+            self.vi.timed_core_identity(
+                self.src, (("vrun", "evaluate_trial"), ("vrun", "MISSING_ENTRY")))
+
+    def test_counterexample_3_orchestrator_and_reference_are_outside_scope(self):
+        ident = self.vi.timed_core_identity(self.src)
+        members = ident["per_member_sha256"]
+        self.assertFalse(any(m.startswith("vpanel.") for m in members))
+        self.assertFalse(any(m.startswith("eb_reference.") for m in members))
+
+    def test_the_authorization_surface_is_GONE_not_deprecated(self):
+        with self.assertRaises(self.vi.IdentityError):
+            self.vi.identities(HERE, policy="operational")
+
+
+class TestWholeFilePinsBindExecution(unittest.TestCase):
+    """F7.  The replacement the root ruled for: whole-file pins, complete scope."""
+
+    def setUp(self):
+        import vpins
+        self.vpins = vpins
+
+    def _pins(self):
+        return self.vpins.entry_point_pins(
+            policy="operational", schedule=vrun.SCHEDULE_V2, prefixes=[100, 500],
+            programs=[1000], cells=["C1"], namespace=1, alpha_gate=vband.ALPHA_GATE,
+            trials_per_program=4, workload="2_calls_per_trial")
+
+    def test_the_pin_covers_the_orchestrator_reference_and_guard(self):
+        """Exactly the scope counterexample 3 showed the fingerprint omitted."""
+        files = self._pins()["detail"]["source"]["files"]
+        for needed in ("vpanel.py", "reference/eb_reference.py", "vrun.py",
+                       "vgen.py", "vband.py", "vpolicy.py", "vtotalguard.py"):
+            self.assertIn(needed, files, needed)
+
+    def test_the_compiled_reference_binary_is_pinned(self):
+        b = self._pins()["detail"]["source"]["binaries"]
+        self.assertTrue(b, "a rebuilt .so must not be invisible")
+        self.assertTrue(any(k.endswith(".so") for k in b))
+
+    def test_a_module_level_constant_edit_DOES_move_the_whole_file_pin(self):
+        """The whole point of choosing whole-file over the fingerprint."""
+        before = self._pins()["code"]
+        src = HERE / "vgen.py"
+        original = src.read_bytes()
+        try:
+            src.write_text(original.decode().replace(
+                "OPERATIONAL_EPS: float = 1e-9",
+                "OPERATIONAL_EPS: float = 1.0", 1))
+            after = self._pins()["code"]
+        finally:
+            src.write_bytes(original)
+        self.assertNotEqual(before, after,
+                            "the edit the fingerprint missed must move this pin")
+
+    def test_drift_across_a_measurement_is_detected_and_refused(self):
+        before = self._pins()
+        src = HERE / "vgen.py"
+        original = src.read_bytes()
+        try:
+            src.write_bytes(original + b"\n# drift\n")
+            after = self._pins()
+            with self.assertRaises(self.vpins.PinError):
+                self.vpins.assert_unchanged(before, after)
+        finally:
+            src.write_bytes(original)
+
+    def test_no_drift_passes_and_reports_what_it_compared(self):
+        rep = self.vpins.assert_unchanged(self._pins(), self._pins())
+        self.assertFalse(rep["drift"])
+        self.assertIn("vpanel.py", rep["files_compared"])
+
+    def test_these_pins_satisfy_guard_v2(self):
         import json as _json
         cfg = _json.loads((HERE / "cells.json").read_text())
-        ids = self.vi.identities(HERE, policy="operational",
-                                 workload="eight_call", receipt="r")
-        bound = {k: ids[k] for k in ("code", "config", "policy", "workload", "receipt")}
+        ids = {k: self._pins()[k] for k in
+               ("code", "config", "policy", "workload", "receipt")}
         entry = {"tier": "T1", "programs_total": 10, "N_max": 2000,
                  "seconds_projected": 100.0, "bytes_projected": 1.0,
                  "peak_rss_projected": 1, "admissible": True,
@@ -435,13 +518,70 @@ class TestTimedCoreIdentity(unittest.TestCase):
                  "reference_cost_unresolved": False}
         budget = {"selected_tier": "T1", "ladder": [entry], "paused": False,
                   "reference_workload": {"combined_workload_receipt": {
-                      "present": True, "identities": dict(bound),
+                      "present": True, "identities": dict(ids),
                       "planned_groups": 12, "groups_total": 12}}}
-        ok = vrun.total_workload_guard(budget, cfg, {"identities": bound})
+        ok = vrun.total_workload_guard(budget, cfg, {"identities": ids})
         self.assertTrue(ok["authorized"], ok.get("refusal"))
-        bad = vrun.total_workload_guard(budget, cfg, {})
-        self.assertFalse(bad["authorized"])
-        self.assertEqual(bad["refusal_class"], "identity_unverifiable")
+
+
+class TestModesAndBounds(unittest.TestCase):
+    """F8.  The entry point CALLS the guard, and refuses outside its allowlist."""
+
+    def test_non_frozen_alpha_is_refused(self):
+        """It was used by the reference and ignored by the primary."""
+        with self.assertRaises(vpanel.PanelError):
+            vpanel.PanelConfig(cells=("C1",), n_max=300, programs=1, alpha_gate=0.5)
+
+    def test_non_frozen_trial_count_is_refused(self):
+        with self.assertRaises(vpanel.PanelError):
+            vpanel.PanelConfig(cells=("C1",), n_max=300, programs=1,
+                               trials_per_program=2)
+
+    def test_measurement_mode_refuses_every_off_allowlist_coordinate(self):
+        base = dict(mode=vpanel.MODE_MEASUREMENT, namespace=1,
+                    program_indices=(1000, 1001, 1002, 1003, 1004))
+        for bad in (dict(cells=("C3",), n_max=1000, programs=5),
+                    dict(cells=("C1",), n_max=300, programs=5),
+                    dict(cells=("C1",), n_max=1000, programs=5, namespace=0)):
+            kw = dict(base); kw.update(bad)
+            with self.assertRaises(vpanel.PanelError):
+                vpanel.PanelConfig(**kw)
+
+    def test_measurement_mode_requires_explicit_authorized_indices(self):
+        with self.assertRaises(vpanel.PanelError):
+            vpanel.PanelConfig(cells=("C1",), n_max=1000, programs=5,
+                               mode=vpanel.MODE_MEASUREMENT, namespace=1)
+
+    def test_the_authorized_coordinates_are_accepted_and_count_correctly(self):
+        import vpins
+        c = vpanel.PanelConfig(cells=("C1", "C2"), n_max=1000, programs=5,
+                               mode=vpanel.MODE_MEASUREMENT, namespace=1,
+                               program_indices=(1000, 1001, 1002, 1003, 1004))
+        self.assertEqual(c.trials, 40)          # one horizon; two horizons = 80
+        self.assertEqual(vpins.ALLOWLIST.check_arithmetic(),
+                         {"units": 20, "trial_evaluations": 80,
+                          "reference_calls": 160, "seed_program_identities": 10})
+
+    def test_fixture_mode_is_bounded_and_the_bound_is_enforced(self):
+        tmp = Path(tempfile.mkdtemp(prefix="vpanel_bound_"))
+        try:
+            cfg = vpanel.PanelConfig(cells=("C1", "C2"), n_max=2000, programs=20,
+                                     mode=vpanel.MODE_FIXTURE)
+            with self.assertRaises(vpanel.PanelError):
+                vpanel.run_panel(cfg, tmp / "run")
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_full_grid_mode_is_REFUSED_by_the_entry_point_itself(self):
+        """Not by a flag, and not by a helper nobody calls."""
+        tmp = Path(tempfile.mkdtemp(prefix="vpanel_fullgrid_"))
+        try:
+            cfg = vpanel.PanelConfig(cells=("C1",), n_max=1000, programs=1,
+                                     mode=vpanel.MODE_FULL_GRID)
+            with self.assertRaises((vrun.TotalResourceRefusal, vpanel.PanelError)):
+                vpanel.run_panel(cfg, tmp / "run")
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
 
 
 if __name__ == "__main__":
