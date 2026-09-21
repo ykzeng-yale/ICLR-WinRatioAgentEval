@@ -1,0 +1,91 @@
+{
+  "schema": "live_ab_validation_v2.discarded_t1_pass_mapping.1",
+  "requested_by_root": "reviews/fine_power_root_disposition_20260921_1550.md:17 -- 'The owner also alludes to a discarded T1 pass: root requests identification against existing development history, with unknowns retained. This is a specific provenance question, not a claim that the accepted completed T1 rows changed or were selected on outcomes.'",
+  "status": "RESOLVED AS AN IDENTIFICATION. The allusion is mapped to specific, already-enumerated events. Nothing is reconstructed, nothing re-run, and the unknowns stay unknown.",
+
+  "1_where_i_alluded_to_it": [
+    {
+      "file": "results/live_ab_validation_v2/powercurve_20260921/PROVENANCE_ADDENDUM.json",
+      "key": "gap_3 .. what_happened",
+      "text": "I removed the failed output directory with rm -rf before relaunching, exactly as I had done once before with a discarded T1 MEASUREMENT pass.",
+      "note": "This sentence names the pass correctly: MEASUREMENT."
+    },
+    {
+      "file": "results/SESSION60_RESULTS_INDEX.md",
+      "line": 547,
+      "text": "the same thing I'd already done once with a discarded T1 pass and recorded a rule against",
+      "note": "THE AMBIGUITY IS HERE. The index dropped the word 'measurement', so the phrase reads as a discarded pass of the T1 CALIBRATION panel. It is not. That dropped word is the whole of the provenance question, and it was my wording, not an inference of root's."
+    }
+  ],
+
+  "2_what_the_allusion_actually_refers_to": {
+    "identification": "The MEASUREMENT-MODE resource passes run on the T1 design, already enumerated before this request in results/live_ab_validation_v2/measurement_20260921/ACCOUNTING_CORRECTION.json.",
+    "ledger": "6 cumulative measurement-mode executions; 2 delivered (n=5 horizon 1000, n=6 horizon 2000); 4 discarded and unrecoverable.",
+    "the_specific_discarded_passes_matching_the_allusion": [
+      {
+        "n": 2,
+        "what": "first measurement pass, horizon 1000",
+        "outcome": "CONTAMINATED: the receipt retained decision counts, breaching the measurement-only contract",
+        "known": {"trials_completed": 40, "reference_calls": 80, "compressed_primary_bytes": 1671, "reference_csv_bytes": 31007, "inner_seconds": 2.3254594998434186, "peak_rss_bytes": 70270976},
+        "unknown": "exact wall-clock timestamps; full resource totals beyond the fields above",
+        "artifacts": "deleted uncommitted; not recoverable"
+      },
+      {
+        "n": 3,
+        "what": "first measurement pass, horizon 2000",
+        "outcome": "CONTAMINATED, same breach",
+        "known": {"trials_completed": 40, "reference_calls": 80, "outer_seconds_approx": 5.1, "peak_rss_mib_approx": 69},
+        "unknown": ["compressed_primary_bytes", "inner_seconds -- not recorded before deletion", "reference_csv_bytes", "exact timestamps"],
+        "artifacts": "deleted uncommitted; not recoverable"
+      }
+    ],
+    "the_other_two_discarded_executions": [
+      {"n": 1, "what": "cap negative control, cap_seconds 0.001, C1+C2 horizon 1000 programs 1000-1004, 1 trial completed, temp directory deleted by its own cleanup"},
+      {"n": 4, "what": "leak verification run, C1 horizon 1000 program 1000 only, 4 trials completed, temp directory deleted by its own cleanup"}
+    ],
+    "remediation_commit": "41c5991 'Stop the measurement receipt from retaining effect summaries', 2026-09-21 04:22:41 -0400, experiments/live_ab_validation/vpanel.py, +14/-4",
+    "recovery_already_attempted_and_recorded": "ACCOUNTING_CORRECTION.recovery_attempt: searched ~/.Trash, session scratchpad temp dirs, /var/folders system temp dirs and all git objects for the measurement path. NOT RECOVERABLE -- the directory was removed with rm -rf and nothing was ever staged, so no git object exists. No missing observation is reconstructed, inferred or re-created by rerunning."
+  },
+
+  "3_it_is_NOT_a_discarded_calibration_pass": {
+    "claim": "No artifact, receipt, partial directory, failure receipt or log in this repository records a discarded pass of the 112,000-trial T1 CALIBRATION panel, and the delivered pass is internally consistent as a single attempt.",
+    "evidence_for_a_single_attempt": [
+      "All 56 published shard receipts carry attempt_id 'a1' and job_id 'T1-18ad53988456'.",
+      "All 56 carry prior_failed_attempt = null.",
+      "T1_JOB_RECEIPT.json: attempt_id a1, stage 'final', scientific_completion true, and all twelve conditions true, including every_shard_complete_with_clean_attempts, coordinate_coverage_complete, coordinate_coverage_disjoint and all_expected_shard_ids_exactly_once.",
+      "T1_CHILD_DATA_RECEIPT.json: job started 2026-09-21T12:47:04Z, elapsed 2394.66 s, 56 shards, 112,000 trials, 336,000 primary rows, 224,000 reference calls, 672,000 reference rows.",
+      "AUTHORIZATION.json scopes the run to 'one T1 attempt, 56 shards'."
+    ],
+    "the_one_T1_failure_event_and_what_it_was_not": {
+      "event": "The parent process raised KeyError: 'started_perf' in vlaunch.launch AFTER the child had published all 56 shards.",
+      "surviving_artifact": "results/t1_run_stdout.log -- 11 lines, TWO identical tracebacks, one per parent invocation. Committed with this mapping; it had been sitting untracked.",
+      "what_it_was_not": "Not a discarded science pass. The shards were already immutable and complete, so FINALIZATION was re-run against them and no trial was re-evaluated. Recorded contemporaneously in T1_JOB_RECEIPT.parent_finalization_note."
+    },
+    "LIMIT_OF_THIS_NEGATIVE": "prior_failed_attempt = null describes the delivered directory's own local history. It cannot establish that no earlier attempt ever existed -- this is exactly the limitation I recorded for the power-curve panel in PROVENANCE_ADDENDUM.gap_2, and it applies here unchanged. What is established is that no RECORD of a discarded calibration pass exists and that the delivered pass is self-consistent as attempt a1; that is weaker than proof of no such pass, and it is stated as the weaker thing."
+  },
+
+  "4_the_deviation_that_actually_matters_here": {
+    "what": "The two contaminated measurement passes wrote decision COUNTS into the resource receipt, and I saw them while diagnosing the breach.",
+    "recorded_at": "ACCOUNTING_CORRECTION.effect_exposure_deviation",
+    "root_standing_position": "reviews/v2_measurement_root_disposition_20260921_0828.md -- 'Prior exposure of decision counts is a disclosed protocol deviation; the owner's claim that it influenced nothing is not independently established.'",
+    "my_position": "Unchanged and not strengthened here. The exposure is disclosed; I do not assert it influenced nothing, because I cannot establish that. This mapping does not improve that situation and does not pretend to."
+  },
+
+  "5_unknowns_retained": [
+    "The discarded measurement passes' artifacts, seeds, configs, exact timestamps and full resource totals -- unrecoverable by construction, never staged.",
+    "n=3's compressed_primary_bytes, inner_seconds and reference_csv_bytes -- never recorded before deletion.",
+    "Whether the exposure of decision counts influenced any later design choice -- disclosed, not independently established, and not claimed either way.",
+    "Whether any T1 calibration attempt existed before 'a1' and left no trace -- no record exists; absence of record is not proof of absence, and no inference is drawn from it."
+  ],
+
+  "6_what_this_mapping_does_not_claim": [
+    "that the accepted completed T1 calibration rows changed, or were selected on outcomes -- root was explicit this is not that claim, and nothing here suggests it",
+    "that complete provenance of the discarded measurement passes has been restored -- it has not, and cannot be",
+    "that the ambiguity was root's to resolve; the dropped word 'measurement' was mine, in results/SESSION60_RESULTS_INDEX.md"
+  ],
+
+  "7_action_taken": [
+    "The index wording is corrected to say 'discarded T1 MEASUREMENT pass' at the point the word was dropped.",
+    "results/t1_run_stdout.log, results/powercurve_stdout.log, results/powercurve_fine_stdout.log and results/ablation_run_stdout.log are committed. They are surviving run artifacts that had been left untracked; a surviving log that is not in the repository is not in the record."
+  ]
+}

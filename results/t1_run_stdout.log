@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/vlaunch.py", line 605, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/vlaunch.py", line 595, in main
+    r = launch(a.out, clearance=a.clearance,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/experiments/live_ab_validation/vlaunch.py", line 449, in launch
+    total_elapsed = time.perf_counter() - sup["observed"]["started_perf"] \
+                                          ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+KeyError: 'started_perf'

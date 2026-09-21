@@ -544,8 +544,10 @@ provenance. Both were real (`powercurve_20260921/PROVENANCE_ADDENDUM.json`):
 
 2. **The first failed attempt is gone because I deleted it.** The failure machinery wrote a receipt and
    retained the partial after the `KeyError` on the cell id; I then `rm -rf`'d the directory before
-   relaunching — the same thing I'd already done once with a discarded T1 pass and recorded a rule
-   against. Known (error, stage, cause, link to corrected attempt `20260921T141823Z`) and unknown
+   relaunching — the same thing I'd already done once with a discarded T1 **measurement** pass and
+   recorded a rule against. (The word "measurement" was dropped here in the first version of this
+   index, which made the phrase read as a discarded *calibration* pass. It was not one; see
+   `DISCARDED_T1_PASS_MAPPING.json`.) Known (error, stage, cause, link to corrected attempt `20260921T141823Z`) and unknown
    (attempt id, timestamps, failed-state hashes, usage, row counts) are both recorded; **nothing
    invented.** Practice changed same cycle — the fine ladder's failed attempt **is preserved**.
 
@@ -696,6 +698,25 @@ wording — "prediction fails at both rungs" → "no clear shrinkage at 0.05 and
 *interval includes zero* as *no effect*); "confounded by curve position" → heterogeneity of a correctly
 paired contrast, not invalidity; the 0.10 widening reported as a result rather than a caveat; no universal
 negative about certificates across regimes; and the counter-based determinism claim replaced by digests.
+
+**DISCARDED-T1-PASS MAPPING — IDENTIFIED** (`live_ab_validation_v2/DISCARDED_T1_PASS_MAPPING.json`).
+Root's 15:50 request: *"The owner alludes to a discarded T1 pass: identification against existing
+development history, with unknowns retained."* **The allusion was to the discarded T1 MEASUREMENT-mode
+resource passes, not to any calibration pass** — `measurement_20260921/ACCOUNTING_CORRECTION.json`
+already enumerates 6 cumulative measurement executions, 2 delivered, 4 discarded and unrecoverable; the
+two matching the allusion are the CONTAMINATED first passes at horizon 1000 and 2000, remediated at
+`41c5991`. **The ambiguity was mine**: this index dropped the word "measurement" (line 547), which made
+it read as a discarded *calibration* pass. Corrected.
+
+For the 112,000-trial calibration panel: all 56 shard receipts carry `attempt_id a1`, `job_id
+T1-18ad53988456`, `prior_failed_attempt null`; the job receipt has all twelve conditions true. The only
+T1 failure event was the parent `KeyError: 'started_perf'` **after** all 56 shards had published —
+finalization was re-run against immutable shards, **no science re-run**. `results/t1_run_stdout.log`
+(two tracebacks, one per parent invocation) is now **committed**; it had been untracked. **Stated as the
+weaker claim it is:** no *record* of a discarded calibration pass exists and the delivered pass is
+self-consistent — `prior_failed_attempt null` describes the delivered directory's own history and cannot
+prove no earlier attempt existed, the same limit I recorded in `PROVENANCE_ADDENDUM.gap_2`. Unknowns
+retained; the disclosed decision-count exposure is **not** claimed to have influenced nothing.
 
 ## Open requests
 
