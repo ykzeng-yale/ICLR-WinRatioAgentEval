@@ -969,6 +969,40 @@ request per attempt. Gaps *between* attempts are a scheduling rule; a gap *inter
 invalidates that check, which is retained for diagnosis and never becomes a scientific reference failure.
 My earlier default — hard stop on the first gap of any kind — was stricter and wrong.
 
+### tmpdir reconciliation withdraws a digest I had promoted; D9 artifact; D4/D5 policy
+
+Branch `session60/live-ab` head `7a17f06`. Suites: chain **70**, design **113**, isolation **12**,
+e2e **42**, serving **89**, stats **70**, hostcheck **117** — all pass. Live episodes **0**.
+
+**The tmpdir item was the serious one** (`results/live_ab/SANDBOX_TMPDIR_RECONCILIATION.json`,
+`deterministic-path`). Two defects:
+1. `config.sandbox.tmpdir = "<TMP>/labsbx"` is **dead** — no module reads it; the code uses
+   `realpath(gettempdir())/ls_sbx`, a different name inherited from `local_stream`.
+2. The profile digest is **not host-stable**: `6370c169…` under my ambient TMPDIR vs `92d7f978…` under a
+   neutral one. It is a function of an account-specific path, while protocol 5.7 prescribes a **neutral**
+   TMPDIR the operator exports — so production would compute the neutral value, never mine.
+
+I had promoted the ambient value into `config.json`, ARCHITECTURE §6.1 **and protocol Appendix B**.
+**Withdrawn to null** across all three by the same synchronized three-way procedure, contract checked
+before and after. Freeze **12 → 11 of 26**. Root's warning was exact: *"do not assume a direct helper
+observation is the live-worker profile."* **Second value I promoted that wasn't what it claimed**, after
+the zero-package environment lock — both host observations I treated as settled. What caught this one was
+reconciling the *declared* configuration against the *executed* code, not re-reading my own artifact.
+
+**D9 artifact delivered** (`ENVIRONMENT_LOCK_ARTIFACT.json`, `environment_lock.txt`, `descriptive`): the
+sorted non-secret list of all **83** distributions, canonical lock sha256, structured enumeration, and the
+required distributions checked by name and version (numpy **2.4.1**, requests **2.34.2**, none missing).
+The **failed pip attempt is preserved** with its error, paths tokenized — that is the attempt whose stderr
+I originally hashed as if it were a package list. Limits stated: name==version pins do **not** prove
+wheel/build provenance.
+
+**D4/D5 acquisition policy** in `lab_prepare`: refuses a silent **EXT→S1 downgrade** (the defect that
+turns 564 pairs into 295 with no exception), refuses when a verified EXT acquisition can no longer be
+restored, is **idempotent** because content identity excludes the `origin` field a first call itself
+changes, and records later accesses in a separate append-only log so original provenance is never
+rewritten. One of my tests was wrong and the code caught it — I drifted content *and* asserted idempotence
+in the same case.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
