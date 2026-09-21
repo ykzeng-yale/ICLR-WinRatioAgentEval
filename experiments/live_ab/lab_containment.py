@@ -31,7 +31,7 @@ Two consequences decide this probe:
 
   * Every live_ab artifact -- the event chain, ``records/``, the spools, the task
     file, the server log -- lives under the repository, which is under HOME.
-    Reading OR writing any of them from inside the sandbox must therefore FAIL.
+    Reading OR writing any of them from inside the sandbox must therefore be DENIED.
     A success is a containment breach and stops the freeze.
 
   * The sandbox base is WRITABLE by design and is shared by every run on the
@@ -42,7 +42,7 @@ Two consequences decide this probe:
     the audited regime."
 
 The probe therefore reports two different things and never conflates them:
-``isolation`` (repo artifacts unreachable) and ``exclusion`` (no concurrent peer
+``isolation`` (repo artifacts denied) and ``exclusion`` (no concurrent peer
 run directory exists while we hold the lock). Reporting a writable sandbox base
 as a "breach" would be a false alarm; reporting it as "allowed" without checking
 the lock would be the weakening root forbade.

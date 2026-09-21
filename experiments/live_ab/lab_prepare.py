@@ -79,6 +79,7 @@ def run_reference_sweep(tasks: Sequence[dict], cfg: dict, *,
                         load_observer: Optional[Callable[[], dict]] = None,
                         require_load: bool = True,
                         on_progress: Optional[Callable] = None,
+                        enforce_tmpdir: bool = True,
                         sweep_fn: Callable = lab_data.sweep_references,
                         ) -> Dict[str, Any]:
     """The finite preparation sweep, with retention wired and load enforced.
@@ -97,20 +98,47 @@ def run_reference_sweep(tasks: Sequence[dict], cfg: dict, *,
             'sweep yields a LARGER roster with correct-looking counts, and the '
             'deposited artifact cannot distinguish it afterwards. Refusing.')
 
+    # TMPDIR ENFORCEMENT AT THE REAL ENTRY POINT, root 2026-09-21 20:43: "The new
+    # assertion currently has no callers: adding a helper alone did not yet
+    # enforce even preparation. Wire it and show valid/mismatched startup
+    # fixtures through the real entry points." Correct -- I added the helper and
+    # called it only from the containment probe, so nothing was enforced here.
+    # Checked BEFORE the ledger, so a wrong-TMPDIR run never reaches the sandbox.
+    if enforce_tmpdir:
+        assert_prescribed_tmpdir(cfg)
+
     ledger = open_ledger(ledger_path)        # created BEFORE the first attempt
     started = ledger.count
     coverage: List[dict] = []
 
+    invalid_coverage: List[dict] = []
+
     def sink(record: dict) -> None:
-        # Load coverage is recorded ALONGSIDE the attempt, on the same host clock.
-        if load_observer is not None:
+        # ORDERING REPAIR, root 2026-09-21 20:43: "Store every raw attempt BEFORE
+        # fallible observation processing; invalid coverage must never produce
+        # completed preparation or a scientific task exclusion."
+        #
+        # My first version called load_observer() and only then appended. If the
+        # observer raised, the RAW ATTEMPT WAS LOST -- the exact retention failure
+        # this ledger exists to prevent, reintroduced by the coverage feature.
+        # The raw attempt is now durable before anything fallible touches it.
+        ledger.append(record)                       # (1) RAW, always, first
+        if load_observer is None:
+            return
+        try:                                        # (2) then the fallible part
             obs = load_observer()
-            coverage.append({'uid': record.get('uid'),
-                             'run_index': record.get('run_index'),
-                             'observation': obs})
-            record = dict(record, load_coverage=obs)
-        # Unguarded on purpose: a failed durable append must stop preparation.
-        ledger.append(record)
+        except Exception as exc:
+            invalid_coverage.append(
+                {'uid': record.get('uid'), 'run_index': record.get('run_index'),
+                 'error': '%s: %s' % (type(exc).__name__, exc)})
+            return
+        entry = {'uid': record.get('uid'), 'run_index': record.get('run_index'),
+                 'observation': obs}
+        if not _coverage_is_valid(obs):
+            invalid_coverage.append(dict(entry, reason='observation does not '
+                                         'evidence active load over the attempt'))
+        coverage.append(entry)
+        ledger.append({'schema': 'live_ab/load_coverage-v1', **entry})
 
     outcome: Dict[str, Any] = {
         'schema': 'live_ab/preparation_sweep-v1',
@@ -127,6 +155,15 @@ def run_reference_sweep(tasks: Sequence[dict], cfg: dict, *,
                        ended_utc=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()))
         raise PreparationRefused(lab_common.canonical_json(outcome)) from exc
 
+    # Root: "invalid coverage must never produce COMPLETED preparation or a
+    # scientific task exclusion." A missing or unusable observation is not a
+    # reference failure and must not become one.
+    if invalid_coverage:
+        raise PreparationRefused(
+            'load coverage was missing or invalid for %d attempt(s) (e.g. %s). The '
+            'raw attempts are retained; this preparation is NOT completed and no '
+            'task is excluded on account of it. Stop and diagnose.'
+            % (len(invalid_coverage), invalid_coverage[:2]))
     outcome.update(completed=True, exclusions=len(exclusions),
                    records_retained=ledger.count - started,
                    load_coverage_records=len(coverage),
@@ -136,6 +173,12 @@ def run_reference_sweep(tasks: Sequence[dict], cfg: dict, *,
     reloaded = ledger.load()
     by_uid: Dict[str, List[dict]] = {}
     for rec in reloaded:
+        # The ledger now carries TWO record kinds -- attempt records and load
+        # coverage entries, both keyed by uid. Only attempt records are part of
+        # the digest preimage; mixing a coverage entry in would corrupt the
+        # reconstruction. Filter by schema rather than by presence of a field.
+        if rec.get('schema') != lab_data.ATTEMPT_RECORD_SCHEMA:
+            continue
         by_uid.setdefault(rec.get('uid'), []).append(rec)
     unreconstructed = [e['uid'] for e in exclusions
                        if lab_data.reconstruct_detail_sha256(
@@ -187,6 +230,7 @@ def _content_key(manifest: dict) -> dict:
 
 def acquire_sources(dest: "str | Path", *, offline: bool = True,
                     expect_mode: Optional[str] = None,
+                    enforce_tmpdir: bool = False,
                     fetch_fn: Callable = lab_data.fetch_sources) -> Dict[str, Any]:
     """Resolve the pinned sources, refusing a silent downgrade.
 
@@ -198,6 +242,9 @@ def acquire_sources(dest: "str | Path", *, offline: bool = True,
     in ``dest``, so the guard arms itself once a mode has ever been established.
     """
     dest = Path(dest)
+    if enforce_tmpdir:
+        assert_prescribed_tmpdir(json.loads(
+            (Path(__file__).resolve().parent / 'config.json').read_text('utf-8')))
     prior_path = dest / 'sources.json'
     prior = None
     if prior_path.is_file():
@@ -300,3 +347,21 @@ def assert_prescribed_tmpdir(cfg: dict, *, tmp_root: str = '/private/tmp') -> Di
     return {'prescribed_tmpdir': want,
             'sandbox_base_dir': os.path.join(want, 'ls_sbx'),
             'checked': True}
+
+
+def _coverage_is_valid(obs: object) -> bool:
+    """Whether an observation actually evidences active load over an attempt.
+
+    Root, 2026-09-21 20:43: "a post-attempt observer value is not enforced
+    coverage". A returned dict is not evidence; these are the fields protocol
+    5.7 / root's 20:05 coverage rule requires, and their absence is invalid
+    coverage, not a pass.
+    """
+    if not isinstance(obs, dict):
+        return False
+    if obs.get('active') is not True:
+        return False
+    for key in ('window_id', 'resolution_ms'):
+        if obs.get(key) in (None, ''):
+            return False
+    return True

@@ -2048,7 +2048,7 @@ class PreparationWiringTests(unittest.TestCase):
     def test_wires_the_ledger_and_reconstructs_every_digest(self):
         res = lab_prepare.run_reference_sweep(
             [], {}, ledger_path=self.tmp / 'l.jsonl', require_load=False,
-            sweep_fn=self._stub_sweep())
+            enforce_tmpdir=False, sweep_fn=self._stub_sweep())
         self.assertTrue(res['receipt']['completed'])
         self.assertEqual(res['receipt']['records_retained'], 1)
         self.assertTrue(res['receipt']['all_digests_reconstruct_from_ledger'])
@@ -2074,14 +2074,28 @@ class PreparationWiringTests(unittest.TestCase):
 
     def test_load_coverage_is_recorded_beside_each_attempt(self):
         def observer():
+            # a VALID observation: evidences active load, names its window, and
+            # states its timing resolution. A bare dict is not coverage.
             return {'window_id': 'w1', 'active': True, 'resolution_ms': 50}
         res = lab_prepare.run_reference_sweep(
             [], {}, ledger_path=self.tmp / 'l.jsonl', load_observer=observer,
-            sweep_fn=self._stub_sweep())
+            enforce_tmpdir=False, sweep_fn=self._stub_sweep())
         self.assertEqual(len(res['coverage']), 1)
         self.assertEqual(res['coverage'][0]['observation']['window_id'], 'w1')
-        stored = lab_data.AttemptLedger(self.tmp / 'l.jsonl').load()[0]
-        self.assertIn('load_coverage', stored)
+        # The RAW attempt is stored first and UNMODIFIED; coverage is a separate
+        # ledger entry. Embedding coverage in the attempt record was the earlier
+        # shape, and it is exactly what let an observer failure lose the raw
+        # attempt (root 2026-09-21 20:43).
+        entries = lab_data.AttemptLedger(self.tmp / 'l.jsonl').load()
+        attempts = [e for e in entries
+                    if e.get('schema') == lab_data.ATTEMPT_RECORD_SCHEMA]
+        covers = [e for e in entries
+                  if e.get('schema') == 'live_ab/load_coverage-v1']
+        self.assertEqual(len(attempts), 1)
+        self.assertNotIn('load_coverage', attempts[0],
+                         'the raw attempt must be stored unmodified')
+        self.assertEqual(len(covers), 1)
+        self.assertEqual(covers[0]['observation']['window_id'], 'w1')
 
 
 class LedgerShortWriteTests(unittest.TestCase):
@@ -2201,3 +2215,36 @@ class SourceAcquisitionTests(unittest.TestCase):
         self.assertTrue(log.is_file(), 'no separate access log was written')
         entries = lab_data.AttemptLedger(log).load()
         self.assertEqual(entries[0]['kind'], 'acquire')
+
+
+class TmpdirEnforcementTests(unittest.TestCase):
+    """Root 2026-09-21 20:43: "The new assertion currently has no callers ...
+    Wire it and show valid/mismatched startup fixtures through the real entry
+    points."  These drive the REAL entry point, not the helper."""
+
+    def setUp(self):
+        self.cfg = json.loads((lab_common.HERE / 'config.json').read_text('utf-8'))
+
+    def test_mismatched_startup_is_refused_at_the_real_entry_point(self):
+        tmp = Path(tempfile.mkdtemp(prefix='tmpd_'))
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        with mock.patch.object(tempfile, 'gettempdir', lambda: '/private/tmp/WRONG'):
+            with self.assertRaises(lab_prepare.PreparationRefused) as ctx:
+                lab_prepare.run_reference_sweep(
+                    [], self.cfg, ledger_path=tmp / 'l.jsonl', require_load=False,
+                    sweep_fn=lambda *a, **k: [])
+        self.assertIn('labsbx', str(ctx.exception))
+
+    def test_valid_startup_passes_the_check(self):
+        with mock.patch.object(tempfile, 'gettempdir', lambda: '/private/tmp/labsbx'):
+            got = lab_prepare.assert_prescribed_tmpdir(self.cfg)
+        self.assertEqual(got['sandbox_base_dir'], '/private/tmp/labsbx/ls_sbx')
+
+    def test_the_check_compares_the_RESOLVED_directory_not_the_env_string(self):
+        """Root: "Compare the resolved effective temp directory, including
+        tempfile caching, not only the environment string." """
+        import os as _os
+        with mock.patch.dict(_os.environ, {'TMPDIR': '/private/tmp/labsbx'}):
+            with mock.patch.object(tempfile, 'gettempdir', lambda: '/private/tmp/OTHER'):
+                with self.assertRaises(lab_prepare.PreparationRefused):
+                    lab_prepare.assert_prescribed_tmpdir(self.cfg)
