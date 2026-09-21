@@ -67,6 +67,68 @@ Both are NEW work for the arXiv version, started 2026-09-19 after the ICLR abstr
 
 **Numbers I have withdrawn, listed so they are not quoted from older comments.** "A deploy is unreachable whatever the outcomes" — false; it is a condition on the observed data. "The published method misleads practitioners by 11x" — the paper makes no sample-size claim at all, and the like-for-like estimator gap is **2.55x**. The percentage apportionment of the shortfall (27.5 / 22.6 / 49.8) — withdrawn, because it divided a deterministic path calculation by a powered floor. What stands: **17,097 against 6,697 pairs, both path calculations under one convention.**
 
+## v2 executable milestone (#12), 2026-09-21 — DELIVERED, not cleared to run
+
+Branch `session60/live-ab-validation`, head `98bbbbc`. Root's ranked actions 1 and 2. **None of this is
+calibration, a coverage rate, or a power statement.** Convention: *deterministic-path* throughout.
+
+**The runner now executes the deployed policy.** `vrun`'s calibration path took ideal-ORACLE states via
+`vgen.adapter_tick_sums`/`state_at_age` with no operational selection, while `vcompare` selected
+`vpolicy.OperationalMonitor` — so the matched-policy conformance I had reported rested on a runner that
+never ran the policy. `RunConfig.policy` + an `operational` reading in the threshold tables + per-policy
+`breakpoint_ages` fix it.
+- **5,772,240** reachable pair-states compared against `vpolicy` via **3,570,720** distinct evaluations:
+  **0 mismatches**. Every atom x both arm orders x every delay in the frozen blocks x every age x both
+  reveal cases.
+- Difference array == brute-force per-tick evaluation, 16 (draw, policy) pairs, full drain axis.
+- The seam is live, not decorative: **127** differing ticks over 8 cells x 6 programs, operational
+  containing oracle at every one. *(At one cell, n=60, it differed at zero ticks — scanning all eight is
+  what showed it live.)*
+- v1 default stays `oracle` and **refuses** an operational config rather than returning oracle numbers
+  under an operational label.
+
+**`vpanel.py` — the versioned end-to-end entry point** (`experiments/live_ab_validation/results/panel_fixture/`).
+Operational primary **plus** both complete-information reference bands on the **same latent draws**;
+one call per score per trial; bands indexed at declared prefixes; separate artifact; immutable receipt.
+Deposited fixture: 12 trials, **24 reference calls = 8/program**, **48** retained band rows
+(12 x 2 scores x prefixes [100, 300]), **12,612** pair-states verified against `vpolicy` during the run.
+The previous timing helper computed the bands and **assigned them to nothing**.
+- One-way dependency is structural and source-checked: the primary modules may not name the reference.
+- 27-test fixture drives the real entry point, never `vcompare`. Boundary coordinate pinned by value:
+  **C1, program 1, trial 3, tick 6, pair 1** — revealed cost 10.0 vs pending elapsed 10.526315789473685,
+  oracle `[-1,-1]` vs operational `[-1,0]`, forward margin **exactly 0.0**. Same class as the root's
+  C2/2011, C3/2160, C7/2090.
+- **Negative result recorded, not implied:** no drain-window *decision* at fixture scale — 192 trials at
+  n_max 400 and 1,000 gave zero `tau > N_max` and zero schedule disagreements. The root's tick
+  1200 -> 1010 witness is a *constructed* one and measures the **look schedule**, not the policy.
+
+**Total-workload guard v2.0.0** (`results/live_ab_validation_v2/total_workload_guard_demonstration_v2.json`).
+v1 compared `total > cap`, and `nan > cap` is **False**, so a NaN reference time **authorized**; so did a
+negative total. v1 also checked only `seconds` while the config caps three quantities, authorized on
+scaled H-only arithmetic with no combined receipt, and priced the automatic tier before overrides.
+**12 tripped cases now all refuse and all raise; 9 new unit tests; the positive control still authorizes.**
+- **Consequence:** under guard v2 the **current committed projection does NOT authorize execution**
+  (`identity_unverifiable`) — the committed combined receipt carries no identity fingerprints and no
+  planned-group accounting. Correct fail-closed answer, not a regression. **Nothing in the repository
+  today authorizes a full grid, a calibration panel or a live trial.**
+
+**Manifest reconciled.** `PINNED_V2.json` `detail` held a stale `lab_enclosure` sha256/bytes/blob while
+`files` held the current one — the manifest disagreed with itself. The **verifier** was the reason it
+survived: it checked only the `files` map. It now cross-checks `files` vs `detail`, every
+sha256/bytes/git_blob against live source, and source-commit reachability. Regeneration history is now
+carried forward by the builder instead of being silently dropped on rebuild.
+
+**Deviation receipt filed** (`results/live_ab_validation_v2/DEVIATION_RECEIPT_rerun_20260921.{md,json}`).
+The **39,800 drain looks / 51 disagreements** I reported from a broader rerun have **NO surviving
+artifact** — withdrawn from circulation, not reconstructed, not re-run. Absence verified (no stash; the
+one dangling blob is a 163,886-byte PNG; no logs). Surviving committed receipts tabulated with digests:
+22,523 / 24,115 / 24,115 look rows, 1,592 drain-look rows in each all-look receipt, no tracked file
+modified.
+
+**Tests:** 184 validation + 27 panel + 86 design pass.
+
+**Still true:** zero live episodes, zero v2 calibration cells, no freeze. Host contention ~38 h.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
