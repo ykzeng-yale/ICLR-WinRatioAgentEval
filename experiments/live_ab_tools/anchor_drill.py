@@ -412,11 +412,14 @@ def analyse(rows: list) -> dict:
     import statistics
 
     def q(vals, p):
+        # NEAREST-RANK. The previous round(p*(n-1)) index returns the sample
+        # MAXIMUM for every n <= 11 at p=0.95 and reports it as a p95.
+        import math as _m
         if not vals:
             return None
         v = sorted(vals)
-        i = min(len(v) - 1, max(0, int(round(p * (len(v) - 1)))))
-        return v[i]
+        k = max(1, min(len(v), int(_m.ceil(p * len(v)))))
+        return v[k - 1]
 
     ok = [r for r in rows if r.get('ok')]
     failed = [r for r in rows if not r.get('ok')]
