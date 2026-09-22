@@ -24,8 +24,11 @@ an invariant that compares an operator with itself.
 WHAT THIS MODULE WILL NOT DO
 ----------------------------
 No model call.  No server start.  No trial episode.  No calibration episode.  No network
-access, no download.  The foreign llama-server processes on ports 8193/8191 belong to
-DTR-AgentEvals; they are observed with ps/lsof elsewhere and are never signalled here.
+access, no download.  The llama-server processes on ports 8193/8191 are observed with
+ps/lsof elsewhere and are never signalled here.  This file CLAIMED they belong to
+DTR-AgentEvals; that claim was withdrawn on 2026-09-22 (see
+results/live_ab/BLOCKER_OWNERSHIP_FINDING.json).  Their binary runs from THIS session's
+own scratchpad.  Ownership is unresolved, and nothing is signalled either way.
 
 Nothing in here freezes anything.  It reports what a freeze would still need.
 """
@@ -312,8 +315,12 @@ def status() -> Dict[str, Any]:
         },
         "serving_identity_position": {
             "question_put_to_root": ("should the freeze name a model-serving identity I "
-                                     "do not own? The llama-servers on ports 8193/8191 "
-                                     "belong to DTR-AgentEvals."),
+                                     "do not own? OWNERSHIP OF THE PROCESSES ON PORTS "
+                                     "8193/8191 IS UNRESOLVED: this file asserted they "
+                                     "were DTR-AgentEvals', inferred from a port number "
+                                     "in that project's config, and their binary in fact "
+                                     "runs from this session's own scratchpad. See "
+                                     "results/live_ab/BLOCKER_OWNERSHIP_FINDING.json."),
             "default_taken_on_silence": ("declare them an EXTERNAL dependency I do not "
                                          "control and record an open blocker, rather "
                                          "than assert a serving identity I cannot hold. "

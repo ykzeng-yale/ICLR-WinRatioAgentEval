@@ -416,6 +416,37 @@ def _coverage_verdict(obs: object, record: dict, *,
     if obs.get('window_id') in (None, ''):
         return {'valid': False, 'reason': 'observation omits window_id'}
 
+    # --- the interior gap declaration --------------------------------------
+    # STRENGTHENING, 2026-09-22, when the observer was actually implemented:
+    # this function used to take "each window means a continuously active
+    # interval" entirely on the producer's word, while its own closing note says
+    # the arithmetic "does not turn periodic samples into continuous evidence".
+    # Nothing stopped a sampler from handing it two instants labelled a window.
+    #
+    # An observation must now DECLARE the largest unobserved gap inside its
+    # windows and the tolerance it split them at, and the measured value must not
+    # exceed the declared one. This cannot verify the claim -- only the observer
+    # holds the arrival series -- but it forces the claim to be made in the
+    # artifact, where it is checkable afterwards against the ledger, instead of
+    # being implied by silence.
+    allowed = _finite(obs.get('max_interior_gap_s_allowed'))
+    measured = _finite(obs.get('max_interior_gap_s_measured'))
+    if allowed is None or measured is None:
+        return {'valid': False,
+                'reason': 'observation does not declare its interior gap evidence '
+                          '(max_interior_gap_s_measured / _allowed); a window list '
+                          'alone cannot distinguish evidenced continuous production '
+                          'from a pair of samples'}
+    if measured < 0 or allowed < 0:
+        return {'valid': False,
+                'reason': 'interior gap declaration is negative (%r measured, %r '
+                          'allowed)' % (measured, allowed)}
+    if measured > allowed:
+        return {'valid': False,
+                'reason': 'a window contains an unobserved gap of %.6f s, larger '
+                          'than the declared tolerance of %.6f s; the window should '
+                          'have been split there' % (measured, allowed)}
+
     # --- the endpoint error bound: finite and NONNEGATIVE -------------------
     # `resolution_ms` is accepted as the legacy spelling, but it is read as an
     # endpoint ERROR BOUND, which root required be independently justified.

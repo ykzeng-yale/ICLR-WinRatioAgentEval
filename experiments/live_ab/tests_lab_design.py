@@ -191,6 +191,7 @@ import lab_common                                        # noqa: E402
 import lab_coin                                          # noqa: E402
 import lab_data                                          # noqa: E402
 import lab_injected_decision                             # noqa: E402
+import lab_load                                          # noqa: E402
 import lab_prepare                                       # noqa: E402
 import lab_design                                        # noqa: E402
 
@@ -2089,6 +2090,8 @@ class PreparationWiringTests(unittest.TestCase):
             # longer does; active_windows must span the attempt on one clock,
             # with the stated resolution charged against the claim.
             return {'window_id': 'w1', 'active': True, 'resolution_ms': 50,
+                    'max_interior_gap_s_allowed': 0.5,
+                    'max_interior_gap_s_measured': 0.02,
                     'active_windows': [{'start': 99.0, 'end': 101.0}]}
         res = lab_prepare.run_reference_sweep(
             [], {}, ledger_path=self.tmp / 'l.jsonl', load_observer=observer,
@@ -2295,6 +2298,7 @@ class CoverageSchemaDomainMatrixTests(unittest.TestCase):
     """
 
     OBS = {'active': True, 'window_id': 'w', 'endpoint_error_s': 0.0,
+           'max_interior_gap_s_allowed': 0.5, 'max_interior_gap_s_measured': 0.02,
            'active_windows': [{'start': 99.0, 'end': 101.0}]}
 
     def _v(self, record, **kw):
@@ -2540,3 +2544,225 @@ class InjectedDecisionRefusalTests(unittest.TestCase):
         ev = lab_injected_decision.inject_decision('DEPLOY')
         self.assertTrue(ev['synthetic'])
         self.assertFalse(ev['is_observation'])
+
+
+class ContinuousLoadObserverTests(unittest.TestCase):
+    """The observer of protocol 3.2 rule 4, and the negative controls that matter.
+
+    Until `lab_load`, `load_observer` was a parameter with no implementation: the
+    sweep refused when it was absent and validated whatever it returned when it
+    was present, and nothing produced one. These tests fix what an observation
+    means, and -- more importantly -- what it must REFUSE to mean.
+    """
+
+    GAP = 0.5
+
+    def _probe(self, lateness=0.002, n=lab_load.MIN_JITTER_SAMPLES):
+        """A probe with real samples and no thread: the tests never sleep."""
+        p = lab_load.JitterProbe()
+        for _ in range(n):
+            p.observe_sample(lateness)
+        return p
+
+    def _observer(self, script, **kw):
+        kw.setdefault('max_interior_gap_s', self.GAP)
+        kw.setdefault('jitter', self._probe())
+        return lab_load.ContinuousLoadObserver(lab_load.ScriptedLoad(script), **kw)
+
+    @staticmethod
+    def _dense(gid, t0, t1, step=0.05):
+        t, out = t0, []
+        while t <= t1 + 1e-9:
+            out.append((gid, round(t, 6)))
+            t += step
+        return out
+
+    def _attempt(self, start, end):
+        return {'interval_schema': lab_prepare.INTERVAL_SCHEMA_V2,
+                'verification_started_monotonic': start,
+                'verification_ended_monotonic': end}
+
+    # -- the pure core -----------------------------------------------------
+    def test_a_dense_series_is_one_window(self):
+        w = lab_load.windows_from_arrivals(self._dense('g0', 100.0, 101.0),
+                                           max_interior_gap_s=self.GAP)
+        self.assertEqual(len(w), 1)
+        self.assertAlmostEqual(w[0]['start'], 100.0)
+        self.assertAlmostEqual(w[0]['end'], 101.0)
+        self.assertAlmostEqual(w[0]['max_interior_gap_s'], 0.05, places=6)
+
+    def test_an_interior_gap_splits_the_window_rather_than_being_averaged(self):
+        """The whole point. A gap is unobserved time, not a small imperfection."""
+        series = self._dense('g0', 100.0, 100.3) + self._dense('g0', 101.5, 102.0)
+        w = lab_load.windows_from_arrivals(series, max_interior_gap_s=self.GAP)
+        self.assertEqual(len(w), 2)
+        self.assertAlmostEqual(w[0]['end'], 100.3)
+        self.assertAlmostEqual(w[1]['start'], 101.5)
+        for win in w:
+            self.assertLessEqual(win['max_interior_gap_s'], self.GAP)
+
+    def test_two_concurrent_generations_interleave_without_destroying_the_windows(self):
+        """The trial runs two workers, so the load regime is two generations at
+        once and their arrivals interleave. An earlier rule here split at every
+        change of generation id -- which ended every window after ONE arrival and
+        reported NO ACTIVE LOAD at the moment the server was busiest, silently
+        and in the safe-looking direction. Partitioning by generation first is
+        what makes the observer usable under the regime it exists to observe."""
+        series = sorted(self._dense('g0', 100.0, 101.0, step=0.1)
+                        + self._dense('g1', 100.05, 101.05, step=0.1),
+                        key=lambda x: x[1])
+        self.assertNotEqual([g for g, _ in series[:4]], ['g0'] * 4)   # interleaved
+        w = lab_load.windows_from_arrivals(series, max_interior_gap_s=self.GAP)
+        self.assertEqual(len(w), 2)
+        self.assertEqual({x['generation_id'] for x in w}, {'g0', 'g1'})
+        for win in w:
+            self.assertGreaterEqual(win['arrivals'], 10)
+
+    def test_a_gap_inside_one_generation_splits_it_while_the_other_is_untouched(self):
+        series = sorted(self._dense('g0', 100.0, 100.2, step=0.05)
+                        + self._dense('g0', 101.0, 101.2, step=0.05)
+                        + self._dense('g1', 100.0, 101.2, step=0.05),
+                        key=lambda x: x[1])
+        w = lab_load.windows_from_arrivals(series, max_interior_gap_s=self.GAP)
+        self.assertEqual(len([x for x in w if x['generation_id'] == 'g0']), 2)
+        self.assertEqual(len([x for x in w if x['generation_id'] == 'g1']), 1)
+
+    def test_a_lone_arrival_is_not_an_interval(self):
+        self.assertEqual(
+            lab_load.windows_from_arrivals([('g0', 100.0)], max_interior_gap_s=self.GAP),
+            [])
+
+    def test_out_of_order_or_nonfinite_stamps_refuse(self):
+        for bad in ([('g0', 100.0), ('g0', 99.0)],
+                    [('g0', 100.0), ('g0', float('nan'))],
+                    [('g0', 100.0), ('g0', float('inf'))]):
+            with self.subTest(bad=bad), self.assertRaises(lab_load.LoadRefused):
+                lab_load.windows_from_arrivals(bad, max_interior_gap_s=self.GAP)
+
+    def test_a_nonpositive_tolerance_refuses(self):
+        for g in (0.0, -1.0, float('nan')):
+            with self.subTest(g=g), self.assertRaises(lab_load.LoadRefused):
+                lab_load.windows_from_arrivals(self._dense('g0', 100.0, 100.5),
+                                               max_interior_gap_s=g)
+
+    # -- the endpoint bound ------------------------------------------------
+    def test_an_unmeasured_endpoint_bound_is_not_a_small_one(self):
+        obs = self._observer(self._dense('g0', 100.0, 101.0),
+                             jitter=self._probe(n=lab_load.MIN_JITTER_SAMPLES - 1))
+        with obs:
+            got = obs.observe()
+        self.assertFalse(got['active'])
+        self.assertIn('UNMEASURED', got['reason'])
+        self.assertNotIn('endpoint_error_s', got)
+
+    def test_the_bound_is_the_worst_observation_floored(self):
+        p = self._probe(lateness=0.001)
+        self.assertAlmostEqual(p.bound(floor_s=0.01)['endpoint_error_s'], 0.01)
+        p.observe_sample(0.25)
+        self.assertAlmostEqual(p.bound(floor_s=0.01)['endpoint_error_s'], 0.25)
+
+    # -- the observation ---------------------------------------------------
+    def test_a_covered_attempt_is_certified_and_names_its_evidence(self):
+        obs = self._observer(self._dense('g0', 99.0, 102.0))
+        with obs:
+            o = obs.observe()
+        self.assertTrue(o['active'])
+        self.assertEqual(o['source_kind'], 'scripted_fixture')
+        v = lab_prepare._coverage_verdict(o, self._attempt(100.0, 100.5))
+        self.assertTrue(v['valid'], v.get('reason'))
+
+    def test_an_attempt_straddling_the_gap_is_NOT_covered(self):
+        """The negative control the whole module exists for."""
+        obs = self._observer(self._dense('g0', 99.0, 100.1)
+                             + self._dense('g0', 100.8, 102.0))
+        with obs:
+            o = obs.observe()
+        self.assertTrue(o['active'])              # there IS load, both sides
+        v = lab_prepare._coverage_verdict(o, self._attempt(100.0, 100.5))
+        self.assertFalse(v['valid'])
+        self.assertIn('do not contain the attempt', v['reason'])
+
+    def test_no_arrivals_yields_no_observation_of_activity(self):
+        obs = self._observer([])
+        with obs:
+            o = obs.observe()
+        self.assertFalse(o['active'])
+        self.assertEqual(o['active_windows'], [])
+
+    def test_the_observer_stops_the_sweep_on_the_first_uncovered_attempt(self):
+        """Through the REAL entry point: raw attempt retained, then immediate stop."""
+        tmp = Path(tempfile.mkdtemp(prefix='loadobs_'))
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        obs = self._observer([])                  # load absent
+        obs.start()
+        self.addCleanup(obs.stop)
+        wiring = PreparationWiringTests('test_refuses_without_a_load_observer')
+        with self.assertRaises(lab_prepare.PreparationRefused):
+            lab_prepare.run_reference_sweep(
+                [], {}, ledger_path=tmp / 'l.jsonl', load_observer=obs.observe,
+                enforce_tmpdir=False, sweep_fn=wiring._stub_sweep())
+        rows = [json.loads(x) for x in
+                (tmp / 'l.jsonl').read_text('utf-8').splitlines() if x.strip()]
+        kinds = [r.get('schema') for r in rows]
+        self.assertIn(lab_data.ATTEMPT_RECORD_SCHEMA, kinds)   # raw attempt retained
+        self.assertIn('live_ab/load_coverage-v1', kinds)       # and the refusal reason
+
+    # -- the declaration the verdict now requires --------------------------
+    def test_an_observation_without_its_interior_gap_declaration_is_refused(self):
+        bare = {'active': True, 'window_id': 'w', 'endpoint_error_s': 0.0,
+                'active_windows': [{'start': 99.0, 'end': 101.0}]}
+        v = lab_prepare._coverage_verdict(bare, self._attempt(100.0, 100.5))
+        self.assertFalse(v['valid'])
+        self.assertIn('interior gap evidence', v['reason'])
+
+    def test_a_declared_gap_larger_than_its_tolerance_is_refused(self):
+        bad = {'active': True, 'window_id': 'w', 'endpoint_error_s': 0.0,
+               'max_interior_gap_s_allowed': 0.5, 'max_interior_gap_s_measured': 1.5,
+               'active_windows': [{'start': 99.0, 'end': 101.0}]}
+        v = lab_prepare._coverage_verdict(bad, self._attempt(100.0, 100.5))
+        self.assertFalse(v['valid'])
+        self.assertIn('should have been split', v['reason'])
+
+    # -- the real source ---------------------------------------------------
+    def test_the_load_generator_may_only_address_loopback(self):
+        with self.assertRaises(lab_load.LoadRefused):
+            lab_load.StreamingHttpLoad(base_url='http://example.com:8080',
+                                       model='m', prompt='p')
+
+    def test_streamed_chunks_are_stamped_and_no_generated_text_is_kept(self):
+        clock = iter([10.0, 10.1, 10.2, 10.3])
+
+        class _Resp:
+            status_code = 200
+
+            def iter_lines(self):
+                return [b'data: {"choices":[{"delta":{"content":"a"}}]}',
+                        b'', b'data: {"choices":[{"delta":{"content":"b"}}]}',
+                        b'data: [DONE]']
+
+        class _Session:
+            def post(self, *a, **kw):
+                return _Resp()
+
+        src = lab_load.StreamingHttpLoad(
+            base_url='http://127.0.0.1:8193', model='m', prompt='p',
+            clock=lambda: next(clock), session_factory=_Session)
+        got = []
+        src._one_generation(_Session(), 'g0', lambda gid, t: got.append((gid, t)))
+        self.assertEqual(got, [('g0', 10.0), ('g0', 10.1)])
+
+    def test_a_failing_load_source_is_unhealthy_rather_than_quiet(self):
+        class _Session:
+            def post(self, *a, **kw):
+                raise OSError('connection refused')
+
+        src = lab_load.StreamingHttpLoad(base_url='http://127.0.0.1:8193',
+                                         model='m', prompt='p',
+                                         session_factory=_Session)
+        src._loop(lambda gid, t: None)
+        self.assertFalse(src.healthy())
+        self.assertTrue(src.errors)
+
+    # -- pinning -----------------------------------------------------------
+    def test_the_observer_is_pinned_in_the_harness_set(self):
+        self.assertIn('lab_load.py', lab_common.HARNESS_FILES)
