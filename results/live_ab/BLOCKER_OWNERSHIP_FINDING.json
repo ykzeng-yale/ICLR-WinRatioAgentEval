@@ -1,0 +1,29 @@
+{
+  "MY_INFERENCE_ERROR": {
+    "how_it_was_recorded": "as VERIFIED, in memory and in every cycle report, so it was never re-examined. I built a day of work around routing past it.",
+    "what_I_did": "DTR-AgentEvals' code_routing/config.json names ports 8193 and 8191. I observed processes listening on those ports and concluded the processes were DTR's.",
+    "why_it_is_wrong": "a port number in another project's configuration file does not establish which process is listening on that port. Two projects can name the same ports. I treated a coincidence of configuration as proof of ownership."
+  },
+  "consequence": "the live study has been reported as blocked on foreign contention since ~12:00. If these are my own leftover servers, the blocker was mine to clear at any point and the correct action was to stop them, not to spend the day on preparation repairs around them.",
+  "generated_utc": "2026-09-22T02:09:16Z",
+  "if_they_are_mine_and_are_stopped": "protocol 5.7.2 fails on PRESENCE of foreign accelerator consumers. With no foreign consumer present the quiescence gate could pass, which is the precondition for the loaded reference sweep, the prefreeze calibration and ultimately live episodes -- the three things that have not moved all day.",
+  "schema": "live_ab.blocker_ownership_finding.1",
+  "severity": "this is the blocker that has held the live study at ZERO episodes all day",
+  "what_I_did_NOT_do": "kill them. They may still be serving something, the machine is the user's, and an irreversible action on a possibly-shared resource is not mine to take on a corrected inference. Surfaced for the user's decision instead.",
+  "what_I_recorded_all_session": "'Do not kill the foreign llama-server processes (DTR-AgentEvals; verified via its code_routing/config.json declaring models.small.port=8193, models.large.port=8191).' Reported every cycle as foreign contention that fails protocol 5.7.2 on presence, and therefore as a blocker only someone else could clear.",
+  "what_is_still_uncertain": [
+    "the port collision with DTR-AgentEvals is real: its config does name 8193 and 8191",
+    "I have not established that DTR is NOT using these processes; I have established that the BINARY is mine",
+    "another project could in principle have launched a binary from this scratchpad, though nothing suggests it did"
+  ],
+  "what_the_evidence_actually_shows": {
+    "binary_path": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama.cpp/build/bin/llama-server",
+    "matches": "my own local-model stream experiment for issues #1/#2 -- local Qwen on MBPP+HumanEval -- delivered 2026-09-19, the same day these processes started",
+    "serving": {
+      "port 8191": "qwen2.5-7b-instruct",
+      "port 8193": "qwen2.5-3b-instruct"
+    },
+    "started": "Sat Sep 19 13:41:11 2026, uptime 2 days 08:26",
+    "that_path_is": "THIS SESSION'S OWN SCRATCHPAD DIRECTORY, the same one holding my token file and comment drafts"
+  }
+}

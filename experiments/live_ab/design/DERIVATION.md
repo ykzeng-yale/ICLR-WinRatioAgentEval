@@ -49,9 +49,20 @@ It is **never** `n_total // 2`: pairs form inside a stratum and each stratum kee
 | `monitor.n_max` | = n_pairs | **PENDING**; `lab_monitor` refuses unless equal |
 | leftovers | `n_S1 % 2 + n_S2 % 2` | derived with the roster |
 
-**Values that must not be asserted.** 568 and 565 appear in older test fixtures as *pre-exclusion*
-and *smoke-only* figures. Neither is attainable: the ceiling from the actual sources is **564**
-before rule 4 removes anything.
+**CORRECTED 2026-09-22 — my earlier wording was wrong.** I wrote that 568 and 565 "must not be
+asserted" and were "unattainable". They are neither wrong nor competing: protocol 3.3 (line 630)
+states them itself as *its own staged bounds*, and all three numbers are the same computation at
+three stages:
+
+| stage | n_S1 | n_S2 | n_pairs |
+|---|---:|---:|---:|
+| before any exclusion | 591 | 547 | `295 + 273` = **568** |
+| after the 6 smoke exclusions | 591 | 541 | `295 + 270` = **565** |
+| after smoke **and** the 2 duplicate prompts | 591 | 539 | `295 + 269` = **564** |
+
+So **564 is the ceiling at the stage this preparation has reached**, and 568/565 are the protocol's
+own earlier-stage bounds. Root had already told me the fixtures assert them as pre-exclusion and
+smoke-only figures; I restated them as errors anyway. Rule 4 can only reduce 564 further.
 
 ## 3. Conditional gate arithmetic
 
