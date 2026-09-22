@@ -1,0 +1,50 @@
+{
+  "good_control": {
+    "valid": true,
+    "complete": true,
+    "identities": [
+      "srv_1_2/slot0/task11",
+      "srv_1_2/slot1/task12"
+    ]
+  },
+  "foreign_record_provenance_overwritten_by_observer": {
+    "valid": true,
+    "complete": true,
+    "identities": [
+      "srv_1_2/slot0/task11",
+      "srv_1_2/slot1/task12"
+    ]
+  },
+  "missing_instance_and_task": {
+    "valid": true,
+    "complete": true,
+    "identities": [
+      "None/slot0/taskNone",
+      "None/slot1/taskNone"
+    ]
+  },
+  "outer_transitions_reversed_complete_true": {
+    "valid": true,
+    "complete": true,
+    "identities": [
+      "srv_1_2/slot0/task11",
+      "srv_1_2/slot1/task12"
+    ]
+  },
+  "same_instance_and_slot_overlapping_different_task": {
+    "valid": true,
+    "complete": true,
+    "identities": [
+      "srv_1_2/slot0/task11",
+      "srv_1_2/slot0/task12"
+    ]
+  },
+  "zero_rounding_guard_at_microsecond_start": {
+    "valid": true,
+    "complete": true,
+    "identities": [
+      "srv_1_2/slot0/task11",
+      "srv_1_2/slot1/task12"
+    ]
+  }
+}
