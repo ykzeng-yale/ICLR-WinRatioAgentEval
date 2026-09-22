@@ -284,7 +284,13 @@ def pair_attempts(sandboxed: List[dict], unsandboxed: List[dict]) -> Dict[str, A
         'controlled_denials': len(controlled),
         'denied_in_both': len(denied_both),
         'reachable_inside_sandbox': len(breached),
-        'control_is_per_attempt': True,
+        # MEASURED. This was a hard-coded True describing the function's own
+        # design -- true by construction, but a result field that never
+        # checked anything. It now says what it can fail on: every sandboxed
+        # attempt got its own row, so no attempt was silently dropped from
+        # the table. A count that quietly lost rows would read as a clean
+        # per-attempt control.
+        'control_is_per_attempt': len(rows) == len(sandboxed) and bool(rows),
         'what_a_count_could_not_say': (
             'which operations the sandbox actually stopped. Only rows marked '
             '"denied inside, reachable outside" support containment; '

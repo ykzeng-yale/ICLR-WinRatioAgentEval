@@ -106,6 +106,138 @@ SOURCE_TOKENS: Dict[str, List[str]] = {
 
 EXTERNAL_PROGRAMS = ('ps', 'lsof', 'sysctl', 'otool', 'git', 'sandbox-exec', 'codesign')
 
+#: THIRD DETECTOR: a result key that READS LIKE A MEASUREMENT but whose value is a
+#: constant literal.
+#:
+#: `claim_without_read` is keyword-based -- a key must carry a source token AND a
+#: relation word -- which I flagged as trading recall for precision. This is the
+#: structural generalisation, and it catches a defect I have actually shipped:
+#: `negative_control_interpreter_matches_sandbox: True`, written as a LITERAL in a
+#: receipt because `run_program` does not report its interpreter. Nothing compared
+#: anything; the field named a check it never performed.
+#:
+#: A constant-valued boolean is not automatically wrong. A DECLARATION -- "this run
+#: loaded no model", "this is not a trial episode" -- is deliberately a literal, and
+#: those are among the most important lines in a receipt. So the two vocabularies
+#: are separated and the declaration test runs FIRST, because `is_a_trial_episode`
+#: would otherwise match the check vocabulary's `_is_`.
+CHECK_WORDS = ('match', 'ok', 'verified', 'agree', 'equal', 'consistent',
+               'complete', 'respected', 'identical', 'present', 'held', 'passed',
+               'valid', 'detected', 'share', 'covered', '_is_', 'conforms')
+DECLARATION_WORDS = ('is_a_', 'loaded_', 'started_', 'ran_', 'executed_',
+                     'performed_', 'downloaded_', 'spent_', 'synthetic',
+                     'writes_', 'sends_', 'promoted_', 'models_',
+                     # `expected_valid: False` beside a computed
+                     # `as_expected: u['active'] is False` is the RIGHT
+                     # shape: the expectation is declared as a literal and
+                     # the comparison is computed separately. Read before
+                     # adding -- this is a classification, not an excuse.
+                     'expected_')
+
+
+def _literal_checks(tree: ast.AST) -> List[Dict[str, Any]]:
+    """Dict entries `'some_key': True` / `False` where the value is a literal.
+
+    Only dict LITERALS are read. A key whose value is any expression -- a call, a
+    comparison, a name -- computes something and is not reported, which is the
+    whole point of the distinction.
+    """
+    # A LITERAL INSIDE A BRANCH IS NOT UNMEASURED: in
+    #     if not probe.is_file():
+    #         return {'receipt_present': False}
+    # the `if` performed the measurement and the literal records its outcome. The
+    # first version of this detector flagged 14 keys, 13 of which were exactly
+    # that shape -- a checker that reports thirteen non-defects to find one gets
+    # switched off. Conditional ancestry is computed so only UNCONDITIONAL
+    # literals, which nothing could have determined, are reported as candidates.
+    conditional: set = set()
+    for parent in ast.walk(tree):
+        if isinstance(parent, (ast.If, ast.IfExp, ast.Try, ast.While,
+                               ast.ExceptHandler, ast.For)):
+            for child in ast.walk(parent):
+                if isinstance(child, ast.Dict):
+                    conditional.add(id(child))
+
+    # GUARDED BY EARLY RETURN. Syntactic nesting misses the commonest shape:
+    #     if not probe.is_file():
+    #         return {'receipt_present': False}
+    #     ...
+    #     return {'receipt_present': True}
+    # The second literal is not nested in anything, yet the guard above decided
+    # it. Four of the six survivors of the nesting rule were exactly this, and a
+    # checker whose hits are two-thirds non-defects gets switched off.
+    #
+    # This is a HEURISTIC, not a control-flow analysis: a dict is treated as
+    # guarded when its enclosing function has an earlier `return` inside an `if`
+    # or an `except`. It can excuse a literal whose guard decided something else
+    # entirely, so a guarded hit is reported in its own bucket rather than
+    # dropped, and the receipt says the rule is approximate.
+    guarded: set = set()
+    for fn in ast.walk(tree):
+        if not isinstance(fn, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        guard_lines = [r.lineno for br in ast.walk(fn)
+                       if isinstance(br, (ast.If, ast.ExceptHandler))
+                       for r in ast.walk(br) if isinstance(r, ast.Return)]
+        if not guard_lines:
+            continue
+        first_guard = min(guard_lines)
+        for d in ast.walk(fn):
+            if isinstance(d, ast.Dict) and getattr(d, 'lineno', 0) > first_guard:
+                guarded.add(id(d))
+
+    # AN INITIALISER IS NOT A CLAIM. `out = {'ok': False, ...}` followed by
+    # `out['ok'] = True` is the fail-safe default pattern, and it is the RIGHT
+    # pattern: default to failure, set success only when something establishes it.
+    # Six of the seven production hits were exactly this. A dict literal bound to
+    # a name that is later subscript-assigned is treated as an initialiser.
+    initialiser: set = set()
+    mutated: set = set()
+    for n in ast.walk(tree):
+        if isinstance(n, ast.Assign):
+            for tgt in n.targets:
+                if isinstance(tgt, ast.Subscript) and isinstance(tgt.value, ast.Name):
+                    mutated.add(tgt.value.id)
+    for n in ast.walk(tree):
+        if isinstance(n, (ast.Assign, ast.AnnAssign)):
+            tgts = n.targets if isinstance(n, ast.Assign) else [n.target]
+            val = n.value
+            if isinstance(val, ast.Dict):
+                for tgt in tgts:
+                    if isinstance(tgt, ast.Name) and tgt.id in mutated:
+                        initialiser.add(id(val))
+
+    out = []
+    for n in ast.walk(tree):
+        if not isinstance(n, ast.Dict):
+            continue
+        in_branch = id(n) in conditional
+        is_guarded = id(n) in guarded
+        for k, v in zip(n.keys, n.values):
+            if not (isinstance(k, ast.Constant) and isinstance(k.value, str)):
+                continue
+            if not (isinstance(v, ast.Constant) and isinstance(v.value, bool)):
+                continue
+            key = k.value
+            low = key.lower()
+            if any(w in low for w in DECLARATION_WORDS):
+                kind = 'declaration'
+            elif not any(w in low for w in CHECK_WORDS):
+                kind = 'unclassified'
+            elif in_branch:
+                kind = 'branch_determined'
+            elif id(n) in initialiser:
+                kind = 'initialiser_later_mutated'
+            elif is_guarded:
+                kind = 'guarded_by_early_return'
+            else:
+                kind = 'literal_check'
+            out.append({'key': key, 'value': v.value, 'kind': kind,
+                        'line': getattr(k, 'lineno', None),
+                        'inside_a_branch': in_branch,
+                        'after_an_early_return_guard': is_guarded})
+    return out
+
 #: A tool declares its own role, in its own source, as `AUDIT_ROLE = '...'`.
 #:
 #: The reimplementation rule is right for a REPORTER and wrong for an INDEPENDENT
@@ -245,6 +377,8 @@ def audit_file(path: Path) -> Dict[str, Any]:
                 'exempt': effective_role == ROLE_VERIFIER,
             })
 
+    literals = _literal_checks(tree)
+
     claims = []
     for c in _named_claims(tree):
         needles = SOURCE_TOKENS[c['source_token']]
@@ -269,6 +403,16 @@ def audit_file(path: Path) -> Dict[str, Any]:
                                               if c.get('exempt')],
         'named_claims': claims,
         'claims_without_read': [c for c in claims if not c['source_is_read_by_this_module']],
+        'literal_checks': [x for x in literals if x['kind'] == 'literal_check'],
+        'declarations': [x for x in literals if x['kind'] == 'declaration'],
+        'branch_determined': [x for x in literals
+                              if x['kind'] == 'branch_determined'],
+        'guarded_by_early_return': [x for x in literals
+                                    if x['kind'] == 'guarded_by_early_return'],
+        'initialiser_later_mutated': [x for x in literals
+                                      if x['kind'] == 'initialiser_later_mutated'],
+        'unclassified_literal_booleans': [x for x in literals
+                                          if x['kind'] == 'unclassified'],
     }
 
 
@@ -281,6 +425,12 @@ def audit(directory: Optional[Path] = None) -> Dict[str, Any]:
     exempt = [(r['file'], c) for r in rows
               for c in r['reimplementation_exempted_by_role']]
     bad_claims = [(r['file'], c) for r in rows for c in r['claims_without_read']]
+    lit = [(r['file'], c) for r in rows for c in r['literal_checks']]
+    decl_n = sum(len(r['declarations']) for r in rows)
+    branch_n = sum(len(r['branch_determined']) for r in rows)
+    guard_n = sum(len(r['guarded_by_early_return']) for r in rows)
+    init_n = sum(len(r['initialiser_later_mutated']) for r in rows)
+    uncl_n = sum(len(r['unclassified_literal_booleans']) for r in rows)
     return {
         'schema': 'live_ab/tool_audit-v1',
         'generated_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
@@ -300,6 +450,22 @@ def audit(directory: Optional[Path] = None) -> Dict[str, Any]:
                   for r in rows},
         'claims_without_read': [{'file': f, **c} for f, c in bad_claims],
         'claims_without_read_count': len(bad_claims),
+        'literal_checks': [{'file': f, **c} for f, c in lit],
+        'literal_check_count': len(lit),
+        'declaration_count': decl_n,
+        'branch_determined_count': branch_n,
+        'guarded_by_early_return_count': guard_n,
+        'initialiser_later_mutated_count': init_n,
+        'guarded_rule_is_approximate': (
+            'a dict after ANY earlier guarded return in its function is treated '
+            'as guarded. It can excuse a literal whose guard decided something '
+            'else, so these are bucketed, not dropped.'),
+        'unclassified_literal_boolean_count': uncl_n,
+        'literal_check_note': (
+            'a key that READS LIKE A MEASUREMENT with a constant value. Not '
+            'automatically wrong -- but it cannot have measured anything, so each '
+            'one is either a declaration in disguise or a check that does not '
+            'happen. Every hit needs a human read.'),
         'per_file': rows,
         'capability_table': {k: v['answers'] for k, v in CAPABILITIES.items()},
         'source_token_table': SOURCE_TOKENS,
@@ -345,6 +511,15 @@ def main(argv: Optional[List[str]] = None) -> int:
     for c in result['claims_without_read']:
         print('  %-34s %-40s (needs %s)' % (Path(c['file']).name, c['key'],
                                             ','.join(c['needles_looked_for'])))
+    print('\nliteral checks (%d)   [branch %d, guarded %d, initialiser %d, '
+          'declarations %d, unclassified %d]:'
+          % (result['literal_check_count'], result['branch_determined_count'],
+             result['guarded_by_early_return_count'],
+             result['initialiser_later_mutated_count'], result['declaration_count'],
+             result['unclassified_literal_boolean_count']))
+    for c in result['literal_checks']:
+        print('  %-34s %-46s = %s  (line %s)'
+              % (Path(c['file']).name, c['key'], c['value'], c['line']))
     print('\nwritten:', a.out)
     return 0
 

@@ -52,6 +52,46 @@ REPO = HERE.parents[1]
 TRIALS = ('T1', 'T2', 'T3', 'T4')
 
 
+def _workers_share_a_lock() -> Dict[str, Any]:
+    """Do BOTH workers of one trial receive the same lock path? Read the source.
+
+    It cannot be measured by resolving paths -- resolving the same trial twice
+    trivially returns the same string and measures nothing. The real content is
+    STRUCTURAL: the orchestrator builds one `TrialPaths` per trial and the job
+    payload each worker receives reads `sandbox_lock` off that one object, so two
+    workers cannot get different values. That is checkable, and it has a real
+    failure mode: were the payload to derive the lock per worker, this goes False.
+    """
+    import ast as _ast                                         # noqa: PLC0415
+    import inspect                                             # noqa: PLC0415
+    import lab_orchestrator                                    # noqa: PLC0415
+
+    src = inspect.getsource(lab_orchestrator)
+    tree = _ast.parse(src)
+    exprs = []
+    for n in _ast.walk(tree):
+        if not isinstance(n, _ast.Dict):
+            continue
+        for k, v in zip(n.keys, n.values):
+            if isinstance(k, _ast.Constant) and k.value == 'sandbox_lock':
+                exprs.append(_ast.unparse(v))
+    from_trial_paths = bool(exprs) and all('paths.sandbox_lock' in e for e in exprs)
+    per_trial_calls = sum(
+        1 for n in _ast.walk(tree)
+        if isinstance(n, _ast.Call) and getattr(n.func, 'id', None) == '_trial_paths')
+    return {
+        'two_workers_in_one_trial_share_a_lock': from_trial_paths,
+        'job_payload_sandbox_lock_expressions': sorted(set(exprs)),
+        'all_derive_from_trial_paths': from_trial_paths,
+        'trial_paths_call_sites_in_orchestrator': per_trial_calls,
+        'why_this_is_the_measurement': (
+            'resolving the same trial twice returns the same string and measures '
+            'nothing. What makes the two workers share a lock is that the job '
+            'payload reads it off ONE TrialPaths per trial -- a structural fact '
+            'with a real failure mode.'),
+    }
+
+
 def resolve() -> Dict[str, Any]:
     import lab_orchestrator                                    # noqa: PLC0415
 
@@ -87,11 +127,11 @@ def resolve() -> Dict[str, Any]:
         'worker_lock_is_per_trial': per_trial,
         'sweep_and_worker_share_a_lock': any(
             str(sweep_lock) == str(p) for p in worker_locks.values()),
-        'two_workers_in_one_trial_share_a_lock': True,
-        'two_workers_share_reason': (
-            'both workers of a trial receive the SAME ctx.paths.sandbox_lock from '
-            'the orchestrator, so the intra-trial case protocol 5.7 is titled for '
-            'IS covered'),
+        # MEASURED, not asserted. This field was a hard-coded `True` with a
+        # reason string beside it -- my own code, flagged by tool_audit's
+        # literal-check detector in the cycle after I wrote it. The reason was
+        # correct; the field still claimed a check that never ran.
+        **_workers_share_a_lock(),
     }
 
 

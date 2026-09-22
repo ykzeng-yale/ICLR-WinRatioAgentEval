@@ -1940,6 +1940,61 @@ read and can defend — `lab_common.process_rss_bytes` measures RSS and is not a
 `tests_lab_serving` must use raw `flock` to probe that the lock is held. **A provider is now exempt
 for the capability it provides**, or the scan condemns its own reference implementation.
 
+### A third detector — and the two-worker control finally FAILED, which is the point (2026-09-22)
+
+`deterministic-path`. `results/live_ab/TOOL_AUDIT_v8.json`, `results/live_ab/PRODUCTION_AUDIT_v3.json`.
+
+**`claim_without_read` was keyword-based and I said so.** The structural generalisation is
+**`literal_check`**: a result key that *reads like a measurement* whose value is a **constant
+literal**. It catches a defect I have actually shipped —
+`negative_control_interpreter_matches_sandbox: True`, written as a literal because `run_program`
+does not report its interpreter. Nothing compared anything.
+
+**Built in four passes, each one cutting false positives I had to read to find.** 14 hits → 6 → 2 → 0
+on the tools tree:
+- **branch-determined** (11): `if not probe.is_file(): return {'receipt_present': False}` — the `if`
+  measured it.
+- **guarded by early return** (4): the literal is *after* a guard, not nested in one. Syntactic
+  nesting cannot see this; the rule is an explicit **heuristic** and its hits are bucketed, not
+  dropped.
+- **initialiser later mutated** (6): `out = {'ok': False}` then `out['ok'] = True`. **This is the
+  right pattern** — default to failure — and six of seven production hits were it.
+- **declaration** (5): `is_a_trial_episode: False`, and `expected_valid: False` sitting beside a
+  computed `as_expected` — the expectation declared, the comparison computed. Correct design.
+
+**One real hit, and it was mine, written the cycle before.** `lab_containment.pair_attempts` carried
+`'control_is_per_attempt': True` — true by construction, but a result field that checked nothing. Now
+`len(rows) == len(sandboxed) and bool(rows)`: it can fail if the table ever silently drops an attempt.
+
+**Production tree: 32 files, 0 claims-without-read, 27 literal checks — 23 of them fixture INPUTS in
+`tests_*.py`, and 4 in `lab_*.py` which I read individually and can defend** (two
+`tokens_are_lower_bound` accumulator seeds documented in their own docstrings; `lab_server`'s
+`smoke_body` fail-closed default when no golden is supplied). They survive because the mutation is a
+*nested* subscript or a *reassignment*, which my two heuristics do not see — stated, not hidden.
+
+### The lock control failed, and that is the best evidence it has produced
+
+`TWO_WORKER_CONTAINMENT_20260922T134847Z.json` — **verdict FAIL, `lock_control_acquired: False`.**
+
+I launched the test suites in the background and ran the fixture beside them. **Four suites take
+`<WORK>/sandbox.lock`**, `tests_lab_e2e` was mid-run, and the lock control — the contender run when
+*nobody* should hold the lock — was refused after 2.004 s. **The fixture refused to report PASS on a
+contended host.**
+
+Last cycle I wrote that *"a refusal is only evidence if the same attempt succeeds when the cause is
+removed."* This is that control firing in the wild against real contention rather than a construction
+of mine. **Both receipts are retained**: the FAIL is the demonstration that the control can fail, and
+`TWO_WORKER_CONTAINMENT_20260922T135301Z.json`, run after the suites finished, is **PASS on all eight
+limbs**.
+
+**The operational constraint I had not stated: this fixture requires the host execution lock to be
+free, so it must not run beside the suite.** That was my error this cycle, and the instrument caught
+it rather than averaging it away.
+
+Suites: chain 70, design 316, e2e 42, hostcheck 117, **isolation 24 — FAILED (1), the lock
+conformance test, still red by intent**, serving 89, stats 70; validation 190 (2 expected failures),
+panel 83, shard 31. `HARNESS_FILES` **33**.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
