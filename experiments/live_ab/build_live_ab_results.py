@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import sys
 from pathlib import Path
 from typing import Any, Mapping, Sequence
@@ -298,6 +299,8 @@ def integrity_object(events: Sequence[Mapping], cfg: Mapping) -> dict:
                               anchor_cfg.get('sandwich_tolerance_s', 30),
                               anchor_cfg.get('posting_latency_p95_s'))
     gaps = gap_report(events, float(anchor_cfg.get('gap_report_s', 5)))
+    latency = acceptance_latency(events)
+    log_prefix = server_log_prefix(events)
     # THE THIRD LIMB, which this file declared in config and never evaluated.
     sandwich_limb = (sandwich['violations'] is not None
                      and len(sandwich['violations'])
@@ -332,6 +335,8 @@ def integrity_object(events: Sequence[Mapping], cfg: Mapping) -> dict:
                                    'data'),
         'sandwich_audit': sandwich,
         'gap_report': gaps,
+        'acceptance_latency': latency,
+        'server_log_prefix': log_prefix,
         'label_rule': rule,
     }
 
@@ -557,6 +562,128 @@ def gap_report(events: list, gap_report_s: float = 5.0,
                    'than as unexplained.'),
         'still_open_at_end': {k: sorted(map(str, ids))
                               for k, ids in open_ids.items() if ids},
+    }
+
+
+
+def acceptance_latency(events: list, list_above_s: float = 1.0) -> dict:
+    """Protocol 12.6 item 5: the distribution of ``job_accepted - coin_drawn`` on
+    the monotonic clock, with every gap above 1 s listed.
+
+    WHICH MONOTONIC CLOCK. Both timestamps are taken from the ENVELOPE's
+    ``t_mono_ns``, which is stamped by whoever wrote the event into the chain --
+    one writer, therefore one clock domain. ``job_accepted`` ALSO carries
+    ``worker_t_mono_ns``, and that is a DIFFERENT PROCESS's monotonic clock with
+    its own epoch; subtracting it from an orchestrator stamp would produce a
+    number with no meaning. The worker reading is recorded here for reference and
+    never differenced against the coin.
+
+    PAIRING. ``coin_drawn`` keys by ``pair`` and carries an ``assignment`` map
+    from ARRIVAL to arm; ``job_accepted`` keys by ``arrival``. The mapping is the
+    one lab_verify_log already builds (``assign_seq_of_arrival``), reused rather
+    than re-derived.
+    """
+    coin_at: dict = {}
+    for ev in events:
+        if ev.get('type') != 'coin_drawn':
+            continue
+        for a in (ev.get('body') or {}).get('assignment') or {}:
+            coin_at.setdefault(int(a), ev)
+
+    rows, unmatched = [], []
+    for ev in events:
+        if ev.get('type') != 'job_accepted':
+            continue
+        arrival = (ev.get('body') or {}).get('arrival')
+        if arrival is None:
+            unmatched.append({'seq': ev.get('seq'),
+                              'problem': 'job_accepted carries no arrival'})
+            continue
+        coin = coin_at.get(int(arrival))
+        if coin is None:
+            unmatched.append({'seq': ev.get('seq'), 'arrival': int(arrival),
+                              'problem': 'no coin_drawn assigns this arrival'})
+            continue
+        a_mono, c_mono = ev.get('t_mono_ns'), coin.get('t_mono_ns')
+        if a_mono is None or c_mono is None:
+            unmatched.append({'seq': ev.get('seq'), 'arrival': int(arrival),
+                              'problem': 'missing envelope t_mono_ns'})
+            continue
+        rows.append({'arrival': int(arrival), 'coin_seq': coin.get('seq'),
+                     'accept_seq': ev.get('seq'),
+                     'seconds': (int(a_mono) - int(c_mono)) / 1e9,
+                     'worker_t_mono_ns': (ev.get('body') or {}).get('worker_t_mono_ns')})
+
+    xs = sorted(r['seconds'] for r in rows)
+    def q(p):
+        if not xs:
+            return None
+        k = max(1, min(len(xs), int(math.ceil(p * len(xs)))))
+        return xs[k - 1]
+    negatives = [r for r in rows if r['seconds'] < 0]
+    return {
+        'clock': 'envelope t_mono_ns (one writer, one domain)',
+        'worker_clock_not_differenced': ('job_accepted.worker_t_mono_ns is a '
+                                         'DIFFERENT process monotonic clock and is '
+                                         'recorded, never subtracted from a coin '
+                                         'stamp'),
+        'n': len(rows),
+        'min': xs[0] if xs else None, 'median': q(0.5),
+        'p95': q(0.95), 'max': xs[-1] if xs else None,
+        'above_threshold_s': list_above_s,
+        'listed_above_threshold': [r for r in rows if r['seconds'] > list_above_s],
+        'negative_latencies': negatives,
+        'negative_note': ('a job accepted BEFORE its coin was drawn is a '
+                          'write-ahead violation, not a small number; listed '
+                          'separately so it cannot hide inside a distribution'),
+        'unmatched': unmatched,
+        'rows': rows,
+    }
+
+
+def server_log_prefix(events: list) -> dict:
+    """Protocol 12.6 item 6: the prefix property of the server logs across anchors.
+
+    Each ``anchor`` carries ``server_log_bytes`` and ``server_log_sha256``. Across
+    consecutive anchors the log may only GROW, so the byte count must be
+    non-decreasing.
+
+    WHAT THIS CANNOT DO FROM THE CHAIN ALONE, stated rather than implied: the
+    digest at anchor k is over the first ``server_log_bytes[k]`` bytes. Verifying
+    that anchor k's digest really is the prefix of anchor k+1's log requires the
+    LOG ITSELF, which is not in the chain. From the chain this checks
+    monotonicity and reports the digests for an external check; it does not
+    establish the prefix property.
+    """
+    anchors = [e for e in events if e.get('type') == 'anchor']
+    rows, violations = [], []
+    prev = None
+    for a in anchors:
+        b = a.get('body') or {}
+        n, d = b.get('server_log_bytes'), b.get('server_log_sha256')
+        row = {'anchor_seq': b.get('anchor_seq'), 'seq': a.get('seq'),
+               'server_log_bytes': n, 'server_log_sha256': d}
+        if prev is not None and isinstance(n, int) and isinstance(prev[0], int):
+            row['grew_by'] = n - prev[0]
+            if n < prev[0]:
+                row['violation'] = 'server log SHRANK between anchors'
+                violations.append(row)
+            elif n == prev[0] and d != prev[1]:
+                row['violation'] = ('same byte count, DIFFERENT digest: the log was '
+                                    'rewritten, not appended to')
+                violations.append(row)
+        rows.append(row)
+        if isinstance(n, int):
+            prev = (n, d)
+    return {
+        'anchors': len(anchors), 'rows': rows, 'violations': violations,
+        'violation_count': len(violations),
+        'established': 'byte-count monotonicity and digest stability at equal length',
+        'NOT_established': ('the prefix property itself. The digest at anchor k is '
+                            'over the first server_log_bytes[k] bytes and the LOG '
+                            'IS NOT IN THE CHAIN, so this cannot verify that '
+                            "anchor k's digest is the prefix of anchor k+1's log. "
+                            'An external check holding the log must do that.'),
     }
 
 

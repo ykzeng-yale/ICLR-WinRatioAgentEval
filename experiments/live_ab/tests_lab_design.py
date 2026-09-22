@@ -4727,3 +4727,102 @@ class GapCoverageIdentityTests(unittest.TestCase):
         src = Path(lab_common.HERE / 'lab_verify_log.py').read_text('utf-8')
         self.assertIn("rid = ev['body']['request_id']", src)
         self.assertIn("('llm_response', 'llm_error')", src)
+
+
+class AcceptanceLatencyAndLogPrefixTests(unittest.TestCase):
+    """Protocol 12.6 items 5 and 6, the last two clauses of the timing-integrity
+    report that were unimplemented."""
+
+    def setUp(self):
+        import build_live_ab_results as B
+        self.B = B
+
+    def _coin(self, seq, mono_s, arrivals):
+        return {'type': 'coin_drawn', 'seq': seq, 't_mono_ns': int(mono_s * 1e9),
+                'body': {'pair': 1, 'bit': 0,
+                         'assignment': {str(a): 'candidate' for a in arrivals}}}
+
+    def _accept(self, seq, mono_s, arrival, worker_mono=None):
+        body = {'arrival': arrival, 'attempt': 0}
+        if worker_mono is not None:
+            body['worker_t_mono_ns'] = worker_mono
+        return {'type': 'job_accepted', 'seq': seq,
+                't_mono_ns': int(mono_s * 1e9), 'body': body}
+
+    # -- item 5 --------------------------------------------------------------
+    def test_the_worker_clock_is_recorded_and_never_differenced(self):
+        """job_accepted carries worker_t_mono_ns -- a DIFFERENT process's
+        monotonic clock with its own epoch. Subtracting it from an orchestrator
+        stamp would produce a number with no meaning. This is the same
+        clock-domain trap as the 694 s CLOCK_MONOTONIC finding, one layer in."""
+        ev = [self._coin(1, 0, [1]),
+              self._accept(2, 0.5, 1, worker_mono=10 ** 15)]
+        r = self.B.acceptance_latency(ev)
+        self.assertAlmostEqual(r['rows'][0]['seconds'], 0.5)
+        self.assertEqual(r['rows'][0]['worker_t_mono_ns'], 10 ** 15)
+        self.assertIn('never subtracted', r['worker_clock_not_differenced'])
+
+    def test_every_gap_above_one_second_is_listed(self):
+        ev = [self._coin(1, 0, [1, 2]),
+              self._accept(2, 0.5, 1), self._accept(3, 3.0, 2)]
+        r = self.B.acceptance_latency(ev)
+        self.assertEqual(r['n'], 2)
+        self.assertEqual(len(r['listed_above_threshold']), 1)
+        self.assertEqual(r['listed_above_threshold'][0]['arrival'], 2)
+
+    def test_a_NEGATIVE_latency_is_listed_separately_not_averaged_in(self):
+        """A job accepted BEFORE its coin was drawn is a write-ahead violation,
+        not a small number. Buried in a distribution it would pull the median
+        down and vanish."""
+        ev = [self._coin(1, 5.0, [1]), self._accept(2, 1.0, 1)]
+        r = self.B.acceptance_latency(ev)
+        self.assertEqual(len(r['negative_latencies']), 1)
+        self.assertAlmostEqual(r['negative_latencies'][0]['seconds'], -4.0)
+
+    def test_an_acceptance_with_no_coin_is_unmatched_not_dropped(self):
+        ev = [self._accept(1, 1.0, 99)]
+        r = self.B.acceptance_latency(ev)
+        self.assertEqual(r['n'], 0)
+        self.assertEqual(len(r['unmatched']), 1)
+        self.assertIn('no coin_drawn', r['unmatched'][0]['problem'])
+
+    def test_the_pairing_uses_the_assignment_map_the_verifier_uses(self):
+        """coin_drawn keys by `pair` and carries `assignment` (arrival -> arm);
+        job_accepted keys by `arrival`. lab_verify_log builds exactly this map."""
+        src = Path(lab_common.HERE / 'lab_verify_log.py').read_text('utf-8')
+        self.assertIn("for a in ev['body']['assignment']", src)
+        ev = [self._coin(1, 0, [7]), self._accept(2, 0.25, 7)]
+        self.assertEqual(self.B.acceptance_latency(ev)['n'], 1)
+
+    # -- item 6 --------------------------------------------------------------
+    def _anchor(self, seq, n, digest):
+        return {'type': 'anchor', 'seq': seq,
+                'body': {'anchor_seq': seq, 'server_log_bytes': n,
+                         'server_log_sha256': digest}}
+
+    def test_a_shrinking_server_log_is_a_violation(self):
+        r = self.B.server_log_prefix([self._anchor(1, 100, 'a' * 64),
+                                      self._anchor(2, 90, 'b' * 64)])
+        self.assertEqual(r['violation_count'], 1)
+        self.assertIn('SHRANK', r['violations'][0]['violation'])
+
+    def test_same_length_but_a_different_digest_is_a_REWRITE(self):
+        """Equal byte counts with different digests means the log was rewritten,
+        not appended to -- which byte-count monotonicity alone would pass."""
+        r = self.B.server_log_prefix([self._anchor(1, 100, 'a' * 64),
+                                      self._anchor(2, 100, 'b' * 64)])
+        self.assertEqual(r['violation_count'], 1)
+        self.assertIn('rewritten', r['violations'][0]['violation'])
+
+    def test_normal_growth_is_clean(self):
+        r = self.B.server_log_prefix([self._anchor(1, 100, 'a' * 64),
+                                      self._anchor(2, 250, 'b' * 64)])
+        self.assertEqual(r['violation_count'], 0)
+        self.assertEqual(r['rows'][1]['grew_by'], 150)
+
+    def test_the_prefix_property_itself_is_declared_NOT_established(self):
+        """The digest is over the first N bytes and the LOG IS NOT IN THE CHAIN,
+        so this cannot verify the prefix property. Saying so is the point."""
+        r = self.B.server_log_prefix([self._anchor(1, 10, 'a' * 64)])
+        self.assertIn('NOT_established', r)
+        self.assertIn('LOG', r['NOT_established'])
