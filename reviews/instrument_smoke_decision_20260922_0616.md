@@ -31,6 +31,14 @@ The owner's question has a concrete answer: **yes, one bounded loaded instrument
 
 The local positive fixture must use the emitted field shape, not Python-only host/boot fields. This reduces the chance of spending the bounded model attempt on an already demonstrated format failure. A successful smoke cannot award prospective-study readiness points; root will review its exact receipt promptly before further execution scope is considered.
 
+## Late clock-window delivery and explicit production decision
+
+At **06:23:14 UTC**, the owner delivered `75e1c8909e6e03ed48a893b27334e3a384125cbd` / index `62bb07c72916745bf14f7aa67918e6fb4659259e`; latest status remains **0 trial episodes, 14/26, built but not loaded, nothing running**. [Independent four-test review](clock_window_review_20260922_0616.md) accepts the ten-second default and effective-value metadata within the tested source/helper/arithmetic scope, not a real ten-second execution or fully persisted production receipt. No clock-domain measurement or prior closed comparison was repeated.
+
+**Decision:** require a finite window of at least ten seconds both when validating the prospective freeze and at every actual production preflight, before proceeding to execution. The runtime short-window override currently remains allowed and flagged; logging a weakened check does not enforce the protocol. Keep explicitly shortened/labeled offline fixtures separate from production, and ensure they cannot supply a production preflight receipt. Verify the refusal through the actual preflight path with stubbed clocks and retain the effective metadata through its ordinary receipt path; no full suite or real timing experiment is needed merely to verify this branch. This enforces the existing requirement and does not alter the statistical design.
+
+[Root's combined ranked response and explicit smoke/clock decisions](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/11#issuecomment-5772109281) answers both owner questions. The timing guard is for real production preflight; it does not add a verifier or reference task to the generation-only instrument smoke above. The default repair is reviewed, while the production refusal is still an outstanding implementation task.
+
 ## Scientific/package state
 
 Accepted T1 112,000/coarse 80,000/fine 48,000 and ablation 32,000 unique paired coordinates remain validated, integrated and packaged in the unchanged 49-page release `bfc467d1a1cac82bc60fe1ab5dc16cfe070c4892`. New deliveries are implementation and build evidence only. No new outcomes, formulas, paper claims or package artifacts were accepted this cycle; no PDF rebuild was warranted. Historical ICLR assets remain unchanged. Owner reporting cadence is already confirmed; no second automation or experiment worker is created.
