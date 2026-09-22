@@ -132,6 +132,15 @@ def run_fixture(work: Optional[Path] = None, *, hold_s: float = 2.0,
     nonce = secrets.token_hex(8)
     marker_name = 'sandbox_active_' + nonce
 
+    # SCAN BEFORE LAUNCH (root 2026-09-22 01:07): the scan used to run AFTER
+    # Popen, so a fast valid holder could create its marker first and be
+    # misclassified as pre-existing -- a false negative. Base resolution and the
+    # nonce-specific scan now both happen before any holder exists.
+    sys.path.insert(0, str(LS_DIR))
+    import sandbox as _SB
+    base = Path(_SB.sandbox_base_dir())
+    preexisting = list(base.glob('p_*/' + marker_name))
+
     holder = subprocess.Popen(
         [sys.executable, '-c',
          _supervisor_source(str(lock), 'holder', str(ready), nonce,
@@ -144,12 +153,6 @@ def run_fixture(work: Optional[Path] = None, *, hold_s: float = 2.0,
     # The marker lands in the sandbox's OWN run directory (base/p_*/sandbox_active),
     # because that is the only location the Seatbelt profile lets the program
     # write. The supervisor-side poll is the trusted observation.
-    sys.path.insert(0, str(LS_DIR))
-    import sandbox as _SB
-    base = Path(_SB.sandbox_base_dir())
-    # REJECT PRE-EXISTING markers: nothing bearing this nonce may exist before
-    # the holder starts, and the nonce is fresh per run.
-    preexisting = list(base.glob('p_*/' + marker_name))
     deadline = time.monotonic() + 30.0
     seen = []
     while not seen and time.monotonic() < deadline:
@@ -161,6 +164,24 @@ def run_fixture(work: Optional[Path] = None, *, hold_s: float = 2.0,
             time.sleep(0.01)
     sandbox_active_observed = bool(seen) and not preexisting
     sandbox_active_at = time.monotonic() if sandbox_active_observed else None
+
+    # READINESS IS A PRECONDITION, not a field. Root: "launches the contender even
+    # if readiness is false ... Such a receipt cannot support 'contender tried
+    # while sandbox active'. Treat false/missing readiness as an INVALID combined
+    # receipt and stop before contender launch while retaining holder outcome."
+    if not sandbox_active_observed:
+        out, err = holder.communicate(timeout=60.0)
+        return {
+            'schema': FIXTURE_SCHEMA,
+            'valid': False,
+            'reason': ('the holder sandbox program was never observed active, so no '
+                       'contender was launched. A blocked contender here could not '
+                       'have supported "tried while the sandbox was active".'),
+            'run_nonce': nonce, 'marker_identity': marker_name,
+            'preexisting_markers_found': len(preexisting),
+            'holder': _parse(out), 'contender': None,
+            'holder_stderr_tail': (err or '')[-300:],
+        }
 
     c = subprocess.run(
         [sys.executable, '-c',
@@ -175,6 +196,7 @@ def run_fixture(work: Optional[Path] = None, *, hold_s: float = 2.0,
 
     return {
         'schema': FIXTURE_SCHEMA,
+        'valid': True,
         'label': ('SYNTHETIC INTEGRATION CHECK of the combined lock+sandbox route. '
                   'Two independent TRUSTED SUPERVISORS; the lock is held OUTSIDE '
                   'the sandbox and the sandboxed program never references it. NOT '

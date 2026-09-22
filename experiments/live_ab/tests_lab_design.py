@@ -2379,3 +2379,85 @@ class CoverageSchemaDomainMatrixTests(unittest.TestCase):
                                          verification_started_monotonic=1.0,
                                          verification_ended_monotonic=2.0)
         self.assertEqual(modern['interval_schema'], lab_prepare.INTERVAL_SCHEMA_V2)
+
+
+class WorkerStartupEnforcementTests(unittest.TestCase):
+    """Root 2026-09-22 01:07: BOTH supervisor-launch and worker-startup checks.
+
+    "Offline stubs should show invalid launch refusal and invalid
+    direct/restarted worker refusal before dispatch; valid prescribed setup
+    passes."
+    """
+
+    def setUp(self):
+        self.cfg = json.loads((lab_common.HERE / 'config.json').read_text('utf-8'))
+
+    # -- supervisor side: refuse BEFORE any worker exists --------------------
+    def test_invalid_launch_is_refused_before_any_worker(self):
+        bad = json.loads(json.dumps(self.cfg))
+        bad['sandbox']['tmpdir'] = '<TMP>/wrong'
+        with self.assertRaises(lab_prepare.PreparationRefused):
+            lab_prepare.launch_environment(bad)
+
+    def test_valid_launch_environment_carries_the_prescribed_tmpdir(self):
+        env = lab_prepare.launch_environment(self.cfg, base_env={})
+        self.assertEqual(env['TMPDIR'], '/private/tmp/labsbx')
+
+    # -- worker side: startup AND restart, before dispatch -------------------
+    def test_invalid_worker_is_refused_at_startup_and_after_restart(self):
+        with mock.patch.object(tempfile, 'gettempdir',
+                               lambda: '/private/tmp/WRONG'):
+            for phase in ('startup', 'restart'):
+                with self.subTest(phase=phase):
+                    with self.assertRaises(lab_prepare.PreparationRefused):
+                        lab_prepare.assert_worker_startup(self.cfg, phase=phase)
+
+    def test_valid_prescribed_worker_setup_passes(self):
+        import os as _os
+        # BOTH must agree: the env string and Python's resolved directory. The
+        # first version of this test patched only gettempdir and the check
+        # correctly refused, because the ambient TMPDIR still disagreed.
+        with mock.patch.object(tempfile, 'gettempdir',
+                               lambda: '/private/tmp/labsbx'):
+            with mock.patch.dict(_os.environ, {'TMPDIR': '/private/tmp/labsbx'}):
+                got = lab_prepare.assert_worker_startup(self.cfg)
+        self.assertEqual(got['sandbox_base_dir'], '/private/tmp/labsbx/ls_sbx')
+        self.assertTrue(got['checked_before_dispatch'])
+
+    def test_resolved_directory_is_authoritative_over_the_env_string(self):
+        """Root: 'an environment string alone does not establish Python's
+        resolved/cached temporary directory. Do not change a running process's
+        cache to force a pass.'"""
+        import os as _os
+        with mock.patch.object(tempfile, 'gettempdir',
+                               lambda: '/private/tmp/labsbx'):
+            with mock.patch.dict(_os.environ, {'TMPDIR': '/private/tmp/OTHER'}):
+                with self.assertRaises(lab_prepare.PreparationRefused) as ctx:
+                    lab_prepare.assert_worker_startup(self.cfg)
+        self.assertIn('resolved', str(ctx.exception).lower())
+
+    def test_a_refusal_diagnostic_cannot_itself_raise(self):
+        """An untokenizable path must be redacted, not turned into a traceback."""
+        self.assertEqual(lab_prepare._safe_token('/nowhere/at/all'),
+                         '<UNTOKENIZABLE-PATH-REDACTED>')
+
+
+class CombinedFixtureControlFlowTests(unittest.TestCase):
+    """Root's two narrow fixture corrections (2026-09-22 01:07)."""
+
+    def test_preexisting_scan_happens_before_the_holder_is_launched(self):
+        """A fast valid holder must not be misclassified as pre-existing."""
+        import inspect
+        import lab_combined_fixture
+        src = inspect.getsource(lab_combined_fixture.run_fixture)
+        self.assertLess(src.index('preexisting = list('),
+                        src.index('holder = subprocess.Popen'),
+                        'the nonce scan must precede holder launch')
+
+    def test_contender_is_not_launched_when_readiness_is_false(self):
+        import inspect
+        import lab_combined_fixture
+        src = inspect.getsource(lab_combined_fixture.run_fixture)
+        self.assertLess(src.index('if not sandbox_active_observed'),
+                        src.index('c = subprocess.run'),
+                        'readiness must gate the contender launch')

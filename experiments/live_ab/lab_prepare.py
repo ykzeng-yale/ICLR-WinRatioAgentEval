@@ -595,3 +595,77 @@ def _validate_acquisition(dest: Path, manifest: dict, expect_mode: "str | None",
             raise PreparationRefused(
                 '%s: required source %s does not match its pinned sha256; refusing '
                 'rather than reporting drift' % (path_label, name))
+
+
+# ---------------------------------------------------------------------------
+# Worker startup enforcement: BOTH ends, per root 2026-09-22 01:07
+# ---------------------------------------------------------------------------
+# "The supervisor must set and validate the child environment before launching
+#  workers. Each actual worker must use the shared prescribed-directory check at
+#  startup and after restart, before any model or sandbox dispatch. This also
+#  covers direct invocation. The worker's RESOLVED directory is authoritative: an
+#  environment string alone does not establish Python's resolved/cached temporary
+#  directory. Do not change a running process's cache to force a pass."
+#
+# Two check points, because a single one misses a case: validating only at launch
+# leaves a directly-invoked or restarted worker unguarded, and validating only in
+# the worker allows a supervisor to create workers it should never have created.
+
+def _safe_token(path: object) -> str:
+    """Tokenized path, or a redacted marker when it cannot be tokenized."""
+    try:
+        return lab_common.tokenize_path(Path(str(path)))
+    except Exception:
+        return '<UNTOKENIZABLE-PATH-REDACTED>'
+
+
+def launch_environment(cfg: dict, base_env: "dict | None" = None) -> Dict[str, str]:
+    """The child environment a supervisor must use, validated BEFORE any worker.
+
+    Returns the environment to pass to the child. Raises before a worker is
+    created if the prescribed directory cannot be established, so no worker is
+    ever spawned into a wrong TMPDIR.
+    """
+    import os
+    declared = ((cfg or {}).get('sandbox') or {}).get('tmpdir')
+    if declared != PRESCRIBED_TMPDIR_TOKEN:
+        raise PreparationRefused(
+            'config.sandbox.tmpdir is %r; protocol 5.7 item 2 prescribes %r. No '
+            'worker is launched.' % (declared, PRESCRIBED_TMPDIR_TOKEN))
+    want = '/private/tmp/' + declared.split('/', 1)[1]
+    if not Path(want).is_dir():
+        raise PreparationRefused(
+            'the prescribed TMPDIR %s does not exist; create it before launching '
+            'workers rather than letting each worker resolve elsewhere' % want)
+    env = dict(os.environ if base_env is None else base_env)
+    env['TMPDIR'] = want
+    return env
+
+
+def assert_worker_startup(cfg: dict, *, phase: str = 'startup') -> Dict[str, Any]:
+    """The worker-side check. Call at startup AND after restart, BEFORE dispatch.
+
+    Uses the SAME shared helper as preparation, so the two cannot drift. The
+    worker's own RESOLVED temporary directory is authoritative -- root was
+    explicit that an environment string does not establish what Python has
+    already cached. This function therefore never mutates the cache to force a
+    pass: a mismatched worker refuses and is replaced, it does not repair itself.
+    """
+    import os
+    import tempfile as _tf
+    checked = assert_prescribed_tmpdir(cfg)          # the shared helper
+    env_str = os.environ.get('TMPDIR')
+    resolved = os.path.realpath(_tf.gettempdir())
+    if env_str and os.path.realpath(env_str) != resolved:
+        # A DIAGNOSTIC MUST NOT BREAK THE REFUSAL IT REPORTS. tokenize_path raises
+        # on a path outside the known roots, which is exactly the situation here,
+        # so an untokenizable value is redacted rather than allowed to turn a
+        # clean refusal into an UntokenizablePath traceback.
+        raise PreparationRefused(
+            'worker %s: TMPDIR env is %s but Python has RESOLVED %s. The resolved '
+            'directory is authoritative and this process will not rewrite its own '
+            'cache to agree; refuse and relaunch.'
+            % (phase, _safe_token(env_str), _safe_token(resolved)))
+    return {'phase': phase, 'resolved_tmpdir': resolved,
+            'sandbox_base_dir': checked['sandbox_base_dir'],
+            'checked_before_dispatch': True}
