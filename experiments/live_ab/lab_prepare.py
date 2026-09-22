@@ -367,8 +367,12 @@ MIN_LOAD_CONCURRENCY = 2
 #: it must be the one the verifier record uses. When root authorizes a change to
 #: lab_data's stamping, this constant changes with it, in one place.
 REQUIRED_WINDOW_CLOCK = 'time.monotonic'
+#: The domain a server lifecycle observer reads, and the one v3 records carry.
+POSIX_WINDOW_CLOCK = 'clock_gettime(CLOCK_MONOTONIC)'
 
 INTERVAL_SCHEMA_V1 = 'live_ab/attempt_interval-v1'
+#: v3 carries the NAMED POSIX readings beside the legacy ones.
+INTERVAL_SCHEMA_V3 = 'live_ab/attempt_interval-v3'
 INTERVAL_SCHEMA_V2 = 'live_ab/attempt_interval-v2'
 
 
@@ -481,16 +485,23 @@ def _coverage_verdict(obs: object, record: dict, *,
                           'or endpoint bound converts them into it. Such evidence is '
                           'retained as a DIAGNOSTIC.'
                           % (EVIDENCE_SERVER_LIFECYCLE, kind)}
-    # THE CLOCK IS NAMED AND CHECKED, not assumed. See REQUIRED_WINDOW_CLOCK.
+    # THE CLOCK IS NAMED AND CHECKED, not assumed. Which domain is required
+    # depends on the record's schema, and the check happens in the schema branch
+    # below; an observation that names NO domain is refused here.
     clock = obs.get('clock')
-    if clock != REQUIRED_WINDOW_CLOCK:
+    if not isinstance(clock, str) or not clock:
         return {'valid': False, 'clock': clock,
-                'reason': 'the observation declares clock %r; the verifier record '
-                          'is stamped on %r. On this host clock_gettime('
-                          'CLOCK_MONOTONIC) and time.monotonic() differ by 694 s '
-                          'and the gap grows at every sleep, so "the same host '
-                          'monotonic clock" must be checked, not assumed.'
-                          % (clock, REQUIRED_WINDOW_CLOCK)}
+                'reason': 'the observation names no clock domain. On this host '
+                          'clock_gettime(CLOCK_MONOTONIC) and time.monotonic() '
+                          'differ by 694 s and the gap grows at every sleep, so '
+                          '"the same host monotonic clock" must be named and '
+                          'checked, never assumed.'}
+    if clock not in (REQUIRED_WINDOW_CLOCK, POSIX_WINDOW_CLOCK):
+        return {'valid': False, 'clock': clock,
+                'reason': 'unsupported clock domain %r; supported: %r, %r. An '
+                          'unsupported clock refuses coverage and retains the '
+                          'attempt.' % (clock, REQUIRED_WINDOW_CLOCK,
+                                        POSIX_WINDOW_CLOCK)}
     if obs.get('lifecycle_complete') is not True:
         return {'valid': False,
                 'reason': 'the observation does not assert lifecycle_complete. Root: '
@@ -546,7 +557,35 @@ def _coverage_verdict(obs: object, record: dict, *,
     # throughout it. Legacy evidence is therefore retained -- behind an explicit
     # audit route that names the version it certified, never as a silent rescue.
     schema = record.get('interval_schema')
-    if schema == INTERVAL_SCHEMA_V2:
+    if schema == INTERVAL_SCHEMA_V3:
+        # THE MATCHED DOMAIN, root 2026-09-22 03:19: "Compare server lifecycle
+        # timestamps only to the matching CLOCK_MONOTONIC verifier interval ...
+        # Do not compare a Python-monotonic interval to a POSIX-clock lifecycle,
+        # even if both are on the same host."
+        if record.get('clock_domain_posix') != clock:
+            return {'valid': False, 'clock': clock,
+                    'reason': 'clock domain mismatch: the observation is on %r and '
+                              'the v3 record names %r for its POSIX readings. A '
+                              'mismatch refuses coverage and RETAINS the attempt; '
+                              'it is never a task exclusion.'
+                              % (clock, record.get('clock_domain_posix'))}
+        s_ns = record.get('verification_started_posix_ns')
+        e_ns = record.get('verification_ended_posix_ns')
+        if not isinstance(s_ns, int) or not isinstance(e_ns, int):
+            return {'valid': False, 'interval_version': INTERVAL_SCHEMA_V3,
+                    'reason': 'a v3 record must carry INTEGER nanosecond POSIX '
+                              'endpoints; got %r and %r. Unsupported clock or '
+                              'malformed timing refuses coverage and retains the '
+                              'attempt.' % (s_ns, e_ns)}
+        if record.get('boot_id') != obs.get('boot_id'):
+            return {'valid': False,
+                    'reason': 'boot identity differs between the observation (%r) '
+                              'and the attempt (%r); a monotonic clock does not '
+                              'survive a reboot and the two readings are not on one '
+                              'timeline' % (obs.get('boot_id'), record.get('boot_id'))}
+        start, end = s_ns / 1e9, e_ns / 1e9
+        certified_version = INTERVAL_SCHEMA_V3
+    elif schema == INTERVAL_SCHEMA_V2:
         start = _finite(record.get('verification_started_monotonic'))
         end = _finite(record.get('verification_ended_monotonic'))
         if start is None or end is None:
@@ -555,6 +594,11 @@ def _coverage_verdict(obs: object, record: dict, *,
                               'are missing, null or nonfinite; legacy aliases may '
                               'not rescue a malformed v2 record'
                               % INTERVAL_SCHEMA_V2}
+        if clock != REQUIRED_WINDOW_CLOCK:
+            return {'valid': False, 'clock': clock,
+                    'reason': 'a v2 record carries only %r endpoints and the '
+                              'observation is on %r; the domains do not match'
+                              % (REQUIRED_WINDOW_CLOCK, clock)}
         certified_version = INTERVAL_SCHEMA_V2
     elif schema in (None, INTERVAL_SCHEMA_V1) and allow_legacy_audit:
         start = _finite(record.get('started_monotonic'))

@@ -2984,15 +2984,25 @@ class LoadObserverSecondReviewTests(unittest.TestCase):
                 self.assertFalse(v['valid'])
 
     # -- the clock is named and checked, not assumed ------------------------
-    def test_an_observation_on_a_different_clock_is_refused(self):
-        """The 694 s finding, turned into a gate: CLOCK_MONOTONIC and
-        time.monotonic() are different timelines on this host."""
+    def test_a_posix_observation_against_a_v2_record_is_refused(self):
+        """The 694 s finding, turned into a gate: a POSIX-clock lifecycle may not
+        be compared with a Python-monotonic verifier interval, even on one host.
+        Root 2026-09-22 03:19: "Do not compare a Python-monotonic interval to a
+        POSIX-clock lifecycle, even if both are on the same host." """
         v = lab_prepare._coverage_verdict(self._lc([
             {'start': 99.0, 'end': 101.0, 'identity': 'a'},
             {'start': 99.0, 'end': 101.0, 'identity': 'b'}],
             clock='clock_gettime(CLOCK_MONOTONIC)'), self.ATTEMPT)
         self.assertFalse(v['valid'])
-        self.assertIn('694', v['reason'])
+        self.assertIn('do not match', v['reason'])
+
+    def test_an_unsupported_clock_domain_is_refused(self):
+        v = lab_prepare._coverage_verdict(self._lc([
+            {'start': 99.0, 'end': 101.0, 'identity': 'a'},
+            {'start': 99.0, 'end': 101.0, 'identity': 'b'}],
+            clock='time.perf_counter'), self.ATTEMPT)
+        self.assertFalse(v['valid'])
+        self.assertIn('unsupported clock domain', v['reason'])
 
     def test_an_observation_that_names_no_clock_is_refused(self):
         obs = self._lc([{'start': 99.0, 'end': 101.0, 'identity': 'a'},
@@ -3095,3 +3105,132 @@ class LoadObserverSecondReviewTests(unittest.TestCase):
         self.assertIn(lab_data.ATTEMPT_RECORD_SCHEMA, kinds)
         self.assertIn('live_ab/load_observation_raw-v1', kinds)   # RETAINED
         self.assertIn('live_ab/load_coverage_failure-v1', kinds)
+
+
+class NamedClockDomainTests(unittest.TestCase):
+    """Root's authorized clock repair, driven through the ACTUAL producer and
+    consumer (root 2026-09-22 03:19 item 4: "Use deterministic reader/observer
+    stubs to test a large domain offset, changing offset, wrong/missing domain,
+    reboot mismatch and the normal matched-clock case, through the actual
+    producer and consumer")."""
+
+    def _record(self, **kw):
+        base = dict(
+            uid='t/1', run_index=0,
+            result={'success': False, 'sentinel_seen': False, 'timed_out': False,
+                    'entry_point_defined': True, 'sandbox_flag': False,
+                    'verify_seconds': 0.2,
+                    'run': {'passed': False, 'returncode': 1, 'stdout_tail': 'o',
+                            'stderr': 'e', 'timed_out': False}})
+        base.update(kw)
+        return lab_data.attempt_record(**base)
+
+    def _obs(self, clock, boot_id, windows=None):
+        return {'active': True, 'window_id': 'lc', 'endpoint_error_s': 0.0,
+                'evidence_kind': 'server_lifecycle', 'lifecycle_complete': True,
+                'clock': clock, 'boot_id': boot_id, 'concurrency_required': 2,
+                'active_windows': windows or [
+                    {'start': 99.0, 'end': 102.0, 'identity': 'slot0/req_a'},
+                    {'start': 99.0, 'end': 102.0, 'identity': 'slot1/req_b'}]}
+
+    # -- the producer -------------------------------------------------------
+    def test_the_producer_labels_v3_only_when_it_really_has_both_clocks(self):
+        v3 = self._record(verification_started_monotonic=100.0,
+                          verification_ended_monotonic=100.5,
+                          verification_started_posix_ns=100_000_000_000,
+                          verification_ended_posix_ns=100_500_000_000,
+                          boot_id='boot:1')
+        self.assertEqual(v3['interval_schema'], lab_data.INTERVAL_SCHEMA_V3)
+        v2 = self._record(verification_started_monotonic=100.0,
+                          verification_ended_monotonic=100.5)
+        self.assertEqual(v2['interval_schema'], 'live_ab/attempt_interval-v2')
+        self.assertIsNone(v2['verification_started_posix_ns'])
+
+    def test_the_legacy_fields_keep_their_own_semantics_beside_the_new_ones(self):
+        r = self._record(verification_started_monotonic=100.0,
+                         verification_ended_monotonic=100.5,
+                         verification_started_posix_ns=794_000_000_000,
+                         verification_ended_posix_ns=794_600_000_000,
+                         boot_id='boot:1')
+        self.assertEqual(r['verification_started_monotonic'], 100.0)
+        self.assertEqual(r['verification_started_posix_ns'], 794_000_000_000)
+        self.assertEqual(r['clock_domain_legacy'], lab_data.CLOCK_DOMAIN_LEGACY)
+        self.assertEqual(r['clock_domain_posix'], lab_data.CLOCK_DOMAIN_POSIX)
+
+    def test_the_posix_reads_are_ordered_to_WIDEN_the_interval(self):
+        """Root: read the POSIX start BEFORE the legacy start and the POSIX end
+        AFTER the legacy end, so cross-call order widens rather than shortens."""
+        src = inspect.getsource(lab_data.sweep_references)
+        i_ps = src.index('_verify_started_posix_ns = ')
+        i_ls = src.index('_verify_started = time.monotonic()')
+        i_le = src.index('_verify_ended = time.monotonic()')
+        i_pe = src.index('_verify_ended_posix_ns = ')
+        self.assertLess(i_ps, i_ls)
+        self.assertLess(i_le, i_pe)
+
+    def test_boot_identity_changes_when_the_monotonic_clock_restarts(self):
+        a = lab_data.boot_identity()
+        self.assertTrue(a.startswith('boot:'))
+        self.assertEqual(a, lab_data.boot_identity())   # stable within a boot
+
+    # -- the consumer: the five cases root named ---------------------------
+    def _v3(self, boot_id='boot:1'):
+        return self._record(verification_started_monotonic=100.0,
+                            verification_ended_monotonic=100.5,
+                            verification_started_posix_ns=100_000_000_000,
+                            verification_ended_posix_ns=100_500_000_000,
+                            boot_id=boot_id)
+
+    def test_matched_clock_case_certifies(self):
+        v = lab_prepare._coverage_verdict(
+            self._obs(lab_data.CLOCK_DOMAIN_POSIX, 'boot:1'), self._v3())
+        self.assertTrue(v['valid'], v.get('reason'))
+        self.assertEqual(v['interval_version'], lab_data.INTERVAL_SCHEMA_V3)
+
+    def test_a_large_domain_offset_does_not_make_coverage_easier(self):
+        """694 s of offset applied to the WINDOWS, with the record unchanged: the
+        windows no longer contain the attempt and coverage is refused. Nothing
+        subtracts the offset -- root forbade that explicitly."""
+        off = 694.1511
+        v = lab_prepare._coverage_verdict(
+            self._obs(lab_data.CLOCK_DOMAIN_POSIX, 'boot:1', windows=[
+                {'start': 99.0 + off, 'end': 102.0 + off, 'identity': 'a'},
+                {'start': 99.0 + off, 'end': 102.0 + off, 'identity': 'b'}]),
+            self._v3())
+        self.assertFalse(v['valid'])
+
+    def test_a_wrong_domain_is_refused(self):
+        v = lab_prepare._coverage_verdict(
+            self._obs(lab_data.CLOCK_DOMAIN_LEGACY, 'boot:1'), self._v3())
+        self.assertFalse(v['valid'])
+        self.assertIn('clock domain mismatch', v['reason'])
+
+    def test_a_missing_domain_is_refused(self):
+        obs = self._obs(lab_data.CLOCK_DOMAIN_POSIX, 'boot:1')
+        obs.pop('clock')
+        v = lab_prepare._coverage_verdict(obs, self._v3())
+        self.assertFalse(v['valid'])
+        self.assertIn('names no clock domain', v['reason'])
+
+    def test_a_reboot_mismatch_is_refused_and_says_why(self):
+        v = lab_prepare._coverage_verdict(
+            self._obs(lab_data.CLOCK_DOMAIN_POSIX, 'boot:2'), self._v3(boot_id='boot:1'))
+        self.assertFalse(v['valid'])
+        self.assertIn('boot identity differs', v['reason'])
+
+    def test_malformed_nanosecond_endpoints_refuse_and_retain(self):
+        for bad in (100.5, None, '100'):
+            with self.subTest(bad=bad):
+                rec = self._v3()
+                rec['verification_started_posix_ns'] = bad
+                v = lab_prepare._coverage_verdict(
+                    self._obs(lab_data.CLOCK_DOMAIN_POSIX, 'boot:1'), rec)
+                self.assertFalse(v['valid'])
+
+    def test_a_v2_record_is_not_compared_with_a_posix_lifecycle(self):
+        v2 = self._record(verification_started_monotonic=100.0,
+                          verification_ended_monotonic=100.5)
+        v = lab_prepare._coverage_verdict(
+            self._obs(lab_data.CLOCK_DOMAIN_POSIX, 'boot:1'), v2)
+        self.assertFalse(v['valid'])
+        self.assertIn('do not match', v['reason'])

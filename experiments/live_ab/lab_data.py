@@ -478,6 +478,53 @@ def _exclusion(uid: str, reason: str, detail: str) -> Exclusion:
 # records reconstruct digests recorded BEFORE this repair as well as after it.
 ATTEMPT_RECORD_SCHEMA: str = 'live_ab/reference_attempt-v1'
 
+#: THE NAMED CLOCK DOMAINS, root 2026-09-22 03:19 (clock_domain_root_decision):
+#: "Record both clocks, with explicit domains; use one named domain for lifecycle
+#:  comparisons. The existing requirement meant the same clock source and epoch,
+#:  not merely the same machine."
+#:
+#: Measured on this host: the two differ by 694.15 s
+#: (results/live_ab/CLOCK_DOMAIN_FINDING.json). The legacy readings keep their
+#: operational timeout/duration semantics; the POSIX readings exist ONLY to be
+#: compared with server lifecycle events, which read the same POSIX clock.
+CLOCK_DOMAIN_LEGACY = 'time.monotonic'
+CLOCK_DOMAIN_POSIX = 'clock_gettime(CLOCK_MONOTONIC)'
+INTERVAL_SCHEMA_V3 = 'live_ab/attempt_interval-v3'
+
+
+def _posix_monotonic_ns() -> "int | None":
+    """``clock_gettime_ns(CLOCK_MONOTONIC)``, integer nanoseconds, or None.
+
+    Root: "Record integer nanoseconds and explicit conversion from any server
+    microseconds; the representation does not imply nanosecond accuracy." The
+    integer is the representation, not a claim about resolution.
+
+    None on a platform without the clock: root requires an unsupported clock to
+    REFUSE COVERAGE and retain the attempt, never to exclude a task.
+    """
+    clk = getattr(time, 'CLOCK_MONOTONIC', None)
+    if clk is None:                                            # pragma: no cover
+        return None
+    try:
+        return int(time.clock_gettime_ns(clk))
+    except (AttributeError, OSError):                          # pragma: no cover
+        return None
+
+
+def boot_identity() -> str:
+    """A value that CHANGES ACROSS A REBOOT, so a reboot cannot be silently
+    bridged. Root: "reboot ... must refuse coverage and retain the attempted
+    preparation record."
+
+    Derived from the offset between the wall clock and the POSIX monotonic clock,
+    rounded to the second: it is stable within a boot to far better than a second
+    and cannot survive a reboot, because the monotonic clock restarts.
+    """
+    ns = _posix_monotonic_ns()
+    if ns is None:                                             # pragma: no cover
+        return 'unknown'
+    return 'boot:%d' % int(time.time() - ns / 1e9)
+
 
 def attempt_record(uid: str, run_index: int, result: dict,
                    started_monotonic: "float | None" = None,
@@ -486,7 +533,10 @@ def attempt_record(uid: str, run_index: int, result: dict,
                    lock_acquired_monotonic: "float | None" = None,
                    verification_started_monotonic: "float | None" = None,
                    verification_ended_monotonic: "float | None" = None,
-                   lock_released_monotonic: "float | None" = None) -> dict:
+                   lock_released_monotonic: "float | None" = None,
+                   verification_started_posix_ns: "int | None" = None,
+                   verification_ended_posix_ns: "int | None" = None,
+                   boot_id: "str | None" = None) -> dict:
     """The COMPLETE per-attempt verifier record, retained rather than discarded.
 
     Carries the two fields the digest is built from (`stdout_tail`, `stderr`), the
@@ -529,13 +579,32 @@ def attempt_record(uid: str, run_index: int, result: dict,
         # Root 22:56: "The new constructor always marks interval_schema v2 even
         # when invoked with only legacy positional endpoints." It no longer does:
         # the label follows what was actually supplied.
-        'interval_schema': ('live_ab/attempt_interval-v2'
-                            if (verification_started_monotonic is not None
-                                and verification_ended_monotonic is not None)
-                            else 'live_ab/attempt_interval-v1'),
+        # v3 adds the NAMED POSIX clock readings beside the legacy ones; the
+        # label still follows what was actually supplied, never what the
+        # constructor hopes was supplied.
+        'interval_schema': (
+            INTERVAL_SCHEMA_V3
+            if (verification_started_monotonic is not None
+                and verification_ended_monotonic is not None
+                and verification_started_posix_ns is not None
+                and verification_ended_posix_ns is not None)
+            else 'live_ab/attempt_interval-v2'
+            if (verification_started_monotonic is not None
+                and verification_ended_monotonic is not None)
+            else 'live_ab/attempt_interval-v1'),
         # the CERTIFIED interval: the verifier call itself, inside the lock
         'verification_started_monotonic': verification_started_monotonic,
         'verification_ended_monotonic': verification_ended_monotonic,
+        # --- THE NAMED POSIX DOMAIN, root 2026-09-22 03:19 -----------------
+        # Kept SEPARATE from the legacy readings, which keep their operational
+        # timeout/duration semantics. These exist only to be compared with server
+        # lifecycle events, which read the same POSIX clock. Integer nanoseconds;
+        # the representation does not imply nanosecond accuracy.
+        'clock_domain_legacy': CLOCK_DOMAIN_LEGACY,
+        'clock_domain_posix': CLOCK_DOMAIN_POSIX,
+        'verification_started_posix_ns': verification_started_posix_ns,
+        'verification_ended_posix_ns': verification_ended_posix_ns,
+        'boot_id': boot_id,
         # retained beside it, never certified, never overwritten
         'lock_requested_monotonic': lock_requested_monotonic,
         'lock_acquired_monotonic': lock_acquired_monotonic,
@@ -802,14 +871,23 @@ def sweep_references(tasks: list[Task], cfg: dict, *, on_progress: Callable | No
             # interval load coverage must certify. The lock wait is retained but
             # is NOT part of the certified interval: 3.2(4) asks for verification
             # under load, not for waiting under load.
+            # READ ORDER IS PRESCRIBED, root 2026-09-22 03:19: "Read its start
+            # before the legacy start read and its end after the legacy end read,
+            # so cross-call measurement order WIDENS the interval rather than
+            # silently shortening it." The POSIX interval therefore encloses the
+            # legacy one, and the coverage requirement it carries is strictly
+            # harder to satisfy, never easier.
+            _boot_id = boot_identity()
             _lock_requested = time.monotonic()
             with _ExecutionLock(lock_path, max_lock_wait_s):
                 _lock_acquired = time.monotonic()
+                _verify_started_posix_ns = _posix_monotonic_ns()   # FIRST
                 _verify_started = time.monotonic()
                 result = verify_mod.verify(pilot_task, task['reference'], timeout_s=timeout_s,
                                            mem_bytes=mem_bytes, cpu_seconds=cpu_s,
                                            output_cap=output_cap)
                 _verify_ended = time.monotonic()
+                _verify_ended_posix_ns = _posix_monotonic_ns()     # LAST
             _lock_released = time.monotonic()
             # D1: the COMPLETE record is retained, not a string that is hashed and
             # thrown away.  `on_attempt` lets the caller persist it durably; the
@@ -821,7 +899,10 @@ def sweep_references(tasks: list[Task], cfg: dict, *, on_progress: Callable | No
                 lock_acquired_monotonic=_lock_acquired,
                 verification_started_monotonic=_verify_started,
                 verification_ended_monotonic=_verify_ended,
-                lock_released_monotonic=_lock_released)
+                lock_released_monotonic=_lock_released,
+                verification_started_posix_ns=_verify_started_posix_ns,
+                verification_ended_posix_ns=_verify_ended_posix_ns,
+                boot_id=_boot_id)
             attempts.append(record)
             if on_attempt is not None:
                 # DELIBERATELY UNGUARDED.  Root: "loss/failure of the sink must

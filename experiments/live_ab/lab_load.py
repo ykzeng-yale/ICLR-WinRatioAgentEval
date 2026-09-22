@@ -125,7 +125,16 @@ def _finite(x: object) -> Optional[float]:
 
 def windows_from_arrivals(arrivals: Sequence[Tuple[str, float]], *,
                           max_interior_gap_s: float) -> List[Dict[str, Any]]:
-    """Split an arrival series into windows of evidenced continuous production.
+    """Split an arrival series into windows of UNINTERRUPTED OBSERVED ARRIVALS.
+
+    Root, 2026-09-22 03:19: "Correct the remaining emitted observe.means and
+    windows_from_arrivals wording to describe OBSERVED CONTENT-ARRIVAL GAPS ONLY;
+    they still imply continuous production or bounded server idle time despite
+    the correct diagnostic flags." The flags were right and the prose was not.
+
+    A window here means: content-bearing arrivals were observed at these instants
+    with no observed gap larger than the tolerance. It says nothing about what
+    the server did between them.
 
     ``arrivals`` is ``(generation_id, monotonic_time)`` in arrival order.  The
     series is PARTITIONED BY GENERATION first, and each generation's own arrivals
@@ -142,9 +151,9 @@ def windows_from_arrivals(arrivals: Sequence[Tuple[str, float]], *,
 
     Two splits that are deliberately conservative:
 
-    * WITHIN a generation, a gap larger than the tolerance splits.  Between two
-      distant arrivals the server's state is unobserved, and unobserved is not
-      idle-free.
+    * WITHIN a generation, an OBSERVED gap larger than the tolerance splits.
+      Between two distant arrivals the server's state is unobserved, and
+      unobserved is not idle-free.
     * A SINGLE arrival produces NO window.  One instant is not an interval, and
       the one place a lone sample could be stretched into one is exactly the
       fabrication this module exists to avoid.
@@ -220,7 +229,9 @@ def windows_from_arrivals(arrivals: Sequence[Tuple[str, float]], *,
             'generation_id': run[0][0],
             'arrivals': len(run),
             'max_interior_gap_s': interior,
-            'evidence': 'consecutive streamed token arrivals on the observer clock',
+            'evidence': 'consecutive CONTENT-BEARING stream arrivals observed on '
+                        'the observer clock; an observed-traffic gap bound, not a '
+                        'server idle bound',
         })
     return windows
 
@@ -794,14 +805,14 @@ class ContinuousLoadObserver:
         if not windows:
             return dict(base, active=False, active_windows=[],
                         endpoint_error_s=bound['endpoint_error_s'],
-                        reason='no window of evidenced continuous production exists '
+                        reason='no window of uninterrupted OBSERVED ARRIVALS exists '
                                '(%d arrival(s), source %s)'
                                % (len(arrivals),
                                   'healthy' if healthy else 'UNHEALTHY'))
         measured = max(w['max_interior_gap_s'] for w in windows)
         if measured > self.max_interior_gap_s:                 # pragma: no cover
             # windows_from_arrivals splits at the tolerance, so this cannot hold.
-            # It is asserted rather than assumed because the whole certification
+            # Asserted rather than assumed because the diagnostic's only claim
             # rests on it.
             raise LoadRefused('a window exceeds the interior gap tolerance '
                               '(%.6f > %.6f); the splitting rule did not hold'
@@ -815,9 +826,12 @@ class ContinuousLoadObserver:
             window_id='%s:%s..%s:%d' % (self.window_prefix,
                                         windows[0]['generation_id'],
                                         windows[-1]['generation_id'], len(windows)),
-            means='each window is an interval throughout which the server is '
-                  'evidenced to have produced output, never idle for longer than '
-                  'max_interior_gap_s_measured',
+            means='each window spans CONTENT-BEARING STREAM ARRIVALS observed by '
+                  'this client, with no OBSERVED arrival gap larger than '
+                  'max_interior_gap_s_measured. It describes OBSERVED ARRIVAL '
+                  'TRAFFIC only: it does not establish production between '
+                  'arrivals, does not bound server idle time, and does not '
+                  'certify coverage.',
         )
 
 
