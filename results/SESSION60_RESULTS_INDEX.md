@@ -1335,6 +1335,35 @@ conflicts before start. Reported; deferred.
 **trial** may run and does not govern a compile, which loads no weights; what governs a compile is
 that it saturates a **shared host**. Both refuse here, for different reasons.
 
+### The instrument is BUILT, and the native fixture found a defect on its first run (2026-09-22, `479cd86`)
+
+`results/live_ab/BUILD_RECEIPT_20260922T055747Z.json`, `deterministic-path`. Base `4fea119d...`,
+patch sha256 `984f47df...`, **binary sha256 `7a5423a3...`**, 05:56:03Z -> 05:56:52Z, **exit 0, 0
+errors, 0 warnings**, 262/262 targets, cmake 4.4.3 + Ninja Release `-DLLAMA_CURL=OFF` at **-j6** on a
+10-core host. **1 of 2** authorized compile jobs. **No weights, no server, no episode.**
+
+Capacity rechecked **at the actual start** (`PREBUILD_CAPACITY_20260922T055523Z.json`) rather than
+taken from the peer's word: nothing on any watched port, disk 95.5 GiB, load 1.83. DTR released at
+05:54:42Z; conflict reported before start, start and finish messaged.
+
+**Why it was fast, checked rather than reported unexplained:** 49 s looked like a cache hit, which
+would weaken the claim. Configure logs *"ccache not found"* and `server-context.cpp` recompiled at
+step 251/262.
+
+**THE NATIVE MODEL-FREE FIXTURE FOUND THE DEFECT IT EXISTS TO FIND.** Running the built binary with
+`--help` makes its static destructor write a real seal. The destructor **does** run and write -- the
+open question from the previous cycle -- **and the reader REJECTED the seal its own producer wrote**
+as *"not a slot_lifecycle-v1 record"*. A correctly sealed acquisition read as garbage. Every
+synthetic fixture passed because those bytes were written by hand in Python, and none wrote a seal.
+
+**Seal and sequence contract implemented** (was pending): no seal, sequence gap against the declared
+count, `write_failures > 0`, a foreign run token, two seals, or a writer-error record all **refuse
+the acquisition and retain the attempt** -- none excludes a task. 8 new tests, one feeding the
+**exact bytes the built binary emitted** through the real reader.
+
+**Not established:** the slot-lifecycle path. The fixture proves serialization for the **seal only**;
+slot records need a loaded model. `records: 0` means the gap check has so far seen only an empty set.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
