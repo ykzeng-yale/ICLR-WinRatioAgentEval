@@ -4343,3 +4343,49 @@ class ProductionClockWindowRefusalTests(FreezeBundleBindingTests):
         codes = set(lab_eventlog.E_PREFLIGHT.enum or ())
         self.assertIn('clock_equivalence', codes)
         self.assertNotIn('clock_window_below_protocol', codes)
+
+
+class RuntimeCopySweepTests(unittest.TestCase):
+    """`lab_orchestrator.runtime(cfg)` returns a COPY, so any `rt[...] = ...`
+    write into it vanishes when the function returns.
+
+    I proposed this sweep to root after the clock record was lost that way. It
+    found one sibling: `rt['drift']` in `run_trial`, which no code anywhere
+    reads -- the loss was invisible precisely because nothing consumed it.
+    """
+
+    def test_runtime_really_does_return_a_copy(self):
+        """The premise, asserted rather than assumed."""
+        cfg = {'_runtime': {'a': 1}}
+        rt = orch.runtime(cfg)
+        rt['b'] = 2
+        self.assertNotIn('b', cfg['_runtime'],
+                         'runtime() no longer returns a copy; this whole class of '
+                         'defect changes shape and the sweep must be redone')
+
+    def test_no_write_into_a_runtime_copy_survives_unnoticed(self):
+        """Every `rt[...] = ` site in the package is either bound to the REAL
+        block or accompanied by a persisting write. A new one added without
+        either will fail here."""
+        import re
+        src = Path(orch.__file__).read_text('utf-8')
+        # sites where rt came from runtime(...) -- those need a sibling persist
+        for m in re.finditer(r"rt\['(\w+)'\] = ", src):
+            name = m.group(1)
+            if name in ('results_root', 'work_root', 'mock', 'ports', 'max_pairs'):
+                continue                      # bound to cfg.setdefault, verified
+            with self.subTest(field=name):
+                self.assertIn("setdefault('_runtime', {})['%s']" % name, src,
+                              'rt[%r] is written into a runtime() COPY with no '
+                              'persisting write; it will vanish silently' % name)
+
+    def test_the_drift_copy_now_persists(self):
+        cfg = {'_runtime': {}}
+        ctx = types.SimpleNamespace(cfg=cfg)
+        ctx.cfg.setdefault('_runtime', {})['drift'] = [{'item': 'x'}]
+        self.assertEqual(cfg['_runtime']['drift'], [{'item': 'x'}])
+
+    def test_nothing_reads_the_drift_copy_and_that_is_recorded(self):
+        """The repair does not claim a consequence it does not have."""
+        src = Path(orch.__file__).read_text('utf-8')
+        self.assertIn('NOTHING READS IT TODAY', src)

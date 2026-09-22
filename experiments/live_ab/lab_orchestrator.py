@@ -2973,7 +2973,18 @@ def run_trial(ctx: RunContext, *, resume: bool = True) -> str:
     try:
         try:
             drift = preflight(ctx)
+            # THE SECOND SIBLING FOUND BY THE runtime() SWEEP, 2026-09-22.
+            # `rt` here is runtime(ctx.cfg), which returns a COPY, so this write
+            # vanished when run_trial returned -- and a repository-wide grep
+            # finds NO READER of rt['drift'] anywhere, so nothing ever noticed.
+            # It is persisted to the context's runtime block, where a reader
+            # would look, rather than deleted: the drift is already carried into
+            # the chain by invocation_started, so this is a convenience copy, and
+            # a convenience that silently evaporates is worse than one that does
+            # not exist. NOTHING READS IT TODAY -- that is stated rather than
+            # implied by its presence.
             rt['drift'] = drift
+            ctx.cfg.setdefault('_runtime', {})['drift'] = drift
         except PreflightError as exc:
             write_preflight_refused(ctx, str(exc), drift=getattr(exc, 'drift', None))
             return 'aborted'
