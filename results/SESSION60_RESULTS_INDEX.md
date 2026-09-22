@@ -1089,6 +1089,29 @@ Both facts hold at once: the binary runs from **this session's scratchpad** and 
 using it**. Ownership of a process is not ownership of the workload on it. Nothing is stopped; the
 host stays occupied; ICLR continues CPU-only.
 
+### The anchor drill's number, measured before the drill
+
+Branch `session60/live-ab` head `e63865b`. Live episodes **0**. Freeze **14 of 26**.
+
+`results/live_ab/ANCHOR_CLOCK_PROBE.json`, `descriptive`, read-only (authenticated GET; **no commit,
+no push, no comment, no branch**). 20/20 usable probes: GET round trip min **0.097 s**, median
+**0.136 s**, p95 **0.297 s**, max **0.601 s**; clock offset (server − local) in
+**[0.0176, 0.1850] s**, width **0.167 s**, consistent across all 20.
+
+**Why it matters.** `posting_latency_p95_s` (12.4 item 10, consumed by 12.6 item 4 as
+`30 s + posting_latency_p95_s`) is a difference between two **different clocks**:
+`L = created_at_server − t_wall_client` = true latency + offset. A local clock running fast makes `L`
+**negative**. And the offset **cancels** in the audit that consumes it —
+`Δcreated_at − Δt_wall = L_{k+1} − L_k` — so the sandwich audit is sensitive to the **variation** of
+posting latency, not its level, while the pre-registration pins the level. Both will be reported;
+the definition is not changed here. `created_at` and `Date` have **one second resolution**, so any
+p95 from them is quantised to whole seconds.
+
+**The RTT figures are a GET and are NOT posting latency** — a comment POST takes the write path. The
+drill's writing half is **unrun** and put to root: #11 as written (buries the coordination thread), a
+dedicated drill issue in the same repository (real account/repo names still in every URL), or
+instrumenting the cycle comments. **Default on silence: no drill posting at all.**
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
