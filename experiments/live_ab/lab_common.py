@@ -8,6 +8,8 @@ Every public name below is specified in ARCHITECTURE_FINAL.md section 3.1.
 """
 from __future__ import annotations
 
+from collections.abc import Mapping
+
 import fcntl
 import hashlib
 import json
@@ -598,3 +600,60 @@ class PauseTrial(LabError):
 PATH_TOKENS: tuple[str, ...] = ('<WORK>', '<HF_CACHE>', '<LLAMA_BUILD>', '<RESULTS>',
                                 '<REPO>', '<HOME>', '<TMP>', '<REMOTE>')
 UID_RE = re.compile(r'^(mbpp|mbpp_full|humaneval)/[0-9]+$')
+
+
+# ---------------------------------------------------------------------------
+# The shared startup policy (root 2026-09-22 01:44 / 03:19)
+# ---------------------------------------------------------------------------
+# Root: "Move the shared stdlib directory checks to lab_common. This exact
+# placement was explicitly prescribed ... Do not clone the policy into two
+# implementations or ask again."  And 03:19: "The lab_common instruction was a
+# design handoff, not a claim that that commit already implemented the helper.
+# The owner must implement/move the one shared stdlib policy and wire the actual
+# production caller."
+#
+# IT LIVES HERE BECAUSE OF THE IMPORT MATRIX, NOT FOR TIDINESS.
+# ARCHITECTURE_FINAL.md 3.16 gives lab_common an EMPTY permitted-import set, and
+# gives lab_worker and lab_orchestrator lab_common but not lab_prepare and not
+# lab_injected_decision.  An earlier attempt to import lab_prepare from
+# lab_worker broke the isolation gate and was reverted (commit babfa13).  A
+# stdlib-only policy here is reachable from every production path without
+# relaxing anything.
+#
+# THE POLICY IS DEFINED ONCE.  lab_prepare and lab_injected_decision delegate to
+# these functions rather than carrying their own copies: two implementations of
+# one refusal is how a path quietly stops being guarded.
+
+#: The key whose PRESENCE requests the injected-decision test fixture.  Kept
+#: equal to lab_injected_decision.ACTIVATION_KEY by a test, not by a comment.
+FIXTURE_ACTIVATION_KEY: str = 'injected_decision_fixture'
+
+
+def fixture_requested(cfg: Mapping | None) -> bool:
+    """Whether a configuration asks for the injected-decision fixture.
+
+    PRESENCE at the top level counts, whatever the value: a configuration that
+    mentions the fixture at all has left the production path.  A truthy value
+    under ``testing`` counts too.
+    """
+    cfg = cfg or {}
+    if FIXTURE_ACTIVATION_KEY in cfg:
+        return True
+    testing = cfg.get('testing')
+    return bool(isinstance(testing, Mapping) and testing.get(FIXTURE_ACTIVATION_KEY))
+
+
+def assert_no_fixture(cfg: Mapping | None, *, stage: str) -> dict:
+    """Refuse a fixture-requesting configuration BEFORE any dispatch or model call.
+
+    Raises ``PreflightError``; every production entry point calls this, and the
+    call sites are asserted by a test rather than promised by a docstring.
+    """
+    if fixture_requested(cfg):
+        raise PreflightError(
+            '%s: configuration requests %r. The injected-decision fixture is a '
+            'TEST-ONLY control-path device and is refused on the production path, '
+            'before any dispatch or model request. A trial that ran with an '
+            'injected decision would not be a trial.' % (stage, FIXTURE_ACTIVATION_KEY))
+    return {'stage': stage, 'injection_requested': False,
+            'checked_before_dispatch': True}

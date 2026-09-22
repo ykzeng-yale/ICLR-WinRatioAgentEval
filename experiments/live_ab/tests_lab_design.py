@@ -3234,3 +3234,142 @@ class NamedClockDomainTests(unittest.TestCase):
             self._obs(lab_data.CLOCK_DOMAIN_POSIX, 'boot:1'), v2)
         self.assertFalse(v['valid'])
         self.assertIn('do not match', v['reason'])
+
+
+class ProductionStartupGuardTests(unittest.TestCase):
+    """The fixture refusal at the ACTUAL production entry points.
+
+    Root's reviewer, 2026-09-22 02:37: "A repository-wide Python search at exact
+    ce106af finds the production guard call only in lab_prepare.
+    run_reference_sweep; it does not show a call in lab_orchestrator.run_trial /
+    trial preflight. Thus a general trial-startup refusal claim is not yet
+    demonstrated."
+
+    And the caveat that decides how these are written: every existing e2e world
+    OVERRIDES World.spawn, so a check inside the production body is exercised by
+    none of them. Each test below drives the REAL production body with its
+    process/filesystem dependencies stubbed, and each has a CONTROL that shows
+    the same path proceeds on a clean configuration -- a guard that refuses
+    everything would otherwise pass every refusal test.
+    """
+
+    FIXTURE_CFG = {'injected_decision_fixture': {'decision': 'DEPLOY'}}
+
+    def test_the_shared_key_is_the_fixture_key(self):
+        """Kept equal by a test, not by a comment."""
+        import lab_injected_decision as lid
+        self.assertEqual(lab_common.FIXTURE_ACTIVATION_KEY, lid.ACTIVATION_KEY)
+
+    def test_presence_counts_whatever_the_value(self):
+        for cfg in ({'injected_decision_fixture': None},
+                    {'injected_decision_fixture': False},
+                    {'injected_decision_fixture': {}},
+                    {'testing': {'injected_decision_fixture': True}}):
+            with self.subTest(cfg=cfg):
+                self.assertTrue(lab_common.fixture_requested(cfg))
+        for cfg in ({}, {'trials': {}}, {'testing': {}},
+                    {'testing': {'injected_decision_fixture': False}}, None):
+            with self.subTest(cfg=cfg):
+                self.assertFalse(lab_common.fixture_requested(cfg))
+
+    # -- World.spawn: the real body, zero Popen on refusal -------------------
+    def _fake_world(self, cfg, logs):
+        import lab_orchestrator as orch
+        return types.SimpleNamespace(
+            rt={'worker_cmd': [sys.executable, '-c', 'pass']},
+            ctx=types.SimpleNamespace(cfg=cfg,
+                                      paths=types.SimpleNamespace(logs=logs)),
+        ), orch
+
+    def test_the_production_spawn_body_refuses_and_starts_NO_process(self):
+        import lab_orchestrator as orch
+        tmp = Path(tempfile.mkdtemp(prefix='spawn_'))
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        me, _ = self._fake_world(self.FIXTURE_CFG, tmp / 'logs')
+        att = types.SimpleNamespace(arrival=1, attempt=0, proc=None)
+        with mock.patch.object(orch.subprocess, 'Popen') as popen:
+            with self.assertRaises(lab_common.PreflightError):
+                orch.World.spawn(me, att, tmp / 'job.json')
+        popen.assert_not_called()
+        self.assertIsNone(att.proc)
+
+    def test_the_production_spawn_body_PROCEEDS_on_a_clean_config(self):
+        """The control. Without it, a guard that refused everything would pass."""
+        import lab_orchestrator as orch
+        tmp = Path(tempfile.mkdtemp(prefix='spawn_ok_'))
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        me, _ = self._fake_world({'trials': {}}, tmp / 'logs')
+        att = types.SimpleNamespace(arrival=1, attempt=0, proc=None)
+        with mock.patch.object(orch.subprocess, 'Popen') as popen:
+            popen.return_value = types.SimpleNamespace(pid=4242)
+            pid = orch.World.spawn(me, att, tmp / 'job.json')
+        popen.assert_called_once()
+        self.assertEqual(pid, 4242)
+
+    # -- lab_worker.run_job: the real body ----------------------------------
+    def test_the_real_run_job_refuses_before_it_opens_the_spool(self):
+        import lab_worker
+        job = dict(self.FIXTURE_CFG, paths={'spool': '<WORK>/nope.jsonl'})
+        with mock.patch.object(lab_worker, 'Spool') as spool:
+            with self.assertRaises(lab_common.PreflightError):
+                lab_worker.run_job(job, sandbox_lock_path=Path('/dev/null'))
+        spool.assert_not_called()
+
+    def test_the_real_run_job_also_inspects_the_jobs_cfg(self):
+        import lab_worker
+        job = {'cfg': self.FIXTURE_CFG, 'paths': {'spool': '<WORK>/nope.jsonl'}}
+        with mock.patch.object(lab_worker, 'Spool') as spool:
+            with self.assertRaises(lab_common.PreflightError):
+                lab_worker.run_job(job, sandbox_lock_path=Path('/dev/null'))
+        spool.assert_not_called()
+
+    def test_the_real_run_job_PROCEEDS_past_the_guard_on_a_clean_job(self):
+        """The control: a clean job reaches the spool, so the guard is not a
+        blanket refusal. It then fails further in for its own reasons, which is
+        not what this test is about."""
+        import lab_worker
+        job = {'cfg': {'trials': {}}, 'paths': {'spool': '<WORK>/x.jsonl'}}
+        with mock.patch.object(lab_worker, 'Spool') as spool:
+            spool.side_effect = RuntimeError('reached the spool')
+            with self.assertRaises(Exception) as ctx:
+                lab_worker.run_job(job, sandbox_lock_path=Path('/dev/null'))
+        self.assertNotIsInstance(ctx.exception, lab_common.PreflightError)
+        spool.assert_called()
+
+    # -- orchestrator preflight ---------------------------------------------
+    def test_trial_preflight_refuses_a_fixture_configuration(self):
+        import lab_orchestrator as orch
+        ctx = types.SimpleNamespace(cfg=dict(self.FIXTURE_CFG, _runtime={}))
+        with self.assertRaises(lab_common.PreflightError) as c:
+            orch.preflight(ctx)
+        self.assertIn('trial preflight', str(c.exception))
+
+    def test_preflight_refuses_before_any_drift_accounting(self):
+        """It must raise before it reads the freeze directory: a fixture
+        configuration should never get as far as being compared with the frozen
+        files."""
+        import lab_orchestrator as orch
+        ctx = types.SimpleNamespace(cfg=dict(self.FIXTURE_CFG, _runtime={}))
+        with mock.patch.object(orch, 'sha256_file') as digest:
+            with self.assertRaises(lab_common.PreflightError):
+                orch.preflight(ctx)
+        digest.assert_not_called()
+
+    # -- the call sites exist, and a later edit that drops one is caught -----
+    def test_every_named_production_path_calls_the_shared_guard(self):
+        import lab_orchestrator as orch
+        import lab_worker
+        for fn, label in ((orch.preflight, 'preflight'),
+                          (orch.World.spawn, 'World.spawn'),
+                          (lab_worker.run_job, 'run_job')):
+            with self.subTest(path=label):
+                self.assertIn('assert_no_fixture', inspect.getsource(fn),
+                              '%s no longer calls the shared startup guard' % label)
+
+    def test_the_policy_is_not_cloned_into_a_second_implementation(self):
+        """Root: "Do not clone the policy into two implementations." The
+        delegating module must not carry its own membership test."""
+        import lab_injected_decision as lid
+        src = inspect.getsource(lid.assert_no_test_fixture_active)
+        self.assertIn('lab_common.fixture_requested', src)
+        self.assertNotIn("ACTIVATION_KEY in cfg", src)

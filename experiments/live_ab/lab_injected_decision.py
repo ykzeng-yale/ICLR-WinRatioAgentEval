@@ -70,16 +70,17 @@ def assert_no_test_fixture_active(cfg: dict, *, stage: str = 'production startup
     requests injection is refused outright -- injection is a control-path test and
     a trial that ran with it would not be a trial.
     """
-    cfg = cfg or {}
-    requested = ACTIVATION_KEY in cfg or bool((cfg.get('testing') or {}).get(ACTIVATION_KEY))
-    if requested:
+    # DELEGATES to the one shared policy in lab_common (root 2026-09-22): two
+    # implementations of one refusal is how a path quietly stops being guarded.
+    # The exception type stays FixtureActivationRefused, which IS a PreflightError,
+    # so existing callers and tests keep their contract.
+    if lab_common.fixture_requested(cfg):
         raise FixtureActivationRefused(
             '%s: configuration requests %r. The injected-decision fixture is a '
             'TEST-ONLY control-path device and is refused on the production path, '
             'before any dispatch or model request. A trial that ran with an '
             'injected decision would not be a trial.' % (stage, ACTIVATION_KEY))
-    return {'stage': stage, 'injection_requested': False,
-            'checked_before_dispatch': True}
+    return lab_common.assert_no_fixture(cfg, stage=stage)
 
 
 def arm(cfg: dict, token: Optional[str] = None) -> Dict[str, Any]:

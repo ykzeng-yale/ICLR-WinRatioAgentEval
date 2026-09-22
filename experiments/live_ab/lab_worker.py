@@ -472,6 +472,14 @@ def run_job(job: Job, *, sandbox_lock_path: Path) -> dict:
     record write failure, a lock failure) is spooled as ``worker_error`` and the process
     exits 3; the orchestrator treats that as a worker death (6.4 row 10)."""
     t_start_ns = time.monotonic_ns()
+    # THE WORKER'S OWN STARTUP CHECK, root 2026-09-22: "World.spawn and
+    # lab_worker.run_job exist and were already identified. Wire their common
+    # startup paths."  Checked on the JOB the worker actually received, before
+    # the spool is opened and long before any model request: the worker is a
+    # separate OS process and cannot rely on the orchestrator's check having run
+    # in some other process.
+    lab_common.assert_no_fixture(job, stage='worker run_job startup')
+    lab_common.assert_no_fixture(job.get('cfg'), stage='worker run_job startup (cfg)')
     paths = job.get('paths') or {}
     spool = Spool(resolve_token_path(paths['spool']))
     if job.get('inv'):

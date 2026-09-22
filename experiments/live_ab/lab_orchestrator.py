@@ -722,6 +722,14 @@ def preflight(ctx: RunContext) -> dict:
     ``invocation_refused`` in the trial chain at a later invocation of an open trial."""
     rt = runtime(ctx.cfg)
     cfg = frozen_cfg(ctx.cfg)
+    # THE ACTUAL TRIAL ENTRY POINT, root 2026-09-22 02:49: "Injected-decision
+    # tests 8 pass establish refusal on run_reference_sweep only. The trial entry
+    # point also exists in lab_orchestrator; its preflight/run_trial path must
+    # reject fixture activation BEFORE DISPATCH. Reachability must be checked
+    # through that real path."  Raised here, before any drift accounting, so a
+    # fixture-requesting configuration never reaches seq 0.
+    lab_common.assert_no_fixture(ctx.cfg, stage='trial preflight')
+    lab_common.assert_no_fixture(cfg, stage='trial preflight (frozen config)')
     failed: list[str] = []
     drift: list[dict] = []
 
@@ -1779,7 +1787,13 @@ class World:
             'partner_concurrent': bool(att.partner_concurrent)})
 
     def spawn(self, att: Attempt, job_path: Path) -> int:
-        """One OS process per episode (AD-1).  The orchestrator never imports the worker."""
+        """One OS process per episode (AD-1).  The orchestrator never imports the worker.
+
+        The fixture refusal is here, BEFORE Popen, and not only in preflight: a
+        configuration can reach a dispatch by a route that did not pass preflight,
+        and this is the last point at which no process exists yet.
+        """
+        lab_common.assert_no_fixture(self.ctx.cfg, stage='episode spawn')
         cmd = list(self.rt.get('worker_cmd')
                    or [sys.executable, str(lab_common.HERE / 'lab_worker.py')])
         self.ctx.paths.logs.mkdir(parents=True, exist_ok=True)
