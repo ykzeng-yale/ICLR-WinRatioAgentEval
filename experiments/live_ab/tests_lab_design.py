@@ -191,6 +191,7 @@ import lab_common                                        # noqa: E402
 import lab_coin                                          # noqa: E402
 import lab_data                                          # noqa: E402
 import lab_injected_decision                             # noqa: E402
+import lab_lifecycle                                     # noqa: E402
 import lab_load                                          # noqa: E402
 import lab_prepare                                       # noqa: E402
 import lab_design                                        # noqa: E402
@@ -3477,3 +3478,143 @@ class ProductionStartupGuardTests(unittest.TestCase):
         src = inspect.getsource(lid.assert_no_test_fixture_active)
         self.assertIn('lab_common.fixture_requested', src)
         self.assertNotIn("ACTIVATION_KEY in cfg", src)
+
+
+class ServerLifecycleProducerConsumerTests(unittest.TestCase):
+    """The MODEL-FREE producer/consumer fixture root required (2026-09-22 04:02):
+    "Deliver ... durable start/end lifecycle records, complete/failed lifecycle
+    handling and a model-free fixture through the ACTUAL producer format and
+    consumer."
+
+    The records here are written in exactly the bytes the patched server emits
+    (`experiments/live_ab_serving/live_ab_slot_lifecycle.patch`), and are driven
+    through the real `lab_lifecycle.observe` and the real
+    `lab_prepare._coverage_verdict`. No server, no model, no network.
+    """
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp(prefix='lifecycle_'))
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.log = self.tmp / 'lifecycle.jsonl'
+        self.prov = {'boot_id': 'boot:aa', 'host_id': 'host:bb',
+                     'boot_source': 'sysctl kern.bootsessionuuid',
+                     'host_source': 'platform.node'}
+
+    def _emit(self, *, slot, task, t_assigned, t_prompt, t_gen, t_rel,
+              complete=True, instance='srv_1_2', clock=None, units='microseconds'):
+        """One line in the emitter's exact format."""
+        rec = {'schema': 'live_ab/slot_lifecycle-v1', 'instance_id': instance,
+               'slot_id': slot, 'task_id': task,
+               'clock': clock or lab_lifecycle.CLOCK, 'units': units,
+               't_assigned_us': t_assigned, 't_prompt_start_us': t_prompt,
+               't_gen_last_us': t_gen, 't_released_us': t_rel,
+               'n_prompt_processed': 10, 'n_gen': 1024, 'complete': complete,
+               'means': 'occupied decoding slot, not uninterrupted hardware utilization'}
+        with open(self.log, 'a', encoding='utf-8') as fh:
+            fh.write(json.dumps(rec, separators=(',', ':')) + '\n')
+
+    def _attempt(self, start_s, end_s):
+        return lab_data.attempt_record(
+            't/1', 0, {'success': False, 'sentinel_seen': False, 'timed_out': False,
+                       'entry_point_defined': True, 'sandbox_flag': False,
+                       'verify_seconds': 0.2,
+                       'run': {'passed': False, 'returncode': 1, 'stdout_tail': 'o',
+                               'stderr': 'e', 'timed_out': False}},
+            verification_started_monotonic=start_s,
+            verification_ended_monotonic=end_s,
+            verification_started_posix_ns=int(start_s * 1e9),
+            verification_ended_posix_ns=int(end_s * 1e9),
+            boot_id='boot:aa', host_id='host:bb',
+            boot_source='sysctl kern.bootsessionuuid', host_source='platform.node')
+
+    # -- the regime root prescribed: TWO concurrent occupancies ---------------
+    def test_two_concurrent_occupancies_covering_the_attempt_certify(self):
+        self._emit(slot=0, task=11, t_assigned=99_000_000, t_prompt=99_100_000,
+                   t_gen=102_000_000, t_rel=102_100_000)
+        self._emit(slot=1, task=12, t_assigned=99_050_000, t_prompt=99_150_000,
+                   t_gen=102_050_000, t_rel=102_150_000)
+        obs = lab_lifecycle.observe(self.log, provenance=self.prov)
+        self.assertTrue(obs['active'])
+        self.assertTrue(obs['lifecycle_complete'])
+        self.assertEqual(len(obs['active_windows']), 2)
+        v = lab_prepare._coverage_verdict(obs, self._attempt(100.0, 100.5))
+        self.assertTrue(v['valid'], v.get('reason'))
+        self.assertEqual(v['concurrency_observed_min'], 2)
+
+    def test_ONE_occupancy_does_not_certify_however_long_it_is(self):
+        self._emit(slot=0, task=11, t_assigned=1, t_prompt=90_000_000,
+                   t_gen=110_000_000, t_rel=110_100_000)
+        obs = lab_lifecycle.observe(self.log, provenance=self.prov)
+        v = lab_prepare._coverage_verdict(obs, self._attempt(100.0, 100.5))
+        self.assertFalse(v['valid'])
+        self.assertIn('distinct lifetime', v['reason'])
+
+    def test_the_INNER_bracket_is_used_so_coverage_is_never_made_easier(self):
+        """The outer bracket would cover the attempt; the inner one does not."""
+        self._emit(slot=0, task=11, t_assigned=99_000_000, t_prompt=100_200_000,
+                   t_gen=102_000_000, t_rel=102_500_000)
+        self._emit(slot=1, task=12, t_assigned=99_000_000, t_prompt=100_200_000,
+                   t_gen=102_000_000, t_rel=102_500_000)
+        obs = lab_lifecycle.observe(self.log, provenance=self.prov)
+        w = obs['active_windows'][0]
+        self.assertAlmostEqual(w['start'], 100.2)           # inner, not 99.0
+        self.assertAlmostEqual(w['end'], 102.0)             # inner, not 102.5
+        v = lab_prepare._coverage_verdict(obs, self._attempt(100.0, 100.5))
+        self.assertFalse(v['valid'])                        # outer would have passed
+
+    # -- failed / partial lifecycles ----------------------------------------
+    def test_an_incomplete_lifecycle_is_refused_and_named(self):
+        self._emit(slot=0, task=11, t_assigned=99_000_000, t_prompt=99_100_000,
+                   t_gen=102_000_000, t_rel=102_100_000)
+        self._emit(slot=1, task=12, t_assigned=99_000_000, t_prompt=99_100_000,
+                   t_gen=0, t_rel=102_100_000, complete=False)
+        obs = lab_lifecycle.observe(self.log, provenance=self.prov)
+        self.assertFalse(obs['lifecycle_complete'])
+        self.assertEqual(len(obs['records_refused']), 1)
+        self.assertIn('incomplete lifecycle', obs['records_refused'][0]['reason'])
+        v = lab_prepare._coverage_verdict(obs, self._attempt(100.0, 100.5))
+        self.assertFalse(v['valid'])
+        self.assertIn('lifecycle_complete', v['reason'])
+
+    def test_a_record_on_another_clock_is_refused(self):
+        self._emit(slot=0, task=11, t_assigned=1, t_prompt=99_100_000,
+                   t_gen=102_000_000, t_rel=102_100_000, clock='time.monotonic')
+        obs = lab_lifecycle.observe(self.log, provenance=self.prov)
+        self.assertFalse(obs['active'])
+        self.assertIn('not', obs['records_refused'][0]['reason'])
+
+    def test_a_truncated_tail_is_refused_rather_than_trimmed(self):
+        self._emit(slot=0, task=11, t_assigned=1, t_prompt=99_100_000,
+                   t_gen=102_000_000, t_rel=102_100_000)
+        with open(self.log, 'a', encoding='utf-8') as fh:
+            fh.write('{"schema":"live_ab/slot_lifecycle-v1","instance_id":"srv')
+        obs = lab_lifecycle.observe(self.log, provenance=self.prov)
+        self.assertFalse(obs['active'])
+        self.assertIn('still writing', obs['reason'])
+
+    def test_an_absent_log_is_an_absence_not_an_empty_success(self):
+        obs = lab_lifecycle.observe(self.tmp / 'nothing.jsonl', provenance=self.prov)
+        self.assertFalse(obs['active'])
+        self.assertFalse(obs['lifecycle_complete'])
+
+    # -- provenance ----------------------------------------------------------
+    def test_a_cross_host_observation_does_not_certify(self):
+        self._emit(slot=0, task=11, t_assigned=1, t_prompt=99_100_000,
+                   t_gen=102_000_000, t_rel=102_100_000)
+        self._emit(slot=1, task=12, t_assigned=1, t_prompt=99_100_000,
+                   t_gen=102_000_000, t_rel=102_100_000)
+        obs = lab_lifecycle.observe(
+            self.log, provenance=dict(self.prov, host_id='host:ELSEWHERE'))
+        v = lab_prepare._coverage_verdict(obs, self._attempt(100.0, 100.5))
+        self.assertFalse(v['valid'])
+        self.assertIn('host identity differs', v['reason'])
+
+    # -- the patch this reader is the counterpart of -------------------------
+    def test_the_patch_exists_and_names_its_base_revision(self):
+        patch = Path(lab_common.REPO_ROOT) / lab_lifecycle.PATCH_PATH
+        self.assertTrue(patch.is_file(), 'the lifecycle patch is missing')
+        text = patch.read_text('utf-8')
+        self.assertIn('live_ab_emit_lifecycle', text)
+        self.assertIn('slot_lifecycle-v1', text)
+        self.assertIn('clock_gettime(CLOCK_MONOTONIC)', text)
+        self.assertEqual(len(lab_lifecycle.PATCHED_BASE_REV), 40)

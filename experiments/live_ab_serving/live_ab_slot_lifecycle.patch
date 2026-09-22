@@ -1,0 +1,144 @@
+diff --git a/tools/server/server-common.h b/tools/server/server-common.h
+index 9894f5f..f39d458 100644
+--- a/tools/server/server-common.h
++++ b/tools/server/server-common.h
+@@ -368,6 +368,16 @@ struct server_slot_stats {
+     int64_t t_prompt_last = 0;
+     int64_t t_gen_last    = 0;
+ 
++    // LIVE_AB LIFECYCLE INSTRUMENTATION (protocol 3.2 rule 4).
++    // The upstream fields above are converted to DURATIONS on every path that
++    // leaves the process, so an external observer cannot place a slot's
++    // occupancy on its own clock. These two record the OUTER bracket of the
++    // occupancy; t_start and t_gen_last above are its INNER bracket.
++    // All four are raw ggml_time_us() readings, i.e. CLOCK_MONOTONIC
++    // microseconds on this host (ggml/src/ggml.c, POSIX branch).
++    int64_t t_assigned = 0;  // slot bound to a task, before any prompt work
++    int64_t t_released = 0;  // slot released back to idle
++
+     // can only move one direction: start -> prompt -> gen
+     void update_prompt_start() {
+         GGML_ASSERT(t_start == 0);
+diff --git a/tools/server/server-context.cpp b/tools/server/server-context.cpp
+index b6835e4..3173acf 100644
+--- a/tools/server/server-context.cpp
++++ b/tools/server/server-context.cpp
+@@ -236,6 +236,22 @@ struct server_batch {
+     }
+ };
+ 
++// ---------------------------------------------------------------------------
++// LIVE_AB lifecycle emitter (protocol 3.2 rule 4)
++// ---------------------------------------------------------------------------
++// Appends ONE line per completed slot occupancy to the file named by
++// LIVE_AB_LIFECYCLE_LOG. Disabled -- and costs nothing -- when that variable is
++// unset, so an unpatched-behaviour run is the default.
++//
++// WHAT A RECORD MEANS: this slot was OCCUPIED BY A DECODING REQUEST between the
++// stated timestamps. It does NOT assert uninterrupted hardware utilization:
++// scheduler pauses inside an occupancy are part of the operational regime.
++//
++// CLOCK: every timestamp is a raw ggml_time_us() reading, which on this POSIX
++// build is clock_gettime(CLOCK_MONOTONIC) in MICROSECONDS (ggml/src/ggml.c).
++// The clock is named in every record rather than assumed by the reader.
++static void live_ab_emit_lifecycle(const server_slot & slot);
++
+ struct server_slot {
+     int id;
+ 
+@@ -548,6 +564,13 @@ struct server_slot {
+             SLT_INF(*this, "stop processing: n_tokens = %d, truncated = %d\n", prompt.n_tokens(), truncated);
+ 
+             t_last_used = ggml_time_us();
++            stats.t_released = t_last_used;   // LIVE_AB: OUTER end of occupancy
++
++            // LIVE_AB: emit the lifecycle record BEFORE reset() clears stats.
++            // Written here and not on a sampling endpoint because a slot's
++            // occupancy is an interval with two transitions, and only the
++            // process that makes those transitions can report them.
++            live_ab_emit_lifecycle(*this);
+ 
+             state = SLOT_STATE_IDLE;
+ 
+@@ -734,6 +757,69 @@ struct server_slot {
+     }
+ };
+ 
++// LIVE_AB lifecycle emitter -- definition. See the declaration above.
++static void live_ab_emit_lifecycle(const server_slot & slot) {
++    static const char * path = getenv("LIVE_AB_LIFECYCLE_LOG");
++    if (path == nullptr || path[0] == '\0') {
++        return;                      // instrumentation off: upstream behaviour
++    }
++    static std::mutex mtx;           // one writer at a time; slots release concurrently
++    static const std::string instance_id = [] {
++        char buf[64];
++        snprintf(buf, sizeof(buf), "srv_%lld_%d",
++                 (long long) ggml_time_us(), (int) getpid());
++        return std::string(buf);
++    }();
++
++    // A lifecycle is COMPLETE only if every transition was observed. A slot that
++    // never reached prompt processing, or never generated, is emitted with
++    // complete=false and MUST NOT be used to certify coverage.
++    const bool complete = slot.stats.t_assigned > 0 && slot.stats.t_start > 0 &&
++                          slot.stats.t_gen_last > 0 && slot.stats.t_released > 0 &&
++                          slot.stats.t_start >= slot.stats.t_assigned &&
++                          slot.stats.t_gen_last >= slot.stats.t_start &&
++                          slot.stats.t_released >= slot.stats.t_gen_last;
++
++    char line[1024];
++    const int n = snprintf(line, sizeof(line),
++        "{\"schema\":\"live_ab/slot_lifecycle-v1\","
++        "\"instance_id\":\"%s\",\"slot_id\":%d,\"task_id\":%d,"
++        "\"clock\":\"clock_gettime(CLOCK_MONOTONIC)\",\"units\":\"microseconds\","
++        "\"t_assigned_us\":%lld,\"t_prompt_start_us\":%lld,"
++        "\"t_gen_last_us\":%lld,\"t_released_us\":%lld,"
++        "\"n_prompt_processed\":%llu,\"n_gen\":%llu,"
++        "\"complete\":%s,\"means\":\"occupied decoding slot, not uninterrupted "
++        "hardware utilization\"}\n",
++        instance_id.c_str(), slot.id,
++        slot.task ? slot.task->id : -1,
++        (long long) slot.stats.t_assigned, (long long) slot.stats.t_start,
++        (long long) slot.stats.t_gen_last, (long long) slot.stats.t_released,
++        (unsigned long long) slot.stats.n_prompt_processed,
++        (unsigned long long) slot.stats.n_gen,
++        complete ? "true" : "false");
++    if (n <= 0 || n >= (int) sizeof(line)) {
++        return;                      // never emit a truncated record
++    }
++
++    std::lock_guard<std::mutex> lock(mtx);
++    FILE * f = fopen(path, "ab");
++    if (f == nullptr) {
++        return;
++    }
++    // Write until every byte is accepted, then flush: a partially written record
++    // is worse than none, because it would be read as a real one.
++    size_t off = 0;
++    while (off < (size_t) n) {
++        const size_t w = fwrite(line + off, 1, (size_t) n - off, f);
++        if (w == 0) {
++            break;
++        }
++        off += w;
++    }
++    fflush(f);
++    fclose(f);
++}
++
+ // returns 0 on success
+ // caller need to update prompt.tokens after a successful call to keep track of the processing progress
+ // note: this is not a member of server_slot because we want to run it inside yield_to_queue
+@@ -1819,6 +1905,11 @@ private:
+ 
+         slot.task = std::make_unique<const server_task>(std::move(task));
+ 
++        // LIVE_AB: the OUTER start of this slot's occupancy, stamped after the
++        // task is bound and before any prompt work. The conservative INNER start
++        // is slot.stats.t_start, set when prompt processing actually begins.
++        slot.stats.t_assigned = ggml_time_us();
++
+         slot.state = slot.task->is_child()
+             ? SLOT_STATE_WAIT_OTHER // wait for the parent to process prompt
+             : SLOT_STATE_STARTED;
