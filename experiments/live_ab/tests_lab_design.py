@@ -4559,8 +4559,10 @@ class SandwichAuditAndLabelTests(unittest.TestCase):
         The first version of this test used sandbox_started/sandbox_ended, which
         are not in the vocabulary at all -- so it asserted the behaviour of a
         string that could never match."""
-        ev = [{'type': 'llm_request', 'seq': 1, 't_wall_ns': 0},
-              {'type': 'llm_response', 'seq': 2, 't_wall_ns': 10_000_000_000}]
+        ev = [{'type': 'llm_request', 'seq': 1, 't_wall_ns': 0,
+               'body': {'request_id': 'A'}},
+              {'type': 'llm_response', 'seq': 2, 't_wall_ns': 10_000_000_000,
+               'body': {'request_id': 'A'}}]
         g = self.B.gap_report(ev, 5.0)
         self.assertTrue(g['computable'])
         self.assertEqual(g['gaps_above_threshold'], 1)
@@ -4613,7 +4615,7 @@ class GapReportVocabularyTests(unittest.TestCase):
         real = dict(self.B.COVERAGE_MAP)
         try:
             self.B.COVERAGE_MAP.clear()
-            self.B.COVERAGE_MAP['sandbox_started'] = ('sandbox_ended',)
+            self.B.COVERAGE_MAP['sandbox_started'] = (('sandbox_ended',), 'arrival')
             g = self.B.gap_report([], 5.0, vocabulary=self.vocab)
             self.assertFalse(g['computable'])
             self.assertIn('the chain does not have', g['reason'])
@@ -4625,11 +4627,14 @@ class GapReportVocabularyTests(unittest.TestCase):
         """THE DANGEROUS DIRECTION. A missing closer leaves the opener open for
         ever, so every subsequent gap reads as COVERED and the report
         under-reports. llm_error is a real closer I had omitted."""
-        ev = [{'type': 'llm_request', 'seq': 1, 't_wall_ns': 0},
-              {'type': 'llm_error', 'seq': 2, 't_wall_ns': 1_000_000_000},
-              {'type': 'pair_enrolled', 'seq': 3, 't_wall_ns': 30_000_000_000}]
+        ev = [{'type': 'llm_request', 'seq': 1, 't_wall_ns': 0,
+               'body': {'request_id': 'A'}},
+              {'type': 'llm_error', 'seq': 2, 't_wall_ns': 1_000_000_000,
+               'body': {'request_id': 'A'}},
+              {'type': 'pair_enrolled', 'seq': 3, 't_wall_ns': 30_000_000_000,
+               'body': {}}]
         g = self.B.gap_report(ev, 5.0, vocabulary=self.vocab)
-        self.assertEqual(g['still_open_at_end'], [])
+        self.assertEqual(g['still_open_at_end'], {})
         self.assertEqual(len(g['reported_gaps']), 1,
                          'the gap after an ERRORED request must be reported')
 
@@ -4645,3 +4650,80 @@ class GapReportVocabularyTests(unittest.TestCase):
     def test_metrics_scrape_is_a_point_event_not_a_pair(self):
         self.assertIn('metrics_scrape', self.vocab)
         self.assertNotIn('metrics_scrape', self.B.COVERAGE_MAP)
+
+
+class GapCoverageIdentityTests(unittest.TestCase):
+    """Coverage is paired by IDENTITY, not counted by type.
+
+    The type-counting version let one interval close another: an
+    `orphan_rejected` for arrival 2 decremented the `episode_started` counter
+    opened by arrival 1. With two workers these interleave constantly.
+
+    The authoritative pairing already existed in `lab_verify_log`:
+    `calls.one_terminal` keys llm_request against llm_response/llm_error by
+    `request_id`, and the episode checks key by `arrival`. This mirrors it rather
+    than inventing a second convention that could disagree with the verifier.
+    """
+
+    def setUp(self):
+        import build_live_ab_results as B
+        import lab_eventlog as E
+        self.B = B
+        self.vocab = set(E.TRIAL_ONLY_TYPES) | set(E.PROGRAM_ONLY_TYPES)
+
+    def _ev(self, typ, seq, secs, **body):
+        return {'type': typ, 'seq': seq, 't_wall_ns': int(secs * 1e9), 'body': body}
+
+    def test_a_terminal_for_ANOTHER_identity_does_not_close_this_one(self):
+        """The exact defect. Arrival 1's episode must stay open."""
+        ev = [self._ev('episode_started', 1, 0, arrival=1),
+              self._ev('orphan_rejected', 2, 1, arrival=2),
+              self._ev('pair_enrolled', 3, 30)]
+        g = self.B.gap_report(ev, 5.0, vocabulary=self.vocab)
+        self.assertEqual(g['still_open_at_end'], {'episode_started': ['1']})
+        self.assertEqual(len(g['reported_gaps']), 0,
+                         "arrival 1's episode is genuinely open, so the gap IS "
+                         'covered')
+        self.assertEqual(len(g['unmatched_terminals']), 1)
+        self.assertIn('no matching open', g['unmatched_terminals'][0]['problem'])
+
+    def test_interleaved_concurrent_requests_pair_correctly(self):
+        """Two workers, two requests in flight, terminals out of order."""
+        ev = [self._ev('llm_request', 1, 0, request_id='A'),
+              self._ev('llm_request', 2, 1, request_id='B'),
+              self._ev('llm_response', 3, 2, request_id='B'),
+              self._ev('llm_response', 4, 3, request_id='A'),
+              self._ev('pair_enrolled', 5, 40)]
+        g = self.B.gap_report(ev, 5.0, vocabulary=self.vocab)
+        self.assertEqual(g['still_open_at_end'], {})
+        self.assertEqual(g['unmatched_terminals'], [])
+        self.assertEqual(len(g['reported_gaps']), 1,
+                         'both requests closed, so the later gap is uncovered')
+
+    def test_one_open_request_covers_the_gap_while_its_partner_is_closed(self):
+        ev = [self._ev('llm_request', 1, 0, request_id='A'),
+              self._ev('llm_request', 2, 1, request_id='B'),
+              self._ev('llm_error', 3, 2, request_id='B'),
+              self._ev('pair_enrolled', 4, 40)]
+        g = self.B.gap_report(ev, 5.0, vocabulary=self.vocab)
+        self.assertEqual(g['still_open_at_end'], {'llm_request': ['A']})
+        self.assertEqual(len(g['reported_gaps']), 0)
+
+    def test_an_opener_without_its_identity_field_is_flagged(self):
+        ev = [self._ev('llm_request', 1, 0),          # no request_id
+              self._ev('pair_enrolled', 2, 40)]
+        g = self.B.gap_report(ev, 5.0, vocabulary=self.vocab)
+        self.assertTrue(any('opener carries no' in u['problem']
+                            for u in g['unmatched_terminals']))
+        self.assertEqual(len(g['reported_gaps']), 1,
+                         'an opener we cannot identify must not cover anything')
+
+    def test_the_identity_fields_match_the_verifier_s_own_keys(self):
+        """lab_verify_log keys llm_request by request_id and episodes by arrival.
+        A second pairing convention that disagreed with the verifier would be the
+        same class of error in a different place."""
+        self.assertEqual(self.B.COVERAGE_MAP['llm_request'][1], 'request_id')
+        self.assertEqual(self.B.COVERAGE_MAP['episode_started'][1], 'arrival')
+        src = Path(lab_common.HERE / 'lab_verify_log.py').read_text('utf-8')
+        self.assertIn("rid = ev['body']['request_id']", src)
+        self.assertIn("('llm_response', 'llm_error')", src)

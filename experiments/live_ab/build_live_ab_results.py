@@ -421,9 +421,20 @@ def sandwich_audit(events: list, rule_tolerance_s, posting_latency_p95_s) -> dic
 #: ever, so every later gap reads as covered and the report UNDER-reports. The
 #: second is the dangerous one, and `llm_error` -- a real closer I had omitted --
 #: would have caused exactly it.
+#: opener -> (closers, identity field). COVERAGE IS PAIRED BY IDENTITY, NOT
+#: COUNTED BY TYPE. The first version kept one counter per event TYPE, so an
+#: `orphan_rejected` for arrival 2 would close an `episode_started` for arrival 1,
+#: and a stray terminal with no opener would drive a counter negative. With two
+#: workers these interleave constantly.
+#:
+#: The authoritative pairing already exists in lab_verify_log: `calls.one_terminal`
+#: keys llm_request against llm_response/llm_error BY request_id, and the episode
+#: checks key by arrival. This mirrors that rather than inventing a second
+#: convention -- the same mistake in a different form would be a second pairing
+#: rule that disagrees with the verifier's.
 COVERAGE_MAP: dict = {
-    'llm_request': ('llm_response', 'llm_error'),
-    'episode_started': ('episode_revealed', 'orphan_rejected'),
+    'llm_request': (('llm_response', 'llm_error'), 'request_id'),
+    'episode_started': (('episode_revealed', 'orphan_rejected'), 'arrival'),
 }
 
 #: Coverers protocol 12.6 item 4 NAMES but the event vocabulary does not
@@ -446,12 +457,14 @@ def _validate_coverage_map(vocabulary) -> list:
     """
     known = set(vocabulary)
     bad = []
-    for opener, closers in COVERAGE_MAP.items():
+    for opener, (closers, key) in COVERAGE_MAP.items():
         if opener not in known:
             bad.append('opener %r is not a chain event type' % opener)
         for c in closers:
             if c not in known:
                 bad.append('closer %r is not a chain event type' % c)
+        if not key:
+            bad.append('opener %r declares no identity field' % opener)
     return bad
 
 
@@ -477,33 +490,61 @@ def gap_report(events: list, gap_report_s: float = 5.0,
                 'reported_gaps': None}
 
     closers: dict = {}
-    for opener, cs in COVERAGE_MAP.items():
+    for opener, (cs, key) in COVERAGE_MAP.items():
         for c in cs:
-            closers.setdefault(c, []).append(opener)
+            closers.setdefault(c, []).append((opener, key))
 
-    open_counts: dict = {}
+    # opener type -> set of OPEN IDENTITIES, not a count
+    open_ids: dict = {k: set() for k in COVERAGE_MAP}
+    unmatched_terminals = []
     gaps = []
     prev = None
     for e in events:
         t = e.get('t_wall_ns')
         kind = e.get('type')
+        body = e.get('body') or {}
         if prev is not None and t is not None and prev[1] is not None:
             delta = (int(t) - int(prev[1])) / 1e9
             if delta > gap_report_s:
-                covered = sorted(k for k, n in open_counts.items() if n > 0)
+                covered = sorted(k for k, ids in open_ids.items() if ids)
                 gaps.append({'after_seq': prev[0], 'before_seq': e.get('seq'),
                              'seconds': delta, 'covered_by': covered,
+                             'open_identities': {k: sorted(map(str, ids))
+                                                 for k, ids in open_ids.items() if ids},
                              'reported': not covered})
         if kind in COVERAGE_MAP:
-            open_counts[kind] = open_counts.get(kind, 0) + 1
-        for opener in closers.get(kind, ()):
-            if open_counts.get(opener):
-                open_counts[opener] -= 1
+            key = COVERAGE_MAP[kind][1]
+            ident = body.get(key)
+            if ident is None:
+                unmatched_terminals.append(
+                    {'seq': e.get('seq'), 'type': kind,
+                     'problem': 'opener carries no %r' % key})
+            else:
+                open_ids[kind].add(ident)
+        for opener, key in closers.get(kind, ()):
+            ident = body.get(key)
+            if ident is None:
+                unmatched_terminals.append(
+                    {'seq': e.get('seq'), 'type': kind,
+                     'problem': 'closer carries no %r' % key})
+            elif ident in open_ids[opener]:
+                open_ids[opener].discard(ident)
+            else:
+                # A terminal whose opener was never seen. Counting would have
+                # decremented someone else's interval closed.
+                unmatched_terminals.append(
+                    {'seq': e.get('seq'), 'type': kind, 'identity': str(ident),
+                     'problem': 'closer with no matching open %r' % opener})
         prev = (e.get('seq'), t)
     reported = [g for g in gaps if g['reported']]
     return {
         'gap_report_s': gap_report_s, 'computable': True,
-        'coverage_map': {k: list(v) for k, v in COVERAGE_MAP.items()},
+        'coverage_map': {k: {'closers': list(v[0]), 'identity_field': v[1]}
+                         for k, v in COVERAGE_MAP.items()},
+        'paired_by': 'IDENTITY, mirroring lab_verify_log calls.one_terminal '
+                     '(request_id) and the episode checks (arrival). Counting by '
+                     'type would let one interval close another.',
+        'unmatched_terminals': unmatched_terminals,
         'gaps_above_threshold': len(gaps),
         'covered_gaps': len(gaps) - len(reported),
         'reported_gaps': reported,
@@ -514,7 +555,8 @@ def gap_report(events: list, gap_report_s: float = 5.0,
                    'vocabulary carries no interval for either -- so such a gap is '
                    'reported and must be read as UNEXPLAINED-BY-THIS-CHECK rather '
                    'than as unexplained.'),
-        'still_open_at_end': sorted(k for k, n in open_counts.items() if n > 0),
+        'still_open_at_end': {k: sorted(map(str, ids))
+                              for k, ids in open_ids.items() if ids},
     }
 
 
