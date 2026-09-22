@@ -67,6 +67,8 @@ import lab_common                                              # noqa: E402
 import lab_data                                                # noqa: E402
 
 RECORD_SCHEMA = 'live_ab/slot_lifecycle-v1'
+SEAL_SCHEMA = 'live_ab/acquisition_seal-v1'
+ERROR_SCHEMA = 'live_ab/acquisition_error-v1'
 OBSERVATION_SCHEMA = 'live_ab/lifecycle_observation-v1'
 EVIDENCE_KIND = 'server_lifecycle'
 CLOCK = 'clock_gettime(CLOCK_MONOTONIC)'
@@ -128,17 +130,17 @@ def read_records(path: "str | Path") -> Dict[str, Any]:
     """
     path = Path(path)
     if not path.exists():
-        return {'records': [], 'rejected': [],
+        return {'records': [], 'rejected': [], 'seals': [], 'writer_errors': [],
                 'error': 'no lifecycle log at %s' % lab_common.tokenize_path(path)}
     raw = path.read_text('utf-8')
     lines = raw.splitlines()
     if raw and not raw.endswith('\n'):
-        return {'records': [], 'rejected': [],
+        return {'records': [], 'rejected': [], 'seals': [], 'writer_errors': [],
                 'error': 'the lifecycle log ends mid-line (%d bytes); the server is '
                          'still writing. Re-read rather than trimming: a trimmed '
                          'partial line discards an occupancy that did happen.'
                          % len(raw)}
-    records, rejected = [], []
+    records, rejected, seals, errors = [], [], [], []
     for i, line in enumerate(lines, start=1):
         if not line.strip():
             continue
@@ -147,13 +149,27 @@ def read_records(path: "str | Path") -> Dict[str, Any]:
         except ValueError as exc:
             rejected.append({'line': i, 'reason': 'unparsable: %s' % exc})
             continue
-        if not isinstance(rec, dict) or rec.get('schema') != RECORD_SCHEMA:
-            rejected.append({'line': i, 'reason': 'not a %s record (schema %r)'
-                                                  % (RECORD_SCHEMA, (rec or {}).get('schema')
-                                                     if isinstance(rec, dict) else None)})
+        if not isinstance(rec, dict):
+            rejected.append({'line': i, 'reason': 'not a JSON object'})
             continue
-        records.append(rec)
-    return {'records': records, 'rejected': rejected, 'error': None}
+        schema = rec.get('schema')
+        if schema == RECORD_SCHEMA:
+            records.append(rec)
+        elif schema == SEAL_SCHEMA:
+            # DEFECT FOUND BY THE NATIVE FIXTURE, 2026-09-22 05:57, and it is the
+            # reason root asked for one: "Test real serialization/reader
+            # interoperability, not only Python dictionaries shaped to resemble
+            # it." The built binary wrote its closing seal and THIS READER
+            # REJECTED IT as "not a slot_lifecycle-v1 record" -- so a correctly
+            # sealed acquisition was counted as containing garbage and refused.
+            # The seal is the one line that proves the log is finished.
+            seals.append(rec)
+        elif schema == ERROR_SCHEMA:
+            errors.append(rec)
+        else:
+            rejected.append({'line': i, 'reason': 'unknown schema %r' % (schema,)})
+    return {'records': records, 'rejected': rejected, 'seals': seals,
+            'writer_errors': errors, 'error': None}
 
 
 def window_from_record(rec: dict, *, expected: Optional[dict] = None) -> Dict[str, Any]:
@@ -255,6 +271,18 @@ def window_from_record(rec: dict, *, expected: Optional[dict] = None) -> Dict[st
         'n_gen': rec.get('n_gen'),
         'means': 'an occupied decoding slot, NOT uninterrupted hardware utilization',
     }}
+
+
+def records_seq_gap(seqs: List, declared: int) -> List:
+    """Which sequence numbers the seal says exist but the file does not carry.
+
+    The producer numbers records from 0 and the seal reports how many it wrote,
+    so a complete log holds exactly ``0..declared-1``. A lost final line, a
+    dropped record or a truncated write all show up here as a gap, which is the
+    finite check root asked for.
+    """
+    present = set(q for q in seqs if isinstance(q, int))
+    return sorted(set(range(int(declared))) - present)
 
 
 def _overlaps_on_one_slot(windows: List[dict]) -> Optional[str]:
@@ -378,7 +406,47 @@ def observe(path: "str | Path", *, concurrency_required: int = 2,
     # turned into a window, the log describes a period we cannot fully account
     # for, and lifecycle_complete is false -- which the consumer treats as a
     # refusal that RETAINS the attempt rather than excluding a task.
-    complete = not refused and not parsed['rejected']
+    # THE SEAL AND SEQUENCE CONTRACT, root 2026-09-22 04:59: "Durable
+    # assignment/start records paired with terminal/release records and a final
+    # sequence/count seal provide a finite check for a missing endpoint or lost
+    # final line. Missing terminal/seal, unfinished request, writer failure or
+    # sequence gap is unresolved/refused, never an excluded task. A
+    # newline-terminated subset alone is not a complete acquisition."
+    seals, writer_errors = parsed.get('seals') or [], parsed.get('writer_errors') or []
+    base['seals'] = seals
+    base['writer_errors'] = writer_errors
+    seal_problem = None
+    if not seals:
+        seal_problem = ('the acquisition carries NO CLOSING SEAL, so the writer did '
+                        'not finish: a newline-terminated subset is not a complete '
+                        'acquisition, and a crashed producer leaves exactly this')
+    elif len(seals) > 1:
+        seal_problem = ('the acquisition carries %d seals; a log is sealed once'
+                        % len(seals))
+    else:
+        seal = seals[0]
+        if seal.get('write_failures'):
+            seal_problem = ('the producer recorded %r write failure(s); the log is '
+                            'not known to be whole' % seal.get('write_failures'))
+        elif expected is not None and seal.get('run_token') != expected.get('instance_id'):
+            seal_problem = ('the seal names run token %r, not the launched %r'
+                            % (seal.get('run_token'), expected.get('instance_id')))
+        else:
+            declared = seal.get('records')
+            seqs = [r.get('seq') for r in parsed['records']]
+            if not isinstance(declared, int):
+                seal_problem = 'the seal declares no integer record count'
+            elif any(not isinstance(q, int) for q in seqs):
+                seal_problem = 'a record carries no integer seq'
+            elif len(records_seq_gap(seqs, declared)) > 0:
+                seal_problem = ('sequence gap against the seal: %s'
+                                % records_seq_gap(seqs, declared)[:3])
+    if writer_errors:
+        seal_problem = seal_problem or ('the producer wrote %d acquisition error(s) '
+                                        'to its side channel' % len(writer_errors))
+    base['seal_problem'] = seal_problem
+
+    complete = not refused and not parsed['rejected'] and seal_problem is None
     overlap = _overlaps_on_one_slot(windows)
     if overlap is not None:
         base['impossible_overlap'] = overlap

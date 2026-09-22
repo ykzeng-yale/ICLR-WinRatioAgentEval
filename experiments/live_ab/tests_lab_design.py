@@ -3496,6 +3496,7 @@ class ServerLifecycleProducerConsumerTests(unittest.TestCase):
         self.tmp = Path(tempfile.mkdtemp(prefix='lifecycle_'))
         self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
         self.log = self.tmp / 'lifecycle.jsonl'
+        self._seq = 0
         self.prov = {'boot_id': 'boot:aa', 'host_id': 'host:bb',
                      'boot_source': 'sysctl kern.bootsessionuuid',
                      'host_source': 'platform.node'}
@@ -3517,8 +3518,19 @@ class ServerLifecycleProducerConsumerTests(unittest.TestCase):
                't_gen_last_us': t_gen, 't_released_us': t_rel,
                'n_prompt_processed': 10, 'n_gen': 1024, 'complete': complete,
                'means': 'occupied decoding slot, not uninterrupted hardware utilization'}
+        rec['seq'] = self._seq
+        self._seq += 1
         with open(self.log, 'a', encoding='utf-8') as fh:
             fh.write(json.dumps(rec, separators=(',', ':')) + '\n')
+
+    def _seal(self, records=None, write_failures=0, token='srv_1_2'):
+        """The closing seal, in the bytes the built binary actually writes."""
+        seal = {'schema': 'live_ab/acquisition_seal-v1', 'run_token': token,
+                'records': self._seq if records is None else records,
+                'write_failures': write_failures, 't_us': 103_000_000,
+                'clock': lab_lifecycle.CLOCK}
+        with open(self.log, 'a', encoding='utf-8') as fh:
+            fh.write(json.dumps(seal, separators=(',', ':')) + '\n')
 
     def _attempt(self, start_s, end_s):
         return lab_data.attempt_record(
@@ -3540,6 +3552,7 @@ class ServerLifecycleProducerConsumerTests(unittest.TestCase):
                    t_gen=102_000_000, t_rel=102_100_000)
         self._emit(slot=1, task=12, t_assigned=99_050_000, t_prompt=99_150_000,
                    t_gen=102_050_000, t_rel=102_150_000)
+        self._seal()
         obs = lab_lifecycle.observe(self.log, provenance=self.prov,
                                     expected=self.expected)
         self.assertTrue(obs['active'])
@@ -3552,6 +3565,7 @@ class ServerLifecycleProducerConsumerTests(unittest.TestCase):
     def test_ONE_occupancy_does_not_certify_however_long_it_is(self):
         self._emit(slot=0, task=11, t_assigned=1, t_prompt=90_000_000,
                    t_gen=110_000_000, t_rel=110_100_000)
+        self._seal()
         obs = lab_lifecycle.observe(self.log, provenance=self.prov,
                                     expected=self.expected)
         v = lab_prepare._coverage_verdict(obs, self._attempt(100.0, 100.5))
@@ -3652,6 +3666,7 @@ class LifecycleReaderWitnessTests(unittest.TestCase):
         self.tmp = Path(tempfile.mkdtemp(prefix='lcw_'))
         self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
         self.log = self.tmp / 'lifecycle.jsonl'
+        self._seq = 0
         self.expected = {'host_id': 'host:bb', 'boot_id': 'boot:aa',
                          'instance_id': 'srv_1_2'}
         self.prov = {'boot_id': 'boot:aa', 'host_id': 'host:bb',
@@ -3666,8 +3681,18 @@ class LifecycleReaderWitnessTests(unittest.TestCase):
                't_gen_last_us': 102_000_000, 't_released_us': 102_100_000,
                'n_prompt_processed': 10, 'n_gen': 1024, 'complete': True}
         rec.update(kw)
+        rec.setdefault('seq', self._seq)
+        self._seq += 1
         with open(self.log, 'a', encoding='utf-8') as fh:
             fh.write(json.dumps(rec, separators=(',', ':')) + '\n')
+
+    def _seal(self, records=None, write_failures=0, token='srv_1_2'):
+        seal = {'schema': 'live_ab/acquisition_seal-v1', 'run_token': token,
+                'records': self._seq if records is None else records,
+                'write_failures': write_failures, 't_us': 103_000_000,
+                'clock': lab_lifecycle.CLOCK}
+        with open(self.log, 'a', encoding='utf-8') as fh:
+            fh.write(json.dumps(seal, separators=(',', ':')) + '\n')
 
     def _obs(self, **kw):
         kw.setdefault('expected', self.expected)
@@ -3676,6 +3701,7 @@ class LifecycleReaderWitnessTests(unittest.TestCase):
     def test_witness_positive_control_still_certifies(self):
         self._emit(slot_id=0, task_id=11)
         self._emit(slot_id=1, task_id=12)
+        self._seal()
         o = self._obs()
         self.assertTrue(o['active'])
         self.assertTrue(o['lifecycle_complete'])
@@ -3821,3 +3847,133 @@ class ManifestObserverBindingTests(unittest.TestCase):
         pending = ' '.join(o['pending_not_yet_validated'])
         self.assertIn('ECHOED METADATA', pending)
         self.assertIn('seal', pending)
+
+
+class AcquisitionSealTests(unittest.TestCase):
+    """The seal and sequence contract -- and the defect the NATIVE fixture found.
+
+    Root asked for a native model-free fixture precisely to "test real
+    serialization/reader interoperability, not only Python dictionaries shaped to
+    resemble it". The first thing it found: the built binary wrote its closing
+    seal and THIS READER REJECTED IT as "not a slot_lifecycle-v1 record", so a
+    correctly sealed acquisition read as containing garbage. The seal is the one
+    line that proves the log is finished.
+    """
+
+    #: The EXACT bytes the built binary emitted, 2026-09-22 05:57, from
+    #: results/live_ab/BUILD_RECEIPT_20260922T055747Z.json.
+    NATIVE_SEAL = ('{"schema":"live_ab/acquisition_seal-v1","run_token":'
+                   '"run_native_fixture_1790056650","records":0,'
+                   '"write_failures":0,"t_us":5204918383254,'
+                   '"clock":"clock_gettime(CLOCK_MONOTONIC)"}')
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp(prefix='seal_'))
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.log = self.tmp / 'l.jsonl'
+        self._seq = 0
+        self.prov = {'boot_id': 'boot:aa', 'host_id': 'host:bb',
+                     'boot_source': 's', 'host_source': 'p'}
+        self.expected = {'host_id': 'host:bb', 'boot_id': 'boot:aa',
+                         'instance_id': 'srv_1_2'}
+
+    def _emit(self, slot, task, **kw):
+        rec = {'schema': 'live_ab/slot_lifecycle-v1', 'instance_id': 'srv_1_2',
+               'host_id': 'host:bb', 'boot_id': 'boot:aa', 'seq': self._seq,
+               'clock': lab_lifecycle.CLOCK, 'units': 'microseconds',
+               'slot_id': slot, 'task_id': task,
+               't_assigned_us': 99_000_000, 't_prompt_start_us': 99_100_000,
+               't_gen_last_us': 102_000_000, 't_released_us': 102_100_000,
+               'n_prompt_processed': 10, 'n_gen': 1024, 'complete': True}
+        rec.update(kw)
+        self._seq += 1
+        with open(self.log, 'a', encoding='utf-8') as fh:
+            fh.write(json.dumps(rec, separators=(',', ':')) + '\n')
+
+    def _seal(self, **kw):
+        seal = {'schema': 'live_ab/acquisition_seal-v1', 'run_token': 'srv_1_2',
+                'records': self._seq, 'write_failures': 0, 't_us': 103_000_000,
+                'clock': lab_lifecycle.CLOCK}
+        seal.update(kw)
+        with open(self.log, 'a', encoding='utf-8') as fh:
+            fh.write(json.dumps(seal, separators=(',', ':')) + '\n')
+
+    def _obs(self):
+        return lab_lifecycle.observe(self.log, provenance=self.prov,
+                                     expected=self.expected)
+
+    # -- the native bytes, through the real reader --------------------------
+    def test_the_seal_the_BUILT_BINARY_wrote_is_recognised(self):
+        self.log.write_text(self.NATIVE_SEAL + '\n', encoding='utf-8')
+        parsed = lab_lifecycle.read_records(self.log)
+        self.assertEqual(parsed['rejected'], [],
+                         'the reader rejected bytes its own producer wrote')
+        self.assertEqual(len(parsed['seals']), 1)
+        self.assertEqual(parsed['seals'][0]['clock'], lab_lifecycle.CLOCK)
+        self.assertEqual(parsed['seals'][0]['records'], 0)
+
+    # -- the contract -------------------------------------------------------
+    def test_an_UNSEALED_log_does_not_certify(self):
+        """A crashed producer leaves exactly this: records, no seal."""
+        self._emit(0, 11)
+        self._emit(1, 12)
+        o = self._obs()
+        self.assertFalse(o['lifecycle_complete'])
+        self.assertIn('NO CLOSING SEAL', o['seal_problem'])
+
+    def test_a_SEQUENCE_GAP_against_the_seal_is_caught(self):
+        """The seal says three records; the file carries two."""
+        self._emit(0, 11)
+        self._emit(1, 12)
+        self._seq += 1                      # a record that never reached the file
+        self._seal()
+        o = self._obs()
+        self.assertFalse(o['lifecycle_complete'])
+        self.assertIn('sequence gap', o['seal_problem'])
+
+    def test_a_WRITER_FAILURE_reported_in_the_seal_refuses(self):
+        self._emit(0, 11)
+        self._emit(1, 12)
+        self._seal(write_failures=1)
+        o = self._obs()
+        self.assertFalse(o['lifecycle_complete'])
+        self.assertIn('write failure', o['seal_problem'])
+
+    def test_a_seal_from_ANOTHER_RUN_refuses(self):
+        self._emit(0, 11)
+        self._emit(1, 12)
+        self._seal(run_token='some_other_run')
+        o = self._obs()
+        self.assertFalse(o['lifecycle_complete'])
+        self.assertIn('run token', o['seal_problem'])
+
+    def test_TWO_seals_refuse(self):
+        self._emit(0, 11)
+        self._emit(1, 12)
+        self._seal()
+        self._seal()
+        o = self._obs()
+        self.assertIn('sealed once', o['seal_problem'])
+
+    def test_a_writer_error_side_channel_record_refuses(self):
+        """The producer appends acquisition errors to a SEPARATE file, but if one
+        ever lands in the main log it must not be read as noise."""
+        self._emit(0, 11)
+        self._emit(1, 12)
+        with open(self.log, 'a', encoding='utf-8') as fh:
+            fh.write('{"schema":"live_ab/acquisition_error-v1","stage":"write",'
+                     '"t_us":1,"failures":1}\n')
+        self._seal()
+        o = self._obs()
+        self.assertFalse(o['lifecycle_complete'])
+        self.assertTrue(o['writer_errors'])
+
+    def test_a_correctly_sealed_log_still_certifies(self):
+        """The control: the contract must not refuse the legitimate case."""
+        self._emit(0, 11)
+        self._emit(1, 12)
+        self._seal()
+        o = self._obs()
+        self.assertTrue(o['active'])
+        self.assertTrue(o['lifecycle_complete'])
+        self.assertIsNone(o['seal_problem'])
