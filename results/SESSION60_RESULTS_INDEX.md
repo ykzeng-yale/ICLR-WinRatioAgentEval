@@ -1455,6 +1455,32 @@ parser's seals, and enforces the seal-only shape.
 Patch **`2c52078f...`**. Suites: design **251**, chain 70, isolation 12, serving 89, hostcheck 117,
 stats 70. **Nothing built since the patch changed; the bounded model attempt is unspent.**
 
+### The production clock refusal, and a value I reported as recorded (2026-09-22, `94edd0c`)
+
+`deterministic-path`. Root listed the production refusal as still outstanding: *"logging a weakened
+check does not enforce the protocol."*
+
+**Now enforced.** `preflight_mode` defaults to **production**, which **refuses** a window below the
+protocol's ten seconds. Production is the default, so a runtime that forgot to say what it is gets
+the strict path; an offline fixture must **declare itself**. The e2e Tree, dryrun and design harness
+now declare `preflight_mode='offline_fixture'` beside their 0.01 s window and carry
+`production_receipt=False` — a shortened window **cannot supply a production preflight receipt**.
+
+The refusal reuses the existing closed code `clock_equivalence` rather than widening `E_PREFLIGHT`
+(a G1 closed vocabulary), with a drift row naming `clock_window_s`, expected `>= 10`, and the value
+found.
+
+**A defect in last cycle's delivery, found while testing this one.** `runtime(cfg)` returns a
+**copy**. My `rt['clock_equivalence'] = ...` wrote the effective-window record into that throwaway,
+so it **vanished when preflight returned**. I reported it as "recorded" and it was recorded nowhere.
+It is now written to the context's runtime block — what `make_context` builds and the caller reads —
+with a test asserting it survives the call. **Second time in two cycles I described something as
+present without checking the artifact it should be present in.**
+
+7 new tests through the **real** preflight on the real freeze-tree harness, only `time.sleep` stubbed
+— no test sleeps ten seconds to prove a ten-second rule. Suites: design **273**, chain 70, isolation
+12, serving 89, hostcheck 117, stats 70, e2e 42.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
