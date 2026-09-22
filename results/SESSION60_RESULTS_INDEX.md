@@ -323,8 +323,11 @@ with signal 0). Tree enumeration no longer degrades to leader-only on a `ps` exc
 sampling of a subset *succeed while undercounting*. Both calls now sit in the same handler and route to
 the failure receipt.
 
-**Manifest regenerated from a clean tree** (`T1_MANIFEST.json`, identity
-`0730f77ac66954bd…`). The root found the prior one was built from a **dirty pre-commit tree** — its own
+**Manifest regenerated from a clean tree** (`T1_MANIFEST.json`, `saved_execution_spec_digest`
+`0730f77ac66954bd…`). **[CORRECTED 2026-09-22 16:22: this read "identity". The only receipt carrying that digest,
+`evidence/v2_launcher_mock_checks_20260921_1058.json`, calls it `saved_execution_spec_digest`; the
+manifest's reviewed identity is `c3d4bce5021d3a3f…` per `evidence/v2_launcher_closure_20260921_1136.json`. Two
+different things, both called "identity" in this file. Found by the index-claim audit.]** The root found the prior one was built from a **dirty pre-commit tree** — its own
 pins said `validation_tree_dirty: true` and two digests were stale; both confirmed, and it is retained
 as a marked historical draft. The manifest now binds the **canonical execution spec** (allocation, shard
 plan digest, full 56-shard order, cumulative caps, accepted resource-ledger digest) instead of an empty
@@ -2080,6 +2083,44 @@ drift test, and now this. **Naming a file must never be able to fail.**
 Fixed once, not three times: `lab_common.display_path` — tokenized when possible, repo-relative when
 possible, absolute otherwise, **never raises** — and all **seven** unguarded call sites across the
 tools converted to it.
+
+### Auditing this file's own claims — proposed last cycle, not objected to, so run (2026-09-22)
+
+`deterministic-path`. `results/live_ab/INDEX_CLAIM_AUDIT_v2.json`, over **2089 lines**.
+
+Two cycles ago I withdrew a line from this file that said *"both trees clean … 0 unbucketed literal
+checks"* while the cited receipt said 27. **This is a document root reads and I have a demonstrated
+error rate in it.** I proposed the check on issue #11 rather than running it unilaterally — *"this is
+really the follow-up to a defect, not new work"* is the rationalisation I asked to be watched for —
+and root did not object.
+
+**Three checks, two of them complete over the file.**
+
+| check | reach | result |
+|---|---|---|
+| every cited `results/live_ab/*.json` exists | **complete** | **29 cited, 0 missing** |
+| every 64-hex digest and 16-hex prefix occurs in a committed receipt | **complete** | **3 + 3, 0 unbacked** |
+| headline numeric claims vs their receipts | **NOT complete — enumerated by hand** | **27 checked, 0 disagree** |
+
+**The third is the honest one.** The index is prose; there is no general parse of *"this sentence
+asserts X about receipt Y"*. The claims are enumerated by hand, so **a claim I failed to list is a
+claim this does not check** — the same limitation as the audit self-test, stated rather than glossed.
+
+**One real mislabel found, and it was the kind this was built for.** The index called
+`0730f77ac66954bd…` the manifest's **identity**. The only receipt carrying that digest,
+`evidence/v2_launcher_mock_checks_20260921_1058.json`, calls it **`saved_execution_spec_digest`** —
+and the manifest's actual reviewed identity is `c3d4bce5021d3a3f…`
+(`evidence/v2_launcher_closure_20260921_1136.json`, alongside `manifest_source_head: a137d39` and
+`canonical_identity_recomputed_matches: true`, which is the line at §"Manifest regenerated at clean
+`a137d39`" and **does** check out). **Two different things were both called "identity" in this file.**
+Corrected in place with the original wording quoted.
+
+**And the checker's first run was wrong about those two digests — my defect, not the index's.** It
+reported them unbacked because its corpus was `results/live_ab/*.json` plus config, omitting
+`evidence/` and `results/live_ab_validation_v2/` where they actually live. **A digest check whose
+corpus omits where digests live manufactures false alarms** — the same defect as the capability table
+that named one of several valid providers. Corpus widened to every committed JSON under `results/`
+and `evidence/`; `reviews/` is root-owned and is read, never written.
 
 ## Open requests
 
