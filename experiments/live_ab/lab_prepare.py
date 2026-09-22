@@ -247,7 +247,6 @@ def _content_key(manifest: dict) -> dict:
 def acquire_sources(dest: "str | Path", *, offline: bool = True,
                     expect_mode: Optional[str] = None,
                     enforce_tmpdir: bool = False,
-                    verify_required_bytes: bool = True,
                     fetch_fn: Callable = lab_data.fetch_sources) -> Dict[str, Any]:
     """Resolve the pinned sources, refusing a silent downgrade.
 
@@ -297,16 +296,14 @@ def acquire_sources(dest: "str | Path", *, offline: bool = True,
                 'the same verified bytes, not silently change to S1." Refusing.'
                 % (lab_common.tokenize_path(dest), '; '.join(drift)))
         # the SAME gate as the fresh path, before any success is returned
-        _validate_acquisition(dest, prior, expect_mode, 'reused manifest',
-                              verify_required_bytes=verify_required_bytes)
+        _validate_acquisition(dest, prior, expect_mode, 'reused manifest')
         _record_access(dest, 'reuse', prior.get('roster_mode'), drift)
         return {'manifest': prior, 'roster_mode': prior.get('roster_mode'),
                 'reused_existing_manifest': True, 'content_drift': drift}
 
     manifest = fetch_fn(dest, offline=offline)
     mode = manifest.get('roster_mode')
-    _validate_acquisition(dest, manifest, expect_mode, 'fresh acquisition',
-                          verify_required_bytes=verify_required_bytes)
+    _validate_acquisition(dest, manifest, expect_mode, 'fresh acquisition')
     _record_access(dest, 'acquire', mode, [])
     return {'manifest': manifest, 'roster_mode': mode,
             'reused_existing_manifest': False, 'content_drift': []}
@@ -554,7 +551,7 @@ def _coverage_verdict(obs: object, record: dict, *,
                               'periodic samples into continuous evidence.'}
 
 def _validate_acquisition(dest: Path, manifest: dict, expect_mode: "str | None",
-                          path_label: str, *, verify_required_bytes: bool = True) -> None:
+                          path_label: str) -> None:
     """The single pre-return gate for BOTH acquisition paths.
 
     Root, 2026-09-22 00:01: "expect_mode='EXT' must refuse an S1 result EVEN WHEN
@@ -581,12 +578,10 @@ def _validate_acquisition(dest: Path, manifest: dict, expect_mode: "str | None",
 
     # REQUIRED-SOURCE INTEGRITY, in EITHER mode. A required source that is absent
     # or whose bytes differ from the pin is a refusal, never a drift warning.
-    if not verify_required_bytes:
-        # SYNTHETIC FIXTURES ONLY. Their manifests declare sources present without
-        # depositing 255 KB of real benchmark bytes, so the integrity half cannot
-        # run. The MODE half above still runs, which is what those fixtures test.
-        # Production never passes this.
-        return
+    # NO CALLER-VISIBLE BYPASS. Root 2026-09-22 00:34: "do not allow a normal
+    # production configuration/entry point to clear required-byte validation."
+    # The bypass keyword I added for synthetic fixtures is removed; tests now
+    # patch lab_data.SOURCES to tiny real files and run the DEFAULT path.
     for name, spec in lab_data.SOURCES.items():
         if not spec.get('required'):
             continue

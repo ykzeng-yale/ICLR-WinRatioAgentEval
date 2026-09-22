@@ -48,30 +48,54 @@ LS_DIR = lab_common.REPO_ROOT / 'experiments' / 'local_stream'
 FIXTURE_SCHEMA = 'live_ab/combined_lock_sandbox_fixture-v1'
 
 
+def sandbox_payload(nonce: str, hold_s: float) -> str:
+    """The inner sandbox program, built with repr-quoted literals.
+
+    Root's diagnosis, 2026-09-22 00:34: my previous construction interpolated the
+    nonce into the FILENAME but emitted the bare name ``NONCE`` in
+    ``.write(NONCE)``. The sandbox program has its own global namespace and never
+    defines it, so the payload died with ``NameError: name 'NONCE' is not
+    defined`` before the sleep. That is why the marker never appeared.
+
+    The lesson is sharper than the bug: I checked that the generated FILENAME
+    looked right and concluded the payload was correct. A correct filename says
+    nothing about whether a different argument on the same line is bound.
+
+    Root's repair, followed here: bind the nonce as an explicitly quoted literal
+    first statement and use it for both the marker name and its contents, using
+    ``repr`` rather than hand-escaped nested quotes.
+    """
+    return (
+        'NONCE = %s\n'
+        'import time\n'
+        'open("sandbox_active_" + NONCE, "w").write(NONCE)\n'
+        'time.sleep(%r)\n'
+        'print("SANDBOX_DONE")\n'
+    ) % (repr(nonce), float(hold_s))
+
+
 def _supervisor_source(lock: str, role: str, ready: str, nonce: str,
                        hold_s: float, wait_s: float) -> str:
     """A trusted supervisor: lock OUTSIDE, sandbox program INSIDE."""
+    payload = sandbox_payload(nonce, hold_s)
     return (
         'import json, os, sys, time\n'
         'sys.path.insert(0, %r); sys.path.insert(0, %r)\n'
         'import lab_data, sandbox as SB\n'
-        'LOCK, ROLE, READY, NONCE, HOLD, WAIT = %r, %r, %r, %r, %f, %f\n'
+        'LOCK, ROLE, WAIT = %r, %r, %r\n'
+        'PROG = %r\n'
         'rec = {"role": ROLE, "pid": os.getpid(), "lock": LOCK,\n'
         '       "lock_requested": time.monotonic()}\n'
         'try:\n'
-        # THE SUPERVISOR holds the lock. The sandboxed program never sees it.
         '    with lab_data._ExecutionLock(LOCK, WAIT):\n'
         '        rec["lock_acquired"] = time.monotonic()\n'
-        '        prog = ("import time\\n"\n'
-        '                "open(\'sandbox_active_" + NONCE + "\', \'w\').write(NONCE)\\n"\n'
-        '                "time.sleep(%%f)\\n"\n'
-        '                "print(\'SANDBOX_DONE\')\\n") %% (HOLD,)\n'
         '        rec["sandbox_started"] = time.monotonic()\n'
-        '        run = SB.run_program(prog, timeout_s=HOLD + 20.0, mem_bytes=2<<30,\n'
+        '        run = SB.run_program(PROG, timeout_s=60.0, mem_bytes=2<<30,\n'
         '                             cpu_seconds=30, output_cap=65536)\n'
         '        rec["sandbox_ended"] = time.monotonic()\n'
         '        rec["sandbox_kind"] = run.get("sandbox_kind")\n'
         '        rec["sandbox_ok"] = "SANDBOX_DONE" in (run.get("stdout") or "")\n'
+        '        rec["sandbox_stderr_tail"] = (run.get("stderr") or "")[-200:]\n'
         '        rec["outcome"] = "acquired"\n'
         '    rec["lock_released"] = time.monotonic()\n'
         'except Exception as e:\n'
@@ -80,7 +104,7 @@ def _supervisor_source(lock: str, role: str, ready: str, nonce: str,
         '    rec["gave_up"] = time.monotonic()\n'
         '    rec["sandbox_started"] = None\n'
         'print("<<<SUP>>>" + json.dumps(rec))\n'
-    ) % (str(HERE), str(LS_DIR), lock, role, ready, nonce, hold_s, wait_s)
+    ) % (str(HERE), str(LS_DIR), lock, role, float(wait_s), payload)
 
 
 def _parse(out: str) -> Dict[str, Any]:

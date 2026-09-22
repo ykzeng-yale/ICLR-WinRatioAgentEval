@@ -2152,82 +2152,105 @@ class LedgerShortWriteTests(unittest.TestCase):
 
 
 class SourceAcquisitionTests(unittest.TestCase):
-    """D4/D5 repairs (root 2026-09-21 18:54)."""
+    """D4/D5 guards, exercised on the DEFAULT integrity-enabled path.
+
+    Root 2026-09-22 00:34: "Do NOT deposit 860 KB of actual benchmark bytes merely
+    to test refusal. Use tiny synthetic files in a temporary test directory and
+    patch the source specification/expected SHA256 values within the test to those
+    fixture bytes. Call acquisition with verification enabled (the production
+    default)."  My earlier fixtures passed verify_required_bytes=False, which did
+    not exercise the integrity half at all; that keyword is now gone from the API.
+    """
 
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp(prefix='acq_'))
         self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        # two tiny REQUIRED sources and one absent OPTIONAL source
+        self.specs = {}
+        for name, filename, required, stratum in (
+                ('tiny_a', 'tiny_a.txt', True, 'S1'),
+                ('tiny_b', 'tiny_b.txt', True, 'S1'),
+                ('tiny_opt', 'tiny_opt.txt', False, 'S2')):
+            data = ('%s-fixture-bytes' % name).encode()
+            spec = {'filename': filename, 'url': 'file:///dev/null',
+                    'revision': 'rev', 'bytes': len(data),
+                    'sha256': hashlib.sha256(data).hexdigest(),
+                    'records': 1, 'stratum': stratum, 'required': required,
+                    'aliases': (filename,)}
+            self.specs[name] = spec
+            if required:                      # optional one deliberately absent
+                (self.tmp / filename).write_bytes(data)
+        self._patch = mock.patch.object(lab_data, 'SOURCES', self.specs)
+        self._patch.start(); self.addCleanup(self._patch.stop)
 
-    def _manifest(self, mode='EXT', present=('mbpp_sanitized', 'humaneval', 'mbpp_full')):
+    def _manifest(self, mode):
         srcs = {}
-        for name, spec in lab_data.SOURCES.items():
-            if name in present:
-                srcs[name] = {'present': True, 'filename': spec['filename'],
-                              'bytes': spec['bytes'], 'sha256': spec['sha256'],
-                              'revision': spec['revision'], 'records': spec['records'],
-                              'stratum': spec['stratum'], 'from_cache': True,
-                              'origin': '<SOMEWHERE>/' + spec['filename']}
-            else:
-                srcs[name] = {'present': False, 'reason': 'absent_offline'}
-        return {'dest': '<WORK>/sources', 'offline': True, 'sources': srcs,
-                'roster_mode': mode}
+        for name, spec in self.specs.items():
+            present = (self.tmp / spec['filename']).is_file()
+            srcs[name] = ({'present': True, 'filename': spec['filename'],
+                           'bytes': spec['bytes'], 'sha256': spec['sha256'],
+                           'revision': spec['revision'], 'records': spec['records'],
+                           'stratum': spec['stratum'], 'from_cache': True,
+                           'origin': '<SOMEWHERE>/' + spec['filename']}
+                          if present else
+                          {'present': False, 'reason': 'absent_offline'})
+        return {'dest': '<W>', 'offline': True, 'sources': srcs, 'roster_mode': mode}
 
-    def test_refuses_a_silent_EXT_to_S1_downgrade(self):
-        """The defect that silently halves the roster: 564 pairs to 295."""
-        def fetch(dest, *, offline=False):
-            return self._manifest(mode='S1', present=('mbpp_sanitized', 'humaneval'))
-        with self.assertRaises(lab_prepare.PreparationRefused) as ctx:
-            lab_prepare.acquire_sources(self.tmp, expect_mode='EXT', verify_required_bytes=False, fetch_fn=fetch)
-        self.assertIn('EXT', str(ctx.exception))
-
-    def test_allows_S1_when_no_prior_mode_was_established(self):
-        def fetch(dest, *, offline=False):
-            return self._manifest(mode='S1', present=('mbpp_sanitized', 'humaneval'))
-        res = lab_prepare.acquire_sources(self.tmp, verify_required_bytes=False, fetch_fn=fetch)
+    # -- accepted controls, on the DEFAULT path ------------------------------
+    def test_fresh_S1_with_intact_required_bytes_is_accepted(self):
+        res = lab_prepare.acquire_sources(
+            self.tmp, fetch_fn=lambda d, **k: self._manifest('S1'))
         self.assertEqual(res['roster_mode'], 'S1')
 
-    def test_repeat_acquisition_is_idempotent_and_does_not_rewrite_the_manifest(self):
-        """D5: a second call must not trip the write-once guard on an origin change."""
-        # A prior S1 manifest with nothing marked present: no content to re-verify,
-        # so this isolates the IDEMPOTENCE property from the refuse-or-restore one,
-        # which test_an_unrestorable_prior_EXT_is_refused covers separately.
-        # (My first version drifted the content AND asserted idempotence; the
-        # refuse-or-restore guard correctly fired and the test was wrong, not the
-        # code.)
-        prior = self._manifest(mode='S1', present=())
-        (self.tmp / 'sources.json').write_text(json.dumps(prior), 'utf-8')
+    def test_repeat_acquisition_preserves_the_original_manifest(self):
+        (self.tmp / 'sources.json').write_text(json.dumps(self._manifest('S1')), 'utf-8')
         before = (self.tmp / 'sources.json').read_bytes()
-        res = lab_prepare.acquire_sources(self.tmp, expect_mode=None, verify_required_bytes=False,
-                                          fetch_fn=lambda d, **k: prior)
+        res = lab_prepare.acquire_sources(
+            self.tmp, fetch_fn=lambda d, **k: self._manifest('S1'))
         self.assertTrue(res['reused_existing_manifest'])
-        self.assertEqual((self.tmp / 'sources.json').read_bytes(), before,
-                         'the existing manifest was rewritten')
+        self.assertEqual((self.tmp / 'sources.json').read_bytes(), before)
+
+    # -- the two counterexamples root named, integrity ENABLED ---------------
+    def test_explicit_EXT_refuses_a_prior_S1_manifest(self):
+        (self.tmp / 'sources.json').write_text(json.dumps(self._manifest('S1')), 'utf-8')
+        with self.assertRaises(lab_prepare.PreparationRefused) as ctx:
+            lab_prepare.acquire_sources(self.tmp, expect_mode='EXT',
+                                        fetch_fn=lambda d, **k: self._manifest('S1'))
+        self.assertIn('EXT', str(ctx.exception))
+
+    def test_corrupted_required_source_refuses_under_S1(self):
+        (self.tmp / 'tiny_a.txt').write_bytes(b'corrupted')
+        with self.assertRaises(lab_prepare.PreparationRefused) as ctx:
+            lab_prepare.acquire_sources(self.tmp,
+                                        fetch_fn=lambda d, **k: self._manifest('S1'))
+        self.assertIn('pinned sha256', str(ctx.exception))
+
+    def test_missing_required_source_refuses_under_S1(self):
+        (self.tmp / 'tiny_b.txt').unlink()
+        with self.assertRaises(lab_prepare.PreparationRefused):
+            lab_prepare.acquire_sources(self.tmp,
+                                        fetch_fn=lambda d, **k: self._manifest('S1'))
+
+    def test_production_api_exposes_no_integrity_bypass(self):
+        """Root: do not allow a production entry point to clear required-byte
+        validation."""
+        import inspect
+        params = inspect.signature(lab_prepare.acquire_sources).parameters
+        self.assertNotIn('verify_required_bytes', params)
 
     def test_content_identity_excludes_the_origin_field(self):
-        """A changed filesystem origin must not invalidate a content-identical manifest."""
-        a = self._manifest()
+        a = self._manifest('S1')
         b = json.loads(json.dumps(a))
-        b['sources']['mbpp_full']['origin'] = '<ELSEWHERE>/mbpp.jsonl'
-        b['sources']['mbpp_full']['from_cache'] = False
+        b['sources']['tiny_a']['origin'] = '<ELSEWHERE>/tiny_a.txt'
+        b['sources']['tiny_a']['from_cache'] = False
         self.assertEqual(lab_prepare._content_key(a), lab_prepare._content_key(b))
 
-    def test_an_unrestorable_prior_EXT_is_refused(self):
-        """Root: a later missing cache must refuse or restore, never downgrade."""
-        (self.tmp / 'sources.json').write_text(json.dumps(self._manifest()), 'utf-8')
-        # files absent from dest entirely -> cannot restore the verified bytes
-        with self.assertRaises(lab_prepare.PreparationRefused) as ctx:
-            lab_prepare.acquire_sources(self.tmp, verify_required_bytes=False, fetch_fn=lambda d, **k: self._manifest())
-        self.assertIn('refuse or restore', str(ctx.exception))
-
     def test_accesses_are_recorded_separately_from_acquisition(self):
-        res = lab_prepare.acquire_sources(
-            self.tmp, verify_required_bytes=False,
-            fetch_fn=lambda d, **k: self._manifest(mode='S1',
-                                                   present=('mbpp_sanitized', 'humaneval')))
+        lab_prepare.acquire_sources(self.tmp,
+                                    fetch_fn=lambda d, **k: self._manifest('S1'))
         log = self.tmp / lab_prepare.ACCESS_LOG_NAME
-        self.assertTrue(log.is_file(), 'no separate access log was written')
-        entries = lab_data.AttemptLedger(log).load()
-        self.assertEqual(entries[0]['kind'], 'acquire')
+        self.assertTrue(log.is_file())
+        self.assertEqual(lab_data.AttemptLedger(log).load()[0]['kind'], 'acquire')
 
 
 class TmpdirEnforcementTests(unittest.TestCase):
