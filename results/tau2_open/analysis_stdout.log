@@ -1,0 +1,20 @@
+{
+  "online": {
+    "n_pairs": 49,
+    "net_benefit": 0.020408163265306117,
+    "nb_cs": [
+      -0.3660352820036362,
+      0.40631790063819107
+    ],
+    "guarded_decision": "inconclusive"
+  },
+  "shadow": {
+    "n_tasks": 49,
+    "net_benefit": 0.005102040816326536,
+    "nb_ci": [
+      -0.1107687809027074,
+      0.12097286253536048
+    ],
+    "decision_hierarchical": "inconclusive"
+  }
+}

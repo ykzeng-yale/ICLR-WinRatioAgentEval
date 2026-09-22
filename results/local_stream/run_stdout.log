@@ -1,0 +1,1496 @@
+[pass 1] arrival    1/591 mbpp/278       A:single_shot     success=1 lat=4.32s verify=0.02s calls=1 ctoks=110 err=
+[pass 1] arrival    2/591 mbpp/430       B:self_test_repair success=0 lat=28.85s verify=0.02s calls=4 ctoks=713 err=
+    monitor: pairs=1 first_deploy=None first_harm=None
+[pass 1] arrival    3/591 mbpp/441       A:single_shot     success=1 lat=1.00s verify=0.02s calls=1 ctoks=22 err=
+[pass 1] arrival    4/591 humaneval/151  B:self_test_repair success=0 lat=5.00s verify=0.02s calls=2 ctoks=121 err=
+    monitor: pairs=2 first_deploy=None first_harm=None
+[pass 1] arrival    5/591 humaneval/62   A:single_shot     success=1 lat=1.28s verify=0.02s calls=1 ctoks=29 err=
+[pass 1] arrival    6/591 mbpp/57        B:self_test_repair success=1 lat=12.50s verify=0.02s calls=2 ctoks=328 err=
+    monitor: pairs=3 first_deploy=None first_harm=None
+[pass 1] arrival    7/591 humaneval/116  A:single_shot     success=1 lat=1.42s verify=0.02s calls=1 ctoks=31 err=
+[pass 1] arrival    8/591 mbpp/606       B:self_test_repair success=1 lat=4.44s verify=0.02s calls=2 ctoks=111 err=
+    monitor: pairs=4 first_deploy=None first_harm=None
+[pass 1] arrival    9/591 humaneval/21   A:single_shot     success=1 lat=3.56s verify=0.02s calls=1 ctoks=92 err=
+[pass 1] arrival   10/591 humaneval/91   B:self_test_repair success=0 lat=16.67s verify=0.02s calls=4 ctoks=416 err=
+    monitor: pairs=5 first_deploy=None first_harm=None
+[pass 1] arrival   11/591 mbpp/721       A:single_shot     success=0 lat=6.01s verify=0.02s calls=1 ctoks=160 err=
+[pass 1] arrival   12/591 mbpp/573       B:self_test_repair success=1 lat=8.33s verify=0.02s calls=2 ctoks=218 err=
+    monitor: pairs=6 first_deploy=None first_harm=None
+[pass 1] arrival   13/591 mbpp/123       B:self_test_repair success=1 lat=29.76s verify=0.04s calls=4 ctoks=736 err=
+[pass 1] arrival   14/591 mbpp/165       A:single_shot     success=1 lat=2.43s verify=0.02s calls=1 ctoks=61 err=
+    monitor: pairs=7 first_deploy=None first_harm=None
+[pass 1] arrival   15/591 mbpp/228       A:single_shot     success=1 lat=3.59s verify=0.02s calls=1 ctoks=93 err=
+[pass 1] arrival   16/591 mbpp/804       B:self_test_repair success=1 lat=9.25s verify=0.02s calls=3 ctoks=230 err=
+    monitor: pairs=8 first_deploy=None first_harm=None
+[pass 1] arrival   17/591 humaneval/131  A:single_shot     success=1 lat=4.92s verify=0.02s calls=1 ctoks=130 err=
+[pass 1] arrival   18/591 mbpp/414       B:self_test_repair success=1 lat=10.97s verify=0.02s calls=4 ctoks=269 err=
+    monitor: pairs=9 first_deploy=None first_harm=None
+[pass 1] arrival   19/591 mbpp/746       B:self_test_repair success=1 lat=10.13s verify=0.02s calls=4 ctoks=249 err=
+[pass 1] arrival   20/591 mbpp/128       A:single_shot     success=1 lat=1.34s verify=0.02s calls=1 ctoks=31 err=
+    monitor: pairs=10 first_deploy=None first_harm=None
+[pass 1] arrival   21/591 mbpp/299       B:self_test_repair success=0 lat=10.26s verify=0.02s calls=4 ctoks=243 err=
+[pass 1] arrival   22/591 mbpp/94        A:single_shot     success=1 lat=1.27s verify=0.02s calls=1 ctoks=29 err=
+    monitor: pairs=11 first_deploy=None first_harm=None
+[pass 1] arrival   23/591 mbpp/722       B:self_test_repair success=1 lat=19.43s verify=0.02s calls=4 ctoks=479 err=
+[pass 1] arrival   24/591 mbpp/635       A:single_shot     success=1 lat=1.72s verify=0.02s calls=1 ctoks=43 err=
+    monitor: pairs=12 first_deploy=None first_harm=None
+[pass 1] arrival   25/591 mbpp/735       B:self_test_repair success=1 lat=27.79s verify=0.02s calls=4 ctoks=711 err=
+[pass 1] arrival   26/591 mbpp/101       A:single_shot     success=1 lat=1.03s verify=0.02s calls=1 ctoks=22 err=
+    monitor: pairs=13 first_deploy=None first_harm=None
+[pass 1] arrival   27/591 mbpp/395       A:single_shot     success=1 lat=4.25s verify=0.02s calls=1 ctoks=110 err=
+[pass 1] arrival   28/591 humaneval/24   B:self_test_repair success=1 lat=7.10s verify=0.02s calls=2 ctoks=183 err=
+    monitor: pairs=14 first_deploy=None first_harm=None
+[pass 1] arrival   29/591 mbpp/268       A:single_shot     success=0 lat=1.22s verify=0.02s calls=1 ctoks=29 err=
+[pass 1] arrival   30/591 mbpp/141       B:self_test_repair success=1 lat=38.39s verify=0.02s calls=4 ctoks=990 err=
+    monitor: pairs=15 first_deploy=None first_harm=None
+[pass 1] arrival   31/591 mbpp/69        B:self_test_repair success=1 lat=15.36s verify=0.02s calls=2 ctoks=410 err=
+[pass 1] arrival   32/591 mbpp/807       A:single_shot     success=1 lat=1.32s verify=0.02s calls=1 ctoks=32 err=
+    monitor: pairs=16 first_deploy=None first_harm=None
+[pass 1] arrival   33/591 humaneval/118  A:single_shot     success=1 lat=3.07s verify=0.02s calls=1 ctoks=77 err=
+[pass 1] arrival   34/591 mbpp/569       B:self_test_repair success=1 lat=7.30s verify=0.02s calls=2 ctoks=190 err=
+    monitor: pairs=17 first_deploy=None first_harm=None
+[pass 1] arrival   35/591 mbpp/723       B:self_test_repair success=1 lat=8.36s verify=0.02s calls=2 ctoks=217 err=
+[pass 1] arrival   36/591 mbpp/763       A:single_shot     success=0 lat=3.84s verify=0.02s calls=1 ctoks=100 err=
+    monitor: pairs=18 first_deploy=None first_harm=None
+[pass 1] arrival   37/591 mbpp/172       B:self_test_repair success=0 lat=7.45s verify=0.02s calls=4 ctoks=174 err=
+[pass 1] arrival   38/591 mbpp/778       A:single_shot     success=1 lat=2.94s verify=0.02s calls=1 ctoks=75 err=
+    monitor: pairs=19 first_deploy=None first_harm=None
+[pass 1] arrival   39/591 mbpp/12        A:single_shot     success=1 lat=0.95s verify=0.02s calls=1 ctoks=20 err=
+[pass 1] arrival   40/591 mbpp/605       B:self_test_repair success=1 lat=8.41s verify=0.02s calls=2 ctoks=221 err=
+    monitor: pairs=20 first_deploy=None first_harm=None
+[pass 1] arrival   41/591 mbpp/592       A:single_shot     success=0 lat=2.26s verify=0.02s calls=1 ctoks=58 err=
+[pass 1] arrival   42/591 mbpp/171       B:self_test_repair success=1 lat=4.35s verify=0.02s calls=2 ctoks=107 err=
+    monitor: pairs=21 first_deploy=None first_harm=None
+[pass 1] arrival   43/591 mbpp/775       A:single_shot     success=1 lat=1.51s verify=0.02s calls=1 ctoks=37 err=
+[pass 1] arrival   44/591 humaneval/108  B:self_test_repair success=0 lat=8.57s verify=0.02s calls=4 ctoks=202 err=
+    monitor: pairs=22 first_deploy=None first_harm=None
+[pass 1] arrival   45/591 mbpp/451       A:single_shot     success=1 lat=1.00s verify=0.02s calls=1 ctoks=23 err=
+[pass 1] arrival   46/591 humaneval/142  B:self_test_repair success=1 lat=15.65s verify=0.02s calls=4 ctoks=387 err=
+    monitor: pairs=23 first_deploy=None first_harm=None
+[pass 1] arrival   47/591 mbpp/308       B:self_test_repair success=0 lat=20.15s verify=0.02s calls=4 ctoks=512 err=
+[pass 1] arrival   48/591 mbpp/401       A:single_shot     success=1 lat=2.98s verify=0.02s calls=1 ctoks=75 err=
+    monitor: pairs=24 first_deploy=None first_harm=24
+[pass 1] arrival   49/591 humaneval/80   B:self_test_repair success=1 lat=5.70s verify=0.02s calls=2 ctoks=143 err=
+[pass 1] arrival   50/591 mbpp/306       A:single_shot     success=0 lat=6.61s verify=0.02s calls=1 ctoks=176 err=
+    monitor: pairs=25 first_deploy=None first_harm=24
+[pass 1] arrival   51/591 humaneval/103  B:self_test_repair success=1 lat=5.88s verify=0.02s calls=2 ctoks=145 err=
+[pass 1] arrival   52/591 humaneval/130  A:single_shot     success=0 lat=4.78s verify=0.02s calls=1 ctoks=123 err=
+    monitor: pairs=26 first_deploy=None first_harm=24
+[pass 1] arrival   53/591 humaneval/96   B:self_test_repair success=1 lat=9.84s verify=0.02s calls=2 ctoks=259 err=
+[pass 1] arrival   54/591 humaneval/29   A:single_shot     success=1 lat=3.83s verify=0.02s calls=1 ctoks=101 err=
+    monitor: pairs=27 first_deploy=None first_harm=24
+[pass 1] arrival   55/591 mbpp/781       A:single_shot     success=1 lat=3.12s verify=0.02s calls=1 ctoks=81 err=
+[pass 1] arrival   56/591 mbpp/476       B:self_test_repair success=1 lat=6.51s verify=0.02s calls=2 ctoks=169 err=
+    monitor: pairs=28 first_deploy=None first_harm=24
+[pass 1] arrival   57/591 mbpp/615       B:self_test_repair success=0 lat=12.52s verify=0.02s calls=3 ctoks=318 err=
+[pass 1] arrival   58/591 mbpp/111       A:single_shot     success=0 lat=3.87s verify=0.02s calls=1 ctoks=102 err=
+    monitor: pairs=29 first_deploy=None first_harm=24
+[pass 1] arrival   59/591 humaneval/79   B:self_test_repair success=1 lat=11.81s verify=0.02s calls=4 ctoks=291 err=
+[pass 1] arrival   60/591 mbpp/633       A:single_shot     success=1 lat=2.24s verify=0.02s calls=1 ctoks=57 err=
+    monitor: pairs=30 first_deploy=None first_harm=24
+[pass 1] arrival   61/591 mbpp/447       A:single_shot     success=1 lat=1.03s verify=0.02s calls=1 ctoks=24 err=
+[pass 1] arrival   62/591 humaneval/101  B:self_test_repair success=1 lat=9.20s verify=0.02s calls=2 ctoks=242 err=
+    monitor: pairs=31 first_deploy=None first_harm=24
+[pass 1] arrival   63/591 humaneval/100  A:single_shot     success=1 lat=7.17s verify=0.02s calls=1 ctoks=193 err=
+[pass 1] arrival   64/591 humaneval/22   B:self_test_repair success=1 lat=13.70s verify=0.02s calls=4 ctoks=345 err=
+    monitor: pairs=32 first_deploy=None first_harm=24
+[pass 1] arrival   65/591 mbpp/260       A:single_shot     success=0 lat=11.15s verify=10.00s calls=1 ctoks=304 err=
+[pass 1] arrival   66/591 mbpp/88        B:self_test_repair success=1 lat=7.15s verify=0.02s calls=2 ctoks=186 err=
+    monitor: pairs=33 first_deploy=None first_harm=24
+[pass 1] arrival   67/591 mbpp/294       A:single_shot     success=0 lat=4.95s verify=0.02s calls=1 ctoks=134 err=
+[pass 1] arrival   68/591 mbpp/422       B:self_test_repair success=1 lat=10.07s verify=0.02s calls=3 ctoks=255 err=
+    monitor: pairs=34 first_deploy=None first_harm=24
+[pass 1] arrival   69/591 mbpp/291       B:self_test_repair success=1 lat=19.12s verify=0.02s calls=4 ctoks=499 err=
+[pass 1] arrival   70/591 mbpp/639       A:single_shot     success=1 lat=1.40s verify=0.02s calls=1 ctoks=33 err=
+    monitor: pairs=35 first_deploy=None first_harm=24
+[pass 1] arrival   71/591 mbpp/138       B:self_test_repair success=0 lat=12.26s verify=0.02s calls=4 ctoks=304 err=
+[pass 1] arrival   72/591 humaneval/77   A:single_shot     success=0 lat=1.25s verify=0.02s calls=1 ctoks=28 err=
+    monitor: pairs=36 first_deploy=None first_harm=24
+[pass 1] arrival   73/591 mbpp/390       A:single_shot     success=0 lat=1.26s verify=0.02s calls=1 ctoks=29 err=
+[pass 1] arrival   74/591 mbpp/442       B:self_test_repair success=0 lat=5.98s verify=0.02s calls=2 ctoks=156 err=
+    monitor: pairs=37 first_deploy=None first_harm=24
+[pass 1] arrival   75/591 humaneval/145  B:self_test_repair success=0 lat=12.41s verify=0.02s calls=4 ctoks=310 err=
+[pass 1] arrival   76/591 mbpp/125       A:single_shot     success=0 lat=3.37s verify=0.02s calls=1 ctoks=88 err=
+    monitor: pairs=38 first_deploy=None first_harm=24
+[pass 1] arrival   77/591 mbpp/446       B:self_test_repair success=0 lat=7.42s verify=0.02s calls=2 ctoks=194 err=
+[pass 1] arrival   78/591 mbpp/282       A:single_shot     success=1 lat=1.35s verify=0.02s calls=1 ctoks=34 err=
+    monitor: pairs=39 first_deploy=None first_harm=24
+[pass 1] arrival   79/591 mbpp/168       A:single_shot     success=1 lat=0.92s verify=0.02s calls=1 ctoks=19 err=
+[pass 1] arrival   80/591 mbpp/593       B:self_test_repair success=0 lat=20.93s verify=0.03s calls=4 ctoks=546 err=
+    monitor: pairs=40 first_deploy=None first_harm=24
+[pass 1] arrival   81/591 mbpp/629       B:self_test_repair success=1 lat=6.43s verify=0.02s calls=2 ctoks=168 err=
+[pass 1] arrival   82/591 humaneval/41   A:single_shot     success=1 lat=1.14s verify=0.02s calls=1 ctoks=24 err=
+    monitor: pairs=41 first_deploy=None first_harm=24
+[pass 1] arrival   83/591 mbpp/305       B:self_test_repair success=0 lat=16.92s verify=0.02s calls=4 ctoks=434 err=
+[pass 1] arrival   84/591 mbpp/767       A:single_shot     success=1 lat=2.72s verify=0.02s calls=1 ctoks=70 err=
+    monitor: pairs=42 first_deploy=None first_harm=24
+[pass 1] arrival   85/591 mbpp/124       A:single_shot     success=0 lat=1.09s verify=0.02s calls=1 ctoks=26 err=
+[pass 1] arrival   86/591 mbpp/161       B:self_test_repair success=1 lat=7.51s verify=0.02s calls=2 ctoks=197 err=
+    monitor: pairs=43 first_deploy=None first_harm=24
+[pass 1] arrival   87/591 humaneval/13   B:self_test_repair success=1 lat=5.26s verify=0.02s calls=2 ctoks=135 err=
+[pass 1] arrival   88/591 mbpp/728       A:single_shot     success=1 lat=1.46s verify=0.02s calls=1 ctoks=34 err=
+    monitor: pairs=44 first_deploy=None first_harm=24
+[pass 1] arrival   89/591 mbpp/292       B:self_test_repair success=1 lat=3.90s verify=0.01s calls=2 ctoks=96 err=
+[pass 1] arrival   90/591 mbpp/247       A:single_shot     success=1 lat=7.68s verify=0.02s calls=1 ctoks=209 err=
+    monitor: pairs=45 first_deploy=None first_harm=24
+[pass 1] arrival   91/591 mbpp/641       B:self_test_repair success=1 lat=7.79s verify=0.02s calls=4 ctoks=189 err=
+[pass 1] arrival   92/591 mbpp/242       A:single_shot     success=1 lat=0.89s verify=0.02s calls=1 ctoks=20 err=
+    monitor: pairs=46 first_deploy=None first_harm=24
+[pass 1] arrival   93/591 mbpp/725       B:self_test_repair success=1 lat=5.32s verify=0.02s calls=2 ctoks=136 err=
+[pass 1] arrival   94/591 humaneval/39   A:single_shot     success=1 lat=7.75s verify=0.02s calls=1 ctoks=210 err=
+    monitor: pairs=47 first_deploy=None first_harm=24
+[pass 1] arrival   95/591 mbpp/77        B:self_test_repair success=1 lat=5.39s verify=0.02s calls=2 ctoks=138 err=
+[pass 1] arrival   96/591 mbpp/472       A:single_shot     success=1 lat=1.25s verify=0.02s calls=1 ctoks=31 err=
+    monitor: pairs=48 first_deploy=None first_harm=24
+[pass 1] arrival   97/591 humaneval/78   A:single_shot     success=1 lat=2.30s verify=0.02s calls=1 ctoks=51 err=
+[pass 1] arrival   98/591 humaneval/136  B:self_test_repair success=1 lat=10.57s verify=0.02s calls=2 ctoks=279 err=
+    monitor: pairs=49 first_deploy=None first_harm=24
+[pass 1] arrival   99/591 humaneval/49   B:self_test_repair success=1 lat=8.46s verify=0.02s calls=4 ctoks=203 err=
+[pass 1] arrival  100/591 humaneval/7    A:single_shot     success=1 lat=1.79s verify=0.02s calls=1 ctoks=43 err=
+    monitor: pairs=50 first_deploy=None first_harm=24
+[pass 1] arrival  101/591 humaneval/38   B:self_test_repair success=1 lat=33.03s verify=0.02s calls=4 ctoks=868 err=
+[pass 1] arrival  102/591 mbpp/779       A:single_shot     success=1 lat=2.41s verify=0.02s calls=1 ctoks=61 err=
+    monitor: pairs=51 first_deploy=None first_harm=24
+[pass 1] arrival  103/591 mbpp/799       B:self_test_repair success=0 lat=15.30s verify=0.03s calls=4 ctoks=389 err=
+[pass 1] arrival  104/591 mbpp/753       A:single_shot     success=0 lat=4.75s verify=0.02s calls=1 ctoks=127 err=
+    monitor: pairs=52 first_deploy=None first_harm=24
+[pass 1] arrival  105/591 humaneval/11   B:self_test_repair success=1 lat=12.01s verify=0.02s calls=2 ctoks=322 err=
+[pass 1] arrival  106/591 mbpp/404       A:single_shot     success=1 lat=1.00s verify=0.02s calls=1 ctoks=23 err=
+    monitor: pairs=53 first_deploy=None first_harm=24
+[pass 1] arrival  107/591 mbpp/281       A:single_shot     success=1 lat=1.10s verify=0.02s calls=1 ctoks=25 err=
+[pass 1] arrival  108/591 mbpp/96        B:self_test_repair success=1 lat=8.21s verify=0.02s calls=2 ctoks=217 err=
+    monitor: pairs=54 first_deploy=None first_harm=24
+[pass 1] arrival  109/591 mbpp/731       B:self_test_repair success=1 lat=12.37s verify=0.02s calls=4 ctoks=311 err=
+[pass 1] arrival  110/591 mbpp/91        A:single_shot     success=1 lat=1.31s verify=0.02s calls=1 ctoks=30 err=
+    monitor: pairs=55 first_deploy=None first_harm=24
+[pass 1] arrival  111/591 humaneval/35   A:single_shot     success=1 lat=3.61s verify=0.02s calls=1 ctoks=93 err=
+[pass 1] arrival  112/591 humaneval/153  B:self_test_repair success=1 lat=13.49s verify=0.02s calls=3 ctoks=338 err=
+    monitor: pairs=56 first_deploy=None first_harm=24
+[pass 1] arrival  113/591 humaneval/16   A:single_shot     success=1 lat=3.01s verify=0.02s calls=1 ctoks=78 err=
+[pass 1] arrival  114/591 mbpp/732       B:self_test_repair success=1 lat=6.06s verify=0.02s calls=2 ctoks=156 err=
+    monitor: pairs=57 first_deploy=None first_harm=24
+[pass 1] arrival  115/591 humaneval/127  B:self_test_repair success=0 lat=28.48s verify=0.02s calls=4 ctoks=749 err=
+[pass 1] arrival  116/591 humaneval/66   A:single_shot     success=1 lat=1.18s verify=0.02s calls=1 ctoks=27 err=
+    monitor: pairs=58 first_deploy=None first_harm=24
+[pass 1] arrival  117/591 mbpp/14        B:self_test_repair success=1 lat=17.25s verify=0.02s calls=4 ctoks=435 err=
+[pass 1] arrival  118/591 mbpp/270       A:single_shot     success=1 lat=1.78s verify=0.02s calls=1 ctoks=44 err=
+    monitor: pairs=59 first_deploy=None first_harm=24
+[pass 1] arrival  119/591 mbpp/389       B:self_test_repair success=1 lat=6.88s verify=0.02s calls=2 ctoks=180 err=
+[pass 1] arrival  120/591 humaneval/9    A:single_shot     success=1 lat=2.75s verify=0.02s calls=1 ctoks=70 err=
+    monitor: pairs=60 first_deploy=None first_harm=24
+[pass 1] arrival  121/591 humaneval/159  A:single_shot     success=1 lat=2.24s verify=0.02s calls=1 ctoks=51 err=
+[pass 1] arrival  122/591 mbpp/66        B:self_test_repair success=1 lat=4.77s verify=0.02s calls=2 ctoks=121 err=
+    monitor: pairs=61 first_deploy=None first_harm=24
+[pass 1] arrival  123/591 mbpp/600       A:single_shot     success=1 lat=0.99s verify=0.02s calls=1 ctoks=23 err=
+[pass 1] arrival  124/591 mbpp/253       B:self_test_repair success=1 lat=7.74s verify=0.01s calls=4 ctoks=186 err=
+    monitor: pairs=62 first_deploy=None first_harm=24
+[pass 1] arrival  125/591 mbpp/470       A:single_shot     success=1 lat=2.42s verify=0.02s calls=1 ctoks=61 err=
+[pass 1] arrival  126/591 mbpp/56        B:self_test_repair success=1 lat=10.15s verify=0.02s calls=4 ctoks=247 err=
+    monitor: pairs=63 first_deploy=None first_harm=24
+[pass 1] arrival  127/591 mbpp/407       B:self_test_repair success=0 lat=19.83s verify=0.02s calls=4 ctoks=518 err=
+[pass 1] arrival  128/591 mbpp/479       A:single_shot     success=1 lat=1.75s verify=0.02s calls=1 ctoks=45 err=
+    monitor: pairs=64 first_deploy=None first_harm=24
+[pass 1] arrival  129/591 mbpp/285       B:self_test_repair success=1 lat=16.92s verify=0.02s calls=4 ctoks=434 err=
+[pass 1] arrival  130/591 mbpp/612       A:single_shot     success=1 lat=1.09s verify=0.02s calls=1 ctoks=24 err=
+    monitor: pairs=65 first_deploy=None first_harm=24
+[pass 1] arrival  131/591 mbpp/84        B:self_test_repair success=1 lat=6.61s verify=0.02s calls=2 ctoks=172 err=
+[pass 1] arrival  132/591 mbpp/62        A:single_shot     success=1 lat=0.80s verify=0.02s calls=1 ctoks=17 err=
+    monitor: pairs=66 first_deploy=None first_harm=24
+[pass 1] arrival  133/591 mbpp/2         B:self_test_repair success=1 lat=8.37s verify=0.02s calls=2 ctoks=220 err=
+[pass 1] arrival  134/591 mbpp/92        A:single_shot     success=1 lat=2.81s verify=0.02s calls=1 ctoks=74 err=
+    monitor: pairs=67 first_deploy=None first_harm=24
+[pass 1] arrival  135/591 mbpp/475       A:single_shot     success=0 lat=1.21s verify=0.02s calls=1 ctoks=29 err=
+[pass 1] arrival  136/591 humaneval/163  B:self_test_repair success=0 lat=22.06s verify=0.02s calls=4 ctoks=579 err=
+    monitor: pairs=68 first_deploy=None first_harm=24
+[pass 1] arrival  137/591 humaneval/154  B:self_test_repair success=0 lat=10.15s verify=0.02s calls=4 ctoks=244 err=
+[pass 1] arrival  138/591 humaneval/60   A:single_shot     success=1 lat=1.34s verify=0.02s calls=1 ctoks=32 err=
+    monitor: pairs=69 first_deploy=None first_harm=24
+[pass 1] arrival  139/591 mbpp/106       B:self_test_repair success=1 lat=8.96s verify=0.02s calls=2 ctoks=235 err=
+[pass 1] arrival  140/591 mbpp/764       A:single_shot     success=1 lat=1.03s verify=0.02s calls=1 ctoks=23 err=
+    monitor: pairs=70 first_deploy=None first_harm=24
+[pass 1] arrival  141/591 humaneval/69   B:self_test_repair success=1 lat=9.36s verify=0.02s calls=2 ctoks=239 err=
+[pass 1] arrival  142/591 humaneval/5    A:single_shot     success=1 lat=3.29s verify=0.02s calls=1 ctoks=84 err=
+    monitor: pairs=71 first_deploy=None first_harm=24
+[pass 1] arrival  143/591 mbpp/614       A:single_shot     success=0 lat=1.15s verify=0.02s calls=1 ctoks=26 err=
+[pass 1] arrival  144/591 mbpp/555       B:self_test_repair success=0 lat=17.42s verify=0.02s calls=4 ctoks=439 err=
+    monitor: pairs=72 first_deploy=None first_harm=24
+[pass 1] arrival  145/591 mbpp/70        A:single_shot     success=1 lat=1.23s verify=0.02s calls=1 ctoks=29 err=
+[pass 1] arrival  146/591 mbpp/230       B:self_test_repair success=1 lat=6.48s verify=0.02s calls=4 ctoks=149 err=
+    monitor: pairs=73 first_deploy=None first_harm=24
+[pass 1] arrival  147/591 mbpp/787       A:single_shot     success=1 lat=1.41s verify=0.02s calls=1 ctoks=33 err=
+[pass 1] arrival  148/591 mbpp/140       B:self_test_repair success=0 lat=33.49s verify=0.03s calls=4 ctoks=860 err=
+    monitor: pairs=74 first_deploy=None first_harm=24
+[pass 1] arrival  149/591 humaneval/111  A:single_shot     success=1 lat=3.65s verify=0.02s calls=1 ctoks=93 err=
+[pass 1] arrival  150/591 mbpp/611       B:self_test_repair success=1 lat=7.98s verify=0.02s calls=2 ctoks=209 err=
+    monitor: pairs=75 first_deploy=None first_harm=24
+[pass 1] arrival  151/591 humaneval/36   B:self_test_repair success=1 lat=7.53s verify=0.02s calls=2 ctoks=196 err=
+[pass 1] arrival  152/591 mbpp/102       A:single_shot     success=0 lat=1.58s verify=0.02s calls=1 ctoks=40 err=
+    monitor: pairs=76 first_deploy=None first_harm=24
+[pass 1] arrival  153/591 mbpp/791       B:self_test_repair success=1 lat=12.68s verify=0.02s calls=4 ctoks=320 err=
+[pass 1] arrival  154/591 humaneval/45   A:single_shot     success=1 lat=2.30s verify=0.02s calls=1 ctoks=58 err=
+    monitor: pairs=77 first_deploy=None first_harm=24
+[pass 1] arrival  155/591 mbpp/461       A:single_shot     success=0 lat=1.10s verify=0.02s calls=1 ctoks=26 err=
+[pass 1] arrival  156/591 humaneval/147  B:self_test_repair success=1 lat=32.10s verify=0.02s calls=4 ctoks=843 err=
+    monitor: pairs=78 first_deploy=None first_harm=24
+[pass 1] arrival  157/591 mbpp/300       A:single_shot     success=1 lat=2.18s verify=0.02s calls=1 ctoks=54 err=
+[pass 1] arrival  158/591 humaneval/67   B:self_test_repair success=1 lat=7.84s verify=0.02s calls=2 ctoks=201 err=
+    monitor: pairs=79 first_deploy=None first_harm=24
+[pass 1] arrival  159/591 humaneval/28   A:single_shot     success=1 lat=2.52s verify=0.02s calls=1 ctoks=64 err=
+[pass 1] arrival  160/591 humaneval/161  B:self_test_repair success=1 lat=5.28s verify=0.02s calls=2 ctoks=134 err=
+    monitor: pairs=80 first_deploy=None first_harm=24
+[pass 1] arrival  161/591 mbpp/740       B:self_test_repair success=1 lat=12.50s verify=0.02s calls=4 ctoks=305 err=
+[pass 1] arrival  162/591 mbpp/279       A:single_shot     success=0 lat=6.32s verify=0.02s calls=1 ctoks=172 err=
+    monitor: pairs=81 first_deploy=None first_harm=24
+[pass 1] arrival  163/591 mbpp/792       A:single_shot     success=1 lat=0.92s verify=0.02s calls=1 ctoks=19 err=
+[pass 1] arrival  164/591 mbpp/748       B:self_test_repair success=1 lat=9.08s verify=0.02s calls=4 ctoks=207 err=
+    monitor: pairs=82 first_deploy=None first_harm=24
+[pass 1] arrival  165/591 mbpp/82        B:self_test_repair success=1 lat=6.89s verify=0.02s calls=2 ctoks=181 err=
+[pass 1] arrival  166/591 humaneval/119  A:single_shot     success=1 lat=4.73s verify=0.02s calls=1 ctoks=123 err=
+    monitor: pairs=83 first_deploy=None first_harm=24
+[pass 1] arrival  167/591 mbpp/458       A:single_shot     success=1 lat=0.88s verify=0.02s calls=1 ctoks=20 err=
+[pass 1] arrival  168/591 mbpp/235       B:self_test_repair success=0 lat=13.96s verify=0.02s calls=4 ctoks=353 err=
+    monitor: pairs=84 first_deploy=None first_harm=24
+[pass 1] arrival  169/591 mbpp/427       B:self_test_repair success=0 lat=10.38s verify=0.02s calls=4 ctoks=255 err=
+[pass 1] arrival  170/591 mbpp/620       A:single_shot     success=1 lat=3.51s verify=0.02s calls=1 ctoks=92 err=
+    monitor: pairs=85 first_deploy=None first_harm=24
+[pass 1] arrival  171/591 humaneval/141  B:self_test_repair success=0 lat=23.34s verify=0.02s calls=4 ctoks=599 err=
+[pass 1] arrival  172/591 mbpp/808       A:single_shot     success=0 lat=2.06s verify=0.02s calls=1 ctoks=49 err=
+    monitor: pairs=86 first_deploy=None first_harm=24
+[pass 1] arrival  173/591 mbpp/274       B:self_test_repair success=1 lat=6.71s verify=0.02s calls=3 ctoks=156 err=
+[pass 1] arrival  174/591 mbpp/118       A:single_shot     success=1 lat=0.82s verify=0.02s calls=1 ctoks=18 err=
+    monitor: pairs=87 first_deploy=None first_harm=24
+[pass 1] arrival  175/591 humaneval/110  A:single_shot     success=1 lat=3.03s verify=0.02s calls=1 ctoks=72 err=
+[pass 1] arrival  176/591 mbpp/455       B:self_test_repair success=1 lat=9.53s verify=0.02s calls=2 ctoks=245 err=
+    monitor: pairs=88 first_deploy=None first_harm=24
+[pass 1] arrival  177/591 mbpp/754       A:single_shot     success=1 lat=1.97s verify=0.02s calls=1 ctoks=48 err=
+[pass 1] arrival  178/591 mbpp/3         B:self_test_repair success=1 lat=7.68s verify=0.02s calls=2 ctoks=201 err=
+    monitor: pairs=89 first_deploy=None first_harm=24
+[pass 1] arrival  179/591 mbpp/264       B:self_test_repair success=1 lat=14.93s verify=0.02s calls=4 ctoks=384 err=
+[pass 1] arrival  180/591 mbpp/142       A:single_shot     success=1 lat=1.82s verify=0.02s calls=1 ctoks=45 err=
+    monitor: pairs=90 first_deploy=None first_harm=24
+[pass 1] arrival  181/591 humaneval/75   A:single_shot     success=1 lat=4.71s verify=0.02s calls=1 ctoks=125 err=
+[pass 1] arrival  182/591 humaneval/112  B:self_test_repair success=1 lat=5.04s verify=0.02s calls=2 ctoks=126 err=
+    monitor: pairs=91 first_deploy=None first_harm=24
+[pass 1] arrival  183/591 mbpp/785       A:single_shot     success=1 lat=2.74s verify=0.02s calls=1 ctoks=72 err=
+[pass 1] arrival  184/591 mbpp/170       B:self_test_repair success=1 lat=9.37s verify=0.02s calls=2 ctoks=249 err=
+    monitor: pairs=92 first_deploy=None first_harm=24
+[pass 1] arrival  185/591 humaneval/85   A:single_shot     success=1 lat=3.22s verify=0.02s calls=1 ctoks=84 err=
+[pass 1] arrival  186/591 humaneval/134  B:self_test_repair success=1 lat=6.99s verify=0.02s calls=2 ctoks=181 err=
+    monitor: pairs=93 first_deploy=None first_harm=24
+[pass 1] arrival  187/591 humaneval/126  A:single_shot     success=0 lat=4.12s verify=0.02s calls=1 ctoks=105 err=
+[pass 1] arrival  188/591 mbpp/756       B:self_test_repair success=1 lat=6.46s verify=0.02s calls=2 ctoks=167 err=
+    monitor: pairs=94 first_deploy=None first_harm=24
+[pass 1] arrival  189/591 humaneval/113  B:self_test_repair success=1 lat=14.52s verify=0.02s calls=2 ctoks=389 err=
+[pass 1] arrival  190/591 mbpp/580       A:single_shot     success=0 lat=2.33s verify=0.02s calls=1 ctoks=61 err=
+    monitor: pairs=95 first_deploy=None first_harm=24
+[pass 1] arrival  191/591 mbpp/244       A:single_shot     success=1 lat=1.60s verify=0.02s calls=1 ctoks=38 err=
+[pass 1] arrival  192/591 mbpp/452       B:self_test_repair success=0 lat=6.30s verify=0.02s calls=2 ctoks=163 err=
+    monitor: pairs=96 first_deploy=None first_harm=24
+[pass 1] arrival  193/591 mbpp/394       B:self_test_repair success=1 lat=6.33s verify=0.02s calls=2 ctoks=166 err=
+[pass 1] arrival  194/591 mbpp/741       A:single_shot     success=1 lat=1.05s verify=0.02s calls=1 ctoks=25 err=
+    monitor: pairs=97 first_deploy=None first_harm=24
+[pass 1] arrival  195/591 mbpp/312       B:self_test_repair success=1 lat=11.28s verify=0.01s calls=4 ctoks=283 err=
+[pass 1] arrival  196/591 mbpp/602       A:single_shot     success=1 lat=2.11s verify=0.02s calls=1 ctoks=54 err=
+    monitor: pairs=98 first_deploy=None first_harm=24
+[pass 1] arrival  197/591 humaneval/34   A:single_shot     success=1 lat=0.89s verify=0.02s calls=1 ctoks=19 err=
+[pass 1] arrival  198/591 mbpp/295       B:self_test_repair success=1 lat=20.12s verify=0.02s calls=4 ctoks=519 err=
+    monitor: pairs=99 first_deploy=None first_harm=24
+[pass 1] arrival  199/591 mbpp/468       A:single_shot     success=0 lat=5.18s verify=0.02s calls=1 ctoks=139 err=
+[pass 1] arrival  200/591 humaneval/98   B:self_test_repair success=1 lat=16.66s verify=0.02s calls=4 ctoks=428 err=
+    monitor: pairs=100 first_deploy=None first_harm=24
+[pass 1] arrival  201/591 humaneval/53   A:single_shot     success=1 lat=2.54s verify=0.02s calls=1 ctoks=64 err=
+[pass 1] arrival  202/591 mbpp/103       B:self_test_repair success=1 lat=13.40s verify=0.02s calls=4 ctoks=344 err=
+    monitor: pairs=101 first_deploy=None first_harm=24
+[pass 1] arrival  203/591 mbpp/397       B:self_test_repair success=1 lat=6.23s verify=0.02s calls=2 ctoks=162 err=
+[pass 1] arrival  204/591 mbpp/87        A:single_shot     success=0 lat=1.51s verify=0.02s calls=1 ctoks=36 err=
+    monitor: pairs=102 first_deploy=None first_harm=24
+[pass 1] arrival  205/591 mbpp/297       A:single_shot     success=1 lat=1.99s verify=0.02s calls=1 ctoks=51 err=
+[pass 1] arrival  206/591 mbpp/757       B:self_test_repair success=1 lat=17.60s verify=0.02s calls=4 ctoks=459 err=
+    monitor: pairs=103 first_deploy=None first_harm=24
+[pass 1] arrival  207/591 mbpp/391       B:self_test_repair success=0 lat=12.34s verify=0.02s calls=3 ctoks=316 err=
+[pass 1] arrival  208/591 mbpp/568       A:single_shot     success=1 lat=0.95s verify=0.02s calls=1 ctoks=22 err=
+    monitor: pairs=104 first_deploy=None first_harm=24
+[pass 1] arrival  209/591 mbpp/85        B:self_test_repair success=1 lat=9.11s verify=0.01s calls=2 ctoks=243 err=
+[pass 1] arrival  210/591 mbpp/608       A:single_shot     success=1 lat=5.71s verify=0.02s calls=1 ctoks=155 err=
+    monitor: pairs=105 first_deploy=None first_harm=24
+[pass 1] arrival  211/591 mbpp/584       B:self_test_repair success=0 lat=17.79s verify=0.02s calls=4 ctoks=459 err=
+[pass 1] arrival  212/591 humaneval/31   A:single_shot     success=1 lat=4.61s verify=0.02s calls=1 ctoks=123 err=
+    monitor: pairs=106 first_deploy=None first_harm=24
+[pass 1] arrival  213/591 humaneval/30   B:self_test_repair success=1 lat=8.14s verify=0.02s calls=2 ctoks=214 err=
+[pass 1] arrival  214/591 mbpp/309       A:single_shot     success=1 lat=1.01s verify=0.02s calls=1 ctoks=23 err=
+    monitor: pairs=107 first_deploy=None first_harm=24
+[pass 1] arrival  215/591 mbpp/408       A:single_shot     success=1 lat=6.27s verify=0.02s calls=1 ctoks=168 err=
+[pass 1] arrival  216/591 mbpp/9         B:self_test_repair success=1 lat=9.32s verify=0.02s calls=4 ctoks=230 err=
+    monitor: pairs=108 first_deploy=None first_harm=24
+[pass 1] arrival  217/591 mbpp/750       B:self_test_repair success=0 lat=5.84s verify=0.02s calls=2 ctoks=150 err=
+[pass 1] arrival  218/591 mbpp/276       A:single_shot     success=1 lat=1.25s verify=0.02s calls=1 ctoks=29 err=
+    monitor: pairs=109 first_deploy=None first_harm=24
+[pass 1] arrival  219/591 humaneval/105  A:single_shot     success=1 lat=3.84s verify=0.02s calls=1 ctoks=95 err=
+[pass 1] arrival  220/591 mbpp/809       B:self_test_repair success=1 lat=9.10s verify=0.02s calls=2 ctoks=241 err=
+    monitor: pairs=110 first_deploy=None first_harm=24
+[pass 1] arrival  221/591 humaneval/123  A:single_shot     success=0 lat=11.31s verify=0.02s calls=1 ctoks=305 err=
+[pass 1] arrival  222/591 mbpp/139       B:self_test_repair success=1 lat=9.76s verify=0.02s calls=2 ctoks=261 err=
+    monitor: pairs=111 first_deploy=None first_harm=24
+[pass 1] arrival  223/591 humaneval/71   A:single_shot     success=1 lat=7.34s verify=0.02s calls=1 ctoks=198 err=
+[pass 1] arrival  224/591 mbpp/450       B:self_test_repair success=0 lat=3.57s verify=0.01s calls=2 ctoks=87 err=
+    monitor: pairs=112 first_deploy=None first_harm=24
+[pass 1] arrival  225/591 mbpp/65        B:self_test_repair success=1 lat=7.94s verify=0.02s calls=2 ctoks=210 err=
+[pass 1] arrival  226/591 humaneval/27   A:single_shot     success=1 lat=2.72s verify=0.02s calls=1 ctoks=70 err=
+    monitor: pairs=113 first_deploy=None first_harm=24
+[pass 1] arrival  227/591 humaneval/18   B:self_test_repair success=1 lat=8.47s verify=0.02s calls=2 ctoks=223 err=
+[pass 1] arrival  228/591 humaneval/99   A:single_shot     success=1 lat=2.10s verify=0.02s calls=1 ctoks=51 err=
+    monitor: pairs=114 first_deploy=None first_harm=24
+[pass 1] arrival  229/591 mbpp/63        A:single_shot     success=1 lat=1.22s verify=0.02s calls=1 ctoks=29 err=
+[pass 1] arrival  230/591 mbpp/590       B:self_test_repair success=0 lat=11.16s verify=0.02s calls=2 ctoks=300 err=
+    monitor: pairs=115 first_deploy=None first_harm=24
+[pass 1] arrival  231/591 humaneval/95   A:single_shot     success=1 lat=3.45s verify=0.02s calls=1 ctoks=88 err=
+[pass 1] arrival  232/591 humaneval/107  B:self_test_repair success=1 lat=16.94s verify=0.02s calls=4 ctoks=432 err=
+    monitor: pairs=116 first_deploy=None first_harm=24
+[pass 1] arrival  233/591 mbpp/419       A:single_shot     success=1 lat=1.78s verify=0.02s calls=1 ctoks=43 err=
+[pass 1] arrival  234/591 humaneval/83   B:self_test_repair success=0 lat=9.71s verify=0.01s calls=4 ctoks=234 err=
+    monitor: pairs=117 first_deploy=None first_harm=24
+[pass 1] arrival  235/591 mbpp/428       A:single_shot     success=1 lat=4.18s verify=0.02s calls=1 ctoks=112 err=
+[pass 1] arrival  236/591 mbpp/644       B:self_test_repair success=0 lat=10.76s verify=0.02s calls=2 ctoks=285 err=
+    monitor: pairs=118 first_deploy=None first_harm=24
+[pass 1] arrival  237/591 humaneval/4    B:self_test_repair success=1 lat=20.01s verify=0.02s calls=4 ctoks=512 err=
+[pass 1] arrival  238/591 mbpp/234       A:single_shot     success=1 lat=2.13s verify=0.02s calls=1 ctoks=55 err=
+    monitor: pairs=119 first_deploy=None first_harm=24
+[pass 1] arrival  239/591 mbpp/625       A:single_shot     success=1 lat=2.88s verify=0.02s calls=1 ctoks=76 err=
+[pass 1] arrival  240/591 mbpp/126       B:self_test_repair success=0 lat=12.58s verify=0.02s calls=4 ctoks=314 err=
+    monitor: pairs=120 first_deploy=None first_harm=24
+[pass 1] arrival  241/591 humaneval/133  B:self_test_repair success=1 lat=6.54s verify=0.02s calls=2 ctoks=166 err=
+[pass 1] arrival  242/591 mbpp/588       A:single_shot     success=1 lat=0.91s verify=0.02s calls=1 ctoks=21 err=
+    monitor: pairs=121 first_deploy=None first_harm=24
+[pass 1] arrival  243/591 mbpp/97        B:self_test_repair success=1 lat=11.40s verify=0.02s calls=2 ctoks=304 err=
+[pass 1] arrival  244/591 mbpp/454       A:single_shot     success=1 lat=2.82s verify=0.02s calls=1 ctoks=74 err=
+    monitor: pairs=122 first_deploy=None first_harm=24
+[pass 1] arrival  245/591 humaneval/158  A:single_shot     success=1 lat=3.11s verify=0.02s calls=1 ctoks=80 err=
+[pass 1] arrival  246/591 mbpp/564       B:self_test_repair success=0 lat=23.77s verify=0.02s calls=4 ctoks=620 err=
+    monitor: pairs=123 first_deploy=None first_harm=24
+[pass 1] arrival  247/591 humaneval/132  A:single_shot     success=0 lat=2.72s verify=0.02s calls=1 ctoks=67 err=
+[pass 1] arrival  248/591 mbpp/751       B:self_test_repair success=1 lat=33.20s verify=0.02s calls=4 ctoks=865 err=
+    monitor: pairs=124 first_deploy=None first_harm=24
+[pass 1] arrival  249/591 mbpp/770       B:self_test_repair success=1 lat=9.86s verify=0.02s calls=4 ctoks=242 err=
+[pass 1] arrival  250/591 mbpp/790       A:single_shot     success=1 lat=1.25s verify=0.02s calls=1 ctoks=30 err=
+    monitor: pairs=125 first_deploy=None first_harm=24
+[pass 1] arrival  251/591 mbpp/607       B:self_test_repair success=1 lat=7.36s verify=0.02s calls=2 ctoks=189 err=
+[pass 1] arrival  252/591 mbpp/616       A:single_shot     success=1 lat=1.76s verify=0.02s calls=1 ctoks=43 err=
+    monitor: pairs=126 first_deploy=None first_harm=24
+[pass 1] arrival  253/591 mbpp/595       A:single_shot     success=0 lat=8.09s verify=0.02s calls=1 ctoks=220 err=
+[pass 1] arrival  254/591 humaneval/160  B:self_test_repair success=0 lat=16.93s verify=0.02s calls=4 ctoks=423 err=
+    monitor: pairs=127 first_deploy=None first_harm=24
+[pass 1] arrival  255/591 humaneval/125  B:self_test_repair success=1 lat=7.08s verify=0.02s calls=2 ctoks=183 err=
+[pass 1] arrival  256/591 mbpp/71        A:single_shot     success=0 lat=4.25s verify=0.02s calls=1 ctoks=114 err=
+    monitor: pairs=128 first_deploy=None first_harm=24
+[pass 1] arrival  257/591 mbpp/80        B:self_test_repair success=1 lat=4.13s verify=0.01s calls=2 ctoks=104 err=
+[pass 1] arrival  258/591 mbpp/632       A:single_shot     success=1 lat=3.36s verify=0.02s calls=1 ctoks=89 err=
+    monitor: pairs=129 first_deploy=None first_harm=24
+[pass 1] arrival  259/591 mbpp/392       B:self_test_repair success=1 lat=15.47s verify=0.02s calls=4 ctoks=400 err=
+[pass 1] arrival  260/591 mbpp/132       A:single_shot     success=1 lat=1.04s verify=0.02s calls=1 ctoks=24 err=
+    monitor: pairs=130 first_deploy=None first_harm=24
+[pass 1] arrival  261/591 mbpp/273       B:self_test_repair success=0 lat=7.56s verify=0.02s calls=2 ctoks=198 err=
+[pass 1] arrival  262/591 mbpp/562       A:single_shot     success=0 lat=3.96s verify=0.02s calls=1 ctoks=106 err=
+    monitor: pairs=131 first_deploy=None first_harm=24
+[pass 1] arrival  263/591 mbpp/68        B:self_test_repair success=1 lat=6.30s verify=0.02s calls=2 ctoks=163 err=
+[pass 1] arrival  264/591 humaneval/144  A:single_shot     success=0 lat=3.87s verify=0.02s calls=1 ctoks=100 err=
+    monitor: pairs=132 first_deploy=None first_harm=24
+[pass 1] arrival  265/591 humaneval/137  B:self_test_repair success=1 lat=18.02s verify=0.01s calls=4 ctoks=465 err=
+[pass 1] arrival  266/591 humaneval/20   A:single_shot     success=1 lat=5.76s verify=0.02s calls=1 ctoks=152 err=
+    monitor: pairs=133 first_deploy=None first_harm=24
+[pass 1] arrival  267/591 mbpp/7         B:self_test_repair success=1 lat=8.16s verify=0.02s calls=4 ctoks=192 err=
+[pass 1] arrival  268/591 mbpp/398       A:single_shot     success=0 lat=1.40s verify=0.02s calls=1 ctoks=33 err=
+    monitor: pairs=134 first_deploy=None first_harm=24
+[pass 1] arrival  269/591 humaneval/8    B:self_test_repair success=1 lat=13.58s verify=0.02s calls=2 ctoks=363 err=
+[pass 1] arrival  270/591 mbpp/284       A:single_shot     success=1 lat=1.12s verify=0.02s calls=1 ctoks=25 err=
+    monitor: pairs=135 first_deploy=None first_harm=24
+[pass 1] arrival  271/591 humaneval/32   B:self_test_repair success=0 lat=34.09s verify=0.02s calls=4 ctoks=858 err=
+[pass 1] arrival  272/591 mbpp/413       A:single_shot     success=1 lat=1.29s verify=0.02s calls=1 ctoks=28 err=
+    monitor: pairs=136 first_deploy=None first_harm=24
+[pass 1] arrival  273/591 humaneval/122  B:self_test_repair success=1 lat=8.83s verify=0.02s calls=2 ctoks=220 err=
+[pass 1] arrival  274/591 mbpp/95        A:single_shot     success=1 lat=1.17s verify=0.02s calls=1 ctoks=25 err=
+    monitor: pairs=137 first_deploy=None first_harm=24
+[pass 1] arrival  275/591 humaneval/37   B:self_test_repair success=1 lat=29.33s verify=0.02s calls=4 ctoks=741 err=
+[pass 1] arrival  276/591 mbpp/734       A:single_shot     success=0 lat=2.95s verify=0.02s calls=1 ctoks=71 err=
+    monitor: pairs=138 first_deploy=None first_harm=24
+[pass 1] arrival  277/591 mbpp/240       A:single_shot     success=1 lat=1.40s verify=0.02s calls=1 ctoks=31 err=
+[pass 1] arrival  278/591 humaneval/152  B:self_test_repair success=1 lat=7.56s verify=0.02s calls=2 ctoks=183 err=
+    monitor: pairs=139 first_deploy=None first_harm=24
+[pass 1] arrival  279/591 humaneval/124  A:single_shot     success=1 lat=5.30s verify=0.02s calls=1 ctoks=129 err=
+[pass 1] arrival  280/591 humaneval/43   B:self_test_repair success=1 lat=7.14s verify=0.02s calls=2 ctoks=174 err=
+    monitor: pairs=140 first_deploy=None first_harm=24
+[pass 1] arrival  281/591 mbpp/747       B:self_test_repair success=0 lat=45.83s verify=0.02s calls=4 ctoks=1165 err=
+[pass 1] arrival  282/591 humaneval/84   A:single_shot     success=1 lat=2.53s verify=0.02s calls=1 ctoks=59 err=
+    monitor: pairs=141 first_deploy=None first_harm=24
+[pass 1] arrival  283/591 mbpp/557       B:self_test_repair success=1 lat=5.47s verify=0.02s calls=2 ctoks=134 err=
+[pass 1] arrival  284/591 mbpp/627       A:single_shot     success=1 lat=4.36s verify=0.02s calls=1 ctoks=110 err=
+    monitor: pairs=142 first_deploy=None first_harm=24
+[pass 1] arrival  285/591 humaneval/42   B:self_test_repair success=1 lat=6.36s verify=0.02s calls=2 ctoks=157 err=
+[pass 1] arrival  286/591 mbpp/283       A:single_shot     success=1 lat=3.55s verify=0.02s calls=1 ctoks=89 err=
+    monitor: pairs=143 first_deploy=None first_harm=24
+[pass 1] arrival  287/591 mbpp/120       A:single_shot     success=1 lat=2.27s verify=0.02s calls=1 ctoks=55 err=
+[pass 1] arrival  288/591 mbpp/396       B:self_test_repair success=0 lat=5.47s verify=0.02s calls=2 ctoks=134 err=
+    monitor: pairs=144 first_deploy=None first_harm=24
+[pass 1] arrival  289/591 mbpp/797       A:single_shot     success=1 lat=1.69s verify=0.02s calls=1 ctoks=39 err=
+[pass 1] arrival  290/591 mbpp/755       B:self_test_repair success=0 lat=11.58s verify=0.02s calls=2 ctoks=299 err=
+    monitor: pairs=145 first_deploy=None first_harm=24
+[pass 1] arrival  291/591 mbpp/597       B:self_test_repair success=0 lat=56.47s verify=0.02s calls=4 ctoks=1431 err=
+[pass 1] arrival  292/591 mbpp/18        A:single_shot     success=1 lat=1.47s verify=0.02s calls=1 ctoks=33 err=
+    monitor: pairs=146 first_deploy=None first_harm=24
+[pass 1] arrival  293/591 mbpp/463       B:self_test_repair success=1 lat=20.14s verify=0.02s calls=4 ctoks=500 err=
+[pass 1] arrival  294/591 mbpp/269       A:single_shot     success=1 lat=0.80s verify=0.02s calls=1 ctoks=17 err=
+    monitor: pairs=147 first_deploy=None first_harm=24
+[pass 1] arrival  295/591 mbpp/610       A:single_shot     success=0 lat=1.40s verify=0.02s calls=1 ctoks=31 err=
+[pass 1] arrival  296/591 mbpp/265       B:self_test_repair success=1 lat=11.70s verify=0.02s calls=4 ctoks=279 err=
+    monitor: pairs=148 first_deploy=None first_harm=24
+[pass 1] arrival  297/591 mbpp/777       B:self_test_repair success=0 lat=8.30s verify=0.02s calls=2 ctoks=210 err=
+[pass 1] arrival  298/591 humaneval/0    A:single_shot     success=1 lat=6.52s verify=0.02s calls=1 ctoks=167 err=
+    monitor: pairs=149 first_deploy=None first_harm=24
+[pass 1] arrival  299/591 mbpp/745       A:single_shot     success=0 lat=2.31s verify=0.02s calls=1 ctoks=56 err=
+[pass 1] arrival  300/591 mbpp/257       B:self_test_repair success=1 lat=6.57s verify=0.02s calls=2 ctoks=163 err=
+    monitor: pairs=150 first_deploy=None first_harm=24
+[pass 1] arrival  301/591 mbpp/249       B:self_test_repair success=0 lat=5.49s verify=0.02s calls=2 ctoks=136 err=
+[pass 1] arrival  302/591 mbpp/583       A:single_shot     success=1 lat=3.74s verify=0.02s calls=1 ctoks=96 err=
+    monitor: pairs=151 first_deploy=None first_harm=24
+[pass 1] arrival  303/591 mbpp/227       B:self_test_repair success=1 lat=5.23s verify=0.02s calls=2 ctoks=129 err=
+[pass 1] arrival  304/591 mbpp/762       A:single_shot     success=1 lat=2.53s verify=0.02s calls=1 ctoks=61 err=
+    monitor: pairs=152 first_deploy=None first_harm=24
+[pass 1] arrival  305/591 mbpp/619       B:self_test_repair success=1 lat=7.55s verify=0.02s calls=2 ctoks=190 err=
+[pass 1] arrival  306/591 mbpp/266       A:single_shot     success=1 lat=1.03s verify=0.02s calls=1 ctoks=23 err=
+    monitor: pairs=153 first_deploy=None first_harm=24
+[pass 1] arrival  307/591 humaneval/72   A:single_shot     success=1 lat=1.53s verify=0.02s calls=1 ctoks=31 err=
+[pass 1] arrival  308/591 humaneval/143  B:self_test_repair success=0 lat=26.59s verify=0.02s calls=4 ctoks=661 err=
+    monitor: pairs=154 first_deploy=None first_harm=24
+[pass 1] arrival  309/591 mbpp/438       B:self_test_repair success=0 lat=29.79s verify=0.03s calls=4 ctoks=745 err=
+[pass 1] arrival  310/591 humaneval/3    A:single_shot     success=1 lat=2.32s verify=0.02s calls=1 ctoks=56 err=
+    monitor: pairs=155 first_deploy=None first_harm=24
+[pass 1] arrival  311/591 mbpp/301       A:single_shot     success=1 lat=1.82s verify=0.02s calls=1 ctoks=44 err=
+[pass 1] arrival  312/591 mbpp/129       B:self_test_repair success=1 lat=33.14s verify=0.02s calls=4 ctoks=847 err=
+    monitor: pairs=156 first_deploy=None first_harm=24
+[pass 1] arrival  313/591 mbpp/759       B:self_test_repair success=1 lat=5.93s verify=0.02s calls=2 ctoks=145 err=
+[pass 1] arrival  314/591 mbpp/255       A:single_shot     success=1 lat=1.51s verify=0.02s calls=1 ctoks=34 err=
+    monitor: pairs=157 first_deploy=None first_harm=24
+[pass 1] arrival  315/591 mbpp/417       B:self_test_repair success=0 lat=7.21s verify=0.02s calls=3 ctoks=160 err=
+[pass 1] arrival  316/591 mbpp/464       A:single_shot     success=1 lat=1.14s verify=0.02s calls=1 ctoks=26 err=
+    monitor: pairs=158 first_deploy=None first_harm=24
+[pass 1] arrival  317/591 mbpp/262       B:self_test_repair success=1 lat=6.03s verify=0.02s calls=2 ctoks=148 err=
+[pass 1] arrival  318/591 mbpp/724       A:single_shot     success=1 lat=1.36s verify=0.02s calls=1 ctoks=30 err=
+    monitor: pairs=159 first_deploy=None first_harm=24
+[pass 1] arrival  319/591 mbpp/271       B:self_test_repair success=1 lat=16.53s verify=0.02s calls=4 ctoks=405 err=
+[pass 1] arrival  320/591 humaneval/70   A:single_shot     success=1 lat=2.49s verify=0.02s calls=1 ctoks=59 err=
+    monitor: pairs=160 first_deploy=None first_harm=24
+[pass 1] arrival  321/591 humaneval/14   B:self_test_repair success=1 lat=9.75s verify=0.02s calls=2 ctoks=248 err=
+[pass 1] arrival  322/591 mbpp/421       A:single_shot     success=0 lat=2.78s verify=0.02s calls=1 ctoks=70 err=
+    monitor: pairs=161 first_deploy=None first_harm=24
+[pass 1] arrival  323/591 mbpp/457       B:self_test_repair success=1 lat=7.81s verify=0.02s calls=2 ctoks=198 err=
+[pass 1] arrival  324/591 mbpp/566       A:single_shot     success=1 lat=1.10s verify=0.02s calls=1 ctoks=25 err=
+    monitor: pairs=162 first_deploy=None first_harm=24
+[pass 1] arrival  325/591 humaneval/15   B:self_test_repair success=1 lat=5.26s verify=0.02s calls=2 ctoks=128 err=
+[pass 1] arrival  326/591 mbpp/277       A:single_shot     success=1 lat=1.46s verify=0.02s calls=1 ctoks=33 err=
+    monitor: pairs=163 first_deploy=None first_harm=24
+[pass 1] arrival  327/591 mbpp/794       B:self_test_repair success=1 lat=10.38s verify=0.02s calls=4 ctoks=240 err=
+[pass 1] arrival  328/591 mbpp/572       A:single_shot     success=0 lat=1.62s verify=0.02s calls=1 ctoks=39 err=
+    monitor: pairs=164 first_deploy=None first_harm=24
+[pass 1] arrival  329/591 mbpp/477       B:self_test_repair success=0 lat=6.01s verify=0.02s calls=4 ctoks=132 err=
+[pass 1] arrival  330/591 mbpp/434       A:single_shot     success=1 lat=1.37s verify=0.02s calls=1 ctoks=32 err=
+    monitor: pairs=165 first_deploy=None first_harm=24
+[pass 1] arrival  331/591 mbpp/445       A:single_shot     success=0 lat=2.43s verify=0.02s calls=1 ctoks=59 err=
+[pass 1] arrival  332/591 mbpp/426       B:self_test_repair success=1 lat=7.79s verify=0.02s calls=2 ctoks=197 err=
+    monitor: pairs=166 first_deploy=None first_harm=24
+[pass 1] arrival  333/591 mbpp/800       B:self_test_repair success=1 lat=4.42s verify=0.02s calls=2 ctoks=107 err=
+[pass 1] arrival  334/591 mbpp/226       A:single_shot     success=1 lat=1.57s verify=0.02s calls=1 ctoks=36 err=
+    monitor: pairs=167 first_deploy=None first_harm=24
+[pass 1] arrival  335/591 mbpp/737       B:self_test_repair success=1 lat=7.92s verify=0.02s calls=2 ctoks=199 err=
+[pass 1] arrival  336/591 humaneval/26   A:single_shot     success=0 lat=4.74s verify=0.02s calls=1 ctoks=121 err=
+    monitor: pairs=168 first_deploy=None first_harm=24
+[pass 1] arrival  337/591 mbpp/444       A:single_shot     success=0 lat=1.43s verify=0.02s calls=1 ctoks=32 err=
+[pass 1] arrival  338/591 humaneval/44   B:self_test_repair success=1 lat=8.43s verify=0.02s calls=2 ctoks=213 err=
+    monitor: pairs=169 first_deploy=None first_harm=24
+[pass 1] arrival  339/591 humaneval/94   B:self_test_repair success=1 lat=21.07s verify=0.02s calls=2 ctoks=538 err=
+[pass 1] arrival  340/591 mbpp/425       A:single_shot     success=1 lat=1.94s verify=0.02s calls=1 ctoks=46 err=
+    monitor: pairs=170 first_deploy=None first_harm=24
+[pass 1] arrival  341/591 mbpp/780       A:single_shot     success=0 lat=2.43s verify=0.02s calls=1 ctoks=59 err=
+[pass 1] arrival  342/591 humaneval/128  B:self_test_repair success=1 lat=14.15s verify=0.02s calls=4 ctoks=347 err=
+    monitor: pairs=171 first_deploy=None first_harm=24
+[pass 1] arrival  343/591 mbpp/400       B:self_test_repair success=0 lat=8.33s verify=0.02s calls=2 ctoks=211 err=
+[pass 1] arrival  344/591 humaneval/115  A:single_shot     success=1 lat=1.77s verify=0.02s calls=1 ctoks=34 err=
+    monitor: pairs=172 first_deploy=None first_harm=24
+[pass 1] arrival  345/591 mbpp/576       B:self_test_repair success=1 lat=23.18s verify=0.02s calls=4 ctoks=582 err=
+[pass 1] arrival  346/591 humaneval/157  A:single_shot     success=1 lat=2.04s verify=0.02s calls=1 ctoks=48 err=
+    monitor: pairs=173 first_deploy=None first_harm=24
+[pass 1] arrival  347/591 mbpp/261       B:self_test_repair success=1 lat=12.09s verify=0.02s calls=2 ctoks=311 err=
+[pass 1] arrival  348/591 mbpp/59        A:single_shot     success=0 lat=7.03s verify=0.02s calls=1 ctoks=184 err=
+    monitor: pairs=174 first_deploy=None first_harm=24
+[pass 1] arrival  349/591 mbpp/130       B:self_test_repair success=1 lat=6.25s verify=0.02s calls=2 ctoks=156 err=
+[pass 1] arrival  350/591 mbpp/624       A:single_shot     success=0 lat=0.94s verify=0.02s calls=1 ctoks=20 err=
+    monitor: pairs=175 first_deploy=None first_harm=24
+[pass 1] arrival  351/591 mbpp/581       B:self_test_repair success=0 lat=14.00s verify=0.02s calls=4 ctoks=344 err=
+[pass 1] arrival  352/591 mbpp/89        A:single_shot     success=1 lat=0.88s verify=0.02s calls=1 ctoks=19 err=
+    monitor: pairs=176 first_deploy=None first_harm=24
+[pass 1] arrival  353/591 humaneval/47   B:self_test_repair success=1 lat=19.55s verify=0.02s calls=4 ctoks=488 err=
+[pass 1] arrival  354/591 mbpp/412       A:single_shot     success=1 lat=1.25s verify=0.02s calls=1 ctoks=29 err=
+    monitor: pairs=177 first_deploy=None first_harm=24
+[pass 1] arrival  355/591 humaneval/104  A:single_shot     success=1 lat=6.44s verify=0.02s calls=1 ctoks=165 err=
+[pass 1] arrival  356/591 humaneval/68   B:self_test_repair success=1 lat=11.20s verify=0.02s calls=2 ctoks=279 err=
+    monitor: pairs=178 first_deploy=None first_harm=24
+[pass 1] arrival  357/591 mbpp/582       A:single_shot     success=1 lat=0.92s verify=0.02s calls=1 ctoks=20 err=
+[pass 1] arrival  358/591 mbpp/803       B:self_test_repair success=1 lat=5.07s verify=0.02s calls=2 ctoks=123 err=
+    monitor: pairs=179 first_deploy=None first_harm=24
+[pass 1] arrival  359/591 mbpp/766       A:single_shot     success=1 lat=1.25s verify=0.02s calls=1 ctoks=27 err=
+[pass 1] arrival  360/591 humaneval/114  B:self_test_repair success=1 lat=8.77s verify=0.02s calls=2 ctoks=222 err=
+    monitor: pairs=180 first_deploy=None first_harm=24
+[pass 1] arrival  361/591 mbpp/563       B:self_test_repair success=0 lat=7.69s verify=0.02s calls=4 ctoks=173 err=
+[pass 1] arrival  362/591 mbpp/248       A:single_shot     success=1 lat=1.77s verify=0.02s calls=1 ctoks=41 err=
+    monitor: pairs=181 first_deploy=None first_harm=24
+[pass 1] arrival  363/591 mbpp/743       A:single_shot     success=1 lat=1.16s verify=0.02s calls=1 ctoks=25 err=
+[pass 1] arrival  364/591 mbpp/409       B:self_test_repair success=1 lat=12.65s verify=0.02s calls=4 ctoks=304 err=
+    monitor: pairs=182 first_deploy=None first_harm=24
+[pass 1] arrival  365/591 mbpp/730       B:self_test_repair success=1 lat=9.37s verify=0.02s calls=2 ctoks=239 err=
+[pass 1] arrival  366/591 humaneval/93   A:single_shot     success=0 lat=7.27s verify=0.02s calls=1 ctoks=189 err=
+    monitor: pairs=183 first_deploy=None first_harm=24
+[pass 1] arrival  367/591 mbpp/554       B:self_test_repair success=1 lat=7.20s verify=0.02s calls=2 ctoks=180 err=
+[pass 1] arrival  368/591 humaneval/12   A:single_shot     success=1 lat=1.79s verify=0.02s calls=1 ctoks=42 err=
+    monitor: pairs=184 first_deploy=None first_harm=24
+[pass 1] arrival  369/591 mbpp/742       A:single_shot     success=0 lat=1.66s verify=0.02s calls=1 ctoks=38 err=
+[pass 1] arrival  370/591 mbpp/272       B:self_test_repair success=1 lat=8.87s verify=0.02s calls=2 ctoks=225 err=
+    monitor: pairs=185 first_deploy=None first_harm=24
+[pass 1] arrival  371/591 mbpp/229       B:self_test_repair success=1 lat=15.43s verify=0.02s calls=2 ctoks=400 err=
+[pass 1] arrival  372/591 mbpp/420       A:single_shot     success=0 lat=1.72s verify=0.02s calls=1 ctoks=42 err=
+    monitor: pairs=186 first_deploy=None first_harm=24
+[pass 1] arrival  373/591 mbpp/145       B:self_test_repair success=1 lat=7.64s verify=0.02s calls=2 ctoks=192 err=
+[pass 1] arrival  374/591 mbpp/143       A:single_shot     success=0 lat=1.09s verify=0.02s calls=1 ctoks=25 err=
+    monitor: pairs=187 first_deploy=None first_harm=24
+[pass 1] arrival  375/591 mbpp/133       A:single_shot     success=1 lat=1.32s verify=0.02s calls=1 ctoks=29 err=
+[pass 1] arrival  376/591 mbpp/630       B:self_test_repair success=0 lat=46.97s verify=0.02s calls=4 ctoks=1211 err=
+    monitor: pairs=188 first_deploy=None first_harm=24
+[pass 1] arrival  377/591 mbpp/788       B:self_test_repair success=0 lat=5.89s verify=0.02s calls=2 ctoks=150 err=
+[pass 1] arrival  378/591 humaneval/86   A:single_shot     success=1 lat=1.84s verify=0.02s calls=1 ctoks=43 err=
+    monitor: pairs=189 first_deploy=None first_harm=24
+[pass 1] arrival  379/591 mbpp/259       A:single_shot     success=0 lat=1.81s verify=0.02s calls=1 ctoks=44 err=
+[pass 1] arrival  380/591 humaneval/106  B:self_test_repair success=1 lat=8.86s verify=0.02s calls=2 ctoks=232 err=
+    monitor: pairs=190 first_deploy=None first_harm=24
+[pass 1] arrival  381/591 mbpp/287       A:single_shot     success=0 lat=1.53s verify=0.02s calls=1 ctoks=36 err=
+[pass 1] arrival  382/591 mbpp/726       B:self_test_repair success=1 lat=9.69s verify=0.02s calls=4 ctoks=232 err=
+    monitor: pairs=191 first_deploy=None first_harm=24
+[pass 1] arrival  383/591 mbpp/462       B:self_test_repair success=0 lat=10.65s verify=0.02s calls=2 ctoks=279 err=
+[pass 1] arrival  384/591 mbpp/786       A:single_shot     success=1 lat=2.87s verify=0.02s calls=1 ctoks=72 err=
+    monitor: pairs=192 first_deploy=None first_harm=24
+[pass 1] arrival  385/591 humaneval/73   B:self_test_repair success=1 lat=7.47s verify=0.02s calls=2 ctoks=187 err=
+[pass 1] arrival  386/591 mbpp/411       A:single_shot     success=0 lat=1.16s verify=0.02s calls=1 ctoks=27 err=
+    monitor: pairs=193 first_deploy=None first_harm=24
+[pass 1] arrival  387/591 humaneval/148  A:single_shot     success=1 lat=4.84s verify=0.02s calls=1 ctoks=121 err=
+[pass 1] arrival  388/591 mbpp/579       B:self_test_repair success=0 lat=40.08s verify=0.04s calls=4 ctoks=889 err=
+    monitor: pairs=194 first_deploy=None first_harm=24
+[pass 1] arrival  389/591 mbpp/643       A:single_shot     success=0 lat=2.09s verify=0.04s calls=1 ctoks=41 err=
+[pass 1] arrival  390/591 mbpp/739       B:self_test_repair success=0 lat=45.17s verify=0.02s calls=4 ctoks=1117 err=
+    monitor: pairs=195 first_deploy=None first_harm=24
+[pass 1] arrival  391/591 mbpp/222       A:single_shot     success=1 lat=1.90s verify=0.02s calls=1 ctoks=46 err=
+[pass 1] arrival  392/591 mbpp/267       B:self_test_repair success=1 lat=10.07s verify=0.02s calls=4 ctoks=244 err=
+    monitor: pairs=196 first_deploy=None first_harm=24
+[pass 1] arrival  393/591 mbpp/640       A:single_shot     success=0 lat=1.32s verify=0.02s calls=1 ctoks=30 err=
+[pass 1] arrival  394/591 humaneval/52   B:self_test_repair success=1 lat=5.33s verify=0.02s calls=2 ctoks=133 err=
+    monitor: pairs=197 first_deploy=None first_harm=24
+[pass 1] arrival  395/591 mbpp/245       B:self_test_repair success=1 lat=18.66s verify=0.02s calls=2 ctoks=499 err=
+[pass 1] arrival  396/591 mbpp/310       A:single_shot     success=0 lat=0.90s verify=0.02s calls=1 ctoks=20 err=
+    monitor: pairs=198 first_deploy=None first_harm=24
+[pass 1] arrival  397/591 mbpp/311       B:self_test_repair success=0 lat=14.80s verify=0.02s calls=4 ctoks=374 err=
+[pass 1] arrival  398/591 mbpp/250       A:single_shot     success=1 lat=0.99s verify=0.02s calls=1 ctoks=21 err=
+    monitor: pairs=199 first_deploy=None first_harm=24
+[pass 1] arrival  399/591 mbpp/596       A:single_shot     success=0 lat=1.26s verify=0.02s calls=1 ctoks=30 err=
+[pass 1] arrival  400/591 mbpp/223       B:self_test_repair success=1 lat=16.87s verify=0.02s calls=2 ctoks=447 err=
+    monitor: pairs=200 first_deploy=None first_harm=24
+[pass 1] arrival  401/591 mbpp/623       B:self_test_repair success=1 lat=7.39s verify=0.02s calls=2 ctoks=190 err=
+[pass 1] arrival  402/591 mbpp/558       A:single_shot     success=1 lat=2.33s verify=0.02s calls=1 ctoks=58 err=
+    monitor: pairs=201 first_deploy=None first_harm=24
+[pass 1] arrival  403/591 mbpp/429       A:single_shot     success=0 lat=2.66s verify=0.02s calls=1 ctoks=67 err=
+[pass 1] arrival  404/591 humaneval/89   B:self_test_repair success=1 lat=20.24s verify=0.02s calls=4 ctoks=514 err=
+    monitor: pairs=202 first_deploy=None first_harm=24
+[pass 1] arrival  405/591 mbpp/433       B:self_test_repair success=1 lat=10.35s verify=0.02s calls=4 ctoks=249 err=
+[pass 1] arrival  406/591 humaneval/25   A:single_shot     success=1 lat=7.03s verify=0.02s calls=1 ctoks=184 err=
+    monitor: pairs=203 first_deploy=None first_harm=24
+[pass 1] arrival  407/591 mbpp/290       A:single_shot     success=0 lat=2.19s verify=0.02s calls=1 ctoks=56 err=
+[pass 1] arrival  408/591 humaneval/50   B:self_test_repair success=1 lat=19.37s verify=0.02s calls=4 ctoks=473 err=
+    monitor: pairs=204 first_deploy=None first_harm=24
+[pass 1] arrival  409/591 humaneval/121  B:self_test_repair success=1 lat=10.36s verify=0.02s calls=4 ctoks=242 err=
+[pass 1] arrival  410/591 mbpp/163       A:single_shot     success=1 lat=3.56s verify=0.02s calls=1 ctoks=92 err=
+    monitor: pairs=205 first_deploy=None first_harm=24
+[pass 1] arrival  411/591 mbpp/585       B:self_test_repair success=0 lat=10.82s verify=0.02s calls=2 ctoks=286 err=
+[pass 1] arrival  412/591 mbpp/603       A:single_shot     success=0 lat=3.94s verify=0.03s calls=1 ctoks=101 err=
+    monitor: pairs=206 first_deploy=None first_harm=24
+[pass 1] arrival  413/591 humaneval/97   A:single_shot     success=1 lat=1.33s verify=0.02s calls=1 ctoks=30 err=
+[pass 1] arrival  414/591 mbpp/20        B:self_test_repair success=0 lat=12.07s verify=0.02s calls=4 ctoks=298 err=
+    monitor: pairs=207 first_deploy=None first_harm=24
+[pass 1] arrival  415/591 humaneval/51   A:single_shot     success=1 lat=1.70s verify=0.02s calls=1 ctoks=40 err=
+[pass 1] arrival  416/591 mbpp/772       B:self_test_repair success=1 lat=15.05s verify=0.02s calls=4 ctoks=379 err=
+    monitor: pairs=208 first_deploy=None first_harm=24
+[pass 1] arrival  417/591 humaneval/150  B:self_test_repair success=1 lat=12.93s verify=0.02s calls=2 ctoks=341 err=
+[pass 1] arrival  418/591 humaneval/10   A:single_shot     success=0 lat=4.57s verify=0.02s calls=1 ctoks=118 err=
+    monitor: pairs=209 first_deploy=None first_harm=24
+[pass 1] arrival  419/591 mbpp/567       B:self_test_repair success=1 lat=5.86s verify=0.02s calls=2 ctoks=150 err=
+[pass 1] arrival  420/591 mbpp/19        A:single_shot     success=1 lat=1.77s verify=0.02s calls=1 ctoks=44 err=
+    monitor: pairs=210 first_deploy=None first_harm=24
+[pass 1] arrival  421/591 mbpp/431       A:single_shot     success=0 lat=1.28s verify=0.02s calls=1 ctoks=29 err=
+[pass 1] arrival  422/591 mbpp/760       B:self_test_repair success=1 lat=7.44s verify=0.02s calls=4 ctoks=174 err=
+    monitor: pairs=211 first_deploy=None first_harm=24
+[pass 1] arrival  423/591 mbpp/758       A:single_shot     success=1 lat=1.51s verify=0.02s calls=1 ctoks=35 err=
+[pass 1] arrival  424/591 mbpp/784       B:self_test_repair success=1 lat=15.43s verify=0.02s calls=4 ctoks=384 err=
+    monitor: pairs=212 first_deploy=None first_harm=24
+[pass 1] arrival  425/591 mbpp/6         B:self_test_repair success=1 lat=12.69s verify=0.02s calls=4 ctoks=313 err=
+[pass 1] arrival  426/591 mbpp/131       A:single_shot     success=1 lat=4.82s verify=0.02s calls=1 ctoks=127 err=
+    monitor: pairs=213 first_deploy=None first_harm=24
+[pass 1] arrival  427/591 mbpp/8         B:self_test_repair success=1 lat=4.78s verify=0.02s calls=2 ctoks=120 err=
+[pass 1] arrival  428/591 mbpp/628       A:single_shot     success=1 lat=0.97s verify=0.02s calls=1 ctoks=22 err=
+    monitor: pairs=214 first_deploy=None first_harm=24
+[pass 1] arrival  429/591 mbpp/436       B:self_test_repair success=1 lat=5.33s verify=0.02s calls=2 ctoks=135 err=
+[pass 1] arrival  430/591 mbpp/796       A:single_shot     success=1 lat=0.83s verify=0.02s calls=1 ctoks=18 err=
+    monitor: pairs=215 first_deploy=None first_harm=24
+[pass 1] arrival  431/591 mbpp/574       A:single_shot     success=0 lat=1.40s verify=0.02s calls=1 ctoks=34 err=
+[pass 1] arrival  432/591 humaneval/56   B:self_test_repair success=1 lat=6.20s verify=0.02s calls=2 ctoks=156 err=
+    monitor: pairs=216 first_deploy=None first_harm=24
+[pass 1] arrival  433/591 mbpp/577       B:self_test_repair success=1 lat=11.31s verify=0.02s calls=4 ctoks=280 err=
+[pass 1] arrival  434/591 mbpp/578       A:single_shot     success=1 lat=1.75s verify=0.02s calls=1 ctoks=42 err=
+    monitor: pairs=217 first_deploy=None first_harm=24
+[pass 1] arrival  435/591 mbpp/586       B:self_test_repair success=1 lat=6.55s verify=0.02s calls=2 ctoks=167 err=
+[pass 1] arrival  436/591 mbpp/432       A:single_shot     success=1 lat=1.47s verify=0.02s calls=1 ctoks=34 err=
+    monitor: pairs=218 first_deploy=None first_harm=24
+[pass 1] arrival  437/591 mbpp/733       B:self_test_repair success=1 lat=21.18s verify=0.02s calls=4 ctoks=543 err=
+[pass 1] arrival  438/591 mbpp/771       A:single_shot     success=1 lat=3.28s verify=0.02s calls=1 ctoks=84 err=
+    monitor: pairs=219 first_deploy=None first_harm=24
+[pass 1] arrival  439/591 mbpp/474       A:single_shot     success=1 lat=1.19s verify=0.02s calls=1 ctoks=28 err=
+[pass 1] arrival  440/591 humaneval/6    B:self_test_repair success=1 lat=11.97s verify=0.02s calls=2 ctoks=315 err=
+    monitor: pairs=220 first_deploy=None first_harm=24
+[pass 1] arrival  441/591 mbpp/135       A:single_shot     success=1 lat=1.40s verify=0.02s calls=1 ctoks=34 err=
+[pass 1] arrival  442/591 humaneval/90   B:self_test_repair success=1 lat=11.45s verify=0.02s calls=4 ctoks=281 err=
+    monitor: pairs=221 first_deploy=None first_harm=24
+[pass 1] arrival  443/591 mbpp/4         B:self_test_repair success=1 lat=9.10s verify=0.02s calls=2 ctoks=237 err=
+[pass 1] arrival  444/591 mbpp/237       A:single_shot     success=0 lat=1.90s verify=0.02s calls=1 ctoks=46 err=
+    monitor: pairs=222 first_deploy=None first_harm=24
+[pass 1] arrival  445/591 mbpp/113       A:single_shot     success=1 lat=1.30s verify=0.02s calls=1 ctoks=31 err=
+[pass 1] arrival  446/591 humaneval/1    B:self_test_repair success=1 lat=10.40s verify=0.02s calls=2 ctoks=271 err=
+    monitor: pairs=223 first_deploy=None first_harm=24
+[pass 1] arrival  447/591 mbpp/765       A:single_shot     success=0 lat=7.04s verify=0.02s calls=1 ctoks=188 err=
+[pass 1] arrival  448/591 humaneval/17   B:self_test_repair success=1 lat=25.61s verify=0.02s calls=4 ctoks=650 err=
+    monitor: pairs=224 first_deploy=None first_harm=24
+[pass 1] arrival  449/591 mbpp/79        B:self_test_repair success=1 lat=4.50s verify=0.02s calls=2 ctoks=108 err=
+[pass 1] arrival  450/591 mbpp/86        A:single_shot     success=1 lat=1.31s verify=0.02s calls=1 ctoks=31 err=
+    monitor: pairs=225 first_deploy=None first_harm=24
+[pass 1] arrival  451/591 mbpp/744       B:self_test_repair success=1 lat=5.66s verify=0.02s calls=2 ctoks=145 err=
+[pass 1] arrival  452/591 mbpp/74        A:single_shot     success=1 lat=4.92s verify=0.02s calls=1 ctoks=131 err=
+    monitor: pairs=226 first_deploy=None first_harm=24
+[pass 1] arrival  453/591 mbpp/631       A:single_shot     success=0 lat=1.09s verify=0.02s calls=1 ctoks=24 err=
+[pass 1] arrival  454/591 mbpp/280       B:self_test_repair success=1 lat=7.78s verify=0.02s calls=2 ctoks=202 err=
+    monitor: pairs=227 first_deploy=None first_harm=24
+[pass 1] arrival  455/591 humaneval/74   B:self_test_repair success=1 lat=9.50s verify=0.02s calls=2 ctoks=237 err=
+[pass 1] arrival  456/591 mbpp/405       A:single_shot     success=1 lat=1.25s verify=0.03s calls=1 ctoks=27 err=
+    monitor: pairs=228 first_deploy=None first_harm=24
+[pass 1] arrival  457/591 mbpp/93        A:single_shot     success=1 lat=0.97s verify=0.03s calls=1 ctoks=19 err=
+[pass 1] arrival  458/591 mbpp/115       B:self_test_repair success=1 lat=9.07s verify=0.02s calls=4 ctoks=213 err=
+    monitor: pairs=229 first_deploy=None first_harm=24
+[pass 1] arrival  459/591 mbpp/556       B:self_test_repair success=1 lat=14.73s verify=0.02s calls=4 ctoks=337 err=
+[pass 1] arrival  460/591 mbpp/72        A:single_shot     success=0 lat=1.35s verify=0.02s calls=1 ctoks=31 err=
+    monitor: pairs=230 first_deploy=None first_harm=24
+[pass 1] arrival  461/591 mbpp/83        B:self_test_repair success=0 lat=10.22s verify=0.02s calls=4 ctoks=250 err=
+[pass 1] arrival  462/591 mbpp/776       A:single_shot     success=0 lat=5.28s verify=0.02s calls=1 ctoks=85 err=
+    monitor: pairs=231 first_deploy=None first_harm=24
+[pass 1] arrival  463/591 mbpp/560       B:self_test_repair success=1 lat=32.60s verify=0.02s calls=2 ctoks=302 err=
+[pass 1] arrival  464/591 mbpp/471       A:single_shot     success=1 lat=3.78s verify=0.02s calls=1 ctoks=45 err=
+    monitor: pairs=232 first_deploy=None first_harm=24
+[pass 1] arrival  465/591 humaneval/117  A:single_shot     success=1 lat=7.23s verify=0.02s calls=1 ctoks=87 err=
+[pass 1] arrival  466/591 mbpp/459       B:self_test_repair success=1 lat=11.06s verify=0.02s calls=2 ctoks=133 err=
+    monitor: pairs=233 first_deploy=None first_harm=24
+[pass 1] arrival  467/591 mbpp/415       B:self_test_repair success=0 lat=18.55s verify=0.02s calls=4 ctoks=445 err=
+[pass 1] arrival  468/591 mbpp/456       A:single_shot     success=1 lat=1.14s verify=0.02s calls=1 ctoks=27 err=
+    monitor: pairs=234 first_deploy=None first_harm=24
+[pass 1] arrival  469/591 humaneval/59   B:self_test_repair success=1 lat=14.36s verify=0.02s calls=2 ctoks=374 err=
+[pass 1] arrival  470/591 mbpp/105       A:single_shot     success=1 lat=1.09s verify=0.02s calls=1 ctoks=25 err=
+    monitor: pairs=235 first_deploy=None first_harm=24
+[pass 1] arrival  471/591 mbpp/67        A:single_shot     success=0 lat=2.55s verify=0.02s calls=1 ctoks=64 err=
+[pass 1] arrival  472/591 mbpp/388       B:self_test_repair success=1 lat=6.94s verify=0.01s calls=2 ctoks=181 err=
+    monitor: pairs=236 first_deploy=None first_harm=24
+[pass 1] arrival  473/591 mbpp/424       B:self_test_repair success=1 lat=9.78s verify=0.02s calls=2 ctoks=260 err=
+[pass 1] arrival  474/591 mbpp/11        A:single_shot     success=1 lat=3.30s verify=0.02s calls=1 ctoks=86 err=
+    monitor: pairs=237 first_deploy=None first_harm=24
+[pass 1] arrival  475/591 mbpp/162       B:self_test_repair success=1 lat=8.31s verify=0.01s calls=4 ctoks=198 err=
+[pass 1] arrival  476/591 humaneval/162  A:single_shot     success=1 lat=1.53s verify=0.02s calls=1 ctoks=36 err=
+    monitor: pairs=238 first_deploy=None first_harm=24
+[pass 1] arrival  477/591 mbpp/448       B:self_test_repair success=0 lat=21.45s verify=0.03s calls=4 ctoks=561 err=
+[pass 1] arrival  478/591 mbpp/749       A:single_shot     success=0 lat=1.22s verify=0.02s calls=1 ctoks=27 err=
+    monitor: pairs=239 first_deploy=None first_harm=24
+[pass 1] arrival  479/591 mbpp/252       A:single_shot     success=0 lat=1.17s verify=0.02s calls=1 ctoks=28 err=
+[pass 1] arrival  480/591 humaneval/138  B:self_test_repair success=1 lat=9.17s verify=0.02s calls=4 ctoks=225 err=
+    monitor: pairs=240 first_deploy=None first_harm=24
+[pass 1] arrival  481/591 mbpp/599       A:single_shot     success=1 lat=1.73s verify=0.02s calls=1 ctoks=43 err=
+[pass 1] arrival  482/591 mbpp/233       B:self_test_repair success=1 lat=10.54s verify=0.02s calls=4 ctoks=259 err=
+    monitor: pairs=241 first_deploy=None first_harm=24
+[pass 1] arrival  483/591 mbpp/17        B:self_test_repair success=1 lat=5.64s verify=0.02s calls=2 ctoks=142 err=
+[pass 1] arrival  484/591 mbpp/736       A:single_shot     success=1 lat=2.81s verify=0.02s calls=1 ctoks=71 err=
+    monitor: pairs=242 first_deploy=None first_harm=24
+[pass 1] arrival  485/591 mbpp/109       A:single_shot     success=1 lat=2.44s verify=0.02s calls=1 ctoks=60 err=
+[pass 1] arrival  486/591 mbpp/406       B:self_test_repair success=1 lat=4.20s verify=0.02s calls=2 ctoks=105 err=
+    monitor: pairs=243 first_deploy=None first_harm=24
+[pass 1] arrival  487/591 mbpp/224       A:single_shot     success=1 lat=1.73s verify=0.02s calls=1 ctoks=42 err=
+[pass 1] arrival  488/591 mbpp/232       B:self_test_repair success=1 lat=6.44s verify=0.02s calls=2 ctoks=166 err=
+    monitor: pairs=244 first_deploy=None first_harm=24
+[pass 1] arrival  489/591 mbpp/806       A:single_shot     success=1 lat=2.85s verify=0.02s calls=1 ctoks=75 err=
+[pass 1] arrival  490/591 humaneval/81   B:self_test_repair success=1 lat=41.71s verify=0.02s calls=4 ctoks=1056 err=
+    monitor: pairs=245 first_deploy=None first_harm=24
+[pass 1] arrival  491/591 mbpp/782       B:self_test_repair success=1 lat=13.40s verify=0.02s calls=4 ctoks=336 err=
+[pass 1] arrival  492/591 mbpp/443       A:single_shot     success=0 lat=1.86s verify=0.02s calls=1 ctoks=47 err=
+    monitor: pairs=246 first_deploy=None first_harm=24
+[pass 1] arrival  493/591 humaneval/139  A:single_shot     success=1 lat=1.92s verify=0.02s calls=1 ctoks=47 err=
+[pass 1] arrival  494/591 mbpp/293       B:self_test_repair success=1 lat=8.89s verify=0.02s calls=2 ctoks=234 err=
+    monitor: pairs=247 first_deploy=None first_harm=24
+[pass 1] arrival  495/591 mbpp/437       A:single_shot     success=0 lat=1.50s verify=0.02s calls=1 ctoks=37 err=
+[pass 1] arrival  496/591 humaneval/146  B:self_test_repair success=1 lat=8.22s verify=0.02s calls=2 ctoks=214 err=
+    monitor: pairs=248 first_deploy=None first_harm=24
+[pass 1] arrival  497/591 mbpp/440       B:self_test_repair success=0 lat=14.72s verify=0.02s calls=4 ctoks=375 err=
+[pass 1] arrival  498/591 humaneval/135  A:single_shot     success=1 lat=5.34s verify=0.02s calls=1 ctoks=143 err=
+    monitor: pairs=249 first_deploy=None first_harm=24
+[pass 1] arrival  499/591 mbpp/783       A:single_shot     success=1 lat=8.80s verify=0.02s calls=1 ctoks=238 err=
+[pass 1] arrival  500/591 mbpp/805       B:self_test_repair success=1 lat=12.73s verify=0.02s calls=4 ctoks=309 err=
+    monitor: pairs=250 first_deploy=None first_harm=24
+[pass 1] arrival  501/591 mbpp/565       B:self_test_repair success=1 lat=3.41s verify=0.02s calls=2 ctoks=83 err=
+[pass 1] arrival  502/591 humaneval/82   A:single_shot     success=1 lat=2.55s verify=0.02s calls=1 ctoks=65 err=
+    monitor: pairs=251 first_deploy=None first_harm=24
+[pass 1] arrival  503/591 mbpp/587       B:self_test_repair success=1 lat=5.07s verify=0.02s calls=2 ctoks=129 err=
+[pass 1] arrival  504/591 humaneval/19   A:single_shot     success=1 lat=4.38s verify=0.02s calls=1 ctoks=115 err=
+    monitor: pairs=252 first_deploy=None first_harm=24
+[pass 1] arrival  505/591 mbpp/137       B:self_test_repair success=1 lat=11.31s verify=0.02s calls=4 ctoks=275 err=
+[pass 1] arrival  506/591 mbpp/239       A:single_shot     success=1 lat=4.68s verify=0.02s calls=1 ctoks=124 err=
+    monitor: pairs=253 first_deploy=None first_harm=24
+[pass 1] arrival  507/591 mbpp/160       B:self_test_repair success=0 lat=38.83s verify=0.02s calls=4 ctoks=1015 err=
+[pass 1] arrival  508/591 mbpp/604       A:single_shot     success=0 lat=1.13s verify=0.02s calls=1 ctoks=27 err=
+    monitor: pairs=254 first_deploy=None first_harm=24
+[pass 1] arrival  509/591 mbpp/286       B:self_test_repair success=1 lat=23.66s verify=0.01s calls=4 ctoks=622 err=
+[pass 1] arrival  510/591 humaneval/40   A:single_shot     success=1 lat=4.87s verify=0.02s calls=1 ctoks=128 err=
+    monitor: pairs=255 first_deploy=None first_harm=24
+[pass 1] arrival  511/591 mbpp/164       A:single_shot     success=1 lat=2.52s verify=0.02s calls=1 ctoks=64 err=
+[pass 1] arrival  512/591 mbpp/251       B:self_test_repair success=1 lat=8.20s verify=0.02s calls=2 ctoks=215 err=
+    monitor: pairs=256 first_deploy=None first_harm=24
+[pass 1] arrival  513/591 mbpp/738       A:single_shot     success=0 lat=1.91s verify=0.02s calls=1 ctoks=47 err=
+[pass 1] arrival  514/591 mbpp/801       B:self_test_repair success=1 lat=8.15s verify=0.02s calls=2 ctoks=214 err=
+    monitor: pairs=257 first_deploy=None first_harm=24
+[pass 1] arrival  515/591 humaneval/140  A:single_shot     success=1 lat=4.38s verify=0.02s calls=1 ctoks=116 err=
+[pass 1] arrival  516/591 mbpp/637       B:self_test_repair success=1 lat=6.09s verify=0.02s calls=2 ctoks=157 err=
+    monitor: pairs=258 first_deploy=None first_harm=24
+[pass 1] arrival  517/591 mbpp/752       A:single_shot     success=0 lat=3.24s verify=0.02s calls=1 ctoks=84 err=
+[pass 1] arrival  518/591 humaneval/48   B:self_test_repair success=1 lat=4.01s verify=0.02s calls=2 ctoks=98 err=
+    monitor: pairs=259 first_deploy=None first_harm=24
+[pass 1] arrival  519/591 humaneval/120  B:self_test_repair success=0 lat=9.61s verify=0.02s calls=4 ctoks=230 err=
+[pass 1] arrival  520/591 humaneval/129  A:single_shot     success=0 lat=7.10s verify=10.02s calls=1 ctoks=181 err=
+    monitor: pairs=260 first_deploy=None first_harm=24
+[pass 1] arrival  521/591 mbpp/399       B:self_test_repair success=1 lat=33.84s verify=0.02s calls=4 ctoks=880 err=
+[pass 1] arrival  522/591 humaneval/57   A:single_shot     success=1 lat=1.31s verify=0.02s calls=1 ctoks=30 err=
+    monitor: pairs=261 first_deploy=None first_harm=24
+[pass 1] arrival  523/591 mbpp/638       B:self_test_repair success=1 lat=28.41s verify=0.02s calls=4 ctoks=750 err=
+[pass 1] arrival  524/591 mbpp/559       A:single_shot     success=1 lat=3.83s verify=0.02s calls=1 ctoks=101 err=
+    monitor: pairs=262 first_deploy=None first_harm=24
+[pass 1] arrival  525/591 humaneval/46   B:self_test_repair success=1 lat=15.33s verify=0.01s calls=4 ctoks=393 err=
+[pass 1] arrival  526/591 humaneval/55   A:single_shot     success=1 lat=3.36s verify=0.02s calls=1 ctoks=87 err=
+    monitor: pairs=263 first_deploy=None first_harm=24
+[pass 1] arrival  527/591 humaneval/65   A:single_shot     success=0 lat=5.50s verify=0.02s calls=1 ctoks=147 err=
+[pass 1] arrival  528/591 humaneval/63   B:self_test_repair success=1 lat=16.36s verify=0.01s calls=4 ctoks=418 err=
+    monitor: pairs=264 first_deploy=None first_harm=24
+[pass 1] arrival  529/591 mbpp/598       A:single_shot     success=1 lat=4.25s verify=0.02s calls=1 ctoks=112 err=
+[pass 1] arrival  530/591 mbpp/793       B:self_test_repair success=1 lat=9.67s verify=0.02s calls=2 ctoks=256 err=
+    monitor: pairs=265 first_deploy=None first_harm=24
+[pass 1] arrival  531/591 mbpp/104       B:self_test_repair success=1 lat=7.46s verify=0.02s calls=2 ctoks=194 err=
+[pass 1] arrival  532/591 mbpp/410       A:single_shot     success=0 lat=0.85s verify=0.02s calls=1 ctoks=19 err=
+    monitor: pairs=266 first_deploy=None first_harm=24
+[pass 1] arrival  533/591 mbpp/64        A:single_shot     success=1 lat=1.13s verify=0.02s calls=1 ctoks=27 err=
+[pass 1] arrival  534/591 mbpp/802       B:self_test_repair success=1 lat=13.93s verify=0.01s calls=4 ctoks=352 err=
+    monitor: pairs=267 first_deploy=None first_harm=24
+[pass 1] arrival  535/591 mbpp/61        B:self_test_repair success=0 lat=22.73s verify=0.02s calls=4 ctoks=589 err=
+[pass 1] arrival  536/591 mbpp/119       A:single_shot     success=1 lat=4.95s verify=0.02s calls=1 ctoks=134 err=
+    monitor: pairs=268 first_deploy=None first_harm=24
+[pass 1] arrival  537/591 mbpp/393       B:self_test_repair success=0 lat=7.16s verify=0.01s calls=2 ctoks=188 err=
+[pass 1] arrival  538/591 mbpp/75        A:single_shot     success=1 lat=1.77s verify=0.02s calls=1 ctoks=43 err=
+    monitor: pairs=269 first_deploy=None first_harm=24
+[pass 1] arrival  539/591 mbpp/773       A:single_shot     success=0 lat=4.98s verify=0.02s calls=1 ctoks=133 err=
+[pass 1] arrival  540/591 humaneval/92   B:self_test_repair success=1 lat=6.11s verify=0.02s calls=2 ctoks=155 err=
+    monitor: pairs=270 first_deploy=None first_harm=24
+[pass 1] arrival  541/591 mbpp/127       B:self_test_repair success=1 lat=5.45s verify=0.02s calls=2 ctoks=140 err=
+[pass 1] arrival  542/591 mbpp/58        A:single_shot     success=1 lat=1.19s verify=0.02s calls=1 ctoks=27 err=
+    monitor: pairs=271 first_deploy=None first_harm=24
+[pass 1] arrival  543/591 humaneval/64   B:self_test_repair success=1 lat=5.51s verify=0.01s calls=2 ctoks=140 err=
+[pass 1] arrival  544/591 mbpp/90        A:single_shot     success=1 lat=1.07s verify=0.02s calls=1 ctoks=25 err=
+    monitor: pairs=272 first_deploy=None first_harm=24
+[pass 1] arrival  545/591 humaneval/76   A:single_shot     success=1 lat=2.08s verify=0.02s calls=1 ctoks=50 err=
+[pass 1] arrival  546/591 humaneval/109  B:self_test_repair success=1 lat=11.12s verify=0.02s calls=2 ctoks=288 err=
+    monitor: pairs=273 first_deploy=None first_harm=24
+[pass 1] arrival  547/591 mbpp/439       B:self_test_repair success=1 lat=5.21s verify=0.02s calls=2 ctoks=133 err=
+[pass 1] arrival  548/591 mbpp/626       A:single_shot     success=0 lat=1.16s verify=0.02s calls=1 ctoks=26 err=
+    monitor: pairs=274 first_deploy=None first_harm=24
+[pass 1] arrival  549/591 humaneval/58   B:self_test_repair success=1 lat=8.03s verify=0.02s calls=2 ctoks=210 err=
+[pass 1] arrival  550/591 mbpp/473       A:single_shot     success=0 lat=4.60s verify=0.02s calls=1 ctoks=122 err=
+    monitor: pairs=275 first_deploy=None first_harm=24
+[pass 1] arrival  551/591 mbpp/296       B:self_test_repair success=1 lat=23.47s verify=0.02s calls=2 ctoks=640 err=
+[pass 1] arrival  552/591 mbpp/117       A:single_shot     success=0 lat=1.74s verify=0.02s calls=1 ctoks=42 err=
+    monitor: pairs=276 first_deploy=None first_harm=24
+[pass 1] arrival  553/591 mbpp/108       A:single_shot     success=1 lat=1.37s verify=0.02s calls=1 ctoks=32 err=
+[pass 1] arrival  554/591 humaneval/2    B:self_test_repair success=1 lat=8.26s verify=0.02s calls=2 ctoks=217 err=
+    monitor: pairs=277 first_deploy=None first_harm=24
+[pass 1] arrival  555/591 mbpp/99        B:self_test_repair success=0 lat=18.44s verify=0.02s calls=4 ctoks=482 err=
+[pass 1] arrival  556/591 mbpp/116       A:single_shot     success=1 lat=1.04s verify=0.02s calls=1 ctoks=24 err=
+    monitor: pairs=278 first_deploy=None first_harm=24
+[pass 1] arrival  557/591 mbpp/246       A:single_shot     success=1 lat=4.03s verify=0.02s calls=1 ctoks=106 err=
+[pass 1] arrival  558/591 mbpp/465       B:self_test_repair success=1 lat=6.76s verify=0.02s calls=2 ctoks=177 err=
+    monitor: pairs=279 first_deploy=None first_harm=24
+[pass 1] arrival  559/591 mbpp/435       A:single_shot     success=1 lat=0.99s verify=0.02s calls=1 ctoks=23 err=
+[pass 1] arrival  560/591 mbpp/617       B:self_test_repair success=0 lat=14.61s verify=0.02s calls=4 ctoks=374 err=
+    monitor: pairs=280 first_deploy=None first_harm=24
+[pass 1] arrival  561/591 mbpp/460       A:single_shot     success=1 lat=1.02s verify=0.02s calls=1 ctoks=24 err=
+[pass 1] arrival  562/591 humaneval/102  B:self_test_repair success=1 lat=18.97s verify=0.02s calls=4 ctoks=494 err=
+    monitor: pairs=281 first_deploy=None first_harm=24
+[pass 1] arrival  563/591 mbpp/307       A:single_shot     success=0 lat=1.21s verify=0.02s calls=1 ctoks=27 err=
+[pass 1] arrival  564/591 humaneval/54   B:self_test_repair success=0 lat=10.74s verify=0.02s calls=4 ctoks=262 err=
+    monitor: pairs=282 first_deploy=None first_harm=24
+[pass 1] arrival  565/591 mbpp/591       A:single_shot     success=1 lat=2.68s verify=0.02s calls=1 ctoks=70 err=
+[pass 1] arrival  566/591 humaneval/61   B:self_test_repair success=1 lat=5.69s verify=0.02s calls=2 ctoks=145 err=
+    monitor: pairs=283 first_deploy=None first_harm=24
+[pass 1] arrival  567/591 mbpp/238       B:self_test_repair success=1 lat=5.31s verify=0.01s calls=2 ctoks=134 err=
+[pass 1] arrival  568/591 mbpp/769       A:single_shot     success=0 lat=1.14s verify=0.02s calls=1 ctoks=27 err=
+    monitor: pairs=284 first_deploy=None first_harm=24
+[pass 1] arrival  569/591 mbpp/304       A:single_shot     success=1 lat=3.41s verify=0.02s calls=1 ctoks=88 err=
+[pass 1] arrival  570/591 mbpp/418       B:self_test_repair success=1 lat=6.70s verify=0.02s calls=2 ctoks=175 err=
+    monitor: pairs=285 first_deploy=None first_harm=24
+[pass 1] arrival  571/591 humaneval/87   B:self_test_repair success=1 lat=12.16s verify=0.02s calls=2 ctoks=317 err=
+[pass 1] arrival  572/591 humaneval/33   A:single_shot     success=1 lat=9.46s verify=0.02s calls=1 ctoks=255 err=
+    monitor: pairs=286 first_deploy=None first_harm=24
+[pass 1] arrival  573/591 mbpp/594       B:self_test_repair success=1 lat=17.39s verify=0.02s calls=4 ctoks=436 err=
+[pass 1] arrival  574/591 mbpp/622       A:single_shot     success=0 lat=12.37s verify=0.02s calls=1 ctoks=339 err=
+    monitor: pairs=287 first_deploy=None first_harm=24
+[pass 1] arrival  575/591 mbpp/589       B:self_test_repair success=1 lat=11.45s verify=0.02s calls=4 ctoks=283 err=
+[pass 1] arrival  576/591 humaneval/23   A:single_shot     success=1 lat=1.98s verify=0.02s calls=1 ctoks=49 err=
+    monitor: pairs=288 first_deploy=None first_harm=24
+[pass 1] arrival  577/591 humaneval/156  B:self_test_repair success=1 lat=11.45s verify=0.02s calls=2 ctoks=305 err=
+[pass 1] arrival  578/591 mbpp/16        A:single_shot     success=1 lat=1.73s verify=0.02s calls=1 ctoks=42 err=
+    monitor: pairs=289 first_deploy=None first_harm=24
+[pass 1] arrival  579/591 mbpp/720       B:self_test_repair success=1 lat=13.25s verify=0.02s calls=2 ctoks=354 err=
+[pass 1] arrival  580/591 mbpp/100       A:single_shot     success=1 lat=1.77s verify=0.02s calls=1 ctoks=43 err=
+    monitor: pairs=290 first_deploy=None first_harm=24
+[pass 1] arrival  581/591 mbpp/98        B:self_test_repair success=1 lat=9.58s verify=0.02s calls=4 ctoks=236 err=
+[pass 1] arrival  582/591 mbpp/453       A:single_shot     success=0 lat=7.34s verify=0.02s calls=1 ctoks=199 err=
+    monitor: pairs=291 first_deploy=None first_harm=24
+[pass 1] arrival  583/591 humaneval/149  B:self_test_repair success=1 lat=14.62s verify=0.02s calls=4 ctoks=368 err=
+[pass 1] arrival  584/591 mbpp/478       A:single_shot     success=1 lat=1.18s verify=0.02s calls=1 ctoks=28 err=
+    monitor: pairs=292 first_deploy=None first_harm=24
+[pass 1] arrival  585/591 humaneval/88   B:self_test_repair success=1 lat=16.20s verify=0.02s calls=4 ctoks=399 err=
+[pass 1] arrival  586/591 mbpp/167       A:single_shot     success=0 lat=1.34s verify=0.02s calls=1 ctoks=31 err=
+    monitor: pairs=293 first_deploy=None first_harm=24
+[pass 1] arrival  587/591 mbpp/618       B:self_test_repair success=1 lat=11.78s verify=0.02s calls=3 ctoks=298 err=
+[pass 1] arrival  588/591 mbpp/798       A:single_shot     success=1 lat=0.77s verify=0.02s calls=1 ctoks=17 err=
+    monitor: pairs=294 first_deploy=None first_harm=24
+[pass 1] arrival  589/591 mbpp/166       A:single_shot     success=1 lat=2.76s verify=0.02s calls=1 ctoks=71 err=
+[pass 1] arrival  590/591 humaneval/155  B:self_test_repair success=1 lat=16.39s verify=0.02s calls=3 ctoks=432 err=
+    monitor: pairs=295 first_deploy=None first_harm=24
+[pass 1] arrival  591/591 mbpp/256       B:self_test_repair success=1 lat=6.79s verify=0.02s calls=2 ctoks=176 err=
+[pass 2] arrival    1/591 mbpp/278       B:self_test_repair success=1 lat=10.67s verify=0.02s calls=2 ctoks=284 err=
+[pass 2] arrival    2/591 mbpp/430       A:single_shot     success=0 lat=7.19s verify=0.02s calls=1 ctoks=195 err=
+[pass 2] arrival    3/591 mbpp/441       B:self_test_repair success=1 lat=7.00s verify=0.02s calls=2 ctoks=184 err=
+[pass 2] arrival    4/591 humaneval/151  A:single_shot     success=1 lat=1.61s verify=0.02s calls=1 ctoks=37 err=
+[pass 2] arrival    5/591 humaneval/62   B:self_test_repair success=1 lat=9.79s verify=0.02s calls=2 ctoks=258 err=
+[pass 2] arrival    6/591 mbpp/57        A:single_shot     success=0 lat=2.84s verify=0.02s calls=1 ctoks=73 err=
+[pass 2] arrival    7/591 humaneval/116  B:self_test_repair success=1 lat=12.50s verify=0.02s calls=4 ctoks=304 err=
+[pass 2] arrival    8/591 mbpp/606       A:single_shot     success=1 lat=1.02s verify=0.02s calls=1 ctoks=24 err=
+[pass 2] arrival    9/591 humaneval/21   B:self_test_repair success=1 lat=21.23s verify=0.02s calls=4 ctoks=534 err=
+[pass 2] arrival   10/591 humaneval/91   A:single_shot     success=1 lat=2.13s verify=0.02s calls=1 ctoks=53 err=
+[pass 2] arrival   11/591 mbpp/721       B:self_test_repair success=0 lat=29.73s verify=0.02s calls=4 ctoks=787 err=
+[pass 2] arrival   12/591 mbpp/573       A:single_shot     success=0 lat=1.37s verify=0.02s calls=1 ctoks=32 err=
+[pass 2] arrival   13/591 mbpp/123       A:single_shot     success=1 lat=3.77s verify=1.41s calls=1 ctoks=99 err=
+[pass 2] arrival   14/591 mbpp/165       B:self_test_repair success=1 lat=12.91s verify=0.02s calls=4 ctoks=319 err=
+[pass 2] arrival   15/591 mbpp/228       B:self_test_repair success=1 lat=12.21s verify=0.02s calls=2 ctoks=326 err=
+[pass 2] arrival   16/591 mbpp/804       A:single_shot     success=1 lat=1.65s verify=0.02s calls=1 ctoks=40 err=
+[pass 2] arrival   17/591 humaneval/131  B:self_test_repair success=1 lat=5.30s verify=0.02s calls=2 ctoks=135 err=
+[pass 2] arrival   18/591 mbpp/414       A:single_shot     success=1 lat=1.23s verify=0.02s calls=1 ctoks=28 err=
+[pass 2] arrival   19/591 mbpp/746       A:single_shot     success=1 lat=1.95s verify=0.02s calls=1 ctoks=48 err=
+[pass 2] arrival   20/591 mbpp/128       B:self_test_repair success=1 lat=8.80s verify=0.02s calls=4 ctoks=212 err=
+[pass 2] arrival   21/591 mbpp/299       A:single_shot     success=0 lat=1.10s verify=0.02s calls=1 ctoks=26 err=
+[pass 2] arrival   22/591 mbpp/94        B:self_test_repair success=1 lat=16.66s verify=0.01s calls=4 ctoks=430 err=
+[pass 2] arrival   23/591 mbpp/722       A:single_shot     success=0 lat=2.46s verify=0.02s calls=1 ctoks=62 err=
+[pass 2] arrival   24/591 mbpp/635       B:self_test_repair success=1 lat=7.99s verify=0.02s calls=2 ctoks=211 err=
+[pass 2] arrival   25/591 mbpp/735       A:single_shot     success=0 lat=3.60s verify=0.02s calls=1 ctoks=93 err=
+[pass 2] arrival   26/591 mbpp/101       B:self_test_repair success=1 lat=5.89s verify=0.02s calls=2 ctoks=149 err=
+[pass 2] arrival   27/591 mbpp/395       B:self_test_repair success=1 lat=14.32s verify=0.02s calls=4 ctoks=367 err=
+[pass 2] arrival   28/591 humaneval/24   A:single_shot     success=1 lat=3.24s verify=0.02s calls=1 ctoks=83 err=
+[pass 2] arrival   29/591 mbpp/268       B:self_test_repair success=0 lat=16.17s verify=0.02s calls=4 ctoks=420 err=
+[pass 2] arrival   30/591 mbpp/141       A:single_shot     success=0 lat=5.60s verify=0.02s calls=1 ctoks=152 err=
+[pass 2] arrival   31/591 mbpp/69        A:single_shot     success=0 lat=1.95s verify=0.02s calls=1 ctoks=48 err=
+[pass 2] arrival   32/591 mbpp/807       B:self_test_repair success=1 lat=7.51s verify=0.02s calls=2 ctoks=198 err=
+[pass 2] arrival   33/591 humaneval/118  B:self_test_repair success=1 lat=13.25s verify=0.01s calls=4 ctoks=335 err=
+[pass 2] arrival   34/591 mbpp/569       A:single_shot     success=1 lat=1.15s verify=0.02s calls=1 ctoks=27 err=
+[pass 2] arrival   35/591 mbpp/723       A:single_shot     success=1 lat=1.63s verify=0.02s calls=1 ctoks=39 err=
+[pass 2] arrival   36/591 mbpp/763       B:self_test_repair success=0 lat=20.96s verify=0.02s calls=4 ctoks=548 err=
+[pass 2] arrival   37/591 mbpp/172       A:single_shot     success=1 lat=0.99s verify=0.02s calls=1 ctoks=21 err=
+[pass 2] arrival   38/591 mbpp/778       B:self_test_repair success=1 lat=8.76s verify=0.02s calls=2 ctoks=231 err=
+[pass 2] arrival   39/591 mbpp/12        B:self_test_repair success=1 lat=16.48s verify=0.02s calls=4 ctoks=420 err=
+[pass 2] arrival   40/591 mbpp/605       A:single_shot     success=1 lat=4.46s verify=0.02s calls=1 ctoks=120 err=
+[pass 2] arrival   41/591 mbpp/592       B:self_test_repair success=0 lat=12.43s verify=0.02s calls=4 ctoks=305 err=
+[pass 2] arrival   42/591 mbpp/171       A:single_shot     success=1 lat=0.98s verify=0.02s calls=1 ctoks=21 err=
+[pass 2] arrival   43/591 mbpp/775       B:self_test_repair success=1 lat=11.46s verify=0.02s calls=4 ctoks=280 err=
+[pass 2] arrival   44/591 humaneval/108  A:single_shot     success=1 lat=3.66s verify=0.02s calls=1 ctoks=94 err=
+[pass 2] arrival   45/591 mbpp/451       B:self_test_repair success=1 lat=6.85s verify=0.02s calls=4 ctoks=158 err=
+[pass 2] arrival   46/591 humaneval/142  A:single_shot     success=0 lat=2.73s verify=0.02s calls=1 ctoks=68 err=
+[pass 2] arrival   47/591 mbpp/308       A:single_shot     success=1 lat=2.84s verify=0.02s calls=1 ctoks=73 err=
+[pass 2] arrival   48/591 mbpp/401       B:self_test_repair success=1 lat=18.26s verify=0.02s calls=4 ctoks=455 err=
+[pass 2] arrival   49/591 humaneval/80   A:single_shot     success=1 lat=2.38s verify=0.02s calls=1 ctoks=60 err=
+[pass 2] arrival   50/591 mbpp/306       B:self_test_repair success=0 lat=50.61s verify=0.02s calls=4 ctoks=1336 err=
+[pass 2] arrival   51/591 humaneval/103  A:single_shot     success=1 lat=1.83s verify=0.02s calls=1 ctoks=43 err=
+[pass 2] arrival   52/591 humaneval/130  B:self_test_repair success=0 lat=19.16s verify=0.02s calls=4 ctoks=494 err=
+[pass 2] arrival   53/591 humaneval/96   A:single_shot     success=1 lat=8.92s verify=0.02s calls=1 ctoks=239 err=
+[pass 2] arrival   54/591 humaneval/29   B:self_test_repair success=1 lat=10.36s verify=0.02s calls=2 ctoks=275 err=
+[pass 2] arrival   55/591 mbpp/781       B:self_test_repair success=1 lat=15.16s verify=0.02s calls=4 ctoks=382 err=
+[pass 2] arrival   56/591 mbpp/476       A:single_shot     success=1 lat=0.98s verify=0.02s calls=1 ctoks=21 err=
+[pass 2] arrival   57/591 mbpp/615       A:single_shot     success=0 lat=1.27s verify=0.02s calls=1 ctoks=29 err=
+[pass 2] arrival   58/591 mbpp/111       B:self_test_repair success=0 lat=34.90s verify=0.03s calls=4 ctoks=908 err=
+[pass 2] arrival   59/591 humaneval/79   A:single_shot     success=1 lat=1.27s verify=0.02s calls=1 ctoks=27 err=
+[pass 2] arrival   60/591 mbpp/633       B:self_test_repair success=1 lat=11.72s verify=0.02s calls=4 ctoks=283 err=
+[pass 2] arrival   61/591 mbpp/447       B:self_test_repair success=1 lat=7.10s verify=0.02s calls=2 ctoks=186 err=
+[pass 2] arrival   62/591 humaneval/101  A:single_shot     success=1 lat=0.98s verify=0.02s calls=1 ctoks=21 err=
+[pass 2] arrival   63/591 humaneval/100  B:self_test_repair success=1 lat=12.43s verify=0.02s calls=2 ctoks=331 err=
+[pass 2] arrival   64/591 humaneval/22   A:single_shot     success=1 lat=2.16s verify=0.02s calls=1 ctoks=54 err=
+[pass 2] arrival   65/591 mbpp/260       B:self_test_repair success=0 lat=19.18s verify=0.02s calls=4 ctoks=494 err=
+[pass 2] arrival   66/591 mbpp/88        A:single_shot     success=1 lat=2.12s verify=0.02s calls=1 ctoks=53 err=
+[pass 2] arrival   67/591 mbpp/294       B:self_test_repair success=0 lat=6.08s verify=0.02s calls=2 ctoks=158 err=
+[pass 2] arrival   68/591 mbpp/422       A:single_shot     success=1 lat=1.53s verify=0.02s calls=1 ctoks=36 err=
+[pass 2] arrival   69/591 mbpp/291       A:single_shot     success=1 lat=4.55s verify=0.02s calls=1 ctoks=121 err=
+[pass 2] arrival   70/591 mbpp/639       B:self_test_repair success=1 lat=9.51s verify=0.02s calls=4 ctoks=233 err=
+[pass 2] arrival   71/591 mbpp/138       A:single_shot     success=0 lat=2.09s verify=0.02s calls=1 ctoks=52 err=
+[pass 2] arrival   72/591 humaneval/77   B:self_test_repair success=1 lat=6.12s verify=0.01s calls=2 ctoks=157 err=
+[pass 2] arrival   73/591 mbpp/390       B:self_test_repair success=1 lat=5.59s verify=0.02s calls=2 ctoks=143 err=
+[pass 2] arrival   74/591 mbpp/442       A:single_shot     success=0 lat=1.48s verify=0.02s calls=1 ctoks=37 err=
+[pass 2] arrival   75/591 humaneval/145  A:single_shot     success=0 lat=1.63s verify=0.02s calls=1 ctoks=39 err=
+[pass 2] arrival   76/591 mbpp/125       B:self_test_repair success=1 lat=13.44s verify=0.01s calls=4 ctoks=344 err=
+[pass 2] arrival   77/591 mbpp/446       A:single_shot     success=0 lat=1.76s verify=0.02s calls=1 ctoks=43 err=
+[pass 2] arrival   78/591 mbpp/282       B:self_test_repair success=1 lat=7.88s verify=0.02s calls=2 ctoks=208 err=
+[pass 2] arrival   79/591 mbpp/168       B:self_test_repair success=1 lat=6.51s verify=0.02s calls=2 ctoks=168 err=
+[pass 2] arrival   80/591 mbpp/593       A:single_shot     success=1 lat=1.27s verify=0.02s calls=1 ctoks=31 err=
+[pass 2] arrival   81/591 mbpp/629       A:single_shot     success=1 lat=1.17s verify=0.02s calls=1 ctoks=28 err=
+[pass 2] arrival   82/591 humaneval/41   B:self_test_repair success=1 lat=4.01s verify=0.02s calls=2 ctoks=95 err=
+[pass 2] arrival   83/591 mbpp/305       A:single_shot     success=0 lat=1.20s verify=0.02s calls=1 ctoks=27 err=
+[pass 2] arrival   84/591 mbpp/767       B:self_test_repair success=1 lat=18.11s verify=0.02s calls=4 ctoks=467 err=
+[pass 2] arrival   85/591 mbpp/124       B:self_test_repair success=0 lat=10.71s verify=0.01s calls=4 ctoks=266 err=
+[pass 2] arrival   86/591 mbpp/161       A:single_shot     success=1 lat=1.38s verify=0.02s calls=1 ctoks=32 err=
+[pass 2] arrival   87/591 humaneval/13   A:single_shot     success=1 lat=1.48s verify=0.02s calls=1 ctoks=35 err=
+[pass 2] arrival   88/591 mbpp/728       B:self_test_repair success=1 lat=7.36s verify=0.02s calls=2 ctoks=192 err=
+[pass 2] arrival   89/591 mbpp/292       A:single_shot     success=1 lat=0.91s verify=0.02s calls=1 ctoks=19 err=
+[pass 2] arrival   90/591 mbpp/247       B:self_test_repair success=1 lat=10.48s verify=0.02s calls=2 ctoks=279 err=
+[pass 2] arrival   91/591 mbpp/641       A:single_shot     success=1 lat=2.57s verify=0.02s calls=1 ctoks=67 err=
+[pass 2] arrival   92/591 mbpp/242       B:self_test_repair success=1 lat=3.54s verify=0.02s calls=2 ctoks=87 err=
+[pass 2] arrival   93/591 mbpp/725       A:single_shot     success=1 lat=1.34s verify=0.02s calls=1 ctoks=31 err=
+[pass 2] arrival   94/591 humaneval/39   B:self_test_repair success=1 lat=24.91s verify=0.02s calls=4 ctoks=657 err=
+[pass 2] arrival   95/591 mbpp/77        A:single_shot     success=1 lat=3.82s verify=0.02s calls=1 ctoks=101 err=
+[pass 2] arrival   96/591 mbpp/472       B:self_test_repair success=1 lat=10.21s verify=0.01s calls=4 ctoks=254 err=
+[pass 2] arrival   97/591 humaneval/78   B:self_test_repair success=1 lat=8.22s verify=0.01s calls=2 ctoks=208 err=
+[pass 2] arrival   98/591 humaneval/136  A:single_shot     success=1 lat=3.26s verify=0.02s calls=1 ctoks=83 err=
+[pass 2] arrival   99/591 humaneval/49   A:single_shot     success=1 lat=1.91s verify=0.02s calls=1 ctoks=47 err=
+[pass 2] arrival  100/591 humaneval/7    B:self_test_repair success=1 lat=17.99s verify=0.02s calls=4 ctoks=452 err=
+[pass 2] arrival  101/591 humaneval/38   A:single_shot     success=1 lat=9.66s verify=0.02s calls=1 ctoks=261 err=
+[pass 2] arrival  102/591 mbpp/779       B:self_test_repair success=1 lat=16.00s verify=0.02s calls=4 ctoks=391 err=
+[pass 2] arrival  103/591 mbpp/799       A:single_shot     success=1 lat=1.16s verify=0.02s calls=1 ctoks=26 err=
+[pass 2] arrival  104/591 mbpp/753       B:self_test_repair success=0 lat=7.26s verify=0.02s calls=2 ctoks=189 err=
+[pass 2] arrival  105/591 humaneval/11   A:single_shot     success=1 lat=3.37s verify=0.02s calls=1 ctoks=88 err=
+[pass 2] arrival  106/591 mbpp/404       B:self_test_repair success=1 lat=4.03s verify=0.01s calls=2 ctoks=101 err=
+[pass 2] arrival  107/591 mbpp/281       B:self_test_repair success=1 lat=5.74s verify=0.01s calls=2 ctoks=147 err=
+[pass 2] arrival  108/591 mbpp/96        A:single_shot     success=1 lat=2.45s verify=0.02s calls=1 ctoks=64 err=
+[pass 2] arrival  109/591 mbpp/731       A:single_shot     success=1 lat=2.11s verify=0.02s calls=1 ctoks=53 err=
+[pass 2] arrival  110/591 mbpp/91        B:self_test_repair success=0 lat=3.88s verify=0.02s calls=2 ctoks=95 err=
+[pass 2] arrival  111/591 humaneval/35   B:self_test_repair success=0 lat=10.09s verify=0.02s calls=4 ctoks=245 err=
+[pass 2] arrival  112/591 humaneval/153  A:single_shot     success=1 lat=3.41s verify=0.02s calls=1 ctoks=83 err=
+[pass 2] arrival  113/591 humaneval/16   B:self_test_repair success=1 lat=4.58s verify=0.02s calls=2 ctoks=115 err=
+[pass 2] arrival  114/591 mbpp/732       A:single_shot     success=1 lat=1.27s verify=0.02s calls=1 ctoks=29 err=
+[pass 2] arrival  115/591 humaneval/127  A:single_shot     success=0 lat=7.44s verify=0.02s calls=1 ctoks=197 err=
+[pass 2] arrival  116/591 humaneval/66   B:self_test_repair success=1 lat=4.54s verify=0.02s calls=2 ctoks=113 err=
+[pass 2] arrival  117/591 mbpp/14        A:single_shot     success=1 lat=3.54s verify=0.02s calls=1 ctoks=93 err=
+[pass 2] arrival  118/591 mbpp/270       B:self_test_repair success=1 lat=19.74s verify=0.02s calls=4 ctoks=498 err=
+[pass 2] arrival  119/591 mbpp/389       A:single_shot     success=1 lat=2.98s verify=0.02s calls=1 ctoks=79 err=
+[pass 2] arrival  120/591 humaneval/9    B:self_test_repair success=1 lat=16.79s verify=0.02s calls=2 ctoks=451 err=
+[pass 2] arrival  121/591 humaneval/159  B:self_test_repair success=1 lat=6.11s verify=0.01s calls=2 ctoks=151 err=
+[pass 2] arrival  122/591 mbpp/66        A:single_shot     success=1 lat=1.13s verify=0.02s calls=1 ctoks=27 err=
+[pass 2] arrival  123/591 mbpp/600       B:self_test_repair success=1 lat=4.72s verify=0.02s calls=2 ctoks=120 err=
+[pass 2] arrival  124/591 mbpp/253       A:single_shot     success=1 lat=1.13s verify=0.02s calls=1 ctoks=27 err=
+[pass 2] arrival  125/591 mbpp/470       B:self_test_repair success=0 lat=17.67s verify=0.03s calls=3 ctoks=461 err=
+[pass 2] arrival  126/591 mbpp/56        A:single_shot     success=1 lat=2.77s verify=0.02s calls=1 ctoks=73 err=
+[pass 2] arrival  127/591 mbpp/407       A:single_shot     success=0 lat=4.93s verify=0.02s calls=1 ctoks=134 err=
+[pass 2] arrival  128/591 mbpp/479       B:self_test_repair success=1 lat=4.91s verify=0.01s calls=2 ctoks=131 err=
+[pass 2] arrival  129/591 mbpp/285       A:single_shot     success=1 lat=1.46s verify=0.02s calls=1 ctoks=36 err=
+[pass 2] arrival  130/591 mbpp/612       B:self_test_repair success=0 lat=9.84s verify=0.02s calls=3 ctoks=244 err=
+[pass 2] arrival  131/591 mbpp/84        A:single_shot     success=1 lat=1.98s verify=0.02s calls=1 ctoks=50 err=
+[pass 2] arrival  132/591 mbpp/62        B:self_test_repair success=1 lat=10.52s verify=0.02s calls=4 ctoks=255 err=
+[pass 2] arrival  133/591 mbpp/2         A:single_shot     success=1 lat=2.04s verify=0.02s calls=1 ctoks=51 err=
+[pass 2] arrival  134/591 mbpp/92        B:self_test_repair success=0 lat=13.37s verify=0.02s calls=4 ctoks=339 err=
+[pass 2] arrival  135/591 mbpp/475       B:self_test_repair success=0 lat=7.09s verify=0.02s calls=2 ctoks=186 err=
+[pass 2] arrival  136/591 humaneval/163  A:single_shot     success=0 lat=5.32s verify=0.02s calls=1 ctoks=142 err=
+[pass 2] arrival  137/591 humaneval/154  A:single_shot     success=0 lat=1.65s verify=0.02s calls=1 ctoks=39 err=
+[pass 2] arrival  138/591 humaneval/60   B:self_test_repair success=1 lat=4.64s verify=0.02s calls=2 ctoks=116 err=
+[pass 2] arrival  139/591 mbpp/106       A:single_shot     success=1 lat=1.45s verify=0.02s calls=1 ctoks=34 err=
+[pass 2] arrival  140/591 mbpp/764       B:self_test_repair success=1 lat=3.65s verify=0.01s calls=2 ctoks=88 err=
+[pass 2] arrival  141/591 humaneval/69   A:single_shot     success=1 lat=2.08s verify=0.02s calls=1 ctoks=49 err=
+[pass 2] arrival  142/591 humaneval/5    B:self_test_repair success=1 lat=14.19s verify=0.02s calls=2 ctoks=378 err=
+[pass 2] arrival  143/591 mbpp/614       B:self_test_repair success=0 lat=22.06s verify=0.03s calls=4 ctoks=550 err=
+[pass 2] arrival  144/591 mbpp/555       A:single_shot     success=1 lat=2.37s verify=0.02s calls=1 ctoks=59 err=
+[pass 2] arrival  145/591 mbpp/70        B:self_test_repair success=1 lat=7.71s verify=0.02s calls=2 ctoks=200 err=
+[pass 2] arrival  146/591 mbpp/230       A:single_shot     success=1 lat=1.11s verify=0.02s calls=1 ctoks=24 err=
+[pass 2] arrival  147/591 mbpp/787       B:self_test_repair success=0 lat=10.79s verify=0.02s calls=4 ctoks=254 err=
+[pass 2] arrival  148/591 mbpp/140       A:single_shot     success=1 lat=2.76s verify=0.02s calls=1 ctoks=70 err=
+[pass 2] arrival  149/591 humaneval/111  B:self_test_repair success=1 lat=6.51s verify=0.02s calls=2 ctoks=164 err=
+[pass 2] arrival  150/591 mbpp/611       A:single_shot     success=1 lat=1.26s verify=0.02s calls=1 ctoks=28 err=
+[pass 2] arrival  151/591 humaneval/36   A:single_shot     success=1 lat=2.72s verify=0.02s calls=1 ctoks=68 err=
+[pass 2] arrival  152/591 mbpp/102       B:self_test_repair success=0 lat=14.56s verify=0.02s calls=4 ctoks=359 err=
+[pass 2] arrival  153/591 mbpp/791       A:single_shot     success=1 lat=2.96s verify=0.02s calls=1 ctoks=77 err=
+[pass 2] arrival  154/591 humaneval/45   B:self_test_repair success=1 lat=5.92s verify=0.02s calls=2 ctoks=150 err=
+[pass 2] arrival  155/591 mbpp/461       B:self_test_repair success=0 lat=7.32s verify=0.02s calls=2 ctoks=190 err=
+[pass 2] arrival  156/591 humaneval/147  A:single_shot     success=1 lat=4.75s verify=0.02s calls=1 ctoks=123 err=
+[pass 2] arrival  157/591 mbpp/300       B:self_test_repair success=0 lat=13.89s verify=0.02s calls=4 ctoks=342 err=
+[pass 2] arrival  158/591 humaneval/67   A:single_shot     success=1 lat=1.96s verify=0.02s calls=1 ctoks=44 err=
+[pass 2] arrival  159/591 humaneval/28   B:self_test_repair success=1 lat=8.43s verify=0.02s calls=2 ctoks=217 err=
+[pass 2] arrival  160/591 humaneval/161  A:single_shot     success=1 lat=2.15s verify=0.02s calls=1 ctoks=53 err=
+[pass 2] arrival  161/591 mbpp/740       A:single_shot     success=1 lat=1.90s verify=0.02s calls=1 ctoks=46 err=
+[pass 2] arrival  162/591 mbpp/279       B:self_test_repair success=1 lat=12.93s verify=0.01s calls=4 ctoks=325 err=
+[pass 2] arrival  163/591 mbpp/792       B:self_test_repair success=1 lat=12.58s verify=0.02s calls=4 ctoks=306 err=
+[pass 2] arrival  164/591 mbpp/748       A:single_shot     success=0 lat=1.51s verify=0.02s calls=1 ctoks=35 err=
+[pass 2] arrival  165/591 mbpp/82        A:single_shot     success=1 lat=1.25s verify=0.02s calls=1 ctoks=30 err=
+[pass 2] arrival  166/591 humaneval/119  B:self_test_repair success=1 lat=16.48s verify=0.02s calls=4 ctoks=417 err=
+[pass 2] arrival  167/591 mbpp/458       B:self_test_repair success=1 lat=11.87s verify=0.02s calls=4 ctoks=285 err=
+[pass 2] arrival  168/591 mbpp/235       A:single_shot     success=0 lat=1.68s verify=0.02s calls=1 ctoks=40 err=
+[pass 2] arrival  169/591 mbpp/427       A:single_shot     success=1 lat=1.50s verify=0.02s calls=1 ctoks=35 err=
+[pass 2] arrival  170/591 mbpp/620       B:self_test_repair success=1 lat=48.29s verify=0.02s calls=4 ctoks=706 err=
+[pass 2] arrival  171/591 humaneval/141  A:single_shot     success=0 lat=5.33s verify=0.02s calls=1 ctoks=63 err=
+[pass 2] arrival  172/591 mbpp/808       B:self_test_repair success=1 lat=17.71s verify=0.02s calls=2 ctoks=188 err=
+[pass 2] arrival  173/591 mbpp/274       A:single_shot     success=0 lat=2.13s verify=0.02s calls=1 ctoks=28 err=
+[pass 2] arrival  174/591 mbpp/118       B:self_test_repair success=1 lat=7.42s verify=0.02s calls=2 ctoks=102 err=
+[pass 2] arrival  175/591 humaneval/110  B:self_test_repair success=0 lat=35.78s verify=0.02s calls=4 ctoks=467 err=
+[pass 2] arrival  176/591 mbpp/455       A:single_shot     success=1 lat=8.59s verify=0.02s calls=1 ctoks=96 err=
+[pass 2] arrival  177/591 mbpp/754       B:self_test_repair success=1 lat=17.16s verify=0.02s calls=2 ctoks=227 err=
+[pass 2] arrival  178/591 mbpp/3         A:single_shot     success=1 lat=4.64s verify=0.02s calls=1 ctoks=60 err=
+[pass 2] arrival  179/591 mbpp/264       A:single_shot     success=1 lat=6.09s verify=0.02s calls=1 ctoks=79 err=
+[pass 2] arrival  180/591 mbpp/142       B:self_test_repair success=1 lat=11.23s verify=0.02s calls=2 ctoks=191 err=
+[pass 2] arrival  181/591 humaneval/75   B:self_test_repair success=0 lat=15.50s verify=0.02s calls=2 ctoks=417 err=
+[pass 2] arrival  182/591 humaneval/112  A:single_shot     success=1 lat=1.78s verify=0.02s calls=1 ctoks=41 err=
+[pass 2] arrival  183/591 mbpp/785       B:self_test_repair success=1 lat=14.48s verify=0.02s calls=4 ctoks=350 err=
+[pass 2] arrival  184/591 mbpp/170       A:single_shot     success=1 lat=1.25s verify=0.02s calls=1 ctoks=28 err=
+[pass 2] arrival  185/591 humaneval/85   B:self_test_repair success=1 lat=12.29s verify=0.02s calls=4 ctoks=306 err=
+[pass 2] arrival  186/591 humaneval/134  A:single_shot     success=1 lat=1.55s verify=0.02s calls=1 ctoks=35 err=
+[pass 2] arrival  187/591 humaneval/126  B:self_test_repair success=0 lat=20.03s verify=0.02s calls=4 ctoks=500 err=
+[pass 2] arrival  188/591 mbpp/756       A:single_shot     success=1 lat=1.46s verify=0.02s calls=1 ctoks=34 err=
+[pass 2] arrival  189/591 humaneval/113  A:single_shot     success=0 lat=9.79s verify=0.02s calls=1 ctoks=263 err=
+[pass 2] arrival  190/591 mbpp/580       B:self_test_repair success=0 lat=8.85s verify=0.02s calls=2 ctoks=234 err=
+[pass 2] arrival  191/591 mbpp/244       B:self_test_repair success=1 lat=7.24s verify=0.02s calls=2 ctoks=188 err=
+[pass 2] arrival  192/591 mbpp/452       A:single_shot     success=0 lat=1.24s verify=0.02s calls=1 ctoks=28 err=
+[pass 2] arrival  193/591 mbpp/394       A:single_shot     success=1 lat=2.93s verify=0.02s calls=1 ctoks=77 err=
+[pass 2] arrival  194/591 mbpp/741       B:self_test_repair success=1 lat=5.75s verify=0.02s calls=3 ctoks=138 err=
+[pass 2] arrival  195/591 mbpp/312       A:single_shot     success=1 lat=1.47s verify=0.02s calls=1 ctoks=36 err=
+[pass 2] arrival  196/591 mbpp/602       B:self_test_repair success=1 lat=4.94s verify=0.02s calls=2 ctoks=124 err=
+[pass 2] arrival  197/591 humaneval/34   B:self_test_repair success=1 lat=9.72s verify=0.02s calls=2 ctoks=256 err=
+[pass 2] arrival  198/591 mbpp/295       A:single_shot     success=0 lat=2.61s verify=0.02s calls=1 ctoks=68 err=
+[pass 2] arrival  199/591 mbpp/468       B:self_test_repair success=0 lat=19.32s verify=0.02s calls=4 ctoks=497 err=
+[pass 2] arrival  200/591 humaneval/98   A:single_shot     success=1 lat=4.49s verify=0.02s calls=1 ctoks=119 err=
+[pass 2] arrival  201/591 humaneval/53   B:self_test_repair success=1 lat=5.59s verify=0.02s calls=2 ctoks=142 err=
+[pass 2] arrival  202/591 mbpp/103       A:single_shot     success=1 lat=3.11s verify=0.02s calls=1 ctoks=82 err=
+[pass 2] arrival  203/591 mbpp/397       A:single_shot     success=1 lat=1.18s verify=0.02s calls=1 ctoks=28 err=
+[pass 2] arrival  204/591 mbpp/87        B:self_test_repair success=0 lat=19.60s verify=0.02s calls=4 ctoks=504 err=
+[pass 2] arrival  205/591 mbpp/297       B:self_test_repair success=1 lat=9.40s verify=0.02s calls=2 ctoks=249 err=
+[pass 2] arrival  206/591 mbpp/757       A:single_shot     success=1 lat=2.65s verify=0.02s calls=1 ctoks=67 err=
+[pass 2] arrival  207/591 mbpp/391       A:single_shot     success=0 lat=5.00s verify=0.02s calls=1 ctoks=133 err=
+[pass 2] arrival  208/591 mbpp/568       B:self_test_repair success=1 lat=4.56s verify=0.02s calls=2 ctoks=115 err=
+[pass 2] arrival  209/591 mbpp/85        A:single_shot     success=1 lat=1.23s verify=0.02s calls=1 ctoks=29 err=
+[pass 2] arrival  210/591 mbpp/608       B:self_test_repair success=1 lat=14.33s verify=0.02s calls=2 ctoks=386 err=
+[pass 2] arrival  211/591 mbpp/584       A:single_shot     success=0 lat=2.70s verify=0.02s calls=1 ctoks=69 err=
+[pass 2] arrival  212/591 humaneval/31   B:self_test_repair success=1 lat=8.06s verify=0.02s calls=2 ctoks=210 err=
+[pass 2] arrival  213/591 humaneval/30   A:single_shot     success=1 lat=1.62s verify=0.02s calls=1 ctoks=38 err=
+[pass 2] arrival  214/591 mbpp/309       B:self_test_repair success=1 lat=4.07s verify=0.01s calls=2 ctoks=100 err=
+[pass 2] arrival  215/591 mbpp/408       B:self_test_repair success=0 lat=19.63s verify=0.02s calls=2 ctoks=522 err=
+[pass 2] arrival  216/591 mbpp/9         A:single_shot     success=1 lat=3.04s verify=0.02s calls=1 ctoks=78 err=
+[pass 2] arrival  217/591 mbpp/750       A:single_shot     success=1 lat=2.10s verify=0.02s calls=1 ctoks=52 err=
+[pass 2] arrival  218/591 mbpp/276       B:self_test_repair success=1 lat=6.99s verify=0.02s calls=2 ctoks=179 err=
+[pass 2] arrival  219/591 humaneval/105  B:self_test_repair success=1 lat=18.37s verify=0.02s calls=4 ctoks=465 err=
+[pass 2] arrival  220/591 mbpp/809       A:single_shot     success=0 lat=2.17s verify=0.02s calls=1 ctoks=54 err=
+[pass 2] arrival  221/591 humaneval/123  B:self_test_repair success=1 lat=21.30s verify=0.02s calls=4 ctoks=530 err=
+[pass 2] arrival  222/591 mbpp/139       A:single_shot     success=1 lat=1.18s verify=0.02s calls=1 ctoks=28 err=
+[pass 2] arrival  223/591 humaneval/71   B:self_test_repair success=1 lat=15.40s verify=0.02s calls=4 ctoks=392 err=
+[pass 2] arrival  224/591 mbpp/450       A:single_shot     success=0 lat=1.39s verify=0.02s calls=1 ctoks=32 err=
+[pass 2] arrival  225/591 mbpp/65        A:single_shot     success=1 lat=2.10s verify=0.02s calls=1 ctoks=54 err=
+[pass 2] arrival  226/591 humaneval/27   B:self_test_repair success=1 lat=5.56s verify=0.02s calls=2 ctoks=141 err=
+[pass 2] arrival  227/591 humaneval/18   A:single_shot     success=1 lat=3.25s verify=0.02s calls=1 ctoks=84 err=
+[pass 2] arrival  228/591 humaneval/99   B:self_test_repair success=1 lat=11.86s verify=0.02s calls=2 ctoks=313 err=
+[pass 2] arrival  229/591 mbpp/63        B:self_test_repair success=1 lat=13.26s verify=0.02s calls=4 ctoks=325 err=
+[pass 2] arrival  230/591 mbpp/590       A:single_shot     success=0 lat=1.28s verify=0.02s calls=1 ctoks=31 err=
+[pass 2] arrival  231/591 humaneval/95   B:self_test_repair success=0 lat=16.14s verify=0.02s calls=4 ctoks=398 err=
+[pass 2] arrival  232/591 humaneval/107  A:single_shot     success=1 lat=4.09s verify=0.02s calls=1 ctoks=103 err=
+[pass 2] arrival  233/591 mbpp/419       B:self_test_repair success=1 lat=12.46s verify=0.02s calls=4 ctoks=301 err=
+[pass 2] arrival  234/591 humaneval/83   A:single_shot     success=1 lat=2.85s verify=0.02s calls=1 ctoks=73 err=
+[pass 2] arrival  235/591 mbpp/428       B:self_test_repair success=0 lat=23.56s verify=0.02s calls=4 ctoks=617 err=
+[pass 2] arrival  236/591 mbpp/644       A:single_shot     success=0 lat=5.96s verify=0.02s calls=1 ctoks=159 err=
+[pass 2] arrival  237/591 humaneval/4    A:single_shot     success=1 lat=2.30s verify=0.02s calls=1 ctoks=57 err=
+[pass 2] arrival  238/591 mbpp/234       B:self_test_repair success=1 lat=3.46s verify=0.02s calls=2 ctoks=84 err=
+[pass 2] arrival  239/591 mbpp/625       B:self_test_repair success=1 lat=11.46s verify=0.02s calls=3 ctoks=289 err=
+[pass 2] arrival  240/591 mbpp/126       A:single_shot     success=0 lat=3.39s verify=0.02s calls=1 ctoks=88 err=
+[pass 2] arrival  241/591 humaneval/133  A:single_shot     success=1 lat=1.41s verify=0.02s calls=1 ctoks=31 err=
+[pass 2] arrival  242/591 mbpp/588       B:self_test_repair success=1 lat=6.97s verify=0.02s calls=4 ctoks=162 err=
+[pass 2] arrival  243/591 mbpp/97        A:single_shot     success=1 lat=1.85s verify=0.02s calls=1 ctoks=44 err=
+[pass 2] arrival  244/591 mbpp/454       B:self_test_repair success=1 lat=8.22s verify=0.02s calls=4 ctoks=198 err=
+[pass 2] arrival  245/591 humaneval/158  B:self_test_repair success=1 lat=14.29s verify=0.02s calls=4 ctoks=362 err=
+[pass 2] arrival  246/591 mbpp/564       A:single_shot     success=0 lat=1.81s verify=0.02s calls=1 ctoks=44 err=
+[pass 2] arrival  247/591 humaneval/132  B:self_test_repair success=0 lat=16.53s verify=0.02s calls=4 ctoks=418 err=
+[pass 2] arrival  248/591 mbpp/751       A:single_shot     success=1 lat=4.89s verify=0.02s calls=1 ctoks=129 err=
+[pass 2] arrival  249/591 mbpp/770       A:single_shot     success=1 lat=1.31s verify=0.02s calls=1 ctoks=30 err=
+[pass 2] arrival  250/591 mbpp/790       B:self_test_repair success=1 lat=9.88s verify=0.02s calls=4 ctoks=241 err=
+[pass 2] arrival  251/591 mbpp/607       A:single_shot     success=1 lat=2.10s verify=0.02s calls=1 ctoks=52 err=
+[pass 2] arrival  252/591 mbpp/616       B:self_test_repair success=1 lat=16.23s verify=0.02s calls=4 ctoks=404 err=
+[pass 2] arrival  253/591 mbpp/595       B:self_test_repair success=0 lat=14.57s verify=0.02s calls=4 ctoks=364 err=
+[pass 2] arrival  254/591 humaneval/160  A:single_shot     success=0 lat=7.86s verify=0.02s calls=1 ctoks=207 err=
+[pass 2] arrival  255/591 humaneval/125  A:single_shot     success=1 lat=2.79s verify=0.02s calls=1 ctoks=69 err=
+[pass 2] arrival  256/591 mbpp/71        B:self_test_repair success=1 lat=22.62s verify=0.02s calls=4 ctoks=578 err=
+[pass 2] arrival  257/591 mbpp/80        A:single_shot     success=1 lat=1.43s verify=0.02s calls=1 ctoks=35 err=
+[pass 2] arrival  258/591 mbpp/632       B:self_test_repair success=1 lat=18.19s verify=0.02s calls=4 ctoks=458 err=
+[pass 2] arrival  259/591 mbpp/392       A:single_shot     success=0 lat=6.84s verify=0.02s calls=1 ctoks=183 err=
+[pass 2] arrival  260/591 mbpp/132       B:self_test_repair success=1 lat=4.73s verify=0.02s calls=2 ctoks=119 err=
+[pass 2] arrival  261/591 mbpp/273       A:single_shot     success=0 lat=1.92s verify=0.02s calls=1 ctoks=47 err=
+[pass 2] arrival  262/591 mbpp/562       B:self_test_repair success=1 lat=6.41s verify=0.02s calls=2 ctoks=166 err=
+[pass 2] arrival  263/591 mbpp/68        A:single_shot     success=1 lat=2.86s verify=0.02s calls=1 ctoks=73 err=
+[pass 2] arrival  264/591 humaneval/144  B:self_test_repair success=1 lat=11.02s verify=0.02s calls=4 ctoks=270 err=
+[pass 2] arrival  265/591 humaneval/137  A:single_shot     success=1 lat=2.98s verify=0.02s calls=1 ctoks=74 err=
+[pass 2] arrival  266/591 humaneval/20   B:self_test_repair success=1 lat=28.96s verify=0.02s calls=4 ctoks=751 err=
+[pass 2] arrival  267/591 mbpp/7         A:single_shot     success=1 lat=1.42s verify=0.02s calls=1 ctoks=33 err=
+[pass 2] arrival  268/591 mbpp/398       B:self_test_repair success=0 lat=8.48s verify=0.02s calls=2 ctoks=220 err=
+[pass 2] arrival  269/591 humaneval/8    A:single_shot     success=1 lat=6.10s verify=0.02s calls=1 ctoks=162 err=
+[pass 2] arrival  270/591 mbpp/284       B:self_test_repair success=1 lat=6.20s verify=0.02s calls=2 ctoks=158 err=
+[pass 2] arrival  271/591 humaneval/32   A:single_shot     success=0 lat=16.72s verify=0.02s calls=1 ctoks=448 err=
+[pass 2] arrival  272/591 mbpp/413       B:self_test_repair success=1 lat=10.24s verify=0.02s calls=2 ctoks=270 err=
+[pass 2] arrival  273/591 humaneval/122  A:single_shot     success=1 lat=1.67s verify=0.02s calls=1 ctoks=38 err=
+[pass 2] arrival  274/591 mbpp/95        B:self_test_repair success=1 lat=8.72s verify=0.02s calls=2 ctoks=227 err=
+[pass 2] arrival  275/591 humaneval/37   A:single_shot     success=1 lat=3.69s verify=0.02s calls=1 ctoks=95 err=
+[pass 2] arrival  276/591 mbpp/734       B:self_test_repair success=0 lat=13.86s verify=0.02s calls=4 ctoks=348 err=
+[pass 2] arrival  277/591 mbpp/240       B:self_test_repair success=1 lat=12.20s verify=0.02s calls=4 ctoks=290 err=
+[pass 2] arrival  278/591 humaneval/152  A:single_shot     success=1 lat=1.49s verify=0.02s calls=1 ctoks=31 err=
+[pass 2] arrival  279/591 humaneval/124  B:self_test_repair success=1 lat=33.10s verify=0.02s calls=4 ctoks=858 err=
+[pass 2] arrival  280/591 humaneval/43   A:single_shot     success=1 lat=3.45s verify=0.02s calls=1 ctoks=87 err=
+[pass 2] arrival  281/591 mbpp/747       A:single_shot     success=1 lat=10.80s verify=0.02s calls=1 ctoks=290 err=
+[pass 2] arrival  282/591 humaneval/84   B:self_test_repair success=1 lat=7.12s verify=0.02s calls=4 ctoks=161 err=
+[pass 2] arrival  283/591 mbpp/557       A:single_shot     success=1 lat=1.37s verify=0.02s calls=1 ctoks=33 err=
+[pass 2] arrival  284/591 mbpp/627       B:self_test_repair success=1 lat=9.11s verify=0.02s calls=2 ctoks=235 err=
+[pass 2] arrival  285/591 humaneval/42   A:single_shot     success=1 lat=1.18s verify=0.02s calls=1 ctoks=26 err=
+[pass 2] arrival  286/591 mbpp/283       B:self_test_repair success=1 lat=17.50s verify=0.02s calls=4 ctoks=436 err=
+[pass 2] arrival  287/591 mbpp/120       B:self_test_repair success=1 lat=9.24s verify=0.02s calls=4 ctoks=223 err=
+[pass 2] arrival  288/591 mbpp/396       A:single_shot     success=0 lat=1.25s verify=0.02s calls=1 ctoks=28 err=
+[pass 2] arrival  289/591 mbpp/797       B:self_test_repair success=1 lat=10.98s verify=0.02s calls=4 ctoks=267 err=
+[pass 2] arrival  290/591 mbpp/755       A:single_shot     success=0 lat=4.06s verify=0.02s calls=1 ctoks=106 err=
+[pass 2] arrival  291/591 mbpp/597       A:single_shot     success=0 lat=15.32s verify=0.02s calls=1 ctoks=414 err=
+[pass 2] arrival  292/591 mbpp/18        B:self_test_repair success=0 lat=14.97s verify=0.02s calls=4 ctoks=374 err=
+[pass 2] arrival  293/591 mbpp/463       A:single_shot     success=1 lat=4.28s verify=0.02s calls=1 ctoks=112 err=
+[pass 2] arrival  294/591 mbpp/269       B:self_test_repair success=1 lat=3.81s verify=0.02s calls=2 ctoks=93 err=
+[pass 2] arrival  295/591 mbpp/610       B:self_test_repair success=0 lat=10.04s verify=0.02s calls=2 ctoks=263 err=
+[pass 2] arrival  296/591 mbpp/265       A:single_shot     success=0 lat=1.49s verify=0.02s calls=1 ctoks=35 err=
+[pass 2] arrival  297/591 mbpp/777       A:single_shot     success=0 lat=2.75s verify=0.02s calls=1 ctoks=70 err=
+[pass 2] arrival  298/591 humaneval/0    B:self_test_repair success=1 lat=18.30s verify=0.02s calls=2 ctoks=488 err=
+[pass 2] arrival  299/591 mbpp/745       B:self_test_repair success=0 lat=36.00s verify=0.02s calls=4 ctoks=931 err=
+[pass 2] arrival  300/591 mbpp/257       A:single_shot     success=1 lat=1.00s verify=0.02s calls=1 ctoks=21 err=
+[pass 2] arrival  301/591 mbpp/249       A:single_shot     success=0 lat=1.33s verify=0.02s calls=1 ctoks=32 err=
+[pass 2] arrival  302/591 mbpp/583       B:self_test_repair success=1 lat=7.72s verify=0.02s calls=2 ctoks=201 err=
+[pass 2] arrival  303/591 mbpp/227       A:single_shot     success=1 lat=1.11s verify=0.02s calls=1 ctoks=26 err=
+[pass 2] arrival  304/591 mbpp/762       B:self_test_repair success=1 lat=8.21s verify=0.02s calls=2 ctoks=212 err=
+[pass 2] arrival  305/591 mbpp/619       A:single_shot     success=1 lat=2.20s verify=0.02s calls=1 ctoks=56 err=
+[pass 2] arrival  306/591 mbpp/266       B:self_test_repair success=1 lat=6.87s verify=0.02s calls=4 ctoks=152 err=
+[pass 2] arrival  307/591 humaneval/72   B:self_test_repair success=1 lat=5.07s verify=0.02s calls=2 ctoks=122 err=
+[pass 2] arrival  308/591 humaneval/143  A:single_shot     success=0 lat=2.14s verify=0.02s calls=1 ctoks=51 err=
+[pass 2] arrival  309/591 mbpp/438       A:single_shot     success=0 lat=4.37s verify=0.02s calls=1 ctoks=116 err=
+[pass 2] arrival  310/591 humaneval/3    B:self_test_repair success=1 lat=13.34s verify=0.02s calls=4 ctoks=331 err=
+[pass 2] arrival  311/591 mbpp/301       B:self_test_repair success=1 lat=9.58s verify=0.02s calls=2 ctoks=250 err=
+[pass 2] arrival  312/591 mbpp/129       A:single_shot     success=1 lat=7.64s verify=0.02s calls=1 ctoks=206 err=
+[pass 2] arrival  313/591 mbpp/759       A:single_shot     success=0 lat=2.33s verify=0.02s calls=1 ctoks=58 err=
+[pass 2] arrival  314/591 mbpp/255       B:self_test_repair success=0 lat=6.79s verify=0.02s calls=2 ctoks=173 err=
+[pass 2] arrival  315/591 mbpp/417       A:single_shot     success=0 lat=4.32s verify=0.02s calls=1 ctoks=115 err=
+[pass 2] arrival  316/591 mbpp/464       B:self_test_repair success=1 lat=5.71s verify=0.02s calls=2 ctoks=146 err=
+[pass 2] arrival  317/591 mbpp/262       A:single_shot     success=1 lat=1.25s verify=0.02s calls=1 ctoks=28 err=
+[pass 2] arrival  318/591 mbpp/724       B:self_test_repair success=1 lat=8.66s verify=0.02s calls=4 ctoks=205 err=
+[pass 2] arrival  319/591 mbpp/271       A:single_shot     success=1 lat=1.61s verify=0.02s calls=1 ctoks=38 err=
+[pass 2] arrival  320/591 humaneval/70   B:self_test_repair success=1 lat=15.60s verify=0.02s calls=4 ctoks=391 err=
+[pass 2] arrival  321/591 humaneval/14   A:single_shot     success=1 lat=3.17s verify=0.02s calls=1 ctoks=81 err=
+[pass 2] arrival  322/591 mbpp/421       B:self_test_repair success=0 lat=6.52s verify=0.01s calls=2 ctoks=169 err=
+[pass 2] arrival  323/591 mbpp/457       A:single_shot     success=1 lat=1.51s verify=0.02s calls=1 ctoks=37 err=
+[pass 2] arrival  324/591 mbpp/566       B:self_test_repair success=1 lat=5.15s verify=0.02s calls=2 ctoks=131 err=
+[pass 2] arrival  325/591 humaneval/15   A:single_shot     success=1 lat=3.33s verify=0.02s calls=1 ctoks=86 err=
+[pass 2] arrival  326/591 mbpp/277       B:self_test_repair success=1 lat=11.46s verify=0.02s calls=4 ctoks=283 err=
+[pass 2] arrival  327/591 mbpp/794       A:single_shot     success=1 lat=1.55s verify=0.02s calls=1 ctoks=36 err=
+[pass 2] arrival  328/591 mbpp/572       B:self_test_repair success=0 lat=13.84s verify=0.02s calls=4 ctoks=332 err=
+[pass 2] arrival  329/591 mbpp/477       A:single_shot     success=0 lat=0.83s verify=0.02s calls=1 ctoks=18 err=
+[pass 2] arrival  330/591 mbpp/434       B:self_test_repair success=1 lat=6.97s verify=0.02s calls=2 ctoks=179 err=
+[pass 2] arrival  331/591 mbpp/445       B:self_test_repair success=0 lat=9.09s verify=0.02s calls=2 ctoks=237 err=
+[pass 2] arrival  332/591 mbpp/426       A:single_shot     success=1 lat=1.26s verify=0.02s calls=1 ctoks=30 err=
+[pass 2] arrival  333/591 mbpp/800       A:single_shot     success=1 lat=0.89s verify=0.02s calls=1 ctoks=20 err=
+[pass 2] arrival  334/591 mbpp/226       B:self_test_repair success=1 lat=5.66s verify=0.02s calls=2 ctoks=145 err=
+[pass 2] arrival  335/591 mbpp/737       A:single_shot     success=1 lat=1.35s verify=0.02s calls=1 ctoks=31 err=
+[pass 2] arrival  336/591 humaneval/26   B:self_test_repair success=0 lat=16.16s verify=0.02s calls=4 ctoks=407 err=
+[pass 2] arrival  337/591 mbpp/444       B:self_test_repair success=0 lat=16.00s verify=0.02s calls=4 ctoks=392 err=
+[pass 2] arrival  338/591 humaneval/44   A:single_shot     success=1 lat=3.84s verify=0.02s calls=1 ctoks=100 err=
+[pass 2] arrival  339/591 humaneval/94   A:single_shot     success=1 lat=7.49s verify=0.02s calls=1 ctoks=192 err=
+[pass 2] arrival  340/591 mbpp/425       B:self_test_repair success=1 lat=11.25s verify=0.02s calls=4 ctoks=278 err=
+[pass 2] arrival  341/591 mbpp/780       B:self_test_repair success=0 lat=13.27s verify=0.02s calls=4 ctoks=318 err=
+[pass 2] arrival  342/591 humaneval/128  A:single_shot     success=1 lat=3.24s verify=0.02s calls=1 ctoks=83 err=
+[pass 2] arrival  343/591 mbpp/400       A:single_shot     success=0 lat=1.11s verify=0.02s calls=1 ctoks=26 err=
+[pass 2] arrival  344/591 humaneval/115  B:self_test_repair success=1 lat=9.86s verify=0.02s calls=2 ctoks=250 err=
+[pass 2] arrival  345/591 mbpp/576       A:single_shot     success=1 lat=2.51s verify=0.02s calls=1 ctoks=63 err=
+[pass 2] arrival  346/591 humaneval/157  B:self_test_repair success=1 lat=18.11s verify=0.02s calls=4 ctoks=451 err=
+[pass 2] arrival  347/591 mbpp/261       A:single_shot     success=1 lat=2.72s verify=0.02s calls=1 ctoks=68 err=
+[pass 2] arrival  348/591 mbpp/59        B:self_test_repair success=0 lat=22.28s verify=0.02s calls=4 ctoks=583 err=
+[pass 2] arrival  349/591 mbpp/130       A:single_shot     success=1 lat=1.51s verify=0.02s calls=1 ctoks=37 err=
+[pass 2] arrival  350/591 mbpp/624       B:self_test_repair success=0 lat=3.04s verify=0.02s calls=2 ctoks=72 err=
+[pass 2] arrival  351/591 mbpp/581       A:single_shot     success=0 lat=2.08s verify=0.02s calls=1 ctoks=51 err=
+[pass 2] arrival  352/591 mbpp/89        B:self_test_repair success=1 lat=3.40s verify=0.02s calls=2 ctoks=82 err=
+[pass 2] arrival  353/591 humaneval/47   A:single_shot     success=1 lat=3.35s verify=0.02s calls=1 ctoks=86 err=
+[pass 2] arrival  354/591 mbpp/412       B:self_test_repair success=1 lat=6.25s verify=0.02s calls=2 ctoks=160 err=
+[pass 2] arrival  355/591 humaneval/104  B:self_test_repair success=1 lat=12.05s verify=0.02s calls=4 ctoks=296 err=
+[pass 2] arrival  356/591 humaneval/68   A:single_shot     success=1 lat=4.44s verify=0.02s calls=1 ctoks=110 err=
+[pass 2] arrival  357/591 mbpp/582       B:self_test_repair success=1 lat=8.51s verify=0.02s calls=4 ctoks=200 err=
+[pass 2] arrival  358/591 mbpp/803       A:single_shot     success=1 lat=1.82s verify=0.02s calls=1 ctoks=44 err=
+[pass 2] arrival  359/591 mbpp/766       B:self_test_repair success=1 lat=12.48s verify=0.02s calls=4 ctoks=298 err=
+[pass 2] arrival  360/591 humaneval/114  A:single_shot     success=1 lat=2.79s verify=0.02s calls=1 ctoks=71 err=
+[pass 2] arrival  361/591 mbpp/563       A:single_shot     success=1 lat=1.18s verify=0.02s calls=1 ctoks=28 err=
+[pass 2] arrival  362/591 mbpp/248       B:self_test_repair success=1 lat=6.89s verify=0.02s calls=2 ctoks=177 err=
+[pass 2] arrival  363/591 mbpp/743       B:self_test_repair success=1 lat=11.66s verify=0.02s calls=3 ctoks=291 err=
+[pass 2] arrival  364/591 mbpp/409       A:single_shot     success=1 lat=2.22s verify=0.02s calls=1 ctoks=55 err=
+[pass 2] arrival  365/591 mbpp/730       A:single_shot     success=1 lat=2.34s verify=0.02s calls=1 ctoks=60 err=
+[pass 2] arrival  366/591 humaneval/93   B:self_test_repair success=1 lat=21.15s verify=0.02s calls=4 ctoks=545 err=
+[pass 2] arrival  367/591 mbpp/554       A:single_shot     success=1 lat=1.24s verify=0.02s calls=1 ctoks=28 err=
+[pass 2] arrival  368/591 humaneval/12   B:self_test_repair success=1 lat=10.38s verify=0.02s calls=2 ctoks=273 err=
+[pass 2] arrival  369/591 mbpp/742       B:self_test_repair success=0 lat=9.72s verify=0.02s calls=4 ctoks=235 err=
+[pass 2] arrival  370/591 mbpp/272       A:single_shot     success=1 lat=1.21s verify=0.02s calls=1 ctoks=27 err=
+[pass 2] arrival  371/591 mbpp/229       A:single_shot     success=0 lat=6.65s verify=0.02s calls=1 ctoks=178 err=
+[pass 2] arrival  372/591 mbpp/420       B:self_test_repair success=1 lat=10.53s verify=0.02s calls=4 ctoks=260 err=
+[pass 2] arrival  373/591 mbpp/145       A:single_shot     success=1 lat=3.31s verify=0.02s calls=1 ctoks=85 err=
+[pass 2] arrival  374/591 mbpp/143       B:self_test_repair success=0 lat=4.67s verify=0.02s calls=2 ctoks=118 err=
+[pass 2] arrival  375/591 mbpp/133       B:self_test_repair success=1 lat=5.64s verify=0.01s calls=2 ctoks=136 err=
+[pass 2] arrival  376/591 mbpp/630       A:single_shot     success=0 lat=5.05s verify=0.02s calls=1 ctoks=135 err=
+[pass 2] arrival  377/591 mbpp/788       A:single_shot     success=0 lat=1.17s verify=0.02s calls=1 ctoks=26 err=
+[pass 2] arrival  378/591 humaneval/86   B:self_test_repair success=1 lat=7.63s verify=0.02s calls=4 ctoks=177 err=
+[pass 2] arrival  379/591 mbpp/259       B:self_test_repair success=0 lat=9.48s verify=0.02s calls=2 ctoks=248 err=
+[pass 2] arrival  380/591 humaneval/106  A:single_shot     success=1 lat=4.29s verify=0.02s calls=1 ctoks=112 err=
+[pass 2] arrival  381/591 mbpp/287       B:self_test_repair success=0 lat=9.48s verify=0.02s calls=4 ctoks=221 err=
+[pass 2] arrival  382/591 mbpp/726       A:single_shot     success=1 lat=2.67s verify=0.02s calls=1 ctoks=68 err=
+[pass 2] arrival  383/591 mbpp/462       A:single_shot     success=0 lat=2.03s verify=0.02s calls=1 ctoks=52 err=
+[pass 2] arrival  384/591 mbpp/786       B:self_test_repair success=1 lat=10.60s verify=0.01s calls=2 ctoks=277 err=
+[pass 2] arrival  385/591 humaneval/73   A:single_shot     success=1 lat=2.83s verify=0.02s calls=1 ctoks=70 err=
+[pass 2] arrival  386/591 mbpp/411       B:self_test_repair success=0 lat=7.13s verify=0.02s calls=4 ctoks=165 err=
+[pass 2] arrival  387/591 humaneval/148  B:self_test_repair success=1 lat=18.98s verify=0.02s calls=4 ctoks=486 err=
+[pass 2] arrival  388/591 mbpp/579       A:single_shot     success=1 lat=2.68s verify=0.02s calls=1 ctoks=68 err=
+[pass 2] arrival  389/591 mbpp/643       B:self_test_repair success=1 lat=10.54s verify=0.02s calls=4 ctoks=259 err=
+[pass 2] arrival  390/591 mbpp/739       A:single_shot     success=1 lat=7.66s verify=0.02s calls=1 ctoks=206 err=
+[pass 2] arrival  391/591 mbpp/222       B:self_test_repair success=1 lat=4.48s verify=0.02s calls=2 ctoks=111 err=
+[pass 2] arrival  392/591 mbpp/267       A:single_shot     success=1 lat=1.60s verify=0.02s calls=1 ctoks=38 err=
+[pass 2] arrival  393/591 mbpp/640       B:self_test_repair success=0 lat=8.19s verify=0.02s calls=2 ctoks=214 err=
+[pass 2] arrival  394/591 humaneval/52   A:single_shot     success=1 lat=1.96s verify=0.02s calls=1 ctoks=48 err=
+[pass 2] arrival  395/591 mbpp/245       A:single_shot     success=1 lat=9.84s verify=0.02s calls=1 ctoks=267 err=
+[pass 2] arrival  396/591 mbpp/310       B:self_test_repair success=0 lat=5.17s verify=0.02s calls=2 ctoks=132 err=
+[pass 2] arrival  397/591 mbpp/311       A:single_shot     success=0 lat=2.29s verify=0.02s calls=1 ctoks=59 err=
+[pass 2] arrival  398/591 mbpp/250       B:self_test_repair success=1 lat=5.26s verify=0.02s calls=2 ctoks=132 err=
+[pass 2] arrival  399/591 mbpp/596       B:self_test_repair success=0 lat=20.42s verify=0.02s calls=4 ctoks=517 err=
+[pass 2] arrival  400/591 mbpp/223       A:single_shot     success=1 lat=6.37s verify=0.02s calls=1 ctoks=171 err=
+[pass 2] arrival  401/591 mbpp/623       A:single_shot     success=1 lat=1.15s verify=0.02s calls=1 ctoks=25 err=
+[pass 2] arrival  402/591 mbpp/558       B:self_test_repair success=1 lat=11.96s verify=0.02s calls=4 ctoks=297 err=
+[pass 2] arrival  403/591 mbpp/429       B:self_test_repair success=0 lat=11.56s verify=0.02s calls=2 ctoks=306 err=
+[pass 2] arrival  404/591 humaneval/89   A:single_shot     success=0 lat=4.41s verify=0.02s calls=1 ctoks=116 err=
+[pass 2] arrival  405/591 mbpp/433       A:single_shot     success=1 lat=1.13s verify=0.02s calls=1 ctoks=25 err=
+[pass 2] arrival  406/591 humaneval/25   B:self_test_repair success=1 lat=20.28s verify=0.02s calls=4 ctoks=527 err=
+[pass 2] arrival  407/591 mbpp/290       B:self_test_repair success=0 lat=17.89s verify=0.02s calls=4 ctoks=462 err=
+[pass 2] arrival  408/591 humaneval/50   A:single_shot     success=1 lat=4.74s verify=0.02s calls=1 ctoks=125 err=
+[pass 2] arrival  409/591 humaneval/121  A:single_shot     success=0 lat=1.71s verify=0.02s calls=1 ctoks=41 err=
+[pass 2] arrival  410/591 mbpp/163       B:self_test_repair success=1 lat=18.63s verify=0.02s calls=4 ctoks=479 err=
+[pass 2] arrival  411/591 mbpp/585       A:single_shot     success=1 lat=2.21s verify=0.02s calls=1 ctoks=57 err=
+[pass 2] arrival  412/591 mbpp/603       B:self_test_repair success=0 lat=19.91s verify=0.02s calls=4 ctoks=499 err=
+[pass 2] arrival  413/591 humaneval/97   B:self_test_repair success=1 lat=7.74s verify=0.02s calls=4 ctoks=179 err=
+[pass 2] arrival  414/591 mbpp/20        A:single_shot     success=0 lat=3.01s verify=0.02s calls=1 ctoks=79 err=
+[pass 2] arrival  415/591 humaneval/51   B:self_test_repair success=1 lat=4.64s verify=0.02s calls=2 ctoks=115 err=
+[pass 2] arrival  416/591 mbpp/772       A:single_shot     success=1 lat=1.93s verify=0.02s calls=1 ctoks=47 err=
+[pass 2] arrival  417/591 humaneval/150  A:single_shot     success=1 lat=5.28s verify=0.02s calls=1 ctoks=139 err=
+[pass 2] arrival  418/591 humaneval/10   B:self_test_repair success=1 lat=26.00s verify=0.02s calls=4 ctoks=675 err=
+[pass 2] arrival  419/591 mbpp/567       A:single_shot     success=1 lat=1.01s verify=0.02s calls=1 ctoks=23 err=
+[pass 2] arrival  420/591 mbpp/19        B:self_test_repair success=1 lat=10.13s verify=0.02s calls=4 ctoks=250 err=
+[pass 2] arrival  421/591 mbpp/431       B:self_test_repair success=0 lat=4.85s verify=0.02s calls=2 ctoks=121 err=
+[pass 2] arrival  422/591 mbpp/760       A:single_shot     success=1 lat=1.02s verify=0.02s calls=1 ctoks=22 err=
+[pass 2] arrival  423/591 mbpp/758       B:self_test_repair success=1 lat=12.73s verify=0.02s calls=2 ctoks=338 err=
+[pass 2] arrival  424/591 mbpp/784       A:single_shot     success=0 lat=3.94s verify=0.02s calls=1 ctoks=103 err=
+[pass 2] arrival  425/591 mbpp/6         A:single_shot     success=1 lat=1.63s verify=0.02s calls=1 ctoks=39 err=
+[pass 2] arrival  426/591 mbpp/131       B:self_test_repair success=1 lat=22.73s verify=0.02s calls=4 ctoks=592 err=
+[pass 2] arrival  427/591 mbpp/8         A:single_shot     success=1 lat=1.03s verify=0.02s calls=1 ctoks=24 err=
+[pass 2] arrival  428/591 mbpp/628       B:self_test_repair success=1 lat=5.63s verify=0.02s calls=2 ctoks=144 err=
+[pass 2] arrival  429/591 mbpp/436       A:single_shot     success=1 lat=1.21s verify=0.02s calls=1 ctoks=29 err=
+[pass 2] arrival  430/591 mbpp/796       B:self_test_repair success=1 lat=5.18s verify=0.02s calls=2 ctoks=132 err=
+[pass 2] arrival  431/591 mbpp/574       B:self_test_repair success=0 lat=10.53s verify=0.02s calls=4 ctoks=259 err=
+[pass 2] arrival  432/591 humaneval/56   A:single_shot     success=1 lat=2.89s verify=0.02s calls=1 ctoks=74 err=
+[pass 2] arrival  433/591 mbpp/577       A:single_shot     success=0 lat=3.14s verify=0.02s calls=1 ctoks=81 err=
+[pass 2] arrival  434/591 mbpp/578       B:self_test_repair success=1 lat=12.12s verify=0.02s calls=2 ctoks=321 err=
+[pass 2] arrival  435/591 mbpp/586       A:single_shot     success=1 lat=1.14s verify=0.02s calls=1 ctoks=25 err=
+[pass 2] arrival  436/591 mbpp/432       B:self_test_repair success=1 lat=6.82s verify=0.02s calls=2 ctoks=176 err=
+[pass 2] arrival  437/591 mbpp/733       A:single_shot     success=1 lat=4.41s verify=0.02s calls=1 ctoks=116 err=
+[pass 2] arrival  438/591 mbpp/771       B:self_test_repair success=1 lat=6.97s verify=0.02s calls=2 ctoks=180 err=
+[pass 2] arrival  439/591 mbpp/474       B:self_test_repair success=1 lat=7.02s verify=0.02s calls=4 ctoks=165 err=
+[pass 2] arrival  440/591 humaneval/6    A:single_shot     success=1 lat=7.31s verify=0.02s calls=1 ctoks=196 err=
+[pass 2] arrival  441/591 mbpp/135       B:self_test_repair success=1 lat=5.36s verify=0.02s calls=2 ctoks=137 err=
+[pass 2] arrival  442/591 humaneval/90   A:single_shot     success=1 lat=1.65s verify=0.02s calls=1 ctoks=39 err=
+[pass 2] arrival  443/591 mbpp/4         A:single_shot     success=1 lat=1.28s verify=0.02s calls=1 ctoks=29 err=
+[pass 2] arrival  444/591 mbpp/237       B:self_test_repair success=0 lat=11.50s verify=0.02s calls=2 ctoks=305 err=
+[pass 2] arrival  445/591 mbpp/113       B:self_test_repair success=1 lat=3.66s verify=0.01s calls=2 ctoks=90 err=
+[pass 2] arrival  446/591 humaneval/1    A:single_shot     success=1 lat=7.36s verify=0.02s calls=1 ctoks=197 err=
+[pass 2] arrival  447/591 mbpp/765       B:self_test_repair success=0 lat=10.31s verify=0.02s calls=4 ctoks=254 err=
+[pass 2] arrival  448/591 humaneval/17   A:single_shot     success=1 lat=8.15s verify=0.02s calls=1 ctoks=217 err=
+[pass 2] arrival  449/591 mbpp/79        A:single_shot     success=1 lat=1.10s verify=0.02s calls=1 ctoks=24 err=
+[pass 2] arrival  450/591 mbpp/86        B:self_test_repair success=1 lat=8.88s verify=0.02s calls=4 ctoks=216 err=
+[pass 2] arrival  451/591 mbpp/744       A:single_shot     success=1 lat=2.92s verify=0.02s calls=1 ctoks=75 err=
+[pass 2] arrival  452/591 mbpp/74        B:self_test_repair success=1 lat=20.08s verify=0.02s calls=4 ctoks=520 err=
+[pass 2] arrival  453/591 mbpp/631       B:self_test_repair success=0 lat=8.24s verify=0.02s calls=4 ctoks=193 err=
+[pass 2] arrival  454/591 mbpp/280       A:single_shot     success=1 lat=1.89s verify=0.02s calls=1 ctoks=46 err=
+[pass 2] arrival  455/591 humaneval/74   A:single_shot     success=1 lat=2.45s verify=0.02s calls=1 ctoks=58 err=
+[pass 2] arrival  456/591 mbpp/405       B:self_test_repair success=0 lat=10.88s verify=0.02s calls=4 ctoks=261 err=
+[pass 2] arrival  457/591 mbpp/93        B:self_test_repair success=1 lat=3.88s verify=0.02s calls=2 ctoks=94 err=
+[pass 2] arrival  458/591 mbpp/115       A:single_shot     success=1 lat=1.21s verify=0.02s calls=1 ctoks=29 err=
+[pass 2] arrival  459/591 mbpp/556       A:single_shot     success=1 lat=2.82s verify=0.02s calls=1 ctoks=72 err=
+[pass 2] arrival  460/591 mbpp/72        B:self_test_repair success=1 lat=4.79s verify=0.02s calls=2 ctoks=119 err=
+[pass 2] arrival  461/591 mbpp/83        A:single_shot     success=0 lat=1.72s verify=0.02s calls=1 ctoks=41 err=
+[pass 2] arrival  462/591 mbpp/776       B:self_test_repair success=0 lat=6.13s verify=0.02s calls=2 ctoks=156 err=
+[pass 2] arrival  463/591 mbpp/560       A:single_shot     success=1 lat=2.47s verify=0.02s calls=1 ctoks=62 err=
+[pass 2] arrival  464/591 mbpp/471       B:self_test_repair success=1 lat=13.12s verify=0.02s calls=4 ctoks=322 err=
+[pass 2] arrival  465/591 humaneval/117  B:self_test_repair success=1 lat=9.27s verify=0.02s calls=2 ctoks=240 err=
+[pass 2] arrival  466/591 mbpp/459       A:single_shot     success=1 lat=1.21s verify=0.02s calls=1 ctoks=29 err=
+[pass 2] arrival  467/591 mbpp/415       A:single_shot     success=0 lat=5.27s verify=0.02s calls=1 ctoks=142 err=
+[pass 2] arrival  468/591 mbpp/456       B:self_test_repair success=1 lat=10.65s verify=0.02s calls=4 ctoks=257 err=
+[pass 2] arrival  469/591 humaneval/59   A:single_shot     success=1 lat=8.38s verify=0.02s calls=1 ctoks=226 err=
+[pass 2] arrival  470/591 mbpp/105       B:self_test_repair success=1 lat=8.42s verify=0.02s calls=4 ctoks=202 err=
+[pass 2] arrival  471/591 mbpp/67        B:self_test_repair success=0 lat=27.15s verify=0.02s calls=4 ctoks=711 err=
+[pass 2] arrival  472/591 mbpp/388       A:single_shot     success=1 lat=1.31s verify=0.02s calls=1 ctoks=30 err=
+[pass 2] arrival  473/591 mbpp/424       A:single_shot     success=0 lat=2.32s verify=0.02s calls=1 ctoks=58 err=
+[pass 2] arrival  474/591 mbpp/11        B:self_test_repair success=1 lat=16.46s verify=0.02s calls=4 ctoks=411 err=
+[pass 2] arrival  475/591 mbpp/162       A:single_shot     success=1 lat=1.39s verify=0.02s calls=1 ctoks=32 err=
+[pass 2] arrival  476/591 humaneval/162  B:self_test_repair success=1 lat=11.88s verify=0.02s calls=4 ctoks=293 err=
+[pass 2] arrival  477/591 mbpp/448       A:single_shot     success=1 lat=5.21s verify=0.02s calls=1 ctoks=140 err=
+[pass 2] arrival  478/591 mbpp/749       B:self_test_repair success=0 lat=8.54s verify=0.02s calls=2 ctoks=223 err=
+[pass 2] arrival  479/591 mbpp/252       B:self_test_repair success=0 lat=20.72s verify=0.01s calls=4 ctoks=521 err=
+[pass 2] arrival  480/591 humaneval/138  A:single_shot     success=1 lat=4.17s verify=0.02s calls=1 ctoks=109 err=
+[pass 2] arrival  481/591 mbpp/599       B:self_test_repair success=1 lat=5.24s verify=0.02s calls=2 ctoks=134 err=
+[pass 2] arrival  482/591 mbpp/233       A:single_shot     success=1 lat=1.42s verify=0.02s calls=1 ctoks=33 err=
+[pass 2] arrival  483/591 mbpp/17        A:single_shot     success=1 lat=0.95s verify=0.02s calls=1 ctoks=20 err=
+[pass 2] arrival  484/591 mbpp/736       B:self_test_repair success=1 lat=18.51s verify=0.02s calls=4 ctoks=477 err=
+[pass 2] arrival  485/591 mbpp/109       B:self_test_repair success=1 lat=6.64s verify=0.02s calls=2 ctoks=171 err=
+[pass 2] arrival  486/591 mbpp/406       A:single_shot     success=1 lat=1.00s verify=0.02s calls=1 ctoks=23 err=
+[pass 2] arrival  487/591 mbpp/224       B:self_test_repair success=1 lat=5.92s verify=0.02s calls=2 ctoks=151 err=
+[pass 2] arrival  488/591 mbpp/232       A:single_shot     success=1 lat=1.21s verify=0.02s calls=1 ctoks=27 err=
+[pass 2] arrival  489/591 mbpp/806       B:self_test_repair success=0 lat=10.68s verify=0.02s calls=4 ctoks=262 err=
+[pass 2] arrival  490/591 humaneval/81   A:single_shot     success=1 lat=10.16s verify=0.02s calls=1 ctoks=268 err=
+[pass 2] arrival  491/591 mbpp/782       A:single_shot     success=1 lat=2.64s verify=0.02s calls=1 ctoks=67 err=
+[pass 2] arrival  492/591 mbpp/443       B:self_test_repair success=0 lat=10.73s verify=0.02s calls=2 ctoks=284 err=
+[pass 2] arrival  493/591 humaneval/139  B:self_test_repair success=1 lat=9.29s verify=0.01s calls=2 ctoks=244 err=
+[pass 2] arrival  494/591 mbpp/293       A:single_shot     success=1 lat=1.28s verify=0.02s calls=1 ctoks=31 err=
+[pass 2] arrival  495/591 mbpp/437       B:self_test_repair success=0 lat=4.60s verify=0.02s calls=2 ctoks=116 err=
+[pass 2] arrival  496/591 humaneval/146  A:single_shot     success=0 lat=2.93s verify=0.02s calls=1 ctoks=75 err=
+[pass 2] arrival  497/591 mbpp/440       A:single_shot     success=0 lat=2.61s verify=0.02s calls=1 ctoks=68 err=
+[pass 2] arrival  498/591 humaneval/135  B:self_test_repair success=0 lat=7.06s verify=0.02s calls=2 ctoks=182 err=
+[pass 2] arrival  499/591 mbpp/783       B:self_test_repair success=1 lat=23.92s verify=0.02s calls=2 ctoks=647 err=
+[pass 2] arrival  500/591 mbpp/805       A:single_shot     success=1 lat=1.07s verify=0.02s calls=1 ctoks=23 err=
+[pass 2] arrival  501/591 mbpp/565       A:single_shot     success=1 lat=0.75s verify=0.02s calls=1 ctoks=16 err=
+[pass 2] arrival  502/591 humaneval/82   B:self_test_repair success=1 lat=5.31s verify=0.02s calls=2 ctoks=134 err=
+[pass 2] arrival  503/591 mbpp/587       A:single_shot     success=1 lat=0.86s verify=0.02s calls=1 ctoks=19 err=
+[pass 2] arrival  504/591 humaneval/19   B:self_test_repair success=1 lat=16.51s verify=0.02s calls=2 ctoks=443 err=
+[pass 2] arrival  505/591 mbpp/137       A:single_shot     success=1 lat=2.24s verify=0.02s calls=1 ctoks=56 err=
+[pass 2] arrival  506/591 mbpp/239       B:self_test_repair success=0 lat=28.91s verify=0.01s calls=4 ctoks=763 err=
+[pass 2] arrival  507/591 mbpp/160       A:single_shot     success=0 lat=4.22s verify=0.02s calls=1 ctoks=111 err=
+[pass 2] arrival  508/591 mbpp/604       B:self_test_repair success=0 lat=7.16s verify=0.02s calls=4 ctoks=169 err=
+[pass 2] arrival  509/591 mbpp/286       A:single_shot     success=0 lat=6.28s verify=0.02s calls=1 ctoks=167 err=
+[pass 2] arrival  510/591 humaneval/40   B:self_test_repair success=1 lat=10.13s verify=0.02s calls=2 ctoks=265 err=
+[pass 2] arrival  511/591 mbpp/164       B:self_test_repair success=0 lat=32.92s verify=0.02s calls=4 ctoks=857 err=
+[pass 2] arrival  512/591 mbpp/251       A:single_shot     success=0 lat=1.28s verify=0.02s calls=1 ctoks=29 err=
+[pass 2] arrival  513/591 mbpp/738       B:self_test_repair success=0 lat=9.23s verify=0.02s calls=4 ctoks=224 err=
+[pass 2] arrival  514/591 mbpp/801       A:single_shot     success=0 lat=1.52s verify=0.02s calls=1 ctoks=36 err=
+[pass 2] arrival  515/591 humaneval/140  B:self_test_repair success=1 lat=18.48s verify=0.02s calls=4 ctoks=479 err=
+[pass 2] arrival  516/591 mbpp/637       A:single_shot     success=1 lat=1.24s verify=0.02s calls=1 ctoks=28 err=
+[pass 2] arrival  517/591 mbpp/752       B:self_test_repair success=0 lat=15.65s verify=0.02s calls=4 ctoks=395 err=
+[pass 2] arrival  518/591 humaneval/48   A:single_shot     success=1 lat=1.63s verify=0.02s calls=1 ctoks=39 err=
+[pass 2] arrival  519/591 humaneval/120  A:single_shot     success=0 lat=1.21s verify=0.02s calls=1 ctoks=23 err=
+[pass 2] arrival  520/591 humaneval/129  B:self_test_repair success=0 lat=36.68s verify=0.02s calls=4 ctoks=931 err=
+[pass 2] arrival  521/591 mbpp/399       A:single_shot     success=1 lat=2.61s verify=0.02s calls=1 ctoks=66 err=
+[pass 2] arrival  522/591 humaneval/57   B:self_test_repair success=1 lat=7.28s verify=0.02s calls=2 ctoks=188 err=
+[pass 2] arrival  523/591 mbpp/638       A:single_shot     success=1 lat=2.61s verify=0.02s calls=1 ctoks=66 err=
+[pass 2] arrival  524/591 mbpp/559       B:self_test_repair success=1 lat=9.95s verify=0.02s calls=2 ctoks=262 err=
+[pass 2] arrival  525/591 humaneval/46   A:single_shot     success=1 lat=4.44s verify=0.02s calls=1 ctoks=115 err=
+[pass 2] arrival  526/591 humaneval/55   B:self_test_repair success=1 lat=6.58s verify=0.02s calls=2 ctoks=169 err=
+[pass 2] arrival  527/591 humaneval/65   B:self_test_repair success=0 lat=18.07s verify=0.02s calls=4 ctoks=466 err=
+[pass 2] arrival  528/591 humaneval/63   A:single_shot     success=1 lat=4.03s verify=0.02s calls=1 ctoks=103 err=
+[pass 2] arrival  529/591 mbpp/598       B:self_test_repair success=1 lat=8.64s verify=0.02s calls=2 ctoks=227 err=
+[pass 2] arrival  530/591 mbpp/793       A:single_shot     success=1 lat=3.96s verify=0.02s calls=1 ctoks=104 err=
+[pass 2] arrival  531/591 mbpp/104       A:single_shot     success=1 lat=1.20s verify=0.02s calls=1 ctoks=27 err=
+[pass 2] arrival  532/591 mbpp/410       B:self_test_repair success=0 lat=10.24s verify=0.02s calls=3 ctoks=253 err=
+[pass 2] arrival  533/591 mbpp/64        B:self_test_repair success=1 lat=11.99s verify=0.02s calls=4 ctoks=296 err=
+[pass 2] arrival  534/591 mbpp/802       A:single_shot     success=1 lat=2.00s verify=0.02s calls=1 ctoks=49 err=
+[pass 2] arrival  535/591 mbpp/61        A:single_shot     success=1 lat=4.20s verify=0.02s calls=1 ctoks=112 err=
+[pass 2] arrival  536/591 mbpp/119       B:self_test_repair success=1 lat=13.44s verify=0.02s calls=2 ctoks=360 err=
+[pass 2] arrival  537/591 mbpp/393       A:single_shot     success=0 lat=1.00s verify=0.02s calls=1 ctoks=23 err=
+[pass 2] arrival  538/591 mbpp/75        B:self_test_repair success=1 lat=9.91s verify=0.02s calls=2 ctoks=261 err=
+[pass 2] arrival  539/591 mbpp/773       B:self_test_repair success=0 lat=18.12s verify=0.02s calls=4 ctoks=450 err=
+[pass 2] arrival  540/591 humaneval/92   A:single_shot     success=1 lat=2.24s verify=0.02s calls=1 ctoks=54 err=
+[pass 2] arrival  541/591 mbpp/127       A:single_shot     success=1 lat=0.89s verify=0.02s calls=1 ctoks=20 err=
+[pass 2] arrival  542/591 mbpp/58        B:self_test_repair success=1 lat=4.53s verify=0.02s calls=2 ctoks=112 err=
+[pass 2] arrival  543/591 humaneval/64   A:single_shot     success=1 lat=6.19s verify=0.02s calls=1 ctoks=165 err=
+[pass 2] arrival  544/591 mbpp/90        B:self_test_repair success=1 lat=8.30s verify=0.02s calls=3 ctoks=201 err=
+[pass 2] arrival  545/591 humaneval/76   B:self_test_repair success=1 lat=8.18s verify=0.02s calls=2 ctoks=210 err=
+[pass 2] arrival  546/591 humaneval/109  A:single_shot     success=1 lat=3.99s verify=0.02s calls=1 ctoks=98 err=
+[pass 2] arrival  547/591 mbpp/439       A:single_shot     success=1 lat=1.04s verify=0.02s calls=1 ctoks=24 err=
+[pass 2] arrival  548/591 mbpp/626       B:self_test_repair success=0 lat=11.44s verify=0.02s calls=4 ctoks=282 err=
+[pass 2] arrival  549/591 humaneval/58   A:single_shot     success=1 lat=1.75s verify=0.02s calls=1 ctoks=42 err=
+[pass 2] arrival  550/591 mbpp/473       B:self_test_repair success=0 lat=21.34s verify=0.02s calls=4 ctoks=551 err=
+[pass 2] arrival  551/591 mbpp/296       A:single_shot     success=1 lat=11.93s verify=0.02s calls=1 ctoks=325 err=
+[pass 2] arrival  552/591 mbpp/117       B:self_test_repair success=0 lat=57.33s verify=0.03s calls=4 ctoks=1474 err=
+[pass 2] arrival  553/591 mbpp/108       B:self_test_repair success=1 lat=10.75s verify=0.02s calls=2 ctoks=284 err=
+[pass 2] arrival  554/591 humaneval/2    A:single_shot     success=1 lat=1.10s verify=0.02s calls=1 ctoks=24 err=
+[pass 2] arrival  555/591 mbpp/99        A:single_shot     success=1 lat=2.39s verify=0.02s calls=1 ctoks=60 err=
+[pass 2] arrival  556/591 mbpp/116       B:self_test_repair success=1 lat=5.12s verify=0.02s calls=2 ctoks=130 err=
+[pass 2] arrival  557/591 mbpp/246       B:self_test_repair success=1 lat=12.54s verify=0.01s calls=2 ctoks=334 err=
+[pass 2] arrival  558/591 mbpp/465       A:single_shot     success=1 lat=2.15s verify=0.02s calls=1 ctoks=55 err=
+[pass 2] arrival  559/591 mbpp/435       B:self_test_repair success=1 lat=6.43s verify=0.01s calls=3 ctoks=154 err=
+[pass 2] arrival  560/591 mbpp/617       A:single_shot     success=0 lat=2.53s verify=0.02s calls=1 ctoks=64 err=
+[pass 2] arrival  561/591 mbpp/460       B:self_test_repair success=1 lat=7.77s verify=0.02s calls=2 ctoks=203 err=
+[pass 2] arrival  562/591 humaneval/102  A:single_shot     success=1 lat=2.57s verify=0.02s calls=1 ctoks=65 err=
+[pass 2] arrival  563/591 mbpp/307       B:self_test_repair success=0 lat=9.78s verify=0.02s calls=4 ctoks=236 err=
+[pass 2] arrival  564/591 humaneval/54   A:single_shot     success=0 lat=1.70s verify=0.02s calls=1 ctoks=39 err=
+[pass 2] arrival  565/591 mbpp/591       B:self_test_repair success=1 lat=12.60s verify=0.02s calls=3 ctoks=319 err=
+[pass 2] arrival  566/591 humaneval/61   A:single_shot     success=1 lat=2.89s verify=0.02s calls=1 ctoks=74 err=
+[pass 2] arrival  567/591 mbpp/238       A:single_shot     success=1 lat=1.46s verify=0.02s calls=1 ctoks=34 err=
+[pass 2] arrival  568/591 mbpp/769       B:self_test_repair success=0 lat=7.81s verify=0.02s calls=2 ctoks=204 err=
+[pass 2] arrival  569/591 mbpp/304       B:self_test_repair success=1 lat=36.47s verify=0.02s calls=4 ctoks=943 err=
+[pass 2] arrival  570/591 mbpp/418       A:single_shot     success=1 lat=1.22s verify=0.02s calls=1 ctoks=29 err=
+[pass 2] arrival  571/591 humaneval/87   A:single_shot     success=1 lat=2.99s verify=0.02s calls=1 ctoks=71 err=
+[pass 2] arrival  572/591 humaneval/33   B:self_test_repair success=1 lat=31.45s verify=0.02s calls=4 ctoks=827 err=
+[pass 2] arrival  573/591 mbpp/594       A:single_shot     success=1 lat=4.58s verify=0.02s calls=1 ctoks=121 err=
+[pass 2] arrival  574/591 mbpp/622       B:self_test_repair success=0 lat=40.91s verify=0.02s calls=4 ctoks=1075 err=
+[pass 2] arrival  575/591 mbpp/589       A:single_shot     success=1 lat=2.07s verify=0.02s calls=1 ctoks=53 err=
+[pass 2] arrival  576/591 humaneval/23   B:self_test_repair success=1 lat=3.62s verify=0.02s calls=2 ctoks=87 err=
+[pass 2] arrival  577/591 humaneval/156  A:single_shot     success=1 lat=10.35s verify=0.02s calls=1 ctoks=280 err=
+[pass 2] arrival  578/591 mbpp/16        B:self_test_repair success=1 lat=5.43s verify=0.02s calls=2 ctoks=137 err=
+[pass 2] arrival  579/591 mbpp/720       A:single_shot     success=1 lat=3.04s verify=0.02s calls=1 ctoks=78 err=
+[pass 2] arrival  580/591 mbpp/100       B:self_test_repair success=1 lat=6.71s verify=0.02s calls=2 ctoks=173 err=
+[pass 2] arrival  581/591 mbpp/98        A:single_shot     success=1 lat=1.89s verify=0.02s calls=1 ctoks=46 err=
+[pass 2] arrival  582/591 mbpp/453       B:self_test_repair success=0 lat=27.06s verify=0.02s calls=4 ctoks=711 err=
+[pass 2] arrival  583/591 humaneval/149  A:single_shot     success=1 lat=9.58s verify=0.02s calls=1 ctoks=255 err=
+[pass 2] arrival  584/591 mbpp/478       B:self_test_repair success=1 lat=7.93s verify=0.02s calls=4 ctoks=190 err=
+[pass 2] arrival  585/591 humaneval/88   A:single_shot     success=1 lat=2.37s verify=0.02s calls=1 ctoks=56 err=
+[pass 2] arrival  586/591 mbpp/167       B:self_test_repair success=1 lat=5.52s verify=0.02s calls=2 ctoks=140 err=
+[pass 2] arrival  587/591 mbpp/618       A:single_shot     success=1 lat=1.82s verify=0.02s calls=1 ctoks=46 err=
+[pass 2] arrival  588/591 mbpp/798       B:self_test_repair success=1 lat=5.78s verify=0.02s calls=2 ctoks=148 err=
+[pass 2] arrival  589/591 mbpp/166       B:self_test_repair success=0 lat=26.23s verify=0.03s calls=4 ctoks=673 err=
+[pass 2] arrival  590/591 humaneval/155  A:single_shot     success=1 lat=5.08s verify=0.02s calls=1 ctoks=135 err=
+[pass 2] arrival  591/591 mbpp/256       A:single_shot     success=1 lat=3.80s verify=0.02s calls=1 ctoks=99 err=
+{
+  "ran": 1182,
+  "skipped_completed": 0,
+  "elapsed_s": 9071.223047733307,
+  "monitor": {
+    "trial": 1,
+    "n_pairs_monitored": 295,
+    "alpha": 0.05,
+    "success_margin": 0.03,
+    "min_n_pairs": 20,
+    "first_win_cross": null,
+    "first_gate_cross": null,
+    "first_deploy": null,
+    "first_harm": 24,
+    "note": "execution never stops early; crossings are recorded for the anytime-valid analysis",
+    "updated_at": "2026-09-18T17:37:01Z"
+  },
+  "episodes_total": 1182
+}
