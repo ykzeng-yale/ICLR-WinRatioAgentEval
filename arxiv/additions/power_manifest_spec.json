@@ -1,0 +1,1181 @@
+{
+  "expected": {
+    "ablation": {
+      "cells": {
+        "P05A": {
+          "deploy_rate_disabled": {
+            "ci95_hi": 0.05251290517404786,
+            "ci95_lo": 0.04317133129676488,
+            "events": 381,
+            "mean": 0.047625,
+            "n": 8000
+          },
+          "deploy_rate_original": {
+            "ci95_hi": 0.055778923230397015,
+            "ci95_lo": 0.046152313541114716,
+            "events": 406,
+            "mean": 0.05075,
+            "n": 8000
+          },
+          "discordant_pairs": {
+            "concordant": 7975,
+            "deploy_only_disabled": 0,
+            "deploy_only_original": 25
+          },
+          "joint_first_decision_categories": {
+            "original=DEPLOY -> disabled=DEPLOY": 381,
+            "original=DEPLOY -> disabled=NO_DECISION": 25,
+            "original=NO_DECISION -> disabled=NO_DECISION": 7594
+          },
+          "paired_difference_original_minus_disabled": {
+            "ci95_hi": 0.004348138413873957,
+            "ci95_lo": 0.0019018615861260432,
+            "mc_se": 0.0006240616784399697,
+            "mean": 0.003125,
+            "n": 8000,
+            "sd": 0.055817773405775484
+          },
+          "paired_trials": 8000
+        },
+        "P05N": {
+          "deploy_rate_disabled": {
+            "ci95_hi": 0.002460660260486367,
+            "ci95_lo": 0.000767971759981173,
+            "events": 11,
+            "mean": 0.001375,
+            "n": 8000
+          },
+          "deploy_rate_original": {
+            "ci95_hi": 0.004757910638301714,
+            "ci95_lo": 0.002218921562585225,
+            "events": 26,
+            "mean": 0.00325,
+            "n": 8000
+          },
+          "discordant_pairs": {
+            "concordant": 7985,
+            "deploy_only_disabled": 0,
+            "deploy_only_original": 15
+          },
+          "joint_first_decision_categories": {
+            "original=DEPLOY -> disabled=DEPLOY": 11,
+            "original=DEPLOY -> disabled=NO_DECISION": 15,
+            "original=NO_DECISION -> disabled=NO_DECISION": 7974
+          },
+          "paired_difference_original_minus_disabled": {
+            "ci95_hi": 0.002823032760921976,
+            "ci95_lo": 0.0009269672390780235,
+            "mc_se": 0.0004836990722278256,
+            "mean": 0.001875,
+            "n": 8000,
+            "sd": 0.04326336024619995
+          },
+          "paired_trials": 8000
+        },
+        "P10A": {
+          "deploy_rate_disabled": {
+            "ci95_hi": 0.8486043884743799,
+            "ci95_lo": 0.832568524313839,
+            "events": 6726,
+            "mean": 0.84075,
+            "n": 8000
+          },
+          "deploy_rate_original": {
+            "ci95_hi": 0.8530093413718306,
+            "ci95_lo": 0.8371592518493948,
+            "events": 6762,
+            "mean": 0.84525,
+            "n": 8000
+          },
+          "discordant_pairs": {
+            "concordant": 7964,
+            "deploy_only_disabled": 0,
+            "deploy_only_original": 36
+          },
+          "joint_first_decision_categories": {
+            "original=DEPLOY -> disabled=DEPLOY": 6726,
+            "original=DEPLOY -> disabled=NO_DECISION": 36,
+            "original=NO_DECISION -> disabled=NO_DECISION": 1238
+          },
+          "paired_difference_original_minus_disabled": {
+            "ci95_hi": 0.005966753494874788,
+            "ci95_lo": 0.0030332465051252115,
+            "mc_se": 0.0007483573710763834,
+            "mean": 0.0045,
+            "n": 8000,
+            "sd": 0.06693511812759313
+          },
+          "paired_trials": 8000
+        },
+        "P10N": {
+          "deploy_rate_disabled": {
+            "ci95_hi": 0.40023622017184035,
+            "ci95_lo": 0.378869849195443,
+            "events": 3116,
+            "mean": 0.3895,
+            "n": 8000
+          },
+          "deploy_rate_original": {
+            "ci95_hi": 0.5374257952321931,
+            "ci95_lo": 0.5155487673177344,
+            "events": 4212,
+            "mean": 0.5265,
+            "n": 8000
+          },
+          "discordant_pairs": {
+            "concordant": 6904,
+            "deploy_only_disabled": 0,
+            "deploy_only_original": 1096
+          },
+          "joint_first_decision_categories": {
+            "original=DEPLOY -> disabled=DEPLOY": 3116,
+            "original=DEPLOY -> disabled=NO_DECISION": 1096,
+            "original=NO_DECISION -> disabled=NO_DECISION": 3788
+          },
+          "paired_difference_original_minus_disabled": {
+            "ci95_hi": 0.1445352197825168,
+            "ci95_lo": 0.12946478021748323,
+            "mc_se": 0.003844570533924926,
+            "mean": 0.137,
+            "n": 8000,
+            "sd": 0.34386884232595183
+          },
+          "paired_trials": 8000
+        }
+      },
+      "contrasts": {
+        "mu_h=0.05": {
+          "A_minus_N_disabled": {
+            "ci95_hi": 0.051175454321650354,
+            "ci95_lo": 0.04166591632718431,
+            "difference": 0.04625
+          },
+          "A_minus_N_original": {
+            "ci95_hi": 0.05263353597448468,
+            "ci95_lo": 0.042661351917392565,
+            "difference": 0.0475
+          },
+          "change_in_A_minus_N_deploy_contrast": {
+            "ci95_hi": 0.0027975250225038186,
+            "ci95_lo": -0.00029752502250381834,
+            "difference": 0.0012500000000000002,
+            "mc_se": 0.0007895680914090762
+          }
+        },
+        "mu_h=0.10": {
+          "A_minus_N_disabled": {
+            "ci95_hi": 0.46446709213231474,
+            "ci95_lo": 0.4377517420390083,
+            "difference": 0.45125
+          },
+          "A_minus_N_original": {
+            "ci95_hi": 0.33217150795498496,
+            "ci95_lo": 0.3051546623031152,
+            "difference": 0.31875
+          },
+          "change_in_A_minus_N_deploy_contrast": {
+            "ci95_hi": -0.12482335340232732,
+            "ci95_lo": -0.1401766465976727,
+            "difference": -0.1325,
+            "mc_se": 0.003916728398187465
+          }
+        }
+      }
+    },
+    "panels": {
+      "coarse": {
+        "P05A": {
+          "abstain": 7594,
+          "deploy": 406,
+          "rate": 0.05075,
+          "retain": 0,
+          "trials": 8000,
+          "wilson95": [
+            0.046152313541114716,
+            0.055778923230397015
+          ]
+        },
+        "P05N": {
+          "abstain": 7974,
+          "deploy": 26,
+          "rate": 0.00325,
+          "retain": 0,
+          "trials": 8000,
+          "wilson95": [
+            0.002218921562585225,
+            0.004757910638301714
+          ]
+        },
+        "P10A": {
+          "abstain": 1238,
+          "deploy": 6762,
+          "rate": 0.84525,
+          "retain": 0,
+          "trials": 8000,
+          "wilson95": [
+            0.8371592518493948,
+            0.8530093413718306
+          ]
+        },
+        "P10N": {
+          "abstain": 3788,
+          "deploy": 4212,
+          "rate": 0.5265,
+          "retain": 0,
+          "trials": 8000,
+          "wilson95": [
+            0.5155487673177344,
+            0.5374257952321931
+          ]
+        },
+        "P15A": {
+          "abstain": 1,
+          "deploy": 7999,
+          "rate": 0.999875,
+          "retain": 0,
+          "trials": 8000,
+          "wilson95": [
+            0.999292234009974,
+            0.9999779340898377
+          ]
+        },
+        "P15N": {
+          "abstain": 31,
+          "deploy": 7969,
+          "rate": 0.996125,
+          "retain": 0,
+          "trials": 8000,
+          "wilson95": [
+            0.9945051074473908,
+            0.9972686602915825
+          ]
+        },
+        "P20A": {
+          "abstain": 0,
+          "deploy": 8000,
+          "rate": 1.0,
+          "retain": 0,
+          "trials": 8000,
+          "wilson95": [
+            0.9995200481118399,
+            1.0
+          ]
+        },
+        "P20N": {
+          "abstain": 0,
+          "deploy": 8000,
+          "rate": 1.0,
+          "retain": 0,
+          "trials": 8000,
+          "wilson95": [
+            0.9995200481118399,
+            1.0
+          ]
+        },
+        "P30A": {
+          "abstain": 0,
+          "deploy": 8000,
+          "rate": 1.0,
+          "retain": 0,
+          "trials": 8000,
+          "wilson95": [
+            0.9995200481118399,
+            1.0
+          ]
+        },
+        "P30N": {
+          "abstain": 0,
+          "deploy": 8000,
+          "rate": 1.0,
+          "retain": 0,
+          "trials": 8000,
+          "wilson95": [
+            0.9995200481118399,
+            1.0
+          ]
+        }
+      },
+      "disabled": {
+        "P05A": {
+          "abstain": 7619,
+          "deploy": 381,
+          "rate": 0.047625,
+          "retain": 0,
+          "trials": 8000,
+          "wilson95": [
+            0.04317133129676488,
+            0.05251290517404786
+          ]
+        },
+        "P05N": {
+          "abstain": 7989,
+          "deploy": 11,
+          "rate": 0.001375,
+          "retain": 0,
+          "trials": 8000,
+          "wilson95": [
+            0.000767971759981173,
+            0.002460660260486367
+          ]
+        },
+        "P10A": {
+          "abstain": 1274,
+          "deploy": 6726,
+          "rate": 0.84075,
+          "retain": 0,
+          "trials": 8000,
+          "wilson95": [
+            0.832568524313839,
+            0.8486043884743799
+          ]
+        },
+        "P10N": {
+          "abstain": 4884,
+          "deploy": 3116,
+          "rate": 0.3895,
+          "retain": 0,
+          "trials": 8000,
+          "wilson95": [
+            0.378869849195443,
+            0.40023622017184035
+          ]
+        }
+      },
+      "fine": {
+        "P06A": {
+          "abstain": 3444,
+          "deploy": 556,
+          "rate": 0.139,
+          "retain": 0,
+          "trials": 4000,
+          "wilson95": [
+            0.12862511012439135,
+            0.15006760793077314
+          ]
+        },
+        "P06N": {
+          "abstain": 3934,
+          "deploy": 66,
+          "rate": 0.0165,
+          "retain": 0,
+          "trials": 4000,
+          "wilson95": [
+            0.012990881826410113,
+            0.020936899834731227
+          ]
+        },
+        "P07A": {
+          "abstain": 2853,
+          "deploy": 1147,
+          "rate": 0.28675,
+          "retain": 0,
+          "trials": 4000,
+          "wilson95": [
+            0.27294490960670076,
+            0.300964292956357
+          ]
+        },
+        "P07N": {
+          "abstain": 3769,
+          "deploy": 231,
+          "rate": 0.05775,
+          "retain": 0,
+          "trials": 4000,
+          "wilson95": [
+            0.05093635214531623,
+            0.06541227544442475
+          ]
+        },
+        "P08A": {
+          "abstain": 2115,
+          "deploy": 1885,
+          "rate": 0.47125,
+          "retain": 0,
+          "trials": 4000,
+          "wilson95": [
+            0.4558157424658999,
+            0.48673942552325805
+          ]
+        },
+        "P08N": {
+          "abstain": 3361,
+          "deploy": 639,
+          "rate": 0.15975,
+          "retain": 0,
+          "trials": 4000,
+          "wilson95": [
+            0.1487233636514337,
+            0.17142953750720816
+          ]
+        },
+        "P09A": {
+          "abstain": 1319,
+          "deploy": 2681,
+          "rate": 0.67025,
+          "retain": 0,
+          "trials": 4000,
+          "wilson95": [
+            0.6555237573907036,
+            0.6846495521691531
+          ]
+        },
+        "P09N": {
+          "abstain": 2716,
+          "deploy": 1284,
+          "rate": 0.321,
+          "retain": 0,
+          "trials": 4000,
+          "wilson95": [
+            0.30670976279640993,
+            0.3356337179013033
+          ]
+        },
+        "P11A": {
+          "abstain": 249,
+          "deploy": 3751,
+          "rate": 0.93775,
+          "retain": 0,
+          "trials": 4000,
+          "wilson95": [
+            0.9298344157334566,
+            0.9448255916664098
+          ]
+        },
+        "P11N": {
+          "abstain": 1082,
+          "deploy": 2918,
+          "rate": 0.7295,
+          "retain": 0,
+          "trials": 4000,
+          "wilson95": [
+            0.7155184419492117,
+            0.7430411735808155
+          ]
+        },
+        "P12A": {
+          "abstain": 89,
+          "deploy": 3911,
+          "rate": 0.97775,
+          "retain": 0,
+          "trials": 4000,
+          "wilson95": [
+            0.9727000319580753,
+            0.981883219978615
+          ]
+        },
+        "P12N": {
+          "abstain": 499,
+          "deploy": 3501,
+          "rate": 0.87525,
+          "retain": 0,
+          "trials": 4000,
+          "wilson95": [
+            0.8646484467228729,
+            0.8851314910882062
+          ]
+        }
+      }
+    }
+  },
+  "expected_summary_sources": [
+    {
+      "label": "coarse",
+      "sha256": "af30a4e6d66ff22cd5a51fc1ce2f105b42a879e29e56b3aec97396eeb5e00743",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/PC_ANALYSIS.json"
+    },
+    {
+      "label": "fine",
+      "sha256": "4ef67baa419716425661fd61d30f564d8348e1fda932c3c505d49417ce84a2d6",
+      "source_commit": "2c09a167afd3bdfa404512d668aa1b2b5502fe1b",
+      "source_path": "results/live_ab_validation_v2/powercurve_fine_20260921/COMBINED_CURVE.json"
+    },
+    {
+      "label": "ablation",
+      "sha256": "b9bf52b9ad6034a0fffe1699e8348c93653b1e7074e2d8ae61abc234c1129dca",
+      "source_commit": "4a9f70423b6abb6e954cd15ee39301f6025ba392",
+      "source_path": "results/live_ab_validation_v2/ablation_20260921/ABLATION_ANALYSIS.json"
+    }
+  ],
+  "panels": {
+    "coarse": {
+      "cells": [
+        "P05N",
+        "P05A",
+        "P10N",
+        "P10A",
+        "P15N",
+        "P15A",
+        "P20N",
+        "P20A",
+        "P30N",
+        "P30A"
+      ],
+      "constructions": [
+        "ADAPTER",
+        "CPREFIX",
+        "NAIVE"
+      ],
+      "enrollment_horizon": 2000,
+      "file_count": 40,
+      "finalization_tick": 2200,
+      "programs_per_cell": 2000,
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "trials_per_program": 4
+    },
+    "disabled": {
+      "cells": [
+        "P05N",
+        "P05A",
+        "P10N",
+        "P10A"
+      ],
+      "constructions": [
+        "ADAPTER",
+        "CPREFIX",
+        "NAIVE"
+      ],
+      "enrollment_horizon": 2000,
+      "file_count": 16,
+      "finalization_tick": 2200,
+      "programs_per_cell": 2000,
+      "source_commit": "6bdefd1c052a178654e237d931de9fe1964a697e",
+      "trials_per_program": 4
+    },
+    "fine": {
+      "cells": [
+        "P06N",
+        "P06A",
+        "P07N",
+        "P07A",
+        "P08N",
+        "P08A",
+        "P09N",
+        "P09A",
+        "P11N",
+        "P11A",
+        "P12N",
+        "P12A"
+      ],
+      "constructions": [
+        "ADAPTER",
+        "CPREFIX",
+        "NAIVE"
+      ],
+      "enrollment_horizon": 2000,
+      "file_count": 24,
+      "finalization_tick": 2200,
+      "programs_per_cell": 1000,
+      "source_commit": "2c09a167afd3bdfa404512d668aa1b2b5502fe1b",
+      "trials_per_program": 4
+    }
+  },
+  "primary_files": [
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_001_P05N-p0000-0499/primary_rows.csv.gz",
+      "sha256": "9895fc269c862333d57596d12194e23212b8c8472b9b33f18fe830c40508980f",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_001_P05N-p0000-0499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_002_P05A-p0000-0499/primary_rows.csv.gz",
+      "sha256": "b2804c042921761d64e301d002583bb496f6e9b8bce4ae7b753f5ff4166add7f",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_002_P05A-p0000-0499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_003_P10N-p0000-0499/primary_rows.csv.gz",
+      "sha256": "e8d3f8d1acdb391940d74aef018bbc6c7a47e59bb2fff1dfcb489e7a1adc68a9",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_003_P10N-p0000-0499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_004_P10A-p0000-0499/primary_rows.csv.gz",
+      "sha256": "fb5fe065cc9f463e41597e4c11fb9e49dc6512f0e577e6bd660e5c093cbfc87d",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_004_P10A-p0000-0499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_005_P15N-p0000-0499/primary_rows.csv.gz",
+      "sha256": "31f7edc1ddd375ec7bdb7a420603279c3ac0688556085a7be32e1f7e8b131f3e",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_005_P15N-p0000-0499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_006_P15A-p0000-0499/primary_rows.csv.gz",
+      "sha256": "7d918ad7c8b970bc4d56e7b1a7deb243997737f88653fea795bee69803526ca5",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_006_P15A-p0000-0499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_007_P20N-p0000-0499/primary_rows.csv.gz",
+      "sha256": "03bdeebe9420ec3c2368696d40f9d95dc1e55d07b93d81405b26da383fc7c1ee",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_007_P20N-p0000-0499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_008_P20A-p0000-0499/primary_rows.csv.gz",
+      "sha256": "8566db58e5b93d13739999a60b4d3434c1703b82b52353ecbf59e4b1f8c52bf1",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_008_P20A-p0000-0499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_009_P30N-p0000-0499/primary_rows.csv.gz",
+      "sha256": "5a6c0bb240a0af482aea6e1e208bb57b01ed3a9bd3970fc246afde73410845f0",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_009_P30N-p0000-0499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_010_P30A-p0000-0499/primary_rows.csv.gz",
+      "sha256": "ef8652837d2b2a9a93ba2039abeed9df38ca4e66a8948dfdec38fe5c58a8497a",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_010_P30A-p0000-0499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_011_P05N-p0500-0999/primary_rows.csv.gz",
+      "sha256": "a5872e0a74a2a157ab42f5a5f5dbe521faf4d3cd2ec32525b9c7da9d80aa3ae2",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_011_P05N-p0500-0999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_012_P05A-p0500-0999/primary_rows.csv.gz",
+      "sha256": "b119abd01596be467bafafe215a19636be1bf31744cf5566c3c487482730a639",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_012_P05A-p0500-0999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_013_P10N-p0500-0999/primary_rows.csv.gz",
+      "sha256": "721bfa1727e6f6dce6f15d867aadb42d84c67b2373a45455ec45be56ea0751d2",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_013_P10N-p0500-0999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_014_P10A-p0500-0999/primary_rows.csv.gz",
+      "sha256": "6ab405703f9aabaa6b9db4f6030fc0883f9b654f8aabd1b4d3b208651c602c0e",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_014_P10A-p0500-0999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_015_P15N-p0500-0999/primary_rows.csv.gz",
+      "sha256": "6ae22ab5689c292bca0b87d4eba9a36ba228f16d77b0c2bb3654085d8c9f1253",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_015_P15N-p0500-0999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_016_P15A-p0500-0999/primary_rows.csv.gz",
+      "sha256": "28624bcd734b5242ed1f4b277a029856596cd05ff826a2766470c27f2787ec96",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_016_P15A-p0500-0999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_017_P20N-p0500-0999/primary_rows.csv.gz",
+      "sha256": "dec128f29a02dc14b8147a57dcd12027ccfc876227d8ab5cd9c65289e53697d8",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_017_P20N-p0500-0999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_018_P20A-p0500-0999/primary_rows.csv.gz",
+      "sha256": "bf50b728fd5a349ca99220d71c6a02cc55e94c9f78a80365895d1cf20b7cb98c",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_018_P20A-p0500-0999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_019_P30N-p0500-0999/primary_rows.csv.gz",
+      "sha256": "9d0065b82224e6a822b640b62998ec83a29a7a1e14f4096b5466bcfbe512de25",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_019_P30N-p0500-0999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_020_P30A-p0500-0999/primary_rows.csv.gz",
+      "sha256": "cde800a936c090f6ea7d8c393d444138fc68b005295966cb0d81fabad81c8439",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_020_P30A-p0500-0999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_021_P05N-p1000-1499/primary_rows.csv.gz",
+      "sha256": "b7862a05eec8d5035068c563fee64c05393e2273da2803be6e62ffcb4612ffc0",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_021_P05N-p1000-1499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_022_P05A-p1000-1499/primary_rows.csv.gz",
+      "sha256": "8aa5cdd03440f093026f64f0c53227c9950251d8afc665a01424b7e49cf27272",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_022_P05A-p1000-1499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_023_P10N-p1000-1499/primary_rows.csv.gz",
+      "sha256": "8372003be2303a0950cc14e473d208bf05343ff57d12e9f6dbacb4ea17c802c2",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_023_P10N-p1000-1499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_024_P10A-p1000-1499/primary_rows.csv.gz",
+      "sha256": "ce9733d3eff1e0f0b65549226dfd5eabf465324eab8fc2bd1d0a766161ac00de",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_024_P10A-p1000-1499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_025_P15N-p1000-1499/primary_rows.csv.gz",
+      "sha256": "b211dcd2917f6c1a4df33fa2329d9b6f199e64876798b380f385fac3d622c6be",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_025_P15N-p1000-1499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_026_P15A-p1000-1499/primary_rows.csv.gz",
+      "sha256": "8d78c89b7c8ddbfcd671b07da1b4922cbbe2ec55dcaa5286baddc27b6730f207",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_026_P15A-p1000-1499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_027_P20N-p1000-1499/primary_rows.csv.gz",
+      "sha256": "c9c283567642ee1abbf5021e1b9b825f459852a3e60e57ffc6cd0310dae079c5",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_027_P20N-p1000-1499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_028_P20A-p1000-1499/primary_rows.csv.gz",
+      "sha256": "517b98ef3be1d096c83c2bc55d4eeaf9d7d09eb31a57c187b8d8c691f4c6639b",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_028_P20A-p1000-1499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_029_P30N-p1000-1499/primary_rows.csv.gz",
+      "sha256": "347de91075aa00fbc939a671b51ae380ae72b3ba791063a4726fec023513824c",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_029_P30N-p1000-1499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_030_P30A-p1000-1499/primary_rows.csv.gz",
+      "sha256": "d0e46cb0d70e98a966407488a3d97885346e62caf00c91cbe8385d40e4c2f4df",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_030_P30A-p1000-1499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_031_P05N-p1500-1999/primary_rows.csv.gz",
+      "sha256": "0e80f3bf2525159a7c4a2d949ba7e85bdd697c6213d63377cd9162d88523a5cd",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_031_P05N-p1500-1999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_032_P05A-p1500-1999/primary_rows.csv.gz",
+      "sha256": "fe24cea65bc59fa3ef8d90128b658656c1b9069542e4c899a2d22d71bb1f7aef",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_032_P05A-p1500-1999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_033_P10N-p1500-1999/primary_rows.csv.gz",
+      "sha256": "b6203a2fa6cd0eaa89822b769dce92927d8a4919418fe6ac189f3d420c6bd7f1",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_033_P10N-p1500-1999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_034_P10A-p1500-1999/primary_rows.csv.gz",
+      "sha256": "ac9c124a83af7059a152cd5c1a9f8c1de62cb6a513be571368bd16ad8fc889ca",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_034_P10A-p1500-1999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_035_P15N-p1500-1999/primary_rows.csv.gz",
+      "sha256": "6f3aade1682a236c9845462fbcee0638c7834cceca20a80b93673c5c518f9bab",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_035_P15N-p1500-1999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_036_P15A-p1500-1999/primary_rows.csv.gz",
+      "sha256": "64174a6851294da00cf104ebc6eec0564a77900bec9606261d5e459aa011cf2a",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_036_P15A-p1500-1999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_037_P20N-p1500-1999/primary_rows.csv.gz",
+      "sha256": "7a0b96c46360b36608665ee5944238150a6741b45d41bbd39404028cf7aca4ef",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_037_P20N-p1500-1999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_038_P20A-p1500-1999/primary_rows.csv.gz",
+      "sha256": "50d979e726d8c0eafb03a333ee30eafce8e9c09464c77cddff88cf2a81c34e08",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_038_P20A-p1500-1999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_039_P30N-p1500-1999/primary_rows.csv.gz",
+      "sha256": "382622dd5c21d354e69267784af50e0e09399c3d4348ca5b4bd1ec60decc712e",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_039_P30N-p1500-1999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "coarse",
+      "path": "powercurve_20260921/shard_040_P30A-p1500-1999/primary_rows.csv.gz",
+      "sha256": "0711f5e4cebe4c04ee285b287b7be9e1b2134df72c1aa5cb02316ba422c0dde8",
+      "source_commit": "0c17857f6b0eb6a37f222a264294cfc9fe65b7e7",
+      "source_path": "results/live_ab_validation_v2/powercurve_20260921/shard_040_P30A-p1500-1999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "fine",
+      "path": "powercurve_fine_20260921/shard_001_P06N-p0000-0499/primary_rows.csv.gz",
+      "sha256": "623857a54c05f0f9954d844a6011588eb9986bb0c627348ab3f4c6989b05479b",
+      "source_commit": "2c09a167afd3bdfa404512d668aa1b2b5502fe1b",
+      "source_path": "results/live_ab_validation_v2/powercurve_fine_20260921/shard_001_P06N-p0000-0499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "fine",
+      "path": "powercurve_fine_20260921/shard_002_P06A-p0000-0499/primary_rows.csv.gz",
+      "sha256": "e78d7747aba19094212cba50f7024868b9cc810dcb6e6d7c0394478396d73c3c",
+      "source_commit": "2c09a167afd3bdfa404512d668aa1b2b5502fe1b",
+      "source_path": "results/live_ab_validation_v2/powercurve_fine_20260921/shard_002_P06A-p0000-0499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "fine",
+      "path": "powercurve_fine_20260921/shard_003_P07N-p0000-0499/primary_rows.csv.gz",
+      "sha256": "f2ed372f3c23f5ee4c835c87ae10cf4dbb0f17bb7990a204bb0274f04bfe757a",
+      "source_commit": "2c09a167afd3bdfa404512d668aa1b2b5502fe1b",
+      "source_path": "results/live_ab_validation_v2/powercurve_fine_20260921/shard_003_P07N-p0000-0499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "fine",
+      "path": "powercurve_fine_20260921/shard_004_P07A-p0000-0499/primary_rows.csv.gz",
+      "sha256": "254e680951317e8453923d16f2b42875476dd0f0709183ad0441d0996c153f5c",
+      "source_commit": "2c09a167afd3bdfa404512d668aa1b2b5502fe1b",
+      "source_path": "results/live_ab_validation_v2/powercurve_fine_20260921/shard_004_P07A-p0000-0499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "fine",
+      "path": "powercurve_fine_20260921/shard_005_P08N-p0000-0499/primary_rows.csv.gz",
+      "sha256": "e751a3823d57174f8354a509825a849fa919136432480212d980ac47ecd16aad",
+      "source_commit": "2c09a167afd3bdfa404512d668aa1b2b5502fe1b",
+      "source_path": "results/live_ab_validation_v2/powercurve_fine_20260921/shard_005_P08N-p0000-0499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "fine",
+      "path": "powercurve_fine_20260921/shard_006_P08A-p0000-0499/primary_rows.csv.gz",
+      "sha256": "be3eb68f2f41f56c600a1333c921f94428fb0342e5c84bcb6e9a39200f7d4746",
+      "source_commit": "2c09a167afd3bdfa404512d668aa1b2b5502fe1b",
+      "source_path": "results/live_ab_validation_v2/powercurve_fine_20260921/shard_006_P08A-p0000-0499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "fine",
+      "path": "powercurve_fine_20260921/shard_007_P09N-p0000-0499/primary_rows.csv.gz",
+      "sha256": "c49a85478c5c6f2afd9df06f47cc9c91c8310c1109206aec60f583a3564f04bf",
+      "source_commit": "2c09a167afd3bdfa404512d668aa1b2b5502fe1b",
+      "source_path": "results/live_ab_validation_v2/powercurve_fine_20260921/shard_007_P09N-p0000-0499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "fine",
+      "path": "powercurve_fine_20260921/shard_008_P09A-p0000-0499/primary_rows.csv.gz",
+      "sha256": "66dc7e3a4d9307be31183a46f413d54484925b76d5e99fcfe266216c3632c03e",
+      "source_commit": "2c09a167afd3bdfa404512d668aa1b2b5502fe1b",
+      "source_path": "results/live_ab_validation_v2/powercurve_fine_20260921/shard_008_P09A-p0000-0499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "fine",
+      "path": "powercurve_fine_20260921/shard_009_P11N-p0000-0499/primary_rows.csv.gz",
+      "sha256": "da4b33b0882a5fc0e79cdf7b79d5eee6a1117d6c57446be0426d277e8b51eba9",
+      "source_commit": "2c09a167afd3bdfa404512d668aa1b2b5502fe1b",
+      "source_path": "results/live_ab_validation_v2/powercurve_fine_20260921/shard_009_P11N-p0000-0499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "fine",
+      "path": "powercurve_fine_20260921/shard_010_P11A-p0000-0499/primary_rows.csv.gz",
+      "sha256": "4a4d457a37515298d019322ce96b09f8bccdf7e21c27ea8937611e5d71e32076",
+      "source_commit": "2c09a167afd3bdfa404512d668aa1b2b5502fe1b",
+      "source_path": "results/live_ab_validation_v2/powercurve_fine_20260921/shard_010_P11A-p0000-0499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "fine",
+      "path": "powercurve_fine_20260921/shard_011_P12N-p0000-0499/primary_rows.csv.gz",
+      "sha256": "2692cb00a9252a9c67dfed250aaa460385f8d0801d4542b4e79ee54dc679951f",
+      "source_commit": "2c09a167afd3bdfa404512d668aa1b2b5502fe1b",
+      "source_path": "results/live_ab_validation_v2/powercurve_fine_20260921/shard_011_P12N-p0000-0499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "fine",
+      "path": "powercurve_fine_20260921/shard_012_P12A-p0000-0499/primary_rows.csv.gz",
+      "sha256": "4b4ba9526a93e61c42027bf31e43bbe662d94543d88c9507c9cc171a8eed7af8",
+      "source_commit": "2c09a167afd3bdfa404512d668aa1b2b5502fe1b",
+      "source_path": "results/live_ab_validation_v2/powercurve_fine_20260921/shard_012_P12A-p0000-0499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "fine",
+      "path": "powercurve_fine_20260921/shard_013_P06N-p0500-0999/primary_rows.csv.gz",
+      "sha256": "839fd44d63314f2448436a40d3452339c98645dfd2c60d8ad1662c098a5f9537",
+      "source_commit": "2c09a167afd3bdfa404512d668aa1b2b5502fe1b",
+      "source_path": "results/live_ab_validation_v2/powercurve_fine_20260921/shard_013_P06N-p0500-0999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "fine",
+      "path": "powercurve_fine_20260921/shard_014_P06A-p0500-0999/primary_rows.csv.gz",
+      "sha256": "5c8557c05c87829a3a559a7b8e5903762f4c34d8b222192954ea38196384c447",
+      "source_commit": "2c09a167afd3bdfa404512d668aa1b2b5502fe1b",
+      "source_path": "results/live_ab_validation_v2/powercurve_fine_20260921/shard_014_P06A-p0500-0999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "fine",
+      "path": "powercurve_fine_20260921/shard_015_P07N-p0500-0999/primary_rows.csv.gz",
+      "sha256": "f6e1c207b8906a900d7c478ee9e00d1ec13d2ccb2d6162ac775a2c73d98d80ed",
+      "source_commit": "2c09a167afd3bdfa404512d668aa1b2b5502fe1b",
+      "source_path": "results/live_ab_validation_v2/powercurve_fine_20260921/shard_015_P07N-p0500-0999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "fine",
+      "path": "powercurve_fine_20260921/shard_016_P07A-p0500-0999/primary_rows.csv.gz",
+      "sha256": "e27b87424d39b4a11089145e397b261220e44beed149444fb6e9b0e61e339aa5",
+      "source_commit": "2c09a167afd3bdfa404512d668aa1b2b5502fe1b",
+      "source_path": "results/live_ab_validation_v2/powercurve_fine_20260921/shard_016_P07A-p0500-0999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "fine",
+      "path": "powercurve_fine_20260921/shard_017_P08N-p0500-0999/primary_rows.csv.gz",
+      "sha256": "012697e92466c4d82a37660f833de98c48a25f332e9804c9a44f1548c8c4a8ba",
+      "source_commit": "2c09a167afd3bdfa404512d668aa1b2b5502fe1b",
+      "source_path": "results/live_ab_validation_v2/powercurve_fine_20260921/shard_017_P08N-p0500-0999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "fine",
+      "path": "powercurve_fine_20260921/shard_018_P08A-p0500-0999/primary_rows.csv.gz",
+      "sha256": "4c9ad06dc5873edc8084876f0a09d2714aecb0f5a50e1459c6f4d29159c25c38",
+      "source_commit": "2c09a167afd3bdfa404512d668aa1b2b5502fe1b",
+      "source_path": "results/live_ab_validation_v2/powercurve_fine_20260921/shard_018_P08A-p0500-0999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "fine",
+      "path": "powercurve_fine_20260921/shard_019_P09N-p0500-0999/primary_rows.csv.gz",
+      "sha256": "a530ddfd7182a913a02dedbeaac706c14009b9cdf8e4f315fdcf180912749b6d",
+      "source_commit": "2c09a167afd3bdfa404512d668aa1b2b5502fe1b",
+      "source_path": "results/live_ab_validation_v2/powercurve_fine_20260921/shard_019_P09N-p0500-0999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "fine",
+      "path": "powercurve_fine_20260921/shard_020_P09A-p0500-0999/primary_rows.csv.gz",
+      "sha256": "18753b8b579214c64820b43983c58aa6a5c541024df77fa713a415ff793b5609",
+      "source_commit": "2c09a167afd3bdfa404512d668aa1b2b5502fe1b",
+      "source_path": "results/live_ab_validation_v2/powercurve_fine_20260921/shard_020_P09A-p0500-0999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "fine",
+      "path": "powercurve_fine_20260921/shard_021_P11N-p0500-0999/primary_rows.csv.gz",
+      "sha256": "9e1caa658b99c3f20bac29c8bb269f2b41722e02cf3bf94b446a35d2f1913485",
+      "source_commit": "2c09a167afd3bdfa404512d668aa1b2b5502fe1b",
+      "source_path": "results/live_ab_validation_v2/powercurve_fine_20260921/shard_021_P11N-p0500-0999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "fine",
+      "path": "powercurve_fine_20260921/shard_022_P11A-p0500-0999/primary_rows.csv.gz",
+      "sha256": "359cafa0723ccc24661016dc0e45dae4efb73f3c5c8d628fe50b4c96b56f0d05",
+      "source_commit": "2c09a167afd3bdfa404512d668aa1b2b5502fe1b",
+      "source_path": "results/live_ab_validation_v2/powercurve_fine_20260921/shard_022_P11A-p0500-0999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "fine",
+      "path": "powercurve_fine_20260921/shard_023_P12N-p0500-0999/primary_rows.csv.gz",
+      "sha256": "3361616b5e1868a468017e4e6f9af40facc60b90c3783deddd1de4a73ce97f4a",
+      "source_commit": "2c09a167afd3bdfa404512d668aa1b2b5502fe1b",
+      "source_path": "results/live_ab_validation_v2/powercurve_fine_20260921/shard_023_P12N-p0500-0999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "fine",
+      "path": "powercurve_fine_20260921/shard_024_P12A-p0500-0999/primary_rows.csv.gz",
+      "sha256": "bc795e41f56d1e8ff520dfcb402a0c8575f8aaf2240746626d07f9811c4f7adb",
+      "source_commit": "2c09a167afd3bdfa404512d668aa1b2b5502fe1b",
+      "source_path": "results/live_ab_validation_v2/powercurve_fine_20260921/shard_024_P12A-p0500-0999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "disabled",
+      "path": "ablation_20260921/disabled_arm/shard_001_P05N-p0000-0499/primary_rows.csv.gz",
+      "sha256": "00c67373c7e63569adcbc31c0f0139b961d13493a53e0fdbfa2a3f32f97c9251",
+      "source_commit": "6bdefd1c052a178654e237d931de9fe1964a697e",
+      "source_path": "results/live_ab_validation_v2/ablation_20260921/disabled_arm/shard_001_P05N-p0000-0499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "disabled",
+      "path": "ablation_20260921/disabled_arm/shard_002_P05A-p0000-0499/primary_rows.csv.gz",
+      "sha256": "9617a2fc2af27093fa60e6f96de809e858565021ee68be195b46d3a0e3d41ea2",
+      "source_commit": "6bdefd1c052a178654e237d931de9fe1964a697e",
+      "source_path": "results/live_ab_validation_v2/ablation_20260921/disabled_arm/shard_002_P05A-p0000-0499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "disabled",
+      "path": "ablation_20260921/disabled_arm/shard_003_P10N-p0000-0499/primary_rows.csv.gz",
+      "sha256": "b1e940f6c2bdf2503d49e9418110d3518c804f977d0c2e5a925def985858c576",
+      "source_commit": "6bdefd1c052a178654e237d931de9fe1964a697e",
+      "source_path": "results/live_ab_validation_v2/ablation_20260921/disabled_arm/shard_003_P10N-p0000-0499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "disabled",
+      "path": "ablation_20260921/disabled_arm/shard_004_P10A-p0000-0499/primary_rows.csv.gz",
+      "sha256": "4012c8cc181dc391517d9ba22d3a066990d52c2a04b2321ab5c8d5190960ccbe",
+      "source_commit": "6bdefd1c052a178654e237d931de9fe1964a697e",
+      "source_path": "results/live_ab_validation_v2/ablation_20260921/disabled_arm/shard_004_P10A-p0000-0499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "disabled",
+      "path": "ablation_20260921/disabled_arm/shard_005_P05N-p0500-0999/primary_rows.csv.gz",
+      "sha256": "de558a40a264ae95396afd1987d91f3171dafc1261275e12e762ddb31299ca3d",
+      "source_commit": "6bdefd1c052a178654e237d931de9fe1964a697e",
+      "source_path": "results/live_ab_validation_v2/ablation_20260921/disabled_arm/shard_005_P05N-p0500-0999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "disabled",
+      "path": "ablation_20260921/disabled_arm/shard_006_P05A-p0500-0999/primary_rows.csv.gz",
+      "sha256": "83bf79ee35eb78916a73bb51f9bae41ee64e5429da7ef355055866fa965c6abe",
+      "source_commit": "6bdefd1c052a178654e237d931de9fe1964a697e",
+      "source_path": "results/live_ab_validation_v2/ablation_20260921/disabled_arm/shard_006_P05A-p0500-0999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "disabled",
+      "path": "ablation_20260921/disabled_arm/shard_007_P10N-p0500-0999/primary_rows.csv.gz",
+      "sha256": "c69eefcc3d86bae1216147bb5bf3baf05e3521d683632a9c14a261c37014bcf6",
+      "source_commit": "6bdefd1c052a178654e237d931de9fe1964a697e",
+      "source_path": "results/live_ab_validation_v2/ablation_20260921/disabled_arm/shard_007_P10N-p0500-0999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "disabled",
+      "path": "ablation_20260921/disabled_arm/shard_008_P10A-p0500-0999/primary_rows.csv.gz",
+      "sha256": "8728143ef709b02fc6107295515fb59c5f32f3856c999e96ff0bc5c7558f4c19",
+      "source_commit": "6bdefd1c052a178654e237d931de9fe1964a697e",
+      "source_path": "results/live_ab_validation_v2/ablation_20260921/disabled_arm/shard_008_P10A-p0500-0999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "disabled",
+      "path": "ablation_20260921/disabled_arm/shard_009_P05N-p1000-1499/primary_rows.csv.gz",
+      "sha256": "9d0b86c09ca0faf3d01e7dfced8597e842dc7a41c36f49fdb2b53784b3ca96f5",
+      "source_commit": "6bdefd1c052a178654e237d931de9fe1964a697e",
+      "source_path": "results/live_ab_validation_v2/ablation_20260921/disabled_arm/shard_009_P05N-p1000-1499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "disabled",
+      "path": "ablation_20260921/disabled_arm/shard_010_P05A-p1000-1499/primary_rows.csv.gz",
+      "sha256": "23fba548458b98748c3aa8b3a207cf15f7bbf8ee3cae413063931972c130f89a",
+      "source_commit": "6bdefd1c052a178654e237d931de9fe1964a697e",
+      "source_path": "results/live_ab_validation_v2/ablation_20260921/disabled_arm/shard_010_P05A-p1000-1499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "disabled",
+      "path": "ablation_20260921/disabled_arm/shard_011_P10N-p1000-1499/primary_rows.csv.gz",
+      "sha256": "e38ef5bdd360abdf1e775c51fc199bea64ef885f7a9fb6f32c416276d01f7c73",
+      "source_commit": "6bdefd1c052a178654e237d931de9fe1964a697e",
+      "source_path": "results/live_ab_validation_v2/ablation_20260921/disabled_arm/shard_011_P10N-p1000-1499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "disabled",
+      "path": "ablation_20260921/disabled_arm/shard_012_P10A-p1000-1499/primary_rows.csv.gz",
+      "sha256": "f108bc5d42a0a8a8983d75eaecba81460d6eabfa63ee464a3bf67ba052a06fa9",
+      "source_commit": "6bdefd1c052a178654e237d931de9fe1964a697e",
+      "source_path": "results/live_ab_validation_v2/ablation_20260921/disabled_arm/shard_012_P10A-p1000-1499/primary_rows.csv.gz"
+    },
+    {
+      "panel": "disabled",
+      "path": "ablation_20260921/disabled_arm/shard_013_P05N-p1500-1999/primary_rows.csv.gz",
+      "sha256": "942cf529feda95f517db9a18d367c8560e47fcf0a330baf38f44ee93db3ef1e6",
+      "source_commit": "6bdefd1c052a178654e237d931de9fe1964a697e",
+      "source_path": "results/live_ab_validation_v2/ablation_20260921/disabled_arm/shard_013_P05N-p1500-1999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "disabled",
+      "path": "ablation_20260921/disabled_arm/shard_014_P05A-p1500-1999/primary_rows.csv.gz",
+      "sha256": "20a65f999de0e509493f826d88b3e1cc64debdbf85be440cf6cfd586f1319f6b",
+      "source_commit": "6bdefd1c052a178654e237d931de9fe1964a697e",
+      "source_path": "results/live_ab_validation_v2/ablation_20260921/disabled_arm/shard_014_P05A-p1500-1999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "disabled",
+      "path": "ablation_20260921/disabled_arm/shard_015_P10N-p1500-1999/primary_rows.csv.gz",
+      "sha256": "a94ae092f4e50e9b8335bd7bf2b00c570c341ee1bd12241c056a8d5711d12536",
+      "source_commit": "6bdefd1c052a178654e237d931de9fe1964a697e",
+      "source_path": "results/live_ab_validation_v2/ablation_20260921/disabled_arm/shard_015_P10N-p1500-1999/primary_rows.csv.gz"
+    },
+    {
+      "panel": "disabled",
+      "path": "ablation_20260921/disabled_arm/shard_016_P10A-p1500-1999/primary_rows.csv.gz",
+      "sha256": "a1574f12e6245445ece4d90f1f32e85c44180b818f18c08732b5d02eec592560",
+      "source_commit": "6bdefd1c052a178654e237d931de9fe1964a697e",
+      "source_path": "results/live_ab_validation_v2/ablation_20260921/disabled_arm/shard_016_P10A-p1500-1999/primary_rows.csv.gz"
+    }
+  ],
+  "schema_version": 1,
+  "scope": "Exploratory synthetic saved-record reconstruction; coarse/fine runtime source-binding qualifications and lost coarse-attempt evidence remain. The ablation reuses original coarse coordinates, not independent new trials. Only corrected disabled-arm records are aggregated; both-attempt accounting remains in the archived provenance reports.",
+  "provenance_records": [
+    {
+      "commit": "94c62f7dbb55f926485097aed748dbdb1cfdc841",
+      "path": "results/live_ab_validation_v2/powercurve_20260921/PROVENANCE_ADDENDUM.json",
+      "url": "https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/blob/94c62f7dbb55f926485097aed748dbdb1cfdc841/results/live_ab_validation_v2/powercurve_20260921/PROVENANCE_ADDENDUM.json",
+      "scope": "Surviving records or retrospective addendum; no restoration of missing historical evidence."
+    },
+    {
+      "commit": "94c62f7dbb55f926485097aed748dbdb1cfdc841",
+      "path": "results/live_ab_validation_v2/powercurve_fine_20260921/ERRATUM_v1.json",
+      "url": "https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/blob/94c62f7dbb55f926485097aed748dbdb1cfdc841/results/live_ab_validation_v2/powercurve_fine_20260921/ERRATUM_v1.json",
+      "scope": "Surviving records or retrospective addendum; no restoration of missing historical evidence."
+    },
+    {
+      "commit": "94c62f7dbb55f926485097aed748dbdb1cfdc841",
+      "path": "results/live_ab_validation_v2/powercurve_fine_20260921_failed_attempt1",
+      "url": "https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/tree/94c62f7dbb55f926485097aed748dbdb1cfdc841/results/live_ab_validation_v2/powercurve_fine_20260921_failed_attempt1",
+      "scope": "Surviving records or retrospective addendum; no restoration of missing historical evidence."
+    },
+    {
+      "commit": "94c62f7dbb55f926485097aed748dbdb1cfdc841",
+      "path": "results/live_ab_validation_v2/ablation_20260921/disabled_arm_attempt1_misplaced_cwd",
+      "url": "https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/tree/94c62f7dbb55f926485097aed748dbdb1cfdc841/results/live_ab_validation_v2/ablation_20260921/disabled_arm_attempt1_misplaced_cwd",
+      "scope": "Surviving records or retrospective addendum; no restoration of missing historical evidence."
+    },
+    {
+      "commit": "94c62f7dbb55f926485097aed748dbdb1cfdc841",
+      "path": "results/live_ab_validation_v2/ablation_20260921/disabled_arm",
+      "url": "https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/tree/94c62f7dbb55f926485097aed748dbdb1cfdc841/results/live_ab_validation_v2/ablation_20260921/disabled_arm",
+      "scope": "Surviving records or retrospective addendum; no restoration of missing historical evidence."
+    },
+    {
+      "commit": "94c62f7dbb55f926485097aed748dbdb1cfdc841",
+      "path": "reviews/ablation_provenance_review_20260921_1737.md",
+      "url": "https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/blob/94c62f7dbb55f926485097aed748dbdb1cfdc841/reviews/ablation_provenance_review_20260921_1737.md",
+      "scope": "Surviving records or retrospective addendum; no restoration of missing historical evidence."
+    },
+    {
+      "commit": "94c62f7dbb55f926485097aed748dbdb1cfdc841",
+      "path": "reviews/fine_power_provenance_review_20260921_1550.md",
+      "url": "https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/blob/94c62f7dbb55f926485097aed748dbdb1cfdc841/reviews/fine_power_provenance_review_20260921_1550.md",
+      "scope": "Surviving records or retrospective addendum; no restoration of missing historical evidence."
+    }
+  ]
+}

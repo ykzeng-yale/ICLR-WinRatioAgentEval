@@ -4,17 +4,27 @@
   "authors": [
     "Yukang Zeng"
   ],
-  "pages": 47,
+  "pages": 49,
   "main_pages": 13,
-  "supplement_pages": 34,
+  "supplement_pages": 36,
   "appendix_first_page": 14,
-  "source_files": 36,
-  "code_payload_files": 305,
+  "source_files": 38,
+  "code_payload_files": 391,
   "source_transformations": [
     {
       "path": "t1_validation.tex",
       "addition": "Accepted bounded T1 replay calibration, reviewed at 97ad956",
-      "preprint_sha256": "19dde34f0f05a2538b78dd8d8b4f8bb1eea443d623486c0e904a23758a7adbfa"
+      "preprint_sha256": "41be3398b04b30a1768f06dc45355a53242544db539c44532802083763b5515d"
+    },
+    {
+      "path": "power_diagnostics.tex",
+      "addition": "Accepted descriptive power and paired certificate diagnostics with explicit retrospective provenance",
+      "preprint_sha256": "1acbed974ba41f46a08ac71f7a6fb5cb34f6ab2195ee9125c61bfa99c5b05dc5"
+    },
+    {
+      "path": "figures/power_diagnostics.pdf",
+      "addition": "Wilson intervals from accepted coarse/fine counts; no interpolation",
+      "preprint_sha256": "52f6db396695a8ee9508462b7ebbdcc4ba933eefdb9aeff00284fc4f96ecfa7f"
     },
     {
       "path": "async_appendix.tex",
@@ -64,7 +74,7 @@
     {
       "path": "main.tex",
       "original_sha256": "d1f93aef0068c7fabe3ba71ae52a12fc9bcdc4b9dc00ad7ac3bb05f1dd1260d3",
-      "preprint_sha256": "b88a962fb0d2e35975197dd4c2d8e7b2924ed6bfaa3e6a96125563ba042470c9"
+      "preprint_sha256": "f83d8d670005180f796e866a3aef60c00a9d72b0fdebc63cdea385a52b330ed7"
     },
     {
       "path": "open_airline_appendix.tex",
@@ -163,28 +173,28 @@
   "artifacts": [
     {
       "path": "paper.pdf",
-      "bytes": 514336,
-      "sha256": "f2765a3f11c082b9c16f19fe4c8193c4494a31ff065e4a0ca7a52323868e1cf9"
+      "bytes": 536806,
+      "sha256": "0db00cb95897d7ac86d7b46d1ca294297622dabf6c6365d2788e9e849c5ba0e1"
     },
     {
       "path": "main_paper.pdf",
       "bytes": 300004,
-      "sha256": "343dac55f8b175c92b53c05e2ec64321e43ece83a55474ee90805def0781e113"
+      "sha256": "9b718fcbc8356f80e327ff24480e42c3273acc35cf010e5770b2a82294521c27"
     },
     {
       "path": "supplement.pdf",
-      "bytes": 437912,
-      "sha256": "508335c920f8bc5bbf28f6d71e0fca5bd6568c45b0ed7045057683d55e08d739"
+      "bytes": 452695,
+      "sha256": "a6273b5d147ba73a5f7ad601c3324daf96bb74271231038be4c57de716fe1c18"
     },
     {
       "path": "arxiv_source.tar.gz",
-      "bytes": 145068,
-      "sha256": "7f6c404444fd82e20693229b492442923973b11141cbb5ffea27a2e8f8d847ca"
+      "bytes": 152601,
+      "sha256": "2dca10f583d1c003674eb24dae7d1be9beddd3cbc7f21151e6f34077e7eba35a"
     },
     {
       "path": "reproducibility_code.zip",
-      "bytes": 8283683,
-      "sha256": "bce9786300d59bdadf861d92b951813cb0ad128396c8c2c50abcc0a83f642873"
+      "bytes": 24242924,
+      "sha256": "42bc42967b7db6e4bbd4f126a1ba3599dedd5b5c9bc0ca5fce7eb5ff96b34f3b"
     }
   ]
 }

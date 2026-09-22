@@ -1,0 +1,117 @@
+\clearpage
+\section{Exploratory power and certificate diagnostics}
+\label{app:power_diagnostics}
+The calibration panel in Appendix~\ref{app:t1_validation} does not locate the
+transition from abstention to deployment. Two additional synthetic panels vary
+the hierarchy mean while holding the success mean at $0.20$, the success
+noninferiority margin at $0.03$, and the enrollment horizon at 2,000 pairs.
+They use the same tick-batched observation convention and guarded ADAPTER rule.
+Non-informative (N) and informative (A) delay cells have separate random streams;
+the constructions within a trial share a path. The coarse panel contains
+80,000 trial paths (namespace 3); a subsequent 48,000-path panel (namespace 4)
+uses rungs chosen after the coarse outcomes were inspected. The latter is an
+outcome-informed exploratory follow-up, not an independently prespecified
+extension of a single eleven-rung experiment. The T1 null cells have different
+outcome laws and success means and are not appended as zero-effect points.
+
+\begin{table}[ht]
+\centering\small
+\begin{tabular}{llrrr}
+\toprule
+Panel & Hierarchy mean & Trials per delay cell & N deployments & A deployments\\
+\midrule
+Coarse & $0.05$ & 8,000 & 26 & 406\\
+& $0.10$ & 8,000 & 4,212 & 6,762\\
+& $0.15$ & 8,000 & 7,969 & 7,999\\
+& $0.20$ & 8,000 & 8,000 & 8,000\\
+& $0.30$ & 8,000 & 8,000 & 8,000\\
+\bottomrule
+\end{tabular}
+\caption{ADAPTER deployment counts on the coarse synthetic panel. The separate
+N/A cells are not matched counterfactual delay assignments. These are finite-design
+operating characteristics, conditional on the recorded implementation and
+provenance qualifications below.}
+\label{tab:power_coarse}
+\end{table}
+
+At hierarchy mean $0.10$, the coarse N and A proportions are $52.65\%$ and
+$84.525\%$. In the finer panel, A increases from $1,885/4,000=47.125\%$ at
+$0.08$ to $2,681/4,000=67.025\%$ at $0.09$; marginal Wilson 95\% Monte Carlo
+intervals are $[45.582,48.674]\%$ and $[65.552,68.465]\%$.
+N is $1,284/4,000=32.1\%$ at $0.09$, compared with the coarse $52.65\%$
+at $0.10$. These observed proportions straddle $50\%$ at adjacent measured
+settings; they are not confidence bounds for a unique continuous crossing or a
+minimum detectable effect. Figure~\ref{fig:power_diagnostics} reports all measured
+rungs while keeping the two panels separate. The intervals are pointwise Monte
+Carlo summaries, without simultaneous or post-selection coverage. They do not
+inherit anytime validity from the monitoring rule.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\textwidth]{figures/power_diagnostics.pdf}
+\caption{Guarded ADAPTER deployment proportions under the specified synthetic
+laws. Bars show marginal Wilson 95\% Monte Carlo intervals. The fine rungs were
+selected after the coarse results; no interpolation or unique threshold is
+asserted. N and A denote non-informative and informative delay.}
+\label{fig:power_diagnostics}
+\end{figure}
+
+\paragraph{Paired certificate ablation.}
+A focused post-hoc intervention disables elapsed-cost narrowing in exactly-one-revealed-success states,
+while retaining failure/pending/both-final constraints and the success bounds and original namespace-3 draws at hierarchy
+means $0.05$ and $0.10$. It reuses 32,000 unique trial coordinates for matched original/disabled
+contrasts. Two disabled-arm attempts evaluated those same coordinates twice
+(64,000 execution evaluations); the duplicate attempt adds no independent sample. The four selected cells were chosen after inspecting the
+coarse panel.
+
+\begin{table}[ht]
+\centering\small
+\begin{tabular}{lrrr}
+\toprule
+Setting & Original /8,000 & Disabled /8,000 & Original minus disabled (pp)\\
+\midrule
+$0.05$, N & 26 & 11 & $0.1875$\\
+$0.05$, A & 406 & 381 & $0.3125$\\
+$0.10$, N & 4,212 & 3,116 & $13.7000$\\
+$0.10$, A & 6,762 & 6,726 & $0.4500$\\
+\bottomrule
+\end{tabular}
+\caption{Matched deployment counts with and without elapsed-cost certificates.
+The original counts are reused from Table~\ref{tab:power_coarse}; pp denotes
+percentage points. Disabling this component is not a success-guardrail ablation.}
+\label{tab:certificate_ablation}
+\end{table}
+
+The original-minus-disabled change in the A-minus-N deployment gap is
+$+0.125$ percentage points at $0.05$ (approximate pointwise 95\% Monte Carlo
+interval $[-0.0298,0.2798]$) and $-13.25$ points at $0.10$
+($[-14.0177,-12.4823]$). Thus disabling certificates \emph{widens} the gap at
+$0.10$. Certificates contribute deployments within all four recorded cells,
+especially N at $0.10$, but the tested intervention does not support the proposed
+explanation that they account for the A-over-N advantage. This heterogeneous
+component contribution neither refutes the enclosure theory nor establishes a
+universal benefit from informative delay. Interval standard errors use paired
+trial differences within each cell and independent-cell variance addition for
+the gap change, under the specified separate trial-stream model. No program-level
+latent variable is shared by its four generated trials.
+
+\paragraph{Provenance and reproduction limits.}
+The coarse and fine panels have retrospective driver/law-source binding. A coarse
+failed-attempt directory was deleted; its original source state, timestamps,
+observation counts and resource usage cannot be recovered. The fine panel retains
+its initial failed attempt, but its deposited source/namespace receipt required a
+retrospective correction (actual namespace 4 versus a namespace-3 receipt field).
+The ablation inherits the coarse provenance limitation; both ablation attempts
+are retained, but the first attempt's complete driver blob and output-cap evidence
+were not recovered. Later hashes do not prove which bytes ran earlier. These
+limitations are not repaired by adding results to this paper.
+
+Numerical checks reconcile the saved coordinates, hashes, deployment counts and
+Monte Carlo summaries; they do not regenerate latent paths or independently
+re-execute the complete scientific implementation. The release includes unchanged
+primary records for the coarse and fine panels and the corrected disabled arm,
+with exact repository pins and a standard-library saved-record reproducer.
+Surviving failed-attempt records and provenance addenda remain linked at those snapshots.
+The duplicate ablation attempt is preserved in the repository and is excluded
+from aggregation. These synthetic diagnostics supply no new live-agent outcomes,
+measured production savings, prospective confirmation or human signoff.

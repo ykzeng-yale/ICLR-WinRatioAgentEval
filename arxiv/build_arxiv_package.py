@@ -75,11 +75,17 @@ def prepare_sources():
         r"Code and versioned evidence are available at "
         r"\url{https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval}; "
         "the accompanying archive records the exact released files.", 1)
-    main = main.replace(r"\end{document}", r"\input{t1_validation.tex}" + "\n" + r"\end{document}", 1)
+    main = main.replace(r"\end{document}", r"\input{t1_validation.tex}" + "\n" + r"\input{power_diagnostics.tex}" + "\n" + r"\end{document}", 1)
     changes = []
     addition = OUT / "additions/t1_validation.tex"
     (SOURCE / addition.name).write_bytes(addition.read_bytes())
     changes.append({"path": addition.name, "addition": "Accepted bounded T1 replay calibration, reviewed at 97ad956", "preprint_sha256": digest(addition.read_bytes())})
+    addition = OUT / "additions/power_diagnostics.tex"
+    (SOURCE / addition.name).write_bytes(addition.read_bytes())
+    changes.append({"path": addition.name, "addition": "Accepted descriptive power and paired certificate diagnostics with explicit retrospective provenance", "preprint_sha256": digest(addition.read_bytes())})
+    figure = OUT / "additions/power_diagnostics.pdf"
+    shutil.copy2(figure, SOURCE / "figures" / figure.name)
+    changes.append({"path": "figures/" + figure.name, "addition": "Wilson intervals from accepted coarse/fine counts; no interpolation", "preprint_sha256": digest(figure.read_bytes())})
     for p in sorted((ROOT / "paper").glob("*.tex")):
         text = main if p.name == "main.tex" else p.read_text()
         if p.name == "asynchronous.tex":
@@ -186,11 +192,22 @@ THRESHOLDS = [0., -.03, -.01]"""
         t1_manifest["expected"].setdefault(r["cell"], {})[r["construction"]] = {"trials": r["trials"], "errors": r["trial_any_error"]["k"], "hierarchy_miscoverage": r["miscover_h_twosided"]["k"], **r["decisions"]}
     payload["t1_validation/manifest.json"] = (json.dumps(t1_manifest, indent=2) + "\n").encode()
     payload["t1_validation/reproduce_t1.py"] = (OUT / "additions/reproduce_t1.py").read_bytes()
+    power_manifest = json.loads((OUT / "additions/power_manifest_spec.json").read_text())
+    for entry in power_manifest["primary_files"]:
+        data = (ROOT / entry["source_path"]).read_bytes()
+        frozen = subprocess.check_output(["git", "show", entry["source_commit"] + ":" + entry["source_path"]], cwd=ROOT)
+        if data != frozen or digest(data) != entry["sha256"]:
+            raise ValueError("Power primary record differs from accepted snapshot: " + entry["source_path"])
+        payload["power_diagnostics/" + entry["path"]] = data
+    payload["power_diagnostics/manifest.json"] = (json.dumps(power_manifest, indent=2) + "\n").encode()
+    payload["power_diagnostics/reproduce_power.py"] = (OUT / "additions/reproduce_power.py").read_bytes()
+    payload["power_diagnostics/plot_power.py"] = (OUT / "additions/plot_power.py").read_bytes()
+    payload["power_diagnostics/COMBINED_CURVE.json"] = subprocess.check_output(["git", "show", "94c62f7:results/live_ab_validation_v2/powercurve_fine_20260921/COMBINED_CURVE.json"], cwd=ROOT)
     provenance = {"baseline_scientific_commit": BASELINE,
         "historical_code_archive_sha256": digest((ROOT / "submission/anonymous_code.zip").read_bytes()),
         "source_transformations": changes,
         "code_transformations": code_changes,
-        "scope": "Preprint formatting/metadata, recorded CPU dependency repair, and accepted T1 replay appendix with unchanged primary records and saved-record table reproduction; historical baseline preserved.",
+        "scope": "Preprint formatting/metadata, recorded CPU dependency repair, and accepted T1 replay and qualified exploratory power/ablation appendices with unchanged primary records and saved-record table reproduction; historical baseline preserved.",
         "commercial_model_execution": "prohibited"}
     payload["arxiv_source_provenance.json"] = (json.dumps(provenance, indent=2) + "\n").encode()
     readme = """# Guarded Win Statistics: reproducibility supplement
@@ -200,6 +217,13 @@ Run `python t1_validation/reproduce_t1.py` to reproduce the added T1 table from
 unchanged primary records. Complete original provenance/reference records are at
 https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/tree/35ab9d111123382db8997d4a0ccf4d5e36dbc876/results/live_ab_validation_v2/t1_run_20260921 .
 This separate check does not rerun latent paths or native reference computations.
+Run `python power_diagnostics/reproduce_power.py` to verify saved coarse/fine
+and paired certificate-ablation counts and pointwise Monte Carlo summaries.
+Its manifest pins every primary file to an accepted Git snapshot. Coarse/fine
+source binding is retrospective; deleted coarse first-attempt evidence and
+first-ablation-attempt source/output-cap limitations remain. This is synthetic,
+exploratory evidence, not prospective live validation. Full attempt/provenance
+records remain at the exact Git paths recorded in that manifest.
 `python reproduce.py --coding --airline` reconstructs the open-weight summaries
 from archived metric projections without running any model or candidate code.
 `python reproduce.py --build-pdf` rebuilds the named preprint in paper/.
