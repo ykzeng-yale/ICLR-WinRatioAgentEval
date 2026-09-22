@@ -48,14 +48,14 @@ LS_DIR = lab_common.REPO_ROOT / 'experiments' / 'local_stream'
 FIXTURE_SCHEMA = 'live_ab/combined_lock_sandbox_fixture-v1'
 
 
-def _supervisor_source(lock: str, role: str, ready: str, active: str,
+def _supervisor_source(lock: str, role: str, ready: str, nonce: str,
                        hold_s: float, wait_s: float) -> str:
     """A trusted supervisor: lock OUTSIDE, sandbox program INSIDE."""
     return (
         'import json, os, sys, time\n'
         'sys.path.insert(0, %r); sys.path.insert(0, %r)\n'
         'import lab_data, sandbox as SB\n'
-        'LOCK, ROLE, READY, ACTIVE, HOLD, WAIT = %r, %r, %r, %r, %f, %f\n'
+        'LOCK, ROLE, READY, NONCE, HOLD, WAIT = %r, %r, %r, %r, %f, %f\n'
         'rec = {"role": ROLE, "pid": os.getpid(), "lock": LOCK,\n'
         '       "lock_requested": time.monotonic()}\n'
         'try:\n'
@@ -63,7 +63,7 @@ def _supervisor_source(lock: str, role: str, ready: str, active: str,
         '    with lab_data._ExecutionLock(LOCK, WAIT):\n'
         '        rec["lock_acquired"] = time.monotonic()\n'
         '        prog = ("import time\\n"\n'
-        '                "open(\'sandbox_active\', \'w\').write(\'active\')\\n"\n'
+        '                "open(\'sandbox_active_" + NONCE + "\', \'w\').write(NONCE)\\n"\n'
         '                "time.sleep(%%f)\\n"\n'
         '                "print(\'SANDBOX_DONE\')\\n") %% (HOLD,)\n'
         '        rec["sandbox_started"] = time.monotonic()\n'
@@ -80,7 +80,7 @@ def _supervisor_source(lock: str, role: str, ready: str, active: str,
         '    rec["gave_up"] = time.monotonic()\n'
         '    rec["sandbox_started"] = None\n'
         'print("<<<SUP>>>" + json.dumps(rec))\n'
-    ) % (str(HERE), str(LS_DIR), lock, role, ready, active, hold_s, wait_s)
+    ) % (str(HERE), str(LS_DIR), lock, role, ready, nonce, hold_s, wait_s)
 
 
 def _parse(out: str) -> Dict[str, Any]:
@@ -96,15 +96,21 @@ def run_fixture(work: Optional[Path] = None, *, hold_s: float = 2.0,
     # Fresh isolated fixture directory and ONE explicit lock file both
     # supervisors are pointed at, as root required.
     lock = work / 'combined.lock'
-    active = work / 'sandbox_active.flag'
     ready = work / 'ready.flag'
-    for f in (active, ready):
-        if f.exists():
-            f.unlink()
+    if ready.exists():
+        ready.unlink()
+    # A UNIQUE per-run nonce. Root: "Bind readiness to this holder's unique run
+    # directory/nonce, record the marker identity, and REJECT PRE-EXISTING
+    # markers." My glob for a generic base/p_*/sandbox_active could have been
+    # satisfied by a stale or another run's marker, so the saved active
+    # observation was not provably tied to the holder.
+    import secrets
+    nonce = secrets.token_hex(8)
+    marker_name = 'sandbox_active_' + nonce
 
     holder = subprocess.Popen(
         [sys.executable, '-c',
-         _supervisor_source(str(lock), 'holder', str(ready), str(active),
+         _supervisor_source(str(lock), 'holder', str(ready), nonce,
                             hold_s, contender_wait_s)],
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
@@ -117,21 +123,25 @@ def run_fixture(work: Optional[Path] = None, *, hold_s: float = 2.0,
     sys.path.insert(0, str(LS_DIR))
     import sandbox as _SB
     base = Path(_SB.sandbox_base_dir())
+    # REJECT PRE-EXISTING markers: nothing bearing this nonce may exist before
+    # the holder starts, and the nonce is fresh per run.
+    preexisting = list(base.glob('p_*/' + marker_name))
     deadline = time.monotonic() + 30.0
     seen = []
     while not seen and time.monotonic() < deadline:
         if holder.poll() is not None:
             break
-        seen = list(base.glob('p_*/sandbox_active'))
+        seen = [m for m in base.glob('p_*/' + marker_name)
+                if m.read_text(errors='replace').strip() == nonce]
         if not seen:
             time.sleep(0.01)
-    sandbox_active_observed = bool(seen)
+    sandbox_active_observed = bool(seen) and not preexisting
     sandbox_active_at = time.monotonic() if sandbox_active_observed else None
 
     c = subprocess.run(
         [sys.executable, '-c',
-         _supervisor_source(str(lock), 'contender', str(ready), str(work / 'c.flag'),
-                            0.1, contender_wait_s)],
+         _supervisor_source(str(lock), 'contender', str(ready),
+                            nonce + '_contender', 0.1, contender_wait_s)],
         capture_output=True, text=True, timeout=contender_wait_s + 60.0)
     contender = _parse(c.stdout)
     out, err = holder.communicate(timeout=60.0)
@@ -154,6 +164,15 @@ def run_fixture(work: Optional[Path] = None, *, hold_s: float = 2.0,
         'holder': h,
         'contender': contender,
         'holder_sandbox_active_before_contender_tried': sandbox_active_observed,
+        'run_nonce': nonce,
+        'marker_identity': marker_name,
+        'marker_path_observed': (lab_common.tokenize_path(seen[0]) if seen else None),
+        'preexisting_markers_found': len(preexisting),
+        'readiness_bound_to_this_run': ('the marker NAME carries a fresh per-run nonce and '
+                                        'its CONTENTS must equal that nonce; any pre-existing '
+                                        'marker bearing the nonce invalidates the observation. '
+                                        'The earlier generic glob could have been satisfied by '
+                                        'a stale or foreign run (root 2026-09-22 00:01).'),
         'liveness_marker': ('written by the sandboxed program into its OWN run '
                             'directory under the writable sandbox base -- the only '
                             'place the profile permits. An earlier version had it '

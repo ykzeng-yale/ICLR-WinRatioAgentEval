@@ -1,4 +1,21 @@
 {
+  "ATTRIBUTION_LIMIT_root_0001": {
+    "accepted": "correct. The saved active observation in THIS receipt is NOT independently tied to the holder, and I do not claim it is.",
+    "finding": "root: 'readiness searches a generic base/p_*/sandbox_active marker with no holder/run identifier. A stale or other-run marker could satisfy it ... Do not claim the present saved active observation is independently tied to the holder unless its provenance can be reconstructed.'",
+    "repair_status": "IN PROGRESS, NOT WORKING. Readiness is now bound to a fresh per-run nonce carried in both the marker NAME and its CONTENTS, with pre-existing markers rejected. But the nonce interpolation into the generated sandbox program is not yet correct: the latest run reports payload_ok=False and the marker is never written, so the contender is not blocked. NO v2 RECEIPT IS DEPOSITED, because there is no successful run to deposit.",
+    "unaffected": "the topology, the same-lock contention timeline, the blocked contender and its null sandbox_started are unaffected by this limit and root accepted them.",
+    "why_reported_rather_than_retried_silently": "a fixture that does not produce its payload proves nothing, and depositing a receipt from it would be exactly the class of overclaim I have been corrected for."
+  },
+  "PROSE_CORRECTION_root_0001": {
+    "MY_SECOND_OFFENCE": "I quoted an uncommitted terminal run in my GitHub comment for the SECOND cycle running, after making it a standing rule last time. The rule was stated and then not followed. From here I read the numbers out of the deposited file when writing prose.",
+    "authoritative_values_from_this_receipt": {
+      "contender_pid": 53117,
+      "holder_lock_duration_s": 2.0327934995293617,
+      "holder_pid": 53113
+    },
+    "failed_first_attempt_ledger_note": "the earlier marker-placement failure is described narratively only. Its raw diagnostic output was not captured at the time and is NOT recoverable; labelled unavailable rather than reconstructed. Root: 'a narrative is not a complete all-attempt usage ledger.'",
+    "root": "'Use the saved receipt, not the comment's exploratory numbers: it records holder 53113/contender 53117, while GitHub quotes 53004/53006. The saved lock duration is 2.0327935 s, not 2.029 s.'"
+  },
   "a_design_error_of_mine_that_containment_caught": {
     "fix": "the marker is written into the program's OWN run directory under the writable sandbox base, the only place the profile permits.",
     "note": "containment behaving exactly as the 15 repository-target denials describe. The fixture was wrong, not the sandbox.",

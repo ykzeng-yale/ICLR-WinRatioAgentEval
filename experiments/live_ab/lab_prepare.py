@@ -247,6 +247,7 @@ def _content_key(manifest: dict) -> dict:
 def acquire_sources(dest: "str | Path", *, offline: bool = True,
                     expect_mode: Optional[str] = None,
                     enforce_tmpdir: bool = False,
+                    verify_required_bytes: bool = True,
                     fetch_fn: Callable = lab_data.fetch_sources) -> Dict[str, Any]:
     """Resolve the pinned sources, refusing a silent downgrade.
 
@@ -295,18 +296,17 @@ def acquire_sources(dest: "str | Path", *, offline: bool = True,
                 'from %s (%s). Root: "A later missing cache must refuse or restore '
                 'the same verified bytes, not silently change to S1." Refusing.'
                 % (lab_common.tokenize_path(dest), '; '.join(drift)))
+        # the SAME gate as the fresh path, before any success is returned
+        _validate_acquisition(dest, prior, expect_mode, 'reused manifest',
+                              verify_required_bytes=verify_required_bytes)
         _record_access(dest, 'reuse', prior.get('roster_mode'), drift)
         return {'manifest': prior, 'roster_mode': prior.get('roster_mode'),
                 'reused_existing_manifest': True, 'content_drift': drift}
 
     manifest = fetch_fn(dest, offline=offline)
     mode = manifest.get('roster_mode')
-    if expect_mode == 'EXT' and mode != 'EXT':
-        raise PreparationRefused(
-            'a previous acquisition established roster_mode EXT and this one '
-            'resolved %r. Silently continuing would halve the roster (564 pairs '
-            'to 295) with no exception anywhere. Restore the verified S2 bytes or '
-            'stop.' % (mode,))
+    _validate_acquisition(dest, manifest, expect_mode, 'fresh acquisition',
+                          verify_required_bytes=verify_required_bytes)
     _record_access(dest, 'acquire', mode, [])
     return {'manifest': manifest, 'roster_mode': mode,
             'reused_existing_manifest': False, 'content_drift': []}
@@ -552,3 +552,51 @@ def _coverage_verdict(obs: object, record: dict, *,
                               'the verifier clock, with an independently justified '
                               'endpoint error bound. This arithmetic does not turn '
                               'periodic samples into continuous evidence.'}
+
+def _validate_acquisition(dest: Path, manifest: dict, expect_mode: "str | None",
+                          path_label: str, *, verify_required_bytes: bool = True) -> None:
+    """The single pre-return gate for BOTH acquisition paths.
+
+    Root, 2026-09-22 00:01: "expect_mode='EXT' must refuse an S1 result EVEN WHEN
+    S2 IS LEGITIMATELY ABSENT on that host. The expectation is a caller
+    requirement, not a claim that missing bytes cannot occur ... Check it on every
+    acquisition path, INCLUDING REUSE OF A PRIOR MANIFEST, before returning
+    success. Verify required-source integrity in either mode; required S1
+    corruption/missingness must never become success with a drift warning."
+
+    My previous code checked the expectation only on the fresh-fetch path, and the
+    reused-manifest path returned drift as a warning field. Both are closed here,
+    in one place, so the two paths cannot diverge again.
+    """
+    mode = manifest.get('roster_mode')
+    if expect_mode == 'EXT' and mode != 'EXT':
+        raise PreparationRefused(
+            '%s: a previous acquisition established roster_mode EXT and this one '
+            'resolved %r. An explicit EXT expectation is BINDING even when S2 is '
+            'legitimately absent: that mismatch is exactly what the expectation '
+            'exists to surface. Restore the identical pinned bytes, or record a '
+            'deliberate design decision to run a different study -- dropping the '
+            'argument is not authority to erase the persisted expectation.'
+            % (path_label, mode))
+
+    # REQUIRED-SOURCE INTEGRITY, in EITHER mode. A required source that is absent
+    # or whose bytes differ from the pin is a refusal, never a drift warning.
+    if not verify_required_bytes:
+        # SYNTHETIC FIXTURES ONLY. Their manifests declare sources present without
+        # depositing 255 KB of real benchmark bytes, so the integrity half cannot
+        # run. The MODE half above still runs, which is what those fixtures test.
+        # Production never passes this.
+        return
+    for name, spec in lab_data.SOURCES.items():
+        if not spec.get('required'):
+            continue
+        f = dest / spec['filename']
+        if not f.is_file():
+            raise PreparationRefused(
+                '%s: required source %s is absent from %s; a required source may '
+                'never become success with a drift warning'
+                % (path_label, name, lab_common.tokenize_path(dest)))
+        if lab_common.sha256_file(f) != spec['sha256']:
+            raise PreparationRefused(
+                '%s: required source %s does not match its pinned sha256; refusing '
+                'rather than reporting drift' % (path_label, name))

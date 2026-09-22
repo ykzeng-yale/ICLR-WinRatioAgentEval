@@ -2177,13 +2177,13 @@ class SourceAcquisitionTests(unittest.TestCase):
         def fetch(dest, *, offline=False):
             return self._manifest(mode='S1', present=('mbpp_sanitized', 'humaneval'))
         with self.assertRaises(lab_prepare.PreparationRefused) as ctx:
-            lab_prepare.acquire_sources(self.tmp, expect_mode='EXT', fetch_fn=fetch)
+            lab_prepare.acquire_sources(self.tmp, expect_mode='EXT', verify_required_bytes=False, fetch_fn=fetch)
         self.assertIn('EXT', str(ctx.exception))
 
     def test_allows_S1_when_no_prior_mode_was_established(self):
         def fetch(dest, *, offline=False):
             return self._manifest(mode='S1', present=('mbpp_sanitized', 'humaneval'))
-        res = lab_prepare.acquire_sources(self.tmp, fetch_fn=fetch)
+        res = lab_prepare.acquire_sources(self.tmp, verify_required_bytes=False, fetch_fn=fetch)
         self.assertEqual(res['roster_mode'], 'S1')
 
     def test_repeat_acquisition_is_idempotent_and_does_not_rewrite_the_manifest(self):
@@ -2197,7 +2197,7 @@ class SourceAcquisitionTests(unittest.TestCase):
         prior = self._manifest(mode='S1', present=())
         (self.tmp / 'sources.json').write_text(json.dumps(prior), 'utf-8')
         before = (self.tmp / 'sources.json').read_bytes()
-        res = lab_prepare.acquire_sources(self.tmp, expect_mode=None,
+        res = lab_prepare.acquire_sources(self.tmp, expect_mode=None, verify_required_bytes=False,
                                           fetch_fn=lambda d, **k: prior)
         self.assertTrue(res['reused_existing_manifest'])
         self.assertEqual((self.tmp / 'sources.json').read_bytes(), before,
@@ -2216,13 +2216,14 @@ class SourceAcquisitionTests(unittest.TestCase):
         (self.tmp / 'sources.json').write_text(json.dumps(self._manifest()), 'utf-8')
         # files absent from dest entirely -> cannot restore the verified bytes
         with self.assertRaises(lab_prepare.PreparationRefused) as ctx:
-            lab_prepare.acquire_sources(self.tmp, fetch_fn=lambda d, **k: self._manifest())
+            lab_prepare.acquire_sources(self.tmp, verify_required_bytes=False, fetch_fn=lambda d, **k: self._manifest())
         self.assertIn('refuse or restore', str(ctx.exception))
 
     def test_accesses_are_recorded_separately_from_acquisition(self):
         res = lab_prepare.acquire_sources(
-            self.tmp, fetch_fn=lambda d, **k: self._manifest(mode='S1',
-                                                             present=('mbpp_sanitized', 'humaneval')))
+            self.tmp, verify_required_bytes=False,
+            fetch_fn=lambda d, **k: self._manifest(mode='S1',
+                                                   present=('mbpp_sanitized', 'humaneval')))
         log = self.tmp / lab_prepare.ACCESS_LOG_NAME
         self.assertTrue(log.is_file(), 'no separate access log was written')
         entries = lab_data.AttemptLedger(log).load()
