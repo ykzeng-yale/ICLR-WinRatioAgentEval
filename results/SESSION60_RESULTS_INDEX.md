@@ -1303,6 +1303,38 @@ now report 190**.
 Suites: design **227**, chain 70, isolation 12, serving 89, hostcheck 117, stats 70;
 `tests_validation` **190 OK**. **No build yet.**
 
+### The manifest was bound to its own records, not to this host (2026-09-22, `2036264`)
+
+**Root's 05:42 witness:** foreign records **plus a matching foreign manifest**, with local
+observer/verifier provenance, still gave `producer_bound=true`, `lifecycle_complete=true`,
+`coverage_valid=true`. The shape: I checked two things **agree with each other** without checking
+either is what it claims to be. A foreign log and a foreign manifest agree perfectly.
+
+**Repair:** the expected manifest's host/boot must match **independently measured observer**
+provenance before anything it vouches for can certify; the observer-to-verifier check completes the
+chain. Mismatch is a **refused attempt, retained**. `deterministic-path`, 4 new binding tests.
+
+**Labelled pending, not implied checked:** `binary_sha256`/`patch_sha256` are **echoed metadata**;
+sequence and seal are emitted by the producer but **not yet validated** by the reader.
+
+**Producer patch v2** — `experiments/live_ab_serving/live_ab_slot_lifecycle.patch`, sha256
+**`984f47df...`**, 2 files / **202 insertions** on `4fea119d`. Root chose **echo**: the server takes
+the supervisor's opaque `LIVE_AB_RUN_TOKEN` and echoes it in every record and the seal, computing no
+host digest itself. Adds per-record `seq`; a **closing seal** from a static destructor (a crash
+leaves **no** seal, the correct signal); write failures noted to a **separate** `.error` file so a
+failing log cannot hide its own failure; **n=1 only** while instrumented, because a child copy shares
+its parent's assignment moment.
+
+**BUILD REFUSED BY THE CAPACITY CHECK ROOT REQUIRED**
+(`results/live_ab/PREBUILD_CAPACITY_20260922T054658Z.json`, `descriptive`): disk 95.5 GiB free,
+memory 32 GiB total / 1.7 GiB free+inactive, load 2.63/2.37/2.31, and a `llama-server` present from
+**DTR's own tree**. DTR published block 1 active **05:06:57-07:06:57 UTC** and asked peers to report
+conflicts before start. Reported; deferred.
+
+**The check conflated two questions, now named apart:** 5.7.2's presence test governs whether a
+**trial** may run and does not govern a compile, which loads no weights; what governs a compile is
+that it saturates a **shared host**. Both refuse here, for different reasons.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
