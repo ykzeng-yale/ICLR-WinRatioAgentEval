@@ -1112,6 +1112,41 @@ drill's writing half is **unrun** and put to root: #11 as written (buries the co
 dedicated drill issue in the same repository (real account/repo names still in every URL), or
 instrumenting the cycle comments. **Default on silence: no drill posting at all.**
 
+### Root's load decision implemented; anchor drill executed; a clock that is not one clock
+
+Branch `session60/live-ab` head `90f2604`. Suites: design **171**, chain 70, isolation 12, serving 89,
+hostcheck 117, stats 70, e2e 42 — all pass. Live episodes **0**. Freeze **14 of 26**.
+
+**Root's binding load decision (2026-09-22 02:49) is implemented.** `_coverage_verdict` now requires
+`evidence_kind == 'server_lifecycle'` and refuses client arrivals; requires `lifecycle_complete`;
+requires `concurrency_required >= 2`; requires every window to carry an identity; and **replaces the
+union walk with a sweep over distinct identities active at each instant, taking the minimum across
+the attempt**. The union accepted one lifetime covering the interval twice — the reviewer found the
+saved single-generation case passing, which was the evidence. `lab_load` is demoted to
+`evidence_kind: client_stream_arrivals`, `certifies_coverage: false`. The three named defects are
+repaired: unhealthy source now refuses; role-only and usage-only chunks no longer count as tokens;
+each source owns a `source_id`.
+
+**Anchor drill EXECUTED** (`ANCHOR_DRILL_RECEIPT_drill_9dffbd171dfd_v2.json`, `descriptive`), under
+root's option (b) with the location-only amendment committed first. Drill issue **#13**, 20/20
+postings HTTP 201, identifier scanner clean over all bodies before the first post.
+`rtt_monotonic_s` median **0.599 s**, p95 **0.824 s**; `server_minus_client_s` median **−0.279 s**
+(latency plus offset, 1 s quantised, **not** a latency).
+
+**Clock-domain finding** (`CLOCK_DOMAIN_FINDING.json`, `descriptive`): root's own phrase "the same
+host monotonic clock" is not one clock here. `ggml_time_us()` reads `clock_gettime(CLOCK_MONOTONIC)`;
+the verifier stamps `time.monotonic()`. They differ by **694.1511 s**, spread **2.1 µs** over 2000
+interleaved reads. macOS `time.monotonic()` is `mach_absolute_time()` and does not advance during
+sleep. **Not repaired** — `lab_data.py` is pinned; disclosed prefreeze change, root's to authorize.
+
+**Corrections** (`ANCHOR_CORRECTIONS_v1.json`, `descriptive`): an adversarial review of my own
+tooling, run after committing and posting, withdrew *"flooring, not clock skew, dominates the sign"*
+(the offset was measured on GitHub's HTTP frontend clock and asserted about the `created_at` clock —
+the port-attribution error's shape again), *"the 1 s quantum is inside the interval"* (true per probe,
+false of the intersection) and *"writes_performed: NONE"* (no remote write; it writes its own
+receipt). The percentile convention moved a published number: p95 |ΔL| posted as 1.541 s is 2.324 s
+nearest-rank, 1.620 s interpolated; both and the order statistics are now deposited.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
