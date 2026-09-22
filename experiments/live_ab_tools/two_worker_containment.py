@@ -76,6 +76,18 @@ def main(argv: Optional[List[str]] = None) -> int:
     lab_common.write_json_atomic(out, result)
 
     print('verdict:', result['verdict'])
+    # A REFUSED PRECONDITION HAS NO LIMBS. The first version indexed
+    # result['limbs'] unconditionally and raised KeyError -- AFTER the receipt was
+    # written, so the evidence survived and the operator saw a traceback instead
+    # of the refusal. Same shape as the write-once refusal that raised from inside
+    # its own message: a reporting path must not be able to crash once the
+    # evidence is deposited, and it must not hide the outcome it exists to show.
+    if result['verdict'] == 'REFUSED_PRECONDITION':
+        print(' ', result['why'])
+        print('  precondition:', json.dumps(result['precondition']))
+        print('  this is NOT a containment failure.')
+        print('written:', out)
+        return 2
     for k, v in sorted(result['limbs'].items()):
         print('  %-48s %s' % (k, v))
     c = result['contender_blocked']

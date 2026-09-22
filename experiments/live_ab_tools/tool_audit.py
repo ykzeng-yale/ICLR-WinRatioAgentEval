@@ -316,6 +316,87 @@ def _external_programs(tree: ast.AST) -> set:
     return found
 
 
+def _subscript_literal_checks(tree: ast.AST) -> List[Dict[str, Any]]:
+    """`receipt['verified'] = True` -- a final claim assigned as a literal.
+
+    THE GAP I NAMED LAST CYCLE AND DID NOT CLOSE. `_literal_checks` reads dict
+    LITERALS, so a field set by subscript after construction is invisible to it.
+    That is the same syntax as the `initialiser_later_mutated` bucket used for the
+    opposite purpose: there the literal is the DEFAULT and the subscript computes
+    the answer; here the subscript IS the answer and it is a literal.
+
+    The two are told apart by WHICH SIDE carries the constant, so the same shape
+    cannot be excused twice. Branch context applies as before, because
+    `if ok: r['passed'] = True` is decided by the `if`.
+    """
+    conditional: set = set()
+    for parent in ast.walk(tree):
+        if isinstance(parent, (ast.If, ast.IfExp, ast.Try, ast.While,
+                               ast.ExceptHandler, ast.For)):
+            for child in ast.walk(parent):
+                if isinstance(child, ast.Assign):
+                    conditional.add(id(child))
+
+    # A DEFAULT SET IN TWO STATEMENTS IS STILL A DEFAULT.
+    #     out = {name: None for name in NAMES}
+    #     out['ok'] = False            <- this literal
+    #     ...
+    #     out['ok'] = True             <- computed elsewhere in the function
+    # `lab_server.metrics` is exactly this, and its docstring says so. The
+    # initialiser rule only saw one-statement dict literals, so a default spelled
+    # over two statements looked like a final claim. The signal that tells them
+    # apart is whether the SAME key is assigned a NON-constant value anywhere in
+    # the enclosing function: if it is, the literal is a default.
+    computed_keys: dict = {}
+    for fn in ast.walk(tree):
+        if not isinstance(fn, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        keys: dict = {}
+        for a in ast.walk(fn):
+            if isinstance(a, ast.Assign) and len(a.targets) == 1:
+                t = a.targets[0]
+                if (isinstance(t, ast.Subscript) and isinstance(t.slice, ast.Constant)
+                        and isinstance(t.slice.value, str) and a is not None):
+                    # ANY later write, constant or not. The first rule demanded a
+                    # NON-constant value and so missed `out['ok'] = True` in the
+                    # success branch -- a constant. What makes the earlier literal
+                    # a DEFAULT is being written more than once, not what the
+                    # second write is made of.
+                    keys.setdefault((ast.unparse(t.value), t.slice.value), 0)
+                    keys[(ast.unparse(t.value), t.slice.value)] += 1
+        for a in ast.walk(fn):
+            if isinstance(a, ast.Assign):
+                computed_keys[id(a)] = keys
+
+    out = []
+    for n in ast.walk(tree):
+        if not isinstance(n, ast.Assign) or len(n.targets) != 1:
+            continue
+        tgt = n.targets[0]
+        if not (isinstance(tgt, ast.Subscript)
+                and isinstance(tgt.slice, ast.Constant)
+                and isinstance(tgt.slice.value, str)):
+            continue
+        if not (isinstance(n.value, ast.Constant)
+                and isinstance(n.value.value, bool)):
+            continue
+        key = tgt.slice.value
+        low = key.lower()
+        if any(w in low for w in DECLARATION_WORDS):
+            kind = 'declaration'
+        elif not any(w in low for w in CHECK_WORDS):
+            kind = 'unclassified'
+        elif id(n) in conditional:
+            kind = 'branch_determined'
+        elif computed_keys.get(id(n), {}).get((ast.unparse(tgt.value), key), 0) > 1:
+            kind = 'default_later_computed'
+        else:
+            kind = 'subscript_literal_check'
+        out.append({'key': key, 'value': n.value.value, 'kind': kind,
+                    'line': n.lineno, 'target': ast.unparse(tgt)[:60]})
+    return out
+
+
 def _named_claims(tree: ast.AST) -> List[Dict[str, str]]:
     """Result-key string literals that name a source, with their source token."""
     claims = []
@@ -378,6 +459,7 @@ def audit_file(path: Path) -> Dict[str, Any]:
             })
 
     literals = _literal_checks(tree)
+    subscripts = _subscript_literal_checks(tree)
 
     claims = []
     for c in _named_claims(tree):
@@ -404,6 +486,12 @@ def audit_file(path: Path) -> Dict[str, Any]:
         'named_claims': claims,
         'claims_without_read': [c for c in claims if not c['source_is_read_by_this_module']],
         'literal_checks': [x for x in literals if x['kind'] == 'literal_check'],
+        'subscript_literal_checks': [x for x in subscripts
+                                     if x['kind'] == 'subscript_literal_check'],
+        'subscript_branch_determined': sum(
+            1 for x in subscripts if x['kind'] == 'branch_determined'),
+        'subscript_default_later_computed': sum(
+            1 for x in subscripts if x['kind'] == 'default_later_computed'),
         'declarations': [x for x in literals if x['kind'] == 'declaration'],
         'branch_determined': [x for x in literals
                               if x['kind'] == 'branch_determined'],
@@ -426,6 +514,9 @@ def audit(directory: Optional[Path] = None) -> Dict[str, Any]:
               for c in r['reimplementation_exempted_by_role']]
     bad_claims = [(r['file'], c) for r in rows for c in r['claims_without_read']]
     lit = [(r['file'], c) for r in rows for c in r['literal_checks']]
+    sub = [(r['file'], c) for r in rows for c in r['subscript_literal_checks']]
+    sub_branch = sum(r['subscript_branch_determined'] for r in rows)
+    sub_default = sum(r['subscript_default_later_computed'] for r in rows)
     decl_n = sum(len(r['declarations']) for r in rows)
     branch_n = sum(len(r['branch_determined']) for r in rows)
     guard_n = sum(len(r['guarded_by_early_return']) for r in rows)
@@ -452,6 +543,15 @@ def audit(directory: Optional[Path] = None) -> Dict[str, Any]:
         'claims_without_read_count': len(bad_claims),
         'literal_checks': [{'file': f, **c} for f, c in lit],
         'literal_check_count': len(lit),
+        'subscript_literal_checks': [{'file': f, **c} for f, c in sub],
+        'subscript_literal_check_count': len(sub),
+        'subscript_branch_determined_count': sub_branch,
+        'subscript_default_later_computed_count': sub_default,
+        'subscript_note': (
+            "closes the gap named last cycle: receipt['verified'] = True is a "
+            'final claim assigned as a literal, invisible to a dict-literal scan. '
+            'Told apart from the initialiser pattern by WHICH SIDE carries the '
+            'constant, so one shape cannot be excused twice.'),
         'declaration_count': decl_n,
         'branch_determined_count': branch_n,
         'guarded_by_early_return_count': guard_n,
@@ -520,6 +620,13 @@ def main(argv: Optional[List[str]] = None) -> int:
     for c in result['literal_checks']:
         print('  %-34s %-46s = %s  (line %s)'
               % (Path(c['file']).name, c['key'], c['value'], c['line']))
+    print('\nsubscript literal checks (%d)   [branch %d, default-later-computed %d]:'
+          % (result['subscript_literal_check_count'],
+             result['subscript_branch_determined_count'],
+             result['subscript_default_later_computed_count']))
+    for c in result['subscript_literal_checks']:
+        print('  %-34s %-46s = %s  (line %s)'
+              % (Path(c['file']).name, c['target'], c['value'], c['line']))
     print('\nwritten:', a.out)
     return 0
 

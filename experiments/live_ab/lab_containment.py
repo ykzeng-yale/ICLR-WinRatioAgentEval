@@ -299,6 +299,38 @@ def pair_attempts(sandboxed: List[dict], unsandboxed: List[dict]) -> Dict[str, A
     }
 
 
+def lock_is_free(lock_path: Path) -> Dict[str, Any]:
+    """Is the host execution lock unheld right now?
+
+    A FAST FAIL, not a guarantee. Between this probe releasing and the holder
+    acquiring, anything on the host may take the lock; the LOCK CONTROL at the end
+    of the run is what actually establishes that the run was clean. This only
+    stops the fixture from spending two seconds and then reporting a verdict about
+    containment when the real answer is "the host was busy".
+
+    Why it exists: I launched the test suite in the background and ran the fixture
+    beside it. Four suites take <WORK>/sandbox.lock. The control caught it and the
+    run came out `verdict: FAIL, lock_control_acquired: False` -- correct, but it
+    labelled a BUSY HOST as a failed containment check. Those are different
+    findings and a receipt must not conflate them.
+
+    Uses the audited `lab_data._ExecutionLock` with a zero wait rather than a raw
+    `fcntl.flock`: one attempt, then refuse.
+    """
+    import lab_data                                            # noqa: PLC0415
+    try:
+        with lab_data._ExecutionLock(Path(lock_path), 0.0):
+            pass
+        return {'free': True, 'probe': 'acquired and released immediately'}
+    except lab_common.PreflightError as exc:
+        return {'free': False, 'refusal': str(exc)[:200],
+                'probe': 'one non-blocking attempt, refused'}
+    except OSError as exc:                                     # noqa: BLE001
+        # Cannot open the lock file at all: report it rather than reading an
+        # unopenable lock as a free one.
+        return {'free': False, 'error': '%s: %s' % (type(exc).__name__, exc)}
+
+
 def _run_contender(py: str, work: Path, lock_path: Path, max_wait_s: float,
                    signal: Path, tag: str, *, require_holder: bool,
                    background: bool):
@@ -373,6 +405,25 @@ def run_two_worker(fixture_root: Optional[Path] = None,
     max_lock_wait = float((cfg.get('execution') or {}).get('max_lock_wait_s', 120))
     py = sys.executable
 
+    # PRECONDITION. Checked BEFORE anything is spawned, so a busy host costs
+    # nothing and is never reported as a containment verdict.
+    pre = lock_is_free(lock_path)
+    if not pre.get('free'):
+        return {
+            'schema': 'live_ab/two_worker_containment-v1',
+            'verdict': 'REFUSED_PRECONDITION',
+            'precondition': pre,
+            'lock_path': lab_common.tokenize_path(lock_path),
+            'why': ('the host execution lock was already held when this run '
+                    'started. The fixture needs it free: its LOCK CONTROL runs a '
+                    'contender when nobody should be holding, and a pre-existing '
+                    'holder makes that control fail for a reason that has nothing '
+                    'to do with containment.'),
+            'this_is_not_a_containment_failure': True,
+            'what_to_do': ('wait for the other holder. Four test suites take this '
+                           'lock, so do not run this fixture beside the suite.'),
+        }
+
     out: Dict[str, Any] = {
         'schema': 'live_ab/two_worker_containment-v1',
         'protocol': '5.7 item 3, and the exclusion clause of 5.7',
@@ -385,6 +436,11 @@ def run_two_worker(fixture_root: Optional[Path] = None,
                   'differenced across processes.'),
         'contender_max_wait_s': contender_wait_s,
         'holder_max_lock_wait_s': max_lock_wait,
+        'precondition': pre,
+        'precondition_is_not_a_guarantee': (
+            'the lock was free at the probe. Anything on the host could take it '
+            'between the probe and the hold; the lock control at the end is what '
+            'establishes the run was clean.'),
     }
 
     # --- worker B starts first, and waits for the signal ---------------------

@@ -1995,6 +1995,52 @@ Suites: chain 70, design 316, e2e 42, hostcheck 117, **isolation 24 — FAILED (
 conformance test, still red by intent**, serving 89, stats 70; validation 190 (2 expected failures),
 panel 83, shard 31. `HARNESS_FILES` **33**.
 
+### The precondition I had not stated, written into the tool — and the last detector gap closed (2026-09-22)
+
+`deterministic-path`.
+
+**Last cycle the two-worker fixture discovered a busy host in its own lock control and reported
+`verdict: FAIL`.** Correct, but it labelled *"the host was busy"* as a failed containment check.
+Those are different findings and a receipt must not conflate them.
+
+`lab_containment.lock_is_free` now probes before anything is spawned, using the audited
+`lab_data._ExecutionLock` with a zero wait rather than a raw `fcntl.flock`. A held lock produces
+**`verdict: REFUSED_PRECONDITION`**, exit code **2**, and `this_is_not_a_containment_failure: true` —
+no limbs, no containment verdict.
+
+**Verified by holding the lock from another process.**
+`results/live_ab/TWO_WORKER_PRECONDITION_REFUSAL_v2.json`: refused cleanly.
+`TWO_WORKER_CONTAINMENT_20260922T141527Z.json`: PASS on eight limbs with the lock free.
+**The precondition is a fast fail, not a guarantee** — anything can take the lock between the probe
+and the hold, and the lock control at the end is still what establishes the run was clean. The
+receipt says so.
+
+**And a second reporting-path defect, the same shape as the last one.** The first refusal run wrote
+its receipt and *then* crashed with `KeyError: 'limbs'` printing the summary — the operator saw a
+traceback instead of the refusal. The evidence survived; the reporting did not. Same family as the
+write-once refusal that raised from inside its own message. **A reporting path must not be able to
+crash once the evidence is deposited, and must not hide the outcome it exists to show.**
+
+### The subscript gap I named last cycle and did not close
+
+`literal_check` reads dict **literals**, so `receipt['verified'] = True` after construction was
+invisible. Closed — and it is the *same syntax* as the `initialiser_later_mutated` bucket used for
+the opposite purpose. **They are told apart by which side carries the constant**, so one shape cannot
+be excused twice.
+
+**One production hit, and refining it took two tries.** `lab_server.metrics` sets `out['ok'] = False`
+right after building `out` — a default spelled over **two statements**, which the one-statement
+initialiser rule could not see. My first refinement asked whether the key was later assigned a
+**non-constant** value; it did not fire, because the success branch assigns the constant `True`.
+**What makes the earlier literal a default is being written more than once, not what the second write
+is made of.** Corrected, and it now buckets as `default_later_computed`.
+
+**Both trees clean on all four detectors:** `results/live_ab/TOOL_AUDIT_v11.json` and
+`results/live_ab/PRODUCTION_AUDIT_v6.json` (32 files, 0 claims-without-read, 0 unbucketed literal
+checks, 0 unbucketed subscript checks). **Three intermediate receipts were removed** whose findings
+duplicate a retained one; `PRODUCTION_AUDIT_v4.json` is retained because it is the run that found the
+hit.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
