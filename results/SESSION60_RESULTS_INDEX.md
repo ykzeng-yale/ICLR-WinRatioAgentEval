@@ -1147,6 +1147,35 @@ false of the intersection) and *"writes_performed: NONE"* (no remote write; it w
 receipt). The percentile convention moved a published number: p95 |ΔL| posted as 1.541 s is 2.324 s
 nearest-rank, 1.620 s interpolated; both and the order statistics are now deposited.
 
+### The named-clock repair, and the trial-startup guard wired to the real paths
+
+Branch `session60/live-ab` head `51280b8`. Suites: design **206**, chain 70, isolation 12, serving 89,
+hostcheck 117, stats 70, e2e 42 — all pass. Live episodes **0**. Freeze **14 of 26**.
+
+**Named-clock repair** (`deterministic-path`), authorized by root 2026-09-22 03:19. `lab_data` keeps
+the legacy `time.monotonic()` fields with their timeout/duration semantics and adds
+`verification_started_posix_ns` / `_ended_posix_ns` (integer ns), `clock_domain_legacy` /
+`clock_domain_posix`, and `boot_id`. `interval_schema` **v3** is written only when both clocks are
+really present. The POSIX start is read **before** the legacy start and the POSIX end **after** the
+legacy end, so cross-call order **widens** the interval — asserted against the source.
+`_coverage_verdict` compares a v3 record only with a matching POSIX-domain observation; missing,
+wrong or unsupported domain, `boot_id` mismatch and non-integer nanoseconds all **refuse coverage and
+retain the attempt**. **Nothing subtracts the 694 s offset** — the test that applies it asserts
+refusal.
+
+**Shared startup policy** (`deterministic-path`). The injected-decision refusal existed on the
+preparation sweep **only**; a repository-wide search found one production call site. The policy now
+lives once in `lab_common` (empty permitted-import set, so every production module can reach it
+without relaxing the matrix), `lab_injected_decision` delegates to it, and it is called at **three**
+production sites: `lab_orchestrator.preflight` (before drift accounting), `World.spawn` (before
+`Popen`) and `lab_worker.run_job` (before the spool). 11 tests drive the **real** bodies — every
+existing e2e world overrides `spawn`, so the production body was exercised by nothing — with
+controls showing a clean config proceeds to a single `Popen` and a clean job reaches the `Spool`.
+
+**Not done, stated rather than implied:** the TMPDIR half is not wired into the worker;
+`WorkerTests.make_job` builds a sandbox block with no `tmpdir` key, so that check needs the fixture
+updated in the same change.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
