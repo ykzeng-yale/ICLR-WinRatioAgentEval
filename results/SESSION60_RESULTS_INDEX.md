@@ -1274,6 +1274,35 @@ check whose purpose is to refuse it. The mutated-original-pin test failed; succe
 expected failures 2 — previously **3 failing**. `vfixtures.py` **18/18**. `tests_panel.py` 83.
 live_ab suites re-run as a regression check only. **No grid rerun, no simulation, no model.**
 
+### Root's six lifecycle-reader witnesses: all certified, none now (2026-09-22, `7c9818e`)
+
+Root reused my own fixture and changed only its saved JSON. Every case returned `valid=true`,
+`lifecycle_complete=true`. `deterministic-path`.
+
+| witness | what it exposed |
+|---|---|
+| foreign host/boot in the records | `observe` **stamped the caller's provenance** onto any file; a copied or previous-boot log read as local |
+| identifiers omitted | `'%s/slot%s/task%s'` built `None/slot0/taskNone` -- **two countable lifetimes out of nothing** |
+| assignment after release, `complete=true` | the reader **trusted a boolean the producer wrote** |
+| same slot, two overlapping tasks | counted as **two concurrent lifetimes** -- request labels inflating slot concurrency |
+| prompt start at a microsecond boundary | `ggml_time_us` truncates; I had asserted **zero endpoint error** |
+| valid two-slot control | retained, still certifies |
+
+**Repairs:** records carry `host_id`/`boot_id` and are **compared** against a run manifest the
+supervisor persists before dispatch -- without one, `producer_bound: false` and nothing certifies;
+identifiers must be **typed and non-placeholder**; the four transitions are **verified ordered** and
+must be integer microseconds; concurrency identity is the **occupied slot**, with the task id kept as
+`lifetime_identity` and an impossible same-slot overlap refusing the whole observation; each window's
+**start moves inward** by the 1 us quantization, the end stays conservative, and `endpoint_error_s: 0.0`
+now states *why* it is zero rather than implying no error exists.
+
+**Entrypoint:** `python tests_validation.py` discovered **184** while `unittest discover` saw **190** --
+the `__main__` block sat above `PinSuccessorAmendmentTests`. Moved below every class; **both routes
+now report 190**.
+
+Suites: design **227**, chain 70, isolation 12, serving 89, hostcheck 117, stats 70;
+`tests_validation` **190 OK**. **No build yet.**
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
