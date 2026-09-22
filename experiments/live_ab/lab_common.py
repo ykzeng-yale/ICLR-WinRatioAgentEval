@@ -657,3 +657,51 @@ def assert_no_fixture(cfg: Mapping | None, *, stage: str) -> dict:
             'injected decision would not be a trial.' % (stage, FIXTURE_ACTIVATION_KEY))
     return {'stage': stage, 'injection_requested': False,
             'checked_before_dispatch': True}
+
+
+#: Protocol 5.7 item 2: "TMPDIR is set to the neutral path carried in config.json
+#: as the token ``<TMP>/labsbx``".
+PRESCRIBED_TMPDIR_TOKEN: str = '<TMP>/labsbx'
+
+
+def prescribed_tmpdir(cfg: Mapping | None, *, tmp_root: str = '/private/tmp') -> str:
+    """The absolute directory ``config.sandbox.tmpdir`` prescribes.
+
+    Raises ``PreflightError`` if the configuration does not carry the prescribed
+    token at all -- a configuration that prescribes something else is not a
+    configuration this harness may run under.
+    """
+    declared = (((cfg or {}).get('sandbox') or {}) or {}).get('tmpdir')
+    if declared != PRESCRIBED_TMPDIR_TOKEN:
+        raise PreflightError(
+            'config.sandbox.tmpdir is %r; protocol 5.7 item 2 prescribes %r'
+            % (declared, PRESCRIBED_TMPDIR_TOKEN))
+    return os.path.join(tmp_root, declared.split('/', 1)[1])
+
+
+def assert_tmpdir(cfg: Mapping | None, *, stage: str,
+                  tmp_root: str = '/private/tmp') -> dict:
+    """The ONE shared TMPDIR check, reachable from every production module.
+
+    Root, 2026-09-22 01:44 and 03:19: "Move the shared stdlib directory checks to
+    lab_common ... The owner must implement/move the one shared stdlib policy and
+    wire the actual production caller."
+
+    WHY IT IS ENFORCED AND NOT ASSUMED. Protocol 5.7 item 2 is in the passive
+    voice and nothing checked it. A run that forgets to export TMPDIR silently
+    gets the ambient one and therefore a DIFFERENT Seatbelt profile digest, with
+    no error. That is not hypothetical: an ambient-TMPDIR digest was computed and
+    promoted into config.json, ARCHITECTURE 6.1 and protocol Appendix B before
+    anyone noticed. The digest depending on TMPDIR is the DESIGN; silently
+    getting the wrong one is the defect.
+    """
+    want = prescribed_tmpdir(cfg, tmp_root=tmp_root)
+    effective = os.path.realpath(tempfile.gettempdir())
+    if effective != os.path.realpath(want):
+        raise PreflightError(
+            '%s: TMPDIR is %s but protocol 5.7 item 2 prescribes %s. The Seatbelt '
+            'profile digest is a function of TMPDIR, so running under the wrong '
+            'one silently produces a profile hash no production run can '
+            'reproduce. Export TMPDIR=%s and retry.'
+            % (stage, effective, want, want))
+    return {'stage': stage, 'tmpdir': want, 'checked': True}

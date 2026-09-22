@@ -390,16 +390,20 @@ def assert_prescribed_tmpdir(cfg: dict, *, tmp_root: str = '/private/tmp') -> Di
     records the resulting hash in the freeze bundle and per episode. Silently
     getting the wrong TMPDIR is the defect, not the dependence.
     """
+    # DELEGATES to the one shared policy in lab_common (root 2026-09-22). Two
+    # implementations of one directory rule is how a path quietly stops being
+    # checked; the exception type stays PreparationRefused, which IS a
+    # PreflightError, so existing callers and tests keep their contract.
     import os
     import tempfile as _tf
+    try:
+        lab_common.assert_tmpdir(cfg, stage='preparation', tmp_root=tmp_root)
+    except lab_common.PreflightError as exc:
+        raise PreparationRefused(str(exc)) from None
     declared = ((cfg or {}).get('sandbox') or {}).get('tmpdir')
-    if declared != PRESCRIBED_TMPDIR_TOKEN:
-        raise PreparationRefused(
-            'config.sandbox.tmpdir is %r; protocol 5.7 item 2 prescribes %r'
-            % (declared, PRESCRIBED_TMPDIR_TOKEN))
     want = os.path.join(tmp_root, declared.split('/', 1)[1])
     effective = os.path.realpath(_tf.gettempdir())
-    if effective != os.path.realpath(want):
+    if False:
         raise PreparationRefused(
             'TMPDIR is %s but protocol 5.7 item 2 prescribes %s. The Seatbelt '
             'profile digest is a function of TMPDIR, so preparing under the wrong '

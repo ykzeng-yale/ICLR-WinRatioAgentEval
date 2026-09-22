@@ -4389,3 +4389,97 @@ class RuntimeCopySweepTests(unittest.TestCase):
         """The repair does not claim a consequence it does not have."""
         src = Path(orch.__file__).read_text('utf-8')
         self.assertIn('NOTHING READS IT TODAY', src)
+
+
+class TmpdirPolicyTests(unittest.TestCase):
+    """The shared TMPDIR policy, in lab_common and wired to the worker.
+
+    Root, 2026-09-22: "Move the shared stdlib directory checks to lab_common ...
+    The owner must implement/move the one shared stdlib policy and wire the
+    actual production caller." Protocol 5.7 item 2 is in the passive voice and
+    nothing checked it: a run that forgets to export TMPDIR silently gets the
+    ambient one and a DIFFERENT Seatbelt profile digest, with no error. That is
+    not hypothetical -- an ambient-TMPDIR digest was once promoted into
+    config.json, ARCHITECTURE 6.1 and protocol Appendix B before anyone noticed.
+    """
+
+    GOOD = {'sandbox': {'tmpdir': '<TMP>/labsbx'}}
+
+    def test_a_configuration_that_prescribes_something_else_is_refused(self):
+        for bad in ({}, {'sandbox': {}}, {'sandbox': {'tmpdir': '/tmp/other'}}):
+            with self.subTest(bad=bad):
+                with self.assertRaises(lab_common.PreflightError):
+                    lab_common.prescribed_tmpdir(bad)
+
+    def test_the_prescribed_directory_is_derived_not_guessed(self):
+        self.assertEqual(lab_common.prescribed_tmpdir(self.GOOD),
+                         '/private/tmp/labsbx')
+
+    def test_a_wrong_ambient_tmpdir_is_refused_and_says_how_to_fix_it(self):
+        with mock.patch.object(lab_common.tempfile, 'gettempdir',
+                               return_value='/var/folders/whatever'):
+            with self.assertRaises(lab_common.PreflightError) as c:
+                lab_common.assert_tmpdir(self.GOOD, stage='unit')
+        msg = str(c.exception)
+        self.assertIn('Seatbelt profile digest is a function of TMPDIR', msg)
+        self.assertIn('/private/tmp/labsbx', msg)
+
+    def test_the_right_tmpdir_passes(self):
+        with mock.patch.object(lab_common.tempfile, 'gettempdir',
+                               return_value='/private/tmp/labsbx'):
+            got = lab_common.assert_tmpdir(self.GOOD, stage='unit')
+        self.assertTrue(got['checked'])
+
+    def test_lab_prepare_delegates_and_keeps_no_second_implementation(self):
+        src = inspect.getsource(lab_prepare.assert_prescribed_tmpdir)
+        self.assertIn('lab_common.assert_tmpdir', src)
+        self.assertNotIn("declared != PRESCRIBED_TMPDIR_TOKEN", src)
+
+    # -- the real worker body ------------------------------------------------
+    def _job(self, with_tmpdir=True):
+        cfg = {'sandbox': {'timeout_s': 10.0}}
+        if with_tmpdir:
+            cfg['sandbox']['tmpdir'] = lab_common.PRESCRIBED_TMPDIR_TOKEN
+        return {'cfg': cfg, 'paths': {'spool': '<WORK>/x.jsonl'}}
+
+    def test_the_real_run_job_refuses_a_wrong_TMPDIR_before_the_spool(self):
+        import lab_worker
+        with mock.patch.object(lab_common.tempfile, 'gettempdir',
+                               return_value='/var/folders/whatever'):
+            with mock.patch.object(lab_worker, 'Spool') as spool:
+                with self.assertRaises(lab_common.PreflightError):
+                    lab_worker.run_job(self._job(), sandbox_lock_path=Path('/dev/null'))
+        spool.assert_not_called()
+
+    def test_the_real_run_job_PROCEEDS_on_the_right_TMPDIR(self):
+        """The control: the check must not be a blanket refusal."""
+        import lab_worker
+        with mock.patch.object(lab_common.tempfile, 'gettempdir',
+                               return_value='/private/tmp/labsbx'):
+            with mock.patch.object(lab_worker, 'Spool') as spool:
+                spool.side_effect = RuntimeError('reached the spool')
+                with self.assertRaises(Exception) as c:
+                    lab_worker.run_job(self._job(), sandbox_lock_path=Path('/dev/null'))
+        self.assertNotIsInstance(c.exception, lab_common.PreflightError)
+        spool.assert_called()
+
+    def test_a_job_without_the_sandbox_key_is_not_a_TMPDIR_failure(self):
+        """A job shape with no tmpdir declaration is a configuration error
+        surfaced elsewhere, not silently reported as a TMPDIR refusal."""
+        import lab_worker
+        with mock.patch.object(lab_common.tempfile, 'gettempdir',
+                               return_value='/var/folders/whatever'):
+            with mock.patch.object(lab_worker, 'Spool') as spool:
+                spool.side_effect = RuntimeError('reached the spool')
+                with self.assertRaises(Exception) as c:
+                    lab_worker.run_job(self._job(with_tmpdir=False),
+                                       sandbox_lock_path=Path('/dev/null'))
+        self.assertNotIsInstance(c.exception, lab_common.PreflightError)
+
+    def test_the_worker_fixture_now_matches_production(self):
+        """tests_lab_serving.WorkerTests.make_job built a sandbox block with no
+        tmpdir key while production jobs carry one -- which is exactly why this
+        check could not be wired without updating the fixture in the same
+        change."""
+        src = Path(lab_common.HERE / 'tests_lab_serving.py').read_text('utf-8')
+        self.assertIn("'tmpdir': lab_common.PRESCRIBED_TMPDIR_TOKEN", src)

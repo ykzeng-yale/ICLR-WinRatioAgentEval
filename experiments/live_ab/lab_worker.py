@@ -480,6 +480,16 @@ def run_job(job: Job, *, sandbox_lock_path: Path) -> dict:
     # in some other process.
     lab_common.assert_no_fixture(job, stage='worker run_job startup')
     lab_common.assert_no_fixture(job.get('cfg'), stage='worker run_job startup (cfg)')
+    # TMPDIR AT THE WORKER'S OWN ENTRY POINT. The worker is a separate OS process
+    # with its own environment, so a check that ran in the orchestrator says
+    # nothing about this process's TMPDIR -- and the Seatbelt profile digest this
+    # process will produce is a function of it. Checked only when the job carries
+    # the sandbox block that declares it, so a job shape without one is a
+    # configuration error surfaced elsewhere rather than a TMPDIR failure here.
+    if isinstance(job.get('cfg'), dict) and (job['cfg'].get('sandbox') or {}).get('tmpdir'):
+        lab_common.assert_tmpdir(job['cfg'], stage='worker run_job startup')
+    elif (job.get('sandbox') or {}).get('tmpdir'):
+        lab_common.assert_tmpdir(job, stage='worker run_job startup')
     paths = job.get('paths') or {}
     spool = Spool(resolve_token_path(paths['spool']))
     if job.get('inv'):

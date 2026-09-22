@@ -1147,6 +1147,27 @@ class ExecutionLockTests(unittest.TestCase):
 class WorkerTests(unittest.TestCase):
 
     def setUp(self) -> None:
+        # THE PRESCRIBED TMPDIR, exported rather than patched. `run_job` now
+        # enforces protocol 5.7 item 2 at the worker's own entry point, and some
+        # of these tests spawn `lab_worker.py --job` as a SUBPROCESS -- an
+        # in-process patch of tempfile.gettempdir would not reach it, so the
+        # environment has to be right rather than merely appearing right to this
+        # interpreter. Restored on teardown.
+        want = lab_common.prescribed_tmpdir(
+            {'sandbox': {'tmpdir': lab_common.PRESCRIBED_TMPDIR_TOKEN}})
+        os.makedirs(want, exist_ok=True)
+        self._prev_tmpdir = os.environ.get('TMPDIR')
+        os.environ['TMPDIR'] = want
+        # tempfile CACHES its resolved directory in tempfile.tempdir at first
+        # use, so exporting the variable alone does not move it in THIS
+        # interpreter -- the module had already resolved the ambient one. The
+        # env var is what the spawned `lab_worker.py --job` subprocess reads;
+        # tempfile.tempdir is what this process reads. Both are needed and they
+        # are not the same mechanism.
+        self._prev_tempdir_attr = tempfile.tempdir
+        tempfile.tempdir = want
+        self.addCleanup(self._restore_tmpdir)
+
         self.tmp = tempfile.TemporaryDirectory()
         self.dir = Path(self.tmp.name)
         for sub in ('spools', 'records', 'requests', 'jobs', 'logs'):
@@ -1157,6 +1178,13 @@ class WorkerTests(unittest.TestCase):
         self.faults = load_scenario('scenario_faults')
         self.tasks_path = self.dir / 'tasks.json'
         self.tasks_path.write_text(json.dumps(self.basic['tasks']), encoding='utf-8')
+
+    def _restore_tmpdir(self) -> None:
+        tempfile.tempdir = self._prev_tempdir_attr
+        if self._prev_tmpdir is None:
+            os.environ.pop('TMPDIR', None)
+        else:
+            os.environ['TMPDIR'] = self._prev_tmpdir
 
     def make_job(self, base_url: str, scenario: dict, *, uid='mbpp/32',
                  workflow='single_shot', arrival=1, worker_index=0, **kw) -> dict:
@@ -1173,8 +1201,12 @@ class WorkerTests(unittest.TestCase):
                        'server_recovery_s': 0.5, 'max_lock_wait_s': 30.0},
             'golden': {'props': golden.props, 'generation_settings': golden.generation_settings,
                        'mask': list(golden.mask), 'float_tolerance': golden.float_tolerance},
+            # PRODUCTION JOBS CARRY THIS KEY and this fixture did not, which is
+            # why the TMPDIR check could not be wired without updating it in the
+            # same change (root, 2026-09-22).
             'sandbox': {'timeout_s': 10.0, 'cpu_s': 10, 'output_cap_bytes': 65536,
-                        'mem_bytes_requested_not_enforced_on_macos': 2147483648},
+                        'mem_bytes_requested_not_enforced_on_macos': 2147483648,
+                        'tmpdir': lab_common.PRESCRIBED_TMPDIR_TOKEN},
             'max_repair_rounds': 2,
             'config_sha256': 'e' * 64,
             'paths': {
