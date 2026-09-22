@@ -1176,6 +1176,31 @@ controls showing a clean config proceeds to a single `Popen` and a clean job rea
 `WorkerTests.make_job` builds a sandbox block with no `tmpdir` key, so that check needs the fixture
 updated in the same change.
 
+### Full sweep of every session-60 experiment (2026-09-22, `f0d29a4`)
+
+Re-ran **every** experiment's suite and the repository-wide verifier, not only the live_ab program.
+
+**`reproduce.py --mode verify`** (`deterministic-path`): **127 archived output hashes matched**, six
+analytic truth checks pass, no commercial request.
+
+**Suites, all passing:** live_ab design **206** / chain 70 / isolation 12 / serving 89 / hostcheck
+117 / stats 70 / e2e 42; `local_stream` **27**; `tau2_open` **16**; `live_ab_validation` panel **83**
++ shard **31**; `experiments/test_replay_sampling.py` 2 checks. **765 tests and checks.**
+
+**Branch hygiene:** `session60/contrib`, `drift-panel`, `live-ab-validation`, `local-stream` and
+`wincs-fix` each have **zero commits not in `main`** — nothing stranded, every recorded
+freeze/delivery commit reachable.
+
+**Issue #6 is open with its work finished since 2026-09-18.** The three repairs are on `main` via
+`0b382a9`: stratum task selected once; `hash(design)` replaced by fixed `DESIGN_ID` with effective
+seeds in `results/replay/manifest.json`; `decision_disagreement.py:82` returns `conflict` when both
+directional predicates hold. Acceptance re-run today: *tiny unequal-replicate sampling ok* for all
+three designs, *cross-process determinism ok under PYTHONHASHSEED 0/1/12345*. Pre-fix outputs
+preserved at `results/replay/replay_results_pre_issue6_e1ea314.csv`. Reported on the issue; not
+closed, because it is not mine to close.
+
+These are **re-verifications of committed artifacts, not new evidence.** No new experiment was run.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
