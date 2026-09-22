@@ -99,6 +99,13 @@ MIN_JITTER_SAMPLES = 20
 #: can claim evidence that was discarded.
 DEFAULT_RING_CAPACITY = 200_000
 
+#: How old the newest arrival may be before traffic counts as STOPPED.
+#: A worker blocked inside ``iter_lines()`` on a server that stopped decoding has
+#: neither exited nor recorded an error, so ``healthy()`` read true for up to the
+#: request timeout -- 300 s -- while ``observe()`` kept returning windows minutes
+#: after the last token. Liveness is a property of the arrivals, not of a thread.
+DEFAULT_MAX_ARRIVAL_STALENESS_S = 5.0
+
 
 class LoadRefused(Exception):
     """The observer cannot stand behind an observation, so it produces none."""
@@ -150,6 +157,7 @@ def windows_from_arrivals(arrivals: Sequence[Tuple[str, float]], *,
                           % (max_interior_gap_s,))
     by_gid: Dict[str, List[float]] = {}
     order: List[str] = []
+    interleave_inversions: List[int] = []
     prev_t: Optional[float] = None
     for i, item in enumerate(arrivals):
         try:
@@ -161,13 +169,22 @@ def windows_from_arrivals(arrivals: Sequence[Tuple[str, float]], *,
         if t is None:
             raise LoadRefused('arrival %d carries a nonfinite timestamp (%r); an '
                               'unusable stamp is not a late one' % (i, raw_t))
+        # ORDER IS CHECKED PER GENERATION, NOT GLOBALLY.
+        # The global check was wrong for the regime this module exists to serve.
+        # Two sources stamp the clock and then append; the two operations are not
+        # atomic, so source B can stamp 100.001, source A stamp 100.000, and A
+        # append second. The global series then LOOKS inverted although each
+        # generation's own stamps are perfectly ordered -- and the whole sweep
+        # aborted with a false "not one monotonic clock" diagnosis. Within one
+        # generation the stamps come from one thread in order, and that is the
+        # claim actually being made.
+        if by_gid.get(gid) and t < by_gid[gid][-1]:
+            raise LoadRefused('arrivals of generation %r are out of order at index '
+                              '%d (%.6f after %.6f); one generation is stamped by '
+                              'one thread in order, so this series is not what it '
+                              'claims to be' % (gid, i, t, by_gid[gid][-1]))
         if prev_t is not None and t < prev_t:
-            # The series is produced by one monotonic clock read per arrival, in
-            # arrival order.  Out-of-order stamps mean the series is not what it
-            # claims to be, and re-sorting it would hide that.
-            raise LoadRefused('arrivals are out of order at index %d (%.6f after '
-                              '%.6f); this series was not produced by one '
-                              'monotonic clock in arrival order' % (i, t, prev_t))
+            interleave_inversions.append(i)
         if gid not in by_gid:
             by_gid[gid] = []
             order.append(gid)
@@ -190,6 +207,11 @@ def windows_from_arrivals(arrivals: Sequence[Tuple[str, float]], *,
         if len(run) < 2:
             continue
         times = [t for _, t in run]
+        # A COUNT OF ARRIVALS IS NOT A DURATION. Two arrivals stamped at the same
+        # instant satisfied len(run) >= 2 and produced a window with start == end,
+        # reported as active load with a 'means' sentence about an interval.
+        if times[-1] <= times[0]:
+            continue
         interior = max(b - a for a, b in zip(times, times[1:]))
         windows.append({
             'schema': WINDOW_SCHEMA,
@@ -284,6 +306,8 @@ class JitterProbe:
         self._sleep = sleep
         self._max_lateness = 0.0
         self._samples = 0
+        self._skipped_ticks = 0
+        self._degraded: Optional[str] = None
         self._stop = threading.Event()
         self._thread: Optional[threading.Thread] = None
         self._lock = threading.Lock()
@@ -306,25 +330,55 @@ class JitterProbe:
             delay = target - self._clock()
             if delay > 0:
                 self._sleep(delay)
-            late = self._clock() - target
+            now = self._clock()
+            late = now - target
             with self._lock:
                 self._samples += 1
                 if late > self._max_lateness:
                     self._max_lateness = late
+            # CATCH-UP SKIP. Without it, one stall replays every missed tick with
+            # delay <= 0 and no sleep, so a 5 s stall manufactured 200,000
+            # 'samples' in 50 ms -- and MIN_JITTER_SAMPLES, which exists to stop
+            # an unmeasured bound, was satisfied by the stall itself.
             k += 1
+            missed = int((now - target) // self.interval_s)
+            if missed > 0:
+                k += missed
+                with self._lock:
+                    self._skipped_ticks += missed
 
-    def start(self) -> None:
+    def start(self, *, reset: bool = False) -> None:
+        if self._degraded:
+            raise LoadRefused(self._degraded)
         if self._thread is not None:
             raise LoadRefused('the jitter probe is already running')
+        if reset:
+            # A bound must come from the period it is applied to. Samples carried
+            # over from an earlier observation period describe that period.
+            with self._lock:
+                self._samples = 0
+                self._max_lateness = 0.0
+                self._skipped_ticks = 0
         self._stop.clear()
         self._thread = threading.Thread(target=self._loop, name='lab_load_jitter',
                                         daemon=True)
         self._thread.start()
 
     def stop(self) -> None:
+        """Stop, and REFUSE to pretend the thread is gone when it is not.
+
+        The first version set ``_thread = None`` whether or not the join
+        succeeded, so an abandoned thread kept writing the counters while
+        ``start()`` happily launched a SECOND probe into the same state.
+        """
         self._stop.set()
         if self._thread is not None:
             self._thread.join(timeout=5.0)
+            if self._thread.is_alive():
+                self._degraded = ('the probe thread did not stop within 5 s; its '
+                                  'counters are still being written and this probe '
+                                  'may not be restarted')
+                return
             self._thread = None
 
     def observe_sample(self, lateness_s: float) -> None:
@@ -352,10 +406,15 @@ class JitterProbe:
                               'fewer than the %d required; an UNMEASURED bound is '
                               'not a small one and this observation carries no '
                               'certifiable endpoints' % (n, MIN_JITTER_SAMPLES)}
+        with self._lock:
+            skipped, degraded = self._skipped_ticks, self._degraded
+        if degraded:
+            return {'available': False, 'samples': n, 'reason': degraded}
         return {
             'available': True,
             'endpoint_error_s': max(f, worst),
             'samples': n,
+            'skipped_ticks': skipped,
             'max_observed_lateness_s': worst,
             'floor_s': f,
             'basis': 'empirical maximum lateness of a %.3f s fixed-schedule wake-up '
@@ -587,13 +646,23 @@ class ContinuousLoadObserver:
                  jitter: Optional[JitterProbe] = None,
                  ring_capacity: int = DEFAULT_RING_CAPACITY,
                  window_prefix: str = 'load',
+                 max_arrival_staleness_s: float = DEFAULT_MAX_ARRIVAL_STALENESS_S,
+                 reset_jitter_on_start: bool = False,
                  clock: Callable[[], float] = time.monotonic) -> None:
         self.source = source
         self.max_interior_gap_s = float(max_interior_gap_s)
         self.endpoint_error_floor_s = float(endpoint_error_floor_s)
         self.jitter = jitter if jitter is not None else JitterProbe()
         self.ring_capacity = int(ring_capacity)
+        if self.ring_capacity < 1:
+            raise LoadRefused('ring_capacity must be at least 1, got %r; a '
+                              'nonpositive capacity raised IndexError inside the '
+                              'arrival sink, corrupting the source instead of '
+                              'refusing the configuration' % (ring_capacity,))
         self.window_prefix = str(window_prefix)
+        self.max_arrival_staleness_s = float(max_arrival_staleness_s)
+        self._reset_jitter_on_start = bool(reset_jitter_on_start)
+        self._probe_was_started = False
         self._clock = clock
         self._arrivals: List[Tuple[str, float]] = []
         self._dropped = 0
@@ -615,12 +684,16 @@ class ContinuousLoadObserver:
         if self._started:
             raise LoadRefused('the observer is already started')
         self._started = True
-        # The probe runs for the whole observation period, not for a calibration
-        # burst: the bound must come from the same interval it is applied to.
-        if getattr(self.jitter, '_thread', None) is None and \
-                self.jitter.samples < MIN_JITTER_SAMPLES:
+        # The probe runs for the WHOLE observation period, and for THIS one.
+        # The first version started it only when it held fewer than
+        # MIN_JITTER_SAMPLES, so a probe carrying samples from an earlier period
+        # -- or pre-seeded by a test -- was never started at all and its bound
+        # described a different interval entirely.
+        self._probe_was_started = False
+        if getattr(self.jitter, '_thread', None) is None:
             try:
-                self.jitter.start()
+                self.jitter.start(reset=self._reset_jitter_on_start)
+                self._probe_was_started = True
             except LoadRefused:
                 pass
         self.source.start(self._sink)
@@ -706,6 +779,18 @@ class ContinuousLoadObserver:
         if not bound.get('available'):
             return dict(base, active=False, active_windows=[],
                         reason=bound.get('reason'))
+        newest = max((t for _, t in arrivals), default=None)
+        now = base['observed_at_monotonic']
+        staleness = None if newest is None else (now - newest)
+        base['newest_arrival_age_s'] = staleness
+        base['max_arrival_staleness_s'] = self.max_arrival_staleness_s
+        if staleness is not None and staleness > self.max_arrival_staleness_s:
+            return dict(base, active=False, active_windows=[],
+                        endpoint_error_s=bound.get('endpoint_error_s'),
+                        reason='traffic has STOPPED: the newest arrival is %.3f s '
+                               'old, beyond the %.3f s staleness limit. A live '
+                               'thread blocked in a read is not a live server.'
+                               % (staleness, self.max_arrival_staleness_s))
         if not windows:
             return dict(base, active=False, active_windows=[],
                         endpoint_error_s=bound['endpoint_error_s'],

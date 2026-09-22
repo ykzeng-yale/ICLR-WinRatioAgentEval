@@ -151,7 +151,24 @@ def run_reference_sweep(tasks: Sequence[dict], cfg: dict, *,
                 'retained and NO further verifier attempt is started'
                 % (key,)) from exc
         entry = dict(key, observation=obs)
-        verdict = _coverage_verdict(obs, record)
+        # ORDERING, AGAIN. My sink persisted the coverage record only AFTER
+        # _coverage_verdict returned, so ANY exception inside the verdict -- a
+        # malformed observation from a real server, say -- lost the observation
+        # the sink exists to retain. This is the same defect root caught in the
+        # attempt path, reintroduced one layer up. The observation is durable
+        # before anything fallible reads it.
+        ledger.append({'schema': 'live_ab/load_observation_raw-v1', **entry})
+        try:
+            verdict = _coverage_verdict(obs, record)
+        except Exception as exc:
+            failure = dict(key, schema='live_ab/load_coverage_failure-v1',
+                           error='verdict raised: %s: %s' % (type(exc).__name__, exc))
+            ledger.append(failure)
+            invalid_coverage.append(failure)
+            raise PreparationRefused(
+                'the coverage verdict raised on %s; the raw attempt and the raw '
+                'observation are retained and NO further verifier attempt is '
+                'started' % (key,)) from exc
         ledger.append({'schema': 'live_ab/load_coverage-v1', **entry,
                        'valid': verdict['valid'], 'reason': verdict['reason']})
         coverage.append(entry)
@@ -342,6 +359,15 @@ EVIDENCE_CLIENT_ARRIVALS = 'client_stream_arrivals'
 #: "Require concurrency at least two, not union coverage of one."
 MIN_LOAD_CONCURRENCY = 2
 
+#: WHICH CLOCK THE WINDOWS ARE ON, and it is checked rather than assumed.
+#: Measured on this host: clock_gettime(CLOCK_MONOTONIC) -- what llama.cpp's
+#: ggml_time_us() reads -- and time.monotonic() -- what lab_data stamps -- differ
+#: by 694.15 s (results/live_ab/CLOCK_DOMAIN_FINDING.json). "The same host
+#: monotonic clock" is not one clock, so an observation must NAME its clock and
+#: it must be the one the verifier record uses. When root authorizes a change to
+#: lab_data's stamping, this constant changes with it, in one place.
+REQUIRED_WINDOW_CLOCK = 'time.monotonic'
+
 INTERVAL_SCHEMA_V1 = 'live_ab/attempt_interval-v1'
 INTERVAL_SCHEMA_V2 = 'live_ab/attempt_interval-v2'
 
@@ -455,18 +481,32 @@ def _coverage_verdict(obs: object, record: dict, *,
                           'or endpoint bound converts them into it. Such evidence is '
                           'retained as a DIAGNOSTIC.'
                           % (EVIDENCE_SERVER_LIFECYCLE, kind)}
+    # THE CLOCK IS NAMED AND CHECKED, not assumed. See REQUIRED_WINDOW_CLOCK.
+    clock = obs.get('clock')
+    if clock != REQUIRED_WINDOW_CLOCK:
+        return {'valid': False, 'clock': clock,
+                'reason': 'the observation declares clock %r; the verifier record '
+                          'is stamped on %r. On this host clock_gettime('
+                          'CLOCK_MONOTONIC) and time.monotonic() differ by 694 s '
+                          'and the gap grows at every sleep, so "the same host '
+                          'monotonic clock" must be checked, not assumed.'
+                          % (clock, REQUIRED_WINDOW_CLOCK)}
     if obs.get('lifecycle_complete') is not True:
         return {'valid': False,
                 'reason': 'the observation does not assert lifecycle_complete. Root: '
                           '"Unknown/missing endpoint or lifecycle discontinuity '
                           'refuses coverage and retains the attempt; it does not '
                           'become a task exclusion."'}
+    # STRICT. int() truncates toward zero and accepts numeric strings, so an
+    # observation asking for 2.9 lifetimes was satisfied by 2 and the string '2'
+    # was accepted as 2. A declaration that is not an integer is not a
+    # declaration.
     required = obs.get('concurrency_required')
-    try:
-        required = int(required)
-    except (TypeError, ValueError):
+    if not isinstance(required, int) or isinstance(required, bool):
         return {'valid': False,
-                'reason': 'observation does not declare concurrency_required'}
+                'reason': 'concurrency_required must be an integer, got %r (%s); '
+                          'int() would truncate 2.9 to 2 and accept the string "2"'
+                          % (required, type(required).__name__)}
     if required < MIN_LOAD_CONCURRENCY:
         return {'valid': False,
                 'reason': 'concurrency_required is %d; the operational load '
@@ -589,16 +629,26 @@ def _coverage_verdict(obs: object, record: dict, *,
         # named its lifetimes gen_000000.. with no per-source prefix, so two
         # sources routed into one observer would COLLIDE in identity. An
         # unidentified window cannot be counted at all.
+        # IDENTITY MUST BE A STRING, not stringified. certified.append((..,
+        # str(ident))) made distinctness a property of the Python repr: a slot
+        # written once as 0 and once as '0' became TWO distinct lifetimes, which
+        # is precisely the fabrication concurrency exists to prevent.
         ident = w.get('identity')
-        if ident in (None, ''):
+        if not isinstance(ident, str) or not ident:
             return {'valid': False,
-                    'reason': 'an active window carries no identity; concurrency of '
-                              'at least %d DISTINCT server-acknowledged lifetimes '
-                              'cannot be established from anonymous windows'
-                              % MIN_LOAD_CONCURRENCY}
+                    'reason': 'an active window carries no string identity (got %r); '
+                              'concurrency of at least %d DISTINCT server-'
+                              'acknowledged lifetimes cannot be established from '
+                              'anonymous windows, and stringifying a value would '
+                              'make 0 and "0" two different slots'
+                              % (w.get('identity'), MIN_LOAD_CONCURRENCY)}
+        if we <= ws:
+            return {'valid': False,
+                    'reason': 'an active window has zero duration (start == end == '
+                              '%r); an instant is not an occupied lifetime' % (ws,)}
         lo, hi = ws + e, we - e          # inward contraction, e >= 0 guaranteed
         if hi > lo:
-            certified.append((lo, hi, str(ident)))
+            certified.append((lo, hi, ident))
     if not certified:
         return {'valid': False,
                 'reason': 'no window survives its own endpoint error bound; nothing '

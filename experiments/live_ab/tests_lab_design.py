@@ -2091,7 +2091,7 @@ class PreparationWiringTests(unittest.TestCase):
             # with the stated resolution charged against the claim.
             return {'window_id': 'w1', 'active': True, 'resolution_ms': 50,
                     'evidence_kind': 'server_lifecycle', 'lifecycle_complete': True,
-                    'concurrency_required': 2,
+                    'clock': 'time.monotonic', 'concurrency_required': 2,
                     'active_windows': [
                         {'start': 99.0, 'end': 101.0, 'identity': 'slot0/req_a'},
                         {'start': 99.0, 'end': 101.0, 'identity': 'slot1/req_b'}]}
@@ -2306,7 +2306,7 @@ class CoverageSchemaDomainMatrixTests(unittest.TestCase):
     # observation is now the minimal valid lifecycle observation.
     OBS = {'active': True, 'window_id': 'w', 'endpoint_error_s': 0.0,
            'evidence_kind': 'server_lifecycle', 'lifecycle_complete': True,
-           'concurrency_required': 2,
+           'clock': 'time.monotonic', 'concurrency_required': 2,
            'active_windows': [{'start': 99.0, 'end': 101.0, 'identity': 'slot0/req_a'},
                               {'start': 99.0, 'end': 101.0, 'identity': 'slot1/req_b'}]}
 
@@ -2576,6 +2576,11 @@ class ContinuousLoadObserverTests(unittest.TestCase):
     def _observer(self, script, **kw):
         kw.setdefault('max_interior_gap_s', self.GAP)
         kw.setdefault('jitter', self._probe())
+        # The scripted arrivals live on their own timeline, so 'now' must too --
+        # otherwise the staleness rule (correctly) reports that traffic stopped
+        # five million seconds ago.
+        newest = max((t for _, t in script), default=0.0)
+        kw.setdefault('clock', lambda: newest)
         return lab_load.ContinuousLoadObserver(lab_load.ScriptedLoad(script), **kw)
 
     @staticmethod
@@ -2710,7 +2715,8 @@ class ContinuousLoadObserverTests(unittest.TestCase):
         obs = lab_load.ContinuousLoadObserver(
             _Sick([('g0', 100.0), ('g0', 100.1), ('g0', 100.2),
                    ('g0', 100.3), ('g0', 100.4)]),
-            max_interior_gap_s=self.GAP, jitter=self._probe())
+            max_interior_gap_s=self.GAP, jitter=self._probe(),
+            clock=lambda: 100.4)
         with obs:
             o = obs.observe()
         self.assertFalse(o['active'])
@@ -2785,6 +2791,7 @@ class ContinuousLoadObserverTests(unittest.TestCase):
     def _lifecycle(self, windows, **kw):
         obs = {'active': True, 'window_id': 'lc', 'endpoint_error_s': 0.0,
                'evidence_kind': 'server_lifecycle', 'lifecycle_complete': True,
+               'clock': 'time.monotonic',
                'concurrency_required': 2, 'active_windows': windows}
         obs.update(kw)
         return obs
@@ -2821,7 +2828,7 @@ class ContinuousLoadObserverTests(unittest.TestCase):
             {'start': 99.0, 'end': 101.0, 'identity': 'b'}]),
             self._attempt(100.0, 100.5))
         self.assertFalse(v['valid'])
-        self.assertIn('no identity', v['reason'])
+        self.assertIn('no string identity', v['reason'])
 
     def test_an_incomplete_lifecycle_refuses_and_does_not_exclude(self):
         """Root: "Unknown/missing endpoint or lifecycle discontinuity refuses
@@ -2920,3 +2927,171 @@ class ContinuousLoadObserverTests(unittest.TestCase):
     # -- pinning -----------------------------------------------------------
     def test_the_observer_is_pinned_in_the_harness_set(self):
         self.assertIn('lab_load.py', lab_common.HARNESS_FILES)
+
+
+class LoadObserverSecondReviewTests(unittest.TestCase):
+    """Defects found by an adversarial review of the repaired observer.
+
+    Every one of these was a real input that produced a wrong answer. They are
+    kept as the regression set for the classes of mistake, not only the instances.
+    """
+
+    GAP = 0.5
+
+    def _probe(self, n=lab_load.MIN_JITTER_SAMPLES):
+        p = lab_load.JitterProbe()
+        for _ in range(n):
+            p.observe_sample(0.002)
+        return p
+
+    def _lc(self, windows, **kw):
+        obs = {'active': True, 'window_id': 'lc', 'endpoint_error_s': 0.0,
+               'evidence_kind': 'server_lifecycle', 'lifecycle_complete': True,
+               'clock': 'time.monotonic', 'concurrency_required': 2,
+               'active_windows': windows}
+        obs.update(kw)
+        return obs
+
+    ATTEMPT = {'interval_schema': 'live_ab/attempt_interval-v2',
+               'verification_started_monotonic': 100.0,
+               'verification_ended_monotonic': 100.5}
+
+    # -- identity must be a value, not a repr -------------------------------
+    def test_one_slot_written_two_ways_is_not_two_lifetimes(self):
+        """`str(ident)` made distinctness a property of the Python repr: a slot
+        written once as 0 and once as '0' became TWO lifetimes -- fabricating
+        exactly the concurrency the rule exists to require."""
+        v = lab_prepare._coverage_verdict(self._lc([
+            {'start': 99.0, 'end': 101.0, 'identity': 0},
+            {'start': 99.0, 'end': 101.0, 'identity': '0'}]), self.ATTEMPT)
+        self.assertFalse(v['valid'])
+        self.assertIn('no string identity', v['reason'])
+
+    def test_a_zero_duration_window_is_not_an_occupied_lifetime(self):
+        v = lab_prepare._coverage_verdict(self._lc([
+            {'start': 100.2, 'end': 100.2, 'identity': 'a'},
+            {'start': 99.0, 'end': 101.0, 'identity': 'b'}]), self.ATTEMPT)
+        self.assertFalse(v['valid'])
+        self.assertIn('zero duration', v['reason'])
+
+    def test_concurrency_required_must_be_an_integer(self):
+        for bad in (2.9, '2', True, None):
+            with self.subTest(bad=bad):
+                v = lab_prepare._coverage_verdict(
+                    self._lc([{'start': 99.0, 'end': 101.0, 'identity': 'a'},
+                              {'start': 99.0, 'end': 101.0, 'identity': 'b'}],
+                             concurrency_required=bad), self.ATTEMPT)
+                self.assertFalse(v['valid'])
+
+    # -- the clock is named and checked, not assumed ------------------------
+    def test_an_observation_on_a_different_clock_is_refused(self):
+        """The 694 s finding, turned into a gate: CLOCK_MONOTONIC and
+        time.monotonic() are different timelines on this host."""
+        v = lab_prepare._coverage_verdict(self._lc([
+            {'start': 99.0, 'end': 101.0, 'identity': 'a'},
+            {'start': 99.0, 'end': 101.0, 'identity': 'b'}],
+            clock='clock_gettime(CLOCK_MONOTONIC)'), self.ATTEMPT)
+        self.assertFalse(v['valid'])
+        self.assertIn('694', v['reason'])
+
+    def test_an_observation_that_names_no_clock_is_refused(self):
+        obs = self._lc([{'start': 99.0, 'end': 101.0, 'identity': 'a'},
+                        {'start': 99.0, 'end': 101.0, 'identity': 'b'}])
+        obs.pop('clock')
+        self.assertFalse(lab_prepare._coverage_verdict(obs, self.ATTEMPT)['valid'])
+
+    # -- liveness is a property of the arrivals, not of a thread ------------
+    def test_a_hung_generator_does_not_keep_reporting_load(self):
+        """healthy() was 'no errors AND thread alive'. A worker blocked inside
+        iter_lines() on a server that stopped decoding is both -- for up to the
+        300 s request timeout -- so observe() returned active windows minutes
+        after the last token."""
+        script = [('g0', 100.0), ('g0', 100.05), ('g0', 100.10),
+                  ('g0', 100.15), ('g0', 100.20)]
+        fresh = lab_load.ContinuousLoadObserver(
+            lab_load.ScriptedLoad(script), max_interior_gap_s=self.GAP,
+            jitter=self._probe(), clock=lambda: 100.25)
+        with fresh:
+            self.assertTrue(fresh.observe()['active'])
+        hung = lab_load.ContinuousLoadObserver(
+            lab_load.ScriptedLoad(script), max_interior_gap_s=self.GAP,
+            jitter=self._probe(), clock=lambda: 250.0)
+        with hung:
+            o = hung.observe()
+        self.assertFalse(o['active'])
+        self.assertIn('STOPPED', o['reason'])
+        self.assertGreater(o['newest_arrival_age_s'], 100.0)
+
+    # -- two sources must not look like a broken clock ----------------------
+    def test_interleaved_sources_out_of_global_order_do_not_abort_the_sweep(self):
+        """Stamping and appending are not atomic, so source B can stamp 100.001,
+        source A stamp 100.000, and A append second. The global order check then
+        raised 'not one monotonic clock' and aborted the whole sweep, although
+        each generation's own stamps were perfectly ordered."""
+        series = [('srcB/g0', 100.001), ('srcA/g0', 100.000),
+                  ('srcB/g0', 100.101), ('srcA/g0', 100.100)]
+        w = lab_load.windows_from_arrivals(series, max_interior_gap_s=self.GAP)
+        self.assertEqual(len(w), 2)
+        self.assertEqual({x['generation_id'] for x in w}, {'srcA/g0', 'srcB/g0'})
+
+    def test_one_generation_out_of_its_own_order_still_refuses(self):
+        with self.assertRaises(lab_load.LoadRefused):
+            lab_load.windows_from_arrivals(
+                [('g0', 100.0), ('g0', 100.2), ('g0', 100.1)],
+                max_interior_gap_s=self.GAP)
+
+    # -- the jitter probe --------------------------------------------------
+    def test_a_stall_does_not_manufacture_samples(self):
+        """Without a catch-up skip, one stall replays every missed tick with no
+        sleep: a 5 s stall made 200,000 'samples' in 50 ms, and
+        MIN_JITTER_SAMPLES -- which exists to stop an unmeasured bound -- was
+        satisfied by the stall itself."""
+        ticks = iter([0.0] + [5.0] * 4000)
+        p = lab_load.JitterProbe(interval_s=0.010, clock=lambda: next(ticks),
+                                 sleep=lambda s: None)
+        p._stop.set()                      # one pass only
+        p._loop()
+        self.assertLessEqual(p.samples, 2)
+
+    def test_a_probe_that_will_not_stop_is_not_reported_as_stopped(self):
+        p = lab_load.JitterProbe()
+        for _ in range(lab_load.MIN_JITTER_SAMPLES):
+            p.observe_sample(0.001)
+        p._thread = types.SimpleNamespace(is_alive=lambda: True,
+                                          join=lambda timeout=None: None)
+        p.stop()
+        self.assertIsNotNone(p._thread)     # NOT cleared
+        self.assertFalse(p.bound()['available'])
+        with self.assertRaises(lab_load.LoadRefused):
+            p.start()
+
+    def test_a_nonpositive_ring_capacity_refuses_instead_of_raising_later(self):
+        with self.assertRaises(lab_load.LoadRefused):
+            lab_load.ContinuousLoadObserver(lab_load.ScriptedLoad([]),
+                                            ring_capacity=0)
+
+    # -- the sink retains the observation before the fallible verdict -------
+    def test_a_verdict_that_raises_does_not_lose_the_observation(self):
+        tmp = Path(tempfile.mkdtemp(prefix='cov_'))
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        wiring = PreparationWiringTests('test_refuses_without_a_load_observer')
+
+        def observer():
+            return {'active': True, 'window_id': 'w',
+                    'evidence_kind': 'server_lifecycle', 'lifecycle_complete': True,
+                    'clock': 'time.monotonic', 'concurrency_required': 2,
+                    'endpoint_error_s': 0.0,
+                    'active_windows': 'not-a-list-at-all'}
+
+        with mock.patch.object(lab_prepare, '_coverage_verdict',
+                               side_effect=RuntimeError('boom')):
+            with self.assertRaises(lab_prepare.PreparationRefused):
+                lab_prepare.run_reference_sweep(
+                    [], {}, ledger_path=tmp / 'l.jsonl', load_observer=observer,
+                    enforce_tmpdir=False, sweep_fn=wiring._stub_sweep())
+        rows = [json.loads(x) for x in
+                (tmp / 'l.jsonl').read_text('utf-8').splitlines() if x.strip()]
+        kinds = [r.get('schema') for r in rows]
+        self.assertIn(lab_data.ATTEMPT_RECORD_SCHEMA, kinds)
+        self.assertIn('live_ab/load_observation_raw-v1', kinds)   # RETAINED
+        self.assertIn('live_ab/load_coverage_failure-v1', kinds)
