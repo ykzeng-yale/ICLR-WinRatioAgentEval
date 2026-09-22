@@ -20,8 +20,8 @@ Another session merged all four legacy branches while root was checking them. Gi
 
 | Legacy PR | Exact observed head | Retained disposition |
 |---|---|---|
-| #5 | `5e91fcd9afe69a60d4376e5ac370e4865f099f57` | Generic projection/width methods remain excluded and separately unapproved. Issue #4 stays open. Later verified zero-count endpoint arithmetic is not whole-method approval. |
-| #7 | `88d64343ab5b8a5448f3bd238d4befa54ee86acc` | Accepted 26-file U-statistic subset from `ac17f590` already integrated; unrelated replay/generic methods/drafts are excluded. Issue #6 stays open for its separate unaccepted work. |
+| #5 | `5e91fcd9afe69a60d4376e5ac370e4865f099f57` | Generic projection/width methods remain excluded and separately unapproved. Issue #4 is historically closed; its closed state and later verified zero-count endpoint arithmetic do not approve the whole method. |
+| #7 | `88d64343ab5b8a5448f3bd238d4befa54ee86acc` | Accepted 26-file U-statistic subset from `ac17f590` already integrated; unrelated replay/generic methods/drafts are excluded. Issue #6's three specific code/provenance repairs are accepted in the [September22 scope review](reviews/issue6_scope_review_20260922_0402.md); its closure does not approve the broader replay/generic methods or their manuscript inclusion. |
 | #8 | `ce8b5063d3bb579e1c605828ca07f0ff28d6c326` | Coding/airline observations accepted through root projections and scoped inference; report/index corrections closed through Round 15. Contributor intervals/generic methods remain excluded. |
 | #10 | `e0f7dab374399bdb173f7a5f675347b11078f878` | Accepted 12-file drift-panel subset from `ae3f0a5` already integrated and independently reproduced. The broader merged branch receives no blanket scientific approval. |
 
