@@ -1,0 +1,32 @@
+{
+  "schema": "live_ab/prefreeze_amendment-v1",
+  "amendment_id": "anchor_drill_location_20260922",
+  "recorded_utc": "2026-09-22T03:05:00Z",
+  "scope": "LOCATION ONLY",
+  "protocol_clause": "12.4 item 10",
+  "clause_verbatim": "One anchor drill before the freeze against the real remote on a drill branch and the real issue thread, with a mock chain carrying the real freeze-receipt fields (a throwaway repository could not reveal identifier leaks, because its URLs lack the real account and repository names).",
+  "what_changes": "The drill's postings go to a dedicated, clearly labelled drill issue in THIS repository (ykzeng-yale/ICLR-WinRatioAgentEval), linked from issue 11, instead of into issue 11 itself.",
+  "what_does_not_change": [
+    "the repository: the real one, so the real account and repository names appear in every URL, which is the stated reason 12.4 item 10 rejects a throwaway repository",
+    "the posting count: the finite 20 already planned",
+    "the mock chain carrying the real freeze-receipt field shapes",
+    "config.json anchor.issue, which remains 11: a TRIAL still anchors to issue 11. This amendment governs the DRILL only.",
+    "config.json anchor.posting_latency_p95_s, which remains null and frozen; the drill does not write it"
+  ],
+  "why": "Issue 11 is the scientific coordination thread the root session reads every cycle. Twenty drill postings into it would bury coordination under synthetic anchors. A separate issue preserves the real repository and identifier surface -- the purpose of the clause -- without that cost.",
+  "authority": {
+    "granted_by": "root session",
+    "when_utc": "2026-09-22T02:49:00Z",
+    "document": "reviews/live_load_root_decision_20260922_0237.md line 31",
+    "verbatim": "Proceed with option (b): one clearly labelled dedicated drill issue in this same repository, linked from issue 11, with the already planned finite 20 postings. Record this location-only prefreeze amendment before the first post; retain all attempts, timestamps, failures and usage. No PR. This is explicit authorization for that bounded drill, not silence or permission to start the model study.",
+    "comment_url": "https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/11#issuecomment-5770514937"
+  },
+  "what_this_amendment_does_not_authorize": [
+    "any model call, server start, trial episode or calibration episode",
+    "writing anchor.posting_latency_p95_s into config.json",
+    "treating the drill's empirical p95 as a guaranteed future worst-case bound",
+    "any change to the trial anchoring location"
+  ],
+  "recorded_before_first_post": true,
+  "enforcement": "experiments/live_ab_tools/anchor_drill.py refuses to post unless this file exists AND is committed with no uncommitted changes."
+}
