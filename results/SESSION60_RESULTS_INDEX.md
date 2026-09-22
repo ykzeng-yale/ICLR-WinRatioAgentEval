@@ -1217,6 +1217,38 @@ closed, because it is not mine to close.
 
 These are **re-verifications of committed artifacts, not new evidence.** No new experiment was run.
 
+### The server lifecycle producer (2026-09-22, `6eb86d5`)
+
+Root authorized the patch at 04:02 and ranked it first at 04:14.
+
+**Patch** `experiments/live_ab_serving/live_ab_slot_lifecycle.patch`, `deterministic-path`. sha256
+**`261a54db...`**, base revision `4fea119d...`, **2 files, 101 insertions, 0 deletions**, verified to
+apply cleanly with `git apply --check`. Written in an **isolated clone**; the shared checkout is
+untouched and **nothing was built or run**.
+
+**Four transition points:** `t_assigned_us` (outer start, at `launch_slot_with_task`),
+`t_prompt_start_us` (inner start), `t_gen_last_us` (inner end), `t_released_us` (outer end, in
+`release()` before `reset()`). All raw `ggml_time_us()` = `clock_gettime(CLOCK_MONOTONIC)`
+**microseconds**, with the clock **named in every record**.
+
+**The consumer uses the INNER pair** -- a test asserts the outer bracket would certify an attempt the
+inner one refuses. Narrower can only make coverage harder.
+
+**Why an emitter, not an endpoint:** `/slots` has no timestamp field, `/metrics` is global and
+cumulative, `timings` is durations only, `stats.t_start` never leaves the process. An occupancy is an
+interval with two transitions; polling yields samples.
+
+**`lab_lifecycle.py`** refuses an incomplete lifecycle, a foreign clock, wrong units, an empty or
+reversed inner interval, and a **truncated tail** -- refused rather than trimmed. Any refusal sets
+`lifecycle_complete: false`, and the consumer then refuses coverage and **retains the attempt**.
+
+**Model-free fixture, 9 tests**, through the actual producer format and consumer: two concurrent
+occupancies certify; one does not however long; the inner bracket refuses what the outer would pass;
+incomplete, foreign-clock, truncated, absent-log and cross-host all refuse.
+
+Suites: design **220**, chain 70, isolation 12, serving 89, hostcheck 117, stats 70, e2e 42 -- pass.
+`tests_validation.py`: **184, three still failing** on the pre-registration pin, unchanged.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
