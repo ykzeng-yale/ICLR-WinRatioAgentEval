@@ -6,9 +6,9 @@
 
 | File | Use |
 |---|---|
-| `paper.pdf` | Canonical 47-page preprint, including references and all supplementary proofs/results. |
+| `paper.pdf` | Canonical 49-page preprint, including references and all supplementary proofs/results. |
 | `main_paper.pdf` | 13-page reading copy: main text, statements and references. |
-| `supplement.pdf` | 34-page reading copy: appendices, retaining pages 14–47 and original numbering. Read with the main paper. |
+| `supplement.pdf` | 36-page reading copy: appendices, retaining pages 14–49 and original numbering. Read with the main paper. |
 | `arxiv_source.tar.gz` | Upload this source archive to arXiv; select `main.tex` and pdfLaTeX. It builds the entire paper and supplement as one article. |
 | `reproducibility_code.zip` | Audited code/results and the named paper sources; available from this repository. It is not the arXiv TeX upload archive. |
 | `abstract.txt` | Plain-text metadata abstract matching the PDF. |
@@ -47,7 +47,7 @@ For a code-archive-only repair with existing source/PDF artifacts, `python3 arxi
 
 ## September21 T1 supplement integration
 
-The September21 T1 release was a47-page article (13-page main reading extract plus34-page supplement) adds AppendixO, a bounded synthetic delayed-observation calibration replay:112,000trials, with prior-development exposure and recovery/provenance limitations explicit. This is not the prospective live study. The historical ICLR release is unchanged.
+The September21 T1 release was a47-page article (13-page main reading extract plus34-page supplement) that added AppendixO, a bounded synthetic delayed-observation calibration replay:112,000trials, with prior-development exposure and recovery/provenance limitations explicit. This is not the prospective live study. The historical ICLR release is unchanged.
 
 The code ZIP adds unchanged T1 primary records and `python t1_validation/reproduce_t1.py`, which independently reconstructs the manuscript counts without model, native-reference or simulation calls. Full original receipts/reference records remain at the exact accepted Git snapshot named in its manifest; the ZIP does not claim full native/latent execution reproduction. Existing `python reproduce.py` remains the baseline saved-result check. Clean-source compilation, all305payload hashes, the127baseline archived-output checks and336,000T1primary records passed. Changed PDF pages were visually inspected. Power/ablation studies were outside that September21 release; the September22 update below incorporates them.
 
