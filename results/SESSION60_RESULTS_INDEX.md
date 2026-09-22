@@ -1512,6 +1512,35 @@ rebuild ran "08:10:49Z to 08:10:48Z". **I never read the start timestamp — I i
 impossible ordering. **Third time today I stated something I did not read**; the smoke receipt is
 unaffected, its times coming from `time.monotonic` inside the runner.
 
+### The `runtime()` copy sweep: one sibling, and nothing had ever read it (2026-09-22, `6689680`)
+
+`results/live_ab/RUNTIME_COPY_SWEEP_20260922.json`, `descriptive`. Proposed after the clock record
+was lost to the copy `runtime(cfg)` returns; root's silence meant the stated default, do it.
+
+**13 sites examined**, each read rather than pattern-matched:
+
+| site | binding | verdict |
+|---|---|---|
+| `make_context` 3204-3213 | real block | persists |
+| `lab_anchor.main` 423-430 | real block | persists |
+| `preflight` 899 (`clock_equivalence`) | **a copy** | was lost; repaired last cycle |
+| `run_trial` 2976 (`drift`) | **a copy** | was lost; **repaired here** |
+
+**The new one has no observed consequence and I am not pretending otherwise:** a repository-wide grep
+finds **no reader of `rt['drift']` anywhere**. The loss was invisible precisely because nothing
+consumed it, and the drift is already carried into the chain by `invocation_started`.
+
+**Persisted rather than deleted** — a convenience that evaporates is worse than one that does not
+exist — and *"nothing reads it today"* is written **in the code**, with a test asserting that sentence
+is still there, so nobody infers a consumer from the field.
+
+**A guard against the next one:** a test walks every `rt['name'] = ` in the orchestrator and requires
+either a real-block binding or an accompanying persisting write; it also asserts the premise that
+`runtime()` still returns a copy, so if that changes the sweep is redone rather than silently
+obsolete.
+
+Suites: design **277**, chain 70, isolation 12, serving 89, hostcheck 117, stats 70, e2e 42.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
