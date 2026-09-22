@@ -215,6 +215,16 @@ def resolve_offline() -> Tuple[Dict[str, Any], Dict[str, Any]]:
     if (cfg.get("sandbox") or {}).get("profile_sha256"):
         parts["sandbox_profile_sha256"] = cfg["sandbox"]["profile_sha256"]
 
+    # The three documents root cleared on 2026-09-21 18:17 ("drafting these
+    # artifacts need no further permission"). They were unblocked for seven
+    # cycles before being written; nothing but my own attention prevented it.
+    for key, name in (("derivation_sha256", "DERIVATION.md"),
+                      ("planning_sha256", "PLANNING.md"),
+                      ("run_book_sha256", "RUN_BOOK.md")):
+        doc = HERE / "design" / name
+        if doc.is_file():
+            parts[key] = sha256_file(doc)
+
     protocol = HERE / "design" / "protocol_FINAL.md"
     if protocol.is_file():
         parts["protocol_sha256"] = sha256_file(protocol)
