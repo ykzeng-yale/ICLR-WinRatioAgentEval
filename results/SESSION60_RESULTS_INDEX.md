@@ -1035,6 +1035,60 @@ digest; and the promoted digest uses a **non-canonical serialization** while eve
 digest uses the project convention. **Not withdrawn** — it is reconstructible, so withdrawal would destroy
 a recoverable value; re-deriving under `canonical_json` changes a pre-registration value and is root's call.
 
+### The continuous-load observer exists (protocol 3.2 rule 4)
+
+Branch `session60/live-ab` head `ce106af`. Suites: design **163**, chain **70**, isolation **12**,
+serving **89**, hostcheck **117**, stats **70**, e2e **42** — all pass. Live episodes **0**.
+Freeze **14 of 26**.
+
+**The hole this closes.** `run_reference_sweep` refused a sweep carrying no `load_observer`, and
+`_coverage_verdict` validated whatever one returned — and **nothing in the repository produced one**.
+An enforcement gate standing in front of an empty socket. `experiments/live_ab/lab_load.py` is the
+observer; `experiments/live_ab/design/SERVING_LOAD_REHEARSAL.md` is the finite specification root's
+critical path asked for.
+
+**Evidence of production, not samples of state.** Polling `/slots` every 200 ms yields instants at
+which the server was busy and says nothing about the 199 ms between them. Windows are built from
+streamed token arrivals; a gap larger than the tolerance **splits** the window, and an attempt
+straddling the gap is **not covered**.
+
+**A live defect, found by writing the two-worker case down.** The first splitting rule split at every
+change of generation id. Under the actual regime — `workers = 2`, so two concurrent generations whose
+arrivals interleave — that ended every window after one arrival and reported **NO ACTIVE LOAD at the
+moment the server is busiest**, silently and in the safe-looking direction. A single-generator fixture
+passes either way. Windows are now built per generation and unioned by the consumer.
+
+**`_coverage_verdict` strengthened.** It took "each window means a continuously active interval"
+entirely on the producer's word while its own closing note said the arithmetic cannot turn samples
+into continuity. An observation must now declare `max_interior_gap_s_measured` / `_allowed`, and a
+measured value above the declared tolerance is refused.
+
+**Receipt** (`results/live_ab/LOAD_OBSERVER_RECEIPT.json`, `deterministic-path`): 5/5 cases as
+expected — dense single generation **covered**; two interleaved generations **covered** (2 windows);
+a 0.7 s gap straddling the attempt **not covered**; no arrivals **not active**; fewer than 20 jitter
+samples **not active**. Every number describes a **scripted arrival series, not a server**, and the
+receipt says so in its own fields.
+
+**Not pre-registered:** `max_interior_gap_s` 0.5 s, endpoint-error floor 0.010 s, 20 jitter samples.
+`config.json` is under the three-way verbatim contract and this work does not touch it.
+
+**Withdrawn claim.** `freeze_status.py` asserted the llama-servers on 8193/8191 "belong to
+DTR-AgentEvals" — inferred from a port number in another project's config. Withdrawn in place.
+
+### Shared-host compute: DTR answered
+
+`results/live_ab/COMPUTE_SCHEDULE_PROPOSAL.json`, `descriptive`. DTR-AgentEvals' lead replied on
+[its issue #4](https://github.com/ykzeng-yale/DTR-AgentEvals/issues/4): its **theory lead needs
+neither server**, but its **worker's authorized two-backend smoke reports using both 8191/8193**; do
+not infer abandonment from a no-client snapshot, and do not stop an ambiguously owned process. The
+expiring-lease design is **accepted**; no lease is installed. Its worker owes PIDs, verified ownership
+and a bounded completion estimate, and the **owner releases its own servers** at natural block
+completion.
+
+Both facts hold at once: the binary runs from **this session's scratchpad** and **DTR's worker is
+using it**. Ownership of a process is not ownership of the workload on it. Nothing is stopped; the
+host stays occupied; ICLR continues CPU-only.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
