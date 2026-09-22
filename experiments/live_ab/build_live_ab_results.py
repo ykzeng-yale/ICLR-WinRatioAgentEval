@@ -406,18 +406,82 @@ def sandwich_audit(events: list, rule_tolerance_s, posting_latency_p95_s) -> dic
     return out
 
 
-def gap_report(events: list, gap_report_s: float = 5.0) -> dict:
-    """Every gap above ``gap_report_s`` between consecutive events that is NOT
-    covered by an open ``llm_request``, an open sandbox execution or an open
-    ``/metrics`` scrape.
+#: Openers mapped to EVERY event that closes them. Validated against the chain
+#: vocabulary by ``_validate_coverage_map`` below, because the first version of
+#: this map was INVENTED from the protocol's prose and three of its six names did
+#: not exist in the schema at all:
+#:
+#:   llm_request / llm_response          real
+#:   sandbox_started / sandbox_ended     NOT IN THE VOCABULARY
+#:   metrics_scrape_started / _ended     NOT IN THE VOCABULARY
+#:
+#: A name that never matches fails SILENTLY and in opposite directions depending
+#: on which half is wrong: a missing OPENER means the gap is never covered, so
+#: the report over-reports; a missing CLOSER means the opener stays open for
+#: ever, so every later gap reads as covered and the report UNDER-reports. The
+#: second is the dangerous one, and `llm_error` -- a real closer I had omitted --
+#: would have caused exactly it.
+COVERAGE_MAP: dict = {
+    'llm_request': ('llm_response', 'llm_error'),
+    'episode_started': ('episode_revealed', 'orphan_rejected'),
+}
 
-    Finding N3's false-FAIL case is the whole point: a 10 s sandbox run is a
-    COVERED gap, and reporting it would be a false alarm.
+#: Coverers protocol 12.6 item 4 NAMES but the event vocabulary does not
+#: represent as an interval. Recorded, not silently dropped.
+UNREPRESENTED_COVERERS: dict = {
+    'sandbox execution': ('the chain has no sandbox_started/sandbox_ended pair; a '
+                          'sandbox run happens inside an episode, so '
+                          'episode_started..episode_revealed is the nearest '
+                          'interval the schema actually carries'),
+    '/metrics scrape': ('metrics_scrape is a POINT event, not a pair, so an "open '
+                        'scrape" has no representation to detect'),
+}
+
+
+def _validate_coverage_map(vocabulary) -> list:
+    """Every name in COVERAGE_MAP must exist in the chain vocabulary.
+
+    This is the guard that would have caught the invented names immediately
+    instead of letting them never match.
     """
-    OPENERS = {'llm_request': 'llm_response',
-               'sandbox_started': 'sandbox_ended',
-               'metrics_scrape_started': 'metrics_scrape_ended'}
-    open_kinds: dict = {}
+    known = set(vocabulary)
+    bad = []
+    for opener, closers in COVERAGE_MAP.items():
+        if opener not in known:
+            bad.append('opener %r is not a chain event type' % opener)
+        for c in closers:
+            if c not in known:
+                bad.append('closer %r is not a chain event type' % c)
+    return bad
+
+
+def gap_report(events: list, gap_report_s: float = 5.0,
+               vocabulary=None) -> dict:
+    """Every gap above ``gap_report_s`` between consecutive events that is NOT
+    covered by an open interval in ``COVERAGE_MAP``.
+
+    Finding N3's false-FAIL case is the point: a 10 s sandbox run is a COVERED
+    gap and reporting it would be a false alarm. But see UNREPRESENTED_COVERERS:
+    two of the three coverers the protocol names have no interval in the event
+    vocabulary, so this function CANNOT detect them and says so rather than
+    reporting their gaps as though they were unexplained.
+    """
+    if vocabulary is None:
+        import lab_eventlog as _el
+        vocabulary = set(_el.TRIAL_ONLY_TYPES) | set(_el.PROGRAM_ONLY_TYPES)
+    bad = _validate_coverage_map(vocabulary)
+    if bad:
+        return {'gap_report_s': gap_report_s, 'computable': False,
+                'reason': 'the coverage map names events the chain does not have: '
+                          + '; '.join(bad),
+                'reported_gaps': None}
+
+    closers: dict = {}
+    for opener, cs in COVERAGE_MAP.items():
+        for c in cs:
+            closers.setdefault(c, []).append(opener)
+
+    open_counts: dict = {}
     gaps = []
     prev = None
     for e in events:
@@ -426,22 +490,32 @@ def gap_report(events: list, gap_report_s: float = 5.0) -> dict:
         if prev is not None and t is not None and prev[1] is not None:
             delta = (int(t) - int(prev[1])) / 1e9
             if delta > gap_report_s:
-                covered = sorted(k for k, n in open_kinds.items() if n > 0)
+                covered = sorted(k for k, n in open_counts.items() if n > 0)
                 gaps.append({'after_seq': prev[0], 'before_seq': e.get('seq'),
                              'seconds': delta, 'covered_by': covered,
                              'reported': not covered})
-        if kind in OPENERS:
-            open_kinds[kind] = open_kinds.get(kind, 0) + 1
-        for opener, closer in OPENERS.items():
-            if kind == closer and open_kinds.get(opener):
-                open_kinds[opener] -= 1
+        if kind in COVERAGE_MAP:
+            open_counts[kind] = open_counts.get(kind, 0) + 1
+        for opener in closers.get(kind, ()):
+            if open_counts.get(opener):
+                open_counts[opener] -= 1
         prev = (e.get('seq'), t)
     reported = [g for g in gaps if g['reported']]
-    return {'gap_report_s': gap_report_s, 'gaps_above_threshold': len(gaps),
-            'covered_gaps': len(gaps) - len(reported),
-            'reported_gaps': reported,
-            'note': 'a gap covered by an open request, sandbox run or scrape is '
-                    'NOT reported -- finding N3 false-FAIL case'}
+    return {
+        'gap_report_s': gap_report_s, 'computable': True,
+        'coverage_map': {k: list(v) for k, v in COVERAGE_MAP.items()},
+        'gaps_above_threshold': len(gaps),
+        'covered_gaps': len(gaps) - len(reported),
+        'reported_gaps': reported,
+        'unrepresented_coverers': UNREPRESENTED_COVERERS,
+        'limits': ('a gap covered by an open interval in COVERAGE_MAP is NOT '
+                   'reported (finding N3 false-FAIL case). Coverage by a sandbox '
+                   'execution or a /metrics scrape CANNOT be detected here -- the '
+                   'vocabulary carries no interval for either -- so such a gap is '
+                   'reported and must be read as UNEXPLAINED-BY-THIS-CHECK rather '
+                   'than as unexplained.'),
+        'still_open_at_end': sorted(k for k, n in open_counts.items() if n > 0),
+    }
 
 
 def posthoc_object(pairs: list[dict]) -> dict:

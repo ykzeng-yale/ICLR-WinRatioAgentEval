@@ -4554,11 +4554,15 @@ class SandwichAuditAndLabelTests(unittest.TestCase):
         self.assertEqual(a['pairs_compared'], 1)   # the pair is COUNTED as examined
 
     # -- the gap report ------------------------------------------------------
-    def test_a_gap_covered_by_an_open_sandbox_run_is_not_reported(self):
-        """Finding N3's false-FAIL case: a 10 s sandbox run is a covered gap."""
-        ev = [{'type': 'sandbox_started', 'seq': 1, 't_wall_ns': 0},
-              {'type': 'sandbox_ended', 'seq': 2, 't_wall_ns': 10_000_000_000}]
+    def test_a_gap_covered_by_an_open_llm_request_is_not_reported(self):
+        """Finding N3's false-FAIL case, on an event pair the chain ACTUALLY has.
+        The first version of this test used sandbox_started/sandbox_ended, which
+        are not in the vocabulary at all -- so it asserted the behaviour of a
+        string that could never match."""
+        ev = [{'type': 'llm_request', 'seq': 1, 't_wall_ns': 0},
+              {'type': 'llm_response', 'seq': 2, 't_wall_ns': 10_000_000_000}]
         g = self.B.gap_report(ev, 5.0)
+        self.assertTrue(g['computable'])
         self.assertEqual(g['gaps_above_threshold'], 1)
         self.assertEqual(g['covered_gaps'], 1)
         self.assertEqual(g['reported_gaps'], [])
@@ -4580,3 +4584,64 @@ class SandwichAuditAndLabelTests(unittest.TestCase):
         src = inspect.getsource(self.B)
         self.assertIn("rule.get('sandwich_violations'", src)
         self.assertIn('or sandwich_limb', src)
+
+
+class GapReportVocabularyTests(unittest.TestCase):
+    """I invented the opener/closer names from the protocol's prose and three of
+    six did not exist in the chain vocabulary. Checking them against the schema
+    was my own stated next step, and it found two bugs in OPPOSITE directions.
+    """
+
+    def setUp(self):
+        import build_live_ab_results as B
+        import lab_eventlog as E
+        self.B = B
+        self.vocab = set(E.TRIAL_ONLY_TYPES) | set(E.PROGRAM_ONLY_TYPES)
+
+    def test_every_name_in_the_coverage_map_exists_in_the_chain(self):
+        """The guard that would have caught the invention immediately."""
+        self.assertEqual(self.B._validate_coverage_map(self.vocab), [])
+
+    def test_the_names_I_invented_are_NOT_in_the_vocabulary(self):
+        """Recorded so the finding is not lost: these were in the shipped code."""
+        for invented in ('sandbox_started', 'sandbox_ended',
+                         'metrics_scrape_started', 'metrics_scrape_ended'):
+            with self.subTest(invented=invented):
+                self.assertNotIn(invented, self.vocab)
+
+    def test_an_invented_name_makes_the_report_REFUSE_not_silently_miss(self):
+        real = dict(self.B.COVERAGE_MAP)
+        try:
+            self.B.COVERAGE_MAP.clear()
+            self.B.COVERAGE_MAP['sandbox_started'] = ('sandbox_ended',)
+            g = self.B.gap_report([], 5.0, vocabulary=self.vocab)
+            self.assertFalse(g['computable'])
+            self.assertIn('the chain does not have', g['reason'])
+        finally:
+            self.B.COVERAGE_MAP.clear()
+            self.B.COVERAGE_MAP.update(real)
+
+    def test_llm_error_closes_a_request_so_later_gaps_are_not_falsely_covered(self):
+        """THE DANGEROUS DIRECTION. A missing closer leaves the opener open for
+        ever, so every subsequent gap reads as COVERED and the report
+        under-reports. llm_error is a real closer I had omitted."""
+        ev = [{'type': 'llm_request', 'seq': 1, 't_wall_ns': 0},
+              {'type': 'llm_error', 'seq': 2, 't_wall_ns': 1_000_000_000},
+              {'type': 'pair_enrolled', 'seq': 3, 't_wall_ns': 30_000_000_000}]
+        g = self.B.gap_report(ev, 5.0, vocabulary=self.vocab)
+        self.assertEqual(g['still_open_at_end'], [])
+        self.assertEqual(len(g['reported_gaps']), 1,
+                         'the gap after an ERRORED request must be reported')
+
+    def test_the_unrepresentable_coverers_are_named_not_dropped(self):
+        """Protocol 12.6 item 4 names a sandbox execution and a /metrics scrape as
+        coverers; the vocabulary has no interval for either. That is stated in the
+        report rather than letting their gaps read as plain unexplained ones."""
+        g = self.B.gap_report([], 5.0, vocabulary=self.vocab)
+        self.assertIn('sandbox execution', g['unrepresented_coverers'])
+        self.assertIn('/metrics scrape', g['unrepresented_coverers'])
+        self.assertIn('UNEXPLAINED-BY-THIS-CHECK', g['limits'])
+
+    def test_metrics_scrape_is_a_point_event_not_a_pair(self):
+        self.assertIn('metrics_scrape', self.vocab)
+        self.assertNotIn('metrics_scrape', self.B.COVERAGE_MAP)
