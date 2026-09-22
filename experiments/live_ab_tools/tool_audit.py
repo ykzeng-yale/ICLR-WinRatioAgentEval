@@ -213,9 +213,17 @@ def audit_file(path: Path) -> Dict[str, Any]:
 
     role = declared_role(tree)
     effective_role = role or DEFAULT_ROLE
+    # THE PROVIDER IMPLEMENTS WHAT IT PROVIDES. `lab_common` is where the digest
+    # helpers live, so its own `hashlib` calls are the implementation, not a
+    # re-derivation of it; likewise `lab_hostcheck` and `ps`. Without this the
+    # scan flags every audited module for the very capability that makes it
+    # audited -- a rule that condemns its own reference implementation.
+    me = path.stem
 
     reimplementation: List[Dict[str, Any]] = []
     for mod, cap in CAPABILITIES.items():
+        if me in cap['providers']:
+            continue                          # it IS the provider
         if set(cap['providers']) & mods:
             continue                          # it asks one of the audited providers
         hits = sorted(set(cap['primitives']) & prims)
@@ -266,6 +274,7 @@ def audit_file(path: Path) -> Dict[str, Any]:
 
 def audit(directory: Optional[Path] = None) -> Dict[str, Any]:
     directory = Path(directory or HERE)
+    directory = directory if directory.is_absolute() else (REPO / directory)
     files = sorted(p for p in directory.glob('*.py'))
     rows = [audit_file(p) for p in files]
     reimpl = [(r['file'], c) for r in rows for c in r['reimplementation_candidates']]
@@ -314,8 +323,10 @@ def main(argv: Optional[List[str]] = None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument('--out', type=Path,
                     default=Path(lab_common.RESULTS_ROOT) / 'TOOL_AUDIT.json')
+    ap.add_argument('--directory', type=Path, default=None,
+                    help='audit this directory instead of live_ab_tools/')
     a = ap.parse_args(argv)
-    result = audit()
+    result = audit(a.directory)
     a.out.parent.mkdir(parents=True, exist_ok=True)
     lab_common.write_json_atomic(a.out, result)
     print('%d files audited; audits itself: %s'

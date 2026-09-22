@@ -14,6 +14,7 @@ from __future__ import annotations
 import ast
 import importlib
 import inspect
+import json
 import re
 import sys
 import unittest
@@ -702,6 +703,76 @@ class ContenderSourceTests(unittest.TestCase):
                      'lock_control_acquired', 'lock_path_is_production',
                      'control_interpreter_identical'):
             self.assertIn(limb, src)
+
+
+class ExecutionLockConformanceTests(unittest.TestCase):
+    """protocol 5.7 item 1: ONE lock file, host-wide.
+
+    The section is titled "Sandbox under two workers: the host-wide execution
+    lock" and item 1 says the worker wraps `sandbox.run_program` "in an exclusive
+    `flock` on ONE LOCK FILE. At most one generated program exists and runs at any
+    instant." The hazard named one paragraph above it is a Seatbelt writable
+    directory "shared by every run ON THE HOST", holding the hidden tests and the
+    nonce sentinel in clear text during verification. So the property is a
+    property of the host, not of a trial.
+
+    THE FIRST TEST BELOW CURRENTLY FAILS, and that is deliberate. Production
+    resolves five distinct lock files: `<WORK>/sandbox.lock` for the reference
+    sweep and `<WORK>/<trial>/sandbox.lock` for each trial's workers. Pointing
+    them at one file changes a production lock path that the orchestrator
+    serialises into every job, which is a protocol-conformance decision for the
+    root, not a repair I make quietly. Marking it `expectedFailure` would hide
+    exactly the thing the root needs to see, so it is left red.
+    """
+
+    def _resolve(self):
+        import lab_orchestrator
+        import lab_common as C
+        cfg = json.loads((Path(__file__).resolve().parent / 'config.json')
+                         .read_text('utf-8'))
+        sweep = Path((cfg.get('sandbox') or {}).get('execution_lock_path')
+                     or (C.WORK_ROOT / 'sandbox.lock'))
+        workers = {t: Path(lab_orchestrator._trial_paths(
+            t, Path(C.RESULTS_ROOT), Path(C.WORK_ROOT)).sandbox_lock)
+            for t in ('T1', 'T2', 'T3', 'T4')}
+        return sweep, workers
+
+    def test_protocol_5_7_item_1_resolves_to_one_lock_file(self) -> None:
+        sweep, workers = self._resolve()
+        distinct = sorted({str(sweep)} | {str(p) for p in workers.values()})
+        self.assertEqual(
+            len(distinct), 1,
+            'protocol 5.7 item 1 requires ONE lock file host-wide; production '
+            'resolves %d:\n  %s\nTwo trials, or a reference sweep and an episode '
+            'worker, would not exclude each other, while the Seatbelt writable '
+            'base is shared by every run on the host. See '
+            'results/live_ab/LOCK_TOPOLOGY.json.' % (len(distinct),
+                                                     '\n  '.join(distinct)))
+
+    def test_the_two_workers_of_one_trial_do_share_a_lock(self) -> None:
+        # The intra-trial case the section is titled for IS covered: both workers
+        # receive the same ctx.paths.sandbox_lock. Recorded so the failure above
+        # is not read as "the lock does nothing".
+        _sweep, workers = self._resolve()
+        for trial, path in workers.items():
+            self.assertEqual(path.name, 'sandbox.lock')
+            self.assertIn(trial, str(path))
+
+    def test_there_are_two_flock_implementations_and_they_differ(self) -> None:
+        # Not a style complaint: they differ in poll interval, clock and
+        # exception, so "the execution lock" names two behaviours. A reader who
+        # validates one has not validated the other -- which is what happened to
+        # my own two-worker fixture.
+        import inspect
+        import lab_data
+        import lab_worker
+        a = inspect.getsource(lab_data._ExecutionLock)
+        b = inspect.getsource(lab_worker.ExecutionLock)
+        self.assertIn('PreflightError', a)
+        self.assertIn('LockWaitExceeded', b)
+        self.assertNotEqual('0.05' in a, '0.05' in b)      # different poll interval
+        self.assertIn('_LOCK_DEPTH', b)
+        self.assertNotIn('_LOCK_DEPTH', a)
 
 
 if __name__ == '__main__':                                        # pragma: no cover

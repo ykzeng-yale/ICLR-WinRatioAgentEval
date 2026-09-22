@@ -1889,6 +1889,57 @@ re-write.
 receipt states its blind spots: anything outside the two tables is invisible, and **a zero count is
 not a clean directory**.
 
+### The host-wide execution lock is five lock files, and two implementations (2026-09-22)
+
+`deterministic-path`. `results/live_ab/LOCK_TOPOLOGY.json`, `results/live_ab/PRODUCTION_AUDIT_v1.json`.
+**The most consequential finding in several cycles, and it came out of the audit I proposed last
+cycle rather than out of luck.**
+
+**Protocol 5.7 is titled "Sandbox under two workers: the host-wide execution lock."** Item 1: the
+worker wraps `sandbox.run_program` *"in an exclusive `flock` on **one lock file**. At most one
+generated program exists and runs at any instant."* The hazard it names one paragraph earlier is a
+Seatbelt writable directory **"shared by every run on the host"**, holding the hidden tests and the
+nonce sentinel in clear text during verification. **The property is host-wide, not per-trial.**
+
+**Production resolves 5 distinct lock files:**
+
+| path taker | lock file |
+|---|---|
+| `lab_data` reference sweep | `<WORK>/sandbox.lock` |
+| workers, trial T1…T4 | `<WORK>/T1/sandbox.lock` … `<WORK>/T4/sandbox.lock` |
+
+**And two independent implementations.** `lab_data._ExecutionLock` (poll 0.05 s, `time.monotonic`,
+raises `PreflightError`) and `lab_worker.ExecutionLock` (poll 0.01 s, `time.perf_counter`, raises
+`LockWaitExceeded`, keeps a `_LOCK_DEPTH` global that `execution_lock_held()` reads).
+
+**What IS covered:** the two workers *within* a trial — they receive the same
+`ctx.paths.sandbox_lock`, so the case the section is titled for holds. Recorded explicitly so the
+failure below is not read as "the lock does nothing".
+
+**What is not:** two trials running concurrently, and a reference sweep running beside an episode
+worker. Different files, so no mutual exclusion, while the writable sandbox base
+`/private/tmp/labsbx/ls_sbx` is shared by every run on the host regardless of trial.
+
+**It has not bitten.** 0 trial episodes and 0 calibration episodes have ever run. **Latent, not
+manifested.**
+
+**A failing test now encodes the requirement.** `ExecutionLockConformanceTests` in
+`tests_lab_isolation.py`. **It is red and left red**: pointing every path at one file changes a
+production lock path the orchestrator serialises into every job, which is a protocol-conformance
+decision for the root. `expectedFailure` would hide the one thing root needs to see early.
+
+**I OVERSTATED MY OWN FIXTURE LAST CYCLE.** I wrote that the two-worker fixture contends for *"the
+production lock"*. It contends for the lock `lab_data` and `lab_containment` take — and **an episode
+worker takes a different class on a different file**. Nothing in the fixture is withdrawn; its
+**scope is narrower than my sentence implied**, and the correction is recorded in the receipt itself.
+
+**The production audit otherwise came back clean:** 32 files, **0 claims-without-read**. Of four
+reimplementation candidates, the lock was the only real one; the other three are table over-reach I
+read and can defend — `lab_common.process_rss_bytes` measures RSS and is not a quiescence gate,
+`lab_mock_server` uses sha256 as a deterministic seed rather than a content digest, and
+`tests_lab_serving` must use raw `flock` to probe that the lock is held. **A provider is now exempt
+for the capability it provides**, or the scan condemns its own reference implementation.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
