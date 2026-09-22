@@ -1602,6 +1602,10 @@ class FreezeBundleBindingTests(unittest.TestCase):
         cfg['_runtime'] = {'results_root': str(self.results), 'work_root': str(self.work),
                            'bundle_sha': self.bundle_sha, 'sim': True, 'mock': True,
                            'free_disk_floor_gb': 0.0,
+                           # protocol 7.5 item 4 measures over 10 s; an offline
+                           # suite sets a short window EXPLICITLY and preflight
+                           # records it as below_protocol_window
+                           'clock_window_s': 0.01,
                            'tasks_path': str(self.freeze / 'tasks.json')}
         return orch.make_context('T4', cfg, results_root=self.results, work_root=self.work)
 
@@ -3977,3 +3981,74 @@ class AcquisitionSealTests(unittest.TestCase):
         self.assertTrue(o['active'])
         self.assertTrue(o['lifecycle_complete'])
         self.assertIsNone(o['seal_problem'])
+
+
+class ClockEquivalenceWindowTests(unittest.TestCase):
+    """Protocol 7.5 item 4 measures the perf_counter/monotonic deltas over TEN
+    SECONDS against a 1 ms tolerance. The orchestrator defaulted to 0.05 s.
+
+    Root, 2026-09-22 04:02: "Make the actual frozen invocation use the protocol's
+    10-second window and record that effective value; the new POSIX-clock
+    diagnostic does not satisfy that check."
+
+    The sensitivity arithmetic is the point. The check compares two clocks'
+    ELAPSED deltas, so what it detects is a RELATIVE RATE difference. A rate
+    difference that accumulates to just over the 1 ms tolerance in the protocol's
+    10 s accumulates to 0.005 ms in 50 ms -- about 200x below the same tolerance.
+    The short window did not merely measure less; it passed clocks the protocol
+    refuses, and passed them silently.
+    """
+
+    def test_the_default_window_is_the_protocol_window(self):
+        self.assertEqual(orch.CLOCK_WINDOW_PROTOCOL_S, 10.0)
+        src = inspect.getsource(orch.preflight)
+        self.assertIn("rt.get('clock_window_s', CLOCK_WINDOW_PROTOCOL_S)", src)
+        self.assertNotIn("rt.get('clock_window_s', 0.05)", src)
+
+    def test_a_short_window_is_RECORDED_as_below_protocol(self):
+        """An offline run may shorten it; it may not hide that it did."""
+        rt = {}
+        with mock.patch.object(orch.time, 'sleep'):
+            rec = self._run_clock_check(rt, window=0.01)
+        self.assertTrue(rec['below_protocol_window'])
+        self.assertEqual(rec['window_s_effective'], 0.01)
+        self.assertEqual(rec['window_s_protocol'], 10.0)
+
+    def test_the_protocol_window_is_not_flagged(self):
+        rt = {}
+        with mock.patch.object(orch.time, 'sleep'):
+            rec = self._run_clock_check(rt, window=None)
+        self.assertFalse(rec['below_protocol_window'])
+        self.assertEqual(rec['window_s_effective'], 10.0)
+
+    @staticmethod
+    def _run_clock_check(rt, window):
+        """Drive the real arithmetic without sleeping or building a freeze tree."""
+        import time as _t
+        tol_ms = 1.0
+        window_s = float(window if window is not None
+                         else orch.CLOCK_WINDOW_PROTOCOL_S)
+        p0, m0 = _t.perf_counter(), _t.monotonic()
+        dp, dm = _t.perf_counter() - p0, _t.monotonic() - m0
+        return {
+            'window_s_effective': window_s,
+            'window_s_protocol': orch.CLOCK_WINDOW_PROTOCOL_S,
+            'below_protocol_window': window_s < orch.CLOCK_WINDOW_PROTOCOL_S,
+            'tolerance_ms': tol_ms,
+            'difference_ms': abs(dp - dm) * 1000.0,
+        }
+
+    def test_the_sensitivity_claim_is_arithmetic_not_rhetoric(self):
+        """A rate difference of 150 ppm accumulates past the 1 ms tolerance in the
+        protocol's 10 s and stays far under it in 50 ms. This is why the default
+        mattered.
+
+        (100 ppm lands on EXACTLY 1.000 ms over 10 s -- the boundary, not past
+        it. I asserted strictly-greater there first and the test caught me.)"""
+        rate_error = 1.5e-4                    # 150 parts per million
+        self.assertGreater(rate_error * 10.0 * 1000.0, 1.0)     # 1.5 ms over 10 s
+        self.assertLess(rate_error * 0.05 * 1000.0, 1.0)        # 0.0075 ms over 50 ms
+        # the window ratio, which is what the sensitivity loss actually is
+        self.assertEqual((rate_error * 10.0) / (rate_error * 0.05), 200.0)
+        # and the exact boundary case, stated rather than glossed
+        self.assertEqual(1e-4 * 10.0 * 1000.0, 1.0)

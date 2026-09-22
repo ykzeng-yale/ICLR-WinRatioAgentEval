@@ -712,6 +712,11 @@ def observed_bundle_members(freeze_dir: Path, *, trial: str | None = None,
 # ---------------------------------------------------------------------------
 # preflight
 # ---------------------------------------------------------------------------
+#: Protocol 7.5 item 4: the perf_counter/monotonic deltas are compared over a
+#: TEN SECOND interval against clock_equivalence_tolerance_ms = 1.
+CLOCK_WINDOW_PROTOCOL_S: float = 10.0
+
+
 def preflight(ctx: RunContext) -> dict:
     """Every refusal before seq 0 (ARCHITECTURE_FINAL.md 3.13, protocol 6.4 row 21).
 
@@ -827,13 +832,44 @@ def preflight(ctx: RunContext) -> dict:
         failed.append('disk_low')
 
     # --- clock equivalence (protocol 7.5 item 4) ----------------------------
+    # THE WINDOW IS THE PROTOCOL'S, root 2026-09-22 04:02: "The reviewer found a
+    # protocol 10-second check but an orchestrator default of 0.05 seconds. Make
+    # the actual frozen invocation use the protocol's 10-second window and record
+    # that effective value."
+    #
+    # WHY THE DEFAULT MATTERED. The tolerance is 1 ms. A RELATIVE rate difference
+    # between the two clocks that would accumulate to more than 1 ms over the
+    # protocol's 10 s shows up as 0.005 ms over 50 ms, so the check as invoked
+    # was about 200x less sensitive than the one 7.5 item 4 specifies -- it would
+    # have passed clocks the protocol intends to refuse, and passed them quietly.
+    #
+    # A shorter window remains settable for offline tests, which cannot sleep
+    # 10 s per preflight, but it is now RECORDED as an effective value and
+    # flagged as below protocol, so no receipt can show a weakened check without
+    # saying so.
     tol_ms = float(cfg.get('enclosure', {}).get('clock_equivalence_tolerance_ms', 1))
-    window_s = float(rt.get('clock_window_s', 0.05))
+    window_s = float(rt.get('clock_window_s', CLOCK_WINDOW_PROTOCOL_S))
     p0, m0 = time.perf_counter(), time.monotonic()
     time.sleep(window_s)
     dp, dm = time.perf_counter() - p0, time.monotonic() - m0
+    clock_equivalence = {
+        'window_s_effective': window_s,
+        'window_s_protocol': CLOCK_WINDOW_PROTOCOL_S,
+        'below_protocol_window': window_s < CLOCK_WINDOW_PROTOCOL_S,
+        'tolerance_ms': tol_ms,
+        'perf_counter_delta_s': dp,
+        'monotonic_delta_s': dm,
+        'difference_ms': abs(dp - dm) * 1000.0,
+        'sensitivity_note': ('a relative rate difference is measured over the '
+                             'window, so a window below %g s detects proportionally '
+                             'less of it at the same tolerance'
+                             % CLOCK_WINDOW_PROTOCOL_S),
+    }
+    rt['clock_equivalence'] = clock_equivalence
     if abs(dp - dm) * 1000.0 > tol_ms:
         failed.append('clock_equivalence')
+        _drift('clock_equivalence_ms', '<= %g' % tol_ms,
+               '%.6f over %g s' % (clock_equivalence['difference_ms'], window_s))
 
     # --- the worktree (protocol 2.1 guard 1) --------------------------------
     expected_tree = rt.get('worktree')

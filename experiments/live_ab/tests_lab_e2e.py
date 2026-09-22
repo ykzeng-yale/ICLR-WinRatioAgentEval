@@ -75,6 +75,12 @@ class Tree:
     def _cfg(self) -> dict:
         cfg = json.loads((self.results / 'freeze' / 'config.json').read_text('utf-8'))
         cfg['_runtime'] = {
+            # Protocol 7.5 item 4 measures the clock deltas over 10 s. An
+            # offline suite cannot sleep 10 s per preflight, so it sets a
+            # short window EXPLICITLY -- the preflight records it as
+            # below_protocol_window so no receipt from these runs can be
+            # mistaken for one taken at the protocol sensitivity.
+            'clock_window_s': 0.01,
             'results_root': str(self.results), 'work_root': str(self.work),
             'bundle_sha': self.bundle_sha, 'sim': True, 'mock': True,
             'anchor_mode': 'mock', 'blocking_wait_s': 25.0, 'poll_interval_ms': 0,
