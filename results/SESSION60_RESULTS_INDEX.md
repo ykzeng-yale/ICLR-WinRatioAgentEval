@@ -1681,6 +1681,35 @@ it would destroy what it tests. `FLAKY_TEST_COIN_BALANCE_20260922.json`, `descri
 5 new tests. Suites: design **307** (one run failed on that flake, three passed), chain 70,
 isolation 12, serving 89, hostcheck 117, stats 70.
 
+### 12.6 items 5 and 6 — the last two timing-integrity clauses (2026-09-22, `0904617`)
+
+`deterministic-path`.
+
+**Item 5 — `job_accepted − coin_drawn` on the monotonic clock.** There are **two** monotonic clocks
+here and they are not the same. Both stamps come from the **envelope** `t_mono_ns` — one writer, one
+domain. `job_accepted` also carries `worker_t_mono_ns`, a **different process's** clock with its own
+epoch; it is recorded and **never differenced**. Same trap as the 694 s `CLOCK_MONOTONIC` finding, one
+layer in, and looked for because of it.
+
+Pairing taken from the code that owns it: `coin_drawn` keys by `pair` and carries an `assignment` map
+arrival→arm, `job_accepted` keys by `arrival` — exactly `lab_verify_log`'s `assign_seq_of_arrival`.
+
+**Negative latencies are listed separately.** A job accepted *before* its coin was drawn is a
+write-ahead violation, not a small number; inside a distribution it would pull the median down and
+disappear.
+
+**Item 6 — server-log prefix across anchors.** Byte counts must be non-decreasing, and — the case
+monotonicity alone would pass — **equal byte count with a different digest** means the log was
+**rewritten**, not appended to.
+
+**What it cannot do, stated rather than implied:** the digest is over the first *N* bytes and **the log
+is not in the chain**, so this cannot verify the prefix property. It establishes monotonicity and
+digest stability at equal length. Calling it "the prefix property" would be the overstatement root
+caught in my anchor receipt.
+
+9 new tests. Suites: design **316**, chain 70, isolation 12, serving 89, hostcheck 117, stats 70,
+e2e 42 — all pass this run, including the stochastic coin test.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
