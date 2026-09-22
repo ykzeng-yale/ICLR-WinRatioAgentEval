@@ -1495,3 +1495,24 @@ BEFORE: `| `REPORT.md` | **specified, not written** |`
 AFTER:  `| `REPORT.md` | exists (WRITTEN AFTER THE FREEZE COMMIT, NOT AT IT; status correction 2026-09-20, coordinator ruling 43/61, changes no value) |`
 
 Writing `REPORT.md` is required by section 13.3 item 6, and writing it falsifies a status sentence about the freeze commit. No cell, parameter, seed, grid, estimator, reported quantity, flag rule or positive control moves. This is the third such correction and the same kind as corrections 1 and 2.
+
+
+## Amendment 2026-09-22 — vocabulary pin successor mapping
+
+The vocabulary pin on `experiments/live_ab/design/protocol_FINAL.md` remains the **original**
+`3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0dd7d2c2`, the snapshot this grid actually
+ran against. That file has since moved twice: to `b1ff97cc…` (the separately documented enclosure change) and then
+to `d63717a5…` (an Appendix B delta binding only the hardware allowlist and environment-lock digest).
+
+**The successor digests are written TRUNCATED here on purpose.** `check_pinned_file_hashes` parses
+every 64-hex token in this document and requires the *recorded pin* to be among them. Writing the
+current successor in full would therefore make the tempting "fix" — rewriting
+`provenance.vocabulary_alignment.sha256` to the current file's digest — pass a check that must
+refuse it. I wrote the full values here first and the mutated-original-pin test caught exactly that
+weakening. The full digests live in `cells.json` and in the amendment document, neither of which is
+parsed by this rule. The successor mapping in `cells.json` records
+both; the original pin is **not** replaced. Full statement, including the correction to an earlier
+description that flattened the two transitions into one: [`PIN_AMENDMENT_20260922.md`](PIN_AMENDMENT_20260922.md).
+Authorized by root 2026-09-22 04:27 (`reviews/protocol_pin_disposition_20260922_0422.md`).
+Administrative provenance repair only: no scientific parameter, seed, horizon, estimator, outcome,
+decision rule, result label or execution pin changes.

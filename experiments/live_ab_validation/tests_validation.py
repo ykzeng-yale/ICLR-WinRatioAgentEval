@@ -2894,3 +2894,87 @@ def _run() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(_run())
+
+
+class PinSuccessorAmendmentTests(unittest.TestCase):
+    """The focused pin tests root asked for, 2026-09-22 04:27:
+    "Deliver the immutable amendment and focused F18/pin tests, including a
+    correct successor, wrong successor and mutated original pin. Report their
+    exact counts, not 'every suite.'"
+
+    Each case drives the REAL `check_pinned_file_hashes` on a deep copy, so
+    nothing on disk is touched.
+    """
+
+    HERE = pathlib.Path(__file__).resolve().parent
+    REPO = HERE.parent.parent
+
+    ORIGINAL = '3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0dd7d2c2'
+    PREVIOUS = 'b1ff97cc163ce7ea121ebd578a4c37de09d5ed7223f2029e5d56118cdc790822'
+    CURRENT = 'd63717a5519f650394db8aca7eb33d7a15ccfedbaffe78600d9ea3fb7b76294d'
+
+    def _inputs(self):
+        import copy
+        cfg = copy.deepcopy(json.loads(
+            (self.HERE / 'cells.json').read_text(encoding='utf-8')))
+        manifest = json.loads(
+            vfixtures.PINNED_MANIFEST.read_text(encoding='utf-8'))
+        # The SAME protocol text F18 itself passes: this experiment's own
+        # PROTOCOL.md, not the pinned file. The check requires the recorded pin
+        # (or its successor) to be stated in the report as well as in cells.json,
+        # which is exactly root's "add a short dated amendment in the
+        # protocol/report" obligation, enforced mechanically.
+        protocol = vfixtures.PROTOCOL_PATH.read_text(encoding='utf-8')
+        return cfg, manifest, protocol
+
+    def _va(self, cfg):
+        return cfg['provenance']['vocabulary_alignment']
+
+    def _run(self, cfg, manifest, protocol):
+        return vfixtures.check_pinned_file_hashes(
+            cfg, manifest, self.REPO, vfixtures.PINNED_DIR, protocol)
+
+    def _vocab_failures(self, fails):
+        return [f for f in fails if 'vocabulary_alignment' in f]
+
+    def test_the_amendment_on_disk_leaves_the_original_pin_untouched(self):
+        cfg, _, _ = self._inputs()
+        va = self._va(cfg)
+        self.assertEqual(va['sha256'], self.ORIGINAL)
+        self.assertEqual(va['superseded_by']['sha256'], self.CURRENT)
+        self.assertEqual(va['superseded_by']['supersedes'], self.ORIGINAL)
+
+    def test_the_previous_successor_is_preserved_not_overwritten(self):
+        """Root: "Preserve the existing successor object in an additive history
+        entry." The enclosure ruling is substantive history, not a stale value."""
+        cfg, _, _ = self._inputs()
+        prior = self._va(cfg)['superseded_by']['prior_successors']
+        self.assertEqual(len(prior), 1)
+        self.assertEqual(prior[0]['sha256'], self.PREVIOUS)
+        self.assertIn('enclosure', prior[0]['reason'].lower())
+        self.assertIn('ruling 60', prior[0]['ruling'])
+
+    def test_a_correct_successor_passes(self):
+        cfg, manifest, protocol = self._inputs()
+        self.assertEqual(self._vocab_failures(self._run(cfg, manifest, protocol)), [])
+
+    def test_a_WRONG_successor_fails(self):
+        cfg, manifest, protocol = self._inputs()
+        self._va(cfg)['superseded_by']['sha256'] = 'f' * 64
+        self.assertNotEqual(
+            self._vocab_failures(self._run(cfg, manifest, protocol)), [])
+
+    def test_MUTATING_THE_ORIGINAL_PIN_still_fails(self):
+        """The one that matters: the amendment must not have opened a door to
+        rewriting the original study's source identity."""
+        cfg, manifest, protocol = self._inputs()
+        self._va(cfg)['sha256'] = self.CURRENT      # the tempting "fix"
+        self.assertNotEqual(
+            self._vocab_failures(self._run(cfg, manifest, protocol)), [])
+
+    def test_a_successor_that_is_recorded_but_stale_fails(self):
+        """The invariant F18 actually enforces: no pin is SILENTLY stale."""
+        cfg, manifest, protocol = self._inputs()
+        self._va(cfg)['superseded_by']['sha256'] = self.PREVIOUS   # the old one
+        self.assertNotEqual(
+            self._vocab_failures(self._run(cfg, manifest, protocol)), [])

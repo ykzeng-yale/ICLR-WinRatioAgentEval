@@ -1,2343 +1,2358 @@
 {
-  "schema": "live_ab_validation/cells/v1",
-  "version": "v1-cpu-validation",
-  "frozen_before_any_simulation_outcome": true,
-  "protocol": "experiments/live_ab_validation/PROTOCOL.md",
-  "issue": 12,
-  "validates": "experiments/live_ab (issue 11) monitor decision arithmetic",
-  "pre_freeze_revision": {
-    "revised_after": "an adversarial pre-registration audit, experiments/live_ab_validation/PREREG_CHECK.md",
-    "revised_before": "any simulation outcome of this study existed; no cell has ever been run",
-    "not_a_version_bump_because": "PROTOCOL.md and this file had not been committed or frozen when the audit was written, so section 14 change control had not yet attached. The revision is recorded here instead of being silently absorbed.",
-    "what_changed": [
-      "B.1: PROTOCOL 2.2 claimed the #12 band module does not call winstats.normal_mixture_radius. It does. The claim was corrected, not the code.",
-      "B.2: the fixture register now lists the fixtures that exist, name for name, and a fixture asserts that register against vfixtures.ALL_FIXTURES and against this file.",
-      "B.3: the import-graph test that enforces the independence constraint now exists (F16 and tests_validation.TestImportGraphIndependence).",
-      "B.4: the radius agreement fixture now sweeps n = 1..20000 with strict float equality instead of eight points at 1e-12.",
-      "B.5: the comparison step's label bijection, exception rule and certified/collapsed scope are frozen here instead of being left to post-hoc judgement.",
-      "B.6: THE SUBSTANTIVE ONE. The eight cells did not exercise the cost/latency enclosure path at all. Atom cost columns and an elapsed-cost accrual rule were added, so pairs now resolve at the COST tier and carry cost enclosures that narrow as elapsed time accrues. mu_h, mu_s, the atom weights, the delay rules, the seeding and the reveal schedule are UNCHANGED; the ground truth is still exact enumeration over six atoms. The derived expected-path tables (6.2, 6.3) were recomputed and a new 6.4 was added.",
-      "B.7/B.8/B.9/B.10/B.11/B.12/B.13/B.14: budget scaling measurement, the T4 variant of section 6, the 2.4/9.1 path contradiction, disclosure of already-executed randomised property runs, the smoke-cell justification, the fixture-claim wording, the not-yet-existing artefacts, and the two-sided level citation."
-    ],
-    "unchanged_by_the_revision": [
-      "the eight cells and their four outcome laws x two delay rules",
-      "the atom weights and therefore mu_h and mu_s in every cell",
-      "the delay rules N and A, their marginal matching, and E[d]",
-      "the seeding, the namespaces and the five-array draw order",
-      "PROTOCOL 6.1, whose unresolved/unrevealed fractions depend only on the reveal schedule",
-      "the estimators, the flag rule and the precommitted positive control"
-    ],
-    "second_revision": {
-      "revised_after": "a second adversarial pass over the first revision, experiments/live_ab_validation/PREREG_CHECK_2.md, which re-tested every finding of the first audit and raised four new ones against this pre-registration",
-      "revised_before": "any simulation outcome of this study existed; still no cell has ever been run, at any horizon, with any seed",
-      "what_changed": [
-        "N.1: the pin on experiments/live_ab/design/protocol_FINAL.md was STALE - 03028374... was that file at commit de31b6c, and the #11 quiescence-gate work had since added its section 5.7.1. Every pin in PROTOCOL.md, in this file and in pinned/PINNED.json was recomputed from the file on disk, and F18_pinned_file_hashes now OPENS AND HASHES each pinned file instead of comparing two documents' strings. The check it replaces could not see a stale pin at all: it asserted only that the same 64-hex token appeared in both documents.",
-        "N.2: F15 guarded about two thirds of what sections 11 and 13 said it guarded; whole frozen tables, including the 2.5 enclosure-row table that decides ground truth, the 9.2 nominal bounds, the 5 seed namespaces and the grid column of the 8.2 budget ladder, were compared against nothing. The check was extended to them (this file gained enclosure_rules.protocol_2_5_rows and seeding.namespaces[*].protocol_sections as the machine-readable twins of two of those tables) and the claim in section 11 was narrowed to the list the code actually walks.",
-        "N.3: parameters.cost_model.narrowing_thresholds.closed_form_is_not_bit_identical attributed to F17 an assertion F17 does not make - that it asserts the full 128-state disagreement set. F17 asserts 28 boundary states over the 47484-state subgrid it sweeps. The sentence was corrected to match PROTOCOL 2.5, which was already right.",
-        "N.4: the section 11 register row for F17 said 'over every (atom, revealed arm, d, elapsed age) state' four lines below prose saying 47484. The row was corrected."
-      ],
-      "unchanged_by_the_second_revision": [
-        "every cell, weight, delay rule, seed, horizon, estimator, flag rule and positive control",
-        "every value in sections 4, 6 and 9",
-        "vband.py, which this revision did not touch",
-        "the ground truth of any cell: the only new numbers in this file are the transcription of the PROTOCOL 2.5 table that was already in PROTOCOL.md, the section numbers the PROTOCOL 5 table already printed, and the corrected hash of a file outside this study"
-      ]
-    }
-  },
-  "modules": {
-    "exist_at_the_freeze_commit": {
-      "PROTOCOL.md": "this study's frozen pre-registration",
-      "cells.json": "this file; the machine-readable twin, normative for every numeric value",
-      "vband.py": "the #12 band, enclosure, episode, monitor and decision rule (the object under test)",
-      "vfixtures.py": "the deterministic acceptance fixtures F01..F18 and the event replay helper; entry point: python vfixtures.py",
-      "tests_validation.py": "unit and randomised property tests for vband/vfixtures, including the import-graph guard; entry point: python tests_validation.py",
-      "PREREG_CHECK.md": "the adversarial pre-registration audit the first revision answers",
-      "PREREG_CHECK_2.md": "the second adversarial pass, which re-tested the first audit's findings and raised N.1..N.4 against this pre-registration; the second revision answers it",
-      "pinned/": "the coordinator's read-only (mode 444) copy of the #11 monitor from live_ab commit 5776877, with pinned/PINNED.json recording each file's SHA-256. Deposited after the audit and before this revision. The #12 protocol author has opened the manifest only, never the three monitor files; nothing in this directory may load them until vcompare.py exists, and F16 asserts that nothing does.",
-      "vgen.py": "WRITTEN AFTER THE FREEZE COMMIT, NOT AT IT (status correction of 2026-09-20 under COORDINATOR_DECISIONS ruling 34; see PROTOCOL 14 and modules.status_correction_2026_09_20 below). The data-generating process of PROTOCOL sections 4 and 5: atoms, delays, reveal schedule, elapsed-cost accrual",
-      "vrun.py": "WRITTEN AFTER THE FREEZE COMMIT, NOT AT IT (status correction of 2026-09-20 under COORDINATOR_DECISIONS ruling 34; see PROTOCOL 14 and modules.status_correction_2026_09_20 below). The grid runner of PROTOCOL sections 7-9; writes only results/live_ab_validation/",
-      "vcompare.py": "WRITTEN AFTER THE FREEZE COMMIT, NOT AT IT (status correction of 2026-09-20 under COORDINATOR_DECISIONS ruling 34; see PROTOCOL 14 and modules.status_correction_2026_09_20 below). The pinned comparison step of PROTOCOL section 12; the ONLY module permitted to load pinned/",
-      "REPORT.md": "WRITTEN AFTER THE FREEZE COMMIT, NOT AT IT (status correction 2026-09-20, coordinator rulings 43/61): the study report"
-    },
-    "specified_here_but_do_not_exist_at_the_freeze_commit": {},
-    "status_correction_2026_09_20": {
-      "ruling": "experiments/live_ab/design/COORDINATOR_DECISIONS.md revision 9, item 34",
-      "what_moved": [
-        "vgen.py",
-        "vrun.py",
-        "vcompare.py"
-      ],
-      "from": "specified_here_but_do_not_exist_at_the_freeze_commit",
-      "to": "exist_at_the_freeze_commit",
-      "why": "The three modules were written to this frozen specification after the freeze commit. PROTOCOL 13.0's status column and this twin both asserted that they do not exist, which stopped being true the moment they were written, and F15 fails on the contradiction. This is a status correction that changes NO VALUE: no cell, parameter, seed, grid, estimator, reported quantity, flag rule or positive control moves.",
-      "literal_truth_retained": "They did NOT exist at the freeze commit. The key name exist_at_the_freeze_commit is the set that F15 maps PROTOCOL 13.0's 'exists' status onto; it is not re-dated by this correction, and each moved entry carries the fact in its own description.",
-      "not_a_version_bump": true,
-      "still_not_written_at_the_time_of_this_correction": [
-        "REPORT.md"
-      ],
-      "REPORT.md": "Moved from specified_here_but_do_not_exist_at_the_freeze_commit. Status only; changes no value."
-    },
-    "renamed_from_the_pre_audit_draft": {
-      "run_validation.py": "vrun.py",
-      "compare_to_live_ab.py": "vcompare.py"
-    }
-  },
-  "provenance": {
-    "formula_source": {
-      "path": "reviews/arxiv_live_design_guidance.md",
-      "item": 3,
-      "sha256": "a71965986165d56915a557a1a43998d9eb76a4e800dba670281c93720037ad1b"
-    },
-    "pinned_primitive": {
-      "path": "src/winstats.py",
-      "sha256": "56955ce09a8ac7afb15f2bd251048537eabcc04ea75e7579bdb825594f41fc69"
-    },
-    "vocabulary_alignment": {
-      "path": "experiments/live_ab/design/protocol_FINAL.md",
-      "sections_read": [
-        1,
-        3,
-        11
-      ],
-      "sha256": "3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0dd7d2c2",
-      "superseded_by": {
-        "sha256": "b1ff97cc163ce7ea121ebd578a4c37de09d5ed7223f2029e5d56118cdc790822",
-        "reason": "The #11 protocol moved after this pre-registration was frozen AND after this grid ran: item 5 (the hierarchy enclosure) was COMPLETED so that it delivers the enumeration item 1 promises. See experiments/live_ab/design/COORDINATOR_DECISIONS.md revisions 12, 13 and protocol_FINAL.md section 7.5a.",
-        "ruling": "Coordinator ruling 60: the pin is NOT updated. This grid validated the #11 monitor as it stood at commit 5776877 against protocol hash 3c76e8eb...; re-pinning would assert that the completed run covered a version of #11 that did not exist when it ran. A comparison against the completed enclosure requires a re-pin, a re-snapshot of pinned/, and a RE-RUN, which is #12 v2 under its own section 14 version bump, not an edit.",
-        "recorded_utc": "2026-09-20",
-        "supersedes": "3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0dd7d2c2"
-      }
-    },
-    "repo_commit_at_writing": "de31b6cf124b3723eb9986a03318f1ae4f935353",
-    "python": "3.12.13",
-    "numpy": "2.4.1",
-    "cpu_only": true,
-    "independence": {
-      "kind": "procedural, not organizational",
-      "must_not_read_or_import": [
-        "experiments/live_ab/lab_monitor.py",
-        "experiments/live_ab/lab_enclosure.py"
-      ],
-      "pinned_copy_loaded_only_at": "experiments/live_ab_validation/vcompare.py",
-      "pinned_manifest": "experiments/live_ab_validation/pinned/PINNED.json",
-      "machine_checked_by": [
-        "vfixtures.F16_import_graph_independence",
-        "tests_validation.TestImportGraphIndependence"
-      ],
-      "known_one_directional_leak": {
-        "what": "PREREG_CHECK.md, written by an adversarial checker who was NOT bound by the constraint and read the #11 monitor in full, quotes #11 identifiers and behaviour: the decision-label alphabet, the n=0 and horizon branches, the collapsed-flag rule, and the cost certificate (1 - tol) * ell > L_r + 1e-9.",
-        "read_by": "the #12 protocol author, at the pre-registration audit stage, after vband.py and vfixtures.py F01..F13 were already written",
-        "consequence_1": "vband.py is unchanged by this revision and was written before the leak; its cost-order enumeration is an independent derivation from the guidance tolerance rule.",
-        "consequence_2": "the coincidence between the #12 narrowing thresholds and the quoted #11 certificate is therefore NOT independent evidence of agreement, and section 12 reports it as a disclosed coincidence rather than as a check.",
-        "consequence_3": "the DECISION to add the cost-enclosure path to the cells came from the audit, not from an independent reading of the guidance; that provenance is stated in PROTOCOL 4.4 and is not presented as foresight."
-      }
-    }
-  },
-  "parameters": {
-    "alpha_gate": 0.00625,
-    "alpha_per_trial": 0.0125,
-    "alpha_program": 0.05,
-    "trials_per_program": 4,
-    "gates_per_trial": 2,
-    "bands_per_gate": 1,
-    "rho": 100.0,
-    "variance_process": "V_n = n",
-    "delta": 0.03,
-    "n_min": 100,
-    "N_max": 2000,
-    "drain_W": 200,
-    "finalization_tick": 2200,
-    "looks_per_trial": 2001,
-    "decision_eligible_looks": 1902,
-    "positive_direction": "candidate favourable, matching the live candidate label",
-    "score_range": [
-      -1.0,
-      1.0
-    ],
-    "clip_bounds_to": [
-      -1.0,
-      1.0
-    ],
-    "radius_formula": "r(n) = sqrt((n + rho) * log((n + rho) / (rho * alpha_gate**2))) / n",
-    "radius_formula_evaluated": "r(n) = sqrt((n + 100) * log((n + 100) / 0.00390625)) / n",
-    "radius_reference_values": {
-      "100": 0.465693,
-      "200": 0.29046,
-      "300": 0.226438,
-      "398": 0.192246,
-      "500": 0.169296,
-      "566": 0.158252,
-      "695": 0.141839,
-      "864": 0.126625,
-      "1000": 0.117486,
-      "1500": 0.095863,
-      "2000": 0.08323
-    },
-    "first_n_with_radius_below": {
-      "0.45": 105,
-      "0.40": 124,
-      "0.30": 191,
-      "0.28": 212,
-      "0.23": 293,
-      "0.03": 17097
-    },
-    "decision_rule": {
-      "evaluated_on": "current full enrolled prefix n = N(t), at every look with n >= n_min",
-      "L_j": "clip(sum(lower_j[:n]) / n - r(n), -1, 1)",
-      "U_j": "clip(sum(upper_j[:n]) / n + r(n), -1, 1)",
-      "DEPLOY": "L_hierarchy > 0 AND L_success > -delta, both at the SAME look",
-      "RETAIN_INCUMBENT": "U_hierarchy < 0",
-      "same_look_conjunction_required": true,
-      "stopping": "first crossing ends the trial; no retention of earlier crossings; no intersection over looks",
-      "endpoint_if_no_crossing": "NO_DECISION at the finalization look"
-    },
-    "hierarchy": {
-      "tiers": [
-        {
-          "name": "success",
-          "higher_better": true,
-          "absolute_tolerance": 0.0,
-          "relative_tolerance": 0.0
-        },
-        {
-          "name": "cost",
-          "higher_better": false,
-          "absolute_tolerance": 0.0,
-          "relative_tolerance": 0.05
-        }
-      ],
-      "cost_eligible_only_when": "both episodes succeed",
-      "joint_failure": "ties; cost never eligible",
-      "tie_includes_exact_threshold_equality": true
-    },
-    "cost_model": {
-      "cost_cap": 100.0,
-      "units": "abstract cost units; the synthetic analogue of the live trial's latency_s",
-      "final_cost_is_fixed_by_the_atom": true,
-      "pending_cost_enclosure": "[ell, cost_cap]; the upper bound is the frozen resource cap and never narrows",
-      "elapsed_accrual": "an episode with final cost c and reveal offset D holds elapsed lower bound ell(a) = (c * a) / D at age a < D, and ell = c once a >= D; ell(a) < c for every a < D, so it is a valid lower bound, and it is nondecreasing in a",
-      "evaluation_order_is_frozen": "(c * a) / D, not c * (a / D); with integer c and a the numerator is exact, which keeps the tolerance boundaries reproducible",
-      "narrowing_thresholds": {
-        "normative_form": "the frozen predicate, evaluated as compare evaluates it: the pending arm can still be cheaper iff c - ell > atol + rtol*max(c, ell); the tie survives iff ell <= c or NOT (ell - c > atol + rtol*max(c, ell)). Re-derived in vband.cost_order_possibilities, not taken from the #11 monitor.",
-        "closed_form_reading": "in exact arithmetic: the pending-arm branch dies at ell >= (1 - rtol)*c_revealed and the tie dies at ell > c_revealed/(1 - rtol)",
-        "closed_form_is_not_bit_identical": "over the 2878680 (atom, revealed arm, d, age) states of the frozen delay grid the two readings disagree on exactly 128 states, all at the single point ell = c/(1-rtol) = 200/19 reached at elapsed fraction 5/19, where the predicate calls the tie infeasible and the closed form calls it feasible. The PREDICATE governs; sections 6.3 and 6.4 are computed with it. The 2878680-state sweep was run ONCE while writing this protocol (PROTOCOL 0.1 item 3) and is not re-run at fixture time: F17_atom_cost_table re-checks 47484 of those states, asserts that every disagreement it finds lies at elapsed fraction 5/19, and asserts that it finds exactly the 28 boundary states that grid reaches. It does NOT assert the full 128-state set; the corrected wording is PREREG_CHECK_2 N.3.",
-        "point_collapse_is_not_certified": "a hierarchy enclosure that reaches a point this way has no final-score certificate, so certified stays false; see comparison_to_live_ab.certified_collapsed_scope"
-      }
-    }
-  },
-  "enclosure_rules": {
-    "start": {
-      "hierarchy": [
-        -1.0,
-        1.0
-      ],
-      "success": [
-        -1.0,
-        1.0
-      ]
-    },
-    "narrows_only_on_logically_certain_facts": true,
-    "never_imputes_pending_success_or_resource": true,
-    "reveal_updates_existing_enrollment_indexed_record": true,
-    "states": [
-      {
-        "state": "unrevealed",
-        "hierarchy": [
-          -1.0,
-          1.0
-        ],
-        "success": [
-          -1.0,
-          1.0
-        ],
-        "cost_relevant": false
-      },
-      {
-        "state": "candidate_revealed_sC_0",
-        "hierarchy": [
-          -1.0,
-          0.0
-        ],
-        "success": [
-          -1.0,
-          0.0
-        ],
-        "cost_relevant": false,
-        "why": "s_C = 0 makes the both-succeed branch infeasible, so the cost tier can never become eligible"
-      },
-      {
-        "state": "candidate_revealed_sC_1",
-        "hierarchy": [
-          -1.0,
-          1.0
-        ],
-        "success": [
-          0.0,
-          1.0
-        ],
-        "cost_relevant": true,
-        "cost_refinement": "with c_C known and the incumbent pending in [ell, cap]: hierarchy is [-1, 1] while ell < (1-rtol)*c_C, then [0, 1], then the point [1, 1] once ell > c_C/(1-rtol)"
-      },
-      {
-        "state": "incumbent_revealed_sI_0",
-        "hierarchy": [
-          0.0,
-          1.0
-        ],
-        "success": [
-          0.0,
-          1.0
-        ],
-        "cost_relevant": false,
-        "why": "s_I = 0 makes the both-succeed branch infeasible"
-      },
-      {
-        "state": "incumbent_revealed_sI_1",
-        "hierarchy": [
-          -1.0,
-          1.0
-        ],
-        "success": [
-          -1.0,
-          0.0
-        ],
-        "cost_relevant": true,
-        "cost_refinement": "with c_I known and the candidate pending in [ell, cap]: hierarchy is [-1, 1] while ell < (1-rtol)*c_I, then [-1, 0], then the point [-1, -1] once ell > c_I/(1-rtol)"
-      },
-      {
-        "state": "resolved",
-        "hierarchy": [
-          "Z",
-          "Z"
-        ],
-        "success": [
-          "D",
-          "D"
-        ],
-        "cost_relevant": true,
-        "why": "the certified collapse; the cost tier decides the BB atoms"
-      }
-    ],
-    "protocol_2_5_rows_are_normative": "The ten rows below are the machine-readable twin of the PROTOCOL 2.5 enclosure table, in its order, with its labels. Before PREREG_CHECK_2 N.2 that table was compared against nothing: cells.json was declared normative over the table that decides ground truth while no check read it. F15 now compares the two row for row, and also asserts that each row is consistent with the coarser `states` list above - the widest row of a cost-relevant state must equal that state's interval, every later row of the group must be a subinterval of it, and the success interval must not move within a group, because the cost tier cannot touch the success score.",
-    "protocol_2_5_rows": [
-      {
-        "label": "enrolled, neither episode revealed",
-        "refines": "unrevealed",
-        "hierarchy": [
-          -1.0,
-          1.0
-        ],
-        "success": [
-          -1.0,
-          1.0
-        ]
-      },
-      {
-        "label": "candidate revealed, s_C = 0",
-        "refines": "candidate_revealed_sC_0",
-        "hierarchy": [
-          -1.0,
-          0.0
-        ],
-        "success": [
-          -1.0,
-          0.0
-        ]
-      },
-      {
-        "label": "candidate revealed, s_C = 1, cost tie and incumbent-cheaper both still feasible",
-        "refines": "candidate_revealed_sC_1",
-        "hierarchy": [
-          -1.0,
-          1.0
-        ],
-        "success": [
-          0.0,
-          1.0
-        ]
-      },
-      {
-        "label": "candidate revealed, s_C = 1, incumbent-cheaper infeasible, tie feasible",
-        "refines": "candidate_revealed_sC_1",
-        "hierarchy": [
-          0.0,
-          1.0
-        ],
-        "success": [
-          0.0,
-          1.0
-        ]
-      },
-      {
-        "label": "candidate revealed, s_C = 1, both infeasible",
-        "refines": "candidate_revealed_sC_1",
-        "hierarchy": [
-          1.0,
-          1.0
-        ],
-        "success": [
-          0.0,
-          1.0
-        ]
-      },
-      {
-        "label": "incumbent revealed, s_I = 0",
-        "refines": "incumbent_revealed_sI_0",
-        "hierarchy": [
-          0.0,
-          1.0
-        ],
-        "success": [
-          0.0,
-          1.0
-        ]
-      },
-      {
-        "label": "incumbent revealed, s_I = 1, cost tie and candidate-cheaper both still feasible",
-        "refines": "incumbent_revealed_sI_1",
-        "hierarchy": [
-          -1.0,
-          1.0
-        ],
-        "success": [
-          -1.0,
-          0.0
-        ]
-      },
-      {
-        "label": "incumbent revealed, s_I = 1, candidate-cheaper infeasible, tie feasible",
-        "refines": "incumbent_revealed_sI_1",
-        "hierarchy": [
-          -1.0,
-          0.0
-        ],
-        "success": [
-          -1.0,
-          0.0
-        ]
-      },
-      {
-        "label": "incumbent revealed, s_I = 1, both infeasible",
-        "refines": "incumbent_revealed_sI_1",
-        "hierarchy": [
-          -1.0,
-          -1.0
-        ],
-        "success": [
-          -1.0,
-          0.0
-        ]
-      },
-      {
-        "label": "both revealed",
-        "refines": "resolved",
-        "hierarchy": [
-          "Z",
-          "Z"
-        ],
-        "success": [
-          "D",
-          "D"
-        ]
-      }
-    ],
-    "cost_rows_are_a_logical_consequence": "Each cost refinement is the exhaustive enumeration of the feasible completions under the frozen predicate, and nothing more. The true score lies inside every row of this table at every elapsed value; verified by enumeration over every (atom, revealed arm, d, a) state.",
-    "point_is_not_certified": "A hierarchy enclosure narrowed to a point by the cost tier while an episode is still pending is logically as tight as a resolved one but carries no final-score certificate, so certified = false and n_certified does not count it. The study reports both counts."
-  },
-  "constructions": [
-    {
-      "id": "ADAPTER",
-      "status": "object under test",
-      "index": "n = current full enrolled prefix",
-      "mean_over": "all enrolled pairs 1..n, via their enclosures",
-      "radius_at": "r(n)",
-      "target": "mubar_n, the running conditional mean over the enrolled prefix",
-      "valid_under_informative_delay": true
-    },
-    {
-      "id": "CPREFIX",
-      "status": "matched comparator",
-      "index": "k = max{k : every pair 1..k fully resolved}",
-      "mean_over": "resolved scores of pairs 1..k",
-      "radius_at": "r(k)",
-      "target": "mubar_k, ITS OWN running target; NOT a bound on the current all-enrolled mean mubar_n",
-      "valid_under_informative_delay": true,
-      "note": "Under the i.i.d. laws of this study mubar_k = mubar_n = mu numerically, which is a property of these DGPs and not of the construction; this study cannot distinguish the two targets empirically."
-    },
-    {
-      "id": "NAIVE",
-      "status": "INTENTIONALLY INVALID UNDER INFORMATIVE DELAY",
-      "index": "m = |{j <= n : pair j fully resolved}|",
-      "mean_over": "the outcome-selected completed subset C(n), which is NOT a prefix of the enrollment filtration",
-      "radius_at": "r(m)",
-      "target": "none guaranteed; no martingale argument applies",
-      "valid_under_informative_delay": false,
-      "note": "Included only to exhibit the failure mode and as the precommitted positive control of PROTOCOL.md 9.4. Must be labelled invalid in every table, caption and file."
-    }
+ "schema": "live_ab_validation/cells/v1",
+ "version": "v1-cpu-validation",
+ "frozen_before_any_simulation_outcome": true,
+ "protocol": "experiments/live_ab_validation/PROTOCOL.md",
+ "issue": 12,
+ "validates": "experiments/live_ab (issue 11) monitor decision arithmetic",
+ "pre_freeze_revision": {
+  "revised_after": "an adversarial pre-registration audit, experiments/live_ab_validation/PREREG_CHECK.md",
+  "revised_before": "any simulation outcome of this study existed; no cell has ever been run",
+  "not_a_version_bump_because": "PROTOCOL.md and this file had not been committed or frozen when the audit was written, so section 14 change control had not yet attached. The revision is recorded here instead of being silently absorbed.",
+  "what_changed": [
+   "B.1: PROTOCOL 2.2 claimed the #12 band module does not call winstats.normal_mixture_radius. It does. The claim was corrected, not the code.",
+   "B.2: the fixture register now lists the fixtures that exist, name for name, and a fixture asserts that register against vfixtures.ALL_FIXTURES and against this file.",
+   "B.3: the import-graph test that enforces the independence constraint now exists (F16 and tests_validation.TestImportGraphIndependence).",
+   "B.4: the radius agreement fixture now sweeps n = 1..20000 with strict float equality instead of eight points at 1e-12.",
+   "B.5: the comparison step's label bijection, exception rule and certified/collapsed scope are frozen here instead of being left to post-hoc judgement.",
+   "B.6: THE SUBSTANTIVE ONE. The eight cells did not exercise the cost/latency enclosure path at all. Atom cost columns and an elapsed-cost accrual rule were added, so pairs now resolve at the COST tier and carry cost enclosures that narrow as elapsed time accrues. mu_h, mu_s, the atom weights, the delay rules, the seeding and the reveal schedule are UNCHANGED; the ground truth is still exact enumeration over six atoms. The derived expected-path tables (6.2, 6.3) were recomputed and a new 6.4 was added.",
+   "B.7/B.8/B.9/B.10/B.11/B.12/B.13/B.14: budget scaling measurement, the T4 variant of section 6, the 2.4/9.1 path contradiction, disclosure of already-executed randomised property runs, the smoke-cell justification, the fixture-claim wording, the not-yet-existing artefacts, and the two-sided level citation."
   ],
-  "no_speed_claim": "No pathwise speed dominance is claimed for the latest-enrolled-prefix normal-mixture monitor, in either direction. The three constructions are evaluated at different indices on the same path; their decision prefixes are never presented as a paired speed statistic, a latency, or a saving.",
-  "coverage_target_boundary": "Coverage validated here is for the BOUNDED ARBITRARY-RUNNING-MEAN target mubar_n = (1/n) sum_{i<=n} E[Z_i | F_{i-1}] of a synthetic stream. It does NOT establish the assumptions needed for a causal pair-orientation interpretation: pre-enrolled nonoverlapping arrival positions chosen without their outcomes, one fresh fair coin per pair logged and fsynced before either episode is dispatched, single exposure, no cross-pair interference, no dependence of a task's record on a later coin, an operator who does not act on coins, a fixed scheduling and resource policy, and the frozen outcome/missingness rule. A simulation assumes those; it cannot supply them.",
-  "outcome_atoms": {
-    "weight_denominator": 10000,
-    "sampling": "k = rng.integers(0, 10000); frozen cumulative-threshold lookup in the order below (exact integer arithmetic)",
-    "order": [
-      "BB+",
-      "BB0",
-      "BB-",
-      "C>I",
-      "I>C",
-      "FF"
-    ],
-    "definition": [
-      {
-        "atom": "BB+",
-        "s_candidate": 1,
-        "s_incumbent": 1,
-        "c_candidate": 10.0,
-        "c_incumbent": 40.0,
-        "cost": "candidate faster beyond tolerance",
-        "Z": 1,
-        "D": 0
-      },
-      {
-        "atom": "BB0",
-        "s_candidate": 1,
-        "s_incumbent": 1,
-        "c_candidate": 40.0,
-        "c_incumbent": 40.0,
-        "cost": "equal costs, within relative tolerance 0.05: a tie",
-        "Z": 0,
-        "D": 0
-      },
-      {
-        "atom": "BB-",
-        "s_candidate": 1,
-        "s_incumbent": 1,
-        "c_candidate": 40.0,
-        "c_incumbent": 10.0,
-        "cost": "incumbent faster beyond tolerance",
-        "Z": -1,
-        "D": 0
-      },
-      {
-        "atom": "C>I",
-        "s_candidate": 1,
-        "s_incumbent": 0,
-        "c_candidate": 10.0,
-        "c_incumbent": 40.0,
-        "cost": "ineligible (the incumbent fails after consuming 40)",
-        "Z": 1,
-        "D": 1
-      },
-      {
-        "atom": "I>C",
-        "s_candidate": 0,
-        "s_incumbent": 1,
-        "c_candidate": 40.0,
-        "c_incumbent": 10.0,
-        "cost": "ineligible (the candidate fails after consuming 40)",
-        "Z": -1,
-        "D": -1
-      },
-      {
-        "atom": "FF",
-        "s_candidate": 0,
-        "s_incumbent": 0,
-        "c_candidate": 40.0,
-        "c_incumbent": 40.0,
-        "cost": "ineligible",
-        "Z": 0,
-        "D": 0
-      }
-    ],
-    "cost_columns": {
-      "added_by": "the pre-freeze revision, to close PREREG_CHECK B.6",
-      "Z_column_is_unchanged": "every cost pair reproduces the frozen Z column exactly through src/winstats.compare with the frozen tiers; asserted by fixture F17_atom_cost_table",
-      "arm_exchangeability_of_L1_is_preserved": "the arm swap maps BB+ <-> BB- and C>I <-> I>C with their cost pairs swapped, and fixes BB0 (40, 40) and FF (40, 40), so L1 remains an exact null in both gates and its expected band stays exactly symmetric",
-      "exact_threshold_equality": "NOT placed in the grid, because a BB0 cost pair such as (38, 40) with |delta| = tol = 2.0 exactly would break the arm exchangeability of L1. The |delta| = tol boundary is exercised by fixtures F07 and F17 instead, and the tie branch of the ENCLOSURE boundary (ell = (1-rtol)*c exactly) is reachable in the grid whenever a/d hits it exactly.",
-      "why_these_magnitudes": "10 against 40 is decisive on the cost tier (tol = 0.05*40 = 2.0) and puts the pending arm's collapse threshold at an elapsed fraction of 0.2375/0.26316 of its own duration, so the cost enclosure path is exercised over most of a pending episode's life rather than in a sliver at its end; 40 against 40 exercises the tie branch, whose first threshold sits at an elapsed fraction of 0.95."
-    },
-    "ground_truth_derivation": "mu_h = (w[BB+] + w[C>I] - w[BB-] - w[I>C]) / 10000 ; mu_s = (w[C>I] - w[I>C]) / 10000. Exact enumeration over six atoms. Atoms are i.i.d. across enrolled pairs, so mubar_n = mu_h and nubar_n = mu_s exactly for every n on every path. Derived analytically, never by simulation. The cost columns do not enter this derivation: they reproduce the same Z column."
+  "unchanged_by_the_revision": [
+   "the eight cells and their four outcome laws x two delay rules",
+   "the atom weights and therefore mu_h and mu_s in every cell",
+   "the delay rules N and A, their marginal matching, and E[d]",
+   "the seeding, the namespaces and the five-array draw order",
+   "PROTOCOL 6.1, whose unresolved/unrevealed fractions depend only on the reveal schedule",
+   "the estimators, the flag rule and the precommitted positive control"
+  ],
+  "second_revision": {
+   "revised_after": "a second adversarial pass over the first revision, experiments/live_ab_validation/PREREG_CHECK_2.md, which re-tested every finding of the first audit and raised four new ones against this pre-registration",
+   "revised_before": "any simulation outcome of this study existed; still no cell has ever been run, at any horizon, with any seed",
+   "what_changed": [
+    "N.1: the pin on experiments/live_ab/design/protocol_FINAL.md was STALE - 03028374... was that file at commit de31b6c, and the #11 quiescence-gate work had since added its section 5.7.1. Every pin in PROTOCOL.md, in this file and in pinned/PINNED.json was recomputed from the file on disk, and F18_pinned_file_hashes now OPENS AND HASHES each pinned file instead of comparing two documents' strings. The check it replaces could not see a stale pin at all: it asserted only that the same 64-hex token appeared in both documents.",
+    "N.2: F15 guarded about two thirds of what sections 11 and 13 said it guarded; whole frozen tables, including the 2.5 enclosure-row table that decides ground truth, the 9.2 nominal bounds, the 5 seed namespaces and the grid column of the 8.2 budget ladder, were compared against nothing. The check was extended to them (this file gained enclosure_rules.protocol_2_5_rows and seeding.namespaces[*].protocol_sections as the machine-readable twins of two of those tables) and the claim in section 11 was narrowed to the list the code actually walks.",
+    "N.3: parameters.cost_model.narrowing_thresholds.closed_form_is_not_bit_identical attributed to F17 an assertion F17 does not make - that it asserts the full 128-state disagreement set. F17 asserts 28 boundary states over the 47484-state subgrid it sweeps. The sentence was corrected to match PROTOCOL 2.5, which was already right.",
+    "N.4: the section 11 register row for F17 said 'over every (atom, revealed arm, d, elapsed age) state' four lines below prose saying 47484. The row was corrected."
+   ],
+   "unchanged_by_the_second_revision": [
+    "every cell, weight, delay rule, seed, horizon, estimator, flag rule and positive control",
+    "every value in sections 4, 6 and 9",
+    "vband.py, which this revision did not touch",
+    "the ground truth of any cell: the only new numbers in this file are the transcription of the PROTOCOL 2.5 table that was already in PROTOCOL.md, the section numbers the PROTOCOL 5 table already printed, and the corrected hash of a file outside this study"
+   ]
+  }
+ },
+ "modules": {
+  "exist_at_the_freeze_commit": {
+   "PROTOCOL.md": "this study's frozen pre-registration",
+   "cells.json": "this file; the machine-readable twin, normative for every numeric value",
+   "vband.py": "the #12 band, enclosure, episode, monitor and decision rule (the object under test)",
+   "vfixtures.py": "the deterministic acceptance fixtures F01..F18 and the event replay helper; entry point: python vfixtures.py",
+   "tests_validation.py": "unit and randomised property tests for vband/vfixtures, including the import-graph guard; entry point: python tests_validation.py",
+   "PREREG_CHECK.md": "the adversarial pre-registration audit the first revision answers",
+   "PREREG_CHECK_2.md": "the second adversarial pass, which re-tested the first audit's findings and raised N.1..N.4 against this pre-registration; the second revision answers it",
+   "pinned/": "the coordinator's read-only (mode 444) copy of the #11 monitor from live_ab commit 5776877, with pinned/PINNED.json recording each file's SHA-256. Deposited after the audit and before this revision. The #12 protocol author has opened the manifest only, never the three monitor files; nothing in this directory may load them until vcompare.py exists, and F16 asserts that nothing does.",
+   "vgen.py": "WRITTEN AFTER THE FREEZE COMMIT, NOT AT IT (status correction of 2026-09-20 under COORDINATOR_DECISIONS ruling 34; see PROTOCOL 14 and modules.status_correction_2026_09_20 below). The data-generating process of PROTOCOL sections 4 and 5: atoms, delays, reveal schedule, elapsed-cost accrual",
+   "vrun.py": "WRITTEN AFTER THE FREEZE COMMIT, NOT AT IT (status correction of 2026-09-20 under COORDINATOR_DECISIONS ruling 34; see PROTOCOL 14 and modules.status_correction_2026_09_20 below). The grid runner of PROTOCOL sections 7-9; writes only results/live_ab_validation/",
+   "vcompare.py": "WRITTEN AFTER THE FREEZE COMMIT, NOT AT IT (status correction of 2026-09-20 under COORDINATOR_DECISIONS ruling 34; see PROTOCOL 14 and modules.status_correction_2026_09_20 below). The pinned comparison step of PROTOCOL section 12; the ONLY module permitted to load pinned/",
+   "REPORT.md": "WRITTEN AFTER THE FREEZE COMMIT, NOT AT IT (status correction 2026-09-20, coordinator rulings 43/61): the study report"
   },
-  "outcome_laws": {
+  "specified_here_but_do_not_exist_at_the_freeze_commit": {},
+  "status_correction_2026_09_20": {
+   "ruling": "experiments/live_ab/design/COORDINATOR_DECISIONS.md revision 9, item 34",
+   "what_moved": [
+    "vgen.py",
+    "vrun.py",
+    "vcompare.py"
+   ],
+   "from": "specified_here_but_do_not_exist_at_the_freeze_commit",
+   "to": "exist_at_the_freeze_commit",
+   "why": "The three modules were written to this frozen specification after the freeze commit. PROTOCOL 13.0's status column and this twin both asserted that they do not exist, which stopped being true the moment they were written, and F15 fails on the contradiction. This is a status correction that changes NO VALUE: no cell, parameter, seed, grid, estimator, reported quantity, flag rule or positive control moves.",
+   "literal_truth_retained": "They did NOT exist at the freeze commit. The key name exist_at_the_freeze_commit is the set that F15 maps PROTOCOL 13.0's 'exists' status onto; it is not re-dated by this correction, and each moved entry carries the fact in its own description.",
+   "not_a_version_bump": true,
+   "still_not_written_at_the_time_of_this_correction": [
+    "REPORT.md"
+   ],
+   "REPORT.md": "Moved from specified_here_but_do_not_exist_at_the_freeze_commit. Status only; changes no value."
+  },
+  "renamed_from_the_pre_audit_draft": {
+   "run_validation.py": "vrun.py",
+   "compare_to_live_ab.py": "vcompare.py"
+  }
+ },
+ "provenance": {
+  "formula_source": {
+   "path": "reviews/arxiv_live_design_guidance.md",
+   "item": 3,
+   "sha256": "a71965986165d56915a557a1a43998d9eb76a4e800dba670281c93720037ad1b"
+  },
+  "pinned_primitive": {
+   "path": "src/winstats.py",
+   "sha256": "56955ce09a8ac7afb15f2bd251048537eabcc04ea75e7579bdb825594f41fc69"
+  },
+  "vocabulary_alignment": {
+   "path": "experiments/live_ab/design/protocol_FINAL.md",
+   "sections_read": [
+    1,
+    3,
+    11
+   ],
+   "sha256": "3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0dd7d2c2",
+   "superseded_by": {
+    "sha256": "d63717a5519f650394db8aca7eb33d7a15ccfedbaffe78600d9ea3fb7b76294d",
+    "supersedes": "3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0dd7d2c2",
+    "recorded_utc": "2026-09-22T04:45:38Z",
+    "changing_commits": [
+     "869317f",
+     "7a17f06"
+    ],
+    "changing_commit_of_this_successor": "7a17f064f3f15a1944e88803982e3847915c35ce",
+    "reason": "Appendix B ONLY: the configuration block gained \"hardware_allowlist\": [\"arm64-darwin\"] and \"environment_lock_sha256\": \"842a7a19d738604fbe665231a593a11f12cc02abfe9b1dc4034bc3817a9081ac\" in place of nulls, synchronising it with config.json under the three-way verbatim contract. It changes NO CPU cell, parameter, seed, horizon, estimator, outcome, decision rule, or any of the vocabulary sections 1, 3 and 11 this pin reads.",
+    "ruling": "Root ruling 2026-09-22 04:27 (reviews/protocol_pin_disposition_20260922_0422.md): \"preserve the original pin; record an explicit post-freeze provenance amendment ... Do not replace the original sha256.\" This is an administrative successor-mapping repair, not a new pre-registration, not a scientific version bump, and not validation of the current live implementation.",
+    "correction_to_the_owner_report": "Session 60 described the whole original-to-current history as \"one editorial line\". That FLATTENED TWO DISTINCT TRANSITIONS. Root: the original-to-previous-successor change was the separately documented ENCLOSURE change (see prior_successors below); only previous-successor-to-current is the Appendix B delta. The two are not the same kind of change and are no longer described as if they were.",
+    "prior_successors": [
+     {
+      "sha256": "b1ff97cc163ce7ea121ebd578a4c37de09d5ed7223f2029e5d56118cdc790822",
+      "reason": "The #11 protocol moved after this pre-registration was frozen AND after this grid ran: item 5 (the hierarchy enclosure) was COMPLETED so that it delivers the enumeration item 1 promises. See experiments/live_ab/design/COORDINATOR_DECISIONS.md revisions 12, 13 and protocol_FINAL.md section 7.5a.",
+      "ruling": "Coordinator ruling 60: the pin is NOT updated. This grid validated the #11 monitor as it stood at commit 5776877 against protocol hash 3c76e8eb...; re-pinning would assert that the completed run covered a version of #11 that did not exist when it ran. A comparison against the completed enclosure requires a re-pin, a re-snapshot of pinned/, and a RE-RUN, which is #12 v2 under its own section 14 version bump, not an edit.",
+      "recorded_utc": "2026-09-20",
+      "supersedes": "3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0dd7d2c2"
+     }
+    ]
+   }
+  },
+  "repo_commit_at_writing": "de31b6cf124b3723eb9986a03318f1ae4f935353",
+  "python": "3.12.13",
+  "numpy": "2.4.1",
+  "cpu_only": true,
+  "independence": {
+   "kind": "procedural, not organizational",
+   "must_not_read_or_import": [
+    "experiments/live_ab/lab_monitor.py",
+    "experiments/live_ab/lab_enclosure.py"
+   ],
+   "pinned_copy_loaded_only_at": "experiments/live_ab_validation/vcompare.py",
+   "pinned_manifest": "experiments/live_ab_validation/pinned/PINNED.json",
+   "machine_checked_by": [
+    "vfixtures.F16_import_graph_independence",
+    "tests_validation.TestImportGraphIndependence"
+   ],
+   "known_one_directional_leak": {
+    "what": "PREREG_CHECK.md, written by an adversarial checker who was NOT bound by the constraint and read the #11 monitor in full, quotes #11 identifiers and behaviour: the decision-label alphabet, the n=0 and horizon branches, the collapsed-flag rule, and the cost certificate (1 - tol) * ell > L_r + 1e-9.",
+    "read_by": "the #12 protocol author, at the pre-registration audit stage, after vband.py and vfixtures.py F01..F13 were already written",
+    "consequence_1": "vband.py is unchanged by this revision and was written before the leak; its cost-order enumeration is an independent derivation from the guidance tolerance rule.",
+    "consequence_2": "the coincidence between the #12 narrowing thresholds and the quoted #11 certificate is therefore NOT independent evidence of agreement, and section 12 reports it as a disclosed coincidence rather than as a check.",
+    "consequence_3": "the DECISION to add the cost-enclosure path to the cells came from the audit, not from an independent reading of the guidance; that provenance is stated in PROTOCOL 4.4 and is not presented as foresight."
+   }
+  }
+ },
+ "parameters": {
+  "alpha_gate": 0.00625,
+  "alpha_per_trial": 0.0125,
+  "alpha_program": 0.05,
+  "trials_per_program": 4,
+  "gates_per_trial": 2,
+  "bands_per_gate": 1,
+  "rho": 100.0,
+  "variance_process": "V_n = n",
+  "delta": 0.03,
+  "n_min": 100,
+  "N_max": 2000,
+  "drain_W": 200,
+  "finalization_tick": 2200,
+  "looks_per_trial": 2001,
+  "decision_eligible_looks": 1902,
+  "positive_direction": "candidate favourable, matching the live candidate label",
+  "score_range": [
+   -1.0,
+   1.0
+  ],
+  "clip_bounds_to": [
+   -1.0,
+   1.0
+  ],
+  "radius_formula": "r(n) = sqrt((n + rho) * log((n + rho) / (rho * alpha_gate**2))) / n",
+  "radius_formula_evaluated": "r(n) = sqrt((n + 100) * log((n + 100) / 0.00390625)) / n",
+  "radius_reference_values": {
+   "100": 0.465693,
+   "200": 0.29046,
+   "300": 0.226438,
+   "398": 0.192246,
+   "500": 0.169296,
+   "566": 0.158252,
+   "695": 0.141839,
+   "864": 0.126625,
+   "1000": 0.117486,
+   "1500": 0.095863,
+   "2000": 0.08323
+  },
+  "first_n_with_radius_below": {
+   "0.45": 105,
+   "0.40": 124,
+   "0.30": 191,
+   "0.28": 212,
+   "0.23": 293,
+   "0.03": 17097
+  },
+  "decision_rule": {
+   "evaluated_on": "current full enrolled prefix n = N(t), at every look with n >= n_min",
+   "L_j": "clip(sum(lower_j[:n]) / n - r(n), -1, 1)",
+   "U_j": "clip(sum(upper_j[:n]) / n + r(n), -1, 1)",
+   "DEPLOY": "L_hierarchy > 0 AND L_success > -delta, both at the SAME look",
+   "RETAIN_INCUMBENT": "U_hierarchy < 0",
+   "same_look_conjunction_required": true,
+   "stopping": "first crossing ends the trial; no retention of earlier crossings; no intersection over looks",
+   "endpoint_if_no_crossing": "NO_DECISION at the finalization look"
+  },
+  "hierarchy": {
+   "tiers": [
+    {
+     "name": "success",
+     "higher_better": true,
+     "absolute_tolerance": 0.0,
+     "relative_tolerance": 0.0
+    },
+    {
+     "name": "cost",
+     "higher_better": false,
+     "absolute_tolerance": 0.0,
+     "relative_tolerance": 0.05
+    }
+   ],
+   "cost_eligible_only_when": "both episodes succeed",
+   "joint_failure": "ties; cost never eligible",
+   "tie_includes_exact_threshold_equality": true
+  },
+  "cost_model": {
+   "cost_cap": 100.0,
+   "units": "abstract cost units; the synthetic analogue of the live trial's latency_s",
+   "final_cost_is_fixed_by_the_atom": true,
+   "pending_cost_enclosure": "[ell, cost_cap]; the upper bound is the frozen resource cap and never narrows",
+   "elapsed_accrual": "an episode with final cost c and reveal offset D holds elapsed lower bound ell(a) = (c * a) / D at age a < D, and ell = c once a >= D; ell(a) < c for every a < D, so it is a valid lower bound, and it is nondecreasing in a",
+   "evaluation_order_is_frozen": "(c * a) / D, not c * (a / D); with integer c and a the numerator is exact, which keeps the tolerance boundaries reproducible",
+   "narrowing_thresholds": {
+    "normative_form": "the frozen predicate, evaluated as compare evaluates it: the pending arm can still be cheaper iff c - ell > atol + rtol*max(c, ell); the tie survives iff ell <= c or NOT (ell - c > atol + rtol*max(c, ell)). Re-derived in vband.cost_order_possibilities, not taken from the #11 monitor.",
+    "closed_form_reading": "in exact arithmetic: the pending-arm branch dies at ell >= (1 - rtol)*c_revealed and the tie dies at ell > c_revealed/(1 - rtol)",
+    "closed_form_is_not_bit_identical": "over the 2878680 (atom, revealed arm, d, age) states of the frozen delay grid the two readings disagree on exactly 128 states, all at the single point ell = c/(1-rtol) = 200/19 reached at elapsed fraction 5/19, where the predicate calls the tie infeasible and the closed form calls it feasible. The PREDICATE governs; sections 6.3 and 6.4 are computed with it. The 2878680-state sweep was run ONCE while writing this protocol (PROTOCOL 0.1 item 3) and is not re-run at fixture time: F17_atom_cost_table re-checks 47484 of those states, asserts that every disagreement it finds lies at elapsed fraction 5/19, and asserts that it finds exactly the 28 boundary states that grid reaches. It does NOT assert the full 128-state set; the corrected wording is PREREG_CHECK_2 N.3.",
+    "point_collapse_is_not_certified": "a hierarchy enclosure that reaches a point this way has no final-score certificate, so certified stays false; see comparison_to_live_ab.certified_collapsed_scope"
+   }
+  }
+ },
+ "enclosure_rules": {
+  "start": {
+   "hierarchy": [
+    -1.0,
+    1.0
+   ],
+   "success": [
+    -1.0,
+    1.0
+   ]
+  },
+  "narrows_only_on_logically_certain_facts": true,
+  "never_imputes_pending_success_or_resource": true,
+  "reveal_updates_existing_enrollment_indexed_record": true,
+  "states": [
+   {
+    "state": "unrevealed",
+    "hierarchy": [
+     -1.0,
+     1.0
+    ],
+    "success": [
+     -1.0,
+     1.0
+    ],
+    "cost_relevant": false
+   },
+   {
+    "state": "candidate_revealed_sC_0",
+    "hierarchy": [
+     -1.0,
+     0.0
+    ],
+    "success": [
+     -1.0,
+     0.0
+    ],
+    "cost_relevant": false,
+    "why": "s_C = 0 makes the both-succeed branch infeasible, so the cost tier can never become eligible"
+   },
+   {
+    "state": "candidate_revealed_sC_1",
+    "hierarchy": [
+     -1.0,
+     1.0
+    ],
+    "success": [
+     0.0,
+     1.0
+    ],
+    "cost_relevant": true,
+    "cost_refinement": "with c_C known and the incumbent pending in [ell, cap]: hierarchy is [-1, 1] while ell < (1-rtol)*c_C, then [0, 1], then the point [1, 1] once ell > c_C/(1-rtol)"
+   },
+   {
+    "state": "incumbent_revealed_sI_0",
+    "hierarchy": [
+     0.0,
+     1.0
+    ],
+    "success": [
+     0.0,
+     1.0
+    ],
+    "cost_relevant": false,
+    "why": "s_I = 0 makes the both-succeed branch infeasible"
+   },
+   {
+    "state": "incumbent_revealed_sI_1",
+    "hierarchy": [
+     -1.0,
+     1.0
+    ],
+    "success": [
+     -1.0,
+     0.0
+    ],
+    "cost_relevant": true,
+    "cost_refinement": "with c_I known and the candidate pending in [ell, cap]: hierarchy is [-1, 1] while ell < (1-rtol)*c_I, then [-1, 0], then the point [-1, -1] once ell > c_I/(1-rtol)"
+   },
+   {
+    "state": "resolved",
+    "hierarchy": [
+     "Z",
+     "Z"
+    ],
+    "success": [
+     "D",
+     "D"
+    ],
+    "cost_relevant": true,
+    "why": "the certified collapse; the cost tier decides the BB atoms"
+   }
+  ],
+  "protocol_2_5_rows_are_normative": "The ten rows below are the machine-readable twin of the PROTOCOL 2.5 enclosure table, in its order, with its labels. Before PREREG_CHECK_2 N.2 that table was compared against nothing: cells.json was declared normative over the table that decides ground truth while no check read it. F15 now compares the two row for row, and also asserts that each row is consistent with the coarser `states` list above - the widest row of a cost-relevant state must equal that state's interval, every later row of the group must be a subinterval of it, and the success interval must not move within a group, because the cost tier cannot touch the success score.",
+  "protocol_2_5_rows": [
+   {
+    "label": "enrolled, neither episode revealed",
+    "refines": "unrevealed",
+    "hierarchy": [
+     -1.0,
+     1.0
+    ],
+    "success": [
+     -1.0,
+     1.0
+    ]
+   },
+   {
+    "label": "candidate revealed, s_C = 0",
+    "refines": "candidate_revealed_sC_0",
+    "hierarchy": [
+     -1.0,
+     0.0
+    ],
+    "success": [
+     -1.0,
+     0.0
+    ]
+   },
+   {
+    "label": "candidate revealed, s_C = 1, cost tie and incumbent-cheaper both still feasible",
+    "refines": "candidate_revealed_sC_1",
+    "hierarchy": [
+     -1.0,
+     1.0
+    ],
+    "success": [
+     0.0,
+     1.0
+    ]
+   },
+   {
+    "label": "candidate revealed, s_C = 1, incumbent-cheaper infeasible, tie feasible",
+    "refines": "candidate_revealed_sC_1",
+    "hierarchy": [
+     0.0,
+     1.0
+    ],
+    "success": [
+     0.0,
+     1.0
+    ]
+   },
+   {
+    "label": "candidate revealed, s_C = 1, both infeasible",
+    "refines": "candidate_revealed_sC_1",
+    "hierarchy": [
+     1.0,
+     1.0
+    ],
+    "success": [
+     0.0,
+     1.0
+    ]
+   },
+   {
+    "label": "incumbent revealed, s_I = 0",
+    "refines": "incumbent_revealed_sI_0",
+    "hierarchy": [
+     0.0,
+     1.0
+    ],
+    "success": [
+     0.0,
+     1.0
+    ]
+   },
+   {
+    "label": "incumbent revealed, s_I = 1, cost tie and candidate-cheaper both still feasible",
+    "refines": "incumbent_revealed_sI_1",
+    "hierarchy": [
+     -1.0,
+     1.0
+    ],
+    "success": [
+     -1.0,
+     0.0
+    ]
+   },
+   {
+    "label": "incumbent revealed, s_I = 1, candidate-cheaper infeasible, tie feasible",
+    "refines": "incumbent_revealed_sI_1",
+    "hierarchy": [
+     -1.0,
+     0.0
+    ],
+    "success": [
+     -1.0,
+     0.0
+    ]
+   },
+   {
+    "label": "incumbent revealed, s_I = 1, both infeasible",
+    "refines": "incumbent_revealed_sI_1",
+    "hierarchy": [
+     -1.0,
+     -1.0
+    ],
+    "success": [
+     -1.0,
+     0.0
+    ]
+   },
+   {
+    "label": "both revealed",
+    "refines": "resolved",
+    "hierarchy": [
+     "Z",
+     "Z"
+    ],
+    "success": [
+     "D",
+     "D"
+    ]
+   }
+  ],
+  "cost_rows_are_a_logical_consequence": "Each cost refinement is the exhaustive enumeration of the feasible completions under the frozen predicate, and nothing more. The true score lies inside every row of this table at every elapsed value; verified by enumeration over every (atom, revealed arm, d, a) state.",
+  "point_is_not_certified": "A hierarchy enclosure narrowed to a point by the cost tier while an episode is still pending is logically as tight as a resolved one but carries no final-score certificate, so certified = false and n_certified does not count it. The study reports both counts."
+ },
+ "constructions": [
+  {
+   "id": "ADAPTER",
+   "status": "object under test",
+   "index": "n = current full enrolled prefix",
+   "mean_over": "all enrolled pairs 1..n, via their enclosures",
+   "radius_at": "r(n)",
+   "target": "mubar_n, the running conditional mean over the enrolled prefix",
+   "valid_under_informative_delay": true
+  },
+  {
+   "id": "CPREFIX",
+   "status": "matched comparator",
+   "index": "k = max{k : every pair 1..k fully resolved}",
+   "mean_over": "resolved scores of pairs 1..k",
+   "radius_at": "r(k)",
+   "target": "mubar_k, ITS OWN running target; NOT a bound on the current all-enrolled mean mubar_n",
+   "valid_under_informative_delay": true,
+   "note": "Under the i.i.d. laws of this study mubar_k = mubar_n = mu numerically, which is a property of these DGPs and not of the construction; this study cannot distinguish the two targets empirically."
+  },
+  {
+   "id": "NAIVE",
+   "status": "INTENTIONALLY INVALID UNDER INFORMATIVE DELAY",
+   "index": "m = |{j <= n : pair j fully resolved}|",
+   "mean_over": "the outcome-selected completed subset C(n), which is NOT a prefix of the enrollment filtration",
+   "radius_at": "r(m)",
+   "target": "none guaranteed; no martingale argument applies",
+   "valid_under_informative_delay": false,
+   "note": "Included only to exhibit the failure mode and as the precommitted positive control of PROTOCOL.md 9.4. Must be labelled invalid in every table, caption and file."
+  }
+ ],
+ "no_speed_claim": "No pathwise speed dominance is claimed for the latest-enrolled-prefix normal-mixture monitor, in either direction. The three constructions are evaluated at different indices on the same path; their decision prefixes are never presented as a paired speed statistic, a latency, or a saving.",
+ "coverage_target_boundary": "Coverage validated here is for the BOUNDED ARBITRARY-RUNNING-MEAN target mubar_n = (1/n) sum_{i<=n} E[Z_i | F_{i-1}] of a synthetic stream. It does NOT establish the assumptions needed for a causal pair-orientation interpretation: pre-enrolled nonoverlapping arrival positions chosen without their outcomes, one fresh fair coin per pair logged and fsynced before either episode is dispatched, single exposure, no cross-pair interference, no dependence of a task's record on a later coin, an operator who does not act on coins, a fixed scheduling and resource policy, and the frozen outcome/missingness rule. A simulation assumes those; it cannot supply them.",
+ "outcome_atoms": {
+  "weight_denominator": 10000,
+  "sampling": "k = rng.integers(0, 10000); frozen cumulative-threshold lookup in the order below (exact integer arithmetic)",
+  "order": [
+   "BB+",
+   "BB0",
+   "BB-",
+   "C>I",
+   "I>C",
+   "FF"
+  ],
+  "definition": [
+   {
+    "atom": "BB+",
+    "s_candidate": 1,
+    "s_incumbent": 1,
+    "c_candidate": 10.0,
+    "c_incumbent": 40.0,
+    "cost": "candidate faster beyond tolerance",
+    "Z": 1,
+    "D": 0
+   },
+   {
+    "atom": "BB0",
+    "s_candidate": 1,
+    "s_incumbent": 1,
+    "c_candidate": 40.0,
+    "c_incumbent": 40.0,
+    "cost": "equal costs, within relative tolerance 0.05: a tie",
+    "Z": 0,
+    "D": 0
+   },
+   {
+    "atom": "BB-",
+    "s_candidate": 1,
+    "s_incumbent": 1,
+    "c_candidate": 40.0,
+    "c_incumbent": 10.0,
+    "cost": "incumbent faster beyond tolerance",
+    "Z": -1,
+    "D": 0
+   },
+   {
+    "atom": "C>I",
+    "s_candidate": 1,
+    "s_incumbent": 0,
+    "c_candidate": 10.0,
+    "c_incumbent": 40.0,
+    "cost": "ineligible (the incumbent fails after consuming 40)",
+    "Z": 1,
+    "D": 1
+   },
+   {
+    "atom": "I>C",
+    "s_candidate": 0,
+    "s_incumbent": 1,
+    "c_candidate": 40.0,
+    "c_incumbent": 10.0,
+    "cost": "ineligible (the candidate fails after consuming 40)",
+    "Z": -1,
+    "D": -1
+   },
+   {
+    "atom": "FF",
+    "s_candidate": 0,
+    "s_incumbent": 0,
+    "c_candidate": 40.0,
+    "c_incumbent": 40.0,
+    "cost": "ineligible",
+    "Z": 0,
+    "D": 0
+   }
+  ],
+  "cost_columns": {
+   "added_by": "the pre-freeze revision, to close PREREG_CHECK B.6",
+   "Z_column_is_unchanged": "every cost pair reproduces the frozen Z column exactly through src/winstats.compare with the frozen tiers; asserted by fixture F17_atom_cost_table",
+   "arm_exchangeability_of_L1_is_preserved": "the arm swap maps BB+ <-> BB- and C>I <-> I>C with their cost pairs swapped, and fixes BB0 (40, 40) and FF (40, 40), so L1 remains an exact null in both gates and its expected band stays exactly symmetric",
+   "exact_threshold_equality": "NOT placed in the grid, because a BB0 cost pair such as (38, 40) with |delta| = tol = 2.0 exactly would break the arm exchangeability of L1. The |delta| = tol boundary is exercised by fixtures F07 and F17 instead, and the tie branch of the ENCLOSURE boundary (ell = (1-rtol)*c exactly) is reachable in the grid whenever a/d hits it exactly.",
+   "why_these_magnitudes": "10 against 40 is decisive on the cost tier (tol = 0.05*40 = 2.0) and puts the pending arm's collapse threshold at an elapsed fraction of 0.2375/0.26316 of its own duration, so the cost enclosure path is exercised over most of a pending episode's life rather than in a sliver at its end; 40 against 40 exercises the tie branch, whose first threshold sits at an elapsed fraction of 0.95."
+  },
+  "ground_truth_derivation": "mu_h = (w[BB+] + w[C>I] - w[BB-] - w[I>C]) / 10000 ; mu_s = (w[C>I] - w[I>C]) / 10000. Exact enumeration over six atoms. Atoms are i.i.d. across enrolled pairs, so mubar_n = mu_h and nubar_n = mu_s exactly for every n on every path. Derived analytically, never by simulation. The cost columns do not enter this derivation: they reproduce the same Z column."
+ },
+ "outcome_laws": {
+  "L1": {
+   "name": "aa_null",
+   "description": "A/A symmetric null; the atom table is invariant under exchanging the two arms, so the null is exact by construction and not only in expectation.",
+   "weights": {
+    "BB+": 2250,
+    "BB0": 500,
+    "BB-": 2250,
+    "C>I": 1500,
+    "I>C": 1500,
+    "FF": 2000
+   },
+   "mu_h": 0.0,
+   "mu_s": 0.0,
+   "w_neg": 3750,
+   "P_Z": {
+    "+1": 0.375,
+    "0": 0.25,
+    "-1": 0.375
+   },
+   "P_D": {
+    "+1": 0.15,
+    "0": 0.7,
+    "-1": 0.15
+   },
+   "arm_exchangeable": true,
+   "deploy_criteria_true": false,
+   "harm_criteria_true": false,
+   "every_deploy_is_an_error": true,
+   "every_retain_incumbent_is_an_error": true
+  },
+  "L2": {
+   "name": "pref_boundary",
+   "description": "Preference boundary with success favorable: mu_h = 0 exactly (least favourable for both the deploy hierarchy condition and the harm gate), mu_s = +0.25 so the success guardrail is genuinely true. A candidate that succeeds distinctly more often but is slower when both succeed.",
+   "weights": {
+    "BB+": 1500,
+    "BB0": 500,
+    "BB-": 4000,
+    "C>I": 3000,
+    "I>C": 500,
+    "FF": 500
+   },
+   "mu_h": 0.0,
+   "mu_s": 0.25,
+   "w_neg": 4500,
+   "P_Z": {
+    "+1": 0.45,
+    "0": 0.1,
+    "-1": 0.45
+   },
+   "P_D": {
+    "+1": 0.3,
+    "0": 0.65,
+    "-1": 0.05
+   },
+   "arm_exchangeable": false,
+   "deploy_criteria_true": false,
+   "harm_criteria_true": false,
+   "every_deploy_is_an_error": true,
+   "every_retain_incumbent_is_an_error": true
+  },
+  "L3": {
+   "name": "success_boundary",
+   "description": "Success boundary with preference favorable: mu_s = -delta = -0.03 exactly (least favourable for the guardrail), mu_h = +0.40 so the hierarchy condition opens early and a DEPLOY is governed entirely by a one-sided error of the success band at its exact boundary.",
+   "weights": {
+    "BB+": 5000,
+    "BB0": 300,
+    "BB-": 700,
+    "C>I": 1200,
+    "I>C": 1500,
+    "FF": 1300
+   },
+   "mu_h": 0.4,
+   "mu_s": -0.03,
+   "w_neg": 2200,
+   "P_Z": {
+    "+1": 0.62,
+    "0": 0.16,
+    "-1": 0.22
+   },
+   "P_D": {
+    "+1": 0.12,
+    "0": 0.73,
+    "-1": 0.15
+   },
+   "arm_exchangeable": false,
+   "deploy_criteria_true": false,
+   "harm_criteria_true": false,
+   "every_deploy_is_an_error": true,
+   "every_retain_incumbent_is_an_error": true
+  },
+  "L4": {
+   "name": "favorable_alt",
+   "description": "The scientifically prespecified favorable alternative: a candidate both more successful and faster when both succeed. This is the only scenario in which the live study's T3 could deploy (protocol_FINAL 11.4); chosen for that reason, not for its rates.",
+   "weights": {
+    "BB+": 4000,
+    "BB0": 1000,
+    "BB-": 1500,
+    "C>I": 2500,
+    "I>C": 500,
+    "FF": 500
+   },
+   "mu_h": 0.45,
+   "mu_s": 0.2,
+   "w_neg": 2000,
+   "P_Z": {
+    "+1": 0.65,
+    "0": 0.15,
+    "-1": 0.2
+   },
+   "P_D": {
+    "+1": 0.25,
+    "0": 0.7,
+    "-1": 0.05
+   },
+   "arm_exchangeable": false,
+   "deploy_criteria_true": true,
+   "harm_criteria_true": false,
+   "every_deploy_is_an_error": false,
+   "every_retain_incumbent_is_an_error": true
+  }
+ },
+ "delay_blocks": {
+  "SHORT": {
+   "kind": "DiscreteUniform",
+   "low": 0,
+   "high": 19,
+   "mean": 9.5
+  },
+  "LONG": {
+   "kind": "DiscreteUniform",
+   "low": 100,
+   "high": 699,
+   "mean": 399.5
+  },
+  "unit": "enrollment ticks; pair i enrolled at tick i is fully resolved at every look with prefix n >= i + d_i"
+ },
+ "delay_rules": {
+  "N": {
+   "name": "noninformative",
+   "description": "d_i drawn independently of (Z_i, D_i) and of everything else.",
+   "p_long_formula": "3 * w_neg / 40000",
+   "sampling": "u = rng.integers(0, 40000); long iff u < 3 * w_neg",
+   "informative": false
+  },
+  "A": {
+   "name": "outcome_dependent_asymmetric",
+   "description": "d_i depends on the pair's own realized hierarchy score. Deliberately the strongest informative coupling in this family: the unresolved set is almost purely Z = -1. Chosen before any outcome existed, to make a failure of the completed-only rule detectable rather than to flatter the adapter.",
+   "p_long_given_Z": {
+    "+1": 0.0,
+    "0": 0.0,
+    "-1": 0.75
+   },
+   "sampling": "for Z = -1: u = rng.integers(0, 4); long iff u < 3. Otherwise SHORT.",
+   "conditional_independence": "given Z_i, d_i is conditionally independent of D_i and of every other pair",
+   "informative": true
+  },
+  "marginal_delay_matched": "p_long(N) = (3/4) * P(Z = -1) is exactly the unconditional long-branch probability of rule A under the same law, so for each outcome law the N and A cells have identical marginal delay distributions, identical E[d], and identical expected unresolved and unrevealed fractions at every look. They differ only in WHICH pairs are slow."
+ },
+ "partial_revelation": {
+  "first_reveal_offset": "f_i ~ DiscreteUniform{0, ..., d_i}, independent of the outcome given d_i",
+  "first_reveal_arm": "candidate with probability 1/2, independent of the outcome given d_i",
+  "episode_durations": "the first-revealed episode has duration f_i, the second d_i; both are dispatched at the pair's enrollment tick",
+  "a_revealed_episode_is_final": "its success AND its final cost are known at its own reveal offset",
+  "state_at_look_n": {
+   "fully_resolved": "d_j <= n - j",
+   "partially_revealed": "f_j <= n - j < d_j",
+   "unrevealed": "n - j < f_j"
+  },
+  "elapsed_cost_at_age_a": {
+   "rule": "ell = (c * a) / D for a pending episode of final cost c and duration D; ell = c once a >= D",
+   "emitted_for": "every pending episode at every look, including before the first reveal",
+   "no_new_draws": "deterministic given (atom, d_i, f_i, b_i); the five-array draw order of the seeding block is unchanged",
+   "only_cost_information": "the elapsed lower bound and the final value. No cost upper bound below the cap is ever observed."
+  },
+  "declared_simplification_first_reveal_coin": "In the live apparatus the faster arm tends to reveal first, which correlates with the cost tier; here the first-reveal identity is independent of the outcome given d_i. Declared because it makes partial information LESS adversarial in the cost direction than reality might be; the adversarial content of these cells is carried by the pair-level delay rule instead.",
+  "declared_simplification_two_clocks": "The cost meter and the reveal schedule are not tied to each other: an episode's final cost is fixed by its atom while its duration comes from the delay rule, so a cheap episode may reveal second. Declared. A latency-coupled model (cheap arm reveals first) would make the pending arm the expensive one and would therefore narrow the cost enclosure MORE often than this model does, so this choice is the conservative one for exercising the path, and it leaves the reveal schedule -- and therefore analytic_reachability.expected_unresolved_unrevealed_fraction -- unchanged by the revision."
+ },
+ "cells": [
+  {
+   "id": "C1",
+   "cell_index": 0,
+   "law": "L1",
+   "delay": "N",
+   "mu_h": 0.0,
+   "mu_s": 0.0,
+   "p_long": 0.28125,
+   "p_long_exact": "11250/40000",
+   "E_d": 119.19,
+   "escalation_eligible": false
+  },
+  {
+   "id": "C2",
+   "cell_index": 1,
+   "law": "L1",
+   "delay": "A",
+   "mu_h": 0.0,
+   "mu_s": 0.0,
+   "p_long": 0.28125,
+   "p_long_exact": "11250/40000",
+   "E_d": 119.19,
+   "escalation_eligible": false
+  },
+  {
+   "id": "C3",
+   "cell_index": 2,
+   "law": "L2",
+   "delay": "N",
+   "mu_h": 0.0,
+   "mu_s": 0.25,
+   "p_long": 0.3375,
+   "p_long_exact": "13500/40000",
+   "E_d": 141.12,
+   "escalation_eligible": true
+  },
+  {
+   "id": "C4",
+   "cell_index": 3,
+   "law": "L2",
+   "delay": "A",
+   "mu_h": 0.0,
+   "mu_s": 0.25,
+   "p_long": 0.3375,
+   "p_long_exact": "13500/40000",
+   "E_d": 141.12,
+   "escalation_eligible": true
+  },
+  {
+   "id": "C5",
+   "cell_index": 4,
+   "law": "L3",
+   "delay": "N",
+   "mu_h": 0.4,
+   "mu_s": -0.03,
+   "p_long": 0.165,
+   "p_long_exact": "6600/40000",
+   "E_d": 73.85,
+   "escalation_eligible": true
+  },
+  {
+   "id": "C6",
+   "cell_index": 5,
+   "law": "L3",
+   "delay": "A",
+   "mu_h": 0.4,
+   "mu_s": -0.03,
+   "p_long": 0.165,
+   "p_long_exact": "6600/40000",
+   "E_d": 73.85,
+   "escalation_eligible": true
+  },
+  {
+   "id": "C7",
+   "cell_index": 6,
+   "law": "L4",
+   "delay": "N",
+   "mu_h": 0.45,
+   "mu_s": 0.2,
+   "p_long": 0.15,
+   "p_long_exact": "6000/40000",
+   "E_d": 68.0,
+   "escalation_eligible": false
+  },
+  {
+   "id": "C8",
+   "cell_index": 7,
+   "law": "L4",
+   "delay": "A",
+   "mu_h": 0.45,
+   "mu_s": 0.2,
+   "p_long": 0.15,
+   "p_long_exact": "6000/40000",
+   "E_d": 68.0,
+   "escalation_eligible": false
+  }
+ ],
+ "no_cell_may_be_added": "Exactly eight cells. No cell may be added, removed, reweighted or re-parameterized after any simulated outcome of this study exists, and in particular not after inspecting whether results are favorable.",
+ "seeding": {
+  "master_seed": 1220260919,
+  "generator": "numpy.random.Generator(numpy.random.PCG64(numpy.random.SeedSequence(entropy=1220260919, spawn_key=(namespace, cell_index, program_index, trial_index))))",
+  "namespaces": {
+   "0": {
+    "use": "the reported grid",
+    "protocol_sections": [
+     7
+    ],
+    "seeds_reused": true
+   },
+   "1": {
+    "use": "the smoke run",
+    "protocol_sections": [
+     8.1
+    ],
+    "seeds_reused": false,
+    "note": "discarded, never reused in the reported grid"
+   },
+   "2": {
+    "use": "frozen fixture and comparison streams",
+    "protocol_sections": [
+     11,
+     12
+    ],
+    "seeds_reused": true
+   }
+  },
+  "namespaces_are_machine_checked": "F15 compares the three ids, the sections each namespace names and the reuse column against the PROTOCOL 5 table, and compares the master seed against the two places PROTOCOL 5 writes it. Before PREREG_CHECK_2 N.2 that table was compared against nothing.",
+  "independent_stream_per": [
+   "cell",
+   "program",
+   "trial"
+  ],
+  "draw_order": [
+   "u_atom  = rng.integers(0, 10000, size=N_max)",
+   "u_delay = rng.integers(0, 40000, size=N_max)",
+   "u_len   = rng.random(size=N_max)",
+   "u_first = rng.random(size=N_max)",
+   "u_coin  = rng.random(size=N_max)"
+  ],
+  "derivations": {
+   "long_N": "u_delay[i] < 3 * w_neg",
+   "long_A": "(Z_i == -1) and (u_delay[i] < 30000)",
+   "d_i": "100 + floor(u_len[i] * 600) if long_i else floor(u_len[i] * 20)",
+   "f_i": "floor(u_first[i] * (d_i + 1))",
+   "b_i": "candidate revealed first iff u_coin[i] < 0.5"
+  },
+  "note": "All five arrays are drawn unconditionally and at full length so the stream advances identically whichever branch a pair takes. Draw order is part of the seed's meaning; changing it changes every stream."
+ },
+ "grid": {
+  "programs_per_cell": 2000,
+  "trials_per_program": 4,
+  "max_enrolled_pairs_per_trial": 2000,
+  "fixed_horizon_summaries": [
+   100,
+   500,
+   2000
+  ],
+  "one_look_per_enrollment_prefix": {
+   "taken_at": "the state immediately before the next enrollment (maximal information at that prefix)",
+   "justification": "Within a fixed prefix n the band is nested-shrinking over looks, so miscoverage at any look at prefix n implies miscoverage at the last look at prefix n, and a decision firing at any look at prefix n also fires at the last look. This is an exact reduction of the all-triggers rule for ever-miscoverage and for the decision prefix tau, not an approximation.",
+   "does_not_reproduce": "the wall-clock instant of a decision; decision time is therefore reported in enrolled pairs only, never as latency"
+  },
+  "escalation": {
+   "rule": "5,000 programs in the four boundary/delay cells only, precommitted here before any outcome",
+   "eligible_cells": [
+    "C3",
+    "C4",
+    "C5",
+    "C6"
+   ],
+   "reading": "the two boundary outcome laws under both delay rules; the alternative reading (two boundary cells plus two delay cells) was considered and rejected while writing this protocol, before any outcome existed",
+   "decided_by": "the budget ladder from runtime and memory measurements alone; never by any effect comparison, coverage number or decision rate"
+  }
+ },
+ "resource_cap_endpoint_rule": {
+  "enrollment_stops_at": 2000,
+  "drain_W": 200,
+  "finalization_look_at_tick": 2200,
+  "resolved_at_finalization_iff": "d_j <= 2200 - j",
+  "unresolved_pairs": "keep the enclosure they have and enter L and U through it",
+  "never": [
+   "censor",
+   "drop",
+   "impute",
+   "delete",
+   "divide by the number completed"
+  ],
+  "denominator_at_finalization": 2000,
+  "decision_may_fire_at_finalization": true,
+  "recorded_as": "tau = N_max with decided_at_finalization = true",
+  "endpoint_if_no_crossing": "NO_DECISION, recorded with the unresolved fraction at that look",
+  "why_drain_is_shorter_than_max_delay": "max(LONG) = 699 > 200, so the endpoint genuinely carries unresolved pairs (1.56% to 3.51% in expectation), making the finalization rule a live rule rather than a formality"
+ },
+ "budget": {
+  "hard_limits": {
+   "peak_rss_bytes": 2147483648,
+   "output_bytes": 209715200,
+   "seconds": 5400
+  },
+  "smoke_run": {
+   "programs": 20,
+   "split": [
+    {
+     "cell": "C1",
+     "programs": 10,
+     "N_max": 2000
+    },
+    {
+     "cell": "C2",
+     "programs": 10,
+     "N_max": 1000
+    }
+   ],
+   "cell_choice_reason": "C1 and C2 share the outcome law with the largest expected unresolved fraction among the non-escalating cells and differ only in the delay rule, so the pair measures both delay branches; under the section 9.1 all-looks reading every trial runs to the finalization look, so runtime is close to cell-independent and the split costs nothing.",
+   "namespace": 1,
+   "measures_only": [
+    "wall_clock_seconds",
+    "peak_rss",
+    "output_bytes",
+    "counts"
+   ],
+   "forbidden": "inspecting any effect column, coverage number or decision rate; the smoke run may not influence the horizon, cap, cells or any parameter",
+   "seeds": "discarded, never reused"
+  },
+  "projection": {
+   "scaling_exponent": "measured, not assumed: beta = log(s_2000 / s_1000) / log(2) from the two smoke points, where s_H is seconds per program at horizon H",
+   "seconds_projected": "(smoke_seconds_per_program_at_2000) * programs_total * (N_max_tier / 2000)**beta",
+   "bytes_projected": "(smoke_bytes / 20) * programs_total",
+   "peak_rss_projected": "smoke_peak_rss (the run is batched; peak does not grow with the grid)",
+   "why_it_is_measured": "PREREG_CHECK B.7: one smoke point at a single N_max cannot measure the exponent, and per-look cost is O(1) only if the band is maintained incrementally. A recompute-per-look implementation is quadratic in N_max, under which the T4 row would be over-projected by a factor of two and the tier choice could be wrong.",
+   "beta_is_recorded_in_budget_json": true,
+   "incremental_band_property": "vrun.py must maintain the running enclosure sums incrementally (at most two enclosure changes per pair per look). vrun.py does not exist at the freeze commit; when it is written it carries an operation counter and asserts this property on the smoke run, before the grid starts, and the count goes into budget.json."
+  },
+  "ladder": [
+   {
+    "tier": "T1",
+    "programs": {
+     "C1": 2000,
+     "C2": 2000,
+     "C3": 5000,
+     "C4": 5000,
+     "C5": 5000,
+     "C6": 5000,
+     "C7": 2000,
+     "C8": 2000
+    },
+    "N_max": 2000,
+    "programs_total": 28000
+   },
+   {
+    "tier": "T2",
+    "programs": {
+     "C1": 2000,
+     "C2": 2000,
+     "C3": 2000,
+     "C4": 2000,
+     "C5": 2000,
+     "C6": 2000,
+     "C7": 2000,
+     "C8": 2000
+    },
+    "N_max": 2000,
+    "programs_total": 16000
+   },
+   {
+    "tier": "T3",
+    "programs": {
+     "C1": 1000,
+     "C2": 1000,
+     "C3": 1000,
+     "C4": 1000,
+     "C5": 1000,
+     "C6": 1000,
+     "C7": 1000,
+     "C8": 1000
+    },
+    "N_max": 2000,
+    "programs_total": 8000
+   },
+   {
+    "tier": "T4",
+    "programs": {
+     "C1": 1000,
+     "C2": 1000,
+     "C3": 1000,
+     "C4": 1000,
+     "C5": 1000,
+     "C6": 1000,
+     "C7": 1000,
+     "C8": 1000
+    },
+    "N_max": 1000,
+    "programs_total": 8000,
+    "fixed_horizon_summaries": [
+     100,
+     500,
+     1000
+    ],
+    "section_6_variant": "analytic_reachability.T4_variant_N_max_1000, computed and deposited BEFORE the smoke run rather than recomputed after it",
+    "forfeits": "the n = 2000 fixed-horizon summary required by root item 4; if T4 is selected the report states this as a reduction of the root's design"
+   }
+  ],
+  "selection_rule": "the highest tier whose projection satisfies ALL of seconds_projected <= 5400, peak_rss_projected <= 2 GiB, bytes_projected <= 200 MiB; written to budget.json BEFORE the reported grid starts",
+  "pause_and_report": "if even T4 fails any of the three limits, the run PAUSES and reports; it does not silently shrink further, drop a cell, or reduce the number of constructions",
+  "batching": "by (cell, block of 100 programs); per-trial records appended to a gzip CSV incrementally; no per-look path is ever written to disk; peak RSS and cumulative output bytes are asserted after every batch"
+ },
+ "reported_quantities": {
+  "wilson_z": 1.959963984540054,
+  "wilson_center": "(x + z^2/2) / (N + z^2)",
+  "wilson_half": "z / (N + z^2) * sqrt(x*(N-x)/N + z^2/4)",
+  "wilson_caveat": "These intervals quantify Monte Carlo error of this simulation only. They are not confidence intervals for the statistical guarantee, and a Wilson interval lying below a nominal level is not a proof that the level holds.",
+  "per_gate_ever_miscoverage": {
+   "unit": "trial",
+   "N": "programs * 4",
+   "events": {
+    "ever_miscover": "exists look : mu_g < L_g(look) or mu_g > U_g(look)",
+    "ever_below": "exists look : mu_g < L_g(look)",
+    "ever_above": "exists look : mu_g > U_g(look)"
+   },
+   "evaluated_over": "all looks to the finalization look, regardless of the decision, because the confidence-sequence guarantee is a statement for all n",
+   "secondary_column": "the same restricted to n >= n_min",
+   "nominal_bound": 0.00625
+  },
+  "decision_level": {
+   "false_deploy": {
+    "unit": "trial",
+    "event": "DEPLOY and not (mu_h > 0 and mu_s > -delta)",
+    "nominal_bound": 0.00625
+   },
+   "false_harm": {
+    "unit": "trial",
+    "event": "RETAIN_INCUMBENT and mu_h >= 0",
+    "nominal_bound": 0.00625
+   },
+   "any_erroneous_trial": {
+    "unit": "trial",
+    "event": "false_deploy or false_harm",
+    "nominal_bound": 0.0125
+   },
+   "family_any_erroneous": {
+    "unit": "program",
+    "event": "at least one of the program's four trials has any_erroneous_trial",
+    "nominal_bound": 0.05
+   },
+   "correct_deploy": {
+    "unit": "trial",
+    "event": "DEPLOY and (mu_h > 0 and mu_s > -delta)",
+    "possible_only_in": [
+     "C7",
+     "C8"
+    ]
+   },
+   "no_decision": {
+    "unit": "trial",
+    "event": "endpoint reached with no decision"
+   },
+   "conflict": {
+    "unit": "trial",
+    "event": "both conditions at one look"
+   },
+   "never_conjunct": {
+    "unit": "trial",
+    "event": "L_h > 0 held at some look AND L_s > -delta held at some look, but never at the same look",
+    "purpose": "direct read-out that the same-look conjunction is doing work"
+   }
+  },
+  "timing_and_resolution": {
+   "tau": "the enrolled prefix n at the first look whose condition fired",
+   "capped_decision_prefix": "tau with tau := N_max for every non-deciding trial, by this explicit rule; Q1/median/Q3 over ALL trials, always printed with the capped fraction",
+   "conditional_decision_prefix": "Q1/median/Q3 of tau over deciding trials only, always printed with the deciding fraction",
+   "unresolved_fraction": "(n - #fully resolved) / n at the deciding look, or at the finalization look for non-deciding trials; mean and Q1/median/Q3",
+   "unrevealed_fraction": "the same with 'neither episode revealed' in the numerator",
+   "cost_collapsed_fraction": "the same with 'not fully resolved, and the hierarchy enclosure is a point' in the numerator: the measured counterpart of analytic_reachability.expected_cost_enclosure_exercise, and the read-out that makes the cost/latency enclosure path visible in the results rather than only in the design",
+   "cost_narrowed_fraction": "the same with 'not fully resolved, and the hierarchy enclosure is narrower than the success information alone would give' in the numerator",
+   "certified_vs_point_counts": "both are reported. A hierarchy enclosure narrowed to a point by the cost tier is a point WITHOUT a final-score certificate; n_certified counts only certificates, so the two counts differ by exactly the cost-collapsed pairs.",
+   "forbidden": "reporting decision prefixes as wall-clock, latency, throughput or saving, or as a paired comparison between constructions"
+  },
+  "compute_counts": [
+   "programs",
+   "trials",
+   "enrolled_pairs",
+   "looks",
+   "band_evaluations",
+   "wall_clock_seconds",
+   "peak_rss",
+   "output_bytes"
+  ],
+  "retention": "Every unfavourable or inconclusive result is retained and reported. No cell, construction, gate or row is dropped, no row is omitted for brevity, and no run is repeated to obtain a different answer."
+ },
+ "exceedance_flag": {
+  "rule": "FLAG iff the LOWER Wilson limit of the measured rate exceeds its nominal bound",
+  "thresholds": [
+   {
+    "quantity": "per_gate_ever_miscoverage",
+    "bound": 0.00625,
+    "N": 8000,
+    "flag_at_x": 64,
+    "smallest_detectable_multiple": 1.28
+   },
+   {
+    "quantity": "per_gate_ever_miscoverage",
+    "bound": 0.00625,
+    "N": 20000,
+    "flag_at_x": 147,
+    "smallest_detectable_multiple": 1.176
+   },
+   {
+    "quantity": "any_erroneous_trial",
+    "bound": 0.0125,
+    "N": 8000,
+    "flag_at_x": 120,
+    "smallest_detectable_multiple": 1.2
+   },
+   {
+    "quantity": "any_erroneous_trial",
+    "bound": 0.0125,
+    "N": 20000,
+    "flag_at_x": 281,
+    "smallest_detectable_multiple": 1.124
+   },
+   {
+    "quantity": "family_any_erroneous",
+    "bound": 0.05,
+    "N": 2000,
+    "flag_at_x": 120,
+    "smallest_detectable_multiple": 1.2
+   },
+   {
+    "quantity": "family_any_erroneous",
+    "bound": 0.05,
+    "N": 5000,
+    "flag_at_x": 281,
+    "smallest_detectable_multiple": 1.124
+   }
+  ],
+  "zero_event_wilson_upper": {
+   "8000": 0.00048,
+   "20000": 0.000192,
+   "2000": 0.001917,
+   "5000": 0.000768
+  },
+  "unflagged_wording": "reported as 'no exceedance was detected at this resolution', never as 'the bound holds'",
+  "flag_on_ADAPTER": "a defect of the validated construction; reported under the disagreement procedure",
+  "flag_on_NAIVE_in_an_A_cell": "the expected behaviour of an invalid rule; reported as the positive control, not as a defect"
+ },
+ "positive_control": {
+  "precommitted": true,
+  "statement": "NAIVE's hierarchy ever-miscoverage must be FLAGGED in at least one of C2, C4, C6. If it is not, the measurement apparatus itself is reported as unvalidated, the ADAPTER results of this run are reported as uninterpretable, and the cause is investigated before any of them is cited.",
+  "basis": "the analytic expected-path arithmetic of PROTOCOL.md 6.2: the completed-only hierarchy band fails to contain the truth on the expected path from n = 202 in C2, n = 159 in C4, n = 365 in C6, and never in the N cells or in C7/C8",
+  "gate": "hierarchy only; no success-gate positive control is precommitted, because the omitted pairs carry D in {-1, 0} rather than a pure -1 and the success band is much less disturbed"
+ },
+ "analytic_reachability": {
+  "status": "exact expectations under the frozen law; no simulation; IGNORES sampling variability and is NOT a prediction of any reported rate",
+  "wording_rule": "for this rule, this allocation and this grid; never a statement about what any method can or cannot certify",
+  "method": "For each pair age a the enclosure state is enumerated over (atom, long/short branch, d, f, first-revealed arm) with its exact probability, giving E[lower] and E[upper] per age; the expected sum over a prefix is their partial sum, and the expected-path endpoint is that mean plus or minus r(n), clipped. P(f <= a | d) = (a+1)/(d+1). No random number is drawn anywhere in this section.",
+  "recomputed_in_the_pre_freeze_revision": [
+   "expected_path_gate_opening_prefix",
+   "expected_path_band_endpoints_Lh_Uh_Ls",
+   "expected_cost_enclosure_exercise"
+  ],
+  "unchanged_by_the_pre_freeze_revision": [
+   "expected_unresolved_unrevealed_fraction",
+   "naive_expected_path_first_miscoverage_prefix"
+  ],
+  "expected_unresolved_unrevealed_fraction": {
+   "note": "depends only on the reveal schedule (d_j and f_j), so the cost revision does not touch it; reproduced exactly by the recomputation",
+   "rounding": "half-up at 4 decimal places; L4's 0.2308 and 0.1261 are the exact values 0.230750 and 0.126050",
+   "L1": {
+    "100": [
+     0.3495,
+     0.2694
+    ],
+    "500": [
+     0.2197,
+     0.1173
+    ],
+    "2000": [
+     0.0596,
+     0.0298
+    ],
+    "FINAL": [
+     0.0292,
+     0.0088
+    ]
+   },
+   "L2": {
+    "100": [
+     0.4004,
+     0.3138
+    ],
+    "500": [
+     0.2599,
+     0.1388
+    ],
+    "2000": [
+     0.0706,
+     0.0353
+    ],
+    "FINAL": [
+     0.0351,
+     0.0106
+    ]
+   },
+   "L3": {
+    "100": [
+     0.2443,
+     0.1777
+    ],
+    "500": [
+     0.1368,
+     0.0727
+    ],
+    "2000": [
+     0.0369,
+     0.0185
+    ],
+    "FINAL": [
+     0.0172,
+     0.0052
+    ]
+   },
+   "L4": {
+    "100": [
+     0.2308,
+     0.1659
+    ],
+    "500": [
+     0.1261,
+     0.067
+    ],
+    "2000": [
+     0.034,
+     0.017
+    ],
+    "FINAL": [
+     0.0156,
+     0.0047
+    ]
+   }
+  },
+  "expected_path_gate_opening_prefix": {
+   "C1": {
+    "L_h>0": null,
+    "L_s>-delta": null,
+    "U_h<0": null,
+    "DEPLOY": null
+   },
+   "C2": {
+    "L_h>0": null,
+    "L_s>-delta": null,
+    "U_h<0": null,
+    "DEPLOY": null
+   },
+   "C3": {
+    "L_h>0": null,
+    "L_s>-delta": 864,
+    "U_h<0": null,
+    "DEPLOY": null
+   },
+   "C4": {
+    "L_h>0": null,
+    "L_s>-delta": 698,
+    "U_h<0": null,
+    "DEPLOY": null
+   },
+   "C5": {
+    "L_h>0": 335,
+    "L_s>-delta": null,
+    "U_h<0": null,
+    "DEPLOY": null
+   },
+   "C6": {
+    "L_h>0": 160,
+    "L_s>-delta": null,
+    "U_h<0": null,
+    "DEPLOY": null
+   },
+   "C7": {
+    "L_h>0": 258,
+    "L_s>-delta": 695,
+    "U_h<0": null,
+    "DEPLOY": 695
+   },
+   "C8": {
+    "L_h>0": 137,
+    "L_s>-delta": 566,
+    "U_h<0": null,
+    "DEPLOY": 566
+   },
+   "effect_of_the_cost_revision": "the L_h column opens earlier (C5 398->335, C6 169->160, C7 300->258, C8 145->137) because the cost tier now resolves part of the enclosure slack; the L_s column is IDENTICAL because the success enclosure is untouched, and the U_h<0 column is still never, which holds a priori since E[upper] >= E[Z] = mu_h >= 0 in every law"
+  },
+  "naive_expected_path_first_miscoverage_prefix": {
+   "note": "NAIVE and CPREFIX read only fully resolved scores, so neither is affected by the cost enclosure revision",
+   "C1": {
+    "hierarchy": null,
+    "success": null
+   },
+   "C2": {
+    "hierarchy": 202,
+    "success": null
+   },
+   "C3": {
+    "hierarchy": null,
+    "success": null
+   },
+   "C4": {
+    "hierarchy": 159,
+    "success": null
+   },
+   "C5": {
+    "hierarchy": null,
+    "success": null
+   },
+   "C6": {
+    "hierarchy": 365,
+    "success": null
+   },
+   "C7": {
+    "hierarchy": null,
+    "success": null
+   },
+   "C8": {
+    "hierarchy": null,
+    "success": null
+   }
+  },
+  "expected_path_band_endpoints_Lh_Uh_Ls": {
+   "C1": {
+    "100": [
+     -0.7818,
+     0.7818,
+     -0.7752
+    ],
+    "500": [
+     -0.3355,
+     0.3355,
+     -0.3378
+    ],
+    "2000": [
+     -0.1271,
+     0.1271,
+     -0.1279
+    ],
+    "FINAL": [
+     -0.1012,
+     0.1012,
+     -0.1022
+    ]
+   },
+   "C2": {
+    "100": [
+     -0.5366,
+     1.0,
+     -0.6799
+    ],
+    "500": [
+     -0.1835,
+     0.4802,
+     -0.2761
+    ],
+    "2000": [
+     -0.0868,
+     0.1653,
+     -0.1115
+    ],
+    "FINAL": [
+     -0.0832,
+     0.1172,
+     -0.0946
+    ]
+   },
+   "C3": {
+    "100": [
+     -0.8268,
+     0.8377,
+     -0.6621
+    ],
+    "500": [
+     -0.3575,
+     0.3727,
+     -0.1685
+    ],
+    "2000": [
+     -0.1327,
+     0.1371,
+     0.1006
+    ],
+    "FINAL": [
+     -0.1029,
+     0.106,
+     0.1382
+    ]
+   },
+   "C4": {
+    "100": [
+     -0.5334,
+     1.0,
+     -0.5589
+    ],
+    "500": [
+     -0.1828,
+     0.5563,
+     -0.1016
+    ],
+    "2000": [
+     -0.0866,
+     0.1859,
+     0.1184
+    ],
+    "FINAL": [
+     -0.0832,
+     0.1275,
+     0.1465
+    ]
+   },
+   "C5": {
+    "100": [
+     -0.3698,
+     0.9925,
+     -0.7004
+    ],
+    "500": [
+     0.0838,
+     0.6294,
+     -0.3009
+    ],
+    "2000": [
+     0.2781,
+     0.499,
+     -0.1401
+    ],
+    "FINAL": [
+     0.3017,
+     0.4892,
+     -0.1241
+    ]
+   },
+   "C6": {
+    "100": [
+     -0.1667,
+     1.0,
+     -0.6093
+    ],
+    "500": [
+     0.2105,
+     0.7439,
+     -0.2419
+    ],
+    "2000": [
+     0.3117,
+     0.5291,
+     -0.1244
+    ],
+    "FINAL": [
+     0.3168,
+     0.5015,
+     -0.1168
+    ]
+   },
+   "C7": {
+    "100": [
+     -0.3099,
+     1.0,
+     -0.5037
+    ],
+    "500": [
+     0.1423,
+     0.6747,
+     -0.0851
+    ],
+    "2000": [
+     0.3304,
+     0.5478,
+     0.0862
+    ],
+    "FINAL": [
+     0.3529,
+     0.539,
+     0.1046
+    ]
+   },
+   "C8": {
+    "100": [
+     -0.119,
+     1.0,
+     -0.4465
+    ],
+    "500": [
+     0.2601,
+     0.7896,
+     -0.0481
+    ],
+    "2000": [
+     0.3616,
+     0.5783,
+     0.096
+    ],
+    "FINAL": [
+     0.3668,
+     0.5522,
+     0.1092
+    ]
+   }
+  },
+  "expected_cost_enclosure_exercise": {
+   "what": "[E fraction of the enrolled prefix that is NOT fully resolved and whose hierarchy enclosure the cost tier has collapsed to a POINT, E fraction that is not fully resolved and whose hierarchy enclosure the cost tier has narrowed at all]. The second contains the first. Both are zero under the pre-revision enclosure model, by construction: no partial state there could be narrowed by cost.",
+   "why_it_is_here": "it is the analytic evidence that the cells exercise the cost/latency enclosure path, which PREREG_CHECK B.6 found unexercised. Deposited before any outcome exists so that a later measured fraction cannot be presented as a discovery.",
+   "C1": {
+    "100": [
+     0.0189,
+     0.0199
+    ],
+    "500": [
+     0.0351,
+     0.036
+    ],
+    "2000": [
+     0.0104,
+     0.0106
+    ],
+    "FINAL": [
+     0.0077,
+     0.0078
+    ]
+   },
+   "C2": {
+    "100": [
+     0.0199,
+     0.0213
+    ],
+    "500": [
+     0.0458,
+     0.0466
+    ],
+    "2000": [
+     0.0135,
+     0.0137
+    ],
+    "FINAL": [
+     0.0102,
+     0.0102
+    ]
+   },
+   "C3": {
+    "100": [
+     0.0234,
+     0.0249
+    ],
+    "500": [
+     0.0499,
+     0.051
+    ],
+    "2000": [
+     0.0147,
+     0.0151
+    ],
+    "FINAL": [
+     0.011,
+     0.0112
+    ]
+   },
+   "C4": {
+    "100": [
+     0.0239,
+     0.0255
+    ],
+    "500": [
+     0.055,
+     0.0559
+    ],
+    "2000": [
+     0.0163,
+     0.0165
+    ],
+    "FINAL": [
+     0.0123,
+     0.0123
+    ]
+   },
+   "C5": {
+    "100": [
+     0.0196,
+     0.0205
+    ],
+    "500": [
+     0.0245,
+     0.0251
+    ],
+    "2000": [
+     0.0072,
+     0.0073
+    ],
+    "FINAL": [
+     0.005,
+     0.0051
+    ]
+   },
+   "C6": {
+    "100": [
+     0.02,
+     0.021
+    ],
+    "500": [
+     0.0285,
+     0.029
+    ],
+    "2000": [
+     0.0084,
+     0.0085
+    ],
+    "FINAL": [
+     0.006,
+     0.006
+    ]
+   },
+   "C7": {
+    "100": [
+     0.0197,
+     0.0205
+    ],
+    "500": [
+     0.0229,
+     0.0236
+    ],
+    "2000": [
+     0.0067,
+     0.0069
+    ],
+    "FINAL": [
+     0.0046,
+     0.0048
+    ]
+   },
+   "C8": {
+    "100": [
+     0.02,
+     0.0209
+    ],
+    "500": [
+     0.0263,
+     0.0268
+    ],
+    "2000": [
+     0.0077,
+     0.0078
+    ],
+    "FINAL": [
+     0.0055,
+     0.0055
+    ]
+   },
+   "reading": "At n = 500 in C4, 5.50% of the whole enrolled prefix is a pair that no episode has finished resolving and whose hierarchy score the cost tier has nevertheless pinned to a point -- about a fifth of that cell's 25.99% unresolved fraction. At the finalization look of C1 the cost tier has pinned 0.77% of 2.92% still-unresolved pairs. The path is live in all eight cells at every horizon."
+  },
+  "T4_variant_N_max_1000": {
+   "why": "budget tier T4 halves the horizon, so section 6 must be frozen for it too rather than recomputed after the smoke run; PREREG_CHECK B.8",
+   "N_max": 1000,
+   "drain_W": 200,
+   "finalization_tick": 1200,
+   "fixed_horizon_summaries": [
+    100,
+    500,
+    1000
+   ],
+   "forfeits": "the n = 2000 fixed-horizon summary required by root item 4; if T4 is selected the report states this as a reduction of the root's design, not as a budget detail",
+   "expected_unresolved_unrevealed_fraction": {
     "L1": {
-      "name": "aa_null",
-      "description": "A/A symmetric null; the atom table is invariant under exchanging the two arms, so the null is exact by construction and not only in expectation.",
-      "weights": {
-        "BB+": 2250,
-        "BB0": 500,
-        "BB-": 2250,
-        "C>I": 1500,
-        "I>C": 1500,
-        "FF": 2000
-      },
-      "mu_h": 0.0,
-      "mu_s": 0.0,
-      "w_neg": 3750,
-      "P_Z": {
-        "+1": 0.375,
-        "0": 0.25,
-        "-1": 0.375
-      },
-      "P_D": {
-        "+1": 0.15,
-        "0": 0.7,
-        "-1": 0.15
-      },
-      "arm_exchangeable": true,
-      "deploy_criteria_true": false,
-      "harm_criteria_true": false,
-      "every_deploy_is_an_error": true,
-      "every_retain_incumbent_is_an_error": true
+     "100": [
+      0.3495,
+      0.2694
+     ],
+     "500": [
+      0.2197,
+      0.1173
+     ],
+     "1000": [
+      0.1192,
+      0.0596
+     ],
+     "FINAL": [
+      0.0585,
+      0.0176
+     ]
     },
     "L2": {
-      "name": "pref_boundary",
-      "description": "Preference boundary with success favorable: mu_h = 0 exactly (least favourable for both the deploy hierarchy condition and the harm gate), mu_s = +0.25 so the success guardrail is genuinely true. A candidate that succeeds distinctly more often but is slower when both succeed.",
-      "weights": {
-        "BB+": 1500,
-        "BB0": 500,
-        "BB-": 4000,
-        "C>I": 3000,
-        "I>C": 500,
-        "FF": 500
-      },
-      "mu_h": 0.0,
-      "mu_s": 0.25,
-      "w_neg": 4500,
-      "P_Z": {
-        "+1": 0.45,
-        "0": 0.1,
-        "-1": 0.45
-      },
-      "P_D": {
-        "+1": 0.3,
-        "0": 0.65,
-        "-1": 0.05
-      },
-      "arm_exchangeable": false,
-      "deploy_criteria_true": false,
-      "harm_criteria_true": false,
-      "every_deploy_is_an_error": true,
-      "every_retain_incumbent_is_an_error": true
+     "100": [
+      0.4004,
+      0.3138
+     ],
+     "500": [
+      0.2599,
+      0.1388
+     ],
+     "1000": [
+      0.1411,
+      0.0706
+     ],
+     "FINAL": [
+      0.0702,
+      0.0211
+     ]
     },
     "L3": {
-      "name": "success_boundary",
-      "description": "Success boundary with preference favorable: mu_s = -delta = -0.03 exactly (least favourable for the guardrail), mu_h = +0.40 so the hierarchy condition opens early and a DEPLOY is governed entirely by a one-sided error of the success band at its exact boundary.",
-      "weights": {
-        "BB+": 5000,
-        "BB0": 300,
-        "BB-": 700,
-        "C>I": 1200,
-        "I>C": 1500,
-        "FF": 1300
-      },
-      "mu_h": 0.4,
-      "mu_s": -0.03,
-      "w_neg": 2200,
-      "P_Z": {
-        "+1": 0.62,
-        "0": 0.16,
-        "-1": 0.22
-      },
-      "P_D": {
-        "+1": 0.12,
-        "0": 0.73,
-        "-1": 0.15
-      },
-      "arm_exchangeable": false,
-      "deploy_criteria_true": false,
-      "harm_criteria_true": false,
-      "every_deploy_is_an_error": true,
-      "every_retain_incumbent_is_an_error": true
+     "100": [
+      0.2443,
+      0.1777
+     ],
+     "500": [
+      0.1368,
+      0.0727
+     ],
+     "1000": [
+      0.0739,
+      0.0369
+     ],
+     "FINAL": [
+      0.0343,
+      0.0103
+     ]
     },
     "L4": {
-      "name": "favorable_alt",
-      "description": "The scientifically prespecified favorable alternative: a candidate both more successful and faster when both succeed. This is the only scenario in which the live study's T3 could deploy (protocol_FINAL 11.4); chosen for that reason, not for its rates.",
-      "weights": {
-        "BB+": 4000,
-        "BB0": 1000,
-        "BB-": 1500,
-        "C>I": 2500,
-        "I>C": 500,
-        "FF": 500
-      },
-      "mu_h": 0.45,
-      "mu_s": 0.2,
-      "w_neg": 2000,
-      "P_Z": {
-        "+1": 0.65,
-        "0": 0.15,
-        "-1": 0.2
-      },
-      "P_D": {
-        "+1": 0.25,
-        "0": 0.7,
-        "-1": 0.05
-      },
-      "arm_exchangeable": false,
-      "deploy_criteria_true": true,
-      "harm_criteria_true": false,
-      "every_deploy_is_an_error": false,
-      "every_retain_incumbent_is_an_error": true
+     "100": [
+      0.2308,
+      0.1659
+     ],
+     "500": [
+      0.1261,
+      0.067
+     ],
+     "1000": [
+      0.068,
+      0.034
+     ],
+     "FINAL": [
+      0.0312,
+      0.0094
+     ]
     }
-  },
-  "delay_blocks": {
-    "SHORT": {
-      "kind": "DiscreteUniform",
-      "low": 0,
-      "high": 19,
-      "mean": 9.5
+   },
+   "expected_path_gate_opening_prefix": {
+    "note": "identical to the N_max = 2000 table: the expected path at prefix n does not depend on the cap, and every opening prefix listed there is below 1000, so none is lost",
+    "C1": {
+     "L_h>0": null,
+     "L_s>-delta": null,
+     "U_h<0": null,
+     "DEPLOY": null
     },
-    "LONG": {
-      "kind": "DiscreteUniform",
-      "low": 100,
-      "high": 699,
-      "mean": 399.5
+    "C2": {
+     "L_h>0": null,
+     "L_s>-delta": null,
+     "U_h<0": null,
+     "DEPLOY": null
     },
-    "unit": "enrollment ticks; pair i enrolled at tick i is fully resolved at every look with prefix n >= i + d_i"
-  },
-  "delay_rules": {
-    "N": {
-      "name": "noninformative",
-      "description": "d_i drawn independently of (Z_i, D_i) and of everything else.",
-      "p_long_formula": "3 * w_neg / 40000",
-      "sampling": "u = rng.integers(0, 40000); long iff u < 3 * w_neg",
-      "informative": false
+    "C3": {
+     "L_h>0": null,
+     "L_s>-delta": 864,
+     "U_h<0": null,
+     "DEPLOY": null
     },
-    "A": {
-      "name": "outcome_dependent_asymmetric",
-      "description": "d_i depends on the pair's own realized hierarchy score. Deliberately the strongest informative coupling in this family: the unresolved set is almost purely Z = -1. Chosen before any outcome existed, to make a failure of the completed-only rule detectable rather than to flatter the adapter.",
-      "p_long_given_Z": {
-        "+1": 0.0,
-        "0": 0.0,
-        "-1": 0.75
-      },
-      "sampling": "for Z = -1: u = rng.integers(0, 4); long iff u < 3. Otherwise SHORT.",
-      "conditional_independence": "given Z_i, d_i is conditionally independent of D_i and of every other pair",
-      "informative": true
+    "C4": {
+     "L_h>0": null,
+     "L_s>-delta": 698,
+     "U_h<0": null,
+     "DEPLOY": null
     },
-    "marginal_delay_matched": "p_long(N) = (3/4) * P(Z = -1) is exactly the unconditional long-branch probability of rule A under the same law, so for each outcome law the N and A cells have identical marginal delay distributions, identical E[d], and identical expected unresolved and unrevealed fractions at every look. They differ only in WHICH pairs are slow."
-  },
-  "partial_revelation": {
-    "first_reveal_offset": "f_i ~ DiscreteUniform{0, ..., d_i}, independent of the outcome given d_i",
-    "first_reveal_arm": "candidate with probability 1/2, independent of the outcome given d_i",
-    "episode_durations": "the first-revealed episode has duration f_i, the second d_i; both are dispatched at the pair's enrollment tick",
-    "a_revealed_episode_is_final": "its success AND its final cost are known at its own reveal offset",
-    "state_at_look_n": {
-      "fully_resolved": "d_j <= n - j",
-      "partially_revealed": "f_j <= n - j < d_j",
-      "unrevealed": "n - j < f_j"
+    "C5": {
+     "L_h>0": 335,
+     "L_s>-delta": null,
+     "U_h<0": null,
+     "DEPLOY": null
     },
-    "elapsed_cost_at_age_a": {
-      "rule": "ell = (c * a) / D for a pending episode of final cost c and duration D; ell = c once a >= D",
-      "emitted_for": "every pending episode at every look, including before the first reveal",
-      "no_new_draws": "deterministic given (atom, d_i, f_i, b_i); the five-array draw order of the seeding block is unchanged",
-      "only_cost_information": "the elapsed lower bound and the final value. No cost upper bound below the cap is ever observed."
+    "C6": {
+     "L_h>0": 160,
+     "L_s>-delta": null,
+     "U_h<0": null,
+     "DEPLOY": null
     },
-    "declared_simplification_first_reveal_coin": "In the live apparatus the faster arm tends to reveal first, which correlates with the cost tier; here the first-reveal identity is independent of the outcome given d_i. Declared because it makes partial information LESS adversarial in the cost direction than reality might be; the adversarial content of these cells is carried by the pair-level delay rule instead.",
-    "declared_simplification_two_clocks": "The cost meter and the reveal schedule are not tied to each other: an episode's final cost is fixed by its atom while its duration comes from the delay rule, so a cheap episode may reveal second. Declared. A latency-coupled model (cheap arm reveals first) would make the pending arm the expensive one and would therefore narrow the cost enclosure MORE often than this model does, so this choice is the conservative one for exercising the path, and it leaves the reveal schedule -- and therefore analytic_reachability.expected_unresolved_unrevealed_fraction -- unchanged by the revision."
-  },
-  "cells": [
-    {
-      "id": "C1",
-      "cell_index": 0,
-      "law": "L1",
-      "delay": "N",
-      "mu_h": 0.0,
-      "mu_s": 0.0,
-      "p_long": 0.28125,
-      "p_long_exact": "11250/40000",
-      "E_d": 119.19,
-      "escalation_eligible": false
+    "C7": {
+     "L_h>0": 258,
+     "L_s>-delta": 695,
+     "U_h<0": null,
+     "DEPLOY": 695
     },
-    {
-      "id": "C2",
-      "cell_index": 1,
-      "law": "L1",
-      "delay": "A",
-      "mu_h": 0.0,
-      "mu_s": 0.0,
-      "p_long": 0.28125,
-      "p_long_exact": "11250/40000",
-      "E_d": 119.19,
-      "escalation_eligible": false
-    },
-    {
-      "id": "C3",
-      "cell_index": 2,
-      "law": "L2",
-      "delay": "N",
-      "mu_h": 0.0,
-      "mu_s": 0.25,
-      "p_long": 0.3375,
-      "p_long_exact": "13500/40000",
-      "E_d": 141.12,
-      "escalation_eligible": true
-    },
-    {
-      "id": "C4",
-      "cell_index": 3,
-      "law": "L2",
-      "delay": "A",
-      "mu_h": 0.0,
-      "mu_s": 0.25,
-      "p_long": 0.3375,
-      "p_long_exact": "13500/40000",
-      "E_d": 141.12,
-      "escalation_eligible": true
-    },
-    {
-      "id": "C5",
-      "cell_index": 4,
-      "law": "L3",
-      "delay": "N",
-      "mu_h": 0.4,
-      "mu_s": -0.03,
-      "p_long": 0.165,
-      "p_long_exact": "6600/40000",
-      "E_d": 73.85,
-      "escalation_eligible": true
-    },
-    {
-      "id": "C6",
-      "cell_index": 5,
-      "law": "L3",
-      "delay": "A",
-      "mu_h": 0.4,
-      "mu_s": -0.03,
-      "p_long": 0.165,
-      "p_long_exact": "6600/40000",
-      "E_d": 73.85,
-      "escalation_eligible": true
-    },
-    {
-      "id": "C7",
-      "cell_index": 6,
-      "law": "L4",
-      "delay": "N",
-      "mu_h": 0.45,
-      "mu_s": 0.2,
-      "p_long": 0.15,
-      "p_long_exact": "6000/40000",
-      "E_d": 68.0,
-      "escalation_eligible": false
-    },
-    {
-      "id": "C8",
-      "cell_index": 7,
-      "law": "L4",
-      "delay": "A",
-      "mu_h": 0.45,
-      "mu_s": 0.2,
-      "p_long": 0.15,
-      "p_long_exact": "6000/40000",
-      "E_d": 68.0,
-      "escalation_eligible": false
+    "C8": {
+     "L_h>0": 137,
+     "L_s>-delta": 566,
+     "U_h<0": null,
+     "DEPLOY": 566
     }
+   },
+   "expected_path_band_endpoints_Lh_Uh_Ls": {
+    "C1": {
+     "100": [
+      -0.7818,
+      0.7818,
+      -0.7752
+     ],
+     "500": [
+      -0.3355,
+      0.3355,
+      -0.3378
+     ],
+     "1000": [
+      -0.2053,
+      0.2053,
+      -0.2069
+     ],
+     "FINAL": [
+      -0.1533,
+      0.1533,
+      -0.1555
+     ]
+    },
+    "C2": {
+     "100": [
+      -0.5366,
+      1.0,
+      -0.6799
+     ],
+     "500": [
+      -0.1835,
+      0.4802,
+      -0.2761
+     ],
+     "1000": [
+      -0.1246,
+      0.2816,
+      -0.174
+     ],
+     "FINAL": [
+      -0.1175,
+      0.1854,
+      -0.1403
+     ]
+    },
+    "C3": {
+     "100": [
+      -0.8268,
+      0.8377,
+      -0.6621
+     ],
+     "500": [
+      -0.3575,
+      0.3727,
+      -0.1685
+     ],
+     "1000": [
+      -0.2165,
+      0.2253,
+      0.0002
+     ],
+     "FINAL": [
+      -0.1568,
+      0.163,
+      0.0755
+     ]
+    },
+    "C4": {
+     "100": [
+      -0.5334,
+      1.0,
+      -0.5589
+     ],
+     "500": [
+      -0.1828,
+      0.5563,
+      -0.1016
+     ],
+     "1000": [
+      -0.1243,
+      0.3228,
+      0.0359
+     ],
+     "FINAL": [
+      -0.1175,
+      0.206,
+      0.0919
+     ]
+    },
+    "C5": {
+     "100": [
+      -0.3698,
+      0.9925,
+      -0.7004
+     ],
+     "500": [
+      0.0838,
+      0.6294,
+      -0.3009
+     ],
+     "1000": [
+      0.2051,
+      0.549,
+      -0.2012
+     ],
+     "FINAL": [
+      0.2524,
+      0.5294,
+      -0.1691
+     ]
+    },
+    "C6": {
+     "100": [
+      -0.1667,
+      1.0,
+      -0.6093
+     ],
+     "500": [
+      0.2105,
+      0.7439,
+      -0.2419
+     ],
+     "1000": [
+      0.2724,
+      0.6092,
+      -0.1698
+     ],
+     "FINAL": [
+      0.2825,
+      0.5539,
+      -0.1546
+     ]
+    },
+    "C7": {
+     "100": [
+      -0.3099,
+      1.0,
+      -0.5037
+     ],
+     "500": [
+      0.1423,
+      0.6747,
+      -0.0851
+     ],
+     "1000": [
+      0.2597,
+      0.5967,
+      0.0213
+     ],
+     "FINAL": [
+      0.3049,
+      0.5791,
+      0.0582
+     ]
+    },
+    "C8": {
+     "100": [
+      -0.119,
+      1.0,
+      -0.4465
+     ],
+     "500": [
+      0.2601,
+      0.7896,
+      -0.0481
+     ],
+     "1000": [
+      0.3222,
+      0.6576,
+      0.0411
+     ],
+     "FINAL": [
+      0.3325,
+      0.6053,
+      0.0673
+     ]
+    }
+   },
+   "expected_cost_enclosure_exercise": {
+    "C1": {
+     "100": [
+      0.0189,
+      0.0199
+     ],
+     "500": [
+      0.0351,
+      0.036
+     ],
+     "1000": [
+      0.0207,
+      0.0213
+     ],
+     "FINAL": [
+      0.0153,
+      0.0156
+     ]
+    },
+    "C2": {
+     "100": [
+      0.0199,
+      0.0213
+     ],
+     "500": [
+      0.0458,
+      0.0466
+     ],
+     "1000": [
+      0.0271,
+      0.0275
+     ],
+     "FINAL": [
+      0.0204,
+      0.0204
+     ]
+    },
+    "C3": {
+     "100": [
+      0.0234,
+      0.0249
+     ],
+     "500": [
+      0.0499,
+      0.051
+     ],
+     "1000": [
+      0.0294,
+      0.0302
+     ],
+     "FINAL": [
+      0.0221,
+      0.0224
+     ]
+    },
+    "C4": {
+     "100": [
+      0.0239,
+      0.0255
+     ],
+     "500": [
+      0.055,
+      0.0559
+     ],
+     "1000": [
+      0.0325,
+      0.033
+     ],
+     "FINAL": [
+      0.0245,
+      0.0245
+     ]
+    },
+    "C5": {
+     "100": [
+      0.0196,
+      0.0205
+     ],
+     "500": [
+      0.0245,
+      0.0251
+     ],
+     "1000": [
+      0.0143,
+      0.0146
+     ],
+     "FINAL": [
+      0.0101,
+      0.0102
+     ]
+    },
+    "C6": {
+     "100": [
+      0.02,
+      0.021
+     ],
+     "500": [
+      0.0285,
+      0.029
+     ],
+     "1000": [
+      0.0167,
+      0.017
+     ],
+     "FINAL": [
+      0.012,
+      0.012
+     ]
+    },
+    "C7": {
+     "100": [
+      0.0197,
+      0.0205
+     ],
+     "500": [
+      0.0229,
+      0.0236
+     ],
+     "1000": [
+      0.0133,
+      0.0138
+     ],
+     "FINAL": [
+      0.0093,
+      0.0095
+     ]
+    },
+    "C8": {
+     "100": [
+      0.02,
+      0.0209
+     ],
+     "500": [
+      0.0263,
+      0.0268
+     ],
+     "1000": [
+      0.0154,
+      0.0156
+     ],
+     "FINAL": [
+      0.0109,
+      0.0109
+     ]
+    }
+   }
+  },
+  "deploy_route_unreachable_within_cap_in": {
+   "cells": [
+    "C1",
+    "C2"
+   ],
+   "reason": "mu_s = 0 and r(n) < delta = 0.03 first holds at n = 17097, beyond the cap of 2000",
+   "wording": "a PRE-SPECIFIED NEAR-CERTAIN ABSTENTION on the deploy route of those two cells, NOT a logical impossibility; if a DEPLOY occurs there it is reported as the rare event it is and never described as impossible",
+   "consequence": "the decision-level probe of C1/C2 is the harm gate"
+  },
+  "primary_evidence_ordering": "Because several decision-level probes are cap-limited or tail-limited, the primary evidence for each gate is the band-level one-sided ever-miscoverage, not the decision-level rate. Fixed now so a near-zero decision-level table cannot later be presented as if it were the strong result.",
+  "enclosure_conservatism_priced_now": "In the A cells the unresolved pairs are the Z = -1 pairs, whose lower_j = -1 is tight while upper_j = +1 is maximally loose, so L_h is barely affected and U_h is inflated and the harm gate becomes much harder to reach. This is a correct and expected consequence of never imputing a pending outcome, stated before any outcome exists so it cannot later be reported as a discovery or as a defect. The cost tier relieves part of that inflation but does not remove it: in C2 the expected U_h at n = 500 is 0.4802 with the cost path and was 0.5695 without it, against a truth of mu_h = 0.",
+  "asymmetry_of_the_cost_path_stated_now": "The cost tier narrows a partially revealed pair only when the REVEALED arm is the cheap one, because only then can the pending arm's elapsed cost overtake it. With the fair first-reveal coin this happens for about half of the cost-decisive pairs, and never for the other half. This is a property of the frozen reveal model, priced in the expected_cost_enclosure_exercise table above, and is not a defect of either implementation."
+ },
+ "fixtures": {
+  "register_is_machine_checked": "F15 asserts that this list, PROTOCOL.md section 11 and vfixtures.ALL_FIXTURES carry the same ids in the same order. The pre-audit register named F0..F12 while the code implemented F01..F13; that mismatch is what this check exists to prevent.",
+  "entry_point": ".venv/bin/python experiments/live_ab_validation/vfixtures.py",
+  "deposited_to": "results/live_ab_validation/fixtures_report.json, per-case pass/fail for F01..F18",
+  "list": [
+   {
+    "id": "F01_pre_enrolled_orientation",
+    "assertion": "identical physical arrivals with opposite pre-enrolled coins give opposite oriented scores; arm_slots follows the coin and not the arrival order; an outcome for an unenrolled position and an invalid coin are both rejected"
+   },
+   {
+    "id": "F02_enrollment_denominator",
+    "assertion": "at every look the divisor is exactly the enrolled prefix n, never the completed count, checked against a hand-computed four-pair table with resolved and unrevealed pairs; at n = 0 the full range is displayed and nothing decides"
+   },
+   {
+    "id": "F03_repeated_update_idempotence",
+    "assertion": "replaying every reveal three times leaves the state signature, the enclosures and the band endpoints bit-identical; a stale elapsed-cost report is an exact no-op; a conflicting second certificate raises"
+   },
+   {
+    "id": "F04_nonoverlapping_pair_ids",
+    "assertion": "duplicate pair ids, reused arrival positions, self-overlapping pairs and facts for unowned positions are all rejected; enrollment positions are immutable and sequential"
+   },
+   {
+    "id": "F05_completion_order_permutations",
+    "assertion": "over all 720 reveal orders of the six episodes of a fixed three-pair stream the state signature and both bands are identical; the hand-derived sums, means and r(3) are reproduced"
+   },
+   {
+    "id": "F06_joint_failures",
+    "assertion": "s_C = s_I = 0 gives Z = 0 and D = 0 with the cost tier never eligible even at a cost ratio that would be decisive; two observed failures pin both scores to 0 WITHOUT a certificate, so certified stays false"
+   },
+   {
+    "id": "F07_strict_tolerance_equality",
+    "assertion": "with relative_tolerance 0.05, cost 95.0 against 100.0 has |delta| = tol = 5.0 exactly and TIES (the decisive test is the strict |delta| > tol); 94.9 against 100.0 is decisive; both directions; the same boundary in the enclosure enumeration"
+   },
+   {
+    "id": "F08_unknown_outcomes",
+    "assertion": "a pair with neither episode revealed contributes exactly [-1, 1] to both scores; a single-arm reveal plus an elapsed-cost lower bound narrows exactly to its enclosure_rules row and no further; a point reached without a certificate is NOT certified; nothing is imputed"
+   },
+   {
+    "id": "F09_cap_timeout_finalization",
+    "assertion": "the cap is an explicit finalisation rule (failure at full cap), never a silent censor or drop; the capped pair stays in the ledger and in n; a timeout contradicting an observed success and a final cost above the cap are both rejected"
+   },
+   {
+    "id": "F10_switch_phase_exclusion",
+    "assertion": "at the traffic switch randomisation stops, in-flight pairs are still finished under their original assignment, post-switch single-arm traffic is logged as a follow-up cohort and never enters n, and the switch is idempotent"
+   },
+   {
+    "id": "F11_containment_audit",
+    "assertion": "on a multi-look eight-look stream every pair's ultimately certified score lies inside EVERY bound that pair contributed at EVERY prior look, no enclosure ever widens, and the running-sum interval brackets the realised running mean at every look after enrollment closed"
+   },
+   {
+    "id": "F12_band_formula",
+    "assertion": "the alpha allocation, rho, delta and n_min; every locked radius against both vband.radius_from_formula and the independent literal transcription; an interior band at n = 2000 assembled as sum/n -+ r; the clip; that the prefix is a prefix; that a prefix beyond the ledger and a radius at n = 0 raise"
+   },
+   {
+    "id": "F13_decision_rule",
+    "assertion": "DEPLOY iff L_h > 0 and L_s > -delta, RETAIN_INCUMBENT iff U_h < 0, both strict, both read at one look on one prefix, nothing below n_min; mismatched prefixes raise; deploy and harm never fire together"
+   },
+   {
+    "id": "F14_radius_sweep",
+    "assertion": "vband.radius_from_formula(n) equals the independent literal transcription of the guidance closed form with STRICT float equality for every n = 1..20000, and equals src/winstats.normal_mixture_radius(n, alpha=0.00625, rho=100., variance_process=n) likewise"
+   },
+   {
+    "id": "F15_protocol_config_agreement",
+    "assertion": "the numeric tables of PROTOCOL.md listed here are parsed and compared to this file value by value, and nothing outside the list is claimed: the header provenance block (the three hash strings, the repository commit, the interpreter and numpy versions), 2.1 parameters and the alpha ladder, 2.2 radius reference values and the first-n-below sentence, 2.5 the enclosure-row table, 4 the cells, 4.1 atom costs, weights, ground truth and induced distributions, 4.2 the delay table with its denominator, 5 the seed namespaces and the master seed, 6.1/6.2/6.3/6.4 including their horizon headers, their law-and-delay row labels and the T4 variant, 7.1 the grid and the look counts derived from it, 8.2 the budget ladder including its per-cell grid column, 9.1 and 9.2 the nominal bounds and the numbers in their definitions, 9.3 the flag thresholds, 11 the fixture register and every F01..Fnn range printed in the document, and 13.0 the module map"
+   },
+   {
+    "id": "F16_import_graph_independence",
+    "assertion": "importing vband, vfixtures and tests_validation in a fresh interpreter loads NO module whose __file__ is under experiments/live_ab/ or experiments/live_ab_validation/pinned/, and no source file of this directory except vcompare.py names either path"
+   },
+   {
+    "id": "F17_atom_cost_table",
+    "assertion": "every atom's cost pair reproduces the frozen Z and D columns through src/winstats.compare; over 47484 of the (atom, revealed arm, d, elapsed age) states - the fixture's own delay grid, NOT the full 2878680-state sweep of PROTOCOL 2.5 - the cost enclosure narrows monotonically, never widens, always contains the true Z, and collapses to a point exactly at the frozen thresholds, and the 28 boundary states that grid reaches are asserted as a count so the check cannot pass by never reaching the boundary"
+   },
+   {
+    "id": "F18_pinned_file_hashes",
+    "assertion": "every provenance pin is recomputed FROM THE FILE: src/winstats.py, the guidance document and the #11 vocabulary document named in this file's provenance block are opened and hashed with sha256 and compared against both this file and the hash strings printed in PROTOCOL.md, and the three sources in pinned/ are hashed and compared against pinned/PINNED.json, whose file list must be exactly the Python sources present there. A pin that no longer matches the file it names fails loudly; the string-to-string comparison this replaces could not see it (PREREG_CHECK_2 N.1)"
+   }
+  ]
+ },
+ "comparison_to_live_ab": {
+  "pinned_copy_dir": "experiments/live_ab_validation/pinned/",
+  "pinned_manifest": "experiments/live_ab_validation/pinned/PINNED.json",
+  "loaded_by_only": "experiments/live_ab_validation/vcompare.py",
+  "loaded_when": "after vrun.py has finished",
+  "import_graph_test": "no module reachable from the #12 band, enclosure, generator or fixtures imports anything under experiments/live_ab/ or experiments/live_ab_validation/pinned/; implemented as F16_import_graph_independence and tests_validation.TestImportGraphIndependence",
+  "streams": {
+   "count": 200,
+   "per_cell": 25,
+   "namespace": 2,
+   "plus": "every fixture stream"
+  },
+  "look_set": "every look at prefix n = 1..N_max plus the finalization look. NO look is taken at n = 0 on either side: #12 displays the full range there and #11 raises, and that structural difference is named here rather than adjudicated later.",
+  "compared_at_every_look": {
+   "L_h_U_h_L_s_U_s": "absolute difference <= 1e-12",
+   "decision_label": "exactly equal under the frozen bijection below",
+   "tau_in_enrolled_pairs": "exactly equal",
+   "per_pair_enclosure_endpoints": "absolute difference <= 1e-12"
+  },
+  "decision_label_bijection": {
+   "frozen_before_any_stream_was_replayed": true,
+   "map": [
+    {
+     "live_ab": "no decision returned",
+     "validation": "CONTINUE"
+    },
+    {
+     "live_ab": "deploy_candidate",
+     "validation": "DEPLOY"
+    },
+    {
+     "live_ab": "harm_keep_incumbent",
+     "validation": "RETAIN_INCUMBENT"
+    },
+    {
+     "live_ab": "horizon_no_decision",
+     "validation": "CONTINUE",
+     "plus_a_required_condition": "the #12 trial must end in NO_DECISION; a #11 horizon_no_decision at a look where #12 returns DEPLOY or RETAIN_INCUMBENT IS a disagreement"
+    }
+   ],
+   "why_horizon_needs_a_rule": "#12 has no horizon concept at all, so the #11 horizon branch has no #12 counterpart. Mapping it to CONTINUE at the look level and to NO_DECISION at the trial level is the only mapping under which both sides describe the same trial endpoint; it is fixed here so that whoever writes vcompare.py cannot choose it after seeing the streams.",
+   "any_label_outside_this_map": "is a disagreement, not an unmapped case"
+  },
+  "exception_rule": "An exception raised by either side at a look where the other side returns a value IS a disagreement. It is written to comparison_defects.csv with the exception type, the message, the side that raised, and the seed coordinates to replay it alone. It is never treated as a skip, a filter or a test-harness detail.",
+  "certified_collapsed_scope": {
+   "in_scope": "the per-pair enclosure ENDPOINTS, on both scores, at every look",
+   "out_of_scope": "the certified / collapsed FLAG",
+   "why": "The two sides hold incompatible definitions. #12 marks certified only on a valid final-score certificate, so a hierarchy enclosure that the cost tier has narrowed to a point while an episode is still pending is a point that is NOT certified. PREREG_CHECK A.4 item 6 reports that #11 requires the flag to be true exactly when both scores are points and raises otherwise. Comparing the flag would therefore report a definitional difference as a numerical defect at every cost-collapsed pair, of which section 6.4 says there are many.",
+   "not_silence": "the difference is a NAMED, pre-registered finding: the report states it, states that section 4.4's cost path makes it common rather than exotic, states that neither reading is declared correct here, and escalates it with the rest of section 12.3.",
+   "each_side_builds_its_own_state": "vcompare.py drives both implementations from the same event stream and never constructs one side's objects from the other side's state, so neither side's constructor is fed a state its own rules forbid."
+  },
+  "tolerance_covers": "floating-point summation order only",
+  "disagreement_policy": {
+   "is": "a DEFECT, reported as one",
+   "never": "reconciled by editing either side - not the band module, not the enclosure rules, not the tolerance, not the fixture streams, not this protocol",
+   "reported_with": [
+    "minimal reproducing stream",
+    "the two disagreeing values",
+    "the guidance clause each side appears to implement",
+    "the seed coordinates to replay it alone"
+   ],
+   "adjudication": "escalated to the coordinator and the root; which side is wrong is NOT decided by this author",
+   "until_adjudicated": "#11's results do not count as validated, and the report says so in those words",
+   "within_tolerance_but_systematic": "reported as a noted numerical difference with its magnitude, not silently accepted",
+   "agreement_wording": "'the two implementations agree on these 200 streams to 1e-12', never 'the monitor is correct' - two implementations of the same misreading of the guidance agree perfectly, and this comparison cannot detect that"
+  }
+ },
+ "outputs": {
+  "fixtures_command": ".venv/bin/python experiments/live_ab_validation/vfixtures.py",
+  "tests_command": ".venv/bin/python experiments/live_ab_validation/tests_validation.py",
+  "command": ".venv/bin/python experiments/live_ab_validation/vrun.py --out results/live_ab_validation",
+  "comparison_command": ".venv/bin/python experiments/live_ab_validation/vcompare.py --out results/live_ab_validation",
+  "commands_that_do_not_exist_yet": [
+   "vrun.py",
+   "vcompare.py"
   ],
-  "no_cell_may_be_added": "Exactly eight cells. No cell may be added, removed, reweighted or re-parameterized after any simulated outcome of this study exists, and in particular not after inspecting whether results are favorable.",
-  "seeding": {
-    "master_seed": 1220260919,
-    "generator": "numpy.random.Generator(numpy.random.PCG64(numpy.random.SeedSequence(entropy=1220260919, spawn_key=(namespace, cell_index, program_index, trial_index))))",
-    "namespaces": {
-      "0": {
-        "use": "the reported grid",
-        "protocol_sections": [
-          7
-        ],
-        "seeds_reused": true
-      },
-      "1": {
-        "use": "the smoke run",
-        "protocol_sections": [
-          8.1
-        ],
-        "seeds_reused": false,
-        "note": "discarded, never reused in the reported grid"
-      },
-      "2": {
-        "use": "frozen fixture and comparison streams",
-        "protocol_sections": [
-          11,
-          12
-        ],
-        "seeds_reused": true
-      }
-    },
-    "namespaces_are_machine_checked": "F15 compares the three ids, the sections each namespace names and the reuse column against the PROTOCOL 5 table, and compares the master seed against the two places PROTOCOL 5 writes it. Before PREREG_CHECK_2 N.2 that table was compared against nothing.",
-    "independent_stream_per": [
-      "cell",
-      "program",
-      "trial"
-    ],
-    "draw_order": [
-      "u_atom  = rng.integers(0, 10000, size=N_max)",
-      "u_delay = rng.integers(0, 40000, size=N_max)",
-      "u_len   = rng.random(size=N_max)",
-      "u_first = rng.random(size=N_max)",
-      "u_coin  = rng.random(size=N_max)"
-    ],
-    "derivations": {
-      "long_N": "u_delay[i] < 3 * w_neg",
-      "long_A": "(Z_i == -1) and (u_delay[i] < 30000)",
-      "d_i": "100 + floor(u_len[i] * 600) if long_i else floor(u_len[i] * 20)",
-      "f_i": "floor(u_first[i] * (d_i + 1))",
-      "b_i": "candidate revealed first iff u_coin[i] < 0.5"
-    },
-    "note": "All five arrays are drawn unconditionally and at full length so the stream advances identically whichever branch a pair takes. Draw order is part of the seed's meaning; changing it changes every stream."
-  },
-  "grid": {
-    "programs_per_cell": 2000,
-    "trials_per_program": 4,
-    "max_enrolled_pairs_per_trial": 2000,
-    "fixed_horizon_summaries": [
-      100,
-      500,
-      2000
-    ],
-    "one_look_per_enrollment_prefix": {
-      "taken_at": "the state immediately before the next enrollment (maximal information at that prefix)",
-      "justification": "Within a fixed prefix n the band is nested-shrinking over looks, so miscoverage at any look at prefix n implies miscoverage at the last look at prefix n, and a decision firing at any look at prefix n also fires at the last look. This is an exact reduction of the all-triggers rule for ever-miscoverage and for the decision prefix tau, not an approximation.",
-      "does_not_reproduce": "the wall-clock instant of a decision; decision time is therefore reported in enrolled pairs only, never as latency"
-    },
-    "escalation": {
-      "rule": "5,000 programs in the four boundary/delay cells only, precommitted here before any outcome",
-      "eligible_cells": [
-        "C3",
-        "C4",
-        "C5",
-        "C6"
-      ],
-      "reading": "the two boundary outcome laws under both delay rules; the alternative reading (two boundary cells plus two delay cells) was considered and rejected while writing this protocol, before any outcome existed",
-      "decided_by": "the budget ladder from runtime and memory measurements alone; never by any effect comparison, coverage number or decision rate"
-    }
-  },
-  "resource_cap_endpoint_rule": {
-    "enrollment_stops_at": 2000,
-    "drain_W": 200,
-    "finalization_look_at_tick": 2200,
-    "resolved_at_finalization_iff": "d_j <= 2200 - j",
-    "unresolved_pairs": "keep the enclosure they have and enter L and U through it",
-    "never": [
-      "censor",
-      "drop",
-      "impute",
-      "delete",
-      "divide by the number completed"
-    ],
-    "denominator_at_finalization": 2000,
-    "decision_may_fire_at_finalization": true,
-    "recorded_as": "tau = N_max with decided_at_finalization = true",
-    "endpoint_if_no_crossing": "NO_DECISION, recorded with the unresolved fraction at that look",
-    "why_drain_is_shorter_than_max_delay": "max(LONG) = 699 > 200, so the endpoint genuinely carries unresolved pairs (1.56% to 3.51% in expectation), making the finalization rule a live rule rather than a formality"
-  },
-  "budget": {
-    "hard_limits": {
-      "peak_rss_bytes": 2147483648,
-      "output_bytes": 209715200,
-      "seconds": 5400
-    },
-    "smoke_run": {
-      "programs": 20,
-      "split": [
-        {
-          "cell": "C1",
-          "programs": 10,
-          "N_max": 2000
-        },
-        {
-          "cell": "C2",
-          "programs": 10,
-          "N_max": 1000
-        }
-      ],
-      "cell_choice_reason": "C1 and C2 share the outcome law with the largest expected unresolved fraction among the non-escalating cells and differ only in the delay rule, so the pair measures both delay branches; under the section 9.1 all-looks reading every trial runs to the finalization look, so runtime is close to cell-independent and the split costs nothing.",
-      "namespace": 1,
-      "measures_only": [
-        "wall_clock_seconds",
-        "peak_rss",
-        "output_bytes",
-        "counts"
-      ],
-      "forbidden": "inspecting any effect column, coverage number or decision rate; the smoke run may not influence the horizon, cap, cells or any parameter",
-      "seeds": "discarded, never reused"
-    },
-    "projection": {
-      "scaling_exponent": "measured, not assumed: beta = log(s_2000 / s_1000) / log(2) from the two smoke points, where s_H is seconds per program at horizon H",
-      "seconds_projected": "(smoke_seconds_per_program_at_2000) * programs_total * (N_max_tier / 2000)**beta",
-      "bytes_projected": "(smoke_bytes / 20) * programs_total",
-      "peak_rss_projected": "smoke_peak_rss (the run is batched; peak does not grow with the grid)",
-      "why_it_is_measured": "PREREG_CHECK B.7: one smoke point at a single N_max cannot measure the exponent, and per-look cost is O(1) only if the band is maintained incrementally. A recompute-per-look implementation is quadratic in N_max, under which the T4 row would be over-projected by a factor of two and the tier choice could be wrong.",
-      "beta_is_recorded_in_budget_json": true,
-      "incremental_band_property": "vrun.py must maintain the running enclosure sums incrementally (at most two enclosure changes per pair per look). vrun.py does not exist at the freeze commit; when it is written it carries an operation counter and asserts this property on the smoke run, before the grid starts, and the count goes into budget.json."
-    },
-    "ladder": [
-      {
-        "tier": "T1",
-        "programs": {
-          "C1": 2000,
-          "C2": 2000,
-          "C3": 5000,
-          "C4": 5000,
-          "C5": 5000,
-          "C6": 5000,
-          "C7": 2000,
-          "C8": 2000
-        },
-        "N_max": 2000,
-        "programs_total": 28000
-      },
-      {
-        "tier": "T2",
-        "programs": {
-          "C1": 2000,
-          "C2": 2000,
-          "C3": 2000,
-          "C4": 2000,
-          "C5": 2000,
-          "C6": 2000,
-          "C7": 2000,
-          "C8": 2000
-        },
-        "N_max": 2000,
-        "programs_total": 16000
-      },
-      {
-        "tier": "T3",
-        "programs": {
-          "C1": 1000,
-          "C2": 1000,
-          "C3": 1000,
-          "C4": 1000,
-          "C5": 1000,
-          "C6": 1000,
-          "C7": 1000,
-          "C8": 1000
-        },
-        "N_max": 2000,
-        "programs_total": 8000
-      },
-      {
-        "tier": "T4",
-        "programs": {
-          "C1": 1000,
-          "C2": 1000,
-          "C3": 1000,
-          "C4": 1000,
-          "C5": 1000,
-          "C6": 1000,
-          "C7": 1000,
-          "C8": 1000
-        },
-        "N_max": 1000,
-        "programs_total": 8000,
-        "fixed_horizon_summaries": [
-          100,
-          500,
-          1000
-        ],
-        "section_6_variant": "analytic_reachability.T4_variant_N_max_1000, computed and deposited BEFORE the smoke run rather than recomputed after it",
-        "forfeits": "the n = 2000 fixed-horizon summary required by root item 4; if T4 is selected the report states this as a reduction of the root's design"
-      }
-    ],
-    "selection_rule": "the highest tier whose projection satisfies ALL of seconds_projected <= 5400, peak_rss_projected <= 2 GiB, bytes_projected <= 200 MiB; written to budget.json BEFORE the reported grid starts",
-    "pause_and_report": "if even T4 fails any of the three limits, the run PAUSES and reports; it does not silently shrink further, drop a cell, or reduce the number of constructions",
-    "batching": "by (cell, block of 100 programs); per-trial records appended to a gzip CSV incrementally; no per-look path is ever written to disk; peak RSS and cumulative output bytes are asserted after every batch"
-  },
-  "reported_quantities": {
-    "wilson_z": 1.959963984540054,
-    "wilson_center": "(x + z^2/2) / (N + z^2)",
-    "wilson_half": "z / (N + z^2) * sqrt(x*(N-x)/N + z^2/4)",
-    "wilson_caveat": "These intervals quantify Monte Carlo error of this simulation only. They are not confidence intervals for the statistical guarantee, and a Wilson interval lying below a nominal level is not a proof that the level holds.",
-    "per_gate_ever_miscoverage": {
-      "unit": "trial",
-      "N": "programs * 4",
-      "events": {
-        "ever_miscover": "exists look : mu_g < L_g(look) or mu_g > U_g(look)",
-        "ever_below": "exists look : mu_g < L_g(look)",
-        "ever_above": "exists look : mu_g > U_g(look)"
-      },
-      "evaluated_over": "all looks to the finalization look, regardless of the decision, because the confidence-sequence guarantee is a statement for all n",
-      "secondary_column": "the same restricted to n >= n_min",
-      "nominal_bound": 0.00625
-    },
-    "decision_level": {
-      "false_deploy": {
-        "unit": "trial",
-        "event": "DEPLOY and not (mu_h > 0 and mu_s > -delta)",
-        "nominal_bound": 0.00625
-      },
-      "false_harm": {
-        "unit": "trial",
-        "event": "RETAIN_INCUMBENT and mu_h >= 0",
-        "nominal_bound": 0.00625
-      },
-      "any_erroneous_trial": {
-        "unit": "trial",
-        "event": "false_deploy or false_harm",
-        "nominal_bound": 0.0125
-      },
-      "family_any_erroneous": {
-        "unit": "program",
-        "event": "at least one of the program's four trials has any_erroneous_trial",
-        "nominal_bound": 0.05
-      },
-      "correct_deploy": {
-        "unit": "trial",
-        "event": "DEPLOY and (mu_h > 0 and mu_s > -delta)",
-        "possible_only_in": [
-          "C7",
-          "C8"
-        ]
-      },
-      "no_decision": {
-        "unit": "trial",
-        "event": "endpoint reached with no decision"
-      },
-      "conflict": {
-        "unit": "trial",
-        "event": "both conditions at one look"
-      },
-      "never_conjunct": {
-        "unit": "trial",
-        "event": "L_h > 0 held at some look AND L_s > -delta held at some look, but never at the same look",
-        "purpose": "direct read-out that the same-look conjunction is doing work"
-      }
-    },
-    "timing_and_resolution": {
-      "tau": "the enrolled prefix n at the first look whose condition fired",
-      "capped_decision_prefix": "tau with tau := N_max for every non-deciding trial, by this explicit rule; Q1/median/Q3 over ALL trials, always printed with the capped fraction",
-      "conditional_decision_prefix": "Q1/median/Q3 of tau over deciding trials only, always printed with the deciding fraction",
-      "unresolved_fraction": "(n - #fully resolved) / n at the deciding look, or at the finalization look for non-deciding trials; mean and Q1/median/Q3",
-      "unrevealed_fraction": "the same with 'neither episode revealed' in the numerator",
-      "cost_collapsed_fraction": "the same with 'not fully resolved, and the hierarchy enclosure is a point' in the numerator: the measured counterpart of analytic_reachability.expected_cost_enclosure_exercise, and the read-out that makes the cost/latency enclosure path visible in the results rather than only in the design",
-      "cost_narrowed_fraction": "the same with 'not fully resolved, and the hierarchy enclosure is narrower than the success information alone would give' in the numerator",
-      "certified_vs_point_counts": "both are reported. A hierarchy enclosure narrowed to a point by the cost tier is a point WITHOUT a final-score certificate; n_certified counts only certificates, so the two counts differ by exactly the cost-collapsed pairs.",
-      "forbidden": "reporting decision prefixes as wall-clock, latency, throughput or saving, or as a paired comparison between constructions"
-    },
-    "compute_counts": [
-      "programs",
-      "trials",
-      "enrolled_pairs",
-      "looks",
-      "band_evaluations",
-      "wall_clock_seconds",
-      "peak_rss",
-      "output_bytes"
-    ],
-    "retention": "Every unfavourable or inconclusive result is retained and reported. No cell, construction, gate or row is dropped, no row is omitted for brevity, and no run is repeated to obtain a different answer."
-  },
-  "exceedance_flag": {
-    "rule": "FLAG iff the LOWER Wilson limit of the measured rate exceeds its nominal bound",
-    "thresholds": [
-      {
-        "quantity": "per_gate_ever_miscoverage",
-        "bound": 0.00625,
-        "N": 8000,
-        "flag_at_x": 64,
-        "smallest_detectable_multiple": 1.28
-      },
-      {
-        "quantity": "per_gate_ever_miscoverage",
-        "bound": 0.00625,
-        "N": 20000,
-        "flag_at_x": 147,
-        "smallest_detectable_multiple": 1.176
-      },
-      {
-        "quantity": "any_erroneous_trial",
-        "bound": 0.0125,
-        "N": 8000,
-        "flag_at_x": 120,
-        "smallest_detectable_multiple": 1.2
-      },
-      {
-        "quantity": "any_erroneous_trial",
-        "bound": 0.0125,
-        "N": 20000,
-        "flag_at_x": 281,
-        "smallest_detectable_multiple": 1.124
-      },
-      {
-        "quantity": "family_any_erroneous",
-        "bound": 0.05,
-        "N": 2000,
-        "flag_at_x": 120,
-        "smallest_detectable_multiple": 1.2
-      },
-      {
-        "quantity": "family_any_erroneous",
-        "bound": 0.05,
-        "N": 5000,
-        "flag_at_x": 281,
-        "smallest_detectable_multiple": 1.124
-      }
-    ],
-    "zero_event_wilson_upper": {
-      "8000": 0.00048,
-      "20000": 0.000192,
-      "2000": 0.001917,
-      "5000": 0.000768
-    },
-    "unflagged_wording": "reported as 'no exceedance was detected at this resolution', never as 'the bound holds'",
-    "flag_on_ADAPTER": "a defect of the validated construction; reported under the disagreement procedure",
-    "flag_on_NAIVE_in_an_A_cell": "the expected behaviour of an invalid rule; reported as the positive control, not as a defect"
-  },
-  "positive_control": {
-    "precommitted": true,
-    "statement": "NAIVE's hierarchy ever-miscoverage must be FLAGGED in at least one of C2, C4, C6. If it is not, the measurement apparatus itself is reported as unvalidated, the ADAPTER results of this run are reported as uninterpretable, and the cause is investigated before any of them is cited.",
-    "basis": "the analytic expected-path arithmetic of PROTOCOL.md 6.2: the completed-only hierarchy band fails to contain the truth on the expected path from n = 202 in C2, n = 159 in C4, n = 365 in C6, and never in the N cells or in C7/C8",
-    "gate": "hierarchy only; no success-gate positive control is precommitted, because the omitted pairs carry D in {-1, 0} rather than a pure -1 and the success band is much less disturbed"
-  },
-  "analytic_reachability": {
-    "status": "exact expectations under the frozen law; no simulation; IGNORES sampling variability and is NOT a prediction of any reported rate",
-    "wording_rule": "for this rule, this allocation and this grid; never a statement about what any method can or cannot certify",
-    "method": "For each pair age a the enclosure state is enumerated over (atom, long/short branch, d, f, first-revealed arm) with its exact probability, giving E[lower] and E[upper] per age; the expected sum over a prefix is their partial sum, and the expected-path endpoint is that mean plus or minus r(n), clipped. P(f <= a | d) = (a+1)/(d+1). No random number is drawn anywhere in this section.",
-    "recomputed_in_the_pre_freeze_revision": [
-      "expected_path_gate_opening_prefix",
-      "expected_path_band_endpoints_Lh_Uh_Ls",
-      "expected_cost_enclosure_exercise"
-    ],
-    "unchanged_by_the_pre_freeze_revision": [
-      "expected_unresolved_unrevealed_fraction",
-      "naive_expected_path_first_miscoverage_prefix"
-    ],
-    "expected_unresolved_unrevealed_fraction": {
-      "note": "depends only on the reveal schedule (d_j and f_j), so the cost revision does not touch it; reproduced exactly by the recomputation",
-      "rounding": "half-up at 4 decimal places; L4's 0.2308 and 0.1261 are the exact values 0.230750 and 0.126050",
-      "L1": {
-        "100": [
-          0.3495,
-          0.2694
-        ],
-        "500": [
-          0.2197,
-          0.1173
-        ],
-        "2000": [
-          0.0596,
-          0.0298
-        ],
-        "FINAL": [
-          0.0292,
-          0.0088
-        ]
-      },
-      "L2": {
-        "100": [
-          0.4004,
-          0.3138
-        ],
-        "500": [
-          0.2599,
-          0.1388
-        ],
-        "2000": [
-          0.0706,
-          0.0353
-        ],
-        "FINAL": [
-          0.0351,
-          0.0106
-        ]
-      },
-      "L3": {
-        "100": [
-          0.2443,
-          0.1777
-        ],
-        "500": [
-          0.1368,
-          0.0727
-        ],
-        "2000": [
-          0.0369,
-          0.0185
-        ],
-        "FINAL": [
-          0.0172,
-          0.0052
-        ]
-      },
-      "L4": {
-        "100": [
-          0.2308,
-          0.1659
-        ],
-        "500": [
-          0.1261,
-          0.067
-        ],
-        "2000": [
-          0.034,
-          0.017
-        ],
-        "FINAL": [
-          0.0156,
-          0.0047
-        ]
-      }
-    },
-    "expected_path_gate_opening_prefix": {
-      "C1": {
-        "L_h>0": null,
-        "L_s>-delta": null,
-        "U_h<0": null,
-        "DEPLOY": null
-      },
-      "C2": {
-        "L_h>0": null,
-        "L_s>-delta": null,
-        "U_h<0": null,
-        "DEPLOY": null
-      },
-      "C3": {
-        "L_h>0": null,
-        "L_s>-delta": 864,
-        "U_h<0": null,
-        "DEPLOY": null
-      },
-      "C4": {
-        "L_h>0": null,
-        "L_s>-delta": 698,
-        "U_h<0": null,
-        "DEPLOY": null
-      },
-      "C5": {
-        "L_h>0": 335,
-        "L_s>-delta": null,
-        "U_h<0": null,
-        "DEPLOY": null
-      },
-      "C6": {
-        "L_h>0": 160,
-        "L_s>-delta": null,
-        "U_h<0": null,
-        "DEPLOY": null
-      },
-      "C7": {
-        "L_h>0": 258,
-        "L_s>-delta": 695,
-        "U_h<0": null,
-        "DEPLOY": 695
-      },
-      "C8": {
-        "L_h>0": 137,
-        "L_s>-delta": 566,
-        "U_h<0": null,
-        "DEPLOY": 566
-      },
-      "effect_of_the_cost_revision": "the L_h column opens earlier (C5 398->335, C6 169->160, C7 300->258, C8 145->137) because the cost tier now resolves part of the enclosure slack; the L_s column is IDENTICAL because the success enclosure is untouched, and the U_h<0 column is still never, which holds a priori since E[upper] >= E[Z] = mu_h >= 0 in every law"
-    },
-    "naive_expected_path_first_miscoverage_prefix": {
-      "note": "NAIVE and CPREFIX read only fully resolved scores, so neither is affected by the cost enclosure revision",
-      "C1": {
-        "hierarchy": null,
-        "success": null
-      },
-      "C2": {
-        "hierarchy": 202,
-        "success": null
-      },
-      "C3": {
-        "hierarchy": null,
-        "success": null
-      },
-      "C4": {
-        "hierarchy": 159,
-        "success": null
-      },
-      "C5": {
-        "hierarchy": null,
-        "success": null
-      },
-      "C6": {
-        "hierarchy": 365,
-        "success": null
-      },
-      "C7": {
-        "hierarchy": null,
-        "success": null
-      },
-      "C8": {
-        "hierarchy": null,
-        "success": null
-      }
-    },
-    "expected_path_band_endpoints_Lh_Uh_Ls": {
-      "C1": {
-        "100": [
-          -0.7818,
-          0.7818,
-          -0.7752
-        ],
-        "500": [
-          -0.3355,
-          0.3355,
-          -0.3378
-        ],
-        "2000": [
-          -0.1271,
-          0.1271,
-          -0.1279
-        ],
-        "FINAL": [
-          -0.1012,
-          0.1012,
-          -0.1022
-        ]
-      },
-      "C2": {
-        "100": [
-          -0.5366,
-          1.0,
-          -0.6799
-        ],
-        "500": [
-          -0.1835,
-          0.4802,
-          -0.2761
-        ],
-        "2000": [
-          -0.0868,
-          0.1653,
-          -0.1115
-        ],
-        "FINAL": [
-          -0.0832,
-          0.1172,
-          -0.0946
-        ]
-      },
-      "C3": {
-        "100": [
-          -0.8268,
-          0.8377,
-          -0.6621
-        ],
-        "500": [
-          -0.3575,
-          0.3727,
-          -0.1685
-        ],
-        "2000": [
-          -0.1327,
-          0.1371,
-          0.1006
-        ],
-        "FINAL": [
-          -0.1029,
-          0.106,
-          0.1382
-        ]
-      },
-      "C4": {
-        "100": [
-          -0.5334,
-          1.0,
-          -0.5589
-        ],
-        "500": [
-          -0.1828,
-          0.5563,
-          -0.1016
-        ],
-        "2000": [
-          -0.0866,
-          0.1859,
-          0.1184
-        ],
-        "FINAL": [
-          -0.0832,
-          0.1275,
-          0.1465
-        ]
-      },
-      "C5": {
-        "100": [
-          -0.3698,
-          0.9925,
-          -0.7004
-        ],
-        "500": [
-          0.0838,
-          0.6294,
-          -0.3009
-        ],
-        "2000": [
-          0.2781,
-          0.499,
-          -0.1401
-        ],
-        "FINAL": [
-          0.3017,
-          0.4892,
-          -0.1241
-        ]
-      },
-      "C6": {
-        "100": [
-          -0.1667,
-          1.0,
-          -0.6093
-        ],
-        "500": [
-          0.2105,
-          0.7439,
-          -0.2419
-        ],
-        "2000": [
-          0.3117,
-          0.5291,
-          -0.1244
-        ],
-        "FINAL": [
-          0.3168,
-          0.5015,
-          -0.1168
-        ]
-      },
-      "C7": {
-        "100": [
-          -0.3099,
-          1.0,
-          -0.5037
-        ],
-        "500": [
-          0.1423,
-          0.6747,
-          -0.0851
-        ],
-        "2000": [
-          0.3304,
-          0.5478,
-          0.0862
-        ],
-        "FINAL": [
-          0.3529,
-          0.539,
-          0.1046
-        ]
-      },
-      "C8": {
-        "100": [
-          -0.119,
-          1.0,
-          -0.4465
-        ],
-        "500": [
-          0.2601,
-          0.7896,
-          -0.0481
-        ],
-        "2000": [
-          0.3616,
-          0.5783,
-          0.096
-        ],
-        "FINAL": [
-          0.3668,
-          0.5522,
-          0.1092
-        ]
-      }
-    },
-    "expected_cost_enclosure_exercise": {
-      "what": "[E fraction of the enrolled prefix that is NOT fully resolved and whose hierarchy enclosure the cost tier has collapsed to a POINT, E fraction that is not fully resolved and whose hierarchy enclosure the cost tier has narrowed at all]. The second contains the first. Both are zero under the pre-revision enclosure model, by construction: no partial state there could be narrowed by cost.",
-      "why_it_is_here": "it is the analytic evidence that the cells exercise the cost/latency enclosure path, which PREREG_CHECK B.6 found unexercised. Deposited before any outcome exists so that a later measured fraction cannot be presented as a discovery.",
-      "C1": {
-        "100": [
-          0.0189,
-          0.0199
-        ],
-        "500": [
-          0.0351,
-          0.036
-        ],
-        "2000": [
-          0.0104,
-          0.0106
-        ],
-        "FINAL": [
-          0.0077,
-          0.0078
-        ]
-      },
-      "C2": {
-        "100": [
-          0.0199,
-          0.0213
-        ],
-        "500": [
-          0.0458,
-          0.0466
-        ],
-        "2000": [
-          0.0135,
-          0.0137
-        ],
-        "FINAL": [
-          0.0102,
-          0.0102
-        ]
-      },
-      "C3": {
-        "100": [
-          0.0234,
-          0.0249
-        ],
-        "500": [
-          0.0499,
-          0.051
-        ],
-        "2000": [
-          0.0147,
-          0.0151
-        ],
-        "FINAL": [
-          0.011,
-          0.0112
-        ]
-      },
-      "C4": {
-        "100": [
-          0.0239,
-          0.0255
-        ],
-        "500": [
-          0.055,
-          0.0559
-        ],
-        "2000": [
-          0.0163,
-          0.0165
-        ],
-        "FINAL": [
-          0.0123,
-          0.0123
-        ]
-      },
-      "C5": {
-        "100": [
-          0.0196,
-          0.0205
-        ],
-        "500": [
-          0.0245,
-          0.0251
-        ],
-        "2000": [
-          0.0072,
-          0.0073
-        ],
-        "FINAL": [
-          0.005,
-          0.0051
-        ]
-      },
-      "C6": {
-        "100": [
-          0.02,
-          0.021
-        ],
-        "500": [
-          0.0285,
-          0.029
-        ],
-        "2000": [
-          0.0084,
-          0.0085
-        ],
-        "FINAL": [
-          0.006,
-          0.006
-        ]
-      },
-      "C7": {
-        "100": [
-          0.0197,
-          0.0205
-        ],
-        "500": [
-          0.0229,
-          0.0236
-        ],
-        "2000": [
-          0.0067,
-          0.0069
-        ],
-        "FINAL": [
-          0.0046,
-          0.0048
-        ]
-      },
-      "C8": {
-        "100": [
-          0.02,
-          0.0209
-        ],
-        "500": [
-          0.0263,
-          0.0268
-        ],
-        "2000": [
-          0.0077,
-          0.0078
-        ],
-        "FINAL": [
-          0.0055,
-          0.0055
-        ]
-      },
-      "reading": "At n = 500 in C4, 5.50% of the whole enrolled prefix is a pair that no episode has finished resolving and whose hierarchy score the cost tier has nevertheless pinned to a point -- about a fifth of that cell's 25.99% unresolved fraction. At the finalization look of C1 the cost tier has pinned 0.77% of 2.92% still-unresolved pairs. The path is live in all eight cells at every horizon."
-    },
-    "T4_variant_N_max_1000": {
-      "why": "budget tier T4 halves the horizon, so section 6 must be frozen for it too rather than recomputed after the smoke run; PREREG_CHECK B.8",
-      "N_max": 1000,
-      "drain_W": 200,
-      "finalization_tick": 1200,
-      "fixed_horizon_summaries": [
-        100,
-        500,
-        1000
-      ],
-      "forfeits": "the n = 2000 fixed-horizon summary required by root item 4; if T4 is selected the report states this as a reduction of the root's design, not as a budget detail",
-      "expected_unresolved_unrevealed_fraction": {
-        "L1": {
-          "100": [
-            0.3495,
-            0.2694
-          ],
-          "500": [
-            0.2197,
-            0.1173
-          ],
-          "1000": [
-            0.1192,
-            0.0596
-          ],
-          "FINAL": [
-            0.0585,
-            0.0176
-          ]
-        },
-        "L2": {
-          "100": [
-            0.4004,
-            0.3138
-          ],
-          "500": [
-            0.2599,
-            0.1388
-          ],
-          "1000": [
-            0.1411,
-            0.0706
-          ],
-          "FINAL": [
-            0.0702,
-            0.0211
-          ]
-        },
-        "L3": {
-          "100": [
-            0.2443,
-            0.1777
-          ],
-          "500": [
-            0.1368,
-            0.0727
-          ],
-          "1000": [
-            0.0739,
-            0.0369
-          ],
-          "FINAL": [
-            0.0343,
-            0.0103
-          ]
-        },
-        "L4": {
-          "100": [
-            0.2308,
-            0.1659
-          ],
-          "500": [
-            0.1261,
-            0.067
-          ],
-          "1000": [
-            0.068,
-            0.034
-          ],
-          "FINAL": [
-            0.0312,
-            0.0094
-          ]
-        }
-      },
-      "expected_path_gate_opening_prefix": {
-        "note": "identical to the N_max = 2000 table: the expected path at prefix n does not depend on the cap, and every opening prefix listed there is below 1000, so none is lost",
-        "C1": {
-          "L_h>0": null,
-          "L_s>-delta": null,
-          "U_h<0": null,
-          "DEPLOY": null
-        },
-        "C2": {
-          "L_h>0": null,
-          "L_s>-delta": null,
-          "U_h<0": null,
-          "DEPLOY": null
-        },
-        "C3": {
-          "L_h>0": null,
-          "L_s>-delta": 864,
-          "U_h<0": null,
-          "DEPLOY": null
-        },
-        "C4": {
-          "L_h>0": null,
-          "L_s>-delta": 698,
-          "U_h<0": null,
-          "DEPLOY": null
-        },
-        "C5": {
-          "L_h>0": 335,
-          "L_s>-delta": null,
-          "U_h<0": null,
-          "DEPLOY": null
-        },
-        "C6": {
-          "L_h>0": 160,
-          "L_s>-delta": null,
-          "U_h<0": null,
-          "DEPLOY": null
-        },
-        "C7": {
-          "L_h>0": 258,
-          "L_s>-delta": 695,
-          "U_h<0": null,
-          "DEPLOY": 695
-        },
-        "C8": {
-          "L_h>0": 137,
-          "L_s>-delta": 566,
-          "U_h<0": null,
-          "DEPLOY": 566
-        }
-      },
-      "expected_path_band_endpoints_Lh_Uh_Ls": {
-        "C1": {
-          "100": [
-            -0.7818,
-            0.7818,
-            -0.7752
-          ],
-          "500": [
-            -0.3355,
-            0.3355,
-            -0.3378
-          ],
-          "1000": [
-            -0.2053,
-            0.2053,
-            -0.2069
-          ],
-          "FINAL": [
-            -0.1533,
-            0.1533,
-            -0.1555
-          ]
-        },
-        "C2": {
-          "100": [
-            -0.5366,
-            1.0,
-            -0.6799
-          ],
-          "500": [
-            -0.1835,
-            0.4802,
-            -0.2761
-          ],
-          "1000": [
-            -0.1246,
-            0.2816,
-            -0.174
-          ],
-          "FINAL": [
-            -0.1175,
-            0.1854,
-            -0.1403
-          ]
-        },
-        "C3": {
-          "100": [
-            -0.8268,
-            0.8377,
-            -0.6621
-          ],
-          "500": [
-            -0.3575,
-            0.3727,
-            -0.1685
-          ],
-          "1000": [
-            -0.2165,
-            0.2253,
-            0.0002
-          ],
-          "FINAL": [
-            -0.1568,
-            0.163,
-            0.0755
-          ]
-        },
-        "C4": {
-          "100": [
-            -0.5334,
-            1.0,
-            -0.5589
-          ],
-          "500": [
-            -0.1828,
-            0.5563,
-            -0.1016
-          ],
-          "1000": [
-            -0.1243,
-            0.3228,
-            0.0359
-          ],
-          "FINAL": [
-            -0.1175,
-            0.206,
-            0.0919
-          ]
-        },
-        "C5": {
-          "100": [
-            -0.3698,
-            0.9925,
-            -0.7004
-          ],
-          "500": [
-            0.0838,
-            0.6294,
-            -0.3009
-          ],
-          "1000": [
-            0.2051,
-            0.549,
-            -0.2012
-          ],
-          "FINAL": [
-            0.2524,
-            0.5294,
-            -0.1691
-          ]
-        },
-        "C6": {
-          "100": [
-            -0.1667,
-            1.0,
-            -0.6093
-          ],
-          "500": [
-            0.2105,
-            0.7439,
-            -0.2419
-          ],
-          "1000": [
-            0.2724,
-            0.6092,
-            -0.1698
-          ],
-          "FINAL": [
-            0.2825,
-            0.5539,
-            -0.1546
-          ]
-        },
-        "C7": {
-          "100": [
-            -0.3099,
-            1.0,
-            -0.5037
-          ],
-          "500": [
-            0.1423,
-            0.6747,
-            -0.0851
-          ],
-          "1000": [
-            0.2597,
-            0.5967,
-            0.0213
-          ],
-          "FINAL": [
-            0.3049,
-            0.5791,
-            0.0582
-          ]
-        },
-        "C8": {
-          "100": [
-            -0.119,
-            1.0,
-            -0.4465
-          ],
-          "500": [
-            0.2601,
-            0.7896,
-            -0.0481
-          ],
-          "1000": [
-            0.3222,
-            0.6576,
-            0.0411
-          ],
-          "FINAL": [
-            0.3325,
-            0.6053,
-            0.0673
-          ]
-        }
-      },
-      "expected_cost_enclosure_exercise": {
-        "C1": {
-          "100": [
-            0.0189,
-            0.0199
-          ],
-          "500": [
-            0.0351,
-            0.036
-          ],
-          "1000": [
-            0.0207,
-            0.0213
-          ],
-          "FINAL": [
-            0.0153,
-            0.0156
-          ]
-        },
-        "C2": {
-          "100": [
-            0.0199,
-            0.0213
-          ],
-          "500": [
-            0.0458,
-            0.0466
-          ],
-          "1000": [
-            0.0271,
-            0.0275
-          ],
-          "FINAL": [
-            0.0204,
-            0.0204
-          ]
-        },
-        "C3": {
-          "100": [
-            0.0234,
-            0.0249
-          ],
-          "500": [
-            0.0499,
-            0.051
-          ],
-          "1000": [
-            0.0294,
-            0.0302
-          ],
-          "FINAL": [
-            0.0221,
-            0.0224
-          ]
-        },
-        "C4": {
-          "100": [
-            0.0239,
-            0.0255
-          ],
-          "500": [
-            0.055,
-            0.0559
-          ],
-          "1000": [
-            0.0325,
-            0.033
-          ],
-          "FINAL": [
-            0.0245,
-            0.0245
-          ]
-        },
-        "C5": {
-          "100": [
-            0.0196,
-            0.0205
-          ],
-          "500": [
-            0.0245,
-            0.0251
-          ],
-          "1000": [
-            0.0143,
-            0.0146
-          ],
-          "FINAL": [
-            0.0101,
-            0.0102
-          ]
-        },
-        "C6": {
-          "100": [
-            0.02,
-            0.021
-          ],
-          "500": [
-            0.0285,
-            0.029
-          ],
-          "1000": [
-            0.0167,
-            0.017
-          ],
-          "FINAL": [
-            0.012,
-            0.012
-          ]
-        },
-        "C7": {
-          "100": [
-            0.0197,
-            0.0205
-          ],
-          "500": [
-            0.0229,
-            0.0236
-          ],
-          "1000": [
-            0.0133,
-            0.0138
-          ],
-          "FINAL": [
-            0.0093,
-            0.0095
-          ]
-        },
-        "C8": {
-          "100": [
-            0.02,
-            0.0209
-          ],
-          "500": [
-            0.0263,
-            0.0268
-          ],
-          "1000": [
-            0.0154,
-            0.0156
-          ],
-          "FINAL": [
-            0.0109,
-            0.0109
-          ]
-        }
-      }
-    },
-    "deploy_route_unreachable_within_cap_in": {
-      "cells": [
-        "C1",
-        "C2"
-      ],
-      "reason": "mu_s = 0 and r(n) < delta = 0.03 first holds at n = 17097, beyond the cap of 2000",
-      "wording": "a PRE-SPECIFIED NEAR-CERTAIN ABSTENTION on the deploy route of those two cells, NOT a logical impossibility; if a DEPLOY occurs there it is reported as the rare event it is and never described as impossible",
-      "consequence": "the decision-level probe of C1/C2 is the harm gate"
-    },
-    "primary_evidence_ordering": "Because several decision-level probes are cap-limited or tail-limited, the primary evidence for each gate is the band-level one-sided ever-miscoverage, not the decision-level rate. Fixed now so a near-zero decision-level table cannot later be presented as if it were the strong result.",
-    "enclosure_conservatism_priced_now": "In the A cells the unresolved pairs are the Z = -1 pairs, whose lower_j = -1 is tight while upper_j = +1 is maximally loose, so L_h is barely affected and U_h is inflated and the harm gate becomes much harder to reach. This is a correct and expected consequence of never imputing a pending outcome, stated before any outcome exists so it cannot later be reported as a discovery or as a defect. The cost tier relieves part of that inflation but does not remove it: in C2 the expected U_h at n = 500 is 0.4802 with the cost path and was 0.5695 without it, against a truth of mu_h = 0.",
-    "asymmetry_of_the_cost_path_stated_now": "The cost tier narrows a partially revealed pair only when the REVEALED arm is the cheap one, because only then can the pending arm's elapsed cost overtake it. With the fair first-reveal coin this happens for about half of the cost-decisive pairs, and never for the other half. This is a property of the frozen reveal model, priced in the expected_cost_enclosure_exercise table above, and is not a defect of either implementation."
-  },
-  "fixtures": {
-    "register_is_machine_checked": "F15 asserts that this list, PROTOCOL.md section 11 and vfixtures.ALL_FIXTURES carry the same ids in the same order. The pre-audit register named F0..F12 while the code implemented F01..F13; that mismatch is what this check exists to prevent.",
-    "entry_point": ".venv/bin/python experiments/live_ab_validation/vfixtures.py",
-    "deposited_to": "results/live_ab_validation/fixtures_report.json, per-case pass/fail for F01..F18",
-    "list": [
-      {
-        "id": "F01_pre_enrolled_orientation",
-        "assertion": "identical physical arrivals with opposite pre-enrolled coins give opposite oriented scores; arm_slots follows the coin and not the arrival order; an outcome for an unenrolled position and an invalid coin are both rejected"
-      },
-      {
-        "id": "F02_enrollment_denominator",
-        "assertion": "at every look the divisor is exactly the enrolled prefix n, never the completed count, checked against a hand-computed four-pair table with resolved and unrevealed pairs; at n = 0 the full range is displayed and nothing decides"
-      },
-      {
-        "id": "F03_repeated_update_idempotence",
-        "assertion": "replaying every reveal three times leaves the state signature, the enclosures and the band endpoints bit-identical; a stale elapsed-cost report is an exact no-op; a conflicting second certificate raises"
-      },
-      {
-        "id": "F04_nonoverlapping_pair_ids",
-        "assertion": "duplicate pair ids, reused arrival positions, self-overlapping pairs and facts for unowned positions are all rejected; enrollment positions are immutable and sequential"
-      },
-      {
-        "id": "F05_completion_order_permutations",
-        "assertion": "over all 720 reveal orders of the six episodes of a fixed three-pair stream the state signature and both bands are identical; the hand-derived sums, means and r(3) are reproduced"
-      },
-      {
-        "id": "F06_joint_failures",
-        "assertion": "s_C = s_I = 0 gives Z = 0 and D = 0 with the cost tier never eligible even at a cost ratio that would be decisive; two observed failures pin both scores to 0 WITHOUT a certificate, so certified stays false"
-      },
-      {
-        "id": "F07_strict_tolerance_equality",
-        "assertion": "with relative_tolerance 0.05, cost 95.0 against 100.0 has |delta| = tol = 5.0 exactly and TIES (the decisive test is the strict |delta| > tol); 94.9 against 100.0 is decisive; both directions; the same boundary in the enclosure enumeration"
-      },
-      {
-        "id": "F08_unknown_outcomes",
-        "assertion": "a pair with neither episode revealed contributes exactly [-1, 1] to both scores; a single-arm reveal plus an elapsed-cost lower bound narrows exactly to its enclosure_rules row and no further; a point reached without a certificate is NOT certified; nothing is imputed"
-      },
-      {
-        "id": "F09_cap_timeout_finalization",
-        "assertion": "the cap is an explicit finalisation rule (failure at full cap), never a silent censor or drop; the capped pair stays in the ledger and in n; a timeout contradicting an observed success and a final cost above the cap are both rejected"
-      },
-      {
-        "id": "F10_switch_phase_exclusion",
-        "assertion": "at the traffic switch randomisation stops, in-flight pairs are still finished under their original assignment, post-switch single-arm traffic is logged as a follow-up cohort and never enters n, and the switch is idempotent"
-      },
-      {
-        "id": "F11_containment_audit",
-        "assertion": "on a multi-look eight-look stream every pair's ultimately certified score lies inside EVERY bound that pair contributed at EVERY prior look, no enclosure ever widens, and the running-sum interval brackets the realised running mean at every look after enrollment closed"
-      },
-      {
-        "id": "F12_band_formula",
-        "assertion": "the alpha allocation, rho, delta and n_min; every locked radius against both vband.radius_from_formula and the independent literal transcription; an interior band at n = 2000 assembled as sum/n -+ r; the clip; that the prefix is a prefix; that a prefix beyond the ledger and a radius at n = 0 raise"
-      },
-      {
-        "id": "F13_decision_rule",
-        "assertion": "DEPLOY iff L_h > 0 and L_s > -delta, RETAIN_INCUMBENT iff U_h < 0, both strict, both read at one look on one prefix, nothing below n_min; mismatched prefixes raise; deploy and harm never fire together"
-      },
-      {
-        "id": "F14_radius_sweep",
-        "assertion": "vband.radius_from_formula(n) equals the independent literal transcription of the guidance closed form with STRICT float equality for every n = 1..20000, and equals src/winstats.normal_mixture_radius(n, alpha=0.00625, rho=100., variance_process=n) likewise"
-      },
-      {
-        "id": "F15_protocol_config_agreement",
-        "assertion": "the numeric tables of PROTOCOL.md listed here are parsed and compared to this file value by value, and nothing outside the list is claimed: the header provenance block (the three hash strings, the repository commit, the interpreter and numpy versions), 2.1 parameters and the alpha ladder, 2.2 radius reference values and the first-n-below sentence, 2.5 the enclosure-row table, 4 the cells, 4.1 atom costs, weights, ground truth and induced distributions, 4.2 the delay table with its denominator, 5 the seed namespaces and the master seed, 6.1/6.2/6.3/6.4 including their horizon headers, their law-and-delay row labels and the T4 variant, 7.1 the grid and the look counts derived from it, 8.2 the budget ladder including its per-cell grid column, 9.1 and 9.2 the nominal bounds and the numbers in their definitions, 9.3 the flag thresholds, 11 the fixture register and every F01..Fnn range printed in the document, and 13.0 the module map"
-      },
-      {
-        "id": "F16_import_graph_independence",
-        "assertion": "importing vband, vfixtures and tests_validation in a fresh interpreter loads NO module whose __file__ is under experiments/live_ab/ or experiments/live_ab_validation/pinned/, and no source file of this directory except vcompare.py names either path"
-      },
-      {
-        "id": "F17_atom_cost_table",
-        "assertion": "every atom's cost pair reproduces the frozen Z and D columns through src/winstats.compare; over 47484 of the (atom, revealed arm, d, elapsed age) states - the fixture's own delay grid, NOT the full 2878680-state sweep of PROTOCOL 2.5 - the cost enclosure narrows monotonically, never widens, always contains the true Z, and collapses to a point exactly at the frozen thresholds, and the 28 boundary states that grid reaches are asserted as a count so the check cannot pass by never reaching the boundary"
-      },
-      {
-        "id": "F18_pinned_file_hashes",
-        "assertion": "every provenance pin is recomputed FROM THE FILE: src/winstats.py, the guidance document and the #11 vocabulary document named in this file's provenance block are opened and hashed with sha256 and compared against both this file and the hash strings printed in PROTOCOL.md, and the three sources in pinned/ are hashed and compared against pinned/PINNED.json, whose file list must be exactly the Python sources present there. A pin that no longer matches the file it names fails loudly; the string-to-string comparison this replaces could not see it (PREREG_CHECK_2 N.1)"
-      }
-    ]
-  },
-  "comparison_to_live_ab": {
-    "pinned_copy_dir": "experiments/live_ab_validation/pinned/",
-    "pinned_manifest": "experiments/live_ab_validation/pinned/PINNED.json",
-    "loaded_by_only": "experiments/live_ab_validation/vcompare.py",
-    "loaded_when": "after vrun.py has finished",
-    "import_graph_test": "no module reachable from the #12 band, enclosure, generator or fixtures imports anything under experiments/live_ab/ or experiments/live_ab_validation/pinned/; implemented as F16_import_graph_independence and tests_validation.TestImportGraphIndependence",
-    "streams": {
-      "count": 200,
-      "per_cell": 25,
-      "namespace": 2,
-      "plus": "every fixture stream"
-    },
-    "look_set": "every look at prefix n = 1..N_max plus the finalization look. NO look is taken at n = 0 on either side: #12 displays the full range there and #11 raises, and that structural difference is named here rather than adjudicated later.",
-    "compared_at_every_look": {
-      "L_h_U_h_L_s_U_s": "absolute difference <= 1e-12",
-      "decision_label": "exactly equal under the frozen bijection below",
-      "tau_in_enrolled_pairs": "exactly equal",
-      "per_pair_enclosure_endpoints": "absolute difference <= 1e-12"
-    },
-    "decision_label_bijection": {
-      "frozen_before_any_stream_was_replayed": true,
-      "map": [
-        {
-          "live_ab": "no decision returned",
-          "validation": "CONTINUE"
-        },
-        {
-          "live_ab": "deploy_candidate",
-          "validation": "DEPLOY"
-        },
-        {
-          "live_ab": "harm_keep_incumbent",
-          "validation": "RETAIN_INCUMBENT"
-        },
-        {
-          "live_ab": "horizon_no_decision",
-          "validation": "CONTINUE",
-          "plus_a_required_condition": "the #12 trial must end in NO_DECISION; a #11 horizon_no_decision at a look where #12 returns DEPLOY or RETAIN_INCUMBENT IS a disagreement"
-        }
-      ],
-      "why_horizon_needs_a_rule": "#12 has no horizon concept at all, so the #11 horizon branch has no #12 counterpart. Mapping it to CONTINUE at the look level and to NO_DECISION at the trial level is the only mapping under which both sides describe the same trial endpoint; it is fixed here so that whoever writes vcompare.py cannot choose it after seeing the streams.",
-      "any_label_outside_this_map": "is a disagreement, not an unmapped case"
-    },
-    "exception_rule": "An exception raised by either side at a look where the other side returns a value IS a disagreement. It is written to comparison_defects.csv with the exception type, the message, the side that raised, and the seed coordinates to replay it alone. It is never treated as a skip, a filter or a test-harness detail.",
-    "certified_collapsed_scope": {
-      "in_scope": "the per-pair enclosure ENDPOINTS, on both scores, at every look",
-      "out_of_scope": "the certified / collapsed FLAG",
-      "why": "The two sides hold incompatible definitions. #12 marks certified only on a valid final-score certificate, so a hierarchy enclosure that the cost tier has narrowed to a point while an episode is still pending is a point that is NOT certified. PREREG_CHECK A.4 item 6 reports that #11 requires the flag to be true exactly when both scores are points and raises otherwise. Comparing the flag would therefore report a definitional difference as a numerical defect at every cost-collapsed pair, of which section 6.4 says there are many.",
-      "not_silence": "the difference is a NAMED, pre-registered finding: the report states it, states that section 4.4's cost path makes it common rather than exotic, states that neither reading is declared correct here, and escalates it with the rest of section 12.3.",
-      "each_side_builds_its_own_state": "vcompare.py drives both implementations from the same event stream and never constructs one side's objects from the other side's state, so neither side's constructor is fed a state its own rules forbid."
-    },
-    "tolerance_covers": "floating-point summation order only",
-    "disagreement_policy": {
-      "is": "a DEFECT, reported as one",
-      "never": "reconciled by editing either side - not the band module, not the enclosure rules, not the tolerance, not the fixture streams, not this protocol",
-      "reported_with": [
-        "minimal reproducing stream",
-        "the two disagreeing values",
-        "the guidance clause each side appears to implement",
-        "the seed coordinates to replay it alone"
-      ],
-      "adjudication": "escalated to the coordinator and the root; which side is wrong is NOT decided by this author",
-      "until_adjudicated": "#11's results do not count as validated, and the report says so in those words",
-      "within_tolerance_but_systematic": "reported as a noted numerical difference with its magnitude, not silently accepted",
-      "agreement_wording": "'the two implementations agree on these 200 streams to 1e-12', never 'the monitor is correct' - two implementations of the same misreading of the guidance agree perfectly, and this comparison cannot detect that"
-    }
-  },
-  "outputs": {
-    "fixtures_command": ".venv/bin/python experiments/live_ab_validation/vfixtures.py",
-    "tests_command": ".venv/bin/python experiments/live_ab_validation/tests_validation.py",
-    "command": ".venv/bin/python experiments/live_ab_validation/vrun.py --out results/live_ab_validation",
-    "comparison_command": ".venv/bin/python experiments/live_ab_validation/vcompare.py --out results/live_ab_validation",
-    "commands_that_do_not_exist_yet": [
-      "vrun.py",
-      "vcompare.py"
-    ],
-    "writes_only_inside": "results/live_ab_validation/",
-    "guard": "any path outside that directory is refused and the run aborts rather than writing elsewhere",
-    "determinism": "two runs produce byte-identical outputs apart from the timing fields of compute.json, asserted by re-running one cell block",
-    "files": [
-      "manifest.json",
-      "budget.json",
-      "smoke/",
-      "fixtures_report.json",
-      "miscoverage.csv",
-      "decisions.csv",
-      "decision_time.csv",
-      "unresolved.csv",
-      "horizon_summaries.csv",
-      "trials.csv.gz",
-      "compute.json",
-      "comparison_vs_live_ab.csv",
-      "comparison_defects.csv"
-    ],
-    "report": "experiments/live_ab_validation/REPORT.md, naming the validated adapter commit and file hashes from pinned/PINNED.json, with the limitations of PROTOCOL.md 1.3 repeated in full and not summarized away"
-  },
-  "change_control": "This file and PROTOCOL.md are frozen on commit. Any change to a cell, parameter, seed, grid, estimator, reported quantity, flag rule or positive control is a new protocol version with its own freeze; results produced under the old version keep the old label and are reported beside the new ones rather than replaced. The budget tier selected by the ladder is not a change: it is an output of a rule this file fixes, recorded in budget.json."
+  "writes_only_inside": "results/live_ab_validation/",
+  "guard": "any path outside that directory is refused and the run aborts rather than writing elsewhere",
+  "determinism": "two runs produce byte-identical outputs apart from the timing fields of compute.json, asserted by re-running one cell block",
+  "files": [
+   "manifest.json",
+   "budget.json",
+   "smoke/",
+   "fixtures_report.json",
+   "miscoverage.csv",
+   "decisions.csv",
+   "decision_time.csv",
+   "unresolved.csv",
+   "horizon_summaries.csv",
+   "trials.csv.gz",
+   "compute.json",
+   "comparison_vs_live_ab.csv",
+   "comparison_defects.csv"
+  ],
+  "report": "experiments/live_ab_validation/REPORT.md, naming the validated adapter commit and file hashes from pinned/PINNED.json, with the limitations of PROTOCOL.md 1.3 repeated in full and not summarized away"
+ },
+ "change_control": "This file and PROTOCOL.md are frozen on commit. Any change to a cell, parameter, seed, grid, estimator, reported quantity, flag rule or positive control is a new protocol version with its own freeze; results produced under the old version keep the old label and are reported beside the new ones rather than replaced. The budget tier selected by the ladder is not a change: it is an output of a rule this file fixes, recorded in budget.json."
 }
