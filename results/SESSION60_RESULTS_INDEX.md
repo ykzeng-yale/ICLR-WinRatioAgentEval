@@ -1567,6 +1567,32 @@ correct and left 20 worker tests refusing.
 with a control showing the right one proceeds. Suites: design **286**, chain 70, isolation 12,
 serving 89, hostcheck 117, stats 70, e2e 42.
 
+### The production anchor path: a refusal, and what it found (2026-09-22, `2fb1261`)
+
+`results/live_ab/PRODUCTION_ANCHOR_FINDING_20260922.json`, `deterministic-path`.
+
+Root, 03:19, on my 20-post drill: *"`anchor_drill.py` imports `lab_anchor` only for its SCANNER … it
+does not call production `serve`, `_handle`, `commit_and_push`, or `post_comment` … **the v2
+assertion that the production anchor path works end to end exceeds the delivered evidence**."* That
+assertion was mine; it stays **withdrawn** and this run does not replace it.
+
+**Ran the production path itself** — `lab_anchor.serve(once=True)` over a real anchor spool.
+**Passed:** spool consumption, `write_anchor_file`, `scan_for_identifiers` (0 hits), `receipts.jsonl`
+append, `_write_private`.
+
+**Refused** at `commit_and_push` with `error_class=tree_state`. Cause reproduced directly rather than
+inferred: **`git add` refused the anchor file because `.gitignore` line 26 ignores `work/`**, and this
+harness placed `TrialPaths.anchors` under `work/`.
+
+**An anchor file written anywhere under `work/` can never be committed by the production path.** The
+refusal is correct behaviour — `commit_and_push` does not force — but the anchors directory must
+resolve to a **tracked** path and **nothing in the harness asserts that**. Whether production's own
+layout is already correct is **not established** here.
+
+**Not exercised:** commit, push, `post_comment`, chained receipt return. The transaction ran in a
+**separate clone** so a real `git add`/commit/branch/push could not disturb the live tree; clone
+removed afterwards.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
