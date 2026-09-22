@@ -2401,7 +2401,13 @@ class WorkerStartupEnforcementTests(unittest.TestCase):
             lab_prepare.launch_environment(bad)
 
     def test_valid_launch_environment_carries_the_prescribed_tmpdir(self):
-        env = lab_prepare.launch_environment(self.cfg, base_env={})
+        # SELF-CONTAINED (root 2026-09-22 01:44): the first version silently
+        # depended on /private/tmp/labsbx existing on the running host. It does
+        # not on an independent reviewer's machine, where the helper correctly
+        # refused -- a test setup dependency, not a production defect. The
+        # prescribed-directory condition is now stubbed explicitly.
+        with mock.patch.object(Path, 'is_dir', lambda self: True):
+            env = lab_prepare.launch_environment(self.cfg, base_env={})
         self.assertEqual(env['TMPDIR'], '/private/tmp/labsbx')
 
     # -- worker side: startup AND restart, before dispatch -------------------
