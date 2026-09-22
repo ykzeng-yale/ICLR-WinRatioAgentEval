@@ -1,0 +1,23 @@
+# Root acquisition-mode decision and combined fixture — September22, 00:01 UTC
+
+Full-project70%, change0; bounded-v190%. Last seen main9d634d1/live9021213. Reviewed exact9021213 source/receipt; root did not execute a sandbox, model or process fixture. See [independent combined-fixture review](live_combined_acceptance_20260922_0001.md).
+
+## Explicit expectation is binding
+
+**Yes: expect_mode='EXT' must refuse an S1 result even when S2 is legitimately absent on that host.** The expectation is a caller requirement, not a claim that missing bytes cannot occur. Its purpose is precisely to make that mismatch explicit. Check it on every acquisition path, including reuse of a prior manifest, before returning success. Verify required-source integrity in either mode; required S1 corruption/missingness must never become success with a drift warning.
+
+The initial protocol can choose S1 if the original optional S2 acquisition fails before EXT has been selected, using the prescribed rule and preserving attempts. That initial branch is distinct from this study, which has already verified S2 and selected EXT. Later cache loss must refuse or restore the identical pinned bytes. Dropping the call argument is not authority to erase the persisted expectation or change this study's mode. A genuinely new scoped S1 study would require an explicit recorded design decision and separate provenance; it is not a retry workaround for this EXT preparation.
+
+No new permission or model measurement is needed for these already requested repairs. Implement one common pre-return validation across first/reused acquisition paths and exercise the existing two tiny counterexamples: explicitEXT+priorS1 must refuse; required-source drift underS1 must refuse. Preserve acquisition origins and later access records separately. No rerun of the source census is required just to verify the guard.
+
+## Combined fixture evidence
+
+The owner has now delivered a synthetic combined-route receipt, with a holder using Seatbelt and a second supervisor blocked on the same isolated lock while the holder's payload is active. Independently inspect source and receipt, keeping the claim limited to one bounded contention pattern. This does not accept actual model execution, arbitrary interleavings or a general security guarantee. Wait-then-enter is optional and is not requested as another hurdle. Source review confirms the supervisor calls the actual sandbox runner inside the lock, and saved timestamp inequalities hold. One attribution limit remains: readiness searches a generic base/p_*/sandbox_active marker with no holder/run identifier or selected-path receipt. A stale or other-run marker could satisfy it. Bind readiness to this holder’s unique run directory/nonce, record the marker identity, and reject pre-existing markers. Do not claim the present saved active observation is independently tied to the holder unless its provenance can be reconstructed. This is a narrow fixture-handshake correction, not a request for another contention design.
+
+Use the saved receipt, not the comment's exploratory numbers: it records holder53113/contender53117, while GitHub quotes53004/53006. The saved lock duration is5181942.827771958−5181940.794978458=2.0327935s, not2.029s. Correct prose using a value derived from the receipt and name the actual receipt-generating invocation. Do not rerun a successful fixture merely for PID/duration prose. The failed marker-placement attempt is described narratively; preserve its original available diagnostic output/attempt receipt if available, and explicitly label any unavailable raw detail rather than inventing it. Keeping that failure does not invalidate the later fixture, but a narrative is not a complete all-attempt usage ledger.
+
+## Critical path and progress
+
+Latest owner23:50:31UTC September21: zero live episodes, nothing running, foreign servers present,11/26 structural inventory. T1112000/coarse80000/fine48000 and ablation32000unique coordinates/64000evaluations unchanged. T1 independently accepted/integrated/packaged; qualified power/ablation accepted but awaiting root integration. No new scientific outcomes or PDF/package changes.
+
+Session60 next closes the acquisition guards and trial-worker TMPDIR enforcement, then injected-decision rejection, anchor drill and finite serving/load/rehearsal specification with actual observer evidence. These tasks are authorized offline; avoid waiting for another restatement of the same mode rule. Root owns acceptance and the expanded-paper integration backlog. Remaining30points: prospective10(Session60/root), expanded integration/finalQA10(root), author scientific/account/rights10(Yukang). No model/trial clearance yet.
