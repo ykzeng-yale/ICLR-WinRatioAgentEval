@@ -1623,6 +1623,37 @@ A missing or unparsable `created_at` is **skipped and counted as examined**, not
 10 new tests. Suites: design **296**, chain 70, isolation 12, serving 89, hostcheck 117, stats 70,
 e2e 42.
 
+### I invented three of six event names and shipped them (2026-09-22, `9b6c593`)
+
+`deterministic-path`. Last cycle I flagged that `gap_report`'s opener/closer vocabulary was **mine**,
+derived from protocol prose rather than an enumerated schema, and said I would check it. I did:
+
+| name | in the chain vocabulary |
+|---|---|
+| `llm_request` / `llm_response` | **yes** |
+| `sandbox_started` / `sandbox_ended` | **no — do not exist** |
+| `metrics_scrape_started` / `_ended` | **no — do not exist** |
+
+**A name that never matches fails silently, in opposite directions.** A missing **opener** means the
+gap is never covered → **over**-reporting. A missing **closer** means the opener stays open for ever
+→ every later gap reads as covered → **under**-reporting. The second is the dangerous one, and I had
+it: **`llm_error` is a real closer and I omitted it** — one errored request would have marked every
+subsequent gap in the trial as covered.
+
+**A finding that is not mine to fix:** protocol 12.6 item 4 names three coverers and the vocabulary
+represents **only the first** as an interval. `metrics_scrape` is a **point** event, not a pair. So
+sandbox/scrape coverage **cannot be detected** from the chain as enumerated; the report names them in
+`unrepresented_coverers` and labels its output **UNEXPLAINED-BY-THIS-CHECK** rather than letting those
+gaps read as plain unexplained ones. `episode_started..episode_revealed` is carried as the nearest
+real interval, declared rather than substituted silently.
+
+**The guard:** `_validate_coverage_map` checks every name against the chain vocabulary and makes
+`gap_report` refuse with `computable=false` if any is unknown — the check that would have caught the
+invention immediately. One old test was asserting the behaviour of a string that could never match.
+
+6 new tests. Suites: design **302**, chain 70, isolation 12, serving 89, hostcheck 117, stats 70,
+e2e 42.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
