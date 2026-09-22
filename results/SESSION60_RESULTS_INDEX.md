@@ -1249,6 +1249,31 @@ incomplete, foreign-clock, truncated, absent-log and cross-host all refuse.
 Suites: design **220**, chain 70, isolation 12, serving 89, hostcheck 117, stats 70, e2e 42 -- pass.
 `tests_validation.py`: **184, three still failing** on the pre-registration pin, unchanged.
 
+### The pre-registration pin: amended as ruled, original untouched (2026-09-22, `690317e`)
+
+Root ruled at 04:27 (`reviews/protocol_pin_disposition_20260922_0422.md`): *preserve the original
+pin; record an explicit post-freeze provenance amendment.*
+
+| state | snapshot | sha256 | disposition |
+|---|---|---|---|
+| original | `ddef3c83` | `3c76e8eb...` | **unchanged** |
+| previous successor | `3db00bad` | `b1ff97cc...` | **preserved** in `prior_successors[0]`, ruling verbatim |
+| current successor | `7a17f064` | `d63717a5...` | recorded with `supersedes`, timestamp, both commits, reason, ruling |
+
+**Root corrected me.** I called the whole history *"one editorial line"*; that flattened **two
+distinct transitions** — the first was the substantive **enclosure** change, only the second is the
+Appendix B delta. Recorded apart, and the amendment says so.
+
+**A weakening I introduced and the test caught.** `check_pinned_file_hashes` parses every 64-hex
+token in `PROTOCOL.md` and requires the *recorded pin* among them. My first draft wrote the current
+successor **in full** there — which made rewriting the original pin to the current digest **pass** a
+check whose purpose is to refuse it. The mutated-original-pin test failed; successors are now written
+**truncated** in `PROTOCOL.md`, full values only in `cells.json` and the amendment.
+
+**Exact counts, not "every suite":** `tests_validation.py` **190** (184 + 6 focused pin tests), **OK**,
+expected failures 2 — previously **3 failing**. `vfixtures.py` **18/18**. `tests_panel.py` 83.
+live_ab suites re-run as a regression check only. **No grid rerun, no simulation, no model.**
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
