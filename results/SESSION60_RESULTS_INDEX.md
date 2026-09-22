@@ -1364,6 +1364,32 @@ the acquisition and retain the attempt** -- none excludes a task. 8 new tests, o
 **Not established:** the slot-lifecycle path. The fixture proves serialization for the **seal only**;
 slot records need a loaded model. `records: 0` means the gap check has so far seen only an empty set.
 
+### The clock-equivalence check ran 200x weaker than the protocol says (2026-09-22, `75e1c89`)
+
+`deterministic-path`. Protocol 7.5 item 4 compares the `perf_counter` and `monotonic` elapsed deltas
+over **ten seconds** against `clock_equivalence_tolerance_ms = 1`. What that detects is a **relative
+rate difference**. `lab_orchestrator.preflight` defaulted the window to **0.05 s**:
+
+| rate error | over 10 s | over 50 ms |
+|---|---|---|
+| 150 ppm | **1.5 ms — refused, correctly** | 0.0075 ms — **passed, silently** |
+
+A **200x** loss of sensitivity at the same tolerance. It did not merely measure less; it passed
+clocks the protocol refuses. (100 ppm lands on **exactly** 1.000 ms over 10 s — I asserted
+strictly-greater at that boundary first and my own test caught it.)
+
+**Repairs:** `CLOCK_WINDOW_PROTOCOL_S = 10.0` is the default, so an unset runtime gets the protocol
+behaviour; the effective window is **recorded** with `below_protocol_window`, both deltas, the
+measured difference and the tolerance; a failure emits a drift row naming the measured difference and
+the window rather than a bare reason code.
+
+**Fixtures updated in the same change** — no test set `clock_window_s`, so every one had been relying
+on the 0.05 default and would now sleep 10 s per preflight. The e2e Tree, the dryrun and the design
+freeze-tree harness each set it explicitly to 0.01 s and are marked `below_protocol_window`. An
+offline suite may shorten the window; it may not hide that it did.
+
+Suites: design **243**, chain 70, isolation 12, serving 89, hostcheck 117, stats 70, e2e 42.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
