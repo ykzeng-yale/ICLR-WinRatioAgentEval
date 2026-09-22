@@ -207,17 +207,26 @@ def window_from_record(rec: dict, *, expected: Optional[dict] = None) -> Dict[st
                                        'identifier is not an identity and must not '
                                        'be spelled into one' % ', '.join(missing)}
 
-    # PROVENANCE IS COMPARED, NOT STAMPED.
+    # THE ECHO CONTRACT, END TO END. Root, 2026-09-22 06:16: "The C++ emitter
+    # sends run_token/instance_id, NOT host/boot digests. Validate each record
+    # and seal against the fresh token in the supervisor's persisted expected
+    # manifest, then bind that manifest to measured observer/verifier host/boot.
+    # ... do not demand nonexistent per-record host/boot fields."
+    #
+    # My reader demanded host_id and boot_id ON EVERY RECORD -- fields the real
+    # emitter never writes. Only my hand-written Python fixtures carried them, so
+    # the positive case passed on bytes the instrument cannot produce, and the
+    # first loaded run would have failed on format. The record is bound by its
+    # TOKEN; the manifest is bound to the host (see observe()).
     if expected is not None:
-        for field in ('host_id', 'boot_id', 'instance_id'):
-            want, got = expected.get(field), (inst if field == 'instance_id'
-                                              else _typed_id(rec.get(field), field))
-            if want is None or got is None or want != got:
-                return {'ok': False,
-                        'reason': 'record %s %r does not match the launched run '
-                                  'manifest %r; a log that cannot be bound to the '
-                                  'producer the supervisor started is not evidence '
-                                  'about this host or this boot' % (field, got, want)}
+        want = _typed_id(expected.get('instance_id'), 'instance_id')
+        token = _typed_id(rec.get('run_token'), 'run_token') or inst
+        if want is None or token != want:
+            return {'ok': False,
+                    'reason': 'record run token %r does not match the launched run '
+                              'manifest %r; a log that cannot be bound to the '
+                              'producer the supervisor started is not evidence'
+                              % (token, want)}
 
     # INTEGER MICROSECOND TRANSITIONS, and the ORDER VERIFIED rather than trusted.
     ts = {}
@@ -273,16 +282,38 @@ def window_from_record(rec: dict, *, expected: Optional[dict] = None) -> Dict[st
     }}
 
 
-def records_seq_gap(seqs: List, declared: int) -> List:
-    """Which sequence numbers the seal says exist but the file does not carry.
+def sequence_problem(seqs: List, declared: object) -> Optional[str]:
+    """Exactly one record per sequence value in ``0..declared-1``, or why not.
 
-    The producer numbers records from 0 and the seal reports how many it wrote,
-    so a complete log holds exactly ``0..declared-1``. A lost final line, a
-    dropped record or a truncated write all show up here as a gap, which is the
-    finite check root asked for.
+    Root, 2026-09-22 06:16: "For a nonnegative integer seal count, require
+    EXACTLY ONE non-boolean integer for each value in 0..count-1; reject missing,
+    DUPLICATE, EXTRA and out-of-range values. File order need not be numeric
+    because sequence allocation precedes the writer mutex."
+
+    My first version took a SET DIFFERENCE, which is blind to duplicates and to
+    extras: two records both numbered 3, with 4 missing, gave an empty gap and
+    passed. A multiset is the right object because the producer allocates each
+    number exactly once.
     """
-    present = set(q for q in seqs if isinstance(q, int))
-    return sorted(set(range(int(declared))) - present)
+    if isinstance(declared, bool) or not isinstance(declared, int) or declared < 0:
+        return 'the seal declares %r records, not a nonnegative integer' % (declared,)
+    bad = [q for q in seqs if isinstance(q, bool) or not isinstance(q, int)]
+    if bad:
+        return 'a record carries a non-integer seq (%r)' % (bad[:3],)
+    counts: Dict[int, int] = {}
+    for q in seqs:
+        counts[q] = counts.get(q, 0) + 1
+    missing = sorted(v for v in range(declared) if v not in counts)
+    duplicate = sorted(v for v, n in counts.items() if n > 1)
+    out_of_range = sorted(v for v in counts if v < 0 or v >= declared)
+    if missing or duplicate or out_of_range:
+        return ('sequence multiset does not match the seal count %d: missing %s, '
+                'duplicated %s, out of range %s'
+                % (declared, missing[:5], duplicate[:5], out_of_range[:5]))
+    if len(seqs) != declared:
+        return ('the file carries %d records and the seal declares %d'
+                % (len(seqs), declared))
+    return None
 
 
 def _overlaps_on_one_slot(windows: List[dict]) -> Optional[str]:
@@ -353,6 +384,24 @@ def observe(path: "str | Path", *, concurrency_required: int = 2,
                 break
 
     parsed = read_records(path)
+    # THE ACTUAL SIDECAR. Root: "Read and retain the actual <log>.error output in
+    # the acquisition path; any terminal writer failure refuses the acquisition."
+    # The producer writes failures to a SEPARATE file precisely so a failing log
+    # cannot hide its own failure -- which is useless if the reader never opens
+    # it. A seal-close error, in particular, is invisible anywhere else.
+    sidecar_path = Path(str(path) + '.error')
+    sidecar: List[dict] = []
+    sidecar_unreadable = None
+    if sidecar_path.exists():
+        try:
+            for line in sidecar_path.read_text('utf-8').splitlines():
+                if line.strip():
+                    try:
+                        sidecar.append(json.loads(line))
+                    except ValueError:
+                        sidecar.append({'unparsable': line[:200]})
+        except OSError as exc:
+            sidecar_unreadable = '%s: %s' % (type(exc).__name__, exc)
     base: Dict[str, Any] = {
         'schema': OBSERVATION_SCHEMA,
         'evidence_kind': EVIDENCE_KIND,
@@ -415,6 +464,9 @@ def observe(path: "str | Path", *, concurrency_required: int = 2,
     seals, writer_errors = parsed.get('seals') or [], parsed.get('writer_errors') or []
     base['seals'] = seals
     base['writer_errors'] = writer_errors
+    base['sidecar_path'] = sidecar_path.name
+    base['sidecar_records'] = sidecar
+    base['sidecar_unreadable'] = sidecar_unreadable
     seal_problem = None
     if not seals:
         seal_problem = ('the acquisition carries NO CLOSING SEAL, so the writer did '
@@ -432,18 +484,21 @@ def observe(path: "str | Path", *, concurrency_required: int = 2,
             seal_problem = ('the seal names run token %r, not the launched %r'
                             % (seal.get('run_token'), expected.get('instance_id')))
         else:
-            declared = seal.get('records')
-            seqs = [r.get('seq') for r in parsed['records']]
-            if not isinstance(declared, int):
-                seal_problem = 'the seal declares no integer record count'
-            elif any(not isinstance(q, int) for q in seqs):
-                seal_problem = 'a record carries no integer seq'
-            elif len(records_seq_gap(seqs, declared)) > 0:
-                seal_problem = ('sequence gap against the seal: %s'
-                                % records_seq_gap(seqs, declared)[:3])
+            seal_problem = sequence_problem(
+                [r.get('seq') for r in parsed['records']], seal.get('records'))
+    if sidecar:
+        seal_problem = seal_problem or (
+            'the producer recorded %d failure(s) in its %s sidecar (%s); any '
+            'terminal writer failure refuses the acquisition'
+            % (len(sidecar), sidecar_path.name,
+               [e.get('stage') for e in sidecar[:3]]))
+    if sidecar_unreadable:
+        seal_problem = seal_problem or ('the sidecar exists and could not be read '
+                                        '(%s); an unreadable failure channel is not '
+                                        'an absent one' % sidecar_unreadable)
     if writer_errors:
         seal_problem = seal_problem or ('the producer wrote %d acquisition error(s) '
-                                        'to its side channel' % len(writer_errors))
+                                        'into the main log' % len(writer_errors))
     base['seal_problem'] = seal_problem
 
     complete = not refused and not parsed['rejected'] and seal_problem is None

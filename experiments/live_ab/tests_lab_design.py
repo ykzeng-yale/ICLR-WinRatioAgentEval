@@ -3711,15 +3711,42 @@ class LifecycleReaderWitnessTests(unittest.TestCase):
         self.assertTrue(o['lifecycle_complete'])
         self.assertTrue(o['producer_bound'])
 
-    def test_witness_foreign_provenance_is_no_longer_overwritten(self):
-        """"observe ignores record provenance and stamps the caller's ... a
-        copied/previous-boot log cannot be bound to its actual producer." """
-        self._emit(slot_id=0, task_id=11, host_id='host:FOREIGN')
-        self._emit(slot_id=1, task_id=12, boot_id='boot:OTHERBOOT')
+    def test_witness_a_foreign_log_is_caught_by_its_RUN_TOKEN(self):
+        """Root's copied-log finding, closed the way the real emitter allows.
+
+        The C++ emitter sends run_token/instance_id, NOT host/boot digests, so a
+        reader that demanded per-record host/boot was demanding fields the
+        instrument never writes -- my Python fixtures carried them and the real
+        bytes never would. The record is bound by its TOKEN; the MANIFEST is
+        bound to the measured host and boot (see ManifestObserverBindingTests).
+        """
+        self._emit(slot_id=0, task_id=11, run_token='some_other_run')
+        self._emit(slot_id=1, task_id=12, run_token='some_other_run')
         o = self._obs()
         self.assertFalse(o['active'])
         self.assertEqual(len(o['records_refused']), 2)
-        self.assertIn('run manifest', o['records_refused'][0]['reason'])
+        self.assertIn('run token', o['records_refused'][0]['reason'])
+
+    def test_a_record_carrying_NO_host_or_boot_field_is_fine(self):
+        """The emitted shape. A positive fixture must pass on bytes the
+        instrument can actually produce."""
+        for slot, task in ((0, 11), (1, 12)):
+            rec = {'schema': 'live_ab/slot_lifecycle-v1', 'seq': slot,
+                   'run_token': 'srv_1_2', 'instance_id': 'srv_1_2',
+                   'slot_id': slot, 'task_id': task,
+                   'clock': lab_lifecycle.CLOCK, 'units': 'microseconds',
+                   't_assigned_us': 99_000_000, 't_prompt_start_us': 99_100_000,
+                   't_gen_last_us': 102_000_000, 't_released_us': 102_100_000,
+                   'n_prompt_processed': 10, 'n_gen': 1024, 'complete': True}
+            with open(self.log, 'a', encoding='utf-8') as fh:
+                fh.write(json.dumps(rec, separators=(',', ':')) + '\n')
+            self._seq += 1
+        self._seal()
+        o = self._obs()
+        self.assertTrue(o['active'], o.get('reason'))
+        self.assertTrue(o['lifecycle_complete'])
+        for w in o['active_windows']:
+            self.assertTrue(w['identity'].startswith('srv_1_2/slot'))
 
     def test_witness_absent_identifiers_are_not_spelled_into_identities(self):
         """Built "None/slot0/taskNone" and counted it as a lifetime."""
@@ -3933,7 +3960,7 @@ class AcquisitionSealTests(unittest.TestCase):
         self._seal()
         o = self._obs()
         self.assertFalse(o['lifecycle_complete'])
-        self.assertIn('sequence gap', o['seal_problem'])
+        self.assertIn('sequence multiset', o['seal_problem'])
 
     def test_a_WRITER_FAILURE_reported_in_the_seal_refuses(self):
         self._emit(0, 11)
@@ -4052,3 +4079,68 @@ class ClockEquivalenceWindowTests(unittest.TestCase):
         self.assertEqual((rate_error * 10.0) / (rate_error * 0.05), 200.0)
         # and the exact boundary case, stated rather than glossed
         self.assertEqual(1e-4 * 10.0 * 1000.0, 1.0)
+
+
+class SequenceMultisetAndSidecarTests(unittest.TestCase):
+    """Root, 2026-09-22 06:16: "require EXACTLY ONE non-boolean integer for each
+    value in 0..count-1; reject missing, DUPLICATE, EXTRA and out-of-range
+    values" and "Read and retain the actual <log>.error output".
+
+    My first version took a SET DIFFERENCE, which is blind to duplicates and
+    extras: two records both numbered 3 with 4 missing gave an empty gap and
+    passed. And the producer writes failures to a separate file precisely so a
+    failing log cannot hide its own failure -- useless if the reader never opens
+    it.
+    """
+
+    def test_the_multiset_rejects_what_a_set_difference_missed(self):
+        f = lab_lifecycle.sequence_problem
+        self.assertIsNone(f([0, 1, 2], 3))                 # exact
+        self.assertIsNone(f([2, 0, 1], 3))                 # order need not be numeric
+        self.assertIsNotNone(f([0, 1], 3))                 # missing
+        self.assertIsNotNone(f([0, 3, 3], 4))              # DUPLICATE + missing
+        self.assertIsNotNone(f([0, 1, 2, 3], 3))           # extra
+        self.assertIsNotNone(f([0, 1, 7], 3))              # out of range
+        self.assertIsNotNone(f([0, 1, True], 3))           # bool is not an integer
+        self.assertIsNotNone(f([0, 1, 2], True))           # nor is a bool a count
+        self.assertIsNotNone(f([0, 1, 2], -1))             # nor a negative count
+        self.assertIsNone(f([], 0))                        # an empty sealed log
+
+    def test_the_duplicate_case_the_old_check_passed(self):
+        """Exactly the input a set difference could not see."""
+        seqs, declared = [0, 3, 3], 4
+        self.assertEqual(sorted(set(range(declared)) - set(seqs)), [1, 2])
+        problem = lab_lifecycle.sequence_problem(seqs, declared)
+        self.assertIn('duplicated', problem)
+
+    def test_the_sidecar_is_read_and_refuses_the_acquisition(self):
+        tmp = Path(tempfile.mkdtemp(prefix='side_'))
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        log = tmp / 'l.jsonl'
+        prov = {'boot_id': 'b', 'host_id': 'h', 'boot_source': 's', 'host_source': 'p'}
+        exp = {'host_id': 'h', 'boot_id': 'b', 'instance_id': 'tok'}
+        for i, (slot, task) in enumerate(((0, 11), (1, 12))):
+            rec = {'schema': 'live_ab/slot_lifecycle-v1', 'seq': i,
+                   'run_token': 'tok', 'instance_id': 'tok',
+                   'slot_id': slot, 'task_id': task,
+                   'clock': lab_lifecycle.CLOCK, 'units': 'microseconds',
+                   't_assigned_us': 99_000_000, 't_prompt_start_us': 99_100_000,
+                   't_gen_last_us': 102_000_000, 't_released_us': 102_100_000,
+                   'n_prompt_processed': 1, 'n_gen': 2, 'complete': True}
+            log.open('a').write(json.dumps(rec, separators=(',', ':')) + '\n')
+        log.open('a').write(json.dumps(
+            {'schema': 'live_ab/acquisition_seal-v1', 'run_token': 'tok',
+             'records': 2, 'write_failures': 0, 't_us': 1,
+             'clock': lab_lifecycle.CLOCK}, separators=(',', ':')) + '\n')
+        clean = lab_lifecycle.observe(log, provenance=prov, expected=exp)
+        self.assertTrue(clean['lifecycle_complete'])       # control
+
+        # a seal-close error is invisible ANYWHERE ELSE than the sidecar
+        (tmp / 'l.jsonl.error').write_text(
+            '{"schema":"live_ab/acquisition_error-v1","stage":"seal_close",'
+            '"t_us":2,"failures":1}\n', encoding='utf-8')
+        o = lab_lifecycle.observe(log, provenance=prov, expected=exp)
+        self.assertFalse(o['lifecycle_complete'])
+        self.assertIn('sidecar', o['seal_problem'])
+        self.assertEqual(len(o['sidecar_records']), 1)
+        self.assertEqual(o['sidecar_records'][0]['stage'], 'seal_close')

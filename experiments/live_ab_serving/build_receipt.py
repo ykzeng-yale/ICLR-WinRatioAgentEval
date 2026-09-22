@@ -90,12 +90,28 @@ def native_seal_fixture(tmp: Path) -> dict:
     seals = [json.loads(l) for l in raw.splitlines()
              if l.strip() and 'acquisition_seal' in l]
     out['seals'] = seals
-    ok = bool(seals) and seals[0].get('run_token') == token \
+    # ROOT, 2026-09-22 06:16: "Fix the receipt generator to require a SUCCESSFUL
+    # CHILD EXIT and NO PARSER REJECTION for a seal-parser success claim."
+    #
+    # The first version claimed 'SEAL WRITTEN BY THE BUILT BINARY AND PARSED'
+    # while the reader had REJECTED that very line -- parsed['rejected'] held it
+    # and nothing looked. A success claim that ignores the rejection list is a
+    # claim about what I hoped the reader did.
+    child_ok = (run.get('rc') == 0)
+    no_rejection = not parsed['rejected']
+    contract_ok = bool(seals) and seals[0].get('run_token') == token \
         and seals[0].get('clock') == lab_lifecycle.CLOCK \
         and isinstance(seals[0].get('records'), int) \
         and seals[0].get('write_failures') == 0
-    out['verdict'] = 'SEAL WRITTEN BY THE BUILT BINARY AND PARSED' if ok else \
-                     'seal present but did not match the expected contract'
+    out['child_exit_ok'] = child_ok
+    out['no_parser_rejection'] = no_rejection
+    out['seal_contract_ok'] = contract_ok
+    if child_ok and no_rejection and contract_ok:
+        out['verdict'] = 'SEAL WRITTEN BY THE BUILT BINARY AND PARSED'
+    else:
+        out['verdict'] = ('NOT a seal-parser success: child_exit_ok=%s, '
+                          'no_parser_rejection=%s, seal_contract_ok=%s'
+                          % (child_ok, no_rejection, contract_ok))
     return out
 
 
