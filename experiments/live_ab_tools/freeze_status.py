@@ -110,25 +110,57 @@ BLOCKED_REASONS: Dict[str, Dict[str, str]] = {
         "blocked_on": "the prefreeze calibration, 240 episodes",
         "why": "same artifact as prefreeze_head.",
         "resolved_by": "running calibration after explicit clearance and quiescence"},
+    # CORRECTED 2026-09-22. The three entries below said the roster build was
+    # CPU-only and needed no quiescence. That was MY sentence, and root had
+    # already retracted the premise it rested on
+    # (`reviews/live_roster_root_decisions_20260921_1854.md`):
+    #
+    #   "My 18:17 guidance called the reference sweep offline without accounting
+    #    for protocol 3.2(4)'s concurrent 1024-token generation. That was
+    #    incomplete. DO NOT SUBSTITUTE AN UNLOADED SWEEP. ... the loaded reference
+    #    sweep belongs in the consolidated finite prefreeze model-execution plan
+    #    ... It remains pending until that plan and actual capacity are cleared."
+    #
+    # A stale reason in this map is worse than no reason: this file is what I read
+    # when deciding what to work on next, so "needs no quiescence" was an
+    # instruction to start uncleared model execution.
     "roster_sha256": {
-        "blocked_on": "the offline roster build",
+        "blocked_on": "the LOADED reference sweep -- MODEL CALLS, not cleared",
         "why": ("exclusion rules include reference_fails_verify and reference_timeout, "
                 "so the roster is only final after every reference solution has been "
-                "executed in the sandbox. CPU only, no model call -- but not yet run."),
-        "resolved_by": "lab_data roster build; next cycle's work, needs no quiescence"},
+                "executed in the sandbox -- and protocol 3.2(4) requires concurrent "
+                "1024-token generation DURING that sweep. It is not an offline build."),
+        "resolved_by": ("the consolidated finite prefreeze model-execution plan, with "
+                        "its load schedule, two-run policy, reference thresholds and "
+                        "all-attempt records, after root clears it and capacity allows")},
     "task_content_sha256": {
-        "blocked_on": "the offline roster build",
+        "blocked_on": "the LOADED reference sweep -- MODEL CALLS, not cleared",
         "why": "same artifact as roster_sha256.",
-        "resolved_by": "lab_data roster build; next cycle's work, needs no quiescence"},
+        "resolved_by": "the same cleared loaded sweep"},
     "arrival_order_sha256": {
-        "blocked_on": "the roster",
+        "blocked_on": "the roster, which is loaded-sweep blocked",
         "why": ("stratified arrival orders are derived from the final roster and "
-                "design_seed_base; they are write-once once the roster is fixed."),
-        "resolved_by": "lab_design, immediately after the roster build"},
+                "design_seed_base; they are write-once once the roster is fixed. "
+                "lab_design.arrival_order is PURE and costs nothing, but it takes the "
+                "roster as input, so it inherits the roster's block. Pure is not the "
+                "same as reachable."),
+        "resolved_by": "lab_design, immediately after the cleared loaded sweep"},
+    # CORRECTED 2026-09-22. This said "a CPU-only probe run" resolves the key. A
+    # CPU-only probe run HAPPENED (results/live_ab/CONTAINMENT_PROBE_RECEIPT.json)
+    # and root then wrote "no trial-profile key is promoted from this probe
+    # summary" and named what is still owed. The cost was right; the sufficiency
+    # was not.
     "containment_probe_sha256": {
-        "blocked_on": "one sandbox containment probe",
-        "why": "the probe must actually run in the sandbox to certify containment.",
-        "resolved_by": "a CPU-only probe run; no model, no quiescence needed"},
+        "blocked_on": ("the two-worker exclusion fixture root named as still owed -- "
+                       "CPU only, no model, no quiescence gate, but NOT YET BUILT"),
+        "why": ("a probe ran and root accepted a BOUNDED subset of it: fifteen "
+                "repository-target denials. Root declined to promote any key from "
+                "that summary and asked for an ACTUAL contender blocked while the "
+                "first worker holds the production lock, with timing and refusal "
+                "evidence, plus per-attempt negative-control evidence rather than a "
+                "summary count."),
+        "resolved_by": ("building and running that two-worker fixture; it needs no "
+                        "clearance and no model, only the work")},
     "sandbox_profile_sha256": {
         "blocked_on": "the sandbox profile artifact",
         "why": "config.sandbox.profile_sha256 is still null in the committed config.",

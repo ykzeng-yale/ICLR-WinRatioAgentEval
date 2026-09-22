@@ -1710,6 +1710,55 @@ caught in my anchor receipt.
 9 new tests. Suites: design **316**, chain 70, isolation 12, serving 89, hostcheck 117, stats 70,
 e2e 42 — all pass this run, including the stochastic coin test.
 
+### The 12 freeze holes, priced: 2 pinnable now, 1 owed offline, 9 execution-blocked (2026-09-22)
+
+`deterministic-path`. My posted default, taken on root's silence: enumerate the remaining
+freeze-bundle holes and report which are reachable **without execution**.
+`results/live_ab/FREEZE_REACHABILITY_v3.json`.
+
+**14 of 26 resolved; 12 still required.** The split:
+
+- **`resolvable_now` (2)** — nothing left to run, only a **pin** decision, which is root's.
+  `sandbox_profile_sha256` = `527d267e1c50c4f66a23312e2a836125395367ddd1398ec7f3c79117803c410b`, and `license_evidence_sha256` = `867eca9e36e47408711e2fbc1c066c180589209bb3caecabf59d00d08b1ee96a`.
+- **`offline_work_owed` (1)** — `containment_probe_sha256`. CPU only, no model, no gate, **not built**.
+- **`execution_blocked` (9)** — the roster pair and arrival order, the three server-scrape keys, the
+  three prefreeze keys.
+
+**The finding: three `resolved_by` strings in my own committed `freeze_status.py` were wrong, and two
+of them told me to start uncleared model execution.** It said `roster_sha256` and
+`task_content_sha256` were `"lab_data roster build; next cycle's work, needs no quiescence"`. Root had
+already retracted that premise — protocol 3.2(4) requires concurrent 1024-token generation **during**
+the reference sweep, and *"Do not substitute an unloaded sweep."* The third,
+`containment_probe_sha256`, said *"a CPU-only probe run"* resolves it; **a CPU-only probe run already
+happened**, after which root wrote *"no trial-profile key is promoted from this probe summary"* and
+named the two-worker fixture still owed. Right about the price, wrong about what it buys — so the
+detector, which compares cost, could not see it; that one is declared at the entry.
+
+**The repair would have erased its own evidence.** After fixing the strings, comparing the module
+against the imported map shows agreement and the finding vanishes from the receipt meant to record it.
+The comparison is therefore made against the **committed blob read out of git** and parsed with `ast`,
+never executed. `reason_source: committed blob at HEAD`; all three pre-repair strings are quoted in
+the receipt verbatim from history, not from memory.
+
+**`arrival_order_sha256` is pure and still unreachable.** `lab_design.arrival_order` costs nothing,
+but it takes the roster as input. **Pure is not the same as reachable.**
+
+**Licence evidence retrieved** under root's explicit standing authorization (`LICENSE_EVIDENCE_v2.json`).
+Coder served a real Apache-2.0 blob (11343 B, `832dd9e00a68dd83b3c3fb9f5588dad7dcf337a0db50f7d9483f310cd292e92e`). **t3 served no licence blob at its pinned
+revision** — three recorded 404s — only a model-card front-matter declaration (460 B). So the digest
+would pin **a text and a claim under one key**; reported, not smoothed over. Two independent
+retrievals produced identical hashes.
+
+**Sandbox profile digest computed under the *prescribed* TMPDIR** `/private/tmp/labsbx`, and it
+**matches the digest the deposited containment probe ran under** — so that probe was not an
+ambient-TMPDIR artifact. The ambient digest differs (`6370c169267c3f31…`). Not promoted into config: an
+ambient-TMPDIR digest was promoted into the three-way contract once already. **The profile also embeds
+the operator home path and the interpreter prefix including the CPython patch version**, so a `uv`
+python upgrade would move this freeze pin — a design question, not a value to type in.
+
+Accounting closes: every missing key classified, no key classified that is not missing. `HARNESS_FILES`
+still **33** — the tools live outside the set the freeze pins.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
