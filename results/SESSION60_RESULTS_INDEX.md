@@ -1541,6 +1541,32 @@ obsolete.
 
 Suites: design **277**, chain 70, isolation 12, serving 89, hostcheck 117, stats 70, e2e 42.
 
+### TMPDIR: the shared policy in `lab_common`, wired to the worker (2026-09-22, `b7940a4`)
+
+`deterministic-path`. Protocol 5.7 item 2 is in the **passive voice** and nothing checked it: a run
+that forgets to export TMPDIR silently gets the ambient one and a **different Seatbelt profile
+digest**, with no error. Not hypothetical — an ambient-TMPDIR digest was once promoted into
+`config.json`, ARCHITECTURE 6.1 and protocol Appendix B before anyone noticed.
+
+`lab_common.prescribed_tmpdir` / `assert_tmpdir` are now the **one** implementation, stdlib-only,
+reachable from every production module without relaxing the import matrix. `lab_prepare` delegates;
+a test asserts it keeps no second copy. **Wired at `lab_worker.run_job`** — the worker is a separate
+OS process with its own environment, so an orchestrator-side check says nothing about it.
+
+**The fixture coupling flagged three cycles ago, now paid.** `make_job` built a sandbox block with
+**no `tmpdir` key** while production jobs carry one — exactly why this could not be wired without
+updating it in the same change.
+
+**And that exposed a second mechanism I had wrong.** Exporting `TMPDIR` in `setUp` did not move it:
+`tempfile` **caches** its resolved directory in `tempfile.tempdir` at first use. The env var is what
+the spawned `lab_worker.py --job` **subprocess** reads; `tempfile.tempdir` is what **this**
+interpreter reads. Both are needed and they are not the same mechanism — setting only one looked
+correct and left 20 worker tests refusing.
+
+9 new tests, including the real `run_job` refusing a wrong TMPDIR **before the spool is constructed**,
+with a control showing the right one proceeds. Suites: design **286**, chain 70, isolation 12,
+serving 89, hostcheck 117, stats 70, e2e 42.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
