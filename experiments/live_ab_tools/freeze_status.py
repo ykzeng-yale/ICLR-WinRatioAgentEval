@@ -60,8 +60,8 @@ for _p in (str(LAB),):
         sys.path.insert(0, _p)
 
 import lab_common                                              # noqa: E402
-from lab_common import (canonical_json, sha256_canonical,      # noqa: E402
-                        sha256_file, sha256_text)
+from lab_common import (canonical_json, display_path,          # noqa: E402
+                        sha256_canonical, sha256_file, sha256_text)
 
 REPO = HERE.parents[1]
 HERE = LAB   # every path below refers to the harness dir, not this tool's dir
@@ -271,7 +271,7 @@ def resolve_offline() -> Tuple[Dict[str, Any], Dict[str, Any]]:
                                     == cfg["monitor"]["winstats_sha256"]),
         "harness_files_hashed": len(parts["harness_file_sha256"]),
         "reused_files_hashed": len(parts["reused_file_sha256"]),
-        "protocol_document": str(protocol.relative_to(REPO)) if protocol.is_file()
+        "protocol_document": display_path(protocol) if protocol.is_file()
                              else "ABSENT at design/protocol_FINAL.md",
         "from_preparation_manifest": sorted(
             k for k in ("environment_lock_sha256", "hardware_allowlist",

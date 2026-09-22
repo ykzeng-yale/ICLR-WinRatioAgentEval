@@ -130,6 +130,30 @@ def tokenize_path(p: str | Path) -> str:
     raise UntokenizablePath(str(p))
 
 
+
+def display_path(p) -> str:
+    """A path for a RECEIPT FIELD. Never raises.
+
+    `tokenize_path` raises `UntokenizablePath` and `Path.relative_to` raises
+    `ValueError`, both for a path outside the expected roots. Every use of either
+    in a display field is a line that can abort the thing it is reporting on --
+    and it has now done so three times: the write-once refusal message, the
+    environment checker's `config_pin_read_from` under a drift test, and the tool
+    auditor's `file` field on a synthetic module in a temp dir.
+
+    Naming a file must never be able to fail. Tokenized when possible,
+    repo-relative when possible, absolute otherwise.
+    """
+    q = Path(p)
+    try:
+        return tokenize_path(q)
+    except UntokenizablePath:
+        pass
+    try:
+        return str(q.relative_to(REPO_ROOT))
+    except ValueError:
+        return str(q)
+
 # ---- canonical JSON and hashing -------------------------------------------
 def canonical_json(obj: object) -> str:
     """json.dumps(obj, sort_keys=True, separators=(',', ':'), ensure_ascii=False,

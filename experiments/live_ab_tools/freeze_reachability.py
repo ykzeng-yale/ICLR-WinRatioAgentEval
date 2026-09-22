@@ -140,7 +140,7 @@ def _containment_owed() -> Dict[str, Any]:
     corr = next((v for k, v in rec.items() if k.startswith('CORRECTION_root_')), {})
     return {
         'receipt_present': True,
-        'receipt_path': str(probe.relative_to(REPO)),
+        'receipt_path': lab_common.display_path(probe),
         'verdict': rec.get('verdict'),
         'root_no_key_promoted': corr.get('no_key_promoted'),
         'root_still_owed': corr.get('still_owed'),
@@ -195,7 +195,7 @@ def _license_state() -> Dict[str, Any]:
              for k, v in rec['servers'].items()}
     return {
         'receipt_present': True,
-        'receipt_path': str(ev.relative_to(REPO)),
+        'receipt_path': lab_common.display_path(ev),
         'all_servers_have_evidence': rec.get('all_servers_have_evidence'),
         'license_evidence_sha256': rec.get('license_evidence_sha256'),
         'evidence_kind_by_server': kinds,

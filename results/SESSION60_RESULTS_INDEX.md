@@ -2035,11 +2035,51 @@ initialiser rule could not see. My first refinement asked whether the key was la
 **What makes the earlier literal a default is being written more than once, not what the second write
 is made of.** Corrected, and it now buckets as `default_later_computed`.
 
-**Both trees clean on all four detectors:** `results/live_ab/TOOL_AUDIT_v11.json` and
-`results/live_ab/PRODUCTION_AUDIT_v6.json` (32 files, 0 claims-without-read, 0 unbucketed literal
-checks, 0 unbucketed subscript checks). **Three intermediate receipts were removed** whose findings
-duplicate a retained one; `PRODUCTION_AUDIT_v4.json` is retained because it is the run that found the
-hit.
+**CORRECTED 2026-09-22 14:52 — this paragraph originally read "both trees clean on all four
+detectors ... 0 unbucketed literal checks". That is false for the production tree.**
+
+The **tools** tree is clean: `results/live_ab/TOOL_AUDIT_v11.json`, 0/0/0/0.
+
+The **production** tree, `results/live_ab/PRODUCTION_AUDIT_v6.json`: 32 files, **0 claims-without-read,
+0 subscript literal checks — but 27 literal checks** (23 fixture inputs in `tests_*.py`, 4 in
+`lab_*.py` read individually and defended) **and 4 reimplementation candidates** (the five-lock-file
+finding plus three table over-reaches, all read two cycles ago). Those numbers were in the receipt the
+whole time.
+
+**How I got it wrong: I grepped the final run's output for the subscript line, saw `(0)`, and
+described the whole audit from it.** The literal-checks line in the same output said 27 and I did not
+read it. That is check-one-describe-the-population, the failure mode I have a memory rule against.
+**Three intermediate receipts were removed** whose findings duplicate a retained one;
+`PRODUCTION_AUDIT_v4.json` is retained because it is the run that found the hit.
+
+### The positive control the detectors owed — and it found a defect before it measured anything (2026-09-22)
+
+`deterministic-path`. `results/live_ab/AUDIT_SELFTEST.json`.
+
+Last cycle's uncertainty section said: *"I do not know whether the detectors would catch a defect I
+had not already made."* That is an untested claim about my own instrument, and root's standard for
+the containment probe applies unchanged: **a probe that passes proves nothing unless it can fail.**
+
+**6 positive cases detected, 6 negative cases correctly silent, all_correct.** Positives: an
+unconditional literal check, the same shape nested one level down, a subscript literal check, a
+claim-without-read, and two reimplementations. Negatives — the look-alikes that must **not** fire:
+the fail-safe initialiser, a default spelled over two statements, a branch-determined literal, a
+declaration, a computed value, and a claim whose module does read its source.
+
+**What a perfect score shows: the detectors catch the shapes I can think of. Not that they catch
+shapes I cannot** — these cases are my own constructions, written by the same mind as the detectors.
+That is the criticism I made of my own lifecycle fixtures, and it is **measured here, not repaired**.
+The count is a floor, not a coverage estimate.
+
+**It found a real defect on its first run, before reporting a single case.** `tool_audit.audit_file`
+did `str(path.relative_to(REPO))` for its `file` field, which raises for any path outside the repo —
+and a synthetic module lives in a temp dir. **Third instance of one family**: the write-once refusal
+that raised from inside its own message, the environment checker's `config_pin_read_from` under a
+drift test, and now this. **Naming a file must never be able to fail.**
+
+Fixed once, not three times: `lab_common.display_path` — tokenized when possible, repo-relative when
+possible, absolute otherwise, **never raises** — and all **seven** unguarded call sites across the
+tools converted to it.
 
 ## Open requests
 

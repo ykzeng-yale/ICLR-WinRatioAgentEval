@@ -472,7 +472,7 @@ def audit_file(path: Path) -> Dict[str, Any]:
                                    'this module never opens')))
 
     return {
-        'file': str(path.relative_to(REPO)),
+        'file': lab_common.display_path(path),
         'imports_production_modules': sorted(m for m in mods if m.startswith('lab_')),
         'external_programs': sorted(progs),
         'digest_primitives': sorted(p for p in prims if p.startswith('hashlib.')),
@@ -529,9 +529,9 @@ def audit(directory: Optional[Path] = None) -> Dict[str, Any]:
         'why': ('last cycle a tool was found answering protocol 5.7.2 with its own '
                 'weaker scan instead of calling lab_hostcheck. I found it by a '
                 'lucky mis-typed label. This looks for the same shape on purpose.'),
-        'directory': str(directory.relative_to(REPO)),
+        'directory': lab_common.display_path(directory),
         'files_audited': len(files),
-        'audits_itself': str(Path(__file__).relative_to(REPO)) in [r['file'] for r in rows],
+        'audits_itself': lab_common.display_path(Path(__file__)) in [r['file'] for r in rows],
         'reimplementation_candidates': [{'file': f, **c} for f, c in reimpl],
         'reimplementation_candidate_count': len(reimpl),
         'exempted_by_declared_role': [{'file': f, **c} for f, c in exempt],

@@ -143,7 +143,7 @@ def collect(out_dir: Path, *, execute: bool) -> Dict[str, Any]:
             dest = out_dir / ('%s__%s__%s' % (name, rev[:12], path.replace('/', '_')))
             dest.parent.mkdir(parents=True, exist_ok=True)
             dest.write_bytes(body)
-            got['saved_as'] = str(dest.relative_to(REPO))
+            got['saved_as'] = lab_common.display_path(dest)
             entry['retained'] = {
                 'path': path, 'evidence_kind': kind, 'url': got['url'],
                 'final_url': got.get('final_url'), 'bytes': got['bytes'],
