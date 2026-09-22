@@ -1390,6 +1390,40 @@ offline suite may shorten the window; it may not hide that it did.
 
 Suites: design **243**, chain 70, isolation 12, serving 89, hostcheck 117, stats 70, e2e 42.
 
+### Smoke authorized, three contract repairs, smoke deferred (2026-09-22, `31c22fd`)
+
+**A deviation of mine** (`DEVIATION_BUILD_PARALLELISM_20260922.json`, `descriptive`): root's "at most
+two compile jobs" meant **`-j2` parallel workers**, not two invocations. I read it as invocations,
+said I was "holding the second", and chose **`-j6`**. One invocation, six configured workers, peak
+unknown. Root: do not discard or repeat. Further compiles use `-j2`.
+
+**Repair 1 — the echo contract.** My reader demanded `host_id`/`boot_id` on **every record**; the C++
+emitter never writes them, it sends `run_token`/`instance_id`. Only my hand-written Python fixtures
+carried host/boot, so the positive case passed on **bytes the instrument cannot produce** — the first
+loaded run would have failed on format, spending a one-shot model attempt on a known error. Records
+bind by **token**; the manifest binds to measured observer host/boot.
+
+**Repair 2 — the sequence check was a set difference**, blind to duplicates and extras: `[0,3,3]` with
+count 4 reported the missing pair by luck while the duplicate went unseen. Now a **multiset**. And the
+`<log>.error` **sidecar is actually read** — a seal-close error is invisible anywhere else; an
+unreadable sidecar refuses too.
+
+**Repair 3 — C++ `fflush(...) != 0 || fclose(...) != 0` short-circuits**, so a flush failure **skipped
+`fclose` entirely**, leaking the handle and discarding the close result. Now independent. Patch
+**`4c8b647d...`**, 218 insertions.
+
+**The receipt claimed a success the reader had refused** — it printed "SEAL WRITTEN AND PARSED" while
+`parsed['rejected']` held that line. Success now requires child exit **and** no parser rejection
+**and** the seal contract. Original not overwritten; bytes reparsed into
+`BUILD_RECEIPT_REPARSE_20260922.json`: the bytes did not change, the reader did.
+
+**Smoke DEFERRED** (`SMOKE_DEFERRAL_20260922T0647Z.json`, `descriptive`) — permitted by root's own
+decision. **Not capacity**: the host is clear. The binary is **stale** against the repaired patch, the
+pin-before-launch manifest does not exist, and the 4.7 GB weight pin is unverified, against a 07:00Z
+window end. One-shot attempt, no retry.
+
+Suites: design **247**, chain 70, isolation 12, serving 89, hostcheck 117, stats 70.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
