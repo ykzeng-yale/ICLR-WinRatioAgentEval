@@ -218,15 +218,35 @@ def window_from_record(rec: dict, *, expected: Optional[dict] = None) -> Dict[st
     # the positive case passed on bytes the instrument cannot produce, and the
     # first loaded run would have failed on format. The record is bound by its
     # TOKEN; the manifest is bound to the host (see observe()).
+    # BOTH, AND NO FALLBACK. Root, 2026-09-22 06:57, with two witnesses:
+    #   (1) delete run_token from otherwise valid records and they still certify
+    #       by falling back to instance_id -- "no explicit production schema
+    #       authorizes this legacy substitution";
+    #   (2) keep a valid token on both records but set both slot IDs to 0 and
+    #       instance IDs to other_instance_0 / other_instance_1: the token check
+    #       passes, concurrency identity uses the UNVALIDATED instance strings,
+    #       and the result is complete=true, coverage valid=true, concurrency=2
+    #       -- two instances the single launched instance does not identify.
+    #
+    # The `or inst` fallback was mine, written to keep an old hand-authored
+    # fixture passing. That is the worst reason to weaken a production check.
     if expected is not None:
         want = _typed_id(expected.get('instance_id'), 'instance_id')
-        token = _typed_id(rec.get('run_token'), 'run_token') or inst
-        if want is None or token != want:
+        token = _typed_id(rec.get('run_token'), 'run_token')
+        if want is None:
             return {'ok': False,
-                    'reason': 'record run token %r does not match the launched run '
-                              'manifest %r; a log that cannot be bound to the '
-                              'producer the supervisor started is not evidence'
-                              % (token, want)}
+                    'reason': 'the expected manifest names no usable instance id'}
+        if token is None:
+            return {'ok': False,
+                    'reason': 'record carries no explicit run_token; instance_id is '
+                              'NOT accepted as a substitute in this production path'}
+        if token != want or inst != want:
+            return {'ok': False,
+                    'reason': 'record run_token %r / instance_id %r must BOTH match '
+                              'the launched manifest %r; matching one while the '
+                              'other names a different instance lets unvalidated '
+                              'instance strings supply concurrency'
+                              % (token, inst, want)}
 
     # INTEGER MICROSECOND TRANSITIONS, and the ORDER VERIFIED rather than trusted.
     ts = {}

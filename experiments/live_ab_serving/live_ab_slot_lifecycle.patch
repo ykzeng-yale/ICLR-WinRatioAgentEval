@@ -20,7 +20,7 @@ index 9894f5f..f39d458 100644
      void update_prompt_start() {
          GGML_ASSERT(t_start == 0);
 diff --git a/tools/server/server-context.cpp b/tools/server/server-context.cpp
-index b6835e4..a64340a 100644
+index b6835e4..d8b4aab 100644
 --- a/tools/server/server-context.cpp
 +++ b/tools/server/server-context.cpp
 @@ -1,4 +1,6 @@
@@ -67,7 +67,7 @@ index b6835e4..a64340a 100644
  
              state = SLOT_STATE_IDLE;
  
-@@ -734,6 +759,166 @@ struct server_slot {
+@@ -734,6 +759,181 @@ struct server_slot {
      }
  };
  
@@ -93,9 +93,12 @@ index b6835e4..a64340a 100644
 +
 +static void live_ab_note_write_failure(const char * path, const char * what) {
 +    live_ab_write_failures.fetch_add(1);
-+    // Best effort, on a SEPARATE file, so a failing log cannot hide its own
-+    // failure by failing again. If this also fails the supervisor still sees a
-+    // missing seal and a sequence gap.
++    // BEST EFFORT, AND ONLY THAT. On a SEPARATE file so a failing log cannot
++    // hide its own failure by failing again -- but this writer does not check
++    // its own fprintf/flush/close either, and root is right that a separate
++    // filename does not make persistence reliable. The supervisor must retain
++    // process and side-channel failures independently; a missing seal and a
++    // sequence gap remain the checks that do not depend on this path.
 +    std::string err = std::string(path) + ".error";
 +    FILE * f = fopen(err.c_str(), "ab");
 +    if (f != nullptr) {
@@ -207,12 +210,24 @@ index b6835e4..a64340a 100644
 +            live_ab_note_write_failure(path, "seal_open");
 +            return;
 +        }
-+        fprintf(f, "{\"schema\":\"live_ab/acquisition_seal-v1\",\"run_token\":\"%s\","
++        // THE WRITE RESULT IS CAPTURED. Root, 2026-09-22 06:57: "the seal's
++        // fprintf(...) is still a bare call whose return is discarded. The
++        // claimed 'seal fprintf result is checked' IS NOT PRESENT."
++        // Correct: I claimed this repair in a commit message and had not made
++        // it -- a guarded replacement silently did not match and I did not look.
++        // fprintf returns the bytes written, or NEGATIVE on error; a short
++        // count means a truncated seal, which is worse than no seal because it
++        // parses as nothing while looking like something.
++        const int seal_written = fprintf(f,
++                   "{\"schema\":\"live_ab/acquisition_seal-v1\",\"run_token\":\"%s\","
 +                   "\"records\":%lld,\"write_failures\":%lld,\"t_us\":%lld,"
 +                   "\"clock\":\"clock_gettime(CLOCK_MONOTONIC)\"}\n",
 +                live_ab_run_token(), (long long) live_ab_seq.load(),
 +                (long long) live_ab_write_failures.load(),
 +                (long long) ggml_time_us());
++        if (seal_written <= 0) {
++            live_ab_note_write_failure(path, "seal_format");
++        }
 +        // FLUSH AND CLOSE ARE CHECKED INDEPENDENTLY. Root, 2026-09-22 06:16:
 +        // "The current fflush(...) || fclose(...) skips close on flush failure;
 +        // a later seal-close error is invisible to a reader that ignores the
@@ -234,7 +249,7 @@ index b6835e4..a64340a 100644
  // returns 0 on success
  // caller need to update prompt.tokens after a successful call to keep track of the processing progress
  // note: this is not a member of server_slot because we want to run it inside yield_to_queue
-@@ -1819,6 +2004,29 @@ private:
+@@ -1819,6 +2019,29 @@ private:
  
          slot.task = std::make_unique<const server_task>(std::move(task));
  

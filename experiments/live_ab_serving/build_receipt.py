@@ -87,8 +87,14 @@ def native_seal_fixture(tmp: Path) -> dict:
     out['reader_error'] = parsed['error']
     out['reader_rejected'] = parsed['rejected']
     out['reader_records'] = len(parsed['records'])
-    seals = [json.loads(l) for l in raw.splitlines()
-             if l.strip() and 'acquisition_seal' in l]
+    # USE THE PARSER'S SEALS, NOT MY OWN SPLITLINES. Root, 2026-09-22 06:57:
+    # a valid JSON seal WITHOUT ITS FINAL NEWLINE makes read_records return a
+    # mid-line error with rejected=[], while this generator's independent raw
+    # parse still finds the seal and passes its field checks -- so with rc 0 the
+    # verdict could again claim parser success although the parser REFUSED the
+    # log. Deriving the evidence separately from the thing being tested is how
+    # that happened.
+    seals = parsed['seals']
     out['seals'] = seals
     # ROOT, 2026-09-22 06:16: "Fix the receipt generator to require a SUCCESSFUL
     # CHILD EXIT and NO PARSER REJECTION for a seal-parser success claim."
@@ -99,19 +105,26 @@ def native_seal_fixture(tmp: Path) -> dict:
     # claim about what I hoped the reader did.
     child_ok = (run.get('rc') == 0)
     no_rejection = not parsed['rejected']
+    no_parser_error = parsed['error'] is None
+    seal_only = (len(seals) == 1 and parsed['records'] == []
+                 and not parsed['writer_errors'])
     contract_ok = bool(seals) and seals[0].get('run_token') == token \
         and seals[0].get('clock') == lab_lifecycle.CLOCK \
         and isinstance(seals[0].get('records'), int) \
         and seals[0].get('write_failures') == 0
     out['child_exit_ok'] = child_ok
     out['no_parser_rejection'] = no_rejection
+    out['no_parser_error'] = no_parser_error
+    out['seal_only_fixture_shape'] = seal_only
     out['seal_contract_ok'] = contract_ok
-    if child_ok and no_rejection and contract_ok:
+    if child_ok and no_rejection and no_parser_error and seal_only and contract_ok:
         out['verdict'] = 'SEAL WRITTEN BY THE BUILT BINARY AND PARSED'
     else:
         out['verdict'] = ('NOT a seal-parser success: child_exit_ok=%s, '
-                          'no_parser_rejection=%s, seal_contract_ok=%s'
-                          % (child_ok, no_rejection, contract_ok))
+                          'no_parser_rejection=%s, no_parser_error=%s, '
+                          'seal_only_fixture_shape=%s, seal_contract_ok=%s'
+                          % (child_ok, no_rejection, no_parser_error, seal_only,
+                             contract_ok))
     return out
 
 

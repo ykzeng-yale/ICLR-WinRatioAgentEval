@@ -3517,7 +3517,7 @@ class ServerLifecycleProducerConsumerTests(unittest.TestCase):
         rec = {'schema': 'live_ab/slot_lifecycle-v1', 'instance_id': instance,
                'slot_id': slot, 'task_id': task,
                'clock': clock or lab_lifecycle.CLOCK, 'units': units,
-               'host_id': 'host:bb', 'boot_id': 'boot:aa',
+               'run_token': instance,
                't_assigned_us': t_assigned, 't_prompt_start_us': t_prompt,
                't_gen_last_us': t_gen, 't_released_us': t_rel,
                'n_prompt_processed': 10, 'n_gen': 1024, 'complete': complete,
@@ -3678,7 +3678,7 @@ class LifecycleReaderWitnessTests(unittest.TestCase):
 
     def _emit(self, **kw):
         rec = {'schema': 'live_ab/slot_lifecycle-v1', 'instance_id': 'srv_1_2',
-               'host_id': 'host:bb', 'boot_id': 'boot:aa',
+               'run_token': 'srv_1_2',
                'clock': lab_lifecycle.CLOCK, 'units': 'microseconds',
                'slot_id': 0, 'task_id': 11,
                't_assigned_us': 99_000_000, 't_prompt_start_us': 99_100_000,
@@ -3725,7 +3725,7 @@ class LifecycleReaderWitnessTests(unittest.TestCase):
         o = self._obs()
         self.assertFalse(o['active'])
         self.assertEqual(len(o['records_refused']), 2)
-        self.assertIn('run token', o['records_refused'][0]['reason'])
+        self.assertIn('run_token', o['records_refused'][0]['reason'])
 
     def test_a_record_carrying_NO_host_or_boot_field_is_fine(self):
         """The emitted shape. A positive fixture must pass on bytes the
@@ -3822,7 +3822,7 @@ class ManifestObserverBindingTests(unittest.TestCase):
 
     def _emit(self, slot, task, host, boot):
         rec = {'schema': 'live_ab/slot_lifecycle-v1', 'instance_id': 'srv_X',
-               'host_id': host, 'boot_id': boot,
+               'run_token': 'srv_X', 'host_id': host, 'boot_id': boot,
                'clock': lab_lifecycle.CLOCK, 'units': 'microseconds',
                'slot_id': slot, 'task_id': task,
                't_assigned_us': 99_000_000, 't_prompt_start_us': 99_100_000,
@@ -3910,7 +3910,7 @@ class AcquisitionSealTests(unittest.TestCase):
 
     def _emit(self, slot, task, **kw):
         rec = {'schema': 'live_ab/slot_lifecycle-v1', 'instance_id': 'srv_1_2',
-               'host_id': 'host:bb', 'boot_id': 'boot:aa', 'seq': self._seq,
+               'run_token': 'srv_1_2', 'seq': self._seq,
                'clock': lab_lifecycle.CLOCK, 'units': 'microseconds',
                'slot_id': slot, 'task_id': task,
                't_assigned_us': 99_000_000, 't_prompt_start_us': 99_100_000,
@@ -4144,3 +4144,118 @@ class SequenceMultisetAndSidecarTests(unittest.TestCase):
         self.assertIn('sidecar', o['seal_problem'])
         self.assertEqual(len(o['sidecar_records']), 1)
         self.assertEqual(o['sidecar_records'][0]['stage'], 'seal_close')
+
+
+class TokenInstanceBindingTests(unittest.TestCase):
+    """Root's two 06:57 witnesses. Both certified before this repair.
+
+    The `or inst` fallback was mine, written to keep an old hand-authored fixture
+    passing. That is the worst reason to weaken a production check, and root
+    found both holes it opened.
+    """
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp(prefix='tok_'))
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.log = self.tmp / 'l.jsonl'
+        self._seq = 0
+        self.prov = {'boot_id': 'b', 'host_id': 'h', 'boot_source': 's',
+                     'host_source': 'p'}
+        self.expected = {'host_id': 'h', 'boot_id': 'b', 'instance_id': 'launched'}
+
+    def _emit(self, **kw):
+        rec = {'schema': 'live_ab/slot_lifecycle-v1', 'seq': self._seq,
+               'run_token': 'launched', 'instance_id': 'launched',
+               'slot_id': 0, 'task_id': 11,
+               'clock': lab_lifecycle.CLOCK, 'units': 'microseconds',
+               't_assigned_us': 99_000_000, 't_prompt_start_us': 99_100_000,
+               't_gen_last_us': 102_000_000, 't_released_us': 102_100_000,
+               'n_prompt_processed': 1, 'n_gen': 2, 'complete': True}
+        rec.update(kw)
+        self._seq += 1
+        with open(self.log, 'a', encoding='utf-8') as fh:
+            fh.write(json.dumps(rec, separators=(',', ':')) + '\n')
+
+    def _seal(self):
+        with open(self.log, 'a', encoding='utf-8') as fh:
+            fh.write(json.dumps({'schema': 'live_ab/acquisition_seal-v1',
+                                 'run_token': 'launched', 'records': self._seq,
+                                 'write_failures': 0, 't_us': 1,
+                                 'clock': lab_lifecycle.CLOCK},
+                                separators=(',', ':')) + '\n')
+
+    def _obs(self):
+        return lab_lifecycle.observe(self.log, provenance=self.prov,
+                                     expected=self.expected)
+
+    def test_control_two_slots_with_both_ids_certify(self):
+        self._emit(slot_id=0, task_id=11)
+        self._emit(slot_id=1, task_id=12)
+        self._seal()
+        o = self._obs()
+        self.assertTrue(o['active'], o.get('reason'))
+        self.assertTrue(o['lifecycle_complete'])
+
+    def test_witness_1_a_record_with_NO_run_token_no_longer_falls_back(self):
+        """"Delete run_token from otherwise valid current-format records. Both
+        records still certify by falling back to instance_id. No explicit
+        production schema authorizes this legacy substitution." """
+        for slot, task in ((0, 11), (1, 12)):
+            rec = {'schema': 'live_ab/slot_lifecycle-v1', 'seq': self._seq,
+                   'instance_id': 'launched', 'slot_id': slot, 'task_id': task,
+                   'clock': lab_lifecycle.CLOCK, 'units': 'microseconds',
+                   't_assigned_us': 99_000_000, 't_prompt_start_us': 99_100_000,
+                   't_gen_last_us': 102_000_000, 't_released_us': 102_100_000,
+                   'n_prompt_processed': 1, 'n_gen': 2, 'complete': True}
+            self._seq += 1
+            with open(self.log, 'a', encoding='utf-8') as fh:
+                fh.write(json.dumps(rec, separators=(',', ':')) + '\n')
+        self._seal()
+        o = self._obs()
+        self.assertFalse(o['active'])
+        self.assertIn('NOT accepted as a substitute',
+                      o['records_refused'][0]['reason'])
+
+    def test_witness_2_a_valid_token_cannot_carry_foreign_instances(self):
+        """"Keep the valid expected token on both records, but set both slot IDs
+        to 0 and instance IDs to other_instance_0 and other_instance_1 ... Actual
+        result: complete=true, coverage valid=true, observed concurrency=2."
+
+        Two instances the single launched instance does not identify, supplying
+        the concurrency the rule exists to require.
+        """
+        self._emit(slot_id=0, task_id=11, instance_id='other_instance_0')
+        self._emit(slot_id=0, task_id=12, instance_id='other_instance_1')
+        self._seal()
+        o = self._obs()
+        self.assertFalse(o['active'])
+        self.assertEqual(len(o['records_refused']), 2)
+        self.assertIn('must BOTH match', o['records_refused'][0]['reason'])
+
+    def test_a_placeholder_token_is_not_a_token(self):
+        """One record poisoned, one clean. The clean one still yields a window,
+        so `active` stays true -- but the acquisition is NOT complete and the
+        poisoned record is refused by name. Asserting on `active` here would have
+        been asserting the wrong field: a single surviving window is not a
+        certification, and the concurrency rule is what refuses it downstream."""
+        for bad in (None, '', 'unknown', 'none'):
+            with self.subTest(bad=bad):
+                self.log.unlink(missing_ok=True)
+                self._seq = 0
+                self._emit(slot_id=0, task_id=11, run_token=bad)
+                self._emit(slot_id=1, task_id=12)
+                self._seal()
+                o = self._obs()
+                self.assertEqual(len(o['records_refused']), 1)
+                self.assertFalse(o['lifecycle_complete'])
+                self.assertEqual(len(o['active_windows']), 1)
+                v = lab_prepare._coverage_verdict(o, {
+                    'interval_schema': lab_prepare.INTERVAL_SCHEMA_V3,
+                    'verification_started_monotonic': 100.0,
+                    'verification_ended_monotonic': 100.5,
+                    'verification_started_posix_ns': 100_000_000_000,
+                    'verification_ended_posix_ns': 100_500_000_000,
+                    'clock_domain_posix': lab_lifecycle.CLOCK,
+                    'boot_id': 'b', 'host_id': 'h',
+                    'boot_source': 's', 'host_source': 'p'})
+                self.assertFalse(v['valid'])
