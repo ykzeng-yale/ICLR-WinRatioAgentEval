@@ -1509,8 +1509,8 @@ every 64-hex token in this document and requires the *recorded pin* to be among 
 current successor in full would therefore make the tempting "fix" — rewriting
 `provenance.vocabulary_alignment.sha256` to the current file's digest — pass a check that must
 refuse it. I wrote the full values here first and the mutated-original-pin test caught exactly that
-weakening. The full digests live in `cells.json` and in the amendment document, neither of which is
-parsed by this rule. The successor mapping in `cells.json` records
+weakening. The full digests live in **`cells.json`** (and are quoted in the amendment document);
+neither is parsed by this rule. The successor mapping in `cells.json` records
 both; the original pin is **not** replaced. Full statement, including the correction to an earlier
 description that flattened the two transitions into one: [`PIN_AMENDMENT_20260922.md`](PIN_AMENDMENT_20260922.md).
 Authorized by root 2026-09-22 04:27 (`reviews/protocol_pin_disposition_20260922_0422.md`).

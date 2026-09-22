@@ -81,6 +81,36 @@ class LifecycleRefused(lab_common.PreflightError):
     """The lifecycle evidence cannot support an observation."""
 
 
+#: ggml_time_us() truncates to whole microseconds, so a recorded start may be up
+#: to one microsecond EARLIER than the transition it names. Root, 2026-09-22
+#: 04:59: "account for the one-microsecond ggml_time_us quantization ... by
+#: moving the server start INWARD, keeping its end conservative and recording the
+#: bound. Do not infer zero error from the absence of network delivery error."
+QUANTIZATION_US = 1
+
+#: Values that are not identifiers, however many of them agree.
+PLACEHOLDER_IDS = frozenset({'', 'none', 'null', 'unknown', 'n/a', '-'})
+
+
+def _typed_id(value: object, field: str) -> Optional[str]:
+    """A non-placeholder identifier, or None. Absence is never an identity.
+
+    Root's witness: with instance and task omitted from both records, the reader
+    built ``None/slot0/taskNone`` and ``None/slot1/taskNone`` and COUNTED THEM AS
+    TWO LIFETIMES -- string construction turning absence into countable identity.
+    """
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return str(value)
+    if isinstance(value, str):
+        v = value.strip()
+        return v if v and v.lower() not in PLACEHOLDER_IDS else None
+    return None
+
+
 def _finite(x: object) -> Optional[float]:
     try:
         v = float(x)                                    # type: ignore[arg-type]
@@ -126,8 +156,18 @@ def read_records(path: "str | Path") -> Dict[str, Any]:
     return {'records': records, 'rejected': rejected, 'error': None}
 
 
-def window_from_record(rec: dict) -> Dict[str, Any]:
-    """One record -> one certified window, or a refusal with its reason."""
+def window_from_record(rec: dict, *, expected: Optional[dict] = None) -> Dict[str, Any]:
+    """One record -> one certified window, or a refusal with its reason.
+
+    ``expected`` is the run manifest the supervisor persisted before dispatch:
+    the binary, the patch, the host and kernel-boot digests and the server
+    instance identity it launched. The record is compared against it. Root,
+    2026-09-22 04:59: "the reader compares it to the expected manifest and
+    verifier provenance INSTEAD OF INVENTING A SOURCE IDENTITY FROM ITS OWN
+    PROCESS" -- which is exactly what the first version did, stamping the
+    caller's provenance onto whatever file it was handed, so a copied log or one
+    from a previous boot read as local and current.
+    """
     if rec.get('clock') != CLOCK:
         return {'ok': False, 'reason': 'record is on clock %r, not %r'
                                        % (rec.get('clock'), CLOCK)}
@@ -140,40 +180,117 @@ def window_from_record(rec: dict) -> Dict[str, Any]:
         return {'ok': False, 'reason': 'incomplete lifecycle (a transition was not '
                                        'observed); an occupancy missing a transition '
                                        'is not an interval'}
-    lo = _finite(rec.get('t_prompt_start_us'))
-    hi = _finite(rec.get('t_gen_last_us'))
-    if lo is None or hi is None:
-        return {'ok': False, 'reason': 'inner endpoints are missing or nonfinite '
-                                       '(%r, %r)' % (rec.get('t_prompt_start_us'),
-                                                     rec.get('t_gen_last_us'))}
+    # TYPED, NON-PLACEHOLDER IDENTIFIERS. Absence is not an identity.
+    inst = _typed_id(rec.get('instance_id'), 'instance_id')
+    slot = _typed_id(rec.get('slot_id'), 'slot_id')
+    task = _typed_id(rec.get('task_id'), 'task_id')
+    missing = [n for n, v in (('instance_id', inst), ('slot_id', slot),
+                              ('task_id', task)) if v is None]
+    if missing:
+        return {'ok': False, 'reason': 'record carries no usable %s; an absent '
+                                       'identifier is not an identity and must not '
+                                       'be spelled into one' % ', '.join(missing)}
+
+    # PROVENANCE IS COMPARED, NOT STAMPED.
+    if expected is not None:
+        for field in ('host_id', 'boot_id', 'instance_id'):
+            want, got = expected.get(field), (inst if field == 'instance_id'
+                                              else _typed_id(rec.get(field), field))
+            if want is None or got is None or want != got:
+                return {'ok': False,
+                        'reason': 'record %s %r does not match the launched run '
+                                  'manifest %r; a log that cannot be bound to the '
+                                  'producer the supervisor started is not evidence '
+                                  'about this host or this boot' % (field, got, want)}
+
+    # INTEGER MICROSECOND TRANSITIONS, and the ORDER VERIFIED rather than trusted.
+    ts = {}
+    for name in ('t_assigned_us', 't_prompt_start_us', 't_gen_last_us',
+                 't_released_us'):
+        v = rec.get(name)
+        if not isinstance(v, int) or isinstance(v, bool):
+            return {'ok': False, 'reason': '%s is not an integer microsecond '
+                                           'reading (%r)' % (name, v)}
+        ts[name] = v
+    ordered = (ts['t_assigned_us'] <= ts['t_prompt_start_us']
+               <= ts['t_gen_last_us'] <= ts['t_released_us'])
+    if not ordered:
+        # Root's witness: complete=true with assignment AFTER release still
+        # certified. "A boolean does not independently validate the record's
+        # consistency."
+        return {'ok': False,
+                'reason': 'the four transitions are not ordered '
+                          '(assigned %d, prompt %d, gen_last %d, released %d); the '
+                          "record's own complete flag does not validate it"
+                          % (ts['t_assigned_us'], ts['t_prompt_start_us'],
+                             ts['t_gen_last_us'], ts['t_released_us'])}
+    lo, hi = ts['t_prompt_start_us'], ts['t_gen_last_us']
     if hi <= lo:
         return {'ok': False, 'reason': 'inner interval is empty or reversed '
                                        '(%r -> %r)' % (lo, hi)}
-    ident = '%s/slot%s/task%s' % (rec.get('instance_id'), rec.get('slot_id'),
-                                  rec.get('task_id'))
+
+    # QUANTIZATION, INWARD. A truncated start may name an instant up to one
+    # microsecond before the transition, so the start moves later; the end is
+    # left where it is, which is the conservative direction for both.
+    lo_q = lo + QUANTIZATION_US
+    if hi <= lo_q:
+        return {'ok': False,
+                'reason': 'the inner interval does not survive the %d us '
+                          'quantization allowance' % QUANTIZATION_US}
+    ident = '%s/slot%s' % (inst, slot)          # the OCCUPIED SLOT, not the task
     return {'ok': True, 'window': {
         'schema': 'live_ab/lifecycle_window-v1',
         # MICROSECONDS -> SECONDS, stated rather than implied. The verifier's
         # POSIX endpoints are integer nanoseconds; both land on seconds here and
         # the conversion is explicit on each side.
-        'start': lo / 1e6, 'end': hi / 1e6,
+        'start': lo_q / 1e6, 'end': hi / 1e6,
         'identity': ident,
+        'lifetime_identity': '%s/task%s' % (ident, task),
+        'quantization_allowance_us': QUANTIZATION_US,
+        'raw_inner_start_us': lo,
         'bracket': 'inner (t_prompt_start_us .. t_gen_last_us); the outer bracket '
                    't_assigned_us .. t_released_us is wider and is NOT used',
-        'outer_start': _finite(rec.get('t_assigned_us')),
-        'outer_end': _finite(rec.get('t_released_us')),
+        'outer_start': ts['t_assigned_us'],
+        'outer_end': ts['t_released_us'],
         'n_gen': rec.get('n_gen'),
         'means': 'an occupied decoding slot, NOT uninterrupted hardware utilization',
     }}
 
 
+def _overlaps_on_one_slot(windows: List[dict]) -> Optional[str]:
+    """Two occupancies of the SAME slot that overlap in time.
+
+    Root's witness: same instance, same slot, two different task ids, overlapping
+    -- counted as TWO concurrent lifetimes. One slot cannot be occupied twice at
+    once, so such a pair is not two loads; it is a record set that cannot be
+    true, and "request labels can inflate slot concurrency" is exactly the way a
+    concurrency requirement gets met without the concurrency.
+    """
+    by_slot: Dict[str, List[dict]] = {}
+    for w in windows:
+        by_slot.setdefault(w['identity'], []).append(w)
+    for ident, ws in by_slot.items():
+        ws = sorted(ws, key=lambda x: x['start'])
+        for a, b in zip(ws, ws[1:]):
+            if b['start'] < a['end']:
+                return ('slot %s reports two overlapping occupancies (%s and %s); '
+                        'one slot cannot be occupied twice at once'
+                        % (ident, a.get('lifetime_identity'),
+                           b.get('lifetime_identity')))
+    return None
+
+
 def observe(path: "str | Path", *, concurrency_required: int = 2,
+            expected: Optional[dict] = None,
             provenance: Optional[dict] = None) -> Dict[str, Any]:
     """The observation ``lab_prepare.run_reference_sweep`` consumes.
 
-    ``provenance`` defaults to this process's own, which is the correct default
-    only because the server runs on this host: the whole point of the named clock
-    is that a reading from another host or another boot is not on this timeline.
+    ``expected`` is the run manifest the supervisor persisted BEFORE dispatch.
+    When it is supplied every record is bound to it. When it is not, the records
+    are read but the observation is marked ``producer_bound: False`` and carries
+    no certifying claim about which producer wrote them -- the first version
+    silently stamped this process's provenance onto any file it was handed, so a
+    copied log or one from a previous boot read as local and current.
     """
     prov = provenance if provenance is not None else lab_data.clock_provenance()
     parsed = read_records(path)
@@ -187,6 +304,10 @@ def observe(path: "str | Path", *, concurrency_required: int = 2,
         'boot_source': prov.get('boot_source'),
         'host_source': prov.get('host_source'),
         'concurrency_required': int(concurrency_required),
+        'producer_bound': expected is not None,
+        'expected_manifest': ({k: expected.get(k) for k in
+                               ('host_id', 'boot_id', 'instance_id', 'binary_sha256',
+                                'patch_sha256')} if expected else None),
         'source_patch': PATCH_PATH,
         'source_base_rev': PATCHED_BASE_REV,
         'records_read': len(parsed['records']),
@@ -198,7 +319,7 @@ def observe(path: "str | Path", *, concurrency_required: int = 2,
 
     windows, refused = [], []
     for i, rec in enumerate(parsed['records']):
-        got = window_from_record(rec)
+        got = window_from_record(rec, expected=expected)
         if got['ok']:
             windows.append(got['window'])
         else:
@@ -212,6 +333,17 @@ def observe(path: "str | Path", *, concurrency_required: int = 2,
     # for, and lifecycle_complete is false -- which the consumer treats as a
     # refusal that RETAINS the attempt rather than excluding a task.
     complete = not refused and not parsed['rejected']
+    overlap = _overlaps_on_one_slot(windows)
+    if overlap is not None:
+        base['impossible_overlap'] = overlap
+        return dict(base, active=False, lifecycle_complete=False,
+                    active_windows=[], reason=overlap)
+    if expected is None:
+        # Unbound records are readable and are NOT certifying evidence.
+        complete = False
+        base['unbound_reason'] = ('no run manifest was supplied, so these records '
+                                  'are not bound to the producer the supervisor '
+                                  'launched')
     if not windows:
         return dict(base, active=False, lifecycle_complete=False, active_windows=[],
                     reason='no complete slot occupancy is recorded (%d record(s) '
@@ -221,8 +353,12 @@ def observe(path: "str | Path", *, concurrency_required: int = 2,
                 window_id='lifecycle:%s:%d' % (
                     parsed['records'][0].get('instance_id'), len(windows)),
                 endpoint_error_s=0.0,
-                endpoint_error_basis='the endpoints ARE the server\'s own transition '
-                                     'timestamps, not observations of them, so there '
-                                     'is no client-side delivery error to bound. The '
-                                     'inner bracket already discards the prompt-bind '
-                                     'and release edges.')
+                endpoint_error_basis=(
+                    'ZERO here does NOT mean "no error": the %d us ggml_time_us '
+                    'quantization is already charged against each window by moving '
+                    'its START INWARD in window_from_record, so charging it again '
+                    'here would double it. The endpoints are the server\'s own '
+                    'transition timestamps rather than observations of them, so '
+                    'there is no client-side delivery error to bound -- root, '
+                    '2026-09-22: "Do not infer zero error from the absence of '
+                    'network delivery error."' % QUANTIZATION_US))

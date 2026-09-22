@@ -3499,6 +3499,12 @@ class ServerLifecycleProducerConsumerTests(unittest.TestCase):
         self.prov = {'boot_id': 'boot:aa', 'host_id': 'host:bb',
                      'boot_source': 'sysctl kern.bootsessionuuid',
                      'host_source': 'platform.node'}
+        # The run manifest the supervisor persists BEFORE dispatch. Root
+        # 2026-09-22 04:59: the reader compares records against this instead of
+        # stamping its own process's provenance onto whatever file it is handed.
+        self.expected = {'host_id': 'host:bb', 'boot_id': 'boot:aa',
+                         'instance_id': 'srv_1_2',
+                         'binary_sha256': 'b' * 64, 'patch_sha256': 'p' * 64}
 
     def _emit(self, *, slot, task, t_assigned, t_prompt, t_gen, t_rel,
               complete=True, instance='srv_1_2', clock=None, units='microseconds'):
@@ -3506,6 +3512,7 @@ class ServerLifecycleProducerConsumerTests(unittest.TestCase):
         rec = {'schema': 'live_ab/slot_lifecycle-v1', 'instance_id': instance,
                'slot_id': slot, 'task_id': task,
                'clock': clock or lab_lifecycle.CLOCK, 'units': units,
+               'host_id': 'host:bb', 'boot_id': 'boot:aa',
                't_assigned_us': t_assigned, 't_prompt_start_us': t_prompt,
                't_gen_last_us': t_gen, 't_released_us': t_rel,
                'n_prompt_processed': 10, 'n_gen': 1024, 'complete': complete,
@@ -3533,7 +3540,8 @@ class ServerLifecycleProducerConsumerTests(unittest.TestCase):
                    t_gen=102_000_000, t_rel=102_100_000)
         self._emit(slot=1, task=12, t_assigned=99_050_000, t_prompt=99_150_000,
                    t_gen=102_050_000, t_rel=102_150_000)
-        obs = lab_lifecycle.observe(self.log, provenance=self.prov)
+        obs = lab_lifecycle.observe(self.log, provenance=self.prov,
+                                    expected=self.expected)
         self.assertTrue(obs['active'])
         self.assertTrue(obs['lifecycle_complete'])
         self.assertEqual(len(obs['active_windows']), 2)
@@ -3544,7 +3552,8 @@ class ServerLifecycleProducerConsumerTests(unittest.TestCase):
     def test_ONE_occupancy_does_not_certify_however_long_it_is(self):
         self._emit(slot=0, task=11, t_assigned=1, t_prompt=90_000_000,
                    t_gen=110_000_000, t_rel=110_100_000)
-        obs = lab_lifecycle.observe(self.log, provenance=self.prov)
+        obs = lab_lifecycle.observe(self.log, provenance=self.prov,
+                                    expected=self.expected)
         v = lab_prepare._coverage_verdict(obs, self._attempt(100.0, 100.5))
         self.assertFalse(v['valid'])
         self.assertIn('distinct lifetime', v['reason'])
@@ -3555,9 +3564,15 @@ class ServerLifecycleProducerConsumerTests(unittest.TestCase):
                    t_gen=102_000_000, t_rel=102_500_000)
         self._emit(slot=1, task=12, t_assigned=99_000_000, t_prompt=100_200_000,
                    t_gen=102_000_000, t_rel=102_500_000)
-        obs = lab_lifecycle.observe(self.log, provenance=self.prov)
+        # start is charged the 1 us quantization inward
+        obs = lab_lifecycle.observe(self.log, provenance=self.prov,
+                                    expected=self.expected)
         w = obs['active_windows'][0]
-        self.assertAlmostEqual(w['start'], 100.2)           # inner, not 99.0
+        # inner, not the outer 99.0 -- and charged the 1 us quantization INWARD
+        self.assertAlmostEqual(w['start'], 100.200001, places=6)
+        self.assertEqual(w['raw_inner_start_us'], 100_200_000)
+        self.assertEqual(w['quantization_allowance_us'],
+                         lab_lifecycle.QUANTIZATION_US)
         self.assertAlmostEqual(w['end'], 102.0)             # inner, not 102.5
         v = lab_prepare._coverage_verdict(obs, self._attempt(100.0, 100.5))
         self.assertFalse(v['valid'])                        # outer would have passed
@@ -3568,7 +3583,8 @@ class ServerLifecycleProducerConsumerTests(unittest.TestCase):
                    t_gen=102_000_000, t_rel=102_100_000)
         self._emit(slot=1, task=12, t_assigned=99_000_000, t_prompt=99_100_000,
                    t_gen=0, t_rel=102_100_000, complete=False)
-        obs = lab_lifecycle.observe(self.log, provenance=self.prov)
+        obs = lab_lifecycle.observe(self.log, provenance=self.prov,
+                                    expected=self.expected)
         self.assertFalse(obs['lifecycle_complete'])
         self.assertEqual(len(obs['records_refused']), 1)
         self.assertIn('incomplete lifecycle', obs['records_refused'][0]['reason'])
@@ -3579,7 +3595,8 @@ class ServerLifecycleProducerConsumerTests(unittest.TestCase):
     def test_a_record_on_another_clock_is_refused(self):
         self._emit(slot=0, task=11, t_assigned=1, t_prompt=99_100_000,
                    t_gen=102_000_000, t_rel=102_100_000, clock='time.monotonic')
-        obs = lab_lifecycle.observe(self.log, provenance=self.prov)
+        obs = lab_lifecycle.observe(self.log, provenance=self.prov,
+                                    expected=self.expected)
         self.assertFalse(obs['active'])
         self.assertIn('not', obs['records_refused'][0]['reason'])
 
@@ -3588,12 +3605,14 @@ class ServerLifecycleProducerConsumerTests(unittest.TestCase):
                    t_gen=102_000_000, t_rel=102_100_000)
         with open(self.log, 'a', encoding='utf-8') as fh:
             fh.write('{"schema":"live_ab/slot_lifecycle-v1","instance_id":"srv')
-        obs = lab_lifecycle.observe(self.log, provenance=self.prov)
+        obs = lab_lifecycle.observe(self.log, provenance=self.prov,
+                                    expected=self.expected)
         self.assertFalse(obs['active'])
         self.assertIn('still writing', obs['reason'])
 
     def test_an_absent_log_is_an_absence_not_an_empty_success(self):
-        obs = lab_lifecycle.observe(self.tmp / 'nothing.jsonl', provenance=self.prov)
+        obs = lab_lifecycle.observe(self.tmp / 'nothing.jsonl', provenance=self.prov,
+                                    expected=self.expected)
         self.assertFalse(obs['active'])
         self.assertFalse(obs['lifecycle_complete'])
 
@@ -3604,7 +3623,8 @@ class ServerLifecycleProducerConsumerTests(unittest.TestCase):
         self._emit(slot=1, task=12, t_assigned=1, t_prompt=99_100_000,
                    t_gen=102_000_000, t_rel=102_100_000)
         obs = lab_lifecycle.observe(
-            self.log, provenance=dict(self.prov, host_id='host:ELSEWHERE'))
+            self.log, provenance=dict(self.prov, host_id='host:ELSEWHERE'),
+            expected=self.expected)
         v = lab_prepare._coverage_verdict(obs, self._attempt(100.0, 100.5))
         self.assertFalse(v['valid'])
         self.assertIn('host identity differs', v['reason'])
@@ -3618,3 +3638,105 @@ class ServerLifecycleProducerConsumerTests(unittest.TestCase):
         self.assertIn('slot_lifecycle-v1', text)
         self.assertIn('clock_gettime(CLOCK_MONOTONIC)', text)
         self.assertEqual(len(lab_lifecycle.PATCHED_BASE_REV), 40)
+
+
+class LifecycleReaderWitnessTests(unittest.TestCase):
+    """Root's six independent witnesses, 2026-09-22 04:59. Every one of them
+    CERTIFIED before this repair. They are kept as the regression set."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp(prefix='lcw_'))
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.log = self.tmp / 'lifecycle.jsonl'
+        self.expected = {'host_id': 'host:bb', 'boot_id': 'boot:aa',
+                         'instance_id': 'srv_1_2'}
+        self.prov = {'boot_id': 'boot:aa', 'host_id': 'host:bb',
+                     'boot_source': 's', 'host_source': 'p'}
+
+    def _emit(self, **kw):
+        rec = {'schema': 'live_ab/slot_lifecycle-v1', 'instance_id': 'srv_1_2',
+               'host_id': 'host:bb', 'boot_id': 'boot:aa',
+               'clock': lab_lifecycle.CLOCK, 'units': 'microseconds',
+               'slot_id': 0, 'task_id': 11,
+               't_assigned_us': 99_000_000, 't_prompt_start_us': 99_100_000,
+               't_gen_last_us': 102_000_000, 't_released_us': 102_100_000,
+               'n_prompt_processed': 10, 'n_gen': 1024, 'complete': True}
+        rec.update(kw)
+        with open(self.log, 'a', encoding='utf-8') as fh:
+            fh.write(json.dumps(rec, separators=(',', ':')) + '\n')
+
+    def _obs(self, **kw):
+        kw.setdefault('expected', self.expected)
+        return lab_lifecycle.observe(self.log, provenance=self.prov, **kw)
+
+    def test_witness_positive_control_still_certifies(self):
+        self._emit(slot_id=0, task_id=11)
+        self._emit(slot_id=1, task_id=12)
+        o = self._obs()
+        self.assertTrue(o['active'])
+        self.assertTrue(o['lifecycle_complete'])
+        self.assertTrue(o['producer_bound'])
+
+    def test_witness_foreign_provenance_is_no_longer_overwritten(self):
+        """"observe ignores record provenance and stamps the caller's ... a
+        copied/previous-boot log cannot be bound to its actual producer." """
+        self._emit(slot_id=0, task_id=11, host_id='host:FOREIGN')
+        self._emit(slot_id=1, task_id=12, boot_id='boot:OTHERBOOT')
+        o = self._obs()
+        self.assertFalse(o['active'])
+        self.assertEqual(len(o['records_refused']), 2)
+        self.assertIn('run manifest', o['records_refused'][0]['reason'])
+
+    def test_witness_absent_identifiers_are_not_spelled_into_identities(self):
+        """Built "None/slot0/taskNone" and counted it as a lifetime."""
+        self._emit(slot_id=0, task_id=None, instance_id=None)
+        self._emit(slot_id=1, task_id=None, instance_id=None)
+        o = self._obs()
+        self.assertFalse(o['active'])
+        self.assertIn('not an identity', o['records_refused'][0]['reason'])
+
+    def test_witness_unordered_transitions_are_refused_despite_complete_true(self):
+        """"complete=true, but assignment is after release" still certified.
+        A boolean does not validate the record."""
+        self._emit(slot_id=0, task_id=11, t_assigned_us=103_000_000, complete=True)
+        self._emit(slot_id=1, task_id=12)
+        o = self._obs()
+        self.assertEqual(len(o['records_refused']), 1)
+        self.assertIn('not ordered', o['records_refused'][0]['reason'])
+        self.assertFalse(o['lifecycle_complete'])
+
+    def test_witness_one_slot_cannot_be_occupied_twice_at_once(self):
+        """"Same instance and same slot, two overlapping task IDs" counted as two
+        concurrent lifetimes. Request labels inflating slot concurrency."""
+        self._emit(slot_id=0, task_id=11)
+        self._emit(slot_id=0, task_id=12)          # SAME slot, overlapping
+        o = self._obs()
+        self.assertFalse(o['active'])
+        self.assertIn('cannot be occupied twice', o['reason'])
+
+    def test_witness_quantization_is_charged_inward_not_assumed_zero(self):
+        """"The POSIX producer truncates nanoseconds ... the asserted zero-error
+        bound can include time before actual prompt processing." """
+        self._emit(slot_id=0, task_id=11, t_prompt_start_us=100_000_000)
+        self._emit(slot_id=1, task_id=12, t_prompt_start_us=100_000_000)
+        o = self._obs()
+        w = o['active_windows'][0]
+        self.assertGreater(w['start'] * 1e6, w['raw_inner_start_us'])
+        self.assertIn('does NOT mean', o['endpoint_error_basis'])
+
+    def test_an_unbound_read_is_readable_but_never_certifying(self):
+        self._emit(slot_id=0, task_id=11)
+        self._emit(slot_id=1, task_id=12)
+        o = lab_lifecycle.observe(self.log, provenance=self.prov)   # no manifest
+        self.assertFalse(o['producer_bound'])
+        self.assertFalse(o['lifecycle_complete'])
+        v = lab_prepare._coverage_verdict(o, {
+            'interval_schema': lab_prepare.INTERVAL_SCHEMA_V3,
+            'verification_started_monotonic': 100.0,
+            'verification_ended_monotonic': 100.5,
+            'verification_started_posix_ns': 100_000_000_000,
+            'verification_ended_posix_ns': 100_500_000_000,
+            'clock_domain_posix': lab_lifecycle.CLOCK,
+            'boot_id': 'boot:aa', 'host_id': 'host:bb',
+            'boot_source': 's', 'host_source': 'p'})
+        self.assertFalse(v['valid'])

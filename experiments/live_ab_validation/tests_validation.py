@@ -2892,8 +2892,11 @@ def _run() -> int:
     return 0 if result.wasSuccessful() else 1
 
 
-if __name__ == "__main__":
-    raise SystemExit(_run())
+# NOTE (root, 2026-09-22 04:59): this entrypoint used to sit ABOVE
+# PinSuccessorAmendmentTests, so `python tests_validation.py` discovered 184
+# tests while `unittest discover` saw 190. A file whose test count depends on how
+# it is invoked will eventually be reported at the smaller number. Moved below
+# every class so both routes see the same set.
 
 
 class PinSuccessorAmendmentTests(unittest.TestCase):
@@ -2978,3 +2981,7 @@ class PinSuccessorAmendmentTests(unittest.TestCase):
         self._va(cfg)['superseded_by']['sha256'] = self.PREVIOUS   # the old one
         self.assertNotEqual(
             self._vocab_failures(self._run(cfg, manifest, protocol)), [])
+
+
+if __name__ == "__main__":
+    raise SystemExit(_run())
