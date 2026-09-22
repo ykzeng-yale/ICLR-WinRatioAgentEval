@@ -1593,6 +1593,36 @@ layout is already correct is **not established** here.
 **separate clone** so a real `git add`/commit/branch/push could not disturb the live tree; clone
 removed afterwards.
 
+### The integrity label had three limbs in config and the code read two (2026-09-22, `07fc138`)
+
+`deterministic-path`. `config.integrity_label_rule` declares **three** limbs —
+`coin_adjacent_events`, **`sandwich_violations`**, `pairs_with_terminal_failure` — and
+`build_live_ab_results` computed the label from the **first and third only**. `sandwich_violations`
+was declared in the frozen configuration and **read by no code**: a trial whose only integrity signal
+was a sandwich violation would have been reported **not integrity-qualified**, in every table and
+sentence, exactly as protocol 12.6 item 4 forbids.
+
+**`sandwich_audit`** — for consecutive anchor receipts,
+`|Δcreated_at − Δt_wall| <= 30 + p95`. A **constant clock offset cancels** in that difference of
+differences, which is why the audit is stated on pairs; a test shifts every server stamp by 600 s and
+asserts the verdict does not move.
+
+**It refuses when the second term is not pinned.** `anchor.posting_latency_p95_s` is `null` until the
+drill value is pinned in Appendix A. Treating null as zero would run the audit at 30 s instead of
+30 + p95 — *tighter* than the protocol, so it would **manufacture** violations rather than hide them,
+but still a number the protocol did not authorise. **Unknown is reported as unknown.**
+
+**An uncomputable limb does not make the label False.** The report carries
+`integrity_label_determined=false` with a caveat naming the unevaluated limb, rather than a clean
+negative.
+
+**`gap_report`** — gaps above 5 s not covered by an open `llm_request`, sandbox execution or
+`/metrics` scrape. Finding N3's false-FAIL case is the point: a 10 s sandbox run is a **covered** gap.
+A missing or unparsable `created_at` is **skipped and counted as examined**, not treated as clean.
+
+10 new tests. Suites: design **296**, chain 70, isolation 12, serving 89, hostcheck 117, stats 70,
+e2e 42.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
