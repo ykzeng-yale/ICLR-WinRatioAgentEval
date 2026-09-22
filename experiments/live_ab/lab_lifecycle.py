@@ -293,6 +293,37 @@ def observe(path: "str | Path", *, concurrency_required: int = 2,
     copied log or one from a previous boot read as local and current.
     """
     prov = provenance if provenance is not None else lab_data.clock_provenance()
+
+    # THE LINK ROOT'S WITNESS BROKE, 2026-09-22 05:42:
+    #   "Our independent witness uses FOREIGN RECORDS PLUS A MATCHING FOREIGN
+    #    MANIFEST, with local observer/verifier provenance, and still obtains
+    #    producer_bound=true, lifecycle_complete=true, coverage_valid=true.
+    #    Records-to-manifest comparison alone does not close the original
+    #    copied-log finding."
+    #
+    # Exactly right, and the shape of the error is familiar: I checked that two
+    # things AGREE WITH EACH OTHER without checking that either is the thing it
+    # claims to be. A foreign log and a foreign manifest agree perfectly. The
+    # manifest must therefore be tied to INDEPENDENTLY MEASURED observer
+    # provenance before anything it vouches for can certify; the existing
+    # observer-to-verifier check then completes the chain.
+    manifest_mismatch = None
+    if expected is not None:
+        for field in ('host_id', 'boot_id'):
+            want, got = expected.get(field), prov.get(field)
+            if not isinstance(want, str) or not want or \
+                    want.strip().lower() in PLACEHOLDER_IDS:
+                manifest_mismatch = ('the expected manifest carries no usable %s '
+                                     '(%r)' % (field, want))
+                break
+            if want != got:
+                manifest_mismatch = (
+                    'the expected manifest names %s %r but this observer measured '
+                    '%r. A manifest that agrees with its own records proves only '
+                    'that they were written together, not that they were written '
+                    'HERE on THIS boot.' % (field, want, got))
+                break
+
     parsed = read_records(path)
     base: Dict[str, Any] = {
         'schema': OBSERVATION_SCHEMA,
@@ -304,7 +335,17 @@ def observe(path: "str | Path", *, concurrency_required: int = 2,
         'boot_source': prov.get('boot_source'),
         'host_source': prov.get('host_source'),
         'concurrency_required': int(concurrency_required),
-        'producer_bound': expected is not None,
+        'producer_bound': expected is not None and manifest_mismatch is None,
+        'manifest_bound_to_observer': expected is not None and manifest_mismatch is None,
+        # Root, 2026-09-22 05:42: "Binary/patch fields are presently echoed
+        # metadata, and sequence/seal validation is not yet implemented in the
+        # reader: label these PENDING until the planned producer/consumer
+        # completion." Labelled here rather than implied by their presence.
+        'pending_not_yet_validated': ['binary_sha256 and patch_sha256 are ECHOED '
+                                      'METADATA, not verified against the running '
+                                      'binary',
+                                      'record sequence numbers and the closing seal '
+                                      'are not yet emitted or validated'],
         'expected_manifest': ({k: expected.get(k) for k in
                                ('host_id', 'boot_id', 'instance_id', 'binary_sha256',
                                 'patch_sha256')} if expected else None),
@@ -313,6 +354,11 @@ def observe(path: "str | Path", *, concurrency_required: int = 2,
         'records_read': len(parsed['records']),
         'records_rejected_by_parser': parsed['rejected'],
     }
+    if manifest_mismatch is not None:
+        # A refused attempt, retained -- never a task exclusion.
+        base['manifest_mismatch'] = manifest_mismatch
+        return dict(base, active=False, lifecycle_complete=False,
+                    active_windows=[], reason=manifest_mismatch)
     if parsed['error']:
         return dict(base, active=False, lifecycle_complete=False,
                     active_windows=[], reason=parsed['error'])

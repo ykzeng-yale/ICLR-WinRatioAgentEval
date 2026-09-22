@@ -20,10 +20,17 @@ index 9894f5f..f39d458 100644
      void update_prompt_start() {
          GGML_ASSERT(t_start == 0);
 diff --git a/tools/server/server-context.cpp b/tools/server/server-context.cpp
-index b6835e4..3173acf 100644
+index b6835e4..8cc9637 100644
 --- a/tools/server/server-context.cpp
 +++ b/tools/server/server-context.cpp
-@@ -236,6 +236,22 @@ struct server_batch {
+@@ -1,4 +1,6 @@
+ #include "server-context.h"
++
++#include <atomic>
+ #include "server-chat.h"
+ #include "server-common.h"
+ #include "server-http.h"
+@@ -236,6 +238,22 @@ struct server_batch {
      }
  };
  
@@ -46,7 +53,7 @@ index b6835e4..3173acf 100644
  struct server_slot {
      int id;
  
-@@ -548,6 +564,13 @@ struct server_slot {
+@@ -548,6 +566,13 @@ struct server_slot {
              SLT_INF(*this, "stop processing: n_tokens = %d, truncated = %d\n", prompt.n_tokens(), truncated);
  
              t_last_used = ggml_time_us();
@@ -60,11 +67,47 @@ index b6835e4..3173acf 100644
  
              state = SLOT_STATE_IDLE;
  
-@@ -734,6 +757,69 @@ struct server_slot {
+@@ -734,6 +759,150 @@ struct server_slot {
      }
  };
  
 +// LIVE_AB lifecycle emitter -- definition. See the declaration above.
++// The supervisor's opaque launch token, echoed but never interpreted.
++// Root, 2026-09-22 05:42: "Hand the producer that run/instance token and bound
++// identity; echo it in its records and closing seal ... No need to add another
++// host-digest implementation inside the server." The server proves only that it
++// was launched by that manifest; it does not measure host or boot identity, and
++// this is correlation under a trusted local launch path, not proof that a token
++// could not be invented.
++static const char * live_ab_run_token() {
++    static const char * tok = getenv("LIVE_AB_RUN_TOKEN");
++    return (tok && tok[0]) ? tok : "";
++}
++
++// A persistent acquisition-invalid state. Root: "The producer must not silently
++// lose failed writes ... propagate a persistent acquisition-invalid state to the
++// supervisor. If the log cannot record its own failure, the supervisor must
++// retain the error/process failure and refuse that acquisition."
++static std::atomic<long long> live_ab_seq{0};
++static std::atomic<long long> live_ab_write_failures{0};
++
++static void live_ab_note_write_failure(const char * path, const char * what) {
++    live_ab_write_failures.fetch_add(1);
++    // Best effort, on a SEPARATE file, so a failing log cannot hide its own
++    // failure by failing again. If this also fails the supervisor still sees a
++    // missing seal and a sequence gap.
++    std::string err = std::string(path) + ".error";
++    FILE * f = fopen(err.c_str(), "ab");
++    if (f != nullptr) {
++        fprintf(f, "{\"schema\":\"live_ab/acquisition_error-v1\",\"stage\":\"%s\","
++                   "\"t_us\":%lld,\"failures\":%lld}\n",
++                what, (long long) ggml_time_us(),
++                (long long) live_ab_write_failures.load());
++        fflush(f);
++        fclose(f);
++    }
++}
++
 +static void live_ab_emit_lifecycle(const server_slot & slot) {
 +    static const char * path = getenv("LIVE_AB_LIFECYCLE_LOG");
 +    if (path == nullptr || path[0] == '\0') {
@@ -72,6 +115,10 @@ index b6835e4..3173acf 100644
 +    }
 +    static std::mutex mtx;           // one writer at a time; slots release concurrently
 +    static const std::string instance_id = [] {
++        const char * tok = live_ab_run_token();
++        if (tok[0]) {
++            return std::string(tok);     // the supervisor names the instance
++        }
 +        char buf[64];
 +        snprintf(buf, sizeof(buf), "srv_%lld_%d",
 +                 (long long) ggml_time_us(), (int) getpid());
@@ -87,9 +134,11 @@ index b6835e4..3173acf 100644
 +                          slot.stats.t_gen_last >= slot.stats.t_start &&
 +                          slot.stats.t_released >= slot.stats.t_gen_last;
 +
-+    char line[1024];
++    const long long seq = live_ab_seq.fetch_add(1);
++    char line[1280];
 +    const int n = snprintf(line, sizeof(line),
-+        "{\"schema\":\"live_ab/slot_lifecycle-v1\","
++        "{\"schema\":\"live_ab/slot_lifecycle-v1\",\"seq\":%lld,"
++        "\"run_token\":\"%s\","
 +        "\"instance_id\":\"%s\",\"slot_id\":%d,\"task_id\":%d,"
 +        "\"clock\":\"clock_gettime(CLOCK_MONOTONIC)\",\"units\":\"microseconds\","
 +        "\"t_assigned_us\":%lld,\"t_prompt_start_us\":%lld,"
@@ -97,7 +146,7 @@ index b6835e4..3173acf 100644
 +        "\"n_prompt_processed\":%llu,\"n_gen\":%llu,"
 +        "\"complete\":%s,\"means\":\"occupied decoding slot, not uninterrupted "
 +        "hardware utilization\"}\n",
-+        instance_id.c_str(), slot.id,
++        seq, live_ab_run_token(), instance_id.c_str(), slot.id,
 +        slot.task ? slot.task->id : -1,
 +        (long long) slot.stats.t_assigned, (long long) slot.stats.t_start,
 +        (long long) slot.stats.t_gen_last, (long long) slot.stats.t_released,
@@ -105,12 +154,14 @@ index b6835e4..3173acf 100644
 +        (unsigned long long) slot.stats.n_gen,
 +        complete ? "true" : "false");
 +    if (n <= 0 || n >= (int) sizeof(line)) {
++        live_ab_note_write_failure(path, "format");
 +        return;                      // never emit a truncated record
 +    }
 +
 +    std::lock_guard<std::mutex> lock(mtx);
 +    FILE * f = fopen(path, "ab");
 +    if (f == nullptr) {
++        live_ab_note_write_failure(path, "open");
 +        return;
 +    }
 +    // Write until every byte is accepted, then flush: a partially written record
@@ -119,21 +170,76 @@ index b6835e4..3173acf 100644
 +    while (off < (size_t) n) {
 +        const size_t w = fwrite(line + off, 1, (size_t) n - off, f);
 +        if (w == 0) {
++            live_ab_note_write_failure(path, "write");
 +            break;
 +        }
 +        off += w;
 +    }
-+    fflush(f);
-+    fclose(f);
++    if (off < (size_t) n) {
++        fclose(f);
++        return;                      // partial bytes preserved, failure recorded
++    }
++    if (fflush(f) != 0) {
++        live_ab_note_write_failure(path, "flush");
++    }
++    if (fclose(f) != 0) {
++        live_ab_note_write_failure(path, "close");
++    }
 +}
++
++// THE CLOSING SEAL. A newline-terminated subset of records is not a complete
++// acquisition: without a seal the reader cannot tell a finished log from one
++// whose writer died. Emitted from a static destructor so it runs on ordinary
++// process exit; a crash leaves NO seal, which is the correct signal.
++struct live_ab_seal_writer {
++    ~live_ab_seal_writer() {
++        const char * path = getenv("LIVE_AB_LIFECYCLE_LOG");
++        if (path == nullptr || path[0] == '\0') {
++            return;
++        }
++        FILE * f = fopen(path, "ab");
++        if (f == nullptr) {
++            live_ab_note_write_failure(path, "seal_open");
++            return;
++        }
++        fprintf(f, "{\"schema\":\"live_ab/acquisition_seal-v1\",\"run_token\":\"%s\","
++                   "\"records\":%lld,\"write_failures\":%lld,\"t_us\":%lld,"
++                   "\"clock\":\"clock_gettime(CLOCK_MONOTONIC)\"}\n",
++                live_ab_run_token(), (long long) live_ab_seq.load(),
++                (long long) live_ab_write_failures.load(),
++                (long long) ggml_time_us());
++        if (fflush(f) != 0 || fclose(f) != 0) {
++            live_ab_note_write_failure(path, "seal_write");
++        }
++    }
++};
++static live_ab_seal_writer live_ab_seal_writer_instance;
 +
  // returns 0 on success
  // caller need to update prompt.tokens after a successful call to keep track of the processing progress
  // note: this is not a member of server_slot because we want to run it inside yield_to_queue
-@@ -1819,6 +1905,11 @@ private:
+@@ -1819,6 +1988,29 @@ private:
  
          slot.task = std::make_unique<const server_task>(std::move(task));
  
++        // LIVE_AB: n=1 ONLY while instrumented. Root, 2026-09-22 04:59: "use
++        // single-completion n=1 per generation request, with at least two
++        // distinct occupied slots ... assert the setting, retain the pinned
++        // upstream child-copy limitation, and refuse unsupported
++        // multi-completion requests." A child copy shares its parent's
++        // assignment moment, so its occupancy interval would be attributed to a
++        // transition this slot did not make.
++        if (getenv("LIVE_AB_LIFECYCLE_LOG") != nullptr &&
++            (slot.task->is_parent() || slot.task->is_child())) {
++            send_error(*slot.task, "live_ab lifecycle instrumentation requires "
++                                   "n=1 per generation request; multi-completion "
++                                   "child copies are refused rather than recorded "
++                                   "with a borrowed assignment timestamp",
++                       ERROR_TYPE_INVALID_REQUEST);
++            slot.release();
++            return false;
++        }
++
 +        // LIVE_AB: the OUTER start of this slot's occupancy, stamped after the
 +        // task is bound and before any prompt work. The conservative INNER start
 +        // is slot.stats.t_start, set when prompt processing actually begins.

@@ -3617,7 +3617,11 @@ class ServerLifecycleProducerConsumerTests(unittest.TestCase):
         self.assertFalse(obs['lifecycle_complete'])
 
     # -- provenance ----------------------------------------------------------
-    def test_a_cross_host_observation_does_not_certify(self):
+    def test_an_observer_on_another_host_does_not_certify(self):
+        """The observer measures a host the launch manifest does not name, so the
+        manifest is not bound to this observer and nothing it vouches for
+        certifies. Before root's 05:42 witness this reached the verifier check
+        and failed there; it now fails one link earlier, which is the point."""
         self._emit(slot=0, task=11, t_assigned=1, t_prompt=99_100_000,
                    t_gen=102_000_000, t_rel=102_100_000)
         self._emit(slot=1, task=12, t_assigned=1, t_prompt=99_100_000,
@@ -3625,9 +3629,9 @@ class ServerLifecycleProducerConsumerTests(unittest.TestCase):
         obs = lab_lifecycle.observe(
             self.log, provenance=dict(self.prov, host_id='host:ELSEWHERE'),
             expected=self.expected)
+        self.assertFalse(obs['manifest_bound_to_observer'])
         v = lab_prepare._coverage_verdict(obs, self._attempt(100.0, 100.5))
         self.assertFalse(v['valid'])
-        self.assertIn('host identity differs', v['reason'])
 
     # -- the patch this reader is the counterpart of -------------------------
     def test_the_patch_exists_and_names_its_base_revision(self):
@@ -3740,3 +3744,80 @@ class LifecycleReaderWitnessTests(unittest.TestCase):
             'boot_id': 'boot:aa', 'host_id': 'host:bb',
             'boot_source': 's', 'host_source': 'p'})
         self.assertFalse(v['valid'])
+
+
+class ManifestObserverBindingTests(unittest.TestCase):
+    """Root's 05:42 witness: foreign records PLUS a matching foreign manifest,
+    with local observer/verifier provenance, still obtained producer_bound=true,
+    lifecycle_complete=true, coverage_valid=true.
+
+    The error shape: I checked that two things AGREE WITH EACH OTHER without
+    checking that either is what it claims to be. A foreign log and a foreign
+    manifest agree perfectly.
+    """
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp(prefix='mob_'))
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.log = self.tmp / 'lifecycle.jsonl'
+        self.local = {'boot_id': 'boot:LOCAL', 'host_id': 'host:LOCAL',
+                      'boot_source': 's', 'host_source': 'p'}
+
+    def _emit(self, slot, task, host, boot):
+        rec = {'schema': 'live_ab/slot_lifecycle-v1', 'instance_id': 'srv_X',
+               'host_id': host, 'boot_id': boot,
+               'clock': lab_lifecycle.CLOCK, 'units': 'microseconds',
+               'slot_id': slot, 'task_id': task,
+               't_assigned_us': 99_000_000, 't_prompt_start_us': 99_100_000,
+               't_gen_last_us': 102_000_000, 't_released_us': 102_100_000,
+               'n_prompt_processed': 10, 'n_gen': 1024, 'complete': True}
+        with open(self.log, 'a', encoding='utf-8') as fh:
+            fh.write(json.dumps(rec, separators=(',', ':')) + '\n')
+
+    def test_a_foreign_log_with_its_OWN_matching_manifest_does_not_certify(self):
+        """The witness, exactly."""
+        self._emit(0, 11, 'host:FOREIGN', 'boot:FOREIGN')
+        self._emit(1, 12, 'host:FOREIGN', 'boot:FOREIGN')
+        foreign_manifest = {'host_id': 'host:FOREIGN', 'boot_id': 'boot:FOREIGN',
+                            'instance_id': 'srv_X'}
+        o = lab_lifecycle.observe(self.log, provenance=self.local,
+                                  expected=foreign_manifest)
+        self.assertFalse(o['active'])
+        self.assertFalse(o['producer_bound'])
+        self.assertFalse(o['manifest_bound_to_observer'])
+        self.assertIn('written HERE on THIS boot', o['reason'])
+
+    def test_a_local_log_with_a_local_manifest_still_certifies(self):
+        """The control: the new link must not refuse the legitimate case."""
+        self._emit(0, 11, 'host:LOCAL', 'boot:LOCAL')
+        self._emit(1, 12, 'host:LOCAL', 'boot:LOCAL')
+        o = lab_lifecycle.observe(
+            self.log, provenance=self.local,
+            expected={'host_id': 'host:LOCAL', 'boot_id': 'boot:LOCAL',
+                      'instance_id': 'srv_X'})
+        self.assertTrue(o['active'])
+        self.assertTrue(o['manifest_bound_to_observer'])
+
+    def test_a_manifest_with_a_placeholder_identity_does_not_certify(self):
+        self._emit(0, 11, 'host:LOCAL', 'boot:LOCAL')
+        self._emit(1, 12, 'host:LOCAL', 'boot:LOCAL')
+        for bad in (None, '', 'unknown'):
+            with self.subTest(bad=bad):
+                o = lab_lifecycle.observe(
+                    self.log, provenance=self.local,
+                    expected={'host_id': bad, 'boot_id': 'boot:LOCAL',
+                              'instance_id': 'srv_X'})
+                self.assertFalse(o['producer_bound'])
+
+    def test_the_pending_items_are_LABELLED_not_implied_to_be_checked(self):
+        """Root: "label these pending until the planned producer/consumer
+        completion." An unlabelled echoed field reads as a verified one."""
+        self._emit(0, 11, 'host:LOCAL', 'boot:LOCAL')
+        self._emit(1, 12, 'host:LOCAL', 'boot:LOCAL')
+        o = lab_lifecycle.observe(
+            self.log, provenance=self.local,
+            expected={'host_id': 'host:LOCAL', 'boot_id': 'boot:LOCAL',
+                      'instance_id': 'srv_X'})
+        pending = ' '.join(o['pending_not_yet_validated'])
+        self.assertIn('ECHOED METADATA', pending)
+        self.assertIn('seal', pending)

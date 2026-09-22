@@ -36,6 +36,20 @@ if str(LAB) not in sys.path:
 
 import lab_common                                              # noqa: E402
 
+# TWO DIFFERENT QUESTIONS, and an earlier version of the pre-build check let one
+# masquerade as the other:
+#
+#   (a) may a TRIAL run?  Protocol 5.7.2: no, if any non-baseline accelerator
+#       consumer is PRESENT, regardless of its CPU share.
+#   (b) may a BUILD run?  A compile loads no weights and starts no serving
+#       experiment, so 5.7.2 does not govern it. What governs it is that a
+#       parallel C++ build saturates the cores of a SHARED host, which would
+#       degrade a peer's measured block.
+#
+# Both can refuse, for different reasons, and the reason must be named. A build
+# refused "because 5.7.2" would be wrong about its own rule; a build allowed
+# "because 5.7.2 does not apply" would ignore the peer it disturbs.
+
 #: The process names protocol 5.7.2's presence test is about.
 CONSUMER_RE = re.compile(r'llama-server|llama\.cpp|mlx|ollama|vllm', re.I)
 
