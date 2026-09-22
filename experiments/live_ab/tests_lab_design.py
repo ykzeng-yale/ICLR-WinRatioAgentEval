@@ -4483,3 +4483,100 @@ class TmpdirPolicyTests(unittest.TestCase):
         change."""
         src = Path(lab_common.HERE / 'tests_lab_serving.py').read_text('utf-8')
         self.assertIn("'tmpdir': lab_common.PRESCRIBED_TMPDIR_TOKEN", src)
+
+
+class SandwichAuditAndLabelTests(unittest.TestCase):
+    """Protocol 12.6 item 4, and the label limb this repository declared and
+    never evaluated.
+
+    `config.integrity_label_rule` carries THREE limbs -- coin_adjacent_events,
+    sandwich_violations, pairs_with_terminal_failure -- and
+    `build_live_ab_results` computed the label from the first and the third
+    only. A trial whose ONLY integrity signal was a sandwich violation would
+    have been reported as NOT integrity-qualified.
+    """
+
+    def setUp(self):
+        import build_live_ab_results as B
+        self.B = B
+
+    def _receipt(self, seq, created_at, t_wall_ns):
+        return {'type': 'anchor_receipt', 'seq': seq, 't_wall_ns': t_wall_ns,
+                'body': {'anchor_seq': seq, 'created_at': created_at}}
+
+    # -- the refusal when the second term is not pinned ---------------------
+    def test_an_unpinned_p95_makes_the_audit_REFUSE_not_assume_zero(self):
+        a = self.B.sandwich_audit([], 30, None)
+        self.assertFalse(a['computable'])
+        self.assertIsNone(a['violations'])
+        self.assertIn('UNKNOWN, not zero', a['reason'])
+
+    def test_an_uncomputable_limb_does_not_make_the_label_False(self):
+        """"Not integrity-qualified" is not a conclusion an unevaluated limb
+        supports."""
+        src = inspect.getsource(self.B)
+        self.assertIn('label_determined = sandwich[\'computable\'] or label', src)
+        self.assertIn('integrity_label_caveat', src)
+
+    # -- the arithmetic ------------------------------------------------------
+    def test_a_constant_offset_cancels_in_the_difference_of_differences(self):
+        """The audit is stated on consecutive pairs precisely so a fixed clock
+        offset disappears. Shift every server stamp by +600 s and the verdict
+        must not move."""
+        base = [self._receipt(1, '2026-09-22T00:00:00Z', 0),
+                self._receipt(2, '2026-09-22T00:00:10Z', 10_000_000_000)]
+        shifted = [self._receipt(1, '2026-09-22T00:10:00Z', 0),
+                   self._receipt(2, '2026-09-22T00:10:10Z', 10_000_000_000)]
+        a = self.B.sandwich_audit(base, 30, 1.0)
+        b = self.B.sandwich_audit(shifted, 30, 1.0)
+        self.assertEqual(a['violation_count'], b['violation_count'])
+        self.assertEqual(a['rows'][0]['difference_s'], b['rows'][0]['difference_s'])
+
+    def test_a_violation_is_detected_past_the_tolerance(self):
+        ev = [self._receipt(1, '2026-09-22T00:00:00Z', 0),
+              self._receipt(2, '2026-09-22T00:01:00Z', 0)]   # 60 s server, 0 s wall
+        a = self.B.sandwich_audit(ev, 30, 1.0)
+        self.assertEqual(a['violation_count'], 1)
+        self.assertGreater(a['rows'][0]['difference_s'], a['tolerance_s'])
+
+    def test_within_tolerance_is_not_a_violation(self):
+        ev = [self._receipt(1, '2026-09-22T00:00:00Z', 0),
+              self._receipt(2, '2026-09-22T00:00:10Z', 8_000_000_000)]
+        a = self.B.sandwich_audit(ev, 30, 1.0)
+        self.assertEqual(a['violation_count'], 0)
+
+    def test_a_missing_or_unparsable_stamp_is_SKIPPED_not_counted_as_clean(self):
+        ev = [self._receipt(1, None, 0),
+              self._receipt(2, '2026-09-22T00:00:10Z', 10_000_000_000)]
+        a = self.B.sandwich_audit(ev, 30, 1.0)
+        self.assertIn('skipped', a['rows'][0])
+        self.assertEqual(a['violation_count'], 0)
+        self.assertEqual(a['pairs_compared'], 1)   # the pair is COUNTED as examined
+
+    # -- the gap report ------------------------------------------------------
+    def test_a_gap_covered_by_an_open_sandbox_run_is_not_reported(self):
+        """Finding N3's false-FAIL case: a 10 s sandbox run is a covered gap."""
+        ev = [{'type': 'sandbox_started', 'seq': 1, 't_wall_ns': 0},
+              {'type': 'sandbox_ended', 'seq': 2, 't_wall_ns': 10_000_000_000}]
+        g = self.B.gap_report(ev, 5.0)
+        self.assertEqual(g['gaps_above_threshold'], 1)
+        self.assertEqual(g['covered_gaps'], 1)
+        self.assertEqual(g['reported_gaps'], [])
+
+    def test_an_uncovered_gap_IS_reported(self):
+        ev = [{'type': 'pair_enrolled', 'seq': 1, 't_wall_ns': 0},
+              {'type': 'pair_enrolled', 'seq': 2, 't_wall_ns': 10_000_000_000}]
+        g = self.B.gap_report(ev, 5.0)
+        self.assertEqual(len(g['reported_gaps']), 1)
+        self.assertAlmostEqual(g['reported_gaps'][0]['seconds'], 10.0)
+
+    def test_a_gap_below_the_threshold_is_not_a_gap(self):
+        ev = [{'type': 'pair_enrolled', 'seq': 1, 't_wall_ns': 0},
+              {'type': 'pair_enrolled', 'seq': 2, 't_wall_ns': 3_000_000_000}]
+        self.assertEqual(self.B.gap_report(ev, 5.0)['gaps_above_threshold'], 0)
+
+    # -- the limb is actually wired -----------------------------------------
+    def test_the_sandwich_limb_is_read_from_the_config_rule(self):
+        src = inspect.getsource(self.B)
+        self.assertIn("rule.get('sandwich_violations'", src)
+        self.assertIn('or sandwich_limb', src)

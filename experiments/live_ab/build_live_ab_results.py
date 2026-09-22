@@ -293,8 +293,22 @@ def integrity_object(events: Sequence[Mapping], cfg: Mapping) -> dict:
     anchors = [e for e in events if e['type'] == 'anchor']
     receipted = {int(e['body']['anchor_seq']) for e in events
                  if e['type'] in ('anchor_receipt', 'anchor_failed')}
+    anchor_cfg = dict(dict(cfg).get('anchor') or {})
+    sandwich = sandwich_audit(events,
+                              anchor_cfg.get('sandwich_tolerance_s', 30),
+                              anchor_cfg.get('posting_latency_p95_s'))
+    gaps = gap_report(events, float(anchor_cfg.get('gap_report_s', 5)))
+    # THE THIRD LIMB, which this file declared in config and never evaluated.
+    sandwich_limb = (sandwich['violations'] is not None
+                     and len(sandwich['violations'])
+                     >= int(rule.get('sandwich_violations', 1)))
     label = (coin_adjacent >= int(rule.get('coin_adjacent_events', 1))
+             or sandwich_limb
              or len(pairs_with_terminal) >= int(rule.get('pairs_with_terminal_failure', 3)))
+    # An UNCOMPUTABLE limb does not make the label False. If the sandwich audit
+    # could not run, "not integrity-qualified" is not a conclusion this data
+    # supports, and the report says so rather than presenting a clean label.
+    label_determined = sandwich['computable'] or label
     return {
         'coin_adjacent_events': coin_adjacent,
         'coin_adjacency_scope': str(rule.get('coin_adjacency_scope',
@@ -311,8 +325,123 @@ def integrity_object(events: Sequence[Mapping], cfg: Mapping) -> dict:
         'unreceipted_anchors': sum(1 for e in anchors
                                    if int(e['body']['anchor_seq']) not in receipted),
         'integrity_qualified': bool(label),
+        'integrity_label_determined': bool(label_determined),
+        'integrity_label_caveat': (None if label_determined else
+                                   'the sandwich limb could not be evaluated, so '
+                                   'a negative label is NOT established by this '
+                                   'data'),
+        'sandwich_audit': sandwich,
+        'gap_report': gaps,
         'label_rule': rule,
     }
+
+
+
+# ---------------------------------------------------------------------------
+# The time-sandwich audit and the gap report (protocol 12.6 item 4)
+# ---------------------------------------------------------------------------
+# THE LABEL RULE HAS THREE LIMBS AND THIS FILE EVALUATED TWO. config.json's
+# integrity_label_rule declares coin_adjacent_events, sandwich_violations AND
+# pairs_with_terminal_failure; the label computed below read the first and the
+# third and never the second. A trial whose ONLY integrity signal was a sandwich
+# violation would have been reported as not integrity-qualified -- a declared
+# rule limb that no code evaluated.
+
+
+def sandwich_audit(events: list, rule_tolerance_s, posting_latency_p95_s) -> dict:
+    """Protocol 12.6 item 4, for consecutive anchor receipts k and k+1:
+
+        | (created_at[k+1] - created_at[k]) - (t_wall[k+1] - t_wall[k]) |
+            <= sandwich_tolerance_s + posting_latency_p95_s
+
+    A CONSTANT clock offset cancels in the difference of differences, which is
+    why the audit is stated on consecutive pairs rather than on levels.
+
+    IF THE SECOND TERM IS NOT PINNED, THIS REFUSES TO COMPUTE. config carries
+    anchor.posting_latency_p95_s = null until the drill's value is pinned in
+    Appendix A. Treating null as zero would silently run the audit at a
+    tolerance of 30 s instead of 30 + p95 -- tighter than the protocol, so it
+    would manufacture violations rather than hide them, but it would still be a
+    number the protocol did not authorise. Unknown is reported as unknown.
+    """
+    out: dict = {'tolerance_s_base': rule_tolerance_s,
+                 'posting_latency_p95_s': posting_latency_p95_s}
+    if posting_latency_p95_s is None:
+        out.update(computable=False, violations=None, pairs_compared=0,
+                   reason=('anchor.posting_latency_p95_s is not pinned, so the '
+                           'tolerance 30 + p95 is undefined. The audit is NOT '
+                           'run and its result is UNKNOWN, not zero.'))
+        return out
+    tol = float(rule_tolerance_s) + float(posting_latency_p95_s)
+    receipts = [e for e in events if e['type'] == 'anchor_receipt']
+    rows, violations = [], []
+    for a, b in zip(receipts, receipts[1:]):
+        ca, cb = a['body'].get('created_at'), b['body'].get('created_at')
+        wa, wb = a.get('t_wall_ns'), b.get('t_wall_ns')
+        if ca is None or cb is None or wa is None or wb is None:
+            rows.append({'from': a.get('seq'), 'to': b.get('seq'),
+                         'skipped': 'missing created_at or t_wall_ns'})
+            continue
+        import datetime as _dt
+        try:
+            sa = _dt.datetime.fromisoformat(str(ca).replace('Z', '+00:00')).timestamp()
+            sb = _dt.datetime.fromisoformat(str(cb).replace('Z', '+00:00')).timestamp()
+        except ValueError:
+            rows.append({'from': a.get('seq'), 'to': b.get('seq'),
+                         'skipped': 'unparsable created_at'})
+            continue
+        d_server = sb - sa
+        d_wall = (int(wb) - int(wa)) / 1e9
+        delta = abs(d_server - d_wall)
+        row = {'from': a.get('seq'), 'to': b.get('seq'),
+               'server_delta_s': d_server, 'wall_delta_s': d_wall,
+               'difference_s': delta, 'tolerance_s': tol,
+               'violation': delta > tol}
+        rows.append(row)
+        if row['violation']:
+            violations.append(row)
+    out.update(computable=True, tolerance_s=tol, pairs_compared=len(rows),
+               rows=rows, violations=violations,
+               violation_count=len(violations))
+    return out
+
+
+def gap_report(events: list, gap_report_s: float = 5.0) -> dict:
+    """Every gap above ``gap_report_s`` between consecutive events that is NOT
+    covered by an open ``llm_request``, an open sandbox execution or an open
+    ``/metrics`` scrape.
+
+    Finding N3's false-FAIL case is the whole point: a 10 s sandbox run is a
+    COVERED gap, and reporting it would be a false alarm.
+    """
+    OPENERS = {'llm_request': 'llm_response',
+               'sandbox_started': 'sandbox_ended',
+               'metrics_scrape_started': 'metrics_scrape_ended'}
+    open_kinds: dict = {}
+    gaps = []
+    prev = None
+    for e in events:
+        t = e.get('t_wall_ns')
+        kind = e.get('type')
+        if prev is not None and t is not None and prev[1] is not None:
+            delta = (int(t) - int(prev[1])) / 1e9
+            if delta > gap_report_s:
+                covered = sorted(k for k, n in open_kinds.items() if n > 0)
+                gaps.append({'after_seq': prev[0], 'before_seq': e.get('seq'),
+                             'seconds': delta, 'covered_by': covered,
+                             'reported': not covered})
+        if kind in OPENERS:
+            open_kinds[kind] = open_kinds.get(kind, 0) + 1
+        for opener, closer in OPENERS.items():
+            if kind == closer and open_kinds.get(opener):
+                open_kinds[opener] -= 1
+        prev = (e.get('seq'), t)
+    reported = [g for g in gaps if g['reported']]
+    return {'gap_report_s': gap_report_s, 'gaps_above_threshold': len(gaps),
+            'covered_gaps': len(gaps) - len(reported),
+            'reported_gaps': reported,
+            'note': 'a gap covered by an open request, sandbox run or scrape is '
+                    'NOT reported -- finding N3 false-FAIL case'}
 
 
 def posthoc_object(pairs: list[dict]) -> dict:
