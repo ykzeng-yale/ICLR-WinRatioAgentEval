@@ -1,0 +1,52 @@
+{
+  "source_commit": "3f6cc56e4f889870920ea37e294a7b455f799fa7",
+  "results": [
+    {
+      "case": "producer_shape",
+      "lifecycle_complete": false,
+      "coverage_valid": false,
+      "seal_problem": null,
+      "records_refused": [
+        {
+          "index": 0,
+          "reason": "record host_id None does not match the launched run manifest 'host:bb'; a log that cannot be bound to the producer the supervisor started is not evidence about this host or this boot",
+          "slot_id": 0,
+          "task_id": 11
+        },
+        {
+          "index": 1,
+          "reason": "record host_id None does not match the launched run manifest 'host:bb'; a log that cannot be bound to the producer the supervisor started is not evidence about this host or this boot",
+          "slot_id": 1,
+          "task_id": 12
+        }
+      ],
+      "writer_errors": []
+    },
+    {
+      "case": "duplicate_seq",
+      "lifecycle_complete": true,
+      "coverage_valid": true,
+      "seal_problem": null,
+      "records_refused": [],
+      "writer_errors": []
+    },
+    {
+      "case": "extra_seq",
+      "lifecycle_complete": true,
+      "coverage_valid": true,
+      "seal_problem": null,
+      "records_refused": [],
+      "writer_errors": []
+    },
+    {
+      "case": "sidecar_failure",
+      "lifecycle_complete": true,
+      "coverage_valid": true,
+      "seal_problem": null,
+      "records_refused": [],
+      "writer_errors": []
+    }
+  ],
+  "executed_witness_source": "import sys,json\nfrom pathlib import Path\nsys.dont_write_bytecode=True\nsys.path.insert(0,'experiments/live_ab')\nimport tests_lab_design as t\nout=[]\nfor case in ['producer_shape','duplicate_seq','extra_seq','sidecar_failure']:\n f=t.AcquisitionSealTests();f.setUp()\n try:\n  f._emit(0,11);f._emit(1,12)\n  rows=[json.loads(s) for s in f.log.read_text().splitlines()]\n  if case=='producer_shape':\n   for r in rows:\n    r.pop('host_id');r.pop('boot_id');r['run_token']='srv_1_2'\n  if case=='duplicate_seq':\n   rows[1]['seq']=0\n  f.log.write_text(''.join(json.dumps(r)+'\\n' for r in rows))\n  f._seal(records=1 if case in ['duplicate_seq','extra_seq'] else 2)\n  if case=='sidecar_failure':\n   Path(str(f.log)+'.error').write_text('{\"schema\":\"live_ab/acquisition_error-v1\",\"stage\":\"seal_write\",\"t_us\":103000001,\"failures\":1}\\n')\n  o=f._obs()\n  rec=t.ServerLifecycleProducerConsumerTests()._attempt(100,100.5)\n  v=t.lab_prepare._coverage_verdict(o,rec)\n  out.append({'case':case,'lifecycle_complete':o['lifecycle_complete'],'coverage_valid':v['valid'],'seal_problem':o.get('seal_problem'),'records_refused':o.get('records_refused'),'writer_errors':o.get('writer_errors')})\n finally:f.doCleanups()\nprint(json.dumps({'source_commit':'3f6cc56e4f889870920ea37e294a7b455f799fa7','results':out},indent=2))\n",
+  "execution_scope": "Immutable Python export only; synthetic file fixtures, no native binary/model/server. Source text reproduced here after execution; no repeat."
+}
