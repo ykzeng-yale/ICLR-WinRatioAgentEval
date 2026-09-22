@@ -235,8 +235,55 @@ def post(session, token: str, issue: int, body: str) -> dict:
     return rec
 
 
+def analyse_only(drill_id: str, issue: int | None) -> int:
+    """Rebuild a receipt from an existing attempt sink. POSTS NOTHING.
+
+    Used after the deposit defect above: the evidence is on disk, so re-running
+    the postings to obtain a receipt would have been the wrong repair -- it would
+    have doubled a finite, authorized 20-posting drill to obtain a file.
+    """
+    sink = Sink(Path(lab_common.RESULTS_ROOT) / ('ANCHOR_DRILL_ATTEMPTS_%s.jsonl'
+                                                 % drill_id))
+    if not sink.path.exists():
+        print('no sink for %s' % drill_id, file=sys.stderr)
+        return 2
+    receipt = {
+        'schema': 'live_ab/anchor_drill_receipt-v1',
+        'generated_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
+        'protocol': '12.4 item 10',
+        'authority': 'root 2026-09-22 02:49, reviews/live_load_root_decision_'
+                     '20260922_0237.md line 31 (option b, dedicated drill issue)',
+        'amendment_record': {'path': AMENDMENT, **_amendment_is_committed()},
+        'drill_id': drill_id,
+        'postings_planned': POSTINGS,
+        'executed': True,
+        'rebuilt_from_sink': True,
+        'why_rebuilt': 'the executed run deposited its postings durably but raised '
+                       'WriteOnceViolation on the receipt path, which the dry run '
+                       'had already occupied. The postings are the evidence and they '
+                       'survived; the drill was NOT repeated to obtain a file.',
+        'identifier_scan': {'hits': 0,
+                            'note': 'run before posting; recorded in the dry-run '
+                                    'receipt for the same bodies'},
+    }
+    if issue is not None:
+        receipt['drill_issue'] = {
+            'number': issue,
+            'url': 'https://github.com/%s/issues/%d' % (OWNER_REPO, issue)}
+    receipt['attempts_sink'] = lab_common.tokenize_path(sink.path)
+    _deposit(receipt, sink)
+    return 0
+
+
 def main(argv=None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
+    if '--analyse-only' in argv:
+        i = argv.index('--analyse-only')
+        drill_id = argv[i + 1]
+        issue = None
+        if '--issue' in argv:
+            issue = int(argv[argv.index('--issue') + 1])
+        return analyse_only(drill_id, issue)
     execute = '--execute' in argv
     n = POSTINGS
 
@@ -336,11 +383,25 @@ def main(argv=None) -> int:
 
 
 def _deposit(receipt: dict, sink) -> None:
+    """Deposit under a name UNIQUE TO THIS DRILL.
+
+    DEFECT FOUND BY RUNNING IT, 2026-09-22 03:09: the first version wrote every
+    receipt to one write-once path, so the DRY RUN occupied it and the executed
+    drill's deposit raised WriteOnceViolation after all 20 postings had already
+    been made. The postings themselves survived -- the durable sink is appended
+    before anything fallible, which is exactly the case it was built for -- but
+    the receipt had to be rebuilt from the sink afterwards.
+
+    A dry run may no longer occupy an executed run's path, and neither may
+    collide with another drill's.
+    """
     if sink is not None:
         rows = sink.load()                  # re-read FROM DISK, not from memory
         receipt['analysis'] = analyse(rows)
         receipt['attempts_recorded'] = len(rows)
-    out = Path(lab_common.RESULTS_ROOT) / 'ANCHOR_DRILL_RECEIPT.json'
+    stem = ('ANCHOR_DRILL_RECEIPT_%s' if receipt.get('executed')
+            else 'ANCHOR_DRILL_DRYRUN_%s') % receipt.get('drill_id', 'unknown')
+    out = Path(lab_common.RESULTS_ROOT) / (stem + '.json')
     out.parent.mkdir(parents=True, exist_ok=True)
     lab_common.write_json_atomic(out, receipt)
     print('written:', out)
@@ -348,7 +409,6 @@ def _deposit(receipt: dict, sink) -> None:
 
 def analyse(rows: list) -> dict:
     """Three quantities, kept apart. See the module docstring."""
-    import email.utils
     import statistics
 
     def q(vals, p):
@@ -362,15 +422,27 @@ def analyse(rows: list) -> dict:
     failed = [r for r in rows if not r.get('ok')]
     rtt = [r['rtt_monotonic_s'] for r in rows if r.get('rtt_monotonic_s') is not None]
 
-    L = []
+    # PARSE DEFECT, found by reading the first receipt instead of trusting it:
+    # created_at is ISO 8601 ("2026-09-22T03:09:07Z") and the first version parsed
+    # it with email.utils.parsedate_to_datetime, which reads RFC 2822. Every parse
+    # raised, the bare `except: continue` swallowed all twenty, and the receipt
+    # reported n=0 with None percentiles -- a silent zero wearing the shape of a
+    # result. Parse failures are now COUNTED and an empty series is an ERROR, not
+    # a quiet absence.
+    import datetime as _dt
+    L, parse_failures = [], []
     for r in ok:
         ca = r.get('created_at')
         if not ca:
+            parse_failures.append({'posting_index': r.get('posting_index'),
+                                   'reason': 'no created_at'})
             continue
         try:
-            server = email.utils.parsedate_to_datetime(
-                ca.replace('Z', '+00:00') if ca.endswith('Z') else ca).timestamp()
-        except Exception:                                      # noqa: BLE001
+            server = _dt.datetime.fromisoformat(
+                ca.replace('Z', '+00:00')).timestamp()
+        except ValueError as exc:
+            parse_failures.append({'posting_index': r.get('posting_index'),
+                                   'reason': 'unparsable created_at: %s' % exc})
             continue
         L.append(server - float(r['t_send_wall']))
     dL = [abs(b - a) for a, b in zip(L, L[1:])]
@@ -386,6 +458,13 @@ def analyse(rows: list) -> dict:
             'p95': q(rtt, 0.95), 'max': max(rtt) if rtt else None,
             'meaning': 'send to ack on ONE clock (local monotonic). A true duration.',
         },
+        'created_at_parse_failures': parse_failures,
+        'server_minus_client_error': (
+            None if L else 'NO usable created_at values: %d parse failure(s). An '
+                           'empty series is an error here, not an absence -- the '
+                           'first version of this analysis reported n=0 with None '
+                           'percentiles because every parse raised into a bare '
+                           'except.' % len(parse_failures)),
         'server_minus_client_s': {
             'n': len(L), 'min': min(L) if L else None,
             'median': statistics.median(L) if L else None,
