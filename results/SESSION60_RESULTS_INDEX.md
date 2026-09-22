@@ -1759,6 +1759,88 @@ python upgrade would move this freeze pin — a design question, not a value to 
 Accounting closes: every missing key classified, no key classified that is not missing. `HARNESS_FILES`
 still **33** — the tools live outside the set the freeze pins.
 
+### The two-worker exclusion fixture: an actual contender, refused (2026-09-22)
+
+`deterministic-path`. `results/live_ab/TWO_WORKER_CONTAINMENT_20260922T121911Z.json`. **verdict PASS, all eight limbs.** This is the
+`offline_work_owed` hole from the previous cycle — the one thing on the 12-key list I could close
+without a clearance.
+
+**What was owed** (root, on the receipt this completes): *"the two-worker fixture with an ACTUAL
+contender blocked while the first holds the production lock, retaining timing and refusal evidence,
+plus per-attempt negative-control evidence rather than a summary count."*
+
+**The contender is a real second process** (pid 77831 vs holder 77829) opening the **production** lock
+`<WORK>/sandbox.lock` — root's precise objection to `lab_lockfixture` was that it used a fixture lock
+path and never met the sandbox route. Here the lock and the sandbox are exercised **together**: the
+holder runs the sandboxed probe *inside* the hold. Contender refused, `PreflightError`, after
+**2.036 s**.
+
+**Containment of the attempt is measured, not assumed.** Signal files order the two processes — but
+ordering by construction is what the code *intends*. The receipt checks the contender's attempt
+interval lies strictly inside the hold on the **shared realtime clock**: started **0.025 s** after
+acquire, ended **0.002 s** before release. Monotonic is recorded per process and **never differenced
+across processes** — the 694 s trap, one layer down, with a test that fails if the holder ever reads
+the contender's monotonic value.
+
+**Two controls, because a refusal alone is not evidence.**
+- **Lock control:** the same contender, same path, run when **nobody** holds it — **acquired**.
+  Without this, a refusal from a stale lock, a permission fault or a bug in my own fixture would read
+  exactly like exclusion.
+- **Containment control, per attempt:** the identical probe through the **identical interpreter**
+  without the sandbox. **16 rows paired**, **15 controlled denials**, **1 denied in both**,
+  **0 reachable inside**. The 15 are exactly the fifteen repository-target denials root accepted as
+  a bounded result — now each with a control showing the same operation succeeds unsandboxed.
+
+**The 16th row supports nothing, and says so.** `peer_run_dir enumerate` fails with *and* without the
+sandbox, because no peer exists. Counting it would credit the sandbox for an absence — which is the
+defect root found in the old receipt. It is bucketed `denied_in_both` and excluded from support.
+`classify()`'s peer-glob `exclusion_ok` is **deliberately not copied** into this verdict.
+
+**A field of mine claimed a check it never ran.** The first receipt carried
+`negative_control_interpreter_matches_sandbox: true` as a **literal** — `run_program` does not report
+its interpreter, so nothing compared anything. Both values are now read from the resolver the sandbox
+uses and differenced; `control_interpreter_identical` is the eighth limb. The first receipt is
+retained.
+
+**The key did not move.** `FREEZE_REACHABILITY_v4.json` re-run after the fixture: still **14/26**.
+`containment_probe_sha256` needs a **pin**, not more work — and whether this fixture discharges what
+root said was owed is **root's judgement, not mine**.
+
+9 new tests. Suites: chain 70, design 316, e2e 42, hostcheck 117, **isolation 21**, serving 89,
+stats 70; validation 190 (2 expected failures), panel 83, shard 31 — all pass. `HARNESS_FILES` still
+**33**: the fixture extends `lab_containment.py`, and the runner sits outside the pinned set.
+
+### The quiescence tool I quote in every comment was weaker than the gate (2026-09-22)
+
+`descriptive`. Found by accident: an ad-hoc check of mine printed **"llama-server processes: 3"** on a
+host that had none. The `[l]`-bracket trick stops `grep` matching its own pattern argument — it does
+**not** stop the pattern matching a *label* elsewhere on the same command line. My own
+`xargs echo "llama-server processes:"` put the string there, so `ps -Ao pid,command | grep` counted
+**my own observing shell**. Earlier cycles escaped this only because they happened to pipe through
+`grep -v grep`, which is protection against a different thing.
+
+**The real defect was one layer down.** `experiments/live_ab_tools/host_capacity_observation.py` — the
+tool whose output I have been quoting as "host clear" — ran its own scan over `ps -Ao ...,comm`.
+`comm` is the executable basename, so it **cannot** self-match. It also **cannot see a consumer
+launched through a wrapper**: `python -m something_serving` has `comm == python3.12`.
+
+**Demonstrated with a live positive control, not argued.** A child whose command line named a
+consumer while its `comm` was the interpreter: detected **1/1** by a command scan, **0/1** by a comm
+scan. Under-detection — the dangerous direction for a gate protocol 5.7.2 says must fail **on
+presence**.
+
+**The production gate was never wrong.** `lab_hostcheck` scans the full command, excludes the
+caller's own process tree by walking `ppid` edges (`own_pid_allowlist`), and also detects by **open
+Metal resource**, so it catches a runner renamed to anything. The tool now takes its verdict from
+`lab_hostcheck.preflight_host_quiescent` and keeps the weak scan only as a comparator, with
+`weak_scan_disagrees_with_audited_gate` recorded. **Maintaining a second, weaker detector beside an
+audited one is how the weaker answer ends up in a report.**
+
+Current authoritative reading, `HOST_CAPACITY_OBSERVATION_20260922T122406Z.json`: **1,027 processes
+scanned, 0 findings, 0 degraded, 2 own PIDs allowlisted**, one baseline (`mediaanalysisd`). Still one
+instant, not an interval — and a **degraded** scan is now excluded from "clear", because a detector
+that could not read what it needed gives absence of evidence, not evidence of absence.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.

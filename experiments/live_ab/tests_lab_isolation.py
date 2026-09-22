@@ -592,5 +592,117 @@ class SignatureTests(unittest.TestCase):
         self.assertEqual(sorted(SIGNATURES), sorted(MATRIX))
 
 
+class PerAttemptControlTests(unittest.TestCase):
+    """`lab_containment.pair_attempts` decides WHAT COUNTS AS EVIDENCE.
+
+    Root rejected the previous negative control because it was a summary count of
+    fifteen breaches: it could not say which operation the sandbox stopped. The
+    pairing replaces it, so the pairing itself has to be right -- a control that
+    over-credits is worse than no control, because it launders a denial the
+    sandbox did not cause.
+    """
+
+    def _pair(self, sandboxed, unsandboxed):
+        import lab_containment
+        return lab_containment.pair_attempts(sandboxed, unsandboxed)
+
+    def test_denied_in_both_supports_nothing(self) -> None:
+        # The peer_run_dir enumerate row is exactly this: it fails with and
+        # without the sandbox because no peer exists. Counting it as a controlled
+        # denial would credit the sandbox for an absence.
+        r = self._pair([{'target': 'peer_run_dir', 'op': 'enumerate', 'succeeded': False}],
+                       [{'target': 'peer_run_dir', 'op': 'enumerate', 'succeeded': False}])
+        self.assertEqual(r['controlled_denials'], 0)
+        self.assertEqual(r['denied_in_both'], 1)
+        self.assertIn('supports nothing', r['rows'][0]['reading'])
+
+    def test_denied_inside_reachable_outside_is_the_only_supporting_row(self) -> None:
+        r = self._pair([{'target': 'event_chain', 'op': 'read', 'succeeded': False}],
+                       [{'target': 'event_chain', 'op': 'read', 'succeeded': True}])
+        self.assertEqual(r['controlled_denials'], 1)
+        self.assertEqual(r['denied_in_both'], 0)
+        self.assertIn('THE SANDBOX DID IT', r['rows'][0]['reading'])
+
+    def test_a_success_inside_the_sandbox_is_a_breach_not_a_denial(self) -> None:
+        r = self._pair([{'target': 'spools', 'op': 'write', 'succeeded': True}],
+                       [{'target': 'spools', 'op': 'write', 'succeeded': True}])
+        self.assertEqual(r['reachable_inside_sandbox'], 1)
+        self.assertEqual(r['controlled_denials'], 0)
+
+    def test_a_missing_control_row_is_uncontrolled_not_credited(self) -> None:
+        # If the unsandboxed arm never ran that operation, its denial inside is
+        # not controlled. Silently treating it as controlled is how a partial
+        # control arm turns into a full-looking pass.
+        r = self._pair([{'target': 'task_file', 'op': 'write', 'succeeded': False}], [])
+        self.assertEqual(r['controlled_denials'], 0)
+        self.assertEqual(r['denied_in_both'], 0)
+        self.assertFalse(r['rows'][0]['control_present'])
+        self.assertIn('uncontrolled', r['rows'][0]['reading'])
+
+    def test_pairing_is_by_identity_not_by_position(self) -> None:
+        # The two arms are separate processes; nothing guarantees the same order.
+        # Pairing by index would match event_chain against records_dir.
+        sandboxed = [{'target': 'event_chain', 'op': 'read', 'succeeded': False},
+                     {'target': 'records_dir', 'op': 'read', 'succeeded': False}]
+        unsandboxed = [{'target': 'records_dir', 'op': 'read', 'succeeded': True},
+                       {'target': 'event_chain', 'op': 'read', 'succeeded': True}]
+        r = self._pair(sandboxed, unsandboxed)
+        self.assertEqual(r['controlled_denials'], 2)
+        for row in r['rows']:
+            self.assertTrue(row['control_present'])
+
+    def test_every_paired_row_is_accounted_for_in_exactly_one_bucket(self) -> None:
+        sandboxed = [{'target': 'event_chain', 'op': 'read', 'succeeded': False},
+                     {'target': 'peer_run_dir', 'op': 'enumerate', 'succeeded': False},
+                     {'target': 'spools', 'op': 'write', 'succeeded': True},
+                     {'target': 'task_file', 'op': 'list', 'succeeded': False}]
+        unsandboxed = [{'target': 'event_chain', 'op': 'read', 'succeeded': True},
+                       {'target': 'peer_run_dir', 'op': 'enumerate', 'succeeded': False},
+                       {'target': 'spools', 'op': 'write', 'succeeded': True}]
+        r = self._pair(sandboxed, unsandboxed)
+        uncontrolled = sum(1 for row in r['rows'] if 'uncontrolled' in row['reading'])
+        self.assertEqual(r['attempts_paired'], 4)
+        self.assertEqual(r['controlled_denials'] + r['denied_in_both']
+                         + r['reachable_inside_sandbox'] + uncontrolled, 4)
+
+
+class ContenderSourceTests(unittest.TestCase):
+    """The contender must be a real second process on the real production lock."""
+
+    def test_contender_source_is_valid_python_and_binds_the_given_lock(self) -> None:
+        import lab_containment
+        src = lab_containment.contender_source(
+            Path('/tmp/x/sandbox.lock'), 2.0, Path('/tmp/x/sig'),
+            Path('/tmp/x/out.json'), require_holder=True)
+        ast.parse(src)                       # it must actually compile
+        self.assertIn('/tmp/x/sandbox.lock', src)
+        self.assertIn('lab_data', src)
+        self.assertIn('_ExecutionLock', src)
+
+    def test_contender_never_differences_monotonic_across_processes(self) -> None:
+        # The 694 s clock-domain trap, one layer down: the cross-process interval
+        # arithmetic must use the shared realtime clock, and monotonic may be
+        # recorded but never subtracted against another process's value.
+        import lab_containment
+        src = inspect.getsource(lab_containment.run_two_worker)
+        for name in ('t_attempt_start_epoch', 't_attempt_end_epoch',
+                     't_acquired_epoch', 't_release_epoch'):
+            self.assertIn(name, src)
+        self.assertNotIn('t_attempt_start_monotonic', src,
+                         'the holder must not difference the contender monotonic clock')
+
+    def test_the_verdict_requires_every_limb(self) -> None:
+        # A verdict computed from a subset of its limbs is how the integrity
+        # label shipped with a missing limb. Read the source and require that the
+        # named limbs all feed `all(limbs.values())`.
+        import lab_containment
+        src = inspect.getsource(lab_containment.run_two_worker)
+        self.assertIn("all(limbs.values())", src)
+        for limb in ('contender_was_refused', 'attempt_inside_hold',
+                     'lock_control_acquired', 'lock_path_is_production',
+                     'control_interpreter_identical'):
+            self.assertIn(limb, src)
+
+
 if __name__ == '__main__':                                        # pragma: no cover
     unittest.main()

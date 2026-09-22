@@ -51,6 +51,30 @@ import lab_common                                              # noqa: E402
 # "because 5.7.2 does not apply" would ignore the peer it disturbs.
 
 #: The process names protocol 5.7.2's presence test is about.
+#:
+#: RETAINED ONLY AS THE WEAK SCAN IT IS, for the side-by-side below. The
+#: authoritative answer now comes from `lab_hostcheck`, the audited production
+#: gate. This tool used to answer 5.7.2 with its own `ps -Ao ...,comm` scan, and
+#: I quoted that answer in cycle comments as "the host is clear".
+#:
+#: TWO DEFECTS, both in the UNDER-detecting direction, which is the dangerous one
+#: for a gate that must fail on PRESENCE:
+#:
+#:   * `comm` is the executable basename only. A consumer launched through a
+#:     wrapper -- `python -m something_serving` -- has `comm == python3.12` and is
+#:     INVISIBLE. Demonstrated with a live positive control: a child whose command
+#:     line named a consumer was detected 1/1 by a command scan and 0/1 by a comm
+#:     scan.
+#:   * no self-exclusion by PID. A command-based scan without one reports the
+#:     OBSERVER as a consumer whenever the pattern appears anywhere on its own
+#:     command line -- including in a human-readable label. That is how an ad-hoc
+#:     check of mine reported "3 llama-server processes" on a host that had none.
+#:
+#: `lab_hostcheck` has neither defect: it scans the full command, excludes the
+#: caller's own process tree by walking ppid edges (`own_pid_allowlist`), and also
+#: detects by OPEN METAL RESOURCE, so it catches a runner renamed to anything.
+#: Maintaining a second, weaker detector beside an audited one is how the weaker
+#: answer ends up in a report.
 CONSUMER_RE = re.compile(r'llama-server|llama\.cpp|mlx|ollama|vllm', re.I)
 
 #: Ports named anywhere in this program's configuration or in the peer project's.
@@ -72,7 +96,36 @@ def _run(cmd: list) -> dict:
             'stderr_head': err, '_stdout': out}
 
 
+def authoritative_scan() -> dict:
+    """The AUDITED gate's answer, not this tool's own.
+
+    `lab_hostcheck.preflight_host_quiescent` is the module protocol 5.7.2 is
+    implemented in and the one `tests_lab_hostcheck.py` holds to the
+    observe-never-signal property. It reports how many processes it scanned and
+    how many it allowlisted as the caller's own, so the self-exclusion is
+    auditable instead of implicit.
+    """
+    import lab_hostcheck                                       # noqa: PLC0415
+    scan = lab_hostcheck.preflight_host_quiescent()
+    return {
+        'detector': 'lab_hostcheck.preflight_host_quiescent',
+        'findings': list(scan.findings),
+        'foreign_consumers_present': bool(scan.findings),
+        'degraded': list(scan.degraded),
+        'processes_scanned': scan.scanned,
+        'own_pids_allowlisted': scan.allowlisted,
+        'baseline_processes': [b.get('baseline_id') for b in (scan.baseline or [])],
+        'note': ('a DEGRADED scan is not a clean scan: if the detector could not '
+                 'read what it needed, absence of findings means absence of '
+                 'evidence, not evidence of absence'),
+    }
+
+
 def main() -> int:
+    auth = authoritative_scan()
+
+    # The old comm-based scan is kept ONLY to show, in the same receipt, that it
+    # can disagree with the audited gate. It never decides anything.
     ps = _run(['ps', '-Ao', 'pid,ppid,etime,rss,comm'])
     consumers = []
     if ps.get('ok'):
@@ -104,7 +157,12 @@ def main() -> int:
     except Exception:                                          # noqa: BLE001
         pass
 
-    clear = not consumers and not listeners
+    # THE VERDICT COMES FROM THE AUDITED GATE. The weak scan is recorded
+    # beside it and, when the two disagree, the disagreement is the finding --
+    # it is never averaged away or resolved in favour of the cleaner answer.
+    clear = (not auth['foreign_consumers_present']
+             and not auth['degraded'] and not listeners)
+    weak_scan_disagrees = bool(consumers) != auth['foreign_consumers_present']
     receipt = {
         'schema': 'live_ab/host_capacity_observation-v1',
         'observed_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
@@ -117,6 +175,10 @@ def main() -> int:
         'listeners_on_watched_ports': listeners,
         'load_average_1_5_15': load,
         'gate_would_pass_at_this_instant': clear,
+        'authoritative_scan': auth,
+        'weak_comm_scan_consumers': consumers,
+        'weak_scan_disagrees_with_audited_gate': weak_scan_disagrees,
+        'which_one_decides': ('lab_hostcheck. The comm-based scan in this file under-detects by construction and is retained only as a comparator.'),
         'what_this_is_not': [
             'NOT a reservation: this reading holds nothing and grants nothing',
             'NOT a guarantee about the next instant -- a consumer may start at any '
@@ -137,6 +199,11 @@ def main() -> int:
     out.parent.mkdir(parents=True, exist_ok=True)
     lab_common.write_json_atomic(out, receipt)
     print(json.dumps({'gate_would_pass_at_this_instant': clear,
+                      'audited_findings': len(auth['findings']),
+                      'processes_scanned': auth['processes_scanned'],
+                      'own_pids_allowlisted': auth['own_pids_allowlisted'],
+                      'degraded': auth['degraded'],
+                      'weak_scan_disagrees': weak_scan_disagrees,
                       'consumers': consumers,
                       'listeners': listeners,
                       'load': load}, indent=2))

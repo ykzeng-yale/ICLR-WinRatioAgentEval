@@ -173,6 +173,356 @@ def classify(results: List[dict]) -> Dict[str, Any]:
     }
 
 
+#: The contender program. It is a SEPARATE PROCESS on purpose: `flock` associates
+#: a lock with an open file description, and "another worker" in protocol 5.7
+#: means another process, not another descriptor in mine. It imports the real
+#: `lab_data._ExecutionLock` and opens the real production lock path -- root's
+#: exact objection to `lab_lockfixture` was that it used a fixture lock path and
+#: never met the sandbox route.
+CONTENDER_SOURCE = '''\
+import json, os, sys, time
+from pathlib import Path
+sys.path.insert(0, %(lab)r)
+import lab_data
+
+LOCK = %(lock)r
+MAX_WAIT = %(max_wait)r
+HOLD_SIGNAL = %(signal)r
+OUT = %(out)r
+REQUIRE_HOLDER = %(require_holder)r
+
+rec = {"pid": os.getpid(), "lock_path": LOCK, "max_wait_s": MAX_WAIT,
+       "require_holder": REQUIRE_HOLDER}
+
+if REQUIRE_HOLDER:
+    deadline = time.time() + 30.0
+    while not os.path.exists(HOLD_SIGNAL):
+        if time.time() > deadline:
+            rec["error"] = "the holder never signalled within 30 s"
+            Path(OUT).write_text(json.dumps(rec))
+            raise SystemExit(3)
+        time.sleep(0.01)
+    rec["holder_signal_seen_epoch"] = time.time()
+
+# CLOCK: time.time() is CLOCK_REALTIME and is shared across processes on this
+# host, so the holder's interval and this attempt CAN be compared. monotonic is
+# recorded per process as a diagnostic and is NEVER differenced across processes
+# -- that is the 694 s trap, one layer down.
+rec["t_attempt_start_epoch"] = time.time()
+rec["t_attempt_start_monotonic"] = time.monotonic()
+try:
+    with lab_data._ExecutionLock(Path(LOCK), MAX_WAIT):
+        rec["acquired"] = True
+        rec["t_acquired_epoch"] = time.time()
+except BaseException as exc:
+    rec["acquired"] = False
+    rec["refusal_type"] = type(exc).__name__
+    rec["refusal_message"] = str(exc)[:300]
+rec["t_attempt_end_epoch"] = time.time()
+rec["t_attempt_end_monotonic"] = time.monotonic()
+rec["elapsed_s"] = rec["t_attempt_end_epoch"] - rec["t_attempt_start_epoch"]
+Path(OUT).write_text(json.dumps(rec))
+'''
+
+
+def contender_source(lock_path: Path, max_wait_s: float, signal_path: Path,
+                     out_path: Path, *, require_holder: bool) -> str:
+    """The contender child program, with every path bound explicitly."""
+    return CONTENDER_SOURCE % {
+        'lab': str(HERE), 'lock': str(lock_path), 'max_wait': float(max_wait_s),
+        'signal': str(signal_path), 'out': str(out_path),
+        'require_holder': bool(require_holder),
+    }
+
+
+def pair_attempts(sandboxed: List[dict], unsandboxed: List[dict]) -> Dict[str, Any]:
+    """PER-ATTEMPT negative control, paired by (target, op).
+
+    Root, on the receipt this replaces: "the negative control is a SUMMARY of
+    fifteen detected breaches; it carries no per-operation raw execution receipt,
+    so it supports the summary only."
+
+    A count cannot say WHICH operation the sandbox stopped. Pairing can: for each
+    (target, op) the table carries both outcomes, and the row that makes the probe
+    evidence rather than decoration is *denied inside, reachable outside*. Rows
+    where BOTH denied are reported as `denied_in_both` and explicitly do NOT
+    support containment -- if an operation fails unsandboxed too, its denial
+    inside tells us nothing about the sandbox.
+    """
+    def key(r: dict) -> tuple:
+        return (r.get('target'), r.get('op'))
+
+    out_map = {key(r): r for r in unsandboxed}
+    rows, controlled, denied_both, breached = [], [], [], []
+    for r in sandboxed:
+        k = key(r)
+        ctrl = out_map.get(k)
+        row = {
+            'target': k[0], 'op': k[1],
+            'sandboxed_succeeded': bool(r.get('succeeded')),
+            'sandboxed_error': r.get('error'),
+            'control_present': ctrl is not None,
+            'unsandboxed_succeeded': bool(ctrl.get('succeeded')) if ctrl else None,
+            'unsandboxed_error': (ctrl or {}).get('error'),
+        }
+        if row['sandboxed_succeeded']:
+            row['reading'] = 'REACHABLE INSIDE THE SANDBOX'
+            breached.append(row)
+        elif ctrl is None:
+            row['reading'] = 'no control row; this denial is uncontrolled'
+        elif row['unsandboxed_succeeded']:
+            row['reading'] = 'denied inside, reachable outside -- THE SANDBOX DID IT'
+            controlled.append(row)
+        else:
+            row['reading'] = ('denied in BOTH; the sandbox is not shown to be the '
+                              'cause and this row supports nothing')
+            denied_both.append(row)
+        rows.append(row)
+    return {
+        'rows': rows,
+        'attempts_paired': len(rows),
+        'controlled_denials': len(controlled),
+        'denied_in_both': len(denied_both),
+        'reachable_inside_sandbox': len(breached),
+        'control_is_per_attempt': True,
+        'what_a_count_could_not_say': (
+            'which operations the sandbox actually stopped. Only rows marked '
+            '"denied inside, reachable outside" support containment; '
+            'denied_in_both rows are excluded from that support rather than '
+            'folded into a total.'),
+    }
+
+
+def _run_contender(py: str, work: Path, lock_path: Path, max_wait_s: float,
+                   signal: Path, tag: str, *, require_holder: bool,
+                   background: bool):
+    """Write and launch the contender. Returns (popen_or_completed, out_path)."""
+    import subprocess                                           # noqa: PLC0415
+    out = work / ('contender_%s.json' % tag)
+    prog = work / ('contender_%s.py' % tag)
+    prog.write_text(contender_source(lock_path, max_wait_s, signal, out,
+                                     require_holder=require_holder),
+                    encoding='utf-8')
+    args = [py, str(prog)]
+    if background:
+        return subprocess.Popen(args, stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT, text=True), out
+    return subprocess.run(args, capture_output=True, text=True, timeout=120), out
+
+
+def run_two_worker(fixture_root: Optional[Path] = None,
+                   contender_wait_s: float = 2.0,
+                   hold_timeout_s: float = 60.0) -> Dict[str, Any]:
+    """The two-worker exclusion fixture root named as still owed.
+
+    Root, on the receipt this completes:
+
+        "still_owed: the two-worker fixture with an ACTUAL contender blocked
+         while the first holds the production lock, retaining timing and refusal
+         evidence, plus per-attempt negative-control evidence rather than a
+         summary count."
+
+    THREE THINGS ARE EXERCISED TOGETHER, which is the part that was missing:
+    the PRODUCTION lock path, the PRODUCTION sandbox route, and a REAL second
+    process contending for that same lock. The previous evidence was an empty
+    directory glob -- no peer being found is not a demonstration that a peer
+    would be blocked, and root said so.
+
+    TWO CONTROLS, because a refusal on its own is not evidence:
+
+      * the LOCK control -- the same contender, same path, run when NOBODY
+        holds the lock, MUST ACQUIRE. Without it, a refusal caused by a stale
+        lock, a permission fault or a bug in my own fixture would read exactly
+        like exclusion.
+      * the CONTAINMENT control -- the identical probe program run through the
+        identical interpreter WITHOUT the sandbox, recorded PER ATTEMPT.
+
+    CONTAINMENT OF THE ATTEMPT IS MEASURED, NOT ASSUMED. The signal files order
+    the two processes, but ordering by construction is what the code intends; the
+    receipt checks that the contender's attempt interval lies strictly inside the
+    holder's hold interval on the shared realtime clock. If it does not, the
+    fixture proves nothing and says so.
+    """
+    import subprocess                                           # noqa: PLC0415
+    import lab_prepare                                          # noqa: PLC0415
+    import sandbox as SB                                        # noqa: PLC0415
+    import lab_data                                             # noqa: PLC0415
+
+    cfg = json.loads((HERE / 'config.json').read_text('utf-8'))
+    tmp = lab_prepare.assert_prescribed_tmpdir(cfg)
+
+    work = Path(lab_common.WORK_ROOT) / '_two_worker' / ('tw_%d' % int(time.time()))
+    work.mkdir(parents=True, exist_ok=True)
+    signal = work / 'holder_has_the_lock'
+
+    fixture_root = Path(fixture_root or (lab_common.WORK_ROOT / '_containment_fixtures'))
+    fixtures = build_fixtures(fixture_root)
+    targets = {k: str(v) for k, v in fixtures.items()}
+    base = SB.sandbox_base_dir()
+    src = probe_source(targets, os.path.join(base, 'p_*'))
+
+    sandbox_cfg = cfg.get('sandbox') or {}
+    lock_path = Path(sandbox_cfg.get('execution_lock_path')
+                     or (lab_common.WORK_ROOT / 'sandbox.lock'))
+    max_lock_wait = float((cfg.get('execution') or {}).get('max_lock_wait_s', 120))
+    py = sys.executable
+
+    out: Dict[str, Any] = {
+        'schema': 'live_ab/two_worker_containment-v1',
+        'protocol': '5.7 item 3, and the exclusion clause of 5.7',
+        'tmpdir': tmp,
+        'lock_path': lab_common.tokenize_path(lock_path),
+        'lock_path_is_production': (sandbox_cfg.get('execution_lock_path') is None
+                                    and lock_path.name == 'sandbox.lock'),
+        'clock': ('time.time() / CLOCK_REALTIME -- shared across processes on this '
+                  'host. monotonic values are recorded per process and NEVER '
+                  'differenced across processes.'),
+        'contender_max_wait_s': contender_wait_s,
+        'holder_max_lock_wait_s': max_lock_wait,
+    }
+
+    # --- worker B starts first, and waits for the signal ---------------------
+    proc, b_out = _run_contender(py, work, lock_path, contender_wait_s, signal,
+                                 'blocked', require_holder=True, background=True)
+
+    holder: Dict[str, Any] = {'pid': os.getpid()}
+    try:
+        with lab_data._ExecutionLock(lock_path, max_lock_wait):
+            holder['t_acquired_epoch'] = time.time()
+            signal.write_text(json.dumps(holder), encoding='utf-8')
+            # the PRODUCTION sandbox route, inside the hold
+            run = SB.run_program(
+                src, timeout_s=float(sandbox_cfg.get('timeout_s', 10.0)),
+                mem_bytes=int(sandbox_cfg.get(
+                    'mem_bytes_requested_not_enforced_on_macos', 2 << 30)),
+                cpu_seconds=int(sandbox_cfg.get('cpu_s', 10)),
+                output_cap=int(sandbox_cfg.get('output_cap_bytes', 65536)))
+            holder['sandbox_kind'] = run.get('sandbox_kind')
+            holder['profile_sha256'] = run.get('profile_sha256')
+            # hold until the contender has finished attempting -- BOUNDED
+            deadline = time.time() + hold_timeout_s
+            while not b_out.exists() and time.time() < deadline:
+                time.sleep(0.02)
+            holder['waited_for_contender'] = b_out.exists()
+            holder['t_release_epoch'] = time.time()
+    finally:
+        try:
+            proc.wait(timeout=30)
+        except subprocess.TimeoutExpired:                        # pragma: no cover
+            proc.kill()
+    holder['held_s'] = holder.get('t_release_epoch', 0) - holder.get('t_acquired_epoch', 0)
+    out['holder'] = holder
+
+    contender = (json.loads(b_out.read_text('utf-8')) if b_out.exists()
+                 else {'error': 'the contender wrote no record'})
+    contender['child_returncode'] = proc.returncode
+    out['contender_blocked'] = contender
+
+    # --- did the attempt actually happen INSIDE the hold? --------------------
+    a0, a1 = holder.get('t_acquired_epoch'), holder.get('t_release_epoch')
+    b0, b1 = contender.get('t_attempt_start_epoch'), contender.get('t_attempt_end_epoch')
+    inside = all(v is not None for v in (a0, a1, b0, b1)) and a0 < b0 and b1 < a1
+    out['attempt_inside_hold'] = inside
+    out['attempt_containment'] = {
+        'holder_acquired_epoch': a0, 'holder_released_epoch': a1,
+        'contender_attempt_start_epoch': b0, 'contender_attempt_end_epoch': b1,
+        'margin_before_s': (b0 - a0) if (a0 and b0) else None,
+        'margin_after_s': (a1 - b1) if (a1 and b1) else None,
+        'why_it_matters': ('a refusal outside the hold interval is a refusal by '
+                           'something else. Signal files ORDER the processes; this '
+                           'arithmetic CHECKS the order actually held.'),
+    }
+    out['contender_was_refused'] = (contender.get('acquired') is False)
+    out['refusal_type'] = contender.get('refusal_type')
+
+    # --- LOCK CONTROL: the same contender, nobody holding, MUST acquire ------
+    done, c_out = _run_contender(py, work, lock_path, contender_wait_s, signal,
+                                 'control', require_holder=False, background=False)
+    control = (json.loads(c_out.read_text('utf-8')) if c_out.exists()
+               else {'error': 'the lock control wrote no record'})
+    control['child_returncode'] = done.returncode
+    out['lock_control_free'] = control
+    out['lock_control_acquired'] = (control.get('acquired') is True)
+
+    # --- CONTAINMENT CONTROL: the identical program, no sandbox, per attempt -
+    sandboxed_rows: List[dict] = []
+    stdout = run.get('stdout') or ''
+    if '<<<PROBE>>>' in stdout:
+        sandboxed_rows = json.loads(
+            stdout.split('<<<PROBE>>>', 1)[1].strip().splitlines()[0])
+    out['sandboxed_attempts'] = sandboxed_rows
+
+    # The SAME interpreter the sandbox uses, so the sandbox is the ONLY
+    # difference between the two arms. That equality is COMPARED, not asserted:
+    # `run_program` does not report its interpreter, so the first version of this
+    # receipt carried `negative_control_interpreter_matches_sandbox: True` as a
+    # literal -- a field naming a check it never performed. Both values are read
+    # from the same resolver the sandbox uses and differenced here.
+    control_python = SB.base_interpreter()
+    sandbox_python = SB.sandbox_info()['python']
+    ctrl_prog = work / 'unsandboxed_probe.py'
+    ctrl_prog.write_text(src, encoding='utf-8')
+    bare = subprocess.run([control_python, str(ctrl_prog)],
+                          capture_output=True, text=True, timeout=120)
+    unsandboxed_rows: List[dict] = []
+    if '<<<PROBE>>>' in (bare.stdout or ''):
+        unsandboxed_rows = json.loads(
+            bare.stdout.split('<<<PROBE>>>', 1)[1].strip().splitlines()[0])
+    out['unsandboxed_attempts'] = unsandboxed_rows
+    out['control_interpreter'] = {
+        'control_arm': lab_common.tokenize_path(control_python),
+        'sandbox_arm': lab_common.tokenize_path(sandbox_python),
+        'identical': control_python == sandbox_python,
+        'why_it_must_match': ('if the two arms ran different interpreters, a '
+                              'difference in outcome could be the interpreter '
+                              'rather than the sandbox, and the control would '
+                              'not be a control'),
+    }
+    out['per_attempt_control'] = pair_attempts(sandboxed_rows, unsandboxed_rows)
+
+    if sandboxed_rows:
+        out.update({k: v for k, v in classify(sandboxed_rows).items()
+                    if k in ('isolation_breaches', 'isolation_ok',
+                             'allowed_by_audited_profile')})
+
+    # --- the verdict, with every limb required ------------------------------
+    limbs = {
+        'contender_was_refused': out['contender_was_refused'],
+        'attempt_inside_hold': out['attempt_inside_hold'],
+        'lock_control_acquired': out['lock_control_acquired'],
+        'isolation_ok': out.get('isolation_ok', False),
+        'per_attempt_control_has_controlled_denials':
+            out['per_attempt_control']['controlled_denials'] > 0,
+        'no_reachable_target_inside_sandbox':
+            out['per_attempt_control']['reachable_inside_sandbox'] == 0,
+        'lock_path_is_production': out['lock_path_is_production'],
+        'control_interpreter_identical': out['control_interpreter']['identical'],
+    }
+    out['limbs'] = limbs
+    out['verdict'] = 'PASS' if all(limbs.values()) else 'FAIL'
+    out['failed_limbs'] = sorted(k for k, v in limbs.items() if not v)
+    out['peer_glob_exclusion_deliberately_not_used'] = (
+        'classify() also returns concurrent_peer_run_dir_found / exclusion_ok '
+        'from an empty directory glob. Root rejected that as evidence -- "no peer '
+        'being found is not a demonstration that a concurrent worker is blocked" '
+        '-- so those keys are NOT copied into this verdict. The refused contender '
+        'replaces them.')
+    out['what_this_does_NOT_establish'] = [
+        'that a LIVE WORKER running a real episode is contained: the program '
+        'inside the sandbox is a probe, not an agent episode',
+        'exclusion for arbitrary interleavings: it shows ONE contender refused '
+        'during ONE hold, which is the property flock provides, not a proof '
+        'about every schedule',
+        'that a second SANDBOXED worker is excluded: the contender contends for '
+        'the LOCK and never reaches the sandbox route. That is what the lock is '
+        'for -- it stops the second worker before it runs anything -- but the '
+        'fixture shows the lock refusing, not a sandbox refusing',
+        'anything about the loaded reference sweep, which remains uncleared',
+    ]
+    out['work_dir'] = lab_common.tokenize_path(work)
+    return out
+
+
 def run_probe(fixture_root: Optional[Path] = None) -> Dict[str, Any]:
     """Run the probe through the PRODUCTION lock and sandbox path."""
     import lab_prepare
