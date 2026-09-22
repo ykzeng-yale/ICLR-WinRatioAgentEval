@@ -18,8 +18,17 @@ import json
 import sys
 from pathlib import Path
 
+#: This file re-derives its digests with `hashlib` instead of calling
+#: `lab_common.sha256_file`, and that is DELIBERATE: root asked for a checker that
+#: verifies the deposited bytes, and hashing them with the producer's own helper
+#: would not be a check. Declared here rather than exempted in the auditor, so the
+#: exemption is a visible commitment in the file it applies to. `tool_audit.py`
+#: treats an undeclared file as a reporter, the stricter rule.
+AUDIT_ROLE = 'independent_verifier'
+
 REPO = Path(__file__).resolve().parents[2]
 R = REPO / 'results' / 'live_ab'
+CONFIG = REPO / 'experiments' / 'live_ab' / 'config.json'
 
 WHOLE = '842a7a19d738604fbe665231a593a11f12cc02abfe9b1dc4034bc3817a9081ac'
 COMPONENT = '08c1de5ae33d1fdd45424be7956c88471b8a8e47971608ac866aa6cb5247b053'
@@ -39,10 +48,25 @@ def check() -> dict:
     comp_bytes = (R / 'environment_lock_package_component.txt').read_bytes()
     legacy_bytes = (R / 'environment_lock.txt').read_bytes()
 
+    whole_digest = hashlib.sha256(whole_bytes).hexdigest()
+    # THE KEY BELOW USED TO BE `whole_hash_matches_config` AND NEVER OPENED
+    # config.json. It compared the deposited bytes against the module constant
+    # WHOLE and nothing else, so if the config pin had drifted from the deposited
+    # bytes the checker would have reported all_pass while claiming config
+    # agreement. The two values happened to be equal, which is exactly why nothing
+    # surfaced it; found by `tool_audit.py`, looking for keys that name a source
+    # their module never reads.
+    #
+    # It is now a THREE-WAY comparison, each limb named for what it actually
+    # compares: deposited bytes -> digest, digest vs the recorded constant, and
+    # digest vs the pin in config.json.
+    config_pin = json.loads(CONFIG.read_text('utf-8')).get('environment_lock_sha256')
     checks = {
         # the whole-environment digest, under the VERSIONED LEGACY convention
         # root ruled should be retained and stated: Python default JSON separators
-        'whole_hash_matches_config': hashlib.sha256(whole_bytes).hexdigest() == WHOLE,
+        'whole_hash_matches_recorded_constant': whole_digest == WHOLE,
+        'whole_hash_matches_config_pin': whole_digest == config_pin,
+        'config_pin_matches_recorded_constant': config_pin == WHOLE,
         'whole_preimage_parses': isinstance(json.loads(whole_bytes), dict),
         # the package component, tuple order, NO terminal newline
         'component_hash_matches': hashlib.sha256(comp_bytes).hexdigest() == COMPONENT,
@@ -75,6 +99,12 @@ def check() -> dict:
                                  'newline-joined, NO terminal newline',
             'legacy_txt': 'name==version sorted by name.lower(), WITH terminal newline',
         },
+        # `relative_to` RAISES for a path outside the repo, which a drift test
+        # legitimately supplies. Reporting where the pin came from must not be
+        # able to abort the check that reads it.
+        'config_pin_read_from': (str(CONFIG.relative_to(REPO))
+                                 if CONFIG.is_relative_to(REPO) else str(CONFIG)),
+        'config_environment_lock_sha256': config_pin,
         'what_a_pass_does_not_establish': [
             'installed-host identity', 'wheel or build provenance',
             'that the current host is unchanged since the bytes were saved',

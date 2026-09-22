@@ -1841,6 +1841,54 @@ scanned, 0 findings, 0 degraded, 2 own PIDs allowlisted**, one baseline (`mediaa
 instant, not an interval — and a **degraded** scan is now excluded from "clear", because a detector
 that could not read what it needed gives absence of evidence, not evidence of absence.
 
+### I audited my own tools for last cycle's defect. It found one real hit — and two in itself (2026-09-22)
+
+`deterministic-path`. `results/live_ab/TOOL_AUDIT_v3.json`, **11 files audited, and it audits itself.**
+Last cycle's defect was found by a lucky mis-typed label, which is not a method. Two detectors:
+**reimplementation** (a tool re-derives an answer a production module already gives, without importing
+it) and **claim_without_read** (a result key NAMES a source the module never opens).
+
+**The real hit.** `check_environment_digests.py` carried `whole_hash_matches_config` — and **never
+opened `config.json`**. It compared the deposited bytes against a module constant. The constant and
+the config pin happen to be equal, which is exactly why nothing surfaced it; had the pin drifted, the
+checker would have reported `all_pass` while claiming config agreement. Now a **three-way**
+comparison, each limb named for what it compares: deposited bytes → digest, digest vs recorded
+constant, digest vs the config pin.
+
+**And it detects drift — verified, not asserted.** Positive control against a scratch config with the
+pin altered: `all_pass` **True → False**. The real config was never touched. **The old key could not
+have detected it, because it never read config at all.**
+
+**Two of the four first-pass hits were defects in my own audit, and both are worth naming.**
+- The scan flagged **itself** for `ps`. Its `CAPABILITIES` table holds `['ps', 'lsof']` as **data**,
+  and the scan read its own configuration as a command invocation. **A detector written to find
+  string-based self-matching had a string-based self-match.** The rule is now structural — an argv
+  literal is an *argument to a call* — which still catches the `_run(['ps', …])` helper indirection
+  that a `subprocess.run`-only scan had missed.
+- It flagged two tools for `tempfile.gettempdir` because my table named `lab_prepare` as the sole
+  provider of the TMPDIR policy. Both call `lab_common.prescribed_tmpdir`, the shared policy. **A
+  table naming one of several correct providers manufactures false positives, which is how a checker
+  gets ignored.**
+
+**The remaining hit is exempt, and the exemption lives in the audited file.**
+`check_environment_digests.py` hashes with `hashlib` rather than `lab_common.sha256_file` **on
+purpose** — root asked for a checker of deposited bytes, and hashing them with the producer's own
+helper is not a check. It now declares `AUDIT_ROLE = 'independent_verifier'` in its own source. **A
+file that declares nothing is treated as a reporter — the stricter rule — so the default fails
+closed.** Exempting a file from inside the auditor would have been the same move as excluding a
+process from a scan by string.
+
+**A write-once refusal that reported the wrong reason.** Passing a *relative* path made
+`write_json_atomic` raise `UntokenizablePath` from inside its own refusal message instead of
+`WriteOnceViolation`. The write was still refused — it fails safe — but the caller was told the wrong
+thing at the one moment it matters. Path resolved first; naming the file can no longer mask the
+refusal. Verified for a relative path, for a path outside every token root, and for the idempotent
+re-write.
+
+**Final: 0 reimplementation candidates, 0 claims without read, 1 exempted by declared role.** The
+receipt states its blind spots: anything outside the two tables is invisible, and **a zero count is
+not a clean directory**.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.

@@ -188,15 +188,26 @@ def write_json_atomic(path: Path, obj: object, *, durable: bool = True) -> str:
     """Write canonical_json(obj) to <path>.tmp, fullsync, os.replace, fullsync the
     directory.  Returns the sha256 of the bytes written.  Raises WriteOnceViolation if
     path exists and its bytes differ."""
-    path = Path(path)
+    # RESOLVE FIRST. `tokenize_path` matches absolute prefixes and raises
+    # UntokenizablePath otherwise, so a caller passing a RELATIVE path made the
+    # write-once refusal below raise UntokenizablePath instead of
+    # WriteOnceViolation. The write was still refused -- it fails safe -- but the
+    # reported reason was the wrong one, precisely when a caller most needs to be
+    # told that a receipt already exists.
+    path = Path(path).resolve()
     data = canonical_json(obj).encode('utf-8')
     digest = sha256_bytes(data)
     if path.exists():
         existing = path.read_bytes()
         if existing == data:
             return digest
+        try:
+            where = tokenize_path(path)
+        except UntokenizablePath:
+            # Naming the file must never be able to mask the refusal.
+            where = '<UNTOKENIZABLE>/' + path.name
         raise WriteOnceViolation(
-            f'{tokenize_path(path)} exists with sha256 {sha256_bytes(existing)}, '
+            f'{where} exists with sha256 {sha256_bytes(existing)}, '
             f'refusing to overwrite with {digest}')
     tmp = path.with_name(path.name + '.tmp')
     fd = os.open(str(tmp), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o644)
