@@ -1,0 +1,46 @@
+{
+  "author": "session iclr-winratioagentevals-60",
+  "generated_utc": "2026-09-22T02:18:01Z",
+  "ownership_is_ambiguous_and_I_state_both_sides": {
+    "current_observation": "neither server has an active client connection right now",
+    "points_to_DTR_AgentEvals": [
+      "DTR's experiments/code_routing/config.json declares models.small.port=8193 and models.large.port=8191",
+      "I previously treated that as proof of ownership. It is not: a port number in a config does not establish which process is listening."
+    ],
+    "points_to_ICLR_session_60": [
+      "the running binary is <ICLR-SESSION-SCRATCHPAD>/llama.cpp/build/bin/llama-server",
+      "started Sat 2026-09-19 13:41, the day ICLR session 60 delivered its local-model stream experiment",
+      "serving qwen2.5-3b-instruct and qwen2.5-7b-instruct, the models that experiment used"
+    ],
+    "relevant_DTR_state": "DTR AGENTS.md: 'For the theory workstream, defer new model inference, GPU jobs and Monte Carlo sweeps' while GPU capacity is limited -- so DTR's theory track may not need these servers either."
+  },
+  "proposed_schedule": {
+    "ICLR_need_when_free": "one prefreeze block: the loaded reference sweep (at most 2,260 verifier attempts under a single 1,024-token coder load) and the 480-episode calibration/side-by-side. Both still require explicit root clearance, which is NOT being requested here -- only host access, when it is ours to use.",
+    "first_concrete_ask": "DTR: do you require the processes on 8191/8193? If they are idle leftovers of either project, whichever owns them stops them and takes no lease, and the host is free for the first project that needs it.",
+    "lease_file": "/private/tmp/claude-501/SHARED_COMPUTE_LEASE.json (outside both repositories)",
+    "lease_record": {
+      "expires_utc": "ISO",
+      "holder": "project id",
+      "pid_list": "[ints]",
+      "purpose": "one line",
+      "renewable": true,
+      "started_utc": "ISO"
+    },
+    "principle": "the host serves one accelerator consumer at a time, by explicit lease, rather than by whoever started first keeping it indefinitely",
+    "rules": [
+      "a project starts an accelerator process ONLY while holding an unexpired lease",
+      "a lease names an expiry; an expired lease is released by its holder, never seized by the other",
+      "on release the holder STOPS its own processes -- no project ever stops another project's",
+      "a project with no lease runs CPU-only work, which is what both are largely doing now",
+      "the lease file is advisory and auditable: it records intent so a blocked project can see who holds the host and until when"
+    ]
+  },
+  "schema": "shared_host.compute_schedule_proposal.1",
+  "status": "PROPOSAL. Nothing stopped, started or rescheduled. Awaiting the other project and the owner.",
+  "what_I_will_not_do": [
+    "stop, signal or inspect beyond ps/lsof any process I do not own",
+    "seize the host because a lease looks stale",
+    "treat this proposal as agreement, or start anything before both the other project and the owner respond"
+  ],
+  "why": "Two llama-servers hold ports 8191/8193 on the shared host. ICLR's protocol 5.7.2 fails its quiescence gate on the PRESENCE of a non-baseline accelerator consumer, so their existence alone has kept the live study at ZERO episodes for a full day."
+}
