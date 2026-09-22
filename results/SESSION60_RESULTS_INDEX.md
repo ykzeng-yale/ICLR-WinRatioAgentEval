@@ -1481,6 +1481,37 @@ present without checking the artifact it should be present in.**
 — no test sleeps ten seconds to prove a ten-second rule. Suites: design **273**, chain 70, isolation
 12, serving 89, hostcheck 117, stats 70, e2e 42.
 
+### SMOKE PASSED — two slots overlapping 53.58 s, from real emitted bytes (2026-09-22, `ea8900c`)
+
+`results/live_ab/SMOKE_RECEIPT_smoke_4167e395ccfd.json`, **`model-dependent`**. The authorized
+bounded instrument smoke ran and passed.
+
+| | |
+|---|---|
+| requests | **2 of 2**, both HTTP 200, both `finish_reason=length` |
+| completion tokens | 1024 + 1024 = **2048** |
+| wall | **54.72 s** of 600 s; per request 53.58 s of 120 s |
+| distinct occupied slots | `smoke_4167e395ccfd/slot0`, `/slot1` |
+| **observed overlap** | **53.577598 s** |
+| observation | active, `lifecycle_complete`, `producer_bound`, 2 records, **0 refused**, sidecar 0 bytes |
+
+**The 2048 is two requests hitting `max_tokens`, not a cap truncation** — both `finish_reason=length`.
+**The overlap was observed**, from the slots' own transition timestamps, not from client send times.
+The sequence multiset, seal count, token binding and two-slot rule met **emitted bytes** for the first
+time.
+
+**Root's launcher warning, confirmed concretely:** the launcher hash `7a5423a3…` is **byte-identical
+across two builds of different source** (patch `984f47df` → `2c52078f`). The instrumentation lives in
+`libllama-server-impl.dylib` (`d3a67d66…`). `BINARY_CLOSURE_20260922T0811Z.json` hashes all nine
+non-system libraries. Weight pin verified `509287f7…`; manifest pushed before launch (`adb1544`);
+capacity rechecked independently at 08:10:39Z.
+
+**Correction** (`CORRECTION_REBUILD_TIMESTAMPS_20260922.json`, `descriptive`): I told the peer the
+rebuild ran "08:10:49Z to 08:10:48Z". **I never read the start timestamp — I inferred it.** True:
+**08:10:45Z → 08:10:48Z, 3 s** (incremental; one translation unit, 5 targets). The peer caught the
+impossible ordering. **Third time today I stated something I did not read**; the smoke receipt is
+unaffected, its times coming from `time.monotonic` inside the runner.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
