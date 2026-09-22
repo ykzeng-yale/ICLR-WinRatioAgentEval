@@ -1,77 +1,70 @@
-"""The continuous-load observer of protocol 3.2 rule 4.
+"""The client-side load DIAGNOSTIC of protocol 3.2 rule 4 -- not its certification.
 
-Protocol 3.2 rule 4 requires the reference sweep to run UNDER THE TRIAL'S LOAD
-REGIME -- a 1,024-token generation on the coder server.  ``lab_prepare`` already
-refuses a sweep that is handed no ``load_observer``, and ``_coverage_verdict``
-already decides whether an observation's ``active_windows`` contain an attempt.
-Neither of them produced an observation: until this module, the observer was a
-parameter with no implementation, so the enforcement was a hole with a gate in
-front of it.
+READ THIS FIRST.  Root's binding design choice of 2026-09-22 02:49
+(``reviews/live_load_root_decision_20260922_0237.md``) ruled that what this module
+observes is **not** what the coverage contract requires:
 
-WHAT A WINDOW MUST MEAN, AND WHY SAMPLING CANNOT PRODUCE ONE
-------------------------------------------------------------
-Root, 2026-09-21 21:50: "A series of active samples cannot become proof of
-continuous activity merely by shrinking the ends ... A sampler's cadence is not
-an endpoint-error bound and says nothing about unobserved interior gaps."
+    "Dense streamed arrivals do not establish continuous computation between
+     arrivals, and socket buffering separates receipt time from production time.
+     ... Define the load criterion operationally before collection: TWO DISTINCT
+     SERVER-ACKNOWLEDGED DECODING REQUESTS/OCCUPIED DECODING SLOTS THROUGHOUT THE
+     VERIFIER INTERVAL, recorded by pinned server-side lifecycle start/end events
+     on the same host monotonic clock. ... Client POST-to-response outstanding
+     intervals alone do not identify server decoding lifetime. ... Stream
+     events/timer lateness can remain diagnostics."
 
-That rules out the easy implementation.  Polling ``/slots`` or ``/metrics`` every
-200 ms yields a series of instants at which the server was busy and says nothing
-whatever about the 199 ms between them.  No arithmetic applied afterwards repairs
-that, and a window built from such samples would be a fabricated interval wearing
-a measurement's clothes.
+So this module now declares ``evidence_kind = 'client_stream_arrivals'`` and
+``certifies_coverage = False``.  ``lab_prepare._coverage_verdict`` refuses to
+certify from it.  The instrument is kept because the diagnostic is worth having --
+it shows whether traffic was flowing and when it stopped -- **not** because it was
+rescued by a tolerance.  The certifying observer reads server-side lifecycle
+events; that is a separate instrument.
 
-This module therefore observes load through EVIDENCE OF PRODUCTION, not through
-samples of state: the load generator issues STREAMED generations, and every token
-that arrives is evidence that the server produced output at that moment.  Between
-two consecutive arrivals the server's state is unobserved, so the honest claim is
-bounded, not absolute:
+WHY NO TOLERANCE COULD HAVE SAVED IT
+-------------------------------------
+The arrival series identifies gaps in **observed arrival traffic**, not gaps in
+compute activity.  A server may finish producing before buffered events reach the
+client; even with no buffering, output at two instants does not establish activity
+throughout the interval between them.  Declaring the maximum gap makes the
+assumption explicit but cannot establish it, and replacing the jitter maximum with
+a larger constant would not repair the identification problem -- it would only
+move it.  This is an instrumentation/design mismatch, not a statistical failure.
 
-    "the server was never idle for longer than the largest gap between two
-     consecutive token arrivals inside this window"
+WHAT IS STILL TRUE AND USEFUL HERE
+-----------------------------------
+* ``windows_from_arrivals`` partitions by generation before splitting, so two
+  concurrent generations do not destroy each other's windows.  (The first version
+  split at every change of generation id, which reported NO ACTIVE LOAD at peak
+  load -- silently, in the safe-looking direction.)
+* ``classify_stream_chunk`` separates content deltas from the role-only opening
+  chunk and the usage/finish closing chunk.  Counting those two as production
+  lengthened every window at exactly the two ends where the claim is weakest.
+* An UNHEALTHY source now yields no windows.  The flag used to be recorded and
+  then ignored, while the docstring claimed an enforcement that did not exist.
+* Each ``StreamingHttpLoad`` owns a ``source_id`` and prefixes its generation
+  identities with it, so two sources routed into one observer cannot collide.
+* ``max_tokens`` is a CAP, not a count: a request may finish earlier, and a
+  content chunk may carry more than one token.  ``event_counts`` reports events.
 
-A window is therefore emitted only while consecutive arrivals stay within
-``max_interior_gap_s``; a larger gap SPLITS the window in two rather than being
-averaged away.  An attempt that straddles the gap is then not covered, which is
-the correct outcome -- during that gap we do not know what the server was doing.
-
-THE ENDPOINT BOUND IS MEASURED, AND ITS LIMIT IS STATED
--------------------------------------------------------
-``_coverage_verdict`` contracts every window inward by ``endpoint_error_s``, so
-that number must bound how far the true activity interval could lie INSIDE the
-reported one.  The reported endpoints are arrival timestamps, and an arrival is
-stamped later than the production it evidences -- by the socket delivery and by
-this process's own scheduling.
-
-This observer measures the second part: a probe thread wakes on a fixed schedule
-throughout the same run and records its worst lateness.  The bound reported is
-``max(declared floor, worst observed lateness)``.
-
-BE CLEAR ABOUT WHAT THAT IS.  It is an EMPIRICAL MAXIMUM taken under the same
-concurrent load, plus a floor -- not a proof.  It does not bound a kernel stall
-longer than any the probe happened to sample, and it does not bound socket
-buffering at all.  It is offered as the justification the contract asks for, and
-whether it is accepted as one, replaced by a declared constant, or pre-registered
-in ``config.json`` is the root session's ruling, not this module's claim.
-
-WHAT IS NOT DECIDED HERE
-------------------------
-* ``StreamingHttpLoad`` streams its load requests so that arrivals exist to be
-  stamped, while the trial's own client (``lab_client``) sends ``stream: false``.
-  The WORK offered to the server is the same 1,024-token generation; the
-  transport of the reply is not.  That difference is declared, not hidden, and is
-  for root to rule on.
-* No tolerance here is pre-registered.  ``config.json`` is under the three-way
-  verbatim contract and this module does not touch it.
+THE ENDPOINT BOUND, AND WHY IT IS NOT OFFERED AS ONE ANY MORE
+--------------------------------------------------------------
+``JitterProbe`` measures the worst observed lateness of a fixed-schedule wake-up.
+Root ruled that neither this empirical maximum nor an arbitrary pre-registered
+constant is an accepted endpoint-error guarantee.  It is retained as a diagnostic
+of this process's own scheduling, and it is not put forward as a bound on
+delivery or observation error.
 """
 
 from __future__ import annotations
 
+import json
 import math
 import sys
 import threading
 import time
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
+from uuid import uuid4
 
 HERE = Path(__file__).resolve().parent
 if str(HERE) not in sys.path:                                  # pragma: no cover
@@ -79,7 +72,10 @@ if str(HERE) not in sys.path:                                  # pragma: no cove
 
 import lab_common                                              # noqa: E402
 
-OBSERVATION_SCHEMA = 'live_ab/load_observation-v1'
+OBSERVATION_SCHEMA = 'live_ab/load_observation-v2'
+#: What this instrument produces. NOT the kind that may certify coverage; see
+#: lab_prepare.EVIDENCE_SERVER_LIFECYCLE.
+EVIDENCE_KIND = 'client_stream_arrivals'
 WINDOW_SCHEMA = 'live_ab/load_window-v1'
 
 #: Largest gap between consecutive token arrivals that may sit INSIDE one window.
@@ -205,6 +201,67 @@ def windows_from_arrivals(arrivals: Sequence[Tuple[str, float]], *,
             'evidence': 'consecutive streamed token arrivals on the observer clock',
         })
     return windows
+
+
+# ---------------------------------------------------------------------------
+# what counts as a token, and what does not
+# ---------------------------------------------------------------------------
+
+def classify_stream_chunk(text: str) -> tuple:
+    """``(kind, is_token_production)`` for one ``data:`` line of an SSE stream.
+
+    Root's reviewer, 2026-09-22: *"Events are not necessarily tokens ... a
+    two-line mock response containing only role metadata and an empty
+    choices/usage event produced two arrivals."*
+
+    An OpenAI-compatible stream emits, in order:
+
+      * a **role-only** first delta (``{"delta": {"role": "assistant"}}``) when
+        the slot is assigned -- before any token has been decoded;
+      * ``content`` deltas, one per decoded token or token group;
+      * a **finish/usage** chunk after the last token.
+
+    Only the middle kind is evidence of production.  Counting the other two
+    lengthens a window at exactly the two ends where the continuity claim is
+    weakest, which is why they are excluded here rather than trimmed later.
+
+    Malformed JSON is ``('unparsable', False)``: an event we cannot read is not
+    an event we may count.
+    """
+    payload = text[len('data:'):].strip() if text.startswith('data:') else text.strip()
+    if not payload:
+        return ('empty', False)
+    try:
+        obj = json.loads(payload)
+    except ValueError:
+        return ('unparsable', False)
+    if not isinstance(obj, dict):
+        return ('unparsable', False)
+    choices = obj.get('choices')
+    if not isinstance(choices, list) or not choices:
+        # usage-only or keep-alive chunks carry no choices at all
+        return ('usage_or_metadata', False)
+    produced = False
+    finished = False
+    for ch in choices:
+        if not isinstance(ch, dict):
+            continue
+        if ch.get('finish_reason') not in (None, ''):
+            finished = True
+        delta = ch.get('delta')
+        if isinstance(delta, dict):
+            content = delta.get('content')
+            if isinstance(content, str) and content != '':
+                produced = True
+            # A delta carrying ONLY a role is the slot-assignment event.
+        text_field = ch.get('text')
+        if isinstance(text_field, str) and text_field != '':
+            produced = True          # the legacy completions shape
+    if produced:
+        return ('content', True)
+    if finished:
+        return ('finish', False)
+    return ('role_or_empty_delta', False)
 
 
 # ---------------------------------------------------------------------------
@@ -356,6 +413,7 @@ class StreamingHttpLoad:
 
     def __init__(self, *, base_url: str, model: str, prompt: str,
                  max_tokens: int = 1024, request_timeout_s: float = 300.0,
+                 source_id: Optional[str] = None,
                  clock: Callable[[], float] = time.monotonic,
                  session_factory: Optional[Callable[[], Any]] = None) -> None:
         if not str(base_url).startswith('http://127.0.0.1') and \
@@ -375,7 +433,19 @@ class StreamingHttpLoad:
         self._thread: Optional[threading.Thread] = None
         self._errors: List[str] = []
         self._generations = 0
+        self._token_events = 0
+        self._nontoken_events: Dict[str, int] = {}
         self._lock = threading.Lock()
+        # DEFECT 1 OF ROOT'S REVIEW: "StreamingHttpLoad._loop also names its
+        # generations gen_000000, etc., with NO PER-SOURCE PREFIX. Two
+        # independently instantiated sources routed into one observer would
+        # COLLIDE in generation identity unless the composition layer adds a
+        # source ID." Correct, and the collision would have been silent: two
+        # concurrent lifetimes would have merged into one identity, which is
+        # exactly the thing concurrency must count separately. The source owns
+        # its identity rather than leaving it to a composition layer that may
+        # not exist.
+        self.source_id = str(source_id) if source_id else ('src_' + uuid4().hex[:8])
 
     @property
     def errors(self) -> List[str]:
@@ -386,6 +456,19 @@ class StreamingHttpLoad:
     def generations(self) -> int:
         with self._lock:
             return self._generations
+
+    @property
+    def event_counts(self) -> Dict[str, Any]:
+        """Token-bearing versus non-token stream events, kept apart.
+
+        ``max_tokens`` is a CAP, not a count: a request may finish earlier, and
+        the number of content chunks is not the number of tokens either, because
+        a chunk may carry more than one. These counters describe events.
+        """
+        with self._lock:
+            return {'content_events': self._token_events,
+                    'nontoken_events': dict(self._nontoken_events),
+                    'max_tokens_is_a_cap_not_a_count': True}
 
     def healthy(self) -> bool:
         """False once the worker has stopped or recorded an error.
@@ -432,13 +515,32 @@ class StreamingHttpLoad:
                 continue
             if text.strip() == 'data: [DONE]':
                 break
+            # DEFECT 3 OF ROOT'S REVIEW, 2026-09-22
+            # (reviews/live_load_review_20260922_0237.md finding 3): "_one_generation
+            # accepts every non-DONE data: line without parsing its contents. A
+            # two-line mock response containing only role metadata and an empty
+            # choices/usage event produced two 'arrivals'."
+            #
+            # Correct. An OpenAI-compatible stream opens with a role-only delta
+            # (emitted when the slot is assigned, before any token is decoded) and
+            # closes with a usage/finish chunk (emitted after the last token). Both
+            # were counted as production, which lengthens every window at exactly
+            # the two ends where the claim is weakest. Non-token events are now
+            # counted SEPARATELY and never reach the sink.
+            kind, ok = classify_stream_chunk(text)
+            if not ok:
+                with self._lock:
+                    self._nontoken_events[kind] = self._nontoken_events.get(kind, 0) + 1
+                continue
+            with self._lock:
+                self._token_events += 1
             sink(gid, t)
 
     def _loop(self, sink: Callable[[str, float], None]) -> None:
         session = self._session()
         index = 0
         while not self._stop.is_set():
-            gid = 'gen_%06d' % index
+            gid = '%s/gen_%06d' % (self.source_id, index)
             try:
                 self._one_generation(session, gid, sink)
             except Exception as exc:
@@ -549,6 +651,14 @@ class ContinuousLoadObserver:
             dropped, retained_since = self._dropped, self._retained_since
         base: Dict[str, Any] = {
             'schema': OBSERVATION_SCHEMA,
+            # ROOT'S BINDING DECISION, 2026-09-22 02:49: client stream arrivals do
+            # not identify server decoding lifetime, and no tolerance converts
+            # them into it. This observer therefore declares itself a DIAGNOSTIC,
+            # and lab_prepare._coverage_verdict refuses to certify coverage from
+            # it. The instrument is kept because the diagnostic is worth having,
+            # not because it was rescued.
+            'evidence_kind': EVIDENCE_KIND,
+            'certifies_coverage': False,
             'source_kind': getattr(self.source, 'kind', type(self.source).__name__),
             'max_interior_gap_s_allowed': self.max_interior_gap_s,
             'observed_at_monotonic': self._clock(),
@@ -563,6 +673,26 @@ class ContinuousLoadObserver:
             healthy = False
             base['source_health_error'] = '%s: %s' % (type(exc).__name__, exc)
         base['source_healthy'] = healthy
+
+        # DEFECT 2 OF ROOT'S REVIEW, 2026-09-22
+        # (reviews/live_load_review_20260922_0237.md finding 2): "observe records
+        # source_healthy but does not refuse when it is false. A pure offline
+        # witness with one scripted generation, five arrivals from 100.0 to 100.4,
+        # 20 injected jitter samples, healthy=False, and attempt [100.12, 100.18]
+        # yielded active=True and coverage.valid=True. This contradicts the
+        # module's claim that unhealthy sources yield no certifiable windows."
+        #
+        # Exactly right: the flag was recorded and then ignored, and the docstring
+        # claimed an enforcement that did not exist -- a check that names what it
+        # does not perform. Historical evidence is preserved (the arrivals stay in
+        # the ring and the observation still reports them), but an attempt is not
+        # described as loaded on the word of a source that has failed.
+        if not healthy:
+            return dict(base, active=False, active_windows=[],
+                        reason='the load source is UNHEALTHY; an interval crossing a '
+                               'failed or unresolved source is not described as '
+                               'loaded. The arrivals already recorded are retained '
+                               'as diagnostics.')
 
         # A malformed series is a broken instrument, and that is not a quiet
         # server.  It raises, and the sweep's sink turns it into a retained

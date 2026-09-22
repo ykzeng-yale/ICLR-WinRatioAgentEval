@@ -2090,9 +2090,11 @@ class PreparationWiringTests(unittest.TestCase):
             # longer does; active_windows must span the attempt on one clock,
             # with the stated resolution charged against the claim.
             return {'window_id': 'w1', 'active': True, 'resolution_ms': 50,
-                    'max_interior_gap_s_allowed': 0.5,
-                    'max_interior_gap_s_measured': 0.02,
-                    'active_windows': [{'start': 99.0, 'end': 101.0}]}
+                    'evidence_kind': 'server_lifecycle', 'lifecycle_complete': True,
+                    'concurrency_required': 2,
+                    'active_windows': [
+                        {'start': 99.0, 'end': 101.0, 'identity': 'slot0/req_a'},
+                        {'start': 99.0, 'end': 101.0, 'identity': 'slot1/req_b'}]}
         res = lab_prepare.run_reference_sweep(
             [], {}, ledger_path=self.tmp / 'l.jsonl', load_observer=observer,
             enforce_tmpdir=False, sweep_fn=self._stub_sweep())
@@ -2297,9 +2299,16 @@ class CoverageSchemaDomainMatrixTests(unittest.TestCase):
     of alias rescue for a malformed v2 record, and the explicit legacy audit route.
     """
 
+    # Root's binding decision of 2026-09-22 02:49 replaced the evidence this
+    # function may certify from: two DISTINCT server-acknowledged decoding
+    # lifetimes occupied throughout the interval, not union coverage of one.
+    # These version/domain tests are about the ATTEMPT record's schema, so the
+    # observation is now the minimal valid lifecycle observation.
     OBS = {'active': True, 'window_id': 'w', 'endpoint_error_s': 0.0,
-           'max_interior_gap_s_allowed': 0.5, 'max_interior_gap_s_measured': 0.02,
-           'active_windows': [{'start': 99.0, 'end': 101.0}]}
+           'evidence_kind': 'server_lifecycle', 'lifecycle_complete': True,
+           'concurrency_required': 2,
+           'active_windows': [{'start': 99.0, 'end': 101.0, 'identity': 'slot0/req_a'},
+                              {'start': 99.0, 'end': 101.0, 'identity': 'slot1/req_b'}]}
 
     def _v(self, record, **kw):
         return lab_prepare._coverage_verdict(self.OBS, record, **kw)
@@ -2662,25 +2671,176 @@ class ContinuousLoadObserverTests(unittest.TestCase):
         self.assertAlmostEqual(p.bound(floor_s=0.01)['endpoint_error_s'], 0.25)
 
     # -- the observation ---------------------------------------------------
-    def test_a_covered_attempt_is_certified_and_names_its_evidence(self):
+    def test_a_dense_arrival_series_is_NOT_certifying_evidence(self):
+        """Root's binding decision, 2026-09-22 02:49: client stream arrivals do
+        not identify server decoding lifetime, and no tolerance converts them
+        into it. The instrument stays; its certification does not."""
         obs = self._observer(self._dense('g0', 99.0, 102.0))
         with obs:
             o = obs.observe()
-        self.assertTrue(o['active'])
-        self.assertEqual(o['source_kind'], 'scripted_fixture')
+        self.assertTrue(o['active'])                       # traffic WAS flowing
+        self.assertEqual(o['evidence_kind'], 'client_stream_arrivals')
+        self.assertFalse(o['certifies_coverage'])
         v = lab_prepare._coverage_verdict(o, self._attempt(100.0, 100.5))
-        self.assertTrue(v['valid'], v.get('reason'))
+        self.assertFalse(v['valid'])
+        self.assertIn('server_lifecycle', v['reason'])
 
-    def test_an_attempt_straddling_the_gap_is_NOT_covered(self):
-        """The negative control the whole module exists for."""
+    def test_an_interior_gap_still_splits_the_diagnostic_windows(self):
+        """The splitting rule remains correct as a DIAGNOSTIC of traffic gaps."""
         obs = self._observer(self._dense('g0', 99.0, 100.1)
                              + self._dense('g0', 100.8, 102.0))
         with obs:
             o = obs.observe()
-        self.assertTrue(o['active'])              # there IS load, both sides
-        v = lab_prepare._coverage_verdict(o, self._attempt(100.0, 100.5))
+        self.assertEqual(len(o['active_windows']), 2)
+        self.assertLess(o['active_windows'][0]['end'], 100.8)
+
+    # -- the three defects root's independent review named ------------------
+    def test_an_unhealthy_source_yields_no_windows(self):
+        """Review finding 2: observe() recorded source_healthy and then IGNORED
+        it. The reviewer's own witness -- five arrivals 100.0..100.4, 20 jitter
+        samples, healthy=False, attempt [100.12, 100.18] -- returned active=True
+        and coverage valid. The docstring claimed an enforcement that did not
+        exist."""
+        class _Sick(lab_load.ScriptedLoad):
+            kind = 'scripted_unhealthy'
+
+            def healthy(self):
+                return False
+
+        obs = lab_load.ContinuousLoadObserver(
+            _Sick([('g0', 100.0), ('g0', 100.1), ('g0', 100.2),
+                   ('g0', 100.3), ('g0', 100.4)]),
+            max_interior_gap_s=self.GAP, jitter=self._probe())
+        with obs:
+            o = obs.observe()
+        self.assertFalse(o['active'])
+        self.assertEqual(o['active_windows'], [])
+        self.assertIn('UNHEALTHY', o['reason'])
+        self.assertEqual(o['arrivals_seen'], 5)            # evidence RETAINED
+        v = lab_prepare._coverage_verdict(o, self._attempt(100.12, 100.18))
         self.assertFalse(v['valid'])
-        self.assertIn('do not contain the attempt', v['reason'])
+
+    def test_role_and_usage_chunks_are_not_token_production(self):
+        """Review finding 3: every non-DONE data: line counted as an arrival, so
+        a two-line response of role metadata plus a usage event produced two
+        'arrivals' -- lengthening a window at exactly the two ends where the
+        continuity claim is weakest."""
+        cases = [
+            ('data: {"choices":[{"delta":{"role":"assistant"}}]}', 'role_or_empty_delta', False),
+            ('data: {"choices":[{"delta":{"content":"hi"}}]}', 'content', True),
+            ('data: {"choices":[],"usage":{"total_tokens":5}}', 'usage_or_metadata', False),
+            ('data: {"choices":[{"delta":{},"finish_reason":"stop"}]}', 'finish', False),
+            ('data: not json', 'unparsable', False),
+            ('data:', 'empty', False),
+        ]
+        for text, kind, is_token in cases:
+            with self.subTest(text=text[:40]):
+                self.assertEqual(lab_load.classify_stream_chunk(text), (kind, is_token))
+
+    def test_the_reviewers_two_line_mock_produces_no_arrival(self):
+        class _Resp:
+            status_code = 200
+
+            def iter_lines(self):
+                return [b'data: {"choices":[{"delta":{"role":"assistant"}}]}',
+                        b'data: {"choices":[],"usage":{"total_tokens":5}}',
+                        b'data: [DONE]']
+
+        class _Session:
+            def post(self, *a, **kw):
+                return _Resp()
+
+        src = lab_load.StreamingHttpLoad(base_url='http://127.0.0.1:8193',
+                                         model='m', prompt='p',
+                                         session_factory=_Session)
+        got = []
+        src._one_generation(_Session(), 'g0', lambda gid, t: got.append((gid, t)))
+        self.assertEqual(got, [])
+        self.assertEqual(src.event_counts['content_events'], 0)
+        self.assertEqual(sum(src.event_counts['nontoken_events'].values()), 2)
+
+    def test_two_sources_do_not_collide_in_generation_identity(self):
+        """Review finding 1: generations were named gen_000000 with no per-source
+        prefix, so two sources routed into one observer would COLLIDE -- merging
+        two concurrent lifetimes into one identity, which is exactly what
+        concurrency must count separately."""
+        a = lab_load.StreamingHttpLoad(base_url='http://127.0.0.1:8193', model='m',
+                                       prompt='p', source_id='srcA')
+        b = lab_load.StreamingHttpLoad(base_url='http://127.0.0.1:8193', model='m',
+                                       prompt='p', source_id='srcB')
+        self.assertNotEqual(a.source_id, b.source_id)
+        ids_a, ids_b = [], []
+        a._stop.set(); b._stop.set()        # the loop exits before any request
+        for src, out in ((a, ids_a), (b, ids_b)):
+            out.append('%s/gen_%06d' % (src.source_id, 0))
+        self.assertNotEqual(ids_a[0], ids_b[0])
+        # and an auto-assigned id is still unique
+        c = lab_load.StreamingHttpLoad(base_url='http://127.0.0.1:8193', model='m',
+                                       prompt='p')
+        d = lab_load.StreamingHttpLoad(base_url='http://127.0.0.1:8193', model='m',
+                                       prompt='p')
+        self.assertNotEqual(c.source_id, d.source_id)
+
+    # -- the concurrency rule that replaced union coverage ------------------
+    def _lifecycle(self, windows, **kw):
+        obs = {'active': True, 'window_id': 'lc', 'endpoint_error_s': 0.0,
+               'evidence_kind': 'server_lifecycle', 'lifecycle_complete': True,
+               'concurrency_required': 2, 'active_windows': windows}
+        obs.update(kw)
+        return obs
+
+    def test_two_distinct_lifetimes_throughout_the_attempt_certify(self):
+        v = lab_prepare._coverage_verdict(self._lifecycle([
+            {'start': 99.0, 'end': 101.0, 'identity': 'slot0/req_a'},
+            {'start': 99.5, 'end': 101.5, 'identity': 'slot1/req_b'}]),
+            self._attempt(100.0, 100.5))
+        self.assertTrue(v['valid'], v.get('reason'))
+        self.assertEqual(v['concurrency_observed_min'], 2)
+
+    def test_union_coverage_by_ONE_lifetime_no_longer_certifies(self):
+        """The reviewer's finding 1, and the saved single-generation case that
+        expressly passed under the old union walk."""
+        v = lab_prepare._coverage_verdict(self._lifecycle([
+            {'start': 99.0, 'end': 100.4, 'identity': 'slot0/req_a'},
+            {'start': 100.3, 'end': 101.5, 'identity': 'slot0/req_a'}]),
+            self._attempt(100.0, 100.5))
+        self.assertFalse(v['valid'])
+        self.assertIn('distinct lifetime', v['reason'])
+
+    def test_a_second_lifetime_that_starts_late_does_not_certify(self):
+        v = lab_prepare._coverage_verdict(self._lifecycle([
+            {'start': 99.0, 'end': 101.0, 'identity': 'a'},
+            {'start': 100.3, 'end': 101.0, 'identity': 'b'}]),
+            self._attempt(100.0, 100.5))
+        self.assertFalse(v['valid'])
+        self.assertEqual(v['concurrency_observed_min'], 1)
+
+    def test_an_anonymous_window_cannot_be_counted(self):
+        v = lab_prepare._coverage_verdict(self._lifecycle([
+            {'start': 99.0, 'end': 101.0},
+            {'start': 99.0, 'end': 101.0, 'identity': 'b'}]),
+            self._attempt(100.0, 100.5))
+        self.assertFalse(v['valid'])
+        self.assertIn('no identity', v['reason'])
+
+    def test_an_incomplete_lifecycle_refuses_and_does_not_exclude(self):
+        """Root: "Unknown/missing endpoint or lifecycle discontinuity refuses
+        coverage and retains the attempt; it does not become a task exclusion."
+        """
+        v = lab_prepare._coverage_verdict(self._lifecycle([
+            {'start': 99.0, 'end': 101.0, 'identity': 'a'},
+            {'start': 99.0, 'end': 101.0, 'identity': 'b'}],
+            lifecycle_complete=False), self._attempt(100.0, 100.5))
+        self.assertFalse(v['valid'])
+        self.assertIn('lifecycle_complete', v['reason'])
+
+    def test_declaring_concurrency_one_is_refused(self):
+        v = lab_prepare._coverage_verdict(self._lifecycle([
+            {'start': 99.0, 'end': 101.0, 'identity': 'a'},
+            {'start': 99.0, 'end': 101.0, 'identity': 'b'}],
+            concurrency_required=1), self._attempt(100.0, 100.5))
+        self.assertFalse(v['valid'])
+        self.assertIn('at least', v['reason'])
 
     def test_no_arrivals_yields_no_observation_of_activity(self):
         obs = self._observer([])
@@ -2707,21 +2867,15 @@ class ContinuousLoadObserverTests(unittest.TestCase):
         self.assertIn(lab_data.ATTEMPT_RECORD_SCHEMA, kinds)   # raw attempt retained
         self.assertIn('live_ab/load_coverage-v1', kinds)       # and the refusal reason
 
-    # -- the declaration the verdict now requires --------------------------
-    def test_an_observation_without_its_interior_gap_declaration_is_refused(self):
-        bare = {'active': True, 'window_id': 'w', 'endpoint_error_s': 0.0,
-                'active_windows': [{'start': 99.0, 'end': 101.0}]}
-        v = lab_prepare._coverage_verdict(bare, self._attempt(100.0, 100.5))
-        self.assertFalse(v['valid'])
-        self.assertIn('interior gap evidence', v['reason'])
-
-    def test_a_declared_gap_larger_than_its_tolerance_is_refused(self):
-        bad = {'active': True, 'window_id': 'w', 'endpoint_error_s': 0.0,
-               'max_interior_gap_s_allowed': 0.5, 'max_interior_gap_s_measured': 1.5,
-               'active_windows': [{'start': 99.0, 'end': 101.0}]}
-        v = lab_prepare._coverage_verdict(bad, self._attempt(100.0, 100.5))
-        self.assertFalse(v['valid'])
-        self.assertIn('should have been split', v['reason'])
+    # -- the interior-gap declaration is SUPERSEDED -------------------------
+    # It was added when the arrival instrument was still meant to certify: an
+    # observation had to declare the largest unobserved gap inside its windows.
+    # Root's 2026-09-22 decision removed the premise -- arrivals cannot certify at
+    # all, and inside a server-acknowledged lifetime "server scheduling pauses
+    # ... are part of the operational regime", so an interior-gap tolerance would
+    # reject exactly the evidence that is now required. The check is gone from
+    # _coverage_verdict and its two tests are gone with it, rather than left
+    # asserting a rule the function no longer applies.
 
     # -- the real source ---------------------------------------------------
     def test_the_load_generator_may_only_address_loopback(self):

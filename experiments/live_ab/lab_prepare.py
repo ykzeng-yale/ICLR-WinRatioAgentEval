@@ -331,6 +331,17 @@ def _record_access(dest: Path, kind: str, mode: "str | None",
 
 
 PRESCRIBED_TMPDIR_TOKEN = '<TMP>/labsbx'
+#: THE ONLY EVIDENCE KIND THAT MAY CERTIFY COVERAGE, root 2026-09-22 02:49:
+#: "two distinct server-acknowledged decoding requests/occupied decoding slots
+#:  throughout the verifier interval, recorded by pinned server-side lifecycle
+#:  start/end events on the same host monotonic clock."
+EVIDENCE_SERVER_LIFECYCLE = 'server_lifecycle'
+#: Retained and recorded, never certifying. Root: "Stream events/timer lateness
+#: can remain diagnostics."
+EVIDENCE_CLIENT_ARRIVALS = 'client_stream_arrivals'
+#: "Require concurrency at least two, not union coverage of one."
+MIN_LOAD_CONCURRENCY = 2
+
 INTERVAL_SCHEMA_V1 = 'live_ab/attempt_interval-v1'
 INTERVAL_SCHEMA_V2 = 'live_ab/attempt_interval-v2'
 
@@ -416,36 +427,52 @@ def _coverage_verdict(obs: object, record: dict, *,
     if obs.get('window_id') in (None, ''):
         return {'valid': False, 'reason': 'observation omits window_id'}
 
-    # --- the interior gap declaration --------------------------------------
-    # STRENGTHENING, 2026-09-22, when the observer was actually implemented:
-    # this function used to take "each window means a continuously active
-    # interval" entirely on the producer's word, while its own closing note says
-    # the arithmetic "does not turn periodic samples into continuous evidence".
-    # Nothing stopped a sampler from handing it two instants labelled a window.
+    # --- WHAT KIND OF EVIDENCE THIS IS -------------------------------------
+    # ROOT'S BINDING DESIGN CHOICE, 2026-09-22 02:49
+    # (reviews/live_load_root_decision_20260922_0237.md):
     #
-    # An observation must now DECLARE the largest unobserved gap inside its
-    # windows and the tolerance it split them at, and the measured value must not
-    # exceed the declared one. This cannot verify the claim -- only the observer
-    # holds the arrival series -- but it forces the claim to be made in the
-    # artifact, where it is checkable afterwards against the ledger, instead of
-    # being implied by silence.
-    allowed = _finite(obs.get('max_interior_gap_s_allowed'))
-    measured = _finite(obs.get('max_interior_gap_s_measured'))
-    if allowed is None or measured is None:
+    #   "Define the load criterion operationally before collection: TWO DISTINCT
+    #    SERVER-ACKNOWLEDGED DECODING REQUESTS/OCCUPIED DECODING SLOTS THROUGHOUT
+    #    THE VERIFIER INTERVAL, recorded by pinned server-side lifecycle start/end
+    #    events on the same host monotonic clock. ... Require concurrency at least
+    #    two, not union coverage of one; use distinct source/request identities.
+    #    ... Client POST-to-response outstanding intervals alone do not identify
+    #    server decoding lifetime."
+    #
+    # My arrival instrument is therefore NOT certification and cannot be made into
+    # it by any tolerance: a server may finish producing before buffered events
+    # reach the client, and output at two instants does not establish activity
+    # between them. Root: "Stream events/timer lateness can remain diagnostics."
+    #
+    # So the evidence kind is declared and checked FIRST, before any arithmetic.
+    kind = obs.get('evidence_kind')
+    if kind != EVIDENCE_SERVER_LIFECYCLE:
+        return {'valid': False, 'evidence_kind': kind,
+                'reason': 'coverage may be certified only from %r. This observation '
+                          'declares %r. Root 2026-09-22: client POST-to-response '
+                          'outstanding intervals and client stream arrivals do not '
+                          'identify server decoding lifetime, and no gap tolerance '
+                          'or endpoint bound converts them into it. Such evidence is '
+                          'retained as a DIAGNOSTIC.'
+                          % (EVIDENCE_SERVER_LIFECYCLE, kind)}
+    if obs.get('lifecycle_complete') is not True:
         return {'valid': False,
-                'reason': 'observation does not declare its interior gap evidence '
-                          '(max_interior_gap_s_measured / _allowed); a window list '
-                          'alone cannot distinguish evidenced continuous production '
-                          'from a pair of samples'}
-    if measured < 0 or allowed < 0:
+                'reason': 'the observation does not assert lifecycle_complete. Root: '
+                          '"Unknown/missing endpoint or lifecycle discontinuity '
+                          'refuses coverage and retains the attempt; it does not '
+                          'become a task exclusion."'}
+    required = obs.get('concurrency_required')
+    try:
+        required = int(required)
+    except (TypeError, ValueError):
         return {'valid': False,
-                'reason': 'interior gap declaration is negative (%r measured, %r '
-                          'allowed)' % (measured, allowed)}
-    if measured > allowed:
+                'reason': 'observation does not declare concurrency_required'}
+    if required < MIN_LOAD_CONCURRENCY:
         return {'valid': False,
-                'reason': 'a window contains an unobserved gap of %.6f s, larger '
-                          'than the declared tolerance of %.6f s; the window should '
-                          'have been split there' % (measured, allowed)}
+                'reason': 'concurrency_required is %d; the operational load '
+                          'definition requires at least %d distinct server-'
+                          'acknowledged lifetimes, not union coverage of one'
+                          % (required, MIN_LOAD_CONCURRENCY)}
 
     # --- the endpoint error bound: finite and NONNEGATIVE -------------------
     # `resolution_ms` is accepted as the legacy spelling, but it is read as an
@@ -556,36 +583,92 @@ def _coverage_verdict(obs: object, record: dict, *,
             return {'valid': False,
                     'reason': 'an active window is reversed (start %r > end %r)'
                               % (ws, we)}
+        # DISTINCT SOURCE/REQUEST IDENTITY, root 2026-09-22: "use distinct
+        # source/request identities". Two windows of the SAME lifetime must not
+        # both count toward concurrency, and the reviewer noted my generator
+        # named its lifetimes gen_000000.. with no per-source prefix, so two
+        # sources routed into one observer would COLLIDE in identity. An
+        # unidentified window cannot be counted at all.
+        ident = w.get('identity')
+        if ident in (None, ''):
+            return {'valid': False,
+                    'reason': 'an active window carries no identity; concurrency of '
+                              'at least %d DISTINCT server-acknowledged lifetimes '
+                              'cannot be established from anonymous windows'
+                              % MIN_LOAD_CONCURRENCY}
         lo, hi = ws + e, we - e          # inward contraction, e >= 0 guaranteed
         if hi > lo:
-            certified.append((lo, hi))   # empty certified intervals contribute nothing
+            certified.append((lo, hi, str(ident)))
     if not certified:
         return {'valid': False,
                 'reason': 'no window survives its own endpoint error bound; nothing '
                           'is certified'}
 
-    certified.sort()
-    cursor = start
-    for lo, hi in certified:
-        if lo > cursor:
-            break
-        cursor = max(cursor, hi)
-    if cursor < end:
+    # --- CONCURRENCY, not union -------------------------------------------
+    # THE REVIEWER'S FINDING, 2026-09-22 (reviews/live_load_review_20260922_0237.md
+    # finding 1): "The specification prescribes two concurrent generations, whereas
+    # _coverage_verdict accepts the UNION of windows: that verifies at least one
+    # window covers a time, not two distinct concurrent loads. The saved
+    # single-generation case expressly passes."
+    #
+    # Exactly right, and the single-generation case passing was the evidence. The
+    # union walk below is replaced by a sweep over the number of DISTINCT
+    # identities active at each instant, and the minimum of that count across the
+    # whole attempt must reach the required concurrency.
+    worst = _min_concurrency(certified, start, end)
+    if worst['count'] < required:
         return {'valid': False,
-                'reason': 'certified intervals do not contain the attempt: first '
-                          'uncovered point at %.6f, attempt ends %.6f (this is the '
-                          'distance to the end, NOT a measured total gap length)'
-                          % (cursor, end)}
+                'concurrency_required': required,
+                'concurrency_observed_min': worst['count'],
+                'reason': 'at monotonic %.6f only %d distinct lifetime(s) cover the '
+                          'attempt; %d are required. Union coverage by one lifetime '
+                          'is not the operational load definition.'
+                          % (worst['at'], worst['count'], required)}
     return {'valid': True,
             'interval_version': certified_version,
+            'evidence_kind': kind,
+            'concurrency_required': required,
+            'concurrency_observed_min': worst['count'],
             'certified_interval': 'the verifier call inside the lock'
                                   if certified_version == INTERVAL_SCHEMA_V2
                                   else 'the legacy wider span including lock wait',
-            'reason': 'certified active intervals contain the attempt interval',
-            'conditional_on': 'each window meaning a CONTINUOUSLY ACTIVE interval on '
-                              'the verifier clock, with an independently justified '
-                              'endpoint error bound. This arithmetic does not turn '
-                              'periodic samples into continuous evidence.'}
+            'reason': 'at least %d distinct server-acknowledged decoding lifetimes '
+                      'were occupied throughout the attempt interval' % required,
+            'conditional_on': 'each window being a SERVER-ACKNOWLEDGED decoding '
+                              'lifetime recorded from pinned server-side start/end '
+                              'events on the same host monotonic clock as the '
+                              'verifier. This asserts occupied decoding slots, NOT '
+                              'continuously busy hardware: server scheduling pauses '
+                              'inside a lifetime are part of the operational regime.'}
+
+
+def _min_concurrency(intervals: List[tuple], start: float,
+                     end: float) -> Dict[str, Any]:
+    """Fewest DISTINCT identities simultaneously active anywhere in [start, end].
+
+    A sweep over interval endpoints: the active set changes only at a boundary,
+    so the minimum over the closed attempt interval is attained on one of the
+    segments between consecutive boundaries (or at ``start`` itself).
+
+    Distinctness is by identity, so a lifetime that contributes two windows
+    counts once. Closed intervals throughout: a lifetime that ends exactly when
+    the attempt ends still covers it.
+    """
+    bounds = sorted({start, end} | {b for lo, hi, _ in intervals
+                                    for b in (lo, hi) if start <= b <= end})
+    worst_count, worst_at = None, start
+    probes: List[float] = []
+    for i, b in enumerate(bounds):
+        probes.append(b)
+        if i + 1 < len(bounds):
+            probes.append((b + bounds[i + 1]) / 2.0)   # inside the open segment
+    for t in probes:
+        if t < start or t > end:
+            continue
+        active = {ident for lo, hi, ident in intervals if lo <= t <= hi}
+        if worst_count is None or len(active) < worst_count:
+            worst_count, worst_at = len(active), t
+    return {'count': 0 if worst_count is None else worst_count, 'at': worst_at}
 
 def _validate_acquisition(dest: Path, manifest: dict, expect_mode: "str | None",
                           path_label: str) -> None:
