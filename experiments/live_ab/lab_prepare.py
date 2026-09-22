@@ -106,6 +106,12 @@ def run_reference_sweep(tasks: Sequence[dict], cfg: dict, *,
     # Checked BEFORE the ledger, so a wrong-TMPDIR run never reaches the sandbox.
     if enforce_tmpdir:
         assert_prescribed_tmpdir(cfg)
+    # A configuration requesting the injected-decision fixture never reaches a
+    # dispatch or a model request. Checked here, on the real entry point, rather
+    # than left as an available helper.
+    import lab_injected_decision
+    lab_injected_decision.assert_no_test_fixture_active(
+        cfg, stage='reference sweep startup')
 
     ledger = open_ledger(ledger_path)        # created BEFORE the first attempt
     started = ledger.count

@@ -190,6 +190,7 @@ USING_FAKE_COMMON = install_fakes()
 import lab_common                                        # noqa: E402
 import lab_coin                                          # noqa: E402
 import lab_data                                          # noqa: E402
+import lab_injected_decision                             # noqa: E402
 import lab_prepare                                       # noqa: E402
 import lab_design                                        # noqa: E402
 
@@ -2461,3 +2462,75 @@ class CombinedFixtureControlFlowTests(unittest.TestCase):
         self.assertLess(src.index('if not sandbox_active_observed'),
                         src.index('c = subprocess.run'),
                         'readiness must gate the contender launch')
+
+
+class InjectedDecisionRefusalTests(unittest.TestCase):
+    """Root's STRONG-FORM requirement (2026-09-21 20:43 and 23:29).
+
+    "Exercise the real production configuration/startup path with the injection
+    flag/hook requested, assert explicit refusal before any dispatch or model
+    request, and include a valid production configuration control."
+
+    The weak form would assert the fixture "is not wired in today", proving only
+    that nobody wired it. These drive the production path with activation
+    requested.
+    """
+
+    def setUp(self):
+        self.cfg = json.loads((lab_common.HERE / 'config.json').read_text('utf-8'))
+
+    # -- the strong form ----------------------------------------------------
+    def test_production_refuses_a_configuration_requesting_injection(self):
+        bad = dict(self.cfg)
+        bad[lab_injected_decision.ACTIVATION_KEY] = True
+        with self.assertRaises(lab_injected_decision.FixtureActivationRefused):
+            lab_injected_decision.assert_no_test_fixture_active(bad)
+
+    def test_the_real_sweep_entry_point_refuses_before_any_dispatch(self):
+        """Not the helper -- the actual production entry point."""
+        tmp = Path(tempfile.mkdtemp(prefix='inj_'))
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        bad = json.loads(json.dumps(self.cfg))
+        bad[lab_injected_decision.ACTIVATION_KEY] = True
+        dispatched = []
+        with mock.patch.object(tempfile, 'gettempdir', lambda: '/private/tmp/labsbx'):
+            with self.assertRaises(Exception) as ctx:
+                lab_prepare.run_reference_sweep(
+                    [], bad, ledger_path=tmp / 'l.jsonl', require_load=False,
+                    sweep_fn=lambda *a, **k: dispatched.append(1) or [])
+        self.assertIn('injected_decision_fixture', str(ctx.exception))
+        self.assertEqual(dispatched, [], 'refusal must precede any dispatch')
+
+    # -- the valid production control root required -------------------------
+    def test_valid_production_configuration_passes(self):
+        got = lab_injected_decision.assert_no_test_fixture_active(self.cfg)
+        self.assertFalse(got['injection_requested'])
+        self.assertTrue(got['checked_before_dispatch'])
+
+    # -- reachable ONLY through the explicit test route ---------------------
+    def test_fixture_cannot_be_armed_without_the_test_token(self):
+        with self.assertRaises(lab_injected_decision.FixtureActivationRefused):
+            lab_injected_decision.arm(self.cfg)
+
+    def test_the_token_alone_cannot_arm_against_a_trial_configuration(self):
+        """A valid token must not turn a real trial into an injected one."""
+        with self.assertRaises(lab_injected_decision.FixtureActivationRefused):
+            lab_injected_decision.arm(self.cfg,
+                                      lab_injected_decision.TEST_ROUTE_TOKEN)
+
+    def test_the_test_route_works_for_a_rehearsal_only_configuration(self):
+        got = lab_injected_decision.arm({'rehearsal_only': True},
+                                        lab_injected_decision.TEST_ROUTE_TOKEN)
+        self.assertTrue(got['armed'])
+        self.assertFalse(got['produces_observations'])
+        self.assertFalse(got['touches_monitor_outputs'])
+
+    # -- pinning ------------------------------------------------------------
+    def test_the_fixture_is_pinned_in_the_harness_set(self):
+        """Root: it 'may live inside the owned harness directory and MUST be pinned'."""
+        self.assertIn('lab_injected_decision.py', lab_common.HARNESS_FILES)
+
+    def test_an_injected_decision_is_labelled_as_not_an_observation(self):
+        ev = lab_injected_decision.inject_decision('DEPLOY')
+        self.assertTrue(ev['synthetic'])
+        self.assertFalse(ev['is_observation'])
