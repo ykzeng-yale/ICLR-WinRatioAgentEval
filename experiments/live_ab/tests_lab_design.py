@@ -1606,6 +1606,8 @@ class FreezeBundleBindingTests(unittest.TestCase):
                            # suite sets a short window EXPLICITLY and preflight
                            # records it as below_protocol_window
                            'clock_window_s': 0.01,
+                           # and DECLARE that this is not a production preflight
+                           'preflight_mode': 'offline_fixture',
                            'tasks_path': str(self.freeze / 'tasks.json')}
         return orch.make_context('T4', cfg, results_root=self.results, work_root=self.work)
 
@@ -4259,3 +4261,85 @@ class TokenInstanceBindingTests(unittest.TestCase):
                     'boot_id': 'b', 'host_id': 'h',
                     'boot_source': 's', 'host_source': 'p'})
                 self.assertFalse(v['valid'])
+
+
+class ProductionClockWindowRefusalTests(FreezeBundleBindingTests):
+    """Root, 2026-09-22 06:16: "require a finite window of at least ten seconds
+    ... at every actual production preflight. The runtime short-window override
+    currently remains allowed and flagged; LOGGING A WEAKENED CHECK DOES NOT
+    ENFORCE THE PROTOCOL ... ensure [offline fixtures] cannot supply a production
+    preflight receipt. Verify the refusal THROUGH THE ACTUAL PREFLIGHT PATH with
+    stubbed clocks."
+
+    Inherits the real freeze-tree harness, so these drive `orch.preflight`
+    exactly as the other binding tests do -- with only `time.sleep` stubbed, so
+    no test sleeps ten seconds to prove a ten-second rule.
+    """
+
+    def _pf(self, **rt_extra):
+        ctx = self._ctx()
+        ctx.cfg['_runtime'].update(rt_extra)
+        with mock.patch.object(orch.time, 'sleep'):
+            try:
+                return orch.preflight(ctx), None, ctx
+            except Exception as exc:                       # noqa: BLE001
+                return None, exc, ctx
+
+    def test_production_with_a_SHORT_window_is_refused(self):
+        _, exc, _ = self._pf(clock_window_s=0.01, preflight_mode='production')
+        self.assertIsNotNone(exc, 'a short production window was not refused')
+        self.assertIn('clock_equivalence', str(exc))
+
+    def test_production_is_the_DEFAULT_so_a_forgetful_runtime_is_strict(self):
+        """A runtime that does not say what it is must not be read as offline."""
+        ctx = self._ctx()
+        ctx.cfg['_runtime'].pop('preflight_mode', None)
+        ctx.cfg['_runtime']['clock_window_s'] = 0.01
+        with mock.patch.object(orch.time, 'sleep'):
+            with self.assertRaises(Exception) as caught:
+                orch.preflight(ctx)
+        self.assertIn('clock_equivalence', str(caught.exception))
+
+    def test_an_offline_fixture_may_shorten_it_and_is_MARKED(self):
+        _, exc, ctx = self._pf(clock_window_s=0.01,
+                               preflight_mode='offline_fixture')
+        rec = ctx.cfg['_runtime']['clock_equivalence']
+        self.assertTrue(rec['below_protocol_window'])
+        self.assertEqual(rec['preflight_mode'], 'offline_fixture')
+        self.assertFalse(rec['production_receipt'],
+                         'a shortened window must not yield a production receipt')
+        if exc is not None:
+            self.assertNotIn('clock_equivalence', str(exc))
+
+    def test_the_protocol_window_yields_a_production_receipt(self):
+        _, _, ctx = self._pf(clock_window_s=orch.CLOCK_WINDOW_PROTOCOL_S,
+                             preflight_mode='production')
+        rec = ctx.cfg['_runtime']['clock_equivalence']
+        self.assertEqual(rec['window_s_effective'], 10.0)
+        self.assertFalse(rec['below_protocol_window'])
+        self.assertTrue(rec['production_receipt'])
+
+    def test_the_effective_metadata_survives_the_call(self):
+        """`runtime(cfg)` returns a COPY. The previous cycle wrote the clock
+        record into that copy, so the value I reported as "recorded" vanished the
+        moment preflight returned."""
+        _, _, ctx = self._pf(clock_window_s=orch.CLOCK_WINDOW_PROTOCOL_S,
+                             preflight_mode='production')
+        self.assertIn('clock_equivalence', ctx.cfg['_runtime'])
+
+    def test_the_refusal_names_the_window_not_just_a_reason_code(self):
+        _, exc, _ = self._pf(clock_window_s=0.01, preflight_mode='production')
+        self.assertIsNotNone(exc)
+        rows = [d for d in (getattr(exc, 'drift', None) or [])
+                if d.get('item') == 'clock_window_s']
+        self.assertTrue(rows or 'clock_window_s' in str(exc),
+                        'the refusal names only a reason code, not which clock '
+                        'rule failed')
+
+    def test_the_closed_reason_vocabulary_is_not_widened(self):
+        """The refusal reuses `clock_equivalence` rather than adding a code to
+        E_PREFLIGHT, which is a G1 CLOSED vocabulary."""
+        import lab_eventlog
+        codes = set(lab_eventlog.E_PREFLIGHT.enum or ())
+        self.assertIn('clock_equivalence', codes)
+        self.assertNotIn('clock_window_below_protocol', codes)

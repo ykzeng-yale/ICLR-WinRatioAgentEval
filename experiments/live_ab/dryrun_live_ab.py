@@ -449,6 +449,8 @@ def run_dry(spec: Mapping, *, root: Path | None = None, verbose: bool = True) ->
         # below_protocol_window so no receipt from these runs can be
         # mistaken for one taken at the protocol sensitivity.
         'clock_window_s': 0.01,
+        # and DECLARE that this is not a production preflight
+        'preflight_mode': 'offline_fixture',
         'results_root': str(results), 'work_root': str(work),
         'bundle_sha': built['bundle_sha'], 'sim': True, 'mock': True,
         'anchor_mode': 'mock', 'blocking_wait_s': 20.0, 'poll_interval_ms': 0,

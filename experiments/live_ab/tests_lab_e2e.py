@@ -81,6 +81,8 @@ class Tree:
             # below_protocol_window so no receipt from these runs can be
             # mistaken for one taken at the protocol sensitivity.
             'clock_window_s': 0.01,
+            # and DECLARE that this is not a production preflight
+            'preflight_mode': 'offline_fixture',
             'results_root': str(self.results), 'work_root': str(self.work),
             'bundle_sha': self.bundle_sha, 'sim': True, 'mock': True,
             'anchor_mode': 'mock', 'blocking_wait_s': 25.0, 'poll_interval_ms': 0,

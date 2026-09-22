@@ -847,8 +847,26 @@ def preflight(ctx: RunContext) -> dict:
     # 10 s per preflight, but it is now RECORDED as an effective value and
     # flagged as below protocol, so no receipt can show a weakened check without
     # saying so.
+    # PRODUCTION REFUSES A SHORT WINDOW. Root, 2026-09-22 06:16: "require a
+    # finite window of at least ten seconds both when validating the prospective
+    # freeze and at every actual production preflight ... The runtime
+    # short-window override currently remains allowed and flagged; LOGGING A
+    # WEAKENED CHECK DOES NOT ENFORCE THE PROTOCOL. Keep explicitly
+    # shortened/labeled offline fixtures separate from production, and ensure
+    # they cannot supply a production preflight receipt."
+    #
+    # PRODUCTION IS THE DEFAULT. An offline fixture must declare itself, so a
+    # runtime that simply forgot to say what it is gets the strict path. The
+    # previous cycle recorded the effective window and let it through; recording
+    # a weakened check is not enforcing one.
+    #
+    # The refusal reuses the EXISTING closed reason code `clock_equivalence`
+    # rather than widening E_PREFLIGHT, which is a G1 closed vocabulary: the
+    # failure IS a clock-equivalence preflight failure -- the check could not be
+    # performed at protocol sensitivity -- and the drift row carries the detail.
     tol_ms = float(cfg.get('enclosure', {}).get('clock_equivalence_tolerance_ms', 1))
     window_s = float(rt.get('clock_window_s', CLOCK_WINDOW_PROTOCOL_S))
+    preflight_mode = str(rt.get('preflight_mode', 'production'))
     p0, m0 = time.perf_counter(), time.monotonic()
     time.sleep(window_s)
     dp, dm = time.perf_counter() - p0, time.monotonic() - m0
@@ -865,7 +883,29 @@ def preflight(ctx: RunContext) -> dict:
                              'less of it at the same tolerance'
                              % CLOCK_WINDOW_PROTOCOL_S),
     }
+    clock_equivalence['preflight_mode'] = preflight_mode
+    # A receipt from a shortened window is NOT a production preflight receipt,
+    # and says so in the field a consumer would read.
+    clock_equivalence['production_receipt'] = (
+        preflight_mode == 'production'
+        and not clock_equivalence['below_protocol_window'])
+    # WRITTEN WHERE A CONSUMER CAN READ IT. `runtime(cfg)` returns a COPY, so
+    # the previous cycle's `rt['clock_equivalence'] = ...` wrote into a throwaway
+    # dict and vanished the moment preflight returned. I reported that value as
+    # "recorded" and it was recorded nowhere: the field existed for the length of
+    # one function call. Root asked for the effective metadata retained "through
+    # its ordinary receipt path", and the runtime block on the context IS that
+    # path -- it is what make_context builds and what the caller reads afterwards.
     rt['clock_equivalence'] = clock_equivalence
+    try:
+        ctx.cfg.setdefault('_runtime', {})['clock_equivalence'] = clock_equivalence
+    except (AttributeError, TypeError):                       # pragma: no cover
+        pass
+    if preflight_mode == 'production' and clock_equivalence['below_protocol_window']:
+        failed.append('clock_equivalence')
+        _drift('clock_window_s', '>= %g (protocol 7.5 item 4)'
+               % CLOCK_WINDOW_PROTOCOL_S,
+               '%g in preflight_mode=production' % window_s)
     if abs(dp - dm) * 1000.0 > tol_ms:
         failed.append('clock_equivalence')
         _drift('clock_equivalence_ms', '<= %g' % tol_ms,
