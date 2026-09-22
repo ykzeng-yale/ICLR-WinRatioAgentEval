@@ -1,0 +1,73 @@
+{
+  "source_commit": "31c22fd3df9d0d74593c727f55487490e0b7bc42",
+  "results": [
+    {
+      "case": "producer_shape",
+      "complete": true,
+      "valid": true,
+      "seal_problem": null,
+      "concurrency": 2,
+      "identities": [
+        "srv_1_2/slot0",
+        "srv_1_2/slot1"
+      ]
+    },
+    {
+      "case": "duplicate_seq",
+      "complete": false,
+      "valid": false,
+      "seal_problem": "sequence multiset does not match the seal count 1: missing [], duplicated [0], out of range []",
+      "concurrency": null,
+      "identities": [
+        "srv_1_2/slot0",
+        "srv_1_2/slot1"
+      ]
+    },
+    {
+      "case": "extra_seq",
+      "complete": false,
+      "valid": false,
+      "seal_problem": "sequence multiset does not match the seal count 1: missing [], duplicated [], out of range [1]",
+      "concurrency": null,
+      "identities": [
+        "srv_1_2/slot0",
+        "srv_1_2/slot1"
+      ]
+    },
+    {
+      "case": "sidecar_failure",
+      "complete": false,
+      "valid": false,
+      "seal_problem": "the producer recorded 1 failure(s) in its l.jsonl.error sidecar (['seal_close']); any terminal writer failure refuses the acquisition",
+      "concurrency": null,
+      "identities": [
+        "srv_1_2/slot0",
+        "srv_1_2/slot1"
+      ]
+    },
+    {
+      "case": "missing_token",
+      "complete": true,
+      "valid": true,
+      "seal_problem": null,
+      "concurrency": 2,
+      "identities": [
+        "srv_1_2/slot0",
+        "srv_1_2/slot1"
+      ]
+    },
+    {
+      "case": "same_slot_foreign_instance",
+      "complete": true,
+      "valid": true,
+      "seal_problem": null,
+      "concurrency": 2,
+      "identities": [
+        "other_instance_0/slot0",
+        "other_instance_1/slot0"
+      ]
+    }
+  ],
+  "executed_witness_source": "import sys,json\nfrom pathlib import Path\nsys.dont_write_bytecode=True\nsys.path.insert(0,'experiments/live_ab')\nimport tests_lab_design as t\nresults=[]\nfor case in ['producer_shape','duplicate_seq','extra_seq','sidecar_failure','missing_token','same_slot_foreign_instance']:\n f=t.AcquisitionSealTests();f.setUp()\n try:\n  f._emit(0,11);f._emit(1,12)\n  rows=[json.loads(x) for x in f.log.read_text().splitlines()]\n  for r in rows:\n   r.pop('host_id',None);r.pop('boot_id',None);r['run_token']='srv_1_2'\n  if case=='duplicate_seq':rows[1]['seq']=0\n  if case=='missing_token':\n   for r in rows:r.pop('run_token')\n  if case=='same_slot_foreign_instance':\n   for i,r in enumerate(rows):r['slot_id']=0;r['instance_id']='other_instance_'+str(i)\n  f.log.write_text(''.join(json.dumps(r)+'\\n' for r in rows))\n  f._seal(records=1 if case in ['duplicate_seq','extra_seq'] else 2)\n  if case=='sidecar_failure':Path(str(f.log)+'.error').write_text('{\"schema\":\"live_ab/acquisition_error-v1\",\"stage\":\"seal_close\",\"failures\":1}\\n')\n  o=f._obs();v=t.lab_prepare._coverage_verdict(o,t.ServerLifecycleProducerConsumerTests()._attempt(100,100.5))\n  results.append({'case':case,'complete':o['lifecycle_complete'],'valid':v['valid'],'seal_problem':o.get('seal_problem'),'concurrency':v.get('concurrency_observed_min'),'identities':[w['identity'] for w in o.get('active_windows',[])]})\n finally:f.doCleanups()\nprint(json.dumps({'source_commit':'31c22fd3df9d0d74593c727f55487490e0b7bc42','results':results},indent=2))\n",
+  "scope": "Synthetic immutable-source reader fixtures only; no model/native/build/server."
+}
