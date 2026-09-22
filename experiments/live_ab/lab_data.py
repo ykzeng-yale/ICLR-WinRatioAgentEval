@@ -62,6 +62,8 @@ import json
 import os
 import re
 import tempfile
+import platform
+import subprocess
 import time
 from pathlib import Path
 from typing import Callable, Literal, Sequence, TypedDict
@@ -511,19 +513,88 @@ def _posix_monotonic_ns() -> "int | None":
         return None
 
 
-def boot_identity() -> str:
-    """A value that CHANGES ACROSS A REBOOT, so a reboot cannot be silently
-    bridged. Root: "reboot ... must refuse coverage and retain the attempted
-    preparation record."
+class ProvenanceUnavailable(lab_common.PreflightError):
+    """Required clock provenance could not be read. There is no fallback."""
 
-    Derived from the offset between the wall clock and the POSIX monotonic clock,
-    rounded to the second: it is stable within a boot to far better than a second
-    and cannot survive a reboot, because the monotonic clock restarts.
+
+#: The declared sources. Recorded so a consumer knows WHAT was read, not only
+#: that something was.
+BOOT_SOURCE = 'sysctl kern.bootsessionuuid'
+HOST_SOURCE = 'platform.node'
+
+#: Values that must never be accepted as an identity. Root's counterexamples:
+#: two records with boot_id None, or both 'unknown', CERTIFIED -- because the
+#: check was metadata EQUALITY, and two equally absent identities are equal.
+PLACEHOLDER_IDENTITIES = frozenset({'', 'unknown', 'none', 'null', 'n/a', '-'})
+
+
+def _digest_identity(raw: str, kind: str) -> str:
+    """``<kind>:<sha256[:32]>`` -- never the raw machine identifier.
+
+    Root: "retain its cryptographic digest plus a declared source, not its raw
+    value in shared artifacts."
     """
-    ns = _posix_monotonic_ns()
-    if ns is None:                                             # pragma: no cover
-        return 'unknown'
-    return 'boot:%d' % int(time.time() - ns / 1e9)
+    return '%s:%s' % (kind, lab_common.sha256_text(raw)[:32])
+
+
+def boot_identity() -> str:
+    """The KERNEL boot-session identity, digested. Refuses if unavailable.
+
+    REPLACED 2026-09-22 after root's review. The previous version returned
+    ``'boot:%d' % int(time.time() - posix_ns/1e9)`` -- second-truncated
+    wall-minus-clock arithmetic, which is **not a boot session identity**. Root's
+    witness: a deterministic same-POSIX-time/different-wall pair returns
+    ``boot:900`` then ``boot:901``, so it discriminates nothing reliably, and the
+    test named "changes when the clock restarts" merely called the helper twice.
+    The earlier review had already rejected reading a difference between clock
+    families as an immutable offset; this was the same mistake wearing an
+    identity's name.
+
+    There is NO fallback. Root: "Unsupported sources refuse; do not fall back to
+    wall-minus-clock or 'unknown'."
+    """
+    try:
+        out = subprocess.run(['sysctl', '-n', 'kern.bootsessionuuid'],
+                             capture_output=True, text=True, timeout=30)
+    except Exception as exc:                                   # noqa: BLE001
+        raise ProvenanceUnavailable(
+            'the kernel boot-session identity could not be read (%s: %s). There is '
+            'no fallback: wall-minus-clock arithmetic is not a boot identity and '
+            "'unknown' is not an identity." % (type(exc).__name__, exc)) from None
+    raw = (out.stdout or '').strip()
+    if out.returncode != 0 or not raw or raw.lower() in PLACEHOLDER_IDENTITIES:
+        raise ProvenanceUnavailable(
+            'the kernel boot-session identity is unavailable on this host '
+            '(%s returned %r). Preparation refuses rather than recording a '
+            'placeholder.' % (BOOT_SOURCE, raw[:40]))
+    return _digest_identity(raw, 'boot')
+
+
+def host_identity() -> str:
+    """The host identity, digested. Refuses on a placeholder.
+
+    Root: "Require nonempty, non-placeholder host and kernel boot-session
+    identities on BOTH producer and observer, matching the declared owner host
+    and current boot. Metadata equality alone is insufficient."
+    """
+    raw = (platform.node() or '').strip()
+    if not raw or raw.lower() in PLACEHOLDER_IDENTITIES:
+        raise ProvenanceUnavailable(
+            'the host identity is unavailable or a placeholder (%r)' % (raw[:40],))
+    return _digest_identity(raw, 'host')
+
+
+def clock_provenance() -> dict:
+    """Everything a consumer needs to decide whether two readings share a
+    timeline: which clock, which host, which boot, and where each came from."""
+    return {
+        'clock_domain_posix': CLOCK_DOMAIN_POSIX,
+        'boot_id': boot_identity(),
+        'boot_source': BOOT_SOURCE,
+        'host_id': host_identity(),
+        'host_source': HOST_SOURCE,
+        'units': 'integer nanoseconds',
+    }
 
 
 def attempt_record(uid: str, run_index: int, result: dict,
@@ -536,7 +607,10 @@ def attempt_record(uid: str, run_index: int, result: dict,
                    lock_released_monotonic: "float | None" = None,
                    verification_started_posix_ns: "int | None" = None,
                    verification_ended_posix_ns: "int | None" = None,
-                   boot_id: "str | None" = None) -> dict:
+                   boot_id: "str | None" = None,
+                   host_id: "str | None" = None,
+                   boot_source: "str | None" = None,
+                   host_source: "str | None" = None) -> dict:
     """The COMPLETE per-attempt verifier record, retained rather than discarded.
 
     Carries the two fields the digest is built from (`stdout_tail`, `stderr`), the
@@ -584,10 +658,14 @@ def attempt_record(uid: str, run_index: int, result: dict,
         # constructor hopes was supplied.
         'interval_schema': (
             INTERVAL_SCHEMA_V3
+            # v3 means: both clocks AND the provenance that makes them
+            # comparable. Root: "Do not cure it by relabelling incomplete records
+            # as v3 without declaring the missing data."
             if (verification_started_monotonic is not None
                 and verification_ended_monotonic is not None
-                and verification_started_posix_ns is not None
-                and verification_ended_posix_ns is not None)
+                and isinstance(verification_started_posix_ns, int)
+                and isinstance(verification_ended_posix_ns, int)
+                and bool(boot_id) and bool(host_id))
             else 'live_ab/attempt_interval-v2'
             if (verification_started_monotonic is not None
                 and verification_ended_monotonic is not None)
@@ -604,7 +682,11 @@ def attempt_record(uid: str, run_index: int, result: dict,
         'clock_domain_posix': CLOCK_DOMAIN_POSIX,
         'verification_started_posix_ns': verification_started_posix_ns,
         'verification_ended_posix_ns': verification_ended_posix_ns,
+        'posix_units': 'integer nanoseconds',
         'boot_id': boot_id,
+        'host_id': host_id,
+        'boot_source': boot_source,
+        'host_source': host_source,
         # retained beside it, never certified, never overwritten
         'lock_requested_monotonic': lock_requested_monotonic,
         'lock_acquired_monotonic': lock_acquired_monotonic,
@@ -860,6 +942,23 @@ def sweep_references(tasks: list[Task], cfg: dict, *, on_progress: Callable | No
                      or (lab_common.WORK_ROOT / 'sandbox.lock'))
     max_lock_wait_s = float(((cfg or {}).get('execution') or {}).get('max_lock_wait_s', 120))
     threshold = REFERENCE_TIME_FRACTION * REFERENCE_VERIFIER_WALL_LIMIT_S
+    # REFUSE BEFORE DISPATCH, root 2026-09-22 04:02: "With actual
+    # sweep_references, injected readers only, _posix_monotonic_ns=None
+    # produces a fresh v2 record. Feeding it a legacy-domain lifecycle
+    # observation yields VALID COVERAGE. Thus current source can silently
+    # turn unavailable new instrumentation into accepted legacy
+    # production." Exactly so: the fallback was invisible and it graded.
+    # "Prefer to reject unavailable required readers/provenance BEFORE
+    # verifier dispatch."
+    if _posix_monotonic_ns() is None:
+        raise ProvenanceUnavailable(
+            'clock_gettime(CLOCK_MONOTONIC) is unavailable on this host, so '
+            'a new production attempt cannot carry the named POSIX domain. '
+            'Refusing BEFORE the verifier is dispatched rather than emitting '
+            'a v2 record that a legacy observation would then certify.')
+    _prov = clock_provenance()          # raises if provenance is unavailable
+    _boot_id, _host_id = _prov['boot_id'], _prov['host_id']
+
     out: list[Exclusion] = []
     for index, task in enumerate(tasks):
         pilot_task = to_pilot_task(task)
@@ -877,7 +976,7 @@ def sweep_references(tasks: list[Task], cfg: dict, *, on_progress: Callable | No
             # silently shortening it." The POSIX interval therefore encloses the
             # legacy one, and the coverage requirement it carries is strictly
             # harder to satisfy, never easier.
-            _boot_id = boot_identity()
+            _boot_id, _host_id = _prov['boot_id'], _prov['host_id']
             _lock_requested = time.monotonic()
             with _ExecutionLock(lock_path, max_lock_wait_s):
                 _lock_acquired = time.monotonic()
@@ -902,7 +1001,8 @@ def sweep_references(tasks: list[Task], cfg: dict, *, on_progress: Callable | No
                 lock_released_monotonic=_lock_released,
                 verification_started_posix_ns=_verify_started_posix_ns,
                 verification_ended_posix_ns=_verify_ended_posix_ns,
-                boot_id=_boot_id)
+                boot_id=_boot_id, host_id=_host_id,
+                boot_source=_prov['boot_source'], host_source=_prov['host_source'])
             attempts.append(record)
             if on_attempt is not None:
                 # DELIBERATELY UNGUARDED.  Root: "loss/failure of the sink must

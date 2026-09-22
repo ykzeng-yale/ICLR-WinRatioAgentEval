@@ -53,9 +53,12 @@ Both are NEW work for the arXiv version, started 2026-09-19 after the ICLR abstr
 
 **#11 live_ab — prospective randomized live-stopped A/B trial.** Branch `session60/live-ab`, head `5776877`. Directories `experiments/live_ab/` and `results/live_ab/`.
 - Built to the root's design guidance (`reviews/arxiv_live_design_guidance.md`), adopted literally: the normal-mixture band is the decision rule, alpha .05 program / .0125 per trial / .00625 per band with one band serving both tails, delta = 0.03, current-full-enrolled-prefix only, no envelope, no retained crossing, enclosures starting at [-1,1].
-- Status: **harness complete and green** (17 modules, 12,002 lines; 6 test files, 8,103 lines; **304 tests pass**; end-to-end mock dry run passes on four scenarios, no model and no network). Full pre-registration record in `experiments/live_ab/design/`.
+- Status: **harness complete and green** (17 modules, 12,002 lines; 6 test files, 8,103 lines; **304 tests pass **[STALE: 606 live_ab tests at `f0d29a4`; see line ~1152]****; end-to-end mock dry run passes on four scenarios, no model and no network). Full pre-registration record in `experiments/live_ab/design/`.
 - **No trial episode has been run and nothing is frozen.**
 - **Blocked on host quiescence, not on code.** Another project (`DTR-AgentEvals`, a different session, launched with `--allow-contention`) has been holding this host's GPU with two `llama-server` processes since 2026-09-19 13:41. The frozen hierarchy is success > cost with cost = latency_s and the pilot ties on success, so nearly the whole composite effect rides on the latency tier; latency measured under foreign load is not a measurement of the two workflows. A preflight quiescence gate is required before the freeze. Those processes will not be killed.
+
+> **RETRACTED.** This paragraph asserts DTR ownership of the accelerator in the present tense. `results/live_ab/BLOCKER_OWNERSHIP_FINDING.json` withdrew it: a port number in another project's configuration does not establish which process is listening, and the binary ran from this session's own scratchpad. DTR released those servers at 2026-09-22 02:33 UTC and the host is observed clear (`HOST_CAPACITY_OBSERVATION_20260922T041038Z.json`).
+
 - Two errors of mine, corrected publicly rather than silently: the claim that a deploy was "unreachable whatever the outcomes" (false: it is a condition on the observed data, and a verified counterexample deploys at n = 100), and a merge statement of "0 root-owned files modified" produced by a filter that did not cover `results/`.
 
 **#12 live_ab_validation — independent CPU validation of that monitor.** Branch `session60/live-ab-validation`, head `3db00ba`. Independence is **procedural, not organizational**: the band and fixtures were written from the guidance formula alone by agents that never read the #11 monitor, which is loaded by hash only at the comparison step.
@@ -840,7 +843,7 @@ corrected: protocol 5.7.2 fails on **presence** of foreign consumers, not on loa
 can ever clear it**.
 
 **Preparation manifest — 12 of 26 components** (`results/live_ab/PREPARATION_MANIFEST_20260921_1855.json`,
-`results/live_ab/FREEZE_STATUS_20260921_1856.json`; branch head `29cae7d`). `environment_lock_sha256`,
+`results/live_ab/FREEZE_STATUS_20260921_1815.json **[the _1856 filename cited here never existed; the deposited files are _1815 (9 of 26) and _20260922_0230 (14 of 26)]**`; branch head `29cae7d`). `environment_lock_sha256`,
 `hardware_allowlist` and `sandbox_profile_sha256` resolved from real facts: CPython 3.12.13, **83
 distributions**, numpy **2.4.1**, **Apple M5**, 10 cores, arm64-darwin, Seatbelt. Profile **hash published,
 text withheld** (it embeds absolute local paths). Serving intent recorded offline for this study's own
@@ -1063,7 +1066,9 @@ entirely on the producer's word while its own closing note said the arithmetic c
 into continuity. An observation must now declare `max_interior_gap_s_measured` / `_allowed`, and a
 measured value above the declared tolerance is refused.
 
-**Receipt** (`results/live_ab/LOAD_OBSERVER_RECEIPT.json`, `deterministic-path`): 5/5 cases as
+**Receipt** (`results/live_ab/LOAD_OBSERVER_RECEIPT.json`, `deterministic-path`) —
+**SUPERSEDED, see `LOAD_OBSERVER_RECEIPT_SUPERSEDED.json`: its pass/fail column is no longer true of
+the code, which now refuses all five of its cases.** As deposited it recorded 5/5 cases as
 expected — dense single generation **covered**; two interleaved generations **covered** (2 windows);
 a 0.7 s gap straddling the attempt **not covered**; no arrivals **not active**; fewer than 20 jitter
 samples **not active**. Every number describes a **scripted arrival series, not a server**, and the
@@ -1183,9 +1188,20 @@ Re-ran **every** experiment's suite and the repository-wide verifier, not only t
 **`reproduce.py --mode verify`** (`deterministic-path`): **127 archived output hashes matched**, six
 analytic truth checks pass, no commercial request.
 
-**Suites, all passing:** live_ab design **206** / chain 70 / isolation 12 / serving 89 / hostcheck
-117 / stats 70 / e2e 42; `local_stream` **27**; `tau2_open` **16**; `live_ab_validation` panel **83**
-+ shard **31**; `experiments/test_replay_sampling.py` 2 checks. **765 tests and checks.**
+**Suites run:** live_ab design **206** / chain 70 / isolation 12 / serving 89 / hostcheck 117 /
+stats 70 / e2e 42; `local_stream` **27**; `tau2_open` **16**; `live_ab_validation` panel **83** +
+shard **31**; `experiments/test_replay_sampling.py` 2 checks. Each count is exact.
+
+> **CORRECTION, `results/SWEEP_CORRECTION_v1.json`.** The words "every experiment's suite" and "all
+> passing" were **FALSE**. The largest suite in the repository —
+> `experiments/live_ab_validation/tests_validation.py`, **184 tests** — was **omitted from this
+> enumeration and FAILS today** (3 failures), as do `vfixtures.py` (17/18) and `src/test_wincs.py`,
+> also omitted. Cause: a **pre-registration pin I broke myself** — `cells.json` pins
+> `protocol_FINAL.md` at `3c76e8eb…`, which is now `d63717a5…` after two of my own commits. The pin
+> is working; I edited the document without looking at what guards it, then ran a sweep that omitted
+> the guard. **I am not re-pinning it** — that is root's ruling, not mine.
+> Also: `reproduce.py --mode verify` covers **zero** paths under `local_stream`, `tau2_open` or
+> `live_ab`; calling it "repository-wide" overstated its reach.
 
 **Branch hygiene:** `session60/contrib`, `drift-panel`, `live-ab-validation`, `local-stream` and
 `wincs-fix` each have **zero commits not in `main`** — nothing stranded, every recorded

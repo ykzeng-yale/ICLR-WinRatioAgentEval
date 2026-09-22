@@ -562,6 +562,28 @@ def _coverage_verdict(obs: object, record: dict, *,
         # timestamps only to the matching CLOCK_MONOTONIC verifier interval ...
         # Do not compare a Python-monotonic interval to a POSIX-clock lifecycle,
         # even if both are on the same host."
+        # HOLE (c), root 2026-09-22 04:02: "v3 record clock_domain_posix=
+        # 'time.monotonic' and observation same legacy label -> coverage valid."
+        # The check was EQUALITY of two labels, so two equally WRONG labels
+        # matched. The domain must be the exact named POSIX constant, not merely
+        # agreed between the two parties.
+        if clock != POSIX_WINDOW_CLOCK:
+            return {'valid': False, 'clock': clock,
+                    'reason': 'a v3 record must be certified on the exact named '
+                              'POSIX domain %r; the observation declares %r. Two '
+                              'sides agreeing on a wrong label is not a matching '
+                              'clock.' % (POSIX_WINDOW_CLOCK, clock)}
+        if record.get('clock_domain_posix') != POSIX_WINDOW_CLOCK:
+            return {'valid': False,
+                    'reason': 'the v3 record declares POSIX domain %r, not the exact '
+                              'named %r' % (record.get('clock_domain_posix'),
+                                            POSIX_WINDOW_CLOCK)}
+        # HOLES (a) and (b): identity must be PRESENT, NON-PLACEHOLDER and MATCHED
+        # on both sides. Equality alone certified two absent identities (both
+        # None), two 'unknown's, and ignored a host mismatch entirely.
+        bad = _provenance_mismatch(record, obs)
+        if bad is not None:
+            return {'valid': False, 'reason': bad}
         if record.get('clock_domain_posix') != clock:
             return {'valid': False, 'clock': clock,
                     'reason': 'clock domain mismatch: the observation is on %r and '
@@ -577,12 +599,6 @@ def _coverage_verdict(obs: object, record: dict, *,
                               'endpoints; got %r and %r. Unsupported clock or '
                               'malformed timing refuses coverage and retains the '
                               'attempt.' % (s_ns, e_ns)}
-        if record.get('boot_id') != obs.get('boot_id'):
-            return {'valid': False,
-                    'reason': 'boot identity differs between the observation (%r) '
-                              'and the attempt (%r); a monotonic clock does not '
-                              'survive a reboot and the two readings are not on one '
-                              'timeline' % (obs.get('boot_id'), record.get('boot_id'))}
         start, end = s_ns / 1e9, e_ns / 1e9
         certified_version = INTERVAL_SCHEMA_V3
     elif schema == INTERVAL_SCHEMA_V2:
@@ -594,6 +610,21 @@ def _coverage_verdict(obs: object, record: dict, *,
                               'are missing, null or nonfinite; legacy aliases may '
                               'not rescue a malformed v2 record'
                               % INTERVAL_SCHEMA_V2}
+        # HOLE (d), root 2026-09-22 04:02: an unsupported POSIX reader silently
+        # emitted v2, and a legacy-domain observation then certified it -- "current
+        # source can silently turn unavailable new instrumentation into accepted
+        # legacy production." New production now requires v3. v1/v2 remain readable
+        # ONLY through the explicit historical audit route, which names the version
+        # it certifies; constructor compatibility must not let a new run downgrade
+        # its own contract.
+        if not allow_legacy_audit:
+            return {'valid': False, 'interval_version': INTERVAL_SCHEMA_V2,
+                    'reason': 'this is a PRODUCTION check and the record is %s. New '
+                              'production requires %s with the named POSIX domain '
+                              'and verified host/boot provenance; v2 is readable '
+                              'only through the explicit historical audit route '
+                              '(allow_legacy_audit=True).'
+                              % (INTERVAL_SCHEMA_V2, INTERVAL_SCHEMA_V3)}
         if clock != REQUIRED_WINDOW_CLOCK:
             return {'valid': False, 'clock': clock,
                     'reason': 'a v2 record carries only %r endpoints and the '
@@ -734,6 +765,42 @@ def _coverage_verdict(obs: object, record: dict, *,
                               'verifier. This asserts occupied decoding slots, NOT '
                               'continuously busy hardware: server scheduling pauses '
                               'inside a lifetime are part of the operational regime.'}
+
+
+#: Values that are not identities, however equal two of them are.
+PLACEHOLDER_IDENTITIES = frozenset({'', 'unknown', 'none', 'null', 'n/a', '-'})
+
+
+def _provenance_mismatch(record: dict, obs: dict) -> Optional[str]:
+    """Why these two readings are not on one timeline -- or None if they are.
+
+    ROOT'S FOUR COUNTEREXAMPLES, 2026-09-22 04:02, all of which CERTIFIED:
+      * record and observation both ``boot_id=None``
+      * both ``boot_id='unknown'``
+      * ``host_id='hostA'`` versus ``'hostB'``, same boot string (host ignored)
+      * both relabelled to the legacy clock
+
+    The first three share one cause: the check tested metadata EQUALITY, and two
+    equally absent or equally unknown identities are equal. Equality is not
+    evidence of origin. Presence, non-placeholder value and agreement are now all
+    required, on BOTH sides, for BOTH identities.
+    """
+    for field, label in (('boot_id', 'kernel boot session'), ('host_id', 'host')):
+        r, o = record.get(field), obs.get(field)
+        for who, val in (('attempt record', r), ('observation', o)):
+            if not isinstance(val, str) or val.strip().lower() in PLACEHOLDER_IDENTITIES:
+                return ('the %s carries no usable %s identity (%s=%r). An absent or '
+                        'placeholder identity is not an identity, and two equally '
+                        'absent ones are not a match.' % (who, label, field, val))
+        if r != o:
+            return ('%s identity differs between the attempt record and the '
+                    'observation (%s versus %s); the two readings are not on one '
+                    'timeline' % (label, r, o))
+    for field in ('boot_source', 'host_source'):
+        if not record.get(field):
+            return ('the attempt record does not declare %s; provenance must name '
+                    'WHAT was read, not only that something was' % field)
+    return None
 
 
 def _min_concurrency(intervals: List[tuple], start: float,

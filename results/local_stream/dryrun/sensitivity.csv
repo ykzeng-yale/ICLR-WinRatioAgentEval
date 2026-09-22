@@ -1,0 +1,13 @@
+tolerance,order,eligibility,shadow_nb,shadow_nb_lo,shadow_nb_hi,shadow_decision,online_nb,online_nb_lo,online_nb_hi,online_guarded,online_first_deploy
+0.0,success>latency_s>completion_tokens,absorbing,0.0,-0.6636219950149342,0.6636219950149342,inconclusive,0.16666666666666669,-1.0,1.0,inconclusive,
+0.0,success>completion_tokens>latency_s,absorbing,0.0,-0.6636219950149342,0.6636219950149342,inconclusive,0.16666666666666669,-1.0,1.0,inconclusive,
+0.0,latency_s>success>completion_tokens,none,-1.0,-1.0,-1.0,A,-1.0,-1.0,1.0,inconclusive,
+0.0,completion_tokens>success>latency_s,none,-0.8333333333333334,-1.2001641933486065,-0.46650247331806033,A,-0.6666666666666667,-1.0,1.0,inconclusive,
+0.1,success>latency_s>completion_tokens,absorbing,0.0,-0.6636219950149342,0.6636219950149342,inconclusive,0.16666666666666669,-1.0,1.0,inconclusive,
+0.1,success>completion_tokens>latency_s,absorbing,0.0,-0.6636219950149342,0.6636219950149342,inconclusive,0.16666666666666669,-1.0,1.0,inconclusive,
+0.1,latency_s>success>completion_tokens,none,-1.0,-1.0,-1.0,A,-1.0,-1.0,1.0,inconclusive,
+0.1,completion_tokens>success>latency_s,none,-0.8333333333333334,-1.2001641933486065,-0.46650247331806033,A,-0.6666666666666667,-1.0,1.0,inconclusive,
+0.2,success>latency_s>completion_tokens,absorbing,0.0,-0.6636219950149342,0.6636219950149342,inconclusive,0.16666666666666669,-1.0,1.0,inconclusive,
+0.2,success>completion_tokens>latency_s,absorbing,0.0,-0.6636219950149342,0.6636219950149342,inconclusive,0.16666666666666669,-1.0,1.0,inconclusive,
+0.2,latency_s>success>completion_tokens,none,-1.0,-1.0,-1.0,A,-1.0,-1.0,1.0,inconclusive,
+0.2,completion_tokens>success>latency_s,none,-1.0,-1.0,-1.0,A,-1.0,-1.0,1.0,inconclusive,

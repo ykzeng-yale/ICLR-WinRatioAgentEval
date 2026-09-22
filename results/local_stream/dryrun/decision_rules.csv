@@ -1,0 +1,15 @@
+rule,data,estimate,ci,decision,detail
+success_only,shadow,0.25,"[-0.3002462900229096, 0.8002462900229096]",none,
+pareto_means,shadow,,"[None, None]",tradeoff,d_success=0.2500 d_latency=0.038 d_tokens=71.8
+utility_w=1.00/0.00/0.00,shadow,0.25,"[None, None]",B,u = w1*d_success - w2*rel_d_latency - w3*rel_d_tokens (point estimate only)
+utility_w=0.80/0.10/0.10,shadow,-31.97187750960445,"[None, None]",A,u = w1*d_success - w2*rel_d_latency - w3*rel_d_tokens (point estimate only)
+utility_w=0.60/0.20/0.20,shadow,-64.1937550192089,"[None, None]",A,u = w1*d_success - w2*rel_d_latency - w3*rel_d_tokens (point estimate only)
+utility_w=0.50/0.25/0.25,shadow,-80.30469377401111,"[None, None]",A,u = w1*d_success - w2*rel_d_latency - w3*rel_d_tokens (point estimate only)
+utility_w=0.34/0.33/0.33,shadow,-106.08219578169468,"[None, None]",A,u = w1*d_success - w2*rel_d_latency - w3*rel_d_tokens (point estimate only)
+utility_w=0.20/0.40/0.40,shadow,-128.6375100384178,"[None, None]",A,u = w1*d_success - w2*rel_d_latency - w3*rel_d_tokens (point estimate only)
+hierarchical_nb,shadow,0.0,"[-0.6636219950149342, 0.6636219950149342]",none,
+guarded_hierarchical,shadow,0.0,"[-0.6636219950149342, 0.6636219950149342]",none,NB CI > 0 and success CI lower > -0.03
+conjunction_all_components,shadow,,"[None, None]",none,success non-inferior AND latency lower AND tokens lower (all CIs)
+hierarchical_nb_betting_cs,online,0.16666666666666669,"[-1.0, 1.0]",none,
+guarded_anytime,online,0.16666666666666669,"[-1.0, 1.0]",none,first_deploy=None first_harm=None
+success_only_betting_cs,online,0.3333333333333333,"[-1.0, 1.0]",none,

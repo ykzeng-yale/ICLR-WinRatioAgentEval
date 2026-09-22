@@ -1,0 +1,13 @@
+task_id,benchmark,win,loss,tie
+humaneval/116,humaneval,1.0,0.0,0.0
+humaneval/151,humaneval,1.0,0.0,0.0
+humaneval/21,humaneval,0.0,1.0,0.0
+humaneval/62,humaneval,1.0,0.0,0.0
+humaneval/91,humaneval,0.0,1.0,0.0
+mbpp/278,mbpp,1.0,0.0,0.0
+mbpp/430,mbpp,0.0,1.0,0.0
+mbpp/441,mbpp,0.0,1.0,0.0
+mbpp/57,mbpp,0.0,1.0,0.0
+mbpp/573,mbpp,0.0,1.0,0.0
+mbpp/606,mbpp,1.0,0.0,0.0
+mbpp/721,mbpp,1.0,0.0,0.0

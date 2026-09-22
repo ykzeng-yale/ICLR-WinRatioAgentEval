@@ -2039,7 +2039,12 @@ class PreparationWiringTests(unittest.TestCase):
             rec = lab_data.attempt_record(
                 uid, 0, self._payload(),
                 verification_started_monotonic=100.0,
-                verification_ended_monotonic=100.5)
+                verification_ended_monotonic=100.5,
+                verification_started_posix_ns=100_000_000_000,
+                verification_ended_posix_ns=100_500_000_000,
+                boot_id='boot:aa', host_id='host:bb',
+                boot_source='sysctl kern.bootsessionuuid',
+                host_source='platform.node')
             if on_attempt is not None:
                 on_attempt(rec)
             return [lab_data._exclusion(uid, 'reference_fails_verify',
@@ -2091,7 +2096,9 @@ class PreparationWiringTests(unittest.TestCase):
             # with the stated resolution charged against the claim.
             return {'window_id': 'w1', 'active': True, 'resolution_ms': 50,
                     'evidence_kind': 'server_lifecycle', 'lifecycle_complete': True,
-                    'clock': 'time.monotonic', 'concurrency_required': 2,
+                    'clock': 'clock_gettime(CLOCK_MONOTONIC)',
+                    'boot_id': 'boot:aa', 'host_id': 'host:bb',
+                    'concurrency_required': 2,
                     'active_windows': [
                         {'start': 99.0, 'end': 101.0, 'identity': 'slot0/req_a'},
                         {'start': 99.0, 'end': 101.0, 'identity': 'slot1/req_b'}]}
@@ -2307,10 +2314,15 @@ class CoverageSchemaDomainMatrixTests(unittest.TestCase):
     OBS = {'active': True, 'window_id': 'w', 'endpoint_error_s': 0.0,
            'evidence_kind': 'server_lifecycle', 'lifecycle_complete': True,
            'clock': 'time.monotonic', 'concurrency_required': 2,
+           'boot_id': 'boot:aa', 'host_id': 'host:bb',
            'active_windows': [{'start': 99.0, 'end': 101.0, 'identity': 'slot0/req_a'},
                               {'start': 99.0, 'end': 101.0, 'identity': 'slot1/req_b'}]}
 
     def _v(self, record, **kw):
+        # v2/v1 are readable only through the explicit historical audit route
+        # since root's 2026-09-22 04:02 decision; this class is about the
+        # SCHEMA/DOMAIN matrix, so it takes that route by default.
+        kw.setdefault('allow_legacy_audit', True)
         return lab_prepare._coverage_verdict(self.OBS, record, **kw)
 
     # -- version branch ------------------------------------------------------
@@ -2339,9 +2351,10 @@ class CoverageSchemaDomainMatrixTests(unittest.TestCase):
         self.assertFalse(v['valid'])
 
     def test_legacy_refuses_in_production_and_is_readable_only_by_audit(self):
+        # v1 in production: still refused, and since 2026-09-22 so is v2.
         rec = {'interval_schema': lab_prepare.INTERVAL_SCHEMA_V1,
                'started_monotonic': 100.0, 'ended_monotonic': 100.5}
-        self.assertFalse(self._v(rec)['valid'])
+        self.assertFalse(self._v(rec, allow_legacy_audit=False)['valid'])
         audit = self._v(rec, allow_legacy_audit=True)
         self.assertTrue(audit['valid'])
         self.assertEqual(audit['interval_version'], lab_prepare.INTERVAL_SCHEMA_V1)
@@ -2592,9 +2605,15 @@ class ContinuousLoadObserverTests(unittest.TestCase):
         return out
 
     def _attempt(self, start, end):
-        return {'interval_schema': lab_prepare.INTERVAL_SCHEMA_V2,
+        return {'interval_schema': lab_prepare.INTERVAL_SCHEMA_V3,
                 'verification_started_monotonic': start,
-                'verification_ended_monotonic': end}
+                'verification_ended_monotonic': end,
+                'verification_started_posix_ns': int(start * 1e9),
+                'verification_ended_posix_ns': int(end * 1e9),
+                'clock_domain_posix': 'clock_gettime(CLOCK_MONOTONIC)',
+                'boot_id': 'boot:aa', 'host_id': 'host:bb',
+                'boot_source': 'sysctl kern.bootsessionuuid',
+                'host_source': 'platform.node'}
 
     # -- the pure core -----------------------------------------------------
     def test_a_dense_series_is_one_window(self):
@@ -2791,7 +2810,8 @@ class ContinuousLoadObserverTests(unittest.TestCase):
     def _lifecycle(self, windows, **kw):
         obs = {'active': True, 'window_id': 'lc', 'endpoint_error_s': 0.0,
                'evidence_kind': 'server_lifecycle', 'lifecycle_complete': True,
-               'clock': 'time.monotonic',
+               'clock': 'clock_gettime(CLOCK_MONOTONIC)',
+               'boot_id': 'boot:aa', 'host_id': 'host:bb',
                'concurrency_required': 2, 'active_windows': windows}
         obs.update(kw)
         return obs
@@ -2947,14 +2967,21 @@ class LoadObserverSecondReviewTests(unittest.TestCase):
     def _lc(self, windows, **kw):
         obs = {'active': True, 'window_id': 'lc', 'endpoint_error_s': 0.0,
                'evidence_kind': 'server_lifecycle', 'lifecycle_complete': True,
-               'clock': 'time.monotonic', 'concurrency_required': 2,
-               'active_windows': windows}
+               'clock': 'clock_gettime(CLOCK_MONOTONIC)',
+               'boot_id': 'boot:aa', 'host_id': 'host:bb',
+               'concurrency_required': 2, 'active_windows': windows}
         obs.update(kw)
         return obs
 
-    ATTEMPT = {'interval_schema': 'live_ab/attempt_interval-v2',
+    ATTEMPT = {'interval_schema': 'live_ab/attempt_interval-v3',
                'verification_started_monotonic': 100.0,
-               'verification_ended_monotonic': 100.5}
+               'verification_ended_monotonic': 100.5,
+               'verification_started_posix_ns': 100_000_000_000,
+               'verification_ended_posix_ns': 100_500_000_000,
+               'clock_domain_posix': 'clock_gettime(CLOCK_MONOTONIC)',
+               'boot_id': 'boot:aa', 'host_id': 'host:bb',
+               'boot_source': 'sysctl kern.bootsessionuuid',
+               'host_source': 'platform.node'}
 
     # -- identity must be a value, not a repr -------------------------------
     def test_one_slot_written_two_ways_is_not_two_lifetimes(self):
@@ -2984,7 +3011,7 @@ class LoadObserverSecondReviewTests(unittest.TestCase):
                 self.assertFalse(v['valid'])
 
     # -- the clock is named and checked, not assumed ------------------------
-    def test_a_posix_observation_against_a_v2_record_is_refused(self):
+    def test_a_legacy_observation_against_a_v3_record_is_refused(self):
         """The 694 s finding, turned into a gate: a POSIX-clock lifecycle may not
         be compared with a Python-monotonic verifier interval, even on one host.
         Root 2026-09-22 03:19: "Do not compare a Python-monotonic interval to a
@@ -2992,9 +3019,9 @@ class LoadObserverSecondReviewTests(unittest.TestCase):
         v = lab_prepare._coverage_verdict(self._lc([
             {'start': 99.0, 'end': 101.0, 'identity': 'a'},
             {'start': 99.0, 'end': 101.0, 'identity': 'b'}],
-            clock='clock_gettime(CLOCK_MONOTONIC)'), self.ATTEMPT)
+            clock='time.monotonic'), self.ATTEMPT)
         self.assertFalse(v['valid'])
-        self.assertIn('do not match', v['reason'])
+        self.assertIn('exact named POSIX domain', v['reason'])
 
     def test_an_unsupported_clock_domain_is_refused(self):
         v = lab_prepare._coverage_verdict(self._lc([
@@ -3089,8 +3116,9 @@ class LoadObserverSecondReviewTests(unittest.TestCase):
         def observer():
             return {'active': True, 'window_id': 'w',
                     'evidence_kind': 'server_lifecycle', 'lifecycle_complete': True,
-                    'clock': 'time.monotonic', 'concurrency_required': 2,
-                    'endpoint_error_s': 0.0,
+                    'clock': 'clock_gettime(CLOCK_MONOTONIC)',
+                    'boot_id': 'boot:aa', 'host_id': 'host:bb',
+                    'concurrency_required': 2, 'endpoint_error_s': 0.0,
                     'active_windows': 'not-a-list-at-all'}
 
         with mock.patch.object(lab_prepare, '_coverage_verdict',
@@ -3125,10 +3153,11 @@ class NamedClockDomainTests(unittest.TestCase):
         base.update(kw)
         return lab_data.attempt_record(**base)
 
-    def _obs(self, clock, boot_id, windows=None):
+    def _obs(self, clock, boot_id, windows=None, host_id='host:bb'):
         return {'active': True, 'window_id': 'lc', 'endpoint_error_s': 0.0,
                 'evidence_kind': 'server_lifecycle', 'lifecycle_complete': True,
-                'clock': clock, 'boot_id': boot_id, 'concurrency_required': 2,
+                'clock': clock, 'boot_id': boot_id, 'host_id': host_id,
+                'concurrency_required': 2,
                 'active_windows': windows or [
                     {'start': 99.0, 'end': 102.0, 'identity': 'slot0/req_a'},
                     {'start': 99.0, 'end': 102.0, 'identity': 'slot1/req_b'}]}
@@ -3139,7 +3168,7 @@ class NamedClockDomainTests(unittest.TestCase):
                           verification_ended_monotonic=100.5,
                           verification_started_posix_ns=100_000_000_000,
                           verification_ended_posix_ns=100_500_000_000,
-                          boot_id='boot:1')
+                          boot_id='boot:1', host_id='host:bb')
         self.assertEqual(v3['interval_schema'], lab_data.INTERVAL_SCHEMA_V3)
         v2 = self._record(verification_started_monotonic=100.0,
                           verification_ended_monotonic=100.5)
@@ -3151,7 +3180,7 @@ class NamedClockDomainTests(unittest.TestCase):
                          verification_ended_monotonic=100.5,
                          verification_started_posix_ns=794_000_000_000,
                          verification_ended_posix_ns=794_600_000_000,
-                         boot_id='boot:1')
+                         boot_id='boot:1', host_id='host:bb')
         self.assertEqual(r['verification_started_monotonic'], 100.0)
         self.assertEqual(r['verification_started_posix_ns'], 794_000_000_000)
         self.assertEqual(r['clock_domain_legacy'], lab_data.CLOCK_DOMAIN_LEGACY)
@@ -3168,18 +3197,36 @@ class NamedClockDomainTests(unittest.TestCase):
         self.assertLess(i_ps, i_ls)
         self.assertLess(i_le, i_pe)
 
-    def test_boot_identity_changes_when_the_monotonic_clock_restarts(self):
+    def test_boot_identity_is_the_KERNEL_session_digested_and_refuses_otherwise(self):
+        """Root, 2026-09-22 04:02: the previous helper returned second-truncated
+        wall-minus-clock arithmetic, which "establishes neither reboot
+        discrimination nor host identity" -- a same-POSIX-time/different-wall pair
+        returns boot:900 then boot:901. It is now the kernel boot session,
+        digested, with NO fallback."""
         a = lab_data.boot_identity()
         self.assertTrue(a.startswith('boot:'))
-        self.assertEqual(a, lab_data.boot_identity())   # stable within a boot
+        self.assertEqual(len(a.split(':', 1)[1]), 32)     # a digest, not a count
+        self.assertEqual(a, lab_data.boot_identity())     # stable within a boot
+        with mock.patch.object(lab_data.subprocess, 'run') as run:
+            run.return_value = types.SimpleNamespace(returncode=0, stdout='  ')
+            with self.assertRaises(lab_data.ProvenanceUnavailable):
+                lab_data.boot_identity()                  # NO 'unknown' fallback
+
+    def test_the_raw_machine_identifiers_never_appear(self):
+        import platform as _pl
+        raw_host = _pl.node()
+        self.assertNotIn(raw_host, lab_data.host_identity())
+        self.assertNotIn(raw_host, json.dumps(lab_data.clock_provenance()))
 
     # -- the consumer: the five cases root named ---------------------------
-    def _v3(self, boot_id='boot:1'):
+    def _v3(self, boot_id='boot:1', host_id='host:bb'):
         return self._record(verification_started_monotonic=100.0,
                             verification_ended_monotonic=100.5,
                             verification_started_posix_ns=100_000_000_000,
                             verification_ended_posix_ns=100_500_000_000,
-                            boot_id=boot_id)
+                            boot_id=boot_id, host_id=host_id,
+                            boot_source='sysctl kern.bootsessionuuid',
+                            host_source='platform.node')
 
     def test_matched_clock_case_certifies(self):
         v = lab_prepare._coverage_verdict(
@@ -3203,7 +3250,7 @@ class NamedClockDomainTests(unittest.TestCase):
         v = lab_prepare._coverage_verdict(
             self._obs(lab_data.CLOCK_DOMAIN_LEGACY, 'boot:1'), self._v3())
         self.assertFalse(v['valid'])
-        self.assertIn('clock domain mismatch', v['reason'])
+        self.assertIn('exact named POSIX domain', v['reason'])
 
     def test_a_missing_domain_is_refused(self):
         obs = self._obs(lab_data.CLOCK_DOMAIN_POSIX, 'boot:1')
@@ -3216,7 +3263,38 @@ class NamedClockDomainTests(unittest.TestCase):
         v = lab_prepare._coverage_verdict(
             self._obs(lab_data.CLOCK_DOMAIN_POSIX, 'boot:2'), self._v3(boot_id='boot:1'))
         self.assertFalse(v['valid'])
-        self.assertIn('boot identity differs', v['reason'])
+        self.assertIn('kernel boot session identity differs', v['reason'])
+
+    def test_a_host_mismatch_is_refused(self):
+        """Root counterexample (b): host_id 'hostA' versus 'hostB' with the same
+        boot string CERTIFIED, because the host fields were ignored entirely."""
+        v = lab_prepare._coverage_verdict(
+            self._obs(lab_data.CLOCK_DOMAIN_POSIX, 'boot:1', host_id='host:OTHER'),
+            self._v3(host_id='host:bb'))
+        self.assertFalse(v['valid'])
+        self.assertIn('host identity differs', v['reason'])
+
+    def test_two_equally_absent_or_unknown_identities_are_not_a_match(self):
+        """Root counterexamples (a): both boot_id None CERTIFIED, and both
+        'unknown' CERTIFIED, because the check was metadata EQUALITY."""
+        for bad in ('unknown', 'n/a'):
+            with self.subTest(bad=bad, route='labelled v3'):
+                v = lab_prepare._coverage_verdict(
+                    self._obs(lab_data.CLOCK_DOMAIN_POSIX, bad),
+                    self._v3(boot_id=bad))
+                self.assertFalse(v['valid'])
+                self.assertIn('not an identity', v['reason'])
+        for bad in (None, ''):
+            with self.subTest(bad=bad, route='cannot even be v3'):
+                # A record with no identity is not v3 at all: the producer will
+                # not label it so. It is then refused as non-production legacy,
+                # which is a refusal by a different door and is also correct.
+                rec = self._v3(boot_id=bad)
+                self.assertNotEqual(rec['interval_schema'],
+                                    lab_data.INTERVAL_SCHEMA_V3)
+                v = lab_prepare._coverage_verdict(
+                    self._obs(lab_data.CLOCK_DOMAIN_POSIX, bad), rec)
+                self.assertFalse(v['valid'])
 
     def test_malformed_nanosecond_endpoints_refuse_and_retain(self):
         for bad in (100.5, None, '100'):
@@ -3233,7 +3311,33 @@ class NamedClockDomainTests(unittest.TestCase):
         v = lab_prepare._coverage_verdict(
             self._obs(lab_data.CLOCK_DOMAIN_POSIX, 'boot:1'), v2)
         self.assertFalse(v['valid'])
-        self.assertIn('do not match', v['reason'])
+        self.assertIn('New production requires', v['reason'])
+
+    def test_a_v2_record_cannot_be_certified_in_production_at_all(self):
+        """Root counterexample (d): an unsupported POSIX reader silently emitted
+        v2 and a legacy-domain observation then certified it -- "current source
+        can silently turn unavailable new instrumentation into accepted legacy
+        production."""
+        v2 = self._record(verification_started_monotonic=100.0,
+                          verification_ended_monotonic=100.5)
+        self.assertEqual(v2['interval_schema'], 'live_ab/attempt_interval-v2')
+        v = lab_prepare._coverage_verdict(
+            self._obs(lab_data.CLOCK_DOMAIN_LEGACY, 'boot:1'), v2)
+        self.assertFalse(v['valid'])
+        self.assertIn('historical audit route', v['reason'])
+
+    def test_an_unavailable_posix_reader_refuses_BEFORE_dispatch(self):
+        """And the production sweep must not reach the verifier at all."""
+        seen = []
+        with mock.patch.object(lab_data, '_posix_monotonic_ns', lambda: None):
+            with self.assertRaises(lab_data.ProvenanceUnavailable) as c:
+                # An EMPTY task list: the refusal must not depend on there
+                # being work to do. It is hoisted above the task loop, so no
+                # task is even read before it fires.
+                lab_data.sweep_references(
+                    [], {}, on_attempt=lambda rec: seen.append(rec))
+        self.assertIn('BEFORE the verifier is dispatched', str(c.exception))
+        self.assertEqual(seen, [])          # no attempt was ever produced
 
 
 class ProductionStartupGuardTests(unittest.TestCase):

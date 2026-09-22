@@ -1,0 +1,965 @@
+
+=== 2026-09-18T17:38:43Z
+uv run tau2 run --domain airline --agent llm_agent --agent-llm openai/qwen2.5-7b-instruct --agent-llm-args {"temperature": 0.3, "api_base": "http://127.0.0.1:8081/v1"} --user user_simulator --user-llm openai/qwen2.5-7b-instruct --user-llm-args {"temperature": 0.0, "api_base": "http://127.0.0.1:8081/v1"} --num-trials 2 --task-ids 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 --max-steps 100 --max-errors 10 --max-concurrency 1 --hallucination-retries 0 --seed 300 --save-to tau2_open_armA --auto-resume --log-level WARNING
+2026-09-18 13:38:44.001 | WARNING  | tau2.utils.utils:<module>:15 - No .env file found
+2026-09-18 13:38:44.001 | INFO     | tau2.utils.utils:<module>:28 - Using data directory from source: /private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/tau2-bench/data
+2026-09-18 13:38:44.748 | INFO     | tau2.utils.llm_utils:<module>:102 - LiteLLM: Cache is disabled
+2026-09-18 13:38:44.799 | DEBUG    | tau2.registry:<module>:281 - Registering default components...
+2026-09-18 13:38:44.801 | DEBUG    | tau2.registry:<module>:292 - Voice dependencies not installed, skipping voice user registration
+2026-09-18 13:38:44.801 | DEBUG    | tau2.registry:<module>:350 - Default components registered successfully. Registry info: {
+  "domains": [
+    "mock",
+    "airline",
+    "retail",
+    "telecom",
+    "telecom-workflow",
+    "banking_knowledge"
+  ],
+  "agents": [
+    "llm_agent",
+    "llm_agent_gt",
+    "llm_agent_solo",
+    "discrete_time_audio_native_agent"
+  ],
+  "users": [
+    "user_simulator",
+    "dummy_user"
+  ],
+  "task_sets": [
+    "mock",
+    "airline",
+    "retail",
+    "telecom_full",
+    "telecom_small",
+    "telecom",
+    "telecom-workflow",
+    "banking_knowledge"
+  ]
+}
+╭────────────────────────── Simulation Configuration ──────────────────────────╮
+│ Domain: airline  Task Set: Default  Tasks: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,    │
+│ 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,  │
+│ 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48,  │
+│ 49                                                                           │
+│ Trials: 2  Max Steps: 100  Max Errors: 10                                    │
+│                                                                              │
+│ Agent: llm_agent → openai/qwen2.5-7b-instruct                                │
+│ User:  user_simulator → openai/qwen2.5-7b-instruct                           │
+│                                                                              │
+│ Save: tau2_open_armA  Concurrency: 1  Verbose: False                         │
+╰──────────────────────────────────────────────────────────────────────────────╯
+0/49 (trial 1/2). Running task 1, trial 1
+2026-09-18 13:38:47.707 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:38:58.593 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:38:59.444 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:39:00.912 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:39:05.680 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:39:07.209 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:39:09.408 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:39:09.409 | WARNING  | tau2.domains.airline.tools:cancel_reservation:367 - Seats release not implemented for cancellation!!!
+
+2026-09-18 13:39:13.867 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+Status: 0/98 complete. Avg reward: N/A. 1 running: 1.0(30s)
+2026-09-18 13:39:15.646 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:39:17.893 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:39:19.910 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:39:22.540 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:39:24.350 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:39:27.542 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:39:28.989 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:39:31.472 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:39:31.793 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:39:31.879 | WARNING  | tau2.domains.airline.tools:cancel_reservation:367 - Seats release not implemented for cancellation!!!
+
+╭──────────────────────────── Simulation Overview ─────────────────────────────╮
+│ Task ID: 1                                                                   │
+│ Trial: 0                                                                     │
+│ Duration: 46.88s                                                             │
+│ Mode: half_duplex                                                            │
+│ Termination Reason: TerminationReason.USER_STOP                              │
+│ Agent Cost: $0.0000                                                          │
+│ User Cost: $0.0000                                                           │
+│ Reward: ❌ 0.0000 (COMMUNICATE: 1.0, DB: 0.0)                                │
+│                                                                              │
+│ DB Check:❌ 0.0                                                              │
+│                                                                              │
+│ Action Checks:                                                               │
+│ - 0: agent get_user_details [read] ✅ 1.0                                    │
+│ - 1: agent get_reservation_details [read] ❌ 0.0                             │
+│                                                                              │
+│ Partial Action Reward: 1/2 (50.0%)                                           │
+│   Read:  1/2 (50.0%)                                                         │
+│                                                                              │
+│ Additional Info:                                                             │
+│ env: None                                                                    │
+│ nl: None                                                                     │
+│ communicate: {'note': 'No communicate_info to evaluate'}                     │
+│ action: None                                                                 │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+1/49 (trial 1/2). Running task 2, trial 1
+2026-09-18 13:39:33.511 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:39:34.868 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:39:35.709 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:39:37.223 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:39:38.581 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:39:40.647 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:39:43.263 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:39:44.433 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+Status: 1/98 complete. Avg reward: 0.00 (N=1). 1 running: 2.0(13s)
+2026-09-18 13:39:46.556 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:40:14.643 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+Status: 1/98 complete. Avg reward: 0.00 (N=1). 1 running: 2.0(43s)
+2026-09-18 13:40:17.296 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:40:20.450 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:40:28.339 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:40:38.855 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:40:41.525 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+Status: 1/98 complete. Avg reward: 0.00 (N=1). 1 running: 2.0(73s)
+2026-09-18 13:40:53.892 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:40:57.073 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:40:59.414 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:41:03.051 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:41:04.829 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:41:07.746 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:41:09.112 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:41:10.716 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+Status: 1/98 complete. Avg reward: 0.00 (N=1). 1 running: 2.0(103s)
+2026-09-18 13:41:17.268 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:41:18.852 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:41:23.933 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:41:26.838 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:41:29.077 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:41:41.698 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+Status: 1/98 complete. Avg reward: 0.00 (N=1). 1 running: 2.0(133s)
+2026-09-18 13:41:50.092 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:42:03.176 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:42:06.675 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:42:09.413 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+Status: 1/98 complete. Avg reward: 0.00 (N=1). 1 running: 2.0(163s)
+2026-09-18 13:42:21.676 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:42:30.852 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:42:44.182 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+Status: 1/98 complete. Avg reward: 0.00 (N=1). 1 running: 2.0(193s)
+2026-09-18 13:42:47.692 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:42:50.622 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:42:54.475 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:42:56.289 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:42:59.390 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:43:00.847 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:43:03.765 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:43:05.401 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:43:10.822 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:43:14.436 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+Status: 1/98 complete. Avg reward: 0.00 (N=1). 1 running: 2.0(223s)
+2026-09-18 13:43:16.814 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:43:29.240 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:43:38.669 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+Status: 1/98 complete. Avg reward: 0.00 (N=1). 1 running: 2.0(253s)
+2026-09-18 13:43:52.325 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:43:55.783 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:43:58.629 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:44:11.409 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+Status: 1/98 complete. Avg reward: 0.00 (N=1). 1 running: 2.0(283s)
+2026-09-18 13:44:20.954 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:44:34.753 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:44:38.397 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:44:40.898 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+Status: 1/98 complete. Avg reward: 0.00 (N=1). 1 running: 2.0(313s)
+2026-09-18 13:44:53.764 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:45:03.407 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+Status: 1/98 complete. Avg reward: 0.00 (N=1). 1 running: 2.0(343s)
+2026-09-18 13:45:17.386 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:45:20.911 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:45:23.441 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:45:36.415 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+Status: 1/98 complete. Avg reward: 0.00 (N=1). 1 running: 2.0(373s)
+2026-09-18 13:45:46.183 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:46:00.338 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:46:03.936 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:46:06.503 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+Status: 1/98 complete. Avg reward: 0.00 (N=1). 1 running: 2.0(403s)
+2026-09-18 13:46:19.762 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:46:29.629 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:46:44.370 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+╭──────────────────────────── Simulation Overview ─────────────────────────────╮
+│ Task ID: 2                                                                   │
+│ Trial: 0                                                                     │
+│ Duration: 432.34s                                                            │
+│ Mode: half_duplex                                                            │
+│ Termination Reason: TerminationReason.TOO_MANY_ERRORS                        │
+│ Agent Cost: $0.0000                                                          │
+│ User Cost: $0.0000                                                           │
+│ Reward: ❌ 0.0000 ()                                                         │
+│                                                                              │
+│ Additional Info:                                                             │
+│ note: Simulation terminated prematurely. Termination reason: too_many_errors │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+2/49 (trial 1/2). Running task 3, trial 1
+Status: 2/98 complete. Avg reward: 0.00 (N=2). 1 running: 3.0(1s)
+2026-09-18 13:46:47.119 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:46:51.429 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:46:55.218 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:46:57.674 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:47:00.054 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:47:02.164 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:47:04.386 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:47:07.479 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:47:09.673 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+Status: 2/98 complete. Avg reward: 0.00 (N=2). 1 running: 3.0(31s)
+2026-09-18 13:47:16.035 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:47:18.888 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:47:22.464 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:47:25.279 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:47:27.272 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:47:32.307 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:47:35.249 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:47:37.290 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:47:43.008 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+Status: 2/98 complete. Avg reward: 0.00 (N=2). 1 running: 3.0(61s)
+2026-09-18 13:47:45.320 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:47:48.608 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:47:51.453 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:47:54.327 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:48:01.787 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:48:05.509 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:48:13.714 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+Status: 2/98 complete. Avg reward: 0.00 (N=2). 1 running: 3.0(91s)
+2026-09-18 13:48:15.995 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:48:16.324 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+╭──────────────────────────── Simulation Overview ─────────────────────────────╮
+│ Task ID: 3                                                                   │
+│ Trial: 0                                                                     │
+│ Duration: 91.90s                                                             │
+│ Mode: half_duplex                                                            │
+│ Termination Reason: TerminationReason.USER_STOP                              │
+│ Agent Cost: $0.0000                                                          │
+│ User Cost: $0.0000                                                           │
+│ Reward: ✅ 1.0000 (COMMUNICATE: 1.0, DB: 1.0)                                │
+│                                                                              │
+│ DB Check:✅ 1.0                                                              │
+│                                                                              │
+│ Action Checks:                                                               │
+│ - 0: agent get_reservation_details [read] ❌ 0.0                             │
+│ - 1: agent get_user_details [read] ✅ 1.0                                    │
+│                                                                              │
+│ Partial Action Reward: 1/2 (50.0%)                                           │
+│   Read:  1/2 (50.0%)                                                         │
+│                                                                              │
+│ Communicate Checks:                                                          │
+│ - 0: 4 ✅                                                                    │
+│                                                                              │
+│ Additional Info:                                                             │
+│ env: None                                                                    │
+│ nl: None                                                                     │
+│ communicate: None                                                            │
+│ action: None                                                                 │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+3/49 (trial 1/2). Running task 4, trial 1
+2026-09-18 13:48:19.486 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:48:21.727 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:48:23.741 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:48:25.265 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:48:27.218 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:48:28.973 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:48:30.586 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:48:32.353 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:48:33.863 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:48:36.598 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:48:38.500 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:48:40.450 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:48:44.894 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+Status: 3/98 complete. Avg reward: 0.33 (N=3). 1 running: 4.0(28s)
+2026-09-18 13:48:47.426 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:48:49.859 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:48:56.276 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:48:59.405 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:49:03.567 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:49:06.176 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:49:09.738 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+Status: 3/98 complete. Avg reward: 0.33 (N=3). 1 running: 4.0(58s)
+2026-09-18 13:49:15.333 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:49:15.727 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+╭──────────────────────────── Simulation Overview ─────────────────────────────╮
+│ Task ID: 4                                                                   │
+│ Trial: 0                                                                     │
+│ Duration: 59.10s                                                             │
+│ Mode: half_duplex                                                            │
+│ Termination Reason: TerminationReason.USER_STOP                              │
+│ Agent Cost: $0.0000                                                          │
+│ User Cost: $0.0000                                                           │
+│ Reward: ✅ 1.0000 (COMMUNICATE: 1.0, DB: 1.0)                                │
+│                                                                              │
+│ DB Check:✅ 1.0                                                              │
+│                                                                              │
+│ Action Checks:                                                               │
+│ - 0: agent get_user_details [read] ✅ 1.0                                    │
+│ - 1: agent get_reservation_details [read] ❌ 0.0                             │
+│ - 2: agent get_reservation_details [read] ❌ 0.0                             │
+│ - 3: agent get_reservation_details [read] ❌ 0.0                             │
+│ - 4: agent get_reservation_details [read] ❌ 0.0                             │
+│ - 5: agent get_reservation_details [read] ❌ 0.0                             │
+│                                                                              │
+│ Partial Action Reward: 1/6 (16.7%)                                           │
+│   Read:  1/6 (16.7%)                                                         │
+│                                                                              │
+│ Additional Info:                                                             │
+│ env: None                                                                    │
+│ nl: None                                                                     │
+│ communicate: {'note': 'No communicate_info to evaluate'}                     │
+│ action: None                                                                 │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+4/49 (trial 1/2). Running task 5, trial 1
+2026-09-18 13:49:18.563 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:49:21.696 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:49:23.105 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:49:24.580 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:49:30.196 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:49:39.104 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+Status: 4/98 complete. Avg reward: 0.50 (N=4). 1 running: 5.0(29s)
+2026-09-18 13:49:46.364 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:49:47.966 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:49:53.430 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:49:55.334 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:50:00.770 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:50:03.802 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:50:05.648 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:50:12.793 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+Status: 4/98 complete. Avg reward: 0.50 (N=4). 1 running: 5.0(59s)
+2026-09-18 13:50:20.241 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:50:22.692 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:50:30.645 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:50:32.800 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:50:40.858 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+Status: 4/98 complete. Avg reward: 0.50 (N=4). 1 running: 5.0(89s)
+2026-09-18 13:50:56.751 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:50:59.376 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:51:04.322 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:51:05.894 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+╭──────────────────────────── Simulation Overview ─────────────────────────────╮
+│ Task ID: 5                                                                   │
+│ Trial: 0                                                                     │
+│ Duration: 109.91s                                                            │
+│ Mode: half_duplex                                                            │
+│ Termination Reason: TerminationReason.USER_STOP                              │
+│ Agent Cost: $0.0000                                                          │
+│ User Cost: $0.0000                                                           │
+│ Reward: ❌ 0.0000 (COMMUNICATE: 1.0, DB: 0.0)                                │
+│                                                                              │
+│ DB Check:❌ 0.0                                                              │
+│                                                                              │
+│ Action Checks:                                                               │
+│ - 0: agent get_user_details [read] ✅ 1.0                                    │
+│                                                                              │
+│ Partial Action Reward: 1/1 (100.0%)                                          │
+│   Read:  1/1 (100.0%)                                                        │
+│                                                                              │
+│ Additional Info:                                                             │
+│ env: None                                                                    │
+│ nl: None                                                                     │
+│ communicate: {'note': 'No communicate_info to evaluate'}                     │
+│ action: None                                                                 │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+5/49 (trial 1/2). Running task 6, trial 1
+2026-09-18 13:51:08.284 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:51:09.658 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:51:11.446 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:51:12.977 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(9s)
+2026-09-18 13:51:16.501 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:51:18.814 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:51:20.125 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:51:23.228 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:51:25.225 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:51:27.621 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 13:51:28.992 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(39s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(69s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(99s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(129s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(159s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(189s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(219s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(249s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(279s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(309s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(339s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(369s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(399s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(429s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(459s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(489s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(519s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(549s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(579s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(609s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(639s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(669s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(699s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(729s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(759s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(789s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(819s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(849s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(879s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(909s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(939s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(969s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(999s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1029s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1059s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1089s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1119s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1149s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1179s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1209s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1239s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1269s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1299s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1329s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1359s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1389s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1419s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1449s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1479s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1509s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1539s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1569s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1599s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1629s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1659s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1689s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1719s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1749s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1779s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1809s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1840s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1870s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1900s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1930s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1960s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1990s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2020s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2050s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2080s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2110s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2140s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2170s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2200s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2230s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2260s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2290s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2320s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2350s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2380s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2410s)
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2440s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2470s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2500s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2530s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2560s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2590s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2620s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2650s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2680s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2710s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2740s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2770s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2800s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2830s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2860s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2890s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2920s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2950s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2980s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3010s)
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3040s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3070s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3100s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3130s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3160s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3190s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3220s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3250s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3280s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3310s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3340s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3370s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3400s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3430s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3460s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3490s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3520s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3550s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3580s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3610s)
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3640s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3670s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3700s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3730s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3760s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3790s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3820s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3850s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3880s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3910s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3940s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3970s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(4000s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(4030s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(4060s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(4090s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(4120s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(4150s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(4180s)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(4210s)
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+2026-09-18 15:01:32.404 | ERROR    | tau2.utils.llm_utils:generate:417 - litellm.Timeout: APITimeoutError - Request timed out. Error_str: Request timed out.
+
+2026-09-18 15:01:32.404 | WARNING  | tau2.orchestrator.orchestrator:run:287 - Simulation loop exited with an exception — running emergency cleanup
+
+2026-09-18 15:01:32.415 | WARNING  | tau2.runner.progress:run_with_retry:97 - Task 6 failed (attempt 1/4): litellm.Timeout: APITimeoutError - Request timed out. Error_str: Request timed out.
+
+  Retry 1/3 for task 6: litellm.Timeout: APITimeoutError - Request timed out. 
+Error_str: Request timed out.
+2026-09-18 15:01:35.655 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 15:01:37.057 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 15:01:38.980 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 15:01:40.622 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 15:01:44.449 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(14s R1)
+2026-09-18 15:01:46.943 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 15:01:48.401 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 15:01:51.848 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 15:01:54.111 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 15:01:56.684 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 15:01:58.198 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(44s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(74s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(104s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(134s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(164s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(194s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(224s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(254s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(284s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(314s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(344s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(374s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(404s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(434s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(464s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(494s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(524s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(554s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(584s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(614s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(644s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(674s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(704s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(734s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(764s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(794s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(824s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(854s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(884s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(914s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(944s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(974s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1004s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1034s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1064s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1094s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1124s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1154s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1184s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1214s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1244s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1274s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1304s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1334s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1364s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1394s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1424s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1454s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1484s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1514s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1544s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1574s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1604s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1634s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1664s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1694s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1724s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1754s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1784s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1814s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1844s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1874s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1904s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1934s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1964s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1994s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2024s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2054s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2084s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2114s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2144s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2174s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2204s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2234s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2264s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2294s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2324s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2354s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2384s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2414s R1)
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2444s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2474s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2504s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2534s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2564s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2594s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2624s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2654s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2684s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2714s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2744s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2774s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2804s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2834s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2864s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2894s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2924s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2954s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(2984s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3014s R1)
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3044s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3074s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3104s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3135s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3165s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3195s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3225s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3255s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3285s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3315s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3345s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3375s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3405s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3435s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3465s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3495s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3525s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3555s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3585s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3615s R1)
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3645s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3675s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3705s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3735s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3765s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3795s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3825s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3855s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3885s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3915s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3945s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(3975s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(4005s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(4035s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(4065s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(4095s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(4125s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(4155s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(4185s R1)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(4215s R1)
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+2026-09-18 16:12:01.324 | ERROR    | tau2.utils.llm_utils:generate:417 - litellm.Timeout: APITimeoutError - Request timed out. Error_str: Request timed out.
+
+2026-09-18 16:12:01.324 | WARNING  | tau2.orchestrator.orchestrator:run:287 - Simulation loop exited with an exception — running emergency cleanup
+
+2026-09-18 16:12:01.332 | WARNING  | tau2.runner.progress:run_with_retry:97 - Task 6 failed (attempt 2/4): litellm.Timeout: APITimeoutError - Request timed out. Error_str: Request timed out.
+
+  Retry 2/3 for task 6: litellm.Timeout: APITimeoutError - Request timed out. 
+Error_str: Request timed out.
+2026-09-18 16:12:04.432 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 16:12:05.728 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 16:12:07.837 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 16:12:09.596 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 16:12:13.556 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 16:12:16.444 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(16s R2)
+2026-09-18 16:12:17.936 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 16:12:21.410 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 16:12:23.757 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 16:12:26.510 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+2026-09-18 16:12:28.145 | ERROR    | tau2.utils.llm_utils:get_response_cost:129 - This model isn't mapped yet. model=qwen2.5-7b-instruct, custom_llm_provider=openai. Add it here - https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json.
+
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(46s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(76s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(106s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(136s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(166s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(196s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(226s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(256s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(286s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(316s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(346s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(376s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(406s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(436s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(466s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(496s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(526s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(556s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(586s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(616s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(646s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(676s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(706s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(736s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(766s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(796s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(826s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(856s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(886s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(916s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(946s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(976s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1006s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1036s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1066s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1096s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1126s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1156s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1186s R2)
+Status: 5/98 complete. Avg reward: 0.40 (N=5). 1 running: 6.0(1216s R2)
+/Users/yukangzengcmac/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/multiprocessing/resource_tracker.py:279: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
