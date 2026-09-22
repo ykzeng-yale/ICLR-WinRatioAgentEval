@@ -1654,6 +1654,33 @@ invention immediately. One old test was asserting the behaviour of a string that
 6 new tests. Suites: design **302**, chain 70, isolation 12, serving 89, hostcheck 117, stats 70,
 e2e 42.
 
+### Gap coverage was counted by type; the verifier pairs by identity (2026-09-22, `ad7d3b8`)
+
+`deterministic-path`. Deriving the episode transitions from the schema — my stated default — answered
+the question and found a bigger problem than the one I was checking.
+
+**The schema answers it.** `lab_verify_log` already encodes the pairing: `calls.one_terminal` keys
+`llm_request` against `llm_response` **or** `llm_error` by **`request_id`**, and the episode checks key
+by **`arrival`**. So `llm_error` as a closer is confirmed, and the episode pairing is the schema's,
+not my guess.
+
+**The bigger problem:** `gap_report` kept **one counter per event type**. An `orphan_rejected` for
+arrival 2 decremented the counter opened by arrival 1 — closing an interval still open and marking
+the following gap uncovered when it was covered. With two workers these interleave constantly.
+
+Coverage is now paired **by identity**, mirroring the verifier rather than inventing a second
+convention that could disagree with it. Terminals with no matching open interval, and openers with no
+identity field, go to `unmatched_terminals`; **an opener we cannot identify covers nothing**.
+
+**A flaky test, recorded rather than hidden.** `CoinTests.test_coin_balance_10k` failed once and
+passed the next three runs. Stochastic **by construction**: 10,000 `os.urandom` coins, band
+[4850, 5150], sd 50 — exactly ±3 sd, two-sided tail **0.0027**, about **one failure in 370 runs**.
+**No action taken:** widening the band would weaken a deliberate protocol 4.3 self-test, and seeding
+it would destroy what it tests. `FLAKY_TEST_COIN_BALANCE_20260922.json`, `descriptive`.
+
+5 new tests. Suites: design **307** (one run failed on that flake, three passed), chain 70,
+isolation 12, serving 89, hostcheck 117, stats 70.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
