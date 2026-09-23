@@ -1622,6 +1622,13 @@ class FreezeBundleBindingTests(unittest.TestCase):
         self.addCleanup(shutil.rmtree, self.root, True)
         self.results = self.root / 'results'
         self.work = self.root / 'work'
+        # These contexts say `sim: True`.  Preflight now refuses a runtime `sim` unless a
+        # harness installed a substitute world (repair contract EB1 item 7: the runtime
+        # overlay, which main() also accepts from the configuration file, cannot make a path
+        # simulated), so the fixture installs the dry run's world exactly as run_dry does.
+        patcher = mock.patch.object(orch, 'WORLD_FACTORY', dry.SimWorld)
+        patcher.start()
+        self.addCleanup(patcher.stop)
         self.built = dry.build_mock_freeze(self.results, n_pairs=4, trial='T4')
         self.freeze = self.results / 'freeze'
         self.bundle_sha = self.built['bundle_sha']
@@ -5170,7 +5177,10 @@ class RuntimeCopySweepTests(unittest.TestCase):
         # sites where rt came from runtime(...) -- those need a sibling persist
         for m in re.finditer(r"rt\['(\w+)'\] = ", src):
             name = m.group(1)
-            if name in ('results_root', 'work_root', 'mock', 'ports', 'max_pairs'):
+            # llama_bin / gguf_paths: written in main() beside the other five, where
+            # rt = cfg.setdefault('_runtime', {}) is the real block (repair contract EB1)
+            if name in ('results_root', 'work_root', 'mock', 'ports', 'max_pairs',
+                        'llama_bin', 'gguf_paths'):
                 continue                      # bound to cfg.setdefault, verified
             with self.subTest(field=name):
                 self.assertIn("setdefault('_runtime', {})['%s']" % name, src,

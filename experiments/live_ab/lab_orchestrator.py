@@ -89,6 +89,17 @@ TERMINAL_CLASSES: frozenset[str] = frozenset({'episode_timeout', 'worker_died',
 
 _SHADOW_TOL: float = 1e-9
 
+#: ``trial_aborted.reason`` for a failed first start, by the ``server_start_failed.stage``
+#: (repair contract EB1; protocol 6.4 rows 5 and 6): a start that differs from the frozen
+#: weights, serving build or golden ``/props`` is ``server_identity``; a smoke whose receipt
+#: does not match (or that could not be made) is ``receipt_mismatch``; a server that never
+#: came up is ``infrastructure``.
+START_FAILURE_REASON: dict[str, str] = {
+    'gguf': 'server_identity', 'serving_manifest': 'server_identity',
+    'identity': 'server_identity', 'smoke': 'receipt_mismatch',
+    'launch': 'infrastructure', 'health': 'infrastructure',
+}
+
 
 # ---------------------------------------------------------------------------
 # small pure helpers
@@ -485,6 +496,9 @@ class RunContext:
     mc: MonitorConfig
     servers: dict
     golden: dict
+    #: The frozen serving manifest object read from the freeze tree (``None`` when it is
+    #: absent or does not match its frozen digest, which preflight then refuses).
+    serving_manifest: dict | None = None
 
 
 class RunLock:
@@ -586,8 +600,115 @@ MEMBER_REFUSAL: dict[str, str] = {
     'winstats_sha256': 'winstats_sha',
     'gguf_sha256': 'gguf_sha256',
     'serving_manifest_sha256': 'serving_manifest',
+    'golden_props_sha256': 'golden_objects',
+    'golden_generation_settings_sha256': 'golden_objects',
     'hardware_allowlist': 'hardware_allowlist',
 }
+
+
+# ---------------------------------------------------------------------------
+# the golden objects and the serving manifest: READ FROM THE FREEZE TREE
+# ---------------------------------------------------------------------------
+#: ARCHITECTURE_FINAL.md 2.2 (lines 190-191) deposits the golden objects of protocol 13.2
+#: in the freeze tree as ``golden_props_<server>.json`` and
+#: ``golden_generation_settings_<server>.json``.  Each file's identity is the canonical
+#: digest of its OBJECT (the one digest convention of ``lab_common.freeze_bundle_sha256``),
+#: which ``config.receipt.<member>.<server>`` records.
+GOLDEN_FILES: dict[str, str] = {
+    'golden_props_sha256': 'golden_props_%s.json',
+    'golden_generation_settings_sha256': 'golden_generation_settings_%s.json',
+}
+
+#: The frozen serving manifest of protocol 2.2 item 2, whose canonical digest
+#: ``config.llama_cpp.serving_manifest_sha256`` records.  PROPOSED NAME (repair lane EB1a):
+#: ARCHITECTURE_FINAL.md 2.2 lists no file for it although protocol 2.2 makes the manifest a
+#: part of the freeze bundle that is re-verified at every server start (P:452, P:918), and
+#: ``lab_server.start`` needs the object, not only its digest.  The amendment lane must add
+#: it to the 2.2 listing; until then this constant is the one place that names it.
+SERVING_MANIFEST_FILE: str = 'serving_manifest.json'
+
+
+def _read_json_object(path: Path) -> tuple[dict | None, str]:
+    """``(object, digest)``: the canonical digest of a JSON object file, or ``(None,
+    MEMBER_ABSENT)`` when it is missing, unreadable or not an object.  An unreadable file is
+    never "agreeing" -- it is absent."""
+    try:
+        obj = json.loads(Path(path).read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        return None, lab_common.MEMBER_ABSENT
+    if not isinstance(obj, dict):
+        return None, lab_common.MEMBER_ABSENT
+    try:
+        return obj, sha256_canonical(obj)
+    except (TypeError, ValueError):
+        return None, lab_common.MEMBER_ABSENT
+
+
+def _hex64(value: object) -> bool:
+    return isinstance(value, str) and len(value) == 64 \
+        and all(c in '0123456789abcdef' for c in value)
+
+
+def load_golden_objects(freeze_dir: Path, cfg: Mapping,
+                        server_ids: Iterable[str]) -> tuple[dict, list[dict]]:
+    """Read the golden objects of ``server_ids`` from the freeze tree and compare each
+    file's canonical digest with the one ``config.receipt`` records.
+
+    Returns ``(golden, rows)``.  ``golden`` maps a server id to the plain object the worker
+    and ``lab_server.start`` compare against -- ``{props, generation_settings, mask,
+    float_tolerance}`` -- and holds a server ONLY when both of its files loaded and matched.
+    ``rows`` are drift rows (``{'item', 'expected', 'found'}``, 64-hex both sides) for every
+    digest that is null in the configuration, every file that is missing, unreadable or not
+    an object, every digest mismatch, and every golden ``/props`` whose ``model_path`` is not
+    tokenized (protocol 13.2, P:2586: the golden object carries the TOKENIZED path, so an
+    absolute one could never equal an observation).  Empty rows mean every check passed."""
+    receipt = dict((frozen_cfg(cfg).get('receipt') or {}))
+    golden: dict = {}
+    rows: list[dict] = []
+    for sid in sorted(set(str(x) for x in server_ids)):
+        loaded: dict = {}
+        for member, pattern in GOLDEN_FILES.items():
+            want = (receipt.get(member) or {}).get(sid) if isinstance(
+                receipt.get(member), Mapping) else None
+            obj, found = _read_json_object(Path(freeze_dir) / (pattern % sid))
+            item = '%s.%s' % (member, sid)
+            if not _hex64(want):
+                rows.append({'item': item, 'expected': lab_common.MEMBER_ABSENT,
+                             'found': found})
+                continue
+            if obj is None or found != want:
+                rows.append({'item': item, 'expected': str(want), 'found': found})
+                continue
+            loaded[member] = obj
+        props = loaded.get('golden_props_sha256')
+        if props is not None and not str(props.get('model_path') or '').startswith('<'):
+            rows.append({'item': 'golden_props_model_path.%s' % sid,
+                         'expected': sha256_text('tokenized model_path'),
+                         'found': sha256_text(str(props.get('model_path')))})
+            props = None
+        if props is not None and 'golden_generation_settings_sha256' in loaded:
+            golden[sid] = {
+                'props': props,
+                'generation_settings': loaded['golden_generation_settings_sha256'],
+                'mask': [str(m) for m in (receipt.get('mask') or ['seed'])],
+                'float_tolerance': float(receipt.get('float_tolerance', 1e-6)),
+            }
+    return golden, rows
+
+
+def load_serving_manifest(freeze_dir: Path, cfg: Mapping) -> tuple[dict | None, list[dict]]:
+    """The frozen serving manifest object and its drift rows: the configuration's
+    ``llama_cpp.serving_manifest_sha256`` null, the file missing or unreadable, or its
+    canonical digest different -- each is a row under ``serving_manifest_sha256``."""
+    want = ((frozen_cfg(cfg).get('llama_cpp') or {}).get('serving_manifest_sha256'))
+    obj, found = _read_json_object(Path(freeze_dir) / SERVING_MANIFEST_FILE)
+    if not _hex64(want):
+        return None, [{'item': 'serving_manifest_sha256',
+                       'expected': lab_common.MEMBER_ABSENT, 'found': found}]
+    if obj is None or found != want:
+        return None, [{'item': 'serving_manifest_sha256', 'expected': str(want),
+                       'found': found}]
+    return obj, []
 
 
 def observed_sandbox_profile_sha256() -> str | None:
@@ -653,16 +774,26 @@ def observed_bundle_members(freeze_dir: Path, *, trial: str | None = None,
                 if isinstance(v, Mapping) and v.get('sha256_expected') is not None}
         if gguf:
             out['gguf_sha256'] = gguf
-        manifest = (cfg.get('llama_cpp') or {}).get('serving_manifest_sha256')
-        if manifest is not None:
-            out['serving_manifest_sha256'] = str(manifest)
+        # The serving manifest and the four golden objects are HASHED FROM THEIR FILES in
+        # the freeze tree (repair contract EB1 item 7).  This used to copy the configuration's
+        # own digests into the observation, so the drift row compared the config with
+        # itself: a golden file that was missing, unreadable or edited could never drift.
+        _, manifest_found = _read_json_object(freeze_dir / SERVING_MANIFEST_FILE)
+        if manifest_found != lab_common.MEMBER_ABSENT:
+            out['serving_manifest_sha256'] = manifest_found
         receipt = cfg.get('receipt') or {}
-        for member in ('golden_props_sha256', 'golden_generation_settings_sha256'):
-            table = receipt.get(member)
-            if isinstance(table, Mapping):
-                got = {k: str(v) for k, v in sorted(table.items()) if v is not None}
-                if got:
-                    out[member] = got
+        server_names = {str(k) for k in (cfg.get('servers') or {})}
+        for member, pattern in GOLDEN_FILES.items():
+            names = set(server_names)
+            if isinstance(recorded.get(member), Mapping):
+                names |= {str(k) for k in recorded[member]}
+            got = {}
+            for sid in sorted(names):
+                _, found = _read_json_object(freeze_dir / (pattern % sid))
+                if found != lab_common.MEMBER_ABSENT:
+                    got[sid] = found
+            if got:
+                out[member] = got
         if receipt.get('mask') is not None:
             out['receipt_mask_sha256'] = sha256_canonical(receipt['mask'])
         sandbox = cfg.get('sandbox') or {}
@@ -743,6 +874,36 @@ def observed_bundle_members(freeze_dir: Path, *, trial: str | None = None,
 CLOCK_WINDOW_PROTOCOL_S: float = 10.0
 
 
+def _drift_label(text: str) -> str:
+    """A drift ``item`` the event schema accepts (1-64 chars of ``[A-Za-z0-9_.+-]``)."""
+    out = ''.join(c if (c.isalnum() and c.isascii()) or c in '_.+-' else '-' for c in text)
+    return (out or 'item')[:64]
+
+
+def _gguf_drift(server_id: str, spec: ServerSpec) -> dict | None:
+    """The drift row of one server's weights file, or None when it is the frozen one.
+
+    The path must be EXPLICIT and absolute (``--gguf <server>=<path>``; the bare file name
+    of the servers block is not a path), the size must be the frozen byte count, and the
+    recomputed SHA-256 the frozen digest.  The file is hashed once."""
+    item = _drift_label('gguf.%s' % server_id)
+    want = str(spec.gguf_sha256) if _hex64(spec.gguf_sha256) else lab_common.MEMBER_ABSENT
+    path = Path(str(spec.gguf_path))
+    if not path.is_absolute() or not path.is_file():
+        return {'item': item, 'expected': want, 'found': lab_common.MEMBER_ABSENT}
+    try:
+        size = path.stat().st_size
+        if size != int(spec.gguf_bytes):
+            return {'item': item, 'expected': want,
+                    'found': sha256_text('bytes:%d' % size)}
+        found = sha256_file(path)
+    except OSError:
+        return {'item': item, 'expected': want, 'found': lab_common.MEMBER_ABSENT}
+    if found != spec.gguf_sha256:
+        return {'item': item, 'expected': want, 'found': found}
+    return None
+
+
 def preflight(ctx: RunContext) -> dict:
     """Every refusal before seq 0 (ARCHITECTURE_FINAL.md 3.13, protocol 6.4 row 21).
 
@@ -820,6 +981,58 @@ def preflight(ctx: RunContext) -> dict:
                 _drift('hardware_identity',
                        sha256_canonical(sorted(str(x) for x in allowlist)),
                        sha256_text(identity))
+
+    # --- the golden objects and the serving manifest (repair contract EB1 item 7) ---
+    # Read from the FREEZE TREE and compared, file by file, with the digests the frozen
+    # configuration records; null, missing, unreadable or different refuses before seq 0.
+    # This runs on every path, simulated or not: a mock freeze tree deposits mock golden
+    # files exactly as a real one deposits real ones.
+    servers = dict(getattr(ctx, 'servers', None) or {})
+    _, golden_rows = load_golden_objects(freeze_dir, cfg, servers)
+    if golden_rows:
+        failed.append('golden_objects')
+        drift.extend(golden_rows)
+    manifest, manifest_rows = load_serving_manifest(freeze_dir, cfg)
+    if manifest_rows:
+        failed.append('serving_manifest')
+        drift.extend(manifest_rows)
+    # A path is SIMULATED only when a harness installed a substitute world; the runtime
+    # overlay -- which ``main`` also accepts from inside the configuration file -- cannot
+    # make it so.  On the real path a runtime ``sim`` (it would skip the host gate and write
+    # the simulated server body) and a runtime ``golden`` (it would replace the frozen
+    # objects every receipt is compared with) are both refused.
+    if WORLD_FACTORY is None:
+        if rt.get('sim'):
+            failed.append('preflight_rule_failed')
+            _drift('runtime_sim_without_substitute_world',
+                   sha256_text('no runtime sim on the real path'),
+                   sha256_text('sim=%r' % (rt.get('sim'),)))
+        if 'golden' in rt:
+            failed.append('golden_objects')
+            try:
+                found_override = sha256_canonical(rt['golden'])
+            except (TypeError, ValueError):
+                found_override = sha256_text(repr(type(rt['golden'])))
+            _drift('runtime_golden_override', lab_common.MEMBER_ABSENT, found_override)
+        # Each server's weights and the launcher, explicitly named, against the frozen
+        # values: the GGUF bytes and recomputed SHA-256 of the servers block (protocol 2.3:
+        # the cache blob name is not proof of its content) and the serving manifest's
+        # launcher and library digests (lab_server.serving_manifest_problems says exactly
+        # what that re-verification performs).  ``lab_server.start`` repeats both at every
+        # start; this is the pre-seq-0 refusal of protocol 6.4 row 21.
+        want_manifest = (cfg.get('llama_cpp') or {}).get('serving_manifest_sha256')
+        for sid, spec in sorted(servers.items()):
+            row = _gguf_drift(sid, spec)
+            if row is not None:
+                failed.append('weights_hash')
+                drift.append(row)
+            if manifest is None:
+                continue
+            for label in lab_server.serving_manifest_problems(spec, manifest,
+                                                              want_manifest):
+                failed.append('serving_manifest')
+                _drift(_drift_label('serving_manifest.%s.%s' % (sid, label)),
+                       sha256_text('serving manifest re-verifies'), sha256_text(label))
 
     # --- the independent reference rule (protocol 8.6) ----------------------
     # `lab_reference_rule.py` is also a harness file, so the member check above covers it;
@@ -1596,46 +1809,89 @@ class World:
 
     # -- servers --------------------------------------------------------------
     def start_servers(self) -> None:
-        for server_id, spec in sorted(self.ctx.servers.items()):
-            body = self.server_started_body(server_id, spec)
-            self.append('server_started', body, durable=True)
-            self.server_ok[server_id] = True
+        """Start every server this trial uses, through ``lab_server.start`` (route (a) of
+        root's 20:40 decision, item 1).
 
-    def server_started_body(self, server_id: str, spec: ServerSpec) -> dict:
+        On success the body ``lab_server.start`` returned -- every value observed or
+        compared, nothing hard-coded -- is appended as ``server_started`` and the pid is
+        recorded in ``server_pids`` BEFORE ``scrape('trial_start')``, so the soft host scan
+        counts the server as this harness's own process.  On ``ServerStartFailed`` the record
+        is appended as ``server_start_failed`` (durable), every server already started is
+        stopped with a ``server_stopped`` record, and the trial is aborted: ``server_identity``
+        for the GGUF, the serving manifest or the identity stage (protocol 6.4 row 6),
+        ``receipt_mismatch`` for the smoke, ``infrastructure`` for launch or health (row 5).
+        A call ``lab_server.start`` REFUSED (it launched nothing) is a harness defect.
+
+        A simulated invocation starts nothing and appends :meth:`sim_server_started_body`."""
         if self.rt.get('sim'):
-            return {
-                'server_id': server_id, 'pid': 0, 'port': int(spec.port),
-                'argv_sha256': sha256_canonical(lab_server.server_argv(spec)),
-                'gguf': {'bytes': int(spec.gguf_bytes), 'sha256': spec.gguf_sha256},
-                'props_sha256': sha256_text('sim'), 'props_matches_golden': True,
-                'total_slots': int(spec.n_slots), 'n_ctx': int(spec.ctx_per_slot),
-                'load_seconds': 0.0,
-                'smoke': {'request_sha256': sha256_text('sim'),
-                          'receipt_matches_golden': True,
-                          'usage': {k: 0 for k in USAGE_KEYS},
-                          'timings': {'cache_n': 0, 'prompt_n': 0, 'prompt_ms': 0.0,
-                                      'predicted_n': 0, 'predicted_ms': 0.0,
-                                      'predicted_per_second': 0.0},
-                          'ok': True}}
-        probe = lab_server.probe(spec.base_url)
-        props = probe.get('props') or {}
+            for server_id, spec in sorted(self.ctx.servers.items()):
+                self.append('server_started', self.sim_server_started_body(server_id, spec),
+                            durable=True)
+            return
+        sampling = dict(self.cfg.get('sampling') or {})
+        manifest_sha = (self.cfg.get('llama_cpp') or {}).get('serving_manifest_sha256')
+        timeout_s = float(self.rt.get('server_start_timeout_s') or 600.0)
+        for server_id, spec in sorted(self.ctx.servers.items()):
+            golden = self.ctx.golden.get(server_id)
+            try:
+                body = lab_server.start(
+                    spec, golden_props=(golden or {}).get('props'), golden=golden,
+                    sampling=sampling, timeout_s=timeout_s,
+                    serving_manifest=self.ctx.serving_manifest,
+                    serving_manifest_sha256=manifest_sha, mode='trial', kind='start',
+                    restart_index=0)
+            except lab_common.ServerStartFailed as exc:
+                self.append('server_start_failed', dict(exc.record), durable=True)
+                self.stop_servers()
+                raise AbortTrial(START_FAILURE_REASON[str(exc.record['stage'])]) from None
+            except PreflightError:
+                self.stop_servers()
+                raise AbortTrial('harness_defect') from None
+            self.server_pids[server_id] = int(body['pid'])
+            self.append('server_started', body, durable=True)
+            self.server_ok[server_id] = bool(body['props_matches_golden']
+                                             and body['smoke']['ok'])
+
+    def stop_servers(self) -> None:
+        """Stop every server this invocation started and still holds, each with a durable
+        ``server_stopped`` record carrying the return code the stop observed.  The pid is
+        dropped once stopped, so no server is stopped (or recorded) twice."""
+        for server_id in sorted(self.server_pids):
+            pid = int(self.server_pids.get(server_id) or 0)
+            if not pid:
+                continue
+            result = lab_server.stop(pid)
+            self.server_pids.pop(server_id, None)
+            self.server_ok[server_id] = False
+            self.append('server_stopped', {
+                'server_id': server_id, 'pid': pid,
+                'returncode': (int(result['returncode'])
+                               if result.get('returncode') is not None else None),
+                'seconds': float(result.get('seconds') or 0.0)}, durable=True)
+
+    def sim_server_started_body(self, server_id: str, spec: ServerSpec) -> dict:
+        """The body of a SIMULATED start, which starts nothing and compares nothing.
+
+        Every digest that would name an observation is ``lab_eventlog.SIM_SERVER_SHA256``,
+        the pid is 0 and the GGUF byte count is 0 (no file was read), and every comparison
+        flag is False, because no comparison was performed.  ``lab_eventlog.
+        is_sim_server_body`` recognises the body by those sentinels alone, without reading
+        a single comparison flag.  Usage and timings are zero because no completion was
+        made; a simulated chain carries the MOCK banner in every derived file."""
+        sim = lab_eventlog.SIM_SERVER_SHA256
         return {
-            'server_id': server_id, 'pid': int(self.server_pids.get(server_id, 0)),
-            'port': int(spec.port),
+            'server_id': server_id, 'pid': 0, 'port': int(spec.port),
             'argv_sha256': sha256_canonical(lab_server.server_argv(spec)),
-            'gguf': {'bytes': int(spec.gguf_bytes), 'sha256': spec.gguf_sha256},
-            'props_sha256': sha256_canonical(props),
-            'props_matches_golden': True,
-            'total_slots': int(props.get('total_slots') or spec.n_slots),
-            'n_ctx': int(lab_server.props_n_ctx_per_slot(props) or spec.ctx_per_slot),
+            'gguf': {'bytes': 0, 'sha256': sim},
+            'props_sha256': sim, 'props_matches_golden': False,
+            'total_slots': int(spec.n_slots), 'n_ctx': int(spec.ctx_per_slot),
             'load_seconds': 0.0,
-            'smoke': {'request_sha256': sha256_text('mock'),
-                      'receipt_matches_golden': True,
+            'smoke': {'request_sha256': sim, 'receipt_matches_golden': False,
                       'usage': {k: 0 for k in USAGE_KEYS},
                       'timings': {'cache_n': 0, 'prompt_n': 0, 'prompt_ms': 0.0,
                                   'predicted_n': 0, 'predicted_ms': 0.0,
                                   'predicted_per_second': 0.0},
-                      'ok': True}}
+                      'ok': False}}
 
     def scrape(self, point: str) -> None:
         execution = self.cfg.get('execution') or {}
@@ -2322,11 +2578,17 @@ def trial_started_body(ctx: RunContext, world: World) -> dict:
         'winstats_sha256': sha256_file(lab_common.SRC_DIR / 'winstats.py'),
         'sandbox_profile_sha256': str(cfg['sandbox'].get('profile_sha256')
                                       or sha256_text('sandbox-profile-not-pinned')),
-        'golden_props_sha256': {k: str(v or sha256_text(k))
-                                for k, v in (cfg['receipt']['golden_props_sha256']).items()},
+        # The frozen digests as recorded, never a stand-in: the fallback that wrote
+        # sha256_text(<server id>) for a null digest is gone (repair contract EB1 item 7).
+        # Preflight refuses a null digest for every server this trial starts; a server the
+        # trial does not start and whose digest is null is left out, not invented.
+        'golden_props_sha256': {k: str(v)
+                                for k, v in (cfg['receipt']['golden_props_sha256']).items()
+                                if v is not None},
         'golden_generation_settings_sha256': {
-            k: str(v or sha256_text(k))
-            for k, v in (cfg['receipt']['golden_generation_settings_sha256']).items()},
+            k: str(v)
+            for k, v in (cfg['receipt']['golden_generation_settings_sha256']).items()
+            if v is not None},
         'hardware': lab_common.hardware_info(),
         'packages': lab_common.package_versions(),
         'llama_cpp_commit_sha256': sha256_text(str(cfg['llama_cpp']['commit'])),
@@ -2612,16 +2874,18 @@ def _w_close_trial(self: World, status: str) -> None:
     ledger = exposure_recount(self.log.events)
     write_json_atomic(self.ctx.paths.results / 'exposure_ledger.json', ledger,
                       durable=True)
-    for server_id in sorted(self.ctx.servers):
-        pid = int(self.server_pids.get(server_id, 0))
-        result = {'returncode': None, 'seconds': 0.0}
-        if pid and not self.rt.get('sim'):
-            result = lab_server.stop(pid)
-        self.append('server_stopped', {
-            'server_id': server_id, 'pid': pid,
-            'returncode': (int(result['returncode'])
-                           if result.get('returncode') is not None else None),
-            'seconds': float(result.get('seconds') or 0.0)}, durable=True)
+    if self.rt.get('sim'):
+        # the simulated servers were never started; their stop records say pid 0
+        for server_id in sorted(self.ctx.servers):
+            self.append('server_stopped', {
+                'server_id': server_id, 'pid': 0, 'returncode': None, 'seconds': 0.0},
+                durable=True)
+    else:
+        # Only servers this invocation actually started and still holds are stopped and
+        # recorded; a server whose start failed was stopped by lab_server.start and is
+        # described by its server_start_failed record, and one stopped already is not
+        # stopped (or recorded) twice.
+        self.stop_servers()
     self.seal_deposit()
     self.append('invocation_ended', {
         'status': 'ended' if status == 'ended' else 'aborted',
@@ -2702,6 +2966,11 @@ def _w_seal_deposit(self: World) -> None:
 
 
 def _w_write_pause(self: World) -> None:
+    # An invocation that ends paused leaves no server behind: the servers it started are
+    # stopped, each with a durable server_stopped record, before trial_paused.  (Restarting
+    # them on resume is supervision's job, repair step EB1b; nothing here claims it.)
+    if not self.rt.get('sim'):
+        self.stop_servers()
     reason = self.pause_reason or 'operator_discretion'
     body: dict = {'reason_code': reason, 'what_was_known': self.what_was_known()}
     if self.pause_digests is not None:
@@ -3050,6 +3319,28 @@ def run_trial(ctx: RunContext, *, resume: bool = True) -> str:
                 world.pause_reason = 'monitor_exception'
                 state = 'PAUSED'
                 continue
+            except (lab_common.ServerStartFailed, lab_common.ServerIdentityError,
+                    lab_common.ReceiptMismatch) as exc:
+                # What lab_server can raise, caught so that a server failure after
+                # trial_started ends in trial_aborted rather than in an escaping exception
+                # (repair contract EB1 item 10).  start_servers already converts its own
+                # failures; this is the backstop.  An exception raised while the trial is
+                # already closing is not looped on: it propagates.
+                if world.log is None or state in ('ABORTED', 'PAUSED', 'CLOSING'):
+                    raise
+                if isinstance(exc, lab_common.ServerStartFailed):
+                    try:
+                        world.append('server_start_failed', dict(exc.record), durable=True)
+                    except lab_common.SchemaError:
+                        world.findings.append('server_start_failed_unwritable')
+                    world.abort_reason = START_FAILURE_REASON.get(
+                        str(exc.record.get('stage')), 'infrastructure')
+                elif isinstance(exc, lab_common.ReceiptMismatch):
+                    world.abort_reason = 'receipt_mismatch'
+                else:
+                    world.abort_reason = 'server_identity'
+                state = 'ABORTED'
+                continue
             if nxt in ('ENDED', 'ENDED_ABORTED', 'ENDED_PAUSED'):
                 status = {'ENDED': 'ended', 'ENDED_ABORTED': 'aborted',
                           'ENDED_PAUSED': 'paused'}[nxt]
@@ -3067,10 +3358,19 @@ def run_trial(ctx: RunContext, *, resume: bool = True) -> str:
         return status
     finally:
         try:
-            if world.log is not None:
-                world.log.close()
+            # No llama-server outlives its orchestrator.  Every orderly exit (ended, aborted,
+            # paused) has already stopped and recorded its servers; this only acts when an
+            # exception escaped, and then it stops without writing, because the chain's
+            # state is exactly what escaped.
+            for pid in list(getattr(world, 'server_pids', {}).values()):
+                if pid:
+                    lab_server.stop(int(pid))
         finally:
-            lock.release()
+            try:
+                if world.log is not None:
+                    world.log.close()
+            finally:
+                lock.release()
 
 
 def maybe_worktree_check(ctx: RunContext, world: World) -> dict | None:
@@ -3172,6 +3472,11 @@ def make_context(trial: str, cfg: dict, *, results_root: Path, work_root: Path,
     # 5.2).  A server no arm uses would produce an empty reconciliation window.
     used = {str((fcfg['trials'][trial].get(arm) or {}).get('server') or 'coder')
             for arm in lab_common.ARMS}
+    # Each server has ITS OWN weights path (``--gguf <server>=<path>``): a single runtime path
+    # used to be shared by every server, so T3 would have started both on one file.  The
+    # launcher is named explicitly too (``--llama-bin``).  Preflight refuses, on the real
+    # path, a bare name, a missing file or bytes that are not the frozen ones.
+    gguf_paths = {str(k): str(v) for k, v in dict(rt.get('gguf_paths') or {}).items()}
     servers: dict[str, ServerSpec] = {}
     for server_id, sc in sorted((fcfg.get('servers') or {}).items()):
         if server_id not in used:
@@ -3179,7 +3484,7 @@ def make_context(trial: str, cfg: dict, *, results_root: Path, work_root: Path,
         port = int((rt.get('ports') or {}).get(server_id, sc['port']))
         servers[server_id] = ServerSpec(
             server_id=server_id, port=port, alias=str(sc['alias']),
-            gguf_path=Path(str(rt.get('gguf_path') or sc['file'])),
+            gguf_path=Path(gguf_paths.get(server_id) or str(sc['file'])),
             gguf_bytes=int(sc['bytes']), gguf_sha256=str(sc['sha256_expected']),
             llama_bin=Path(str(rt.get('llama_bin') or 'llama-server')),
             llama_commit=str(fcfg['llama_cpp']['commit']),
@@ -3187,7 +3492,13 @@ def make_context(trial: str, cfg: dict, *, results_root: Path, work_root: Path,
             log_path=paths.logs / f'llama_{port}.log',
             n_slots=int(fcfg['execution']['workers']),
             n_ctx=int(_arg_value(fcfg['llama_args'], '-c', 16384)))
-    golden = dict(rt.get('golden') or {})
+    # The golden objects come from the FREEZE TREE (ARCHITECTURE_FINAL.md 2.2 lines 190-191),
+    # never from the invocation.  Only a simulated invocation -- a harness installed a
+    # substitute world -- may overlay its own; preflight refuses the overlay everywhere else.
+    golden, _ = load_golden_objects(freeze_dir, fcfg, servers)
+    if WORLD_FACTORY is not None and rt.get('golden') is not None:
+        golden = dict(rt['golden'])
+    serving_manifest, _ = load_serving_manifest(freeze_dir, fcfg)
     mc = MonitorConfig.from_config(fcfg, trial)
     rt.setdefault('config_sha256', sha256_file(freeze_dir / 'config.json'))
     rt.setdefault('order_sha256', sha256_file(order_path))
@@ -3197,7 +3508,8 @@ def make_context(trial: str, cfg: dict, *, results_root: Path, work_root: Path,
     cfg['_runtime'] = rt
     return RunContext(trial=trial, inv=inv or uuid.uuid4().hex, cfg=cfg,
                       bundle_sha=str(rt['bundle_sha']), paths=paths, order=list(order),
-                      tasks=tasks, mc=mc, servers=servers, golden=golden)
+                      tasks=tasks, mc=mc, servers=servers, golden=golden,
+                      serving_manifest=serving_manifest)
 
 
 def _arg_value(args: Sequence[str], flag: str, default: int) -> int:
@@ -3233,7 +3545,8 @@ def _trial_paths(trial: str, results_root: Path, work_root: Path,
 # ---------------------------------------------------------------------------
 def main(argv: list[str] | None = None) -> int:
     """CLI: ``--trial T4 --config results/live_ab/freeze/config.json [--resume]
-    [--mock URL] [--max-pairs N (mock only)] [--results DIR] [--work DIR]``.
+    [--mock URL] [--max-pairs N (mock only)] [--results DIR] [--work DIR]
+    [--llama-bin PATH] [--gguf coder=PATH] [--gguf t3=PATH]``.
     Exit 0 ended, 1 aborted, 2 paused, 3 preflight refusal."""
     ap = argparse.ArgumentParser(prog='lab_orchestrator')
     ap.add_argument('--trial', required=True, choices=list(lab_common.TRIALS))
@@ -3243,6 +3556,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument('--max-pairs', type=int, default=None)
     ap.add_argument('--results', default=None)
     ap.add_argument('--work', default=None)
+    # The launcher and each server's weights are named EXPLICITLY on the real path; the
+    # launcher is verified against the frozen serving manifest and each GGUF against the
+    # frozen servers block, before seq 0 and again at every start.
+    ap.add_argument('--llama-bin', default=None)
+    ap.add_argument('--gguf', action='append', default=[], metavar='SERVER=PATH')
     args = ap.parse_args(argv)
     cfg = json.loads(Path(args.config).read_text(encoding='utf-8'))
     results_root = Path(args.results or lab_common.RESULTS_ROOT)
@@ -3258,6 +3576,16 @@ def main(argv: list[str] | None = None) -> int:
         if not args.mock:
             raise SystemExit('--max-pairs is a mock-only option')
         rt['max_pairs'] = int(args.max_pairs)
+    if args.llama_bin:
+        rt['llama_bin'] = str(Path(args.llama_bin).absolute())
+    if args.gguf:
+        paths: dict[str, str] = {}
+        for item in args.gguf:
+            server_id, sep, path = str(item).partition('=')
+            if not sep or server_id not in ('coder', 't3') or not path or server_id in paths:
+                raise SystemExit('--gguf takes SERVER=PATH once per server (coder, t3)')
+            paths[server_id] = str(Path(path).absolute())
+        rt['gguf_paths'] = paths
     # ONE canonical digest convention (lab_common.freeze_bundle_sha256): the bundle's
     # identity is the digest of its canonical JSON object, never of the file's raw bytes.
     # The default used to be `sha256_file`, which disagreed with the digest preflight

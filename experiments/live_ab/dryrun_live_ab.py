@@ -134,6 +134,41 @@ def _mock_task(uid: str, benchmark: str, stratum: str) -> dict:
     }
 
 
+def mock_serving_manifest(cfg: Mapping) -> dict:
+    """A MOCK serving manifest carrying every member ``lab_server.start`` re-verifies.  Its
+    launcher and library digests name no file on any host, so a real start against it would
+    fail its ``serving_manifest`` stage -- which is the point: it exists to be digested."""
+    commit = str(cfg['llama_cpp']['commit'])
+    return {'mock': True, 'llama_cpp_commit': commit,
+            'launcher_sha256': sha256_text('mock-launcher'),
+            'libraries': [{'name': 'libmock.0.dylib', 'sha256': sha256_text('mock-library')}],
+            'props_build_info': 'mock-%s' % commit[:7]}
+
+
+def mock_golden_props(cfg: Mapping, server_id: str) -> dict:
+    """A MOCK golden ``/props`` object with a TOKENIZED ``model_path``, as protocol 13.2
+    requires of the real one."""
+    sc = cfg['servers'][server_id]
+    workers = int(cfg['execution']['workers'])
+    n_ctx = int(lab_orchestrator._arg_value(cfg['llama_args'], '-c', 16384))
+    return {'mock': True, 'model_alias': str(sc['alias']),
+            'model_path': '<HF_CACHE>/%s' % sc['file'], 'total_slots': workers,
+            'build_info': 'mock-%s' % str(cfg['llama_cpp']['commit'])[:7],
+            'slot_prompt_similarity': 0.0,
+            'default_generation_settings': {'n_ctx': n_ctx // max(1, workers)}}
+
+
+def mock_golden_generation_settings(cfg: Mapping) -> dict:
+    """A MOCK golden ``generation_settings`` object built from the frozen sampling block."""
+    sampling = dict(cfg.get('sampling') or {})
+    gen = {k: sampling[k] for k in ('temperature', 'top_p', 'top_k', 'min_p', 'typical_p',
+                                    'repeat_penalty', 'presence_penalty',
+                                    'frequency_penalty', 'mirostat') if k in sampling}
+    gen['n_predict'] = sampling.get('max_tokens')
+    gen['mock'] = True
+    return gen
+
+
 def build_mock_freeze(root: Path, *, n_pairs: int, trial: str, delta: float | None = None,
                       n_min: int | None = None) -> dict:
     """Write a MOCK freeze tree (config, roster, arrival orders, bundle) under ``root``.
@@ -174,14 +209,25 @@ def build_mock_freeze(root: Path, *, n_pairs: int, trial: str, delta: float | No
     cfg['hardware_allowlist'] = ['mock', lab_common.hardware_identity()]
     cfg['environment_lock_sha256'] = sha256_text('mock-environment-lock')
     cfg['llama_cpp']['build_flags_sha256'] = sha256_text('mock-build-flags')
-    cfg['llama_cpp']['serving_manifest_sha256'] = sha256_text('mock-serving-manifest')
+    # The serving manifest and the golden objects are DEPOSITED as files, as a real freeze
+    # deposits them, and the configuration records their canonical digests: preflight now
+    # reads these files and compares (repair contract EB1 item 7), so a mock tree that only
+    # carried invented digests would be a mock of a BROKEN freeze.  Their content is marked
+    # mock; a simulated invocation never launches a server against them.
+    manifest = mock_serving_manifest(cfg)
+    (freeze / lab_orchestrator.SERVING_MANIFEST_FILE).write_text(
+        canonical_json(manifest) + '\n', encoding='utf-8')
+    cfg['llama_cpp']['serving_manifest_sha256'] = sha256_canonical(manifest)
     for server_id in cfg['servers']:
         cfg['servers'][server_id]['sha256_recomputed'] = \
             cfg['servers'][server_id]['sha256_expected']
         cfg['servers'][server_id]['license_evidence_sha256'] = sha256_text('mock-licence')
-        cfg['receipt']['golden_props_sha256'][server_id] = sha256_text('mock-props')
-        cfg['receipt']['golden_generation_settings_sha256'][server_id] = \
-            sha256_text('mock-generation-settings')
+        for member, obj in (('golden_props_sha256', mock_golden_props(cfg, server_id)),
+                            ('golden_generation_settings_sha256',
+                             mock_golden_generation_settings(cfg))):
+            name = lab_orchestrator.GOLDEN_FILES[member] % server_id
+            (freeze / name).write_text(canonical_json(obj) + '\n', encoding='utf-8')
+            cfg['receipt'][member][server_id] = sha256_canonical(obj)
     for t in cfg['prefreeze']['side_by_side_compression_C']:
         cfg['prefreeze']['side_by_side_compression_C'][t] = 1.0
     cfg['mock'] = True
@@ -231,7 +277,7 @@ def _mock_bundle(freeze: Path, cfg: dict, roster: dict) -> dict:
         'winstats_sha256': sha256_file(lab_common.SRC_DIR / 'winstats.py'),
         'gguf_sha256': {k: v['sha256_expected'] for k, v in cfg['servers'].items()},
         'license_evidence_sha256': sha256_text('mock-licence'),
-        'serving_manifest_sha256': sha256_text('mock-serving-manifest'),
+        'serving_manifest_sha256': str(cfg['llama_cpp']['serving_manifest_sha256']),
         'golden_props_sha256': dict(cfg['receipt']['golden_props_sha256']),
         'golden_generation_settings_sha256':
             dict(cfg['receipt']['golden_generation_settings_sha256']),

@@ -177,15 +177,39 @@ E_TRIAL_PAUSE = _E('power', 'disk', 'server_unrecoverable', 'anchor_unavailable'
                    'plumbing_fail', 'planned', 'operator_discretion')
 E_PROGRAM_PAUSE = _E('plumbing_fail', 'power', 'disk', 'anchor_unavailable',
                      'worktree_drift', 'operator_discretion')
+# `server_restart_cap` (repair contract EB1; root 20:40 item 4): a fourth supervised restart
+# of one server in one trial would have been required.  The trial is reported incomplete.
 E_ABORT_REASON = _E('server_identity', 'receipt_mismatch', 'infrastructure',
                     'chain_unreadable', 'harness_defect', 'disk', 'operator_discretion',
-                    'worktree_drift')
+                    'worktree_drift', 'server_restart_cap')
+# `golden_objects` (repair contract EB1; root 20:40 item 1): a golden file of protocol 13.2
+# that is null in the configuration, missing, unreadable or digest-mismatched, or a runtime
+# `golden` override on a path that is not simulated.
 E_PREFLIGHT = _E('weights_hash', 'serving_manifest', 'port_busy', 'api_key_env', 'disk_low',
                  'freeze_bundle_drift', 'worktree_identity', 'clock_equivalence',
                  'run_lock', 'hardware_allowlist', 'package_lock', 'config_sha',
                  'roster_sha', 'order_sha', 'winstats_sha', 'harness_file_sha',
                  'gguf_sha256', 'llama_commit', 'preflight_rule_failed',
-                 'host_not_quiescent')
+                 'host_not_quiescent', 'golden_objects')
+# `server_start_failed` (repair contract EB1).  The stages run in this order inside
+# `lab_server.start`; the findings are the closed union of `lab_server.IDENTITY_FINDINGS`,
+# the receipt codes of `lab_client.RECEIPT_FINDINGS` and the five start codes of
+# `lab_server.START_FINDINGS`.  Transcribed, not imported, so the schema stays a G1 artifact
+# that depends on nothing below it; tests_eb1_server asserts the union agrees exactly.
+E_SERVER_START_KIND = _E('start', 'restart')
+E_SERVER_START_STAGE = _E('gguf', 'serving_manifest', 'launch', 'health', 'identity',
+                          'smoke')
+E_SERVER_START_FINDING = _E(
+    # lab_server.IDENTITY_FINDINGS
+    'alias', 'total_slots', 'n_ctx', 'model_path', 'build_info', 'models_endpoint',
+    'slot_prompt_similarity', 'props_mismatch', 'gguf_bytes', 'gguf_sha256',
+    # lab_client.RECEIPT_FINDINGS
+    'generation_settings_absent', 'generation_settings_missing_key',
+    'generation_settings_unknown_key', 'generation_settings_value', 'seed_mismatch',
+    'cache_n_nonzero', 'tokens_cached_nonzero', 'model_alias_mismatch',
+    # lab_server.START_FINDINGS
+    'process_exited', 'health_timeout', 'smoke_transport', 'smoke_no_usage',
+    'serving_manifest')
 # The host quiescence gate of protocol 5.7 (lab_hostcheck).  Both vocabularies are
 # transcribed from that module rather than imported, so the schema stays a G1 artifact that
 # depends on nothing below it; tests_lab_hostcheck asserts the two lists agree exactly.
@@ -288,6 +312,46 @@ SERVER_STARTED_FIELDS: dict[str, FieldSpec] = {
     'smoke': _O({'request_sha256': _H64(), 'receipt_matches_golden': _B(),
                  'usage': USAGE, 'timings': TIMINGS, 'ok': _B()}),
 }
+
+#: The failure record of a server start or supervised restart (repair contract EB1).  It is
+#: exactly ``lab_common.ServerStartFailed.record``: the orchestrator appends what
+#: ``lab_server.start`` raised, and writes nothing it did not observe.  ``pid`` is 0 and
+#: ``returncode`` null when the failure came before a process existed (stages ``gguf`` and
+#: ``serving_manifest``, or a launch the OS refused); ``props_sha256`` is null unless a
+#: tokenized ``/props`` object was obtained.
+SERVER_START_FAILED_FIELDS: dict[str, FieldSpec] = {
+    'server_id': E_SERVER, 'kind': E_SERVER_START_KIND, 'stage': E_SERVER_START_STAGE,
+    'findings': _L(E_SERVER_START_FINDING), 'pid': _I(), 'returncode': _N(_I()),
+    'argv_sha256': _H64(), 'props_sha256': _N(_H64()), 'load_seconds': _F(),
+    'restart_index': _I(),
+}
+
+#: The ``props_sha256`` and ``smoke.request_sha256`` a SIMULATED ``server_started`` body
+#: carries, and its ``gguf.sha256``.  It is the digest of a plain string, and every live
+#: ``props_sha256`` is ``sha256_canonical`` of a JSON OBJECT (whose canonical text starts
+#: with ``{``), so a live body cannot carry it short of a SHA-256 collision.  This is what
+#: lets a reader tell a simulated chain apart WITHOUT trusting the body's own
+#: ``props_matches_golden`` / ``receipt_matches_golden`` fields (repair contract EB1 item 8):
+#: see :func:`is_sim_server_body`.
+SIM_SERVER_SHA256: str = sha256_text('live_ab:simulated:no-server-was-started')
+
+
+def is_sim_server_body(body: Mapping) -> bool:
+    """[pure] Whether a ``server_started`` / ``server_restarted`` body is the SIMULATED one.
+
+    True only when pid is 0 AND ``props_sha256``, ``gguf.sha256`` and
+    ``smoke.request_sha256`` all equal :data:`SIM_SERVER_SHA256`.  The simulated body
+    claims no comparison: its ``props_matches_golden``, ``receipt_matches_golden`` and
+    ``smoke.ok`` are False, and this predicate does not read them."""
+    if not isinstance(body, Mapping):
+        return False
+    smoke = body.get('smoke') if isinstance(body.get('smoke'), Mapping) else {}
+    gguf = body.get('gguf') if isinstance(body.get('gguf'), Mapping) else {}
+    return (body.get('pid') == 0
+            and body.get('props_sha256') == SIM_SERVER_SHA256
+            and gguf.get('sha256') == SIM_SERVER_SHA256
+            and smoke.get('request_sha256') == SIM_SERVER_SHA256)
+
 
 ANCHOR_FIELDS: dict[str, FieldSpec] = {
     'anchor_seq': _I(), 'upto_seq': _I(), 'upto_h': _H64(), 'segment_index': _I(),
@@ -462,6 +526,9 @@ EVENT_SCHEMA: dict[str, dict[str, FieldSpec]] = {
                     'last_counters': COUNTERS, 'counters_lost': _B()},
     'server_stopped': {'server_id': E_SERVER, 'pid': _I(), 'returncode': _N(_I()),
                        'seconds': _F()},
+    # repair contract EB1: a start or supervised restart that failed.  Durable; the trial is
+    # then aborted (first start) or handled by supervision (restart).
+    'server_start_failed': dict(SERVER_START_FAILED_FIELDS),
     'pair_enrolled': {'pair': _I(), 'stratum': E_STRATUM, 'arrivals': _L(_I()),
                       'task_uids': _L(_UID()), 'phase': _E('randomizing'),
                       're_enrolled': _B()},
@@ -581,7 +648,7 @@ PROGRAM_ONLY_TYPES: frozenset[str] = frozenset({
 TRIAL_ONLY_TYPES: frozenset[str] = frozenset({
     'trial_started', 'invocation_started', 'invocation_refused', 'server_started',
     'server_restarted', 'server_health', 'metrics_scrape', 'foreign_load_detected',
-    'server_down', 'server_stopped',
+    'server_down', 'server_stopped', 'server_start_failed',
     'pair_enrolled', 'coin_drawn', 'arm_assigned_by_decision', 'episode_started',
     'job_accepted', 'llm_request', 'llm_response', 'llm_error', 'episode_revealed',
     'orphan_rejected', 'monitor_update', 'decision', 'traffic_switch', 'trial_paused',

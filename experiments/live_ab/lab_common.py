@@ -874,6 +874,23 @@ class ServerIdentityError(LabError): ...
 class PreflightError(LabError): ...
 
 
+class ServerStartFailed(LabError):
+    """A server start or supervised restart failed AFTER its inputs were accepted (repair
+    contract EB1, root 20:40 item 1, route (a)).
+
+    ``record`` is the complete ``server_start_failed`` event body -- ``server_id``, ``kind``,
+    ``stage``, ``findings``, ``pid``, ``returncode``, ``argv_sha256``, ``props_sha256``,
+    ``load_seconds``, ``restart_index`` -- so the orchestrator appends it as raised and
+    writes nothing it did not observe.  By the time this is raised the child (if one was
+    launched) has already been stopped by ``lab_server.stop``; ``returncode`` is what that
+    stop observed."""
+
+    def __init__(self, record: Mapping) -> None:
+        rec = dict(record)
+        super().__init__('%s:%s' % (rec.get('stage'), ','.join(rec.get('findings') or [])))
+        self.record = rec
+
+
 class VerifyFailure(LabError):
     """The verifier's own FAIL; carries the list of findings."""
 

@@ -1189,12 +1189,21 @@ class OrchestratorWiringTests(unittest.TestCase):
 
         tree = Tree(pairs=2, anchor=False)
         real = hc.preflight_host_quiescent
+        real_factory = orch.WORLD_FACTORY
         try:
             hc.preflight_host_quiescent = refuse
+            # The fixture has no real weights and no launcher, which preflight now demands
+            # on the real path (WORLD_FACTORY None) before the gate is reached (repair
+            # contract EB1 item 7).  The substitute world is installed so preflight passes
+            # on the mock freeze; `sim` stays False, so the host gate is still REQUIRED and
+            # is what refuses -- the property this test is about.
+            from tests_lab_e2e import SimWorld
+            orch.WORLD_FACTORY = SimWorld
             cfg = tree._cfg()
             cfg['_runtime']['sim'] = False        # a gated invocation
             ctx = orch.make_context(tree.trial, cfg, results_root=tree.results,
                                     work_root=tree.work, inv=uuid.uuid4().hex)
+            self.assertTrue(orch.host_scan_is_required(ctx.cfg))
             self.assertEqual(orch.run_trial(ctx, resume=False), 'aborted')
 
             self.assertEqual(
@@ -1232,6 +1241,7 @@ class OrchestratorWiringTests(unittest.TestCase):
                              'the gate refusing a trial is the gate working')
         finally:
             hc.preflight_host_quiescent = real
+            orch.WORLD_FACTORY = real_factory
             shutil.rmtree(tree.root, ignore_errors=True)
 
     def test_the_soft_check_writes_a_record_at_every_quiescent_point(self) -> None:

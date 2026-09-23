@@ -233,6 +233,27 @@ def _by_type(events: Sequence[Mapping], etype: str) -> list[Mapping]:
     return [e for e in events if e['type'] == etype]
 
 
+def server_start_kind(events: Sequence[Mapping]) -> str:
+    """Whether a trial chain's server starts are ``'simulated'``, ``'live'``, ``'mixed'`` or
+    ``'none'`` (repair contract EB1 item 8).
+
+    Decided by ``lab_eventlog.is_sim_server_body`` -- the pid-0 / sentinel-digest shape of the
+    simulated body -- over every ``server_started`` and ``server_restarted`` body, and NEVER
+    by the bodies' own ``props_matches_golden`` / ``receipt_matches_golden`` flags, which are
+    the claims a lifecycle check exists to test.  ``'mixed'`` is itself a defect: no
+    invocation both simulates and starts a server."""
+    bodies = [e['body'] for e in events
+              if e.get('type') in ('server_started', 'server_restarted')]
+    if not bodies:
+        return 'none'
+    sim = [lab_eventlog.is_sim_server_body(b) for b in bodies]
+    if all(sim):
+        return 'simulated'
+    if not any(sim):
+        return 'live'
+    return 'mixed'
+
+
 # The two closed vocabularies of the host-scan records, read off the schema itself so the
 # verifier cannot drift away from what the log is allowed to contain.
 HOST_DETECTORS: frozenset[str] = frozenset(

@@ -955,7 +955,11 @@ class ServerIdentityTests(unittest.TestCase):
                        'data': [{'id': self.scenario['alias'], 'object': 'model'}]}
 
     def test_identity_accepts_the_frozen_server(self):
-        lab_server.assert_identity(self.spec, self.props, self.models, self.props)
+        # The golden /props object carries model_path TOKENIZED (protocol 13.2, P:2586);
+        # the raw observation carries the absolute path the server was given, which the
+        # per-field check real-path compares and the whole-object check tokenizes first.
+        lab_server.assert_identity(self.spec, self.props, self.models,
+                                   lab_server.tokenized_props(self.props))
 
     def test_slot_prompt_similarity_asserted(self):
         """``server_argv`` carries the third cache switch and ``/props`` must report it."""
@@ -996,7 +1000,8 @@ class ServerIdentityTests(unittest.TestCase):
         self.assertIn('models_endpoint', str(ctx.exception))
         with self.assertRaises(lab_common.ServerIdentityError) as ctx:
             lab_server.assert_identity(self.spec, self.props, self.models,
-                                       dict(self.props, build_info='b6000-4fea119dX'))
+                                       dict(lab_server.tokenized_props(self.props),
+                                            build_info='b6000-4fea119dX'))
         self.assertIn('props_mismatch', str(ctx.exception))
 
     def test_gguf_refusals(self):
