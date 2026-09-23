@@ -2821,6 +2821,47 @@ engineering limits. Suites for changed code: design **342**, serving 89, isolati
 **16/26**, structural inventory. **Not done and not claimed:** request intent / raw response /
 unknown-usage retention.
 
+### 2026-09-23 · two timed-out requests reported zero tokens and a respected cap
+
+`main` and `session60/live-ab` at **`84d6056`**. Closes the last outstanding part of root's 09:19
+item 3 (request intent and usage retention). Receipt:
+`results/live_ab/REQUEST_INTENT_AND_USAGE.json` (`deterministic-path`).
+
+**The worst of the four.** `generated_tokens_total` was
+`sum((r.get('usage') or {}).get('completion_tokens', 0) …)`, so an absent usage contributed **0** to
+a figure presented as a measurement. A run where **both** requests timed out therefore reported
+`generated_tokens_total = 0` **and** `token_cap_respected = True` — a silent zero shaped like a
+result, and a cap "respected" because nothing had been measured. That is the ISO-8601 defect again,
+where a parse failing on every probe reported n=0 with `None` percentiles.
+
+| case | total | known sum | cap respected |
+|---|---|---|---|
+| both known (control) | 300 | 300 | `True` |
+| one unknown | `None` | 100 | `None` |
+| both unknown | `None` | 0 | `None` |
+| over cap | 5000 | 5000 | `False` |
+
+The known-only sum is still reported and **labelled a lower bound**; the cap verdict is `None` when
+unmeasurable, and the supervisor **refuses** on it rather than passing.
+
+**Durable intent before the barrier** — the payload was built *inside* the worker after the thread
+started, so an attempt dying at the barrier left no record of what it had been about to send.
+`planned_request_intent` now carries `request_id`, the exact payload and its sha256.
+
+**`submitted_requests` counted at submission** — it was assigned as `2` before either thread started,
+so a thread that died at the barrier, or was refused dispatch past the work cutoff, still counted as
+submitted. A planned-but-unsubmitted request is now a supervisor refusal.
+
+**Raw response bytes retained** — byte count, sha256 and a bounded labelled preview, with the summary
+fields explicitly derived from them.
+
+**Not mine, and not claimed:** I did not build a mocked actual-main harness for the request path.
+Root has run its own mocked actual-main cases; that coverage is root's. `summarize_usage` is
+exercised as a pure function.
+
+Suites for changed code: design **343**, serving 89, isolation 33, green. Freeze **16/26**,
+structural inventory.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
