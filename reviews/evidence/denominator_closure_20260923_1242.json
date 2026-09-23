@@ -1,0 +1,159 @@
+{
+  "head": "2c60654b0968caa7b066e5ede8e248e0430ad15f",
+  "source": "9f1a02da1cdaddc6982eeecf3c7b94c636cd7c25",
+  "run_smoke_sha256": "c9d59799fe21d0a2ff44b5eb2d16d23e6debe5d7182250e8ab305d178e69cef8",
+  "scope": "Nine pure helper probes; owner harness hash and placement inventory check; no run of owner tests or child/model/HTTP call.",
+  "cases": [
+    {
+      "case": "omitted",
+      "arguments": {},
+      "result": {
+        "error": "TypeError",
+        "message": "summarize_usage() missing 1 required keyword-only argument: 'expected'"
+      }
+    },
+    {
+      "case": "none",
+      "arguments": {
+        "expected": null
+      },
+      "result": {
+        "error": "ValueError",
+        "message": "expected must be a positive non-boolean integer, got None"
+      }
+    },
+    {
+      "case": "zero",
+      "arguments": {
+        "expected": 0
+      },
+      "result": {
+        "error": "ValueError",
+        "message": "expected must be a positive non-boolean integer, got 0"
+      }
+    },
+    {
+      "case": "negative",
+      "arguments": {
+        "expected": -1
+      },
+      "result": {
+        "error": "ValueError",
+        "message": "expected must be a positive non-boolean integer, got -1"
+      }
+    },
+    {
+      "case": "boolean",
+      "arguments": {
+        "expected": true
+      },
+      "result": {
+        "error": "ValueError",
+        "message": "expected must be a positive non-boolean integer, got True"
+      }
+    },
+    {
+      "case": "float",
+      "arguments": {
+        "expected": 2.0
+      },
+      "result": {
+        "error": "ValueError",
+        "message": "expected must be a positive non-boolean integer, got 2.0"
+      }
+    },
+    {
+      "case": "string",
+      "arguments": {
+        "expected": "2"
+      },
+      "result": {
+        "error": "ValueError",
+        "message": "expected must be a positive non-boolean integer, got '2'"
+      }
+    },
+    {
+      "case": "valid_incomplete",
+      "arguments": {
+        "expected": 2
+      },
+      "result": {
+        "generated_tokens_known_sum": 100,
+        "requests_expected": 2,
+        "requests_with_records": 1,
+        "requests_unaccounted_for": 1,
+        "requests_with_known_usage": 1,
+        "requests_with_unknown_usage": 1,
+        "generated_tokens_total": null,
+        "generated_tokens_total_note": "None: 1 of 2 expected request(s) reported no usable usage (1 left no record at all). The known-only sum is a LOWER BOUND, never the total.",
+        "token_cap_respected": null,
+        "token_cap": 2048
+      }
+    },
+    {
+      "case": "valid_complete",
+      "arguments": {
+        "expected": 1
+      },
+      "result": {
+        "generated_tokens_known_sum": 100,
+        "requests_expected": 1,
+        "requests_with_records": 1,
+        "requests_unaccounted_for": 0,
+        "requests_with_known_usage": 1,
+        "requests_with_unknown_usage": 0,
+        "generated_tokens_total": 100,
+        "generated_tokens_total_note": "every expected request reported a usable non-negative integer usage",
+        "token_cap_respected": true,
+        "token_cap": 2048
+      }
+    }
+  ],
+  "owner_harness_declared_sha256": "9b3391485e7ad84c5fe3f0d1534e4f1cf58497aa582c18187b6c708c992c0cb8",
+  "owner_harness_actual_sha256": "9b3391485e7ad84c5fe3f0d1534e4f1cf58497aa582c18187b6c708c992c0cb8",
+  "top_level_harness_py_count_before": 32,
+  "top_level_harness_py_count_after": 32,
+  "top_level_harness_py_paths_unchanged": true,
+  "HARNESS_FILES": {
+    "count": 33,
+    "members": [
+      "build_live_ab_results.py",
+      "config.json",
+      "dryrun_live_ab.py",
+      "lab_anchor.py",
+      "lab_client.py",
+      "lab_coin.py",
+      "lab_combined_fixture.py",
+      "lab_common.py",
+      "lab_containment.py",
+      "lab_data.py",
+      "lab_design.py",
+      "lab_enclosure.py",
+      "lab_eventlog.py",
+      "lab_hostcheck.py",
+      "lab_injected_decision.py",
+      "lab_lifecycle.py",
+      "lab_load.py",
+      "lab_lockfixture.py",
+      "lab_mock_server.py",
+      "lab_monitor.py",
+      "lab_orchestrator.py",
+      "lab_prepare.py",
+      "lab_reference_rule.py",
+      "lab_server.py",
+      "lab_verify_log.py",
+      "lab_worker.py",
+      "tests_lab_chain.py",
+      "tests_lab_design.py",
+      "tests_lab_e2e.py",
+      "tests_lab_hostcheck.py",
+      "tests_lab_isolation.py",
+      "tests_lab_serving.py",
+      "tests_lab_stats.py"
+    ],
+    "composition": "32 top-level Python files plus config.json",
+    "config_sha256": "05255df3b0d12bb6f5571616378a1366c67c6eb8b913def907c6a5d901e1731c",
+    "config_bytes_unchanged_from_base": true,
+    "changed_pinned_harness_paths": []
+  }
+}

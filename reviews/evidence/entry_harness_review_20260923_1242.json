@@ -1,0 +1,278 @@
+{
+  "head": "2c60654b0968caa7b066e5ede8e248e0430ad15f",
+  "delivery": "9f1a02da1cdaddc6982eeecf3c7b94c636cd7c25",
+  "base": "ed528239b11a186e949cffaf0b1d6e03e84a6c11",
+  "scope": "Owner eight new tests executed exactly once with independent fail-closed process/network/signal guards, synthetic monotonic clock installed before run_smoke load, synthetic UTC and lifecycle read-open spy. Owner provenance patch retained. No actual child, HTTP, signal, sleep, model, native build or full suite. The independent _now override fixed receipt UTC fields; the original unstarted filename formatting still reads wall-clock gmtime. These tests do not validate elapsed-time boundaries.",
+  "source_sha256": {
+    "experiments/live_ab_serving/tests_supervisor_entry.py": "9b3391485e7ad84c5fe3f0d1534e4f1cf58497aa582c18187b6c708c992c0cb8",
+    "experiments/live_ab_serving/run_smoke.py": "c9d59799fe21d0a2ff44b5eb2d16d23e6debe5d7182250e8ab305d178e69cef8"
+  },
+  "tests_run": 8,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "denied_external_attempts": [],
+  "cases": {
+    "test_a_broken_barrier_sends_NOTHING_and_refuses": {
+      "main_returncode": 1,
+      "receipt_present": true,
+      "posted_calls": 0,
+      "receipt_fields": {
+        "child_started": true,
+        "loaded_a_model": null,
+        "submitted_requests": 0,
+        "generated_tokens_total": null,
+        "token_cap_respected": null,
+        "child_confirmed_stopped": true,
+        "acquisition_not_analyzed": null,
+        "server_exit_code": 0,
+        "supervisor_problems": [
+          "token usage was not measurable for 2 request(s), so the token cap could not be judged",
+          "2 request(s) were planned but never submitted"
+        ]
+      },
+      "test_status": "pass",
+      "lifecycle_read_opens": [
+        {
+          "test": "test_a_broken_barrier_sends_NOTHING_and_refuses",
+          "name": "lifecycle.jsonl",
+          "mode": "r"
+        },
+        {
+          "test": "test_a_broken_barrier_sends_NOTHING_and_refuses",
+          "name": "lifecycle.jsonl",
+          "mode": "rb"
+        },
+        {
+          "test": "test_a_broken_barrier_sends_NOTHING_and_refuses",
+          "name": "lifecycle.jsonl",
+          "mode": "rb"
+        }
+      ],
+      "synthetic_monotonic_calls": 27
+    },
+    "test_a_failed_process_creation_leaves_ONE_receipt_on_disk": {
+      "main_returncode": 1,
+      "receipt_present": true,
+      "posted_calls": 0,
+      "receipt_fields": {
+        "child_started": false,
+        "loaded_a_model": null,
+        "submitted_requests": 0,
+        "generated_tokens_total": null,
+        "token_cap_respected": null,
+        "child_confirmed_stopped": null,
+        "acquisition_not_analyzed": null,
+        "server_exit_code": null,
+        "supervisor_problems": [
+          "the child could not be started: no exec"
+        ]
+      },
+      "test_status": "pass",
+      "lifecycle_read_opens": [],
+      "synthetic_monotonic_calls": 6
+    },
+    "test_a_genuine_zero_from_a_real_response_is_a_measurement": {
+      "main_returncode": 0,
+      "receipt_present": true,
+      "posted_calls": 2,
+      "receipt_fields": {
+        "child_started": true,
+        "loaded_a_model": null,
+        "submitted_requests": 2,
+        "generated_tokens_total": 0,
+        "token_cap_respected": true,
+        "child_confirmed_stopped": true,
+        "acquisition_not_analyzed": null,
+        "server_exit_code": 0,
+        "supervisor_problems": []
+      },
+      "test_status": "pass",
+      "lifecycle_read_opens": [
+        {
+          "test": "test_a_genuine_zero_from_a_real_response_is_a_measurement",
+          "name": "lifecycle.jsonl",
+          "mode": "r"
+        },
+        {
+          "test": "test_a_genuine_zero_from_a_real_response_is_a_measurement",
+          "name": "lifecycle.jsonl",
+          "mode": "rb"
+        },
+        {
+          "test": "test_a_genuine_zero_from_a_real_response_is_a_measurement",
+          "name": "lifecycle.jsonl",
+          "mode": "rb"
+        }
+      ],
+      "synthetic_monotonic_calls": 33
+    },
+    "test_a_missing_pointer_leaves_ONE_receipt_on_disk": {
+      "main_returncode": 1,
+      "receipt_present": true,
+      "posted_calls": 0,
+      "receipt_fields": {
+        "child_started": false,
+        "loaded_a_model": null,
+        "submitted_requests": 0,
+        "generated_tokens_total": null,
+        "token_cap_respected": null,
+        "child_confirmed_stopped": null,
+        "acquisition_not_analyzed": null,
+        "server_exit_code": null,
+        "supervisor_problems": [
+          "the launch manifest could not be read: FileNotFoundError: no pointer"
+        ]
+      },
+      "test_status": "pass",
+      "lifecycle_read_opens": [],
+      "synthetic_monotonic_calls": 0
+    },
+    "test_a_producer_that_refused_itself_invalidates_a_clean_log": {
+      "main_returncode": 1,
+      "receipt_present": true,
+      "posted_calls": 2,
+      "receipt_fields": {
+        "child_started": true,
+        "loaded_a_model": null,
+        "submitted_requests": 2,
+        "generated_tokens_total": 20,
+        "token_cap_respected": true,
+        "child_confirmed_stopped": true,
+        "acquisition_not_analyzed": null,
+        "server_exit_code": 93,
+        "supervisor_problems": [
+          "process outcome: the producer exited 93: it detected a write failure it could not record, and refused the acquisition itself. A readable earlier seal with zero counts does not override this",
+          "acquisition not complete: None"
+        ]
+      },
+      "test_status": "pass",
+      "lifecycle_read_opens": [
+        {
+          "test": "test_a_producer_that_refused_itself_invalidates_a_clean_log",
+          "name": "lifecycle.jsonl",
+          "mode": "r"
+        },
+        {
+          "test": "test_a_producer_that_refused_itself_invalidates_a_clean_log",
+          "name": "lifecycle.jsonl",
+          "mode": "rb"
+        },
+        {
+          "test": "test_a_producer_that_refused_itself_invalidates_a_clean_log",
+          "name": "lifecycle.jsonl",
+          "mode": "rb"
+        }
+      ],
+      "synthetic_monotonic_calls": 33
+    },
+    "test_a_valid_run_writes_one_receipt_and_returns_zero": {
+      "main_returncode": 0,
+      "receipt_present": true,
+      "posted_calls": 2,
+      "receipt_fields": {
+        "child_started": true,
+        "loaded_a_model": null,
+        "submitted_requests": 2,
+        "generated_tokens_total": 20,
+        "token_cap_respected": true,
+        "child_confirmed_stopped": true,
+        "acquisition_not_analyzed": null,
+        "server_exit_code": 0,
+        "supervisor_problems": []
+      },
+      "test_status": "pass",
+      "lifecycle_read_opens": [
+        {
+          "test": "test_a_valid_run_writes_one_receipt_and_returns_zero",
+          "name": "lifecycle.jsonl",
+          "mode": "r"
+        },
+        {
+          "test": "test_a_valid_run_writes_one_receipt_and_returns_zero",
+          "name": "lifecycle.jsonl",
+          "mode": "rb"
+        },
+        {
+          "test": "test_a_valid_run_writes_one_receipt_and_returns_zero",
+          "name": "lifecycle.jsonl",
+          "mode": "rb"
+        }
+      ],
+      "synthetic_monotonic_calls": 33
+    },
+    "test_an_unreapable_child_reads_NOTHING_and_refuses": {
+      "main_returncode": 1,
+      "receipt_present": true,
+      "posted_calls": 2,
+      "receipt_fields": {
+        "child_started": true,
+        "loaded_a_model": null,
+        "submitted_requests": 2,
+        "generated_tokens_total": 20,
+        "token_cap_respected": true,
+        "child_confirmed_stopped": false,
+        "acquisition_not_analyzed": "the child was never confirmed stopped, so the lifecycle log and its sidecar were NOT opened, parsed or hashed. They are preserved in place; they may still have been open for writing.",
+        "server_exit_code": null,
+        "supervisor_problems": [
+          "child never confirmed stopped",
+          "acquisition not analyzed: the child was never confirmed stopped, so the lifecycle log and its sidecar were NOT opened, parsed or hashed. They are preserved in place; they may still have been open for writing."
+        ]
+      },
+      "test_status": "pass",
+      "lifecycle_read_opens": [],
+      "synthetic_monotonic_calls": 34
+    },
+    "test_negative_usage_is_unusable_on_the_ROW_as_well_as_the_total": {
+      "main_returncode": 1,
+      "receipt_present": true,
+      "posted_calls": 2,
+      "receipt_fields": {
+        "child_started": true,
+        "loaded_a_model": null,
+        "submitted_requests": 2,
+        "generated_tokens_total": null,
+        "token_cap_respected": null,
+        "child_confirmed_stopped": true,
+        "acquisition_not_analyzed": null,
+        "server_exit_code": 0,
+        "supervisor_problems": [
+          "token usage was not measurable for 2 request(s), so the token cap could not be judged"
+        ]
+      },
+      "test_status": "pass",
+      "lifecycle_read_opens": [
+        {
+          "test": "test_negative_usage_is_unusable_on_the_ROW_as_well_as_the_total",
+          "name": "lifecycle.jsonl",
+          "mode": "r"
+        },
+        {
+          "test": "test_negative_usage_is_unusable_on_the_ROW_as_well_as_the_total",
+          "name": "lifecycle.jsonl",
+          "mode": "rb"
+        },
+        {
+          "test": "test_negative_usage_is_unusable_on_the_ROW_as_well_as_the_total",
+          "name": "lifecycle.jsonl",
+          "mode": "rb"
+        }
+      ],
+      "synthetic_monotonic_calls": 33
+    }
+  },
+  "test_log": "test_a_broken_barrier_sends_NOTHING_and_refuses (owner_entry_tests_guarded.SupervisorEntryPointTests.test_a_broken_barrier_sends_NOTHING_and_refuses)\nRoot's witness, now mine: the early-broken-barrier case used to make ... {\n \"server_ready\": true,\n \"submitted_requests\": 0,\n \"generated_tokens_total\": null,\n \"wall_seconds_total\": 0.0,\n \"distinct_slots\": [\n  \"smoke_4167e395ccfd/slot0\",\n  \"smoke_4167e395ccfd/slot1\"\n ],\n \"observed_overlap_s\": 53.577598,\n \"two_slots_overlapped\": true,\n \"raw_log_bytes\": 1169,\n \"child_confirmed_stopped\": true\n}\nobservation active: True | lifecycle_complete: True | reason: None\nREFUSED: token usage was not measurable for 2 request(s), so the token cap could not be judged\nREFUSED: 2 request(s) were planned but never submitted\nwritten: /var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry_4tofspqh/results/SMOKE_RECEIPT_smoke_4167e395ccfd.json\nok\ntest_a_failed_process_creation_leaves_ONE_receipt_on_disk (owner_entry_tests_guarded.SupervisorEntryPointTests.test_a_failed_process_creation_leaves_ONE_receipt_on_disk)\nThe runs that failed worst used to leave the least evidence. ... REFUSED: the child could not be started: no exec\nwritten: /var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry_21kvepzd/results/SMOKE_RECEIPT_smoke_4167e395ccfd.json\nok\ntest_a_genuine_zero_from_a_real_response_is_a_measurement (owner_entry_tests_guarded.SupervisorEntryPointTests.test_a_genuine_zero_from_a_real_response_is_a_measurement) ... {\n \"server_ready\": true,\n \"submitted_requests\": 2,\n \"generated_tokens_total\": 0,\n \"wall_seconds_total\": 0.0,\n \"distinct_slots\": [\n  \"smoke_4167e395ccfd/slot0\",\n  \"smoke_4167e395ccfd/slot1\"\n ],\n \"observed_overlap_s\": 53.577598,\n \"two_slots_overlapped\": true,\n \"raw_log_bytes\": 1169,\n \"child_confirmed_stopped\": true\n}\nobservation active: True | lifecycle_complete: True | reason: None\nwritten: /var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry_kb4r5dus/results/SMOKE_RECEIPT_smoke_4167e395ccfd.json\nok\ntest_a_missing_pointer_leaves_ONE_receipt_on_disk (owner_entry_tests_guarded.SupervisorEntryPointTests.test_a_missing_pointer_leaves_ONE_receipt_on_disk) ... REFUSED: the launch manifest could not be read: FileNotFoundError: no pointer\nwritten: /var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry_k2810dfx/results/SMOKE_RECEIPT_unstarted_20260923T124536Z.json\nok\ntest_a_producer_that_refused_itself_invalidates_a_clean_log (owner_entry_tests_guarded.SupervisorEntryPointTests.test_a_producer_that_refused_itself_invalidates_a_clean_log)\nExit 93 beside a readable seal full of zeros must still refuse. ... {\n \"server_ready\": true,\n \"submitted_requests\": 2,\n \"generated_tokens_total\": 20,\n \"wall_seconds_total\": 0.0,\n \"distinct_slots\": [\n  \"smoke_4167e395ccfd/slot0\",\n  \"smoke_4167e395ccfd/slot1\"\n ],\n \"observed_overlap_s\": 53.577598,\n \"two_slots_overlapped\": true,\n \"raw_log_bytes\": 1169,\n \"child_confirmed_stopped\": true\n}\nobservation active: True | lifecycle_complete: False | reason: None\nREFUSED: process outcome: the producer exited 93: it detected a write failure it could not record, and refused the acquisition itself. A readable earlier seal with zero counts does not override this\nREFUSED: acquisition not complete: None\nwritten: /var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry_if8vuk0u/results/SMOKE_RECEIPT_smoke_4167e395ccfd.json\nok\ntest_a_valid_run_writes_one_receipt_and_returns_zero (owner_entry_tests_guarded.SupervisorEntryPointTests.test_a_valid_run_writes_one_receipt_and_returns_zero)\nTHE CONTROL. Without it every refusal below is consistent with a ... {\n \"server_ready\": true,\n \"submitted_requests\": 2,\n \"generated_tokens_total\": 20,\n \"wall_seconds_total\": 0.0,\n \"distinct_slots\": [\n  \"smoke_4167e395ccfd/slot0\",\n  \"smoke_4167e395ccfd/slot1\"\n ],\n \"observed_overlap_s\": 53.577598,\n \"two_slots_overlapped\": true,\n \"raw_log_bytes\": 1169,\n \"child_confirmed_stopped\": true\n}\nobservation active: True | lifecycle_complete: True | reason: None\nwritten: /var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry_elpqa88n/results/SMOKE_RECEIPT_smoke_4167e395ccfd.json\nok\ntest_an_unreapable_child_reads_NOTHING_and_refuses (owner_entry_tests_guarded.SupervisorEntryPointTests.test_an_unreapable_child_reads_NOTHING_and_refuses)\nThe gate root asked for: a later nonzero verdict cannot undo reading ... {\n \"server_ready\": true,\n \"submitted_requests\": 2,\n \"generated_tokens_total\": 20,\n \"wall_seconds_total\": 0.0,\n \"distinct_slots\": [],\n \"observed_overlap_s\": null,\n \"two_slots_overlapped\": false,\n \"raw_log_bytes\": null,\n \"child_confirmed_stopped\": false\n}\nobservation: NOT TAKEN - the child was never confirmed stopped, so the lifecycle log and its sidecar were NOT opened, parsed or hashed. They are preserved in place; they may still have been open for writing.\nREFUSED: child never confirmed stopped\nREFUSED: acquisition not analyzed: the child was never confirmed stopped, so the lifecycle log and its sidecar were NOT opened, parsed or hashed. They are preserved in place; they may still have been open for writing.\nwritten: /var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry_6yevtp54/results/SMOKE_RECEIPT_smoke_4167e395ccfd.json\nok\ntest_negative_usage_is_unusable_on_the_ROW_as_well_as_the_total (owner_entry_tests_guarded.SupervisorEntryPointTests.test_negative_usage_is_unusable_on_the_ROW_as_well_as_the_total)\nRoot, 12:04: \"its request rows still label completion_tokens=-1 as ... {\n \"server_ready\": true,\n \"submitted_requests\": 2,\n \"generated_tokens_total\": null,\n \"wall_seconds_total\": 0.0,\n \"distinct_slots\": [\n  \"smoke_4167e395ccfd/slot0\",\n  \"smoke_4167e395ccfd/slot1\"\n ],\n \"observed_overlap_s\": 53.577598,\n \"two_slots_overlapped\": true,\n \"raw_log_bytes\": 1169,\n \"child_confirmed_stopped\": true\n}\nobservation active: True | lifecycle_complete: True | reason: None\nREFUSED: token usage was not measurable for 2 request(s), so the token cap could not be judged\nwritten: /var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry_99kshfr6/results/SMOKE_RECEIPT_smoke_4167e395ccfd.json\nok\n\n----------------------------------------------------------------------\nRan 8 tests in 0.105s\n\nOK\n",
+  "readiness": {
+    "full_project_percent": 75,
+    "delta_points": 0,
+    "bounded_v1_percent": 90,
+    "remaining_points": 25
+  },
+  "coverage_limits": [
+    "Owner fake_popen delegates nonlauncher commands to its captured Popen; independent outer guard prevented real execution in this review, with zero fallback calls observed.",
+    "Owner harness does not mock/inject time or Deadline; this review supplied synthetic monotonic clock and _now fields.",
+    "Owner unreapable test only checks receipt flags; independent read-open spy observed zero lifecycle/sidecar opens in that case.",
+    "Prior zero-worker and one-worker expected-denominator scenarios are omitted; eight owner cases are four retained plus four added, not the previous six plus two."
+  ],
+  "review_harness_sha256": "4d00dc34d080bd6ca441c492d07f240cbd8ff54c654fb1c6315db5aa20984576"
+}
