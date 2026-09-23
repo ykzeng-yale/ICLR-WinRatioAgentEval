@@ -3187,6 +3187,43 @@ unmodified `2bef6c1` they give **4 errors**, after the repair entry **34/34**.
 Entry **34**, controls 15, design 345, serving 89, isolation 33 — green. `HARNESS_FILES` **33**. Freeze
 **16/26** (`EVIDENCE_PIN_PROMOTION.json`).
 
+### 2026-09-23 · the build says what the cache says, and the search it leaves is empty
+
+`main` and `session60/live-ab` at **`ab38e61`** (snapshot `d143532`, helper `ab38e61`). Root's 14:41
+next receipt and helper items 1-3.
+
+**Build-config snapshot** — `CANDIDATE_BUILD_CONFIG_SNAPSHOT.json`, `post-build-provenance`, copies
+under `results/live_ab/candidate_build_snapshot/`. The declared candidate is `llama_pristine_4fea119`
+(per `CANDIDATE_INSTRUMENT_MANIFEST.json`) — **not** the historical tree `run_smoke.BIN` still names.
+Every layer agrees: `GGML_BACKEND_DL` OFF in the cache *and* no define on the registry;
+`GGML_BACKEND_DIR` empty *and* defined nowhere; CPU/BLAS/METAL enabled, registered and linked alike;
+Metal embedding ON, compiled with the define, and **20 embedded-source symbols in the measured
+library**; no CPU variants; `build.ninja` never regenerated. All ten measured files match the
+declaration; root's eight pinned upstream sources match the tree byte for byte. The executable
+directory holds **no** `libggml-*.so` candidate. 13 controls, each agreeing case with a disagreeing
+twin.
+
+**Found while doing it:** `run_smoke` calls `Popen` with **no `cwd=`** (the operator's directory
+becomes a loader search location) and passes **`dict(os.environ, ...)`** (an inherited
+`GGML_BACKEND_PATH` or `DYLD_*` would reach the child).
+
+**Helper repairs** — `DEPENDENCY_CONTRACT_REPAIR.json`, `deterministic-path`.
+(1) Derive *and* verify require a measured launch context and every reader; a missing one is a check
+not made and refuses — the old `verify_closure` verified having made zero dynamic checks. `bounded`
+is computed. A discoverable backend is bound and walked; a `dlopen` importer other than libggml
+refuses. (2) Every load command classified against a closed list; `LC_REEXPORT_DYLIB` is an edge;
+unknown, nameless or miscounted refuses. (3) An edge is (parent, command, reference); root's
+two-parent `@loader_path/helper` probe resolves; relative rpaths/references and bare leaf names
+still refuse.
+
+**On the real candidate, under a PROPOSED context** (cwd = executable directory, `GGML_*`/`DYLD_*`
+removed): 41 edges, the declared nine members, bounded, verified straight back; four real-metadata
+refusal controls refuse. **This does not reverse the 14:50 refusal for the launch path as it stands**
+— `run_smoke` does not yet impose that context (item 4).
+
+Controls **35** (eleven mutations, one per repair, each caught), snapshot 13, entry 34, design 345,
+serving 89, isolation 33 — green. `HARNESS_FILES` **33**. Freeze **16/26**.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
