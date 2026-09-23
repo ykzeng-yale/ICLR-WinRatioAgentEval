@@ -1,0 +1,20 @@
+{
+  "license_components": {
+    "coder": {
+      "url": "https://huggingface.co/Qwen/Qwen2.5-Coder-7B-Instruct-GGUF/resolve/13fb94bfda8c8cf22497dc57b78f391a9acb426a/LICENSE",
+      "bytes": 11343,
+      "sha256": "832dd9e00a68dd83b3c3fb9f5588dad7dcf337a0db50f7d9483f310cd292e92e",
+      "evidence_kind": "licence_blob"
+    },
+    "t3": {
+      "url": "https://huggingface.co/ibm-granite/granite-3.3-8b-instruct-GGUF/resolve/e40e9dd739c7be00fa965c16ce167088190ce114/README.md",
+      "bytes": 460,
+      "sha256": "3caa21957f57266158c22853e09c7d7d066cfcc9d003e31c8daacf930f9aabb9",
+      "evidence_kind": "model_card_declaration"
+    }
+  },
+  "license_bundle_sha256": "867eca9e36e47408711e2fbc1c066c180589209bb3caecabf59d00d08b1ee96a",
+  "profile_bytes": 646,
+  "profile_sha256": "527d267e1c50c4f66a23312e2a836125395367ddd1398ec7f3c79117803c410b",
+  "scope": "offline reconstruction using declared owner environment; no owner-host execution or rights attestation"
+}

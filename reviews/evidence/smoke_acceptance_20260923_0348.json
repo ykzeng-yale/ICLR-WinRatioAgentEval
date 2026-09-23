@@ -1,0 +1,120 @@
+{
+  "reviewed_head": "334f12109babc6d35d0bf9dae0298c60d1c1dbad",
+  "scope": "saved immutable receipts plus mocked control flow only; no model/native/build execution",
+  "reconstructed_lifecycle_bytes": 1073,
+  "matches_reported_bytes": true,
+  "reconstructed_sha256": "2b2eff110b3847ac6d6cf835ab0b265b9e8a90e12e7995bd0cfb8e1dfd45492c",
+  "record_count": 2,
+  "baseline": {
+    "parsed_records": 2,
+    "parsed_seals": 1,
+    "error": null,
+    "rejected": [],
+    "writer_errors": [],
+    "complete": true,
+    "windows_match_saved": true,
+    "sequence_ids": [
+      0,
+      1
+    ],
+    "distinct_slots": 2,
+    "overlap_integer_us": 53577598,
+    "overlap_seconds": 53.577598,
+    "usage_prompt_tokens": 100,
+    "usage_completion_tokens": 2048,
+    "native_prompt_tokens": 100,
+    "native_generation_tokens": 2048,
+    "all_request_status_200": true,
+    "all_request_finish_length": true
+  },
+  "sidecar_witnesses": {
+    "empty": {
+      "returned": true,
+      "lifecycle_complete": true,
+      "seal_problem": null,
+      "sidecar_records": []
+    },
+    "non_object_number": {
+      "returned": false,
+      "exception_type": "AttributeError",
+      "exception": "'int' object has no attribute 'get'"
+    },
+    "non_object_list": {
+      "returned": false,
+      "exception_type": "AttributeError",
+      "exception": "'list' object has no attribute 'get'"
+    },
+    "non_utf8": {
+      "returned": false,
+      "exception_type": "UnicodeDecodeError",
+      "exception": "'utf-8' codec can't decode byte 0xff in position 0: invalid start byte"
+    },
+    "malformed": {
+      "returned": true,
+      "lifecycle_complete": false,
+      "seal_problem": "the producer recorded 1 failure(s) in its l.jsonl.error sidecar ([None]); any terminal writer failure refuses the acquisition",
+      "sidecar_records": [
+        {
+          "unparsable": "{oops"
+        }
+      ]
+    }
+  },
+  "token_witnesses": {
+    "missing_token": {
+      "complete": false,
+      "refused_count": 2
+    },
+    "foreign_instance_same_slot": {
+      "complete": false,
+      "refused_count": 2
+    }
+  },
+  "seal_receipt_witnesses": {
+    "valid_zero": {
+      "verdict": "SEAL WRITTEN BY THE BUILT BINARY AND PARSED",
+      "reader_error": null,
+      "reader_records": 0,
+      "seal_only_fixture_shape": true,
+      "seal_contract_ok": true
+    },
+    "truncated_zero": {
+      "verdict": "NOT a seal-parser success: child_exit_ok=True, no_parser_rejection=True, no_parser_error=False, seal_only_fixture_shape=False, seal_contract_ok=False",
+      "reader_error": "the lifecycle log ends mid-line (176 bytes); the server is still writing. Re-read rather than trimming: a trimmed partial line discards an occupancy that did happen.",
+      "reader_records": 0,
+      "seal_only_fixture_shape": false,
+      "seal_contract_ok": false
+    },
+    "claims_two_but_zero_records": {
+      "verdict": "SEAL WRITTEN BY THE BUILT BINARY AND PARSED",
+      "reader_error": null,
+      "reader_records": 0,
+      "seal_only_fixture_shape": true,
+      "seal_contract_ok": true
+    },
+    "boolean_count": {
+      "verdict": "SEAL WRITTEN BY THE BUILT BINARY AND PARSED",
+      "reader_error": null,
+      "reader_records": 0,
+      "seal_only_fixture_shape": true,
+      "seal_contract_ok": true
+    }
+  },
+  "hashes": {
+    "reader_sha256": {
+      "expected": "5f357e6c43d03d66c92291a18e3978542639cf97e5698b7ff4cd0bc4eb36f570",
+      "actual": "5f357e6c43d03d66c92291a18e3978542639cf97e5698b7ff4cd0bc4eb36f570",
+      "matches": true
+    },
+    "config_sha256": {
+      "expected": "b41b588f632a90e6d68ba972089bc5031d4814d38ac5281a54024fe42be7df5f",
+      "actual": "b41b588f632a90e6d68ba972089bc5031d4814d38ac5281a54024fe42be7df5f",
+      "matches": true
+    },
+    "patch_sha256": {
+      "expected": "2c52078f8a541134661eb7ac997114892c7baf68541f9d4be664366d43e85f6a",
+      "actual": "2c52078f8a541134661eb7ac997114892c7baf68541f9d4be664366d43e85f6a",
+      "matches": true
+    }
+  }
+}
