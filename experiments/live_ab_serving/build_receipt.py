@@ -108,10 +108,27 @@ def native_seal_fixture(tmp: Path) -> dict:
     no_parser_error = parsed['error'] is None
     seal_only = (len(seals) == 1 and parsed['records'] == []
                  and not parsed['writer_errors'])
-    contract_ok = bool(seals) and seals[0].get('run_token') == token \
-        and seals[0].get('clock') == lab_lifecycle.CLOCK \
-        and isinstance(seals[0].get('records'), int) \
-        and seals[0].get('write_failures') == 0
+    # ROOT, 2026-09-23 08:00: "the seal-only fixture must declare non-boolean
+    # integer ZERO records and write failures ... Current `records=2`/`true` and
+    # failure-count `false`/`0.0` counterexamples still pass that function."
+    #
+    # All four passed the previous spelling because Python is generous in exactly
+    # the wrong places: isinstance(True, int) is True, False == 0 is True,
+    # 0.0 == 0 is True, and a bare isinstance(x, int) admits 2. The observation
+    # level (`lab_lifecycle`) was made strict in the previous delivery and THIS
+    # function was not -- a second implementation of one rule, which is how a
+    # property gets fixed in one place and described as fixed everywhere. Both
+    # now call the single predicate.
+    #
+    # `records` is the seal's DECLARED count. A seal-only fixture serves no
+    # request, so the only self-consistent declaration is zero; the separate
+    # `seal_only` check below asserts the parsed record LIST is empty, and a seal
+    # claiming 2 beside an empty list is a contradiction, not a pass.
+    seal0 = seals[0] if seals else {}
+    contract_ok = bool(seals) and seal0.get('run_token') == token \
+        and seal0.get('clock') == lab_lifecycle.CLOCK \
+        and lab_lifecycle.nonbool_int_zero(seal0.get('records')) \
+        and lab_lifecycle.nonbool_int_zero(seal0.get('write_failures'))
     out['child_exit_ok'] = child_ok
     out['no_parser_rejection'] = no_rejection
     out['no_parser_error'] = no_parser_error

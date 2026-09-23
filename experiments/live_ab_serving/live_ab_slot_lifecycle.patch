@@ -23,14 +23,15 @@ diff --git a/tools/server/server-context.cpp b/tools/server/server-context.cpp
 index b6835e4..d8b4aab 100644
 --- a/tools/server/server-context.cpp
 +++ b/tools/server/server-context.cpp
-@@ -1,4 +1,6 @@
+@@ -1,4 +1,7 @@
  #include "server-context.h"
 +
 +#include <atomic>
++#include <unistd.h>   // write(2), _exit(2): the process-level refusal path
  #include "server-chat.h"
  #include "server-common.h"
  #include "server-http.h"
-@@ -236,6 +238,22 @@ struct server_batch {
+@@ -236,6 +239,22 @@ struct server_batch {
      }
  };
  
@@ -53,7 +54,7 @@ index b6835e4..d8b4aab 100644
  struct server_slot {
      int id;
  
-@@ -548,6 +566,13 @@ struct server_slot {
+@@ -548,6 +567,13 @@ struct server_slot {
              SLT_INF(*this, "stop processing: n_tokens = %d, truncated = %d\n", prompt.n_tokens(), truncated);
  
              t_last_used = ggml_time_us();
@@ -67,7 +68,7 @@ index b6835e4..d8b4aab 100644
  
              state = SLOT_STATE_IDLE;
  
-@@ -734,6 +759,181 @@ struct server_slot {
+@@ -734,6 +760,237 @@ struct server_slot {
      }
  };
  
@@ -91,49 +92,74 @@ index b6835e4..d8b4aab 100644
 +static std::atomic<long long> live_ab_seq{0};
 +static std::atomic<long long> live_ab_write_failures{0};
 +
-+//: Failures of the BEST-EFFORT failure channel itself. Root, 2026-09-23 03:48:
-+//: "Make producer failure detectable by the supervisor/process when the
-+//: best-effort sidecar itself cannot be written."
++//: Failures of the BEST-EFFORT failure channel itself.
 +static std::atomic<long long> live_ab_sidecar_failures{0};
++
++//: THE PROCESS-LEVEL REFUSAL. Root, 2026-09-23 08:00, choosing between the two
++//: options put to it:
++//:
++//:   "Root chooses process-level refusal for unrecordable producer failure.
++//:    Failure to persist the sidecar must produce a deterministic nonzero
++//:    process outcome, including after final seal formatting/flush/close; do not
++//:    depend on another log write or an unbounded stderr flush. Avoid reentering
++//:    normal static-destructor exit handling."
++//:
++//: The previous revision reported on stderr and carried a counter in the seal.
++//: Both are writes that can themselves fail, and the supervisor does not drain
++//: the supplied pipe, so neither is an OUTCOME. An exit status is.
++#define LIVE_AB_EXIT_UNRECORDABLE 93
++
++//: Bounded, async-signal-safe, and never buffered: one write(2) of at most
++//: sizeof(buf) to fd 2. NOT an fprintf/fflush pair -- a blocked or full stderr
++//: must not be able to stall or swallow the refusal, and the diagnostic is a
++//: courtesy while the EXIT STATUS is the evidence.
++// [[noreturn]] so the caller's flow analysis knows the null-FILE branch below
++// does not fall through into a use of that null pointer.
++[[noreturn]] static void live_ab_die_unrecordable(const char * what) {
++    char buf[192];
++    const int n = snprintf(buf, sizeof(buf),
++            "live_ab: unrecordable '%s' write failure; refusing acquisition "
++            "with exit %d\n", what, LIVE_AB_EXIT_UNRECORDABLE);
++    if (n > 0) {
++        ssize_t ignored = write(2, buf, (size_t) (n < (int) sizeof(buf)
++                                                  ? n : (int) sizeof(buf) - 1));
++        (void) ignored;          // best effort; the exit status is the outcome
++    }
++    // _exit, NOT exit/abort: it runs no atexit handler and no static
++    // destructor, so it cannot re-enter the seal writer that may have called
++    // us. Whatever was already durably written STAYS written -- root:
++    // "Preserve available observations on failure."
++    _exit(LIVE_AB_EXIT_UNRECORDABLE);
++}
 +
 +static void live_ab_note_write_failure(const char * path, const char * what) {
 +    live_ab_write_failures.fetch_add(1);
 +    // BEST EFFORT, AND ONLY THAT. On a SEPARATE file so a failing log cannot
 +    // hide its own failure by failing again -- but a separate filename does not
-+    // make persistence reliable. What follows is the repair for the case where
-+    // THIS writer fails too: every step's result is checked, and a failure is
-+    // reported on TWO channels that do not depend on the sidecar -- a counter
-+    // carried in the seal, and stderr, which the supervisor captures. Without
-+    // that, a full disk makes a terminal write failure completely invisible:
-+    // no sidecar line, and nothing anywhere else saying one was attempted.
++    // make persistence reliable. When THIS writer fails, every step's result is
++    // checked and the process refuses: a full disk used to make a terminal write
++    // failure completely invisible -- no sidecar line, and nothing anywhere else
++    // saying one had been attempted.
 +    std::string err = std::string(path) + ".error";
 +    FILE * f = fopen(err.c_str(), "ab");
 +    if (f == nullptr) {
 +        live_ab_sidecar_failures.fetch_add(1);
-+        fprintf(stderr, "live_ab: FAILED to open %s to record a '%s' write "
-+                        "failure; sidecar_failures=%lld\n",
-+                err.c_str(), what,
-+                (long long) live_ab_sidecar_failures.load());
-+        fflush(stderr);
-+        return;
++        live_ab_die_unrecordable(what);
 +    }
 +    const int n = fprintf(f,
 +               "{\"schema\":\"live_ab/acquisition_error-v1\",\"stage\":\"%s\","
 +               "\"t_us\":%lld,\"failures\":%lld}\n",
 +            what, (long long) ggml_time_us(),
 +            (long long) live_ab_write_failures.load());
-+    // flush and close checked INDEPENDENTLY, for the same reason as the seal:
-+    // `fflush(f) || fclose(f)` short-circuits and never closes on a flush
-+    // failure, leaking the handle and discarding the close result.
++    // flush and close checked INDEPENDENTLY: `fflush(f) || fclose(f)`
++    // short-circuits and never closes on a flush failure, leaking the handle
++    // AND discarding the close result, which on a buffered stream is where a
++    // write error usually surfaces.
 +    const int flushed = fflush(f);
 +    const int closed  = fclose(f);
 +    if (n <= 0 || flushed != 0 || closed != 0) {
 +        live_ab_sidecar_failures.fetch_add(1);
-+        fprintf(stderr, "live_ab: FAILED to persist a '%s' write failure to %s "
-+                        "(fprintf=%d flush=%d close=%d); sidecar_failures=%lld\n",
-+                what, err.c_str(), n, flushed, closed,
-+                (long long) live_ab_sidecar_failures.load());
-+        fflush(stderr);
++        live_ab_die_unrecordable(what);
 +    }
 +}
 +
@@ -280,7 +306,7 @@ index b6835e4..d8b4aab 100644
  // returns 0 on success
  // caller need to update prompt.tokens after a successful call to keep track of the processing progress
  // note: this is not a member of server_slot because we want to run it inside yield_to_queue
-@@ -1819,6 +2019,29 @@ private:
+@@ -1819,6 +2076,29 @@ private:
  
          slot.task = std::make_unique<const server_task>(std::move(task));
  

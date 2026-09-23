@@ -27,7 +27,55 @@ not from memory, and no earlier row is edited.
 | 2 | `984f47df65b0…` | `99e1805` | run-token echo, per-record `seq`, static-destructor seal, `.error` sidecar, `n=1` while instrumented |
 | 3 | `4c8b647de674…` | `31c22fd` | three contract repairs; independent `fflush`/`fclose` checks |
 | 4 | `2c52078f8a54…` | `3f3968d` | the seal `fprintf` result actually captured — root found I had claimed this repair in a commit message without making it |
-| 5 | `0e79199aeb88…` | *this change* | the best-effort failure channel reports **its own** failure |
+| 5 | `0e79199aeb88…` | `c8b3bd9` | the best-effort failure channel reports its own failure — **superseded, never built; its hunk headers did not parse** |
+| 6 | `8e2d1c6b9e07…` | *this change* | process-level refusal (root's ruling), and every hunk header recounted so the patch applies ordinarily |
+
+### v5 did not parse, and root found it
+
+Root, `reviews/evidence/lifecycle_producer_review_20260923_0800.json`:
+`git apply --numstat` and `git apply --check` both returned **rc 128, "corrupt patch at line
+283"**; `git apply --recount --check` returned **rc 0**. That pair is the whole diagnosis: the
+hunk *bodies* match the pinned preimages, and only the `@@` arithmetic was wrong. I had
+edited a hunk body and not its header, and said in the same delivery that I had not verified
+application — root verified it and it did not apply.
+
+Two things go wrong after a body edit, not one: the hunk's own counts, **and every later
+hunk's new-side start offset**. v5 declared `+181` where the body held 212 lines, and the
+following hunk still started at 2019 instead of 2050. A counts-only fix would have produced a
+patch that parses and applies in the wrong place.
+
+`experiments/live_ab_tools/patch_recount.py` now recomputes every header from the body and
+asserts **no body byte changed**; receipts `results/live_ab/PATCH_RECOUNT_v5.json` and
+`…_v6.json`. It caught a second round of drift when v6 added an `#include`, which shifted
+every subsequent hunk.
+
+**What is verified here:** the patch parses without `--recount` (`git apply --numstat`, which
+reads the patch only), and plain and recounted numstat agree. **What is not:** that it
+applies to the pinned base tree — this host has no llama.cpp checkout. Root's
+`--recount --check` rc 0 is the standing evidence that the bodies match.
+
+### v6: process-level refusal, replacing v5's stderr channel
+
+Root, 2026-09-23 08:00, answering the question put to it: *"Root chooses process-level refusal
+for unrecordable producer failure. Failure to persist the sidecar must produce a deterministic
+nonzero process outcome, including after final seal formatting/flush/close; do not depend on
+another log write or an unbounded stderr flush. Avoid reentering normal static-destructor exit
+handling."*
+
+v5 reported on stderr and carried a counter in the seal. Both are **writes that can themselves
+fail**, and root observed that the supplied supervisor does not drain the pipe — so neither is
+an outcome. v6 exits **93** (`LIVE_AB_EXIT_UNRECORDABLE`) via `_exit`, which runs no `atexit`
+handler and no static destructor and therefore cannot re-enter the seal writer that called it.
+The diagnostic is one bounded `write(2)` to fd 2, not an `fprintf`/`fflush` pair, so a blocked
+stderr can neither stall nor swallow the refusal. Whatever was already durably written stays
+written.
+
+The reader requires a **retained** exit status under the repaired contract
+(`lab_lifecycle.process_outcome_problem`): a readable seal full of zeros beside a retained exit
+93 refuses, because the refusal fires exactly when no further write can be trusted and the log
+cannot be the witness to it.
+
+**v6 is SOURCE ONLY and NOT BUILT.** No binary corresponds to it.
 
 **The retained smoke evidence stays bound to v4 `2c52078f…`** and is not reinterpreted.
 `results/live_ab/SMOKE_LAUNCH_MANIFEST_smoke_4167e395ccfd.json` pins that digest because

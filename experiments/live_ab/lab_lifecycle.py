@@ -53,6 +53,7 @@ the reasons, so a sweep that stops can say which record stopped it.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import sys
@@ -252,7 +253,180 @@ def read_error_sidecar(sidecar_path: Path) -> tuple:
     return entries, True, len(raw), None
 
 
-def seal_write_failures_problem(seal: dict) -> Optional[str]:
+#: Patch digests that PREDATE the failure-channel repair. An acquisition whose
+#: trusted manifest names one of these is read under the legacy contract:
+#: `sidecar_failures` may be absent and absence means UNKNOWN. v4 is what the
+#: retained smoke is bound to, and root preserved its conditional acceptance.
+LEGACY_PATCH_SHA256: frozenset = frozenset({
+    '261a54db560ddfccf1f1541361905686177069c4993f2b80e9830a9144631e29',  # v1
+    '984f47df65b0db7b945234660cde2aae9a035c4efcee42ec780c27df9c59a918',  # v2
+    '4c8b647de674edca06578642b17fff7e24d8625ad9d9933238170c668c4a0840',  # v3
+    '2c52078f8a541134661eb7ac997114892c7baf68541f9d4be664366d43e85f6a',  # v4 (smoke)
+    # v5 (0e79199aeb88...) is deliberately ABSENT: it was never built and never
+    # produced an acquisition, and its hunk headers did not even parse. It is a
+    # source revision, not a producer anything is bound to.
+})
+
+#: What a manifest that selects neither is read as.
+CONTRACT_REPAIRED = 'repaired'
+CONTRACT_LEGACY = 'legacy'
+CONTRACT_UNBOUND = 'unbound'
+
+
+#: The producer's deterministic refusal status (patch v6). Root, 2026-09-23
+#: 08:00: "Failure to persist the sidecar must produce a deterministic nonzero
+#: process outcome ... The supervisor must retain this exit outcome and
+#: invalidate acquisition even if a readable earlier seal contains zero counts."
+EXIT_UNRECORDABLE: int = 93
+
+
+def process_outcome_problem(outcome: object, *, required: bool) -> Optional[str]:
+    """Why the retained producer exit status does not support an acquisition.
+
+    ``outcome`` is what the SUPERVISOR retained, not anything the producer said
+    about itself. A seal can be readable, complete and full of zeros and still
+    belong to a process that afterwards refused: the whole point of the
+    process-level refusal is that it happens when no further write can be
+    trusted, so the log cannot be the witness to it.
+    """
+    if outcome is None:
+        if not required:
+            return None
+        return ('the acquisition contract requires a RETAINED producer exit '
+                'status and none was supplied; a readable seal is not evidence '
+                'about how the process ended')
+    if outcome == EXIT_UNRECORDABLE:
+        return ('the producer exited %d: it detected a write failure it could '
+                'not record, and refused the acquisition itself. A readable '
+                'earlier seal with zero counts does not override this'
+                % EXIT_UNRECORDABLE)
+    if not nonbool_int_zero(outcome):
+        return ('the retained producer exit status is %r; only a non-boolean '
+                'integer zero is a successful outcome' % (outcome,))
+    return None
+
+
+def sidecar_contract(expected: Optional[dict]) -> Dict[str, Any]:
+    """Which failure-channel contract this acquisition is read under, and why.
+
+    Root, 2026-09-23 08:00, item 3:
+
+        "Missing data must not automatically select a legacy exemption. A
+         trusted manifest/version binding should select compatibility; a
+         producer's missing or self-declared field alone cannot."
+
+    That is an objection to what the previous delivery did. There, the ABSENCE
+    of `sidecar_failures` selected the lenient reading -- so an instrument that
+    simply failed to write the field, or one that omitted it deliberately, got
+    the same treatment as a genuinely older producer. The producer chose its own
+    exemption by omission.
+
+    The selector is now the supervisor-persisted manifest, which is written
+    BEFORE dispatch and is not something the producer can edit:
+
+    * manifest names a pre-repair patch digest -> ``legacy``: the field may be
+      absent, and absent means UNKNOWN, never zero;
+    * manifest names anything else, or names no patch at all -> ``repaired``:
+      the field is REQUIRED to be a non-boolean integer zero. Defaulting an
+      undeclared manifest to the strict side is the point -- silence must not
+      buy the exemption;
+    * no manifest at all -> ``unbound``: nothing certifies anyway
+      (``producer_bound`` is already false), and no exemption is granted.
+    """
+    if not expected:
+        return {'contract': CONTRACT_UNBOUND,
+                'sidecar_failures_required': False,
+                'selected_by': 'no manifest: the acquisition is unbound and '
+                               'certifies nothing, so no exemption is granted'}
+    declared = str(expected.get('patch_sha256') or '')
+    if declared and declared in LEGACY_PATCH_SHA256:
+        return {'contract': CONTRACT_LEGACY,
+                'sidecar_failures_required': False,
+                'declared_patch_sha256': declared,
+                'selected_by': 'the supervisor-persisted manifest names a '
+                               'pre-repair producer; absent sidecar_failures '
+                               'means UNKNOWN, not zero'}
+    return {'contract': CONTRACT_REPAIRED,
+            'sidecar_failures_required': True,
+            'declared_patch_sha256': declared or None,
+            'selected_by': ('the manifest does not name a pre-repair producer, '
+                            'so the repaired contract applies. An undeclared '
+                            'manifest takes the STRICT side deliberately: a '
+                            'missing declaration must not buy a legacy '
+                            'exemption')}
+
+
+def _file_evidence(p: Path) -> Dict[str, Any]:
+    """Byte count and sha256 of a closed file, or why neither could be taken.
+
+    Root, 2026-09-23 08:00: "Preserve full closed raw files with byte
+    counts/hashes or bound archive references; label bounded previews as
+    previews." The previews this module retains are bounded on purpose; the
+    digest is what binds them to the whole artifact, so a preview can never be
+    mistaken for the file.
+    """
+    try:
+        if not p.exists():
+            return {'present': False}
+        raw = p.read_bytes()
+    except Exception as exc:
+        return {'present': True, 'unreadable': '%s: %s' % (type(exc).__name__, exc)}
+    return {'present': True, 'bytes': len(raw),
+            'sha256': hashlib.sha256(raw).hexdigest()}
+
+
+def _raw_artifacts(log_path: Path, sidecar_path: Path) -> Dict[str, Any]:
+    """The closed raw files this observation was derived from, bound by digest."""
+    return {
+        'note': ('byte counts and sha256 of the CLOSED files. Every retained '
+                 'text or hex field elsewhere in this observation is a BOUNDED '
+                 'PREVIEW, not the artifact; these digests bind the previews to '
+                 'the whole files.'),
+        'preview_limits': {'text_chars': SIDECAR_RETAIN_CHARS,
+                           'undecodable_bytes': SIDECAR_RETAIN_BYTES},
+        'lifecycle_log': dict(_file_evidence(log_path),
+                              path=lab_common.display_path(log_path)),
+        'error_sidecar': dict(_file_evidence(sidecar_path),
+                              path=lab_common.display_path(sidecar_path)),
+    }
+
+
+def _sidecar_fields(sidecar_path: Path, sidecar: List[dict], present: bool,
+                    byte_count: int, unreadable: Optional[str]) -> Dict[str, Any]:
+    """The sidecar's contribution to the observation, identical on every path."""
+    return {
+        'sidecar_path': sidecar_path.name,
+        'sidecar_records': sidecar,
+        'sidecar_records_are_previews': True,
+        'sidecar_unreadable': unreadable,
+        'sidecar_present': present,
+        'sidecar_bytes': byte_count,
+    }
+
+
+def nonbool_int_zero(value: object) -> bool:
+    """Is this EXACTLY a non-boolean integer zero?
+
+    THE ONE PREDICATE. Root, 2026-09-23 08:00, on the counterexamples that still
+    passed `build_receipt.native_seal_fixture` after the observation-level check
+    was fixed: `records=2`/`true` and failure counts `false`/`0.0`.
+
+    Python makes all four of those slip through the obvious spellings:
+
+    * ``isinstance(True, int)`` is **True** -- `bool` is a subclass of `int`;
+    * ``False == 0`` is **True**;
+    * ``0.0 == 0`` is **True**;
+    * a type check alone (`isinstance(x, int)`) accepts any integer, including 2.
+
+    A second implementation of this rule is how the observation level came to be
+    strict while the receipt generator stayed loose, so both now call THIS.
+    """
+    return isinstance(value, int) and not isinstance(value, bool) and value == 0
+
+
+def seal_write_failures_problem(seal: dict, *,
+                                require_sidecar_failures: bool = False
+                                ) -> Optional[str]:
     """Why this seal's ``write_failures`` does not certify a whole log, or None.
 
     Root, 2026-09-23 03:48: "The seal-only fixture must require a non-boolean
@@ -292,18 +466,22 @@ def seal_write_failures_problem(seal: dict) -> Optional[str]:
     # silently treated as zero -- but when the field IS present it is held to
     # exactly the same standard as write_failures.
     if 'sidecar_failures' in seal:
-        side = seal['sidecar_failures']
-        if isinstance(side, bool):
-            return ('the seal reports sidecar_failures %r, a boolean, not a count'
-                    % (side,))
-        if not isinstance(side, int):
-            return ('the seal reports sidecar_failures %r of type %s; a count that '
-                    'is not an integer was not written by this instrument'
+        if not nonbool_int_zero(seal['sidecar_failures']):
+            side = seal['sidecar_failures']
+            if isinstance(side, int) and not isinstance(side, bool):
+                return ('the producer failed %d time(s) to write its own failure '
+                        'sidecar; a terminal write failure was detected and its '
+                        'reason could not be persisted' % side)
+            return ('the seal reports sidecar_failures %r of type %s; a reported '
+                    'zero is a non-boolean integer zero and nothing else'
                     % (side, type(side).__name__))
-        if side != 0:
-            return ('the producer failed %d time(s) to write its own failure '
-                    'sidecar; a terminal write failure was detected and its '
-                    'reason could not be persisted' % side)
+    elif require_sidecar_failures:
+        # Root, 2026-09-23 08:00: under the repaired acquisition contract the
+        # field is REQUIRED. Absence here is not the legacy case -- the manifest
+        # decides that, not the producer.
+        return ('the acquisition contract requires the producer to report '
+                'sidecar_failures and this seal does not; a missing field cannot '
+                'select the legacy exemption for itself')
     return None
 
 
@@ -496,7 +674,8 @@ def _overlaps_on_one_slot(windows: List[dict]) -> Optional[str]:
 
 def observe(path: "str | Path", *, concurrency_required: int = 2,
             expected: Optional[dict] = None,
-            provenance: Optional[dict] = None) -> Dict[str, Any]:
+            provenance: Optional[dict] = None,
+            process_outcome: object = None) -> Dict[str, Any]:
     """The observation ``lab_prepare.run_reference_sweep`` consumes.
 
     ``expected`` is the run manifest the supervisor persisted BEFORE dispatch.
@@ -576,6 +755,29 @@ def observe(path: "str | Path", *, concurrency_required: int = 2,
         'records_read': len(parsed['records']),
         'records_rejected_by_parser': parsed['rejected'],
     }
+    # THE SIDECAR EVIDENCE BELONGS IN THE COMMON OBSERVATION, before any early
+    # return. Root, 2026-09-23 08:00: "Move sidecar evidence into the common
+    # observation before parser-error/manifest-error returns; a truncated main
+    # log must retain the sidecar diagnosis too."
+    #
+    # It used to be attached further down, after the manifest-mismatch and
+    # parser-error returns above -- so the two cases where the main log is LEAST
+    # trustworthy were exactly the two that discarded the producer's own account
+    # of what went wrong. A truncated main log and a sidecar explaining the
+    # truncation is the normal shape of a disk-full failure.
+    base.update(_sidecar_fields(sidecar_path, sidecar, sidecar_present,
+                                sidecar_bytes, sidecar_unreadable))
+    base['raw_artifacts'] = _raw_artifacts(path, sidecar_path)
+    contract = sidecar_contract(expected)
+    base['acquisition_contract'] = contract
+    # The supervisor's retained exit status, not the producer's account of
+    # itself. Under the repaired contract it is REQUIRED: the process-level
+    # refusal fires exactly when no further write can be trusted, so the log
+    # cannot be the witness to it.
+    outcome_problem = process_outcome_problem(
+        process_outcome, required=contract['sidecar_failures_required'])
+    base['process_outcome'] = process_outcome
+    base['process_outcome_problem'] = outcome_problem
     if manifest_mismatch is not None:
         # A refused attempt, retained -- never a task exclusion.
         base['manifest_mismatch'] = manifest_mismatch
@@ -609,11 +811,8 @@ def observe(path: "str | Path", *, concurrency_required: int = 2,
     seals, writer_errors = parsed.get('seals') or [], parsed.get('writer_errors') or []
     base['seals'] = seals
     base['writer_errors'] = writer_errors
-    base['sidecar_path'] = sidecar_path.name
-    base['sidecar_records'] = sidecar
-    base['sidecar_unreadable'] = sidecar_unreadable
-    base['sidecar_present'] = sidecar_present
-    base['sidecar_bytes'] = sidecar_bytes
+    # the sidecar fields were placed in `base` BEFORE the early returns above and
+    # are deliberately not re-assigned here; one source, every path.
     # Whether the producer reported on its own failure channel at all. An emitter
     # predating `sidecar_failures` leaves this False, which is an UNKNOWN and is
     # recorded as one -- never rendered as a zero.
@@ -629,7 +828,8 @@ def observe(path: "str | Path", *, concurrency_required: int = 2,
                         % len(seals))
     else:
         seal = seals[0]
-        write_failure_problem = seal_write_failures_problem(seal)
+        write_failure_problem = seal_write_failures_problem(
+            seal, require_sidecar_failures=contract['sidecar_failures_required'])
         if write_failure_problem:
             seal_problem = write_failure_problem
         elif expected is not None and seal.get('run_token') != expected.get('instance_id'):
@@ -661,6 +861,11 @@ def observe(path: "str | Path", *, concurrency_required: int = 2,
     if writer_errors:
         seal_problem = seal_problem or ('the producer wrote %d acquisition error(s) '
                                         'into the main log' % len(writer_errors))
+    # The retained exit status invalidates the acquisition on its own. Root:
+    # "invalidate acquisition even if a readable earlier seal contains zero
+    # counts" -- so this is applied AFTER the seal checks and can refuse a log
+    # in which nothing else is wrong.
+    seal_problem = seal_problem or outcome_problem
     base['seal_problem'] = seal_problem
 
     complete = not refused and not parsed['rejected'] and seal_problem is None

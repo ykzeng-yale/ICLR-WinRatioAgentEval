@@ -3589,7 +3589,13 @@ class ServerLifecycleProducerConsumerTests(unittest.TestCase):
         # stamping its own process's provenance onto whatever file it is handed.
         self.expected = {'host_id': 'host:bb', 'boot_id': 'boot:aa',
                          'instance_id': 'srv_1_2',
-                         'binary_sha256': 'b' * 64, 'patch_sha256': 'p' * 64}
+                         'binary_sha256': 'b' * 64,
+                         # the v4-era producer these fixtures imitate: their
+                         # seals carry no `sidecar_failures`, so the manifest
+                         # must name the producer that wrote them (root
+                         # 2026-09-23 08:00 -- a trusted binding selects
+                         # compatibility, a missing declaration does not).
+                         'patch_sha256': '2c52078f8a541134661eb7ac997114892c7baf68541f9d4be664366d43e85f6a'}
 
     def _emit(self, *, slot, task, t_assigned, t_prompt, t_gen, t_rel,
               complete=True, instance='srv_1_2', clock=None, units='microseconds'):
@@ -3752,7 +3758,8 @@ class LifecycleReaderWitnessTests(unittest.TestCase):
         self.log = self.tmp / 'lifecycle.jsonl'
         self._seq = 0
         self.expected = {'host_id': 'host:bb', 'boot_id': 'boot:aa',
-                         'instance_id': 'srv_1_2'}
+                         'instance_id': 'srv_1_2',
+                         'patch_sha256': '2c52078f8a541134661eb7ac997114892c7baf68541f9d4be664366d43e85f6a'}   # v4-era producer
         self.prov = {'boot_id': 'boot:aa', 'host_id': 'host:bb',
                      'boot_source': 's', 'host_source': 'p'}
 
@@ -3986,7 +3993,8 @@ class AcquisitionSealTests(unittest.TestCase):
         self.prov = {'boot_id': 'boot:aa', 'host_id': 'host:bb',
                      'boot_source': 's', 'host_source': 'p'}
         self.expected = {'host_id': 'host:bb', 'boot_id': 'boot:aa',
-                         'instance_id': 'srv_1_2'}
+                         'instance_id': 'srv_1_2',
+                         'patch_sha256': '2c52078f8a541134661eb7ac997114892c7baf68541f9d4be664366d43e85f6a'}   # v4-era producer
 
     def _emit(self, slot, task, **kw):
         rec = {'schema': 'live_ab/slot_lifecycle-v1', 'instance_id': 'srv_1_2',
@@ -4009,9 +4017,20 @@ class AcquisitionSealTests(unittest.TestCase):
         with open(self.log, 'a', encoding='utf-8') as fh:
             fh.write(json.dumps(seal, separators=(',', ':')) + '\n')
 
+    #: The producer these fixtures actually imitate. Their seals are written in
+    #: the v4-era shape -- no `sidecar_failures` field, because that emitter had
+    #: none -- so the manifest must SAY so. Root, 2026-09-23 08:00: a trusted
+    #: manifest/version binding selects compatibility, and a missing declaration
+    #: takes the strict side. Leaving these undeclared would make the fixture
+    #: claim to be an acquisition from the repaired instrument while emitting
+    #: bytes that instrument does not write -- a false binding, not a lenient
+    #: one. The repaired contract is exercised explicitly below.
+
     def _obs(self):
-        return lab_lifecycle.observe(self.log, provenance=self.prov,
-                                     expected=self.expected)
+        return lab_lifecycle.observe(
+            self.log, provenance=self.prov,
+            expected=dict(self.expected, patch_sha256=self.V4_PATCH),
+            process_outcome=0)
 
     # -- the native bytes, through the real reader --------------------------
     def test_the_seal_the_BUILT_BINARY_wrote_is_recognised(self):
@@ -4143,9 +4162,12 @@ class AcquisitionSealTests(unittest.TestCase):
         the SEAL -- the one number the sidecar cannot carry about itself, since a
         writable sidecar has no such failure to report.
 
-        The field is OPTIONAL by decision: emitters predating it exist and their
-        retained smoke evidence must stay readable ("do not repeat a loaded smoke
-        to fix them"). Absent is recorded as an UNKNOWN, never rendered as zero.
+        SCOPE, after root's 08:00 ruling: this exercises the **legacy** contract
+        only -- `_obs` declares the v4 producer in the manifest. Under that
+        contract the field may be absent and absence is an UNKNOWN, never a zero.
+        Root rejected the earlier reading in which ABSENCE ITSELF selected
+        leniency; the repaired contract, where the field is required, is covered
+        by `test_a_MISSING_field_cannot_select_the_legacy_exemption`.
         """
         cases = ((None, False, False), (0, True, False), (2, True, True),
                  (False, True, True), (0.0, True, True))
@@ -4160,6 +4182,113 @@ class AcquisitionSealTests(unittest.TestCase):
                 obs = self._obs()
                 self.assertEqual(obs['sidecar_failures_reported'], reported)
                 self.assertEqual(bool(obs['seal_problem']), refuses)
+
+    # -- root 2026-09-23 08:00: the manifest selects the contract -----------
+    V4_PATCH = '2c52078f8a541134661eb7ac997114892c7baf68541f9d4be664366d43e85f6a'
+
+    def _obs_with(self, *, patch=None, outcome=None):
+        """`patch=None` means a manifest that declares NO producer -- the class
+        fixture names the v4 one, so it is removed rather than merely omitted,
+        or the 'undeclared' case would silently be the declared one."""
+        expected = dict(self.expected)
+        expected.pop('patch_sha256', None)
+        if patch:
+            expected['patch_sha256'] = patch
+        return lab_lifecycle.observe(self.log, provenance=self.prov,
+                                     expected=expected, process_outcome=outcome)
+
+    def test_nonbool_int_zero_is_the_single_predicate(self):
+        """`records=2`/`true` and failure counts `false`/`0.0` all passed the
+        old spellings: isinstance(True, int) is True, False == 0 is True and
+        0.0 == 0 is True."""
+        for good in (0,):
+            self.assertTrue(lab_lifecycle.nonbool_int_zero(good))
+        for bad in (False, True, 0.0, '0', None, 2, -0.0):
+            self.assertFalse(lab_lifecycle.nonbool_int_zero(bad), repr(bad))
+
+    def test_a_MISSING_field_cannot_select_the_legacy_exemption(self):
+        """Root: "Missing data must not automatically select a legacy exemption.
+        A trusted manifest/version binding should select compatibility; a
+        producer's missing or self-declared field alone cannot."
+
+        The previous delivery let ABSENCE choose the lenient reading, so a
+        producer that simply omitted the field got the same treatment as a
+        genuinely older one -- it chose its own exemption. The selector is now
+        the supervisor-persisted manifest.
+        """
+        self._emit(0, 11)
+        self._seal()                                   # no sidecar_failures
+        legacy = self._obs_with(patch=self.V4_PATCH, outcome=0)
+        self.assertEqual(legacy['acquisition_contract']['contract'], 'legacy')
+        self.assertIsNone(legacy['seal_problem'])
+        self.assertFalse(legacy['sidecar_failures_reported'],
+                         'absent must read as UNKNOWN, never as zero')
+
+        repaired = self._obs_with(patch='f' * 64, outcome=0)
+        self.assertEqual(repaired['acquisition_contract']['contract'], 'repaired')
+        self.assertIn('cannot select the legacy exemption',
+                      repaired['seal_problem'])
+
+        # a manifest that declares NO producer takes the strict side
+        undeclared = self._obs_with(outcome=0)
+        self.assertEqual(undeclared['acquisition_contract']['contract'], 'repaired')
+        self.assertIsNotNone(undeclared['seal_problem'])
+
+    def test_a_retained_exit_93_refuses_a_PERFECT_seal(self):
+        """Root: "The supervisor must retain this exit outcome and invalidate
+        acquisition even if a readable earlier seal contains zero counts."
+
+        The process-level refusal fires exactly when no further write can be
+        trusted, so the log cannot be the witness to it.
+        """
+        self._emit(0, 11)
+        self._seal(sidecar_failures=0)
+        ok = self._obs_with(patch='f' * 64, outcome=0)
+        self.assertIsNone(ok['seal_problem'], 'control: a clean exit certifies')
+
+        refused = self._obs_with(patch='f' * 64,
+                                 outcome=lab_lifecycle.EXIT_UNRECORDABLE)
+        self.assertIn('exited %d' % lab_lifecycle.EXIT_UNRECORDABLE,
+                      refused['seal_problem'])
+
+        for bad in (1, False, '0', None):
+            with self.subTest(outcome=bad):
+                self.assertIsNotNone(
+                    self._obs_with(patch='f' * 64, outcome=bad)['seal_problem'])
+
+    def test_the_sidecar_diagnosis_survives_a_TRUNCATED_main_log(self):
+        """Root: "Move sidecar evidence into the common observation before
+        parser-error/manifest-error returns; a truncated main log must retain the
+        sidecar diagnosis too."
+
+        The two cases where the main log is LEAST trustworthy were exactly the
+        two that discarded the producer's own account of what went wrong. A
+        truncated log plus a sidecar explaining it is the normal shape of a
+        disk-full failure.
+        """
+        self.log.write_bytes(b'{"schema":"live_ab/slot_lifecycle-v1","seq":0')
+        Path(str(self.log) + '.error').write_bytes(b'{"stage":"write","errno":28}\n')
+        obs = self._obs_with(patch=self.V4_PATCH, outcome=0)
+        self.assertIn('mid-line', obs['reason'])
+        self.assertTrue(obs['sidecar_present'])
+        self.assertEqual(obs['sidecar_records'][0]['errno'], 28)
+        self.assertTrue(obs['sidecar_records_are_previews'])
+
+    def test_raw_artifacts_bind_the_bounded_previews_by_digest(self):
+        """Root: "Preserve full closed raw files with byte counts/hashes or bound
+        archive references; label bounded previews as previews." """
+        self._emit(0, 11)
+        self._seal()
+        Path(str(self.log) + '.error').write_bytes(b'x' * 5000)
+        obs = self._obs_with(patch=self.V4_PATCH, outcome=0)
+        raw = obs['raw_artifacts']
+        self.assertEqual(raw['error_sidecar']['bytes'], 5000)
+        self.assertEqual(
+            raw['error_sidecar']['sha256'],
+            hashlib.sha256(b'x' * 5000).hexdigest())
+        self.assertEqual(raw['lifecycle_log']['bytes'],
+                         self.log.stat().st_size)
+        self.assertTrue(obs['sidecar_records_are_previews'])
 
     # -- the contract -------------------------------------------------------
     def test_an_UNSEALED_log_does_not_certify(self):
@@ -4336,7 +4465,8 @@ class SequenceMultisetAndSidecarTests(unittest.TestCase):
         self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
         log = tmp / 'l.jsonl'
         prov = {'boot_id': 'b', 'host_id': 'h', 'boot_source': 's', 'host_source': 'p'}
-        exp = {'host_id': 'h', 'boot_id': 'b', 'instance_id': 'tok'}
+        exp = {'host_id': 'h', 'boot_id': 'b', 'instance_id': 'tok',
+               'patch_sha256': '2c52078f8a541134661eb7ac997114892c7baf68541f9d4be664366d43e85f6a'}   # v4-era producer
         for i, (slot, task) in enumerate(((0, 11), (1, 12))):
             rec = {'schema': 'live_ab/slot_lifecycle-v1', 'seq': i,
                    'run_token': 'tok', 'instance_id': 'tok',
@@ -4379,7 +4509,8 @@ class TokenInstanceBindingTests(unittest.TestCase):
         self._seq = 0
         self.prov = {'boot_id': 'b', 'host_id': 'h', 'boot_source': 's',
                      'host_source': 'p'}
-        self.expected = {'host_id': 'h', 'boot_id': 'b', 'instance_id': 'launched'}
+        self.expected = {'host_id': 'h', 'boot_id': 'b', 'instance_id': 'launched',
+                         'patch_sha256': '2c52078f8a541134661eb7ac997114892c7baf68541f9d4be664366d43e85f6a'}   # v4-era producer
 
     def _emit(self, **kw):
         rec = {'schema': 'live_ab/slot_lifecycle-v1', 'seq': self._seq,
