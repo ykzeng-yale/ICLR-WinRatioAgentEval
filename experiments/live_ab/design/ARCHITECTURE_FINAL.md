@@ -1734,15 +1734,15 @@ Integrity labels and terminal-failure counts are `INFO` and never stop the progr
 | T30 | `invocation_ended` | D | `status` enum; `counts` obj |
 | T31 | `trial_ended` / `trial_aborted` | D + blocking anchor | `status` enum; `reason` enum?; `phase` enum; `exposure_ledger` obj (per phase x arm); `reconciliation_totals` obj; `terminal_failures_by_arm` obj; `n_torn_recoveries` int; `longest_unreceipted_span_s` float; `what_was_known` obj; `final_head` hex64 |
 | T32 | `server_start_failed` | D | *(Amendment 2026-09-23, pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` item 1; protocol 5.3 and 12.2 row 28)* `server_id` enum; `kind` enum[`start`,`restart`]; `stage` enum[`gguf`,`serving_manifest`,`launch`,`health`,`identity`,`smoke`]; `findings` [enum] (closed codes: `IDENTITY_FINDINGS`, the receipt finding codes, `process_exited`, `health_timeout`, `smoke_transport`, `smoke_no_usage`, `serving_manifest`); `pid` int; `returncode` int?; `argv_sha256` hex64; `props_sha256` hex64?; `load_seconds` float; `restart_index` int (0 for the first start). Trial chain only. The record is carried by `lab_common.ServerStartFailed(LabError).record`; it is written instead of, never beside, a success-valued T4 or T8 |
-| T33 | `worker_resolved` | D | *(Amendment 2026-09-23, pre-outcome; same review, item 3; protocol 14.6 and 12.2 row 29)* `arrival` int; `attempt` int; `pid` int; `state` enum[`exited`,`killed_reaped`,`liveness_unknown`,`alive_unresolved`]; `returncode` int?; `spool_bytes_at_resolution` int; `spool_sha256_at_resolution` hex64 |
+| T33 | `worker_resolved` | D | *(Amendment 2026-09-23, pre-outcome; same review, item 3; protocol 14.6 and 12.2 row 29)* `arrival` int; `attempt` int; `pid` int; `state` enum[`exited`,`killed_reaped`,`liveness_unknown`,`alive_unresolved`]; `returncode` int?; `spool_bytes_at_resolution` int; `spool_sha256_at_resolution` hex64. Trial chain, and the `_prefreeze` chain for a stage of protocol 5.8; never the program chain |
 
 *Amendment 2026-09-23 (pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` items 1, 3 and 4), to rows
 T3, T17 and T31 and to P6.* T17 `episode_revealed` gains `usage_complete` bool and `unknown_usage_calls` int; the
-`reason` of T31 `trial_aborted` gains `server_restart_cap` and `unresolved_worker`; the preflight check enum shared
-by T3 `invocation_refused` and P6 `preflight_refused` gains `golden_objects`. The pure function
-`phase_resolution_verdict(...)` is evaluated before `trial_ended` and before any pre-freeze stage marks itself
-completed; `lab_verify_log` mirrors it as the FAIL-level check `workers.resolved`, and checks T4, T7, T8 and T32
-against protocol 5.3 as the FAIL-level check `server.lifecycle`.
+`reason` of T31 `trial_aborted` gains `server_restart_cap` and `unresolved_worker` (automatic aborts, protocol 6.4);
+the preflight check enum shared by T3 `invocation_refused` and P6 `preflight_refused` gains `golden_objects`. The pure
+function `phase_resolution_verdict(...)` is evaluated before `trial_ended` and before any pre-freeze stage marks
+itself completed; `lab_verify_log` mirrors it as the FAIL-level check `workers.resolved`, and checks T4, T7, T8 and
+T32 against protocol 5.3 as the FAIL-level check `server.lifecycle`.
 
 ### 4.5 `what_was_known`
 
@@ -2100,7 +2100,8 @@ code** (`refreeze.scope == ["reporting_code"]`), never a config key.
 
 *Amendment 2026-09-23 (pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` items 2 and 4; protocol
 14.3):* this list gains `server_supervision` (top level, outside the rule block: bound by `config_sha256` and
-`harness_file_sha256[config.json]`, not by `rule_block_sha256`) and `prefreeze.conformance_prompts`.
+`harness_file_sha256[config.json]`, not by `rule_block_sha256`) and `prefreeze.conformance_prompts`; the
+reportability sentence of protocol 5.3 joins it only in the form in which root's ruling fixes it before the freeze.
 
 ---
 
@@ -2148,9 +2149,9 @@ a 5 s timer, (5) take the transition the table below prescribes.
 | 18 | `POST_DECISION` | no arrivals remain and nothing in flight | — | `CLOSING` | — |
 | 19 | any | `ReceiptMismatch` or served-alias mismatch | finish and reveal the episode (ITT), then `trial_aborted(receipt_mismatch)` (D) before the next dispatch | `ABORTED` | — |
 | 20 | any | `server_restarted.props != golden` | `trial_aborted(server_identity)` (D) | `ABORTED` | — |
-| 20a | any | *(Amendment 2026-09-23; same review, item 1)* `lab_server.start` or `lab_server.restart` raises `ServerStartFailed` | `server_start_failed` (D) with the exception's record, never a success-valued T4 or T8; then the rule for its stage (protocol 5.3): `gguf`, `serving_manifest` or `identity` → `trial_aborted(server_identity)` (D); `smoke` → `trial_aborted(receipt_mismatch)` (D); `launch` or `health` on a restart → `trial_paused(server_unrecoverable)` (D), on the first start → `trial_aborted(infrastructure)` (D) | `ABORTED` / `PAUSED` | — |
+| 20a | any | *(Amendment 2026-09-23; same review, item 1)* `lab_server.start` or `lab_server.restart` raises `ServerStartFailed` | `server_start_failed` (D) with the exception's record, never a success-valued T4 or T8; then the rule for its stage (protocol 5.3): `gguf`, `serving_manifest` or `identity` → `trial_aborted(server_identity)` (D); `smoke` → `trial_aborted(receipt_mismatch)` (D), both when the smoke receipt differs from the golden object and when none was obtained (`smoke_transport`, `smoke_no_usage`; the latter is a new automatic abort, protocol 6.4); `launch` or `health` on a restart → `trial_paused(server_unrecoverable)` (D), on the first start → `trial_aborted(infrastructure)` (D; a new automatic abort, protocol 6.4) | `ABORTED` / `PAUSED` | — |
 | 21 | any | 10 consecutive revealed arrivals with `error_class` in {`episode_timeout`,`worker_died`,`interrupted`} or all tries of a call failed, counted in **reveal order** | `trial_aborted(infrastructure)` (D) | `ABORTED` | — |
-| 21a | any | *(Amendment 2026-09-23; same review, item 4)* `server_down` on a server that already had `server_supervision.max_supervised_restarts_per_server_per_trial` (3) supervised restart attempts in this trial, counted from the chain | stop dispatching new arrivals; drain every open attempt (bounded; the `episode_hard_cap_s` kill still applies) and reveal each (D); `worker_resolved` per worker (D); `trial_aborted(server_restart_cap)` (D) + blocking anchor. No replacement trial, no extra pair; a logged `decision` is kept and labelled not reportable (protocol 5.3) | `ABORTED` | **yes** |
+| 21a | any | *(Amendment 2026-09-23; same review, item 4)* `server_down` on a server that already had `server_supervision.max_supervised_restarts_per_server_per_trial` (3) supervised restart attempts in this trial, counted from the chain | stop dispatching new arrivals; drain every open attempt (bounded; the `episode_hard_cap_s` kill still applies) and reveal each (D); `worker_resolved` per worker (D); `trial_aborted(server_restart_cap)` (D) + blocking anchor. No replacement trial, no extra pair; a logged `decision` is kept in the chain and, provisionally pending root's ruling, labelled not reportable (protocol 5.3) | `ABORTED` | **yes** |
 | 21b | `CLOSING`, or a pre-freeze stage about to complete | *(Amendment 2026-09-23; same review, item 3)* `phase_resolution_verdict` finds a worker that is not confirmed exited (`worker_resolved.state` in {`liveness_unknown`,`alive_unresolved`}) | no `trial_ended` and no stage completion: `trial_aborted(unresolved_worker)` (D) + blocking anchor, or the stage recorded incomplete; that worker's calls without a terminal record are unfinished, usage `null` | `ABORTED` | **yes** |
 | 22 | any | `MonitorError` / `EnclosureError`, **including one raised inside `lab_reference_rule`** | `trial_paused(monitor_exception)` (D); no decision is ever taken by hand. An exception from the reference rule is additionally a `decision_code_defect` candidate (protocol 6.4 rows 17 and 24) and is never closed by a re-freeze | `PAUSED` | — |
 | 22b | any | `shadow.mismatch` is true at any evaluation | `trial_paused(monitor_mismatch)` (D) **before any decision is acted on** (protocol 8.9) | `PAUSED` | — |

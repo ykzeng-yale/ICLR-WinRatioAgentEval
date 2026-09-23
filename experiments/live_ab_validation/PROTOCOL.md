@@ -1527,12 +1527,15 @@ an Appendix B change: it is one paragraph inserted into section 2.2 item 1 only,
 state of the llama.cpp checkout and the three recorded checks that replace, for that checkout, the
 empty-status requirement (root disposition 2026-09-23 18:29 and issue #11 at 18:48, the narrow
 patch-state route). It leaves the Appendix B block and sections 1, 3 and 11, the sections this pin
-reads, byte-identical. The fifth, `25014221…`, is not Appendix-B-only either: it is the synchronized
+reads, byte-identical. The fifth, `5d108b4a…`, is not Appendix-B-only either: it is the synchronized
 pre-outcome repair amendment of root 2026-09-23 20:40 (`reviews/prerun_bundle_go_nogo_20260923_2040.md`
 items 2 and 4). It adds the four out-of-design conformance prompts and the `server_supervision` restart cap
 to the configuration block, so Appendix B changes too, byte-identically with `config.json`, and it inserts
-dated paragraphs into sections 2.4, 5.3, 5.8, 12.2, 13.1, 14.3 and 14.6. Every change is an insertion, and
-sections 1, 3 and 11 stay byte-identical. That makes seven moves in all.
+dated paragraphs into sections 2.4, 5.3, 5.8, 6.4, 12.2, 13.1, 14.3 and 14.6, among them four new automatic
+aborts and, provisionally pending a root ruling, a change to how a decision logged before a restart-cap abort
+is reported. Every change is an insertion, and sections 1, 3 and 11 stay byte-identical. It replaces
+`25014221…`, the first run of the same amendment (commit 1349619), which review withdrew before merge; that
+digest was never demoted into the history. That makes seven moves in all.
 They are written truncated for the reason given above. The full digests, reasons and rulings are in
 `cells.json` under `provenance.vocabulary_alignment.superseded_by`, and so is each changing commit
 once a later commit has resolved it. The

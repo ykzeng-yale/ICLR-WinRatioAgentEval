@@ -2927,14 +2927,17 @@ class PinSuccessorAmendmentTests(unittest.TestCase):
     #                                        pre-outcome repair amendment, root 20:40
     #                                        items 2 and 4 -- the four conformance
     #                                        prompts, the restart cap, and dated prose
-    #                                        in 2.4, 5.3, 5.8, 12.2, 13.1, 14.3, 14.6)
+    #                                        in 2.4, 5.3, 5.8, 6.4, 12.2, 13.1, 14.3,
+    #                                        14.6). REPAIR is the CORRECTION run's
+    #                                        digest; the withdrawn first run (25014221,
+    #                                        commit 1349619) never entered the history.
     ENCLOSURE = 'b1ff97cc163ce7ea121ebd578a4c37de09d5ed7223f2029e5d56118cdc790822'
     APPENDIX_B = 'd63717a5519f650394db8aca7eb33d7a15ccfedbaffe78600d9ea3fb7b76294d'
     HOST_WORK_ROOT = '0e1bcb710ce2c13a06a243a7c3034d6bec55389d4de45dce569a7dee15af0284'
     EVIDENCE_PINS = 'f75de3235ae0431b727cf7c24b09927204a1da8c5424e14ea428dbfea256f48b'
     ENGINEERING_CAPS = '7f6664770b0d88ac5904967d9b8e2225d20932942824cd689278a03a2ee45e53'
     PATCH_STATE = '64ace6d3e37732b372fd316055208e9deaab4d4e0722708563c8ebcc1579e82b'
-    REPAIR = '25014221bbba4a4d67e8bde845d401318d7db6fc04375ec3f7d875532b754a0c'
+    REPAIR = '5d108b4a1a8d076fdd79b973834b8f3b3e4604526a9d90e943329c9cbf2fc2b8'
     PREVIOUS = PATCH_STATE
     CURRENT = REPAIR
     EVIDENCE_PINS_COMMIT = '855a40636d4a84d64edee91052652eac6999a1a1'

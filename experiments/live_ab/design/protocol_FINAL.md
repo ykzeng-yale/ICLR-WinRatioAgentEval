@@ -560,8 +560,10 @@ Considered and failing a non-outcome criterion: `microsoft/phi-4` (14 B, iii), `
    *Amendment 2026-09-23 (pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` item 2):* in the
    sentence above, "the prompts ... were developed on the incumbent's model family" applies to the **six smoke tasks
    only**. The four out-of-design prompts of 5.8 (`prefreeze.conformance_prompts`) were written for this amendment by
-   the implementing AI agent session under a rule recorded before their texts, without running either model and
-   without consulting any model's output; they were developed on neither model family. The extractor is unchanged.
+   the implementing AI agent session, without running either served model (incumbent or candidate) and without
+   consulting any output of a served model; they were developed on neither model family. Their selection rule is
+   stated ahead of the texts in the amendment tool and its receipts (5.8); that the rule was fixed before the texts
+   were written is the session's attestation, not a recorded fact. The extractor is unchanged.
 
 **There is no fallback model.** If any rule fails, **T3 is not run** and is reported under its own heading as
 "deferred: candidate failed preflight rule k". A deferred T3 does not release its 0.0125 to any other trial: the alpha
@@ -934,12 +936,16 @@ key outside the rule block, non-amendable after the first outcome (14.3). Every 
 whether it succeeds (`server_restarted`) or fails (`server_start_failed` with `kind = restart`); the count is rebuilt
 from the chain on resume. If a fourth restart would be required, dispatch of new arrivals stops, every open attempt is
 drained (bounded; the `episode_hard_cap_s` kill still applies) and revealed, and the trial ends with
-`trial_aborted(server_restart_cap)`. Every enrolled pair, attempt and missingness record is retained. There is **no
-replacement trial, no extra pair, no alpha transfer and no margin change**. A crash may be arm-related, so a
-cap-aborted trial is **not a valid null** and is reported as incomplete: it reports **no deployment or harm decision**,
-and a `decision` logged before the abort stays in the chain and is labelled "not reportable: trial incomplete (restart
-cap)". For this abort reason only, that label replaces the rule of 6.4 ("Aborts in the post-decision phase") and of
-14.6 under which a logged decision stands. The cap was fixed without looking at any success or cost outcome.
+`trial_aborted(server_restart_cap)`, a **new automatic abort** added by this amendment (6.4). Every enrolled pair,
+attempt and missingness record is retained. There is **no replacement trial, no extra pair, no alpha transfer and no
+margin change**. A crash may be arm-related, so a cap-aborted trial is **not a valid null**: it is reported as
+incomplete, and no deployment or harm decision is made from it after the abort. **Provisional, pending root's
+ruling** (question (i) of the session-60 repair contract): a `decision` logged before the abort stays in the chain,
+is labelled "not reportable: trial incomplete (restart cap)" and is not reported. For this abort reason only, that
+would replace the rule of 6.4 ("Aborts in the post-decision phase") and of 14.6 under which a logged decision stands;
+it is a change to a rule for reporting decisions, not a restatement of one. It is not final until root's ruling is
+recorded by a further pre-outcome amendment that confirms or replaces it, and no freeze may be made while it is
+pending. The cap was fixed without looking at any success or cost outcome.
 
 **Real start, and refusal instead of a placeholder.** Every first start and every supervised restart goes through
 `lab_server`: the GGUF bytes and hash and the serving manifest are re-verified, the frozen argv is launched, `/health`
@@ -947,13 +953,17 @@ is awaited, the full `/props` object (with `model_path` tokenized) is compared w
 freeze bundle, and the `SERVER_SMOKE` response is compared with the golden `generation_settings` object under the
 mask of 13.2. A failure at any of these stages is recorded durably as `server_start_failed` (12.2 row 28) and is never
 replaced by a success-valued `server_started` or `server_restarted`: no comparison flag is written true unless the
-comparison was made, and no placeholder digest is written. Its consequence is the rule already fixed for the stage: a
-GGUF, serving-manifest or identity difference is 6.4 row 6 (`trial_aborted(server_identity)`); a `SERVER_SMOKE`
-receipt difference is `trial_aborted(receipt_mismatch)` before any further dispatch; a restart that does not come up
-is the `server_unrecoverable` pause of 14.6; a first start that fails at launch or health dispatches nothing and ends
-the trial as `trial_aborted(infrastructure)`. Before seq 0, on every non-simulated path, the golden files are read,
-their digests are recomputed and compared with the config tables, and a null, missing, unreadable or mismatched golden
-file, or a runtime `golden` override, refuses the invocation with the preflight code `golden_objects`.
+comparison was made, and no placeholder digest is written. Its consequence, by stage, under rules that existed before
+this amendment: a GGUF, serving-manifest or identity difference is 6.4 row 6 (`trial_aborted(server_identity)`); a
+`SERVER_SMOKE` receipt that differs from the golden object is a mismatch of 13.2 and ends the trial as
+`trial_aborted(receipt_mismatch)` before any further dispatch (6.4 row 12); a restart that does not come up within
+`server_recovery_s` is the `server_unrecoverable` pause of 14.6. Under **new automatic aborts** added by this
+amendment (6.4): a `SERVER_SMOKE` that yields no receipt at all - no HTTP 200 JSON object (`smoke_transport`), or a
+usage or timings key missing (`smoke_no_usage`) - also ends the trial as `trial_aborted(receipt_mismatch)` before any
+further dispatch; a first start that fails at launch or health dispatches nothing and ends the trial as
+`trial_aborted(infrastructure)`. Before seq 0, on every non-simulated path, the golden files are read, their digests
+are recomputed and compared with the config tables, and a null, missing, unreadable or mismatched golden file, or a
+runtime `golden` override, refuses the invocation with the preflight code `golden_objects`.
 
 ### 5.4 Sampling parameters
 
@@ -1235,15 +1245,19 @@ quantities used are durations, memory, receipt equality, template facts and the 
 
 *Amendment 2026-09-23 (pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` item 2).* The four
 out-of-design prompts are stored at `prefreeze.conformance_prompts` (ids `oodp/1` to `oodp/4`), byte-identically in
-`config.json`, ARCHITECTURE 6.1 and Appendix B. They are not hand-written: the implementing AI agent session wrote them
-under a rule fixed before their texts and recorded with them in the amendment receipt
-(`results/live_ab/REPAIR_AMENDMENT_RECEIPT_*.json`): short, self-contained Python function tasks that need only the
+`config.json`, ARCHITECTURE 6.1 and Appendix B. They are not hand-written: the implementing AI agent session wrote
+them. Their selection rule is stated ahead of the texts in the amendment tool
+(`experiments/live_ab_tools/repair_amendment.py`), in its first receipt
+(`results/live_ab/REPAIR_AMENDMENT_RECEIPT_20260923_2151.json`) and in the correction receipt beside it; that the rule
+was fixed before the texts were written is the session's attestation, not a recorded fact, since the rule and the
+texts entered the repository in one commit. The rule: short, self-contained Python function tasks that need only the
 standard library, in the signature-and-docstring form that `build_user_prompt` sends on its non-MBPP branch, with no
 tests, no examples and no reference solution (correctness is never computed, 2.4 item 6); each mechanically distinct
 under `normalize_prompt` from every prompt of the three pinned sources and from the six smoke tasks, with token-set
-Jaccard similarity below 0.5 to each of them. **No observed outcome was used to choose them**: no model was run, and no
-success, conformance, latency or other output of any model was consulted. They are not roster tasks and carry no task
-uid. With the six smoke tasks they are the ten prompts of the format-conformance rule of 2.4 item 6.
+Jaccard similarity below 0.5 to each of them. **No observed outcome was used to choose them**: neither served model
+(incumbent or candidate) was run, and no success, conformance, latency or other output of any served model was
+consulted. They are not roster tasks and carry no task uid. With the six smoke tasks they are the ten prompts of the
+format-conformance rule of 2.4 item 6.
 
 1. **Serving build and manifest** (2.2), then the receipt smoke test and golden-object capture per server; the template
    rule and the format-conformance rule of 2.4 for both models.
@@ -1456,6 +1470,18 @@ follow-up cohort is outside all inference.
 (counted in **reveal order**, finding N21) with `error_class` in {`episode_timeout`, `worker_died`, `interrupted`} or
 with all tries of a call failed: `trial_aborted(infrastructure)`. **An abort can only remove decisions, never create
 one**; every abort is reported with the band endpoints at the abort (14.6).
+
+*Amendment 2026-09-23 (pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` items 1, 3 and 4).*
+**New automatic, deterministic aborts.** This amendment adds four triggers that did not exist before it:
+`trial_aborted(server_restart_cap)` when a fourth supervised restart of a server would be required (5.3);
+`trial_aborted(unresolved_worker)` when a worker is not confirmed exited where `trial_ended` would otherwise be
+written (14.6); `trial_aborted(infrastructure)` when the first start of a server fails at launch or health (5.3), a
+second trigger of that reason beside the ten-failure rule; and `trial_aborted(receipt_mismatch)` when a
+`SERVER_SMOKE` yields no receipt at all (`smoke_transport`, `smoke_no_usage`; 5.3). Each is automatic, is reported
+under its own reason and is never `operator_discretion` (14.6). In the post-decision phase an `unresolved_worker` or
+`receipt_mismatch` abort is treated as the aborts listed under "Aborts in the post-decision phase" above (the
+follow-up cohort is truncated and the logged decision stands); a first-start abort cannot occur there, because it
+precedes every dispatch; for `server_restart_cap` the provisional rule of 5.3 applies, pending root's ruling.
 
 ---
 
@@ -2411,9 +2437,11 @@ used to be free text (`delta_label`, `roster_rule`) live in `config.json`, not i
 
 *Amendment 2026-09-23 (pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` items 1, 3 and 4), to rows
 2, 14 and 27 and to P6.* `episode_revealed` (#14) also carries `usage_complete` and `unknown_usage_calls` (13.1); the
-reason of `trial_aborted` (#27) may also be `server_restart_cap` (5.3) or `unresolved_worker` (14.6); the closed list of
-preflight check codes shared by `invocation_refused` (#2) and `preflight_refused` (P6) gains `golden_objects` (5.3).
-Rows 28 and 29 are trial-chain events. These additions are made before any freeze.
+reason of `trial_aborted` (#27) may also be `server_restart_cap` (5.3) or `unresolved_worker` (14.6), both automatic
+aborts of 6.4; the closed list of preflight check codes shared by `invocation_refused` (#2) and `preflight_refused`
+(P6) gains `golden_objects` (5.3). Row 28 is written on a trial chain only. Row 29 is written on a trial chain and,
+for a stage of 5.8, on the `_prefreeze` chain (14.6). Neither is written on the program chain. These additions are
+made before any freeze.
 
 **Program-chain event types** (12.1; bodies in `ARCHITECTURE_FINAL.md` §4.3, rows P1-P12). All are durable and all
 carry a blocking receipt:
@@ -2771,9 +2799,11 @@ program outcomes of the same systems on the same tasks" and loses the wording of
 
 *Amendment 2026-09-23 (pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` items 2 and 4).* The config
 key `server_supervision` (the restart cap of 5.3 and its consequence) and the four prompts at
-`prefreeze.conformance_prompts` (5.8) join this list: neither may be amended after the first outcome.
+`prefreeze.conformance_prompts` (5.8) join this list: neither may be amended after the first outcome. The
+reportability sentence of 5.3 joins it only in the form in which root's ruling fixes it before the freeze (5.3).
 `server_supervision` lies outside the rule block, so it is bound by `config_sha256` and by the harness pin of
-`config.json`, not by `rule_block_sha256`; placing it there leaves the rule-block digest unchanged and relaxes nothing.
+`config.json`, not by `rule_block_sha256`: the rule-block digest does not cover it, and that digest being unchanged
+shows nothing about this key or about any protocol text.
 
 **Two classes of code** (finding N3):
 
@@ -2870,17 +2900,23 @@ and is reported under that name. Every pause, resume, abort and operator action 
 `what_was_known` and an external receipt, and the program-level report lists every abort with the band endpoints at the
 abort. **An aborted trial is reported, never restarted**; no decision other than one already logged is claimed.
 
-*Amendment 2026-09-23 (pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` item 3).* **Every worker is
-resolved before a terminal acceptance.** Before `trial_ended` is written, and before any stage of 5.8 marks itself
-completed, every worker process of the trial or stage is resolved - confirmed exited - and recorded by a durable
-`worker_resolved` event (12.2 row 29) with `state` `exited` or `killed_reaped`. A worker whose exit cannot be confirmed
-(`liveness_unknown`, `alive_unresolved`) is unresolved: the trial ends as `trial_aborted(unresolved_worker)` instead of
-`trial_ended`, and a stage of 5.8 is recorded as incomplete. An abort or a pause for any other reason first drains
-(bounded; the `episode_hard_cap_s` kill still applies) and keeps its own reason; a worker still unresolved then is
-recorded with its state. The calls of an unresolved or killed worker that have no terminal record are unfinished, with
-`null` usage (13.1); none is counted as unsent or as 0, and no artifact such a call leaves is read as a completed
-response. This is truthful failure accounting: it does not prove that no request is sent after the terminal snapshot,
-and a phase accepted as successful must show every permitted worker resolved.
+*Amendment 2026-09-23 (pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` items 1, 3 and 4).*
+**Every worker is resolved before a terminal acceptance.** Before `trial_ended` is written, and before any stage of 5.8
+marks itself completed, every worker process of the trial or stage is resolved - confirmed exited - and recorded by a
+durable `worker_resolved` event (12.2 row 29, on the trial chain or, for a stage, on the `_prefreeze` chain) with
+`state` `exited` or `killed_reaped`. A load thread of stage 3 is not a worker process: it is resolved when it has
+stopped and the durable ledger of `lab_load` holds a terminal line for every load intent it made. A worker whose exit
+cannot be confirmed (`liveness_unknown`, `alive_unresolved`) is unresolved: the trial ends as
+`trial_aborted(unresolved_worker)` instead of `trial_ended`, and a stage of 5.8 is recorded as incomplete. An abort or a
+pause for any other reason first drains (bounded; the `episode_hard_cap_s` kill still applies) and keeps its own reason;
+a worker still unresolved then is recorded with its state. The calls of an unresolved or killed worker that have no
+terminal record are unfinished, with `null` usage (13.1); none is counted as unsent or as 0, and no artifact such a call
+leaves is read as a completed response. This is truthful failure accounting: it does not prove that no request is sent
+after the terminal snapshot, and a phase accepted as successful must show every permitted worker resolved. The four
+automatic aborts that the amendment of 6.4 of this date adds - `trial_aborted(unresolved_worker)`,
+`trial_aborted(server_restart_cap)`, and the first-start `trial_aborted(infrastructure)` and the no-receipt
+`trial_aborted(receipt_mismatch)` of 5.3 - are automatic aborts of 6.4, so the rule above that
+every other abort is `operator_discretion` does not apply to them.
 
 ### 14.7 The operator is an AI agent session; blinding is procedural
 
