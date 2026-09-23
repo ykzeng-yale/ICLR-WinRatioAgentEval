@@ -3035,6 +3035,48 @@ Entry-point cases **14 → 19**, green; design **345**, serving 89, isolation 33
 configuration; clock-window persistence, anchor-event join and per-server maps under the 03:48
 handoff; elapsed-time boundary coverage beyond these cases.
 
+### 2026-09-23 · the refusal was described while the server kept running
+
+`main` and `session60/live-ab` at **`1e58d3b`**. Root's 13:20 disposition
+(`reviews/acquisition_contract_disposition_20260923_1320.md`, merged from `eed13ed`). Receipt:
+`PROTECTED_PATH_AND_CONSUMED_FIELDS.json` (`deterministic-path`).
+
+**Root answered both my questions.** The acquisition contract is **not** complete enough to close —
+my stated default was wrong and is withdrawn. And there is **no v4 exemption** for a new launch,
+which matches my default.
+
+**I wrote the intent after `Popen`.** Root: "a persistence failure or collision must create no child
+… produces zero stop/reap/drain-join calls and leaves the mocked child alive." The leak is mine and
+it is the worst kind — the refusal was described *correctly* while the server it had already started
+kept running. Preparation and the immutable intent are now written **before** `Popen`, and everything
+after launch runs inside one protected block whose exceptions fall through to the same
+stop/reap/drain and one terminal receipt.
+
+**I validated the keys I listed, not the fields the code dereferences.** Root's nine probes: the
+validator still accepted missing request temperature, host ID, boot ID and patch digest, plus
+negative max-tokens and boolean/non-finite temperature. Its four witnesses show the cost — missing
+temperature left the started child **unreaped** with no intent and no receipt; missing host/boot/patch
+each permitted **two POSTs and a reap**, then raised with no receipt. All seven probes now refuse;
+the complete-manifest control still passes.
+
+**Retention compared length.** Root's same-length corruption fixture returned `complete=true` —
+a length check passes any corruption that preserves size, which is most of them. Read-back bytes are
+now compared with received bytes, `received_sha256` recorded beside `sha256`.
+
+**A parse failure after HTTP 200 made delivery unknown.** It cannot: the response arrived and its
+bytes are retained; only its shape is wrong.
+
+**The deny ledger is asserted, not assumed** — denied commands can be swallowed by production
+exception handlers. The suite checks the ledger at completion, with a negative control driving a
+deliberate stray command.
+
+Entry cases **19 → 25**, green; design **345**, serving 89, isolation 33. Freeze **16/26**.
+
+**Not done, not claimed:** root's blocker 4 — binding the *selected* implementation and backend
+members with resolved load paths; an unrelated nonempty inventory still passes. Also: a
+non-blockable production descriptor still falls back to a blocking read; the 8 MiB / 90 s / 600 s /
+510 s agreement across plan, configuration and code; elapsed reporting through finalization.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
