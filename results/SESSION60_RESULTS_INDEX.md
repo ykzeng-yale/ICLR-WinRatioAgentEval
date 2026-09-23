@@ -2358,6 +2358,38 @@ decides whether `git add` refuses.
 
 **Suites: ten of ten green.**
 
+### The production anchor path completed end to end — first time (2026-09-23)
+
+`deterministic-path`. `results/live_ab/PRODUCTION_ANCHOR_panchor_e4841774f5.json`. It had been blocked
+since 2026-09-22, when it refused at `tree_state` because `git add` rejected the ignored anchor path.
+
+**Reconciled first, as root required.** `results/live_ab/ANCHOR_DRILL_RECONCILIATION.json`,
+`descriptive`: issue 13 held **20 comments, all 20 accounted for** by the 2026-09-22 03:09 timing
+drill; **no production-anchor comment**; **no drill branch on the remote**. So no uncertain posting
+existed to reconcile — *the `NameError` on HTTP 201 never had a 201 to fire on*, because the attempt
+refused before any request. Root's *"use the existing remote tip if present"* resolved to **not
+present**, so the reviewed source base was used.
+
+**Then the one authorized transaction**, through the real `serve → _handle → write_anchor_file →
+scan_for_identifiers → commit_and_push → post_comment → spool` route:
+
+| | |
+|---|---|
+| committed | `deadd9648ef1f0d1396620afab13254b4c303659` |
+| pushed | `True` |
+| comment id | `5790044051` |
+| anchor file | `results/live_ab/anchor_drills/panchor_e4841774f5/anchors/anchor_1.json` |
+
+**Verified independently, not from the script's own report.** Read back from the API: comment
+**5790044051** exists on issue 13, created 06:15:41Z, carrying the anchor payload; issue 13 now shows
+**21** comments; `git ls-remote` shows the branch at `deadd96`; `git ls-tree` shows the anchor file
+tracked at the public path in that commit. The script reporting success and the remote actually
+holding it are two different claims, and only the second one matters.
+
+**Still synthetic.** Hash-chained synthetic events, no trial, no roster, no episode, no scientific
+datum — and it does not re-establish the timing result, which the 20-post drill measured separately
+and which is not repeated.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
