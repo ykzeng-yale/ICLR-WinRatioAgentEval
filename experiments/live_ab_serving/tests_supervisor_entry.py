@@ -184,8 +184,8 @@ class SupervisorEntryPointTests(unittest.TestCase):
         self.log.write_text(''.join(json.dumps(s) + '\n' for s in lines), encoding='utf-8')
         # THE LAUNCHER LIVES IN ITS OWN DIRECTORY, the child's cwd and a loader
         # search location; logs and receipts sit OUTSIDE it, as root requires.
-        self.bindir = self.root / 'bin'
-        self.bindir.mkdir()
+        self.bindir = self.root / 'build' / 'bin'
+        self.bindir.mkdir(parents=True)
         self.binary = self.bindir / 'llama-server'
         self.binary.write_bytes(b'LAUNCHER BYTES')
         self.model = self.root / 'weights.gguf'
@@ -258,24 +258,42 @@ class SupervisorEntryPointTests(unittest.TestCase):
             b'@@ -1 +1 @@\n-c\n+d\n')
         patch_sha = hashlib.sha256(self.patch_file.read_bytes()).hexdigest()
         m['patch_sha256'] = patch_sha
-        snap = REPO / 'results/live_ab/CANDIDATE_BUILD_CONFIG_SNAPSHOT.json'
-        self.source_tree = json.loads(snap.read_text('utf-8'))['source_tree']
+        # A FIXTURE BUILD SNAPSHOT AND CANDIDATE DECLARATION, in the shape of the
+        # real ones: the closure must now lie under the snapshot's build tree
+        # and carry the digests the snapshot measured (review finding 18:50).
+        self.source_tree = '/fixture/source-tree'
         self.head = 'a' * 40
+        decl = self.root / 'CANDIDATE_DECLARATION.json'
+        decl.write_text(json.dumps({'fixture': True}), encoding='utf-8')
+        self.snapshot_doc = {
+            'source_tree': self.source_tree,
+            'build_tree': str(self.bindir.parent),
+            'candidate_declaration': {'path': str(decl),
+                                      'sha256': hashlib.sha256(decl.read_bytes()).hexdigest()},
+            'compile_definitions': {'any_source_defines_GGML_BACKEND_DIR': False},
+            'measured_candidate_bytes': [
+                {'member': Path(pth).name, 'path': pth, 'agrees': True,
+                 'measured_sha256': row['sha256'], 'declared_sha256': row['sha256']}
+                for pth, row in sorted(frozen['files'].items())]}
+        snap = self.root / 'BUILD_SNAPSHOT.json'
+        snap.write_text(json.dumps(self.snapshot_doc), encoding='utf-8')
         m['source_binding'] = {
             'source_tree': self.source_tree, 'head': self.head,
             'patch_path': str(self.patch_file), 'patch_sha256': patch_sha,
-            'build_snapshot': {'path': 'results/live_ab/CANDIDATE_BUILD_CONFIG_SNAPSHOT.json',
+            'build_snapshot': {'path': str(snap),
                                'sha256': hashlib.sha256(snap.read_bytes()).hexdigest()}}
         m['acquisition_code'] = {name: hashlib.sha256(path.read_bytes()).hexdigest()
                                  for name, path in self.rs.ACQUISITION_CODE.items()}
-        # the fake git answers what a clean, patched tree would
+        # the fake git answers what a clean, patched tree would: HEAD, a common
+        # dir, and the SAME tree id for HEAD+patch and for the working tree.
         self.git_answers = {
             'rev-parse': (0, self.head + '\n', ''),
-            'status': (0, ' M tools/server/server-common.h\n'
-                          ' M tools/server/server-context.cpp\n', ''),
-            'apply': (0, '', ''),
+            'rev-parse --git-common-dir': (0, '.git\n', ''),
+            'read-tree': (0, '', ''), 'apply': (0, '', ''), 'add': (0, '', ''),
         }
+        self.trees = {'head_plus_patch': 'b' * 40, 'working_tree': 'b' * 40}
         self.git_calls = []
+        self.git_envs = []
         self.man_path = self.root / 'manifest.json'
         self.man_path.write_text(json.dumps(m), encoding='utf-8')
         # THE TOKEN AND PROVENANCE MUST BE THE ONES THE SAVED RECORDS CARRY.
@@ -304,7 +322,8 @@ class SupervisorEntryPointTests(unittest.TestCase):
              barrier_hook=None, stray_command=None,
              drain_start_raises=False, drain_construct_raises=False,
              request_start_raises_at=None, request_join_raises=False,
-             unfinished_request=None, unfinished_mode='not_yet_sent'):
+             unfinished_request=None, unfinished_mode='not_yet_sent',
+             drain_alive_raises=False):
         rs = self.rs
         proc = proc if proc is not None else _Proc()
         if hasattr(proc, 'close'):
@@ -384,6 +403,8 @@ class SupervisorEntryPointTests(unittest.TestCase):
                     raise RuntimeError('injected supervisor Thread.join failure')
 
             def is_alive(self):
+                if drain_alive_raises and self.name == 'live_ab_smoke_drain':
+                    raise RuntimeError('injected drain is_alive failure')
                 return getattr(self, '_alive', False)
 
         # A late worker runs when the child is reaped -- which is AFTER the
@@ -399,9 +420,15 @@ class SupervisorEntryPointTests(unittest.TestCase):
 
         self.denied = []
 
-        def fake_git(argv):
+        def fake_git(argv, env=None):
             self.git_calls.append(list(argv))
+            self.git_envs.append(dict(env or {}))
             verb = [a for a in argv if not a.startswith('-') and a != self.source_tree][0]
+            if verb == 'rev-parse' and '--git-common-dir' in argv:
+                return self.git_answers['rev-parse --git-common-dir']
+            if verb == 'write-tree':
+                label = Path((env or {}).get('GIT_INDEX_FILE', '')).stem
+                return (0, self.trees.get(label, 'unknown') + '\n', '')
             return self.git_answers.get(verb, (1, '', 'unexpected git verb %s' % verb))
 
         self.popen_kwargs = None
@@ -1490,8 +1517,11 @@ class SupervisorEntryPointTests(unittest.TestCase):
         self.assertTrue(receipt['source_binding_verification']['verified'])
         self.assertTrue(receipt['acquisition_code_verification']['verified'])
         self.assertTrue(receipt['acquisition_code_verification']['config_section']['agrees'])
-        self.assertEqual({c[2] for c in self.git_calls}, {'rev-parse', 'status', 'apply'})
-        self.assertTrue(receipt['launch_context']['verified_then_launched_unchanged'])
+        self.assertEqual({c[2] for c in self.git_calls},
+                         {'rev-parse', 'read-tree', 'apply', 'add', 'write-tree'})
+        self.assertTrue(receipt['build_binding_verification']['verified'])
+        self.assertTrue(receipt['launch_context']['verified_unchanged_immediately_before_popen'])
+        self.assertTrue(receipt['launch_context']['launched'])
 
     def test_INHERITED_loader_names_are_REMOVED_and_recorded_by_NAME_only(self):
         """Root: "A variable's presence in the operator's environment alone is
@@ -1539,15 +1569,16 @@ class SupervisorEntryPointTests(unittest.TestCase):
     def test_a_broken_SOURCE_BINDING_refuses_before_any_child(self):
         for label, answers, expect in (
                 ('wrong HEAD', {'rev-parse': (0, 'b' * 40 + '\n', '')}, 'HEAD'),
-                ('an extra modified file',
-                 {'status': (0, ' M tools/server/server-common.h\n'
-                                ' M tools/server/server-context.cpp\n'
-                                ' M ggml/src/ggml.c\n', '')}, 'not exactly the patch'),
-                ('patch does not reverse-apply', {'apply': (1, '', 'does not apply')},
-                 'reverse-apply')):
+                ('the working tree is not HEAD + the patch',
+                 {'_trees': {'working_tree': 'c' * 40}}, 'not HEAD + the bound patch'),
+                ('the patch does not apply to HEAD', {'apply': (1, '', 'does not apply')},
+                 'building the head_plus_patch tree failed')):
             with self.subTest(label):
                 self.setUp()
+                trees = answers.pop('_trees', None)
                 self.git_answers.update(answers)
+                if trees:
+                    self.trees.update(trees)
                 status, receipt = self._run()
                 self.assertEqual(status, 1)
                 self.assertIsNone(self.popen_kwargs)
@@ -1615,6 +1646,135 @@ class SupervisorEntryPointTests(unittest.TestCase):
         self.assertTrue(any('closure root' in p
                             for p in receipt['manifest_validation']['problems']))
 
+    # -- 18:50 adversarial review: one witness per fix -----------------------
+    def _rewrite_manifest(self, mutate):
+        m = json.loads(self.man_path.read_text('utf-8'))
+        mutate(m)
+        self.man_path.write_text(json.dumps(m), encoding='utf-8')
+
+    def test_REVIEW_a_closure_NOT_under_the_snapshot_build_tree_refuses(self):
+        """wiring 0: the closure must BE the declared candidate's build."""
+        doc = dict(self.snapshot_doc, build_tree=str(self.root / 'some_other_build'))
+        snap = self.root / 'BUILD_SNAPSHOT_OTHER.json'
+        snap.write_text(json.dumps(doc), encoding='utf-8')
+        self._rewrite_manifest(lambda m: m['source_binding'].__setitem__(
+            'build_snapshot', {'path': str(snap),
+                               'sha256': hashlib.sha256(snap.read_bytes()).hexdigest()}))
+        status, receipt = self._run()
+        self.assertEqual(status, 1)
+        self.assertIsNone(self.popen_kwargs)
+        self.assertTrue(any("build tree" in p for p in
+                            receipt['build_binding_verification']['problems']))
+
+    def test_REVIEW_LLAMA_ARG_serving_settings_are_REMOVED(self):
+        """wiring 2: an inherited LLAMA_ARG_* is a serving setting the manifest
+        never saw."""
+        with mock.patch.dict(os.environ, {'LLAMA_ARG_BATCH': '1'}):
+            status, receipt = self._run()
+        self.assertEqual(status, 0, receipt['supervisor_problems'])
+        self.assertNotIn('LLAMA_ARG_BATCH', self.popen_kwargs['env'])
+        self.assertIn('LLAMA_ARG_BATCH', receipt['launch_context']['removed_environment_names'])
+
+    def test_REVIEW_the_cutoff_passing_DURING_verification_starts_no_child(self):
+        """wiring 3: the regression I introduced -- cutoff checked before the
+        closure re-derivation, child started after 510 s."""
+        rs = self.rs
+        real = rs.dc.verify_closure
+
+        def slow(frozen, **kw):
+            self.clock[0] += 520.0
+            return real(frozen, **kw)
+        with mock.patch.object(rs.dc, 'verify_closure', slow):
+            status, receipt = self._run()
+        self.assertEqual(status, 1)
+        self.assertIsNone(self.popen_kwargs)
+        self.assertTrue(any('work cutoff was reached during the pre-launch' in p
+                            for p in receipt['supervisor_problems']))
+
+    def test_REVIEW_a_token_with_a_SEPARATOR_and_a_SYMLINKED_log_refuse(self):
+        """wiring 4: outputs checked by file identity, before any mkdir."""
+        self._write_pointer(self.man_path, token='bin/escape')
+        status, receipt = self._run()
+        self.assertEqual(status, 1)
+        self.assertIsNone(self.popen_kwargs)
+        self.setUp()
+        link = self.root / 'linked_life.jsonl'
+        os.symlink(self.bindir / 'life.jsonl', link)
+        self.pointer.write_text('%s\n%s\n%s\n' % (self.man_path, link, self.token),
+                                encoding='utf-8')
+        status, receipt = self._run()
+        self.assertEqual(status, 1)
+        self.assertIsNone(self.popen_kwargs)
+        self.assertFalse(os.path.exists(self.bindir / 'life.jsonl'))
+
+    def test_REVIEW_server_args_may_not_select_a_MODEL_or_use_RELATIVE_paths(self):
+        """wiring 5."""
+        for extra, expect in ((['-m', '/unverified/other.gguf'], 'select weights'),
+                              (['--log-file', 'server.log'], 'not an absolute path')):
+            with self.subTest(extra=extra):
+                self.setUp()
+                self._rewrite_manifest(lambda m: m['server_args'].extend(extra))
+                status, receipt = self._run()
+                self.assertEqual(status, 1)
+                self.assertIsNone(self.popen_kwargs)
+                self.assertIn(expect, ' '.join(receipt['manifest_validation']['problems']))
+
+    def test_REVIEW_a_MALFORMED_closure_files_entry_is_described_not_thrown(self):
+        """wiring 6: a validator that raised left no receipt."""
+        def mutate(m):
+            m['dependency_closure']['files'][m['dependency_closure']['root']] = 'x'
+        self._rewrite_manifest(mutate)
+        status, receipt = self._run()
+        self.assertEqual(status, 1)
+        self.assertIsNotNone(receipt)
+
+    def test_REVIEW_a_NESTED_malformed_200_keeps_response_received(self):
+        """snapshot 0: `choices: [null]` was relabelled unknown delivery."""
+        status, receipt = self._run(bodies=[{'choices': [None],
+                                             'usage': {'completion_tokens': 3}}, OK_BODY])
+        self.assertEqual(status, 1)
+        row = {r['index']: r for r in receipt['requests']}[0]
+        self.assertTrue(row['response_received'])
+        self.assertEqual(row['delivery'], 'response_received')
+        self.assertTrue(row['usage_known'])
+        self.assertTrue(any('malformed body' in p for p in receipt['supervisor_problems']))
+        self.assertEqual(receipt['request_counts']['malformed_bodies'], 1)
+
+    def test_REVIEW_two_HTTP_500s_with_usable_usage_REFUSE(self):
+        """snapshot 1: removing the non-2xx line passed all 63 cases."""
+        def five_hundred(url, json=None, timeout=None, **kw):
+            r = _Resp(OK_BODY)
+            r.status_code = 500
+            return r
+        status, receipt = self._run(post_hook=five_hundred)
+        self.assertEqual(status, 1)
+        self.assertTrue(any('outside 2xx' in p for p in receipt['supervisor_problems']))
+        self.assertEqual(receipt['request_counts']['completed'], 0)
+
+    def test_REVIEW_every_count_is_DEFINED_and_late_records_REPORTED(self):
+        """snapshot 1: definitions for all keys; late completions and the
+        unfinished row's artifact path asserted, not only produced."""
+        status, receipt = self._run(unfinished_request=1, unfinished_mode='not_yet_sent')
+        counts = receipt['request_counts']
+        self.assertEqual(set(counts) - {'definitions'}, set(counts['definitions']))
+        row = {r['index']: r for r in receipt['requests']}[1]
+        self.assertTrue(row['response_artifact_path'].endswith('_req1.response'))
+        self.assertEqual(receipt['late_worker_records_after_snapshot'],
+                         ['%s_req1' % self.token])
+
+    def test_REVIEW_a_NEVER_STARTED_worker_with_raising_liveness_is_no_record(self):
+        """snapshot 4."""
+        status, receipt = self._run(request_start_raises_at=1)
+        rows = {r['index']: r for r in receipt['requests']}
+        self.assertEqual(rows[1]['state'], 'no_worker_record')
+
+    def test_REVIEW_a_raising_DRAIN_liveness_still_leaves_a_receipt(self):
+        """snapshot 6: a raising drain is_alive escaped main() after reap and
+        the receipt was lost."""
+        status, receipt = self._run(drain_alive_raises=True)
+        self.assertEqual(status, 1)
+        self.assertIsNotNone(receipt)
+        self.assertEqual(receipt['producer_diagnostics']['drain_state'], 'liveness_unknown')
 
 if __name__ == '__main__':                                     # pragma: no cover
     unittest.main()

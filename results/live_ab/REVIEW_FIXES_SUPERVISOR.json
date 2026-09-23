@@ -1,0 +1,94 @@
+{
+ "authority": "an owner-run adversarial review (4 scoped reviewers + an independent verifier per finding): 28 findings, all independently reproduced; the supervisor/helper subset is fixed here. Deposit 0-5 and config 0-4 are being fixed separately.",
+ "base_commit": "5a81c34",
+ "convention": "deterministic-path",
+ "files": {
+  "experiments/live_ab_serving/dependency_closure.py": "f581ff9378d1c8e004dc3c0e50ef29b85ea5c7eacbf00d6b9cfa73e2384e02ce",
+  "experiments/live_ab_serving/run_smoke.py": "1566fc90f3384d882a3e31a7d0220b2da1ae44aae21f60a2801506fc25cc6dce",
+  "experiments/live_ab_serving/tests_dependency_closure.py": "bf66dae40b5239c81539bb8fc1c5838e22ef7552f470dfac56099d83b73ba56f",
+  "experiments/live_ab_serving/tests_supervisor_entry.py": "7285cccd2b76fff2a3b2d80f8744cc128a0314724688eca06034d42d51345440"
+ },
+ "fixes": {
+  "deposit 6": {
+   "fix": "lexical '..' normalized before the alias comparison",
+   "witness": "test_a_LEXICAL_dotdot_rpath_is_not_a_different_directory_alias"
+  },
+  "snapshot 0": {
+   "fix": "choices/message/content shape-checked; a received 200 keeps response_received; malformed bodies counted and refused by name",
+   "witness": "test_REVIEW_a_NESTED_malformed_200_keeps_response_received"
+  },
+  "snapshot 1": {
+   "fix": "witnesses added for non-2xx, count definitions, late records and the artifact path",
+   "witness": "test_REVIEW_two_HTTP_500s_with_usable_usage_REFUSE; test_REVIEW_every_count_is_DEFINED_and_late_records_REPORTED"
+  },
+  "snapshot 2": {
+   "fix": "NARROWED, not eliminated: a worker that passed the send gate just before the snapshot may invoke the POST just after; transport_attempted is now defined as passing the gate, and the comment/receipt wording says so",
+   "witness": "no witness (needs an emulated interleaving)"
+  },
+  "snapshot 3": {
+   "fix": "POST timeout computed before the gate; a zero allowance is not_dispatched and not counted",
+   "witness": "no dedicated witness yet"
+  },
+  "snapshot 4": {
+   "fix": "a never-started worker is no_worker_record whatever is_alive does; raising liveness gets its own state",
+   "witness": "test_REVIEW_a_NEVER_STARTED_worker_with_raising_liveness_is_no_record"
+  },
+  "snapshot 5": {
+   "fix": "NOT DONE: the in-flight test still spies only Path.read_bytes",
+   "witness": "-"
+  },
+  "snapshot 6": {
+   "fix": "drain liveness guarded; state liveness_unknown; cleanup failure recorded; receipt kept",
+   "witness": "test_REVIEW_a_raising_DRAIN_liveness_still_leaves_a_receipt"
+  },
+  "wiring 0 (major)": {
+   "fix": "closure bound to the snapshot build tree, measured member digests and the committed candidate declaration (verify_build_binding)",
+   "witness": "test_REVIEW_a_closure_NOT_under_the_snapshot_build_tree_refuses"
+  },
+  "wiring 1 (major)": {
+   "fix": "source binding = tree equality: HEAD+patch built in a temporary index vs the working tree added to another, objects in a temporary object dir; git runs with GIT_* scrubbed",
+   "witness": "test_a_broken_SOURCE_BINDING_refuses_before_any_child (tree mismatch; patch not applying)"
+  },
+  "wiring 2 (major)": {
+   "fix": "LLAMA_* removed with GGML_*/DYLD_*; retained names recorded",
+   "witness": "test_REVIEW_LLAMA_ARG_serving_settings_are_REMOVED"
+  },
+  "wiring 3 (major, my regression)": {
+   "fix": "cutoff re-checked immediately before Popen",
+   "witness": "test_REVIEW_the_cutoff_passing_DURING_verification_starts_no_child"
+  },
+  "wiring 4": {
+   "fix": "token must be a plain name; every output path checked by file identity (stat, device+inode), symlinked outputs refused, all before mkdir",
+   "witness": "test_REVIEW_a_token_with_a_SEPARATOR_and_a_SYMLINKED_log_refuse"
+  },
+  "wiring 5": {
+   "fix": "server_args may not select weights/adapters; path values must be absolute and outside the executable directory; argv recorded",
+   "witness": "test_REVIEW_server_args_may_not_select_a_MODEL_or_use_RELATIVE_paths"
+  },
+  "wiring 6": {
+   "fix": "closure.files type-checked; config values guarded with _overflows_to_float",
+   "witness": "test_REVIEW_a_MALFORMED_closure_files_entry_is_described_not_thrown"
+  },
+  "wiring 7": {
+   "fix": "loaded modules bound: each module file must be the pinned file; requests/interpreter stated as governed by the environment lock, not pinned",
+   "witness": "covered by the wiring control (loaded_modules recorded); no shadow-path witness yet"
+  },
+  "wiring 8": {
+   "fix": "flag renamed verified_unchanged_immediately_before_popen; launched set only after Popen returns",
+   "witness": "test_the_WIRED_launch_runs_the_CLOSURE_ROOT_in_its_directory"
+  }
+ },
+ "found_in_my_own_draft": "the loaded-module check looked the supervisor up as sys.modules[__name__]; loaded from its file under another name it is not there, so every run refused. It now uses the module's own __file__.",
+ "generated_utc": "2026-09-23T18:45:36Z",
+ "nothing_executed_THIS_RECEIPT": "mocked Popen/Thread/Barrier/requests/clock/git; no candidate, server, model or network",
+ "schema": "live_ab/session60_receipt-v1",
+ "suites": {
+  "HARNESS_FILES": "33 unchanged",
+  "tests_dependency_closure": "43 OK",
+  "tests_lab_chain": "70 OK",
+  "tests_lab_design": "345 OK",
+  "tests_lab_isolation": "33 OK",
+  "tests_lab_serving": "89 OK",
+  "tests_supervisor_entry": "74 OK"
+ }
+}

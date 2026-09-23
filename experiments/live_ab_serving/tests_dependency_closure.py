@@ -46,6 +46,8 @@ class _Graph:
         self.links = dict(links or {})
 
     def realpath(self, path):
+        # as os.path.realpath: '..' collapses, then symlinks are followed
+        path = __import__('os').path.normpath(path)
         seen = set()
         while path in self.links:
             if path in seen:
@@ -646,6 +648,25 @@ class DependencyClosureTests(unittest.TestCase):
         c = self._derive(g, realpath=realpath)
         self.assertFalse(c['resolved'])
         self.assertIn('could not be read', self._problems(c))
+
+    def test_a_LEXICAL_dotdot_rpath_is_not_a_different_directory_alias(self):
+        """Review finding: `@loader_path/../lib` was refused as an alias in a
+        different directory although no symlink exists. The control keeps a REAL
+        symlink into another directory refusing."""
+        g = _complete()
+        g.files['/cand/lib/libfoo.dylib'] = {'refs': [], 'bytes': b'FOO'}
+        g.files[LAUNCHER]['refs'].append('@rpath/libfoo.dylib')
+        g.files[LAUNCHER]['rpaths'] = ['@loader_path', '@loader_path/../lib']
+        c = self._derive(g)
+        self.assertTrue(c['resolved'], self._problems(c))
+        self.assertIn('/cand/lib/libfoo.dylib', c['files'])
+        # control: a symlink out of the spelled directory still refuses
+        g.links['/cand/lib/libbar.dylib'] = '/elsewhere/libbar.dylib'
+        g.files['/elsewhere/libbar.dylib'] = {'refs': [], 'bytes': b'BAR'}
+        g.files[LAUNCHER]['refs'].append('@rpath/libbar.dylib')
+        c = self._derive(g)
+        self.assertFalse(c['resolved'])
+        self.assertIn('different directory', self._problems(c))
 
 
 if __name__ == '__main__':                                     # pragma: no cover

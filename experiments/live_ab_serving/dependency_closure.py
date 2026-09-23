@@ -490,7 +490,12 @@ def derive_closure(root_path: str, *, metadata: Callable[[str], Dict[str, Any]],
         except Exception as exc:                               # noqa: BLE001
             return {'problem': 'the canonical target of %s could not be read: %s'
                                % (spelling, exc)}
-        if str(Path(target).parent) != str(Path(spelling).parent):
+        # LEXICAL '..' IS NOT AN ALIAS. `@loader_path/../lib` spells
+        # /cand/bin/../lib/x, whose directory is /cand/lib; only a SYMLINK can
+        # make the loaded file live somewhere the spelling does not name. The
+        # spelling is normalized first, so an ordinary relative rpath is not
+        # refused as a different-directory alias (review finding, 18:50).
+        if str(Path(target).parent) != str(Path(os.path.normpath(spelling)).parent):
             return {'canonical': target,
                     'problem': ('the selected path %s is an alias of %s in a '
                                 'different directory; the loader-relative context '

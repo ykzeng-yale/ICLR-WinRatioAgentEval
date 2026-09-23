@@ -34,8 +34,10 @@ import subprocess
 import sys
 import threading
 import time
+import tempfile
 import traceback
 from pathlib import Path
+from typing import Optional
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent.parent
@@ -69,17 +71,76 @@ DEPENDENCY_READERS = {
 }
 
 
-def _git(argv: list):
-    """A read-only git query. Returns (returncode, stdout, stderr)."""
+def _git(argv: list, env: Optional[dict] = None):
+    """A git query. Returns (returncode, stdout, stderr).
+
+    The operator's GIT_* variables are SCRUBBED: with GIT_DIR/GIT_WORK_TREE
+    inherited, rev-parse and status measured a different repository and the
+    binding verified (review finding, 18:50). Only the variables the caller
+    passes -- a temporary index and object directory -- are set."""
+    base = {k: v for k, v in os.environ.items() if not k.startswith('GIT_')}
+    base.update(env or {})
     try:
-        r = subprocess.run(['git'] + list(argv), capture_output=True, text=True,
-                           timeout=60)
+        r = subprocess.run(['git', '-c', 'core.fsmonitor=false',
+                            '-c', 'core.untrackedCache=false'] + list(argv),
+                           capture_output=True, text=True, timeout=300, env=base)
         return r.returncode, r.stdout, r.stderr
     except Exception as exc:                                   # noqa: BLE001
         return None, '', '%s: %s' % (type(exc).__name__, exc)
 
 
 SOURCE_READERS = {'git': _git}
+
+
+def server_arg_problems(args: list) -> list:
+    """Static server_args rules: no model-selecting flag, and every path value
+    absolute. `--flag=value` spellings are split the same way."""
+    problems, expect_path = [], None
+    for a in args:
+        if expect_path is not None:
+            if not a.startswith('/'):
+                problems.append('server_args %s %r is not an absolute path'
+                                % (expect_path, a))
+            expect_path = None
+            continue
+        flag, eq, value = a.partition('=')
+        if flag in MODEL_SELECTING_FLAGS:
+            problems.append('server_args may not select weights or adapters (%s): the '
+                            'model is the one pinned and hashed at the launch '
+                            'boundary' % flag)
+        elif flag in PATH_VALUED_FLAGS:
+            if eq:
+                if not value.startswith('/'):
+                    problems.append('server_args %s=%r is not an absolute path'
+                                    % (flag, value))
+            else:
+                expect_path = flag
+        elif not a.startswith('-') and '/' in a and not a.startswith('/'):
+            problems.append('server_args value %r looks like a RELATIVE path; the '
+                            'child runs in the executable directory, so it would '
+                            'resolve there' % a)
+    if expect_path is not None:
+        problems.append('server_args %s has no value' % expect_path)
+    return problems
+
+
+def server_arg_paths(args: list) -> list:
+    """The absolute path values in server_args (for the containment check)."""
+    out, take = [], False
+    for a in args:
+        if take:
+            out.append(a)
+            take = False
+            continue
+        flag, eq, value = a.partition('=')
+        if flag in PATH_VALUED_FLAGS:
+            if eq:
+                out.append(value)
+            else:
+                take = True
+        elif a.startswith('/'):
+            out.append(a)
+    return out
 
 #: THE CODE THIS ACQUISITION ACTUALLY EXECUTES, pinned in the launch record and
 #: re-measured at preflight. Root, 16:30: "Pin the actually executed acquisition
@@ -98,8 +159,33 @@ ACQUISITION_CODE = {
 CONFIG_SECTION = 'engineering_acquisition'
 #: Names removed from the child environment. Root, 16:30: "Remove and record
 #: inherited GGML_* and DYLD_* names in an independent child environment.
-#: Record names only, not possibly sensitive values."
-CHILD_ENV_REMOVED_PREFIXES = ('GGML_', 'DYLD_')
+#: Record names only, not possibly sensitive values." LLAMA_* is removed too:
+#: llama-server reads LLAMA_ARG_* as serving configuration (its --help lists
+#: `env: LLAMA_ARG_THREADS`, `..._BATCH`, `..._FLASH_ATTN`, `..._N_PREDICT`), and
+#: root's same decision says "Other serving settings remain subject to their
+#: existing manifest contracts" -- an inherited LLAMA_ARG_BATCH would be a
+#: serving setting the manifest never saw (review finding, 18:50).
+CHILD_ENV_REMOVED_PREFIXES = ('GGML_', 'DYLD_', 'LLAMA_')
+#: A run token becomes part of every output file name, so it may not carry a
+#: path separator or be empty (review finding: a token 'bin/escape' put the
+#: intent, capture and response files inside the searched directory).
+TOKEN_RE = re.compile(r'[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}')
+#: server_args flags that select or fetch weights or adapters. The model is the
+#: one hashed at the launch boundary; a later `-m` in server_args would be the
+#: one llama.cpp actually loads (review finding).
+MODEL_SELECTING_FLAGS = frozenset((
+    '-m', '--model', '-mu', '--model-url', '-hf', '-hfr', '--hf-repo', '-hff',
+    '--hf-file', '-hfv', '-hfrv', '--hf-repo-v', '-hffv', '--hf-file-v', '-hft',
+    '--hf-token', '-md', '--model-draft', '--mmproj', '--mmproj-url', '--lora',
+    '--lora-scaled', '--control-vector', '--control-vector-scaled',
+    '--control-vector-layer-range', '-dr', '--docker-repo'))
+#: server_args flags whose value is a filesystem path: it must be absolute, and
+#: (checked in main) outside the executable directory, which is now the cwd.
+PATH_VALUED_FLAGS = frozenset((
+    '--log-file', '--slot-save-path', '--chat-template-file', '--grammar-file',
+    '--json-schema-file', '-lcs', '--lookup-cache-static', '-lcd',
+    '--lookup-cache-dynamic', '--path', '--api-key-file', '--ssl-key-file',
+    '--ssl-cert-file'))
 
 WALL_CAP_S = 600.0
 REQUEST_CAP_S = 120.0
@@ -693,6 +779,7 @@ def verify_acquisition_code(pins) -> dict:
             bad = [k for k in sorted(BOUND_LIMITS)
                    if isinstance(section[k], bool)
                    or not isinstance(section[k], (int, float))
+                   or _overflows_to_float(section[k])
                    or float(section[k]) != float(BOUND_LIMITS[k])]
             if bad:
                 section_row['problem'] = ('the configuration section differs from the '
@@ -700,8 +787,29 @@ def verify_acquisition_code(pins) -> dict:
             section_row['agrees'] = not bad
     if section_row.get('problem'):
         problems.append(section_row['problem'])
+    # THE MODULES ACTUALLY LOADED, NOT ONLY THE FILES AT FIXED PATHS. With a
+    # shadow directory ahead on PYTHONPATH, the pinned files re-measured clean
+    # while a different lab_common ran (review finding). Each loaded module's
+    # file must BE the pinned file.
+    loaded = {}
+    # This module is identified by its OWN __file__: it may be loaded from its
+    # file under another name (the harness does), so sys.modules[__name__]
+    # is not a reliable handle on it.
+    this_module = type('_M', (), {'__file__': globals().get('__file__')})
+    for name, module in (('experiments/live_ab_serving/run_smoke.py', this_module),
+                         ('experiments/live_ab_serving/dependency_closure.py', dc),
+                         ('experiments/live_ab/lab_common.py', lab_common),
+                         ('experiments/live_ab/lab_lifecycle.py', lab_lifecycle),
+                         ('experiments/live_ab/lab_data.py', sys.modules.get('lab_data'))):
+        f = getattr(module, '__file__', None)
+        loaded[name] = f
+        if f is None or os.path.realpath(f) != os.path.realpath(str(ACQUISITION_CODE[name])):
+            problems.append('the loaded module for %s is %r, not the pinned file'
+                            % (name, f))
     return {'verified': not problems, 'problems': problems, 'rows': rows,
-            'config_section': section_row}
+            'config_section': section_row, 'loaded_modules': loaded,
+            'third_party': ('requests and the interpreter are not pinned here; they '
+                            'are governed by the environment lock')}
 
 
 def verify_source_binding(binding, *, patch_sha256) -> dict:
@@ -736,19 +844,54 @@ def verify_source_binding(binding, *, patch_sha256) -> dict:
                         % (out['patch_sha256'], binding.get('patch_sha256')))
     out['patch_files'] = sorted(set(re.findall(
         r'^\+\+\+ b/(\S+)', patch_bytes.decode('utf-8', 'replace'), re.M)))
-    rc, stdout, stderr = git(['-C', str(tree), 'status', '--porcelain'])
-    out['modified_files'] = (sorted(l[3:] for l in stdout.splitlines() if l.strip())
-                             if rc == 0 else None)
-    if out['modified_files'] != out['patch_files']:
-        problems.append('the source tree modifies %r, not exactly the patch\'s %r'
-                        % (out['modified_files'], out['patch_files']))
+    # THE TREE IS HEAD + THE PATCH, ESTABLISHED DIRECTLY. The earlier check
+    # compared `status --porcelain` names and a reverse-apply, and a reviewer
+    # passed it three ways: an edit OUTSIDE the patch's hunk context (the file
+    # is already "modified", and the hunks still reverse-apply), a file marked
+    # assume-unchanged (status hides it), and inherited GIT_DIR (another repo
+    # measured). Now two trees are built in TEMPORARY indexes, with objects
+    # written to a temporary object directory so the repository itself is not
+    # modified: X = HEAD with the bound patch applied, Y = the working tree as
+    # it is (a fresh index has no assume-unchanged bits, and `add -A` hashes
+    # every non-ignored file). They must be the same tree.
+    out['tree_equality'] = {'head_plus_patch': None, 'working_tree': None}
     if patch_path is not None:
-        rc, stdout, stderr = git(['-C', str(tree), 'apply', '--reverse', '--check',
-                                  str(patch_path)])
-        out['patch_reverse_applies'] = rc == 0
-        if rc != 0:
-            problems.append('the bound patch does not reverse-apply to the tree: %s'
-                            % (stderr or '').strip()[:200])
+        rc, common, err = git(['-C', str(tree), 'rev-parse', '--git-common-dir'])
+        objects = (os.path.realpath(os.path.join(str(tree), common.strip(), 'objects'))
+                   if rc == 0 else None)
+        if objects is None:
+            problems.append('the git object directory could not be located: %s'
+                            % (err or '').strip()[:200])
+        else:
+            with tempfile.TemporaryDirectory(prefix='live_ab_srcbind_') as tmp:
+                os.mkdir(os.path.join(tmp, 'objects'))
+                trees = {}
+                for label, steps in (
+                        ('head_plus_patch', [['read-tree', 'HEAD'],
+                                             ['apply', '--cached', str(patch_path)],
+                                             ['write-tree']]),
+                        ('working_tree', [['read-tree', 'HEAD'], ['add', '-A', '--', '.'],
+                                          ['write-tree']])):
+                    env = {'GIT_INDEX_FILE': os.path.join(tmp, label + '.index'),
+                           'GIT_OBJECT_DIRECTORY': os.path.join(tmp, 'objects'),
+                           'GIT_ALTERNATE_OBJECT_DIRECTORIES': objects}
+                    result = None
+                    for step in steps:
+                        rc, stdout, stderr = git(['-C', str(tree)] + step, env=env)
+                        if rc != 0:
+                            problems.append('building the %s tree failed at `git %s`: %s'
+                                            % (label, ' '.join(step[:2]),
+                                               (stderr or '').strip()[:200]))
+                            break
+                        result = stdout.strip()
+                    else:
+                        trees[label] = result
+                out['tree_equality'] = {'head_plus_patch': trees.get('head_plus_patch'),
+                                        'working_tree': trees.get('working_tree')}
+                if len(trees) == 2 and trees['head_plus_patch'] != trees['working_tree']:
+                    problems.append('the working tree is not HEAD + the bound patch '
+                                    '(tree %s, expected %s)'
+                                    % (trees['working_tree'], trees['head_plus_patch']))
     snap = binding.get('build_snapshot') or {}
     compiled_backend_dir = None
     try:
@@ -773,6 +916,56 @@ def verify_source_binding(binding, *, patch_sha256) -> dict:
     return out
 
 
+def verify_build_binding(closure: dict, binding: dict, *, realpath=os.path.realpath) -> dict:
+    """The closure must BE the declared candidate's build (review finding 18:50).
+
+    `verify_source_binding` bound the tree, patch and snapshot to the manifest,
+    and the closure verified against its own frozen copy -- but nothing tied the
+    one to the other, so a closure frozen over ANY other build (the historical
+    smoke's, a temporary directory) passed every check. Now every file the
+    closure pins must lie canonically under the snapshot's `build_tree`, must be
+    a member the snapshot measured, with the same digest; the counts must agree;
+    and the snapshot's candidate declaration must still be the committed file."""
+    problems = []
+    try:
+        snap_raw = (REPO / binding['build_snapshot']['path']).read_bytes()
+        if hashlib.sha256(snap_raw).hexdigest() != binding['build_snapshot']['sha256']:
+            return {'verified': False, 'problems': ['the build snapshot is not the bound '
+                                                    'revision']}
+        snap = json.loads(snap_raw)
+        build_tree = realpath(snap['build_tree'])
+        decl = snap['candidate_declaration']
+        decl_bytes = (REPO / decl['path']).read_bytes()
+        if hashlib.sha256(decl_bytes).hexdigest() != decl['sha256']:
+            problems.append('the candidate declaration %s is not the revision the '
+                            'snapshot measured' % decl['path'])
+        declared = {}
+        for row in snap['measured_candidate_bytes']:
+            if not row.get('agrees'):
+                problems.append('the snapshot did not find %s matching its declaration'
+                                % row.get('member'))
+            declared[realpath(row['path'])] = row['measured_sha256']
+    except Exception as exc:                                   # noqa: BLE001
+        return {'verified': False, 'problems': ['the build binding could not be read: '
+                                                '%s: %s' % (type(exc).__name__, exc)]}
+    files = (closure or {}).get('files') or {}
+    for path, row in sorted(files.items()):
+        canon = realpath(path)
+        if not (canon == build_tree or canon.startswith(build_tree.rstrip('/') + '/')):
+            problems.append('%s is not under the declared candidate\'s build tree %s'
+                            % (path, build_tree))
+        elif canon not in declared:
+            problems.append('%s is not a member the build snapshot measured' % path)
+        elif not isinstance(row, dict) or row.get('sha256') != declared[canon]:
+            problems.append('%s does not have the digest the build snapshot measured'
+                            % path)
+    if len(files) != len(declared):
+        problems.append('the closure pins %d files; the snapshot measured %d'
+                        % (len(files), len(declared)))
+    return {'verified': not problems, 'problems': problems, 'build_tree': build_tree,
+            'files_checked': len(files), 'declared_members': len(declared)}
+
+
 def _env_digest(env: dict) -> str:
     """A digest of the exact child environment, so a mutation between
     verification and Popen is detectable without recording any value."""
@@ -781,8 +974,29 @@ def _env_digest(env: dict) -> str:
 
 
 def _inside(path: str, directory: str) -> bool:
-    path, directory = os.path.realpath(path), os.path.realpath(directory)
-    return path == directory or path.startswith(directory.rstrip('/') + '/')
+    """Is `path` (existing or not) inside `directory`, by FILE IDENTITY?
+
+    A realpath string prefix missed a case-variant spelling on a
+    case-insensitive volume (`BIN/` vs `bin/`) and could not see a leaf that is
+    itself a symlink (review finding). Each existing ancestor is stat()ed --
+    which follows symlinks -- and compared with the directory by device and
+    inode."""
+    try:
+        d = os.stat(directory)
+    except OSError:
+        return False
+    p = os.path.abspath(path)
+    while True:
+        try:
+            st = os.stat(p)
+            if (st.st_dev, st.st_ino) == (d.st_dev, d.st_ino):
+                return True
+        except OSError:
+            pass
+        parent = os.path.dirname(p)
+        if parent == p:
+            return False
+        p = parent
 
 
 def finalize(out: dict, dest: Path, problems: list, *, clock=None) -> int:
@@ -1020,6 +1234,8 @@ def validate_manifest(m: object) -> list:
     args = need(m, 'server_args', list, 'manifest')
     if args is not None and not all(isinstance(a, str) for a in args):
         problems.append('manifest["server_args"] contains a non-string')
+    elif args is not None:
+        problems.extend(server_arg_problems(args))
     # THE WIRED LAUNCH RECORD. Root, 16:30 and 17:52: bind source/patch/build
     # identity and the v3 closure at preparation, pin the executed code.
     launcher = need(m, 'launcher', dict, 'manifest')
@@ -1035,7 +1251,9 @@ def validate_manifest(m: object) -> list:
             problems.append('manifest["dependency_closure"]["root"] is not an '
                             'absolute launcher path')
         elif launcher is not None:
-            root_sha = ((closure.get('files') or {}).get(root) or {}).get('sha256')
+            files = closure.get('files')
+            root_row = files.get(root) if isinstance(files, dict) else None
+            root_sha = root_row.get('sha256') if isinstance(root_row, dict) else None
             if root_sha != launcher.get('sha256'):
                 problems.append('manifest["launcher"]["sha256"] is not the frozen '
                                 'closure root\'s digest')
@@ -1168,6 +1386,9 @@ def main() -> int:
                          % (type(exc).__name__, exc)])
     out['manifest'] = manifest_path.name
     out['run_token'] = token
+    if not isinstance(token, str) or not TOKEN_RE.fullmatch(token) or '..' in token:
+        return fin(out, dest, ['the run token %r is not a plain name; it becomes part of '
+                               'every output file name' % (token,)])
     # SCHEMA AND DOMAIN, BEFORE ANY DEREFERENCE.
     manifest_problems = validate_manifest(m)
     out['manifest_validation'] = {'problems': manifest_problems,
@@ -1186,6 +1407,27 @@ def main() -> int:
     # against its own -- two different files under one name.
     if not log.is_absolute():
         return fin(out, dest, ['the lifecycle log path %r is not absolute' % str(log)])
+    # THE LAUNCHER AND ITS DIRECTORY COME FROM THE FROZEN CLOSURE.
+    launcher = Path(m['dependency_closure']['root'])
+    exe_dir = str(launcher.parent)
+    # NOTHING THIS ACQUISITION WRITES MAY LAND IN A SEARCHED LOCATION -- checked
+    # for every file it will write, by file identity, BEFORE any directory is
+    # created. Root, 16:30: "do not write acquisition outputs into the searched
+    # build directory." A refused path used to have its directory created first.
+    outputs = {'lifecycle log': str(log),
+               'lifecycle sidecar': str(log) + '.error',
+               'request intent': str(log.parent / ('%s.intent.json' % token)),
+               'producer capture': str(log.parent / ('%s.producer_stream' % token)),
+               'receipt': str(dest)}
+    for i in range(PLANNED_WIRE_ATTEMPTS):
+        outputs['response %d' % i] = str(log.parent / ('%s_req%d.response' % (token, i)))
+    for label, path in sorted(outputs.items()):
+        if os.path.islink(path):
+            return fin(out, dest, ['the %s path %s is a symlink; outputs are written '
+                                   'only to real files' % (label, path)])
+        if _inside(path, exe_dir):
+            return fin(out, dest, ['the %s path %s is inside the executable directory, '
+                                   'which the loader searches' % (label, path)])
     try:
         log.parent.mkdir(parents=True, exist_ok=True)
     except Exception as exc:                                   # noqa: BLE001
@@ -1203,18 +1445,10 @@ def main() -> int:
     if model is None:
         return fin(out, dest, ['the pinned weight was not found locally'])
 
-    # THE LAUNCHER AND ITS DIRECTORY COME FROM THE FROZEN CLOSURE.
-    launcher = Path(m['dependency_closure']['root'])
-    exe_dir = str(launcher.parent)
-    # NOTHING THIS ACQUISITION WRITES MAY LAND IN A SEARCHED LOCATION. Root,
-    # 16:30: "do not write acquisition outputs into the searched build
-    # directory." The executable directory is the child's cwd and a loader
-    # search location; outputs there would become candidates for the search.
-    for label, path in (('lifecycle log directory', str(log.parent)),
-                        ('receipt directory', str(Path(lab_common.RESULTS_ROOT)))):
-        if _inside(path, exe_dir):
-            return fin(out, dest, ['the %s %s is inside the executable directory, '
-                                   'which the loader searches' % (label, path)])
+    for value in server_arg_paths(m['server_args']):
+        if _inside(value, exe_dir):
+            return fin(out, dest, ['the server argument path %s is inside the '
+                                   'executable directory' % value])
 
     # THE TRUSTED LAUNCH BOUNDARY. Measured bytes, compared with the immutable
     # manifest, BEFORE Popen -- not manifest hashes copied into `expected`.
@@ -1238,7 +1472,11 @@ def main() -> int:
         m['source_binding'], patch_sha256=m['patch_sha256'])
     out['acquisition_code_verification'] = verify_acquisition_code(
         m['acquisition_code'])
+    out['build_binding_verification'] = verify_build_binding(
+        m['dependency_closure'], m['source_binding'],
+        realpath=DEPENDENCY_READERS['realpath'])
     binding_problems = (out['source_binding_verification']['problems']
+                        + out['build_binding_verification']['problems']
                         + out['acquisition_code_verification']['problems'])
     if binding_problems:
         return fin(out, dest, ['the launch record\'s bindings do not hold: %s'
@@ -1268,12 +1506,14 @@ def main() -> int:
     out['launch_context'] = {
         'executable': str(launcher), 'cwd': exe_dir,
         'removed_environment_names': removed_env_names,
+        'retained_environment_names': sorted(child_env),
         'environment_variable_count': len(child_env),
         'environment_digest': child_env_digest,
         'note': ('names only: no environment value is recorded. The same dict and '
                  'cwd are verified and then passed to Popen.'),
     }
     args = [str(launcher), '-m', str(model)] + m['server_args']
+    out['launch_context']['argv'] = list(args)
     t_wall0 = deadline.started
 
     # EVERYTHING THE ATTEMPT NEEDS IS PREPARED AND PERSISTED BEFORE A CHILD
@@ -1422,7 +1662,13 @@ def main() -> int:
     if _env_digest(child_env) != child_env_digest:
         return fin(out, dest, ['the child environment changed between its '
                                'verification and the launch'])
-    out['launch_context']['verified_then_launched_unchanged'] = True
+    # THE CUTOFF, AGAIN, LAST. The closure re-derivation (otool, nm, a re-hash of
+    # every member) was moved after the earlier cutoff check, so a child could
+    # start after 510 s (review finding: a regression I introduced).
+    if not deadline.may_dispatch():
+        return fin(out, dest, ['the work cutoff was reached during the pre-launch '
+                               'verification; no child was started'])
+    out['launch_context']['verified_unchanged_immediately_before_popen'] = True
     try:
         proc = subprocess.Popen(args, env=child_env, cwd=exe_dir,
                                 stdout=subprocess.PIPE,
@@ -1434,6 +1680,7 @@ def main() -> int:
         out['popen_error'] = '%s: %s' % (type(exc).__name__, exc)
         return fin(out, dest, ['the child could not be started: %s' % exc])
     out['child_started'] = True
+    out['launch_context']['launched'] = True
     out['server_pid'] = proc.pid
     out['server_started_utc'] = _now()
 
@@ -1574,10 +1821,27 @@ def main() -> int:
                     rec['elapsed_s'] = 0.0
                     _record(rec)
                     return
-                # THE ATTEMPT IS COUNTED UNDER THE SNAPSHOT'S LOCK, AND NOT AT
-                # ALL ONCE THE SNAPSHOT EXISTS: the snapshot's attempt count is
-                # therefore final, and no request is sent after the supervisor
-                # has decided.
+                # THE TIMEOUT IS FIXED BEFORE THE GATE. A reviewer let the cutoff
+                # pass between the gate and the POST: timeout=0.0, which requests
+                # rejects before connecting -- counted as attempted and reported
+                # as unknown delivery although it was known not to be sent.
+                post_timeout = deadline.bounded(REQUEST_CAP_S)
+                if post_timeout <= 0.0:
+                    rec['not_dispatched'] = ('the work cutoff left no time for this '
+                                             'request, so it was not sent')
+                    rec['t_ack_monotonic'] = rec['t_send_monotonic'] = time.monotonic()
+                    rec['elapsed_s'] = 0.0
+                    _record(rec)
+                    return
+                rec['t_send_utc'] = _now()
+                # THE SEND GATE. The attempt is counted under the snapshot's lock,
+                # and not at all once the snapshot exists: a worker that had not
+                # passed the gate by the snapshot never sends. What this does NOT
+                # do, stated because an earlier comment claimed it: a worker that
+                # passed the gate just before the snapshot invokes the POST just
+                # after -- the lock cannot be held across the network call. Such a
+                # request is counted in `transport_attempted` (defined as "passed
+                # the send gate") and its completion is kept out of the receipt.
                 with submitted:
                     too_late = terminal['taken']
                     if not too_late:
@@ -1589,10 +1853,9 @@ def main() -> int:
                     return
                 rec['transport_attempted'] = True
                 rec['t_send_monotonic'] = time.monotonic()
-                rec['t_send_utc'] = _now()
                 try:
                     r = requests.post(plan['endpoint'], json=plan['payload'],
-                                      timeout=deadline.bounded(REQUEST_CAP_S))
+                                      timeout=post_timeout)
                     rec['response_received'] = True
                     rec['delivery'] = 'response_received'
                     rec['submitted'] = True
@@ -1667,9 +1930,29 @@ def main() -> int:
                             'no usage object in the response' if not isinstance(usage, dict)
                             else 'completion_tokens %r is not a non-negative, '
                                  'non-boolean integer' % (tokens,))
-                    rec['finish_reason'] = (d.get('choices') or [{}])[0].get('finish_reason')
-                    rec['content_chars'] = len(
-                        ((d.get('choices') or [{}])[0].get('message') or {}).get('content') or '')
+                    # SHAPE-CHECKED, NOT INDEXED BLIND. `choices: [null]` raised
+                    # inside this try, and the transport handler below then
+                    # relabelled a received 200 as unknown delivery with unknown
+                    # usage (review finding). The response arrived; a malformed
+                    # body is named as such and refused for that reason.
+                    choices = d.get('choices')
+                    choice0 = (choices[0] if isinstance(choices, list) and choices
+                               and isinstance(choices[0], dict) else None)
+                    message = choice0.get('message') if choice0 is not None else None
+                    content = message.get('content') if isinstance(message, dict) else None
+                    shape = []
+                    if choice0 is None:
+                        shape.append('choices is not a non-empty list of objects')
+                    elif not isinstance(message, dict):
+                        shape.append('choices[0].message is not an object')
+                    elif content is not None and not isinstance(content, str):
+                        shape.append('choices[0].message.content is %s, not a string'
+                                     % type(content).__name__)
+                    if shape:
+                        rec['body_shape_problem'] = '; '.join(shape)
+                    rec['finish_reason'] = (choice0.get('finish_reason')
+                                            if choice0 is not None else None)
+                    rec['content_chars'] = len(content) if isinstance(content, str) else None
                 except Exception as exc:                           # noqa: BLE001
                     rec['t_ack_monotonic'] = time.monotonic()
                     rec['error'] = '%s: %s' % (type(exc).__name__, exc)
@@ -1733,13 +2016,19 @@ def main() -> int:
     # after this line reads `results` or the counters again, and no response
     # artifact of an unfinished worker is ever read: its bytes may still be
     # being written.
-    alive_ids = set()
+    alive_ids, liveness_unknown = set(), set()
     for i, th in enumerate(request_threads):
+        rid = planned[i]['request_id']
+        # A WORKER THAT NEVER STARTED IS NOT RUNNING, whatever is_alive says: a
+        # raising is_alive used to label a never-started worker "still running"
+        # (review finding).
+        if rid not in started_ids:
+            continue
         try:
             if th.is_alive():
-                alive_ids.add(planned[i]['request_id'])
+                alive_ids.add(rid)
         except Exception:                                      # noqa: BLE001
-            alive_ids.add(planned[i]['request_id'])            # unknown = unfinished
+            liveness_unknown.add(rid)
     with submitted:
         terminal['taken'] = True
         snap_results = list(results)
@@ -1749,7 +2038,7 @@ def main() -> int:
     out['terminal_snapshot'] = {
         'taken_after': 'the bounded joins (or the supervisor exception)',
         'finished_workers': len(snap_finished),
-        'unfinished_workers': sorted(alive_ids - snap_finished),
+        'unfinished_workers': sorted((alive_ids | liveness_unknown) - snap_finished),
         'rule': ('records, finished ids and both counters were frozen under one '
                  'lock; completions after it are excluded by construction, and a '
                  'worker that had not sent by then may not send'),
@@ -1762,7 +2051,15 @@ def main() -> int:
         if row is None:
             base = {'index': plan['index'], 'request_id': rid,
                     'payload_sha256': plan['payload_sha256']}
-            if rid in alive_ids:
+            if rid in liveness_unknown:
+                row = dict(base, state='liveness_unknown_at_terminal_snapshot',
+                           response_artifact_path=lab_common.display_path(
+                               log.parent / ('%s.response' % rid)),
+                           note=('its worker was started, left no record by the '
+                                 'terminal snapshot, and its liveness could not be '
+                                 'read; it is treated as unfinished, and none of its '
+                                 'artifacts were read'))
+            elif rid in alive_ids:
                 row = dict(base, state='unfinished_at_terminal_snapshot',
                            response_artifact_path=lab_common.display_path(
                                log.parent / ('%s.response' % rid)),
@@ -1798,7 +2095,9 @@ def main() -> int:
     out['requests_without_worker_record'] = sum(
         1 for r in request_rows if r.get('state') == 'no_worker_record')
     out['requests_unfinished_at_terminal_snapshot'] = sum(
-        1 for r in request_rows if r.get('state') == 'unfinished_at_terminal_snapshot')
+        1 for r in request_rows
+        if r.get('state') in ('unfinished_at_terminal_snapshot',
+                              'liveness_unknown_at_terminal_snapshot'))
     out['requests_with_unknown_delivery'] = sum(
         1 for r in snap_results if r.get('delivery') == 'unknown_server_receipt')
     if planned:
@@ -1819,6 +2118,9 @@ def main() -> int:
                                  if r.get('delivery') == 'response_received'
                                  and not (isinstance(r.get('status'), int)
                                           and 200 <= r['status'] < 300)),
+        'malformed_bodies': sum(1 for r in snap_results
+                                if r.get('body_unparsable') or r.get('body_wrong_shape')
+                                or r.get('body_shape_problem')),
         'unfinished_at_terminal_snapshot': out['requests_unfinished_at_terminal_snapshot'],
         'no_worker_record': out['requests_without_worker_record'],
         'usage_known': sum(1 for r in snap_results if r.get('usage_known')),
@@ -1827,13 +2129,18 @@ def main() -> int:
         # EVERY LABEL DEFINED. The first version defined four of eight.
         'definitions': {
             'planned': 'requests in the durable intent written before any transport',
-            'transport_attempted': 'requests.post was invoked (counted under the '
-                                   'snapshot lock)',
+            'transport_attempted': 'passed the send gate under the snapshot lock; '
+                                   'the POST is invoked just after the lock is '
+                                   'released, so a request that passed just before '
+                                   'the snapshot may be invoked just after it',
             'responses_received': 'requests.post returned (legacy submitted_requests)',
             'completed': 'a finished worker whose response was received with an '
                          'HTTP 2xx status',
             'non_2xx_responses': 'a response was received with a status outside 2xx',
-            'unfinished_at_terminal_snapshot': 'worker alive at the snapshot; state '
+            'malformed_bodies': 'a response was received whose body did not parse, or '
+                                'parsed to the wrong shape',
+            'unfinished_at_terminal_snapshot': 'worker alive, or its liveness '
+                                               'unreadable, at the snapshot; state '
                                                'unknown',
             'no_worker_record': 'no record and no live worker: its worker ended '
                                 'without one, or was never started',
@@ -1910,10 +2217,16 @@ def main() -> int:
         drain_state = 'not_created'
     elif not drain_started:
         drain_state = 'not_started'
-    elif drain_thread.is_alive():
-        drain_state = 'running'
     else:
-        drain_state = 'finished'
+        # GUARDED, like the request threads' liveness: a raise here escaped
+        # main() after reap and lost the receipt of an attempt that had sent
+        # POSTs (review finding). Unknown liveness leaves the capture unread.
+        try:
+            drain_state = 'running' if drain_thread.is_alive() else 'finished'
+        except Exception as exc:                               # noqa: BLE001
+            drain_state = 'liveness_unknown'
+            out['cleanup_failure'] = (out.get('cleanup_failure') or '') + (
+                'drain liveness could not be read: %s: %s; ' % (type(exc).__name__, exc))
     drain_finished = (drain_state == 'finished')
     out['producer_diagnostics'] = dict(
         (preview_of_artifact(capture_path, capture) if drain_finished else
@@ -1950,7 +2263,7 @@ def main() -> int:
         byte_budget=DIAGNOSTIC_BYTE_BUDGET,
         drain_state=drain_state,
         drain_thread_finished=drain_finished,
-        capture_exists=drain_state in ('running', 'finished'),
+        capture_exists=drain_state in ('running', 'finished', 'liveness_unknown'),
         artifact=capture.get('artifact'),
         artifact_sha256=capture.get('measured_sha256'),
         stream='the owned child stdout+stderr pipe, captured to an immutable '
@@ -2072,6 +2385,8 @@ def main() -> int:
          'state is unfinished and nothing they were writing was read'
          % out['requests_unfinished_at_terminal_snapshot']
          if out.get('requests_unfinished_at_terminal_snapshot') else None),
+        ('%d response(s) had a malformed body' % out['request_counts']['malformed_bodies']
+         if (out.get('request_counts') or {}).get('malformed_bodies') else None),
         # A RESPONSE IS NOT A SUCCESS. The status was recorded and never read.
         ('%d response(s) had an HTTP status outside 2xx'
          % out['request_counts']['non_2xx_responses']
