@@ -2423,6 +2423,61 @@ no repeat is requested and none will be made.
 
 **Suites: ten of ten green**; isolation now 33.
 
+### 2026-09-23 · the two approved evidence pins, and the check they would have faked
+
+Branch `session60/live-ab` and `main` at **`855a406`**. Authority: root's 03:48 handoff item 2,
+reaffirmed 06:58 UTC — *"proceed with the existing approved pin promotions and immutable checker
+receipt"*. Receipt: `results/live_ab/EVIDENCE_PIN_PROMOTION.json` (`deterministic-path`).
+
+**Promoted into `config.json`**, in its own hand-authored style — flattened key diff is **four changed
+values and nine added typing keys, none removed**, no reformat (the failure mode that cost 411/136 on
+this file once already):
+
+| key | value | evidence |
+|---|---|---|
+| `sandbox.profile_sha256` | `527d267e…803c410b` | 646-byte seatbelt profile, reproduced under the project venv and prescribed TMPDIR |
+| `servers.coder.license_evidence_sha256` | `832dd9e0…d292e92e` | `licence_blob`, 11,343 B, re-hashed from disk |
+| `servers.t3.license_evidence_sha256` | `3caa2195…930f9aabb9` | `model_card_declaration`, 460 B, re-hashed from disk |
+| `anchor.posting_latency_p95_s` | `0.8240070836618543` | root's nearest-rank decision, was still null |
+
+Bundle `license_evidence_sha256` **`867eca9e…1ee96a`** is not stored: it is **recomputed at freeze
+assembly** from the canonical per-server map (URL, bytes, digest, evidence kind), with every component
+re-read from the retained bytes and cross-checked against both the config pin and the evidence record.
+
+**Every value was reproduced before it was written.** The profile recomputes to root's digest under
+CPython 3.12.13 and `TMPDIR=/private/tmp/labsbx` — 646 bytes, matching root's independent
+reconstruction. Under Xcode CPython 3.9.6 the same code yields **659 bytes and a different digest**.
+That is not a discrepancy; it is the environment identification the pin exists for.
+
+**The defect the promotion would have created.** `observed_bundle_members` read
+`sandbox_profile_sha256` out of the **frozen config**, while `BUNDLE_MEMBERS_RECOMPUTED` declares that
+member *"recomputed from the deposited freeze tree and the working copy"*. The drift row compared the
+config with itself. While the pin was `null` the member was absent and nothing showed — promoting it is
+exactly what would have turned a dead field into **a check that names what it does not perform**. The
+member is now observed from the sandbox; `None` means *unobservable* and drifts as `MEMBER_ABSENT`,
+never as agreement.
+
+**Controls, run in separate processes and derived into the receipt rather than asserted beside it:**
+prescribed TMPDIR → agrees, 0 drift rows; an unprescribed TMPDIR → `92d7f978…`, **1 drift row**, so the
+silent failure `SANDBOX_TMPDIR_RECONCILIATION.json` recorded now refuses; unobservable → drift as
+`MEMBER_ABSENT`.
+
+**The architecture was not widened to fit the code.** A direct `sandbox` import in `lab_orchestrator`
+was refused by `tests_lab_isolation` against `ARCHITECTURE_FINAL.md 3.16`. The row was **not** widened
+and the profile text was **not** re-derived locally where it could drift from the sandbox's own; the
+call routes through `lab_data`, which already holds the matrix `(s)` grant.
+
+**Vocabulary pin amended additively**: ORIGINAL `3c76e8eb…` untouched; the `host_work_root` successor
+demoted **whole** into `prior_successors` with its ruling and after-the-fact commit resolution; three
+priors kept; new successor `f75de323…`. Three-way verbatim contract re-synchronized and verified
+byte-identical at **13,641 bytes** per block.
+
+**Freeze: `build_freeze_bundle` accepts 16 of 26**, up from 14 — counted by the gate, not by me. 10
+still required, **0 unexplained gaps**. Suites ten of ten green; `design` 316 → **320** (the two new
+refusal tests, inherited by a subclass). `HARNESS_FILES` 33. No model, no server, no episode, no
+network. **No rights attestation**: the t3 evidence is a model-card declaration, not a recovered
+licence text.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
