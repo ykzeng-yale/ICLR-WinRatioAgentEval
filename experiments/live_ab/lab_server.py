@@ -849,6 +849,46 @@ def _pid_alive(pid: int) -> bool:
     return True
 
 
+def listening_pids(port: int, *, timeout_s: float = 10.0) -> set[int] | None:
+    """The pids holding a TCP LISTEN socket on ``127.0.0.1``/any address at ``port``, read
+    with ``lsof -nP -iTCP:<port> -sTCP:LISTEN -t``; ``None`` when the table could not be read
+    (lsof absent, timed out, or failed).  lsof's exit 1 with empty output is "nothing
+    listens", an empty set -- never conflated with "could not tell"."""
+    argv = ['lsof', '-nP', '-iTCP:%d' % int(port), '-sTCP:LISTEN', '-t']
+    try:
+        res = subprocess.run(argv, capture_output=True, text=True, timeout=float(timeout_s),
+                             check=False)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    out = (res.stdout or '').split()
+    if res.returncode not in (0, 1) or (res.returncode == 1 and out):
+        return None
+    try:
+        return {int(tok) for tok in out}
+    except ValueError:
+        return None
+
+
+def orphan_server(pid: int, port: int, *, timeout_s: float = 10.0) -> bool | None:
+    """Whether ``pid`` -- a server pid an EARLIER invocation recorded in the chain -- is
+    still that server, so that a resumed invocation may stop it (repair contract EB1 item 4).
+
+    ``True`` only when the pid is alive AND is one of the processes listening on the frozen
+    ``port`` (:func:`listening_pids`).  ``False`` when it is not alive, or is alive but does
+    not listen there: a recorded pid that the OS has since given to another program is never
+    signalled.  ``None`` when it is alive and the listener table could not be read -- the
+    caller must then not signal it either.  Performs: one liveness probe (signal 0) and at
+    most one lsof call.  Does NOT compare the process's command line: a supervised child may
+    be a launcher that exec'd, so the port it serves is the identity that is checked."""
+    pid = int(pid)
+    if pid <= 0 or not _pid_alive(pid):
+        return False
+    pids = listening_pids(port, timeout_s=timeout_s)
+    if pids is None:
+        return None
+    return pid in pids
+
+
 def restart(spec: ServerSpec, golden_props: Mapping, *,
             previous_props_sha256: str | None = None, golden: object | None = None,
             sampling: Mapping | None = None, timeout_s: float = 600.0,

@@ -73,6 +73,11 @@ CHECK_SEVERITY: dict[str, str] = {
     # is a DEFECT because a foreign load observed DURING a trial is a fact the analysis
     # must carry, and what to do about it is the operator's decision, not the verifier's.
     'host.record': 'FAIL', 'host.quiescence': 'DEFECT',
+    # repair contract EB1 (root 20:40 items 1 and 4): the live server lifecycle.  A FAIL,
+    # because a chain whose server bodies claim comparisons that did not pass, whose crash
+    # was never answered, or whose restarts exceed the frozen cap is not a chain a decision
+    # may be read from.  See `_check_server_lifecycle`.
+    'server.lifecycle': 'FAIL',
 }
 
 # Which verifier FAILs mean what between trials (protocol 6.4 rows 22a/22b, audit M5).
@@ -86,7 +91,8 @@ CONDITION_LIST_A: frozenset[str] = frozenset(
 # table (ARCHITECTURE_FINAL.md 3.3).
 _PLUMBING_PREFIXES: tuple[str, ...] = ('chain.', 'schema.', 'order.', 'coin.', 'episode.',
                                        'calls.', 'switch.', 'usage.', 'anchor.',
-                                       'program.', 'worktree.', 't4.', 'host.')
+                                       'program.', 'worktree.', 't4.', 'host.',
+                                       'server.')
 _PLUMBING_EXTRA: frozenset[str] = frozenset({'monitor.replay', 'monitor.cadence',
                                              'monitor.shadow',
                                              'reference_rule.agreement'})
@@ -252,6 +258,138 @@ def server_start_kind(events: Sequence[Mapping]) -> str:
     if not any(sim):
         return 'live'
     return 'mixed'
+
+
+#: The two events that answer a ``server_down`` or a ``server_start_failed`` for every server.
+_LIFECYCLE_STOPS: tuple[str, ...] = ('trial_paused', 'trial_aborted')
+
+
+def _answer_after(events: Sequence[Mapping], index: int, answers) -> str:
+    """Scan forward from ``events[index]``: ``'answered'`` when an event ``answers(ev)``
+    accepts comes first, ``'dispatched'`` when an ``episode_started`` comes first, and
+    ``'open'`` when the chain ends with neither."""
+    for later in events[index + 1:]:
+        if answers(later):
+            return 'answered'
+        if later['type'] == 'episode_started':
+            return 'dispatched'
+    return 'open'
+
+
+def _check_server_lifecycle(col: _Collector, events: Sequence[Mapping],
+                            cfg: Mapping | None) -> None:
+    """``server.lifecycle`` (FAIL; repair contract EB1 item 5): the server lifecycle of a
+    NON-SIMULATED chain, read from the chain and the frozen configuration alone.
+
+    Skipped (passed) only when every ``server_started`` / ``server_restarted`` body is the
+    simulated one (``server_start_kind``, decided by the sentinel digests, never by the flags
+    under test); a chain mixing simulated and live bodies fails.  What it performs:
+
+    1. ``verified_start``: every live ``server_started`` / ``server_restarted`` carries
+       ``props_matches_golden: true`` and a smoke with ``receipt_matches_golden: true`` and
+       ``ok: true`` -- the orchestrator appends only bodies ``lab_server.start`` returned
+       after those comparisons passed, so any other value is a body it could not have
+       written.
+    2. ``down_answered``: every ``server_down`` is followed by a ``server_restarted`` or
+       ``server_start_failed`` of the same server, a ``trial_paused`` or a
+       ``trial_aborted`` -- and by it BEFORE any further ``episode_started`` (a server that
+       is down gets no new work).  A down still unanswered at the end of a chain that is not
+       terminal (no ``trial_ended`` / ``trial_aborted``) is pending, not failed.
+    3. ``cap``: attempted supervised restarts per server (``server_restarted`` plus
+       ``server_start_failed`` with ``kind='restart'``) never exceed the frozen
+       ``server_supervision`` cap (read by ``lab_common.server_supervision_cap``).  A chain
+       with any restart, ``server_down`` or ``server_restart_cap`` abort whose configuration
+       carries no well-formed cap fails: the cap could not be checked.
+    4. ``failure_answered``: every ``server_start_failed`` is followed by ``trial_aborted``
+       or ``trial_paused`` before any further ``episode_started`` (same pending rule as 2).
+    5. ``cap_abort_iff_required``: ``trial_aborted(server_restart_cap)`` exists IFF some
+       ``server_down`` found its server's attempted restarts already at the cap (a restart
+       beyond the cap would have been required); on a chain that is not yet terminal only the
+       "if" direction is enforced.
+
+    What it does NOT perform: it never re-derives a start's comparisons from a server (the
+    verifier reads no server); it does not check pids against a process table."""
+    check = 'server.lifecycle'
+    events = list(events)
+    kind = server_start_kind(events)
+    if kind == 'simulated':
+        col.ok(check)
+        return
+    if kind == 'mixed':
+        col.add(check, {'rule': 'mixed',
+                        'error': 'simulated and live server bodies in one chain'})
+    terminal = any(e['type'] in ('trial_ended', 'trial_aborted') for e in events)
+
+    for ev in events:
+        if ev['type'] not in ('server_started', 'server_restarted'):
+            continue
+        body = ev['body']
+        if lab_eventlog.is_sim_server_body(body):
+            continue
+        smoke = body.get('smoke') if isinstance(body.get('smoke'), Mapping) else {}
+        if not (body.get('props_matches_golden') is True
+                and smoke.get('receipt_matches_golden') is True
+                and smoke.get('ok') is True):
+            col.add(check, {'rule': 'verified_start', 'type': ev['type'],
+                            'server_id': str(body.get('server_id'))}, seq=ev['seq'])
+
+    for i, ev in enumerate(events):
+        if ev['type'] == 'server_down':
+            sid = ev['body'].get('server_id')
+            state = _answer_after(events, i, lambda e, sid=sid: (
+                e['type'] in _LIFECYCLE_STOPS
+                or (e['type'] in ('server_restarted', 'server_start_failed')
+                    and e['body'].get('server_id') == sid)))
+            if state == 'dispatched' or (state == 'open' and terminal):
+                col.add(check, {'rule': 'down_answered', 'server_id': str(sid),
+                                'state': state}, seq=ev['seq'])
+        elif ev['type'] == 'server_start_failed':
+            state = _answer_after(events, i, lambda e: e['type'] in _LIFECYCLE_STOPS)
+            if state == 'dispatched' or (state == 'open' and terminal):
+                col.add(check, {'rule': 'failure_answered',
+                                'server_id': str(ev['body'].get('server_id')),
+                                'state': state}, seq=ev['seq'])
+
+    cap_aborts = [e for e in events if e['type'] == 'trial_aborted'
+                  and e['body'].get('reason') == 'server_restart_cap']
+    relevant = cap_aborts or any(
+        e['type'] in ('server_down', 'server_restarted')
+        or (e['type'] == 'server_start_failed' and e['body'].get('kind') == 'restart')
+        for e in events)
+    try:
+        cap: int | None = lab_common.server_supervision_cap(cfg or {})
+        problem = ''
+    except lab_common.FrozenMismatch as exc:
+        cap, problem = None, str(exc)
+    if cap is None:
+        if relevant:
+            col.add(check, {'rule': 'cap', 'error': 'the frozen restart cap is unreadable, '
+                            'so the restarts of this chain could not be checked',
+                            'problem': problem})
+        col.ok(check)
+        return
+    restarts: dict = {}
+    required: list[int] = []
+    for ev in events:
+        etype = ev['type']
+        body = ev['body']
+        sid = str(body.get('server_id'))
+        if etype == 'server_down':
+            if restarts.get(sid, 0) >= cap:
+                required.append(int(ev['seq']))
+        elif etype == 'server_restarted' or (etype == 'server_start_failed'
+                                             and body.get('kind') == 'restart'):
+            restarts[sid] = restarts.get(sid, 0) + 1
+            if restarts[sid] > cap:
+                col.add(check, {'rule': 'cap', 'server_id': sid,
+                                'restarts': restarts[sid], 'cap': cap}, seq=ev['seq'])
+    if cap_aborts and not required:
+        col.add(check, {'rule': 'cap_abort_iff_required', 'required': 0,
+                        'cap_aborts': len(cap_aborts)}, seq=cap_aborts[0]['seq'])
+    if required and terminal and not cap_aborts:
+        col.add(check, {'rule': 'cap_abort_iff_required', 'required': len(required),
+                        'cap_aborts': 0}, seq=required[0])
+    col.ok(check)
 
 
 # The two closed vocabularies of the host-scan records, read off the schema itself so the
@@ -994,6 +1132,9 @@ def _verify_trial(trial: str, freeze_bundle_sha256: str, *, mode: str = 'full',
 
     # ---- host.record / host.quiescence (protocol 5.7) ------------------------
     _check_host_scans(col, events, 'foreign_load_detected')
+
+    # ---- server.lifecycle (repair contract EB1) --------------------------------
+    _check_server_lifecycle(col, events, cfg)
 
     # ---- integrity.table (INFO) ---------------------------------------------
     terminal_by_arm = {arm: 0 for arm in ARMS}

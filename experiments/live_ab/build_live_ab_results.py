@@ -179,13 +179,37 @@ def pair_rows(events: Sequence[Mapping], cfg: Mapping) -> list[dict]:
 # ---------------------------------------------------------------------------
 # the derived objects
 # ---------------------------------------------------------------------------
+#: Repair contract EB1, reportability default (root 20:40 item 4): a trial whose terminal
+#: event is ``trial_aborted(server_restart_cap)`` is reported INCOMPLETE and carries no
+#: deployment or harm decision.  A ``decision`` it logged before the abort stays in the chain
+#: and in ``decision.json``, under this label, never as a result.
+RESTART_CAP_LABEL: str = 'not reportable: trial incomplete (restart cap)'
+
+
+def terminal_event(events: Sequence[Mapping]) -> Mapping | None:
+    """The trial's terminal event (the last ``trial_ended`` / ``trial_aborted``), or None."""
+    return next((e for e in reversed(list(events))
+                 if e['type'] in ('trial_ended', 'trial_aborted')), None)
+
+
+def restart_cap_incomplete(events: Sequence[Mapping]) -> bool:
+    """Whether the terminal event is ``trial_aborted(server_restart_cap)``."""
+    term = terminal_event(events)
+    return bool(term is not None and term['type'] == 'trial_aborted'
+                and term['body'].get('reason') == 'server_restart_cap')
+
+
 def decision_object(events: Sequence[Mapping], cfg: Mapping, trial: str) -> dict:
     """The logged decision, with the reference rule's own result beside it.
 
     The builder does not decide: it prints what the chain carries and whether the second
-    code path and the replay agree with it (protocol 8.9)."""
+    code path and the replay agree with it (protocol 8.9).  A trial that ended in
+    ``trial_aborted(server_restart_cap)`` reports no decision: ``primary_result`` is
+    :data:`RESTART_CAP_LABEL`, ``reportable`` is false, and a logged decision is kept under
+    ``decision`` with ``decision_label`` saying it is not reportable."""
     logged = next((dict(e['body'], seq=int(e['seq'])) for e in events
                    if e['type'] == 'decision'), None)
+    incomplete = restart_cap_incomplete(events)
     reference = lab_reference_rule.decide_from_chain(list(events), dict(cfg), trial)
     replayed = lab_monitor.replay(list(events), dict(cfg), trial)
     updates = [e for e in events if e['type'] == 'monitor_update']
@@ -206,8 +230,12 @@ def decision_object(events: Sequence[Mapping], cfg: Mapping, trial: str) -> dict
         'replay_agrees_elementwise': bool(replay_agrees),
         'n_shadow_mismatches': sum(1 for u in updates
                                    if u['body']['shadow']['mismatch']),
-        'primary_result': ('LIVE_DECISION_INVALID (harness defect)' if not agreement
+        'primary_result': (RESTART_CAP_LABEL if incomplete
+                           else 'LIVE_DECISION_INVALID (harness defect)' if not agreement
                            else (logged['kind'] if logged else 'none')),
+        'reportable': not incomplete,
+        'decision_label': (RESTART_CAP_LABEL if incomplete and logged is not None
+                           else None),
         'margin_delta': float(dict(cfg)['monitor']['delta']),
         'alpha_gate': float(dict(cfg)['monitor']['alpha_gate']),
         'rho': float(dict(cfg)['monitor']['rho']),
@@ -759,8 +787,9 @@ def build(trials: Sequence[str], bundle_sha: str, *, results_root: Path, work_ro
         if ledger_src.exists():
             files['exposure_ledger.json'] = _write_json(
                 tdir / 'exposure_ledger.json', _read(ledger_src), mock)
-        terminal = next((e for e in reversed(events)
-                         if e['type'] in ('trial_ended', 'trial_aborted')), None)
+        terminal = terminal_event(events)
+        logged_kind = next((e['body']['kind'] for e in events
+                            if e['type'] == 'decision'), 'none')
         summary['trials'][trial] = {
             'status': terminal['body']['status'] if terminal else 'open',
             'final_head': read.events[-1]['h'] if read.events else None,
@@ -768,9 +797,14 @@ def build(trials: Sequence[str], bundle_sha: str, *, results_root: Path, work_ro
                                   and not e['body'].get('re_enrolled')),
             'episodes_revealed': sum(1 for e in events
                                      if e['type'] == 'episode_revealed'),
-            'decision': next((e['body']['kind'] for e in events
-                              if e['type'] == 'decision'), 'none'),
+            'decision': logged_kind,
         }
+        if restart_cap_incomplete(events):
+            # no deployment/harm decision from an incomplete trial; the logged one is kept,
+            # labelled, beside it
+            summary['trials'][trial].update({'decision': RESTART_CAP_LABEL,
+                                             'logged_decision': logged_kind,
+                                             'reportable': False})
         summary['files'][trial] = files
     summary['program_alpha'] = float(cfg.get('monitor', {}).get('alpha_program', 0.05))
     summary['statement'] = (

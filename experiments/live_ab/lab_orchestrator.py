@@ -482,6 +482,241 @@ def exposure_recount(events: Sequence[Mapping]) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# usage reconciliation windows (protocol 13.1; repair contract EB1 item 3)
+# ---------------------------------------------------------------------------
+#: The five ``/metrics`` counters of a ``metrics_scrape`` / ``server_down.last_counters``.
+COUNTER_KEYS: tuple[str, ...] = ('prompt_tokens_total', 'tokens_predicted_total',
+                                 'n_decode_total', 'requests_processing', 'requests_deferred')
+
+#: The scrape points at which the counters are EXACT: the server is idle and every response
+#: it served is already a chain event (protocol 13.1, P:2538-2548: "exact reconciliation
+#: exists only at quiescent points").  ``trial_start`` follows only the smoke, a
+#: ``pair_boundary`` follows both reveals of a pair, ``quiescent`` follows the drain of the
+#: follow-up cohort, ``trial_end`` follows the last reveal.  A ``restart`` scrape is taken
+#: while recovering clients may already be sending to the new process (lab_client waits for
+#: ``/health``, not for ``server_restarted``), so it closes no window.
+QUIESCENT_SCRAPE_POINTS: frozenset[str] = frozenset({'trial_start', 'pair_boundary',
+                                                     'quiescent', 'trial_end'})
+
+
+def _usage_pair(usage: Mapping | None) -> tuple[int, int]:
+    u = dict(usage or {})
+    return int(u.get('prompt_tokens') or 0), int(u.get('completion_tokens') or 0)
+
+
+def reconciliation_windows(events: Sequence[Mapping], server_ids: Iterable[str],
+                           *, last_seq: int | None = None) -> list[dict]:
+    """[pure] The ``usage_reconciliation`` bodies of one trial chain, one per server PROCESS.
+
+    A server's counters start at 0 in every new process (ARCHITECTURE 8.3, A:2266-2269), so
+    the chain is cut into windows at every ``server_started`` / ``server_restarted`` of that
+    server; the first window starts at seq 0.  Each window's client usage is the SERVER_SMOKE
+    usage of the body that opened it (protocol 5.3, P:921-922: the smoke "enters the
+    reconciliation identity") plus the ``llm_response`` usage of that server inside the window.
+
+    * A window a ``server_down`` of that server cut is ``counters_lost: true`` with a null
+      residual and no defect: the tail between its last scrape and the crash died with the
+      process (protocol 6.4 row 5, "counters lost across a crash reported as an unreconciled
+      window").
+    * Otherwise the window is reconciled at its LAST ``ok`` scrape at a
+      :data:`QUIESCENT_SCRAPE_POINTS` point: ``counter_delta`` is that scrape's counters (the
+      process started at 0), ``client_usage_sum`` the smoke plus the responses appended before
+      the scrape, and any non-zero residual is a ``reconciliation_defect``.  A window with no
+      such scrape is ``counters_lost: true`` (unreconciled, row 20), never a residual against
+      a guessed counter.
+    * ``window`` is ``'restart'`` when a supervised restart bounds it (it opened at a
+      ``server_restarted`` or a ``server_down`` cut it) and ``'trial'`` otherwise.
+
+    ``last_seq`` is the seq the last window runs to (default: the last event's)."""
+    events = list(events)
+    end = int(last_seq if last_seq is not None
+              else (events[-1]['seq'] if events else 0))
+    out: list[dict] = []
+    for sid in sorted(set(str(s) for s in server_ids)):
+        windows: list[dict] = []
+        cur: dict = {'from': 0, 'opened_by': None, 'base': (0, 0), 'responses': [],
+                     'point': None, 'cut': None, 'last_counters': None}
+        for ev in events:
+            etype = ev['type']
+            body = ev.get('body') or {}
+            if body.get('server_id') != sid:
+                continue
+            seq = int(ev['seq'])
+            if etype in ('server_started', 'server_restarted'):
+                base = _usage_pair((body.get('smoke') or {}).get('usage'))
+                if cur['opened_by'] is not None or cur['responses'] or cur['cut'] is not None:
+                    cur['to'] = seq - 1
+                    windows.append(cur)
+                    cur = {'from': seq, 'opened_by': etype, 'base': base, 'responses': [],
+                           'point': None, 'cut': None, 'last_counters': None}
+                else:
+                    cur['opened_by'] = etype
+                    cur['base'] = base
+            elif etype == 'server_down':
+                if cur['cut'] is None:
+                    cur['cut'] = seq
+            elif etype == 'llm_response':
+                cur['responses'].append((seq,) + _usage_pair(body.get('usage')))
+            elif etype == 'metrics_scrape' and body.get('ok'):
+                counters = body.get('counters') or {}
+                prompt = counters.get('prompt_tokens_total')
+                predicted = counters.get('tokens_predicted_total')
+                if not all(isinstance(v, int) and not isinstance(v, bool)
+                           for v in (prompt, predicted)):
+                    continue
+                cur['last_counters'] = (int(prompt), int(predicted))
+                if cur['cut'] is None and body.get('point') in QUIESCENT_SCRAPE_POINTS:
+                    cur['point'] = (seq, int(prompt), int(predicted))
+        cur['to'] = end
+        windows.append(cur)
+        for w in windows:
+            label = 'restart' if (w['opened_by'] == 'server_restarted'
+                                  or w['cut'] is not None) else 'trial'
+            if w['cut'] is not None or w['point'] is None:
+                upto = w['cut'] if w['cut'] is not None else w['to']
+                prompt = w['base'][0] + sum(r[1] for r in w['responses'] if r[0] <= upto)
+                predicted = w['base'][1] + sum(r[2] for r in w['responses'] if r[0] <= upto)
+                known = w['last_counters'] or (0, 0)
+                out.append({
+                    'server_id': sid, 'window': label, 'window_from_seq': int(w['from']),
+                    'window_to_seq': int(upto),
+                    'counter_delta': {'prompt': int(known[0]), 'predicted': int(known[1])},
+                    'client_usage_sum': {'prompt': int(prompt), 'predicted': int(predicted)},
+                    'residual': {'prompt': None, 'predicted': None},
+                    'reconciliation_defect': False, 'counters_lost': True})
+                continue
+            at, c_prompt, c_predicted = w['point']
+            prompt = w['base'][0] + sum(r[1] for r in w['responses'] if r[0] < at)
+            predicted = w['base'][1] + sum(r[2] for r in w['responses'] if r[0] < at)
+            residual = {'prompt': c_prompt - prompt, 'predicted': c_predicted - predicted}
+            out.append({
+                'server_id': sid, 'window': label, 'window_from_seq': int(w['from']),
+                'window_to_seq': int(at),
+                'counter_delta': {'prompt': int(c_prompt), 'predicted': int(c_predicted)},
+                'client_usage_sum': {'prompt': int(prompt), 'predicted': int(predicted)},
+                'residual': residual,
+                'reconciliation_defect': bool(residual['prompt'] or residual['predicted']),
+                'counters_lost': False})
+    return out
+
+
+def client_usage_totals(events: Sequence[Mapping], server_ids: Iterable[str]) -> dict:
+    """[pure] Per server, every client-observed usage the chain carries: the SERVER_SMOKE
+    usage of each start and restart plus every ``llm_response`` (``trial_ended.
+    reconciliation_totals``).  Unknown usage is not in it and is not zero: it is counted by
+    ``unknown_usage_by_request``."""
+    out: dict = {}
+    for sid in sorted(set(str(s) for s in server_ids)):
+        prompt = predicted = 0
+        for ev in events:
+            body = ev.get('body') or {}
+            if body.get('server_id') != sid:
+                continue
+            if ev['type'] in ('server_started', 'server_restarted'):
+                p, c = _usage_pair((body.get('smoke') or {}).get('usage'))
+            elif ev['type'] == 'llm_response':
+                p, c = _usage_pair(body.get('usage'))
+            else:
+                continue
+            prompt += p
+            predicted += c
+        out[sid] = {'prompt': prompt, 'predicted': predicted}
+    return out
+
+
+# ---------------------------------------------------------------------------
+# supervision state, rebuilt from the chain (repair contract EB1 items 2 and 4)
+# ---------------------------------------------------------------------------
+#: The ``server_start_failed.stage`` values of a server that never became healthy.  After a
+#: supervised restart (or a resume start) they are ``trial_paused(server_unrecoverable)``
+#: after the pair (protocol 14.6, P:2789); every other stage aborts by
+#: :data:`START_FAILURE_REASON`.
+NEVER_HEALTHY_STAGES: frozenset[str] = frozenset({'launch', 'health'})
+
+RESTART_CAP_REASON: str = 'server_restart_cap'
+
+
+@dataclass(frozen=True)
+class SupervisionState:
+    """What supervision must carry across an invocation boundary, read from the chain alone.
+
+    ``restarts``: attempted supervised restarts per server (``server_restarted`` plus
+    ``server_start_failed`` with ``kind='restart'``), the counter the cap bounds.
+    ``props_sha256``: the tokenized ``/props`` digest of each server's last verified start,
+    the ``previous_props_sha256`` of its next restart.  ``down_overlap``: every arrival that
+    was in flight at a ``server_down`` (its reveal carries ``infra_flag``, P:1387-1388).
+    ``unresolved_down``: server -> seq of a ``server_down`` that no restart, failed restart,
+    pause or abort has followed yet.  ``pending_abort`` / ``pending_pause``: the outcome the
+    chain owes and does not yet carry.  ``cap_required``: a ``server_down`` found its server
+    already at the cap -- a restart beyond the cap would have been required."""
+    restarts: dict
+    props_sha256: dict
+    down_overlap: frozenset
+    unresolved_down: dict
+    pending_abort: str | None
+    pending_pause: str | None
+    cap_required: bool
+
+
+def supervision_state(events: Sequence[Mapping], cap: int | None) -> SupervisionState:
+    """[pure] Replay the server lifecycle events of a chain into a :class:`SupervisionState`.
+
+    The rules are the live ones of :meth:`World.supervise_down`: a ``server_down`` of a server
+    whose attempted restarts already reach ``cap`` owes ``trial_aborted(server_restart_cap)``
+    (and overrides any other pending outcome); a failed restart or start owes
+    ``trial_paused(server_unrecoverable)`` when it never became healthy and
+    ``trial_aborted(<START_FAILURE_REASON>)`` otherwise; a ``server_restarted`` whose
+    ``props_equal_previous`` is false owes ``trial_aborted(server_identity)``.  A
+    ``trial_paused`` discharges a pending pause and every unresolved ``server_down``, never a
+    pending abort; ``trial_aborted`` discharges everything.  ``cap`` None (a simulated run)
+    never binds."""
+    restarts: dict = {}
+    props: dict = {}
+    overlap: set = set()
+    unresolved: dict = {}
+    pending_abort: str | None = None
+    pending_pause: str | None = None
+    cap_required = False
+    for ev in events:
+        etype = ev['type']
+        body = ev.get('body') or {}
+        sid = body.get('server_id')
+        if etype in ('server_started', 'server_restarted'):
+            props[sid] = body.get('props_sha256')
+            unresolved.pop(sid, None)
+            if etype == 'server_restarted':
+                restarts[sid] = restarts.get(sid, 0) + 1
+                if body.get('props_equal_previous') is False and pending_abort is None:
+                    pending_abort = 'server_identity'
+        elif etype == 'server_start_failed':
+            if body.get('kind') == 'restart':
+                restarts[sid] = restarts.get(sid, 0) + 1
+            unresolved.pop(sid, None)
+            stage = str(body.get('stage'))
+            if stage in NEVER_HEALTHY_STAGES:
+                pending_pause = pending_pause or 'server_unrecoverable'
+            elif pending_abort is None:
+                pending_abort = START_FAILURE_REASON.get(stage, 'infrastructure')
+        elif etype == 'server_down':
+            overlap.update(int(r['arrival']) for r in (body.get('inflight') or []))
+            if cap is not None and restarts.get(sid, 0) >= int(cap):
+                pending_abort = RESTART_CAP_REASON
+                cap_required = True
+            else:
+                unresolved[sid] = int(ev['seq'])
+        elif etype == 'trial_paused':
+            pending_pause = None
+            unresolved.clear()
+        elif etype == 'trial_aborted':
+            pending_abort = pending_pause = None
+            unresolved.clear()
+    return SupervisionState(restarts=restarts, props_sha256=props,
+                            down_overlap=frozenset(overlap), unresolved_down=unresolved,
+                            pending_abort=pending_abort, pending_pause=pending_pause,
+                            cap_required=cap_required)
+
+
+# ---------------------------------------------------------------------------
 # the run context and the exclusive lock
 # ---------------------------------------------------------------------------
 @dataclass(frozen=True)
@@ -904,6 +1139,34 @@ def _gguf_drift(server_id: str, spec: ServerSpec) -> dict | None:
     return None
 
 
+def health_failures_to_down(cfg: Mapping) -> int:
+    """[pure] ``execution.health_failures_to_down`` (protocol 5.3, P:917: "3 consecutive
+    failures"), a positive int; raises ``ValueError`` otherwise.  No default."""
+    value = (frozen_cfg(cfg).get('execution') or {}).get('health_failures_to_down')
+    if not isinstance(value, int) or isinstance(value, bool) or value < 1:
+        raise ValueError('execution.health_failures_to_down is not a positive int')
+    return int(value)
+
+
+def supervision_config_problems(cfg: Mapping, *, sim: bool) -> list[tuple[str, str]]:
+    """[pure] ``[(drift label, problem)]`` for the two frozen supervision inputs of a
+    non-simulated run -- ``server_supervision`` read by ``lab_common.server_supervision_cap``
+    and ``execution.health_failures_to_down`` -- and ``[]`` when both are well formed or
+    ``sim`` is true."""
+    if sim:
+        return []
+    out: list[tuple[str, str]] = []
+    try:
+        lab_common.server_supervision_cap(frozen_cfg(cfg))
+    except lab_common.FrozenMismatch as exc:
+        out.append(('server_supervision', str(exc)))
+    try:
+        health_failures_to_down(cfg)
+    except ValueError as exc:
+        out.append(('execution.health_failures_to_down', str(exc)))
+    return out
+
+
 def preflight(ctx: RunContext) -> dict:
     """Every refusal before seq 0 (ARCHITECTURE_FINAL.md 3.13, protocol 6.4 row 21).
 
@@ -996,6 +1259,16 @@ def preflight(ctx: RunContext) -> dict:
     if manifest_rows:
         failed.append('serving_manifest')
         drift.extend(manifest_rows)
+    # --- supervision (repair contract EB1 items 1-2) ------------------------------------
+    # Every invocation that starts a server supervises it, and supervision has two frozen
+    # inputs: the restart cap (root 20:40 item 4, config.server_supervision) and the
+    # consecutive-health-failure threshold (protocol 5.3, config.execution.
+    # health_failures_to_down).  Absent or malformed, the run is refused here, before seq 0,
+    # under the closed code ``preflight_rule_failed``: there is no default cap and no default
+    # threshold.  A simulated invocation starts no server and supervises none.
+    for label, problem in supervision_config_problems(cfg, sim=bool(rt.get('sim'))):
+        failed.append('preflight_rule_failed')
+        _drift(label, sha256_text('%s per repair contract EB1' % label), sha256_text(problem))
     # A path is SIMULATED only when a harness installed a substitute world; the runtime
     # overlay -- which ``main`` also accepts from inside the configuration file -- cannot
     # make it so.  On the real path a runtime ``sim`` (it would skip the host gate and write
@@ -1596,6 +1869,41 @@ class World:
         self.seed_registry_path = seed_registry_path(self.work_root())
         self.used_seeds: set[int] = set()
         self._seeds_on_disk: int = -1
+        # -- supervision (repair contract EB1 items 1-2; protocol 5.3) -----------------
+        # The cap and the threshold are frozen inputs that preflight has already refused
+        # when absent or malformed on a non-simulated run; a simulated run supervises
+        # nothing and carries None.
+        try:
+            self.restart_cap: int | None = (None if self.rt.get('sim')
+                                            else lab_common.server_supervision_cap(self.cfg))
+        except lab_common.FrozenMismatch:
+            self.restart_cap = None
+        try:
+            self.health_threshold: int | None = (None if self.rt.get('sim')
+                                                 else health_failures_to_down(self.cfg))
+        except ValueError:
+            self.health_threshold = None
+        #: consecutive failed ``/health`` polls per server; reset by a good poll or a restart.
+        self.health_failures: dict[str, int] = {}
+        #: attempted supervised restarts per server in this trial (rebuilt on resume).
+        self.restarts: dict[str, int] = {}
+        #: tokenized ``/props`` digest of each server's last verified start or restart.
+        self.server_props_sha: dict[str, str] = {}
+        #: arrivals in flight at any ``server_down``: their reveal carries ``infra_flag``.
+        self.down_overlap: set[int] = set()
+        #: server -> seq of a ``server_down`` the chain has not yet resolved (resume only).
+        self.unresolved_down: dict[str, int] = {}
+        #: the outcome supervision owes once every open attempt is revealed: an abort
+        #: (``server_restart_cap``, ``server_identity``, ``receipt_mismatch``,
+        #: ``harness_defect``) or ``server_unrecoverable``.  While either is set nothing new
+        #: is dispatched and the pump drains; an abort outranks a pause.
+        self.pending_abort: str | None = None
+        self.pending_pause: str | None = None
+        #: resume only: the previous invocation's server pids by server, and those of them
+        #: that are provably no longer that server (dead, or alive and not listening on its
+        #: port: a reused pid, never signalled).
+        self.previous_pids: dict[str, int] = {}
+        self.previous_gone: set[int] = set()
 
     # -- configuration --------------------------------------------------------
     def _execution(self) -> dict:
@@ -1828,18 +2136,9 @@ class World:
                 self.append('server_started', self.sim_server_started_body(server_id, spec),
                             durable=True)
             return
-        sampling = dict(self.cfg.get('sampling') or {})
-        manifest_sha = (self.cfg.get('llama_cpp') or {}).get('serving_manifest_sha256')
-        timeout_s = float(self.rt.get('server_start_timeout_s') or 600.0)
-        for server_id, spec in sorted(self.ctx.servers.items()):
-            golden = self.ctx.golden.get(server_id)
+        for server_id in sorted(self.ctx.servers):
             try:
-                body = lab_server.start(
-                    spec, golden_props=(golden or {}).get('props'), golden=golden,
-                    sampling=sampling, timeout_s=timeout_s,
-                    serving_manifest=self.ctx.serving_manifest,
-                    serving_manifest_sha256=manifest_sha, mode='trial', kind='start',
-                    restart_index=0)
+                self._start_one(server_id)
             except lab_common.ServerStartFailed as exc:
                 self.append('server_start_failed', dict(exc.record), durable=True)
                 self.stop_servers()
@@ -1847,27 +2146,54 @@ class World:
             except PreflightError:
                 self.stop_servers()
                 raise AbortTrial('harness_defect') from None
-            self.server_pids[server_id] = int(body['pid'])
-            self.append('server_started', body, durable=True)
-            self.server_ok[server_id] = bool(body['props_matches_golden']
-                                             and body['smoke']['ok'])
+
+    def _server_call_kwargs(self, server_id: str) -> dict:
+        """The frozen inputs every ``lab_server.start`` / ``restart`` of one server gets."""
+        golden = self.ctx.golden.get(server_id)
+        return {'golden': golden, 'sampling': dict(self.cfg.get('sampling') or {}),
+                'serving_manifest': self.ctx.serving_manifest,
+                'serving_manifest_sha256': (self.cfg.get('llama_cpp') or {}).get(
+                    'serving_manifest_sha256')}
+
+    def _start_one(self, server_id: str) -> dict:
+        """``lab_server.start`` in trial mode; on success the returned body is appended as
+        ``server_started`` and the pid is held.  Raises what ``lab_server.start`` raises (the
+        caller decides what a failure means: an abort at the first start, the supervision
+        rules on resume)."""
+        spec = self.ctx.servers[server_id]
+        kw = self._server_call_kwargs(server_id)
+        body = lab_server.start(
+            spec, golden_props=(kw['golden'] or {}).get('props'),
+            timeout_s=float(self.rt.get('server_start_timeout_s') or 600.0),
+            mode='trial', kind='start', restart_index=0, **kw)
+        self.server_pids[server_id] = int(body['pid'])
+        self.server_props_sha[server_id] = str(body['props_sha256'])
+        self.health_failures[server_id] = 0
+        self.append('server_started', body, durable=True)
+        self.server_ok[server_id] = bool(body['props_matches_golden'] and body['smoke']['ok'])
+        return body
+
+    def _stop_server(self, server_id: str) -> None:
+        """Stop (or reap) one held server and append its durable ``server_stopped`` with the
+        return code the stop observed; the pid is dropped, so it is never stopped twice."""
+        pid = int(self.server_pids.get(server_id) or 0)
+        if not pid:
+            return
+        result = lab_server.stop(pid)
+        self.server_pids.pop(server_id, None)
+        self.server_ok[server_id] = False
+        self.append('server_stopped', {
+            'server_id': server_id, 'pid': pid,
+            'returncode': (int(result['returncode'])
+                           if result.get('returncode') is not None else None),
+            'seconds': float(result.get('seconds') or 0.0)}, durable=True)
 
     def stop_servers(self) -> None:
         """Stop every server this invocation started and still holds, each with a durable
         ``server_stopped`` record carrying the return code the stop observed.  The pid is
         dropped once stopped, so no server is stopped (or recorded) twice."""
         for server_id in sorted(self.server_pids):
-            pid = int(self.server_pids.get(server_id) or 0)
-            if not pid:
-                continue
-            result = lab_server.stop(pid)
-            self.server_pids.pop(server_id, None)
-            self.server_ok[server_id] = False
-            self.append('server_stopped', {
-                'server_id': server_id, 'pid': pid,
-                'returncode': (int(result['returncode'])
-                               if result.get('returncode') is not None else None),
-                'seconds': float(result.get('seconds') or 0.0)}, durable=True)
+            self._stop_server(server_id)
 
     def sim_server_started_body(self, server_id: str, spec: ServerSpec) -> dict:
         """The body of a SIMULATED start, which starts nothing and compares nothing.
@@ -1893,9 +2219,14 @@ class World:
                                   'predicted_per_second': 0.0},
                       'ok': False}}
 
-    def scrape(self, point: str) -> None:
+    def scrape(self, point: str, *, server_ids: Iterable[str] | None = None) -> None:
+        """``metrics_scrape`` (durable) for every server of the trial, or for ``server_ids``
+        only -- the ``restart`` scrape of protocol 13.1 (P:2546) is of the restarted server."""
         execution = self.cfg.get('execution') or {}
+        only = None if server_ids is None else {str(s) for s in server_ids}
         for server_id, spec in sorted(self.ctx.servers.items()):
+            if only is not None and server_id not in only:
+                continue
             if self.rt.get('sim'):
                 counters = self._sim_counters(server_id)
                 ok, tries = True, 1
@@ -1950,6 +2281,15 @@ class World:
                 'requests_deferred': 0}
 
     def health_poll(self) -> None:
+        """The supervisor of protocol 5.3 (P:915-922), every ``execution.health_poll_s``.
+
+        For each server this invocation holds: first ``lab_server.exit_status`` -- a child
+        that has exited is down at once (``detected_by='exit'``, with its return code);
+        otherwise ``/health`` is polled and logged as ``server_health``, and the
+        ``execution.health_failures_to_down``-th CONSECUTIVE failure is down
+        (``detected_by='health'``).  A down server goes to :meth:`supervise_down`.  A server
+        this invocation does not hold (never started, or stopped after a failed restart) is
+        not polled.  A simulated run polls nothing real and supervises nothing."""
         execution = self.cfg.get('execution') or {}
         every = float(execution.get('health_poll_s', 5))
         now = time.monotonic()
@@ -1958,15 +2298,156 @@ class World:
         self.last_health = now
         for server_id, spec in sorted(self.ctx.servers.items()):
             if self.rt.get('sim'):
-                ok, busy = True, len(self.open_arrivals)
-            else:
-                got = lab_server.health(spec.base_url)
-                ok = bool(got.get('ok'))
-                busy = int(got.get('slots_busy') or 0)
+                self.server_ok[server_id] = True
+                self.append('server_health', {'server_id': server_id, 'ok': True,
+                                              'slots_busy': len(self.open_arrivals),
+                                              'rss_bytes': 0, 'clock_anomaly': False})
+                continue
+            pid = int(self.server_pids.get(server_id) or 0)
+            if not pid:
+                continue
+            try:
+                returncode = lab_server.exit_status(pid)
+            except lab_common.LabError:
+                returncode = None          # not a child of this process: /health decides
+            if returncode is not None:
+                self.server_ok[server_id] = False
+                self.supervise_down(server_id, 'exit', int(returncode))
+                continue
+            got = lab_server.health(spec.base_url)
+            ok = bool(got.get('ok'))
             self.server_ok[server_id] = ok
             self.append('server_health', {'server_id': server_id, 'ok': ok,
-                                          'slots_busy': busy, 'rss_bytes': 0,
-                                          'clock_anomaly': False})
+                                          'slots_busy': int(got.get('slots_busy') or 0),
+                                          'rss_bytes': 0, 'clock_anomaly': False})
+            if ok:
+                self.health_failures[server_id] = 0
+                continue
+            self.health_failures[server_id] = self.health_failures.get(server_id, 0) + 1
+            threshold = self.health_threshold
+            if threshold is None:
+                # preflight refuses this before seq 0; reaching it is the harness's defect
+                self.pending_abort = self.pending_abort or 'harness_defect'
+                continue
+            if self.health_failures[server_id] >= threshold:
+                self.supervise_down(server_id, 'health', None)
+
+    def supervise_down(self, server_id: str, detected_by: str,
+                       returncode: int | None) -> None:
+        """One ``server_down`` and what supervision does about it (repair contract EB1 item
+        2; protocol 5.3, 5.6 row 5, 14.6; root 20:40 item 4).
+
+        1. Every open spool is ingested first, so that each response the dying process
+           served is a chain event of ITS reconciliation window, not of the next one.
+        2. ``server_down`` (durable): the arrivals still in flight on that server with their
+           arms, the last scraped counters, ``counters_lost: true`` (a process's counters die
+           with it, A:2266-2269).  Those arrivals' reveals carry ``infra_flag`` (P:1387-1388).
+        3. The old process is stopped -- a hung one by SIGTERM/SIGKILL, an exited one only
+           reaped -- and recorded as ``server_stopped``.
+        4. If the server's attempted supervised restarts already reach the frozen cap, a
+           further restart would be required: nothing is restarted, nothing new is
+           dispatched, the open attempts drain through the ordinary pump (the hard-cap kill
+           still applies) and are revealed, and then ``trial_aborted(server_restart_cap)``.
+           This outranks any other pending outcome.  No replacement trial, no extra pair.
+        5. Otherwise, unless an abort is already owed, :meth:`supervised_restart`."""
+        self._ingest_open()
+        old_pid = int(self.server_pids.get(server_id) or 0)
+        inflight = [{'arrival': int(a), 'arm': self.attempts[a].arm}
+                    for a in sorted(self.open_arrivals)
+                    if a in self.attempts and self.attempts[a].server_id == server_id
+                    and not self.attempts[a].revealed]
+        counters = self.counters.get(server_id) or {}
+        self.down_overlap.update(row['arrival'] for row in inflight)
+        self.append('server_down', {
+            'server_id': server_id, 'detected_by': detected_by,
+            'returncode': None if returncode is None else int(returncode),
+            'inflight': inflight,
+            'last_counters': {k: (int(counters[k]) if isinstance(counters.get(k), int)
+                                  else None) for k in COUNTER_KEYS},
+            'counters_lost': True}, durable=True)
+        self.server_ok[server_id] = False
+        self.health_failures[server_id] = 0
+        if old_pid:
+            self._stop_server(server_id)
+        if self.restart_cap is None:
+            # preflight refuses this before seq 0; reaching it is the harness's defect, and
+            # an unbounded restart is never the fallback
+            self.pending_abort = self.pending_abort or 'harness_defect'
+            return
+        if self.restarts.get(server_id, 0) >= self.restart_cap:
+            self.pending_abort = RESTART_CAP_REASON
+            return
+        if self.pending_abort is not None:
+            return                      # an abort is owed: the trial drains, nothing restarts
+        self.supervised_restart(server_id, previous_pid=old_pid)
+
+    def supervised_restart(self, server_id: str, *, previous_pid: int) -> None:
+        """``lab_server.restart`` with the identical argv, the golden objects, the frozen
+        sampling, the previous start's ``/props`` digest and ``timeout_s =
+        execution.server_recovery_s`` (protocol 5.6).  The attempt counts towards the cap
+        whether or not it succeeds.
+
+        Success: the pid is held, ``server_restarted`` (durable) is appended and the
+        restarted server is scraped (``metrics_scrape(restart)``, P:2546).  A body whose
+        ``props_equal_previous`` is false owes ``trial_aborted(server_identity)`` (6.4 row 6).
+        Failure: ``server_start_failed(kind=restart)`` is appended as raised, then a server
+        that never became healthy (stage ``launch`` / ``health``) owes
+        ``trial_paused(server_unrecoverable)`` after the pair (P:2789), and a GGUF, serving
+        manifest, identity or smoke failure owes ``trial_aborted`` by
+        :data:`START_FAILURE_REASON`.  A call ``lab_server.restart`` REFUSED (it launched
+        nothing) owes ``trial_aborted(harness_defect)``."""
+        spec = self.ctx.servers[server_id]
+        index = self.restarts.get(server_id, 0) + 1
+        self.restarts[server_id] = index
+        kw = self._server_call_kwargs(server_id)
+        timeout_s = float((self.cfg.get('execution') or {}).get('server_recovery_s', 180))
+        try:
+            body = lab_server.restart(
+                spec, (kw['golden'] or {}).get('props'),
+                previous_props_sha256=self.server_props_sha.get(server_id),
+                timeout_s=timeout_s, previous_pid=int(previous_pid), restart_index=index,
+                **kw)
+        except lab_common.ServerStartFailed as exc:
+            self.append('server_start_failed', dict(exc.record), durable=True)
+            stage = str(exc.record.get('stage'))
+            if stage in NEVER_HEALTHY_STAGES:
+                self.pending_pause = self.pending_pause or 'server_unrecoverable'
+            elif self.pending_abort is None:
+                self.pending_abort = START_FAILURE_REASON.get(stage, 'infrastructure')
+            return
+        except PreflightError:
+            if self.pending_abort is None:
+                self.pending_abort = 'harness_defect'
+            return
+        self.server_pids[server_id] = int(body['pid'])
+        self.server_props_sha[server_id] = str(body['props_sha256'])
+        self.health_failures[server_id] = 0
+        self.append('server_restarted', body, durable=True)
+        self.server_ok[server_id] = bool(body['props_matches_golden'] and body['smoke']['ok'])
+        if not body.get('props_equal_previous', False) and self.pending_abort is None:
+            self.pending_abort = 'server_identity'
+        self.scrape('restart', server_ids=[server_id])
+
+    def _ingest_open(self) -> None:
+        """Ingest the new spool bytes of every open attempt (as the pump does, without
+        reaping or the hard cap); a spool that cannot be read is an interrupted attempt."""
+        for arrival in list(self.open_arrivals):
+            att = self.attempts.get(arrival)
+            if att is None or att.revealed:
+                continue
+            try:
+                ingest_spool(self, att)
+            except SpoolError:
+                self._interrupt(att)
+
+    def raise_pending(self) -> None:
+        """Take the owed supervision outcome once nothing is open: an abort before a pause."""
+        if self.open_arrivals:
+            return
+        if self.pending_abort is not None:
+            raise AbortTrial(self.pending_abort)
+        if self.pending_pause is not None:
+            raise PauseTrial(self.pending_pause)
 
     # -- anchors --------------------------------------------------------------
     def request_anchor(self, trigger: str, *, blocking: bool) -> None:
@@ -2386,6 +2867,11 @@ def _reveal(world: World, att: Attempt, *, outcome: dict, record_sha256: str,
     att.ended_mono = att.ended_mono or time.monotonic()
     if att.arrival in world.open_arrivals:
         world.open_arrivals.remove(att.arrival)
+    if att.arrival in world.down_overlap and not outcome.get('infra_flag'):
+        # protocol 6.4 (P:1387-1388): "any overlap with a server_down interval" sets
+        # infra_flag, and only the orchestrator knows it (lab_worker.outcome_from_record ORs
+        # in the rest).  The arrival was in flight at a server_down of its server.
+        outcome = dict(outcome, infra_flag=True)
     world.reveal_index += 1
     world.append('episode_revealed', {
         'arrival': att.arrival, 'pair': att.pair or 0, 'position': att.position or 0,
@@ -2456,6 +2942,9 @@ def _step(state: State, ctx: RunContext, world: World) -> State:      # noqa: C9
         return 'OPENING_WAIT'                                # type: ignore[return-value]
 
     if state == 'IDLE':
+        # Nothing is open here, so an outcome supervision owes is taken now, before any
+        # enrollment (repair contract EB1: no new arrival after a failed restart or the cap).
+        world.raise_pending()
         if world.pairs_enrolled >= world.max_pairs:
             # the horizon: no further enrollment is possible, so a deferred resume look is
             # written here and the frozen decide() runs on it (7.1 row 4a).
@@ -2756,7 +3245,14 @@ def _w_pump(self: World) -> dict | None:
     # kind of quiet staleness this repair exists to remove.  The call is a no-op unless the
     # set actually grew, so a 50 ms poll does not rewrite the file.
     self.persist_seed_registry()
-    self._auto_abort()
+    # While supervision owes an abort the pump only drains: no other automatic abort may
+    # pre-empt it, so the reason the chain ends with is the one supervision determined
+    # (trial_aborted(server_restart_cap) exists iff the cap bound -- verifier
+    # server.lifecycle).  An owed PAUSE does not suspend the automatic aborts: an abort
+    # outranks a pause.
+    if self.pending_abort is None:
+        self._auto_abort()
+    self.raise_pending()
     return self.decision
 
 
@@ -2833,6 +3329,8 @@ def _w_dispatch_follow_up(self: World) -> bool:
     """The work-conserving follow-up cohort (protocol 5.1, 9.3): one arrival at a time to
     whichever worker is free, all under the decided arm.  No pair, no coin, no look."""
     workers = int((self.cfg.get('execution') or {}).get('workers', 2))
+    if self.pending_abort is not None or self.pending_pause is not None:
+        return False                  # supervision owes an abort or a pause: drain only
     if len(self.open_arrivals) >= workers:
         return False
     arrival = self.next_unassigned_arrival()
@@ -2925,31 +3423,17 @@ def _w__terminal_by_arm(self: World) -> dict:
 
 
 def _w_reconcile(self: World) -> None:
-    """One ``usage_reconciliation`` per server for the whole-trial window (PG-10)."""
+    """The ``usage_reconciliation`` records of the trial (PG-10; repair contract EB1 item 3):
+    one per server PROCESS, from :func:`reconciliation_windows` over the chain as it stands
+    -- the SERVER_SMOKE usage of every start and restart is in its window, and a window a
+    restart cut is ``counters_lost`` rather than a residual.  ``usage_sum`` (the trial's
+    ``reconciliation_totals``) is :func:`client_usage_totals`: smoke plus responses."""
     assert self.log is not None
-    for server_id in sorted(self.ctx.servers):
-        prompt = predicted = 0
-        for ev in self.log.events:
-            if ev['type'] == 'llm_response' and ev['body']['server_id'] == server_id:
-                prompt += int(ev['body']['usage']['prompt_tokens'])
-                predicted += int(ev['body']['usage']['completion_tokens'])
-        counters = self.counters.get(server_id) or {}
-        delta = {'prompt': int(counters.get('prompt_tokens_total') or 0),
-                 'predicted': int(counters.get('tokens_predicted_total') or 0)}
-        summed = {'prompt': prompt, 'predicted': predicted}
-        residual = {'prompt': delta['prompt'] - prompt,
-                    'predicted': delta['predicted'] - predicted}
-        lost = not bool(counters)
-        self.usage_sum[server_id] = summed
-        self.append('usage_reconciliation', {
-            'server_id': server_id, 'window': 'trial', 'window_from_seq': 0,
-            'window_to_seq': int(self.log.seq - 1), 'counter_delta': delta,
-            'client_usage_sum': summed,
-            'residual': {'prompt': None if lost else residual['prompt'],
-                         'predicted': None if lost else residual['predicted']},
-            'reconciliation_defect': bool(not lost and (residual['prompt']
-                                                        or residual['predicted'])),
-            'counters_lost': bool(lost)}, durable=True)
+    events = list(self.log.events)
+    last = int(self.log.seq - 1)
+    self.usage_sum = client_usage_totals(events, self.ctx.servers)
+    for body in reconciliation_windows(events, self.ctx.servers, last_seq=last):
+        self.append('usage_reconciliation', body, durable=True)
 
 
 def _w_seal_deposit(self: World) -> None:
@@ -2967,8 +3451,10 @@ def _w_seal_deposit(self: World) -> None:
 
 def _w_write_pause(self: World) -> None:
     # An invocation that ends paused leaves no server behind: the servers it started are
-    # stopped, each with a durable server_stopped record, before trial_paused.  (Restarting
-    # them on resume is supervision's job, repair step EB1b; nothing here claims it.)
+    # stopped, each with a durable server_stopped record, before trial_paused (repair
+    # contract EB1 item 4).  The resumed invocation stops any recorded server that is still
+    # running and starts and verifies every server again before its first dispatch
+    # (resume_into -> stop_chain_orphans, resume_servers).
     if not self.rt.get('sim'):
         self.stop_servers()
     reason = self.pause_reason or 'operator_discretion'
@@ -3030,12 +3516,17 @@ def resume_into(ctx: RunContext, world: World) -> State:
         'boottime_hash': lab_common.boottime_hash() or '0' * 64,
         'drift': list(drift)}, durable=True)
 
-    if plan.reenroll_pair is not None:
-        world.reenroll_pair(plan.reenroll_pair)
-        world.draw_coin()
-        world.dispatch_pair()
-        return 'RUNNING'
+    live = plan.phase in ('randomizing', 'post_decision')
+    supervised = not world.rt.get('sim')
+    # (1) Repair contract EB1 item 4: a server an earlier invocation started and never
+    # recorded as stopped is stopped now, if it is provably still that server.
+    if supervised:
+        world.stop_chain_orphans(events)
 
+    # (2) Everything recoverable from the spools, BEFORE any server is started: those
+    # responses were served by the previous process and belong to its reconciliation window.
+    # (A pair enrolled without its coin has, by pair-synchronous execution, no open
+    # predecessor, so these lists are empty whenever plan.reenroll_pair is set.)
     for row in plan.orphan_reveals:
         world.reveal_orphan(dict(row, plan=plan), recovered=True)
     for row in plan.orphan_rejections:
@@ -3046,8 +3537,29 @@ def resume_into(ctx: RunContext, world: World) -> State:
             'spool_sha256': str(row['spool_sha256'])}, durable=True)
     for arrival in plan.interrupted:
         world.reveal_interrupted(arrival, spools.get(f'ep_{arrival}_1') or [], plan)
+
+    # (3) The servers, started and verified again through lab_server BEFORE any dispatch --
+    # unless the chain already owes an abort or a pause (a crash inside supervision), in
+    # which case nothing is started and nothing is dispatched.
+    if supervised and live and world.pending_abort is None and world.pending_pause is None:
+        world.resume_servers()
+
+    # (4) Dispatch, only while supervision owes nothing.
+    owed = world.pending_abort is not None or world.pending_pause is not None
+    if plan.reenroll_pair is not None and not owed:
+        world.reenroll_pair(plan.reenroll_pair)
+        world.draw_coin()
+        world.dispatch_pair()
+        return 'RUNNING'
     for arrival in plan.dispatch_after_resume:
-        world.redispatch(arrival, plan)
+        if world.pending_abort is not None:
+            # The trial ends here and every assigned arrival must be revealed: one that was
+            # never run is revealed as interrupted (success 0, known tokens), not dropped.
+            world.reveal_interrupted(arrival, spools.get(f'ep_{arrival}_1') or [], plan)
+        elif world.pending_pause is None:
+            world.redispatch(arrival, plan)
+        # under an owed pause it stays assigned and is dispatched by the next resume
+    world.raise_pending()
 
     if plan.phase == 'post_decision':
         if plan.pending_decision_steps:
@@ -3142,6 +3654,108 @@ def _w_rebuild_from_chain(self: World, events: Sequence[Mapping], plan: ResumePl
                 and self.attempts.get(a) is not None and self.attempts[a].revealed]) == 2)
     self.post_decision_dispatched = sum(1 for e in events
                                         if e['type'] == 'arm_assigned_by_decision')
+    # Supervision is rebuilt from the chain too (repair contract EB1 item 2): the attempted
+    # restarts per server that the cap bounds, the previous start's /props digest, the
+    # arrivals whose reveal carries infra_flag, and any outcome the chain still owes.
+    sup = supervision_state(events, self.restart_cap)
+    self.restarts = dict(sup.restarts)
+    self.server_props_sha = {str(k): str(v) for k, v in sup.props_sha256.items()
+                             if v is not None}
+    self.down_overlap = set(sup.down_overlap)
+    self.unresolved_down = dict(sup.unresolved_down)
+    self.pending_abort = sup.pending_abort
+    self.pending_pause = sup.pending_pause
+
+
+def chain_server_pids(events: Sequence[Mapping]) -> list[tuple[str, int]]:
+    """[pure] ``(server_id, pid)`` of every server a ``server_started`` / ``server_restarted``
+    recorded and no later ``server_stopped`` of the same server and pid closed, in chain
+    order.  A simulated body's pid 0 is never one."""
+    held: dict[tuple[str, int], int] = {}
+    for ev in events:
+        body = ev.get('body') or {}
+        if ev['type'] in ('server_started', 'server_restarted'):
+            pid = int(body.get('pid') or 0)
+            if pid > 0:
+                held[(str(body['server_id']), pid)] = int(ev['seq'])
+        elif ev['type'] == 'server_stopped':
+            held.pop((str(body.get('server_id')), int(body.get('pid') or 0)), None)
+    return [key for key, _ in sorted(held.items(), key=lambda kv: kv[1])]
+
+
+def _w_stop_chain_orphans(self: World, events: Sequence[Mapping]) -> None:
+    """Resume, repair contract EB1 item 4: stop every server pid the chain records as started
+    and not stopped that is STILL THAT SERVER (``lab_server.orphan_server``: alive and
+    listening on its frozen port), each with a durable ``server_stopped``.
+
+    A recorded pid that is dead needs nothing.  One that is alive but not listening on the
+    port was given by the OS to another program and is never signalled.  One whose listener
+    table could not be read is not signalled either; it is named in ``findings`` and, if it
+    still holds the port, the start that follows fails and is handled by the supervision
+    rules.  The previous invocation's pids are remembered for :meth:`resume_servers`."""
+    self.previous_pids = {}
+    for server_id, pid in chain_server_pids(events):
+        self.previous_pids[server_id] = pid
+        spec = self.ctx.servers.get(server_id)
+        if spec is None:
+            continue
+        state = lab_server.orphan_server(pid, int(spec.port))
+        if state is None:
+            self.findings.append('orphan_server_unverifiable:%s' % server_id)
+            continue
+        if not state:
+            self.previous_gone.add(pid)
+            continue
+        result = lab_server.stop(pid)
+        self.append('server_stopped', {
+            'server_id': server_id, 'pid': int(pid),
+            'returncode': (int(result['returncode'])
+                           if result.get('returncode') is not None else None),
+            'seconds': float(result.get('seconds') or 0.0)}, durable=True)
+
+
+def _w_resume_servers(self: World) -> None:
+    """Resume, repair contract EB1 item 4: start and verify every server again before any
+    dispatch.
+
+    A server whose ``server_down`` the chain left unresolved (the previous invocation died
+    inside supervision) is RESTARTED through :meth:`supervised_restart`, so the down is
+    followed by its restart (or failed restart) and the attempt counts towards the cap; the
+    other servers are started through ``lab_server.start``.  A failed start follows the
+    supervision rules, not the first-start ones: never healthy -> ``trial_paused(
+    server_unrecoverable)``; anything else -> ``trial_aborted`` by
+    :data:`START_FAILURE_REASON`; a refused call -> ``trial_aborted(harness_defect)``.  After
+    a failure no further server is started.  Every server started here is scraped
+    (``metrics_scrape(restart)``)."""
+    started: list[str] = []
+    for server_id in sorted(self.ctx.servers):
+        if self.pending_abort is not None or self.pending_pause is not None:
+            break
+        if server_id in self.unresolved_down:
+            previous = int(self.previous_pids.get(server_id) or 0)
+            if previous in self.previous_gone:
+                # dead, or alive but not listening on the frozen port (a reused pid): the
+                # previous server is gone and nothing of ours is left to stop or to guard
+                previous = 0
+            self.unresolved_down.pop(server_id, None)
+            self.supervised_restart(server_id, previous_pid=previous)
+            continue
+        try:
+            self._start_one(server_id)
+        except lab_common.ServerStartFailed as exc:
+            self.append('server_start_failed', dict(exc.record), durable=True)
+            stage = str(exc.record.get('stage'))
+            if stage in NEVER_HEALTHY_STAGES:
+                self.pending_pause = 'server_unrecoverable'
+            else:
+                self.pending_abort = START_FAILURE_REASON.get(stage, 'infrastructure')
+            break
+        except PreflightError:
+            self.pending_abort = 'harness_defect'
+            break
+        started.append(server_id)
+    if started:
+        self.scrape('restart', server_ids=started)
 
 
 def _w__ensure_attempt(self: World, arrival: int, plan: ResumePlan) -> Attempt | None:

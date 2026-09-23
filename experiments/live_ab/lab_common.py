@@ -816,6 +816,49 @@ def _dotted(cfg: dict, dotted: str) -> object:
     return node
 
 
+#: The supervised-restart cap of repair contract EB1 (root 20:40 item 4,
+#: ``reviews/prerun_bundle_go_nogo_20260923_2040.md:19``): a TOP-LEVEL configuration key,
+#: outside :data:`RULE_BLOCK_KEYS`, so pinning it does not move ``rule_block_sha256``.  The
+#: amendment lane adds it to config.json / ARCHITECTURE 6.1 / Appendix B; until then only a
+#: temporary freeze tree carries it, and a non-simulated invocation without it is refused
+#: before seq 0.  The key set is CLOSED: an unknown member is malformed, never ignored.
+SERVER_SUPERVISION_KEY: str = 'server_supervision'
+SERVER_SUPERVISION_MEMBERS: tuple[str, ...] = ('max_supervised_restarts_per_server_per_trial',
+                                               'on_exceeding')
+SERVER_SUPERVISION_ON_EXCEEDING: str = 'abort_trial_incomplete'
+
+
+def server_supervision_cap(config: object) -> int:
+    """[pure] The frozen cap on supervised restarts per server per trial.
+
+    Reads ``config['server_supervision']`` and raises :class:`FrozenMismatch` naming the
+    defect when the block is absent, is not an object, carries a member outside
+    :data:`SERVER_SUPERVISION_MEMBERS` or lacks one, when the cap is not a non-negative
+    ``int`` (a ``bool`` is not an int here), or when ``on_exceeding`` is anything but
+    :data:`SERVER_SUPERVISION_ON_EXCEEDING`.  There is no default: a missing cap is never
+    read as "unbounded" or as 3.  The orchestrator (preflight, supervision) and the verifier
+    (``server.lifecycle``) both read the cap through this one function."""
+    if not isinstance(config, Mapping):
+        raise FrozenMismatch('server_supervision: the configuration is not an object')
+    block = config.get(SERVER_SUPERVISION_KEY)
+    if block is None:
+        raise FrozenMismatch('server_supervision: absent')
+    if not isinstance(block, Mapping):
+        raise FrozenMismatch('server_supervision: not an object')
+    extra = sorted(set(block) - set(SERVER_SUPERVISION_MEMBERS))
+    missing = sorted(set(SERVER_SUPERVISION_MEMBERS) - set(block))
+    if extra or missing:
+        raise FrozenMismatch('server_supervision: members %s missing, %s unknown'
+                             % (missing, extra))
+    cap = block['max_supervised_restarts_per_server_per_trial']
+    if not isinstance(cap, int) or isinstance(cap, bool) or cap < 0:
+        raise FrozenMismatch('server_supervision: the cap is not a non-negative int')
+    if block['on_exceeding'] != SERVER_SUPERVISION_ON_EXCEEDING:
+        raise FrozenMismatch('server_supervision: on_exceeding is not %r'
+                             % SERVER_SUPERVISION_ON_EXCEEDING)
+    return int(cap)
+
+
 def rule_block_sha256(config: dict) -> str:
     """[pure] sha256 over the canonical JSON of the decision-defining subset of the config
     (ARCHITECTURE_FINAL.md 6.2 'rule block' == protocol Appendix B).  Everything outside
