@@ -23,6 +23,14 @@ and file bytes. It executes no candidate, loads no model and starts no server.
 What it does NOT bind, and says so: the serving inputs a launch would also need
 -- the request, the server arguments and the host/boot identity -- belong to the
 finite plan's stage-0 specification, which root has not approved.
+
+`--stage0 <json>` (root 19:26: "Bind stage-0 request/argv ... in the final
+working-branch bundle") binds the PROPOSED request and server arguments into the
+record and checks them offline, as `main()` would: the assembled manifest goes
+through `validate_manifest` (host/boot identity are placeholders, measured only
+at a launch), every path argument must lie outside the executable directory
+(`_inside`), the run token must be a plain name, and the argv the supervisor
+would build must equal the frozen protocol 2.2 line (`lab_server.server_argv`).
 """
 
 from __future__ import annotations
@@ -52,6 +60,7 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument('--declaration', default='results/live_ab/CANDIDATE_INSTRUMENT_MANIFEST.json')
     ap.add_argument('--snapshot', default='results/live_ab/CANDIDATE_BUILD_CONFIG_SNAPSHOT.json')
+    ap.add_argument('--stage0', default=None)
     a = ap.parse_args(argv)
     stamp = time.strftime('%Y%m%d_%H%M', time.gmtime())
     out_path = REPO / 'results' / 'live_ab' / ('PROSPECTIVE_LAUNCH_RECORD_%s.json' % stamp)
@@ -155,10 +164,87 @@ def main(argv=None) -> int:
                       'later change to them makes a launch with this record refuse, by '
                       'design'),
     }
+    if a.stage0:
+        record['stage0_binding'] = bind_stage0(a.stage0, record, cfg, launcher, exe_dir)
+        record['preflight_dry_run']['all_pass'] = bool(
+            record['preflight_dry_run']['all_pass'] and record['stage0_binding']['all_pass'])
+        record['PENDING_not_bound_here'] = {
+            'host_id_boot_id': 'measured at the launch, not at preparation',
+            'why': 'identity of the boot that launches; the request and server '
+                   'arguments are bound in stage0_binding (PROPOSED)'}
     out_path.write_text(json.dumps(record, indent=1, sort_keys=True) + '\n')
     print(out_path, 'all_pass=%s resolved=%s members=%s' % (
         record['preflight_dry_run']['all_pass'], frozen['resolved'], frozen['member_count']))
     return 0
+
+
+def bind_stage0(spec_rel: str, record: dict, cfg: dict, launcher: str, exe_dir: str) -> dict:
+    """Offline checks of a PROPOSED stage-0 request and server arguments, plus
+    negative controls: the same checks on three altered argument lists, each of
+    which must fail, so a pass is shown to be something the checks can refuse."""
+    sys.path.insert(0, str(rs.LAB))
+    import lab_common
+    spec_path = REPO / spec_rel
+    spec = json.loads(spec_path.read_text())
+    args = [x.replace('@RESULTS_ROOT@', str(lab_common.RESULTS_ROOT))
+            for x in spec['server_args']]
+    out = _stage0_checks(spec, args, record, cfg, launcher, exe_dir)
+    log_i = args.index('--log-file') + 1
+    controls = {
+        'model_flag_inside_server_args': args + ['-m', '/elsewhere/other.gguf'],
+        'frozen_flag_dropped (--jinja)': [x for x in args if x != '--jinja'],
+        'relative_log_path': args[:log_i] + ['logs/server.log'] + args[log_i + 1:],
+    }
+    out['negative_controls'] = {
+        name: {'all_pass': _stage0_checks(spec, alt, record, cfg, launcher, exe_dir)['all_pass']}
+        for name, alt in controls.items()}
+    out['negative_controls_all_refused'] = not any(
+        v['all_pass'] for v in out['negative_controls'].values())
+    out['spec'] = {'path': spec_rel, 'sha256': sha_path(spec_path), 'status': spec['status']}
+    out['all_pass'] = bool(out['all_pass'] and out['negative_controls_all_refused'])
+    return out
+
+
+def _stage0_checks(spec: dict, args: list, record: dict, cfg: dict, launcher: str,
+                   exe_dir: str) -> dict:
+    import lab_server
+    placeholder = 'PLACEHOLDER-measured-at-launch'
+    manifest = dict(record['launch_manifest_fields'], request=spec['request'],
+                    server_args=args, host_id=placeholder, boot_id=placeholder)
+    manifest_problems = rs.validate_manifest(manifest)
+    inside = [v for v in rs.server_arg_paths(args) if rs._inside(v, exe_dir)]
+    token = spec['run_token']
+    token_ok = bool(rs.TOKEN_RE.fullmatch(token)) and '..' not in token
+    # the argv main() builds: [launcher, '-m', model] + server_args (run_smoke.py)
+    model = '<MODEL: %s, found at launch>' % cfg['servers']['coder']['file']
+    built = [launcher, '-m', model] + args
+    la = cfg['llama_args']
+    frozen = lab_server.server_argv(lab_server.ServerSpec(
+        server_id='coder', port=cfg['servers']['coder']['port'],
+        alias=cfg['servers']['coder']['alias'], gguf_path=Path(model),
+        gguf_bytes=cfg['servers']['coder']['bytes'],
+        gguf_sha256=cfg['servers']['coder']['sha256_expected'],
+        llama_bin=Path(launcher), llama_commit=cfg['llama_cpp']['commit'], args=tuple(la),
+        log_path=Path(args[args.index('--log-file') + 1]),
+        n_slots=int(la[la.index('-np') + 1]), n_ctx=int(la[la.index('-c') + 1])))
+    frozen_ok = built == frozen
+    return {
+        'request': spec['request'], 'server_args': args, 'run_token': token,
+        'argv_as_the_supervisor_builds_it': built,
+        'checks': {
+            'validate_manifest_problems': manifest_problems,
+            'validate_manifest_note': ('host_id and boot_id are placeholders here, so '
+                                       'their check is structural only'),
+            'path_arguments_inside_the_executable_directory': inside,
+            'run_token_is_a_plain_name': token_ok,
+            'argv_equals_frozen_protocol_2_2_line': frozen_ok,
+            'frozen_line_rendered_by': 'experiments/live_ab/lab_server.py server_argv',
+            'token_budget': '%d planned attempts x %d max_tokens = %d <= %d' % (
+                rs.PLANNED_WIRE_ATTEMPTS, spec['request']['max_tokens'],
+                rs.PLANNED_WIRE_ATTEMPTS * spec['request']['max_tokens'], rs.TOKEN_CAP),
+        },
+        'all_pass': bool(not manifest_problems and not inside and token_ok and frozen_ok),
+    }
 
 
 if __name__ == '__main__':                                     # pragma: no cover

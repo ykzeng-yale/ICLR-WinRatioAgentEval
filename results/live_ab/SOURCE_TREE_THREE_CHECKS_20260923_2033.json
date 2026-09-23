@@ -1,0 +1,53 @@
+{
+ "all_three_pass": true,
+ "authority": "experiments/live_ab/design/protocol_FINAL.md \u00a72.2 item 1 amendment (successor 64ace6d3...); root 20:03, reviews/patch_state_and_durable_linkage_delta_20260923_2003.md",
+ "check_1_head": {
+  "command": "git rev-parse HEAD",
+  "expected": "4fea119de30f6a923992780f6fd5ccb0bee5d47d",
+  "output": "4fea119de30f6a923992780f6fd5ccb0bee5d47d",
+  "passes": true,
+  "returncode": 0,
+  "stderr": ""
+ },
+ "check_2_status_porcelain": {
+  "command": "git --no-optional-locks status --porcelain",
+  "expected": [
+   "files the patch modifies, each \" M\"",
+   [
+    "tools/server/server-common.h",
+    "tools/server/server-context.cpp"
+   ]
+  ],
+  "output_lines": [
+   " M tools/server/server-common.h",
+   " M tools/server/server-context.cpp"
+  ],
+  "passes": true,
+  "returncode": 0,
+  "stderr": ""
+ },
+ "check_3_tree_equality": {
+  "function": "experiments/live_ab_serving/run_smoke.py verify_source_binding (the check a launch runs before Popen)",
+  "passes": true,
+  "problems": [],
+  "tree_equality": {
+   "head_plus_patch": "88f891840251b48693a0c967ccb6ae8a3c9c7b05",
+   "working_tree": "88f891840251b48693a0c967ccb6ae8a3c9c7b05"
+  }
+ },
+ "convention": "deterministic-path",
+ "generated_utc": "2026-09-23T20:33:51Z",
+ "nothing_executed_THIS_RECEIPT": "git rev-parse and status (--no-optional-locks), and check 3's temporary indexes; no build",
+ "patch": {
+  "files_modified": [
+   "tools/server/server-common.h",
+   "tools/server/server-context.cpp"
+  ],
+  "path": "experiments/live_ab_serving/live_ab_slot_lifecycle.patch",
+  "sha256": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+  "sha256_is_the_amended_one": true
+ },
+ "schema": "live_ab/source_tree_three_checks-v1",
+ "scope": "the checkout as it is at generated_utc; a launch re-runs check 3 before Popen, and any later edit to the checkout makes that refuse",
+ "source_tree": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/src"
+}

@@ -1,0 +1,823 @@
+{
+ "PENDING_not_bound_here": {
+  "host_id_boot_id": "measured at the launch, not at preparation",
+  "why": "identity of the boot that launches; the request and server arguments are bound in stage0_binding (PROPOSED)"
+ },
+ "authority": "root, reviews/dependency_callsite_disposition_20260923_1752.md",
+ "convention": "deterministic-path",
+ "derived_closure_summary": {
+  "dlopen_importers": [
+   "libggml.0.24.0.dylib"
+  ],
+  "duplicate_install_names": {},
+  "edges": 41,
+  "members": 9,
+  "resolved": true,
+  "search_locations": [
+   [
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin",
+    0
+   ]
+  ],
+  "unresolved": []
+ },
+ "generated_utc": "2026-09-23T20:30:03Z",
+ "launch_context_decided": {
+  "compiled_backend_dir": null,
+  "cwd": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin",
+  "executable": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server",
+  "removed_environment_names_in_this_process": [],
+  "source": "root 16:30 decisions 1-2"
+ },
+ "launch_manifest_fields": {
+  "acquisition_code": {
+   "experiments/live_ab/config.json": "e4d42f5d442dde7e709222e0a4ad4985de0f20604061fec01f2e3ea95f75d824",
+   "experiments/live_ab/lab_common.py": "aa32c13a0f3c6895f6a4d7936cc2b883930e5f4db9491a7f3aa444c8e1c3bb1c",
+   "experiments/live_ab/lab_data.py": "7291fea66a25ca33c12c84c9a46d0f8246e35e0d8cc4d83aff2496a10c2b9977",
+   "experiments/live_ab/lab_lifecycle.py": "604556893fb5d381049756f765251bc45bd1f57ea632630d68fe2ee5610ac0b2",
+   "experiments/live_ab_serving/dependency_closure.py": "f581ff9378d1c8e004dc3c0e50ef29b85ea5c7eacbf00d6b9cfa73e2384e02ce",
+   "experiments/live_ab_serving/run_smoke.py": "bf1ef6ae24178dc45d6da7840e4f7fc663a13d974cf316ee1ae1d0539d438fa5"
+  },
+  "caps": {
+   "cleanup_reserve_seconds": 90,
+   "diagnostic_byte_budget": 8388608,
+   "dispatch_cutoff_seconds": 510,
+   "seconds_per_request": 120,
+   "total_generated_tokens": 2048,
+   "wall_seconds_total": 600
+  },
+  "dependency_closure": {
+   "duplicate_install_names": {},
+   "dynamic_loading": {
+    "bounded": true,
+    "checked": true,
+    "discovered": [],
+    "members_importing_dlopen": [
+     "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.24.0.dylib"
+    ],
+    "problems": [],
+    "search_locations": [
+     {
+      "candidates": [],
+      "directory": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin",
+      "exists": true
+     }
+    ]
+   },
+   "edges": {
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-blas.0.24.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-base.0.24.0.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-blas.0.24.0.dylib",
+     "reference": "@rpath/libggml-base.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-base.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-base.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-cpu.0.24.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-base.0.24.0.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-cpu.0.24.0.dylib",
+     "reference": "@rpath/libggml-base.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-base.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-base.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-metal.0.24.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-base.0.24.0.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-metal.0.24.0.dylib",
+     "reference": "@rpath/libggml-base.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-base.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-base.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.24.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-base.0.24.0.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.24.0.dylib",
+     "reference": "@rpath/libggml-base.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-base.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-base.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.24.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-blas.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-blas.0.24.0.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.24.0.dylib",
+     "reference": "@rpath/libggml-blas.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-blas.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-blas.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.24.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-cpu.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-cpu.0.24.0.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.24.0.dylib",
+     "reference": "@rpath/libggml-cpu.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-cpu.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-cpu.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.24.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-metal.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-metal.0.24.0.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.24.0.dylib",
+     "reference": "@rpath/libggml-metal.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-metal.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-metal.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-common.0.4.1.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-base.0.24.0.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-common.0.4.1.dylib",
+     "reference": "@rpath/libggml-base.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-base.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-base.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-common.0.4.1.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-blas.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-blas.0.24.0.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-common.0.4.1.dylib",
+     "reference": "@rpath/libggml-blas.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-blas.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-blas.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-common.0.4.1.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-cpu.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-cpu.0.24.0.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-common.0.4.1.dylib",
+     "reference": "@rpath/libggml-cpu.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-cpu.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-cpu.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-common.0.4.1.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-metal.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-metal.0.24.0.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-common.0.4.1.dylib",
+     "reference": "@rpath/libggml-metal.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-metal.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-metal.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-common.0.4.1.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.24.0.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-common.0.4.1.dylib",
+     "reference": "@rpath/libggml.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-common.0.4.1.dylib -[LC_LOAD_DYLIB]-> @rpath/libllama.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama.0.4.1.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-common.0.4.1.dylib",
+     "reference": "@rpath/libllama.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-server-impl.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-base.0.24.0.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-server-impl.dylib",
+     "reference": "@rpath/libggml-base.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-base.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-base.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-server-impl.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-blas.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-blas.0.24.0.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-server-impl.dylib",
+     "reference": "@rpath/libggml-blas.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-blas.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-blas.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-server-impl.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-cpu.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-cpu.0.24.0.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-server-impl.dylib",
+     "reference": "@rpath/libggml-cpu.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-cpu.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-cpu.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-server-impl.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-metal.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-metal.0.24.0.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-server-impl.dylib",
+     "reference": "@rpath/libggml-metal.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-metal.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-metal.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-server-impl.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.24.0.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-server-impl.dylib",
+     "reference": "@rpath/libggml.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-server-impl.dylib -[LC_LOAD_DYLIB]-> @rpath/libllama-common.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-common.0.4.1.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-server-impl.dylib",
+     "reference": "@rpath/libllama-common.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-common.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-common.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-server-impl.dylib -[LC_LOAD_DYLIB]-> @rpath/libllama.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama.0.4.1.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-server-impl.dylib",
+     "reference": "@rpath/libllama.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-server-impl.dylib -[LC_LOAD_DYLIB]-> @rpath/libmtmd.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libmtmd.0.4.1.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-server-impl.dylib",
+     "reference": "@rpath/libmtmd.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libmtmd.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libmtmd.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama.0.4.1.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-base.0.24.0.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama.0.4.1.dylib",
+     "reference": "@rpath/libggml-base.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-base.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-base.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama.0.4.1.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-blas.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-blas.0.24.0.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama.0.4.1.dylib",
+     "reference": "@rpath/libggml-blas.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-blas.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-blas.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama.0.4.1.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-cpu.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-cpu.0.24.0.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama.0.4.1.dylib",
+     "reference": "@rpath/libggml-cpu.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-cpu.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-cpu.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama.0.4.1.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-metal.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-metal.0.24.0.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama.0.4.1.dylib",
+     "reference": "@rpath/libggml-metal.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-metal.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-metal.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama.0.4.1.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.24.0.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama.0.4.1.dylib",
+     "reference": "@rpath/libggml.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libmtmd.0.4.1.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-base.0.24.0.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libmtmd.0.4.1.dylib",
+     "reference": "@rpath/libggml-base.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-base.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-base.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libmtmd.0.4.1.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-blas.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-blas.0.24.0.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libmtmd.0.4.1.dylib",
+     "reference": "@rpath/libggml-blas.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-blas.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-blas.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libmtmd.0.4.1.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-cpu.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-cpu.0.24.0.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libmtmd.0.4.1.dylib",
+     "reference": "@rpath/libggml-cpu.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-cpu.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-cpu.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libmtmd.0.4.1.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-metal.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-metal.0.24.0.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libmtmd.0.4.1.dylib",
+     "reference": "@rpath/libggml-metal.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-metal.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-metal.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libmtmd.0.4.1.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.24.0.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libmtmd.0.4.1.dylib",
+     "reference": "@rpath/libggml.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libmtmd.0.4.1.dylib -[LC_LOAD_DYLIB]-> @rpath/libllama.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama.0.4.1.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libmtmd.0.4.1.dylib",
+     "reference": "@rpath/libllama.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-base.0.24.0.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server",
+     "reference": "@rpath/libggml-base.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-base.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-base.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libggml-blas.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-blas.0.24.0.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server",
+     "reference": "@rpath/libggml-blas.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-blas.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-blas.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libggml-cpu.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-cpu.0.24.0.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server",
+     "reference": "@rpath/libggml-cpu.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-cpu.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-cpu.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libggml-metal.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-metal.0.24.0.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server",
+     "reference": "@rpath/libggml-metal.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-metal.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-metal.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libggml.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.24.0.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server",
+     "reference": "@rpath/libggml.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libllama-common.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-common.0.4.1.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server",
+     "reference": "@rpath/libllama-common.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-common.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-common.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libllama-server-impl.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-server-impl.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server",
+     "reference": "@rpath/libllama-server-impl.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-server-impl.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-server-impl.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libllama.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama.0.4.1.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server",
+     "reference": "@rpath/libllama.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama.0.dylib"
+     ],
+     "shadowed": []
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libmtmd.0.dylib": {
+     "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libmtmd.0.4.1.dylib",
+     "command": "LC_LOAD_DYLIB",
+     "parent": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server",
+     "reference": "@rpath/libmtmd.0.dylib",
+     "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libmtmd.0.dylib",
+     "searched": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libmtmd.0.dylib"
+     ],
+     "shadowed": []
+    }
+   },
+   "executable_dir": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin",
+   "files": {
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-base.0.24.0.dylib": {
+     "bytes": 733208,
+     "reached_by": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-server-impl.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-common.0.4.1.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libmtmd.0.4.1.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama.0.4.1.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.24.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-cpu.0.24.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-blas.0.24.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-metal.0.24.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib"
+     ],
+     "sha256": "19fe34f3997f908122e4d74f9a16e15de9d53445345f1774c849767c1e1f321b"
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-blas.0.24.0.dylib": {
+     "bytes": 58776,
+     "reached_by": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libggml-blas.0.dylib",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-server-impl.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-blas.0.dylib",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-common.0.4.1.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-blas.0.dylib",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libmtmd.0.4.1.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-blas.0.dylib",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama.0.4.1.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-blas.0.dylib",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.24.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-blas.0.dylib"
+     ],
+     "sha256": "07fec714cad379ea0593ec88ff4118f8a39dd496c77d28a15e0ea4076031c01d"
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-cpu.0.24.0.dylib": {
+     "bytes": 1001776,
+     "reached_by": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libggml-cpu.0.dylib",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-server-impl.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-cpu.0.dylib",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-common.0.4.1.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-cpu.0.dylib",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libmtmd.0.4.1.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-cpu.0.dylib",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama.0.4.1.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-cpu.0.dylib",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.24.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-cpu.0.dylib"
+     ],
+     "sha256": "c2ed19a6ea799849aab747321ea07ef8211c90c3a8078bbe69b05d3d1bdd2bee"
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-metal.0.24.0.dylib": {
+     "bytes": 2163544,
+     "reached_by": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libggml-metal.0.dylib",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-server-impl.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-metal.0.dylib",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-common.0.4.1.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-metal.0.dylib",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libmtmd.0.4.1.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-metal.0.dylib",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama.0.4.1.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-metal.0.dylib",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.24.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-metal.0.dylib"
+     ],
+     "sha256": "fceb6ba00f28c4004b66d8e65a3fd4350ce33f773b20a435fea1ec9313f5d37b"
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.24.0.dylib": {
+     "bytes": 60064,
+     "reached_by": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libggml.0.dylib",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-server-impl.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml.0.dylib",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-common.0.4.1.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml.0.dylib",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libmtmd.0.4.1.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml.0.dylib",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama.0.4.1.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml.0.dylib"
+     ],
+     "sha256": "145bad33a11be7d0c9c3e9d7d56af04031e37280d75a60015f73882769aec79a"
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-common.0.4.1.dylib": {
+     "bytes": 4948792,
+     "reached_by": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libllama-common.0.dylib",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-server-impl.dylib -[LC_LOAD_DYLIB]-> @rpath/libllama-common.0.dylib"
+     ],
+     "sha256": "7d605efa6d32b8c08da4968a96ff5997bcc7a2bd6f92f2e836d498369d0e5f34"
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-server-impl.dylib": {
+     "bytes": 6306200,
+     "reached_by": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libllama-server-impl.dylib"
+     ],
+     "sha256": "baceaef2b2ac2e95d68eff4c1ff59426a4a22ed411ac2fff7b5970d3a6708d8b"
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama.0.4.1.dylib": {
+     "bytes": 3132416,
+     "reached_by": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libllama.0.dylib",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-server-impl.dylib -[LC_LOAD_DYLIB]-> @rpath/libllama.0.dylib",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-common.0.4.1.dylib -[LC_LOAD_DYLIB]-> @rpath/libllama.0.dylib",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libmtmd.0.4.1.dylib -[LC_LOAD_DYLIB]-> @rpath/libllama.0.dylib"
+     ],
+     "sha256": "ebe3d9d96ae05ea387fee18985636345b42bfb1d65e4afdae7768d2a0277e70f"
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libmtmd.0.4.1.dylib": {
+     "bytes": 1378576,
+     "reached_by": [
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libmtmd.0.dylib",
+      "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-server-impl.dylib -[LC_LOAD_DYLIB]-> @rpath/libmtmd.0.dylib"
+     ],
+     "sha256": "eaa01688087b245c53c3e600f1a06280d6f784976f9e1d43b0b8c9f5096c936f"
+    },
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server": {
+     "bytes": 33472,
+     "reached_by": [],
+     "sha256": "35231ad4e83623e4aef72267f155a78bcf960f609ded6cf587dcb3a09f52eac3"
+    }
+   },
+   "install_names": {
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-base.0.24.0.dylib": "@rpath/libggml-base.0.dylib",
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-blas.0.24.0.dylib": "@rpath/libggml-blas.0.dylib",
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-cpu.0.24.0.dylib": "@rpath/libggml-cpu.0.dylib",
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-metal.0.24.0.dylib": "@rpath/libggml-metal.0.dylib",
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.24.0.dylib": "@rpath/libggml.0.dylib",
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-common.0.4.1.dylib": "@rpath/libllama-common.0.dylib",
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-server-impl.dylib": "@rpath/libllama-server-impl.dylib",
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama.0.4.1.dylib": "@rpath/libllama.0.dylib",
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libmtmd.0.4.1.dylib": "@rpath/libmtmd.0.dylib",
+    "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server": null
+   },
+   "launch_context": {
+    "compiled_backend_dir": null,
+    "cwd": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin",
+    "environment": {},
+    "executable_invoked_path": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server",
+    "provenance": null
+   },
+   "member_count": 9,
+   "note": "transitive over non-system members. System references are recorded by name and never pinned or traversed, per root 2026-09-23 12:42.",
+   "resolved": true,
+   "root": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server",
+   "schema": "live_ab/dependency_closure-v3",
+   "system_references": [
+    "/System/Library/Frameworks/Accelerate.framework/Versions/A/Accelerate",
+    "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+    "/System/Library/Frameworks/Foundation.framework/Versions/C/Foundation",
+    "/System/Library/Frameworks/Metal.framework/Versions/A/Metal",
+    "/System/Library/Frameworks/MetalKit.framework/Versions/A/MetalKit",
+    "/usr/lib/libSystem.B.dylib",
+    "/usr/lib/libc++.1.dylib",
+    "/usr/lib/libobjc.A.dylib"
+   ],
+   "unresolved": []
+  },
+  "launcher": {
+   "path": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server",
+   "sha256": "35231ad4e83623e4aef72267f155a78bcf960f609ded6cf587dcb3a09f52eac3"
+  },
+  "model": {
+   "file": "qwen2.5-coder-7b-instruct-q4_k_m.gguf",
+   "sha256": "509287f78cb4d4cf6b3843734733b914b2c158e43e22a7f4bf5e963800894d3c",
+   "source": "experiments/live_ab/config.json servers.coder"
+  },
+  "patch_sha256": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+  "port": 8091,
+  "source_binding": {
+   "build_snapshot": {
+    "path": "results/live_ab/DURABLE_BUILD_CONFIG_SNAPSHOT.json",
+    "sha256": "913c945b81d00833272f0eb269720b3eef66065f842d8d2dbd9e7d006019eae1"
+   },
+   "head": "4fea119de30f6a923992780f6fd5ccb0bee5d47d",
+   "patch_path": "experiments/live_ab_serving/live_ab_slot_lifecycle.patch",
+   "patch_sha256": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+   "source_tree": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/src"
+  }
+ },
+ "nothing_executed_THIS_RECEIPT": "metadata readers (otool -h/-l, nm -u), a directory listing and read-only git queries; no candidate execution, model load, server start or build",
+ "preflight_dry_run": {
+  "acquisition_code": {
+   "config_section": {
+    "agrees": true,
+    "section": "engineering_acquisition"
+   },
+   "problems": [],
+   "verified": true
+  },
+  "all_pass": true,
+  "bounded": true,
+  "build_binding": {
+   "build_tree": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build",
+   "declared_members": 10,
+   "files_checked": 10,
+   "problems": [],
+   "verified": true
+  },
+  "dependency_closure": {
+   "edges_agreeing": 41,
+   "edges_checked": 41,
+   "files_checked": 10,
+   "problems": [],
+   "verified": true
+  },
+  "source_binding": {
+   "build_snapshot_sha256": "913c945b81d00833272f0eb269720b3eef66065f842d8d2dbd9e7d006019eae1",
+   "compiled_backend_dir": null,
+   "head": "4fea119de30f6a923992780f6fd5ccb0bee5d47d",
+   "patch_files": [
+    "tools/server/server-common.h",
+    "tools/server/server-context.cpp"
+   ],
+   "patch_sha256": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+   "problems": [],
+   "source_tree": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/src",
+   "tree_equality": {
+    "head_plus_patch": "88f891840251b48693a0c967ccb6ae8a3c9c7b05",
+    "working_tree": "88f891840251b48693a0c967ccb6ae8a3c9c7b05"
+   },
+   "verified": true
+  }
+ },
+ "schema": "live_ab/prospective_launch_record-v1",
+ "stage0_binding": {
+  "all_pass": true,
+  "argv_as_the_supervisor_builds_it": [
+   "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server",
+   "-m",
+   "<MODEL: qwen2.5-coder-7b-instruct-q4_k_m.gguf, found at launch>",
+   "--alias",
+   "qwen2.5-coder-7b-instruct-q4km",
+   "--host",
+   "127.0.0.1",
+   "--port",
+   "8091",
+   "-np",
+   "2",
+   "-c",
+   "16384",
+   "--no-kv-unified",
+   "-ngl",
+   "99",
+   "--jinja",
+   "--metrics",
+   "--no-context-shift",
+   "--offline",
+   "--no-cache-prompt",
+   "--cache-ram",
+   "0",
+   "--slot-prompt-similarity",
+   "0.0",
+   "--log-file",
+   "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/results/live_ab/SERVER_LOG_stage0_eng_acq_1.log",
+   "--log-timestamps"
+  ],
+  "checks": {
+   "argv_equals_frozen_protocol_2_2_line": true,
+   "frozen_line_rendered_by": "experiments/live_ab/lab_server.py server_argv",
+   "path_arguments_inside_the_executable_directory": [],
+   "run_token_is_a_plain_name": true,
+   "token_budget": "2 planned attempts x 1024 max_tokens = 2048 <= 2048",
+   "validate_manifest_note": "host_id and boot_id are placeholders here, so their check is structural only",
+   "validate_manifest_problems": []
+  },
+  "negative_controls": {
+   "frozen_flag_dropped (--jinja)": {
+    "all_pass": false
+   },
+   "model_flag_inside_server_args": {
+    "all_pass": false
+   },
+   "relative_log_path": {
+    "all_pass": false
+   }
+  },
+  "negative_controls_all_refused": true,
+  "request": {
+   "max_tokens": 1024,
+   "n": 1,
+   "prompt": "Output the integers from 1 to 1000 separated by spaces. Do not add commentary.",
+   "seed": 0,
+   "stream": false,
+   "temperature": 0
+  },
+  "run_token": "stage0_eng_acq_1",
+  "server_args": [
+   "--alias",
+   "qwen2.5-coder-7b-instruct-q4km",
+   "--host",
+   "127.0.0.1",
+   "--port",
+   "8091",
+   "-np",
+   "2",
+   "-c",
+   "16384",
+   "--no-kv-unified",
+   "-ngl",
+   "99",
+   "--jinja",
+   "--metrics",
+   "--no-context-shift",
+   "--offline",
+   "--no-cache-prompt",
+   "--cache-ram",
+   "0",
+   "--slot-prompt-similarity",
+   "0.0",
+   "--log-file",
+   "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/results/live_ab/SERVER_LOG_stage0_eng_acq_1.log",
+   "--log-timestamps"
+  ],
+  "spec": {
+   "path": "experiments/live_ab_serving/stage0_request_argv.json",
+   "sha256": "b4ba13506cef290b380e05dd1d60fc749134358c1702b34bb56e54392299db4c",
+   "status": "PROPOSED FOR ROOT REVIEW (plan OD18). Binding a value is not an authorization: no engineering attempt, model load, server start or trial is authorized by this file."
+  }
+ },
+ "staleness": "the acquisition_code pins name the exact files at generation; any later change to them makes a launch with this record refuse, by design",
+ "status": "PROPOSED FOR ROOT REVIEW. Not authorized: no engineering attempt, model load, server start or trial is authorized by this record."
+}

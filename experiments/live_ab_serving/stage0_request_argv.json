@@ -1,0 +1,34 @@
+{
+ "schema": "live_ab/stage0_request_argv-v1",
+ "status": "PROPOSED FOR ROOT REVIEW (plan OD18). Binding a value is not an authorization: no engineering attempt, model load, server start or trial is authorized by this file.",
+ "authority": "root, reviews/durable_candidate_delta_20260923_1926.md: \"Bind stage-0 request/argv ... in the final working-branch bundle\"",
+ "run_token": "stage0_eng_acq_1",
+ "request": {
+  "prompt": "Output the integers from 1 to 1000 separated by spaces. Do not add commentary.",
+  "max_tokens": 1024,
+  "n": 1,
+  "temperature": 0,
+  "seed": 0,
+  "stream": false
+ },
+ "request_basis": "the spent smoke's request, verbatim (results/live_ab/SMOKE_LAUNCH_MANIFEST_smoke_4167e395ccfd.json request); 2 planned attempts x 1,024 = 2,048 = the token cap",
+ "server_args": [
+  "--alias", "qwen2.5-coder-7b-instruct-q4km",
+  "--host", "127.0.0.1",
+  "--port", "8091",
+  "-np", "2",
+  "-c", "16384",
+  "--no-kv-unified",
+  "-ngl", "99",
+  "--jinja",
+  "--metrics",
+  "--no-context-shift",
+  "--offline",
+  "--no-cache-prompt",
+  "--cache-ram", "0",
+  "--slot-prompt-similarity", "0.0",
+  "--log-file", "@RESULTS_ROOT@/SERVER_LOG_stage0_eng_acq_1.log",
+  "--log-timestamps"
+ ],
+ "server_args_basis": "the frozen protocol 2.2 launch line (experiments/live_ab/lab_server.py server_argv) after the launcher and `-m <model>`, which run_smoke.py prepends itself and refuses inside server_args; @RESULTS_ROOT@ is lab_common.RESULTS_ROOT, substituted at preparation so the path is absolute and outside the executable directory"
+}
