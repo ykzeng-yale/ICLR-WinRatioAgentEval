@@ -23,6 +23,7 @@ import json
 import os
 import re
 import shutil
+import signal
 import sys
 import tempfile
 import time
@@ -4289,6 +4290,77 @@ class AcquisitionSealTests(unittest.TestCase):
         self.assertEqual(raw['lifecycle_log']['bytes'],
                          self.log.stat().st_size)
         self.assertTrue(obs['sidecar_records_are_previews'])
+
+    # -- the supervisor half of root's item 2 -------------------------------
+    def test_only_the_DECLARED_termination_signal_is_a_successful_outcome(self):
+        """This producer is a SERVER the supervisor stops on purpose, and
+        `subprocess` reports a signal death as a NEGATIVE return code -- so a
+        healthy teardown is -15, not 0, and requiring a literal zero would refuse
+        every good acquisition.
+
+        The supervisor therefore DECLARES which signal it sent. The reader is not
+        taught to forgive negative codes generally: an undeclared -15 refuses, a
+        SIGKILL refuses while SIGTERM was declared, and exit 93 refuses even then
+        -- the producer refusing itself outranks any expectation the supervisor
+        had. Root warned against "normalizing the process to manufacture
+        agreement", which is why the expectation is a declared parameter and the
+        raw value is retained.
+        """
+        self._emit(0, 11)
+        self._seal(sidecar_failures=0)
+        sigterm = int(signal.SIGTERM)
+
+        def obs(outcome, declared):
+            return lab_lifecycle.observe(
+                self.log, provenance=self.prov,
+                expected=dict(self.expected, patch_sha256='f' * 64),
+                process_outcome=outcome,
+                expected_termination_signal=declared)
+
+        self.assertIsNone(obs(0, None)['seal_problem'])            # control
+        self.assertIsNone(obs(-sigterm, sigterm)['seal_problem'])  # control
+        self.assertEqual(obs(-sigterm, sigterm)['process_outcome'], -sigterm,
+                         'the RAW outcome must be retained, not normalised away')
+        for outcome, declared in ((-sigterm, None), (-9, sigterm),
+                                  (1, sigterm),
+                                  (lab_lifecycle.EXIT_UNRECORDABLE, sigterm)):
+            with self.subTest(outcome=outcome, declared=declared):
+                self.assertIsNotNone(obs(outcome, declared)['seal_problem'])
+
+    def test_the_supervisor_drain_is_bounded_and_counts_what_it_drops(self):
+        """Root: "The terminal-failure path still depends on an unchecked stderr
+        stream that the supplied supervisor does not drain or save ... Drain/save
+        diagnostics within the already required absolute deadline."
+
+        Nothing read that pipe. The missing diagnostics were the lesser problem:
+        a child writing more than the pipe buffer BLOCKS on write, so the
+        supervisor's own plumbing could hang the producer it is measuring.
+
+        Mocked child, per root's "mocked-child ... regressions suffice".
+        """
+        import importlib.util
+        spec = importlib.util.spec_from_file_location(
+            'run_smoke_for_test',
+            Path(__file__).resolve().parents[1] / 'live_ab_serving' / 'run_smoke.py')
+        run_smoke = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(run_smoke)
+
+        sink, dropped = [], {}
+        run_smoke.drain_stream(iter(['a\n', 'b' * 900 + '\n', 'c\n']), sink,
+                               dropped, line_cap=2, char_cap=10)
+        self.assertEqual(sink, ['a', 'b' * 10])
+        self.assertEqual(dropped['lines'], 1)
+        self.assertGreater(dropped['chars'], 0)
+
+        # a stream that raises mid-read is DATA, not an exception on a daemon
+        # thread where it would vanish
+        def exploding():
+            yield 'first\n'
+            raise OSError('pipe went away')
+        sink2, dropped2 = [], {}
+        run_smoke.drain_stream(exploding(), sink2, dropped2)
+        self.assertEqual(sink2[0], 'first')
+        self.assertIn('drain failed', sink2[1])
 
     # -- the contract -------------------------------------------------------
     def test_an_UNSEALED_log_does_not_certify(self):

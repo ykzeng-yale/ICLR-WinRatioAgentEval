@@ -280,7 +280,9 @@ CONTRACT_UNBOUND = 'unbound'
 EXIT_UNRECORDABLE: int = 93
 
 
-def process_outcome_problem(outcome: object, *, required: bool) -> Optional[str]:
+def process_outcome_problem(outcome: object, *, required: bool,
+                            expected_termination_signal: Optional[int] = None
+                            ) -> Optional[str]:
     """Why the retained producer exit status does not support an acquisition.
 
     ``outcome`` is what the SUPERVISOR retained, not anything the producer said
@@ -288,6 +290,20 @@ def process_outcome_problem(outcome: object, *, required: bool) -> Optional[str]
     belong to a process that afterwards refused: the whole point of the
     process-level refusal is that it happens when no further write can be
     trusted, so the log cannot be the witness to it.
+
+    ``expected_termination_signal`` exists because this producer is a SERVER and
+    the supervisor stops it on purpose. `subprocess` reports a signal death as a
+    NEGATIVE return code, so a perfectly healthy smoke teardown yields ``-15``,
+    not ``0``. Requiring a literal zero would refuse every good acquisition.
+
+    The supervisor therefore states which signal it sent, and only THAT signal's
+    negation is accepted -- the normalisation is declared by the caller and
+    recorded, rather than the reader quietly mapping any negative code to
+    success. Root's warning against "normalizing the process to manufacture
+    agreement" is why this is a parameter and not a default.
+
+    ``EXIT_UNRECORDABLE`` is checked FIRST and is never excused: the producer
+    refusing itself outranks any expectation the supervisor had.
     """
     if outcome is None:
         if not required:
@@ -300,10 +316,18 @@ def process_outcome_problem(outcome: object, *, required: bool) -> Optional[str]
                 'not record, and refused the acquisition itself. A readable '
                 'earlier seal with zero counts does not override this'
                 % EXIT_UNRECORDABLE)
-    if not nonbool_int_zero(outcome):
-        return ('the retained producer exit status is %r; only a non-boolean '
-                'integer zero is a successful outcome' % (outcome,))
-    return None
+    if nonbool_int_zero(outcome):
+        return None
+    if (expected_termination_signal is not None
+            and isinstance(outcome, int) and not isinstance(outcome, bool)
+            and outcome == -int(expected_termination_signal)):
+        return None          # the supervisor stopped it, and said so in advance
+    return ('the retained producer exit status is %r; a successful outcome is a '
+            'non-boolean integer zero%s' % (
+                outcome,
+                (' or the declared termination signal -%d'
+                 % int(expected_termination_signal))
+                if expected_termination_signal is not None else ''))
 
 
 def sidecar_contract(expected: Optional[dict]) -> Dict[str, Any]:
@@ -675,7 +699,8 @@ def _overlaps_on_one_slot(windows: List[dict]) -> Optional[str]:
 def observe(path: "str | Path", *, concurrency_required: int = 2,
             expected: Optional[dict] = None,
             provenance: Optional[dict] = None,
-            process_outcome: object = None) -> Dict[str, Any]:
+            process_outcome: object = None,
+            expected_termination_signal: Optional[int] = None) -> Dict[str, Any]:
     """The observation ``lab_prepare.run_reference_sweep`` consumes.
 
     ``expected`` is the run manifest the supervisor persisted BEFORE dispatch.
@@ -775,8 +800,10 @@ def observe(path: "str | Path", *, concurrency_required: int = 2,
     # refusal fires exactly when no further write can be trusted, so the log
     # cannot be the witness to it.
     outcome_problem = process_outcome_problem(
-        process_outcome, required=contract['sidecar_failures_required'])
+        process_outcome, required=contract['sidecar_failures_required'],
+        expected_termination_signal=expected_termination_signal)
     base['process_outcome'] = process_outcome
+    base['expected_termination_signal'] = expected_termination_signal
     base['process_outcome_problem'] = outcome_problem
     if manifest_mismatch is not None:
         # A refused attempt, retained -- never a task exclusion.

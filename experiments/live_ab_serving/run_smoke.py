@@ -46,11 +46,42 @@ BIN = SC / 'llama_lifecycle_iso' / 'build' / 'bin' / 'llama-server'
 
 WALL_CAP_S = 600.0
 REQUEST_CAP_S = 120.0
+#: Bounds on the drained producer diagnostics. Root asked for them to be drained
+#: and saved "within the already required absolute deadline", so the join is
+#: bounded and what exceeds the caps is COUNTED rather than silently lost.
+DIAGNOSTIC_LINE_CAP = 2000
+DIAGNOSTIC_LINE_CHARS = 400
+DRAIN_JOIN_S = 30.0
 TOKEN_CAP = 2048
 
 
 def _now() -> str:
     return time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+
+
+def drain_stream(stream, sink: list, dropped: dict, *,
+                 line_cap: int = DIAGNOSTIC_LINE_CAP,
+                 char_cap: int = DIAGNOSTIC_LINE_CHARS) -> None:
+    """Read `stream` to EOF into `sink`, counting whatever exceeds the caps.
+
+    Module level, and not the closure it started as, so it can be exercised with
+    a mocked child. Root, 2026-09-23 08:00: "Mocked-child and saved-file
+    regressions suffice for these Python repairs."
+
+    The caps bound memory; `dropped` records exactly what they cost, because a
+    silently truncated diagnostic reads as a quiet server. Nothing here raises:
+    a failure to drain is appended to the sink as data, since this runs on a
+    daemon thread whose exception would otherwise vanish.
+    """
+    try:
+        for line in stream:
+            if len(sink) < line_cap:
+                sink.append(line.rstrip('\n')[:char_cap])
+            else:
+                dropped['lines'] = dropped.get('lines', 0) + 1
+                dropped['chars'] = dropped.get('chars', 0) + len(line)
+    except Exception as exc:                                   # noqa: BLE001
+        sink.append('[drain failed: %s: %s]' % (type(exc).__name__, exc))
 
 
 def main() -> int:
@@ -93,6 +124,29 @@ def main() -> int:
                             start_new_session=True)
     out['server_pid'] = proc.pid
     out['server_started_utc'] = _now()
+
+    # DRAIN THE PIPE. Root, 2026-09-23 08:00: "The terminal-failure path still
+    # depends on an unchecked stderr stream that the supplied supervisor does
+    # not drain or save ... Drain/save diagnostics within the already required
+    # absolute deadline."
+    #
+    # Nothing read this pipe. Two consequences, and the first is worse than the
+    # missing diagnostics: a child that writes more than the pipe buffer (~64 KB)
+    # BLOCKS FOREVER on write, so the supervisor's own plumbing could hang the
+    # producer it is measuring. And the process-level refusal's diagnostic line
+    # went into a buffer nobody emptied.
+    #
+    # A daemon thread, so a stuck read can never outlive the absolute deadline
+    # the caller already enforces, and a bounded buffer, so a chatty or looping
+    # server cannot exhaust memory. What is dropped is COUNTED, never silently
+    # truncated.
+    diagnostics: list = []
+    dropped = {'lines': 0, 'chars': 0}
+
+    drain_thread = threading.Thread(
+        target=drain_stream, args=(proc.stdout, diagnostics, dropped),
+        daemon=True, name='live_ab_smoke_drain')
+    drain_thread.start()
 
     import requests
     base = 'http://127.0.0.1:%d' % m['port']
@@ -171,11 +225,38 @@ def main() -> int:
     out['wall_seconds_total'] = round(time.monotonic() - t_wall0, 2)
     out['wall_cap_respected'] = out['wall_seconds_total'] <= WALL_CAP_S
 
+    # Join the drain within the deadline, then RETAIN what it collected. A drain
+    # that has not finished is reported as unfinished rather than waited on.
+    drain_thread.join(timeout=DRAIN_JOIN_S)
+    out['producer_diagnostics'] = {
+        'lines': list(diagnostics),
+        'lines_are_a_bounded_preview': True,
+        'line_cap': DIAGNOSTIC_LINE_CAP,
+        'chars_per_line_cap': DIAGNOSTIC_LINE_CHARS,
+        'dropped_lines': dropped['lines'],
+        'dropped_chars': dropped['chars'],
+        'drain_finished': not drain_thread.is_alive(),
+        'stream': 'the child stdout+stderr pipe, drained continuously from launch',
+    }
+
     # --- ONLY NOW read the closed acquisition -------------------------------
     expected = {'host_id': m['host_id'], 'boot_id': m['boot_id'],
                 'instance_id': token, 'binary_sha256': m['launcher']['sha256'],
                 'patch_sha256': m['patch_sha256']}
-    obs = lab_lifecycle.observe(log, expected=expected)
+    # THE RETAINED EXIT OUTCOME REACHES THE READER. Root: "The supervisor must
+    # retain this exit outcome and invalidate acquisition even if a readable
+    # earlier seal contains zero counts." It was recorded in the receipt above
+    # and never used, which retains a number without acting on it.
+    #
+    # This supervisor STOPS the server on purpose with SIGTERM, and subprocess
+    # reports a signal death as a NEGATIVE return code, so a healthy teardown is
+    # -15 and not 0. The expectation is DECLARED to the reader rather than the
+    # reader being taught to forgive negative codes, and the raw value is kept.
+    obs = lab_lifecycle.observe(
+        log, expected=expected, process_outcome=proc.returncode,
+        expected_termination_signal=int(signal.SIGTERM))
+    out['acquisition_invalidated_by_process_outcome'] = (
+        obs.get('process_outcome_problem'))
     out['observation'] = obs
     out['raw_log_bytes'] = log.stat().st_size if log.exists() else 0
     side = Path(str(log) + '.error')
