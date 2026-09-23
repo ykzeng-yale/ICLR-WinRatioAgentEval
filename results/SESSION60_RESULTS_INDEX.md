@@ -2999,6 +2999,42 @@ one. Freeze **16/26**.
 **Still open, not claimed:** manifest schema validation; invalid-encoding finalization; health/sleep
 bounded by remaining work; deadline rechecked immediately before every POST; blocking drain read.
 
+### 2026-09-23 · the deadline arithmetic above a blocking read was decoration
+
+`main` and `session60/live-ab` at **`3befd15`**. Closes the five items left open after the durability
+batch, under root's 11:16 disposition. Receipt:
+`results/live_ab/ACQUISITION_FINALIZATION_AND_DEADLINE.json` (`deterministic-path`).
+
+**A clock check cannot interrupt a blocking read.** I disclosed this several cycles ago and left it;
+root kept it *inside* the deadline task rather than letting the disclosure stand in for the repair.
+The loop tested the clock and then entered `read()`, which blocks until data or EOF — so a child that
+went quiet **without exiting** parked the drain there forever and every bound above it was
+decoration. The descriptor is now non-blocking, waited on with a bounded `select`. Witnessed with a
+**real pipe**, never written to and never closed, which must give up at its deadline.
+
+**I fixed the sidecar reader and left the main log reader raising.** `read_text('utf-8')` raises
+`UnicodeDecodeError` — a `ValueError` — which escaped every caller and took the receipt with it,
+while `_retain_bytes`, written precisely to handle undecodable bytes, was never reached because
+`observe()` raised first. `read_records` now reads bytes and refuses with a described reason; bytes
+are retained by digest, **not** decoded with replacements, because a replaced byte is not the byte
+the producer wrote.
+
+**An incomplete manifest threw before any receipt.** The script dereferenced manifest keys at four
+separate places, so `{}` failed at whichever one it reached first. `validate_manifest` checks every
+field up front and the refusal is **described** through `finalize()` rather than thrown — including
+domain errors: out-of-range port, a bool where an int is required, a non-string server arg.
+
+**The deadline is rechecked immediately before every POST**, and after artifact verification before
+the child exists. The earlier check ran *before* the barrier wait, which can itself consume the
+allowance. Health GET and poll sleep are bounded too.
+
+Entry-point cases **14 → 19**, green; design **345**, serving 89, isolation 33, e2e 42, chain 70.
+`HARNESS_FILES` **33**. Freeze **16/26**, structural inventory.
+
+**Still open, not claimed:** the 8 MiB / 90 s constants into the finite plan and acquisition
+configuration; clock-window persistence, anchor-event join and per-server maps under the 03:48
+handoff; elapsed-time boundary coverage beyond these cases.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
