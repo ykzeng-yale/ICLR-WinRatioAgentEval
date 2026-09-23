@@ -116,6 +116,51 @@ class LoaderCallSiteTests(unittest.TestCase):
         self.assertEqual(self.m.classify_call(rows[1]),
                          'default-search call, no directory argument')
 
+    # -- root 17:52: the build-rule deposit, checkable on its own -------------
+    def _deposit(self):
+        m = self.m
+        return {'build_directory': '/b', 'targets': ['bin/llama-server'],
+                'statements': {t: m.statement_block(NINJA, t)
+                               for t in ('bin/llama-server', 'lib/libctx.a',
+                                         'lib/libbase.a')},
+                'object_to_source': [
+                    {'object': 'main.o', 'file': '/src/main.cpp'},
+                    {'object': 'ctx.o', 'file': '/b/Unity/unity_0_cxx.cxx'},
+                    {'object': 'chat.o', 'file': '/src/chat.cpp'},
+                    {'object': 'base.o', 'file': '/src/base.cpp'}],
+                'unity_units': [{'path': '/b/Unity/unity_0_cxx.cxx',
+                                 'includes': ['/src/a.cpp', '/src/b.cpp']}]}
+
+    def test_the_DEPOSIT_ALONE_rederives_the_linkage(self):
+        """THE CONTROL: statements (continuation lines kept), mappings and unity
+        includes are enough -- no generated original is read."""
+        r = self.m.linkage_from_deposit(self._deposit())
+        self.assertEqual(r['problems'], [])
+        self.assertEqual(sorted(r['linked']),
+                         ['/src/a.cpp', '/src/b.cpp', '/src/base.cpp',
+                          '/src/chat.cpp', '/src/main.cpp'])
+
+    def test_a_deposit_MISSING_an_archive_statement_says_so(self):
+        d = self._deposit()
+        del d['statements']['lib/libbase.a']
+        r = self.m.linkage_from_deposit(d)
+        self.assertTrue(any('undeposited archive lib/libbase.a' in p
+                            for p in r['problems']))
+
+    def test_a_deposit_MISSING_a_mapping_says_so(self):
+        d = self._deposit()
+        d['object_to_source'] = [x for x in d['object_to_source'] if x['object'] != 'chat.o']
+        r = self.m.linkage_from_deposit(d)
+        self.assertTrue(any('chat.o with no deposited mapping' in p
+                            for p in r['problems']))
+        self.assertNotIn('/src/chat.cpp', r['linked'])
+
+    def test_statement_blocks_keep_CONTINUATION_lines_verbatim(self):
+        b = self.m.statement_block(NINJA, 'bin/llama-server')
+        self.assertIn('lib/libctx.a || bin/libimpl.dylib', b)
+        self.assertIn('LINK_LIBRARIES', b)
+        self.assertIsNone(self.m.statement_block(NINJA, 'bin/nothing'))
+
 
 if __name__ == '__main__':                                     # pragma: no cover
     unittest.main()

@@ -314,5 +314,155 @@ def main() -> int:
     return 0
 
 
+# -- the build-rule deposit root asked for at 17:52 ---------------------------
+TARGETS = ['bin/llama-server', 'bin/libllama-server-impl.dylib',
+           'bin/libggml.0.24.0.dylib', 'bin/libggml-base.0.24.0.dylib',
+           'bin/libggml-cpu.0.24.0.dylib', 'bin/libggml-blas.0.24.0.dylib',
+           'bin/libggml-metal.0.24.0.dylib', 'bin/libllama.0.4.1.dylib',
+           'bin/libllama-common.0.4.1.dylib', 'bin/libmtmd.0.4.1.dylib']
+
+
+def statement_block(text: str, output: str):
+    """The verbatim `build` statement for `output`, with its variable lines,
+    exactly as the generated file has it (continuation lines included)."""
+    lines = text.splitlines()
+    for i, line in enumerate(lines):
+        if not line.startswith('build '):
+            continue
+        head = line[len('build '):].split(':', 1)[0]
+        if output not in head.split('|')[0].split():
+            continue
+        block = [line]
+        j = i + 1
+        while block[-1].endswith('$') and j < len(lines):      # continuation
+            block.append(lines[j])
+            j += 1
+        while j < len(lines) and lines[j].startswith('  '):
+            block.append(lines[j])
+            j += 1
+        return '\n'.join(block)
+    return None
+
+
+def linkage_from_deposit(deposit: dict) -> dict:
+    """Re-derive target -> linked real sources from the DEPOSIT ALONE.
+
+    Pure: it reads only the deposited statements, object-to-source mappings and
+    unity include lines, so a reviewer without the owner's tree can check that
+    the call-site receipt's linkage follows from the deposited rules."""
+    statements = ninja_statements('\n\n'.join(deposit['statements'].values()))
+    obj_to_src = {m['object']: m['file'] for m in deposit['object_to_source']}
+    unity = {u['path']: u['includes'] for u in deposit['unity_units']}
+    build = deposit['build_directory']
+    linked, problems = {}, []
+    for t in deposit['targets']:
+        if t not in statements:
+            problems.append('no deposited statement for %s' % t)
+            continue
+        for o in linked_objects(statements, t):
+            if o.startswith('UNRESOLVED-ARCHIVE:'):
+                problems.append('%s links an undeposited archive %s' % (t, o[19:]))
+                continue
+            src = obj_to_src.get(o)
+            if src is None:
+                problems.append('%s links %s with no deposited mapping' % (t, o))
+                continue
+            reals = ([os.path.normpath(os.path.join(os.path.dirname(src), i))
+                      for i in unity[src]] if src in unity else [src])
+            for r in reals:
+                linked.setdefault(r, set()).add(t)
+    return {'linked': {k: sorted(v) for k, v in sorted(linked.items())},
+            'problems': problems, 'build_directory': build}
+
+
+def deposit_build_rules() -> int:
+    manifest_path = REPO / 'results/live_ab/CANDIDATE_INSTRUMENT_MANIFEST.json'
+    sites_path = REPO / 'results/live_ab/LOADER_CALL_SITE_EXCERPTS.json'
+    out_path = REPO / 'results/live_ab/LOADER_LINKAGE_BUILD_RULES.json'
+    if out_path.exists():
+        print('refusing: the deposit exists; this is write-once', file=sys.stderr)
+        return 2
+    manifest = json.loads(manifest_path.read_text())
+    src = Path(manifest['source_and_patch']['source_tree'])
+    build = src / 'build'
+    t0 = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+    ninja_text = (build / 'build.ninja').read_text()
+    statements = ninja_statements(ninja_text)
+    cc = json.loads((build / 'compile_commands.json').read_text())
+    by_output = {}
+    for e in cc:
+        if e.get('output'):
+            by_output[os.path.normpath(os.path.join(e['directory'], e['output']))] = e
+
+    # every statement the ten targets reach: themselves and every archive
+    wanted, queue = [], list(TARGETS)
+    while queue:
+        t = queue.pop(0)
+        if t in wanted:
+            continue
+        wanted.append(t)
+        st = statements.get(t) or {}
+        ins = list(st.get('explicit', [])) + (
+            st.get('variables', {}).get('LINK_LIBRARIES') or '').split()
+        queue.extend(i for i in ins if i.endswith('.a') and i not in wanted)
+    blocks = {t: statement_block(ninja_text, t) for t in wanted}
+
+    mappings, unity_units = [], []
+    for t in TARGETS:
+        for o in linked_objects(statements, t):
+            if o.startswith('UNRESOLVED-ARCHIVE:') or o in {m['object'] for m in mappings}:
+                continue
+            e = by_output.get(os.path.normpath(str(build / o)))
+            if e is None:
+                continue
+            mappings.append({'object': o, 'file': e['file'], 'directory': e['directory'],
+                             'output': e.get('output'),
+                             'entry_sha256': hashlib.sha256(json.dumps(
+                                 e, sort_keys=True).encode()).hexdigest()})
+            if '/Unity/' in e['file'] and e['file'] not in {u['path'] for u in unity_units}:
+                up = Path(e['file'])
+                unity_units.append({'path': e['file'], 'sha256': sha256_file(up),
+                                    'includes': unity_includes(up.read_text())})
+    deposit = {
+        'schema': 'live_ab/loader_linkage_build_rules-v1',
+        'convention': 'post-build-provenance',
+        'generated_utc': t0,
+        'authority': ('root, reviews/dependency_callsite_disposition_20260923_1752.md: '
+                      '"deposit the existing relevant generated link/archive statements '
+                      'and object-to-source compile mappings (with their original-file '
+                      'hashes)"'),
+        'nothing_executed_THIS_RECEIPT': 'text reads of existing generated files only',
+        'build_directory': str(build),
+        'originals': {n: {'path': str(build / n), 'bytes': (build / n).stat().st_size,
+                          'sha256': sha256_file(build / n)}
+                      for n in ('build.ninja', 'compile_commands.json')},
+        'targets': TARGETS,
+        'statements': blocks,
+        'object_to_source': mappings,
+        'unity_units': unity_units,
+        'how_to_check': ('linkage_from_deposit(this) in '
+                         'experiments/live_ab_serving/loader_call_sites.py re-derives '
+                         'target -> linked sources from these statements, mappings and '
+                         'unity includes ALONE; its result is compared below with the '
+                         'call-site receipt. The whole-file digests above bind the '
+                         'excerpts to the originals for anyone holding them.'),
+    }
+    rederived = linkage_from_deposit(deposit)
+    receipt = json.loads(sites_path.read_text())
+    want = {os.path.realpath(k): v for k, v in receipt['linked_translation_units'].items()}
+    got = {os.path.realpath(k): v for k, v in rederived['linked'].items()}
+    deposit['rederivation'] = {
+        'problems': rederived['problems'],
+        'linked_translation_units': len(got),
+        'call_site_receipt': {'path': str(sites_path.relative_to(REPO)),
+                              'sha256': sha256_file(sites_path)},
+        'agrees_with_call_site_receipt': want == got,
+        'differences': sorted(set(want) ^ set(got))[:20],
+    }
+    out_path.write_text(json.dumps(deposit, indent=1, sort_keys=True) + '\n')
+    print(out_path, json.dumps(deposit['rederivation'])[:300])
+    return 0
+
+
 if __name__ == '__main__':                                     # pragma: no cover
-    sys.exit(main())
+    sys.exit(deposit_build_rules() if '--deposit-build-rules' in sys.argv else main())
