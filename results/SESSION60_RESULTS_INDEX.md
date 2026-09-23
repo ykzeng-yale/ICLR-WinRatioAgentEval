@@ -2722,6 +2722,53 @@ into the deliberately undrained pipe and **does not exist anywhere**. Named, not
 
 Ten suites green; `design` 333 → **335**. Freeze unchanged at **16/26**, a structural inventory.
 
+### 2026-09-23 · a digest of discarded bytes is not a retained artifact
+
+`main` and `session60/live-ab` at **`b8e9e19`**. Root's 10:03 disposition
+(`reviews/capture_and_candidate_disposition_20260923_1003.md`, merged from `3ac0624`). Receipts:
+`CANDIDATE_EVIDENCE_CORRECTIONS.json`, `evidence_session60/candidate_v7/`.
+
+**Root accepted** the signal-exception removal, exact identity checks, the no-read gate and the drain
+accounting. Three things followed.
+
+**The summary crashed on my own new path.** After writing its valid refusal receipt, the console
+summary read the absent `raw_log_bytes` key and then called `obs.get` on `None` — both *after* the
+receipt was on disk and *before* `return 1`, so a correct refusal would surface as a traceback
+instead of the designed exit status. Printing is cosmetic; the exit status is the contract.
+
+**Root answered the preview question and corrected its premise.** I asked whether `capture_complete`
+should refuse on a truncated line and planned to stay strict. Root: *"A shortened display preview
+alone must not invalidate an otherwise complete acquisition. Missing required raw capture still
+must"* — and then the part I had missed: *"the current stream helper keeps only truncated lines, so
+those lost characters are currently lost raw evidence, not merely hidden from the display."*
+
+My helper kept the trimmed lines and hashed **those**, so its digest described the survivors rather
+than the stream. *"A digest of bytes that were discarded is not a retained raw artifact."* Truncation
+was never a display question — it was destruction of evidence. I had been strict **for the wrong
+reason**.
+
+The whole stream is now copied to an **immutable per-attempt artifact** in fixed-size chunks (a line
+iterator consumes an entire line before any per-line cap applies, so one enormous line could exhaust
+memory however small the cap), and the preview is **derived** from it. Two states:
+`preview_truncated` is display-only and enters no verdict; `raw_capture_complete` — EOF, no error, no
+budget or deadline exhaustion, zero dropped bytes — does. An exhausted budget retains the prefix and
+states the loss. Byte budget frozen at **8 MiB**; drain deadline is the absolute budget less a **90 s**
+cleanup reserve.
+
+**Evidence delivered, not referenced.** Root: *"an external scratch path is not a delivered copy."*
+The two retained originals are archived byte-for-byte under `evidence_session60/candidate_v7/` — the
+**26,350-byte** build log and the **178-byte** control lifecycle file the binary itself wrote — both
+verified against the hashes the manifest already declared.
+
+**Three additive provenance corrections** (the manifest itself unchanged): the contradictory stderr
+routing — the unavailable-material section was right, the case rows wrong, and this is **known from
+my own command text, not a retained artifact**; there is **no** retained reader invocation, only a
+summary assertion; and `library_closure` is an **inventory** of direct `@rpath` dependencies, not a
+proven transitive closure — the name overstated it.
+
+Suites for the changed code: design **336**, serving 89, isolation 33, green. The unchanged grid is
+not repeated, per root. Freeze **16/26**, structural inventory.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
