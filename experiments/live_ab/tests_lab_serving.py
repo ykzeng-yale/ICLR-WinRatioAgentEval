@@ -1214,7 +1214,16 @@ class WorkerTests(unittest.TestCase):
                 'records': str(self.dir / 'records'),
                 'requests': str(self.dir / 'requests'),
                 'tasks': str(self.tasks_path),
-                'sandbox_lock': str(self.dir / 'sandbox.lock'),
+                # CANONICAL SPELLING. Only the CLI entry validates the lock,
+                # and it does so unconditionally now -- root: "a path or flag
+                # cannot designate itself an isolated fixture." The errors these
+                # CLI tests exercise all occur AFTER the lock check, so the
+                # canonical spelling costs them nothing. Tests that genuinely
+                # need an isolated lock call run_job directly with their own
+                # path (the lower-level wrapper root pointed at) instead of
+                # asking the production reader to make an exception.
+                'sandbox_lock': lab_common.tokenize_execution_lock(
+                    lab_common.harness_config()),
             },
             'assignment_seq': 3,
         }

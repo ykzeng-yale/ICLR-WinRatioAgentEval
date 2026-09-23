@@ -2240,6 +2240,47 @@ the canonical token, so the workers share a lock for a **stronger** reason: ther
 file at all. `LOCK_TOPOLOGY_v5.json` recognises both routes and reports which matched
 (`route: canonical_token`); the obsolete-detector note is retained rather than the old receipt edited.
 
+### The bypass is closed, and the actual-entry tests found two more holes (2026-09-23)
+
+`deterministic-path`. `results/live_ab/LOCK_BINDING_REPAIR.json`. Root's item 1, done.
+
+**Both limbs removed.** `resolve_execution_lock` now takes **no override and honours no flag** — a
+supplied `execution_lock_path` refuses outright, because there is no longer any way for a
+configuration to license its own exception. `lab_worker.main` checks **unconditionally, every
+spelling**; the token-shape discrimination is gone.
+
+**Replacing the source-string assertion with actual-entry tests immediately found two holes it could
+never have found.**
+
+1. **A relative path was accepted.** `os.path.realpath` resolves a relative path against the **current
+   working directory**, so `work/live_ab/sandbox.lock` compared *equal* to the canonical file when cwd
+   happened to be the repo root — and would compare unequal anywhere else. A lock whose identity
+   depends on where the process was started is not a host-wide lock. Relative paths now refuse before
+   any comparison.
+2. **`<WORK>/sandbox.lock` was accepted.** It resolves to the canonical file *in the owner checkout*
+   and to a different file in any clone — precisely the cross-checkout splitting root's ruling is
+   about. The serialized **spelling** is now constrained too: only the canonical token or the
+   canonical absolute path. That is an **additional** requirement, never an exemption.
+
+**A job may no longer relocate the host root.** Root: *"verify the effective configuration/job host
+root agrees with the audited canonical pin rather than silently mixing it with cached module
+configuration."* A job-carried `sandbox.host_work_root` must agree with the audited pin or the entry
+refuses.
+
+**Fixture isolation moved into the test process**, as root prescribed: tests patch the canonical root
+so the canonical file *is* their temp file, and production is unchanged and still validates. The CLI
+subprocess tests — which a parent-process patch cannot reach — use the canonical spelling instead,
+since every error they exercise occurs *after* the lock check. **Nothing was added to the production
+reader to keep a test passing**, which is what went wrong the first time.
+
+**The refusal tests assert it happens before dispatch**, not merely that it happens: no spool is
+written on any refused spelling.
+
+**Suites: ten of ten green**; isolation now 31 tests.
+
+**What this does not establish:** that every production entry point has been enumerated. I repaired
+the two root named plus the two the new tests exposed, and I have **not** proved the set is complete.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.

@@ -789,20 +789,103 @@ class ExecutionLockConformanceTests(unittest.TestCase):
             with self.assertRaises(C.PreflightError):
                 C.host_work_root({'sandbox': {'host_work_root': bad}})
 
-    def test_a_stale_serialized_job_token_refuses_at_the_worker_entry(self) -> None:
-        # THE CASE ROOT NAMED: "do not permit an arbitrary job path to split it."
-        # A job written before this repair carries the TOKEN
-        # <WORK>/<trial>/sandbox.lock. The worker must refuse it rather than
-        # resolve a second inode and run effectively unlocked. An ABSOLUTE path
-        # is the explicit fixture injection root permits and is accepted.
-        import inspect
+    # ---- ACTUAL-ENTRY TESTS, not source-string assertions --------------
+    #
+    # The previous version of this asserted that `lab_worker.main`'s SOURCE
+    # CONTAINED certain substrings. Root: "Replace source-string assertions with
+    # tiny actual-entry tests: default canonical path accepted; arbitrary
+    # absolute, relative, stale-token and self-labelled production overrides
+    # refused before dispatch; isolated fixtures remain isolated." A substring
+    # test passes whether or not the entry point refuses anything, which is the
+    # only thing worth knowing.
+
+    def _job_file(self, lock_spelling, tmp, *, cfg_extra=None):
+        import json as _json
+        import lab_common as C
+        job = {'trial': 'T1', 'arrival': 1, 'cfg': dict(cfg_extra or {}),
+               'paths': {'sandbox_lock': lock_spelling,
+                         'spool': str(Path(tmp) / 'spool.jsonl')}}
+        f = Path(tmp) / 'job.json'
+        f.write_text(_json.dumps(job), encoding='utf-8')
+        return f
+
+    def _run_entry(self, lock_spelling, tmp, *, cfg_extra=None):
+        """Call the real CLI entry and report (refused, spool_written)."""
+        import lab_common as C
         import lab_worker
-        src = inspect.getsource(lab_worker.main)
-        self.assertIn("_s.startswith('<')", src)
-        self.assertIn('assert_canonical_execution_lock', src)
-        # the discrimination is on token shape, and both arms are present
-        self.assertIn("'explicit_fixture_path'", src)
-        self.assertIn("('token', 'fallback')", src)
+        f = self._job_file(lock_spelling, tmp, cfg_extra=cfg_extra)
+        spool = Path(tmp) / 'spool.jsonl'
+        try:
+            lab_worker.main(['--job', str(f)])
+            return False, spool.exists()
+        except C.PreflightError:
+            return True, spool.exists()
+
+    def test_entry_refuses_every_non_canonical_spelling_before_dispatch(self) -> None:
+        import tempfile
+        import lab_common as C
+        cfg = C.harness_config()
+        canonical = str(C.canonical_execution_lock(cfg))
+        cases = {
+            'arbitrary absolute': '/tmp/somewhere/sandbox.lock',
+            'relative': 'work/live_ab/sandbox.lock',
+            'stale trial token': '<WORK>/T1/sandbox.lock',
+            'bare token': '<WORK>/sandbox.lock',
+            'canonical with a lie about the host root':
+                canonical,
+        }
+        for name, spelling in cases.items():
+            tmp = tempfile.mkdtemp()
+            extra = ({'sandbox': {'host_work_root': '/tmp/elsewhere'}}
+                     if name.startswith('canonical with') else None)
+            refused, spooled = self._run_entry(spelling, tmp, cfg_extra=extra)
+            self.assertTrue(refused, '%s (%s) was NOT refused' % (name, spelling))
+            self.assertFalse(spooled,
+                             '%s: refused but the spool was already written, so '
+                             'the refusal was not before dispatch' % name)
+
+    def test_entry_accepts_the_canonical_spelling(self) -> None:
+        # It must get PAST the lock check. Anything after that (a missing task
+        # file, an unwritable path) is not a lock refusal, so only a
+        # PreflightError naming the lock would be a failure here.
+        import tempfile
+        import lab_common as C
+        import lab_worker
+        tmp = tempfile.mkdtemp()
+        f = self._job_file(C.tokenize_execution_lock(C.harness_config()), tmp)
+        try:
+            lab_worker.main(['--job', str(f)])
+        except C.PreflightError as exc:
+            self.assertNotIn('execution lock', str(exc),
+                             'the canonical spelling must not be refused')
+        except Exception:
+            pass                 # later failures are not this test's subject
+
+    def test_a_config_cannot_license_its_own_lock_override(self) -> None:
+        # The removed bypass: a truthy execution_lock_is_fixture used to make an
+        # override legitimate. A claim inside the validated data is not evidence.
+        import lab_common as C
+        for extra in ({'execution_lock_path': '/tmp/x.lock'},
+                      {'execution_lock_path': '/tmp/x.lock',
+                       'execution_lock_is_fixture': True}):
+            with self.assertRaises(C.PreflightError):
+                C.resolve_execution_lock({'sandbox': extra}, stage='probe')
+
+    def test_isolation_by_patching_the_canonical_root_still_works(self) -> None:
+        # The supported way to isolate: move the canonical root in-process. The
+        # production resolver is unchanged and still validates.
+        import tempfile
+        from unittest import mock as _mock
+        import lab_common as C
+        root = Path(tempfile.mkdtemp()) / 'hostwork'
+        root.mkdir(parents=True)
+        cfg = dict(C.harness_config())
+        cfg['sandbox'] = dict(cfg['sandbox'], host_work_root=str(root))
+        with _mock.patch.object(C, '_HARNESS_CONFIG', cfg):
+            path, info = C.resolve_execution_lock(cfg, stage='isolated')
+            self.assertEqual(path, root / C.EXECUTION_LOCK_NAME)
+        self.assertNotEqual(C.canonical_execution_lock(C.harness_config()),
+                            root / C.EXECUTION_LOCK_NAME)
 
     def test_there_are_two_flock_implementations_and_they_differ(self) -> None:
         # Retained: root ruled two wrappers are acceptable PROVIDED they hold the

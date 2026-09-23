@@ -18,6 +18,7 @@ from __future__ import annotations
 import ast
 import hashlib
 import inspect
+import contextlib
 import json
 import os
 import re
@@ -202,6 +203,29 @@ DESIGN_SEED_BASE = 60260919
 # ==================================================================================================
 # Local fakes for the chain (G1) and for a worker try (G4)
 # ==================================================================================================
+
+
+
+@contextlib.contextmanager
+def isolated_canonical_lock(tmpdir):
+    """Point the canonical host-wide lock at a temporary root, IN THIS PROCESS.
+
+    Root, `reviews/lock_delta_disposition_20260923_0502.md`: "Keep isolated unit
+    fixtures by patching/injecting the canonical root within the test process ...
+    do not teach the production job reader to bypass validation merely to keep
+    those tests passing."
+
+    So the production resolver stays unconditional and still validates; what a
+    test isolates is the CONFIGURATION it validates against. Nothing in
+    `lab_common`, `lab_data`, `lab_worker` or `lab_containment` learns that a
+    test is running.
+    """
+    root = Path(tmpdir) / 'hostwork'
+    root.mkdir(parents=True, exist_ok=True)
+    cfg = json.loads((Path(lab_common.HERE) / 'config.json').read_text('utf-8'))
+    cfg['sandbox'] = dict(cfg['sandbox'], host_work_root=str(root))
+    with mock.patch.object(lab_common, '_HARNESS_CONFIG', cfg):
+        yield lab_common.canonical_execution_lock(cfg)
 
 
 class FakeEventLog:
@@ -643,16 +667,15 @@ class SweepTests(unittest.TestCase):
             # EXPLICIT fixture lock: this unit sweep really executes reference
             # programs, so it must not contend for the host-wide production
             # inode. Root allows an injected fixture lock provided it declares
-            # itself, which is what execution_lock_is_fixture is for.
             cfg = {'sandbox': {'timeout_s': 10.0, 'cpu_s': 10,
                                'output_cap_bytes': 65536,
-                               'execution_lock_path': str(
-                                   Path(tempfile.mkdtemp()) / 'unit_sweep.lock'),
-                               'execution_lock_is_fixture': True},
+                               },
                    'execution': {'max_lock_wait_s': 30}}
             seen: list = []
-            exclusions = lab_data.sweep_references([good, broken, slow], cfg,
-                                                   on_progress=lambda *a: seen.append(a))
+            with isolated_canonical_lock(tempfile.mkdtemp()):
+                exclusions = lab_data.sweep_references(
+                    [good, broken, slow], cfg,
+                    on_progress=lambda *a: seen.append(a))
             reasons = {e['uid']: e['reason'] for e in exclusions}
             self.assertNotIn('mbpp_full/9001', reasons)
             self.assertEqual(reasons.get('mbpp_full/9002'), 'reference_fails_verify')
@@ -1977,12 +2000,12 @@ class AttemptLedgerRetentionTests(unittest.TestCase):
                     'test': ''}
             cfg = {'sandbox': {'timeout_s': 10.0, 'cpu_s': 10,
                                'output_cap_bytes': 65536,
-                               'execution_lock_path': str(tmp / 'lock'),
-                               'execution_lock_is_fixture': True},
+                               },
                    'execution': {'max_lock_wait_s': 5}}
             with mock.patch.object(lab_data, '_pilot_verify', lambda: stub):
-                exclusions = lab_data.sweep_references([task], cfg,
-                                                       on_attempt=ledger.append)
+                with isolated_canonical_lock(tmp):
+                    exclusions = lab_data.sweep_references([task], cfg,
+                                                           on_attempt=ledger.append)
             self.assertEqual(len(exclusions), 1)
             self.assertEqual(exclusions[0]['reason'], 'reference_fails_verify')
 
@@ -2010,12 +2033,13 @@ class AttemptLedgerRetentionTests(unittest.TestCase):
                     'reference': 'def f():\n    return 1\n',
                     'test_imports': [], 'test_list': [], 'challenge_test_list': [],
                     'test': ''}
-            cfg = {'sandbox': {'execution_lock_path': str(tmp / 'lock'),
-                               'execution_lock_is_fixture': True},
+            cfg = {'sandbox': {},
                    'execution': {'max_lock_wait_s': 5}}
             with mock.patch.object(lab_data, '_pilot_verify', lambda: stub):
                 with self.assertRaises(OSError):
-                    lab_data.sweep_references([task], cfg, on_attempt=broken_sink)
+                    with isolated_canonical_lock(tmp):
+                        lab_data.sweep_references([task], cfg,
+                                                  on_attempt=broken_sink)
         finally:
             shutil.rmtree(tmp, ignore_errors=True)
 

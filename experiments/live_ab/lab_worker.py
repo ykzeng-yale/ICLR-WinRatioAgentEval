@@ -648,35 +648,33 @@ def main(argv: list[str] | None = None) -> int:
     paths = job.get('paths') or {}
     lock = resolve_token_path(paths['sandbox_lock']) if 'sandbox_lock' in paths \
         else lab_common.trial_paths(str(job['trial'])).sandbox_lock
-    # PRODUCTION ENTRY BINDING CHECK, discriminating on the TOKEN SHAPE.
+    # PRODUCTION ENTRY BINDING CHECK. EVERY SPELLING, NO EXCEPTIONS.
     #
-    # The orchestrator now serializes exactly `<HOST_WORK>/sandbox.lock`. So a
-    # job whose `sandbox_lock` is a TOKEN but not that one did not come from the
-    # current production orchestrator: it is a STALE serialized job, carrying
-    # `<WORK>/<trial>/sandbox.lock` from before this repair, and resolving it
-    # would open a second inode. That is precisely what root said must not be
-    # permitted -- "do not permit an arbitrary job path to split it" -- so it
-    # refuses.
+    # The previous version discriminated on token shape: a string beginning '<'
+    # had to be canonical, anything else was waved through as an "explicit
+    # fixture". Root: "lab_worker.main skips the canonical check for any string
+    # not beginning `<`, including arbitrary absolute and relative paths ... a
+    # path or flag cannot designate itself an isolated fixture." An arbitrary job
+    # could therefore hand the worker any lock it liked and run effectively
+    # unlocked, which is precisely the splitting this check exists to prevent.
     #
-    # An ABSOLUTE path is not something production ever emits; it is the explicit
-    # injection root allows -- "isolated unit fixtures may inject their own
-    # temporary lock explicitly". It is accepted and recorded as a fixture.
+    # I built that hole because it made four worker tests pass. Isolation now
+    # lives in the test process, which patches the canonical root; the production
+    # reader validates unconditionally.
     #
-    # Two earlier attempts at this check were wrong and the suite said so: the
-    # first refused every non-canonical path and broke four worker tests; the
-    # second keyed on a flag inside the job cfg, which any job could assert and
-    # which the failing tests did not carry anyway.
-    _raw_lock = paths.get('sandbox_lock')
-    _lock_kind = 'fallback'
-    if _raw_lock is not None:
-        _s = str(_raw_lock)
-        if _s.startswith('<'):
-            _lock_kind = 'token'
-        else:
-            _lock_kind = 'explicit_fixture_path'
-    if _lock_kind in ('token', 'fallback'):
-        lab_common.assert_canonical_execution_lock(
-            lock, lab_common.harness_config(), stage='lab_worker.main')
+    # The job's own sandbox block is checked for agreement first, so a job cannot
+    # quietly relocate the host root and then satisfy the check against its own
+    # relocated pin.
+    lab_common.assert_host_root_agreement(
+        job.get('cfg') or {}, stage='lab_worker.main')
+    if 'sandbox_lock' in paths:
+        # the SPELLING, before it is resolved: <WORK>/sandbox.lock resolves to the
+        # canonical file here and to a different file in a clone.
+        lab_common.assert_canonical_lock_spelling(
+            paths['sandbox_lock'], lab_common.harness_config(),
+            stage='lab_worker.main')
+    lab_common.assert_canonical_execution_lock(
+        lock, lab_common.harness_config(), stage='lab_worker.main')
 
     try:
         run_job(job, sandbox_lock_path=lock)

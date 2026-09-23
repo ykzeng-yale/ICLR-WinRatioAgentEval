@@ -195,46 +195,92 @@ def resolve_execution_lock_token(tok: str, cfg: Mapping | None) -> Path:
     raise PreflightError('%r is not a %s path' % (s, HOST_WORK_TOKEN))
 
 
-EXECUTION_LOCK_FIXTURE_KEY: str = 'execution_lock_is_fixture'
-
-
 def resolve_execution_lock(cfg: Mapping | None, *, stage: str) -> tuple:
     """THE ONE resolver every cooperating execution path uses. Returns (path, info).
 
-    Root allows both of these and they must not be confusable:
+    IT TAKES NO OVERRIDE AND HONOURS NO FLAG. Root, reviewing the first version
+    (`reviews/lock_delta_disposition_20260923_0502.md`):
 
-      * "isolated unit fixtures may inject their own temporary lock explicitly"
-      * "prevent ... an unconstrained `execution_lock_path` override from
-        bypassing the canonical production path"
+        "a path or flag cannot designate itself an isolated fixture ...
+         `resolve_execution_lock` accepts an override when a truthy serialized
+         `execution_lock_is_fixture` field is supplied ... do not teach the
+         production job reader to bypass validation merely to keep those tests
+         passing."
 
-    So an override is honoured ONLY when the configuration also declares
-    ``sandbox.execution_lock_is_fixture: true``. Bypassing the host-wide lock
-    becomes a thing you have to SAY, in the config, where a reader can see it --
-    not something a stray key does silently. Production config carries neither
-    key and gets the canonical file, checked.
+    That is right, and the reason I built the bypass is the reason it was wrong: I
+    wanted four worker tests to pass. Validation must never consult a claim made
+    by the thing being validated -- a job or config that says "trust me, I am a
+    fixture" is exactly what an arbitrary job would say.
 
-    The old code honoured any `execution_lock_path` unconditionally, which is the
-    unconstrained override root named.
+    ISOLATION NOW LIVES IN THE TEST PROCESS: a test patches the canonical root
+    (`lab_common._HARNESS_CONFIG`) so the canonical file IS its temporary file.
+    The production path is unchanged and still validates; only the configuration
+    it validates against is isolated. An offline runner that needs different
+    configuration gets its own non-production entry, not a hole in this one.
+
+    A supplied `execution_lock_path` now REFUSES rather than being honoured,
+    because there is no longer any way to declare it legitimate.
     """
     sandbox_cfg = ((cfg or {}).get('sandbox') or {})
     override = sandbox_cfg.get('execution_lock_path')
-    is_fixture = bool(sandbox_cfg.get(EXECUTION_LOCK_FIXTURE_KEY))
-    if override and not is_fixture:
+    if override:
         raise PreflightError(
-            'sandbox.execution_lock_path=%r at %s without %s: an override that '
-            'does not declare itself a fixture would silently split the '
-            'host-wide lock of protocol 5.7 item 1'
-            % (override, stage, EXECUTION_LOCK_FIXTURE_KEY))
-    if is_fixture:
-        if not override:
-            raise PreflightError(
-                '%s is set at %s but no execution_lock_path was supplied'
-                % (EXECUTION_LOCK_FIXTURE_KEY, stage))
-        return Path(override), {'stage': stage, 'fixture_lock': True,
-                                'path': str(override),
-                                'note': 'EXPLICIT fixture lock; not the host-wide file'}
-    path = canonical_execution_lock(cfg)
-    return path, assert_canonical_execution_lock(path, cfg, stage=stage)
+            'sandbox.execution_lock_path=%r at %s: the execution lock is not '
+            'configurable. Protocol 5.7 item 1 admits one host-wide file, and a '
+            'configuration cannot license its own exception. Isolate by patching '
+            'the canonical root inside the test process instead.'
+            % (override, stage))
+    assert_host_root_agreement(cfg, stage=stage)
+    path = canonical_execution_lock(harness_config())
+    return path, assert_canonical_execution_lock(path, harness_config(), stage=stage)
+
+
+def assert_host_root_agreement(cfg: Mapping | None, *, stage: str) -> dict:
+    """A job-carried host root must AGREE with the audited module pin.
+
+    Root: "Verify the effective configuration/job host root agrees with the
+    audited canonical pin rather than silently mixing it with cached module
+    configuration." A job may carry its own `sandbox` block; if it names a
+    different host root than the module config the two are silently mixed and the
+    lock the worker checks is not the lock the job meant.
+    """
+    declared = (((cfg or {}).get('sandbox') or {}) or {}).get('host_work_root')
+    if declared is None:
+        return {'stage': stage, 'job_declared_host_root': None,
+                'note': 'job carries no host root; the audited module pin governs'}
+    audited = str(host_work_root(harness_config()))
+    if os.path.realpath(str(declared)) != os.path.realpath(audited):
+        raise PreflightError(
+            'host_work_root at %s is %r but the audited pin is %r; a job may not '
+            'relocate the host-wide lock' % (stage, declared, audited))
+    return {'stage': stage, 'job_declared_host_root': str(declared),
+            'agrees_with_audited_pin': True}
+
+
+def assert_canonical_lock_spelling(raw, cfg: Mapping | None, *, stage: str) -> dict:
+    """The SERIALIZED SPELLING must be canonical too, not merely resolve there.
+
+    `<WORK>/sandbox.lock` resolves to the canonical file IN THE OWNER CHECKOUT,
+    because `<WORK>` and `<HOST_WORK>` coincide there -- and to a different file
+    in any clone. Accepting it would accept a spelling that is only accidentally
+    correct on one host, which is the cross-checkout splitting root's ruling is
+    about. So exactly two spellings are admissible: the canonical token, or the
+    canonical absolute path.
+
+    This is an ADDITIONAL requirement, not an exemption. Nothing here lets a
+    spelling through that the resolved-path check would refuse.
+    """
+    s = str(raw)
+    ok_token = tokenize_execution_lock(cfg)
+    ok_abs = str(canonical_execution_lock(cfg))
+    if s == ok_token or s == ok_abs:
+        return {'stage': stage, 'spelling': s,
+                'kind': 'token' if s == ok_token else 'absolute'}
+    raise PreflightError(
+        'execution lock spelling at %s is %r; only %r or %r are admissible. A '
+        'spelling that merely resolves correctly in THIS checkout resolves '
+        'elsewhere in a clone, which is the splitting protocol 5.7 item 1 '
+        'forbids.' % (stage, s, ok_token, ok_abs))
 
 
 def assert_canonical_execution_lock(path, cfg: Mapping | None, *, stage: str) -> dict:
@@ -251,6 +297,18 @@ def assert_canonical_execution_lock(path, cfg: Mapping | None, *, stage: str) ->
     """
     want = canonical_execution_lock(cfg)
     got = Path(path)
+    # ABSOLUTE FIRST. `os.path.realpath` resolves a relative path against the
+    # CURRENT WORKING DIRECTORY, so `work/live_ab/sandbox.lock` compares EQUAL to
+    # the canonical file when cwd happens to be the repo root and unequal
+    # otherwise. A lock whose identity depends on where the process was started
+    # is not a host-wide lock. Found by an actual-entry test; the source-string
+    # assertion it replaced could never have found it.
+    if not got.is_absolute():
+        raise PreflightError(
+            'execution lock at %s is the RELATIVE path %s; it would resolve '
+            'against the current working directory, so the inode it names '
+            'depends on where the process started. Protocol 5.7 item 1 requires '
+            'one host-wide file.' % (stage, got))
     same = os.path.realpath(str(got)) == os.path.realpath(str(want))
     if not same:
         raise PreflightError(
