@@ -172,14 +172,21 @@ class SupervisorEntryPointTests(unittest.TestCase):
             self.skipTest('the saved smoke fixtures are not in this checkout')
         td = tempfile.TemporaryDirectory(prefix='sup_entry_')
         self.addCleanup(td.cleanup)
-        self.root = Path(td.name)
+        # CANONICAL: on macOS the temporary root is under /var, a symlink to
+        # /private/var, and the closure refuses a launcher path that is not
+        # canonical -- as it should.
+        self.root = Path(td.name).resolve()
         self.results = self.root / 'results'
         self.results.mkdir()
         self.log = self.root / 'lifecycle.jsonl'
         lines = [json.loads(s) for s in self.saved['raw_log_lines']]
         lines[-1]['sidecar_failures'] = 0
         self.log.write_text(''.join(json.dumps(s) + '\n' for s in lines), encoding='utf-8')
-        self.binary = self.root / 'launcher'
+        # THE LAUNCHER LIVES IN ITS OWN DIRECTORY, the child's cwd and a loader
+        # search location; logs and receipts sit OUTSIDE it, as root requires.
+        self.bindir = self.root / 'bin'
+        self.bindir.mkdir()
+        self.binary = self.bindir / 'llama-server'
         self.binary.write_bytes(b'LAUNCHER BYTES')
         self.model = self.root / 'weights.gguf'
         self.model.write_bytes(b'WEIGHT BYTES')
@@ -203,9 +210,72 @@ class SupervisorEntryPointTests(unittest.TestCase):
         self.libs = {}
         for name, blob in (('libllama-server-impl.dylib', b'IMPL BYTES'),
                            ('libggml-base.0.dylib', b'GGML BYTES')):
-            (self.root / name).write_bytes(blob)
+            (self.bindir / name).write_bytes(blob)
             self.libs[name] = {'sha256': hashlib.sha256(blob).hexdigest()}
-        m['non_system_library_closure'] = copy.deepcopy(self.libs)
+        m.pop('non_system_library_closure', None)
+        # THE WIRED LAUNCH RECORD (root 16:30, 17:52). A real v3 closure is
+        # FROZEN over these fixture files -- synthetic load commands, but the
+        # real filesystem, the real directory enumeration and the real realpath
+        # -- and bound with a fixture patch, the real build-snapshot receipt and
+        # the real code pins. Preflight re-derives it with the same readers.
+        dc = self.rs.dc
+        graph = {
+            str(self.binary): {'refs': ['@rpath/libllama-server-impl.dylib'],
+                               'rpaths': ['@loader_path']},
+            str(self.bindir / 'libllama-server-impl.dylib'): {
+                'refs': ['@rpath/libggml-base.0.dylib'], 'rpaths': ['@loader_path'],
+                'id': '@rpath/libllama-server-impl.dylib'},
+            str(self.bindir / 'libggml-base.0.dylib'): {
+                'refs': [], 'id': '@rpath/libggml-base.0.dylib'},
+        }
+
+        def metadata(path):
+            g = graph.get(path)
+            if g is None:
+                return {'error': 'no fixture metadata for %s' % path}
+            return {'path': path, 'install_name': g.get('id'), 'rpaths': g['rpaths']
+                    if 'rpaths' in g else [],
+                    'load_references': [{'command': 'LC_LOAD_DYLIB', 'reference': r}
+                                        for r in g['refs']]}
+        self.dep_readers = {
+            'metadata': metadata, 'exists': os.path.exists,
+            'read_bytes': lambda p: Path(p).read_bytes(),
+            'dynamic_loader': lambda p: {'dlopen': False},
+            'enumerate_dir': dc.discovery_candidates, 'realpath': os.path.realpath}
+        frozen = dc.derive_closure(
+            str(self.binary), launch_context={
+                'executable_invoked_path': str(self.binary), 'cwd': str(self.bindir),
+                'compiled_backend_dir': None, 'environment': {}},
+            **self.dep_readers)
+        assert frozen['resolved'], frozen['unresolved']
+        m['dependency_closure'] = frozen
+        m['launcher']['sha256'] = frozen['files'][str(self.binary)]['sha256']
+        self.patch_file = self.root / 'fixture.patch'
+        self.patch_file.write_bytes(
+            b'--- a/tools/server/server-common.h\n+++ b/tools/server/server-common.h\n'
+            b'@@ -1 +1 @@\n-a\n+b\n'
+            b'--- a/tools/server/server-context.cpp\n+++ b/tools/server/server-context.cpp\n'
+            b'@@ -1 +1 @@\n-c\n+d\n')
+        patch_sha = hashlib.sha256(self.patch_file.read_bytes()).hexdigest()
+        m['patch_sha256'] = patch_sha
+        snap = REPO / 'results/live_ab/CANDIDATE_BUILD_CONFIG_SNAPSHOT.json'
+        self.source_tree = json.loads(snap.read_text('utf-8'))['source_tree']
+        self.head = 'a' * 40
+        m['source_binding'] = {
+            'source_tree': self.source_tree, 'head': self.head,
+            'patch_path': str(self.patch_file), 'patch_sha256': patch_sha,
+            'build_snapshot': {'path': 'results/live_ab/CANDIDATE_BUILD_CONFIG_SNAPSHOT.json',
+                               'sha256': hashlib.sha256(snap.read_bytes()).hexdigest()}}
+        m['acquisition_code'] = {name: hashlib.sha256(path.read_bytes()).hexdigest()
+                                 for name, path in self.rs.ACQUISITION_CODE.items()}
+        # the fake git answers what a clean, patched tree would
+        self.git_answers = {
+            'rev-parse': (0, self.head + '\n', ''),
+            'status': (0, ' M tools/server/server-common.h\n'
+                          ' M tools/server/server-context.cpp\n', ''),
+            'apply': (0, '', ''),
+        }
+        self.git_calls = []
         self.man_path = self.root / 'manifest.json'
         self.man_path.write_text(json.dumps(m), encoding='utf-8')
         # THE TOKEN AND PROVENANCE MUST BE THE ONES THE SAVED RECORDS CARRY.
@@ -329,6 +399,13 @@ class SupervisorEntryPointTests(unittest.TestCase):
 
         self.denied = []
 
+        def fake_git(argv):
+            self.git_calls.append(list(argv))
+            verb = [a for a in argv if not a.startswith('-') and a != self.source_tree][0]
+            return self.git_answers.get(verb, (1, '', 'unexpected git verb %s' % verb))
+
+        self.popen_kwargs = None
+
         def fake_popen(args, *a, **k):
             # NO UNRESTRICTED FALLBACK. Root, 2026-09-23 12:42: "The shipped
             # `fake_popen` delegates every non-launcher command to real `Popen`
@@ -347,6 +424,7 @@ class SupervisorEntryPointTests(unittest.TestCase):
                     'the launcher may be created here.' % (args,))
             if popen_raises is not None:
                 raise popen_raises
+            self.popen_kwargs = dict(k)
             return proc
 
         if stray_command is not None:
@@ -423,7 +501,8 @@ class SupervisorEntryPointTests(unittest.TestCase):
         with mock.patch.object(rs, 'Deadline', clocked_deadline), \
                 mock.patch.object(rs.time, 'monotonic', fake_monotonic), \
                 mock.patch.object(lab_data, 'clock_provenance', lambda: dict(self.prov)), \
-                mock.patch.object(rs, 'BIN', self.binary), \
+                mock.patch.object(rs, 'DEPENDENCY_READERS', self.dep_readers), \
+                mock.patch.object(rs, 'SOURCE_READERS', {'git': fake_git}), \
                 mock.patch.object(rs.lab_common, 'RESULTS_ROOT', str(self.results)), \
                 mock.patch.object(rs.subprocess, 'Popen', fake_popen), \
                 mock.patch.object(rs.threading, 'Thread', _Thread), \
@@ -658,13 +737,14 @@ class SupervisorEntryPointTests(unittest.TestCase):
         it. A two-file launcher/model check could pass while the code that
         actually runs had changed.
         """
-        # the launcher and model are untouched; one sibling library is not
-        (self.root / 'libllama-server-impl.dylib').write_bytes(b'TAMPERED IMPL')
+        # the launcher and model are untouched; one sibling library is not.
+        # The v3 closure, re-derived before Popen, is what catches it now.
+        (self.bindir / 'libllama-server-impl.dylib').write_bytes(b'TAMPERED IMPL')
         status, receipt = self._run()
         self.assertIsNotNone(receipt)
-        self.assertFalse(receipt['launch_verification']['verified'])
-        self.assertTrue(any('libllama-server-impl' in p
-                            for p in receipt['launch_verification']['problems']))
+        self.assertFalse(receipt['dependency_verification']['verified'])
+        self.assertTrue(any('changed bytes' in p and 'libllama-server-impl' in p
+                            for p in receipt['dependency_verification']['problems']))
         self.assertFalse(receipt['child_started'],
                          'nothing may launch once an input fails its pin')
         self.assertEqual(self.posted, [])
@@ -674,12 +754,12 @@ class SupervisorEntryPointTests(unittest.TestCase):
         """A missing required input refuses before Popen; the launcher alone is
         not acceptance of the candidate instrument."""
         m = json.loads(self.man_path.read_text('utf-8'))
-        del m['non_system_library_closure']
+        del m['dependency_closure']
         self.man_path.write_text(json.dumps(m), encoding='utf-8')
         status, receipt = self._run()
-        self.assertFalse(receipt['launch_verification']['verified'])
-        self.assertTrue(any('no non-system library closure' in p
-                            for p in receipt['launch_verification']['problems']))
+        self.assertFalse(receipt['manifest_validation']['usable'])
+        self.assertTrue(any('dependency_closure' in p
+                            for p in receipt['manifest_validation']['problems']))
         self.assertFalse(receipt['child_started'])
         self.assertEqual(status, 1)
 
@@ -1393,6 +1473,147 @@ class SupervisorEntryPointTests(unittest.TestCase):
         self.assertEqual(receipt['responses_received'], 1)
         self.assertEqual(reads, [], 'an unfinished worker\'s artifact was read')
         self.assertEqual(receipt['request_counts']['usage_missing_or_unknown'], 1)
+
+    # -- root 16:30/17:52: the wired launch ----------------------------------
+    def test_the_WIRED_launch_runs_the_CLOSURE_ROOT_in_its_directory(self):
+        """THE CONTROL for the wiring: the launcher is the frozen closure's root,
+        cwd is its pinned parent, and every preflight check actually ran."""
+        status, receipt = self._run()
+        self.assertEqual(status, 0, receipt['supervisor_problems'])
+        self.assertEqual(self.popen_kwargs['cwd'], str(self.bindir))
+        env = self.popen_kwargs['env']
+        self.assertFalse([k for k in env if k.startswith(('GGML_', 'DYLD_'))])
+        self.assertEqual(env['LIVE_AB_RUN_TOKEN'], self.token)
+        self.assertTrue(receipt['dependency_verification']['verified'])
+        self.assertEqual(receipt['dependency_verification']['edges_checked'], 2)
+        self.assertTrue(receipt['dependency_verification']['bounded'])
+        self.assertTrue(receipt['source_binding_verification']['verified'])
+        self.assertTrue(receipt['acquisition_code_verification']['verified'])
+        self.assertTrue(receipt['acquisition_code_verification']['config_section']['agrees'])
+        self.assertEqual({c[2] for c in self.git_calls}, {'rev-parse', 'status', 'apply'})
+        self.assertTrue(receipt['launch_context']['verified_then_launched_unchanged'])
+
+    def test_INHERITED_loader_names_are_REMOVED_and_recorded_by_NAME_only(self):
+        """Root: "A variable's presence in the operator's environment alone is
+        not a refusal condition" -- it is removed, and only its name recorded."""
+        secret = '/secret/path/that/must/not/appear'
+        with mock.patch.dict(os.environ, {'GGML_BACKEND_PATH': secret,
+                                          'DYLD_LIBRARY_PATH': secret + '2'}):
+            status, receipt = self._run()
+        self.assertEqual(status, 0, receipt['supervisor_problems'])
+        self.assertEqual(receipt['launch_context']['removed_environment_names'],
+                         ['DYLD_LIBRARY_PATH', 'GGML_BACKEND_PATH'])
+        self.assertNotIn('GGML_BACKEND_PATH', self.popen_kwargs['env'])
+        self.assertNotIn('DYLD_LIBRARY_PATH', self.popen_kwargs['env'])
+        written = (self.results / ('SMOKE_RECEIPT_%s.json' % self.token)).read_text()
+        self.assertNotIn(secret, written, 'an environment VALUE reached the receipt')
+
+    def test_a_backend_DROPPED_INTO_the_executable_directory_refuses_before_Popen(self):
+        """Root: "Re-enumerate every applicable loader location at preflight;
+        cwd choice alone is not proof of an empty search set." """
+        (self.bindir / 'libggml-cuda.so').write_bytes(b'NOT FROZEN')
+        status, receipt = self._run()
+        self.assertEqual(status, 1)
+        self.assertIsNone(self.popen_kwargs, 'no child may be created')
+        self.assertFalse(receipt['dependency_verification']['verified'])
+        self.assertTrue(any('not in the frozen closure' in p
+                            for p in receipt['dependency_verification']['problems']))
+
+    def test_an_environment_MUTATED_between_verification_and_Popen_refuses(self):
+        """Root: "The same finalized environment dictionary and cwd must feed
+        both preflight and Popen; no unverified mutation between them." """
+        rs = self.rs
+        real = rs.dc.verify_closure
+
+        def verify_then_mutate(frozen, **kw):
+            result = real(frozen, **kw)
+            kw['launch_context']['environment']['LATE_ADDITION'] = '1'
+            return result
+        with mock.patch.object(rs.dc, 'verify_closure', verify_then_mutate):
+            status, receipt = self._run()
+        self.assertEqual(status, 1)
+        self.assertIsNone(self.popen_kwargs)
+        self.assertTrue(any('changed between its verification and the launch' in p
+                            for p in receipt['supervisor_problems']))
+
+    def test_a_broken_SOURCE_BINDING_refuses_before_any_child(self):
+        for label, answers, expect in (
+                ('wrong HEAD', {'rev-parse': (0, 'b' * 40 + '\n', '')}, 'HEAD'),
+                ('an extra modified file',
+                 {'status': (0, ' M tools/server/server-common.h\n'
+                                ' M tools/server/server-context.cpp\n'
+                                ' M ggml/src/ggml.c\n', '')}, 'not exactly the patch'),
+                ('patch does not reverse-apply', {'apply': (1, '', 'does not apply')},
+                 'reverse-apply')):
+            with self.subTest(label):
+                self.setUp()
+                self.git_answers.update(answers)
+                status, receipt = self._run()
+                self.assertEqual(status, 1)
+                self.assertIsNone(self.popen_kwargs)
+                self.assertTrue(any(expect in p for p in
+                                    receipt['source_binding_verification']['problems']),
+                                receipt['source_binding_verification']['problems'])
+
+    def test_a_WRONG_CODE_PIN_or_build_snapshot_digest_refuses(self):
+        for label, mutate, where in (
+                ('run_smoke.py pin', lambda m: m['acquisition_code'].__setitem__(
+                    'experiments/live_ab_serving/run_smoke.py', 'f' * 64),
+                 'acquisition_code_verification'),
+                ('lab_data.py unpinned', lambda m: m['acquisition_code'].pop(
+                    'experiments/live_ab/lab_data.py'), 'acquisition_code_verification'),
+                ('snapshot digest', lambda m: m['source_binding']['build_snapshot']
+                 .__setitem__('sha256', 'e' * 64), 'source_binding_verification')):
+            with self.subTest(label):
+                self.setUp()
+                m = json.loads(self.man_path.read_text('utf-8'))
+                mutate(m)
+                self.man_path.write_text(json.dumps(m), encoding='utf-8')
+                status, receipt = self._run()
+                self.assertEqual(status, 1)
+                self.assertIsNone(self.popen_kwargs)
+                self.assertFalse(receipt[where]['verified'])
+
+    def test_the_CONFIG_SECTION_must_equal_the_enforced_limits(self):
+        """Config and code, two independent statements: if the code enforced a
+        different wall, the configuration section would no longer agree."""
+        pins = {n: hashlib.sha256(p.read_bytes()).hexdigest()
+                for n, p in self.rs.ACQUISITION_CODE.items()}
+        self.assertTrue(self.rs.verify_acquisition_code(pins)['verified'])
+        with mock.patch.object(self.rs, 'BOUND_LIMITS',
+                               dict(self.rs.BOUND_LIMITS, wall_seconds_total=601.0)):
+            v = self.rs.verify_acquisition_code(pins)
+        self.assertFalse(v['verified'])
+        self.assertIn('wall_seconds_total', v['config_section']['problem'])
+
+    def test_a_RELATIVE_log_path_refuses(self):
+        self.pointer.write_text('%s\n%s\n%s\n' % (self.man_path, 'relative/life.jsonl',
+                                                     self.token), encoding='utf-8')
+        status, receipt = self._run()
+        self.assertEqual(status, 1)
+        self.assertIsNone(self.popen_kwargs)
+        self.assertTrue(any('not absolute' in p for p in receipt['supervisor_problems']))
+
+    def test_outputs_INSIDE_the_executable_directory_refuse(self):
+        inner = self.bindir / 'logs' / 'life.jsonl'
+        inner.parent.mkdir()
+        inner.write_bytes(self.log.read_bytes())
+        self.pointer.write_text('%s\n%s\n%s\n' % (self.man_path, inner, self.token),
+                                encoding='utf-8')
+        status, receipt = self._run()
+        self.assertEqual(status, 1)
+        self.assertIsNone(self.popen_kwargs)
+        self.assertTrue(any('inside the executable directory' in p
+                            for p in receipt['supervisor_problems']))
+
+    def test_a_launcher_digest_that_is_NOT_the_closure_root_refuses(self):
+        m = json.loads(self.man_path.read_text('utf-8'))
+        m['launcher']['sha256'] = 'c' * 64
+        self.man_path.write_text(json.dumps(m), encoding='utf-8')
+        status, receipt = self._run()
+        self.assertEqual(status, 1)
+        self.assertTrue(any('closure root' in p
+                            for p in receipt['manifest_validation']['problems']))
 
 
 if __name__ == '__main__':                                     # pragma: no cover

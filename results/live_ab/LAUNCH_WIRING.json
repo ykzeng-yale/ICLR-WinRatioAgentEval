@@ -1,0 +1,75 @@
+{
+ "NOT_DONE_not_claimed": [
+  "a prospective launch record over the REAL candidate (real closure, real source binding) -- next",
+  "the finite costed plan",
+  "an in-flight POST that RETURNS after the snapshot is not exercised: the synchronous harness cannot resume a suspended frame without real threads, which root's review guard denies; the design keeps it out of the receipt and names its artifact path"
+ ],
+ "authority": "root, reviews/acquisition_preparation_disposition_20260923_1630.md decisions 1-2 and item 3, reviews/dependency_callsite_disposition_20260923_1752.md ranked next action",
+ "base_commit": "105a9d7",
+ "convention": "deterministic-path",
+ "critic_fixes_in_the_same_revision": [
+  "completed now requires an HTTP 2xx status; non_2xx_responses counted and refused",
+  "every request_counts label defined (the previous receipt claimed all were; four of eight were)",
+  "an unfinished row names its response artifact path, which may appear after the receipt and was never read",
+  "late completions reported by id (read under the lock after reap), no longer dropped",
+  "'attempted but had received no response BY THE TERMINAL SNAPSHOT'",
+  "Barrier(PLANNED_WIRE_ATTEMPTS), daemon request threads"
+ ],
+ "files": {
+  "experiments/live_ab_serving/run_smoke.py": "89c86c717edb35a2f862a91a671cf1b82f7c4704a01be8328f736d84fe894657",
+  "experiments/live_ab_serving/tests_supervisor_entry.py": "880aae704777dccf09bf6ccbb914edb9bee63371db5df59aca589efae467da80"
+ },
+ "generated_utc": "2026-09-23T18:19:28Z",
+ "harness": {
+  "after_change": {
+   "call sites": "14 OK",
+   "helper": "42 OK",
+   "snapshot": "17 OK",
+   "tests_lab_chain": "70 OK",
+   "tests_lab_design": "345 OK",
+   "tests_lab_hostcheck": "117 OK",
+   "tests_lab_isolation": "33 OK",
+   "tests_lab_serving": "89 OK",
+   "tests_lab_stats": "70 OK",
+   "tests_supervisor_entry": "Ran 63, OK"
+  },
+  "converted": [
+   "test_a_CHANGED_IMPLEMENTATION_LIBRARY_refuses_before_launch now refuses through the closure verification",
+   "test_a_manifest_with_NO_declared_closure_refuses now refuses at manifest validation"
+  ],
+  "fixture": "canonical temp root; launcher and two libraries in bin/ (cwd), logs and receipts outside; a real v3 closure frozen over the fixture files with synthetic load commands, real filesystem, real directory enumeration and realpath; a fixture patch, the real build-snapshot receipt, real code pins; a fake git answering a clean patched tree",
+  "harness_files_pin_set": "33, unchanged",
+  "mutation_check": "ten wiring mutations (Popen without cwd, env not stripped, closure not verified, env digest not rechecked, binding ignored, relative log allowed, outputs inside allowed, launcher/root digest unchecked, lab_data unpinned, config section unchecked): each CAUGHT by a named witness",
+  "new_witnesses": [
+   "test_the_WIRED_launch_runs_the_CLOSURE_ROOT_in_its_directory (control)",
+   "test_INHERITED_loader_names_are_REMOVED_and_recorded_by_NAME_only",
+   "test_a_backend_DROPPED_INTO_the_executable_directory_refuses_before_Popen",
+   "test_an_environment_MUTATED_between_verification_and_Popen_refuses",
+   "test_a_broken_SOURCE_BINDING_refuses_before_any_child (3 subcases)",
+   "test_a_WRONG_CODE_PIN_or_build_snapshot_digest_refuses (3 subcases)",
+   "test_the_CONFIG_SECTION_must_equal_the_enforced_limits",
+   "test_a_RELATIVE_log_path_refuses",
+   "test_outputs_INSIDE_the_executable_directory_refuse",
+   "test_a_launcher_digest_that_is_NOT_the_closure_root_refuses"
+  ],
+  "witness_against_old_code": "not discriminating per test: at 105a9d7 the harness cannot set up (the supervisor has no dependency_closure binding); the mutation check is the witness"
+ },
+ "nothing_executed_THIS_RECEIPT": "mocked Popen/Thread/Barrier/requests/clock/git; synthetic load commands over real fixture files; no otool, nm, git, server or model was run by these tests",
+ "schema": "live_ab/session60_receipt-v1",
+ "wiring": {
+  "cwd": "the launcher's pinned parent (root decision 1); Popen receives cwd=exe_dir",
+  "environment": "one independent dict: os.environ minus every GGML_* and DYLD_* name plus LIVE_AB_*; removed NAMES recorded, no value; a digest taken at construction is re-checked AFTER the closure verification, and that same dict is what Popen receives (root decision 2)",
+  "inventory_check": "verify_launch_artifacts keeps its library-inventory branch only for the pinned tests_lab_design case that exercises it; main() calls it with library_inventory=False",
+  "launcher": "the frozen v3 closure's root, from the launch manifest; the hard-coded BIN (the historical smoke's tree, not the declared candidate's) is removed; the manifest's launcher digest must be the closure root's",
+  "preflight_order": [
+   "manifest validation incl. dependency_closure v3 resolved, source_binding, acquisition_code, caps",
+   "lifecycle log path absolute; log and receipt directories not inside the executable directory",
+   "launcher and model digests (library inventory not used)",
+   "source binding re-measured: HEAD, modified files == the patch's files, patch reverse-applies, patch digest, build-snapshot digest; compiled_backend_dir DERIVED from the pinned snapshot, never copied from the closure",
+   "acquisition code re-measured: run_smoke.py, dependency_closure.py, lab_common.py, lab_lifecycle.py, lab_data.py, config.json; the configuration's engineering_acquisition section must equal the enforced limits",
+   "intent persisted",
+   "IMMEDIATELY BEFORE Popen: the v3 closure re-derived under the exact launch context, then the environment digest re-checked",
+   "Popen(args, env=child_env, cwd=exe_dir)"
+  ]
+ }
+}
