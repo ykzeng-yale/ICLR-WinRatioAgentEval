@@ -3249,6 +3249,47 @@ Seven new cases fail on `734faa7`, pass here — entry **41**. All ten suites gr
 **Not done:** binding to `config.json` (verbatim contract — root's call) and to a costed plan (none
 current); item 4 wiring (design posted 16:18Z); join-boundary accounting.
 
+### 2026-09-23 · root's 16:30 and 17:52 dispositions, delivered: snapshot, deposit, amendment, wiring
+
+Heads `3be199d` (snapshot), `d859fa8` (deposit), `0e05d96` (amendment), `3b3b303` (wiring), `f69e0ee`
+(amendment verification). Root accepted `072f934` and `8e801e0` at 17:52 within their scope.
+
+**Unfinished workers** — `UNFINISHED_WORKER_TERMINAL_SNAPSHOT.json`. A worker alive after its bounded join
+had recorded nothing (read as `no_worker_record`); every consumer after the join read the live list; and
+nothing stopped it sending after the supervisor had decided. Now one terminal snapshot under the workers'
+own lock freezes records, finished ids and both counters; later completions are excluded and a worker that
+has not sent may not send. The late worker SENDS at `8e801e0`; not now. My first draft deadlocked: a blanket
+rename rewrote the recorder's own append into a self-call under a non-reentrant lock.
+
+**Build-rule deposit** — `LOADER_LINKAGE_BUILD_RULES.json` (root 17:52): the verbatim link/archive
+statements, 218 object mappings and 10 unity units behind the call-site linkage; re-derived from the
+deposit alone: 363 translation units, identical to `LOADER_CALL_SITE_EXCERPTS.json`.
+
+**Engineering-cap amendment** — `CONFIG_AMENDMENT_RECEIPT_20260923_1804.json` and
+`CONFIG_AMENDMENT_VERIFICATION_20260923_1821.json` (root 16:30 decision 3). A new top-level
+`engineering_acquisition` section (600 / 90 / 510 / 8,388,608 / 120 / 2,048) as the same three lines in
+config.json, ARCHITECTURE 6.1 and protocol Appendix B; pure additions; blocks byte-identical at 13,917 bytes
+with zero CR bytes; deleting the lines restores the prior bytes of all three documents; the rule-block digest
+unchanged (cbfd1792); the e2e comparison discriminates (fails with the pre-amendment documents). Successor
+recorded additively in cells.json (original pin untouched; the previous successor moved whole into
+`prior_successors[3]` with its changing commit `855a406` verified).
+
+**Launch wiring** — `LAUNCH_WIRING.json` (root 16:30 decisions 1-2, 17:52). The launcher is the frozen v3
+closure's root (the hard-coded path, which named the historical smoke's tree, is gone); cwd its pinned
+parent; one child environment without `GGML_*`/`DYLD_*`, removed names recorded, no value; source HEAD,
+patch, build snapshot and the executed code (incl. `lab_data.py` and the config section) re-measured; the
+closure re-derived under that exact context immediately before `Popen`, then the environment digest
+re-checked; log paths absolute and outside the searched directory. Ten wiring mutations, each caught by a
+named witness. Entry **63**.
+
+**Correction:** `DESCRIPTOR_ELAPSED_AND_LIMIT_BINDING.json` says the 21 Sept prefreeze plan "carries 600 and
+90". It does not: its 600 is a logical-call bound and its 90 sits inside a "90-150" call range. I matched
+digits, not meanings. The receipt is write-once and stays; this is the correction.
+
+**Not done:** the finite costed plan (drafting, with open decisions for root); a prospective launch record
+over the real candidate; the durability question (candidate in an ephemeral scratchpad, asked 18:10).
+Freeze **16/26**; trial, calibration, alpha **0**.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
