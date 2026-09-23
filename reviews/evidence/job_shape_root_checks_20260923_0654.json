@@ -1,0 +1,15 @@
+{
+  "reviewed_commit": "c3ab4fcc8bfe7b9ccc08fee70cbd36325f1f5592",
+  "comparison_base": "5d2758b3e3ff79617fece1ba303663c3de38b064",
+  "renamed_helper_executable_body_unchanged": true,
+  "helper_scope": "post_comment return only; earlier accepted source-path persistence and real synthetic success remain separate evidence",
+  "scientific_or_release_paths_changed": [],
+  "capacity_receipt": {
+    "sha256": "bdde53b653ef8567aa1e8d3b8b3890be71eb4ba75dad3262645adf94472ab6ec",
+    "observed_utc": "2026-09-23T06:50:15Z",
+    "processes_scanned": 1282,
+    "findings": [],
+    "degraded": [],
+    "scope": "owner-delivered snapshot only, not current root remote-host observation or a reservation"
+  }
+}

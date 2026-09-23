@@ -1,0 +1,93 @@
+{
+  "reviewed_commit": "c3ab4fcc8bfe7b9ccc08fee70cbd36325f1f5592",
+  "base": "5d2758b",
+  "narrow_added_tests": {
+    "run": 2,
+    "passed": 2
+  },
+  "actual_entry_cases": 8,
+  "all_as_expected": true,
+  "scope": "actual World.build_job with synthetic state, exact worker.main and run_job stubbed; no model/sandbox/network/canonical lock acquisition",
+  "cases": [
+    {
+      "case": "actual_producer_top_level_agrees",
+      "expected_refused": false,
+      "called_run_job": true,
+      "payload_digest_matches": true,
+      "return_code": 0,
+      "refused": false,
+      "as_expected": true,
+      "bound_lock": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab/sandbox.lock"
+    },
+    {
+      "case": "actual_producer_top_level_conflicts",
+      "expected_refused": true,
+      "called_run_job": false,
+      "payload_digest_matches": true,
+      "refused": true,
+      "exception": "PreflightError",
+      "reason": "host_work_root at lab_worker.main (job.sandbox) is '/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/job_shape_closure_cfppvmct/other-host' but the audited pin is '/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab'; a job may not relocate the host-wide lock",
+      "as_expected": true
+    },
+    {
+      "case": "nested_legacy_agrees",
+      "expected_refused": false,
+      "called_run_job": true,
+      "payload_digest_matches": true,
+      "return_code": 0,
+      "refused": false,
+      "as_expected": true,
+      "bound_lock": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab/sandbox.lock"
+    },
+    {
+      "case": "nested_legacy_conflicts",
+      "expected_refused": true,
+      "called_run_job": false,
+      "payload_digest_matches": true,
+      "refused": true,
+      "exception": "PreflightError",
+      "reason": "host_work_root at lab_worker.main (job.cfg.sandbox) is '/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/job_shape_closure_cfppvmct/other-host' but the audited pin is '/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab'; a job may not relocate the host-wide lock",
+      "as_expected": true
+    },
+    {
+      "case": "contradiction_top_good_nested_bad",
+      "expected_refused": true,
+      "called_run_job": false,
+      "payload_digest_matches": true,
+      "refused": true,
+      "exception": "PreflightError",
+      "reason": "contradictory host_work_root copies at lab_worker.main: {'job.sandbox': '/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab', 'job.cfg.sandbox': '/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/job_shape_closure_cfppvmct/other-host'}. A job carrying two different host pins has no correct reading; it refuses.",
+      "as_expected": true
+    },
+    {
+      "case": "contradiction_top_bad_nested_good",
+      "expected_refused": true,
+      "called_run_job": false,
+      "payload_digest_matches": true,
+      "refused": true,
+      "exception": "PreflightError",
+      "reason": "contradictory host_work_root copies at lab_worker.main: {'job.sandbox': '/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/job_shape_closure_cfppvmct/other-host', 'job.cfg.sandbox': '/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab'}. A job carrying two different host pins has no correct reading; it refuses.",
+      "as_expected": true
+    },
+    {
+      "case": "both_copies_agree_with_pin",
+      "expected_refused": false,
+      "called_run_job": true,
+      "payload_digest_matches": true,
+      "return_code": 0,
+      "refused": false,
+      "as_expected": true,
+      "bound_lock": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab/sandbox.lock"
+    },
+    {
+      "case": "both_copies_agree_but_wrong_pin",
+      "expected_refused": true,
+      "called_run_job": false,
+      "payload_digest_matches": true,
+      "refused": true,
+      "exception": "PreflightError",
+      "reason": "host_work_root at lab_worker.main (job.sandbox) is '/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/job_shape_closure_cfppvmct/other-host' but the audited pin is '/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab'; a job may not relocate the host-wide lock",
+      "as_expected": true
+    }
+  ]
+}
