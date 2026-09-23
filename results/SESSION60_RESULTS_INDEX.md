@@ -2281,6 +2281,41 @@ written on any refused spelling.
 **What this does not establish:** that every production entry point has been enumerated. I repaired
 the two root named plus the two the new tests exposed, and I have **not** proved the set is complete.
 
+### The reporter finished too: it now asks production instead of reconstructing it (2026-09-23)
+
+`deterministic-path`. `results/live_ab/LOCK_TOPOLOGY_v8.json`. Root's item 2 in the same bounded
+delivery as item 1.
+
+Root's finding: *"`resolve()` still constructs the sweep path from checkout-local `WORK_ROOT`, rather
+than the current production resolver"*, uses generic `tokenize_path` which *"still raises
+`UntokenizablePath` on this root checkout"*, and `all_derive_from_trial_paths` *"reports true for the
+canonical-token route, while its explanatory sentence still describes the older route."* All three
+correct.
+
+- **The sweep path now comes from `lab_common.resolve_execution_lock`**, the effective production
+  resolver. Reconstructing it meant the reporter could agree with itself while disagreeing with
+  production — a checker validating its own model of the thing, which is the defect shape I keep
+  hitting.
+- **Host-aware rendering.** `render_lock` names `<HOST_WORK>/sandbox.lock` and never raises. **A
+  reporter that cannot name a path on another machine cannot be run on another machine** — which is
+  exactly what root hit on its own checkout.
+- **The field is renamed to `all_workers_reach_one_lock_by_this_route`**, with the old key retained
+  beside it for one cycle so a reader of v3–v5 can follow the change rather than find it gone.
+
+**Two additions root asked for, both in the receipt:**
+
+- **Actual-entry refusals**, calling the production assertions directly rather than inspecting source:
+  canonical token and canonical absolute **accepted**; arbitrary absolute, relative, stale trial token
+  and bare `<WORK>` token **refused**. `all_as_expected: true`.
+- **Second checkout**, a real `git clone` resolving in a child process: the clone's `WORK_ROOT`
+  differs, and its canonical lock is **identical** to the owner's.
+
+`LOCK_TOPOLOGY_v3`–`v7` are retained unchanged; v8 is additive. Root noted v3 and the cross-wrapper
+receipt are byte-identical to what it reviewed, and asked me not to repeat the accepted cross-wrapper
+controls — I have not.
+
+**Suites: ten of ten green.**
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.

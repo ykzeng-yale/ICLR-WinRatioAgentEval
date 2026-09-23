@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import pathlib
 import sys
 import time
 from pathlib import Path
@@ -93,7 +94,13 @@ def _workers_share_a_lock() -> Dict[str, Any]:
     return {
         'two_workers_in_one_trial_share_a_lock': from_trial_paths,
         'job_payload_sandbox_lock_expressions': sorted(set(exprs)),
-        'all_derive_from_trial_paths': from_trial_paths,
+        # RENAMED. It used to be `all_derive_from_trial_paths`, which described
+        # the pre-repair route and stayed in the receipt describing the new one.
+        # Root: "make the field names/explanation describe the route actually
+        # checked." The old name is kept beside it for one cycle so a reader of
+        # v3-v5 can follow the change rather than find the key simply gone.
+        'all_workers_reach_one_lock_by_this_route': from_trial_paths,
+        'all_derive_from_trial_paths_DEPRECATED_NAME': from_trial_paths,
         'route': ('canonical_token' if via_canonical_token else
                   'trial_paths' if via_trial_paths else 'unrecognised'),
         'obsolete_label_note': (
@@ -112,15 +119,36 @@ def _workers_share_a_lock() -> Dict[str, Any]:
     }
 
 
+def render_lock(path, cfg) -> str:
+    """Render an execution-lock path without ever raising.
+
+    The canonical lock lives under the FROZEN owner-host root, which is under no
+    token root of a foreign checkout, so `tokenize_path` raises there. A reporter
+    that cannot name a path on another machine cannot be run on another machine.
+    """
+    s = str(path)
+    try:
+        host = str(lab_common.host_work_root(cfg))
+    except Exception:                                          # noqa: BLE001
+        host = None
+    if host and (s == host or s.startswith(host + '/')):
+        rest = s[len(host):].lstrip('/')
+        return lab_common.HOST_WORK_TOKEN + ('/' + rest if rest else '')
+    return lab_common.display_path(s)
+
+
 def resolve() -> Dict[str, Any]:
     import lab_orchestrator                                    # noqa: PLC0415
 
     cfg = json.loads((LAB / 'config.json').read_text('utf-8'))
     sandbox_cfg = cfg.get('sandbox') or {}
 
-    # (a) the path lab_data's reference sweep takes -- lab_data.py:941
-    sweep_lock = Path(sandbox_cfg.get('execution_lock_path')
-                      or (lab_common.WORK_ROOT / 'sandbox.lock'))
+    # (a) THE EFFECTIVE PRODUCTION RESOLVER, not a reconstruction. Root: "resolve()
+    # still constructs the sweep path from checkout-local WORK_ROOT, rather than
+    # the current production resolver." Reconstructing it meant the reporter could
+    # agree with itself while disagreeing with production.
+    sweep_lock, _sweep_info = lab_common.resolve_execution_lock(
+        cfg, stage='lock_topology.resolve(sweep)')
 
     # (b) the path the orchestrator hands each worker -- lab_orchestrator._trial_paths
     worker_locks = {}
@@ -136,8 +164,12 @@ def resolve() -> Dict[str, Any]:
     per_trial = len({str(p) for p in worker_locks.values()}) == len(TRIALS)
 
     return {
-        'reference_sweep_lock': lab_common.tokenize_path(sweep_lock),
-        'worker_lock_by_trial': {t: lab_common.tokenize_path(p)
+        # HOST-AWARE rendering. Root: the generic tokenize_path "still raises
+        # UntokenizablePath on this root checkout", because the owner-host lock is
+        # under no token root of a foreign clone. render_lock never raises and
+        # names the host token when it applies.
+        'reference_sweep_lock': render_lock(sweep_lock, cfg),
+        'worker_lock_by_trial': {t: render_lock(p, cfg)
                                  for t, p in worker_locks.items()},
         'worker_fallback_matches_orchestrator': {
             t: str(fallback[t]) == str(worker_locks[t]) for t in TRIALS},
@@ -179,6 +211,64 @@ def implementations() -> List[Dict[str, Any]]:
     return out
 
 
+def entry_refusals(cfg) -> Dict[str, Any]:
+    """Exercise the PRODUCTION assertions on each spelling. Not a source scan.
+
+    Root: "publish one additive receipt after the production repair, including a
+    second-checkout case and actual-entry refusals ... Do not ... claim complete
+    binding from a source-expression match."
+    """
+    canonical_tok = lab_common.tokenize_execution_lock(cfg)
+    canonical_abs = str(lab_common.canonical_execution_lock(cfg))
+    rows = []
+    for name, spelling, expect_refused in (
+            ('canonical token', canonical_tok, False),
+            ('canonical absolute', canonical_abs, False),
+            ('arbitrary absolute', '/tmp/elsewhere/sandbox.lock', True),
+            ('relative', 'work/live_ab/sandbox.lock', True),
+            ('stale trial token', '<WORK>/T1/sandbox.lock', True),
+            ('bare <WORK> token', '<WORK>/sandbox.lock', True)):
+        refused, why = False, None
+        try:
+            lab_common.assert_canonical_lock_spelling(
+                spelling, cfg, stage='lock_topology.entry_refusals')
+            if not spelling.startswith('<'):
+                lab_common.assert_canonical_execution_lock(
+                    spelling, cfg, stage='lock_topology.entry_refusals')
+        except lab_common.PreflightError as exc:
+            refused, why = True, str(exc)[:140]
+        rows.append({'case': name, 'spelling': spelling, 'refused': refused,
+                     'expected_refused': expect_refused,
+                     'as_expected': refused == expect_refused, 'reason': why})
+    return {'cases': rows,
+            'all_as_expected': all(r['as_expected'] for r in rows),
+            'note': 'the production assertions are called directly; no source '
+                    'string is inspected'}
+
+
+def second_checkout(cfg) -> Dict[str, Any]:
+    """Resolve the canonical lock from a REAL second clone, in a child process."""
+    import subprocess, tempfile                                # noqa: PLC0415
+    d = pathlib.Path(tempfile.mkdtemp()) / 'clone'
+    try:
+        subprocess.run(['git', 'clone', '--quiet', '--shared', str(REPO), str(d)],
+                       check=True, timeout=300, capture_output=True)
+        prog = ("import sys; sys.path.insert(0, %r)\n"
+                "import lab_common as C\n"
+                "print(C.WORK_ROOT); print(C.canonical_execution_lock("
+                "C.harness_config()))\n" % str(d / 'experiments' / 'live_ab'))
+        out = subprocess.run([sys.executable, '-c', prog], cwd=str(d),
+                             capture_output=True, text=True, timeout=120).stdout
+        work, lock = [x for x in out.strip().splitlines() if x][:2]
+        here_lock = str(lab_common.canonical_execution_lock(cfg))
+        return {'clone_work_root_differs': work != str(lab_common.WORK_ROOT),
+                'clone_canonical_lock': lock,
+                'owner_canonical_lock': here_lock,
+                'identical_across_checkouts': lock == here_lock}
+    except Exception as exc:                                   # noqa: BLE001
+        return {'error': '%s: %s' % (type(exc).__name__, exc)}
+
+
 def report() -> Dict[str, Any]:
     paths = resolve()
     impls = implementations()
@@ -193,6 +283,8 @@ def report() -> Dict[str, Any]:
             'addresses is a Seatbelt writable directory SHARED BY EVERY RUN ON '
             'THE HOST, so the property is host-wide, not per-trial.'),
         'paths': paths,
+        'entry_refusals': entry_refusals(json.loads((LAB / 'config.json').read_text('utf-8'))),
+        'second_checkout': second_checkout(json.loads((LAB / 'config.json').read_text('utf-8'))),
         'implementations': impls,
         'implementation_count': len(impls),
         'conforms_to_one_lock_file': conforms,
