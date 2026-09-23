@@ -1,0 +1,1027 @@
+{
+  "head": "defa4a17189a69e083777be78041f2eeb56c5edf",
+  "sources": [
+    "b161695f61d70b6371bfc76d501a8a75e9a170d9",
+    "c7bd7144d1bd154f0fb3e08cf28e480210be4269"
+  ],
+  "scope": "Exact git-show isolated 11-file snapshot. Eleven selected changed owner test methods once (including nine cap subcases): 18 actual-main invocations plus one standalone drain helper. Two additional bounded actual-main probes: descriptor lookup failure and clock crossing before finalization. All real child/thread/HTTP/network/signals/sleep denied, synthetic descriptor-setting failure, owner fake clock injected. No pipes/models/builds/full suite.",
+  "snapshot_files": {
+    "experiments/live_ab_serving/run_smoke.py": "d65853254bdd3f87679a76e829f85d7d5a3abd887789f8a09a1e82655dbeb459",
+    "experiments/live_ab_serving/tests_supervisor_entry.py": "1f69470513e6f7cdaa394e3bf8bf384c802baae1e2f5d7fbd473db9b7c8ef681",
+    "experiments/live_ab_serving/live_ab_slot_lifecycle.patch": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+    "experiments/live_ab/lab_common.py": "aa32c13a0f3c6895f6a4d7936cc2b883930e5f4db9491a7f3aa444c8e1c3bb1c",
+    "experiments/live_ab/lab_lifecycle.py": "604556893fb5d381049756f765251bc45bd1f57ea632630d68fe2ee5610ac0b2",
+    "experiments/live_ab/lab_data.py": "7291fea66a25ca33c12c84c9a46d0f8246e35e0d8cc4d83aff2496a10c2b9977",
+    "experiments/live_ab/config.json": "05255df3b0d12bb6f5571616378a1366c67c6eb8b913def907c6a5d901e1731c",
+    "results/live_ab/SMOKE_RECEIPT_smoke_4167e395ccfd.json": "087961a921bc0ec7c5980650f67ee901e7cfa9ada6799ee64c59b494b869a388",
+    "results/live_ab/SMOKE_LAUNCH_MANIFEST_smoke_4167e395ccfd.json": "9694ac9b76dc0e567ba3c152f4407e6358bdc4ddba48d972eb651f2204992934",
+    "results/live_ab/ABSENT_DRAIN_AND_REQUEST_RECONCILIATION.json": "98df6a55c1fc8639acc396df6af20cf6e867f8ce1a656a864d992e4c829e2aa0",
+    "results/live_ab/DESCRIPTOR_ELAPSED_AND_LIMIT_BINDING.json": "8697b0310a7e0463310cf9147f6fbfe14ed181b3f234d64598fe652b67feb04b"
+  },
+  "receipt_hash_checks": {
+    "b161695f61d70b6371bfc76d501a8a75e9a170d9": {
+      "generated_utc": "2026-09-23T15:59:57Z",
+      "receipt_files": [
+        {
+          "path": "experiments/live_ab_serving/run_smoke.py",
+          "declared": "0f5cad4296b83fe8e0eb4c7fd2d43731013dcec11e6bda5c2f5af01c71f1303f",
+          "actual": "0f5cad4296b83fe8e0eb4c7fd2d43731013dcec11e6bda5c2f5af01c71f1303f",
+          "agrees": true
+        },
+        {
+          "path": "experiments/live_ab_serving/tests_supervisor_entry.py",
+          "declared": "34ef550c3d9c38d9ab07448ccd95ff3325db924c6ea3e2633fb97cb73fd8d910",
+          "actual": "34ef550c3d9c38d9ab07448ccd95ff3325db924c6ea3e2633fb97cb73fd8d910",
+          "agrees": true
+        }
+      ]
+    },
+    "c7bd7144d1bd154f0fb3e08cf28e480210be4269": {
+      "generated_utc": "2026-09-23T16:28:03Z",
+      "receipt_files": [
+        {
+          "path": "experiments/live_ab_serving/run_smoke.py",
+          "declared": "d65853254bdd3f87679a76e829f85d7d5a3abd887789f8a09a1e82655dbeb459",
+          "actual": "d65853254bdd3f87679a76e829f85d7d5a3abd887789f8a09a1e82655dbeb459",
+          "agrees": true
+        },
+        {
+          "path": "experiments/live_ab_serving/tests_supervisor_entry.py",
+          "declared": "1f69470513e6f7cdaa394e3bf8bf384c802baae1e2f5d7fbd473db9b7c8ef681",
+          "actual": "1f69470513e6f7cdaa394e3bf8bf384c802baae1e2f5d7fbd473db9b7c8ef681",
+          "agrees": true
+        }
+      ]
+    }
+  },
+  "owner_test_count": 11,
+  "owner_actual_main_invocations": 18,
+  "independent_main_invocations": 2,
+  "test_status": {
+    "test_a_drain_that_was_NEVER_CREATED_is_not_a_finished_capture": "pass",
+    "test_a_drain_that_was_created_but_NEVER_STARTED": "pass",
+    "test_a_SUPERVISOR_Thread_start_failure_still_reconciles_requests": "pass",
+    "test_a_SUPERVISOR_Thread_join_failure_still_reconciles_requests": "pass",
+    "test_a_BLOCKING_production_descriptor_refuses_before_any_POST": "pass",
+    "test_the_drain_ITSELF_refuses_a_blocking_descriptor": "pass",
+    "test_an_in_memory_stream_is_recorded_ABSENT_not_nonblocking": "pass",
+    "test_ELAPSED_is_measured_in_finalize_on_an_EARLY_refusal": "pass",
+    "test_ELAPSED_counts_time_spent_AFTER_the_child_is_reaped": "pass",
+    "test_a_manifest_LIMIT_that_disagrees_with_the_code_refuses_before_any_child": "pass",
+    "test_the_LITERAL_limits_root_named_are_what_the_code_enforces": "pass"
+  },
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "external_denial_ledger": [],
+  "mock_descriptor_calls": [
+    {
+      "test": "test_a_BLOCKING_production_descriptor_refuses_before_any_POST",
+      "fd": 1048576,
+      "block": false
+    },
+    {
+      "test": "test_the_drain_ITSELF_refuses_a_blocking_descriptor",
+      "fd": 1048576,
+      "block": false
+    }
+  ],
+  "main_results": [
+    {
+      "test": "test_a_drain_that_was_NEVER_CREATED_is_not_a_finished_capture",
+      "main_returncode": 1,
+      "posts": 0,
+      "receipt": {
+        "child_started": true,
+        "child_confirmed_stopped": true,
+        "submitted_requests": 0,
+        "transport_attempted_requests": 0,
+        "requests_expected": 2,
+        "requests_with_worker_record": 0,
+        "requests_without_worker_record": 2,
+        "generated_tokens_total": null,
+        "token_cap_respected": null,
+        "capture_descriptor": {
+          "descriptor": "absent",
+          "note": "no OS descriptor (an in-memory stream); a subprocess PIPE always has one"
+        },
+        "seconds_to_child_reap": 0.0,
+        "wall_seconds_total": 0.0,
+        "wall_cap_respected": true,
+        "elapsed_boundary": {
+          "excludes": "the receipt write itself and the console lines printed after it; nothing else",
+          "from": "the Deadline created at main() entry, before the manifest is read -- so the 600 s budget covers selection and hashing too",
+          "to": "finalize(), immediately before the one terminal receipt write"
+        },
+        "supervisor_problems": [
+          "raw diagnostic capture incomplete: {'reached_eof': False, 'drain_error': None, 'bytes_dropped': 0, 'budget_exhausted': False, 'deadline_exhausted': False}",
+          "no diagnostic capture exists: the drain was not created",
+          "dispatch failed at stage 'dispatch': RuntimeError: injected drain construction failure",
+          "token usage was not measurable for 2 request(s), so the token cap could not be judged",
+          "2 planned request(s) had no transport attempt"
+        ],
+        "dispatch_failure": {
+          "message": "injected drain construction failure",
+          "stage": "dispatch",
+          "traceback": "Traceback (most recent call last):\n  File \"/private/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/supervisor_review_1630_3h8buwm5/experiments/live_ab_serving/run_smoke.py\", line 1051, in main\n    drain_thread = threading.Thread(\n        target=drain_to_artifact, args=(proc.stdout, capture_path, capture),\n    ...<8 lines>...\n        kwargs={'deadline': deadline.hard},\n        daemon=True, name='live_ab_smoke_drain')\n  File \"/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/supervisor_review_1630_3h8buwm5/experiments/live_ab_serving/tests_supervisor_entry.py\", line 243, in __init__\n    raise RuntimeError('injected drain construction failure')\nRuntimeError: injected drain construction failure\n",
+          "type": "RuntimeError"
+        },
+        "cleanup_failure": null
+      },
+      "drain_state": "not_created",
+      "capture_exists": false,
+      "requests": [
+        {
+          "id": "smoke_4167e395ccfd_req0",
+          "state": "no_worker_record",
+          "response_received": null,
+          "transport_attempted": null
+        },
+        {
+          "id": "smoke_4167e395ccfd_req1",
+          "state": "no_worker_record",
+          "response_received": null,
+          "transport_attempted": null
+        }
+      ]
+    },
+    {
+      "test": "test_a_drain_that_was_created_but_NEVER_STARTED",
+      "main_returncode": 1,
+      "posts": 0,
+      "receipt": {
+        "child_started": true,
+        "child_confirmed_stopped": true,
+        "submitted_requests": 0,
+        "transport_attempted_requests": 0,
+        "requests_expected": 2,
+        "requests_with_worker_record": 0,
+        "requests_without_worker_record": 2,
+        "generated_tokens_total": null,
+        "token_cap_respected": null,
+        "capture_descriptor": {
+          "descriptor": "absent",
+          "note": "no OS descriptor (an in-memory stream); a subprocess PIPE always has one"
+        },
+        "seconds_to_child_reap": 0.0,
+        "wall_seconds_total": 0.0,
+        "wall_cap_respected": true,
+        "elapsed_boundary": {
+          "excludes": "the receipt write itself and the console lines printed after it; nothing else",
+          "from": "the Deadline created at main() entry, before the manifest is read -- so the 600 s budget covers selection and hashing too",
+          "to": "finalize(), immediately before the one terminal receipt write"
+        },
+        "supervisor_problems": [
+          "raw diagnostic capture incomplete: {'reached_eof': False, 'drain_error': None, 'bytes_dropped': 0, 'budget_exhausted': False, 'deadline_exhausted': False}",
+          "no diagnostic capture exists: the drain was not started",
+          "dispatch failed at stage 'dispatch': RuntimeError: injected drain start failure",
+          "token usage was not measurable for 2 request(s), so the token cap could not be judged",
+          "2 planned request(s) had no transport attempt"
+        ],
+        "dispatch_failure": {
+          "message": "injected drain start failure",
+          "stage": "dispatch",
+          "traceback": "Traceback (most recent call last):\n  File \"/private/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/supervisor_review_1630_3h8buwm5/experiments/live_ab_serving/run_smoke.py\", line 1063, in main\n    drain_thread.start()\n    ~~~~~~~~~~~~~~~~~~^^\n  File \"/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/supervisor_review_1630_3h8buwm5/experiments/live_ab_serving/tests_supervisor_entry.py\", line 249, in start\n    raise RuntimeError('injected drain start failure')\nRuntimeError: injected drain start failure\n",
+          "type": "RuntimeError"
+        },
+        "cleanup_failure": null
+      },
+      "drain_state": "not_started",
+      "capture_exists": false,
+      "requests": [
+        {
+          "id": "smoke_4167e395ccfd_req0",
+          "state": "no_worker_record",
+          "response_received": null,
+          "transport_attempted": null
+        },
+        {
+          "id": "smoke_4167e395ccfd_req1",
+          "state": "no_worker_record",
+          "response_received": null,
+          "transport_attempted": null
+        }
+      ]
+    },
+    {
+      "test": "test_a_SUPERVISOR_Thread_start_failure_still_reconciles_requests",
+      "main_returncode": 1,
+      "posts": 1,
+      "receipt": {
+        "child_started": true,
+        "child_confirmed_stopped": true,
+        "submitted_requests": 1,
+        "transport_attempted_requests": 1,
+        "requests_expected": 2,
+        "requests_with_worker_record": 1,
+        "requests_without_worker_record": 1,
+        "generated_tokens_total": null,
+        "token_cap_respected": null,
+        "capture_descriptor": {
+          "descriptor": "absent",
+          "note": "no OS descriptor (an in-memory stream); a subprocess PIPE always has one"
+        },
+        "seconds_to_child_reap": 0.0,
+        "wall_seconds_total": 0.0,
+        "wall_cap_respected": true,
+        "elapsed_boundary": {
+          "excludes": "the receipt write itself and the console lines printed after it; nothing else",
+          "from": "the Deadline created at main() entry, before the manifest is read -- so the 600 s budget covers selection and hashing too",
+          "to": "finalize(), immediately before the one terminal receipt write"
+        },
+        "supervisor_problems": [
+          "dispatch failed at stage 'dispatch': RuntimeError: injected supervisor Thread.start failure",
+          "token usage was not measurable for 1 request(s), so the token cap could not be judged",
+          "1 planned request(s) had no transport attempt"
+        ],
+        "dispatch_failure": {
+          "message": "injected supervisor Thread.start failure",
+          "stage": "dispatch",
+          "traceback": "Traceback (most recent call last):\n  File \"/private/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/supervisor_review_1630_3h8buwm5/experiments/live_ab_serving/run_smoke.py\", line 1250, in main\n    th.start()\n    ~~~~~~~~^^\n  File \"/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/supervisor_review_1630_3h8buwm5/experiments/live_ab_serving/tests_supervisor_entry.py\", line 255, in start\n    raise RuntimeError('injected supervisor Thread.start '\n                       'failure')\nRuntimeError: injected supervisor Thread.start failure\n",
+          "type": "RuntimeError"
+        },
+        "cleanup_failure": null
+      },
+      "drain_state": "finished",
+      "capture_exists": true,
+      "requests": [
+        {
+          "id": "smoke_4167e395ccfd_req0",
+          "state": null,
+          "response_received": true,
+          "transport_attempted": true
+        },
+        {
+          "id": "smoke_4167e395ccfd_req1",
+          "state": "no_worker_record",
+          "response_received": null,
+          "transport_attempted": null
+        }
+      ]
+    },
+    {
+      "test": "test_a_SUPERVISOR_Thread_join_failure_still_reconciles_requests",
+      "main_returncode": 1,
+      "posts": 2,
+      "receipt": {
+        "child_started": true,
+        "child_confirmed_stopped": true,
+        "submitted_requests": 2,
+        "transport_attempted_requests": 2,
+        "requests_expected": 2,
+        "requests_with_worker_record": 2,
+        "requests_without_worker_record": 0,
+        "generated_tokens_total": 20,
+        "token_cap_respected": true,
+        "capture_descriptor": {
+          "descriptor": "absent",
+          "note": "no OS descriptor (an in-memory stream); a subprocess PIPE always has one"
+        },
+        "seconds_to_child_reap": 0.0,
+        "wall_seconds_total": 0.0,
+        "wall_cap_respected": true,
+        "elapsed_boundary": {
+          "excludes": "the receipt write itself and the console lines printed after it; nothing else",
+          "from": "the Deadline created at main() entry, before the manifest is read -- so the 600 s budget covers selection and hashing too",
+          "to": "finalize(), immediately before the one terminal receipt write"
+        },
+        "supervisor_problems": [
+          "dispatch failed at stage 'dispatch': RuntimeError: injected supervisor Thread.join failure"
+        ],
+        "dispatch_failure": {
+          "message": "injected supervisor Thread.join failure",
+          "stage": "dispatch",
+          "traceback": "Traceback (most recent call last):\n  File \"/private/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/supervisor_review_1630_3h8buwm5/experiments/live_ab_serving/run_smoke.py\", line 1252, in main\n    th.join(timeout=deadline.bounded(REQUEST_CAP_S + 30, use_reserve=True))\n    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/supervisor_review_1630_3h8buwm5/experiments/live_ab_serving/tests_supervisor_entry.py\", line 262, in join\n    raise RuntimeError('injected supervisor Thread.join failure')\nRuntimeError: injected supervisor Thread.join failure\n",
+          "type": "RuntimeError"
+        },
+        "cleanup_failure": null
+      },
+      "drain_state": "finished",
+      "capture_exists": true,
+      "requests": [
+        {
+          "id": "smoke_4167e395ccfd_req0",
+          "state": null,
+          "response_received": true,
+          "transport_attempted": true
+        },
+        {
+          "id": "smoke_4167e395ccfd_req1",
+          "state": null,
+          "response_received": true,
+          "transport_attempted": true
+        }
+      ]
+    },
+    {
+      "test": "test_a_BLOCKING_production_descriptor_refuses_before_any_POST",
+      "main_returncode": 1,
+      "posts": 0,
+      "receipt": {
+        "child_started": true,
+        "child_confirmed_stopped": true,
+        "submitted_requests": 0,
+        "transport_attempted_requests": 0,
+        "requests_expected": 2,
+        "requests_with_worker_record": 0,
+        "requests_without_worker_record": 2,
+        "generated_tokens_total": null,
+        "token_cap_respected": null,
+        "capture_descriptor": {
+          "descriptor": "blocking",
+          "error": "OSError: mock EBADF; descriptor cannot be set nonblocking"
+        },
+        "seconds_to_child_reap": 0.0,
+        "wall_seconds_total": 0.0,
+        "wall_cap_respected": true,
+        "elapsed_boundary": {
+          "excludes": "the receipt write itself and the console lines printed after it; nothing else",
+          "from": "the Deadline created at main() entry, before the manifest is read -- so the 600 s budget covers selection and hashing too",
+          "to": "finalize(), immediately before the one terminal receipt write"
+        },
+        "supervisor_problems": [
+          "raw diagnostic capture incomplete: {'reached_eof': False, 'drain_error': None, 'bytes_dropped': 0, 'budget_exhausted': False, 'deadline_exhausted': False}",
+          "no diagnostic capture exists: the drain was not created",
+          "dispatch failed at stage 'dispatch': CaptureDescriptorError: the child output descriptor could not be made non-blocking (OSError: mock EBADF; descriptor cannot be set nonblocking); refusing before any dispatch",
+          "token usage was not measurable for 2 request(s), so the token cap could not be judged",
+          "2 planned request(s) had no transport attempt"
+        ],
+        "dispatch_failure": {
+          "message": "the child output descriptor could not be made non-blocking (OSError: mock EBADF; descriptor cannot be set nonblocking); refusing before any dispatch",
+          "stage": "dispatch",
+          "traceback": "Traceback (most recent call last):\n  File \"/private/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/supervisor_review_1630_3h8buwm5/experiments/live_ab_serving/run_smoke.py\", line 1047, in main\n    raise CaptureDescriptorError(\n    ...<2 lines>...\n        % out['capture_descriptor']['error'])\nrun_smoke_under_test.CaptureDescriptorError: the child output descriptor could not be made non-blocking (OSError: mock EBADF; descriptor cannot be set nonblocking); refusing before any dispatch\n",
+          "type": "CaptureDescriptorError"
+        },
+        "cleanup_failure": null
+      },
+      "drain_state": "not_created",
+      "capture_exists": false,
+      "requests": [
+        {
+          "id": "smoke_4167e395ccfd_req0",
+          "state": "no_worker_record",
+          "response_received": null,
+          "transport_attempted": null
+        },
+        {
+          "id": "smoke_4167e395ccfd_req1",
+          "state": "no_worker_record",
+          "response_received": null,
+          "transport_attempted": null
+        }
+      ]
+    },
+    {
+      "test": "test_an_in_memory_stream_is_recorded_ABSENT_not_nonblocking",
+      "main_returncode": 0,
+      "posts": 2,
+      "receipt": {
+        "child_started": true,
+        "child_confirmed_stopped": true,
+        "submitted_requests": 2,
+        "transport_attempted_requests": 2,
+        "requests_expected": 2,
+        "requests_with_worker_record": 2,
+        "requests_without_worker_record": 0,
+        "generated_tokens_total": 20,
+        "token_cap_respected": true,
+        "capture_descriptor": {
+          "descriptor": "absent",
+          "note": "no OS descriptor (an in-memory stream); a subprocess PIPE always has one"
+        },
+        "seconds_to_child_reap": 0.0,
+        "wall_seconds_total": 0.0,
+        "wall_cap_respected": true,
+        "elapsed_boundary": {
+          "excludes": "the receipt write itself and the console lines printed after it; nothing else",
+          "from": "the Deadline created at main() entry, before the manifest is read -- so the 600 s budget covers selection and hashing too",
+          "to": "finalize(), immediately before the one terminal receipt write"
+        },
+        "supervisor_problems": [],
+        "dispatch_failure": null,
+        "cleanup_failure": null
+      },
+      "drain_state": "finished",
+      "capture_exists": true,
+      "requests": [
+        {
+          "id": "smoke_4167e395ccfd_req0",
+          "state": null,
+          "response_received": true,
+          "transport_attempted": true
+        },
+        {
+          "id": "smoke_4167e395ccfd_req1",
+          "state": null,
+          "response_received": true,
+          "transport_attempted": true
+        }
+      ]
+    },
+    {
+      "test": "test_ELAPSED_is_measured_in_finalize_on_an_EARLY_refusal",
+      "main_returncode": 1,
+      "posts": 0,
+      "receipt": {
+        "child_started": false,
+        "child_confirmed_stopped": null,
+        "submitted_requests": 0,
+        "transport_attempted_requests": null,
+        "requests_expected": null,
+        "requests_with_worker_record": null,
+        "requests_without_worker_record": null,
+        "generated_tokens_total": null,
+        "token_cap_respected": null,
+        "capture_descriptor": null,
+        "seconds_to_child_reap": null,
+        "wall_seconds_total": 0.0,
+        "wall_cap_respected": true,
+        "elapsed_boundary": {
+          "excludes": "the receipt write itself and the console lines printed after it; nothing else",
+          "from": "the Deadline created at main() entry, before the manifest is read -- so the 600 s budget covers selection and hashing too",
+          "to": "finalize(), immediately before the one terminal receipt write"
+        },
+        "supervisor_problems": [
+          "the launch manifest is unusable: manifest[\"caps\"] does not declare 'dispatch_cutoff_seconds'; the supervisor enforces 510.0"
+        ],
+        "dispatch_failure": null,
+        "cleanup_failure": null
+      },
+      "drain_state": null,
+      "capture_exists": null,
+      "requests": []
+    },
+    {
+      "test": "test_ELAPSED_counts_time_spent_AFTER_the_child_is_reaped",
+      "main_returncode": 0,
+      "posts": 2,
+      "receipt": {
+        "child_started": true,
+        "child_confirmed_stopped": true,
+        "submitted_requests": 2,
+        "transport_attempted_requests": 2,
+        "requests_expected": 2,
+        "requests_with_worker_record": 2,
+        "requests_without_worker_record": 0,
+        "generated_tokens_total": 20,
+        "token_cap_respected": true,
+        "capture_descriptor": {
+          "descriptor": "absent",
+          "note": "no OS descriptor (an in-memory stream); a subprocess PIPE always has one"
+        },
+        "seconds_to_child_reap": 0.0,
+        "wall_seconds_total": 7.0,
+        "wall_cap_respected": true,
+        "elapsed_boundary": {
+          "excludes": "the receipt write itself and the console lines printed after it; nothing else",
+          "from": "the Deadline created at main() entry, before the manifest is read -- so the 600 s budget covers selection and hashing too",
+          "to": "finalize(), immediately before the one terminal receipt write"
+        },
+        "supervisor_problems": [],
+        "dispatch_failure": null,
+        "cleanup_failure": null
+      },
+      "drain_state": "finished",
+      "capture_exists": true,
+      "requests": [
+        {
+          "id": "smoke_4167e395ccfd_req0",
+          "state": null,
+          "response_received": true,
+          "transport_attempted": true
+        },
+        {
+          "id": "smoke_4167e395ccfd_req1",
+          "state": null,
+          "response_received": true,
+          "transport_attempted": true
+        }
+      ]
+    },
+    {
+      "test": "test_a_manifest_LIMIT_that_disagrees_with_the_code_refuses_before_any_child",
+      "main_returncode": 1,
+      "posts": 0,
+      "receipt": {
+        "child_started": false,
+        "child_confirmed_stopped": null,
+        "submitted_requests": 0,
+        "transport_attempted_requests": null,
+        "requests_expected": null,
+        "requests_with_worker_record": null,
+        "requests_without_worker_record": null,
+        "generated_tokens_total": null,
+        "token_cap_respected": null,
+        "capture_descriptor": null,
+        "seconds_to_child_reap": null,
+        "wall_seconds_total": 0.0,
+        "wall_cap_respected": true,
+        "elapsed_boundary": {
+          "excludes": "the receipt write itself and the console lines printed after it; nothing else",
+          "from": "the Deadline created at main() entry, before the manifest is read -- so the 600 s budget covers selection and hashing too",
+          "to": "finalize(), immediately before the one terminal receipt write"
+        },
+        "supervisor_problems": [
+          "the launch manifest is unusable: manifest[\"caps\"]['wall_seconds_total'] is 601 but the supervisor enforces 600.0"
+        ],
+        "dispatch_failure": null,
+        "cleanup_failure": null
+      },
+      "drain_state": null,
+      "capture_exists": null,
+      "requests": []
+    },
+    {
+      "test": "test_a_manifest_LIMIT_that_disagrees_with_the_code_refuses_before_any_child",
+      "main_returncode": 1,
+      "posts": 0,
+      "receipt": {
+        "child_started": false,
+        "child_confirmed_stopped": null,
+        "submitted_requests": 0,
+        "transport_attempted_requests": null,
+        "requests_expected": null,
+        "requests_with_worker_record": null,
+        "requests_without_worker_record": null,
+        "generated_tokens_total": null,
+        "token_cap_respected": null,
+        "capture_descriptor": null,
+        "seconds_to_child_reap": null,
+        "wall_seconds_total": 0.0,
+        "wall_cap_respected": true,
+        "elapsed_boundary": {
+          "excludes": "the receipt write itself and the console lines printed after it; nothing else",
+          "from": "the Deadline created at main() entry, before the manifest is read -- so the 600 s budget covers selection and hashing too",
+          "to": "finalize(), immediately before the one terminal receipt write"
+        },
+        "supervisor_problems": [
+          "the launch manifest is unusable: manifest[\"caps\"]['cleanup_reserve_seconds'] is 89 but the supervisor enforces 90.0"
+        ],
+        "dispatch_failure": null,
+        "cleanup_failure": null
+      },
+      "drain_state": null,
+      "capture_exists": null,
+      "requests": []
+    },
+    {
+      "test": "test_a_manifest_LIMIT_that_disagrees_with_the_code_refuses_before_any_child",
+      "main_returncode": 1,
+      "posts": 0,
+      "receipt": {
+        "child_started": false,
+        "child_confirmed_stopped": null,
+        "submitted_requests": 0,
+        "transport_attempted_requests": null,
+        "requests_expected": null,
+        "requests_with_worker_record": null,
+        "requests_without_worker_record": null,
+        "generated_tokens_total": null,
+        "token_cap_respected": null,
+        "capture_descriptor": null,
+        "seconds_to_child_reap": null,
+        "wall_seconds_total": 0.0,
+        "wall_cap_respected": true,
+        "elapsed_boundary": {
+          "excludes": "the receipt write itself and the console lines printed after it; nothing else",
+          "from": "the Deadline created at main() entry, before the manifest is read -- so the 600 s budget covers selection and hashing too",
+          "to": "finalize(), immediately before the one terminal receipt write"
+        },
+        "supervisor_problems": [
+          "the launch manifest is unusable: manifest[\"caps\"]['dispatch_cutoff_seconds'] is 509 but the supervisor enforces 510.0"
+        ],
+        "dispatch_failure": null,
+        "cleanup_failure": null
+      },
+      "drain_state": null,
+      "capture_exists": null,
+      "requests": []
+    },
+    {
+      "test": "test_a_manifest_LIMIT_that_disagrees_with_the_code_refuses_before_any_child",
+      "main_returncode": 1,
+      "posts": 0,
+      "receipt": {
+        "child_started": false,
+        "child_confirmed_stopped": null,
+        "submitted_requests": 0,
+        "transport_attempted_requests": null,
+        "requests_expected": null,
+        "requests_with_worker_record": null,
+        "requests_without_worker_record": null,
+        "generated_tokens_total": null,
+        "token_cap_respected": null,
+        "capture_descriptor": null,
+        "seconds_to_child_reap": null,
+        "wall_seconds_total": 0.0,
+        "wall_cap_respected": true,
+        "elapsed_boundary": {
+          "excludes": "the receipt write itself and the console lines printed after it; nothing else",
+          "from": "the Deadline created at main() entry, before the manifest is read -- so the 600 s budget covers selection and hashing too",
+          "to": "finalize(), immediately before the one terminal receipt write"
+        },
+        "supervisor_problems": [
+          "the launch manifest is unusable: manifest[\"caps\"]['diagnostic_byte_budget'] is 8388609 but the supervisor enforces 8388608"
+        ],
+        "dispatch_failure": null,
+        "cleanup_failure": null
+      },
+      "drain_state": null,
+      "capture_exists": null,
+      "requests": []
+    },
+    {
+      "test": "test_a_manifest_LIMIT_that_disagrees_with_the_code_refuses_before_any_child",
+      "main_returncode": 1,
+      "posts": 0,
+      "receipt": {
+        "child_started": false,
+        "child_confirmed_stopped": null,
+        "submitted_requests": 0,
+        "transport_attempted_requests": null,
+        "requests_expected": null,
+        "requests_with_worker_record": null,
+        "requests_without_worker_record": null,
+        "generated_tokens_total": null,
+        "token_cap_respected": null,
+        "capture_descriptor": null,
+        "seconds_to_child_reap": null,
+        "wall_seconds_total": 0.0,
+        "wall_cap_respected": true,
+        "elapsed_boundary": {
+          "excludes": "the receipt write itself and the console lines printed after it; nothing else",
+          "from": "the Deadline created at main() entry, before the manifest is read -- so the 600 s budget covers selection and hashing too",
+          "to": "finalize(), immediately before the one terminal receipt write"
+        },
+        "supervisor_problems": [
+          "the launch manifest is unusable: manifest[\"caps\"]['dispatch_cutoff_seconds'] is True but the supervisor enforces 510.0"
+        ],
+        "dispatch_failure": null,
+        "cleanup_failure": null
+      },
+      "drain_state": null,
+      "capture_exists": null,
+      "requests": []
+    },
+    {
+      "test": "test_a_manifest_LIMIT_that_disagrees_with_the_code_refuses_before_any_child",
+      "main_returncode": 1,
+      "posts": 0,
+      "receipt": {
+        "child_started": false,
+        "child_confirmed_stopped": null,
+        "submitted_requests": 0,
+        "transport_attempted_requests": null,
+        "requests_expected": null,
+        "requests_with_worker_record": null,
+        "requests_without_worker_record": null,
+        "generated_tokens_total": null,
+        "token_cap_respected": null,
+        "capture_descriptor": null,
+        "seconds_to_child_reap": null,
+        "wall_seconds_total": 0.0,
+        "wall_cap_respected": true,
+        "elapsed_boundary": {
+          "excludes": "the receipt write itself and the console lines printed after it; nothing else",
+          "from": "the Deadline created at main() entry, before the manifest is read -- so the 600 s budget covers selection and hashing too",
+          "to": "finalize(), immediately before the one terminal receipt write"
+        },
+        "supervisor_problems": [
+          "the launch manifest is unusable: manifest[\"caps\"]['diagnostic_byte_budget'] is '8388608' but the supervisor enforces 8388608"
+        ],
+        "dispatch_failure": null,
+        "cleanup_failure": null
+      },
+      "drain_state": null,
+      "capture_exists": null,
+      "requests": []
+    },
+    {
+      "test": "test_a_manifest_LIMIT_that_disagrees_with_the_code_refuses_before_any_child",
+      "main_returncode": 1,
+      "posts": 0,
+      "receipt": {
+        "child_started": false,
+        "child_confirmed_stopped": null,
+        "submitted_requests": 0,
+        "transport_attempted_requests": null,
+        "requests_expected": null,
+        "requests_with_worker_record": null,
+        "requests_without_worker_record": null,
+        "generated_tokens_total": null,
+        "token_cap_respected": null,
+        "capture_descriptor": null,
+        "seconds_to_child_reap": null,
+        "wall_seconds_total": 0.0,
+        "wall_cap_respected": true,
+        "elapsed_boundary": {
+          "excludes": "the receipt write itself and the console lines printed after it; nothing else",
+          "from": "the Deadline created at main() entry, before the manifest is read -- so the 600 s budget covers selection and hashing too",
+          "to": "finalize(), immediately before the one terminal receipt write"
+        },
+        "supervisor_problems": [
+          "the launch manifest is unusable: manifest[\"caps\"]['wall_seconds_total'] is nan but the supervisor enforces 600.0"
+        ],
+        "dispatch_failure": null,
+        "cleanup_failure": null
+      },
+      "drain_state": null,
+      "capture_exists": null,
+      "requests": []
+    },
+    {
+      "test": "test_a_manifest_LIMIT_that_disagrees_with_the_code_refuses_before_any_child",
+      "main_returncode": 1,
+      "posts": 0,
+      "receipt": {
+        "child_started": false,
+        "child_confirmed_stopped": null,
+        "submitted_requests": 0,
+        "transport_attempted_requests": null,
+        "requests_expected": null,
+        "requests_with_worker_record": null,
+        "requests_without_worker_record": null,
+        "generated_tokens_total": null,
+        "token_cap_respected": null,
+        "capture_descriptor": null,
+        "seconds_to_child_reap": null,
+        "wall_seconds_total": 0.0,
+        "wall_cap_respected": true,
+        "elapsed_boundary": {
+          "excludes": "the receipt write itself and the console lines printed after it; nothing else",
+          "from": "the Deadline created at main() entry, before the manifest is read -- so the 600 s budget covers selection and hashing too",
+          "to": "finalize(), immediately before the one terminal receipt write"
+        },
+        "supervisor_problems": [
+          "the launch manifest is unusable: manifest[\"caps\"]['wall_seconds_total'] is 10000000000000000000000000000000000000000000000000000000000000000000000000000... but the supervisor enforces 600.0"
+        ],
+        "dispatch_failure": null,
+        "cleanup_failure": null
+      },
+      "drain_state": null,
+      "capture_exists": null,
+      "requests": []
+    },
+    {
+      "test": "test_a_manifest_LIMIT_that_disagrees_with_the_code_refuses_before_any_child",
+      "main_returncode": 1,
+      "posts": 0,
+      "receipt": {
+        "child_started": false,
+        "child_confirmed_stopped": null,
+        "submitted_requests": 0,
+        "transport_attempted_requests": null,
+        "requests_expected": null,
+        "requests_with_worker_record": null,
+        "requests_without_worker_record": null,
+        "generated_tokens_total": null,
+        "token_cap_respected": null,
+        "capture_descriptor": null,
+        "seconds_to_child_reap": null,
+        "wall_seconds_total": 0.0,
+        "wall_cap_respected": true,
+        "elapsed_boundary": {
+          "excludes": "the receipt write itself and the console lines printed after it; nothing else",
+          "from": "the Deadline created at main() entry, before the manifest is read -- so the 600 s budget covers selection and hashing too",
+          "to": "finalize(), immediately before the one terminal receipt write"
+        },
+        "supervisor_problems": [
+          "the launch manifest is unusable: manifest[\"caps\"] does not declare 'cleanup_reserve_seconds'; the supervisor enforces 90.0"
+        ],
+        "dispatch_failure": null,
+        "cleanup_failure": null
+      },
+      "drain_state": null,
+      "capture_exists": null,
+      "requests": []
+    },
+    {
+      "test": "test_the_LITERAL_limits_root_named_are_what_the_code_enforces",
+      "main_returncode": 0,
+      "posts": 2,
+      "receipt": {
+        "child_started": true,
+        "child_confirmed_stopped": true,
+        "submitted_requests": 2,
+        "transport_attempted_requests": 2,
+        "requests_expected": 2,
+        "requests_with_worker_record": 2,
+        "requests_without_worker_record": 0,
+        "generated_tokens_total": 20,
+        "token_cap_respected": true,
+        "capture_descriptor": {
+          "descriptor": "absent",
+          "note": "no OS descriptor (an in-memory stream); a subprocess PIPE always has one"
+        },
+        "seconds_to_child_reap": 0.0,
+        "wall_seconds_total": 0.0,
+        "wall_cap_respected": true,
+        "elapsed_boundary": {
+          "excludes": "the receipt write itself and the console lines printed after it; nothing else",
+          "from": "the Deadline created at main() entry, before the manifest is read -- so the 600 s budget covers selection and hashing too",
+          "to": "finalize(), immediately before the one terminal receipt write"
+        },
+        "supervisor_problems": [],
+        "dispatch_failure": null,
+        "cleanup_failure": null
+      },
+      "drain_state": "finished",
+      "capture_exists": true,
+      "requests": [
+        {
+          "id": "smoke_4167e395ccfd_req0",
+          "state": null,
+          "response_received": true,
+          "transport_attempted": true
+        },
+        {
+          "id": "smoke_4167e395ccfd_req1",
+          "state": null,
+          "response_received": true,
+          "transport_attempted": true
+        }
+      ]
+    },
+    {
+      "test": "fileno_failure_non_memory_stream",
+      "main_returncode": 0,
+      "posts": 2,
+      "receipt": {
+        "child_started": true,
+        "child_confirmed_stopped": true,
+        "submitted_requests": 2,
+        "transport_attempted_requests": 2,
+        "requests_expected": 2,
+        "requests_with_worker_record": 2,
+        "requests_without_worker_record": 0,
+        "generated_tokens_total": 20,
+        "token_cap_respected": true,
+        "capture_descriptor": {
+          "descriptor": "absent",
+          "note": "no OS descriptor (an in-memory stream); a subprocess PIPE always has one"
+        },
+        "seconds_to_child_reap": 0.0,
+        "wall_seconds_total": 0.0,
+        "wall_cap_respected": true,
+        "elapsed_boundary": {
+          "excludes": "the receipt write itself and the console lines printed after it; nothing else",
+          "from": "the Deadline created at main() entry, before the manifest is read -- so the 600 s budget covers selection and hashing too",
+          "to": "finalize(), immediately before the one terminal receipt write"
+        },
+        "supervisor_problems": [],
+        "dispatch_failure": null,
+        "cleanup_failure": null
+      },
+      "drain_state": "finished",
+      "capture_exists": true,
+      "requests": [
+        {
+          "id": "smoke_4167e395ccfd_req0",
+          "state": null,
+          "response_received": true,
+          "transport_attempted": true
+        },
+        {
+          "id": "smoke_4167e395ccfd_req1",
+          "state": null,
+          "response_received": true,
+          "transport_attempted": true
+        }
+      ]
+    },
+    {
+      "test": "deadline_crossing_before_finalize",
+      "main_returncode": 0,
+      "posts": 2,
+      "receipt": {
+        "child_started": true,
+        "child_confirmed_stopped": true,
+        "submitted_requests": 2,
+        "transport_attempted_requests": 2,
+        "requests_expected": 2,
+        "requests_with_worker_record": 2,
+        "requests_without_worker_record": 0,
+        "generated_tokens_total": 20,
+        "token_cap_respected": true,
+        "capture_descriptor": {
+          "descriptor": "absent",
+          "note": "no OS descriptor (an in-memory stream); a subprocess PIPE always has one"
+        },
+        "seconds_to_child_reap": 0.0,
+        "wall_seconds_total": 601.0,
+        "wall_cap_respected": false,
+        "elapsed_boundary": {
+          "excludes": "the receipt write itself and the console lines printed after it; nothing else",
+          "from": "the Deadline created at main() entry, before the manifest is read -- so the 600 s budget covers selection and hashing too",
+          "to": "finalize(), immediately before the one terminal receipt write"
+        },
+        "supervisor_problems": [],
+        "dispatch_failure": null,
+        "cleanup_failure": null
+      },
+      "drain_state": "finished",
+      "capture_exists": true,
+      "requests": [
+        {
+          "id": "smoke_4167e395ccfd_req0",
+          "state": null,
+          "response_received": true,
+          "transport_attempted": true
+        },
+        {
+          "id": "smoke_4167e395ccfd_req1",
+          "state": null,
+          "response_received": true,
+          "transport_attempted": true
+        }
+      ]
+    }
+  ],
+  "independent_probes": [
+    {
+      "scenario": "fileno_failure_non_memory_stream",
+      "main_returncode": 0,
+      "posts": 2,
+      "receipt": {
+        "child_started": true,
+        "child_confirmed_stopped": true,
+        "submitted_requests": 2,
+        "transport_attempted_requests": 2,
+        "requests_expected": 2,
+        "requests_with_worker_record": 2,
+        "requests_without_worker_record": 0,
+        "generated_tokens_total": 20,
+        "token_cap_respected": true,
+        "capture_descriptor": {
+          "descriptor": "absent",
+          "note": "no OS descriptor (an in-memory stream); a subprocess PIPE always has one"
+        },
+        "seconds_to_child_reap": 0.0,
+        "wall_seconds_total": 0.0,
+        "wall_cap_respected": true,
+        "elapsed_boundary": {
+          "excludes": "the receipt write itself and the console lines printed after it; nothing else",
+          "from": "the Deadline created at main() entry, before the manifest is read -- so the 600 s budget covers selection and hashing too",
+          "to": "finalize(), immediately before the one terminal receipt write"
+        },
+        "supervisor_problems": [],
+        "dispatch_failure": null,
+        "cleanup_failure": null
+      },
+      "stream_reads": 1,
+      "problems": []
+    },
+    {
+      "scenario": "deadline_crossing_before_finalize",
+      "main_returncode": 0,
+      "posts": 2,
+      "receipt": {
+        "child_started": true,
+        "child_confirmed_stopped": true,
+        "submitted_requests": 2,
+        "transport_attempted_requests": 2,
+        "requests_expected": 2,
+        "requests_with_worker_record": 2,
+        "requests_without_worker_record": 0,
+        "generated_tokens_total": 20,
+        "token_cap_respected": true,
+        "capture_descriptor": {
+          "descriptor": "absent",
+          "note": "no OS descriptor (an in-memory stream); a subprocess PIPE always has one"
+        },
+        "seconds_to_child_reap": 0.0,
+        "wall_seconds_total": 601.0,
+        "wall_cap_respected": false,
+        "elapsed_boundary": {
+          "excludes": "the receipt write itself and the console lines printed after it; nothing else",
+          "from": "the Deadline created at main() entry, before the manifest is read -- so the 600 s budget covers selection and hashing too",
+          "to": "finalize(), immediately before the one terminal receipt write"
+        },
+        "supervisor_problems": [],
+        "dispatch_failure": null,
+        "cleanup_failure": null
+      },
+      "stream_reads": null,
+      "problems": []
+    }
+  ],
+  "owner_test_output": "test_a_drain_that_was_NEVER_CREATED_is_not_a_finished_capture (selected_owner_supervisor_tests_1630.SupervisorEntryPointTests.test_a_drain_that_was_NEVER_CREATED_is_not_a_finished_capture)\nRoot, 2026-09-23 14:41: \"If constructing the drain raises, protection ... {\n \"server_ready\": false,\n \"submitted_requests\": 0,\n \"generated_tokens_total\": null,\n \"seconds_to_child_reap\": 0.0,\n \"distinct_slots\": [\n  \"smoke_4167e395ccfd/slot0\",\n  \"smoke_4167e395ccfd/slot1\"\n ],\n \"observed_overlap_s\": 53.577598,\n \"two_slots_overlapped\": true,\n \"raw_log_bytes\": 1169,\n \"child_confirmed_stopped\": true\n}\nobservation active: True | lifecycle_complete: True | reason: None\nREFUSED: raw diagnostic capture incomplete: {'reached_eof': False, 'drain_error': None, 'bytes_dropped': 0, 'budget_exhausted': False, 'deadline_exhausted': False}\nREFUSED: no diagnostic capture exists: the drain was not created\nREFUSED: dispatch failed at stage 'dispatch': RuntimeError: injected drain construction failure\nREFUSED: token usage was not measurable for 2 request(s), so the token cap could not be judged\nREFUSED: 2 planned request(s) had no transport attempt\nwritten: /var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry_uoa9cwrk/results/SMOKE_RECEIPT_smoke_4167e395ccfd.json\nok\ntest_a_drain_that_was_created_but_NEVER_STARTED (selected_owner_supervisor_tests_1630.SupervisorEntryPointTests.test_a_drain_that_was_created_but_NEVER_STARTED)\nA constructed drain whose start() raised is not alive either, so the ... {\n \"server_ready\": false,\n \"submitted_requests\": 0,\n \"generated_tokens_total\": null,\n \"seconds_to_child_reap\": 0.0,\n \"distinct_slots\": [\n  \"smoke_4167e395ccfd/slot0\",\n  \"smoke_4167e395ccfd/slot1\"\n ],\n \"observed_overlap_s\": 53.577598,\n \"two_slots_overlapped\": true,\n \"raw_log_bytes\": 1169,\n \"child_confirmed_stopped\": true\n}\nobservation active: True | lifecycle_complete: True | reason: None\nREFUSED: raw diagnostic capture incomplete: {'reached_eof': False, 'drain_error': None, 'bytes_dropped': 0, 'budget_exhausted': False, 'deadline_exhausted': False}\nREFUSED: no diagnostic capture exists: the drain was not started\nREFUSED: dispatch failed at stage 'dispatch': RuntimeError: injected drain start failure\nREFUSED: token usage was not measurable for 2 request(s), so the token cap could not be judged\nREFUSED: 2 planned request(s) had no transport attempt\nwritten: /var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry_ktecq6dw/results/SMOKE_RECEIPT_smoke_4167e395ccfd.json\nok\ntest_a_SUPERVISOR_Thread_start_failure_still_reconciles_requests (selected_owner_supervisor_tests_1630.SupervisorEntryPointTests.test_a_SUPERVISOR_Thread_start_failure_still_reconciles_requests)\nRoot: \"The new owner test makes the second requests.post raise inside ... {\n \"server_ready\": true,\n \"submitted_requests\": 1,\n \"generated_tokens_total\": null,\n \"seconds_to_child_reap\": 0.0,\n \"distinct_slots\": [\n  \"smoke_4167e395ccfd/slot0\",\n  \"smoke_4167e395ccfd/slot1\"\n ],\n \"observed_overlap_s\": 53.577598,\n \"two_slots_overlapped\": true,\n \"raw_log_bytes\": 1169,\n \"child_confirmed_stopped\": true\n}\nobservation active: True | lifecycle_complete: True | reason: None\nREFUSED: dispatch failed at stage 'dispatch': RuntimeError: injected supervisor Thread.start failure\nREFUSED: token usage was not measurable for 1 request(s), so the token cap could not be judged\nREFUSED: 1 planned request(s) had no transport attempt\nwritten: /var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry_wvacm8a3/results/SMOKE_RECEIPT_smoke_4167e395ccfd.json\nok\ntest_a_SUPERVISOR_Thread_join_failure_still_reconciles_requests (selected_owner_supervisor_tests_1630.SupervisorEntryPointTests.test_a_SUPERVISOR_Thread_join_failure_still_reconciles_requests)\nBoth workers POSTed; the SUPERVISOR's join then raised. The request ... {\n \"server_ready\": true,\n \"submitted_requests\": 2,\n \"generated_tokens_total\": 20,\n \"seconds_to_child_reap\": 0.0,\n \"distinct_slots\": [\n  \"smoke_4167e395ccfd/slot0\",\n  \"smoke_4167e395ccfd/slot1\"\n ],\n \"observed_overlap_s\": 53.577598,\n \"two_slots_overlapped\": true,\n \"raw_log_bytes\": 1169,\n \"child_confirmed_stopped\": true\n}\nobservation active: True | lifecycle_complete: True | reason: None\nREFUSED: dispatch failed at stage 'dispatch': RuntimeError: injected supervisor Thread.join failure\nwritten: /var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry_hqpc9tmd/results/SMOKE_RECEIPT_smoke_4167e395ccfd.json\nok\ntest_a_BLOCKING_production_descriptor_refuses_before_any_POST (selected_owner_supervisor_tests_1630.SupervisorEntryPointTests.test_a_BLOCKING_production_descriptor_refuses_before_any_POST)\nRoot: \"Refuse a production descriptor that cannot be made ... {\n \"server_ready\": false,\n \"submitted_requests\": 0,\n \"generated_tokens_total\": null,\n \"seconds_to_child_reap\": 0.0,\n \"distinct_slots\": [\n  \"smoke_4167e395ccfd/slot0\",\n  \"smoke_4167e395ccfd/slot1\"\n ],\n \"observed_overlap_s\": 53.577598,\n \"two_slots_overlapped\": true,\n \"raw_log_bytes\": 1169,\n \"child_confirmed_stopped\": true\n}\nobservation active: True | lifecycle_complete: True | reason: None\nREFUSED: raw diagnostic capture incomplete: {'reached_eof': False, 'drain_error': None, 'bytes_dropped': 0, 'budget_exhausted': False, 'deadline_exhausted': False}\nREFUSED: no diagnostic capture exists: the drain was not created\nREFUSED: dispatch failed at stage 'dispatch': CaptureDescriptorError: the child output descriptor could not be made non-blocking (OSError: mock EBADF; descriptor cannot be set nonblocking); refusing before any dispatch\nREFUSED: token usage was not measurable for 2 request(s), so the token cap could not be judged\nREFUSED: 2 planned request(s) had no transport attempt\nwritten: /var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry_mrqep94j/results/SMOKE_RECEIPT_smoke_4167e395ccfd.json\nok\ntest_the_drain_ITSELF_refuses_a_blocking_descriptor (selected_owner_supervisor_tests_1630.SupervisorEntryPointTests.test_the_drain_ITSELF_refuses_a_blocking_descriptor)\nThe same rule inside the drain, so the function is safe on its own: ... ok\ntest_an_in_memory_stream_is_recorded_ABSENT_not_nonblocking (selected_owner_supervisor_tests_1630.SupervisorEntryPointTests.test_an_in_memory_stream_is_recorded_ABSENT_not_nonblocking)\nThe fixture's BytesIO has no OS descriptor. That is recorded as what ... {\n \"server_ready\": true,\n \"submitted_requests\": 2,\n \"generated_tokens_total\": 20,\n \"seconds_to_child_reap\": 0.0,\n \"distinct_slots\": [\n  \"smoke_4167e395ccfd/slot0\",\n  \"smoke_4167e395ccfd/slot1\"\n ],\n \"observed_overlap_s\": 53.577598,\n \"two_slots_overlapped\": true,\n \"raw_log_bytes\": 1169,\n \"child_confirmed_stopped\": true\n}\nobservation active: True | lifecycle_complete: True | reason: None\nwritten: /var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry_dgsz_x01/results/SMOKE_RECEIPT_smoke_4167e395ccfd.json\nok\ntest_ELAPSED_is_measured_in_finalize_on_an_EARLY_refusal (selected_owner_supervisor_tests_1630.SupervisorEntryPointTests.test_ELAPSED_is_measured_in_finalize_on_an_EARLY_refusal)\nRoot: \"measure elapsed time through finalization with its boundary ... REFUSED: the launch manifest is unusable: manifest[\"caps\"] does not declare 'dispatch_cutoff_seconds'; the supervisor enforces 510.0\nwritten: /var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry_oowiznyf/results/SMOKE_RECEIPT_smoke_4167e395ccfd.json\nok\ntest_ELAPSED_counts_time_spent_AFTER_the_child_is_reaped (selected_owner_supervisor_tests_1630.SupervisorEntryPointTests.test_ELAPSED_counts_time_spent_AFTER_the_child_is_reaped)\nSeven seconds pass while the lifecycle log is read, after reap. The ... {\n \"server_ready\": true,\n \"submitted_requests\": 2,\n \"generated_tokens_total\": 20,\n \"seconds_to_child_reap\": 0.0,\n \"distinct_slots\": [\n  \"smoke_4167e395ccfd/slot0\",\n  \"smoke_4167e395ccfd/slot1\"\n ],\n \"observed_overlap_s\": 53.577598,\n \"two_slots_overlapped\": true,\n \"raw_log_bytes\": 1169,\n \"child_confirmed_stopped\": true\n}\nobservation active: True | lifecycle_complete: True | reason: None\nwritten: /var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry_ul0p0jkp/results/SMOKE_RECEIPT_smoke_4167e395ccfd.json\nok\ntest_a_manifest_LIMIT_that_disagrees_with_the_code_refuses_before_any_child (selected_owner_supervisor_tests_1630.SupervisorEntryPointTests.test_a_manifest_LIMIT_that_disagrees_with_the_code_refuses_before_any_child)\nRoot: \"bind 8 MiB/90-second/600-second/510-second limits across code, ... REFUSED: the launch manifest is unusable: manifest[\"caps\"]['wall_seconds_total'] is 601 but the supervisor enforces 600.0\nwritten: /var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry_z0jb1k4v/results/SMOKE_RECEIPT_smoke_4167e395ccfd.json\nREFUSED: the launch manifest is unusable: manifest[\"caps\"]['cleanup_reserve_seconds'] is 89 but the supervisor enforces 90.0\nwritten: /var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry_8s6dtvr_/results/SMOKE_RECEIPT_smoke_4167e395ccfd.json\nREFUSED: the launch manifest is unusable: manifest[\"caps\"]['dispatch_cutoff_seconds'] is 509 but the supervisor enforces 510.0\nwritten: /var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry_nlqr6a_r/results/SMOKE_RECEIPT_smoke_4167e395ccfd.json\nREFUSED: the launch manifest is unusable: manifest[\"caps\"]['diagnostic_byte_budget'] is 8388609 but the supervisor enforces 8388608\nwritten: /var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry_bmkme4bx/results/SMOKE_RECEIPT_smoke_4167e395ccfd.json\nREFUSED: the launch manifest is unusable: manifest[\"caps\"]['dispatch_cutoff_seconds'] is True but the supervisor enforces 510.0\nwritten: /var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry_wcjdp5px/results/SMOKE_RECEIPT_smoke_4167e395ccfd.json\nREFUSED: the launch manifest is unusable: manifest[\"caps\"]['diagnostic_byte_budget'] is '8388608' but the supervisor enforces 8388608\nwritten: /var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry_018x1med/results/SMOKE_RECEIPT_smoke_4167e395ccfd.json\nREFUSED: the launch manifest is unusable: manifest[\"caps\"]['wall_seconds_total'] is nan but the supervisor enforces 600.0\nwritten: /var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry_8k223_sy/results/SMOKE_RECEIPT_smoke_4167e395ccfd.json\nREFUSED: the launch manifest is unusable: manifest[\"caps\"]['wall_seconds_total'] is 10000000000000000000000000000000000000000000000000000000000000000000000000000... but the supervisor enforces 600.0\nwritten: /var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry_7lhdjibe/results/SMOKE_RECEIPT_smoke_4167e395ccfd.json\nREFUSED: the launch manifest is unusable: manifest[\"caps\"] does not declare 'cleanup_reserve_seconds'; the supervisor enforces 90.0\nwritten: /var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry_7b4mox6b/results/SMOKE_RECEIPT_smoke_4167e395ccfd.json\nok\ntest_the_LITERAL_limits_root_named_are_what_the_code_enforces (selected_owner_supervisor_tests_1630.SupervisorEntryPointTests.test_the_LITERAL_limits_root_named_are_what_the_code_enforces)\nThe control for the binding: the fixture declares 600/90/510/8 MiB ... {\n \"server_ready\": true,\n \"submitted_requests\": 2,\n \"generated_tokens_total\": 20,\n \"seconds_to_child_reap\": 0.0,\n \"distinct_slots\": [\n  \"smoke_4167e395ccfd/slot0\",\n  \"smoke_4167e395ccfd/slot1\"\n ],\n \"observed_overlap_s\": 53.577598,\n \"two_slots_overlapped\": true,\n \"raw_log_bytes\": 1169,\n \"child_confirmed_stopped\": true\n}\nobservation active: True | lifecycle_complete: True | reason: None\nwritten: /var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry__fkdox25/results/SMOKE_RECEIPT_smoke_4167e395ccfd.json\nok\n\n----------------------------------------------------------------------\nRan 11 tests in 0.350s\n\nOK\n{\n \"server_ready\": true,\n \"submitted_requests\": 2,\n \"generated_tokens_total\": 20,\n \"seconds_to_child_reap\": 0.0,\n \"distinct_slots\": [\n  \"smoke_4167e395ccfd/slot0\",\n  \"smoke_4167e395ccfd/slot1\"\n ],\n \"observed_overlap_s\": 53.577598,\n \"two_slots_overlapped\": true,\n \"raw_log_bytes\": 1169,\n \"child_confirmed_stopped\": true\n}\nobservation active: True | lifecycle_complete: True | reason: None\nwritten: /var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry_kbg4tqf0/results/SMOKE_RECEIPT_smoke_4167e395ccfd.json\n{\n \"server_ready\": true,\n \"submitted_requests\": 2,\n \"generated_tokens_total\": 20,\n \"seconds_to_child_reap\": 0.0,\n \"distinct_slots\": [\n  \"smoke_4167e395ccfd/slot0\",\n  \"smoke_4167e395ccfd/slot1\"\n ],\n \"observed_overlap_s\": 53.577598,\n \"two_slots_overlapped\": true,\n \"raw_log_bytes\": 1169,\n \"child_confirmed_stopped\": true\n}\nobservation active: True | lifecycle_complete: True | reason: None\nwritten: /var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry_5xvgot6u/results/SMOKE_RECEIPT_smoke_4167e395ccfd.json\n",
+  "readiness": {
+    "full_project_percent": 75,
+    "delta_points": 0,
+    "bounded_v1_percent": 90,
+    "remaining_points": 25
+  },
+  "harness_sha256": "cf89a20d82cef2837d54cb9bf2948956cef628bbeaa8a33dc495b7daef1643d4",
+  "static_scope_notes": {
+    "token_limit": {
+      "declared_total_generated_tokens": 2048,
+      "application": "post-response aggregate acceptance over expected two requests; unknown aggregate usage refuses",
+      "per_request_payload": "request.max_tokens is checked only as a positive nonboolean integer and copied into each of two payloads",
+      "prospective_budget_binding": "no checked relation 2*max_tokens <= 2048; this source does not guarantee the declared aggregate consumption cap before dispatch"
+    },
+    "source_pins": "Repair receipts pin run_smoke.py and tests_supervisor_entry.py and all four hashes agree at their introducing commits. They do not establish prospective closure of executed serving helpers/entrypoint, configuration, or costed plan. Unchanged historical33 harness pins are separate.",
+    "unchanged_open": "unfinished worker/join boundary not retested; no scientific study or launch authorized",
+    "clock_scope": "Deadline and sleeps use mocks; UTC receipt strings use the owner wall timestamp function. No real waiting."
+  }
+}

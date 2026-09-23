@@ -1,0 +1,162 @@
+{
+  "schema": "independent_dependency_contract_review-v1",
+  "reviewed_head": "defa4a17189a69e083777be78041f2eeb56c5edf",
+  "substantive_source": "ab38e615ad5ec039fc37b533eb7295eefb478026",
+  "reviewed_utc": "2026-09-23T16:40:21.485389+00:00",
+  "readiness": {
+    "full_project_percent": 75,
+    "delta_points": 0,
+    "bounded_v1_percent": 90
+  },
+  "exact_git_blob_sha256": {
+    "experiments/live_ab_serving/dependency_closure.py": "e8af1223367b10d75efb4a1488e98f264f2188cbc5f0cf2fa61f008c1e45e03e",
+    "experiments/live_ab_serving/tests_dependency_closure.py": "e4f5f32b66703cb5c9884da4212f2443549d6d6411ae15e761817e121a036b30",
+    "experiments/live_ab_serving/candidate_closure_receipt.py": "0b9652d027b40f71199aeb2dc4ab0254cd35c917895858a75e70d6abcfc9a969",
+    "results/live_ab/DEPENDENCY_CONTRACT_REPAIR.json": "99e7621328f74bb2eca2bf320cd3f419c38fbe938e124bb0c6c686955ed96053",
+    "results/live_ab/CANDIDATE_INSTRUMENT_MANIFEST.json": "75e2a1d1a7fd786b2dff70ba8602390c5e3460de7e06ad045660650d1e7913c0"
+  },
+  "source_extraction_matches_exact_git_blobs": {
+    "experiments/live_ab_serving/dependency_closure.py": true,
+    "experiments/live_ab_serving/tests_dependency_closure.py": true,
+    "experiments/live_ab_serving/candidate_closure_receipt.py": true
+  },
+  "receipt_input_note": "Parsed from exact git blob. Temporary receipt.json used during initial inspection was reformatted; its local hash is not the repository blob hash.",
+  "receipt_generated_utc": "2026-09-23T16:15:13Z",
+  "receipt_declared_hash_reconciliation": {
+    "compared_file_rows": 10,
+    "all_match": true,
+    "rows": [
+      {
+        "path": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-base.0.dylib",
+        "bytes_match": true,
+        "sha256_match": true
+      },
+      {
+        "path": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-blas.0.dylib",
+        "bytes_match": true,
+        "sha256_match": true
+      },
+      {
+        "path": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-cpu.0.dylib",
+        "bytes_match": true,
+        "sha256_match": true
+      },
+      {
+        "path": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-metal.0.dylib",
+        "bytes_match": true,
+        "sha256_match": true
+      },
+      {
+        "path": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml.0.dylib",
+        "bytes_match": true,
+        "sha256_match": true
+      },
+      {
+        "path": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-common.0.dylib",
+        "bytes_match": true,
+        "sha256_match": true
+      },
+      {
+        "path": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-server-impl.dylib",
+        "bytes_match": true,
+        "sha256_match": true
+      },
+      {
+        "path": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama.0.dylib",
+        "bytes_match": true,
+        "sha256_match": true
+      },
+      {
+        "path": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libmtmd.0.dylib",
+        "bytes_match": true,
+        "sha256_match": true
+      },
+      {
+        "path": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/llama-server",
+        "bytes_match": true,
+        "sha256_match": true
+      }
+    ],
+    "not_independent_candidate_artifact_hashing": true
+  },
+  "tests": {
+    "run": 35,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "output": "...................................\n----------------------------------------------------------------------\nRan 35 tests in 0.009s\n\nOK\n"
+  },
+  "probes": [
+    {
+      "id": "dynamic_reader_failure_rechecked",
+      "frozen_resolved": true,
+      "verified": false,
+      "reader_calls": 5,
+      "problems": [
+        "the closure cannot be resolved now: could not determine dynamic loading: retained metadata now unreadable"
+      ]
+    },
+    {
+      "id": "dependency_canonical_target_change_not_checked",
+      "canonical_target_before": "/payload/A/helper.dylib",
+      "canonical_target_after": "/payload/B/helper.dylib",
+      "frozen_resolved": true,
+      "verified": true,
+      "file_keys": [
+        "/cand/bin/helper.dylib",
+        "/cand/bin/llama-server"
+      ],
+      "derive_realpath_calls": [
+        "/cand/bin/llama-server"
+      ],
+      "verify_realpath_calls": [
+        "/cand/bin/llama-server"
+      ],
+      "problems": []
+    },
+    {
+      "id": "unmodeled_inherited_only_rpath_refused",
+      "resolved": false,
+      "unresolved": [
+        {
+          "file": "/a/a.dylib",
+          "command": "LC_LOAD_DYLIB",
+          "reference": "@rpath/helper.dylib",
+          "problem": "the load reference '@rpath/helper.dylib' could not be placed under the declared search environment",
+          "searched": []
+        }
+      ]
+    }
+  ],
+  "external_denials": [],
+  "operations_excluded": [
+    "native metadata commands",
+    "candidate binary execution",
+    "build",
+    "model",
+    "network",
+    "owner current artifact access",
+    "full simulations"
+  ],
+  "accepted": [
+    "dynamic-reader and context propagation through verification",
+    "closed load-command parser including reexport; unsupported commands refuse",
+    "parent/command/reference edge keys",
+    "supplied 35 dictionary controls",
+    "declared 10-file inventory consistency"
+  ],
+  "remaining": [
+    {
+      "priority": 1,
+      "finding": "Static dependency canonical targets are not bound or compared",
+      "witness": "dependency_canonical_target_change_not_checked",
+      "repair": "Canonicalize and bind all selected non-system dependency targets, with the correct loader context, or refuse noncanonical selected dependency paths."
+    }
+  ],
+  "scope_limits": [
+    "Own-rpath-only conservative refusal established only for inherited-only miss fixture; no general dyld resolution proof",
+    "Duplicate install names are recorded and both synthetic files traversed; this is not independent evidence of exact runtime per-edge selection; candidate receipt has no duplicates",
+    "Candidate metadata, bytes, and real metadata refusal controls remain owner reported",
+    "Gate remains unwired; no trial or calibration authorization or new milestone"
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "schema": "root/delivery_scope-v1",
+  "cycle": "2026-09-23T16:30:43Z",
+  "last_seen_main_live": "defa4a17189a69e083777be78041f2eeb56c5edf",
+  "reviewed_sources": {
+    "supervisor_reconciliation": "b161695f61d70b6371bfc76d501a8a75e9a170d9",
+    "supervisor_limits": "c7bd7144d1bd154f0fb3e08cf28e480210be4269",
+    "build_snapshot": "d143532575e966ef970f7004e9369b43f7a5662e",
+    "dependency_helper": "ab38e615ad5ec039fc37b533eb7295eefb478026"
+  },
+  "local_readability": {
+    "initial_fetch_warning": "three pack files reported far too short; fetch completed",
+    "pre_read_stat": "nonzero logical sizes and zero allocated blocks",
+    "after_read": "all three PACK headers and trailing SHA1 checksums match; allocated blocks nonzero; main fast-forward and subsequent reads succeed",
+    "cause": "not established; no pack deleted or rewritten by root",
+    "packs": [
+      {
+        "pack": "164760fd794add8d75b75181ce10f7b06d8339e8",
+        "bytes": 3172491,
+        "header": "PACK",
+        "sha1_checksum_matches": true
+      },
+      {
+        "pack": "6f8996d637730c7c3ea98afdc5f5e51a2f362c51",
+        "bytes": 1786391,
+        "header": "PACK",
+        "sha1_checksum_matches": true
+      },
+      {
+        "pack": "da2d198a14c77f7f10b7a258cbc746ff12d18e09",
+        "bytes": 1187186,
+        "header": "PACK",
+        "sha1_checksum_matches": true
+      }
+    ]
+  },
+  "scientific_readiness": 75,
+  "readiness_delta": 0,
+  "bounded_v1": 90
+}

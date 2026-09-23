@@ -1,0 +1,372 @@
+{
+  "source_commit": "d143532575e966ef970f7004e9369b43f7a5662e",
+  "head": "defa4a17189a69e083777be78041f2eeb56c5edf",
+  "pins": {
+    "results/live_ab/CANDIDATE_BUILD_CONFIG_SNAPSHOT.json": {
+      "bytes": 29502,
+      "sha256": "61d74c44cb3b07a7b2b9f28ed734bd3d1e800ae33c347c86ed9b8fa31300abb7",
+      "matches_exact_commit": true
+    },
+    "experiments/live_ab_serving/build_config_snapshot.py": {
+      "bytes": 22384,
+      "sha256": "26e429f0d9d3c07c92dd834f719018dea1068f0f41f8c696f7d4b283ec6292ef",
+      "matches_exact_commit": true
+    },
+    "experiments/live_ab_serving/tests_build_config_snapshot.py": {
+      "bytes": 6084,
+      "sha256": "2674252f5c61a4a7529b4d7e9f6254f67fe24da7d52c94cd957f3698593620db",
+      "matches_exact_commit": true
+    },
+    "results/live_ab/candidate_build_snapshot/CMakeCache.txt": {
+      "bytes": 38049,
+      "sha256": "adffd65cd81b884d9a13d586df96744b7aadce649ea5f4cd6c1e1dead71df4c8",
+      "matches_exact_commit": true
+    },
+    "results/live_ab/candidate_build_snapshot/build.ninja.link_excerpt.txt": {
+      "bytes": 24418,
+      "sha256": "8541b7a2b69ec25d61cbb5fd5b4cb6e748d4d87edbf75693f9e3fc74708a469c",
+      "matches_exact_commit": true
+    },
+    "results/live_ab/candidate_build_snapshot/compile_commands.ggml_excerpt.json": {
+      "bytes": 108240,
+      "sha256": "12247efa5565f71110ccd7a368dbfe04f20a53e8e0407e02ab0d556941faf36a",
+      "matches_exact_commit": true
+    },
+    "results/live_ab/candidate_build_snapshot/ninja_log.txt": {
+      "bytes": 33280,
+      "sha256": "1356f7dd22a033e6121e2b37f0b5d48308a4f8c9f9f07a686b80f34c77d27685",
+      "matches_exact_commit": true
+    }
+  },
+  "guards": [],
+  "copies": {
+    "CMakeCache.txt": {
+      "bytes": 38049,
+      "sha256": "adffd65cd81b884d9a13d586df96744b7aadce649ea5f4cd6c1e1dead71df4c8",
+      "agrees_with_receipt": true
+    },
+    "build.ninja.link_excerpt.txt": {
+      "bytes": 24418,
+      "sha256": "8541b7a2b69ec25d61cbb5fd5b4cb6e748d4d87edbf75693f9e3fc74708a469c",
+      "agrees_with_receipt": true
+    },
+    "compile_commands.ggml_excerpt.json": {
+      "bytes": 108240,
+      "sha256": "12247efa5565f71110ccd7a368dbfe04f20a53e8e0407e02ab0d556941faf36a",
+      "agrees_with_receipt": true
+    },
+    "ninja_log.txt": {
+      "bytes": 33280,
+      "sha256": "1356f7dd22a033e6121e2b37f0b5d48308a4f8c9f9f07a686b80f34c77d27685",
+      "agrees_with_receipt": true
+    }
+  },
+  "independent_cache_settings": {
+    "BUILD_SHARED_LIBS": {
+      "type": "BOOL",
+      "value": "ON"
+    },
+    "CMAKE_BUILD_TYPE": {
+      "type": "STRING",
+      "value": "Release"
+    },
+    "CMAKE_SKIP_RPATH": {
+      "type": "BOOL",
+      "value": "NO"
+    },
+    "GGML_BACKEND_DIR": {
+      "type": "PATH",
+      "value": ""
+    },
+    "GGML_BACKEND_DL": {
+      "type": "BOOL",
+      "value": "OFF"
+    },
+    "GGML_CPU_ALL_VARIANTS": {
+      "type": "BOOL",
+      "value": "OFF"
+    },
+    "GGML_METAL_EMBED_LIBRARY": {
+      "type": "BOOL",
+      "value": "ON"
+    },
+    "GGML_NATIVE": {
+      "type": "BOOL",
+      "value": "ON"
+    }
+  },
+  "available_backends": [
+    "ggml-cpu",
+    "ggml-blas",
+    "ggml-metal"
+  ],
+  "compile_rows_checked": 56,
+  "compile_definition_checks": [
+    {
+      "source": "ggml/src/ggml-backend-reg.cpp",
+      "definitions": [
+        "GGML_BACKEND_SHARED",
+        "GGML_BUILD",
+        "GGML_SCHED_MAX_COPIES=4",
+        "GGML_SHARED",
+        "GGML_USE_BLAS",
+        "GGML_USE_CPU",
+        "GGML_USE_METAL",
+        "NDEBUG",
+        "_DARWIN_C_SOURCE",
+        "_XOPEN_SOURCE=600",
+        "ggml_EXPORTS"
+      ],
+      "entry_sha256": "7228848faff921f00d464d539b13e51835831fe490c4366558e7ffa205b5eba0",
+      "matches": true
+    },
+    {
+      "source": "ggml/src/ggml-backend-dl.cpp",
+      "definitions": [
+        "GGML_BACKEND_SHARED",
+        "GGML_BUILD",
+        "GGML_SCHED_MAX_COPIES=4",
+        "GGML_SHARED",
+        "GGML_USE_BLAS",
+        "GGML_USE_CPU",
+        "GGML_USE_METAL",
+        "NDEBUG",
+        "_DARWIN_C_SOURCE",
+        "_XOPEN_SOURCE=600",
+        "ggml_EXPORTS"
+      ],
+      "entry_sha256": "a8902df0455124475bfed3dd7d71cede57a46648bce91e47d51e1c3052f649a8",
+      "matches": true
+    },
+    {
+      "source": "ggml/src/ggml-metal/ggml-metal-device.m",
+      "definitions": [
+        "GGML_BACKEND_BUILD",
+        "GGML_BACKEND_SHARED",
+        "GGML_METAL_EMBED_LIBRARY",
+        "GGML_SCHED_MAX_COPIES=4",
+        "GGML_SHARED",
+        "NDEBUG",
+        "_DARWIN_C_SOURCE",
+        "_XOPEN_SOURCE=600",
+        "ggml_metal_EXPORTS"
+      ],
+      "entry_sha256": "bc75b79be72c5718b5e589d33d91c1e9690552f49a77444d9fd9f03b6513941d",
+      "matches": true
+    },
+    {
+      "source": "ggml/src/ggml-metal/ggml-metal.cpp",
+      "definitions": [
+        "GGML_BACKEND_BUILD",
+        "GGML_BACKEND_SHARED",
+        "GGML_METAL_EMBED_LIBRARY",
+        "GGML_SCHED_MAX_COPIES=4",
+        "GGML_SHARED",
+        "NDEBUG",
+        "_DARWIN_C_SOURCE",
+        "_XOPEN_SOURCE=600",
+        "ggml_metal_EXPORTS"
+      ],
+      "entry_sha256": "9743b8c99258be316cae35e1263ab2e1fcdc41c2f2b74cbe396ef863c5f13a12",
+      "matches": true
+    }
+  ],
+  "all_deposited_ggml_commands_backend_dir_absent": true,
+  "link_rules_independently_reproduced": 10,
+  "ggml_linked_backends": [
+    "blas",
+    "cpu",
+    "metal"
+  ],
+  "ninja_rows": 295,
+  "ninja_relevant_outputs": [
+    {
+      "start_ms": 2808,
+      "end_ms": 2837,
+      "mtime": 1790155131675276864,
+      "output": "bin/libggml-base.0.24.0.dylib"
+    },
+    {
+      "start_ms": 8683,
+      "end_ms": 8994,
+      "mtime": 1790155137550214652,
+      "output": "ggml/src/ggml-metal/CMakeFiles/ggml-metal.dir/ggml-metal-device.m.o"
+    },
+    {
+      "start_ms": 10189,
+      "end_ms": 10227,
+      "mtime": 1790155139056276242,
+      "output": "bin/libggml-cpu.0.24.0.dylib"
+    },
+    {
+      "start_ms": 10199,
+      "end_ms": 10238,
+      "mtime": 1790155139066633817,
+      "output": "bin/libggml-blas.0.24.0.dylib"
+    },
+    {
+      "start_ms": 10227,
+      "end_ms": 10292,
+      "mtime": 1790155139095059077,
+      "output": "bin/libggml-metal.0.24.0.dylib"
+    },
+    {
+      "start_ms": 10292,
+      "end_ms": 10743,
+      "mtime": 1790155139159316704,
+      "output": "ggml/src/CMakeFiles/ggml.dir/ggml-backend-reg.cpp.o"
+    },
+    {
+      "start_ms": 10743,
+      "end_ms": 10771,
+      "mtime": 1790155139610662512,
+      "output": "bin/libggml.0.24.0.dylib"
+    },
+    {
+      "start_ms": 27203,
+      "end_ms": 27240,
+      "mtime": 1790155156071115030,
+      "output": "bin/libllama.0.4.1.dylib"
+    },
+    {
+      "start_ms": 65291,
+      "end_ms": 65329,
+      "mtime": 1790155194158799496,
+      "output": "bin/libllama-common.0.4.1.dylib"
+    },
+    {
+      "start_ms": 65500,
+      "end_ms": 65531,
+      "mtime": 1790155194368168805,
+      "output": "bin/libmtmd.0.4.1.dylib"
+    },
+    {
+      "start_ms": 78662,
+      "end_ms": 78697,
+      "mtime": 1790155207530214915,
+      "output": "bin/libllama-server-impl.dylib"
+    },
+    {
+      "start_ms": 78697,
+      "end_ms": 78725,
+      "mtime": 1790155207564618278,
+      "output": "bin/llama-server"
+    }
+  ],
+  "ninja_build_ninja_entries": [],
+  "retained_original_build_log_sha256": "51876ff3cd8922cc292fdac162c395e0b5d418d0701a1307654cbf0aa2078746",
+  "prior_source_pin_checks": [
+    {
+      "path": "ggml/CMakeLists.txt",
+      "retained_root_sha256": "f4754450a3a00e405d2ffb6a904fe5571ec85c39ad12c666e73af1addccd5e00",
+      "owner_tree_digest_agrees": true,
+      "owner_tree_bytes_independently_read": false
+    },
+    {
+      "path": "ggml/src/CMakeLists.txt",
+      "retained_root_sha256": "38ddf053a1adfc14bb84b7722e3c4ec01909694f7e51e32013f36e7a324fa4f0",
+      "owner_tree_digest_agrees": true,
+      "owner_tree_bytes_independently_read": false
+    },
+    {
+      "path": "ggml/src/ggml-backend-reg.cpp",
+      "retained_root_sha256": "0f63c69ad083e0744872f57d59d049b069283303f5bbc646222907d779afe4d1",
+      "owner_tree_digest_agrees": true,
+      "owner_tree_bytes_independently_read": false
+    },
+    {
+      "path": "ggml/src/ggml-metal/CMakeLists.txt",
+      "retained_root_sha256": "0f042e911c804fbae3dabefb5f5446bbeb39ac3148ad1e5f8b0310990a4941f8",
+      "owner_tree_digest_agrees": true,
+      "owner_tree_bytes_independently_read": false
+    },
+    {
+      "path": "tools/server/server.cpp",
+      "retained_root_sha256": "a0b400372a697182fb552c946579f74e81a845aa6d37e4b40b978ff4be5e016c",
+      "owner_tree_digest_agrees": true,
+      "owner_tree_bytes_independently_read": false
+    },
+    {
+      "path": "ggml/src/ggml-metal/ggml-metal-device.m",
+      "retained_root_sha256": "a250e60cf82b851a6b3d28147ab4ff5e023ec98029ddca1e2c0d9f1783d22e96",
+      "owner_tree_digest_agrees": true,
+      "owner_tree_bytes_independently_read": false
+    },
+    {
+      "path": "common/common.cpp",
+      "retained_root_sha256": "e6eccdf376a80a3f534fc71ad7775fcac52eb6089367f1592ce1d293b147db66",
+      "owner_tree_digest_agrees": true,
+      "owner_tree_bytes_independently_read": false
+    },
+    {
+      "path": "ggml/src/ggml-backend-dl.cpp",
+      "retained_root_sha256": "acd76df8b83bcdef6807bc7b0520f57b379d61b4ff1027c04aa4d140d16ad07f",
+      "owner_tree_digest_agrees": true,
+      "owner_tree_bytes_independently_read": false
+    }
+  ],
+  "ten_candidate_digest_strings_agree_with_prior_declaration": true,
+  "candidate_binary_bytes_independently_accessed": false,
+  "tests": {
+    "run": 13,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "log": "test_CPU_variant_files_present_with_variants_OFF_disagrees (owner_build_snapshot_tests.BuildConfigSnapshotTests.test_CPU_variant_files_present_with_variants_OFF_disagrees) ... ok\ntest_EMBED_on_in_the_cache_but_NO_symbols_in_the_bytes_disagrees (owner_build_snapshot_tests.BuildConfigSnapshotTests.test_EMBED_on_in_the_cache_but_NO_symbols_in_the_bytes_disagrees)\nThe cache and the compile flags can both say embedded while the ... ok\ntest_a_backend_missing_from_the_LINK_rule_disagrees (owner_build_snapshot_tests.BuildConfigSnapshotTests.test_a_backend_missing_from_the_LINK_rule_disagrees) ... ok\ntest_a_cache_saying_OFF_with_a_DL_compile_define_DISAGREES (owner_build_snapshot_tests.BuildConfigSnapshotTests.test_a_cache_saying_OFF_with_a_DL_compile_define_DISAGREES)\nA configured OFF is not a compiled OFF. ... ok\ntest_a_compiled_BACKEND_DIR_with_an_empty_cache_value_DISAGREES (owner_build_snapshot_tests.BuildConfigSnapshotTests.test_a_compiled_BACKEND_DIR_with_an_empty_cache_value_DISAGREES) ... ok\ntest_a_setting_ABSENT_from_the_cache_is_not_agreement (owner_build_snapshot_tests.BuildConfigSnapshotTests.test_a_setting_ABSENT_from_the_cache_is_not_agreement) ... ok\ntest_an_EMPTY_location_records_absence_not_nothing (owner_build_snapshot_tests.BuildConfigSnapshotTests.test_an_EMPTY_location_records_absence_not_nothing) ... ok\ntest_an_UNREADABLE_symbol_table_is_not_agreement (owner_build_snapshot_tests.BuildConfigSnapshotTests.test_an_UNREADABLE_symbol_table_is_not_agreement) ... ok\ntest_an_enabled_backend_that_is_NOT_REGISTERED_disagrees (owner_build_snapshot_tests.BuildConfigSnapshotTests.test_an_enabled_backend_that_is_NOT_REGISTERED_disagrees) ... ok\ntest_compile_definitions_read_both_flag_spellings (owner_build_snapshot_tests.BuildConfigSnapshotTests.test_compile_definitions_read_both_flag_spellings) ... ok\ntest_compile_definitions_refuse_an_ambiguous_source (owner_build_snapshot_tests.BuildConfigSnapshotTests.test_compile_definitions_refuse_an_ambiguous_source) ... ok\ntest_discovery_enumerates_the_superset_including_symlinks (owner_build_snapshot_tests.BuildConfigSnapshotTests.test_discovery_enumerates_the_superset_including_symlinks) ... ok\ntest_the_CONSISTENT_configuration_agrees_on_every_layer (owner_build_snapshot_tests.BuildConfigSnapshotTests.test_the_CONSISTENT_configuration_agrees_on_every_layer)\nTHE CONTROL: without it, the refusals below prove nothing. ... ok\n\n----------------------------------------------------------------------\nRan 13 tests in 0.021s\n\nOK\n"
+  },
+  "backend_option_omissions": [
+    "ET"
+  ],
+  "omitted_ET_actual_cache_value": {
+    "type": "BOOL",
+    "value": "OFF"
+  },
+  "review_script_sha256": "4959d7702b78735515d7b2d8e84dfc006bf291073b8902ea39d9a552fd143720",
+  "classification": {
+    "accepted": "Deposited historical configuration/compiler/link/log bytes and their internal agreement, scoped to this candidate.",
+    "owner_reported_only": [
+      "Actual candidate launcher+9library byte measurements",
+      "20 embedded-source start symbols and nm importers",
+      "No discovery candidates in owner executable directory at collection",
+      "Owner working-tree/source identity and reverse-patch checks",
+      "Original external-file mtimes and full-original compile_commands/build.ninja hashes",
+      "Every loader call site in common/src/tools-server uses load_all without directory argument"
+    ],
+    "limits": "Post-build snapshot is not freeze-before-run evidence, proof of current external files or final loader resolution, binary reproducibility, actual runtime selection, or launch clearance."
+  },
+  "parser_scope_note": {
+    "omission": "BACKEND_OPTIONS omits GGML_ET despite the complete-list comment; retained source has ggml_add_backend(ET) and copied cache has GGML_ET:BOOL=OFF.",
+    "current_result_affected": false,
+    "next_action": "Include ET or derive the checked set from retained backend definitions/available-backend cache; unsupported enabled cases should refuse. Actual ET=OFF adds no current-cache blocker and no rebuild is requested."
+  },
+  "source_callsite_scope": {
+    "retained_registry_rules_confirmed": true,
+    "full_callsite_enumeration_independently_confirmed": false,
+    "reason": "Owner script stores the all-call-sites sentence as a literal; it does not collect callsite locations/source excerpts. Existing retained server/common sources do not cover the entire caller graph. Earlier common/arg.cpp DNS limitation remains; no additional fetch.",
+    "next_evidence_if_relied_on": "Deposit exact existing matching source excerpts with source-file hashes and line locations; no further download or native measurement rerun solely for status."
+  },
+  "progress": {
+    "full_project_readiness_percent": 75,
+    "change_percentage_points": 0,
+    "bounded_v1_percent": 90,
+    "remaining_points": {
+      "prospective_study": 10,
+      "root_final_QA": 5,
+      "author_checks": 10
+    },
+    "CPU_validation_integration_packaging": "complete unchanged"
+  },
+  "isolation": {
+    "owner_snapshot_main_executed": false,
+    "native_commands": 0,
+    "owner_external_paths_accessed": 0,
+    "binary_bytes_read": 0,
+    "nm_or_otool_invoked": 0,
+    "network_requests": 0,
+    "builds": 0,
+    "models": 0,
+    "full_experiment_suites": 0,
+    "test_scope": "13 parser/agreement controls including two temporary-directory discovery fixtures, under independent process/network/signal guards."
+  },
+  "reproduction_script": "import contextlib,hashlib,importlib.util,io,json,os,re,shlex,socket,subprocess,unittest\nfrom pathlib import Path\nfrom unittest import mock\nROOT=Path('/Users/yukang/Documents/Codex/2026-09-17/i-x20/outputs/agent_win_eval')\nCOMMIT='d143532575e966ef970f7004e9369b43f7a5662e'\npaths=['results/live_ab/CANDIDATE_BUILD_CONFIG_SNAPSHOT.json','experiments/live_ab_serving/build_config_snapshot.py','experiments/live_ab_serving/tests_build_config_snapshot.py']+[f'results/live_ab/candidate_build_snapshot/{p}' for p in ['CMakeCache.txt','build.ninja.link_excerpt.txt','compile_commands.ggml_excerpt.json','ninja_log.txt']]\nev={'source_commit':COMMIT,'head':'defa4a17189a69e083777be78041f2eeb56c5edf','pins':{},'guards':[]}\nfor p in paths:\n b=(ROOT/p).read_bytes(); r=subprocess.run(['git','show',COMMIT+':'+p],cwd=ROOT,capture_output=True,check=True)\n assert b==r.stdout,(p,'working bytes differ from exact delivery')\n ev['pins'][p]={'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest(),'matches_exact_commit':True}\nreceipt=json.loads((ROOT/paths[0]).read_text()); d=ROOT/'results/live_ab/candidate_build_snapshot'\nev['copies']={}\nfor name,pin in receipt['copies_in_repo']['files'].items():\n b=(d/name).read_bytes(); got={'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}; assert got==pin; ev['copies'][name]={**got,'agrees_with_receipt':True}\nassert ev['copies']['CMakeCache.txt']['sha256']==receipt['originals']['CMakeCache.txt']['sha256']\nassert ev['copies']['ninja_log.txt']['sha256']==receipt['originals']['.ninja_log']['sha256']\ncache={}\nfor line in (d/'CMakeCache.txt').read_text().splitlines():\n if line.startswith(('#','//')) or not line: continue\n m=re.fullmatch(r'([^:]+):([^=]+)=(.*)',line); assert m,line; cache[m[1]]={'type':m[2],'value':m[3]}\nassert all(cache[k]==v for k,v in receipt['cache_settings'].items())\nev['independent_cache_settings']={k:cache[k] for k in receipt['cache_settings']}\nev['available_backends']=cache['GGML_AVAILABLE_BACKENDS']['value'].split(';')\ncc=json.loads((d/'compile_commands.ggml_excerpt.json').read_text())\ndef defs(e):\n a=e.get('arguments') or shlex.split(e['command']); out=[]\n for i,x in enumerate(a):\n  if x=='-D': out.append(a[i+1])\n  elif x.startswith('-D'): out.append(x[2:])\n return sorted(set(out))\nev['compile_rows_checked']=len(cc); ev['compile_definition_checks']=[]\nfor group in ['registry','metal']:\n for r in receipt['compile_definitions'][group]:\n  hits=[e for e in cc if e['file']==r['file']]; assert len(hits)==1\n  actual=defs(hits[0]); h=hashlib.sha256(json.dumps(hits[0],sort_keys=True).encode()).hexdigest()\n  assert actual==r['definitions'] and h==r['entry_sha256']\n  ev['compile_definition_checks'].append({'source':r['source'],'definitions':actual,'entry_sha256':h,'matches':True})\nassert not any(x.split('=')[0]=='GGML_BACKEND_DIR' for e in cc for x in defs(e))\nev['all_deposited_ggml_commands_backend_dir_absent']=True\nninja=(d/'build.ninja.link_excerpt.txt').read_text(); blocks={}\nfor b in ninja.strip().split('\\n\\n'):\n ls=b.splitlines(); assert ls[0].startswith('build ')\n output,tail=ls[0][6:].split(': ',1); variables={}\n for l in ls[1:]:\n  k,v=l.strip().split(' = ',1);variables[k]=v\n blocks[output]={'rule':tail.split()[0],'variables':variables,'error':None}\nassert blocks==receipt['link_rules']\nev['link_rules_independently_reproduced']=len(blocks)\nlinks=blocks['bin/libggml.0.24.0.dylib']['variables']['LINK_LIBRARIES']\nev['ggml_linked_backends']=sorted(set(re.findall(r'libggml-(cpu|blas|metal)\\.',links)))\nassert ev['ggml_linked_backends']==['blas','cpu','metal']\nrows=[]\nfor l in (d/'ninja_log.txt').read_text().splitlines():\n if l.startswith('#'):continue\n p=l.split('\\t');assert len(p)==5\n rows.append({'start_ms':int(p[0]),'end_ms':int(p[1]),'mtime':int(p[2]),'output':p[3]})\nev['ninja_rows']=len(rows); ev['ninja_relevant_outputs']=[r for r in rows if r['output'] in blocks or r['output'].endswith(('ggml-backend-reg.cpp.o','ggml-metal-device.m.o'))]\nev['ninja_build_ninja_entries']=[r for r in rows if 'build.ninja' in r['output']]\nassert not ev['ninja_build_ninja_entries']\nlog=(ROOT/'evidence_session60/candidate_v7/v7_build.log').read_bytes()\nev['retained_original_build_log_sha256']=hashlib.sha256(log).hexdigest();assert ev['retained_original_build_log_sha256']=='51876ff3cd8922cc292fdac162c395e0b5d418d0701a1307654cbf0aa2078746'\nold=json.loads((ROOT/'reviews/evidence/backend_selection_source_review_20260923_1441.json').read_text())\nprior={x['path']:x['sha256'] for x in old['sources']}\ntmps={'ggml/CMakeLists.txt':'ggml_CMakeLists.txt','ggml/src/CMakeLists.txt':'ggml_src_CMakeLists.txt','ggml/src/ggml-backend-reg.cpp':'ggml_backend_reg.cpp','ggml/src/ggml-metal/CMakeLists.txt':'ggml_metal_CMakeLists.txt','tools/server/server.cpp':'server.cpp','ggml/src/ggml-metal/ggml-metal-device.m':'metal_device.m','common/common.cpp':'common.cpp','ggml/src/ggml-backend-dl.cpp':'backend_dl.cpp'}\nev['prior_source_pin_checks']=[]\nfor r in receipt['source_identity']['root_pinned_upstream_sources']:\n b=Path('/private/tmp/backend1441_'+tmps[r['path']]).read_bytes();h=hashlib.sha256(b).hexdigest()\n assert h==prior[r['path']]==r['root_sha256']==r['tree_sha256']\n ev['prior_source_pin_checks'].append({'path':r['path'],'retained_root_sha256':h,'owner_tree_digest_agrees':True,'owner_tree_bytes_independently_read':False})\nmanifest=json.loads((ROOT/'results/live_ab/CANDIDATE_INSTRUMENT_MANIFEST.json').read_text());expected={'launcher':manifest['candidate_instrument']['launcher']['sha256']}\nexpected.update({k:v['sha256'] for k,v in manifest['candidate_instrument']['library_closure'].items() if not v.get('system_library')})\nassert len(expected)==10\nfor r in receipt['measured_candidate_bytes']:assert r['declared_sha256']==r['measured_sha256']==expected[r['member']]\nev['ten_candidate_digest_strings_agree_with_prior_declaration']=True;ev['candidate_binary_bytes_independently_accessed']=False\nsource=Path('/private/tmp/backend1441_ggml_src_CMakeLists.txt').read_text();source_backends={x.upper() for x in re.findall(r'^ggml_add_backend\\(([^)]+)\\)',source,re.M)}\nowner_source=(ROOT/'experiments/live_ab_serving/build_config_snapshot.py').read_text()\nspec=importlib.util.spec_from_file_location('owner_build_snapshot_tests',ROOT/'experiments/live_ab_serving/tests_build_config_snapshot.py');H=importlib.util.module_from_spec(spec);spec.loader.exec_module(H)\ndef deny(name):\n def f(*a,**k):ev['guards'].append(name);raise AssertionError('independent guard denied '+name)\n return f\nstream=io.StringIO()\nwith contextlib.ExitStack() as stack:\n for obj,attr,name in [(subprocess,'Popen','Popen'),(subprocess,'run','run'),(socket,'socket','socket'),(os,'system','system'),(os,'kill','kill'),(os,'killpg','killpg')]:stack.enter_context(mock.patch.object(obj,attr,deny(name)))\n suite=unittest.defaultTestLoader.loadTestsFromTestCase(H.BuildConfigSnapshotTests)\n result=unittest.TextTestRunner(stream=stream,verbosity=2).run(suite)\n assert result.wasSuccessful() and result.testsRun==13 and not result.skipped and not ev['guards']\n ev['tests']={'run':result.testsRun,'failures':len(result.failures),'errors':len(result.errors),'skipped':len(result.skipped),'log':stream.getvalue()}\n ev['backend_option_omissions']=sorted(source_backends-{x[5:] for x in H.BuildConfigSnapshotTests.m.BACKEND_OPTIONS})\nev['omitted_ET_actual_cache_value']=cache['GGML_ET']\nassert ev['backend_option_omissions']==['ET'] and cache['GGML_ET']['value']=='OFF'\nev['review_script_sha256']=hashlib.sha256(Path(__file__).read_bytes()).hexdigest()\nPath('/private/tmp/build_snapshot_1630_result.json').write_text(json.dumps(ev,indent=2)+'\\n')\nprint(json.dumps({k:v for k,v in ev.items() if k not in ['ninja_relevant_outputs','prior_source_pin_checks','pins','copies','compile_definition_checks']},indent=2))\n"
+}
