@@ -1,0 +1,144 @@
+{
+  "head": "5841d6ed28f1e8dfc038f6ec7b8da8e304b5c4c1",
+  "source_commit": "11837b7",
+  "scope": "Actual native receipt function with child call mocked; closed saved files through actual observer. No native/model/build/sandbox execution. Contract selection/process outcome delegated elsewhere.",
+  "native_seal_fixture": {
+    "zero_control": {
+      "verdict": "SEAL WRITTEN BY THE BUILT BINARY AND PARSED",
+      "seal_contract_ok": true,
+      "reader_error": null,
+      "reader_records": 0
+    },
+    "records_2": {
+      "verdict": "NOT a seal-parser success: child_exit_ok=True, no_parser_rejection=True, no_parser_error=True, seal_only_fixture_shape=True, seal_contract_ok=False",
+      "seal_contract_ok": false,
+      "reader_error": null,
+      "reader_records": 0
+    },
+    "records_True": {
+      "verdict": "NOT a seal-parser success: child_exit_ok=True, no_parser_rejection=True, no_parser_error=True, seal_only_fixture_shape=True, seal_contract_ok=False",
+      "seal_contract_ok": false,
+      "reader_error": null,
+      "reader_records": 0
+    },
+    "failures_False": {
+      "verdict": "NOT a seal-parser success: child_exit_ok=True, no_parser_rejection=True, no_parser_error=True, seal_only_fixture_shape=True, seal_contract_ok=False",
+      "seal_contract_ok": false,
+      "reader_error": null,
+      "reader_records": 0
+    },
+    "failures_float_zero": {
+      "verdict": "NOT a seal-parser success: child_exit_ok=True, no_parser_rejection=True, no_parser_error=True, seal_only_fixture_shape=True, seal_contract_ok=False",
+      "seal_contract_ok": false,
+      "reader_error": null,
+      "reader_records": 0
+    },
+    "truncated": {
+      "verdict": "NOT a seal-parser success: child_exit_ok=True, no_parser_rejection=True, no_parser_error=False, seal_only_fixture_shape=False, seal_contract_ok=False",
+      "seal_contract_ok": false,
+      "reader_error": "the lifecycle log ends mid-line (176 bytes); the server is still writing. Re-read rather than trimming: a trimmed partial line discards an occupancy that did happen.",
+      "reader_records": 0
+    }
+  },
+  "closed_artifact_diagnostics": {
+    "normal_path": {
+      "complete": false,
+      "reason": null,
+      "sidecar_present": true,
+      "sidecar_bytes": 5000,
+      "sidecar_records_are_previews": true,
+      "preview_hex_bytes": 256,
+      "full_sidecar_bytes": 5000,
+      "log_ref": {
+        "present": true,
+        "bytes": 1073,
+        "sha256": "2b2eff110b3847ac6d6cf835ab0b265b9e8a90e12e7995bd0cfb8e1dfd45492c",
+        "path": "<TMP>/reader_review_0840_l9vdphvc/log.jsonl"
+      },
+      "sidecar_ref": {
+        "present": true,
+        "bytes": 5000,
+        "sha256": "9b03ef62d0d8c511781c7b7ef609f2bfc792cd3c5fd1edd406eb1d88bec59859",
+        "path": "<TMP>/reader_review_0840_l9vdphvc/log.jsonl.error"
+      },
+      "log_hash_matches": true,
+      "sidecar_hash_matches": true,
+      "raw_files_unmodified": true,
+      "json_serializable": true
+    },
+    "truncated_main": {
+      "complete": false,
+      "reason": "the lifecycle log ends mid-line (1072 bytes); the server is still writing. Re-read rather than trimming: a trimmed partial line discards an occupancy that did happen.",
+      "sidecar_present": true,
+      "sidecar_bytes": 5000,
+      "sidecar_records_are_previews": true,
+      "preview_hex_bytes": 256,
+      "full_sidecar_bytes": 5000,
+      "log_ref": {
+        "present": true,
+        "bytes": 1072,
+        "sha256": "83036ef04e5dcd590b1fd134bd6f0e88af979c2097bd008416d424026818bf34",
+        "path": "<TMP>/reader_review_0840_l9vdphvc/log.jsonl"
+      },
+      "sidecar_ref": {
+        "present": true,
+        "bytes": 5000,
+        "sha256": "9b03ef62d0d8c511781c7b7ef609f2bfc792cd3c5fd1edd406eb1d88bec59859",
+        "path": "<TMP>/reader_review_0840_l9vdphvc/log.jsonl.error"
+      },
+      "log_hash_matches": true,
+      "sidecar_hash_matches": true,
+      "raw_files_unmodified": true,
+      "json_serializable": true
+    },
+    "manifest_mismatch": {
+      "complete": false,
+      "reason": "the expected manifest names host_id 'foreign' but this observer measured 'host:e6626654e78211ef1aab3f691c1812d0'. A manifest that agrees with its own records proves only that they were written together, not that they were written HERE on THIS boot.",
+      "sidecar_present": true,
+      "sidecar_bytes": 5000,
+      "sidecar_records_are_previews": true,
+      "preview_hex_bytes": 256,
+      "full_sidecar_bytes": 5000,
+      "log_ref": {
+        "present": true,
+        "bytes": 1073,
+        "sha256": "2b2eff110b3847ac6d6cf835ab0b265b9e8a90e12e7995bd0cfb8e1dfd45492c",
+        "path": "<TMP>/reader_review_0840_l9vdphvc/log.jsonl"
+      },
+      "sidecar_ref": {
+        "present": true,
+        "bytes": 5000,
+        "sha256": "9b03ef62d0d8c511781c7b7ef609f2bfc792cd3c5fd1edd406eb1d88bec59859",
+        "path": "<TMP>/reader_review_0840_l9vdphvc/log.jsonl.error"
+      },
+      "log_hash_matches": true,
+      "sidecar_hash_matches": true,
+      "raw_files_unmodified": true,
+      "json_serializable": true
+    },
+    "normal_string_path": {
+      "complete": false,
+      "reason": null,
+      "sidecar_present": true,
+      "sidecar_bytes": 5000,
+      "sidecar_records_are_previews": true,
+      "preview_hex_bytes": 256,
+      "full_sidecar_bytes": 5000,
+      "log_ref": {
+        "present": true,
+        "unreadable": "AttributeError: 'str' object has no attribute 'exists'",
+        "path": "<TMP>/reader_review_0840_l9vdphvc/log.jsonl"
+      },
+      "sidecar_ref": {
+        "present": true,
+        "bytes": 5000,
+        "sha256": "9b03ef62d0d8c511781c7b7ef609f2bfc792cd3c5fd1edd406eb1d88bec59859",
+        "path": "<TMP>/reader_review_0840_l9vdphvc/log.jsonl.error"
+      },
+      "log_hash_matches": false,
+      "sidecar_hash_matches": true,
+      "raw_files_unmodified": true,
+      "json_serializable": true
+    }
+  }
+}

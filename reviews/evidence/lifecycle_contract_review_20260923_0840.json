@@ -1,0 +1,872 @@
+{
+  "reviewed_head": "5841d6ed28f1e8dfc038f6ec7b8da8e304b5c4c1",
+  "source_commit": "11837b770583f85c6dbea2c4d5f3604935019622",
+  "base_commit": "6676b5c0a30ad8386ee17645afe6fa65753b595f",
+  "scope": "Saved immutable smoke records copied into temporary closed files with controlled manifest/sidecar/return-code mutations; actual observe and coverage consumer. Supplied historical provenance, not fresh remote measurement. No model, native binary, server, network, sandbox or broad-suite execution.",
+  "historical_patch_digests": [
+    {
+      "version": 1,
+      "revision": "1d669d6",
+      "bytes": 6689,
+      "sha256": "261a54db560ddfccf1f1541361905686177069c4993f2b80e9830a9144631e29"
+    },
+    {
+      "version": 2,
+      "revision": "99e1805",
+      "bytes": 11737,
+      "sha256": "984f47df65b0db7b945234660cde2aae9a035c4efcee42ec780c27df9c59a918"
+    },
+    {
+      "version": 3,
+      "revision": "31c22fd",
+      "bytes": 12644,
+      "sha256": "4c8b647de674edca06578642b17fff7e24d8625ad9d9933238170c668c4a0840"
+    },
+    {
+      "version": 4,
+      "revision": "3f3968d",
+      "bytes": 13669,
+      "sha256": "2c52078f8a541134661eb7ac997114892c7baf68541f9d4be664366d43e85f6a"
+    },
+    {
+      "version": 5,
+      "revision": "c8b3bd9",
+      "bytes": 15472,
+      "sha256": "0e79199aeb886e063f7d758b34566eb6dcd3061ee12fb427424475f953f14c43"
+    },
+    {
+      "version": 6,
+      "revision": "11837b7",
+      "bytes": 16791,
+      "sha256": "8e2d1c6b9e07b8a990c63c98e11b9eabbab5f6d7f4f6f30fd341c37e727d4ba7"
+    }
+  ],
+  "legacy_set_exactly_v1_to_v4": true,
+  "saved_smoke_manifest_patch": "2c52078f8a541134661eb7ac997114892c7baf68541f9d4be664366d43e85f6a",
+  "saved_smoke_retained_exit": 0,
+  "cases": [
+    {
+      "case": "v1_named_no_sidecar_no_rc",
+      "contract": {
+        "contract": "legacy",
+        "sidecar_failures_required": false,
+        "declared_patch_sha256": "261a54db560ddfccf1f1541361905686177069c4993f2b80e9830a9144631e29",
+        "selected_by": "the supervisor-persisted manifest names a pre-repair producer; absent sidecar_failures means UNKNOWN, not zero"
+      },
+      "expected_binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "process_outcome": null,
+      "sidecar_field": "ABSENT",
+      "sidecar_type": "absent",
+      "active": true,
+      "complete": true,
+      "coverage": {
+        "valid": true,
+        "interval_version": "live_ab/attempt_interval-v3",
+        "evidence_kind": "server_lifecycle",
+        "concurrency_required": 2,
+        "concurrency_observed_min": 2,
+        "certified_interval": "the legacy wider span including lock wait",
+        "reason": "at least 2 distinct server-acknowledged decoding lifetimes were occupied throughout the attempt interval",
+        "conditional_on": "each window being a SERVER-ACKNOWLEDGED decoding lifetime recorded from pinned server-side start/end events on the same host monotonic clock as the verifier. This asserts occupied decoding slots, NOT continuously busy hardware: server scheduling pauses inside a lifetime are part of the operational regime."
+      },
+      "process_outcome_problem": null,
+      "seal_problem": null,
+      "sidecar_failures_reported": false,
+      "producer_bound": true,
+      "raw_source_unchanged": true,
+      "json_roundtrip_outcome_preserved": true
+    },
+    {
+      "case": "v2_named_no_sidecar_no_rc",
+      "contract": {
+        "contract": "legacy",
+        "sidecar_failures_required": false,
+        "declared_patch_sha256": "984f47df65b0db7b945234660cde2aae9a035c4efcee42ec780c27df9c59a918",
+        "selected_by": "the supervisor-persisted manifest names a pre-repair producer; absent sidecar_failures means UNKNOWN, not zero"
+      },
+      "expected_binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "process_outcome": null,
+      "sidecar_field": "ABSENT",
+      "sidecar_type": "absent",
+      "active": true,
+      "complete": true,
+      "coverage": {
+        "valid": true,
+        "interval_version": "live_ab/attempt_interval-v3",
+        "evidence_kind": "server_lifecycle",
+        "concurrency_required": 2,
+        "concurrency_observed_min": 2,
+        "certified_interval": "the legacy wider span including lock wait",
+        "reason": "at least 2 distinct server-acknowledged decoding lifetimes were occupied throughout the attempt interval",
+        "conditional_on": "each window being a SERVER-ACKNOWLEDGED decoding lifetime recorded from pinned server-side start/end events on the same host monotonic clock as the verifier. This asserts occupied decoding slots, NOT continuously busy hardware: server scheduling pauses inside a lifetime are part of the operational regime."
+      },
+      "process_outcome_problem": null,
+      "seal_problem": null,
+      "sidecar_failures_reported": false,
+      "producer_bound": true,
+      "raw_source_unchanged": true,
+      "json_roundtrip_outcome_preserved": true
+    },
+    {
+      "case": "v3_named_no_sidecar_no_rc",
+      "contract": {
+        "contract": "legacy",
+        "sidecar_failures_required": false,
+        "declared_patch_sha256": "4c8b647de674edca06578642b17fff7e24d8625ad9d9933238170c668c4a0840",
+        "selected_by": "the supervisor-persisted manifest names a pre-repair producer; absent sidecar_failures means UNKNOWN, not zero"
+      },
+      "expected_binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "process_outcome": null,
+      "sidecar_field": "ABSENT",
+      "sidecar_type": "absent",
+      "active": true,
+      "complete": true,
+      "coverage": {
+        "valid": true,
+        "interval_version": "live_ab/attempt_interval-v3",
+        "evidence_kind": "server_lifecycle",
+        "concurrency_required": 2,
+        "concurrency_observed_min": 2,
+        "certified_interval": "the legacy wider span including lock wait",
+        "reason": "at least 2 distinct server-acknowledged decoding lifetimes were occupied throughout the attempt interval",
+        "conditional_on": "each window being a SERVER-ACKNOWLEDGED decoding lifetime recorded from pinned server-side start/end events on the same host monotonic clock as the verifier. This asserts occupied decoding slots, NOT continuously busy hardware: server scheduling pauses inside a lifetime are part of the operational regime."
+      },
+      "process_outcome_problem": null,
+      "seal_problem": null,
+      "sidecar_failures_reported": false,
+      "producer_bound": true,
+      "raw_source_unchanged": true,
+      "json_roundtrip_outcome_preserved": true
+    },
+    {
+      "case": "v4_named_no_sidecar_no_rc",
+      "contract": {
+        "contract": "legacy",
+        "sidecar_failures_required": false,
+        "declared_patch_sha256": "2c52078f8a541134661eb7ac997114892c7baf68541f9d4be664366d43e85f6a",
+        "selected_by": "the supervisor-persisted manifest names a pre-repair producer; absent sidecar_failures means UNKNOWN, not zero"
+      },
+      "expected_binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "process_outcome": null,
+      "sidecar_field": "ABSENT",
+      "sidecar_type": "absent",
+      "active": true,
+      "complete": true,
+      "coverage": {
+        "valid": true,
+        "interval_version": "live_ab/attempt_interval-v3",
+        "evidence_kind": "server_lifecycle",
+        "concurrency_required": 2,
+        "concurrency_observed_min": 2,
+        "certified_interval": "the legacy wider span including lock wait",
+        "reason": "at least 2 distinct server-acknowledged decoding lifetimes were occupied throughout the attempt interval",
+        "conditional_on": "each window being a SERVER-ACKNOWLEDGED decoding lifetime recorded from pinned server-side start/end events on the same host monotonic clock as the verifier. This asserts occupied decoding slots, NOT continuously busy hardware: server scheduling pauses inside a lifetime are part of the operational regime."
+      },
+      "process_outcome_problem": null,
+      "seal_problem": null,
+      "sidecar_failures_reported": false,
+      "producer_bound": true,
+      "raw_source_unchanged": true,
+      "json_roundtrip_outcome_preserved": true
+    },
+    {
+      "case": "historical_v4_actual_retained_rc0",
+      "contract": {
+        "contract": "legacy",
+        "sidecar_failures_required": false,
+        "declared_patch_sha256": "2c52078f8a541134661eb7ac997114892c7baf68541f9d4be664366d43e85f6a",
+        "selected_by": "the supervisor-persisted manifest names a pre-repair producer; absent sidecar_failures means UNKNOWN, not zero"
+      },
+      "expected_binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "process_outcome": 0,
+      "sidecar_field": "ABSENT",
+      "sidecar_type": "absent",
+      "active": true,
+      "complete": true,
+      "coverage": {
+        "valid": true,
+        "interval_version": "live_ab/attempt_interval-v3",
+        "evidence_kind": "server_lifecycle",
+        "concurrency_required": 2,
+        "concurrency_observed_min": 2,
+        "certified_interval": "the legacy wider span including lock wait",
+        "reason": "at least 2 distinct server-acknowledged decoding lifetimes were occupied throughout the attempt interval",
+        "conditional_on": "each window being a SERVER-ACKNOWLEDGED decoding lifetime recorded from pinned server-side start/end events on the same host monotonic clock as the verifier. This asserts occupied decoding slots, NOT continuously busy hardware: server scheduling pauses inside a lifetime are part of the operational regime."
+      },
+      "process_outcome_problem": null,
+      "seal_problem": null,
+      "sidecar_failures_reported": false,
+      "producer_bound": true,
+      "raw_source_unchanged": true,
+      "json_roundtrip_outcome_preserved": true
+    },
+    {
+      "case": "historical_v4_supplied_rc93",
+      "contract": {
+        "contract": "legacy",
+        "sidecar_failures_required": false,
+        "declared_patch_sha256": "2c52078f8a541134661eb7ac997114892c7baf68541f9d4be664366d43e85f6a",
+        "selected_by": "the supervisor-persisted manifest names a pre-repair producer; absent sidecar_failures means UNKNOWN, not zero"
+      },
+      "expected_binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "process_outcome": 93,
+      "sidecar_field": "ABSENT",
+      "sidecar_type": "absent",
+      "active": true,
+      "complete": false,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_outcome_problem": "the producer exited 93: it detected a write failure it could not record, and refused the acquisition itself. A readable earlier seal with zero counts does not override this",
+      "seal_problem": "the producer exited 93: it detected a write failure it could not record, and refused the acquisition itself. A readable earlier seal with zero counts does not override this",
+      "sidecar_failures_reported": false,
+      "producer_bound": true,
+      "raw_source_unchanged": true,
+      "json_roundtrip_outcome_preserved": true
+    },
+    {
+      "case": "strict_v6_no_sidecar_rc0",
+      "contract": {
+        "contract": "repaired",
+        "sidecar_failures_required": true,
+        "declared_patch_sha256": "8e2d1c6b9e07b8a990c63c98e11b9eabbab5f6d7f4f6f30fd341c37e727d4ba7",
+        "selected_by": "the manifest does not name a pre-repair producer, so the repaired contract applies. An undeclared manifest takes the STRICT side deliberately: a missing declaration must not buy a legacy exemption"
+      },
+      "expected_binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "process_outcome": 0,
+      "sidecar_field": "ABSENT",
+      "sidecar_type": "absent",
+      "active": true,
+      "complete": false,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_outcome_problem": null,
+      "seal_problem": "the acquisition contract requires the producer to report sidecar_failures and this seal does not; a missing field cannot select the legacy exemption for itself",
+      "sidecar_failures_reported": false,
+      "producer_bound": true,
+      "raw_source_unchanged": true,
+      "json_roundtrip_outcome_preserved": true
+    },
+    {
+      "case": "strict_sidecar_bool_False",
+      "contract": {
+        "contract": "repaired",
+        "sidecar_failures_required": true,
+        "declared_patch_sha256": "8e2d1c6b9e07b8a990c63c98e11b9eabbab5f6d7f4f6f30fd341c37e727d4ba7",
+        "selected_by": "the manifest does not name a pre-repair producer, so the repaired contract applies. An undeclared manifest takes the STRICT side deliberately: a missing declaration must not buy a legacy exemption"
+      },
+      "expected_binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "process_outcome": 0,
+      "sidecar_field": false,
+      "sidecar_type": "bool",
+      "active": true,
+      "complete": false,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_outcome_problem": null,
+      "seal_problem": "the seal reports sidecar_failures False of type bool; a reported zero is a non-boolean integer zero and nothing else",
+      "sidecar_failures_reported": true,
+      "producer_bound": true,
+      "raw_source_unchanged": true,
+      "json_roundtrip_outcome_preserved": true
+    },
+    {
+      "case": "strict_sidecar_float_0.0",
+      "contract": {
+        "contract": "repaired",
+        "sidecar_failures_required": true,
+        "declared_patch_sha256": "8e2d1c6b9e07b8a990c63c98e11b9eabbab5f6d7f4f6f30fd341c37e727d4ba7",
+        "selected_by": "the manifest does not name a pre-repair producer, so the repaired contract applies. An undeclared manifest takes the STRICT side deliberately: a missing declaration must not buy a legacy exemption"
+      },
+      "expected_binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "process_outcome": 0,
+      "sidecar_field": 0.0,
+      "sidecar_type": "float",
+      "active": true,
+      "complete": false,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_outcome_problem": null,
+      "seal_problem": "the seal reports sidecar_failures 0.0 of type float; a reported zero is a non-boolean integer zero and nothing else",
+      "sidecar_failures_reported": true,
+      "producer_bound": true,
+      "raw_source_unchanged": true,
+      "json_roundtrip_outcome_preserved": true
+    },
+    {
+      "case": "strict_sidecar_str_0",
+      "contract": {
+        "contract": "repaired",
+        "sidecar_failures_required": true,
+        "declared_patch_sha256": "8e2d1c6b9e07b8a990c63c98e11b9eabbab5f6d7f4f6f30fd341c37e727d4ba7",
+        "selected_by": "the manifest does not name a pre-repair producer, so the repaired contract applies. An undeclared manifest takes the STRICT side deliberately: a missing declaration must not buy a legacy exemption"
+      },
+      "expected_binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "process_outcome": 0,
+      "sidecar_field": "0",
+      "sidecar_type": "str",
+      "active": true,
+      "complete": false,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_outcome_problem": null,
+      "seal_problem": "the seal reports sidecar_failures '0' of type str; a reported zero is a non-boolean integer zero and nothing else",
+      "sidecar_failures_reported": true,
+      "producer_bound": true,
+      "raw_source_unchanged": true,
+      "json_roundtrip_outcome_preserved": true
+    },
+    {
+      "case": "strict_sidecar_NoneType_None",
+      "contract": {
+        "contract": "repaired",
+        "sidecar_failures_required": true,
+        "declared_patch_sha256": "8e2d1c6b9e07b8a990c63c98e11b9eabbab5f6d7f4f6f30fd341c37e727d4ba7",
+        "selected_by": "the manifest does not name a pre-repair producer, so the repaired contract applies. An undeclared manifest takes the STRICT side deliberately: a missing declaration must not buy a legacy exemption"
+      },
+      "expected_binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "process_outcome": 0,
+      "sidecar_field": null,
+      "sidecar_type": "NoneType",
+      "active": true,
+      "complete": false,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_outcome_problem": null,
+      "seal_problem": "the seal reports sidecar_failures None of type NoneType; a reported zero is a non-boolean integer zero and nothing else",
+      "sidecar_failures_reported": true,
+      "producer_bound": true,
+      "raw_source_unchanged": true,
+      "json_roundtrip_outcome_preserved": true
+    },
+    {
+      "case": "strict_sidecar_int_-1",
+      "contract": {
+        "contract": "repaired",
+        "sidecar_failures_required": true,
+        "declared_patch_sha256": "8e2d1c6b9e07b8a990c63c98e11b9eabbab5f6d7f4f6f30fd341c37e727d4ba7",
+        "selected_by": "the manifest does not name a pre-repair producer, so the repaired contract applies. An undeclared manifest takes the STRICT side deliberately: a missing declaration must not buy a legacy exemption"
+      },
+      "expected_binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "process_outcome": 0,
+      "sidecar_field": -1,
+      "sidecar_type": "int",
+      "active": true,
+      "complete": false,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_outcome_problem": null,
+      "seal_problem": "the producer failed -1 time(s) to write its own failure sidecar; a terminal write failure was detected and its reason could not be persisted",
+      "sidecar_failures_reported": true,
+      "producer_bound": true,
+      "raw_source_unchanged": true,
+      "json_roundtrip_outcome_preserved": true
+    },
+    {
+      "case": "strict_sidecar_int_1",
+      "contract": {
+        "contract": "repaired",
+        "sidecar_failures_required": true,
+        "declared_patch_sha256": "8e2d1c6b9e07b8a990c63c98e11b9eabbab5f6d7f4f6f30fd341c37e727d4ba7",
+        "selected_by": "the manifest does not name a pre-repair producer, so the repaired contract applies. An undeclared manifest takes the STRICT side deliberately: a missing declaration must not buy a legacy exemption"
+      },
+      "expected_binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "process_outcome": 0,
+      "sidecar_field": 1,
+      "sidecar_type": "int",
+      "active": true,
+      "complete": false,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_outcome_problem": null,
+      "seal_problem": "the producer failed 1 time(s) to write its own failure sidecar; a terminal write failure was detected and its reason could not be persisted",
+      "sidecar_failures_reported": true,
+      "producer_bound": true,
+      "raw_source_unchanged": true,
+      "json_roundtrip_outcome_preserved": true
+    },
+    {
+      "case": "strict_sidecar_int_0",
+      "contract": {
+        "contract": "repaired",
+        "sidecar_failures_required": true,
+        "declared_patch_sha256": "8e2d1c6b9e07b8a990c63c98e11b9eabbab5f6d7f4f6f30fd341c37e727d4ba7",
+        "selected_by": "the manifest does not name a pre-repair producer, so the repaired contract applies. An undeclared manifest takes the STRICT side deliberately: a missing declaration must not buy a legacy exemption"
+      },
+      "expected_binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "process_outcome": 0,
+      "sidecar_field": 0,
+      "sidecar_type": "int",
+      "active": true,
+      "complete": true,
+      "coverage": {
+        "valid": true,
+        "interval_version": "live_ab/attempt_interval-v3",
+        "evidence_kind": "server_lifecycle",
+        "concurrency_required": 2,
+        "concurrency_observed_min": 2,
+        "certified_interval": "the legacy wider span including lock wait",
+        "reason": "at least 2 distinct server-acknowledged decoding lifetimes were occupied throughout the attempt interval",
+        "conditional_on": "each window being a SERVER-ACKNOWLEDGED decoding lifetime recorded from pinned server-side start/end events on the same host monotonic clock as the verifier. This asserts occupied decoding slots, NOT continuously busy hardware: server scheduling pauses inside a lifetime are part of the operational regime."
+      },
+      "process_outcome_problem": null,
+      "seal_problem": null,
+      "sidecar_failures_reported": true,
+      "producer_bound": true,
+      "raw_source_unchanged": true,
+      "json_roundtrip_outcome_preserved": true
+    },
+    {
+      "case": "strict_outcome_NoneType_None",
+      "contract": {
+        "contract": "repaired",
+        "sidecar_failures_required": true,
+        "declared_patch_sha256": "8e2d1c6b9e07b8a990c63c98e11b9eabbab5f6d7f4f6f30fd341c37e727d4ba7",
+        "selected_by": "the manifest does not name a pre-repair producer, so the repaired contract applies. An undeclared manifest takes the STRICT side deliberately: a missing declaration must not buy a legacy exemption"
+      },
+      "expected_binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "process_outcome": null,
+      "sidecar_field": 0,
+      "sidecar_type": "int",
+      "active": true,
+      "complete": false,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_outcome_problem": "the acquisition contract requires a RETAINED producer exit status and none was supplied; a readable seal is not evidence about how the process ended",
+      "seal_problem": "the acquisition contract requires a RETAINED producer exit status and none was supplied; a readable seal is not evidence about how the process ended",
+      "sidecar_failures_reported": true,
+      "producer_bound": true,
+      "raw_source_unchanged": true,
+      "json_roundtrip_outcome_preserved": true
+    },
+    {
+      "case": "strict_outcome_int_93",
+      "contract": {
+        "contract": "repaired",
+        "sidecar_failures_required": true,
+        "declared_patch_sha256": "8e2d1c6b9e07b8a990c63c98e11b9eabbab5f6d7f4f6f30fd341c37e727d4ba7",
+        "selected_by": "the manifest does not name a pre-repair producer, so the repaired contract applies. An undeclared manifest takes the STRICT side deliberately: a missing declaration must not buy a legacy exemption"
+      },
+      "expected_binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "process_outcome": 93,
+      "sidecar_field": 0,
+      "sidecar_type": "int",
+      "active": true,
+      "complete": false,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_outcome_problem": "the producer exited 93: it detected a write failure it could not record, and refused the acquisition itself. A readable earlier seal with zero counts does not override this",
+      "seal_problem": "the producer exited 93: it detected a write failure it could not record, and refused the acquisition itself. A readable earlier seal with zero counts does not override this",
+      "sidecar_failures_reported": true,
+      "producer_bound": true,
+      "raw_source_unchanged": true,
+      "json_roundtrip_outcome_preserved": true
+    },
+    {
+      "case": "strict_outcome_int_1",
+      "contract": {
+        "contract": "repaired",
+        "sidecar_failures_required": true,
+        "declared_patch_sha256": "8e2d1c6b9e07b8a990c63c98e11b9eabbab5f6d7f4f6f30fd341c37e727d4ba7",
+        "selected_by": "the manifest does not name a pre-repair producer, so the repaired contract applies. An undeclared manifest takes the STRICT side deliberately: a missing declaration must not buy a legacy exemption"
+      },
+      "expected_binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "process_outcome": 1,
+      "sidecar_field": 0,
+      "sidecar_type": "int",
+      "active": true,
+      "complete": false,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_outcome_problem": "the retained producer exit status is 1; only a non-boolean integer zero is a successful outcome",
+      "seal_problem": "the retained producer exit status is 1; only a non-boolean integer zero is a successful outcome",
+      "sidecar_failures_reported": true,
+      "producer_bound": true,
+      "raw_source_unchanged": true,
+      "json_roundtrip_outcome_preserved": true
+    },
+    {
+      "case": "strict_outcome_int_-9",
+      "contract": {
+        "contract": "repaired",
+        "sidecar_failures_required": true,
+        "declared_patch_sha256": "8e2d1c6b9e07b8a990c63c98e11b9eabbab5f6d7f4f6f30fd341c37e727d4ba7",
+        "selected_by": "the manifest does not name a pre-repair producer, so the repaired contract applies. An undeclared manifest takes the STRICT side deliberately: a missing declaration must not buy a legacy exemption"
+      },
+      "expected_binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "process_outcome": -9,
+      "sidecar_field": 0,
+      "sidecar_type": "int",
+      "active": true,
+      "complete": false,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_outcome_problem": "the retained producer exit status is -9; only a non-boolean integer zero is a successful outcome",
+      "seal_problem": "the retained producer exit status is -9; only a non-boolean integer zero is a successful outcome",
+      "sidecar_failures_reported": true,
+      "producer_bound": true,
+      "raw_source_unchanged": true,
+      "json_roundtrip_outcome_preserved": true
+    },
+    {
+      "case": "strict_outcome_bool_False",
+      "contract": {
+        "contract": "repaired",
+        "sidecar_failures_required": true,
+        "declared_patch_sha256": "8e2d1c6b9e07b8a990c63c98e11b9eabbab5f6d7f4f6f30fd341c37e727d4ba7",
+        "selected_by": "the manifest does not name a pre-repair producer, so the repaired contract applies. An undeclared manifest takes the STRICT side deliberately: a missing declaration must not buy a legacy exemption"
+      },
+      "expected_binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "process_outcome": false,
+      "sidecar_field": 0,
+      "sidecar_type": "int",
+      "active": true,
+      "complete": false,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_outcome_problem": "the retained producer exit status is False; only a non-boolean integer zero is a successful outcome",
+      "seal_problem": "the retained producer exit status is False; only a non-boolean integer zero is a successful outcome",
+      "sidecar_failures_reported": true,
+      "producer_bound": true,
+      "raw_source_unchanged": true,
+      "json_roundtrip_outcome_preserved": true
+    },
+    {
+      "case": "strict_outcome_float_0.0",
+      "contract": {
+        "contract": "repaired",
+        "sidecar_failures_required": true,
+        "declared_patch_sha256": "8e2d1c6b9e07b8a990c63c98e11b9eabbab5f6d7f4f6f30fd341c37e727d4ba7",
+        "selected_by": "the manifest does not name a pre-repair producer, so the repaired contract applies. An undeclared manifest takes the STRICT side deliberately: a missing declaration must not buy a legacy exemption"
+      },
+      "expected_binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "process_outcome": 0.0,
+      "sidecar_field": 0,
+      "sidecar_type": "int",
+      "active": true,
+      "complete": false,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_outcome_problem": "the retained producer exit status is 0.0; only a non-boolean integer zero is a successful outcome",
+      "seal_problem": "the retained producer exit status is 0.0; only a non-boolean integer zero is a successful outcome",
+      "sidecar_failures_reported": true,
+      "producer_bound": true,
+      "raw_source_unchanged": true,
+      "json_roundtrip_outcome_preserved": true
+    },
+    {
+      "case": "strict_outcome_str_0",
+      "contract": {
+        "contract": "repaired",
+        "sidecar_failures_required": true,
+        "declared_patch_sha256": "8e2d1c6b9e07b8a990c63c98e11b9eabbab5f6d7f4f6f30fd341c37e727d4ba7",
+        "selected_by": "the manifest does not name a pre-repair producer, so the repaired contract applies. An undeclared manifest takes the STRICT side deliberately: a missing declaration must not buy a legacy exemption"
+      },
+      "expected_binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "process_outcome": "0",
+      "sidecar_field": 0,
+      "sidecar_type": "int",
+      "active": true,
+      "complete": false,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_outcome_problem": "the retained producer exit status is '0'; only a non-boolean integer zero is a successful outcome",
+      "seal_problem": "the retained producer exit status is '0'; only a non-boolean integer zero is a successful outcome",
+      "sidecar_failures_reported": true,
+      "producer_bound": true,
+      "raw_source_unchanged": true,
+      "json_roundtrip_outcome_preserved": true
+    },
+    {
+      "case": "strict_outcome_int_0",
+      "contract": {
+        "contract": "repaired",
+        "sidecar_failures_required": true,
+        "declared_patch_sha256": "8e2d1c6b9e07b8a990c63c98e11b9eabbab5f6d7f4f6f30fd341c37e727d4ba7",
+        "selected_by": "the manifest does not name a pre-repair producer, so the repaired contract applies. An undeclared manifest takes the STRICT side deliberately: a missing declaration must not buy a legacy exemption"
+      },
+      "expected_binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "process_outcome": 0,
+      "sidecar_field": 0,
+      "sidecar_type": "int",
+      "active": true,
+      "complete": true,
+      "coverage": {
+        "valid": true,
+        "interval_version": "live_ab/attempt_interval-v3",
+        "evidence_kind": "server_lifecycle",
+        "concurrency_required": 2,
+        "concurrency_observed_min": 2,
+        "certified_interval": "the legacy wider span including lock wait",
+        "reason": "at least 2 distinct server-acknowledged decoding lifetimes were occupied throughout the attempt interval",
+        "conditional_on": "each window being a SERVER-ACKNOWLEDGED decoding lifetime recorded from pinned server-side start/end events on the same host monotonic clock as the verifier. This asserts occupied decoding slots, NOT continuously busy hardware: server scheduling pauses inside a lifetime are part of the operational regime."
+      },
+      "process_outcome_problem": null,
+      "seal_problem": null,
+      "sidecar_failures_reported": true,
+      "producer_bound": true,
+      "raw_source_unchanged": true,
+      "json_roundtrip_outcome_preserved": true
+    },
+    {
+      "case": "manifest_no_patch_absent_sidecar",
+      "contract": {
+        "contract": "repaired",
+        "sidecar_failures_required": true,
+        "declared_patch_sha256": null,
+        "selected_by": "the manifest does not name a pre-repair producer, so the repaired contract applies. An undeclared manifest takes the STRICT side deliberately: a missing declaration must not buy a legacy exemption"
+      },
+      "expected_binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "process_outcome": 0,
+      "sidecar_field": "ABSENT",
+      "sidecar_type": "absent",
+      "active": true,
+      "complete": false,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_outcome_problem": null,
+      "seal_problem": "the acquisition contract requires the producer to report sidecar_failures and this seal does not; a missing field cannot select the legacy exemption for itself",
+      "sidecar_failures_reported": false,
+      "producer_bound": true,
+      "raw_source_unchanged": true,
+      "json_roundtrip_outcome_preserved": true
+    },
+    {
+      "case": "manifest_no_patch_strict_fields_complete",
+      "contract": {
+        "contract": "repaired",
+        "sidecar_failures_required": true,
+        "declared_patch_sha256": null,
+        "selected_by": "the manifest does not name a pre-repair producer, so the repaired contract applies. An undeclared manifest takes the STRICT side deliberately: a missing declaration must not buy a legacy exemption"
+      },
+      "expected_binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "process_outcome": 0,
+      "sidecar_field": 0,
+      "sidecar_type": "int",
+      "active": true,
+      "complete": true,
+      "coverage": {
+        "valid": true,
+        "interval_version": "live_ab/attempt_interval-v3",
+        "evidence_kind": "server_lifecycle",
+        "concurrency_required": 2,
+        "concurrency_observed_min": 2,
+        "certified_interval": "the legacy wider span including lock wait",
+        "reason": "at least 2 distinct server-acknowledged decoding lifetimes were occupied throughout the attempt interval",
+        "conditional_on": "each window being a SERVER-ACKNOWLEDGED decoding lifetime recorded from pinned server-side start/end events on the same host monotonic clock as the verifier. This asserts occupied decoding slots, NOT continuously busy hardware: server scheduling pauses inside a lifetime are part of the operational regime."
+      },
+      "process_outcome_problem": null,
+      "seal_problem": null,
+      "sidecar_failures_reported": true,
+      "producer_bound": true,
+      "raw_source_unchanged": true,
+      "json_roundtrip_outcome_preserved": true
+    },
+    {
+      "case": "manifest_no_binary_strict_fields_complete",
+      "contract": {
+        "contract": "repaired",
+        "sidecar_failures_required": true,
+        "declared_patch_sha256": "8e2d1c6b9e07b8a990c63c98e11b9eabbab5f6d7f4f6f30fd341c37e727d4ba7",
+        "selected_by": "the manifest does not name a pre-repair producer, so the repaired contract applies. An undeclared manifest takes the STRICT side deliberately: a missing declaration must not buy a legacy exemption"
+      },
+      "expected_binary": null,
+      "process_outcome": 0,
+      "sidecar_field": 0,
+      "sidecar_type": "int",
+      "active": true,
+      "complete": true,
+      "coverage": {
+        "valid": true,
+        "interval_version": "live_ab/attempt_interval-v3",
+        "evidence_kind": "server_lifecycle",
+        "concurrency_required": 2,
+        "concurrency_observed_min": 2,
+        "certified_interval": "the legacy wider span including lock wait",
+        "reason": "at least 2 distinct server-acknowledged decoding lifetimes were occupied throughout the attempt interval",
+        "conditional_on": "each window being a SERVER-ACKNOWLEDGED decoding lifetime recorded from pinned server-side start/end events on the same host monotonic clock as the verifier. This asserts occupied decoding slots, NOT continuously busy hardware: server scheduling pauses inside a lifetime are part of the operational regime."
+      },
+      "process_outcome_problem": null,
+      "seal_problem": null,
+      "sidecar_failures_reported": true,
+      "producer_bound": true,
+      "raw_source_unchanged": true,
+      "json_roundtrip_outcome_preserved": true
+    },
+    {
+      "case": "manifest_unverified_binary_strict_fields_complete",
+      "contract": {
+        "contract": "repaired",
+        "sidecar_failures_required": true,
+        "declared_patch_sha256": "8e2d1c6b9e07b8a990c63c98e11b9eabbab5f6d7f4f6f30fd341c37e727d4ba7",
+        "selected_by": "the manifest does not name a pre-repair producer, so the repaired contract applies. An undeclared manifest takes the STRICT side deliberately: a missing declaration must not buy a legacy exemption"
+      },
+      "expected_binary": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "process_outcome": 0,
+      "sidecar_field": 0,
+      "sidecar_type": "int",
+      "active": true,
+      "complete": true,
+      "coverage": {
+        "valid": true,
+        "interval_version": "live_ab/attempt_interval-v3",
+        "evidence_kind": "server_lifecycle",
+        "concurrency_required": 2,
+        "concurrency_observed_min": 2,
+        "certified_interval": "the legacy wider span including lock wait",
+        "reason": "at least 2 distinct server-acknowledged decoding lifetimes were occupied throughout the attempt interval",
+        "conditional_on": "each window being a SERVER-ACKNOWLEDGED decoding lifetime recorded from pinned server-side start/end events on the same host monotonic clock as the verifier. This asserts occupied decoding slots, NOT continuously busy hardware: server scheduling pauses inside a lifetime are part of the operational regime."
+      },
+      "process_outcome_problem": null,
+      "seal_problem": null,
+      "sidecar_failures_reported": true,
+      "producer_bound": true,
+      "raw_source_unchanged": true,
+      "json_roundtrip_outcome_preserved": true
+    },
+    {
+      "case": "manifest_unknown_patch_strict_fields_complete",
+      "contract": {
+        "contract": "repaired",
+        "sidecar_failures_required": true,
+        "declared_patch_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "selected_by": "the manifest does not name a pre-repair producer, so the repaired contract applies. An undeclared manifest takes the STRICT side deliberately: a missing declaration must not buy a legacy exemption"
+      },
+      "expected_binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "process_outcome": 0,
+      "sidecar_field": 0,
+      "sidecar_type": "int",
+      "active": true,
+      "complete": true,
+      "coverage": {
+        "valid": true,
+        "interval_version": "live_ab/attempt_interval-v3",
+        "evidence_kind": "server_lifecycle",
+        "concurrency_required": 2,
+        "concurrency_observed_min": 2,
+        "certified_interval": "the legacy wider span including lock wait",
+        "reason": "at least 2 distinct server-acknowledged decoding lifetimes were occupied throughout the attempt interval",
+        "conditional_on": "each window being a SERVER-ACKNOWLEDGED decoding lifetime recorded from pinned server-side start/end events on the same host monotonic clock as the verifier. This asserts occupied decoding slots, NOT continuously busy hardware: server scheduling pauses inside a lifetime are part of the operational regime."
+      },
+      "process_outcome_problem": null,
+      "seal_problem": null,
+      "sidecar_failures_reported": true,
+      "producer_bound": true,
+      "raw_source_unchanged": true,
+      "json_roundtrip_outcome_preserved": true
+    },
+    {
+      "case": "no_manifest",
+      "contract": {
+        "contract": "unbound",
+        "sidecar_failures_required": false,
+        "selected_by": "no manifest: the acquisition is unbound and certifies nothing, so no exemption is granted"
+      },
+      "expected_binary": null,
+      "process_outcome": 0,
+      "sidecar_field": 0,
+      "sidecar_type": "int",
+      "active": true,
+      "complete": false,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_outcome_problem": null,
+      "seal_problem": null,
+      "sidecar_failures_reported": true,
+      "producer_bound": false,
+      "raw_source_unchanged": true,
+      "json_roundtrip_outcome_preserved": true
+    },
+    {
+      "case": "empty_manifest",
+      "contract": {
+        "contract": "unbound",
+        "sidecar_failures_required": false,
+        "selected_by": "no manifest: the acquisition is unbound and certifies nothing, so no exemption is granted"
+      },
+      "expected_binary": null,
+      "process_outcome": 0,
+      "sidecar_field": 0,
+      "sidecar_type": "int",
+      "active": false,
+      "complete": false,
+      "coverage": {
+        "valid": false,
+        "reason": "observation does not report active load"
+      },
+      "process_outcome_problem": null,
+      "seal_problem": null,
+      "sidecar_failures_reported": null,
+      "producer_bound": false,
+      "raw_source_unchanged": true,
+      "json_roundtrip_outcome_preserved": true
+    }
+  ],
+  "case_count": 29,
+  "selected_tests": {
+    "run": 2,
+    "failures": 0,
+    "errors": 0,
+    "log": "test_a_MISSING_field_cannot_select_the_legacy_exemption (tests_lab_design.AcquisitionSealTests.test_a_MISSING_field_cannot_select_the_legacy_exemption)\nRoot: \"Missing data must not automatically select a legacy exemption. ... ok\ntest_a_retained_exit_93_refuses_a_PERFECT_seal (tests_lab_design.AcquisitionSealTests.test_a_retained_exit_93_refuses_a_PERFECT_seal)\nRoot: \"The supervisor must retain this exit outcome and invalidate ... ok\n\n----------------------------------------------------------------------\nRan 2 tests in 0.003s\n\nOK\n"
+  },
+  "audit_fixture_correction": "Initial witness omitted verifier boot_source/host_source, correctly refused for incomplete provenance; supplied complete historical provenance before evaluating contract results. Not a product failure.",
+  "readiness": {
+    "full_percent": 75,
+    "change": 0,
+    "bounded_v1_percent": 90,
+    "cpu_validation_and_integration": "complete, unchanged"
+  },
+  "disposition": {
+    "accepted": [
+      "Typed-zero repaired sidecar requirement selected from manifest rather than missing seal field",
+      "Retained process outcome required for repaired contract and nonzero supplied outcome refuses even legacy",
+      "No-manifest acquisitions remain noncertifying",
+      "Historical patch digests and retained v4 smoke binding preserved"
+    ],
+    "policy_decisions_for_root": [
+      "Current legacy set covers all v1-v4 source digests; prior preserved engineering acquisition is exact v4 smoke only",
+      "Undeclared or unknown source selects strict fields but can certify when those fields pass; actual binary metadata also unchecked by this helper"
+    ],
+    "native_behavior_validated": false,
+    "supervisor_durability_validated": false,
+    "new_trial_authorization": false
+  },
+  "root_policy_decisions": {
+    "legacy": "Compatibility exemption narrowed to actual saved v4 smoke; v1-v3 preserved/readable diagnostics",
+    "future_binding": "Refuse missing/invalid selected patch and binary digests; actual artifact agreement at trusted launch boundary; root owns supervisor wiring",
+    "no_additional_test_or_run_requested": true
+  }
+}

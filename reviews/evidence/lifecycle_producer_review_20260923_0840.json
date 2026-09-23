@@ -1,0 +1,107 @@
+{
+  "received_head": "5841d6ed28f1e8dfc038f6ec7b8da8e304b5c4c1",
+  "substantive": "11837b770583f85c6dbea2c4d5f3604935019622",
+  "patch_sha256": "8e2d1c6b9e07b8a990c63c98e11b9eabbab5f6d7f4f6f30fd341c37e727d4ba7",
+  "patch_bytes": 16791,
+  "ordinary_apply_checks": [
+    {
+      "command": [
+        "git",
+        "apply",
+        "--numstat",
+        "/Users/yukang/Documents/Codex/2026-09-17/i-x20/outputs/agent_win_eval/experiments/live_ab_serving/live_ab_slot_lifecycle.patch"
+      ],
+      "returncode": 0,
+      "stdout": "10\t0\ttools/server/server-common.h\n280\t0\ttools/server/server-context.cpp\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "apply",
+        "--check",
+        "/Users/yukang/Documents/Codex/2026-09-17/i-x20/outputs/agent_win_eval/experiments/live_ab_serving/live_ab_slot_lifecycle.patch"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "hunks": [
+    {
+      "line": 5,
+      "header": "@@ -368,6 +368,16 @@ struct server_slot_stats {",
+      "old_count_correct": true,
+      "new_count_correct": true
+    },
+    {
+      "line": 26,
+      "header": "@@ -1,4 +1,7 @@",
+      "old_count_correct": true,
+      "new_count_correct": true
+    },
+    {
+      "line": 34,
+      "header": "@@ -236,6 +239,22 @@ struct server_batch {",
+      "old_count_correct": true,
+      "new_count_correct": true
+    },
+    {
+      "line": 57,
+      "header": "@@ -548,6 +567,13 @@ struct server_slot {",
+      "old_count_correct": true,
+      "new_count_correct": true
+    },
+    {
+      "line": 71,
+      "header": "@@ -734,6 +760,237 @@ struct server_slot {",
+      "old_count_correct": true,
+      "new_count_correct": true
+    },
+    {
+      "line": 309,
+      "header": "@@ -1819,6 +2076,29 @@ private:",
+      "old_count_correct": true,
+      "new_count_correct": true
+    }
+  ],
+  "pipe_witness": {
+    "scope": "isolated Python child demonstrates the same POSIX blocking write before _exit; no C++ compilation/native llama/model/production process",
+    "message": "live_ab: unrecordable 'seal_close' write failure; refusing acquisition with exit 93\n",
+    "cases": [
+      {
+        "case": "empty_blocking_pipe_with_diagnostic",
+        "fd2_blocking": true,
+        "prefilled_bytes": 0,
+        "diagnostic_bytes": 84,
+        "before_write_marker_seen": true,
+        "did_not_exit_within_350ms": false,
+        "killed_only_this_test_child": false,
+        "exit_code": 93
+      },
+      {
+        "case": "full_blocking_pipe_with_diagnostic",
+        "fd2_blocking": true,
+        "prefilled_bytes": 65536,
+        "diagnostic_bytes": 84,
+        "before_write_marker_seen": true,
+        "did_not_exit_within_350ms": true,
+        "killed_only_this_test_child": true,
+        "exit_code": -9
+      },
+      {
+        "case": "full_blocking_pipe_no_diagnostic",
+        "fd2_blocking": true,
+        "prefilled_bytes": 65536,
+        "diagnostic_bytes": 0,
+        "before_write_marker_seen": true,
+        "did_not_exit_within_350ms": false,
+        "killed_only_this_test_child": false,
+        "exit_code": 93
+      }
+    ]
+  },
+  "retained_smoke_patch_sha256": "2c52078f8a541134661eb7ac997114892c7baf68541f9d4be664366d43e85f6a",
+  "v6_built": false,
+  "runtime_claim": "No native producer execution or installed build validated."
+}
