@@ -1,0 +1,724 @@
+{
+ "agreement": [
+  {
+   "agrees": true,
+   "cache": "OFF",
+   "check": "GGML_BACKEND_DL",
+   "registry_compiled_with_GGML_BACKEND_DL": false
+  },
+  {
+   "agrees": true,
+   "any_compile_defines_GGML_BACKEND_DIR": false,
+   "cache": "",
+   "check": "GGML_BACKEND_DIR"
+  },
+  {
+   "agrees": true,
+   "cache_enabled": [
+    "BLAS",
+    "CPU",
+    "METAL"
+   ],
+   "check": "enabled backends == GGML_USE_* on the registry",
+   "registry_GGML_USE": [
+    "BLAS",
+    "CPU",
+    "METAL"
+   ]
+  },
+  {
+   "agrees": true,
+   "cache_enabled": [
+    "BLAS",
+    "CPU",
+    "METAL"
+   ],
+   "check": "libggml links exactly the enabled backends",
+   "libggml_link_backends": [
+    "BLAS",
+    "CPU",
+    "METAL"
+   ]
+  },
+  {
+   "agrees": true,
+   "cache": "ON",
+   "check": "GGML_METAL_EMBED_LIBRARY",
+   "embedded_source_symbols_in_measured_libggml_metal": 20,
+   "metal_compiled_with_define": true
+  },
+  {
+   "agrees": true,
+   "cache": "OFF",
+   "check": "GGML_CPU_ALL_VARIANTS",
+   "cpu_variant_files_present": []
+  },
+  {
+   "agrees": true,
+   "cache": "ON",
+   "check": "BUILD_SHARED_LIBS",
+   "libggml_links_dylibs": true
+  }
+ ],
+ "all_layers_agree": true,
+ "authority": "root, reviews/completion_and_backend_disposition_20260923_1441.md and reviews/backend_selection_source_review_20260923_1441.md, \"Concrete next owner delivery\"",
+ "build_ninja_regenerated_after_configuration": [],
+ "build_tree": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build",
+ "cache_backend_options": {
+  "GGML_BLAS": {
+   "type": "BOOL",
+   "value": "ON"
+  },
+  "GGML_CANN": null,
+  "GGML_CPU": {
+   "type": "BOOL",
+   "value": "ON"
+  },
+  "GGML_CUDA": {
+   "type": "BOOL",
+   "value": "OFF"
+  },
+  "GGML_HEXAGON": {
+   "type": "BOOL",
+   "value": "OFF"
+  },
+  "GGML_HIP": {
+   "type": "BOOL",
+   "value": "OFF"
+  },
+  "GGML_METAL": {
+   "type": "BOOL",
+   "value": "ON"
+  },
+  "GGML_MUSA": {
+   "type": "BOOL",
+   "value": "OFF"
+  },
+  "GGML_OPENCL": {
+   "type": "BOOL",
+   "value": "OFF"
+  },
+  "GGML_OPENVINO": {
+   "type": "BOOL",
+   "value": "OFF"
+  },
+  "GGML_RPC": {
+   "type": "BOOL",
+   "value": "OFF"
+  },
+  "GGML_SYCL": {
+   "type": "BOOL",
+   "value": "OFF"
+  },
+  "GGML_VIRTGPU": {
+   "type": "BOOL",
+   "value": "OFF"
+  },
+  "GGML_VULKAN": {
+   "type": "BOOL",
+   "value": "OFF"
+  },
+  "GGML_WEBGPU": {
+   "type": "BOOL",
+   "value": "OFF"
+  },
+  "GGML_ZDNN": {
+   "type": "BOOL",
+   "value": "OFF"
+  },
+  "GGML_ZENDNN": {
+   "type": "BOOL",
+   "value": "OFF"
+  }
+ },
+ "cache_settings": {
+  "BUILD_SHARED_LIBS": {
+   "type": "BOOL",
+   "value": "ON"
+  },
+  "CMAKE_BUILD_TYPE": {
+   "type": "STRING",
+   "value": "Release"
+  },
+  "CMAKE_SKIP_RPATH": {
+   "type": "BOOL",
+   "value": "NO"
+  },
+  "GGML_BACKEND_DIR": {
+   "type": "PATH",
+   "value": ""
+  },
+  "GGML_BACKEND_DL": {
+   "type": "BOOL",
+   "value": "OFF"
+  },
+  "GGML_CPU_ALL_VARIANTS": {
+   "type": "BOOL",
+   "value": "OFF"
+  },
+  "GGML_METAL_EMBED_LIBRARY": {
+   "type": "BOOL",
+   "value": "ON"
+  },
+  "GGML_NATIVE": {
+   "type": "BOOL",
+   "value": "ON"
+  }
+ },
+ "cache_unparsed_lines": [],
+ "candidate_declaration": {
+  "path": "results/live_ab/CANDIDATE_INSTRUMENT_MANIFEST.json",
+  "sha256": "75e2a1d1a7fd786b2dff70ba8602390c5e3460de7e06ad045660650d1e7913c0"
+ },
+ "collection_completed_utc": "2026-09-23T16:08:02Z",
+ "compile_definitions": {
+  "any_source_defines_GGML_BACKEND_DIR": false,
+  "metal": [
+   {
+    "definitions": [
+     "GGML_BACKEND_BUILD",
+     "GGML_BACKEND_SHARED",
+     "GGML_METAL_EMBED_LIBRARY",
+     "GGML_SCHED_MAX_COPIES=4",
+     "GGML_SHARED",
+     "NDEBUG",
+     "_DARWIN_C_SOURCE",
+     "_XOPEN_SOURCE=600",
+     "ggml_metal_EXPORTS"
+    ],
+    "entry_sha256": "bc75b79be72c5718b5e589d33d91c1e9690552f49a77444d9fd9f03b6513941d",
+    "file": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/ggml/src/ggml-metal/ggml-metal-device.m",
+    "output": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/ggml/src/ggml-metal/CMakeFiles/ggml-metal.dir/ggml-metal-device.m.o",
+    "source": "ggml/src/ggml-metal/ggml-metal-device.m"
+   },
+   {
+    "definitions": [
+     "GGML_BACKEND_BUILD",
+     "GGML_BACKEND_SHARED",
+     "GGML_METAL_EMBED_LIBRARY",
+     "GGML_SCHED_MAX_COPIES=4",
+     "GGML_SHARED",
+     "NDEBUG",
+     "_DARWIN_C_SOURCE",
+     "_XOPEN_SOURCE=600",
+     "ggml_metal_EXPORTS"
+    ],
+    "entry_sha256": "9743b8c99258be316cae35e1263ab2e1fcdc41c2f2b74cbe396ef863c5f13a12",
+    "file": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/ggml/src/ggml-metal/ggml-metal.cpp",
+    "output": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/ggml/src/ggml-metal/CMakeFiles/ggml-metal.dir/ggml-metal.cpp.o",
+    "source": "ggml/src/ggml-metal/ggml-metal.cpp"
+   }
+  ],
+  "registry": [
+   {
+    "definitions": [
+     "GGML_BACKEND_SHARED",
+     "GGML_BUILD",
+     "GGML_SCHED_MAX_COPIES=4",
+     "GGML_SHARED",
+     "GGML_USE_BLAS",
+     "GGML_USE_CPU",
+     "GGML_USE_METAL",
+     "NDEBUG",
+     "_DARWIN_C_SOURCE",
+     "_XOPEN_SOURCE=600",
+     "ggml_EXPORTS"
+    ],
+    "entry_sha256": "7228848faff921f00d464d539b13e51835831fe490c4366558e7ffa205b5eba0",
+    "file": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/ggml/src/ggml-backend-reg.cpp",
+    "output": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/ggml/src/CMakeFiles/ggml.dir/ggml-backend-reg.cpp.o",
+    "source": "ggml/src/ggml-backend-reg.cpp"
+   },
+   {
+    "definitions": [
+     "GGML_BACKEND_SHARED",
+     "GGML_BUILD",
+     "GGML_SCHED_MAX_COPIES=4",
+     "GGML_SHARED",
+     "GGML_USE_BLAS",
+     "GGML_USE_CPU",
+     "GGML_USE_METAL",
+     "NDEBUG",
+     "_DARWIN_C_SOURCE",
+     "_XOPEN_SOURCE=600",
+     "ggml_EXPORTS"
+    ],
+    "entry_sha256": "a8902df0455124475bfed3dd7d71cede57a46648bce91e47d51e1c3052f649a8",
+    "file": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/ggml/src/ggml-backend-dl.cpp",
+    "output": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/ggml/src/CMakeFiles/ggml.dir/ggml-backend-dl.cpp.o",
+    "source": "ggml/src/ggml-backend-dl.cpp"
+   }
+  ]
+ },
+ "convention": "post-build-provenance",
+ "copies_in_repo": {
+  "directory": "results/live_ab/candidate_build_snapshot",
+  "excerpts": "compile_commands entries under ggml/src; build.ninja statements for the launcher and nine members. The whole originals are pinned by sha256 above.",
+  "files": {
+   "CMakeCache.txt": {
+    "bytes": 38049,
+    "sha256": "adffd65cd81b884d9a13d586df96744b7aadce649ea5f4cd6c1e1dead71df4c8"
+   },
+   "build.ninja.link_excerpt.txt": {
+    "bytes": 24418,
+    "sha256": "8541b7a2b69ec25d61cbb5fd5b4cb6e748d4d87edbf75693f9e3fc74708a469c"
+   },
+   "compile_commands.ggml_excerpt.json": {
+    "bytes": 108240,
+    "sha256": "12247efa5565f71110ccd7a368dbfe04f20a53e8e0407e02ab0d556941faf36a"
+   },
+   "ninja_log.txt": {
+    "bytes": 33280,
+    "sha256": "1356f7dd22a033e6121e2b37f0b5d48308a4f8c9f9f07a686b80f34c77d27685"
+   }
+  },
+  "whole_file_copies_match_originals": true
+ },
+ "dlopen_importers": [
+  {
+   "error": null,
+   "imports_dlopen": false,
+   "member": "launcher"
+  },
+  {
+   "error": null,
+   "imports_dlopen": false,
+   "member": "libggml-base.0.dylib"
+  },
+  {
+   "error": null,
+   "imports_dlopen": false,
+   "member": "libggml-blas.0.dylib"
+  },
+  {
+   "error": null,
+   "imports_dlopen": false,
+   "member": "libggml-cpu.0.dylib"
+  },
+  {
+   "error": null,
+   "imports_dlopen": false,
+   "member": "libggml-metal.0.dylib"
+  },
+  {
+   "error": null,
+   "imports_dlopen": true,
+   "member": "libggml.0.dylib"
+  },
+  {
+   "error": null,
+   "imports_dlopen": false,
+   "member": "libllama-common.0.dylib"
+  },
+  {
+   "error": null,
+   "imports_dlopen": false,
+   "member": "libllama-server-impl.dylib"
+  },
+  {
+   "error": null,
+   "imports_dlopen": false,
+   "member": "libllama.0.dylib"
+  },
+  {
+   "error": null,
+   "imports_dlopen": false,
+   "member": "libmtmd.0.dylib"
+  }
+ ],
+ "generated_utc": "2026-09-23T16:08:02Z",
+ "link_rules": {
+  "bin/libggml-base.0.24.0.dylib": {
+   "error": null,
+   "rule": "CXX_SHARED_LIBRARY_LINKER__ggml-base_Release",
+   "variables": {
+    "ARCH_FLAGS": "-arch arm64",
+    "CONFIG": "Release",
+    "INSTALLNAME_DIR": "@rpath/",
+    "LANGUAGE_COMPILE_FLAGS": "-O3 -DNDEBUG",
+    "LINK_FLAGS": "-dynamiclib -Wl,-headerpad_max_install_names -current_version 0.24.0",
+    "LINK_LIBRARIES": "-lm",
+    "OBJECT_DIR": "ggml/src/CMakeFiles/ggml-base.dir",
+    "POST_BUILD": ":",
+    "PRE_LINK": ":",
+    "SONAME": "libggml-base.0.dylib",
+    "SONAME_FLAG": "-install_name",
+    "TARGET_COMPILE_PDB": "ggml/src/CMakeFiles/ggml-base.dir/",
+    "TARGET_FILE": "bin/libggml-base.0.24.0.dylib",
+    "TARGET_PDB": "bin/libggml-base.pdb",
+    "TARGET_SUPPORT_DIR": "ggml/src/CMakeFiles/ggml-base.dir"
+   }
+  },
+  "bin/libggml-blas.0.24.0.dylib": {
+   "error": null,
+   "rule": "CXX_SHARED_LIBRARY_LINKER__ggml-blas_Release",
+   "variables": {
+    "ARCH_FLAGS": "-arch arm64",
+    "CONFIG": "Release",
+    "INSTALLNAME_DIR": "@rpath/",
+    "LANGUAGE_COMPILE_FLAGS": "-O3 -DNDEBUG",
+    "LINK_FLAGS": "-dynamiclib -Wl,-headerpad_max_install_names -current_version 0.24.0",
+    "LINK_LIBRARIES": "-Wl,-rpath,/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin  bin/libggml-base.0.24.0.dylib  -framework Accelerate",
+    "OBJECT_DIR": "ggml/src/ggml-blas/CMakeFiles/ggml-blas.dir",
+    "POST_BUILD": ":",
+    "PRE_LINK": ":",
+    "SONAME": "libggml-blas.0.dylib",
+    "SONAME_FLAG": "-install_name",
+    "TARGET_COMPILE_PDB": "ggml/src/ggml-blas/CMakeFiles/ggml-blas.dir/",
+    "TARGET_FILE": "bin/libggml-blas.0.24.0.dylib",
+    "TARGET_PDB": "bin/libggml-blas.pdb",
+    "TARGET_SUPPORT_DIR": "ggml/src/ggml-blas/CMakeFiles/ggml-blas.dir"
+   }
+  },
+  "bin/libggml-cpu.0.24.0.dylib": {
+   "error": null,
+   "rule": "CXX_SHARED_LIBRARY_LINKER__ggml-cpu_Release",
+   "variables": {
+    "ARCH_FLAGS": "-arch arm64",
+    "CONFIG": "Release",
+    "INSTALLNAME_DIR": "@rpath/",
+    "LANGUAGE_COMPILE_FLAGS": "-O3 -DNDEBUG",
+    "LINK_FLAGS": "-dynamiclib -Wl,-headerpad_max_install_names -current_version 0.24.0",
+    "LINK_LIBRARIES": "-Wl,-rpath,/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin  bin/libggml-base.0.24.0.dylib  -framework Accelerate",
+    "OBJECT_DIR": "ggml/src/CMakeFiles/ggml-cpu.dir",
+    "POST_BUILD": ":",
+    "PRE_LINK": ":",
+    "SONAME": "libggml-cpu.0.dylib",
+    "SONAME_FLAG": "-install_name",
+    "TARGET_COMPILE_PDB": "ggml/src/CMakeFiles/ggml-cpu.dir/",
+    "TARGET_FILE": "bin/libggml-cpu.0.24.0.dylib",
+    "TARGET_PDB": "bin/libggml-cpu.pdb",
+    "TARGET_SUPPORT_DIR": "ggml/src/CMakeFiles/ggml-cpu.dir"
+   }
+  },
+  "bin/libggml-metal.0.24.0.dylib": {
+   "error": null,
+   "rule": "CXX_SHARED_LIBRARY_LINKER__ggml-metal_Release",
+   "variables": {
+    "ARCH_FLAGS": "-arch arm64",
+    "CONFIG": "Release",
+    "INSTALLNAME_DIR": "@rpath/",
+    "LANGUAGE_COMPILE_FLAGS": "-O3 -DNDEBUG",
+    "LINK_FLAGS": "-dynamiclib -Wl,-headerpad_max_install_names -current_version 0.24.0",
+    "LINK_LIBRARIES": "-Wl,-rpath,/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin  bin/libggml-base.0.24.0.dylib  -framework Foundation  -framework Metal  -framework MetalKit",
+    "OBJECT_DIR": "ggml/src/ggml-metal/CMakeFiles/ggml-metal.dir",
+    "POST_BUILD": ":",
+    "PRE_LINK": ":",
+    "SONAME": "libggml-metal.0.dylib",
+    "SONAME_FLAG": "-install_name",
+    "TARGET_COMPILE_PDB": "ggml/src/ggml-metal/CMakeFiles/ggml-metal.dir/",
+    "TARGET_FILE": "bin/libggml-metal.0.24.0.dylib",
+    "TARGET_PDB": "bin/libggml-metal.pdb",
+    "TARGET_SUPPORT_DIR": "ggml/src/ggml-metal/CMakeFiles/ggml-metal.dir"
+   }
+  },
+  "bin/libggml.0.24.0.dylib": {
+   "error": null,
+   "rule": "CXX_SHARED_LIBRARY_LINKER__ggml_Release",
+   "variables": {
+    "ARCH_FLAGS": "-arch arm64",
+    "CONFIG": "Release",
+    "INSTALLNAME_DIR": "@rpath/",
+    "LANGUAGE_COMPILE_FLAGS": "-O3 -DNDEBUG",
+    "LINK_FLAGS": "-dynamiclib -Wl,-headerpad_max_install_names -current_version 0.24.0",
+    "LINK_LIBRARIES": "-Wl,-rpath,/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin  bin/libggml-cpu.0.24.0.dylib  bin/libggml-blas.0.24.0.dylib  bin/libggml-metal.0.24.0.dylib  bin/libggml-base.0.24.0.dylib",
+    "OBJECT_DIR": "ggml/src/CMakeFiles/ggml.dir",
+    "POST_BUILD": ":",
+    "PRE_LINK": ":",
+    "SONAME": "libggml.0.dylib",
+    "SONAME_FLAG": "-install_name",
+    "TARGET_COMPILE_PDB": "ggml/src/CMakeFiles/ggml.dir/",
+    "TARGET_FILE": "bin/libggml.0.24.0.dylib",
+    "TARGET_PDB": "bin/libggml.pdb",
+    "TARGET_SUPPORT_DIR": "ggml/src/CMakeFiles/ggml.dir"
+   }
+  },
+  "bin/libllama-common.0.4.1.dylib": {
+   "error": null,
+   "rule": "CXX_SHARED_LIBRARY_LINKER__llama-common_Release",
+   "variables": {
+    "ARCH_FLAGS": "-arch arm64",
+    "CONFIG": "Release",
+    "INSTALLNAME_DIR": "@rpath/",
+    "LANGUAGE_COMPILE_FLAGS": "-O3 -DNDEBUG",
+    "LINK_FLAGS": "-dynamiclib -Wl,-headerpad_max_install_names",
+    "LINK_LIBRARIES": "-Wl,-rpath,/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin  common/libllama-common-base.a  vendor/cpp-httplib/libcpp-httplib.a  bin/libllama.0.4.1.dylib  bin/libggml.0.24.0.dylib  bin/libggml-cpu.0.24.0.dylib  bin/libggml-blas.0.24.0.dylib  bin/libggml-metal.0.24.0.dylib  bin/libggml-base.0.24.0.dylib",
+    "OBJECT_DIR": "common/CMakeFiles/llama-common.dir",
+    "POST_BUILD": ":",
+    "PRE_LINK": ":",
+    "SONAME": "libllama-common.0.dylib",
+    "SONAME_FLAG": "-install_name",
+    "TARGET_COMPILE_PDB": "common/CMakeFiles/llama-common.dir/",
+    "TARGET_FILE": "bin/libllama-common.0.4.1.dylib",
+    "TARGET_PDB": "bin/libllama-common.pdb",
+    "TARGET_SUPPORT_DIR": "common/CMakeFiles/llama-common.dir"
+   }
+  },
+  "bin/libllama-server-impl.dylib": {
+   "error": null,
+   "rule": "CXX_SHARED_LIBRARY_LINKER__llama-server-impl_Release",
+   "variables": {
+    "ARCH_FLAGS": "-arch arm64",
+    "CONFIG": "Release",
+    "INSTALLNAME_DIR": "@rpath/",
+    "LANGUAGE_COMPILE_FLAGS": "-O3 -DNDEBUG",
+    "LINK_FLAGS": "-dynamiclib -Wl,-headerpad_max_install_names",
+    "LINK_LIBRARIES": "-Wl,-rpath,/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin  tools/server/libserver-context.a  tools/ui/libllama-ui.a  vendor/cpp-httplib/libcpp-httplib.a  bin/libllama-common.0.4.1.dylib  common/libllama-common-base.a  bin/libmtmd.0.4.1.dylib  bin/libllama.0.4.1.dylib  bin/libggml.0.24.0.dylib  bin/libggml-cpu.0.24.0.dylib  bin/libggml-blas.0.24.0.dylib  bin/libggml-metal.0.24.0.dylib  bin/libggml-base.0.24.0.dylib",
+    "OBJECT_DIR": "tools/server/CMakeFiles/llama-server-impl.dir",
+    "POST_BUILD": ":",
+    "PRE_LINK": ":",
+    "SONAME": "libllama-server-impl.dylib",
+    "SONAME_FLAG": "-install_name",
+    "TARGET_COMPILE_PDB": "tools/server/CMakeFiles/llama-server-impl.dir/",
+    "TARGET_FILE": "bin/libllama-server-impl.dylib",
+    "TARGET_PDB": "bin/libllama-server-impl.pdb",
+    "TARGET_SUPPORT_DIR": "tools/server/CMakeFiles/llama-server-impl.dir"
+   }
+  },
+  "bin/libllama.0.4.1.dylib": {
+   "error": null,
+   "rule": "CXX_SHARED_LIBRARY_LINKER__llama_Release",
+   "variables": {
+    "ARCH_FLAGS": "-arch arm64",
+    "CONFIG": "Release",
+    "INSTALLNAME_DIR": "@rpath/",
+    "LANGUAGE_COMPILE_FLAGS": "-O3 -DNDEBUG",
+    "LINK_FLAGS": "-dynamiclib -Wl,-headerpad_max_install_names",
+    "LINK_LIBRARIES": "-Wl,-rpath,/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin  bin/libggml.0.24.0.dylib  bin/libggml-cpu.0.24.0.dylib  bin/libggml-blas.0.24.0.dylib  bin/libggml-metal.0.24.0.dylib  bin/libggml-base.0.24.0.dylib",
+    "OBJECT_DIR": "src/CMakeFiles/llama.dir",
+    "POST_BUILD": ":",
+    "PRE_LINK": ":",
+    "SONAME": "libllama.0.dylib",
+    "SONAME_FLAG": "-install_name",
+    "TARGET_COMPILE_PDB": "src/CMakeFiles/llama.dir/",
+    "TARGET_FILE": "bin/libllama.0.4.1.dylib",
+    "TARGET_PDB": "bin/libllama.pdb",
+    "TARGET_SUPPORT_DIR": "src/CMakeFiles/llama.dir"
+   }
+  },
+  "bin/libmtmd.0.4.1.dylib": {
+   "error": null,
+   "rule": "CXX_SHARED_LIBRARY_LINKER__mtmd_Release",
+   "variables": {
+    "ARCH_FLAGS": "-arch arm64",
+    "CONFIG": "Release",
+    "INSTALLNAME_DIR": "@rpath/",
+    "LANGUAGE_COMPILE_FLAGS": "-O3 -DNDEBUG",
+    "LINK_FLAGS": "-dynamiclib -Wl,-headerpad_max_install_names",
+    "LINK_LIBRARIES": "-Wl,-rpath,/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin  bin/libllama.0.4.1.dylib  vendor/hash/libvendor-hash.a  bin/libggml.0.24.0.dylib  bin/libggml-cpu.0.24.0.dylib  bin/libggml-blas.0.24.0.dylib  bin/libggml-metal.0.24.0.dylib  bin/libggml-base.0.24.0.dylib",
+    "OBJECT_DIR": "tools/mtmd/CMakeFiles/mtmd.dir",
+    "POST_BUILD": ":",
+    "PRE_LINK": ":",
+    "SONAME": "libmtmd.0.dylib",
+    "SONAME_FLAG": "-install_name",
+    "TARGET_COMPILE_PDB": "tools/mtmd/CMakeFiles/mtmd.dir/",
+    "TARGET_FILE": "bin/libmtmd.0.4.1.dylib",
+    "TARGET_PDB": "bin/libmtmd.pdb",
+    "TARGET_SUPPORT_DIR": "tools/mtmd/CMakeFiles/mtmd.dir"
+   }
+  },
+  "bin/llama-server": {
+   "error": null,
+   "rule": "CXX_EXECUTABLE_LINKER__llama-server_Release",
+   "variables": {
+    "CONFIG": "Release",
+    "FLAGS": "-O3 -DNDEBUG -arch arm64",
+    "LINK_FLAGS": "-Wl,-search_paths_first -Wl,-headerpad_max_install_names",
+    "LINK_LIBRARIES": "-Wl,-rpath,/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin  bin/libllama-server-impl.dylib  tools/server/libserver-context.a  bin/libllama-common.0.4.1.dylib  common/libllama-common-base.a  bin/libmtmd.0.4.1.dylib  bin/libllama.0.4.1.dylib  bin/libggml.0.24.0.dylib  bin/libggml-cpu.0.24.0.dylib  bin/libggml-blas.0.24.0.dylib  bin/libggml-metal.0.24.0.dylib  bin/libggml-base.0.24.0.dylib  tools/ui/libllama-ui.a  vendor/cpp-httplib/libcpp-httplib.a",
+    "OBJECT_DIR": "tools/server/CMakeFiles/llama-server.dir",
+    "POST_BUILD": ":",
+    "PRE_LINK": ":",
+    "TARGET_COMPILE_PDB": "tools/server/CMakeFiles/llama-server.dir/",
+    "TARGET_FILE": "bin/llama-server",
+    "TARGET_PDB": "bin/llama-server.pdb",
+    "TARGET_SUPPORT_DIR": "tools/server/CMakeFiles/llama-server.dir"
+   }
+  }
+ },
+ "loader_search_context": {
+  "GGML_BACKEND_PATH": "NOT CONTROLLED by the current supervisor: the child env is dict(os.environ, ...), so any value in the operator's environment is inherited. Root chose explicitly unset.",
+  "compiled_backend_dir": "absent: no compile command defines GGML_BACKEND_DIR",
+  "cwd": "NOT FIXED by the current supervisor: run_smoke.py calls Popen with no cwd=, so the child inherits the operator's working directory, which is a search location. Unbounded until the launch fixes it.",
+  "derivation": "ggml_backend_load_best(name, silent, NULL): compiled GGML_BACKEND_DIR if defined, then the executable directory (_NSGetExecutablePath, the INVOKED path), then cwd; ggml_backend_load_all() then loads GGML_BACKEND_PATH if set. Every call site in common/, src/ and tools/server/ is ggml_backend_load_all() with no directory argument.",
+  "executable_dir_as_invoked": {
+   "candidates": [],
+   "directory": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin",
+   "exists": true
+  },
+  "executable_dir_realpath": "same path",
+  "this_process_environment_at_collection": {
+   "GGML_or_DYLD_names_set": []
+  }
+ },
+ "measured_bytes_match_declaration": true,
+ "measured_candidate_bytes": [
+  {
+   "agrees": true,
+   "declared_sha256": "5260887866c85a07750ebc71349e13c985c17b4983f0619f10b4c355180a6bd6",
+   "measured_sha256": "5260887866c85a07750ebc71349e13c985c17b4983f0619f10b4c355180a6bd6",
+   "member": "launcher",
+   "path": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/llama-server"
+  },
+  {
+   "agrees": true,
+   "declared_sha256": "036a256d0558dee147994971464e502017465f2e740a11a8ce3905409590204a",
+   "measured_sha256": "036a256d0558dee147994971464e502017465f2e740a11a8ce3905409590204a",
+   "member": "libggml-base.0.dylib",
+   "path": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-base.0.dylib"
+  },
+  {
+   "agrees": true,
+   "declared_sha256": "d773f980ad9d97f4dd7791eaf1fc6b6b45e032c0647e2b9c7243b1ce8f37e2a1",
+   "measured_sha256": "d773f980ad9d97f4dd7791eaf1fc6b6b45e032c0647e2b9c7243b1ce8f37e2a1",
+   "member": "libggml-blas.0.dylib",
+   "path": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-blas.0.dylib"
+  },
+  {
+   "agrees": true,
+   "declared_sha256": "5063b11e826932b28465fc850a28a36e3d2df2cf110a5360f9e02b9daa68341d",
+   "measured_sha256": "5063b11e826932b28465fc850a28a36e3d2df2cf110a5360f9e02b9daa68341d",
+   "member": "libggml-cpu.0.dylib",
+   "path": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-cpu.0.dylib"
+  },
+  {
+   "agrees": true,
+   "declared_sha256": "313820e660fb58c886080f3d369c332133c2057475a628ce5c6a0ee52ac955b1",
+   "measured_sha256": "313820e660fb58c886080f3d369c332133c2057475a628ce5c6a0ee52ac955b1",
+   "member": "libggml-metal.0.dylib",
+   "path": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-metal.0.dylib"
+  },
+  {
+   "agrees": true,
+   "declared_sha256": "84b0b166e6d476b8787d6861350de2394d7bd9955c4e597af77f4cb408f803d9",
+   "measured_sha256": "84b0b166e6d476b8787d6861350de2394d7bd9955c4e597af77f4cb408f803d9",
+   "member": "libggml.0.dylib",
+   "path": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml.0.dylib"
+  },
+  {
+   "agrees": true,
+   "declared_sha256": "bc3c8096e56a3ff7093827a5bb5b9faad1a7a65589bd38fb1265d72bca1f769b",
+   "measured_sha256": "bc3c8096e56a3ff7093827a5bb5b9faad1a7a65589bd38fb1265d72bca1f769b",
+   "member": "libllama-common.0.dylib",
+   "path": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-common.0.dylib"
+  },
+  {
+   "agrees": true,
+   "declared_sha256": "22270c80b501a615748c91b1bba0d74b75d2c037e0c2699cfd6ed624ab61f99b",
+   "measured_sha256": "22270c80b501a615748c91b1bba0d74b75d2c037e0c2699cfd6ed624ab61f99b",
+   "member": "libllama-server-impl.dylib",
+   "path": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-server-impl.dylib"
+  },
+  {
+   "agrees": true,
+   "declared_sha256": "fb59dd44594ec695138a4202defbf774251c92a5b0ef2b2661a1df498c0b5aaa",
+   "measured_sha256": "fb59dd44594ec695138a4202defbf774251c92a5b0ef2b2661a1df498c0b5aaa",
+   "member": "libllama.0.dylib",
+   "path": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama.0.dylib"
+  },
+  {
+   "agrees": true,
+   "declared_sha256": "51203470bf9f36ab3bf20b9acaa4ad52565676f4e7dc2fcaa4f2fab8e4e26c0f",
+   "measured_sha256": "51203470bf9f36ab3bf20b9acaa4ad52565676f4e7dc2fcaa4f2fab8e4e26c0f",
+   "member": "libmtmd.0.dylib",
+   "path": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libmtmd.0.dylib"
+  }
+ ],
+ "nothing_executed_THIS_RECEIPT": "no build, configure, candidate execution or model load; nm reads symbol tables and git reads the source index",
+ "originals": {
+  ".ninja_log": {
+   "bytes": 33280,
+   "mtime_utc": "2026-09-23T09:20:07Z",
+   "path": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/.ninja_log",
+   "sha256": "1356f7dd22a033e6121e2b37f0b5d48308a4f8c9f9f07a686b80f34c77d27685"
+  },
+  "CMakeCache.txt": {
+   "bytes": 38049,
+   "mtime_utc": "2026-09-23T09:18:48Z",
+   "path": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/CMakeCache.txt",
+   "sha256": "adffd65cd81b884d9a13d586df96744b7aadce649ea5f4cd6c1e1dead71df4c8"
+  },
+  "build.ninja": {
+   "bytes": 1532293,
+   "mtime_utc": "2026-09-23T09:18:48Z",
+   "path": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/build.ninja",
+   "sha256": "08644efbfd5ca9c5b90d75ed07d33a9ba0f621637586382a294d2211c0e1ffb1"
+  },
+  "compile_commands.json": {
+   "bytes": 678505,
+   "mtime_utc": "2026-09-23T09:18:48Z",
+   "path": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/compile_commands.json",
+   "sha256": "ea101540806eadda34bcafb85cf841fdd0267501505456a442fa021d63773eb8"
+  }
+ },
+ "schema": "live_ab/candidate_build_config_snapshot-v1",
+ "source_identity": {
+  "declared_base": "4fea119de30f6a923992780f6fd5ccb0bee5d47d",
+  "head": "4fea119de30f6a923992780f6fd5ccb0bee5d47d",
+  "modified_files": [
+   "tools/server/server-common.h",
+   "tools/server/server-context.cpp"
+  ],
+  "patch_reverse_applies_cleanly": true,
+  "patch_reverse_check_stderr": "",
+  "patch_touches": [
+   "tools/server/server-common.h",
+   "tools/server/server-context.cpp"
+  ],
+  "root_pinned_upstream_sources": [
+   {
+    "agrees": true,
+    "path": "ggml/CMakeLists.txt",
+    "root_sha256": "f4754450a3a00e405d2ffb6a904fe5571ec85c39ad12c666e73af1addccd5e00",
+    "tree_sha256": "f4754450a3a00e405d2ffb6a904fe5571ec85c39ad12c666e73af1addccd5e00"
+   },
+   {
+    "agrees": true,
+    "path": "ggml/src/CMakeLists.txt",
+    "root_sha256": "38ddf053a1adfc14bb84b7722e3c4ec01909694f7e51e32013f36e7a324fa4f0",
+    "tree_sha256": "38ddf053a1adfc14bb84b7722e3c4ec01909694f7e51e32013f36e7a324fa4f0"
+   },
+   {
+    "agrees": true,
+    "path": "ggml/src/ggml-backend-reg.cpp",
+    "root_sha256": "0f63c69ad083e0744872f57d59d049b069283303f5bbc646222907d779afe4d1",
+    "tree_sha256": "0f63c69ad083e0744872f57d59d049b069283303f5bbc646222907d779afe4d1"
+   },
+   {
+    "agrees": true,
+    "path": "ggml/src/ggml-metal/CMakeLists.txt",
+    "root_sha256": "0f042e911c804fbae3dabefb5f5446bbeb39ac3148ad1e5f8b0310990a4941f8",
+    "tree_sha256": "0f042e911c804fbae3dabefb5f5446bbeb39ac3148ad1e5f8b0310990a4941f8"
+   },
+   {
+    "agrees": true,
+    "path": "tools/server/server.cpp",
+    "root_sha256": "a0b400372a697182fb552c946579f74e81a845aa6d37e4b40b978ff4be5e016c",
+    "tree_sha256": "a0b400372a697182fb552c946579f74e81a845aa6d37e4b40b978ff4be5e016c"
+   },
+   {
+    "agrees": true,
+    "path": "ggml/src/ggml-metal/ggml-metal-device.m",
+    "root_sha256": "a250e60cf82b851a6b3d28147ab4ff5e023ec98029ddca1e2c0d9f1783d22e96",
+    "tree_sha256": "a250e60cf82b851a6b3d28147ab4ff5e023ec98029ddca1e2c0d9f1783d22e96"
+   },
+   {
+    "agrees": true,
+    "path": "common/common.cpp",
+    "root_sha256": "e6eccdf376a80a3f534fc71ad7775fcac52eb6089367f1592ce1d293b147db66",
+    "tree_sha256": "e6eccdf376a80a3f534fc71ad7775fcac52eb6089367f1592ce1d293b147db66"
+   },
+   {
+    "agrees": true,
+    "path": "ggml/src/ggml-backend-dl.cpp",
+    "root_sha256": "acd76df8b83bcdef6807bc7b0520f57b379d61b4ff1027c04aa4d140d16ad07f",
+    "tree_sha256": "acd76df8b83bcdef6807bc7b0520f57b379d61b4ff1027c04aa4d140d16ad07f"
+   }
+  ]
+ },
+ "source_tree": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119",
+ "what_this_is_not": [
+  "not a pre-execution record: every file read here was produced by a build that had already happened",
+  "not evidence of native loading behaviour: nothing was executed or loaded",
+  "not a launch authorization and not a configuration change"
+ ]
+}
