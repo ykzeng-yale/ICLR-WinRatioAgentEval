@@ -397,8 +397,7 @@ def usable_token_count(value: object) -> bool:
     return (isinstance(value, int) and not isinstance(value, bool) and value >= 0)
 
 
-def summarize_usage(results: list, *, token_cap: int,
-                    expected: "int | None" = None) -> dict:
+def summarize_usage(results: list, *, token_cap: int, expected: int) -> dict:
     """Totals that refuse to invent a zero, over an EXPECTED denominator.
 
     Root, 09:19: "A timeout with missing usage stays unknown rather than
@@ -412,11 +411,28 @@ def summarize_usage(results: list, *, token_cap: int,
     an empty list summed to a confident 0 with the cap "respected". The
     denominator is now what was PLANNED, not what happened to be reported.
     """
+    # THE DENOMINATOR IS REQUIRED AND VALIDATED. Root, 2026-09-23 12:04,
+    # answering the API question I put to it: "Make the expected denominator
+    # required ... remove the silent fallback to reported rows ... Validate this
+    # smoke helper's expected count as a positive non-boolean integer rather
+    # than coercing floats/bools with int()."
+    #
+    # The fallback was the defect in miniature: omitting the argument gave a
+    # measured total of 100 for a single record, while expected=2 correctly left
+    # it unknown. A caller that forgot would silently get the old behaviour.
+    if isinstance(expected, bool) or not isinstance(expected, int) or expected < 1:
+        raise ValueError('expected must be a positive non-boolean integer, got %r'
+                         % (expected,))
+    # THE SAME RULE, APPLIED IN BOTH PLACES -- not the aggregate trusting the
+    # row's flag. Root asked that row and total "derive ... from the same
+    # nonnegative, non-boolean integer rule"; a total that merely believes
+    # `usage_known` would be bypassed by any row that set it wrongly, which is
+    # exactly the disagreement being repaired.
     known = [r for r in results
              if r.get('usage_known')
              and usable_token_count((r.get('usage') or {}).get('completion_tokens'))]
     reported = len(results)
-    denom = reported if expected is None else int(expected)
+    denom = expected
     # records that were planned but never appended a row at all
     unaccounted = max(0, denom - reported)
     unknown = (reported - len(known)) + unaccounted
@@ -658,11 +674,23 @@ def main() -> int:
                     rec['body_unparsable'] = '%s: %s' % (type(exc).__name__, exc)
                     d = {}
                 # USAGE IS UNKNOWN WHEN ABSENT, NEVER ZERO.
+                # ONE PREDICATE FOR THE ROW AND THE TOTAL. Root, 12:04: "the
+                # negative-token actual-main witness now refuses correctly, but
+                # its request rows still label completion_tokens=-1 as
+                # usage_known=true. Preserve the original value, mark it
+                # unusable with a reason, and derive both row and total
+                # usability from the same nonnegative, non-boolean integer
+                # rule." The aggregate was strict while the row it summarised
+                # was not, so the receipt disagreed with itself.
                 usage = d.get('usage')
-                rec['usage'] = usage
-                rec['usage_known'] = isinstance(usage, dict) and isinstance(
-                    usage.get('completion_tokens'), int) and not isinstance(
-                    usage.get('completion_tokens'), bool)
+                rec['usage'] = usage                      # original, preserved
+                tokens = usage.get('completion_tokens') if isinstance(usage, dict) else None
+                rec['usage_known'] = usable_token_count(tokens)
+                if not rec['usage_known']:
+                    rec['usage_unusable_reason'] = (
+                        'no usage object in the response' if not isinstance(usage, dict)
+                        else 'completion_tokens %r is not a non-negative, '
+                             'non-boolean integer' % (tokens,))
                 rec['finish_reason'] = (d.get('choices') or [{}])[0].get('finish_reason')
                 rec['content_chars'] = len(
                     ((d.get('choices') or [{}])[0].get('message') or {}).get('content') or '')
