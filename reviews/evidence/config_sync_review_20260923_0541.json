@@ -1,0 +1,121 @@
+{
+  "reviewed_head": "337ab26d91513389b0f54f2c8db822d94073ac7c",
+  "comparison_base": "8322f16f3a6d7670a9123d310cd5bf55d1b4ff83",
+  "formatting_base": "cba87963d6d839cdeaf93ebad0f025c42213b794",
+  "current_files": {
+    "experiments/live_ab/config.json": {
+      "sha256": "8df49cf0dd69cdd21381700b247635ffcdcea27767cc02948ea52a2189b6c430",
+      "bytes": 12177
+    },
+    "experiments/live_ab/design/ARCHITECTURE_FINAL.md": {
+      "sha256": "5d0ae566e549eb58ae9425135662e62f294c6829586ab04990477bd08c9d43c8",
+      "bytes": 199260
+    },
+    "experiments/live_ab/design/protocol_FINAL.md": {
+      "sha256": "0e1bcb710ce2c13a06a243a7c3034d6bec55389d4de45dce569a7dee15af0284",
+      "bytes": 314548
+    },
+    "experiments/live_ab_validation/cells.json": {
+      "sha256": "3818f40ec3b5d62a472ec087bd3b68ff399ba72c97d351f03e6d01e21ea7c5e8",
+      "bytes": 85215
+    },
+    "experiments/live_ab_validation/tests_validation.py": {
+      "sha256": "0ec195d7afec784c7a0e2418b03f117ec5b71f6a3122a09f8fd79c165ca0bf92",
+      "bytes": 149019
+    }
+  },
+  "current_config_blocks": {
+    "sha256": [
+      "8df49cf0dd69cdd21381700b247635ffcdcea27767cc02948ea52a2189b6c430",
+      "8df49cf0dd69cdd21381700b247635ffcdcea27767cc02948ea52a2189b6c430",
+      "8df49cf0dd69cdd21381700b247635ffcdcea27767cc02948ea52a2189b6c430"
+    ],
+    "bytes": [
+      12177,
+      12177,
+      12177
+    ],
+    "exact_three_way_equal": true,
+    "semantic_three_way_equal": true
+  },
+  "prior_config_blocks": {
+    "sha256": [
+      "ee2a404f5b07cdbd6905e09c58f39ad99af169681406b86d50fde1f204d7b378",
+      "b41b588f632a90e6d68ba972089bc5031d4814d38ac5281a54024fe42be7df5f",
+      "b41b588f632a90e6d68ba972089bc5031d4814d38ac5281a54024fe42be7df5f"
+    ],
+    "exact_three_way_equal": false,
+    "docs_exact_match": true,
+    "docs_equal_prior_unpinned_config": true,
+    "current_config_semantics_unchanged_from_base": true,
+    "historical_test": {
+      "run": 1,
+      "failures": 1,
+      "errors": 0,
+      "failure_type": "AssertionError: config byte text differs from matching document blocks"
+    }
+  },
+  "formatting_restoration": {
+    "diff_from_pre_host_pin": "2\t0\texperiments/live_ab/config.json",
+    "remove_two_host_pin_lines_restores_prior_bytes": true
+  },
+  "rule_block_sha256": {
+    "prior": "cbfd1792d09c43754eeeab3b282e92e99c76e4f878cd82d00c827f6a90fa7607",
+    "current": "cbfd1792d09c43754eeeab3b282e92e99c76e4f878cd82d00c827f6a90fa7607"
+  },
+  "successor": {
+    "original_sha_unchanged": true,
+    "original_sha": "3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0dd7d2c2",
+    "current_successor_sha": "0e1bcb710ce2c13a06a243a7c3034d6bec55389d4de45dce569a7dee15af0284",
+    "matches_protocol_bytes": true,
+    "prior_history_preserved": true,
+    "previous_successor_mapping_preserved": true,
+    "correction_text_preserved": true,
+    "all_cells_and_other_provenance_unchanged": true,
+    "changing_commit": "2fd331201b8772d23c7e0f1e59c33ede2ab4a5f0",
+    "changing_commit_protocol_matches": true,
+    "corrected_dangling_reference": "2665c36f35f576442bafcfb0b49583720f2f0a3f"
+  },
+  "tests": {
+    "run": 8,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "log": "test_config_is_appendix_b_verbatim (tests_lab_e2e.ConfigTests.test_config_is_appendix_b_verbatim)\nThe committed ``config.json`` is the block of ARCHITECTURE_FINAL.md 6.1, which ... ok\ntest_rule_block_hash_is_stable_under_operational_pinning (tests_lab_e2e.ConfigTests.test_rule_block_hash_is_stable_under_operational_pinning) ... ok\ntest_the_amendment_on_disk_leaves_the_original_pin_untouched (tests_validation.PinSuccessorAmendmentTests.test_the_amendment_on_disk_leaves_the_original_pin_untouched) ... ok\ntest_the_previous_successor_is_preserved_not_overwritten (tests_validation.PinSuccessorAmendmentTests.test_the_previous_successor_is_preserved_not_overwritten)\nRoot: \"Preserve the existing successor object in an additive history ... ok\ntest_a_correct_successor_passes (tests_validation.PinSuccessorAmendmentTests.test_a_correct_successor_passes) ... ok\ntest_a_WRONG_successor_fails (tests_validation.PinSuccessorAmendmentTests.test_a_WRONG_successor_fails) ... ok\ntest_MUTATING_THE_ORIGINAL_PIN_still_fails (tests_validation.PinSuccessorAmendmentTests.test_MUTATING_THE_ORIGINAL_PIN_still_fails)\nThe one that matters: the amendment must not have opened a door to ... ok\ntest_a_successor_that_is_recorded_but_stale_fails (tests_validation.PinSuccessorAmendmentTests.test_a_successor_that_is_recorded_but_stale_fails)\nThe invariant F18 actually enforces: no pin is SILENTLY stale. ... ok\n\n----------------------------------------------------------------------\nRan 8 tests in 0.017s\n\nOK\n"
+  },
+  "current_unpinned_config_fields": [
+    "monitor.n_max",
+    "monitor.reference_rule_sha256",
+    "roster.n_S1",
+    "roster.n_S2",
+    "roster.n_total",
+    "roster.n_pairs",
+    "roster.roster_sha256",
+    "roster.task_content_sha256",
+    "servers.coder.sha256_recomputed",
+    "servers.coder.license_evidence_sha256",
+    "servers.t3.sha256_recomputed",
+    "servers.t3.license_evidence_sha256",
+    "llama_cpp.build_flags_sha256",
+    "llama_cpp.serving_manifest_sha256",
+    "receipt.golden_props_sha256.coder",
+    "receipt.golden_props_sha256.t3",
+    "receipt.golden_generation_settings_sha256.coder",
+    "receipt.golden_generation_settings_sha256.t3",
+    "execution.request_timeout_s",
+    "execution.episode_hard_cap_s",
+    "sandbox.profile_sha256",
+    "sandbox.containment_probe_sha256",
+    "anchor.posting_latency_p95_s",
+    "prefreeze.side_by_side_compression_C.T1",
+    "prefreeze.side_by_side_compression_C.T2",
+    "prefreeze.side_by_side_compression_C.T3",
+    "prefreeze.side_by_side_compression_C.T4"
+  ],
+  "readiness": {
+    "full_percent": 75,
+    "change": 0,
+    "bounded_v1_percent": 90
+  },
+  "scope": "Offline configuration/provenance checks only; no model, simulation grid, full suite, production path or owner files modified."
+}
