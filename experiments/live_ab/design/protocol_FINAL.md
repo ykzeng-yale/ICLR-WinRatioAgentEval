@@ -557,6 +557,12 @@ Considered and failing a non-outcome criterion: `microsoft/phi-4` (14 B, iii), `
    neither computed nor looked at. The prompts and the extractor were developed on the incumbent's model family and are
    not changed.
 
+   *Amendment 2026-09-23 (pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` item 2):* in the
+   sentence above, "the prompts ... were developed on the incumbent's model family" applies to the **six smoke tasks
+   only**. The four out-of-design prompts of 5.8 (`prefreeze.conformance_prompts`) were written for this amendment by
+   the implementing AI agent session under a rule recorded before their texts, without running either model and
+   without consulting any model's output; they were developed on neither model family. The extractor is unchanged.
+
 **There is no fallback model.** If any rule fails, **T3 is not run** and is reported under its own heading as
 "deferred: candidate failed preflight rule k". A deferred T3 does not release its 0.0125 to any other trial: the alpha
 table is frozen for four trials and is not re-allocated (guidance item 4, "Freeze trial count and allocation before
@@ -921,6 +927,34 @@ identical argv, logs `server_restarted`, and compares the **full** `/props` obje
 object of the freeze bundle. The smoke completion after every start or restart is tagged `phase = SERVER_SMOKE` and
 enters the reconciliation identity of 13.1. `/metrics` scrape points: 13.1.
 
+*Amendment 2026-09-23 (pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` items 1 and 4).*
+**Restart cap.** At most **three** supervised restarts per server per trial: `server_supervision` =
+`{"max_supervised_restarts_per_server_per_trial": 3, "on_exceeding": "abort_trial_incomplete"}`, a top-level config
+key outside the rule block, non-amendable after the first outcome (14.3). Every supervised restart attempt counts,
+whether it succeeds (`server_restarted`) or fails (`server_start_failed` with `kind = restart`); the count is rebuilt
+from the chain on resume. If a fourth restart would be required, dispatch of new arrivals stops, every open attempt is
+drained (bounded; the `episode_hard_cap_s` kill still applies) and revealed, and the trial ends with
+`trial_aborted(server_restart_cap)`. Every enrolled pair, attempt and missingness record is retained. There is **no
+replacement trial, no extra pair, no alpha transfer and no margin change**. A crash may be arm-related, so a
+cap-aborted trial is **not a valid null** and is reported as incomplete: it reports **no deployment or harm decision**,
+and a `decision` logged before the abort stays in the chain and is labelled "not reportable: trial incomplete (restart
+cap)". For this abort reason only, that label replaces the rule of 6.4 ("Aborts in the post-decision phase") and of
+14.6 under which a logged decision stands. The cap was fixed without looking at any success or cost outcome.
+
+**Real start, and refusal instead of a placeholder.** Every first start and every supervised restart goes through
+`lab_server`: the GGUF bytes and hash and the serving manifest are re-verified, the frozen argv is launched, `/health`
+is awaited, the full `/props` object (with `model_path` tokenized) is compared with the tokenized golden object of the
+freeze bundle, and the `SERVER_SMOKE` response is compared with the golden `generation_settings` object under the
+mask of 13.2. A failure at any of these stages is recorded durably as `server_start_failed` (12.2 row 28) and is never
+replaced by a success-valued `server_started` or `server_restarted`: no comparison flag is written true unless the
+comparison was made, and no placeholder digest is written. Its consequence is the rule already fixed for the stage: a
+GGUF, serving-manifest or identity difference is 6.4 row 6 (`trial_aborted(server_identity)`); a `SERVER_SMOKE`
+receipt difference is `trial_aborted(receipt_mismatch)` before any further dispatch; a restart that does not come up
+is the `server_unrecoverable` pause of 14.6; a first start that fails at launch or health dispatches nothing and ends
+the trial as `trial_aborted(infrastructure)`. Before seq 0, on every non-simulated path, the golden files are read,
+their digests are recomputed and compared with the config tables, and a null, missing, unreadable or mismatched golden
+file, or a runtime `golden` override, refuses the invocation with the preflight code `golden_objects`.
+
 ### 5.4 Sampling parameters
 
 Every request body contains exactly: `model` (alias), `messages`, `temperature: 0.7`, `top_p: 0.95`, `top_k: 0`,
@@ -1198,6 +1232,18 @@ event whose head, byte length and file hash enter the freeze bundle, together wi
 value of Appendix A next to the rule and the recorded inputs that produced it. Its tokens are reported separately and
 excluded from every trial total. **Success outcomes of these runs are never used for any design choice**; the
 quantities used are durations, memory, receipt equality, template facts and the yes/no extractability of a code block.
+
+*Amendment 2026-09-23 (pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` item 2).* The four
+out-of-design prompts are stored at `prefreeze.conformance_prompts` (ids `oodp/1` to `oodp/4`), byte-identically in
+`config.json`, ARCHITECTURE 6.1 and Appendix B. They are not hand-written: the implementing AI agent session wrote them
+under a rule fixed before their texts and recorded with them in the amendment receipt
+(`results/live_ab/REPAIR_AMENDMENT_RECEIPT_*.json`): short, self-contained Python function tasks that need only the
+standard library, in the signature-and-docstring form that `build_user_prompt` sends on its non-MBPP branch, with no
+tests, no examples and no reference solution (correctness is never computed, 2.4 item 6); each mechanically distinct
+under `normalize_prompt` from every prompt of the three pinned sources and from the six smoke tasks, with token-set
+Jaccard similarity below 0.5 to each of them. **No observed outcome was used to choose them**: no model was run, and no
+success, conformance, latency or other output of any model was consulted. They are not roster tasks and carry no task
+uid. With the six smoke tasks they are the ten prompts of the format-conformance rule of 2.4 item 6.
 
 1. **Serving build and manifest** (2.2), then the receipt smoke test and golden-object capture per server; the template
    rule and the format-conformance rule of 2.4 for both models.
@@ -2360,6 +2406,14 @@ used to be free text (`delta_label`, `roster_rule`) live in `config.json`, not i
 | 25 | `publication_withheld` | segment index, pattern class | yes |
 | 26 | `server_stopped`, `deposit_sealed` | server id and return code; deposit SHA-256, deposit bytes, number of records and spools (12.1) | yes |
 | 27 | `invocation_ended`, `trial_ended` / `trial_aborted` | status and reason; exposure ledger by phase and arm; reconciliation totals; terminal failures by arm; longest span without a receipt; `what_was_known`; final head | yes + blocking anchor |
+| 28 | `server_start_failed` | *(Amendment 2026-09-23, pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` item 1)* server id; `kind` (`start`, `restart`); `stage` (`gguf`, `serving_manifest`, `launch`, `health`, `identity`, `smoke`); `findings` (closed codes); pid; return code or null; argv hash; `/props` hash or null; load seconds; `restart_index` (0 for the first start). Written instead of, never beside, a success-valued #3 or #6 for the same attempt | yes |
+| 29 | `worker_resolved` | *(Amendment 2026-09-23, pre-outcome; same review, item 3)* arrival, attempt, pid, `state` (`exited`, `killed_reaped`, `liveness_unknown`, `alive_unresolved`), return code or null, spool bytes and spool SHA-256 at resolution | yes |
+
+*Amendment 2026-09-23 (pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` items 1, 3 and 4), to rows
+2, 14 and 27 and to P6.* `episode_revealed` (#14) also carries `usage_complete` and `unknown_usage_calls` (13.1); the
+reason of `trial_aborted` (#27) may also be `server_restart_cap` (5.3) or `unresolved_worker` (14.6); the closed list of
+preflight check codes shared by `invocation_refused` (#2) and `preflight_refused` (P6) gains `golden_objects` (5.3).
+Rows 28 and 29 are trial-chain events. These additions are made before any freeze.
 
 **Program-chain event types** (12.1; bodies in `ARCHITECTURE_FINAL.md` §4.3, rows P1-P12). All are durable and all
 carry a blocking receipt:
@@ -2581,6 +2635,13 @@ presented as a reconciliation of failed work.
 wall-clock, per-worker busy and idle time and per-episode durations are all logged; **each summary states which one it
 uses**. **Tokens are never converted into money, energy or "compute"**; prompt tokens stay visible.
 
+*Amendment 2026-09-23 (pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` item 3).* Every
+`episode_revealed` also carries `usage_complete` (true only when every call of the attempt has a terminal response with
+known usage and the attempt's worker is resolved, 14.6) and `unknown_usage_calls` (the number of its calls without
+known usage). A call left without a terminal record when its worker is resolved or killed is **unfinished**: its
+delivery is unknown, its usage is `null`, never 0, and it is never counted as unsent. A total over attempts that
+include such a call is a lower bound and is labelled as one.
+
 ### 13.2 The sampler receipt and the golden objects
 
 In the pre-freeze smoke, per server, the harness captures (a) the full `/props` object (with `model_path` tokenized)
@@ -2708,6 +2769,12 @@ program outcomes of the same systems on the same tasks" and loses the wording of
 | execution | every row of 5.6, `W = 2`, the server arguments and launch line, every sampling parameter, the seed rule, the prompts, the models, the roster and its exclusion rules, the failure-to-outcome rules of 6.4 |
 | **reporting thresholds (N16)** | `integrity_label_rule` (coin-adjacent 1, sandwich violations 1, pairs with terminal failure 3), `auto_abort.consecutive_infrastructure_failures = 10`, `sandwich_tolerance_s = 30`, `posting_latency_p95_s`, `gap_report_s = 5`, `blocking_wait_minutes = 30`, the pause thresholds (`battery < 20%`, `free disk < 5 GB`), the `/health` thresholds (5 s, 3 failures), the coin self-test limits (4,850 to 5,150), the format-conformance minimum (9 of 10), **`worktree_check_s = 60`** (6.4 row 27) and **`clock_equivalence_tolerance_ms = 1`** (7.5 item 4) |
 
+*Amendment 2026-09-23 (pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` items 2 and 4).* The config
+key `server_supervision` (the restart cap of 5.3 and its consequence) and the four prompts at
+`prefreeze.conformance_prompts` (5.8) join this list: neither may be amended after the first outcome.
+`server_supervision` lies outside the rule block, so it is bound by `config_sha256` and by the harness pin of
+`config.json`, not by `rule_block_sha256`; placing it there leaves the rule-block digest unchanged and relaxes nothing.
+
 **Two classes of code** (finding N3):
 
 - **Decision-defining code** - `lab_coin`, `lab_reference_rule`, the scoring path, the failure rules, the seed rule,
@@ -2802,6 +2869,18 @@ read until the last trial has ended.**
 and is reported under that name. Every pause, resume, abort and operator action carries the harness-computed
 `what_was_known` and an external receipt, and the program-level report lists every abort with the band endpoints at the
 abort. **An aborted trial is reported, never restarted**; no decision other than one already logged is claimed.
+
+*Amendment 2026-09-23 (pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` item 3).* **Every worker is
+resolved before a terminal acceptance.** Before `trial_ended` is written, and before any stage of 5.8 marks itself
+completed, every worker process of the trial or stage is resolved - confirmed exited - and recorded by a durable
+`worker_resolved` event (12.2 row 29) with `state` `exited` or `killed_reaped`. A worker whose exit cannot be confirmed
+(`liveness_unknown`, `alive_unresolved`) is unresolved: the trial ends as `trial_aborted(unresolved_worker)` instead of
+`trial_ended`, and a stage of 5.8 is recorded as incomplete. An abort or a pause for any other reason first drains
+(bounded; the `episode_hard_cap_s` kill still applies) and keeps its own reason; a worker still unresolved then is
+recorded with its state. The calls of an unresolved or killed worker that have no terminal record are unfinished, with
+`null` usage (13.1); none is counted as unsent or as 0, and no artifact such a call leaves is read as a completed
+response. This is truthful failure accounting: it does not prove that no request is sent after the terminal snapshot,
+and a phase accepted as successful must show every permitted worker resolved.
 
 ### 14.7 The operator is an AI agent session; blinding is procedural
 
@@ -3169,12 +3248,22 @@ freeze cannot change it.
                           "t4_payload_non_identity"],
     "repeat_same_condition_stops_program": true},
   "prefreeze": {"format_conformance_min": 9,
+                "conformance_prompts": [
+                  {"id": "oodp/1", "benchmark": "out_of_design", "entry_point": "interleave_words",
+                   "prompt": "def interleave_words(left: str, right: str) -> str:\n    \"\"\"Return one sentence that alternates the words of two sentences.\n\n    Words are separated by single spaces, and an empty sentence has no words.\n    Take the first word of left, then the first word of right, then the second\n    word of left, and so on. When one sentence has no words left, append the\n    remaining words of the other in their original order. Join the result with\n    single spaces.\n    \"\"\"\n"},
+                  {"id": "oodp/2", "benchmark": "out_of_design", "entry_point": "covered_length",
+                   "prompt": "def covered_length(stretches: list) -> int:\n    \"\"\"Return the total length of a ruler covered by the given stretches.\n\n    Each item of stretches is a pair (start, end) of integers with start <= end.\n    It covers the part of the ruler from start to end, a length of end - start.\n    Parts covered by more than one stretch are counted once. An empty list\n    covers a length of 0.\n    \"\"\"\n"},
+                  {"id": "oodp/3", "benchmark": "out_of_design", "entry_point": "most_named",
+                   "prompt": "def most_named(ballots: list) -> str:\n    \"\"\"Return the option named on the most ballots.\n\n    Each ballot is a non-empty string naming one option. When several options\n    share the highest count, return the one whose first ballot comes earliest\n    in the list. Return an empty string when there are no ballots.\n    \"\"\"\n"},
+                  {"id": "oodp/4", "benchmark": "out_of_design", "entry_point": "rotate_digits",
+                   "prompt": "def rotate_digits(text: str, k: int) -> str:\n    \"\"\"Return text with every character from 0 to 9 replaced by a digit.\n\n    A digit d becomes the digit (d + k) % 10. All other characters are\n    unchanged. k is a non-negative integer.\n    \"\"\"\n"}],
                 "calibration_plan": {"repetitions": 5, "smoke_tasks": 6, "workflows": 2,
                                      "models": 2, "concurrency_levels": 2, "episodes": 240},
                 "side_by_side_compression_C": {"T1": null, "T2": null, "T3": null, "T4": null}},
   "engineering_acquisition": {"wall_seconds_total": 600, "cleanup_reserve_seconds": 90,
                               "dispatch_cutoff_seconds": 510, "diagnostic_byte_budget": 8388608,
                               "seconds_per_request": 120, "total_generated_tokens": 2048},
+  "server_supervision": {"max_supervised_restarts_per_server_per_trial": 3, "on_exceeding": "abort_trial_incomplete"},
   "hardware_allowlist": ["arm64-darwin"], "environment_lock_sha256": "842a7a19d738604fbe665231a593a11f12cc02abfe9b1dc4034bc3817a9081ac"
 }
 ```

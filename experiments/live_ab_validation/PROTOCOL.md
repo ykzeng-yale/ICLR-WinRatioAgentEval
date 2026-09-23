@@ -1518,7 +1518,7 @@ Administrative provenance repair only: no scientific parameter, seed, horizon, e
 decision rule, result label or execution pin changes.
 
 **Update 2026-09-23: the count above is stale; the pin is not.** "Moved twice" was true when this
-amendment was written. Since then `cells.json` has recorded four more successors of that file. The
+amendment was written. Since then `cells.json` has recorded five more successors of that file. The
 first three are Appendix B-only synchronisations of the #11 configuration block with `config.json`:
 `0e1bcb71…` (`host_work_root`, root ruling 2026-09-23 03:51), `f75de323…` (the sandbox-profile and
 licence evidence pins, root ruling 2026-09-23 03:48) and `7f666477…` (the scoped
@@ -1527,7 +1527,12 @@ an Appendix B change: it is one paragraph inserted into section 2.2 item 1 only,
 state of the llama.cpp checkout and the three recorded checks that replace, for that checkout, the
 empty-status requirement (root disposition 2026-09-23 18:29 and issue #11 at 18:48, the narrow
 patch-state route). It leaves the Appendix B block and sections 1, 3 and 11, the sections this pin
-reads, byte-identical. That makes six moves in all.
+reads, byte-identical. The fifth, `25014221…`, is not Appendix-B-only either: it is the synchronized
+pre-outcome repair amendment of root 2026-09-23 20:40 (`reviews/prerun_bundle_go_nogo_20260923_2040.md`
+items 2 and 4). It adds the four out-of-design conformance prompts and the `server_supervision` restart cap
+to the configuration block, so Appendix B changes too, byte-identically with `config.json`, and it inserts
+dated paragraphs into sections 2.4, 5.3, 5.8, 12.2, 13.1, 14.3 and 14.6. Every change is an insertion, and
+sections 1, 3 and 11 stay byte-identical. That makes seven moves in all.
 They are written truncated for the reason given above. The full digests, reasons and rulings are in
 `cells.json` under `provenance.vocabulary_alignment.superseded_by`, and so is each changing commit
 once a later commit has resolved it. The

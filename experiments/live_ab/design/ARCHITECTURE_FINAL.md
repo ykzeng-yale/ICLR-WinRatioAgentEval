@@ -1733,6 +1733,16 @@ Integrity labels and terminal-failure counts are `INFO` and never stop the progr
 | T29c | `publication_withheld` | D | `segment_index` int; `pattern_class` enum — protocol 12.4 item 6: a scanner hit in a segment withholds that segment from the anchor branch while anchoring continues; the segment stays in the deposit with its anchored hash and **no sanitized copy is ever produced** |
 | T30 | `invocation_ended` | D | `status` enum; `counts` obj |
 | T31 | `trial_ended` / `trial_aborted` | D + blocking anchor | `status` enum; `reason` enum?; `phase` enum; `exposure_ledger` obj (per phase x arm); `reconciliation_totals` obj; `terminal_failures_by_arm` obj; `n_torn_recoveries` int; `longest_unreceipted_span_s` float; `what_was_known` obj; `final_head` hex64 |
+| T32 | `server_start_failed` | D | *(Amendment 2026-09-23, pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` item 1; protocol 5.3 and 12.2 row 28)* `server_id` enum; `kind` enum[`start`,`restart`]; `stage` enum[`gguf`,`serving_manifest`,`launch`,`health`,`identity`,`smoke`]; `findings` [enum] (closed codes: `IDENTITY_FINDINGS`, the receipt finding codes, `process_exited`, `health_timeout`, `smoke_transport`, `smoke_no_usage`, `serving_manifest`); `pid` int; `returncode` int?; `argv_sha256` hex64; `props_sha256` hex64?; `load_seconds` float; `restart_index` int (0 for the first start). Trial chain only. The record is carried by `lab_common.ServerStartFailed(LabError).record`; it is written instead of, never beside, a success-valued T4 or T8 |
+| T33 | `worker_resolved` | D | *(Amendment 2026-09-23, pre-outcome; same review, item 3; protocol 14.6 and 12.2 row 29)* `arrival` int; `attempt` int; `pid` int; `state` enum[`exited`,`killed_reaped`,`liveness_unknown`,`alive_unresolved`]; `returncode` int?; `spool_bytes_at_resolution` int; `spool_sha256_at_resolution` hex64 |
+
+*Amendment 2026-09-23 (pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` items 1, 3 and 4), to rows
+T3, T17 and T31 and to P6.* T17 `episode_revealed` gains `usage_complete` bool and `unknown_usage_calls` int; the
+`reason` of T31 `trial_aborted` gains `server_restart_cap` and `unresolved_worker`; the preflight check enum shared
+by T3 `invocation_refused` and P6 `preflight_refused` gains `golden_objects`. The pure function
+`phase_resolution_verdict(...)` is evaluated before `trial_ended` and before any pre-freeze stage marks itself
+completed; `lab_verify_log` mirrors it as the FAIL-level check `workers.resolved`, and checks T4, T7, T8 and T32
+against protocol 5.3 as the FAIL-level check `server.lifecycle`.
 
 ### 4.5 `what_was_known`
 
@@ -2041,12 +2051,22 @@ phase (protocol Appendix A) and no `null` may survive into the freeze bundle.
                           "t4_payload_non_identity"],
     "repeat_same_condition_stops_program": true},
   "prefreeze": {"format_conformance_min": 9,
+                "conformance_prompts": [
+                  {"id": "oodp/1", "benchmark": "out_of_design", "entry_point": "interleave_words",
+                   "prompt": "def interleave_words(left: str, right: str) -> str:\n    \"\"\"Return one sentence that alternates the words of two sentences.\n\n    Words are separated by single spaces, and an empty sentence has no words.\n    Take the first word of left, then the first word of right, then the second\n    word of left, and so on. When one sentence has no words left, append the\n    remaining words of the other in their original order. Join the result with\n    single spaces.\n    \"\"\"\n"},
+                  {"id": "oodp/2", "benchmark": "out_of_design", "entry_point": "covered_length",
+                   "prompt": "def covered_length(stretches: list) -> int:\n    \"\"\"Return the total length of a ruler covered by the given stretches.\n\n    Each item of stretches is a pair (start, end) of integers with start <= end.\n    It covers the part of the ruler from start to end, a length of end - start.\n    Parts covered by more than one stretch are counted once. An empty list\n    covers a length of 0.\n    \"\"\"\n"},
+                  {"id": "oodp/3", "benchmark": "out_of_design", "entry_point": "most_named",
+                   "prompt": "def most_named(ballots: list) -> str:\n    \"\"\"Return the option named on the most ballots.\n\n    Each ballot is a non-empty string naming one option. When several options\n    share the highest count, return the one whose first ballot comes earliest\n    in the list. Return an empty string when there are no ballots.\n    \"\"\"\n"},
+                  {"id": "oodp/4", "benchmark": "out_of_design", "entry_point": "rotate_digits",
+                   "prompt": "def rotate_digits(text: str, k: int) -> str:\n    \"\"\"Return text with every character from 0 to 9 replaced by a digit.\n\n    A digit d becomes the digit (d + k) % 10. All other characters are\n    unchanged. k is a non-negative integer.\n    \"\"\"\n"}],
                 "calibration_plan": {"repetitions": 5, "smoke_tasks": 6, "workflows": 2,
                                      "models": 2, "concurrency_levels": 2, "episodes": 240},
                 "side_by_side_compression_C": {"T1": null, "T2": null, "T3": null, "T4": null}},
   "engineering_acquisition": {"wall_seconds_total": 600, "cleanup_reserve_seconds": 90,
                               "dispatch_cutoff_seconds": 510, "diagnostic_byte_budget": 8388608,
                               "seconds_per_request": 120, "total_generated_tokens": 2048},
+  "server_supervision": {"max_supervised_restarts_per_server_per_trial": 3, "on_exceeding": "abort_trial_incomplete"},
   "hardware_allowlist": ["arm64-darwin"], "environment_lock_sha256": "842a7a19d738604fbe665231a593a11f12cc02abfe9b1dc4034bc3817a9081ac"
 }
 ```
@@ -2077,6 +2097,11 @@ and 8 (audit B1).
 at every invocation compares the on-disk config's sha256 with `trial_started.config_sha256` and refuses on
 any difference not covered by a chained `refreeze_authorization` — which can only ever cover **reporting
 code** (`refreeze.scope == ["reporting_code"]`), never a config key.
+
+*Amendment 2026-09-23 (pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` items 2 and 4; protocol
+14.3):* this list gains `server_supervision` (top level, outside the rule block: bound by `config_sha256` and
+`harness_file_sha256[config.json]`, not by `rule_block_sha256`) and `prefreeze.conformance_prompts`.
+
 ---
 
 ## 7. Orchestrator state machine
@@ -2091,6 +2116,7 @@ a 5 s timer, (5) take the transition the table below prescribes.
 |---|---|---|---|---|---|
 | 1 | `PREFLIGHT` | process start | `preflight()`; take `RunLock` | `OPENING` | — |
 | 1a | `PREFLIGHT` | any check fails | append `preflight_refused` to the **program** chain (D) | `ABORTED` | — |
+| 1b | `PREFLIGHT` | *(Amendment 2026-09-23, pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` item 1)* on a non-simulated path: a golden file is null, missing, unreadable or does not match its config digest, or a runtime `golden` override is present | append `preflight_refused` with the check `golden_objects` to the **program** chain (D); no server is started and nothing success-valued is written | `ABORTED` | — |
 | 2 | `OPENING` | chain does not exist | `trial_started` (D); `server_started` per server (D); request `trial_started` anchor, `blocking=True` | `OPENING.wait` | — |
 | 2a | `OPENING` | chain exists | `read_chain`; `log_recovery` if torn (D); `invocation_started` (D); `plan_resume`; emit orphan reveals / `orphan_rejected` / interrupted reveals (each D), in arrival order; replay the monitor to `monitor_prefix` | `IDLE`/`PARTIAL`/`POST_DECISION` per plan | — |
 | 2b | `OPENING` | drift not covered by a chained authorization | `invocation_refused` (D) | `ABORTED` | — |
@@ -2122,7 +2148,10 @@ a 5 s timer, (5) take the transition the table below prescribes.
 | 18 | `POST_DECISION` | no arrivals remain and nothing in flight | — | `CLOSING` | — |
 | 19 | any | `ReceiptMismatch` or served-alias mismatch | finish and reveal the episode (ITT), then `trial_aborted(receipt_mismatch)` (D) before the next dispatch | `ABORTED` | — |
 | 20 | any | `server_restarted.props != golden` | `trial_aborted(server_identity)` (D) | `ABORTED` | — |
+| 20a | any | *(Amendment 2026-09-23; same review, item 1)* `lab_server.start` or `lab_server.restart` raises `ServerStartFailed` | `server_start_failed` (D) with the exception's record, never a success-valued T4 or T8; then the rule for its stage (protocol 5.3): `gguf`, `serving_manifest` or `identity` → `trial_aborted(server_identity)` (D); `smoke` → `trial_aborted(receipt_mismatch)` (D); `launch` or `health` on a restart → `trial_paused(server_unrecoverable)` (D), on the first start → `trial_aborted(infrastructure)` (D) | `ABORTED` / `PAUSED` | — |
 | 21 | any | 10 consecutive revealed arrivals with `error_class` in {`episode_timeout`,`worker_died`,`interrupted`} or all tries of a call failed, counted in **reveal order** | `trial_aborted(infrastructure)` (D) | `ABORTED` | — |
+| 21a | any | *(Amendment 2026-09-23; same review, item 4)* `server_down` on a server that already had `server_supervision.max_supervised_restarts_per_server_per_trial` (3) supervised restart attempts in this trial, counted from the chain | stop dispatching new arrivals; drain every open attempt (bounded; the `episode_hard_cap_s` kill still applies) and reveal each (D); `worker_resolved` per worker (D); `trial_aborted(server_restart_cap)` (D) + blocking anchor. No replacement trial, no extra pair; a logged `decision` is kept and labelled not reportable (protocol 5.3) | `ABORTED` | **yes** |
+| 21b | `CLOSING`, or a pre-freeze stage about to complete | *(Amendment 2026-09-23; same review, item 3)* `phase_resolution_verdict` finds a worker that is not confirmed exited (`worker_resolved.state` in {`liveness_unknown`,`alive_unresolved`}) | no `trial_ended` and no stage completion: `trial_aborted(unresolved_worker)` (D) + blocking anchor, or the stage recorded incomplete; that worker's calls without a terminal record are unfinished, usage `null` | `ABORTED` | **yes** |
 | 22 | any | `MonitorError` / `EnclosureError`, **including one raised inside `lab_reference_rule`** | `trial_paused(monitor_exception)` (D); no decision is ever taken by hand. An exception from the reference rule is additionally a `decision_code_defect` candidate (protocol 6.4 rows 17 and 24) and is never closed by a re-freeze | `PAUSED` | — |
 | 22b | any | `shadow.mismatch` is true at any evaluation | `trial_paused(monitor_mismatch)` (D) **before any decision is acted on** (protocol 8.9) | `PAUSED` | — |
 | 23 | any | operator graceful stop | finish the pending pair, reveal, look, then `trial_paused(planned)` (D) | `PAUSED` | — |
