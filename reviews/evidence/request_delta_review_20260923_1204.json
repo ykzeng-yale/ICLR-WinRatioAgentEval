@@ -1,0 +1,578 @@
+{
+  "head": "9f2658b849d4f3d2fd2ce8fc9680b4e6b85454c9",
+  "source": "d208bfa990edac64bfb7acdc3235d02bb5553855",
+  "base": "1bd5cd0bd11ffac5ab367f8b1e4f30b5c4c40e9d",
+  "scope": "Six actual-main invocations with process, HTTP, signals, clocks and scheduling mocked. Real reader, capture helper, finalizer and filesystem on closed synthetic fixtures; launcher verification stubbed as separate root scope. No model, native executable, HTTP, build or full suite.",
+  "cases": {
+    "barrier_failure_before_cutoff": {
+      "returncode": 1,
+      "exception": null,
+      "receipt_count": 1,
+      "write_calls": 1,
+      "events": [
+        {
+          "event": "barrier",
+          "clock": 0.0,
+          "timeout": 30.0,
+          "durable_write_count": 0
+        },
+        {
+          "event": "barrier",
+          "clock": 0.0,
+          "timeout": 30.0,
+          "durable_write_count": 0
+        }
+      ],
+      "receipt": {
+        "child_started": true,
+        "loaded_a_model": null,
+        "popen_error": null,
+        "requests_expected": 2,
+        "requests_with_records": 2,
+        "requests_unaccounted_for": 0,
+        "submitted_requests": 0,
+        "planned_requests": 2,
+        "generated_tokens_total": null,
+        "generated_tokens_known_sum": 0,
+        "requests_with_known_usage": 0,
+        "requests_with_unknown_usage": 2,
+        "token_cap_respected": null,
+        "supervisor_problems": [
+          "token usage was not measurable for 2 request(s), so the token cap could not be judged",
+          "2 request(s) were planned but never submitted"
+        ],
+        "deadline": {
+          "budget_s": 600.0,
+          "dispatch_remaining_s": 510.0,
+          "elapsed_s": 0.0,
+          "enforcement": "every wait is bounded by remaining(); this is arithmetic on one monotonic origin, NOT a daemon thread",
+          "expired": false,
+          "may_dispatch": true,
+          "remaining_s": 600.0,
+          "reserve_s": 90.0
+        },
+        "requests": [
+          {
+            "barrier_error": "RuntimeError: synthetic barrier failure",
+            "elapsed_s": 0.0,
+            "index": 0,
+            "not_dispatched": "the barrier failed, so this request was never coordinated with its pair and was not sent",
+            "payload_sha256": "4ef1084c351470f52e34493a3f35e9f84c08263b3d0474c8c21dcfc84ae73a89",
+            "request_id": "smoke_4167e395ccfd_req0",
+            "submitted": false,
+            "t_ack_monotonic": 0.0,
+            "t_send_monotonic": 0.0,
+            "raw_response": null
+          },
+          {
+            "barrier_error": "RuntimeError: synthetic barrier failure",
+            "elapsed_s": 0.0,
+            "index": 1,
+            "not_dispatched": "the barrier failed, so this request was never coordinated with its pair and was not sent",
+            "payload_sha256": "4ef1084c351470f52e34493a3f35e9f84c08263b3d0474c8c21dcfc84ae73a89",
+            "request_id": "smoke_4167e395ccfd_req1",
+            "submitted": false,
+            "t_ack_monotonic": 0.0,
+            "t_send_monotonic": 0.0,
+            "raw_response": null
+          }
+        ]
+      },
+      "persistence_checks": {
+        "input_response_bytes": [],
+        "input_response_sha256": [],
+        "tail_marker_persisted_anywhere": false,
+        "persisted_files": [
+          "smoke_4167e395ccfd.producer_stream",
+          "lifecycle.jsonl",
+          "manifest.json",
+          "results/SMOKE_RECEIPT_smoke_4167e395ccfd.json"
+        ],
+        "intent_payload_hashes_match": [
+          true,
+          true
+        ]
+      }
+    },
+    "no_worker_records": {
+      "returncode": 1,
+      "exception": null,
+      "receipt_count": 1,
+      "write_calls": 1,
+      "events": [],
+      "receipt": {
+        "child_started": true,
+        "loaded_a_model": null,
+        "popen_error": null,
+        "requests_expected": 2,
+        "requests_with_records": 0,
+        "requests_unaccounted_for": 2,
+        "submitted_requests": 0,
+        "planned_requests": 2,
+        "generated_tokens_total": null,
+        "generated_tokens_known_sum": 0,
+        "requests_with_known_usage": 0,
+        "requests_with_unknown_usage": 2,
+        "token_cap_respected": null,
+        "supervisor_problems": [
+          "token usage was not measurable for 2 request(s), so the token cap could not be judged",
+          "2 request(s) were planned but never submitted"
+        ],
+        "deadline": {
+          "budget_s": 600.0,
+          "dispatch_remaining_s": 510.0,
+          "elapsed_s": 0.0,
+          "enforcement": "every wait is bounded by remaining(); this is arithmetic on one monotonic origin, NOT a daemon thread",
+          "expired": false,
+          "may_dispatch": true,
+          "remaining_s": 600.0,
+          "reserve_s": 90.0
+        },
+        "requests": []
+      },
+      "persistence_checks": {
+        "input_response_bytes": [],
+        "input_response_sha256": [],
+        "tail_marker_persisted_anywhere": false,
+        "persisted_files": [
+          "smoke_4167e395ccfd.producer_stream",
+          "lifecycle.jsonl",
+          "manifest.json",
+          "results/SMOKE_RECEIPT_smoke_4167e395ccfd.json"
+        ],
+        "intent_payload_hashes_match": [
+          true,
+          true
+        ]
+      }
+    },
+    "one_worker_record": {
+      "returncode": 1,
+      "exception": null,
+      "receipt_count": 1,
+      "write_calls": 1,
+      "events": [
+        {
+          "event": "barrier",
+          "clock": 0.0,
+          "timeout": 30.0,
+          "durable_write_count": 0
+        },
+        {
+          "event": "HTTP_POST",
+          "clock": 0.0,
+          "timeout": 120.0,
+          "durable_write_count": 0,
+          "results_files_before_dispatch": []
+        }
+      ],
+      "receipt": {
+        "child_started": true,
+        "loaded_a_model": null,
+        "popen_error": null,
+        "requests_expected": 2,
+        "requests_with_records": 1,
+        "requests_unaccounted_for": 1,
+        "submitted_requests": 1,
+        "planned_requests": 2,
+        "generated_tokens_total": null,
+        "generated_tokens_known_sum": 1024,
+        "requests_with_known_usage": 1,
+        "requests_with_unknown_usage": 1,
+        "token_cap_respected": null,
+        "supervisor_problems": [
+          "token usage was not measurable for 1 request(s), so the token cap could not be judged",
+          "1 request(s) were planned but never submitted"
+        ],
+        "deadline": {
+          "budget_s": 600.0,
+          "dispatch_remaining_s": 510.0,
+          "elapsed_s": 0.0,
+          "enforcement": "every wait is bounded by remaining(); this is arithmetic on one monotonic origin, NOT a daemon thread",
+          "expired": false,
+          "may_dispatch": true,
+          "remaining_s": 600.0,
+          "reserve_s": 90.0
+        },
+        "requests": [
+          {
+            "content_chars": 2,
+            "elapsed_s": 0.0,
+            "finish_reason": "length",
+            "index": 0,
+            "payload_sha256": "4ef1084c351470f52e34493a3f35e9f84c08263b3d0474c8c21dcfc84ae73a89",
+            "request_id": "smoke_4167e395ccfd_req0",
+            "status": 200,
+            "submitted": true,
+            "t_ack_monotonic": 0.0,
+            "t_send_monotonic": 0.0,
+            "t_send_utc": "SYNTHETIC",
+            "usage": {
+              "completion_tokens": 1024
+            },
+            "usage_known": true,
+            "raw_response": {
+              "bytes": 110,
+              "preview_chars_cap": 4000,
+              "preview_truncated": false,
+              "sha256": "63ff97aee7ba6ea8b69bbc4dfc388d99bc09cb4d2679de2deab36f69a6d0ed86"
+            },
+            "preview_length": 110
+          }
+        ]
+      },
+      "persistence_checks": {
+        "input_response_bytes": [
+          110
+        ],
+        "input_response_sha256": [
+          "63ff97aee7ba6ea8b69bbc4dfc388d99bc09cb4d2679de2deab36f69a6d0ed86"
+        ],
+        "tail_marker_persisted_anywhere": false,
+        "persisted_files": [
+          "smoke_4167e395ccfd.producer_stream",
+          "lifecycle.jsonl",
+          "manifest.json",
+          "results/SMOKE_RECEIPT_smoke_4167e395ccfd.json"
+        ],
+        "intent_payload_hashes_match": [
+          true,
+          true
+        ]
+      }
+    },
+    "negative_usage": {
+      "returncode": 1,
+      "exception": null,
+      "receipt_count": 1,
+      "write_calls": 1,
+      "events": [
+        {
+          "event": "barrier",
+          "clock": 0.0,
+          "timeout": 30.0,
+          "durable_write_count": 0
+        },
+        {
+          "event": "HTTP_POST",
+          "clock": 0.0,
+          "timeout": 120.0,
+          "durable_write_count": 0,
+          "results_files_before_dispatch": []
+        },
+        {
+          "event": "barrier",
+          "clock": 0.0,
+          "timeout": 30.0,
+          "durable_write_count": 0
+        },
+        {
+          "event": "HTTP_POST",
+          "clock": 0.0,
+          "timeout": 120.0,
+          "durable_write_count": 0,
+          "results_files_before_dispatch": []
+        }
+      ],
+      "receipt": {
+        "child_started": true,
+        "loaded_a_model": null,
+        "popen_error": null,
+        "requests_expected": 2,
+        "requests_with_records": 2,
+        "requests_unaccounted_for": 0,
+        "submitted_requests": 2,
+        "planned_requests": 2,
+        "generated_tokens_total": null,
+        "generated_tokens_known_sum": 0,
+        "requests_with_known_usage": 0,
+        "requests_with_unknown_usage": 2,
+        "token_cap_respected": null,
+        "supervisor_problems": [
+          "token usage was not measurable for 2 request(s), so the token cap could not be judged"
+        ],
+        "deadline": {
+          "budget_s": 600.0,
+          "dispatch_remaining_s": 510.0,
+          "elapsed_s": 0.0,
+          "enforcement": "every wait is bounded by remaining(); this is arithmetic on one monotonic origin, NOT a daemon thread",
+          "expired": false,
+          "may_dispatch": true,
+          "remaining_s": 600.0,
+          "reserve_s": 90.0
+        },
+        "requests": [
+          {
+            "content_chars": 2,
+            "elapsed_s": 0.0,
+            "finish_reason": "length",
+            "index": 0,
+            "payload_sha256": "4ef1084c351470f52e34493a3f35e9f84c08263b3d0474c8c21dcfc84ae73a89",
+            "request_id": "smoke_4167e395ccfd_req0",
+            "status": 200,
+            "submitted": true,
+            "t_ack_monotonic": 0.0,
+            "t_send_monotonic": 0.0,
+            "t_send_utc": "SYNTHETIC",
+            "usage": {
+              "completion_tokens": -1
+            },
+            "usage_known": true,
+            "raw_response": {
+              "bytes": 108,
+              "preview_chars_cap": 4000,
+              "preview_truncated": false,
+              "sha256": "60bc534e96a0aa2fcd70dd1b39f8c0fef2b05caf201ef1c0e05b5c1dcfba8912"
+            },
+            "preview_length": 108
+          },
+          {
+            "content_chars": 2,
+            "elapsed_s": 0.0,
+            "finish_reason": "length",
+            "index": 1,
+            "payload_sha256": "4ef1084c351470f52e34493a3f35e9f84c08263b3d0474c8c21dcfc84ae73a89",
+            "request_id": "smoke_4167e395ccfd_req1",
+            "status": 200,
+            "submitted": true,
+            "t_ack_monotonic": 0.0,
+            "t_send_monotonic": 0.0,
+            "t_send_utc": "SYNTHETIC",
+            "usage": {
+              "completion_tokens": -1
+            },
+            "usage_known": true,
+            "raw_response": {
+              "bytes": 108,
+              "preview_chars_cap": 4000,
+              "preview_truncated": false,
+              "sha256": "60bc534e96a0aa2fcd70dd1b39f8c0fef2b05caf201ef1c0e05b5c1dcfba8912"
+            },
+            "preview_length": 108
+          }
+        ]
+      },
+      "persistence_checks": {
+        "input_response_bytes": [
+          108,
+          108
+        ],
+        "input_response_sha256": [
+          "60bc534e96a0aa2fcd70dd1b39f8c0fef2b05caf201ef1c0e05b5c1dcfba8912",
+          "60bc534e96a0aa2fcd70dd1b39f8c0fef2b05caf201ef1c0e05b5c1dcfba8912"
+        ],
+        "tail_marker_persisted_anywhere": false,
+        "persisted_files": [
+          "smoke_4167e395ccfd.producer_stream",
+          "lifecycle.jsonl",
+          "manifest.json",
+          "results/SMOKE_RECEIPT_smoke_4167e395ccfd.json"
+        ],
+        "intent_payload_hashes_match": [
+          true,
+          true
+        ]
+      }
+    },
+    "known_zero": {
+      "returncode": 0,
+      "exception": null,
+      "receipt_count": 1,
+      "write_calls": 1,
+      "events": [
+        {
+          "event": "barrier",
+          "clock": 0.0,
+          "timeout": 30.0,
+          "durable_write_count": 0
+        },
+        {
+          "event": "HTTP_POST",
+          "clock": 0.0,
+          "timeout": 120.0,
+          "durable_write_count": 0,
+          "results_files_before_dispatch": []
+        },
+        {
+          "event": "barrier",
+          "clock": 0.0,
+          "timeout": 30.0,
+          "durable_write_count": 0
+        },
+        {
+          "event": "HTTP_POST",
+          "clock": 0.0,
+          "timeout": 120.0,
+          "durable_write_count": 0,
+          "results_files_before_dispatch": []
+        }
+      ],
+      "receipt": {
+        "child_started": true,
+        "loaded_a_model": null,
+        "popen_error": null,
+        "requests_expected": 2,
+        "requests_with_records": 2,
+        "requests_unaccounted_for": 0,
+        "submitted_requests": 2,
+        "planned_requests": 2,
+        "generated_tokens_total": 0,
+        "generated_tokens_known_sum": 0,
+        "requests_with_known_usage": 2,
+        "requests_with_unknown_usage": 0,
+        "token_cap_respected": true,
+        "supervisor_problems": [],
+        "deadline": {
+          "budget_s": 600.0,
+          "dispatch_remaining_s": 510.0,
+          "elapsed_s": 0.0,
+          "enforcement": "every wait is bounded by remaining(); this is arithmetic on one monotonic origin, NOT a daemon thread",
+          "expired": false,
+          "may_dispatch": true,
+          "remaining_s": 600.0,
+          "reserve_s": 90.0
+        },
+        "requests": [
+          {
+            "content_chars": 2,
+            "elapsed_s": 0.0,
+            "finish_reason": "length",
+            "index": 0,
+            "payload_sha256": "4ef1084c351470f52e34493a3f35e9f84c08263b3d0474c8c21dcfc84ae73a89",
+            "request_id": "smoke_4167e395ccfd_req0",
+            "status": 200,
+            "submitted": true,
+            "t_ack_monotonic": 0.0,
+            "t_send_monotonic": 0.0,
+            "t_send_utc": "SYNTHETIC",
+            "usage": {
+              "completion_tokens": 0
+            },
+            "usage_known": true,
+            "raw_response": {
+              "bytes": 107,
+              "preview_chars_cap": 4000,
+              "preview_truncated": false,
+              "sha256": "73535fb5f3064ea80697abf430012252e5eace9b2156ce03b7a02778c8468dd7"
+            },
+            "preview_length": 107
+          },
+          {
+            "content_chars": 2,
+            "elapsed_s": 0.0,
+            "finish_reason": "length",
+            "index": 1,
+            "payload_sha256": "4ef1084c351470f52e34493a3f35e9f84c08263b3d0474c8c21dcfc84ae73a89",
+            "request_id": "smoke_4167e395ccfd_req1",
+            "status": 200,
+            "submitted": true,
+            "t_ack_monotonic": 0.0,
+            "t_send_monotonic": 0.0,
+            "t_send_utc": "SYNTHETIC",
+            "usage": {
+              "completion_tokens": 0
+            },
+            "usage_known": true,
+            "raw_response": {
+              "bytes": 107,
+              "preview_chars_cap": 4000,
+              "preview_truncated": false,
+              "sha256": "73535fb5f3064ea80697abf430012252e5eace9b2156ce03b7a02778c8468dd7"
+            },
+            "preview_length": 107
+          }
+        ]
+      },
+      "persistence_checks": {
+        "input_response_bytes": [
+          107,
+          107
+        ],
+        "input_response_sha256": [
+          "73535fb5f3064ea80697abf430012252e5eace9b2156ce03b7a02778c8468dd7",
+          "73535fb5f3064ea80697abf430012252e5eace9b2156ce03b7a02778c8468dd7"
+        ],
+        "tail_marker_persisted_anywhere": false,
+        "persisted_files": [
+          "smoke_4167e395ccfd.producer_stream",
+          "lifecycle.jsonl",
+          "manifest.json",
+          "results/SMOKE_RECEIPT_smoke_4167e395ccfd.json"
+        ],
+        "intent_payload_hashes_match": [
+          true,
+          true
+        ]
+      }
+    },
+    "popen_failure": {
+      "returncode": 1,
+      "exception": null,
+      "receipt_count": 1,
+      "write_calls": 1,
+      "events": [],
+      "receipt": {
+        "child_started": false,
+        "loaded_a_model": null,
+        "popen_error": "OSError: synthetic child could not start",
+        "requests_expected": null,
+        "requests_with_records": null,
+        "requests_unaccounted_for": null,
+        "submitted_requests": 0,
+        "planned_requests": 2,
+        "generated_tokens_total": null,
+        "generated_tokens_known_sum": null,
+        "requests_with_known_usage": null,
+        "requests_with_unknown_usage": null,
+        "token_cap_respected": null,
+        "supervisor_problems": [
+          "the child could not be started: synthetic child could not start"
+        ],
+        "deadline": {
+          "budget_s": 600.0,
+          "dispatch_remaining_s": 510.0,
+          "elapsed_s": 0.0,
+          "enforcement": "every wait is bounded by remaining(); this is arithmetic on one monotonic origin, NOT a daemon thread",
+          "expired": false,
+          "may_dispatch": true,
+          "remaining_s": 600.0,
+          "reserve_s": 90.0
+        },
+        "requests": []
+      },
+      "persistence_checks": {
+        "input_response_bytes": [],
+        "input_response_sha256": [],
+        "tail_marker_persisted_anywhere": false,
+        "persisted_files": [
+          "lifecycle.jsonl",
+          "manifest.json",
+          "results/SMOKE_RECEIPT_smoke_4167e395ccfd.json"
+        ],
+        "intent_payload_hashes_match": []
+      }
+    }
+  },
+  "readiness": {
+    "full_project_percent": 75,
+    "delta_points": 0,
+    "bounded_v1_percent": 90,
+    "remaining_points": 25
+  },
+  "source_sha256": {
+    "experiments/live_ab_serving/run_smoke.py": "b15cb34cdefbdd931b3960b303b993f968182deb773baa243e3ffaf5349c5b40",
+    "experiments/live_ab/lab_lifecycle.py": "96748320661b0cff2deec7550022f30e1a0615e8215df4b9e8e6218cdc992398",
+    "experiments/live_ab/lab_common.py": "aa32c13a0f3c6895f6a4d7936cc2b883930e5f4db9491a7f3aa444c8e1c3bb1c",
+    "experiments/live_ab/lab_data.py": "7291fea66a25ca33c12c84c9a46d0f8246e35e0d8cc4d83aff2496a10c2b9977"
+  },
+  "findings": {
+    "accepted": [
+      "Broken barrier returns without POST and main refuses",
+      "Main retains expected denominator two with zero or one worker records",
+      "Aggregate rejects negative usage and preserves observed zero",
+      "Popen failure leaves loaded_a_model unknown and child_started false"
+    ],
+    "remaining_delta_issue": "Negative completion_tokens still sets per-request usage_known=true at lines 663-665, although aggregate correctly refuses it."
+  },
+  "harness_sha256": "570d8d28c6f4be45e1443a72b10246a9f5eb40c2be2d32d6bddf2844d820d989"
+}

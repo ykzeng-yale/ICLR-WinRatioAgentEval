@@ -1,0 +1,78 @@
+{
+  "reviewed_head": "9f2658b849d4f3d2fd2ce8fc9680b4e6b85454c9",
+  "source_commit": "d208bfa990edac64bfb7acdc3235d02bb5553855",
+  "source_sha256": "b15cb34cdefbdd931b3960b303b993f968182deb773baa243e3ffaf5349c5b40",
+  "scope": "Four pure helper calls to answer the explicit-denominator API question; main already passes integer len(planned). No process, HTTP or model execution.",
+  "cases": [
+    {
+      "case": "explicit_two_with_one_record",
+      "arguments": {
+        "expected": 2
+      },
+      "result": {
+        "generated_tokens_known_sum": 100,
+        "requests_expected": 2,
+        "requests_with_records": 1,
+        "requests_unaccounted_for": 1,
+        "requests_with_known_usage": 1,
+        "requests_with_unknown_usage": 1,
+        "generated_tokens_total": null,
+        "generated_tokens_total_note": "None: 1 of 2 expected request(s) reported no usable usage (1 left no record at all). The known-only sum is a LOWER BOUND, never the total.",
+        "token_cap_respected": null,
+        "token_cap": 2048
+      }
+    },
+    {
+      "case": "omitted_expected",
+      "arguments": {},
+      "result": {
+        "generated_tokens_known_sum": 100,
+        "requests_expected": 1,
+        "requests_with_records": 1,
+        "requests_unaccounted_for": 0,
+        "requests_with_known_usage": 1,
+        "requests_with_unknown_usage": 0,
+        "generated_tokens_total": 100,
+        "generated_tokens_total_note": "every expected request reported a usable non-negative integer usage",
+        "token_cap_respected": true,
+        "token_cap": 2048
+      }
+    },
+    {
+      "case": "coerced_float",
+      "arguments": {
+        "expected": 1.9
+      },
+      "result": {
+        "generated_tokens_known_sum": 100,
+        "requests_expected": 1,
+        "requests_with_records": 1,
+        "requests_unaccounted_for": 0,
+        "requests_with_known_usage": 1,
+        "requests_with_unknown_usage": 0,
+        "generated_tokens_total": 100,
+        "generated_tokens_total_note": "every expected request reported a usable non-negative integer usage",
+        "token_cap_respected": true,
+        "token_cap": 2048
+      }
+    },
+    {
+      "case": "boolean_expected",
+      "arguments": {
+        "expected": true
+      },
+      "result": {
+        "generated_tokens_known_sum": 100,
+        "requests_expected": 1,
+        "requests_with_records": 1,
+        "requests_unaccounted_for": 0,
+        "requests_with_known_usage": 1,
+        "requests_with_unknown_usage": 0,
+        "generated_tokens_total": 100,
+        "generated_tokens_total_note": "every expected request reported a usable non-negative integer usage",
+        "token_cap_respected": true,
+        "token_cap": 2048
+      }
+    }
+  ]
+}
