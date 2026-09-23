@@ -144,6 +144,16 @@ class SupervisorEntryPointTests(unittest.TestCase):
         m.setdefault('model', {})['sha256'] = hashlib.sha256(
             self.model.read_bytes()).hexdigest()
         m['model']['file'] = 'weights.gguf'
+        # THE IMPLEMENTATION LIBRARIES, declared and present. Root, 11:16: "the
+        # small launcher is not the implementation"; a manifest that declares no
+        # non-system closure now refuses before Popen. The fixture declares one
+        # rather than the rule being relaxed to fit it.
+        self.libs = {}
+        for name, blob in (('libllama-server-impl.dylib', b'IMPL BYTES'),
+                           ('libggml-base.0.dylib', b'GGML BYTES')):
+            (self.root / name).write_bytes(blob)
+            self.libs[name] = {'sha256': hashlib.sha256(blob).hexdigest()}
+        m['non_system_library_closure'] = copy.deepcopy(self.libs)
         self.man_path = self.root / 'manifest.json'
         self.man_path.write_text(json.dumps(m), encoding='utf-8')
         # THE TOKEN AND PROVENANCE MUST BE THE ONES THE SAVED RECORDS CARRY.
@@ -168,7 +178,7 @@ class SupervisorEntryPointTests(unittest.TestCase):
 
     # -- the harness ---------------------------------------------------------
     def _run(self, *, proc=None, bodies=None, break_barrier=False,
-             popen_raises=None, no_pointer=False):
+             popen_raises=None, no_pointer=False, post_hook=None):
         rs = self.rs
         proc = proc if proc is not None else _Proc()
         bodies = bodies if bodies is not None else [OK_BODY, OK_BODY]
@@ -176,6 +186,8 @@ class SupervisorEntryPointTests(unittest.TestCase):
 
         def fake_post(url, json=None, timeout=None, **kw):
             posted.append({'url': url, 'timeout': timeout})
+            if post_hook is not None:
+                return post_hook(url, json=json, timeout=timeout, **kw)
             payload = bodies[min(len(posted) - 1, len(bodies) - 1)]
             if isinstance(payload, Exception):
                 raise payload
@@ -337,6 +349,127 @@ class SupervisorEntryPointTests(unittest.TestCase):
         self.assertIn('acquisition_not_analyzed', receipt)
         self.assertNotIn('raw_log', receipt,
                          'the lifecycle log must not have been read')
+        self.assertEqual(status, 1)
+
+    def test_request_intent_is_ON_DISK_before_any_transport(self):
+        """Root, 2026-09-23 11:16: "`out['planned_request_intent'] = planned` is
+        only memory until terminal finalization. In the actual-main witness,
+        both barriers and both POST calls observe zero durable writes."
+
+        Asserted by reading the intent FILE, and by checking during the POST
+        that it already existed -- a receipt field saying "persisted" would be
+        exactly the self-report this module exists not to trust.
+        """
+        seen = []
+
+        def watcher(url, json=None, timeout=None, **kw):
+            # at the moment of transport, what is on disk?
+            seen.append(sorted(q.name for q in self.log.parent.glob('*.intent.json')))
+            return _Resp(OK_BODY)
+
+        status, receipt = self._run(post_hook=watcher)
+        self.assertTrue(seen, 'the transport was never invoked')
+        for snapshot in seen:
+            self.assertEqual(snapshot, ['%s.intent.json' % self.token],
+                             'the intent file must exist BEFORE the POST')
+
+        art = receipt['request_intent_artifact']
+        self.assertTrue(art['persisted'])
+        on_disk = json.loads((self.log.parent
+                              / ('%s.intent.json' % self.token)).read_text('utf-8'))
+        self.assertEqual(len(on_disk['planned_requests']), 2)
+        self.assertEqual(on_disk['run_token'], self.token)
+        for row in on_disk['planned_requests']:
+            self.assertIn('request_id', row)
+            self.assertIn('payload_sha256', row)
+            self.assertIn('payload', row)
+        # the terminal receipt must NOT have erased it
+        self.assertTrue((self.log.parent / ('%s.intent.json' % self.token)).exists())
+        self.assertEqual(status, 0)
+
+    def test_a_timed_out_request_is_ATTEMPTED_with_unknown_delivery(self):
+        """Root: "a request that was attempted and then timed out still counts
+        as unsubmitted ... records submitted_requests=0 and incorrectly calls
+        both 'never submitted'. Record transport invocation before the call and
+        response receipt afterward; preserve timeout and unknown server
+        receipt/usage without claiming no request was sent."
+        """
+        boom = RuntimeError('read timed out')
+        status, receipt = self._run(bodies=[boom, boom])
+        self.assertEqual(len(self.posted), 2, 'the transport WAS invoked twice')
+        self.assertEqual(receipt['transport_attempted_requests'], 2)
+        self.assertEqual(receipt['submitted_requests'], 0)
+        self.assertEqual(receipt['requests_with_unknown_delivery'], 2)
+        for row in receipt['requests']:
+            self.assertTrue(row['transport_attempted'])
+            self.assertFalse(row['response_received'])
+            self.assertEqual(row['delivery'], 'unknown_server_receipt')
+            self.assertNotIn('not_dispatched', row,
+                             'an attempted request was not "never dispatched"')
+        self.assertIsNone(receipt['generated_tokens_total'])
+        self.assertEqual(status, 1)
+
+    def test_the_WHOLE_response_body_is_on_disk_not_just_a_preview(self):
+        """Root: "Length, hash and a 4,000-character preview cannot recover the
+        omitted bytes. Valid responses longer than 9 KB return supervisor
+        success while their tail bytes are absent from every persisted file."
+        """
+        long_content = 'y' * 12000
+        big = {'usage': {'completion_tokens': 5},
+               'choices': [{'finish_reason': 'stop',
+                            'message': {'content': long_content}}]}
+        status, receipt = self._run(bodies=[big, big])
+        self.assertEqual(status, 0)
+        for row in receipt['requests']:
+            rr = row['raw_response']
+            self.assertTrue(rr['retained'])
+            self.assertTrue(rr['complete'])
+            self.assertTrue(rr['preview_truncated'],
+                            'the preview IS shortened -- that is the point')
+            # the FILE, not the receipt's description of it
+            f = self.log.parent / ('%s.response' % row['request_id'])
+            self.assertTrue(f.exists())
+            blob = f.read_bytes()
+            self.assertEqual(len(blob), rr['bytes'])
+            self.assertEqual(hashlib.sha256(blob).hexdigest(), rr['sha256'])
+            self.assertIn(long_content.encode(), blob,
+                          'the tail bytes must be recoverable from the artifact')
+            self.assertGreater(len(blob), rr['preview_chars_cap'])
+
+    def test_a_CHANGED_IMPLEMENTATION_LIBRARY_refuses_before_launch(self):
+        """Root, 2026-09-23 11:16: "the actual `non_system_library_closure`
+        declaration can name a sibling implementation library whose bytes have
+        changed and still receive verified=true ... The small launcher is not
+        the implementation."
+
+        The built launcher is 33,472 bytes; every line of instrumented server
+        code lives in `libllama-server-impl.dylib` and the ggml backends beside
+        it. A two-file launcher/model check could pass while the code that
+        actually runs had changed.
+        """
+        # the launcher and model are untouched; one sibling library is not
+        (self.root / 'libllama-server-impl.dylib').write_bytes(b'TAMPERED IMPL')
+        status, receipt = self._run()
+        self.assertIsNotNone(receipt)
+        self.assertFalse(receipt['launch_verification']['verified'])
+        self.assertTrue(any('libllama-server-impl' in p
+                            for p in receipt['launch_verification']['problems']))
+        self.assertFalse(receipt['child_started'],
+                         'nothing may launch once an input fails its pin')
+        self.assertEqual(self.posted, [])
+        self.assertEqual(status, 1)
+
+    def test_a_manifest_with_NO_declared_closure_refuses(self):
+        """A missing required input refuses before Popen; the launcher alone is
+        not acceptance of the candidate instrument."""
+        m = json.loads(self.man_path.read_text('utf-8'))
+        del m['non_system_library_closure']
+        self.man_path.write_text(json.dumps(m), encoding='utf-8')
+        status, receipt = self._run()
+        self.assertFalse(receipt['launch_verification']['verified'])
+        self.assertTrue(any('no non-system library closure' in p
+                            for p in receipt['launch_verification']['problems']))
+        self.assertFalse(receipt['child_started'])
         self.assertEqual(status, 1)
 
     def test_a_producer_that_refused_itself_invalidates_a_clean_log(self):

@@ -350,11 +350,62 @@ def verify_launch_artifacts(manifest: dict, *, binary: Path, model: Path) -> dic
             except Exception as exc:                           # noqa: BLE001
                 row['problem'] = 'could not read the %s: %s' % (name, exc)
         checks.append(row)
+    # THE LAUNCHER IS NOT THE IMPLEMENTATION. Root, 2026-09-23 11:16: "the
+    # actual `non_system_library_closure` declaration can name a sibling
+    # implementation library whose bytes have changed and still receive
+    # verified=true ... Resolve and check the actual selected implementation
+    # libraries and backend artifacts against the declared inventory ... The
+    # small launcher is not the implementation. Do not present a successful
+    # two-file hash comparison as acceptance of the entire candidate instrument."
+    #
+    # The built launcher is 33,472 bytes; every line of instrumented server code
+    # lives in libllama-server-impl.dylib and the ggml backends beside it. A
+    # two-file check could pass while the code that actually runs had changed.
+    declared_libs = manifest.get('non_system_library_closure')
+    lib_rows = []
+    if not isinstance(declared_libs, dict) or not declared_libs:
+        lib_rows.append({'problem': (
+            'the manifest declares no non-system library closure, so the '
+            'implementation libraries this launcher loads are unverified. A '
+            'missing required input refuses before Popen.')})
+    else:
+        for name in sorted(declared_libs):
+            entry = declared_libs[name] or {}
+            want = entry.get('sha256') if isinstance(entry, dict) else entry
+            lib = binary.parent / name
+            row = {'library': name, 'declared_sha256': want,
+                   'path': lab_common.display_path(lib)}
+            if not isinstance(want, str) or not lab_lifecycle.is_digest(want):
+                row['problem'] = ('%s declares no usable digest' % name)
+            elif not lib.exists():
+                row['problem'] = ('%s is declared but absent beside the launcher'
+                                  % name)
+            else:
+                h = hashlib.sha256()
+                try:
+                    with lib.open('rb') as fh:
+                        for block in iter(lambda: fh.read(1 << 20), b''):
+                            h.update(block)
+                    row['measured_sha256'] = h.hexdigest()
+                    row['agrees'] = (row['measured_sha256'] == want)
+                    if not row['agrees']:
+                        row['problem'] = ('%s does not match its declared pin'
+                                          % name)
+                except Exception as exc:                       # noqa: BLE001
+                    row['problem'] = 'could not read %s: %s' % (name, exc)
+            lib_rows.append(row)
+    checks.extend(lib_rows)
     problems = [c['problem'] for c in checks if c.get('problem')]
     return {'checks': checks, 'problems': problems, 'verified': not problems,
             'measured_from_disk': True,
-            'note': ('measured byte digests of the artifacts actually selected, '
-                     'compared with the immutable launch manifest BEFORE Popen')}
+            'libraries_declared': (len(declared_libs)
+                                   if isinstance(declared_libs, dict) else 0),
+            'libraries_verified': sum(1 for r in lib_rows if r.get('agrees')),
+            'note': ('measured byte digests of the launcher, the model AND the '
+                     'declared non-system library closure, compared with the '
+                     'immutable launch manifest BEFORE Popen. This is an '
+                     'inventory check of the declared members, not a proven '
+                     'transitive closure.')}
 
 
 def finalize(out: dict, dest: Path, problems: list) -> int:
@@ -395,6 +446,47 @@ def usable_token_count(value: object) -> bool:
     token total/cap success."
     """
     return (isinstance(value, int) and not isinstance(value, bool) and value >= 0)
+
+
+def _persist_response_bytes(directory: Path, request_id: str, raw: bytes) -> dict:
+    """Write the response bytes ONCE under the request identity, then describe them.
+
+    Root, 2026-09-23 11:16: "Persist the response bytes once under unique
+    request identity before parsing, with a reference and measured byte
+    count/hash; preserve unparsable responses and fail retention explicitly.
+    Preview truncation alone is harmless only when the complete raw artifact
+    exists."
+
+    The previous version kept length, hash and a 4,000-character preview. For a
+    response longer than that, the tail existed in no persisted file anywhere --
+    a digest describing bytes that no longer exist, which is the same finding as
+    the diagnostic capture.
+
+    The size and hash reported are MEASURED back from the written file, not
+    counted on the way in, and a retention failure is stated rather than
+    swallowed.
+    """
+    path = directory / ('%s.response' % request_id)
+    out: dict = {'request_id': request_id,
+                 'path': lab_common.display_path(path),
+                 'retained': False,
+                 'preview_chars_cap': DIAGNOSTIC_PREVIEW_CHARS,
+                 'preview': raw.decode('utf-8', 'replace')[:DIAGNOSTIC_PREVIEW_CHARS],
+                 'preview_truncated': len(raw) > DIAGNOSTIC_PREVIEW_CHARS,
+                 'bytes_received': len(raw)}
+    try:
+        # 'xb': never overwrite another request's evidence.
+        with open(path, 'xb') as fh:
+            fh.write(raw)
+        persisted = path.read_bytes()
+        out['retained'] = True
+        out['bytes'] = len(persisted)
+        out['sha256'] = hashlib.sha256(persisted).hexdigest()
+        out['complete'] = (len(persisted) == len(raw))
+    except Exception as exc:                                   # noqa: BLE001
+        out['retention_error'] = '%s: %s' % (type(exc).__name__, exc)
+        out['complete'] = False
+    return out
 
 
 def summarize_usage(results: list, *, token_cap: int, expected: int) -> dict:
@@ -610,8 +702,51 @@ def main() -> int:
                         'endpoint': base + '/v1/chat/completions'})
     out['planned_request_intent'] = planned
 
+    # DURABLE, ON DISK, BEFORE ANY TRANSPORT. Root, 2026-09-23 11:16: "Persist
+    # intent, rather than assigning a dictionary. `out['planned_request_intent']
+    # = planned` is only memory until terminal finalization. In the actual-main
+    # witness, both barriers and both POST calls observe zero durable writes ...
+    # Failure to persist must refuse dispatch; terminal completion must not
+    # overwrite intent."
+    #
+    # The comment above it used to say intent was "persisted before anything is
+    # attempted". It was a dict in memory. If the supervisor died mid-dispatch,
+    # nothing on disk said what it had been about to send -- which is the one
+    # thing an interrupted attempt most needs to leave behind.
+    #
+    # A SEPARATE file, so the terminal receipt's write-once semantics cannot
+    # erase it.
+    intent_path = log.parent / ('%s.intent.json' % token)
+    intent_doc = {
+        'schema': 'live_ab/request_intent-v1',
+        'attempt_id': '%s_%s' % (token, time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())),
+        'run_token': token,
+        'written_utc': _now(),
+        'canonicalization': 'json.dumps(body, sort_keys=True, separators=(",",":"))',
+        'planned_requests': planned,
+        'note': ('written BEFORE the barrier and before any transport call, so an '
+                 'interrupted attempt still says what it was about to send'),
+    }
+    try:
+        lab_common.write_json_atomic(intent_path, intent_doc)
+        out['request_intent_artifact'] = {
+            'path': lab_common.display_path(intent_path),
+            'attempt_id': intent_doc['attempt_id'],
+            'persisted': True,
+            'sha256': hashlib.sha256(intent_path.read_bytes()).hexdigest(),
+            'bytes': intent_path.stat().st_size,
+        }
+    except Exception as exc:                                   # noqa: BLE001
+        out['request_intent_artifact'] = {
+            'path': lab_common.display_path(intent_path), 'persisted': False,
+            'error': '%s: %s' % (type(exc).__name__, exc)}
+        return finalize(out, dest,
+                        ['the request intent could not be persisted, so no '
+                         'request was dispatched: %s' % exc])
+
     submitted = threading.Lock()
     submitted_count = [0]
+    attempted_count = [0]
 
     if ready:
         barrier = threading.Barrier(2)
@@ -647,12 +782,30 @@ def main() -> int:
                 rec['elapsed_s'] = 0.0
                 results.append(rec)
                 return
+            # THE TRANSPORT INVOCATION IS RECORDED BEFORE THE CALL. Root,
+            # 11:16: "the new submission counter increments only after
+            # `requests.post` returns, so a request that was attempted and then
+            # timed out still counts as unsubmitted ... records
+            # submitted_requests=0 and incorrectly calls both 'never submitted'.
+            # Record transport invocation before the call and response receipt
+            # afterward; preserve timeout and unknown server receipt/usage
+            # without claiming no request was sent."
+            #
+            # Three distinct states, and conflating them is how a timed-out
+            # request became a request that was never made: ATTEMPTED (we called
+            # the transport), RESPONSE RECEIVED (it returned), and DELIVERY
+            # UNKNOWN (it raised, so whether the server got it is not knowable
+            # from here).
+            rec['transport_attempted'] = True
             rec['t_send_monotonic'] = time.monotonic()
             rec['t_send_utc'] = _now()
+            with submitted:
+                attempted_count[0] += 1
             try:
                 r = requests.post(plan['endpoint'], json=plan['payload'],
                                   timeout=deadline.bounded(REQUEST_CAP_S))
-                # COUNTED AT ACTUAL SUBMISSION, not assigned in advance.
+                rec['response_received'] = True
+                rec['delivery'] = 'response_received'
                 rec['submitted'] = True
                 with submitted:
                     submitted_count[0] += 1
@@ -661,13 +814,19 @@ def main() -> int:
                 # RAW RESPONSE BYTES RETAINED. Root: "raw HTTP responses are
                 # reduced to a few fields." The three summary fields below are
                 # derived; these bytes are the evidence they were derived from.
+                # THE BYTES ARE PERSISTED ONCE, BEFORE PARSING. Root, 11:16:
+                # "Length, hash and a 4,000-character preview cannot recover the
+                # omitted bytes. Valid responses longer than 9 KB return
+                # supervisor success while their tail bytes are absent from
+                # every persisted file ... Persist the response bytes once under
+                # unique request identity before parsing."
+                #
+                # A digest plus a preview describes bytes that no longer exist,
+                # which is the same finding as the diagnostic capture: a digest
+                # of discarded bytes is not a retained artifact.
                 raw = r.content
-                rec['raw_response'] = {
-                    'bytes': len(raw),
-                    'sha256': hashlib.sha256(raw).hexdigest(),
-                    'preview_chars_cap': DIAGNOSTIC_PREVIEW_CHARS,
-                    'preview': raw.decode('utf-8', 'replace')[:DIAGNOSTIC_PREVIEW_CHARS],
-                    'preview_truncated': len(raw) > DIAGNOSTIC_PREVIEW_CHARS}
+                rec['raw_response'] = _persist_response_bytes(
+                    log.parent, plan['request_id'], raw)
                 try:
                     d = r.json()
                 except Exception as exc:                       # noqa: BLE001
@@ -697,7 +856,14 @@ def main() -> int:
             except Exception as exc:                           # noqa: BLE001
                 rec['t_ack_monotonic'] = time.monotonic()
                 rec['error'] = '%s: %s' % (type(exc).__name__, exc)
+                rec['response_received'] = False
+                # NOT 'never submitted'. The transport was invoked; whether the
+                # server received it cannot be known from this side.
+                rec['delivery'] = 'unknown_server_receipt'
                 rec['usage_known'] = False
+                rec['usage_unusable_reason'] = (
+                    'the transport raised (%s), so no usage was returned and '
+                    'delivery is unknown' % type(exc).__name__)
             rec['elapsed_s'] = rec['t_ack_monotonic'] - rec['t_send_monotonic']
             results.append(rec)
 
@@ -707,6 +873,9 @@ def main() -> int:
         for th in threads:
             th.join(timeout=deadline.bounded(REQUEST_CAP_S + 30, use_reserve=True))
     out['submitted_requests'] = submitted_count[0]
+    out['transport_attempted_requests'] = attempted_count[0]
+    out['requests_with_unknown_delivery'] = sum(
+        1 for r in results if r.get('delivery') == 'unknown_server_receipt')
     out['requests'] = sorted(results, key=lambda r: r['index'])
     out.update(summarize_usage(results, token_cap=TOKEN_CAP,
                                expected=len(planned)))
@@ -878,6 +1047,14 @@ def main() -> int:
         ('the drain thread had not finished, so its state is not a final snapshot'
          if not out['producer_diagnostics']['drain_thread_finished'] else None),
         ('the absolute deadline expired' if deadline.expired() else None),
+        ('%d response(s) were not fully retained' % sum(
+            1 for r in results if r.get('raw_response')
+            and not r['raw_response'].get('complete'))
+         if any(r.get('raw_response') and not r['raw_response'].get('complete')
+                for r in results) else None),
+        ('%d request(s) have unknown server delivery'
+         % out.get('requests_with_unknown_delivery', 0)
+         if out.get('requests_with_unknown_delivery') else None),
         ('token usage was not measurable for %d request(s), so the token cap '
          'could not be judged' % out.get('requests_with_unknown_usage', 0)
          if out.get('token_cap_respected') is None else None),

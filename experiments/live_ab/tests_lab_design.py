@@ -4441,29 +4441,49 @@ class AcquisitionSealTests(unittest.TestCase):
         bh = hashlib.sha256(b'BINARY').hexdigest()
         mh = hashlib.sha256(b'WEIGHTS').hexdigest()
 
-        ok = run_smoke.verify_launch_artifacts(
+        # A launcher+model manifest is NO LONGER SUFFICIENT. Root, 11:16: "the
+        # small launcher is not the implementation. Do not present a successful
+        # two-file hash comparison as acceptance of the entire candidate
+        # instrument." The implementation libraries must be declared too.
+        two_file_only = run_smoke.verify_launch_artifacts(
             {'launcher': {'sha256': bh}, 'model': {'sha256': mh}},
             binary=binary, model=model)
+        self.assertFalse(two_file_only['verified'])
+        self.assertTrue(any('no non-system library closure' in p
+                            for p in two_file_only['problems']))
+
+        lib = binary.parent / 'libimpl.dylib'
+        lib.write_bytes(b'IMPL')
+        closure = {'libimpl.dylib': {
+            'sha256': hashlib.sha256(b'IMPL').hexdigest()}}
+        full = {'launcher': {'sha256': bh}, 'model': {'sha256': mh},
+                'non_system_library_closure': closure}
+
+        ok = run_smoke.verify_launch_artifacts(full, binary=binary, model=model)
         self.assertTrue(ok['verified'], ok['problems'])       # control
         self.assertEqual(ok['checks'][0]['measured_sha256'], bh)
+        self.assertEqual(ok['libraries_verified'], 1)
+
+        lib.write_bytes(b'TAMPERED IMPL')
+        moved = run_smoke.verify_launch_artifacts(full, binary=binary, model=model)
+        self.assertFalse(moved['verified'],
+                         'a changed sibling implementation library must refuse')
+        lib.write_bytes(b'IMPL')
 
         # the file on disk changes; the manifest does not
         binary.write_bytes(b'TAMPERED')
-        bad = run_smoke.verify_launch_artifacts(
-            {'launcher': {'sha256': bh}, 'model': {'sha256': mh}},
-            binary=binary, model=model)
+        bad = run_smoke.verify_launch_artifacts(full, binary=binary, model=model)
         self.assertFalse(bad['verified'])
         self.assertIn('does not match its declared pin', bad['problems'][0])
 
         # a manifest that declares no usable digest verifies NOTHING
         none = run_smoke.verify_launch_artifacts(
-            {'launcher': {}, 'model': {'sha256': mh}}, binary=binary, model=model)
+            dict(full, launcher={}), binary=binary, model=model)
         self.assertFalse(none['verified'])
         self.assertIn('nothing to verify against', none['problems'][0])
 
         missing = run_smoke.verify_launch_artifacts(
-            {'launcher': {'sha256': bh}, 'model': {'sha256': mh}},
-            binary=self.tmp / 'absent', model=model)
+            full, binary=self.tmp / 'absent', model=model)
         self.assertFalse(missing['verified'])
 
     def test_finalize_writes_ONE_receipt_and_returns_the_status(self):
