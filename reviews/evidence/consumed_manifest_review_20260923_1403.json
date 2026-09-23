@@ -1,0 +1,364 @@
+{
+  "head": "176e682f5688ee4c786d4840fb3ac7f40351a677",
+  "source_commit": "1e58d3b041c3310c1df19aa5cefaf0cad5040af2",
+  "hashes": {
+    "experiments/live_ab_serving/run_smoke.py": "2d2ec42beccc9e8b41790a6e22cba245ae7412cccba86f4b040e3b77f5b17fb1",
+    "experiments/live_ab_serving/tests_supervisor_entry.py": "d0b3ad15882c3bda749a484c647af5ce17aad8e3200c268a7e20491caa3e616b",
+    "experiments/live_ab/lab_lifecycle.py": "604556893fb5d381049756f765251bc45bd1f57ea632630d68fe2ee5610ac0b2",
+    "results/live_ab/SMOKE_RECEIPT_smoke_4167e395ccfd.json": "087961a921bc0ec7c5980650f67ee901e7cfa9ada6799ee64c59b494b869a388",
+    "results/live_ab/SMOKE_LAUNCH_MANIFEST_smoke_4167e395ccfd.json": "9694ac9b76dc0e567ba3c152f4407e6358bdc4ddba48d972eb651f2204992934",
+    "results/live_ab/PROTECTED_PATH_AND_CONSUMED_FIELDS.json": "8672f68d639844dc76189c889406ab89cb623509e45aa1ddf5c707bfff5af41a"
+  },
+  "validator_cases": [
+    {
+      "case": "missing_temperature",
+      "problems": [
+        "manifest[\"request\"] is missing 'temperature'"
+      ],
+      "exception": null
+    },
+    {
+      "case": "missing_host_id",
+      "problems": [
+        "manifest is missing 'host_id'"
+      ],
+      "exception": null
+    },
+    {
+      "case": "missing_boot_id",
+      "problems": [
+        "manifest is missing 'boot_id'"
+      ],
+      "exception": null
+    },
+    {
+      "case": "malformed_patch_digest",
+      "problems": [
+        "manifest[\"patch_sha256\"] is not 64 lowercase hex"
+      ],
+      "exception": null
+    },
+    {
+      "case": "max_tokens_negative",
+      "problems": [
+        "manifest[\"request\"][\"max_tokens\"] -5 is not positive"
+      ],
+      "exception": null
+    },
+    {
+      "case": "temperature_bool",
+      "problems": [
+        "manifest[\"request\"][\"temperature\"] True is not a number"
+      ],
+      "exception": null
+    },
+    {
+      "case": "temperature_nonfinite",
+      "problems": [
+        "manifest[\"request\"][\"temperature\"] inf is not finite"
+      ],
+      "exception": null
+    },
+    {
+      "case": "missing_patch_sha256",
+      "problems": [
+        "manifest is missing 'patch_sha256'"
+      ],
+      "exception": null
+    },
+    {
+      "case": "valid_control",
+      "problems": [],
+      "exception": null
+    },
+    {
+      "case": "temperature_explicit_null",
+      "problems": [],
+      "exception": null
+    },
+    {
+      "case": "temperature_large_integer",
+      "problems": null,
+      "exception": "OverflowError",
+      "exception_message": "int too large to convert to float"
+    },
+    {
+      "case": "request_null_container",
+      "problems": [
+        "manifest['request'] is 'NoneType', expected dict"
+      ],
+      "exception": null
+    },
+    {
+      "case": "model_list_container",
+      "problems": [
+        "manifest['model'] is 'list', expected dict"
+      ],
+      "exception": null
+    }
+  ],
+  "actual_main_cases": [
+    {
+      "case": "missing_temperature",
+      "manifest_sha256": "ec6048c8277ce0e09e03e8dbc9fe481a805a692d7c12670e0c05073ed3476fcb",
+      "status": 1,
+      "exception": null,
+      "manifest_validation": {
+        "problems": [
+          "manifest[\"request\"] is missing 'temperature'"
+        ],
+        "usable": false
+      },
+      "child_started": false,
+      "supervisor_problems": [
+        "the launch manifest is unusable: manifest[\"request\"] is missing 'temperature'"
+      ],
+      "terminal_receipts": 1,
+      "post_calls": 0,
+      "posted_temperatures": [],
+      "poll_calls": 0,
+      "wait_calls": 0,
+      "child_returncode": null,
+      "stdout_bytes_consumed": 0,
+      "intent_artifacts": 0,
+      "unexpected_processes": []
+    },
+    {
+      "case": "missing_host_id",
+      "manifest_sha256": "f543af394944fa72dc630332ba78b5be8dfd5f17bfdb29187db10aa1efcc0974",
+      "status": 1,
+      "exception": null,
+      "manifest_validation": {
+        "problems": [
+          "manifest is missing 'host_id'"
+        ],
+        "usable": false
+      },
+      "child_started": false,
+      "supervisor_problems": [
+        "the launch manifest is unusable: manifest is missing 'host_id'"
+      ],
+      "terminal_receipts": 1,
+      "post_calls": 0,
+      "posted_temperatures": [],
+      "poll_calls": 0,
+      "wait_calls": 0,
+      "child_returncode": null,
+      "stdout_bytes_consumed": 0,
+      "intent_artifacts": 0,
+      "unexpected_processes": []
+    },
+    {
+      "case": "missing_boot_id",
+      "manifest_sha256": "144aab02b67b00779ca85d144c58854f079a51bfc40a616caac05cc192e6c101",
+      "status": 1,
+      "exception": null,
+      "manifest_validation": {
+        "problems": [
+          "manifest is missing 'boot_id'"
+        ],
+        "usable": false
+      },
+      "child_started": false,
+      "supervisor_problems": [
+        "the launch manifest is unusable: manifest is missing 'boot_id'"
+      ],
+      "terminal_receipts": 1,
+      "post_calls": 0,
+      "posted_temperatures": [],
+      "poll_calls": 0,
+      "wait_calls": 0,
+      "child_returncode": null,
+      "stdout_bytes_consumed": 0,
+      "intent_artifacts": 0,
+      "unexpected_processes": []
+    },
+    {
+      "case": "missing_patch_sha256",
+      "manifest_sha256": "166a95e160e312bb106f04536e058c8cc15848bda524818c65ebe6e57a678efe",
+      "status": 1,
+      "exception": null,
+      "manifest_validation": {
+        "problems": [
+          "manifest is missing 'patch_sha256'"
+        ],
+        "usable": false
+      },
+      "child_started": false,
+      "supervisor_problems": [
+        "the launch manifest is unusable: manifest is missing 'patch_sha256'"
+      ],
+      "terminal_receipts": 1,
+      "post_calls": 0,
+      "posted_temperatures": [],
+      "poll_calls": 0,
+      "wait_calls": 0,
+      "child_returncode": null,
+      "stdout_bytes_consumed": 0,
+      "intent_artifacts": 0,
+      "unexpected_processes": []
+    },
+    {
+      "case": "valid_control",
+      "manifest_sha256": "044c06fa004f3aa250fbdde07f9a7e70b7b000eda1f5fd14878e77ae7a48f49a",
+      "status": 0,
+      "exception": null,
+      "manifest_validation": {
+        "problems": [],
+        "usable": true
+      },
+      "child_started": true,
+      "supervisor_problems": [],
+      "terminal_receipts": 1,
+      "post_calls": 2,
+      "posted_temperatures": [
+        0,
+        0
+      ],
+      "poll_calls": 1,
+      "wait_calls": 1,
+      "child_returncode": 0,
+      "stdout_bytes_consumed": 21,
+      "intent_artifacts": 1,
+      "unexpected_processes": []
+    },
+    {
+      "case": "temperature_explicit_null",
+      "manifest_sha256": "1c598fceeae99888d387a653d2fda2f665167f57707738f2ac0634ea1e399cf1",
+      "status": 0,
+      "exception": null,
+      "manifest_validation": {
+        "problems": [],
+        "usable": true
+      },
+      "child_started": true,
+      "supervisor_problems": [],
+      "terminal_receipts": 1,
+      "post_calls": 2,
+      "posted_temperatures": [
+        null,
+        null
+      ],
+      "poll_calls": 1,
+      "wait_calls": 1,
+      "child_returncode": 0,
+      "stdout_bytes_consumed": 21,
+      "intent_artifacts": 1,
+      "unexpected_processes": []
+    },
+    {
+      "case": "temperature_large_integer",
+      "manifest_sha256": "5f954494a38f060438e372d61687142bf5bd0ef80b6fcdc300fffc6568105384",
+      "status": null,
+      "exception": "OverflowError",
+      "exception_message": "int too large to convert to float",
+      "terminal_receipts": 0,
+      "post_calls": 0,
+      "posted_temperatures": [],
+      "poll_calls": 0,
+      "wait_calls": 0,
+      "child_returncode": null,
+      "stdout_bytes_consumed": 0,
+      "intent_artifacts": 0,
+      "unexpected_processes": []
+    },
+    {
+      "case": "request_null_container",
+      "manifest_sha256": "a7c2f6ef938082d3942d266d2d10a61b3437ca43a35b745dba867af773bccbdb",
+      "status": 1,
+      "exception": null,
+      "manifest_validation": {
+        "problems": [
+          "manifest['request'] is 'NoneType', expected dict"
+        ],
+        "usable": false
+      },
+      "child_started": false,
+      "supervisor_problems": [
+        "the launch manifest is unusable: manifest['request'] is 'NoneType', expected dict"
+      ],
+      "terminal_receipts": 1,
+      "post_calls": 0,
+      "posted_temperatures": [],
+      "poll_calls": 0,
+      "wait_calls": 0,
+      "child_returncode": null,
+      "stdout_bytes_consumed": 0,
+      "intent_artifacts": 0,
+      "unexpected_processes": []
+    },
+    {
+      "case": "model_list_container",
+      "manifest_sha256": "7d2c3a41eb628ace27f0df04b97db838b404e0455e63d5fe5f2155ad03dc41e8",
+      "status": 1,
+      "exception": null,
+      "manifest_validation": {
+        "problems": [
+          "manifest['model'] is 'list', expected dict"
+        ],
+        "usable": false
+      },
+      "child_started": false,
+      "supervisor_problems": [
+        "the launch manifest is unusable: manifest['model'] is 'list', expected dict"
+      ],
+      "terminal_receipts": 1,
+      "post_calls": 0,
+      "posted_temperatures": [],
+      "poll_calls": 0,
+      "wait_calls": 0,
+      "child_returncode": null,
+      "stdout_bytes_consumed": 0,
+      "intent_artifacts": 0,
+      "unexpected_processes": []
+    }
+  ],
+  "guard_violations": [],
+  "counts": {
+    "pure_validator_cases": 13,
+    "claimed_rejection_cases_reproduced": 7,
+    "actual_main_cases": 9,
+    "full_owner_suite_runs": 0,
+    "native_children": 0,
+    "network": 0,
+    "models": 0,
+    "builds": 0,
+    "real_pipes": 0,
+    "real_waits": 0
+  },
+  "review_script_sha256": "46c0f320eead2b239e70c677767759f3af476b3f5442f26a9eebb43860a2ab2f",
+  "scope": "Consumed-field validator only. Protected cleanup, response durability and selected-library binding are independently assigned; no tests of those contracts were repeated.",
+  "accepted_subset": [
+    "All seven delivered validator rejection probes reproduce.",
+    "Missing temperature, host_id, boot_id and patch_sha256 each now persist one actual-main refusal before launch or transport.",
+    "request:null and model:[] are rejected before nested access or launch.",
+    "Valid complete fixture still returns success under the fake transport."
+  ],
+  "remaining_defects": [
+    {
+      "case": "temperature_explicit_null",
+      "cause": "need(..., kind=None) returns None for an explicit JSON null, and `if temp is not None` skips every numeric/domain check.",
+      "actual_main_result": "status0, two fake POSTs with temperature:null, one success receipt. Real server treatment of null was not tested."
+    },
+    {
+      "case": "temperature_large_integer",
+      "value": "10**400",
+      "cause": "float(temp) raises OverflowError inside validate_manifest; the actual-main invocation is outside a protecting finalization handler.",
+      "actual_main_result": "uncaught OverflowError before launch, no POST or intent, zero terminal receipt. This is a prelaunch receipt failure, not a child leak."
+    }
+  ],
+  "next_bounded_action": "Reject explicit null distinctly from absence; make numeric conversion/domain checks total so unrepresentable input yields a named validation problem. Add actual-main null and large-integer controls requiring one refusal receipt and zero launch/transport; preserve already accepted missing-field closures.",
+  "isolation": "New owner entry-point harness under independent Popen/socket/system/signal/pipe/real-sleep guards; every fixture owner deny ledger and independent guard ledger was asserted empty. No native child, model, HTTP, network, pipe, build, real wait, or simulation.",
+  "progress": {
+    "full_project_percent": 75,
+    "change_percentage_points": 0,
+    "bounded_v1_percent": 90,
+    "remaining_points": {
+      "prospective_study": 10,
+      "final_integration_QA": 5,
+      "author_checks": 10
+    },
+    "CPU_validation_and_integration": "complete and unchanged"
+  },
+  "reproduction_script": "import contextlib, copy, hashlib, importlib.util, io, json, os, socket, subprocess, time\nfrom pathlib import Path\nfrom unittest import mock\nROOT=Path('/Users/yukang/Documents/Codex/2026-09-17/i-x20/outputs/agent_win_eval')\npaths=['experiments/live_ab_serving/run_smoke.py','experiments/live_ab_serving/tests_supervisor_entry.py','experiments/live_ab/lab_lifecycle.py','results/live_ab/SMOKE_RECEIPT_smoke_4167e395ccfd.json','results/live_ab/SMOKE_LAUNCH_MANIFEST_smoke_4167e395ccfd.json','results/live_ab/PROTECTED_PATH_AND_CONSUMED_FIELDS.json']\nev={'head':'176e682f5688ee4c786d4840fb3ac7f40351a677','source_commit':'1e58d3b041c3310c1df19aa5cefaf0cad5040af2','hashes':{p:hashlib.sha256((ROOT/p).read_bytes()).hexdigest() for p in paths},'validator_cases':[],'actual_main_cases':[],'guard_violations':[]}\nspec=importlib.util.spec_from_file_location('consumed_manifest_owner_harness',ROOT/paths[1]); H=importlib.util.module_from_spec(spec); spec.loader.exec_module(H); H.SupervisorEntryPointTests.setUpClass(); rs=H.SupervisorEntryPointTests.rs\nmutations={\n 'missing_temperature':lambda m:m['request'].pop('temperature'),\n 'missing_host_id':lambda m:m.pop('host_id'),\n 'missing_boot_id':lambda m:m.pop('boot_id'),\n 'malformed_patch_digest':lambda m:m.__setitem__('patch_sha256','not-a-digest'),\n 'max_tokens_negative':lambda m:m['request'].__setitem__('max_tokens',-5),\n 'temperature_bool':lambda m:m['request'].__setitem__('temperature',True),\n 'temperature_nonfinite':lambda m:m['request'].__setitem__('temperature',float('inf')),\n 'missing_patch_sha256':lambda m:m.pop('patch_sha256'),\n 'valid_control':lambda m:None,\n 'temperature_explicit_null':lambda m:m['request'].__setitem__('temperature',None),\n 'temperature_large_integer':lambda m:m['request'].__setitem__('temperature',10**400),\n 'request_null_container':lambda m:m.__setitem__('request',None),\n 'model_list_container':lambda m:m.__setitem__('model',[]),\n}\nbase=copy.deepcopy(H.SupervisorEntryPointTests.manifest)\nfor name, mutate in mutations.items():\n m=copy.deepcopy(base); mutate(m); row={'case':name}\n try: row.update(problems=rs.validate_manifest(m),exception=None)\n except Exception as exc: row.update(problems=None,exception=type(exc).__name__,exception_message=str(exc))\n ev['validator_cases'].append(row)\nclass Proc(H._Proc):\n def __init__(self): super().__init__(); self.poll_calls=0; self.wait_calls=0\n def poll(self): self.poll_calls+=1; return super().poll()\n def wait(self,timeout=None): self.wait_calls+=1; return super().wait(timeout=timeout)\ndef deny(name):\n def f(*a,**kw): ev['guard_violations'].append(name); raise AssertionError('independent guard denied '+name)\n return f\nmain_names=['missing_temperature','missing_host_id','missing_boot_id','missing_patch_sha256','valid_control','temperature_explicit_null','temperature_large_integer','request_null_container','model_list_container']\nwith contextlib.ExitStack() as stack:\n for obj,attr,name in [(subprocess,'Popen','Popen'),(socket,'socket','socket'),(os,'system','system'),(os,'kill','kill'),(os,'killpg','killpg'),(os,'pipe','pipe'),(time,'sleep','real_sleep')]: stack.enter_context(mock.patch.object(obj,attr,deny(name)))\n for name in main_names:\n  test=H.SupervisorEntryPointTests('test_a_valid_run_writes_one_receipt_and_returns_zero'); test.setUp(); proc=Proc(); posts=[]\n  try:\n   m=json.loads(test.man_path.read_text()); mutations[name](m); test.man_path.write_text(json.dumps(m),encoding='utf-8')\n   row={'case':name,'manifest_sha256':hashlib.sha256(test.man_path.read_bytes()).hexdigest()}\n   def watch(*a,**kw): posts.append(kw['json']); return H._Resp(H.OK_BODY)\n   try:\n    with contextlib.redirect_stdout(io.StringIO()),contextlib.redirect_stderr(io.StringIO()): status,receipt=test._run(proc=proc,post_hook=watch)\n    row.update(status=status,exception=None,manifest_validation=receipt.get('manifest_validation'),child_started=receipt.get('child_started'),supervisor_problems=receipt.get('supervisor_problems'))\n   except Exception as exc: row.update(status=None,exception=type(exc).__name__,exception_message=str(exc))\n   row.update(terminal_receipts=len(list(test.results.glob('SMOKE_RECEIPT*.json'))),post_calls=len(posts),posted_temperatures=[p.get('temperature') for p in posts],poll_calls=proc.poll_calls,wait_calls=proc.wait_calls,child_returncode=proc.returncode,stdout_bytes_consumed=proc.stdout.tell(),intent_artifacts=len(list(test.root.glob('*.intent.json'))),unexpected_processes=test.denied)\n   assert not test.denied\n   ev['actual_main_cases'].append(row)\n  finally: test.doCleanups()\nassert not ev['guard_violations']\nfor x in ev['actual_main_cases']:\n if x['case'] in ['missing_temperature','missing_host_id','missing_boot_id','missing_patch_sha256','request_null_container','model_list_container']:\n  assert x['status']==1 and x['terminal_receipts']==1 and x['post_calls']==0 and not x['child_started']\n if x['case'] in ['valid_control','temperature_explicit_null']:\n  assert x['status']==0 and x['terminal_receipts']==1 and x['post_calls']==2\n if x['case']=='temperature_large_integer':\n  assert x['exception']=='OverflowError' and x['terminal_receipts']==0 and x['post_calls']==0 and x['poll_calls']==0\nassert len(ev['validator_cases'])==13 and len(ev['actual_main_cases'])==9\nev['counts']={'pure_validator_cases':13,'claimed_rejection_cases_reproduced':7,'actual_main_cases':9,'full_owner_suite_runs':0,'native_children':0,'network':0,'models':0,'builds':0,'real_pipes':0,'real_waits':0}\nev['review_script_sha256']=hashlib.sha256(Path(__file__).read_bytes()).hexdigest()\nPath('/private/tmp/consumed_manifest_1403_result.json').write_text(json.dumps(ev,indent=2)+'\\n')\nprint(json.dumps(ev,indent=2))\n"
+}

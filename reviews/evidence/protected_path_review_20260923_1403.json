@@ -1,0 +1,705 @@
+{
+  "head": "176e682f5688ee4c786d4840fb3ac7f40351a677",
+  "source": "1e58d3b041c3310c1df19aa5cefaf0cad5040af2",
+  "scope": "Eight bounded actual-main protected-path witnesses. All process/HTTP/signals/monotonic-clock/thread interactions mocked, real reader/finalizer and file persistence on closed synthetic temporary fixtures; launch artifact verification stubbed for separate review. No child, network, model, build, full suite or real waits. All injected failures target process/drain/request bookkeeping; no actual unfinished task or growing file. Monotonic clock and _now are synthetic; filename wall-clock formatting unchanged.",
+  "source_sha256": {
+    "experiments/live_ab_serving/run_smoke.py": "2d2ec42beccc9e8b41790a6e22cba245ae7412cccba86f4b040e3b77f5b17fb1",
+    "experiments/live_ab/lab_common.py": "aa32c13a0f3c6895f6a4d7936cc2b883930e5f4db9491a7f3aa444c8e1c3bb1c",
+    "experiments/live_ab/lab_lifecycle.py": "604556893fb5d381049756f765251bc45bd1f57ea632630d68fe2ee5610ac0b2"
+  },
+  "harness_sha256": "3ea7d4f1f9c1b9086f9f55fdc9faee29881333e9f9186725703ab099cacccdb4",
+  "cases": {
+    "normal_control": {
+      "main_returncode": 0,
+      "exception": null,
+      "receipt_count": 1,
+      "events": [
+        {
+          "event": "Popen",
+          "intent_exists": true
+        },
+        {
+          "event": "barrier",
+          "intent_exists": true,
+          "intent_sha256": "cce5054176ae9bb254cf7eb3f3377890a237df8e9a5a167b526782bbd4df2349"
+        },
+        {
+          "event": "POST",
+          "index": 0,
+          "intent_exists": true,
+          "intent_sha256": "cce5054176ae9bb254cf7eb3f3377890a237df8e9a5a167b526782bbd4df2349"
+        },
+        {
+          "event": "barrier",
+          "intent_exists": true,
+          "intent_sha256": "cce5054176ae9bb254cf7eb3f3377890a237df8e9a5a167b526782bbd4df2349"
+        },
+        {
+          "event": "POST",
+          "index": 1,
+          "intent_exists": true,
+          "intent_sha256": "cce5054176ae9bb254cf7eb3f3377890a237df8e9a5a167b526782bbd4df2349"
+        },
+        {
+          "event": "request_join",
+          "alive": false,
+          "timeout": 150.0
+        },
+        {
+          "event": "request_join",
+          "alive": false,
+          "timeout": 150.0
+        },
+        {
+          "event": "signal",
+          "signal": 15
+        },
+        {
+          "event": "wait",
+          "timeout": 60.0
+        },
+        {
+          "event": "drain_join",
+          "alive": false,
+          "timeout": 30.0
+        }
+      ],
+      "writes": [
+        {
+          "path": "smoke_4167e395ccfd.intent.json",
+          "kind": "live_ab/request_intent-v1"
+        },
+        {
+          "path": "SMOKE_RECEIPT_smoke_4167e395ccfd.json",
+          "kind": "live_ab/smoke_receipt-v1"
+        }
+      ],
+      "parse_time_checks": [
+        {
+          "request_id": "smoke_4167e395ccfd_req0",
+          "artifact_exists_before_parse": true,
+          "input_bytes": 12124,
+          "persisted_bytes": 12124,
+          "input_sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df",
+          "persisted_sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df",
+          "bytes_equal_before_parse": true
+        },
+        {
+          "request_id": "smoke_4167e395ccfd_req1",
+          "artifact_exists_before_parse": true,
+          "input_bytes": 12124,
+          "persisted_bytes": 12124,
+          "input_sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df",
+          "persisted_sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df",
+          "bytes_equal_before_parse": true
+        }
+      ],
+      "mock_child_returncode_after_main": 0,
+      "receipt": {
+        "child_started": true,
+        "child_confirmed_stopped": true,
+        "submitted_requests": 2,
+        "transport_attempted_requests": 2,
+        "requests_with_unknown_delivery": 0,
+        "requests_expected": 2,
+        "requests_with_records": 2,
+        "requests_unaccounted_for": 0,
+        "generated_tokens_total": 2048,
+        "token_cap_respected": true,
+        "request_intent_artifact": {
+          "attempt_id": "smoke_4167e395ccfd_20260923T140603Z",
+          "bytes": 1188,
+          "path": "<TMP>/request_durability_1320_c7oafpfk/smoke_4167e395ccfd.intent.json",
+          "persisted": true,
+          "sha256": "cce5054176ae9bb254cf7eb3f3377890a237df8e9a5a167b526782bbd4df2349"
+        },
+        "supervisor_problems": [],
+        "unhandled_during_dispatch": null,
+        "requests": [
+          {
+            "content_chars": 12016,
+            "delivery": "response_received",
+            "elapsed_s": 0.0,
+            "finish_reason": "length",
+            "index": 0,
+            "payload_sha256": "4ef1084c351470f52e34493a3f35e9f84c08263b3d0474c8c21dcfc84ae73a89",
+            "raw_response": {
+              "bytes": 12124,
+              "bytes_received": 12124,
+              "complete": true,
+              "path": "<TMP>/request_durability_1320_c7oafpfk/smoke_4167e395ccfd_req0.response",
+              "preview_chars_cap": 4000,
+              "preview_truncated": true,
+              "received_sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df",
+              "request_id": "smoke_4167e395ccfd_req0",
+              "retained": true,
+              "sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df"
+            },
+            "request_id": "smoke_4167e395ccfd_req0",
+            "response_received": true,
+            "status": 200,
+            "submitted": true,
+            "t_ack_monotonic": 0.0,
+            "t_send_monotonic": 0.0,
+            "t_send_utc": "SYNTHETIC_1320",
+            "transport_attempted": true,
+            "usage": {
+              "completion_tokens": 1024
+            },
+            "usage_known": true
+          },
+          {
+            "content_chars": 12016,
+            "delivery": "response_received",
+            "elapsed_s": 0.0,
+            "finish_reason": "length",
+            "index": 1,
+            "payload_sha256": "4ef1084c351470f52e34493a3f35e9f84c08263b3d0474c8c21dcfc84ae73a89",
+            "raw_response": {
+              "bytes": 12124,
+              "bytes_received": 12124,
+              "complete": true,
+              "path": "<TMP>/request_durability_1320_c7oafpfk/smoke_4167e395ccfd_req1.response",
+              "preview_chars_cap": 4000,
+              "preview_truncated": true,
+              "received_sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df",
+              "request_id": "smoke_4167e395ccfd_req1",
+              "retained": true,
+              "sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df"
+            },
+            "request_id": "smoke_4167e395ccfd_req1",
+            "response_received": true,
+            "status": 200,
+            "submitted": true,
+            "t_ack_monotonic": 0.0,
+            "t_send_monotonic": 0.0,
+            "t_send_utc": "SYNTHETIC_1320",
+            "transport_attempted": true,
+            "usage": {
+              "completion_tokens": 1024
+            },
+            "usage_known": true
+          }
+        ]
+      },
+      "intent_payload_hashes_match": [
+        true,
+        true
+      ],
+      "original_collision_bytes_preserved": {},
+      "full_response_bytes_equal_after_main": {
+        "smoke_4167e395ccfd_req0": true,
+        "smoke_4167e395ccfd_req1": true
+      }
+    },
+    "intent_write_failure": {
+      "main_returncode": 1,
+      "exception": null,
+      "receipt_count": 1,
+      "events": [],
+      "writes": [
+        {
+          "path": "smoke_4167e395ccfd.intent.json",
+          "kind": "live_ab/request_intent-v1"
+        },
+        {
+          "path": "SMOKE_RECEIPT_smoke_4167e395ccfd.json",
+          "kind": "live_ab/smoke_receipt-v1"
+        }
+      ],
+      "parse_time_checks": [],
+      "mock_child_returncode_after_main": null,
+      "receipt": {
+        "child_started": false,
+        "child_confirmed_stopped": null,
+        "submitted_requests": 0,
+        "transport_attempted_requests": null,
+        "requests_with_unknown_delivery": null,
+        "requests_expected": null,
+        "requests_with_records": null,
+        "requests_unaccounted_for": null,
+        "generated_tokens_total": null,
+        "token_cap_respected": null,
+        "request_intent_artifact": {
+          "error": "OSError: synthetic intent durability failure",
+          "path": "<TMP>/request_durability_1320_nj_ui5cx/smoke_4167e395ccfd.intent.json",
+          "persisted": false
+        },
+        "supervisor_problems": [
+          "the request intent could not be persisted, so no request was dispatched: synthetic intent durability failure"
+        ],
+        "unhandled_during_dispatch": null,
+        "requests": []
+      },
+      "intent_payload_hashes_match": [],
+      "original_collision_bytes_preserved": {},
+      "full_response_bytes_equal_after_main": {}
+    },
+    "intent_collision": {
+      "main_returncode": 1,
+      "exception": null,
+      "receipt_count": 1,
+      "events": [],
+      "writes": [
+        {
+          "path": "smoke_4167e395ccfd.intent.json",
+          "kind": "live_ab/request_intent-v1"
+        },
+        {
+          "path": "SMOKE_RECEIPT_smoke_4167e395ccfd.json",
+          "kind": "live_ab/smoke_receipt-v1"
+        }
+      ],
+      "parse_time_checks": [],
+      "mock_child_returncode_after_main": null,
+      "receipt": {
+        "child_started": false,
+        "child_confirmed_stopped": null,
+        "submitted_requests": 0,
+        "transport_attempted_requests": null,
+        "requests_with_unknown_delivery": null,
+        "requests_expected": null,
+        "requests_with_records": null,
+        "requests_unaccounted_for": null,
+        "generated_tokens_total": null,
+        "token_cap_respected": null,
+        "request_intent_artifact": {
+          "error": "WriteOnceViolation: <TMP>/request_durability_1320_d_zmbyn3/smoke_4167e395ccfd.intent.json exists with sha256 b5366df6064cb85a998ea455bca8a2c9c32d23020365ef06a2b71131bd053cf8, refusing to overwrite with cce5054176ae9bb254cf7eb3f3377890a237df8e9a5a167b526782bbd4df2349",
+          "path": "<TMP>/request_durability_1320_d_zmbyn3/smoke_4167e395ccfd.intent.json",
+          "persisted": false
+        },
+        "supervisor_problems": [
+          "the request intent could not be persisted, so no request was dispatched: <TMP>/request_durability_1320_d_zmbyn3/smoke_4167e395ccfd.intent.json exists with sha256 b5366df6064cb85a998ea455bca8a2c9c32d23020365ef06a2b71131bd053cf8, refusing to overwrite with cce5054176ae9bb254cf7eb3f3377890a237df8e9a5a167b526782bbd4df2349"
+        ],
+        "unhandled_during_dispatch": null,
+        "requests": []
+      },
+      "intent_payload_hashes_match": [],
+      "original_collision_bytes_preserved": {
+        "smoke_4167e395ccfd.intent.json": true
+      },
+      "full_response_bytes_equal_after_main": {}
+    },
+    "drain_start_failure": {
+      "main_returncode": null,
+      "exception": "RuntimeError: synthetic drain start failed",
+      "receipt_count": 0,
+      "events": [
+        {
+          "event": "Popen",
+          "intent_exists": true
+        }
+      ],
+      "writes": [
+        {
+          "path": "smoke_4167e395ccfd.intent.json",
+          "kind": "live_ab/request_intent-v1"
+        }
+      ],
+      "parse_time_checks": [],
+      "mock_child_returncode_after_main": null,
+      "receipt": {
+        "child_started": null,
+        "child_confirmed_stopped": null,
+        "submitted_requests": null,
+        "transport_attempted_requests": null,
+        "requests_with_unknown_delivery": null,
+        "requests_expected": null,
+        "requests_with_records": null,
+        "requests_unaccounted_for": null,
+        "generated_tokens_total": null,
+        "token_cap_respected": null,
+        "request_intent_artifact": null,
+        "supervisor_problems": null,
+        "unhandled_during_dispatch": null,
+        "requests": []
+      },
+      "intent_payload_hashes_match": [
+        true,
+        true
+      ],
+      "original_collision_bytes_preserved": {},
+      "full_response_bytes_equal_after_main": {}
+    },
+    "health_poll_failure": {
+      "main_returncode": null,
+      "exception": "UnboundLocalError: cannot access local variable 'results' where it is not associated with a value",
+      "receipt_count": 0,
+      "events": [
+        {
+          "event": "Popen",
+          "intent_exists": true
+        },
+        {
+          "event": "signal",
+          "signal": 15
+        },
+        {
+          "event": "wait",
+          "timeout": 60.0
+        },
+        {
+          "event": "drain_join",
+          "alive": false,
+          "timeout": 30.0
+        }
+      ],
+      "writes": [
+        {
+          "path": "smoke_4167e395ccfd.intent.json",
+          "kind": "live_ab/request_intent-v1"
+        }
+      ],
+      "parse_time_checks": [],
+      "mock_child_returncode_after_main": 0,
+      "receipt": {
+        "child_started": null,
+        "child_confirmed_stopped": null,
+        "submitted_requests": null,
+        "transport_attempted_requests": null,
+        "requests_with_unknown_delivery": null,
+        "requests_expected": null,
+        "requests_with_records": null,
+        "requests_unaccounted_for": null,
+        "generated_tokens_total": null,
+        "token_cap_respected": null,
+        "request_intent_artifact": null,
+        "supervisor_problems": null,
+        "unhandled_during_dispatch": null,
+        "requests": []
+      },
+      "intent_payload_hashes_match": [
+        true,
+        true
+      ],
+      "original_collision_bytes_preserved": {},
+      "full_response_bytes_equal_after_main": {}
+    },
+    "second_request_start_failure": {
+      "main_returncode": 1,
+      "exception": null,
+      "receipt_count": 1,
+      "events": [
+        {
+          "event": "Popen",
+          "intent_exists": true
+        },
+        {
+          "event": "barrier",
+          "intent_exists": true,
+          "intent_sha256": "cce5054176ae9bb254cf7eb3f3377890a237df8e9a5a167b526782bbd4df2349"
+        },
+        {
+          "event": "POST",
+          "index": 0,
+          "intent_exists": true,
+          "intent_sha256": "cce5054176ae9bb254cf7eb3f3377890a237df8e9a5a167b526782bbd4df2349"
+        },
+        {
+          "event": "signal",
+          "signal": 15
+        },
+        {
+          "event": "wait",
+          "timeout": 60.0
+        },
+        {
+          "event": "drain_join",
+          "alive": false,
+          "timeout": 30.0
+        }
+      ],
+      "writes": [
+        {
+          "path": "smoke_4167e395ccfd.intent.json",
+          "kind": "live_ab/request_intent-v1"
+        },
+        {
+          "path": "SMOKE_RECEIPT_smoke_4167e395ccfd.json",
+          "kind": "live_ab/smoke_receipt-v1"
+        }
+      ],
+      "parse_time_checks": [
+        {
+          "request_id": "smoke_4167e395ccfd_req0",
+          "artifact_exists_before_parse": true,
+          "input_bytes": 12124,
+          "persisted_bytes": 12124,
+          "input_sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df",
+          "persisted_sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df",
+          "bytes_equal_before_parse": true
+        }
+      ],
+      "mock_child_returncode_after_main": 0,
+      "receipt": {
+        "child_started": true,
+        "child_confirmed_stopped": true,
+        "submitted_requests": 0,
+        "transport_attempted_requests": null,
+        "requests_with_unknown_delivery": null,
+        "requests_expected": null,
+        "requests_with_records": null,
+        "requests_unaccounted_for": null,
+        "generated_tokens_total": null,
+        "token_cap_respected": null,
+        "request_intent_artifact": {
+          "attempt_id": "smoke_4167e395ccfd_20260923T140603Z",
+          "bytes": 1188,
+          "path": "<TMP>/request_durability_1320_j_0g32g9/smoke_4167e395ccfd.intent.json",
+          "persisted": true,
+          "sha256": "cce5054176ae9bb254cf7eb3f3377890a237df8e9a5a167b526782bbd4df2349"
+        },
+        "supervisor_problems": [
+          "token usage was not measurable for 0 request(s), so the token cap could not be judged",
+          "2 request(s) were planned but never submitted"
+        ],
+        "unhandled_during_dispatch": "RuntimeError: synthetic second worker start failed",
+        "requests": []
+      },
+      "intent_payload_hashes_match": [
+        true,
+        true
+      ],
+      "original_collision_bytes_preserved": {},
+      "full_response_bytes_equal_after_main": {
+        "smoke_4167e395ccfd_req0": true
+      }
+    },
+    "request_join_failure": {
+      "main_returncode": 1,
+      "exception": null,
+      "receipt_count": 1,
+      "events": [
+        {
+          "event": "Popen",
+          "intent_exists": true
+        },
+        {
+          "event": "barrier",
+          "intent_exists": true,
+          "intent_sha256": "cce5054176ae9bb254cf7eb3f3377890a237df8e9a5a167b526782bbd4df2349"
+        },
+        {
+          "event": "POST",
+          "index": 0,
+          "intent_exists": true,
+          "intent_sha256": "cce5054176ae9bb254cf7eb3f3377890a237df8e9a5a167b526782bbd4df2349"
+        },
+        {
+          "event": "barrier",
+          "intent_exists": true,
+          "intent_sha256": "cce5054176ae9bb254cf7eb3f3377890a237df8e9a5a167b526782bbd4df2349"
+        },
+        {
+          "event": "POST",
+          "index": 1,
+          "intent_exists": true,
+          "intent_sha256": "cce5054176ae9bb254cf7eb3f3377890a237df8e9a5a167b526782bbd4df2349"
+        },
+        {
+          "event": "request_join",
+          "alive": false,
+          "timeout": 150.0
+        },
+        {
+          "event": "signal",
+          "signal": 15
+        },
+        {
+          "event": "wait",
+          "timeout": 60.0
+        },
+        {
+          "event": "drain_join",
+          "alive": false,
+          "timeout": 30.0
+        }
+      ],
+      "writes": [
+        {
+          "path": "smoke_4167e395ccfd.intent.json",
+          "kind": "live_ab/request_intent-v1"
+        },
+        {
+          "path": "SMOKE_RECEIPT_smoke_4167e395ccfd.json",
+          "kind": "live_ab/smoke_receipt-v1"
+        }
+      ],
+      "parse_time_checks": [
+        {
+          "request_id": "smoke_4167e395ccfd_req0",
+          "artifact_exists_before_parse": true,
+          "input_bytes": 12124,
+          "persisted_bytes": 12124,
+          "input_sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df",
+          "persisted_sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df",
+          "bytes_equal_before_parse": true
+        },
+        {
+          "request_id": "smoke_4167e395ccfd_req1",
+          "artifact_exists_before_parse": true,
+          "input_bytes": 12124,
+          "persisted_bytes": 12124,
+          "input_sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df",
+          "persisted_sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df",
+          "bytes_equal_before_parse": true
+        }
+      ],
+      "mock_child_returncode_after_main": 0,
+      "receipt": {
+        "child_started": true,
+        "child_confirmed_stopped": true,
+        "submitted_requests": 0,
+        "transport_attempted_requests": null,
+        "requests_with_unknown_delivery": null,
+        "requests_expected": null,
+        "requests_with_records": null,
+        "requests_unaccounted_for": null,
+        "generated_tokens_total": null,
+        "token_cap_respected": null,
+        "request_intent_artifact": {
+          "attempt_id": "smoke_4167e395ccfd_20260923T140603Z",
+          "bytes": 1188,
+          "path": "<TMP>/request_durability_1320_94rp7sz1/smoke_4167e395ccfd.intent.json",
+          "persisted": true,
+          "sha256": "cce5054176ae9bb254cf7eb3f3377890a237df8e9a5a167b526782bbd4df2349"
+        },
+        "supervisor_problems": [
+          "token usage was not measurable for 0 request(s), so the token cap could not be judged",
+          "2 request(s) were planned but never submitted"
+        ],
+        "unhandled_during_dispatch": "RuntimeError: synthetic request join failed",
+        "requests": []
+      },
+      "intent_payload_hashes_match": [
+        true,
+        true
+      ],
+      "original_collision_bytes_preserved": {},
+      "full_response_bytes_equal_after_main": {
+        "smoke_4167e395ccfd_req0": true,
+        "smoke_4167e395ccfd_req1": true
+      }
+    },
+    "drain_join_failure": {
+      "main_returncode": null,
+      "exception": "RuntimeError: synthetic drain join failed",
+      "receipt_count": 0,
+      "events": [
+        {
+          "event": "Popen",
+          "intent_exists": true
+        },
+        {
+          "event": "barrier",
+          "intent_exists": true,
+          "intent_sha256": "cce5054176ae9bb254cf7eb3f3377890a237df8e9a5a167b526782bbd4df2349"
+        },
+        {
+          "event": "POST",
+          "index": 0,
+          "intent_exists": true,
+          "intent_sha256": "cce5054176ae9bb254cf7eb3f3377890a237df8e9a5a167b526782bbd4df2349"
+        },
+        {
+          "event": "barrier",
+          "intent_exists": true,
+          "intent_sha256": "cce5054176ae9bb254cf7eb3f3377890a237df8e9a5a167b526782bbd4df2349"
+        },
+        {
+          "event": "POST",
+          "index": 1,
+          "intent_exists": true,
+          "intent_sha256": "cce5054176ae9bb254cf7eb3f3377890a237df8e9a5a167b526782bbd4df2349"
+        },
+        {
+          "event": "request_join",
+          "alive": false,
+          "timeout": 150.0
+        },
+        {
+          "event": "request_join",
+          "alive": false,
+          "timeout": 150.0
+        },
+        {
+          "event": "signal",
+          "signal": 15
+        },
+        {
+          "event": "wait",
+          "timeout": 60.0
+        },
+        {
+          "event": "drain_join",
+          "alive": false,
+          "timeout": 30.0
+        }
+      ],
+      "writes": [
+        {
+          "path": "smoke_4167e395ccfd.intent.json",
+          "kind": "live_ab/request_intent-v1"
+        }
+      ],
+      "parse_time_checks": [
+        {
+          "request_id": "smoke_4167e395ccfd_req0",
+          "artifact_exists_before_parse": true,
+          "input_bytes": 12124,
+          "persisted_bytes": 12124,
+          "input_sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df",
+          "persisted_sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df",
+          "bytes_equal_before_parse": true
+        },
+        {
+          "request_id": "smoke_4167e395ccfd_req1",
+          "artifact_exists_before_parse": true,
+          "input_bytes": 12124,
+          "persisted_bytes": 12124,
+          "input_sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df",
+          "persisted_sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df",
+          "bytes_equal_before_parse": true
+        }
+      ],
+      "mock_child_returncode_after_main": 0,
+      "receipt": {
+        "child_started": null,
+        "child_confirmed_stopped": null,
+        "submitted_requests": null,
+        "transport_attempted_requests": null,
+        "requests_with_unknown_delivery": null,
+        "requests_expected": null,
+        "requests_with_records": null,
+        "requests_unaccounted_for": null,
+        "generated_tokens_total": null,
+        "token_cap_respected": null,
+        "request_intent_artifact": null,
+        "supervisor_problems": null,
+        "unhandled_during_dispatch": null,
+        "requests": []
+      },
+      "intent_payload_hashes_match": [
+        true,
+        true
+      ],
+      "original_collision_bytes_preserved": {},
+      "full_response_bytes_equal_after_main": {
+        "smoke_4167e395ccfd_req0": true,
+        "smoke_4167e395ccfd_req1": true
+      }
+    }
+  },
+  "readiness": {
+    "full_project_percent": 75,
+    "delta_points": 0,
+    "bounded_v1_percent": 90,
+    "remaining_points": 25
+  },
+  "scenarios": 8,
+  "actual_main_invocations": 8,
+  "outcome_counts": {
+    "normal_return_with_one_terminal_receipt": 5,
+    "escaped_exception_with_no_terminal_receipt": 3
+  }
+}

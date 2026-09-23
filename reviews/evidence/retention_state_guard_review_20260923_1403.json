@@ -1,0 +1,224 @@
+{
+  "head": "176e682f5688ee4c786d4840fb3ac7f40351a677",
+  "source_commit": "1e58d3b041c3310c1df19aa5cefaf0cad5040af2",
+  "owner_receipt_generated_utc": "2026-09-23T13:48:34Z",
+  "selected_test_names": [
+    "test_SAME_LENGTH_response_corruption_is_detected",
+    "test_a_parse_failure_after_200_keeps_response_received",
+    "test_no_process_attempt_was_swallowed_by_production_handlers",
+    "test_the_deny_ledger_DOES_record_a_violation"
+  ],
+  "owner_tests_run": 4,
+  "failures": [],
+  "errors": [],
+  "skips": [],
+  "helper_cases": {
+    "control": {
+      "request_id": "good",
+      "path": "<TMP>/root_retention1403_6bw6_c7g/good.response",
+      "retained": true,
+      "preview_chars_cap": 4000,
+      "preview": "ABCDE",
+      "preview_truncated": false,
+      "bytes_received": 5,
+      "bytes": 5,
+      "sha256": "f0393febe8baaa55e32f7be2a7cc180bf34e52137d99e056c817a9c07b8f239a",
+      "received_sha256": "f0393febe8baaa55e32f7be2a7cc180bf34e52137d99e056c817a9c07b8f239a",
+      "complete": true
+    },
+    "closed_file_corruption": {
+      "request_id": "bad",
+      "path": "<TMP>/root_retention1403_6bw6_c7g/bad.response",
+      "retained": true,
+      "preview_chars_cap": 4000,
+      "preview": "ABCDE",
+      "preview_truncated": false,
+      "bytes_received": 5,
+      "bytes": 5,
+      "sha256": "c0ec887d8d6aa34dbb934c4ef3498789bc147eb18e13e58776caf340d43f55cb",
+      "received_sha256": "f0393febe8baaa55e32f7be2a7cc180bf34e52137d99e056c817a9c07b8f239a",
+      "complete": false,
+      "retention_mismatch": "the bytes read back differ from the bytes received (5 vs 5 bytes, c0ec887d8d6a vs f0393febe8ba); the original is preserved and the acquisition refuses"
+    },
+    "actual_bad_bytes": "XBCDE"
+  },
+  "additional_actual_main_cases": {
+    "actual_main_closed_file_corruption": {
+      "status": 1,
+      "rows": [
+        {
+          "response_received": true,
+          "delivery": "response_received",
+          "submitted": true,
+          "usage_known": true,
+          "error": null,
+          "body_unparsable": null,
+          "raw_response": {
+            "bytes": 126,
+            "bytes_received": 126,
+            "complete": false,
+            "path": "<TMP>/sup_entry__y3hx2ox/smoke_4167e395ccfd_req0.response",
+            "preview": "{\"usage\": {\"completion_tokens\": 10, \"prompt_tokens\": 3}, \"choices\": [{\"finish_reason\": \"stop\", \"message\": {\"content\": \"ok\"}}]}",
+            "preview_chars_cap": 4000,
+            "preview_truncated": false,
+            "received_sha256": "1399b65958f492be7a28f5e578ee26de39a6fce07d03a9955822713327a12cfa",
+            "request_id": "smoke_4167e395ccfd_req0",
+            "retained": true,
+            "retention_mismatch": "the bytes read back differ from the bytes received (126 vs 126 bytes, e2b6fbb5d328 vs 1399b65958f4); the original is preserved and the acquisition refuses",
+            "sha256": "e2b6fbb5d328cba1944586e283b7950285677e6cc76e4e724f384509e740df79"
+          }
+        },
+        {
+          "response_received": true,
+          "delivery": "response_received",
+          "submitted": true,
+          "usage_known": true,
+          "error": null,
+          "body_unparsable": null,
+          "raw_response": {
+            "bytes": 126,
+            "bytes_received": 126,
+            "complete": false,
+            "path": "<TMP>/sup_entry__y3hx2ox/smoke_4167e395ccfd_req1.response",
+            "preview": "{\"usage\": {\"completion_tokens\": 10, \"prompt_tokens\": 3}, \"choices\": [{\"finish_reason\": \"stop\", \"message\": {\"content\": \"ok\"}}]}",
+            "preview_chars_cap": 4000,
+            "preview_truncated": false,
+            "received_sha256": "1399b65958f492be7a28f5e578ee26de39a6fce07d03a9955822713327a12cfa",
+            "request_id": "smoke_4167e395ccfd_req1",
+            "retained": true,
+            "retention_mismatch": "the bytes read back differ from the bytes received (126 vs 126 bytes, e2b6fbb5d328 vs 1399b65958f4); the original is preserved and the acquisition refuses",
+            "sha256": "e2b6fbb5d328cba1944586e283b7950285677e6cc76e4e724f384509e740df79"
+          }
+        }
+      ]
+    },
+    "actual_main_http200_json_list": {
+      "status": 1,
+      "unknown_delivery_count": 2,
+      "rows": [
+        {
+          "response_received": false,
+          "delivery": "unknown_server_receipt",
+          "submitted": true,
+          "usage_known": false,
+          "error": "AttributeError: 'list' object has no attribute 'get'",
+          "body_unparsable": null,
+          "raw_response": {
+            "bytes": 2,
+            "bytes_received": 2,
+            "complete": true,
+            "path": "<TMP>/sup_entry_6xhsjpvz/smoke_4167e395ccfd_req0.response",
+            "preview": "[]",
+            "preview_chars_cap": 4000,
+            "preview_truncated": false,
+            "received_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+            "request_id": "smoke_4167e395ccfd_req0",
+            "retained": true,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          }
+        },
+        {
+          "response_received": false,
+          "delivery": "unknown_server_receipt",
+          "submitted": true,
+          "usage_known": false,
+          "error": "AttributeError: 'list' object has no attribute 'get'",
+          "body_unparsable": null,
+          "raw_response": {
+            "bytes": 2,
+            "bytes_received": 2,
+            "complete": true,
+            "path": "<TMP>/sup_entry_6xhsjpvz/smoke_4167e395ccfd_req1.response",
+            "preview": "[]",
+            "preview_chars_cap": 4000,
+            "preview_truncated": false,
+            "received_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+            "request_id": "smoke_4167e395ccfd_req1",
+            "retained": true,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          }
+        }
+      ],
+      "fixture_http_status": 200
+    },
+    "actual_main_caught_denied_process": {
+      "status": 1,
+      "harness_returned_without_assertion": true,
+      "denied": [
+        [
+          "unexpected-review-command"
+        ],
+        [
+          "unexpected-review-command"
+        ]
+      ],
+      "rows": [
+        {
+          "response_received": false,
+          "delivery": "unknown_server_receipt",
+          "submitted": false,
+          "usage_known": false,
+          "error": "AssertionError: the suite attempted an unexpected process: ['unexpected-review-command']. Nothing but the launcher may be created here.",
+          "body_unparsable": null,
+          "raw_response": null
+        },
+        {
+          "response_received": false,
+          "delivery": "unknown_server_receipt",
+          "submitted": false,
+          "usage_known": false,
+          "error": "AssertionError: the suite attempted an unexpected process: ['unexpected-review-command']. Nothing but the launcher may be created here.",
+          "body_unparsable": null,
+          "raw_response": null
+        }
+      ]
+    }
+  },
+  "closed_write_faults": [
+    {
+      "path": "/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/root_retention1403_6bw6_c7g/bad.response",
+      "original_bytes": 5,
+      "persisted_bytes": 5,
+      "original_sha256": "f0393febe8baaa55e32f7be2a7cc180bf34e52137d99e056c817a9c07b8f239a",
+      "persisted_sha256": "c0ec887d8d6aa34dbb934c4ef3498789bc147eb18e13e58776caf340d43f55cb"
+    },
+    {
+      "path": "/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry__y3hx2ox/smoke_4167e395ccfd_req0.response",
+      "original_bytes": 126,
+      "persisted_bytes": 126,
+      "original_sha256": "1399b65958f492be7a28f5e578ee26de39a6fce07d03a9955822713327a12cfa",
+      "persisted_sha256": "e2b6fbb5d328cba1944586e283b7950285677e6cc76e4e724f384509e740df79"
+    },
+    {
+      "path": "/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry__y3hx2ox/smoke_4167e395ccfd_req1.response",
+      "original_bytes": 126,
+      "persisted_bytes": 126,
+      "original_sha256": "1399b65958f492be7a28f5e578ee26de39a6fce07d03a9955822713327a12cfa",
+      "persisted_sha256": "e2b6fbb5d328cba1944586e283b7950285677e6cc76e4e724f384509e740df79"
+    }
+  ],
+  "outer_external_guard_events": [],
+  "receipt_harness_hash_matches": true,
+  "receipt_runtime_hash_matches": true,
+  "counts": {
+    "selected_owner_tests": 4,
+    "helper_controls": 2,
+    "additional_actual_main_cases": 3,
+    "actual_child_processes": 0,
+    "actual_HTTP_network_signals_models_builds_real_waits": 0
+  },
+  "readiness": {
+    "full_percent": 75,
+    "change": 0,
+    "bounded_v1_percent": 90
+  },
+  "accepted": [
+    "Full byte-equality comparison detects closed-file same-length corruption and actual main refuses.",
+    "JSON decoding-exception test retains received-response state; this is distinct from malformed decoded JSON shape.",
+    "Unexpected process commands remain blocked before OS execution."
+  ],
+  "remaining": [
+    "Decoded JSON list after HTTP200 still resets received response into unknown delivery.",
+    "Only one healthy case asserts empty deny ledger; common harness still returns after a swallowed denied attempt."
+  ]
+}

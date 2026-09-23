@@ -1,0 +1,32 @@
+{
+  "last_seen_main_live": "176e682f5688ee4c786d4840fb3ac7f40351a677",
+  "substantive_commit": "1e58d3b041c3310c1df19aa5cefaf0cad5040af2",
+  "receipt_sha256": "8672f68d639844dc76189c889406ab89cb623509e45aa1ddf5c707bfff5af41a",
+  "source_receipt_hashes_match": [
+    {
+      "path": "experiments/live_ab_serving/run_smoke.py",
+      "sha256": "2d2ec42beccc9e8b41790a6e22cba245ae7412cccba86f4b040e3b77f5b17fb1"
+    },
+    {
+      "path": "experiments/live_ab_serving/tests_supervisor_entry.py",
+      "sha256": "d0b3ad15882c3bda749a484c647af5ce17aad8e3200c268a7e20491caa3e616b"
+    }
+  ],
+  "owner_full_cases_reported": 25,
+  "library_verifier_unchanged_from_1320": true,
+  "candidate_inventory_sha256": "75e2a1d1a7fd786b2dff70ba8602390c5e3460de7e06ad045660650d1e7913c0",
+  "candidate_inventory_is_post_execution": true,
+  "candidate_nonsystem_members": [
+    "libggml-base.0.dylib",
+    "libggml-blas.0.dylib",
+    "libggml-cpu.0.dylib",
+    "libggml-metal.0.dylib",
+    "libggml.0.dylib",
+    "libllama-common.0.dylib",
+    "libllama-server-impl.dylib",
+    "libllama.0.dylib",
+    "libmtmd.0.dylib"
+  ],
+  "candidate_build_configuration": "cmake -S <tree> -B <tree>/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DLLAMA_CURL=OFF -DGGML_METAL=ON -DCMAKE_MAKE_PROGRAM=<ninja>",
+  "scope": "Receipt/hash/static inventory comparison only. Nine listed members are not independently established to be a full selected dependency closure. No native artifact executed, loaded or independently rehashed from owner host."
+}
