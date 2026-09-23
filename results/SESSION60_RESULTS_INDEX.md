@@ -2676,6 +2676,52 @@ written by `date -u`.
 Seal and fatal path **only**: slot lifecycle records need a loaded model and a served request, not
 authorized and not run. Freeze unchanged **16/26**, a structural inventory.
 
+### 2026-09-23 · the retained smoke exited 0, so the exception I built was never needed
+
+`main` and `session60/live-ab` at **`58ad943`**. Root's 09:19 disposition
+(`reviews/acquisition_disposition_20260923_0919.md`, merged from `0a44255`). Receipt:
+`CANDIDATE_INSTRUMENT_MANIFEST.json` (`deterministic-path`).
+
+**Root accepted** the v7 producer source and packaging (patch `88975d3790fd…`, 17,188 bytes, ordinary
+application against exact preimages), the reader/path/identity work within scope, and the
+supervisor's use of the retained outcome on ordinary paths. It then refuted a claim of mine **with my
+own evidence**.
+
+**The signal exception is withdrawn.** I accepted `outcome == -declared_signal`, arguing a healthy
+teardown is `-15` so requiring zero would refuse every good acquisition. Root checked the immutable
+`SMOKE_RECEIPT_smoke_4167e395ccfd.json`: **`server_exit_code = 0`**, wall 54.72 s — llama-server
+handles SIGTERM and exits cleanly. I reasoned from `subprocess` semantics about what SIGTERM *would*
+produce while holding the one run that answered it. The exception also admitted a declared SIGKILL, a
+positive exit 1 declared as `-1`, and coerced boolean/float signals. Exact non-boolean integer zero
+restored. **The test I wrote last cycle encoded the exception, so it was removed**, not kept, and
+replaced by one asserting the opposite and citing the receipt.
+
+**Identity syntax** — both of root's counterexamples reproduced, both Python traps: `str(int('1'*64))`
+is 64 valid hex digits, so coercing before validating invents an identity; and
+`re.match(r'^[0-9a-f]{64}$', 'a'*64 + '\n')` **matches**, because `$` anchors at end-of-string *or
+just before a trailing newline*. Now an actual `str` and a `fullmatch`.
+
+**The gate is real now.** Root: both waits timing out still reached `observe` and three raw-log reads
+with `child_confirmed_stopped=false`. That was the whole point of the reap I added last cycle — I
+recorded the flag and read the files anyway, so it described the situation without governing it.
+Nothing is opened, parsed or hashed unless the child is confirmed stopped; raw files are preserved in
+place, unread.
+
+**Retention** — `log.read_text('utf-8')` raised on non-UTF8 bytes and took the receipt with it. Raw
+files are now retained by digest with a bounded labelled preview.
+
+**Drain accounting** — a 900-char line trimmed to 400 reported **zero** dropped characters. Now
+`truncated_lines` and lost characters are counted, and `capture_complete` **gates the verdict**
+instead of being a field nobody reads.
+
+**Candidate instrument pinned**, as root authorized: my launcher digest agrees with root's
+`5260887866c85a07…` exactly; **9 non-system libraries** bound including `libllama-server-impl.dylib`.
+The manifest carries an `ASSEMBLY_DISCLOSURE` — it is **post-execution reconciliation**, not frozen
+before the run — and an `UNAVAILABLE_MATERIAL` section: per-case stdout/stderr went to `/dev/null` or
+into the deliberately undrained pipe and **does not exist anywhere**. Named, not backfilled.
+
+Ten suites green; `design` 333 → **335**. Freeze unchanged at **16/26**, a structural inventory.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
