@@ -3760,7 +3760,12 @@ class LifecycleReaderWitnessTests(unittest.TestCase):
         self._seq = 0
         self.expected = {'host_id': 'host:bb', 'boot_id': 'boot:aa',
                          'instance_id': 'srv_1_2',
-                         'patch_sha256': '2c52078f8a541134661eb7ac997114892c7baf68541f9d4be664366d43e85f6a'}   # v4-era producer
+                         # A full producer identity: root 2026-09-23 08:40 --
+                         # "a manifest without usable patch and selected-binary
+                         # digests must refuse as unbound even if the seal
+                         # supplies all strict fields and exit zero."
+                         'patch_sha256': '2c52078f8a541134661eb7ac997114892c7baf68541f9d4be664366d43e85f6a',
+                         'binary_sha256': 'b' * 64}
         self.prov = {'boot_id': 'boot:aa', 'host_id': 'host:bb',
                      'boot_source': 's', 'host_source': 'p'}
 
@@ -3995,7 +4000,12 @@ class AcquisitionSealTests(unittest.TestCase):
                      'boot_source': 's', 'host_source': 'p'}
         self.expected = {'host_id': 'host:bb', 'boot_id': 'boot:aa',
                          'instance_id': 'srv_1_2',
-                         'patch_sha256': '2c52078f8a541134661eb7ac997114892c7baf68541f9d4be664366d43e85f6a'}   # v4-era producer
+                         # A full producer identity: root 2026-09-23 08:40 --
+                         # "a manifest without usable patch and selected-binary
+                         # digests must refuse as unbound even if the seal
+                         # supplies all strict fields and exit zero."
+                         'patch_sha256': '2c52078f8a541134661eb7ac997114892c7baf68541f9d4be664366d43e85f6a',
+                         'binary_sha256': 'b' * 64}
 
     def _emit(self, slot, task, **kw):
         rec = {'schema': 'live_ab/slot_lifecycle-v1', 'instance_id': 'srv_1_2',
@@ -4193,8 +4203,13 @@ class AcquisitionSealTests(unittest.TestCase):
         or the 'undeclared' case would silently be the declared one."""
         expected = dict(self.expected)
         expected.pop('patch_sha256', None)
+        expected.pop('binary_sha256', None)
         if patch:
+            # a producer identity is patch AND selected binary; supplying one
+            # without the other is the 'unbound' case, exercised explicitly by
+            # passing patch=None rather than by accident here
             expected['patch_sha256'] = patch
+            expected['binary_sha256'] = 'b' * 64
         return lab_lifecycle.observe(self.log, provenance=self.prov,
                                      expected=expected, process_outcome=outcome)
 
@@ -4230,10 +4245,15 @@ class AcquisitionSealTests(unittest.TestCase):
         self.assertIn('cannot select the legacy exemption',
                       repaired['seal_problem'])
 
-        # a manifest that declares NO producer takes the strict side
+        # A manifest that declares NO producer is not a binding at all. Root
+        # closed this on 2026-09-23 08:40, choosing the stronger of the two
+        # readings I put to it: such a manifest "must refuse as unbound even if
+        # the seal supplies all strict fields and exit zero". It no longer takes
+        # the strict CONTRACT; it fails identity before any contract applies.
         undeclared = self._obs_with(outcome=0)
-        self.assertEqual(undeclared['acquisition_contract']['contract'], 'repaired')
-        self.assertIsNotNone(undeclared['seal_problem'])
+        self.assertEqual(undeclared['acquisition_contract']['contract'], 'unbound')
+        self.assertFalse(undeclared['lifecycle_complete'])
+        self.assertIn('no usable', undeclared['unbound_reason'])
 
     def test_a_retained_exit_93_refuses_a_PERFECT_seal(self):
         """Root: "The supervisor must retain this exit outcome and invalidate
@@ -4538,7 +4558,8 @@ class SequenceMultisetAndSidecarTests(unittest.TestCase):
         log = tmp / 'l.jsonl'
         prov = {'boot_id': 'b', 'host_id': 'h', 'boot_source': 's', 'host_source': 'p'}
         exp = {'host_id': 'h', 'boot_id': 'b', 'instance_id': 'tok',
-               'patch_sha256': '2c52078f8a541134661eb7ac997114892c7baf68541f9d4be664366d43e85f6a'}   # v4-era producer
+               'patch_sha256': '2c52078f8a541134661eb7ac997114892c7baf68541f9d4be664366d43e85f6a',
+               'binary_sha256': 'b' * 64}
         for i, (slot, task) in enumerate(((0, 11), (1, 12))):
             rec = {'schema': 'live_ab/slot_lifecycle-v1', 'seq': i,
                    'run_token': 'tok', 'instance_id': 'tok',
@@ -4582,7 +4603,8 @@ class TokenInstanceBindingTests(unittest.TestCase):
         self.prov = {'boot_id': 'b', 'host_id': 'h', 'boot_source': 's',
                      'host_source': 'p'}
         self.expected = {'host_id': 'h', 'boot_id': 'b', 'instance_id': 'launched',
-                         'patch_sha256': '2c52078f8a541134661eb7ac997114892c7baf68541f9d4be664366d43e85f6a'}   # v4-era producer
+                         'patch_sha256': '2c52078f8a541134661eb7ac997114892c7baf68541f9d4be664366d43e85f6a',
+                         'binary_sha256': 'b' * 64}
 
     def _emit(self, **kw):
         rec = {'schema': 'live_ab/slot_lifecycle-v1', 'seq': self._seq,

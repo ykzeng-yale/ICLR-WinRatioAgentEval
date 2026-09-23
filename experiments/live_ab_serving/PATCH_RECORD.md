@@ -28,7 +28,23 @@ not from memory, and no earlier row is edited.
 | 3 | `4c8b647de674…` | `31c22fd` | three contract repairs; independent `fflush`/`fclose` checks |
 | 4 | `2c52078f8a54…` | `3f3968d` | the seal `fprintf` result actually captured — root found I had claimed this repair in a commit message without making it |
 | 5 | `0e79199aeb88…` | `c8b3bd9` | the best-effort failure channel reports its own failure — **superseded, never built; its hunk headers did not parse** |
-| 6 | `8e2d1c6b9e07…` | *this change* | process-level refusal (root's ruling), and every hunk header recounted so the patch applies ordinarily |
+| 6 | `8e2d1c6b9e07…` | `11837b7` | process-level refusal (root's ruling); every hunk header recounted. **Root verified ordinary application and accepted the packaging.** |
+| 7 | `88975d3790fd…` | *this change* | the diagnostic write removed from the fatal path — it could block |
+
+### v7: a bounded write to a full pipe still blocks
+
+v6 wrote one diagnostic line to fd 2 before `_exit(93)`, justified as *"bounded and
+async-signal-safe, so a blocked stderr cannot stall the refusal"*. **That does not follow.**
+Size and async-signal safety are not nonblocking: a bounded write to a FULL pipe blocks.
+
+Root's isolated pipe witness (`reviews/evidence/lifecycle_producer_review_20260923_0840.json`):
+with fd 2 a full blocking pipe, the case carrying the diagnostic reports **no exit code at all**
+— it blocked — while the same case without it terminates with **93**. Root: *"Remove the
+diagnostic write from the fatal path and call `_exit(93)` directly. The retained nonzero process
+outcome is the evidence; a courtesy message must not stand between failure and termination."*
+
+v7 has no write, no flush and no allocation on the fatal path. Exit code **93** stays reserved.
+**v7 is SOURCE ONLY and NOT BUILT.**
 
 ### v5 did not parse, and root found it
 

@@ -213,14 +213,31 @@ def main() -> int:
         os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
     except Exception as exc:                                   # noqa: BLE001
         out['stop_error'] = '%s: %s' % (type(exc).__name__, exc)
+    # CONFIRM THE CHILD IS STOPPED BEFORE ANY FILE IS READ. Root, 2026-09-23
+    # 08:40: the script "does not reap after its forced-kill fallback before
+    # reading files ... Do not analyze output until the child is confirmed
+    # stopped and the files closed."
+    #
+    # The forced-kill branch signalled and fell straight through to
+    # proc.returncode, which is None until the child is reaped -- so a run that
+    # needed SIGKILL read the lifecycle log while the producer might still have
+    # had it open, and recorded a null exit code as if it were an outcome.
+    stopped_cleanly = True
     try:
         proc.wait(timeout=60)
     except Exception:                                          # noqa: BLE001
+        stopped_cleanly = False
         try:
             os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
             out['forced_stop'] = True
-        except Exception:                                      # noqa: BLE001
-            pass
+        except Exception as exc:                               # noqa: BLE001
+            out['forced_stop_error'] = '%s: %s' % (type(exc).__name__, exc)
+        try:
+            proc.wait(timeout=60)                              # REAP after SIGKILL
+        except Exception as exc:                               # noqa: BLE001
+            out['reap_error'] = '%s: %s' % (type(exc).__name__, exc)
+    out['stopped_cleanly'] = stopped_cleanly
+    out['child_confirmed_stopped'] = proc.returncode is not None
     out['server_exit_code'] = proc.returncode
     out['wall_seconds_total'] = round(time.monotonic() - t_wall0, 2)
     out['wall_cap_respected'] = out['wall_seconds_total'] <= WALL_CAP_S
@@ -277,6 +294,18 @@ def main() -> int:
         'uninterrupted GPU utilization -- these are OCCUPIED DECODING SLOTS',
         'any readiness point, roster validity or trial clearance',
     ]
+    # THE VERDICT IS COMPUTED BEFORE THE WRITE, because the sink is WRITE-ONCE
+    # (`write_json_atomic` refuses a differing second write, which is what
+    # caught the v2 drill's dry-run collision). One receipt, one write.
+    problems = [p for p in (
+        ('process outcome: %s' % out['acquisition_invalidated_by_process_outcome'])
+        if out.get('acquisition_invalidated_by_process_outcome') else None,
+        ('child never confirmed stopped'
+         if not out.get('child_confirmed_stopped') else None),
+        ('acquisition not complete: %s' % obs.get('reason')
+         if not obs.get('lifecycle_complete') else None),
+    ) if p]
+    out['supervisor_problems'] = problems
     dest = Path(lab_common.RESULTS_ROOT) / ('SMOKE_RECEIPT_%s.json' % token)
     lab_common.write_json_atomic(dest, out)
     print(json.dumps({k: out[k] for k in
@@ -288,6 +317,16 @@ def main() -> int:
           '| lifecycle_complete:', obs.get('lifecycle_complete'),
           '| reason:', obs.get('reason'))
     print('written:', dest)
+
+    # THE EXIT STATUS REPORTS THE ACQUISITION. Root, 2026-09-23 08:40: the
+    # script "returns zero unconditionally". A supervisor whose own status is
+    # always success cannot be used in any chain that checks it, and it reported
+    # success for a run whose acquisition the reader had refused -- the same
+    # shape as a receipt claiming a success its parser rejected.
+    if problems:
+        for p in problems:
+            print('REFUSED:', p)
+        return 1
     return 0
 
 

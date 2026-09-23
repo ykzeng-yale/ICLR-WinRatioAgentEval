@@ -27,7 +27,7 @@ index b6835e4..d8b4aab 100644
  #include "server-context.h"
 +
 +#include <atomic>
-+#include <unistd.h>   // write(2), _exit(2): the process-level refusal path
++#include <unistd.h>   // _exit(2): the process-level refusal path
  #include "server-chat.h"
  #include "server-common.h"
  #include "server-http.h"
@@ -68,7 +68,7 @@ index b6835e4..d8b4aab 100644
  
              state = SLOT_STATE_IDLE;
  
-@@ -734,6 +760,237 @@ struct server_slot {
+@@ -734,6 +760,245 @@ struct server_slot {
      }
  };
  
@@ -109,22 +109,30 @@ index b6835e4..d8b4aab 100644
 +//: the supplied pipe, so neither is an OUTCOME. An exit status is.
 +#define LIVE_AB_EXIT_UNRECORDABLE 93
 +
-+//: Bounded, async-signal-safe, and never buffered: one write(2) of at most
-+//: sizeof(buf) to fd 2. NOT an fprintf/fflush pair -- a blocked or full stderr
-+//: must not be able to stall or swallow the refusal, and the diagnostic is a
-+//: courtesy while the EXIT STATUS is the evidence.
++//: NOTHING STANDS BETWEEN THE FAILURE AND THE TERMINATION.
++//:
++//: CORRECTION, and the reasoning that was wrong. The previous revision wrote a
++//: one-line diagnostic to fd 2 before exiting and justified it as "bounded and
++//: async-signal-safe, so a blocked stderr cannot stall the refusal". That does
++//: not follow: a BOUNDED write to a FULL pipe still blocks. Size and
++//: async-signal safety are not nonblocking.
++//:
++//: Root's isolated pipe witness, `reviews/evidence/
++//: lifecycle_producer_review_20260923_0840.json`: with fd 2 a full blocking
++//: pipe, the case carrying the diagnostic never reached its exit at all, while
++//: the same case without it terminated with 93. Root: "Remove the diagnostic
++//: write from the fatal path and call `_exit(93)` directly. The retained
++//: nonzero process outcome is the evidence; a courtesy message must not stand
++//: between failure and termination."
++//:
++//: So there is no write here, and no flush, and no allocation. The supervisor
++//: learns of the refusal from the EXIT STATUS, which is the one channel that
++//: cannot itself fail.
++//
 +// [[noreturn]] so the caller's flow analysis knows the null-FILE branch below
 +// does not fall through into a use of that null pointer.
 +[[noreturn]] static void live_ab_die_unrecordable(const char * what) {
-+    char buf[192];
-+    const int n = snprintf(buf, sizeof(buf),
-+            "live_ab: unrecordable '%s' write failure; refusing acquisition "
-+            "with exit %d\n", what, LIVE_AB_EXIT_UNRECORDABLE);
-+    if (n > 0) {
-+        ssize_t ignored = write(2, buf, (size_t) (n < (int) sizeof(buf)
-+                                                  ? n : (int) sizeof(buf) - 1));
-+        (void) ignored;          // best effort; the exit status is the outcome
-+    }
++    (void) what;   // deliberately unreported: see above
 +    // _exit, NOT exit/abort: it runs no atexit handler and no static
 +    // destructor, so it cannot re-enter the seal writer that may have called
 +    // us. Whatever was already durably written STAYS written -- root:
@@ -306,7 +314,7 @@ index b6835e4..d8b4aab 100644
  // returns 0 on success
  // caller need to update prompt.tokens after a successful call to keep track of the processing progress
  // note: this is not a member of server_slot because we want to run it inside yield_to_queue
-@@ -1819,6 +2076,29 @@ private:
+@@ -1819,6 +2084,29 @@ private:
  
          slot.task = std::make_unique<const server_task>(std::move(task));
  

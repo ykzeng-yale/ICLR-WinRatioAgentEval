@@ -56,6 +56,7 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import re
 import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -257,15 +258,30 @@ def read_error_sidecar(sidecar_path: Path) -> tuple:
 #: trusted manifest names one of these is read under the legacy contract:
 #: `sidecar_failures` may be absent and absence means UNKNOWN. v4 is what the
 #: retained smoke is bound to, and root preserved its conditional acceptance.
+#: NARROWED to the ONE contract that actually produced retained evidence. Root,
+#: 2026-09-23 08:40: "The all-v1-v4 compatibility set is also broader than the
+#: preserved smoke's v4 route ... Narrow the legacy exemption to the actual
+#: retained **v4 smoke** contract; historical v1-v3 files remain preserved and
+#: readable as archival diagnostics, without a new blanket acquisition
+#: exemption."
+#:
+#: I had admitted v1-v4 because they all predate the repair. That reasoning
+#: grants an ACQUISITION exemption to three versions that never acquired
+#: anything -- breadth bought with no evidence behind it. v1-v3 still parse and
+#: are still readable; they simply do not certify.
 LEGACY_PATCH_SHA256: frozenset = frozenset({
+    '2c52078f8a541134661eb7ac997114892c7baf68541f9d4be664366d43e85f6a',  # v4
+})
+
+#: Readable as archival diagnostics, but granted NO acquisition exemption.
+ARCHIVAL_PATCH_SHA256: frozenset = frozenset({
     '261a54db560ddfccf1f1541361905686177069c4993f2b80e9830a9144631e29',  # v1
     '984f47df65b0db7b945234660cde2aae9a035c4efcee42ec780c27df9c59a918',  # v2
     '4c8b647de674edca06578642b17fff7e24d8625ad9d9933238170c668c4a0840',  # v3
-    '2c52078f8a541134661eb7ac997114892c7baf68541f9d4be664366d43e85f6a',  # v4 (smoke)
-    # v5 (0e79199aeb88...) is deliberately ABSENT: it was never built and never
-    # produced an acquisition, and its hunk headers did not even parse. It is a
-    # source revision, not a producer anything is bound to.
+    '0e79199aeb886e063f7d758b34566eb6dcd3061ee12fb427424475f953f14c43',  # v5
 })
+
+_HEX64 = re.compile(r'^[0-9a-f]{64}$')
 
 #: What a manifest that selects neither is read as.
 CONTRACT_REPAIRED = 'repaired'
@@ -360,9 +376,42 @@ def sidecar_contract(expected: Optional[dict]) -> Dict[str, Any]:
     if not expected:
         return {'contract': CONTRACT_UNBOUND,
                 'sidecar_failures_required': False,
+                'identity_problem': 'no manifest at all',
                 'selected_by': 'no manifest: the acquisition is unbound and '
                                'certifies nothing, so no exemption is granted'}
     declared = str(expected.get('patch_sha256') or '')
+    # A PRODUCER IDENTITY IS REQUIRED. Root, 2026-09-23 08:40: "a manifest
+    # without usable patch and selected-binary digests must refuse as unbound
+    # even if the seal supplies all strict fields and exit zero ... Neither a
+    # supplied manifest dictionary nor a reported zero exit alone establishes
+    # actual source/binary binding."
+    #
+    # A partially specified manifest previously yielded valid coverage: strict
+    # zero fields plus exit zero, with the patch and binary simply omitted. That
+    # is the same shape as the exemption-by-omission root rejected, one level
+    # up -- the manifest, rather than the producer, buying the pass by silence.
+    binary = str(expected.get('binary_sha256') or '')
+    missing = [name for name, value in (('patch_sha256', declared),
+                                        ('binary_sha256', binary))
+               if not _HEX64.match(value)]
+    if missing:
+        return {'contract': CONTRACT_UNBOUND,
+                'sidecar_failures_required': False,
+                'identity_problem': (
+                    'the manifest carries no usable %s, so it names no producer '
+                    'this acquisition can be bound to. A well-formed digest is '
+                    'still only a claim: the supervisor must separately verify '
+                    'the pinned source and the selected binary.'
+                    % ' or '.join(missing)),
+                'selected_by': 'missing producer identity'}
+    if declared in ARCHIVAL_PATCH_SHA256:
+        return {'contract': CONTRACT_UNBOUND,
+                'sidecar_failures_required': False,
+                'identity_problem': (
+                    'patch %s... is preserved and readable as an ARCHIVAL '
+                    'diagnostic, but was never the contract of a retained '
+                    'acquisition and carries no exemption' % declared[:12]),
+                'selected_by': 'archival producer version'}
     if declared and declared in LEGACY_PATCH_SHA256:
         return {'contract': CONTRACT_LEGACY,
                 'sidecar_failures_required': False,
@@ -710,6 +759,18 @@ def observe(path: "str | Path", *, concurrency_required: int = 2,
     silently stamped this process's provenance onto any file it was handed, so a
     copied log or one from a previous boot read as local and current.
     """
+    # NORMALISE THE PATH ONCE, AT THE ENTRY. Root, 2026-09-23 08:40: "`observe`
+    # accepts `str | Path`, but `_raw_artifacts` passes the original string to
+    # `_file_evidence`, which calls `.exists()` on it. The string route reports
+    # an `AttributeError` as unreadable and omits the lifecycle log hash,
+    # although the Path route works."
+    #
+    # My defect, introduced with `_raw_artifacts` in the previous delivery.
+    # `read_records` normalises internally, so the two call sites disagreed about
+    # what `path` was -- and the failure was SILENT in the worst way: it reported
+    # the artifact as unreadable, which reads like a finding about the file
+    # rather than a bug in the reader.
+    path = Path(path)
     prov = provenance if provenance is not None else lab_data.clock_provenance()
 
     # THE LINK ROOT'S WITNESS BROKE, 2026-09-22 05:42:
@@ -907,6 +968,14 @@ def observe(path: "str | Path", *, concurrency_required: int = 2,
         base['unbound_reason'] = ('no run manifest was supplied, so these records '
                                   'are not bound to the producer the supervisor '
                                   'launched')
+    elif contract['contract'] == CONTRACT_UNBOUND:
+        # A manifest that names no usable producer is not a binding. Root,
+        # 2026-09-23 08:40: it "must refuse as unbound even if the seal supplies
+        # all strict fields and exit zero". Strict parsing stays available as a
+        # diagnostic; it does not substitute for source identity.
+        complete = False
+        base['unbound_reason'] = contract.get('identity_problem')
+        base['producer_bound'] = False
     if not windows:
         return dict(base, active=False, lifecycle_complete=False, active_windows=[],
                     reason='no complete slot occupancy is recorded (%d record(s) '
