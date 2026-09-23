@@ -1,0 +1,239 @@
+{
+  "reviewed_head": "9e33602f61e263ed9792df177aba58f2303ef2bc",
+  "source_commit": "b8e9e197d887c043d58046945defda023a005cc4",
+  "scope": "10 finite helper fixtures, temporary artifacts and in-memory mocked streams/sinks only; no native child/pipes/server/models/network/build/fullsuite. No actual deadline blocking experiment.",
+  "fixtures": [
+    {
+      "case": "whole_binary_preview_independent",
+      "state": {
+        "bytes_captured": 912,
+        "bytes_dropped": 0,
+        "reached_eof": true,
+        "error": null,
+        "budget_exhausted": false,
+        "deadline_exhausted": false,
+        "artifact": "<TMP>/raw1039_d39s47cc/whole.bin",
+        "sha256": "761bb1dda86f105d2df0d58cff16f4198554187483484ec0115bd7b9f459da4c",
+        "raw_capture_complete": true
+      },
+      "artifact_bytes": 912,
+      "artifact_sha256": "761bb1dda86f105d2df0d58cff16f4198554187483484ec0115bd7b9f459da4c",
+      "reported_count_matches_file": true,
+      "reported_hash_matches_file": true,
+      "preview_chars": 400,
+      "preview_truncated": true,
+      "state_unchanged_by_preview": true
+    },
+    {
+      "case": "exact_budget_eof",
+      "state": {
+        "bytes_captured": 10,
+        "bytes_dropped": 0,
+        "reached_eof": true,
+        "error": null,
+        "budget_exhausted": false,
+        "deadline_exhausted": false,
+        "artifact": "<TMP>/raw1039_d39s47cc/exact.bin",
+        "sha256": "bf2cb58a68f684d95a3b78ef8f661c9a4e5b09e82cc8f9cc88cce90528caeb27",
+        "raw_capture_complete": true
+      },
+      "artifact_bytes": 10,
+      "artifact_sha256": "bf2cb58a68f684d95a3b78ef8f661c9a4e5b09e82cc8f9cc88cce90528caeb27",
+      "reported_count_matches_file": true,
+      "reported_hash_matches_file": true
+    },
+    {
+      "case": "over_budget_prefix_refused",
+      "state": {
+        "bytes_captured": 10,
+        "bytes_dropped": 3,
+        "reached_eof": true,
+        "error": null,
+        "budget_exhausted": true,
+        "deadline_exhausted": false,
+        "artifact": "<TMP>/raw1039_d39s47cc/cap.bin",
+        "sha256": "bf2cb58a68f684d95a3b78ef8f661c9a4e5b09e82cc8f9cc88cce90528caeb27",
+        "raw_capture_complete": false
+      },
+      "artifact_bytes": 10,
+      "artifact_sha256": "bf2cb58a68f684d95a3b78ef8f661c9a4e5b09e82cc8f9cc88cce90528caeb27",
+      "reported_count_matches_file": true,
+      "reported_hash_matches_file": true
+    },
+    {
+      "case": "fixed_size_read_requests",
+      "state": {
+        "bytes_captured": 99,
+        "bytes_dropped": 0,
+        "reached_eof": true,
+        "error": null,
+        "budget_exhausted": false,
+        "deadline_exhausted": false,
+        "artifact": "<TMP>/raw1039_d39s47cc/chunks.bin",
+        "sha256": "1e5dd7636d21a3742d99a3a4121bde3c1296f19d78a0da7b816fafb3c698b5d3",
+        "raw_capture_complete": true
+      },
+      "artifact_bytes": 99,
+      "artifact_sha256": "1e5dd7636d21a3742d99a3a4121bde3c1296f19d78a0da7b816fafb3c698b5d3",
+      "reported_count_matches_file": true,
+      "reported_hash_matches_file": true,
+      "read_sizes": [
+        8,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8
+      ]
+    },
+    {
+      "case": "read_error_retains_prefix",
+      "state": {
+        "bytes_captured": 3,
+        "bytes_dropped": 0,
+        "reached_eof": false,
+        "error": "OSError: finite injected read failure",
+        "budget_exhausted": false,
+        "deadline_exhausted": false,
+        "artifact": "<TMP>/raw1039_d39s47cc/readfail.bin",
+        "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+        "raw_capture_complete": false
+      },
+      "artifact_bytes": 3,
+      "artifact_sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+      "reported_count_matches_file": true,
+      "reported_hash_matches_file": true
+    },
+    {
+      "case": "expired_deadline_before_read",
+      "state": {
+        "bytes_captured": 0,
+        "bytes_dropped": 0,
+        "reached_eof": false,
+        "error": null,
+        "budget_exhausted": false,
+        "deadline_exhausted": true,
+        "artifact": "<TMP>/raw1039_d39s47cc/deadline.bin",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "raw_capture_complete": false
+      },
+      "artifact_bytes": 0,
+      "artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "reported_count_matches_file": true,
+      "reported_hash_matches_file": true,
+      "reads": []
+    },
+    {
+      "case": "read_returns_after_deadline",
+      "state": {
+        "bytes_captured": 3,
+        "bytes_dropped": 0,
+        "reached_eof": false,
+        "error": null,
+        "budget_exhausted": false,
+        "deadline_exhausted": true,
+        "artifact": "<TMP>/raw1039_d39s47cc/late.bin",
+        "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+        "raw_capture_complete": false
+      },
+      "artifact_bytes": 3,
+      "artifact_sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+      "reported_count_matches_file": true,
+      "reported_hash_matches_file": true,
+      "no_blocking_or_real_clock_wait": true
+    },
+    {
+      "case": "existing_artifact_overwritten",
+      "state": {
+        "bytes_captured": 3,
+        "bytes_dropped": 0,
+        "reached_eof": true,
+        "error": null,
+        "budget_exhausted": false,
+        "deadline_exhausted": false,
+        "artifact": "<TMP>/raw1039_d39s47cc/existing.bin",
+        "sha256": "a253ff09c5a8678e1fd1962b2c329245e139e45f9cc6ced4e5d7ad42c4108fc0",
+        "raw_capture_complete": true
+      },
+      "artifact_bytes": 3,
+      "artifact_sha256": "a253ff09c5a8678e1fd1962b2c329245e139e45f9cc6ced4e5d7ad42c4108fc0",
+      "reported_count_matches_file": true,
+      "reported_hash_matches_file": true,
+      "original_bytes": 26,
+      "original_sha256": "2cbf61c8800a04b6f5f9ebbd7ab10b1a6dfcc3ff41ed5488d01d14e5be39ecc8",
+      "original_preserved": false
+    },
+    {
+      "case": "partial_write_then_error",
+      "state": {
+        "bytes_captured": 0,
+        "bytes_dropped": 0,
+        "reached_eof": false,
+        "error": "OSError: injected write error after two persisted bytes",
+        "budget_exhausted": false,
+        "deadline_exhausted": false,
+        "artifact": "<TMP>/raw1039_d39s47cc/writefail.bin",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "raw_capture_complete": false
+      },
+      "artifact_bytes": 2,
+      "artifact_sha256": "fb8e20fc2e4c3f248c60c39bd652f3c1347298bb977b8b4d5903b85055620603",
+      "reported_count_matches_file": false,
+      "reported_hash_matches_file": false,
+      "fault_injection": "sink persists 2 bytes then raises; no native child or pipe"
+    },
+    {
+      "case": "close_error_refuses_after_eof",
+      "state": {
+        "bytes_captured": 6,
+        "bytes_dropped": 0,
+        "reached_eof": true,
+        "error": "OSError: injected close error",
+        "budget_exhausted": false,
+        "deadline_exhausted": false,
+        "artifact": "<TMP>/raw1039_d39s47cc/closefail.bin",
+        "sha256": "bef57ec7f53a6d40beb640a780a639c83bc29ac8a9816f1fc6c5c6dcd93c4721",
+        "raw_capture_complete": false
+      },
+      "artifact_bytes": 6,
+      "artifact_sha256": "bef57ec7f53a6d40beb640a780a639c83bc29ac8a9816f1fc6c5c6dcd93c4721",
+      "reported_count_matches_file": true,
+      "reported_hash_matches_file": true
+    }
+  ],
+  "fixture_count": 10,
+  "selected_tests": {
+    "run": 3,
+    "failures": 0,
+    "errors": 0,
+    "log": "test_the_whole_stream_is_RETAINED_not_just_the_trimmed_lines (tests_lab_design.AcquisitionSealTests.test_the_whole_stream_is_RETAINED_not_just_the_trimmed_lines)\nRoot, 2026-09-23 10:03: \"A shortened display preview alone must not ... ok\ntest_an_exhausted_byte_budget_retains_the_prefix_and_REFUSES (tests_lab_design.AcquisitionSealTests.test_an_exhausted_byte_budget_retains_the_prefix_and_REFUSES)\nRoot: \"If the predeclared raw-storage budget or absolute deadline is ... ok\ntest_a_reader_that_raises_records_structured_failure (tests_lab_design.AcquisitionSealTests.test_a_reader_that_raises_records_structured_failure) ... ok\n\n----------------------------------------------------------------------\nRan 3 tests in 0.003s\n\nOK\n"
+  },
+  "readiness": {
+    "full_percent": 75,
+    "change": 0,
+    "bounded_v1_percent": 90,
+    "cpu": "accepted and integrated unchanged"
+  },
+  "disposition": {
+    "accepted": [
+      "Normal raw-byte artifact count/hash",
+      "Preview truncation independent of raw completeness",
+      "Fixed-size reads",
+      "Budget/read/deadline/close failures refuse full capture"
+    ],
+    "finite_repairs": [
+      "Exclusive-create artifact and retain existing bytes on collision",
+      "Derive retained artifact bytes/hash from closed artifact on failure, or mark unavailable; incremental counters are not persisted-byte proof"
+    ],
+    "deadline_scope": "A blocking read is not interrupted by the between-read deadline check; existing global-deadline work, no new design or blocking test requested",
+    "native_or_main_execution": false
+  }
+}
