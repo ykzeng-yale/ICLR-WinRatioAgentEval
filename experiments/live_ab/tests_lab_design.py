@@ -4566,6 +4566,46 @@ class AcquisitionSealTests(unittest.TestCase):
         self.assertGreater(d.hard, d.dispatch_until,
                            'the drain deadline must be the later of the two')
 
+    def test_missing_usage_is_UNKNOWN_and_never_a_measured_zero(self):
+        """Root, 2026-09-23 09:19: "A timeout with missing usage stays unknown
+        rather than becoming a measured zero."
+
+        `(r.get('usage') or {}).get('completion_tokens', 0)` summed absences as
+        zeros, so a run where BOTH requests timed out reported
+        `generated_tokens_total = 0` and `token_cap_respected = True` -- a silent
+        zero shaped like a measurement, and a cap "respected" because nothing
+        had been measured. That is the ISO-8601 defect again: a parse that
+        failed everywhere reported n=0 with None percentiles and read as a
+        result.
+        """
+        run_smoke = self._run_smoke_module()
+        both = run_smoke.summarize_usage(
+            [{'usage_known': True, 'usage': {'completion_tokens': 100}},
+             {'usage_known': True, 'usage': {'completion_tokens': 200}}],
+            token_cap=2048)
+        self.assertEqual(both['generated_tokens_total'], 300)       # control
+        self.assertTrue(both['token_cap_respected'])
+
+        partial = run_smoke.summarize_usage(
+            [{'usage_known': True, 'usage': {'completion_tokens': 100}},
+             {'usage_known': False}], token_cap=2048)
+        self.assertIsNone(partial['generated_tokens_total'])
+        self.assertIsNone(partial['token_cap_respected'],
+                          'a cap cannot be judged against an unmeasured total')
+        self.assertEqual(partial['generated_tokens_known_sum'], 100)
+        self.assertIn('LOWER BOUND', partial['generated_tokens_total_note'])
+
+        none = run_smoke.summarize_usage(
+            [{'usage_known': False}, {'usage_known': False}], token_cap=2048)
+        self.assertIsNone(none['generated_tokens_total'])
+        self.assertIsNone(none['token_cap_respected'])
+        self.assertEqual(none['requests_with_unknown_usage'], 2)
+
+        over = run_smoke.summarize_usage(
+            [{'usage_known': True, 'usage': {'completion_tokens': 5000}}],
+            token_cap=2048)
+        self.assertFalse(over['token_cap_respected'])
+
     # -- root 2026-09-23 09:19 ----------------------------------------------
     def test_a_DECLARED_STOP_SIGNAL_EXCUSES_NOTHING(self):
         """WITHDRAWN EXCEPTION. I accepted `outcome == -expected_signal`, arguing

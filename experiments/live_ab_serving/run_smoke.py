@@ -386,6 +386,39 @@ def finalize(out: dict, dest: Path, problems: list) -> int:
     return 1 if problems else 0
 
 
+def summarize_usage(results: list, *, token_cap: int) -> dict:
+    """Totals that refuse to invent a zero.
+
+    Root, 2026-09-23 09:19: "A timeout with missing usage stays unknown rather
+    than becoming a measured zero."
+
+    `(r.get('usage') or {}).get('completion_tokens', 0)` summed absences as
+    zeros, so a run where both requests timed out reported
+    `generated_tokens_total = 0` and `token_cap_respected = True` -- a silent
+    zero shaped like a measurement, and a cap "respected" because nothing was
+    measured. The same defect as the ISO-8601 parse that reported n=0 with None
+    percentiles.
+
+    The known-only sum is still reported, explicitly as a LOWER BOUND.
+    """
+    known = [r for r in results if r.get('usage_known')]
+    unknown = [r for r in results if not r.get('usage_known')]
+    known_sum = sum(int(r['usage']['completion_tokens']) for r in known)
+    return {
+        'generated_tokens_known_sum': known_sum,
+        'requests_with_known_usage': len(known),
+        'requests_with_unknown_usage': len(unknown),
+        'generated_tokens_total': known_sum if not unknown else None,
+        'generated_tokens_total_note': (
+            'None means at least one request reported no usable usage, so no '
+            'total was measured. The known-only sum is a LOWER BOUND, never the '
+            'total.' if unknown else 'every request reported usable usage'),
+        # A cap can only be judged against a measured total.
+        'token_cap_respected': (None if unknown else known_sum <= token_cap),
+        'token_cap': token_cap,
+    }
+
+
 def main() -> int:
     # LAUNCH INTENT IS PERSISTED BEFORE ANYTHING IS ATTEMPTED, so a failure
     # during selection or startup still leaves a receipt describing what was
@@ -512,48 +545,102 @@ def main() -> int:
     out['seconds_to_ready'] = round(time.monotonic() - t_wall0, 2)
 
     results: list = []
+    # DURABLE REQUEST INTENT, DEPOSITED BEFORE THE BARRIER. Root, 2026-09-23
+    # 09:19: "Planned request IDs/payloads are not durably deposited before the
+    # barrier; `submitted_requests=2` is assigned before either thread submits."
+    #
+    # The payload was built inside the worker, after the thread had started, so
+    # an attempt that died at the barrier left no record of what it had been
+    # about to send. Intent is now written down first, with the exact payload
+    # and its digest, so a failed dispatch is still a described dispatch.
+    planned = []
+    for idx in range(2):
+        body = {'model': 'coder',
+                'messages': [{'role': 'user', 'content': m['request']['prompt']}],
+                'max_tokens': m['request']['max_tokens'],
+                'temperature': m['request']['temperature'],
+                'seed': m['request']['seed'], 'stream': False, 'n': 1}
+        payload = json.dumps(body, sort_keys=True, separators=(',', ':'))
+        planned.append({'index': idx,
+                        'request_id': '%s_req%d' % (token, idx),
+                        'payload': body,
+                        'payload_sha256': hashlib.sha256(payload.encode()).hexdigest(),
+                        'endpoint': base + '/v1/chat/completions'})
+    out['planned_request_intent'] = planned
+
+    submitted = threading.Lock()
+    submitted_count = [0]
+
     if ready:
         barrier = threading.Barrier(2)
 
         def one(idx: int) -> None:
-            body = {'model': 'coder', 'messages': [
-                {'role': 'user', 'content': m['request']['prompt']}],
-                'max_tokens': m['request']['max_tokens'],
-                'temperature': m['request']['temperature'],
-                'seed': m['request']['seed'], 'stream': False, 'n': 1}
-            rec: dict = {'index': idx}
+            plan = planned[idx]
+            rec: dict = {'index': idx, 'request_id': plan['request_id'],
+                         'payload_sha256': plan['payload_sha256'],
+                         'submitted': False}
             try:
                 barrier.wait(timeout=deadline.bounded(30))
             except Exception as exc:                           # noqa: BLE001
                 rec['barrier_error'] = str(exc)
+            if not deadline.may_dispatch():
+                # NO NEW DISPATCH AFTER EXHAUSTION.
+                rec['not_dispatched'] = 'the work cutoff was reached before this '\
+                                        'request was sent'
+                rec['t_ack_monotonic'] = rec['t_send_monotonic'] = time.monotonic()
+                rec['elapsed_s'] = 0.0
+                results.append(rec)
+                return
             rec['t_send_monotonic'] = time.monotonic()
             rec['t_send_utc'] = _now()
             try:
-                r = requests.post(base + '/v1/chat/completions', json=body,
-                                  timeout=REQUEST_CAP_S)
+                r = requests.post(plan['endpoint'], json=plan['payload'],
+                                  timeout=deadline.bounded(REQUEST_CAP_S))
+                # COUNTED AT ACTUAL SUBMISSION, not assigned in advance.
+                rec['submitted'] = True
+                with submitted:
+                    submitted_count[0] += 1
                 rec['t_ack_monotonic'] = time.monotonic()
                 rec['status'] = r.status_code
-                d = r.json()
-                rec['usage'] = d.get('usage')
+                # RAW RESPONSE BYTES RETAINED. Root: "raw HTTP responses are
+                # reduced to a few fields." The three summary fields below are
+                # derived; these bytes are the evidence they were derived from.
+                raw = r.content
+                rec['raw_response'] = {
+                    'bytes': len(raw),
+                    'sha256': hashlib.sha256(raw).hexdigest(),
+                    'preview_chars_cap': DIAGNOSTIC_PREVIEW_CHARS,
+                    'preview': raw.decode('utf-8', 'replace')[:DIAGNOSTIC_PREVIEW_CHARS],
+                    'preview_truncated': len(raw) > DIAGNOSTIC_PREVIEW_CHARS}
+                try:
+                    d = r.json()
+                except Exception as exc:                       # noqa: BLE001
+                    rec['body_unparsable'] = '%s: %s' % (type(exc).__name__, exc)
+                    d = {}
+                # USAGE IS UNKNOWN WHEN ABSENT, NEVER ZERO.
+                usage = d.get('usage')
+                rec['usage'] = usage
+                rec['usage_known'] = isinstance(usage, dict) and isinstance(
+                    usage.get('completion_tokens'), int) and not isinstance(
+                    usage.get('completion_tokens'), bool)
                 rec['finish_reason'] = (d.get('choices') or [{}])[0].get('finish_reason')
                 rec['content_chars'] = len(
                     ((d.get('choices') or [{}])[0].get('message') or {}).get('content') or '')
             except Exception as exc:                           # noqa: BLE001
                 rec['t_ack_monotonic'] = time.monotonic()
                 rec['error'] = '%s: %s' % (type(exc).__name__, exc)
+                rec['usage_known'] = False
             rec['elapsed_s'] = rec['t_ack_monotonic'] - rec['t_send_monotonic']
             results.append(rec)
 
         threads = [threading.Thread(target=one, args=(i,)) for i in range(2)]
-        out['submitted_requests'] = 2
-        for t in threads:
-            t.start()
-        for t in threads:
-            t.join(timeout=deadline.bounded(REQUEST_CAP_S + 30))
+        for th in threads:
+            th.start()
+        for th in threads:
+            th.join(timeout=deadline.bounded(REQUEST_CAP_S + 30, use_reserve=True))
+    out['submitted_requests'] = submitted_count[0]
     out['requests'] = sorted(results, key=lambda r: r['index'])
-    out['generated_tokens_total'] = sum(
-        (r.get('usage') or {}).get('completion_tokens', 0) for r in results)
-    out['token_cap_respected'] = out['generated_tokens_total'] <= TOKEN_CAP
+    out.update(summarize_usage(results, token_cap=TOKEN_CAP))
 
     # --- stop OUR OWN server, then let the seal be written -------------------
     out['server_stop_utc'] = _now()
@@ -711,6 +798,15 @@ def main() -> int:
         ('the drain thread had not finished, so its state is not a final snapshot'
          if not out['producer_diagnostics']['drain_thread_finished'] else None),
         ('the absolute deadline expired' if deadline.expired() else None),
+        ('token usage was not measurable for %d request(s), so the token cap '
+         'could not be judged' % out.get('requests_with_unknown_usage', 0)
+         if out.get('token_cap_respected') is None else None),
+        ('the token cap was exceeded' if out.get('token_cap_respected') is False
+         else None),
+        ('%d request(s) were planned but never submitted'
+         % (len(out.get('planned_request_intent') or []) - out.get('submitted_requests', 0))
+         if out.get('submitted_requests', 0)
+            < len(out.get('planned_request_intent') or []) else None),
     ) if p]
     # THE SUMMARY MUST NOT OUTLIVE THE RECEIPT. Root, 2026-09-23 10:03: "after
     # writing its valid refusal receipt, the console summary accesses the absent
