@@ -1,0 +1,82 @@
+{
+  "review": "build_input_review_20260923_1116",
+  "head": "e314260b49cf7137a80413c9182679f10330118e",
+  "substantive_commit": "899201d0f0e1b6131385d597e2a88a9badbe53cd",
+  "reviewed_at_utc": "2026-09-23T11:18:49.634106+00:00",
+  "owner_correction_generated_utc": "2026-09-23T10:49:57Z",
+  "checks": {
+    ".ui-embed.sha256_byte_count": true,
+    ".ui-embed.sha256_sha256": true,
+    ".ui-embed.sha256_declared_text": true,
+    ".ui-stamp_byte_count": true,
+    ".ui-stamp_sha256": true,
+    ".ui-stamp_declared_text": true,
+    "dist.tar.gz.sha256_byte_count": true,
+    "dist.tar.gz.sha256_sha256": true,
+    "dist.tar.gz.sha256_declared_text": true,
+    "original_build_log_preserved": true,
+    "checksum_text_matches_declared_external_archive_digest": true,
+    "log_matches_latest_fallback_disclosure": true,
+    "external_archive_explicitly_not_deposited": true,
+    "V7_FAILURE_INJECTION.json_preserved": true,
+    "CANDIDATE_EVIDENCE_CORRECTIONS.json_preserved": true
+  },
+  "counts": {
+    "checks": 15,
+    "passed": 15,
+    "independently_hashed_deposited_ui_metadata_files": 3,
+    "independently_hashed_ui_archives": 0,
+    "native_executions": 0,
+    "builds": 0,
+    "model_runs": 0,
+    "network_calls": 0,
+    "owner_current_artifact_reads": 0
+  },
+  "artifacts": {
+    ".ui-embed.sha256": {
+      "path": "evidence_session60/candidate_v7/build_inputs/ui-embed.sha256",
+      "bytes": 64,
+      "sha256": "2640135169d7faf20c039ec8535d9c7fd8985313645d261c82926be22c915244",
+      "exact_text": "2b5941122d67ce4c5abc62a56333c429630fba4784ff8e46bcd9c1f59d668c5d"
+    },
+    ".ui-stamp": {
+      "path": "evidence_session60/candidate_v7/build_inputs/ui-stamp",
+      "bytes": 20,
+      "sha256": "8c03eb6b0d5a3894322252cd30a526fd3af5bd94866bd79698eb51e9ebd3dcb4",
+      "exact_text": "ggml-org/llama-ui|b1"
+    },
+    "dist.tar.gz.sha256": {
+      "path": "evidence_session60/candidate_v7/build_inputs/dist.tar.gz.sha256",
+      "bytes": 78,
+      "sha256": "71b6ab5125f483f38298ac4883f1b066fbfb08e8048c914d89164b07d6ef0055",
+      "exact_text": "3de85ed97697c04e1614e95021eef6b668dc089eb66e7f0db1f83cbef1121a89  dist.tar.gz\n"
+    }
+  },
+  "external_archive_declaration": {
+    "bytes": 3085391,
+    "sha256": "3de85ed97697c04e1614e95021eef6b668dc089eb66e7f0db1f83cbef1121a89",
+    "repository_deposit": false,
+    "independent_archive_byte_validation": false,
+    "owner_reports_preserved_in_place": true
+  },
+  "accepted": [
+    "Three exact deposited metadata byte streams agree with receipt bytes, hashes and text.",
+    "Additive build-network correction agrees with retained log and withdraws blanket no-network claim for the build.",
+    "Original reader invocation and producing code now correctly labelled unavailable.",
+    "Mutable latest fallback and future input-freeze requirement truthfully disclosed; no claim this makes past build fully reproducible."
+  ],
+  "limits": [
+    "Checksum text is not independent archive byte verification.",
+    "ui-stamp records ggml-org/llama-ui|b1 despite log resolving latest; not proof of actual b1 contents.",
+    "ui-embed digest text not independently recomputed over generated/embed inputs or binaries.",
+    "No retrospective proof of checkout or injection network behavior beyond supplied owner disclosure.",
+    "No new native-result acceptance, recursive runtime closure acceptance, or experiment clearance."
+  ],
+  "remaining_new_defects": [],
+  "next_action": "Retain existing external archive under root disposition; no current need to commit the3MB archive before provenance/rights are known. Continue existing launch-boundary pinning and lifecycle work, without fetching or rebuilding for historical recovery.",
+  "readiness": {
+    "full_percent": 75,
+    "change": 0,
+    "bounded_v1_percent": 90
+  }
+}

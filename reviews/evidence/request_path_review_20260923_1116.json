@@ -1,0 +1,821 @@
+{
+  "head": "a9efa754541c3f588660d82c88c091a3448f8021",
+  "source": "84d60562e1bb420d6e09d86c011dbb8dac2cd0c0",
+  "base": "e314260b49cf7137a80413c9182679f10330118e",
+  "scope": "Seven actual-main invocations with process, HTTP, signals, clocks and scheduling mocked. Real reader, capture helper, finalizer and filesystem on closed synthetic fixtures; launcher verification stubbed as separate root scope. No model, native executable, HTTP, build or full suite.",
+  "cases": {
+    "long_success": {
+      "returncode": 0,
+      "exception": null,
+      "receipt_count": 1,
+      "write_calls": 1,
+      "events": [
+        {
+          "event": "barrier",
+          "clock": 0.0,
+          "timeout": 30.0,
+          "durable_write_count": 0
+        },
+        {
+          "event": "HTTP_POST",
+          "clock": 0.0,
+          "timeout": 120.0,
+          "durable_write_count": 0,
+          "results_files_before_dispatch": []
+        },
+        {
+          "event": "barrier",
+          "clock": 0.0,
+          "timeout": 30.0,
+          "durable_write_count": 0
+        },
+        {
+          "event": "HTTP_POST",
+          "clock": 0.0,
+          "timeout": 120.0,
+          "durable_write_count": 0,
+          "results_files_before_dispatch": []
+        }
+      ],
+      "receipt": {
+        "submitted_requests": 2,
+        "planned_requests": 2,
+        "generated_tokens_total": 2048,
+        "generated_tokens_known_sum": 2048,
+        "requests_with_known_usage": 2,
+        "requests_with_unknown_usage": 0,
+        "token_cap_respected": true,
+        "supervisor_problems": [],
+        "deadline": {
+          "budget_s": 600.0,
+          "dispatch_remaining_s": 510.0,
+          "elapsed_s": 0.0,
+          "enforcement": "every wait is bounded by remaining(); this is arithmetic on one monotonic origin, NOT a daemon thread",
+          "expired": false,
+          "may_dispatch": true,
+          "remaining_s": 600.0,
+          "reserve_s": 90.0
+        },
+        "requests": [
+          {
+            "content_chars": 9029,
+            "elapsed_s": 0.0,
+            "finish_reason": "length",
+            "index": 0,
+            "payload_sha256": "4ef1084c351470f52e34493a3f35e9f84c08263b3d0474c8c21dcfc84ae73a89",
+            "request_id": "smoke_4167e395ccfd_req0",
+            "status": 200,
+            "submitted": true,
+            "t_ack_monotonic": 0.0,
+            "t_send_monotonic": 0.0,
+            "t_send_utc": "SYNTHETIC",
+            "usage": {
+              "completion_tokens": 1024
+            },
+            "usage_known": true,
+            "raw_response": {
+              "bytes": 9137,
+              "preview_chars_cap": 4000,
+              "preview_truncated": true,
+              "sha256": "68e5ec1e485360cc9b532d6e3d84cbbef73a900f9dc2fdad7940aa7468e179de"
+            },
+            "preview_length": 4000
+          },
+          {
+            "content_chars": 9029,
+            "elapsed_s": 0.0,
+            "finish_reason": "length",
+            "index": 1,
+            "payload_sha256": "4ef1084c351470f52e34493a3f35e9f84c08263b3d0474c8c21dcfc84ae73a89",
+            "request_id": "smoke_4167e395ccfd_req1",
+            "status": 200,
+            "submitted": true,
+            "t_ack_monotonic": 0.0,
+            "t_send_monotonic": 0.0,
+            "t_send_utc": "SYNTHETIC",
+            "usage": {
+              "completion_tokens": 1024
+            },
+            "usage_known": true,
+            "raw_response": {
+              "bytes": 9137,
+              "preview_chars_cap": 4000,
+              "preview_truncated": true,
+              "sha256": "68e5ec1e485360cc9b532d6e3d84cbbef73a900f9dc2fdad7940aa7468e179de"
+            },
+            "preview_length": 4000
+          }
+        ]
+      },
+      "persistence_checks": {
+        "input_response_bytes": [
+          9137,
+          9137
+        ],
+        "input_response_sha256": [
+          "68e5ec1e485360cc9b532d6e3d84cbbef73a900f9dc2fdad7940aa7468e179de",
+          "68e5ec1e485360cc9b532d6e3d84cbbef73a900f9dc2fdad7940aa7468e179de"
+        ],
+        "tail_marker_persisted_anywhere": false,
+        "persisted_files": [
+          "smoke_4167e395ccfd.producer_stream",
+          "lifecycle.jsonl",
+          "manifest.json",
+          "results/SMOKE_RECEIPT_smoke_4167e395ccfd.json"
+        ],
+        "intent_payload_hashes_match": [
+          true,
+          true
+        ]
+      }
+    },
+    "submitted_then_timeout": {
+      "returncode": 1,
+      "exception": null,
+      "receipt_count": 1,
+      "write_calls": 1,
+      "events": [
+        {
+          "event": "barrier",
+          "clock": 0.0,
+          "timeout": 30.0,
+          "durable_write_count": 0
+        },
+        {
+          "event": "HTTP_POST",
+          "clock": 0.0,
+          "timeout": 120.0,
+          "durable_write_count": 0,
+          "results_files_before_dispatch": []
+        },
+        {
+          "event": "barrier",
+          "clock": 0.0,
+          "timeout": 30.0,
+          "durable_write_count": 0
+        },
+        {
+          "event": "HTTP_POST",
+          "clock": 0.0,
+          "timeout": 120.0,
+          "durable_write_count": 0,
+          "results_files_before_dispatch": []
+        }
+      ],
+      "receipt": {
+        "submitted_requests": 0,
+        "planned_requests": 2,
+        "generated_tokens_total": null,
+        "generated_tokens_known_sum": 0,
+        "requests_with_known_usage": 0,
+        "requests_with_unknown_usage": 2,
+        "token_cap_respected": null,
+        "supervisor_problems": [
+          "token usage was not measurable for 2 request(s), so the token cap could not be judged",
+          "2 request(s) were planned but never submitted"
+        ],
+        "deadline": {
+          "budget_s": 600.0,
+          "dispatch_remaining_s": 510.0,
+          "elapsed_s": 0.0,
+          "enforcement": "every wait is bounded by remaining(); this is arithmetic on one monotonic origin, NOT a daemon thread",
+          "expired": false,
+          "may_dispatch": true,
+          "remaining_s": 600.0,
+          "reserve_s": 90.0
+        },
+        "requests": [
+          {
+            "elapsed_s": 0.0,
+            "error": "TimeoutError: mock transport invoked, response unavailable",
+            "index": 0,
+            "payload_sha256": "4ef1084c351470f52e34493a3f35e9f84c08263b3d0474c8c21dcfc84ae73a89",
+            "request_id": "smoke_4167e395ccfd_req0",
+            "submitted": false,
+            "t_ack_monotonic": 0.0,
+            "t_send_monotonic": 0.0,
+            "t_send_utc": "SYNTHETIC",
+            "usage_known": false,
+            "raw_response": null
+          },
+          {
+            "elapsed_s": 0.0,
+            "error": "TimeoutError: mock transport invoked, response unavailable",
+            "index": 1,
+            "payload_sha256": "4ef1084c351470f52e34493a3f35e9f84c08263b3d0474c8c21dcfc84ae73a89",
+            "request_id": "smoke_4167e395ccfd_req1",
+            "submitted": false,
+            "t_ack_monotonic": 0.0,
+            "t_send_monotonic": 0.0,
+            "t_send_utc": "SYNTHETIC",
+            "usage_known": false,
+            "raw_response": null
+          }
+        ]
+      },
+      "persistence_checks": {
+        "input_response_bytes": [],
+        "input_response_sha256": [],
+        "tail_marker_persisted_anywhere": false,
+        "persisted_files": [
+          "smoke_4167e395ccfd.producer_stream",
+          "lifecycle.jsonl",
+          "manifest.json",
+          "results/SMOKE_RECEIPT_smoke_4167e395ccfd.json"
+        ],
+        "intent_payload_hashes_match": [
+          true,
+          true
+        ]
+      }
+    },
+    "long_unparsable": {
+      "returncode": 1,
+      "exception": null,
+      "receipt_count": 1,
+      "write_calls": 1,
+      "events": [
+        {
+          "event": "barrier",
+          "clock": 0.0,
+          "timeout": 30.0,
+          "durable_write_count": 0
+        },
+        {
+          "event": "HTTP_POST",
+          "clock": 0.0,
+          "timeout": 120.0,
+          "durable_write_count": 0,
+          "results_files_before_dispatch": []
+        },
+        {
+          "event": "barrier",
+          "clock": 0.0,
+          "timeout": 30.0,
+          "durable_write_count": 0
+        },
+        {
+          "event": "HTTP_POST",
+          "clock": 0.0,
+          "timeout": 120.0,
+          "durable_write_count": 0,
+          "results_files_before_dispatch": []
+        }
+      ],
+      "receipt": {
+        "submitted_requests": 2,
+        "planned_requests": 2,
+        "generated_tokens_total": null,
+        "generated_tokens_known_sum": 0,
+        "requests_with_known_usage": 0,
+        "requests_with_unknown_usage": 2,
+        "token_cap_respected": null,
+        "supervisor_problems": [
+          "token usage was not measurable for 2 request(s), so the token cap could not be judged"
+        ],
+        "deadline": {
+          "budget_s": 600.0,
+          "dispatch_remaining_s": 510.0,
+          "elapsed_s": 0.0,
+          "enforcement": "every wait is bounded by remaining(); this is arithmetic on one monotonic origin, NOT a daemon thread",
+          "expired": false,
+          "may_dispatch": true,
+          "remaining_s": 600.0,
+          "reserve_s": 90.0
+        },
+        "requests": [
+          {
+            "body_unparsable": "ValueError: synthetic JSON decode failure",
+            "content_chars": 0,
+            "elapsed_s": 0.0,
+            "finish_reason": null,
+            "index": 0,
+            "payload_sha256": "4ef1084c351470f52e34493a3f35e9f84c08263b3d0474c8c21dcfc84ae73a89",
+            "request_id": "smoke_4167e395ccfd_req0",
+            "status": 200,
+            "submitted": true,
+            "t_ack_monotonic": 0.0,
+            "t_send_monotonic": 0.0,
+            "t_send_utc": "SYNTHETIC",
+            "usage": null,
+            "usage_known": false,
+            "raw_response": {
+              "bytes": 9038,
+              "preview_chars_cap": 4000,
+              "preview_truncated": true,
+              "sha256": "6f6c71357ab2b0d1474df82dcddfc1cfc407432c8833b4fb23c5f01df8189375"
+            },
+            "preview_length": 4000
+          },
+          {
+            "body_unparsable": "ValueError: synthetic JSON decode failure",
+            "content_chars": 0,
+            "elapsed_s": 0.0,
+            "finish_reason": null,
+            "index": 1,
+            "payload_sha256": "4ef1084c351470f52e34493a3f35e9f84c08263b3d0474c8c21dcfc84ae73a89",
+            "request_id": "smoke_4167e395ccfd_req1",
+            "status": 200,
+            "submitted": true,
+            "t_ack_monotonic": 0.0,
+            "t_send_monotonic": 0.0,
+            "t_send_utc": "SYNTHETIC",
+            "usage": null,
+            "usage_known": false,
+            "raw_response": {
+              "bytes": 9038,
+              "preview_chars_cap": 4000,
+              "preview_truncated": true,
+              "sha256": "6f6c71357ab2b0d1474df82dcddfc1cfc407432c8833b4fb23c5f01df8189375"
+            },
+            "preview_length": 4000
+          }
+        ]
+      },
+      "persistence_checks": {
+        "input_response_bytes": [
+          9038,
+          9038
+        ],
+        "input_response_sha256": [
+          "6f6c71357ab2b0d1474df82dcddfc1cfc407432c8833b4fb23c5f01df8189375",
+          "6f6c71357ab2b0d1474df82dcddfc1cfc407432c8833b4fb23c5f01df8189375"
+        ],
+        "tail_marker_persisted_anywhere": false,
+        "persisted_files": [
+          "smoke_4167e395ccfd.producer_stream",
+          "lifecycle.jsonl",
+          "manifest.json",
+          "results/SMOKE_RECEIPT_smoke_4167e395ccfd.json"
+        ],
+        "intent_payload_hashes_match": [
+          true,
+          true
+        ]
+      }
+    },
+    "missing_usage": {
+      "returncode": 1,
+      "exception": null,
+      "receipt_count": 1,
+      "write_calls": 1,
+      "events": [
+        {
+          "event": "barrier",
+          "clock": 0.0,
+          "timeout": 30.0,
+          "durable_write_count": 0
+        },
+        {
+          "event": "HTTP_POST",
+          "clock": 0.0,
+          "timeout": 120.0,
+          "durable_write_count": 0,
+          "results_files_before_dispatch": []
+        },
+        {
+          "event": "barrier",
+          "clock": 0.0,
+          "timeout": 30.0,
+          "durable_write_count": 0
+        },
+        {
+          "event": "HTTP_POST",
+          "clock": 0.0,
+          "timeout": 120.0,
+          "durable_write_count": 0,
+          "results_files_before_dispatch": []
+        }
+      ],
+      "receipt": {
+        "submitted_requests": 2,
+        "planned_requests": 2,
+        "generated_tokens_total": null,
+        "generated_tokens_known_sum": 0,
+        "requests_with_known_usage": 0,
+        "requests_with_unknown_usage": 2,
+        "token_cap_respected": null,
+        "supervisor_problems": [
+          "token usage was not measurable for 2 request(s), so the token cap could not be judged"
+        ],
+        "deadline": {
+          "budget_s": 600.0,
+          "dispatch_remaining_s": 510.0,
+          "elapsed_s": 0.0,
+          "enforcement": "every wait is bounded by remaining(); this is arithmetic on one monotonic origin, NOT a daemon thread",
+          "expired": false,
+          "may_dispatch": true,
+          "remaining_s": 600.0,
+          "reserve_s": 90.0
+        },
+        "requests": [
+          {
+            "content_chars": 2,
+            "elapsed_s": 0.0,
+            "finish_reason": "length",
+            "index": 0,
+            "payload_sha256": "4ef1084c351470f52e34493a3f35e9f84c08263b3d0474c8c21dcfc84ae73a89",
+            "request_id": "smoke_4167e395ccfd_req0",
+            "status": 200,
+            "submitted": true,
+            "t_ack_monotonic": 0.0,
+            "t_send_monotonic": 0.0,
+            "t_send_utc": "SYNTHETIC",
+            "usage": null,
+            "usage_known": false,
+            "raw_response": {
+              "bytes": 72,
+              "preview_chars_cap": 4000,
+              "preview_truncated": false,
+              "sha256": "10cd547d326e0897c6cea550649de983d350484736a4f05cc245d6e68aa69bb9"
+            },
+            "preview_length": 72
+          },
+          {
+            "content_chars": 2,
+            "elapsed_s": 0.0,
+            "finish_reason": "length",
+            "index": 1,
+            "payload_sha256": "4ef1084c351470f52e34493a3f35e9f84c08263b3d0474c8c21dcfc84ae73a89",
+            "request_id": "smoke_4167e395ccfd_req1",
+            "status": 200,
+            "submitted": true,
+            "t_ack_monotonic": 0.0,
+            "t_send_monotonic": 0.0,
+            "t_send_utc": "SYNTHETIC",
+            "usage": null,
+            "usage_known": false,
+            "raw_response": {
+              "bytes": 72,
+              "preview_chars_cap": 4000,
+              "preview_truncated": false,
+              "sha256": "10cd547d326e0897c6cea550649de983d350484736a4f05cc245d6e68aa69bb9"
+            },
+            "preview_length": 72
+          }
+        ]
+      },
+      "persistence_checks": {
+        "input_response_bytes": [
+          72,
+          72
+        ],
+        "input_response_sha256": [
+          "10cd547d326e0897c6cea550649de983d350484736a4f05cc245d6e68aa69bb9",
+          "10cd547d326e0897c6cea550649de983d350484736a4f05cc245d6e68aa69bb9"
+        ],
+        "tail_marker_persisted_anywhere": false,
+        "persisted_files": [
+          "smoke_4167e395ccfd.producer_stream",
+          "lifecycle.jsonl",
+          "manifest.json",
+          "results/SMOKE_RECEIPT_smoke_4167e395ccfd.json"
+        ],
+        "intent_payload_hashes_match": [
+          true,
+          true
+        ]
+      }
+    },
+    "known_zero": {
+      "returncode": 0,
+      "exception": null,
+      "receipt_count": 1,
+      "write_calls": 1,
+      "events": [
+        {
+          "event": "barrier",
+          "clock": 0.0,
+          "timeout": 30.0,
+          "durable_write_count": 0
+        },
+        {
+          "event": "HTTP_POST",
+          "clock": 0.0,
+          "timeout": 120.0,
+          "durable_write_count": 0,
+          "results_files_before_dispatch": []
+        },
+        {
+          "event": "barrier",
+          "clock": 0.0,
+          "timeout": 30.0,
+          "durable_write_count": 0
+        },
+        {
+          "event": "HTTP_POST",
+          "clock": 0.0,
+          "timeout": 120.0,
+          "durable_write_count": 0,
+          "results_files_before_dispatch": []
+        }
+      ],
+      "receipt": {
+        "submitted_requests": 2,
+        "planned_requests": 2,
+        "generated_tokens_total": 0,
+        "generated_tokens_known_sum": 0,
+        "requests_with_known_usage": 2,
+        "requests_with_unknown_usage": 0,
+        "token_cap_respected": true,
+        "supervisor_problems": [],
+        "deadline": {
+          "budget_s": 600.0,
+          "dispatch_remaining_s": 510.0,
+          "elapsed_s": 0.0,
+          "enforcement": "every wait is bounded by remaining(); this is arithmetic on one monotonic origin, NOT a daemon thread",
+          "expired": false,
+          "may_dispatch": true,
+          "remaining_s": 600.0,
+          "reserve_s": 90.0
+        },
+        "requests": [
+          {
+            "content_chars": 2,
+            "elapsed_s": 0.0,
+            "finish_reason": "length",
+            "index": 0,
+            "payload_sha256": "4ef1084c351470f52e34493a3f35e9f84c08263b3d0474c8c21dcfc84ae73a89",
+            "request_id": "smoke_4167e395ccfd_req0",
+            "status": 200,
+            "submitted": true,
+            "t_ack_monotonic": 0.0,
+            "t_send_monotonic": 0.0,
+            "t_send_utc": "SYNTHETIC",
+            "usage": {
+              "completion_tokens": 0
+            },
+            "usage_known": true,
+            "raw_response": {
+              "bytes": 107,
+              "preview_chars_cap": 4000,
+              "preview_truncated": false,
+              "sha256": "73535fb5f3064ea80697abf430012252e5eace9b2156ce03b7a02778c8468dd7"
+            },
+            "preview_length": 107
+          },
+          {
+            "content_chars": 2,
+            "elapsed_s": 0.0,
+            "finish_reason": "length",
+            "index": 1,
+            "payload_sha256": "4ef1084c351470f52e34493a3f35e9f84c08263b3d0474c8c21dcfc84ae73a89",
+            "request_id": "smoke_4167e395ccfd_req1",
+            "status": 200,
+            "submitted": true,
+            "t_ack_monotonic": 0.0,
+            "t_send_monotonic": 0.0,
+            "t_send_utc": "SYNTHETIC",
+            "usage": {
+              "completion_tokens": 0
+            },
+            "usage_known": true,
+            "raw_response": {
+              "bytes": 107,
+              "preview_chars_cap": 4000,
+              "preview_truncated": false,
+              "sha256": "73535fb5f3064ea80697abf430012252e5eace9b2156ce03b7a02778c8468dd7"
+            },
+            "preview_length": 107
+          }
+        ]
+      },
+      "persistence_checks": {
+        "input_response_bytes": [
+          107,
+          107
+        ],
+        "input_response_sha256": [
+          "73535fb5f3064ea80697abf430012252e5eace9b2156ce03b7a02778c8468dd7",
+          "73535fb5f3064ea80697abf430012252e5eace9b2156ce03b7a02778c8468dd7"
+        ],
+        "tail_marker_persisted_anywhere": false,
+        "persisted_files": [
+          "smoke_4167e395ccfd.producer_stream",
+          "lifecycle.jsonl",
+          "manifest.json",
+          "results/SMOKE_RECEIPT_smoke_4167e395ccfd.json"
+        ],
+        "intent_payload_hashes_match": [
+          true,
+          true
+        ]
+      }
+    },
+    "cutoff_after_health": {
+      "returncode": 1,
+      "exception": null,
+      "receipt_count": 1,
+      "write_calls": 1,
+      "events": [
+        {
+          "event": "barrier",
+          "clock": 511.0,
+          "timeout": 0.0,
+          "durable_write_count": 0
+        },
+        {
+          "event": "barrier",
+          "clock": 511.0,
+          "timeout": 0.0,
+          "durable_write_count": 0
+        }
+      ],
+      "receipt": {
+        "submitted_requests": 0,
+        "planned_requests": 2,
+        "generated_tokens_total": null,
+        "generated_tokens_known_sum": 0,
+        "requests_with_known_usage": 0,
+        "requests_with_unknown_usage": 2,
+        "token_cap_respected": null,
+        "supervisor_problems": [
+          "token usage was not measurable for 2 request(s), so the token cap could not be judged",
+          "2 request(s) were planned but never submitted"
+        ],
+        "deadline": {
+          "budget_s": 600.0,
+          "dispatch_remaining_s": 0.0,
+          "elapsed_s": 511.0,
+          "enforcement": "every wait is bounded by remaining(); this is arithmetic on one monotonic origin, NOT a daemon thread",
+          "expired": false,
+          "may_dispatch": false,
+          "remaining_s": 89.0,
+          "reserve_s": 90.0
+        },
+        "requests": [
+          {
+            "elapsed_s": 0.0,
+            "index": 0,
+            "not_dispatched": "the work cutoff was reached before this request was sent",
+            "payload_sha256": "4ef1084c351470f52e34493a3f35e9f84c08263b3d0474c8c21dcfc84ae73a89",
+            "request_id": "smoke_4167e395ccfd_req0",
+            "submitted": false,
+            "t_ack_monotonic": 511.0,
+            "t_send_monotonic": 511.0,
+            "raw_response": null
+          },
+          {
+            "elapsed_s": 0.0,
+            "index": 1,
+            "not_dispatched": "the work cutoff was reached before this request was sent",
+            "payload_sha256": "4ef1084c351470f52e34493a3f35e9f84c08263b3d0474c8c21dcfc84ae73a89",
+            "request_id": "smoke_4167e395ccfd_req1",
+            "submitted": false,
+            "t_ack_monotonic": 511.0,
+            "t_send_monotonic": 511.0,
+            "raw_response": null
+          }
+        ]
+      },
+      "persistence_checks": {
+        "input_response_bytes": [],
+        "input_response_sha256": [],
+        "tail_marker_persisted_anywhere": false,
+        "persisted_files": [
+          "smoke_4167e395ccfd.producer_stream",
+          "lifecycle.jsonl",
+          "manifest.json",
+          "results/SMOKE_RECEIPT_smoke_4167e395ccfd.json"
+        ],
+        "intent_payload_hashes_match": [
+          true,
+          true
+        ]
+      }
+    },
+    "barrier_failure_before_cutoff": {
+      "returncode": 0,
+      "exception": null,
+      "receipt_count": 1,
+      "write_calls": 1,
+      "events": [
+        {
+          "event": "barrier",
+          "clock": 0.0,
+          "timeout": 30.0,
+          "durable_write_count": 0
+        },
+        {
+          "event": "HTTP_POST",
+          "clock": 0.0,
+          "timeout": 120.0,
+          "durable_write_count": 0,
+          "results_files_before_dispatch": []
+        },
+        {
+          "event": "barrier",
+          "clock": 0.0,
+          "timeout": 30.0,
+          "durable_write_count": 0
+        },
+        {
+          "event": "HTTP_POST",
+          "clock": 0.0,
+          "timeout": 120.0,
+          "durable_write_count": 0,
+          "results_files_before_dispatch": []
+        }
+      ],
+      "receipt": {
+        "submitted_requests": 2,
+        "planned_requests": 2,
+        "generated_tokens_total": 2048,
+        "generated_tokens_known_sum": 2048,
+        "requests_with_known_usage": 2,
+        "requests_with_unknown_usage": 0,
+        "token_cap_respected": true,
+        "supervisor_problems": [],
+        "deadline": {
+          "budget_s": 600.0,
+          "dispatch_remaining_s": 510.0,
+          "elapsed_s": 0.0,
+          "enforcement": "every wait is bounded by remaining(); this is arithmetic on one monotonic origin, NOT a daemon thread",
+          "expired": false,
+          "may_dispatch": true,
+          "remaining_s": 600.0,
+          "reserve_s": 90.0
+        },
+        "requests": [
+          {
+            "barrier_error": "synthetic barrier failure",
+            "content_chars": 2,
+            "elapsed_s": 0.0,
+            "finish_reason": "length",
+            "index": 0,
+            "payload_sha256": "4ef1084c351470f52e34493a3f35e9f84c08263b3d0474c8c21dcfc84ae73a89",
+            "request_id": "smoke_4167e395ccfd_req0",
+            "status": 200,
+            "submitted": true,
+            "t_ack_monotonic": 0.0,
+            "t_send_monotonic": 0.0,
+            "t_send_utc": "SYNTHETIC",
+            "usage": {
+              "completion_tokens": 1024
+            },
+            "usage_known": true,
+            "raw_response": {
+              "bytes": 110,
+              "preview_chars_cap": 4000,
+              "preview_truncated": false,
+              "sha256": "63ff97aee7ba6ea8b69bbc4dfc388d99bc09cb4d2679de2deab36f69a6d0ed86"
+            },
+            "preview_length": 110
+          },
+          {
+            "barrier_error": "synthetic barrier failure",
+            "content_chars": 2,
+            "elapsed_s": 0.0,
+            "finish_reason": "length",
+            "index": 1,
+            "payload_sha256": "4ef1084c351470f52e34493a3f35e9f84c08263b3d0474c8c21dcfc84ae73a89",
+            "request_id": "smoke_4167e395ccfd_req1",
+            "status": 200,
+            "submitted": true,
+            "t_ack_monotonic": 0.0,
+            "t_send_monotonic": 0.0,
+            "t_send_utc": "SYNTHETIC",
+            "usage": {
+              "completion_tokens": 1024
+            },
+            "usage_known": true,
+            "raw_response": {
+              "bytes": 110,
+              "preview_chars_cap": 4000,
+              "preview_truncated": false,
+              "sha256": "63ff97aee7ba6ea8b69bbc4dfc388d99bc09cb4d2679de2deab36f69a6d0ed86"
+            },
+            "preview_length": 110
+          }
+        ]
+      },
+      "persistence_checks": {
+        "input_response_bytes": [
+          110,
+          110
+        ],
+        "input_response_sha256": [
+          "63ff97aee7ba6ea8b69bbc4dfc388d99bc09cb4d2679de2deab36f69a6d0ed86",
+          "63ff97aee7ba6ea8b69bbc4dfc388d99bc09cb4d2679de2deab36f69a6d0ed86"
+        ],
+        "tail_marker_persisted_anywhere": false,
+        "persisted_files": [
+          "smoke_4167e395ccfd.producer_stream",
+          "lifecycle.jsonl",
+          "manifest.json",
+          "results/SMOKE_RECEIPT_smoke_4167e395ccfd.json"
+        ],
+        "intent_payload_hashes_match": [
+          true,
+          true
+        ]
+      }
+    }
+  },
+  "readiness": {
+    "full_project_percent": 75,
+    "delta_points": 0,
+    "bounded_v1_percent": 90,
+    "remaining_points": 25
+  }
+}

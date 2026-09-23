@@ -1,0 +1,29 @@
+# Independent supervisor delta review — September 23, 11:16 cycle
+
+**Full-project arXiv readiness 75% (change 0); bounded-v1 90%.** Remaining: prospective study 10 (Session60 collection/root acceptance), final expanded release QA 5 (root), author checks 10 (Yukang). No scientific result or milestone credit is added.
+
+Exact head `e314260b49cf7137a80413c9182679f10330118e`; Python delivery [db27cf0ded6297d3937e233cdbc6e2dbad227b99](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/commit/db27cf0ded6297d3937e233cdbc6e2dbad227b99). Eight bounded actual-main scenarios (with one tighter repeat of the health-cutoff scenario) mocked all HTTP, process, signal, clock and threading interactions. Launch-artifact verification was explicitly stubbed because root reviews that boundary separately. The real lifecycle observer and finalization function used closed synthetic temporary files. No model, network, child process, native build, sandbox or full suite ran.
+
+## Accepted closures
+
+The unfinished diagnostic writer is now checked before preview/read analysis. With a closed synthetic prefix and a mock writer still marked active, main performs **zero supervisor capture reads**, returns **1**, and preserves one receipt with unresolved capture state. This closes the ordering defect from 10:39. The new helper may measure its own output after closing its write handle while its thread is still alive; that is distinct from a supervisor preview of an active writer and is not treated as a defect here.
+
+A `Popen` exception now returns **1** with exactly one retained refusal receipt and `child_started=false`. Missing launch-pointer files and malformed JSON also each produce one refusal receipt and return one. This accepts those actual early-finalization branches. Two narrowly selected changed helper tests pass: the absolute-deadline arithmetic and the single-receipt finalizer. Their passing does not establish all actual-main integration paths.
+
+## Material remaining actual-route findings
+
+**1. The dispatch cutoff is still not enforced at the send boundary.** A realistic bounded witness advances preparation to second **509**; the health request consumes its actual configured **2-second** timeout allowance and reports ready at **511**, beyond the 510-second work cutoff. Each request then passes a zero-timeout barrier and sends anyway with a fresh **120-second HTTP timeout**. Main returns **0** and records no problems, although its final deadline state says `may_dispatch=false`. In a second witness the barrier itself raises after the cutoff; the exception is recorded but execution still sends both requests and returns zero. These are actual `main()` calls, not isolated arithmetic-helper tests.
+
+Owner action: bound readiness operations by remaining work time, recheck cutoff after readiness and immediately before each send, treat a failed barrier as non-dispatch for that request, and give a submitted request only its allowed remaining timeout. Preserve planned versus actually submitted status. Do not let a zero-timeout barrier or recorded barrier error authorize a send. The existing deadline/capture/cleanup requirements otherwise remain root's consolidated scope.
+
+Test-clock detail: `Deadline.__init__(now=time.monotonic)` binds its default at import time. These cases explicitly injected the mock clock into the **real Deadline** constructor; merely replacing the module's `time.monotonic` would have mixed clock origins and invalidated the test. This is a test-method disclosure, not a claim that normal execution uses inconsistent clocks.
+
+**2. The startup receipt still overstates model activity.** The now-retained `Popen` failure receipt simultaneously says `child_started=false` and **`loaded_a_model=true`** because that flag is set before the launch attempt. Root owns the final receipt-state design; retain the successful early-finalization closure while setting attempted/started/ready/loaded fields only from their actual evidence. No model was loaded in this mocked refusal, and a failed process creation cannot support that claim.
+
+**3. Finalization is still incomplete for parsed-but-invalid manifests and closed-log decoding.** A syntactically valid manifest `{}` passes the JSON-reading try block, then raises `KeyError: model` with **zero receipts**. Required manifest structure must be validated or its ordinary access failures routed to finalization before launch. The owner-acknowledged invalid-UTF8 lifecycle case still raises from `observe` before finalization, producing **zero receipts**; the later raw-byte helper does not yet protect that actual route. This known decode gap was checked once, not presented as a new requirement.
+
+## Evidence and disposition
+
+[Independent evidence JSON](evidence/supervisor_review_20260923_1116.json) records the eight scenarios: unfinished drain, process-creation failure, missing manifest pointer, invalid JSON, parsed invalid shape, readiness crossing the cutoff, barrier failure at cutoff, and invalid log encoding. The refined readiness witness starts the health call at 509 with timeout 2 and records both sends at 511 with timeout 120, eliminating any reliance on an unrealistically long health call. The real finalizer wrote the inspected receipts; none were fabricated by the harness.
+
+Accept the unfinished-drain no-read closure and the tested missing/invalid-JSON/process-creation refusal persistence. Keep send-boundary deadline enforcement, truthful loaded-state labeling, required-manifest-shape handling and the acknowledged decode finalization open. Root separately reviews complete artifact/closure pins and remaining request/raw-usage requirements; the other reviewer owns raw-capture helper changes. Session60 owns repairs, root owns acceptance and prospective preparation/freeze review. Owner files, shared status, paper and release were not changed. Full readiness remains unchanged.

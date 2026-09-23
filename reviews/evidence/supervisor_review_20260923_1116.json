@@ -1,0 +1,441 @@
+{
+  "head": "e314260b49cf7137a80413c9182679f10330118e",
+  "source": "db27cf0ded6297d3937e233cdbc6e2dbad227b99",
+  "scope": "Eight actual-main cases. All HTTP/process/signals/clocks/threads mocked; launch verification stubbed because separate root scope. Real Deadline explicitly injected with mock now, real reader and finalization on closed synthetic files. No native/model/network/build.",
+  "cases": {
+    "unfinished_drain": {
+      "main_returncode": 1,
+      "exception": null,
+      "receipt_count": 1,
+      "write_calls": 1,
+      "events": [
+        {
+          "event": "Popen",
+          "time": 0.0
+        },
+        {
+          "event": "health",
+          "timeout": 2,
+          "time": 0.0
+        },
+        {
+          "event": "barrier",
+          "timeout": 30.0,
+          "time": 0.0
+        },
+        {
+          "event": "HTTP_POST",
+          "timeout": 120.0,
+          "time": 0.0
+        },
+        {
+          "event": "barrier",
+          "timeout": 30.0,
+          "time": 0.0
+        },
+        {
+          "event": "HTTP_POST",
+          "timeout": 120.0,
+          "time": 0.0
+        },
+        {
+          "event": "request_join",
+          "timeout": 150.0,
+          "time": 0.0
+        },
+        {
+          "event": "request_join",
+          "timeout": 150.0,
+          "time": 0.0
+        },
+        {
+          "event": "wait",
+          "timeout": 60.0,
+          "time": 0.0
+        },
+        {
+          "event": "drain_join",
+          "timeout": 30.0,
+          "time": 0.0
+        },
+        {
+          "event": "thread_state",
+          "drain": true,
+          "alive": true
+        },
+        {
+          "event": "thread_state",
+          "drain": true,
+          "alive": true
+        }
+      ],
+      "receipt_fields": {
+        "attempted": true,
+        "child_started": true,
+        "loaded_a_model": true,
+        "supervisor_problems": [
+          "raw diagnostic capture incomplete: {'reached_eof': False, 'drain_error': None, 'bytes_dropped': 0, 'budget_exhausted': False, 'deadline_exhausted': False}",
+          "the drain thread had not finished, so its state is not a final snapshot"
+        ],
+        "deadline": {
+          "budget_s": 600.0,
+          "dispatch_remaining_s": 510.0,
+          "elapsed_s": 0.0,
+          "enforcement": "every wait is bounded by remaining(); this is arithmetic on one monotonic origin, NOT a daemon thread",
+          "expired": false,
+          "may_dispatch": true,
+          "remaining_s": 600.0,
+          "reserve_s": 90.0
+        },
+        "receipt_written": null
+      },
+      "posts_after_cutoff": 0,
+      "capture_reads_while_writer_active": 0,
+      "diagnostics": {
+        "artifact": "/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup1116_0wso90xj/unfinished_drain/smoke_4167e395ccfd.producer_stream",
+        "artifact_sha256": null,
+        "budget_exhausted": false,
+        "byte_budget": 8388608,
+        "bytes_captured": 0,
+        "bytes_dropped": 0,
+        "deadline_exhausted": false,
+        "derived_from": "/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup1116_0wso90xj/unfinished_drain/smoke_4167e395ccfd.producer_stream",
+        "drain_error": null,
+        "drain_thread_finished": false,
+        "note": "draining the owned child pipe is ACQUISITION, not analysis of an owner-written lifecycle file, so it runs before the closed-file gate (root, 10:03)",
+        "preview_unavailable": "the drain writer had not finished, so the capture was not read, hashed or parsed",
+        "raw_capture_complete": false,
+        "reached_eof": false,
+        "stream": "the owned child stdout+stderr pipe, captured to an immutable per-attempt artifact from launch"
+      },
+      "capture_read_instrumentation_note": "Active mock drain reads its own already-closed artifact once to measure persistence; this is not supervisor analysis. The unfinished-drain case performs zero capture reads."
+    },
+    "popen_failure": {
+      "main_returncode": 1,
+      "exception": null,
+      "receipt_count": 1,
+      "write_calls": 1,
+      "events": [
+        {
+          "event": "Popen",
+          "time": 0.0
+        }
+      ],
+      "receipt_fields": {
+        "attempted": true,
+        "child_started": false,
+        "loaded_a_model": true,
+        "supervisor_problems": [
+          "the child could not be started: synthetic spawn failure"
+        ],
+        "deadline": {
+          "budget_s": 600.0,
+          "dispatch_remaining_s": 510.0,
+          "elapsed_s": 0.0,
+          "enforcement": "every wait is bounded by remaining(); this is arithmetic on one monotonic origin, NOT a daemon thread",
+          "expired": false,
+          "may_dispatch": true,
+          "remaining_s": 600.0,
+          "reserve_s": 90.0
+        },
+        "receipt_written": null
+      },
+      "posts_after_cutoff": 0,
+      "capture_reads_while_writer_active": 0,
+      "diagnostics": null,
+      "capture_read_instrumentation_note": "Active mock drain reads its own already-closed artifact once to measure persistence; this is not supervisor analysis. The unfinished-drain case performs zero capture reads."
+    },
+    "missing_manifest": {
+      "main_returncode": 1,
+      "exception": null,
+      "receipt_count": 1,
+      "write_calls": 1,
+      "events": [],
+      "receipt_fields": {
+        "attempted": true,
+        "child_started": false,
+        "loaded_a_model": null,
+        "supervisor_problems": [
+          "the launch manifest could not be read: FileNotFoundError: synthetic manifest pointer absent"
+        ],
+        "deadline": null,
+        "receipt_written": null
+      },
+      "posts_after_cutoff": 0,
+      "capture_reads_while_writer_active": 0,
+      "diagnostics": null,
+      "capture_read_instrumentation_note": "Active mock drain reads its own already-closed artifact once to measure persistence; this is not supervisor analysis. The unfinished-drain case performs zero capture reads."
+    },
+    "bad_json_manifest": {
+      "main_returncode": 1,
+      "exception": null,
+      "receipt_count": 1,
+      "write_calls": 1,
+      "events": [],
+      "receipt_fields": {
+        "attempted": true,
+        "child_started": false,
+        "loaded_a_model": null,
+        "supervisor_problems": [
+          "the launch manifest could not be read: JSONDecodeError: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)"
+        ],
+        "deadline": null,
+        "receipt_written": null
+      },
+      "posts_after_cutoff": 0,
+      "capture_reads_while_writer_active": 0,
+      "diagnostics": null,
+      "capture_read_instrumentation_note": "Active mock drain reads its own already-closed artifact once to measure persistence; this is not supervisor analysis. The unfinished-drain case performs zero capture reads."
+    },
+    "malformed_shape_manifest": {
+      "main_returncode": null,
+      "exception": "KeyError: 'model'",
+      "receipt_count": 0,
+      "write_calls": 0,
+      "events": [],
+      "receipt_fields": null,
+      "posts_after_cutoff": 0,
+      "capture_reads_while_writer_active": 0,
+      "diagnostics": null,
+      "capture_read_instrumentation_note": "Active mock drain reads its own already-closed artifact once to measure persistence; this is not supervisor analysis. The unfinished-drain case performs zero capture reads."
+    },
+    "health_crosses_cutoff": {
+      "main_returncode": 0,
+      "receipt_count": 1,
+      "events": [
+        {
+          "event": "health",
+          "time": 509.0,
+          "timeout": 2
+        },
+        {
+          "event": "barrier",
+          "time": 511.0,
+          "timeout": 0.0
+        },
+        {
+          "event": "HTTP_POST",
+          "time": 511.0,
+          "timeout": 120.0
+        },
+        {
+          "event": "barrier",
+          "time": 511.0,
+          "timeout": 0.0
+        },
+        {
+          "event": "HTTP_POST",
+          "time": 511.0,
+          "timeout": 120.0
+        }
+      ],
+      "deadline": {
+        "budget_s": 600.0,
+        "dispatch_remaining_s": 0.0,
+        "elapsed_s": 511.0,
+        "enforcement": "every wait is bounded by remaining(); this is arithmetic on one monotonic origin, NOT a daemon thread",
+        "expired": false,
+        "may_dispatch": false,
+        "remaining_s": 89.0,
+        "reserve_s": 90.0
+      },
+      "problems": [],
+      "note": "Preparation advances mock time to509; health consumes exactly its requested2seconds and returns at511; two HTTP POSTs still dispatch after510 workcutoff."
+    },
+    "barrier_error_at_cutoff": {
+      "main_returncode": 0,
+      "exception": null,
+      "receipt_count": 1,
+      "write_calls": 1,
+      "events": [
+        {
+          "event": "Popen",
+          "time": 0.0
+        },
+        {
+          "event": "capture_read",
+          "writer_alive": true
+        },
+        {
+          "event": "health",
+          "timeout": 2,
+          "time": 0.0
+        },
+        {
+          "event": "barrier",
+          "timeout": 30.0,
+          "time": 0.0
+        },
+        {
+          "event": "HTTP_POST",
+          "timeout": 120.0,
+          "time": 511.0
+        },
+        {
+          "event": "barrier",
+          "timeout": 0.0,
+          "time": 511.0
+        },
+        {
+          "event": "HTTP_POST",
+          "timeout": 120.0,
+          "time": 511.0
+        },
+        {
+          "event": "request_join",
+          "timeout": 0.0,
+          "time": 511.0
+        },
+        {
+          "event": "request_join",
+          "timeout": 0.0,
+          "time": 511.0
+        },
+        {
+          "event": "wait",
+          "timeout": 60.0,
+          "time": 511.0
+        },
+        {
+          "event": "drain_join",
+          "timeout": 30.0,
+          "time": 511.0
+        },
+        {
+          "event": "thread_state",
+          "drain": true,
+          "alive": false
+        },
+        {
+          "event": "capture_read",
+          "writer_alive": false
+        },
+        {
+          "event": "thread_state",
+          "drain": true,
+          "alive": false
+        }
+      ],
+      "receipt_fields": {
+        "attempted": true,
+        "child_started": true,
+        "loaded_a_model": true,
+        "supervisor_problems": [],
+        "deadline": {
+          "budget_s": 600.0,
+          "dispatch_remaining_s": 0.0,
+          "elapsed_s": 511.0,
+          "enforcement": "every wait is bounded by remaining(); this is arithmetic on one monotonic origin, NOT a daemon thread",
+          "expired": false,
+          "may_dispatch": false,
+          "remaining_s": 89.0,
+          "reserve_s": 90.0
+        },
+        "receipt_written": null
+      },
+      "posts_after_cutoff": 2,
+      "capture_reads_while_writer_active": 1,
+      "diagnostics": {
+        "artifact": "<TMP>/sup1116_0wso90xj/barrier_error_at_cutoff/smoke_4167e395ccfd.producer_stream",
+        "artifact_sha256": "d8bcbfa307f670d5532559fc030ee82ff7be48160c1fff837950e0d7528d0a4c",
+        "budget_exhausted": false,
+        "byte_budget": 8388608,
+        "bytes_captured": 11,
+        "bytes_dropped": 0,
+        "capture_sha256": "d8bcbfa307f670d5532559fc030ee82ff7be48160c1fff837950e0d7528d0a4c",
+        "deadline_exhausted": false,
+        "derived_from": "<TMP>/sup1116_0wso90xj/barrier_error_at_cutoff/smoke_4167e395ccfd.producer_stream",
+        "drain_error": null,
+        "drain_thread_finished": true,
+        "note": "draining the owned child pipe is ACQUISITION, not analysis of an owner-written lifecycle file, so it runs before the closed-file gate (root, 10:03)",
+        "preview": "diagnostic\n",
+        "preview_chars_cap": 4000,
+        "preview_truncated": false,
+        "raw_capture_complete": true,
+        "reached_eof": true,
+        "stream": "the owned child stdout+stderr pipe, captured to an immutable per-attempt artifact from launch"
+      },
+      "capture_read_instrumentation_note": "Active mock drain reads its own already-closed artifact once to measure persistence; this is not supervisor analysis. The unfinished-drain case performs zero capture reads."
+    },
+    "decode_failure": {
+      "main_returncode": null,
+      "exception": "UnicodeDecodeError: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte",
+      "receipt_count": 0,
+      "write_calls": 0,
+      "events": [
+        {
+          "event": "Popen",
+          "time": 0.0
+        },
+        {
+          "event": "capture_read",
+          "writer_alive": true
+        },
+        {
+          "event": "health",
+          "timeout": 2,
+          "time": 0.0
+        },
+        {
+          "event": "barrier",
+          "timeout": 30.0,
+          "time": 0.0
+        },
+        {
+          "event": "HTTP_POST",
+          "timeout": 120.0,
+          "time": 0.0
+        },
+        {
+          "event": "barrier",
+          "timeout": 30.0,
+          "time": 0.0
+        },
+        {
+          "event": "HTTP_POST",
+          "timeout": 120.0,
+          "time": 0.0
+        },
+        {
+          "event": "request_join",
+          "timeout": 150.0,
+          "time": 0.0
+        },
+        {
+          "event": "request_join",
+          "timeout": 150.0,
+          "time": 0.0
+        },
+        {
+          "event": "wait",
+          "timeout": 60.0,
+          "time": 0.0
+        },
+        {
+          "event": "drain_join",
+          "timeout": 30.0,
+          "time": 0.0
+        },
+        {
+          "event": "thread_state",
+          "drain": true,
+          "alive": false
+        },
+        {
+          "event": "capture_read",
+          "writer_alive": false
+        },
+        {
+          "event": "thread_state",
+          "drain": true,
+          "alive": false
+        }
+      ],
+      "receipt_fields": null,
+      "posts_after_cutoff": 0,
+      "capture_reads_while_writer_active": 1,
+      "diagnostics": null,
+      "capture_read_instrumentation_note": "Active mock drain reads its own already-closed artifact once to measure persistence; this is not supervisor analysis. The unfinished-drain case performs zero capture reads."
+    }
+  }
+}

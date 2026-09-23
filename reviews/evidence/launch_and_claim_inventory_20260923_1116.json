@@ -1,0 +1,619 @@
+{
+  "reviewed_head": "e314260b49cf7137a80413c9182679f10330118e",
+  "substantive_source": "db27cf0ded6297d3937e233cdbc6e2dbad227b99",
+  "launch_scope": "six finite synthetic-file calls to actual verify_launch_artifacts, including a final actual-manifest-schema case; no main, native, network or model execution",
+  "launch_cases": [
+    {
+      "case": "matching tiny synthetic control",
+      "verdict": {
+        "checks": [
+          {
+            "artifact": "launcher",
+            "path": "<TMP>/root-launch-1116-so0gxkp3/launcher",
+            "declared_sha256": "1997c0815fa8b76a38f97f121009e3b93c17856f6bb5f9ecb6829a880b929c55",
+            "measured_sha256": "1997c0815fa8b76a38f97f121009e3b93c17856f6bb5f9ecb6829a880b929c55",
+            "bytes": 18,
+            "agrees": true
+          },
+          {
+            "artifact": "model",
+            "path": "<TMP>/root-launch-1116-so0gxkp3/weight",
+            "declared_sha256": "432e28d311d4b63a6616d86d64a1a0311a3e40a9e9028d3bdada1bbe0f1ebb10",
+            "measured_sha256": "432e28d311d4b63a6616d86d64a1a0311a3e40a9e9028d3bdada1bbe0f1ebb10",
+            "bytes": 16,
+            "agrees": true
+          }
+        ],
+        "problems": [],
+        "verified": true,
+        "measured_from_disk": true,
+        "note": "measured byte digests of the artifacts actually selected, compared with the immutable launch manifest BEFORE Popen"
+      }
+    },
+    {
+      "case": "declared implementation file changed",
+      "verdict": {
+        "checks": [
+          {
+            "artifact": "launcher",
+            "path": "<TMP>/root-launch-1116-so0gxkp3/launcher",
+            "declared_sha256": "1997c0815fa8b76a38f97f121009e3b93c17856f6bb5f9ecb6829a880b929c55",
+            "measured_sha256": "1997c0815fa8b76a38f97f121009e3b93c17856f6bb5f9ecb6829a880b929c55",
+            "bytes": 18,
+            "agrees": true
+          },
+          {
+            "artifact": "model",
+            "path": "<TMP>/root-launch-1116-so0gxkp3/weight",
+            "declared_sha256": "432e28d311d4b63a6616d86d64a1a0311a3e40a9e9028d3bdada1bbe0f1ebb10",
+            "measured_sha256": "432e28d311d4b63a6616d86d64a1a0311a3e40a9e9028d3bdada1bbe0f1ebb10",
+            "bytes": 16,
+            "agrees": true
+          }
+        ],
+        "problems": [],
+        "verified": true,
+        "measured_from_disk": true,
+        "note": "measured byte digests of the artifacts actually selected, compared with the immutable launch manifest BEFORE Popen"
+      }
+    },
+    {
+      "case": "malformed patch pin alongside unchanged launcher and model",
+      "verdict": {
+        "checks": [
+          {
+            "artifact": "launcher",
+            "path": "<TMP>/root-launch-1116-so0gxkp3/launcher",
+            "declared_sha256": "1997c0815fa8b76a38f97f121009e3b93c17856f6bb5f9ecb6829a880b929c55",
+            "measured_sha256": "1997c0815fa8b76a38f97f121009e3b93c17856f6bb5f9ecb6829a880b929c55",
+            "bytes": 18,
+            "agrees": true
+          },
+          {
+            "artifact": "model",
+            "path": "<TMP>/root-launch-1116-so0gxkp3/weight",
+            "declared_sha256": "432e28d311d4b63a6616d86d64a1a0311a3e40a9e9028d3bdada1bbe0f1ebb10",
+            "measured_sha256": "432e28d311d4b63a6616d86d64a1a0311a3e40a9e9028d3bdada1bbe0f1ebb10",
+            "bytes": 16,
+            "agrees": true
+          }
+        ],
+        "problems": [],
+        "verified": true,
+        "measured_from_disk": true,
+        "note": "measured byte digests of the artifacts actually selected, compared with the immutable launch manifest BEFORE Popen"
+      }
+    },
+    {
+      "case": "all patch/source/library declarations absent",
+      "verdict": {
+        "checks": [
+          {
+            "artifact": "launcher",
+            "path": "<TMP>/root-launch-1116-so0gxkp3/launcher",
+            "declared_sha256": "1997c0815fa8b76a38f97f121009e3b93c17856f6bb5f9ecb6829a880b929c55",
+            "measured_sha256": "1997c0815fa8b76a38f97f121009e3b93c17856f6bb5f9ecb6829a880b929c55",
+            "bytes": 18,
+            "agrees": true
+          },
+          {
+            "artifact": "model",
+            "path": "<TMP>/root-launch-1116-so0gxkp3/weight",
+            "declared_sha256": "432e28d311d4b63a6616d86d64a1a0311a3e40a9e9028d3bdada1bbe0f1ebb10",
+            "measured_sha256": "432e28d311d4b63a6616d86d64a1a0311a3e40a9e9028d3bdada1bbe0f1ebb10",
+            "bytes": 16,
+            "agrees": true
+          }
+        ],
+        "problems": [],
+        "verified": true,
+        "measured_from_disk": true,
+        "note": "measured byte digests of the artifacts actually selected, compared with the immutable launch manifest BEFORE Popen"
+      }
+    },
+    {
+      "case": "changed launcher control",
+      "verdict": {
+        "checks": [
+          {
+            "artifact": "launcher",
+            "path": "<TMP>/root-launch-1116-so0gxkp3/launcher",
+            "declared_sha256": "1997c0815fa8b76a38f97f121009e3b93c17856f6bb5f9ecb6829a880b929c55",
+            "measured_sha256": "f2ecf32daeeed45e920c5f487af616f374385576f900ea01a2d71c0560c1e76c",
+            "bytes": 16,
+            "agrees": false,
+            "problem": "the selected launcher does not match its declared pin"
+          },
+          {
+            "artifact": "model",
+            "path": "<TMP>/root-launch-1116-so0gxkp3/weight",
+            "declared_sha256": "432e28d311d4b63a6616d86d64a1a0311a3e40a9e9028d3bdada1bbe0f1ebb10",
+            "measured_sha256": "432e28d311d4b63a6616d86d64a1a0311a3e40a9e9028d3bdada1bbe0f1ebb10",
+            "bytes": 16,
+            "agrees": true
+          }
+        ],
+        "problems": [
+          "the selected launcher does not match its declared pin"
+        ],
+        "verified": false,
+        "measured_from_disk": true,
+        "note": "measured byte digests of the artifacts actually selected, compared with the immutable launch manifest BEFORE Popen"
+      }
+    },
+    {
+      "case": "actual historical manifest non_system_library_closure key: sibling implementation changed after pin",
+      "manifest_schema": "live_ab/smoke_launch_manifest-v1",
+      "declared_library_sha256": "51551710cae90c9a76627b0860dae0a2b9820a6dd36bd450a68e22ab412dce00",
+      "measured_synthetic_library_sha256": "c3c9753041e120711ff87e1c0f1ea67055e1c817a31c0cf30426b2fd01b79205",
+      "verdict": {
+        "checks": [
+          {
+            "artifact": "launcher",
+            "path": "<TMP>/root-schema-1116-t8liz30f/llama-server",
+            "declared_sha256": "1997c0815fa8b76a38f97f121009e3b93c17856f6bb5f9ecb6829a880b929c55",
+            "measured_sha256": "1997c0815fa8b76a38f97f121009e3b93c17856f6bb5f9ecb6829a880b929c55",
+            "bytes": 18,
+            "agrees": true
+          },
+          {
+            "artifact": "model",
+            "path": "<TMP>/root-schema-1116-t8liz30f/synthetic-model",
+            "declared_sha256": "432e28d311d4b63a6616d86d64a1a0311a3e40a9e9028d3bdada1bbe0f1ebb10",
+            "measured_sha256": "432e28d311d4b63a6616d86d64a1a0311a3e40a9e9028d3bdada1bbe0f1ebb10",
+            "bytes": 16,
+            "agrees": true
+          }
+        ],
+        "problems": [],
+        "verified": true,
+        "measured_from_disk": true,
+        "note": "measured byte digests of the artifacts actually selected, compared with the immutable launch manifest BEFORE Popen"
+      }
+    }
+  ],
+  "receipt_inventory": [
+    {
+      "path": "results/live_ab/ACQUISITION_CONTRACT_CLOSURE.json",
+      "sha256": "e00ef3dd517bdc357775c8eb13ad2ec70f67ce3f42ddee44a4fef3e06ff3a1e0",
+      "schema": "live_ab/acquisition_contract_closure-v1",
+      "generated_utc": "2026-09-23T09:01:35Z",
+      "nothing_executed": [
+        "no model",
+        "no server",
+        "no episode",
+        "no network",
+        "no build"
+      ]
+    },
+    {
+      "path": "results/live_ab/AUDIT_SELFTEST.json",
+      "sha256": "7f2e91b16d606312f30025858b07fa164930b43407fec7be08b714568be67174",
+      "schema": "live_ab/audit_selftest-v1",
+      "generated_utc": "2026-09-22T14:46:14Z",
+      "nothing_executed": [
+        "synthetic modules are parsed, never imported or run",
+        "no model, no server, no episode, no lock taken"
+      ]
+    },
+    {
+      "path": "results/live_ab/CROSS_WRAPPER_LOCK_CONTROL.json",
+      "sha256": "47cd14f16eecc39a726b9d2caa87e649bb203cf0842cbea4f671f0e6e1d2e015",
+      "schema": "live_ab/cross_wrapper_lock_control-v1",
+      "generated_utc": "2026-09-23T04:09:33Z",
+      "nothing_executed": [
+        "no model",
+        "no server",
+        "no sandboxed program",
+        "no episode",
+        "lock acquisition only"
+      ]
+    },
+    {
+      "path": "results/live_ab/EVIDENCE_PIN_PROMOTION.json",
+      "sha256": "2c84822bb9bc20c049d6933b39d5deb6c34adeb496aac643a8d9910f389e3813",
+      "schema": "live_ab/evidence_pin_promotion-v1",
+      "generated_utc": "2026-09-23T07:45:24Z",
+      "nothing_executed": [
+        "no model",
+        "no server",
+        "no episode",
+        "no network",
+        "no download"
+      ]
+    },
+    {
+      "path": "results/live_ab/FREEZE_REACHABILITY.json",
+      "sha256": "a5b98c68c3756c9396c2f4c131862c69dd20a609cfaf10fa62f35e525fb78ebc",
+      "schema": "live_ab/freeze_reachability-v1",
+      "generated_utc": "2026-09-22T11:52:27Z",
+      "nothing_executed": [
+        "no model call",
+        "no server start",
+        "no episode",
+        "no network request",
+        "no config.json write",
+        "no freeze deposited"
+      ]
+    },
+    {
+      "path": "results/live_ab/FREEZE_REACHABILITY_v2.json",
+      "sha256": "3682c61c103b28a48ce7a7ac463a0a1092de18740ae0a9d7e3565c5e6ea3b8fe",
+      "schema": "live_ab/freeze_reachability-v2",
+      "generated_utc": "2026-09-22T11:54:12Z",
+      "nothing_executed": [
+        "no model call",
+        "no server start",
+        "no episode",
+        "no network request",
+        "no config.json write",
+        "no freeze deposited"
+      ]
+    },
+    {
+      "path": "results/live_ab/FREEZE_REACHABILITY_v3.json",
+      "sha256": "dedce9d3994e4e10d4c336bb3aeb1eb205686b377c16872bb0d8e95b05d40271",
+      "schema": "live_ab/freeze_reachability-v3",
+      "generated_utc": "2026-09-22T11:55:17Z",
+      "nothing_executed": [
+        "no model call",
+        "no server start",
+        "no episode",
+        "no network request",
+        "no config.json write",
+        "no freeze deposited"
+      ]
+    },
+    {
+      "path": "results/live_ab/FREEZE_REACHABILITY_v4.json",
+      "sha256": "1e3ca4286b209771a71f4651507ac783f9c192ec8c925e0cbc518737ec2c5b23",
+      "schema": "live_ab/freeze_reachability-v3",
+      "generated_utc": "2026-09-22T12:20:06Z",
+      "nothing_executed": [
+        "no model call",
+        "no server start",
+        "no episode",
+        "no network request",
+        "no config.json write",
+        "no freeze deposited"
+      ]
+    },
+    {
+      "path": "results/live_ab/FREEZE_STATUS_20260921_1815.json",
+      "sha256": "0d9781076917614da76b109f61b7af24a84a709626ef59f7566d06280490f2d9",
+      "schema": "live_ab.freeze_status.1",
+      "generated_utc": "2026-09-21T18:17:43Z",
+      "nothing_executed": [
+        "no model call",
+        "no server start",
+        "no trial episode",
+        "no calibration episode",
+        "no network access",
+        "foreign llama-server processes not signalled"
+      ]
+    },
+    {
+      "path": "results/live_ab/FREEZE_STATUS_20260922_0230.json",
+      "sha256": "a0544a50ea051cdaec4776162bfb109d50b0c584415c621ca7afcc23b03e11ef",
+      "schema": "live_ab.freeze_status.1",
+      "generated_utc": "2026-09-22T01:11:20Z",
+      "nothing_executed": [
+        "no model call",
+        "no server start",
+        "no trial episode",
+        "no calibration episode",
+        "no network access",
+        "foreign llama-server processes not signalled"
+      ]
+    },
+    {
+      "path": "results/live_ab/LIFECYCLE_CONTRACT_BATCH.json",
+      "sha256": "f6a1cd4453edd639eca9aad19008111c568605228d2ea3c33ef7c42757a46128",
+      "schema": "live_ab/lifecycle_contract_batch-v1",
+      "generated_utc": "2026-09-23T08:33:27Z",
+      "nothing_executed": [
+        "no model",
+        "no server",
+        "no episode",
+        "no network",
+        "no build"
+      ]
+    },
+    {
+      "path": "results/live_ab/LIFECYCLE_FAILURE_CHANNEL_REPAIR.json",
+      "sha256": "8240dbfaa84022588f0c841238072dba771786025cefbedfe992ad53b37f87aa",
+      "schema": "live_ab/lifecycle_failure_channel_repair-v1",
+      "generated_utc": "2026-09-23T07:59:46Z",
+      "nothing_executed": [
+        "no model",
+        "no server",
+        "no episode",
+        "no network",
+        "no build"
+      ]
+    },
+    {
+      "path": "results/live_ab/LOCK_TOPOLOGY.json",
+      "sha256": "af722eb3f02a0648380e01431fc45b190f3d80a157c046156383e1aa1139bebe",
+      "schema": "live_ab/lock_topology-v1",
+      "generated_utc": "2026-09-22T13:17:56Z",
+      "nothing_executed": [
+        "no lock taken",
+        "no worker started",
+        "no sandbox run",
+        "no production path changed"
+      ]
+    },
+    {
+      "path": "results/live_ab/LOCK_TOPOLOGY_v2.json",
+      "sha256": "d2c0699d1db183c145f8e4f4127fa8baa0dd2a445cc848ea160e153eafc7d186",
+      "schema": "live_ab/lock_topology-v1",
+      "generated_utc": "2026-09-22T13:47:21Z",
+      "nothing_executed": [
+        "no lock taken",
+        "no worker started",
+        "no sandbox run",
+        "no production path changed"
+      ]
+    },
+    {
+      "path": "results/live_ab/LOCK_TOPOLOGY_v3.json",
+      "sha256": "6cf7e14b5dee7feff76f0f4f24f6202b7d50763542e63203cc5d05aa417d4682",
+      "schema": "live_ab/lock_topology-v1",
+      "generated_utc": "2026-09-23T04:05:49Z",
+      "nothing_executed": [
+        "no lock taken",
+        "no worker started",
+        "no sandbox run",
+        "no production path changed"
+      ]
+    },
+    {
+      "path": "results/live_ab/LOCK_TOPOLOGY_v4.json",
+      "sha256": "506f4c96e14cc34d1ea66e9b6e2d2d63ee8635b86226bc9f63a9a727b4cc2959",
+      "schema": "live_ab/lock_topology-v1",
+      "generated_utc": "2026-09-23T05:23:57Z",
+      "nothing_executed": [
+        "no lock taken",
+        "no worker started",
+        "no sandbox run",
+        "no production path changed"
+      ]
+    },
+    {
+      "path": "results/live_ab/LOCK_TOPOLOGY_v5.json",
+      "sha256": "77354c6685716f4335890e9064ac51d46fbf8fb32160df93daf147e69448c8c4",
+      "schema": "live_ab/lock_topology-v1",
+      "generated_utc": "2026-09-23T05:29:18Z",
+      "nothing_executed": [
+        "no lock taken",
+        "no worker started",
+        "no sandbox run",
+        "no production path changed"
+      ]
+    },
+    {
+      "path": "results/live_ab/LOCK_TOPOLOGY_v6.json",
+      "sha256": "3b30cdd4dd307a74dc6c36f1a31a49222d7aee00dc1fef6b2a72a9d0d4aa1fe2",
+      "schema": "live_ab/lock_topology-v1",
+      "generated_utc": "2026-09-23T05:47:37Z",
+      "nothing_executed": [
+        "no lock taken",
+        "no worker started",
+        "no sandbox run",
+        "no production path changed"
+      ]
+    },
+    {
+      "path": "results/live_ab/LOCK_TOPOLOGY_v7.json",
+      "sha256": "76723d0ebeb3cc32d61f97f4d9cabee56b6b52ecee45f75648b7a6c47779851f",
+      "schema": "live_ab/lock_topology-v1",
+      "generated_utc": "2026-09-23T05:49:18Z",
+      "nothing_executed": [
+        "no lock taken",
+        "no worker started",
+        "no sandbox run",
+        "no production path changed"
+      ]
+    },
+    {
+      "path": "results/live_ab/LOCK_TOPOLOGY_v8.json",
+      "sha256": "c99d63b2684339daa3b7a849de264728f0d6243eb89015e77989860831f2ab25",
+      "schema": "live_ab/lock_topology-v1",
+      "generated_utc": "2026-09-23T05:49:41Z",
+      "nothing_executed": [
+        "no lock taken",
+        "no worker started",
+        "no sandbox run",
+        "no production path changed"
+      ]
+    },
+    {
+      "path": "results/live_ab/PATCH_APPLICATION_VERIFIED_v7.json",
+      "sha256": "f02b41bcdefedc9ed10e5abaf796918d7178f6f01220720a61f921144cf981fb",
+      "schema": "live_ab/patch_application_verified-v1",
+      "generated_utc": "2026-09-23T09:17:18Z",
+      "nothing_executed": [
+        "no model",
+        "no server",
+        "no episode",
+        "no network",
+        "no build"
+      ]
+    },
+    {
+      "path": "results/live_ab/ROSTER_STAGE1_20260921_1830.json",
+      "sha256": "4e1f4b5d18aaf43b517b8f4b83af098eebd5eb5c3bb793bffaa9943354f0c998",
+      "schema": "live_ab.roster_stage1_offline.1",
+      "generated_utc": "2026-09-21T18:34:40Z",
+      "nothing_executed": [
+        "no network",
+        "no model call",
+        "no server start",
+        "no sandbox execution",
+        "no reference sweep",
+        "foreign processes not signalled"
+      ]
+    },
+    {
+      "path": "results/live_ab/SUPERVISOR_DEADLINE_AND_LAUNCH_BOUNDARY.json",
+      "sha256": "16203f2b4816413961c1b433558dbae5d00bd99bc5335f5766e10140fbb2dcdd",
+      "schema": "live_ab/supervisor_deadline_and_launch_boundary-v1",
+      "generated_utc": "2026-09-23T10:48:38Z",
+      "nothing_executed": [
+        "no model",
+        "no server",
+        "no episode",
+        "no network",
+        "no build"
+      ]
+    },
+    {
+      "path": "results/live_ab/SUPERVISOR_OUTCOME_REPAIR.json",
+      "sha256": "c609e8140465890524bd04b6f2b3d81b1df62abe082cb36edc5c8cff390088a2",
+      "schema": "live_ab/supervisor_outcome_repair-v1",
+      "generated_utc": "2026-09-23T08:51:59Z",
+      "nothing_executed": [
+        "no model",
+        "no server",
+        "no episode",
+        "no network",
+        "no build"
+      ]
+    },
+    {
+      "path": "results/live_ab/V7_FAILURE_INJECTION.json",
+      "sha256": "97a6d413528c5181546e6536c90e514ce98490b07f6deb5dd9de2596b5f5b3a0",
+      "schema": "live_ab/v7_failure_injection-v1",
+      "generated_utc": "2026-09-23T09:21:41Z",
+      "nothing_executed": [
+        "no model",
+        "no weights",
+        "no serving",
+        "no episode",
+        "no network"
+      ]
+    }
+  ],
+  "receipt_inventory_scope": "committed results JSON carrying nothing_executed; inventory only, not certification of assertions or remote process history",
+  "late_request_delta": {
+    "head": "a9efa754541c3f588660d82c88c091a3448f8021",
+    "code_commit": "84d60562e1bb420d6e09d86c011dbb8dac2cd0c0",
+    "run_smoke_sha256": "7f13f7c21fa5c64fe94d0aa1616a4e98e9cabaddeb29e9f5b7daf07db484c5b6",
+    "scope": "Seven pure/source-expression probes, not actual-main or model execution",
+    "usage_probes": [
+      {
+        "case": "zero",
+        "value": 0,
+        "actual_usage_known_expression": true,
+        "summary": {
+          "generated_tokens_known_sum": 0,
+          "requests_with_known_usage": 1,
+          "requests_with_unknown_usage": 0,
+          "generated_tokens_total": 0,
+          "generated_tokens_total_note": "every request reported usable usage",
+          "token_cap_respected": true,
+          "token_cap": 2048
+        }
+      },
+      {
+        "case": "positive",
+        "value": 123,
+        "actual_usage_known_expression": true,
+        "summary": {
+          "generated_tokens_known_sum": 123,
+          "requests_with_known_usage": 1,
+          "requests_with_unknown_usage": 0,
+          "generated_tokens_total": 123,
+          "generated_tokens_total_note": "every request reported usable usage",
+          "token_cap_respected": true,
+          "token_cap": 2048
+        }
+      },
+      {
+        "case": "negative",
+        "value": -1,
+        "actual_usage_known_expression": true,
+        "summary": {
+          "generated_tokens_known_sum": -1,
+          "requests_with_known_usage": 1,
+          "requests_with_unknown_usage": 0,
+          "generated_tokens_total": -1,
+          "generated_tokens_total_note": "every request reported usable usage",
+          "token_cap_respected": true,
+          "token_cap": 2048
+        }
+      },
+      {
+        "case": "bool",
+        "value": true,
+        "actual_usage_known_expression": false,
+        "summary": {
+          "generated_tokens_known_sum": 0,
+          "requests_with_known_usage": 0,
+          "requests_with_unknown_usage": 1,
+          "generated_tokens_total": null,
+          "generated_tokens_total_note": "None means at least one request reported no usable usage, so no total was measured. The known-only sum is a LOWER BOUND, never the total.",
+          "token_cap_respected": null,
+          "token_cap": 2048
+        }
+      },
+      {
+        "case": "float",
+        "value": 1.0,
+        "actual_usage_known_expression": false,
+        "summary": {
+          "generated_tokens_known_sum": 0,
+          "requests_with_known_usage": 0,
+          "requests_with_unknown_usage": 1,
+          "generated_tokens_total": null,
+          "generated_tokens_total_note": "None means at least one request reported no usable usage, so no total was measured. The known-only sum is a LOWER BOUND, never the total.",
+          "token_cap_respected": null,
+          "token_cap": 2048
+        }
+      },
+      {
+        "case": "missing",
+        "value": null,
+        "actual_usage_known_expression": false,
+        "summary": {
+          "generated_tokens_known_sum": 0,
+          "requests_with_known_usage": 0,
+          "requests_with_unknown_usage": 1,
+          "generated_tokens_total": null,
+          "generated_tokens_total_note": "None means at least one request reported no usable usage, so no total was measured. The known-only sum is a LOWER BOUND, never the total.",
+          "token_cap_respected": null,
+          "token_cap": 2048
+        }
+      },
+      {
+        "case": "empty_observed_results",
+        "summary": {
+          "generated_tokens_known_sum": 0,
+          "requests_with_known_usage": 0,
+          "requests_with_unknown_usage": 0,
+          "generated_tokens_total": 0,
+          "generated_tokens_total_note": "every request reported usable usage",
+          "token_cap_respected": true,
+          "token_cap": 2048
+        }
+      }
+    ],
+    "additional_receipt_for_single_claim_audit": {
+      "path": "results/live_ab/REQUEST_INTENT_AND_USAGE.json",
+      "bytes": 3302,
+      "sha256": "4496fe3ce9019e7b0368482a0888189d009e2aab237f51395f24109ac78ae1aa",
+      "generated_utc": "2026-09-23T11:17:32Z",
+      "assertion_key": "nothing_executed_THIS_RECEIPT",
+      "assertion": [
+        "no model",
+        "no server",
+        "no episode",
+        "no network",
+        "no build"
+      ],
+      "status": "inventoried, not independently certified"
+    },
+    "inventory_total_including_addition": 26
+  }
+}

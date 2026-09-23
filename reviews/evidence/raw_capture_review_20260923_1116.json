@@ -1,0 +1,156 @@
+{
+  "reviewed_head": "e314260b49cf7137a80413c9182679f10330118e",
+  "source_commit": "db27cf0ded6297d3937e233cdbc6e2dbad227b99",
+  "scope": "Five finite temporary-file/in-memory helper fixtures, two changed tests, actual main receipt dict expression only. No main execution, native child, pipe, model, server, network, build, fullsuite, race scenarios, or unchanged reader matrix.",
+  "fixtures": [
+    {
+      "fixture": "fresh_control",
+      "state": {
+        "bytes_captured": 6,
+        "bytes_dropped": 0,
+        "reached_eof": true,
+        "error": null,
+        "budget_exhausted": false,
+        "deadline_exhausted": false,
+        "artifact": "<TMP>/raw1116_y189q5s3/fresh.bin",
+        "attempted_write_sha256": "bef57ec7f53a6d40beb640a780a639c83bc29ac8a9816f1fc6c5c6dcd93c4721",
+        "attempted_write_bytes": 6,
+        "measured_bytes": 6,
+        "measured_sha256": "bef57ec7f53a6d40beb640a780a639c83bc29ac8a9816f1fc6c5c6dcd93c4721",
+        "measured_unavailable": null,
+        "sha256": "bef57ec7f53a6d40beb640a780a639c83bc29ac8a9816f1fc6c5c6dcd93c4721",
+        "attempted_equals_measured": true,
+        "raw_capture_complete": true
+      },
+      "actual_bytes": 6,
+      "actual_sha256": "bef57ec7f53a6d40beb640a780a639c83bc29ac8a9816f1fc6c5c6dcd93c4721"
+    },
+    {
+      "fixture": "collision_original_untouched",
+      "state": {
+        "bytes_captured": 0,
+        "bytes_dropped": 0,
+        "reached_eof": false,
+        "error": "refusing to overwrite an existing capture artifact at <TMP>/raw1116_y189q5s3/existing.bin",
+        "budget_exhausted": false,
+        "deadline_exhausted": false,
+        "artifact": "<TMP>/raw1116_y189q5s3/existing.bin",
+        "sha256": null,
+        "raw_capture_complete": false
+      },
+      "actual_bytes": 8,
+      "actual_sha256": "962f85a27854336f3286ad54b49321f62525043b5f3508b2ecc887fdd6e7550e",
+      "stream_bytes_consumed": 0
+    },
+    {
+      "fixture": "partial_write_truth_and_actual_forwarding",
+      "state": {
+        "bytes_captured": 0,
+        "bytes_dropped": 0,
+        "reached_eof": false,
+        "error": "OSError: finite injected failure after two persisted bytes",
+        "budget_exhausted": false,
+        "deadline_exhausted": false,
+        "artifact": "<TMP>/raw1116_y189q5s3/partial.bin",
+        "attempted_write_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "attempted_write_bytes": 0,
+        "measured_bytes": 2,
+        "measured_sha256": "fb8e20fc2e4c3f248c60c39bd652f3c1347298bb977b8b4d5903b85055620603",
+        "measured_unavailable": null,
+        "sha256": "fb8e20fc2e4c3f248c60c39bd652f3c1347298bb977b8b4d5903b85055620603",
+        "attempted_equals_measured": false,
+        "raw_capture_complete": false
+      },
+      "actual_bytes": 2,
+      "actual_sha256": "fb8e20fc2e4c3f248c60c39bd652f3c1347298bb977b8b4d5903b85055620603",
+      "forwarded_receipt": {
+        "preview_chars_cap": 4000,
+        "preview_truncated": false,
+        "preview": "ab",
+        "derived_from": "<TMP>/raw1116_y189q5s3/partial.bin",
+        "capture_sha256": "fb8e20fc2e4c3f248c60c39bd652f3c1347298bb977b8b4d5903b85055620603",
+        "raw_capture_complete": false,
+        "bytes_captured": 0,
+        "bytes_dropped": 0,
+        "reached_eof": false,
+        "drain_error": "OSError: finite injected failure after two persisted bytes",
+        "budget_exhausted": false,
+        "deadline_exhausted": false,
+        "byte_budget": 8388608,
+        "drain_thread_finished": true,
+        "artifact": "<TMP>/raw1116_y189q5s3/partial.bin",
+        "artifact_sha256": "fb8e20fc2e4c3f248c60c39bd652f3c1347298bb977b8b4d5903b85055620603",
+        "stream": "the owned child stdout+stderr pipe, captured to an immutable per-attempt artifact from launch",
+        "note": "draining the owned child pipe is ACQUISITION, not analysis of an owner-written lifecycle file, so it runs before the closed-file gate (root, 10:03)"
+      },
+      "forwarded_bytes_mismatch_actual": true,
+      "forwarded_hash_matches_actual": true,
+      "evaluated_only_actual_receipt_expression_not_main": true
+    },
+    {
+      "fixture": "closed_error_refuses_but_measures",
+      "state": {
+        "bytes_captured": 6,
+        "bytes_dropped": 0,
+        "reached_eof": true,
+        "error": "OSError: finite injected close failure",
+        "budget_exhausted": false,
+        "deadline_exhausted": false,
+        "artifact": "<TMP>/raw1116_y189q5s3/close.bin",
+        "attempted_write_sha256": "bef57ec7f53a6d40beb640a780a639c83bc29ac8a9816f1fc6c5c6dcd93c4721",
+        "attempted_write_bytes": 6,
+        "measured_bytes": 6,
+        "measured_sha256": "bef57ec7f53a6d40beb640a780a639c83bc29ac8a9816f1fc6c5c6dcd93c4721",
+        "measured_unavailable": null,
+        "sha256": "bef57ec7f53a6d40beb640a780a639c83bc29ac8a9816f1fc6c5c6dcd93c4721",
+        "attempted_equals_measured": true,
+        "raw_capture_complete": false
+      },
+      "actual_bytes": 6,
+      "actual_sha256": "bef57ec7f53a6d40beb640a780a639c83bc29ac8a9816f1fc6c5c6dcd93c4721"
+    },
+    {
+      "fixture": "postclose_measurement_unavailable_refuses",
+      "state": {
+        "bytes_captured": 6,
+        "bytes_dropped": 0,
+        "reached_eof": true,
+        "error": null,
+        "budget_exhausted": false,
+        "deadline_exhausted": false,
+        "artifact": "<TMP>/raw1116_y189q5s3/unreadable.bin",
+        "attempted_write_sha256": "bef57ec7f53a6d40beb640a780a639c83bc29ac8a9816f1fc6c5c6dcd93c4721",
+        "attempted_write_bytes": 6,
+        "measured_bytes": null,
+        "measured_sha256": null,
+        "measured_unavailable": "OSError: finite injected measurement failure",
+        "sha256": null,
+        "attempted_equals_measured": false,
+        "raw_capture_complete": false
+      },
+      "actual_bytes": 6,
+      "actual_sha256": "bef57ec7f53a6d40beb640a780a639c83bc29ac8a9816f1fc6c5c6dcd93c4721"
+    }
+  ],
+  "fixture_count": 5,
+  "selected_tests": {
+    "run": 2,
+    "failures": 0,
+    "errors": 0,
+    "log": "test_a_capture_COLLISION_is_refused_before_the_original_changes (tests_lab_design.AcquisitionSealTests.test_a_capture_COLLISION_is_refused_before_the_original_changes)\nRoot, 2026-09-23 10:39: \"Create the per-attempt artifact without ... ok\ntest_a_write_failure_does_not_misdescribe_the_persisted_prefix (tests_lab_design.AcquisitionSealTests.test_a_write_failure_does_not_misdescribe_the_persisted_prefix)\nRoot: \"a mocked sink persists two bytes before raising, while the ... ok\n\n----------------------------------------------------------------------\nRan 2 tests in 0.002s\n\nOK\n"
+  },
+  "disposition": {
+    "accepted": [
+      "Normal no-clobber collision refusal and xb creation",
+      "Helper measured bytes/hash from closed partial prefix",
+      "Close-error and unavailable-measurement refusal"
+    ],
+    "remaining": "Receipt forwarding omits measured_bytes and measured_unavailable; old bytes_captured=0 is still paired with measured hash of actual two-byte prefix. Forward distinct measured and counter fields; do not label current counter as retained-file length."
+  },
+  "readiness": {
+    "full_percent": 75,
+    "change": 0,
+    "bounded_v1_percent": 90,
+    "cpu": "accepted/integrated unchanged"
+  }
+}
