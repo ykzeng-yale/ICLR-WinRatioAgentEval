@@ -134,7 +134,32 @@ def read_records(path: "str | Path") -> Dict[str, Any]:
     if not path.exists():
         return {'records': [], 'rejected': [], 'seals': [], 'writer_errors': [],
                 'error': 'no lifecycle log at %s' % lab_common.tokenize_path(path)}
-    raw = path.read_text('utf-8')
+    # BYTES, NEVER read_text. Root, 2026-09-23 11:16: "The actual invalid-UTF8
+    # lifecycle path still raises before the safe byte-retention helper and
+    # writes no receipt."
+    #
+    # I made exactly this repair in the SIDECAR reader and left the MAIN log
+    # reader raising -- `read_text('utf-8')` raises UnicodeDecodeError, which is
+    # a ValueError, so it escaped every caller and took the receipt with it. The
+    # supervisor's own `_retain_bytes` handles undecodable bytes safely and was
+    # never reached, because `observe()` raised first.
+    try:
+        blob = path.read_bytes()
+    except OSError as exc:
+        return {'records': [], 'rejected': [], 'seals': [], 'writer_errors': [],
+                'error': 'the lifecycle log at %s could not be read: %s'
+                         % (lab_common.tokenize_path(path), exc)}
+    try:
+        raw = blob.decode('utf-8')
+    except UnicodeDecodeError as exc:
+        return {'records': [], 'rejected': [], 'seals': [], 'writer_errors': [],
+                'undecodable_bytes': len(blob),
+                'error': ('the lifecycle log at %s is not valid UTF-8 (%s at byte '
+                          '%d of %d); it is REFUSED and retained, not decoded '
+                          'with replacements, because a replaced byte is not the '
+                          'byte the producer wrote'
+                          % (lab_common.tokenize_path(path), exc.reason,
+                             exc.start, len(blob)))}
     lines = raw.splitlines()
     if raw and not raw.endswith('\n'):
         return {'records': [], 'rejected': [], 'seals': [], 'writer_errors': [],

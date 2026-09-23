@@ -25,6 +25,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import select
 import signal
 import subprocess
 import sys
@@ -60,6 +61,9 @@ DIAGNOSTIC_CHUNK_BYTES = 65536
 #: Display only. Preview length never decides whether an acquisition is valid.
 DIAGNOSTIC_PREVIEW_CHARS = 4000
 DRAIN_JOIN_S = 30.0
+#: How long a single bounded wait on the child pipe may last before
+#: the deadline is consulted again. Never an unbounded blocking read.
+DRAIN_POLL_S = 0.5
 #: Time reserved at the end of the absolute budget for stop, reap and
 #: finalisation, so cleanup is never the thing that runs out of clock.
 CLEANUP_RESERVE_S = 90.0
@@ -163,12 +167,51 @@ def drain_to_artifact(stream, artifact_path: Path, state: dict, *,
         return
     try:
         raw = getattr(stream, 'buffer', stream)      # bytes, not decoded text
+        # A CLOCK CHECK CANNOT INTERRUPT A BLOCKING READ. I disclosed this
+        # several cycles ago and left it; root kept it in the deadline task:
+        # "the owner has already disclosed that a clock check cannot interrupt a
+        # blocking drain read; that remains within this same deadline task."
+        #
+        # The loop below tested the clock and then entered `read()`, which blocks
+        # until the pipe has data or EOF. A child that goes quiet without exiting
+        # parks the drain there forever, and the deadline arithmetic above it is
+        # decoration. The repair is to make the descriptor NON-BLOCKING and wait
+        # on it with a bounded `select`, so the clock is consulted between waits
+        # rather than after an unbounded one.
+        # A BytesIO has a `fileno` attribute that RAISES UnsupportedOperation
+        # rather than returning None, so the call itself must be guarded. A
+        # stream with no descriptor simply reads blockingly, which is correct
+        # for an in-memory fixture and is recorded rather than assumed.
+        try:
+            fd = raw.fileno()
+        except Exception:                                      # noqa: BLE001
+            fd = None
+        nonblocking = False
+        if fd is not None:
+            try:
+                os.set_blocking(fd, False)
+                nonblocking = True
+            except (OSError, ValueError):
+                nonblocking = False
+        state['nonblocking_reads'] = nonblocking
         with open(artifact_path, 'xb') as fh:
             while True:
                 if deadline is not None and time.monotonic() > deadline:
                     state['deadline_exhausted'] = True
                     break
-                block = raw.read(chunk)
+                if nonblocking:
+                    left = (deadline - time.monotonic()) if deadline is not None \
+                        else DRAIN_POLL_S
+                    wait = max(0.0, min(DRAIN_POLL_S, left))
+                    ready, _, _ = select.select([fd], [], [], wait)
+                    if not ready:
+                        continue            # nothing yet; the clock is rechecked
+                try:
+                    block = raw.read(chunk)
+                except BlockingIOError:
+                    continue
+                if block is None:           # non-blocking read with nothing ready
+                    continue
                 if not block:
                     state['reached_eof'] = True
                     break
@@ -489,6 +532,60 @@ def _persist_response_bytes(directory: Path, request_id: str, raw: bytes) -> dic
     return out
 
 
+def validate_manifest(m: object) -> list:
+    """Every manifest field this supervisor will dereference, checked up front.
+
+    Root, 2026-09-23 11:16: "A syntactically valid but incomplete manifest `{}`
+    raises `KeyError('model')` with no terminal receipt ... Schema/domain
+    validation and the actual failure/cleanup path must reach one terminal
+    receipt."
+
+    The script dereferenced `m['model']['file']`, `m['server_args']`,
+    `m['port']` and four `m['request']` keys at four different places, so an
+    incomplete manifest failed at whichever one it reached first, with a
+    KeyError that escaped before any receipt existed. Validation up front means
+    the refusal is DESCRIBED rather than thrown.
+
+    Returns a list of problems; empty means usable.
+    """
+    problems = []
+    if not isinstance(m, dict):
+        return ['the manifest is not a JSON object']
+    def need(container, key, kind, where):
+        if key not in container:
+            problems.append('%s is missing %r' % (where, key))
+            return None
+        v = container[key]
+        if kind is not None and not isinstance(v, kind):
+            problems.append('%s[%r] is %r, expected %s'
+                            % (where, key, type(v).__name__,
+                               getattr(kind, '__name__', kind)))
+            return None
+        return v
+    model = need(m, 'model', dict, 'manifest')
+    if model is not None:
+        f = need(model, 'file', str, 'manifest["model"]')
+        if f is not None and not f.strip():
+            problems.append('manifest["model"]["file"] is empty')
+    req = need(m, 'request', dict, 'manifest')
+    if req is not None:
+        need(req, 'prompt', str, 'manifest["request"]')
+        for k in ('max_tokens', 'seed'):
+            v = need(req, k, int, 'manifest["request"]')
+            if isinstance(v, bool):
+                problems.append('manifest["request"][%r] is a bool, not an int' % k)
+        if 'temperature' in req and not isinstance(req['temperature'], (int, float)):
+            problems.append('manifest["request"]["temperature"] is not a number')
+    port = need(m, 'port', int, 'manifest')
+    if isinstance(port, bool) or (isinstance(port, int) and not 1 <= port <= 65535):
+        problems.append('manifest["port"] %r is not a usable TCP port' % (port,))
+    args = need(m, 'server_args', list, 'manifest')
+    if args is not None and not all(isinstance(a, str) for a in args):
+        problems.append('manifest["server_args"] contains a non-string')
+    need(m, 'caps', dict, 'manifest')
+    return problems
+
+
 def summarize_usage(results: list, *, token_cap: int, expected: int) -> dict:
     """Totals that refuse to invent a zero, over an EXPECTED denominator.
 
@@ -578,6 +675,15 @@ def main() -> int:
                          % (type(exc).__name__, exc)])
     out['manifest'] = manifest_path.name
     out['run_token'] = token
+    # SCHEMA AND DOMAIN, BEFORE ANY DEREFERENCE.
+    manifest_problems = validate_manifest(m)
+    out['manifest_validation'] = {'problems': manifest_problems,
+                                  'usable': not manifest_problems}
+    if manifest_problems:
+        return finalize(out, Path(lab_common.RESULTS_ROOT)
+                        / ('SMOKE_RECEIPT_%s.json' % token),
+                        ['the launch manifest is unusable: %s'
+                         % '; '.join(manifest_problems)])
     out['caps'] = m.get('caps')
     dest = Path(lab_common.RESULTS_ROOT) / ('SMOKE_RECEIPT_%s.json' % token)
     log = Path(log_path)
@@ -619,6 +725,11 @@ def main() -> int:
     args = [str(BIN), '-m', str(model)] + m['server_args']
     t_wall0 = deadline.started
 
+    # AND AFTER ARTIFACT VERIFICATION, BEFORE THE CHILD EXISTS. Hashing the
+    # launcher, model and library closure reads real bytes and takes real time.
+    if not deadline.may_dispatch():
+        return finalize(out, dest, ['the work cutoff was reached during launch '
+                                    'artifact verification; no child was started'])
     try:
         proc = subprocess.Popen(args, env=env, stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT, text=True,
@@ -670,11 +781,12 @@ def main() -> int:
         if proc.poll() is not None:
             break
         try:
-            if requests.get(base + '/health', timeout=2).status_code == 200:
+            if requests.get(base + '/health',
+                            timeout=deadline.bounded(2)).status_code == 200:
                 ready = True
                 break
         except Exception:                                      # noqa: BLE001
-            time.sleep(1.0)
+            time.sleep(deadline.bounded(1.0))
     out['server_ready'] = ready
     out['seconds_to_ready'] = round(time.monotonic() - t_wall0, 2)
 
@@ -796,6 +908,18 @@ def main() -> int:
             # the transport), RESPONSE RECEIVED (it returned), and DELIVERY
             # UNKNOWN (it raised, so whether the server got it is not knowable
             # from here).
+            # RECHECKED IMMEDIATELY BEFORE THE CALL. Root, 11:16: "recheck
+            # the deadline immediately before every POST". The earlier check
+            # happens before the barrier wait, which can itself consume the
+            # remaining allowance -- so a request could pass the check and then
+            # sit at the barrier until the cutoff had gone by.
+            if not deadline.may_dispatch():
+                rec['not_dispatched'] = ('the work cutoff was reached between '
+                                         'the barrier and the send')
+                rec['t_ack_monotonic'] = rec['t_send_monotonic'] = time.monotonic()
+                rec['elapsed_s'] = 0.0
+                results.append(rec)
+                return
             rec['transport_attempted'] = True
             rec['t_send_monotonic'] = time.monotonic()
             rec['t_send_utc'] = _now()

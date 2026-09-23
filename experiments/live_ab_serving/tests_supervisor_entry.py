@@ -200,7 +200,8 @@ class SupervisorEntryPointTests(unittest.TestCase):
 
     # -- the harness ---------------------------------------------------------
     def _run(self, *, proc=None, bodies=None, break_barrier=False,
-             popen_raises=None, no_pointer=False, post_hook=None):
+             popen_raises=None, no_pointer=False, post_hook=None,
+             barrier_hook=None):
         rs = self.rs
         proc = proc if proc is not None else _Proc()
         bodies = bodies if bodies is not None else [OK_BODY, OK_BODY]
@@ -220,6 +221,8 @@ class SupervisorEntryPointTests(unittest.TestCase):
                 pass
 
             def wait(self, timeout=None):
+                if barrier_hook is not None:
+                    barrier_hook(timeout=timeout)
                 if break_barrier:
                     raise RuntimeError('broken barrier')
 
@@ -571,6 +574,97 @@ class SupervisorEntryPointTests(unittest.TestCase):
                             for p in receipt['launch_verification']['problems']))
         self.assertFalse(receipt['child_started'])
         self.assertEqual(status, 1)
+
+    def test_an_incomplete_manifest_reaches_a_TERMINAL_RECEIPT(self):
+        """Root, 2026-09-23 11:16: "A syntactically valid but incomplete
+        manifest `{}` raises `KeyError('model')` with no terminal receipt."
+
+        The script dereferenced manifest keys at four separate places, so an
+        incomplete manifest failed at whichever one it reached first, throwing
+        before any receipt existed.
+        """
+        self.man_path.write_text('{}', encoding='utf-8')
+        status, receipt = self._run()
+        self.assertIsNotNone(receipt, 'an incomplete manifest must still persist a receipt')
+        self.assertFalse(receipt['manifest_validation']['usable'])
+        self.assertTrue(any('model' in p
+                            for p in receipt['manifest_validation']['problems']))
+        self.assertFalse(receipt['child_started'])
+        self.assertEqual(self.posted, [])
+        self.assertEqual(status, 1)
+
+    def test_manifest_domain_errors_are_named_not_thrown(self):
+        m = json.loads(self.man_path.read_text('utf-8'))
+        m['port'] = 99999                     # out of range
+        m['request']['max_tokens'] = True     # a bool, not an int
+        m['server_args'] = ['--ok', 7]        # a non-string
+        self.man_path.write_text(json.dumps(m), encoding='utf-8')
+        status, receipt = self._run()
+        probs = ' '.join(receipt['manifest_validation']['problems'])
+        self.assertIn('port', probs)
+        self.assertIn('max_tokens', probs)
+        self.assertIn('server_args', probs)
+        self.assertEqual(status, 1)
+
+    def test_an_UNDECODABLE_lifecycle_log_reaches_a_terminal_receipt(self):
+        """Root: "The actual invalid-UTF8 lifecycle path still raises before the
+        safe byte-retention helper and writes no receipt."
+
+        I made this repair in the SIDECAR reader and left the MAIN log reader
+        raising: `read_text('utf-8')` raises UnicodeDecodeError, a ValueError,
+        which escaped every caller and took the receipt with it.
+        """
+        self.log.write_bytes(b'\xff\xfe not valid utf-8\n')
+        status, receipt = self._run()
+        self.assertIsNotNone(receipt, 'an undecodable log must still persist a receipt')
+        self.assertIsNotNone(receipt['observation'])
+        self.assertIn('not valid UTF-8', receipt['observation']['reason'])
+        # the bytes are RETAINED by digest, not decoded with replacements
+        self.assertTrue(receipt['raw_log']['present'])
+        self.assertFalse(receipt['raw_log']['decodes_as_utf8'])
+        self.assertEqual(receipt['raw_log']['bytes'], self.log.stat().st_size)
+        self.assertEqual(status, 1)
+
+    def test_no_POST_is_sent_if_the_cutoff_passes_during_the_barrier(self):
+        """Root: "recheck the deadline immediately before every POST."
+
+        The earlier check ran BEFORE the barrier wait, which can itself consume
+        the remaining allowance -- so a request could pass the check and then sit
+        at the barrier until the cutoff had gone by.
+        """
+        def burn_the_clock(timeout=None):
+            self.clock[0] += 600.0            # the whole budget, at the barrier
+
+        status, receipt = self._run(barrier_hook=burn_the_clock)
+        self.assertEqual(self.posted, [], 'no POST may follow an expired cutoff')
+        for row in receipt['requests']:
+            self.assertIn('not_dispatched', row)
+        self.assertEqual(status, 1)
+
+    def test_the_drain_does_not_block_on_a_quiet_pipe(self):
+        """Root kept this in the deadline task: "a clock check cannot interrupt
+        a blocking drain read."
+
+        The loop tested the clock and then entered `read()`, which blocks until
+        data or EOF. A child that goes quiet WITHOUT EXITING parked the drain
+        there forever and the deadline arithmetic above it was decoration.
+
+        A real pipe, deliberately never written to and never closed.
+        """
+        import os as _os
+        rfd, wfd = _os.pipe()
+        reader = _os.fdopen(rfd, 'rb', buffering=0)   # takes ownership of rfd
+        self.addCleanup(_os.close, wfd)
+        self.addCleanup(reader.close)
+        state = {}
+        started = self.rs.time.monotonic
+        t0 = started()
+        self.rs.drain_to_artifact(reader, self.root / 'quiet.bin', state,
+                                  deadline=t0 + 0.4)
+        self.assertTrue(state['deadline_exhausted'],
+                        'the drain must give up at its deadline, not block')
+        self.assertFalse(state['raw_capture_complete'])
+        self.assertTrue(state.get('nonblocking_reads'))
 
     def test_a_producer_that_refused_itself_invalidates_a_clean_log(self):
         """Exit 93 beside a readable seal full of zeros must still refuse."""
