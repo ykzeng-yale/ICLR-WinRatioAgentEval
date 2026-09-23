@@ -386,35 +386,57 @@ def finalize(out: dict, dest: Path, problems: list) -> int:
     return 1 if problems else 0
 
 
-def summarize_usage(results: list, *, token_cap: int) -> dict:
-    """Totals that refuse to invent a zero.
+def usable_token_count(value: object) -> bool:
+    """A usable completion-token count: a NON-NEGATIVE, non-boolean integer.
 
-    Root, 2026-09-23 09:19: "A timeout with missing usage stays unknown rather
-    than becoming a measured zero."
-
-    `(r.get('usage') or {}).get('completion_tokens', 0)` summed absences as
-    zeros, so a run where both requests timed out reported
-    `generated_tokens_total = 0` and `token_cap_respected = True` -- a silent
-    zero shaped like a measurement, and a cap "respected" because nothing was
-    measured. The same defect as the ISO-8601 parse that reported n=0 with None
-    percentiles.
-
-    The known-only sum is still reported, explicitly as a LOWER BOUND.
+    Root, 2026-09-23 11:16: "Keep integer usage strict and nonnegative. Boolean
+    and float token counts are unusable; do not silently truncate or coerce
+    them. Also reject negative integers ... current code accepts `-1` as a known
+    token total/cap success."
     """
-    known = [r for r in results if r.get('usage_known')]
-    unknown = [r for r in results if not r.get('usage_known')]
+    return (isinstance(value, int) and not isinstance(value, bool) and value >= 0)
+
+
+def summarize_usage(results: list, *, token_cap: int,
+                    expected: "int | None" = None) -> dict:
+    """Totals that refuse to invent a zero, over an EXPECTED denominator.
+
+    Root, 09:19: "A timeout with missing usage stays unknown rather than
+    becoming a measured zero." Root, 11:16: "`summarize_usage([])` returns
+    measured zero/cap true ... Unfinished/absent request records must not
+    disappear from the denominator."
+
+    The second is the first defect one level up, and I had missed it. I stopped
+    an absent USAGE from becoming zero, while an absent REQUEST RECORD still
+    did: a worker that never appended its row simply shrank the population, and
+    an empty list summed to a confident 0 with the cap "respected". The
+    denominator is now what was PLANNED, not what happened to be reported.
+    """
+    known = [r for r in results
+             if r.get('usage_known')
+             and usable_token_count((r.get('usage') or {}).get('completion_tokens'))]
+    reported = len(results)
+    denom = reported if expected is None else int(expected)
+    # records that were planned but never appended a row at all
+    unaccounted = max(0, denom - reported)
+    unknown = (reported - len(known)) + unaccounted
     known_sum = sum(int(r['usage']['completion_tokens']) for r in known)
+    complete = (denom > 0 and unknown == 0)
     return {
         'generated_tokens_known_sum': known_sum,
+        'requests_expected': denom,
+        'requests_with_records': reported,
+        'requests_unaccounted_for': unaccounted,
         'requests_with_known_usage': len(known),
-        'requests_with_unknown_usage': len(unknown),
-        'generated_tokens_total': known_sum if not unknown else None,
+        'requests_with_unknown_usage': unknown,
+        'generated_tokens_total': known_sum if complete else None,
         'generated_tokens_total_note': (
-            'None means at least one request reported no usable usage, so no '
-            'total was measured. The known-only sum is a LOWER BOUND, never the '
-            'total.' if unknown else 'every request reported usable usage'),
-        # A cap can only be judged against a measured total.
-        'token_cap_respected': (None if unknown else known_sum <= token_cap),
+            'every expected request reported a usable non-negative integer '
+            'usage' if complete else
+            'None: %d of %d expected request(s) reported no usable usage (%d '
+            'left no record at all). The known-only sum is a LOWER BOUND, never '
+            'the total.' % (unknown, denom, unaccounted)),
+        'token_cap_respected': (known_sum <= token_cap) if complete else None,
         'token_cap': token_cap,
     }
 
@@ -479,7 +501,11 @@ def main() -> int:
     out.update({
         'schema': 'live_ab/smoke_receipt-v1',
         'convention': 'model-dependent',
-        'loaded_a_model': True,
+        # UNKNOWN until the child exists and loads. Root, 11:16: the Popen
+        # failure receipt "combines child_started=false with loaded_a_model=true;
+        # retain actual attempted/started/loaded states and leave unobserved
+        # loading unknown. Do not infer a loaded model before the child exists."
+        'loaded_a_model': None,
     })
     env = dict(os.environ, LIVE_AB_LIFECYCLE_LOG=str(log), LIVE_AB_RUN_TOKEN=token)
     args = [str(BIN), '-m', str(model)] + m['server_args']
@@ -582,7 +608,21 @@ def main() -> int:
             try:
                 barrier.wait(timeout=deadline.bounded(30))
             except Exception as exc:                           # noqa: BLE001
-                rec['barrier_error'] = str(exc)
+                # A FAILED BARRIER IS NOT PERMISSION TO SEND. Root, 11:16: "the
+                # actual-main early-broken-barrier case still makes both POST
+                # calls and returns success while budget remains; the
+                # post-barrier cutoff repair does not close it." The barrier is
+                # the coordination this smoke exists to observe -- two requests
+                # overlapping. If it broke, the pair was never coordinated, and
+                # sending anyway produces traffic that answers no question.
+                rec['barrier_error'] = '%s: %s' % (type(exc).__name__, exc)
+                rec['not_dispatched'] = ('the barrier failed, so this request '
+                                         'was never coordinated with its pair '
+                                         'and was not sent')
+                rec['t_ack_monotonic'] = rec['t_send_monotonic'] = time.monotonic()
+                rec['elapsed_s'] = 0.0
+                results.append(rec)
+                return
             if not deadline.may_dispatch():
                 # NO NEW DISPATCH AFTER EXHAUSTION.
                 rec['not_dispatched'] = 'the work cutoff was reached before this '\
@@ -640,7 +680,8 @@ def main() -> int:
             th.join(timeout=deadline.bounded(REQUEST_CAP_S + 30, use_reserve=True))
     out['submitted_requests'] = submitted_count[0]
     out['requests'] = sorted(results, key=lambda r: r['index'])
-    out.update(summarize_usage(results, token_cap=TOKEN_CAP))
+    out.update(summarize_usage(results, token_cap=TOKEN_CAP,
+                               expected=len(planned)))
 
     # --- stop OUR OWN server, then let the seal be written -------------------
     out['server_stop_utc'] = _now()
@@ -697,7 +738,18 @@ def main() -> int:
         # but missing raw capture still must. Only `raw_capture_complete` below
         # enters the verdict; `preview_truncated` never does.
         raw_capture_complete=bool(capture.get('raw_capture_complete')),
-        bytes_captured=capture.get('bytes_captured', 0),
+        # MEASURED size and hash are forwarded TOGETHER. Root, 11:16: "the
+        # actual receipt-construction expression still forwards
+        # `bytes_captured` from the old incremental counter while forwarding
+        # the newly measured hash. The two-byte witness therefore becomes ZERO
+        # BYTES PAIRED WITH THE HASH OF THOSE TWO BYTES."
+        measured_bytes=capture.get('measured_bytes'),
+        measured_sha256=capture.get('measured_sha256'),
+        measured_unavailable=capture.get('measured_unavailable'),
+        # read/credited counters, named for what they actually count
+        bytes_credited_after_write_return=capture.get('bytes_captured', 0),
+        attempted_write_sha256=capture.get('attempted_write_sha256'),
+        attempted_equals_measured=capture.get('attempted_equals_measured'),
         bytes_dropped=capture.get('bytes_dropped', 0),
         reached_eof=bool(capture.get('reached_eof')),
         drain_error=capture.get('error'),
@@ -706,7 +758,7 @@ def main() -> int:
         byte_budget=DIAGNOSTIC_BYTE_BUDGET,
         drain_thread_finished=not drain_thread.is_alive(),
         artifact=capture.get('artifact'),
-        artifact_sha256=capture.get('sha256'),
+        artifact_sha256=capture.get('measured_sha256'),
         stream='the owned child stdout+stderr pipe, captured to an immutable '
                'per-attempt artifact from launch',
         note='draining the owned child pipe is ACQUISITION, not analysis of an '

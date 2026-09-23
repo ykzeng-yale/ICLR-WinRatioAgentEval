@@ -4566,6 +4566,52 @@ class AcquisitionSealTests(unittest.TestCase):
         self.assertGreater(d.hard, d.dispatch_until,
                            'the drain deadline must be the later of the two')
 
+    def test_an_ABSENT_REQUEST_RECORD_also_never_becomes_a_measured_zero(self):
+        """Root, 2026-09-23 11:16: "`summarize_usage([])` returns measured
+        zero/cap true ... Unfinished/absent request records must not disappear
+        from the denominator."
+
+        This is the previous defect ONE LEVEL UP, and I had missed it. I stopped
+        an absent USAGE from becoming zero while an absent REQUEST RECORD still
+        did: a worker that never appended its row simply shrank the population,
+        and an empty list summed to a confident 0 with the cap "respected". The
+        denominator is now what was PLANNED.
+        """
+        run_smoke = self._run_smoke_module()
+        empty = run_smoke.summarize_usage([], token_cap=2048, expected=2)
+        self.assertIsNone(empty['generated_tokens_total'])
+        self.assertIsNone(empty['token_cap_respected'])
+        self.assertEqual(empty['requests_unaccounted_for'], 2)
+
+        one_missing = run_smoke.summarize_usage(
+            [{'usage_known': True, 'usage': {'completion_tokens': 100}}],
+            token_cap=2048, expected=2)
+        self.assertIsNone(one_missing['generated_tokens_total'])
+        self.assertEqual(one_missing['requests_unaccounted_for'], 1)
+
+    def test_token_counts_must_be_NONNEGATIVE_non_boolean_integers(self):
+        """Root: "Keep integer usage strict and nonnegative ... current code
+        accepts `-1` as a known token total/cap success." """
+        run_smoke = self._run_smoke_module()
+        self.assertTrue(run_smoke.usable_token_count(0))     # a genuine zero
+        self.assertTrue(run_smoke.usable_token_count(100))
+        for bad in (-1, True, False, 100.0, '100', None):
+            with self.subTest(value=repr(bad)):
+                self.assertFalse(run_smoke.usable_token_count(bad))
+
+        neg = run_smoke.summarize_usage(
+            [{'usage_known': True, 'usage': {'completion_tokens': -1}}],
+            token_cap=2048, expected=1)
+        self.assertIsNone(neg['generated_tokens_total'])
+        self.assertIsNone(neg['token_cap_respected'])
+
+        # a genuine zero from a real response is still a measurement
+        zero = run_smoke.summarize_usage(
+            [{'usage_known': True, 'usage': {'completion_tokens': 0}}],
+            token_cap=2048, expected=1)
+        self.assertEqual(zero['generated_tokens_total'], 0)
+        self.assertTrue(zero['token_cap_respected'])
+
     def test_missing_usage_is_UNKNOWN_and_never_a_measured_zero(self):
         """Root, 2026-09-23 09:19: "A timeout with missing usage stays unknown
         rather than becoming a measured zero."
@@ -4582,13 +4628,13 @@ class AcquisitionSealTests(unittest.TestCase):
         both = run_smoke.summarize_usage(
             [{'usage_known': True, 'usage': {'completion_tokens': 100}},
              {'usage_known': True, 'usage': {'completion_tokens': 200}}],
-            token_cap=2048)
+            token_cap=2048, expected=2)
         self.assertEqual(both['generated_tokens_total'], 300)       # control
         self.assertTrue(both['token_cap_respected'])
 
         partial = run_smoke.summarize_usage(
             [{'usage_known': True, 'usage': {'completion_tokens': 100}},
-             {'usage_known': False}], token_cap=2048)
+             {'usage_known': False}], token_cap=2048, expected=2)
         self.assertIsNone(partial['generated_tokens_total'])
         self.assertIsNone(partial['token_cap_respected'],
                           'a cap cannot be judged against an unmeasured total')
@@ -4596,14 +4642,15 @@ class AcquisitionSealTests(unittest.TestCase):
         self.assertIn('LOWER BOUND', partial['generated_tokens_total_note'])
 
         none = run_smoke.summarize_usage(
-            [{'usage_known': False}, {'usage_known': False}], token_cap=2048)
+            [{'usage_known': False}, {'usage_known': False}], token_cap=2048,
+            expected=2)
         self.assertIsNone(none['generated_tokens_total'])
         self.assertIsNone(none['token_cap_respected'])
         self.assertEqual(none['requests_with_unknown_usage'], 2)
 
         over = run_smoke.summarize_usage(
             [{'usage_known': True, 'usage': {'completion_tokens': 5000}}],
-            token_cap=2048)
+            token_cap=2048, expected=1)
         self.assertFalse(over['token_cap_respected'])
 
     # -- root 2026-09-23 09:19 ----------------------------------------------
