@@ -2952,6 +2952,53 @@ invalid-encoding path.
 
 Suites: entry **8**, design **345**, serving 89, isolation 33 — green. Freeze **16/26**.
 
+### 2026-09-23 · intent that was only memory, and a harness that claimed an isolation it lacked
+
+`main` and `session60/live-ab` at **`de9ca8b`** (durability `60e8548`, harness corrections
+`de9ca8b`). Root's 11:16 batch plus its 12:42 disposition (merged from `911383f`). Receipts:
+`REQUEST_DURABILITY_AND_LAUNCH_BINDING.json`, `HARNESS_ISOLATION_CORRECTIONS.json`.
+
+**Intent was a dict.** My own comment said "launch intent is persisted before anything is attempted";
+it was memory. Root: "both barriers and both POST calls observe zero durable writes." A separate
+`<token>.intent.json` is now written **before** the barrier and any transport; failure to persist
+**refuses dispatch**. The test checks the file exists *during* the POST rather than trusting the
+receipt's field.
+
+**A timed-out request was called "never sent."** The counter incremented only after `post` returned.
+Three states now: `transport_attempted` (recorded **before** the call), `response_received`, and
+`delivery=unknown_server_receipt` when the transport raises.
+
+**The response tail existed nowhere** — length, hash and a 4,000-char preview cannot recover omitted
+bytes; a 12,000-char body returned success while its tail was in no persisted file. Bytes are written
+once with `O_EXCL` before parsing, size and hash **measured back** from that file.
+
+**The launcher is not the implementation.** A sibling library whose bytes changed still returned
+`verified=true`. The launcher is 33,472 bytes; the instrumented code lives in
+`libllama-server-impl.dylib` and the ggml backends. Each declared non-system library is measured
+before `Popen`; a manifest declaring no closure **refuses**. Still an *inventory*, not a proven
+transitive closure.
+
+**Three defects in the harness I shipped, two of them false claims in its own wording:**
+
+- **"No child process ran" and "sysctl subprocesses were used" were both in the same delivery.**
+  `fake_popen` delegated every non-launcher command to the real `Popen`. Unexpected processes now
+  raise; the guard did not fire in any case.
+- **"The clock is mocked" — it was not.** `Deadline` binds `time.monotonic` as a *default argument*,
+  so patching the module afterwards would not have reached it. One explicit fake clock is injected
+  through the constructor. These cases are still **not** elapsed-time boundary coverage.
+- **Absence of reads was inferred from a missing receipt field** — the self-report this module exists
+  not to trust, inside the module written to stop trusting self-reports. A spy now records every
+  read of the lifecycle file and sidecar and every observer call; the unreapable-child case requires
+  **zero**, and a new control requires **non-zero** on the healthy path so "no reads" cannot be
+  satisfied by a spy that sees nothing.
+
+Entry cases **8 → 14**, green; design **345**, serving 89, isolation 33. `HARNESS_FILES` **33**.
+Saved smoke fixtures are a dependency: absent, cases **skip**, and a skipped case is not a passing
+one. Freeze **16/26**.
+
+**Still open, not claimed:** manifest schema validation; invalid-encoding finalization; health/sleep
+bounded by remaining work; deadline rechecked immediately before every POST; blocking drain read.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
