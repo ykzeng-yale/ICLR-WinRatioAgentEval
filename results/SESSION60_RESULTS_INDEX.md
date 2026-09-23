@@ -2527,6 +2527,55 @@ bound to **v4 `2c52078f8a54…`**, the version that produced it.
 Ten suites green; `design` 320 → **326**. Freeze unchanged at **16/26** (`config.json` untouched). No
 model, no server, no episode, no network, no build.
 
+### 2026-09-23 · the patch did not apply, and one rule had two implementations
+
+`main` and `session60/live-ab` at **`11837b7`**. Root's 08:00 ranked items 1–3
+(`reviews/pin_failure_disposition_20260923_0800.md`), merged from `6676b5c`. Receipts:
+`results/live_ab/LIFECYCLE_CONTRACT_BATCH.json`, `PATCH_RECOUNT_v5.json`, `PATCH_RECOUNT_v6.json`
+(all `deterministic-path`).
+
+**Root ran the check I had said I could not.** `git apply --numstat` and `--check` both rc 128,
+*"corrupt patch at line 283"*; `--recount --check` rc 0. That pair is the whole diagnosis: the hunk
+**bodies** match the pinned preimages, only the `@@` arithmetic was wrong. I had edited a hunk body
+and not its header.
+
+**Two things go wrong after a body edit, not one.** v5 declared `+181` where the body held **212**
+lines, *and* every later hunk's new-side start was stale (`2019` should have been `2050`). A
+counts-only fix yields a patch that parses and applies **in the wrong place**.
+`experiments/live_ab_tools/patch_recount.py` recomputes each header from the body and asserts **no
+body byte changed**; it caught a second round of drift when v6 added an `#include`.
+*Verified here:* parses without `--recount`, plain numstat equals recounted. *Not verified here:*
+application to the pinned base — no llama.cpp checkout on this host.
+
+**One rule, two implementations.** `build_receipt.native_seal_fixture` still passed `records=2`/`true`
+and `write_failures` `false`/`0.0`: `isinstance(True, int)` is `True`, `False == 0` is `True`,
+`0.0 == 0` is `True`, and a bare `isinstance` admits `2`. I made the *observation* level strict last
+cycle and left this one loose. Both now call `lab_lifecycle.nonbool_int_zero`.
+
+**The early returns discarded the sidecar.** It was attached *after* the manifest-error and
+parser-error returns — the two cases where the main log is least trustworthy were exactly the two
+that dropped the producer's account of what went wrong. Now in the common observation before both,
+with raw closed files carrying byte counts and sha256 and every retained text/hex field labelled a
+**bounded preview**.
+
+**Root chose process-level refusal** over my stderr proposal, because stderr and the seal counter are
+both writes that can themselves fail and the supervisor does not drain the pipe. v6 exits **93** via
+`_exit`, which runs no `atexit` handler and no static destructor and so cannot re-enter the seal
+writer that called it; the diagnostic is one bounded `write(2)`. **Source only, not built.**
+
+**Root objected to absence selecting the legacy exemption** — the producer was choosing its own
+exemption by omission. The selector is now the supervisor-persisted **manifest**: a manifest naming a
+pre-repair patch reads `legacy` (absent means UNKNOWN, never zero); anything else, **including a
+manifest that declares no producer**, takes the strict side. A retained exit status is required under
+the repaired contract, and a perfect seal beside a retained exit 93 refuses.
+
+Six existing fixtures then refused, correctly — they emit v4-era seals and declared no producer. They
+now **declare** the v4 producer; the rule was not relaxed to fit them.
+
+Ten suites green; `design` 326 → **331**. Freeze unchanged at **16/26** (`config.json` untouched) —
+and per root, that is a **structural inventory, not sixteen scientifically validated components**. No
+model, no server, no episode, no network, no build.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
