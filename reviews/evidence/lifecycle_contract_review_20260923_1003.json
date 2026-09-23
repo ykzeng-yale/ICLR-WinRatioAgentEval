@@ -1,0 +1,274 @@
+{
+  "reviewed_head": "b3c4f4a4abe05f39ed8716ee91743c59201f2b87",
+  "source_commit": "58ad9435fc1d08624b4bb859db83f68ba10c412e",
+  "comparison_reader_base": "549b60f99c383cb2a9128f52f953c7a2d9d48559",
+  "scope": "Only changed reader failures and zero control; actual observe -> _coverage_verdict over closed temporary saved-byte copies. Supplied historical provenance is not fresh remote measurement. No native/model/server/sandbox/network/fullsuite.",
+  "case_count": 13,
+  "cases": [
+    {
+      "case": "strict_zero_control",
+      "raw_outcome": 0,
+      "declared_signal": 15,
+      "patch": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "contract": "repaired",
+      "complete": true,
+      "producer_bound": true,
+      "coverage": {
+        "valid": true,
+        "interval_version": "live_ab/attempt_interval-v3",
+        "evidence_kind": "server_lifecycle",
+        "concurrency_required": 2,
+        "concurrency_observed_min": 2,
+        "certified_interval": "the legacy wider span including lock wait",
+        "reason": "at least 2 distinct server-acknowledged decoding lifetimes were occupied throughout the attempt interval",
+        "conditional_on": "each window being a SERVER-ACKNOWLEDGED decoding lifetime recorded from pinned server-side start/end events on the same host monotonic clock as the verifier. This asserts occupied decoding slots, NOT continuously busy hardware: server scheduling pauses inside a lifetime are part of the operational regime."
+      },
+      "process_problem": null,
+      "unbound_reason": null,
+      "raw_outcome_retained": true,
+      "no_exception": true
+    },
+    {
+      "case": "patch_sha256_integer",
+      "raw_outcome": 0,
+      "declared_signal": null,
+      "patch": 1111111111111111111111111111111111111111111111111111111111111111,
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "contract": "unbound",
+      "complete": false,
+      "producer_bound": false,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_problem": null,
+      "unbound_reason": "the manifest carries no usable patch_sha256, so it names no producer this acquisition can be bound to. A well-formed digest is still only a claim: the supervisor must separately verify the pinned source and the selected binary.",
+      "raw_outcome_retained": true,
+      "no_exception": true
+    },
+    {
+      "case": "patch_sha256_trailing_newline",
+      "raw_outcome": 0,
+      "declared_signal": null,
+      "patch": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184\n",
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "contract": "unbound",
+      "complete": false,
+      "producer_bound": false,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_problem": null,
+      "unbound_reason": "the manifest carries no usable patch_sha256, so it names no producer this acquisition can be bound to. A well-formed digest is still only a claim: the supervisor must separately verify the pinned source and the selected binary.",
+      "raw_outcome_retained": true,
+      "no_exception": true
+    },
+    {
+      "case": "binary_sha256_integer",
+      "raw_outcome": 0,
+      "declared_signal": null,
+      "patch": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "binary": 1111111111111111111111111111111111111111111111111111111111111111,
+      "contract": "unbound",
+      "complete": false,
+      "producer_bound": false,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_problem": null,
+      "unbound_reason": "the manifest carries no usable binary_sha256, so it names no producer this acquisition can be bound to. A well-formed digest is still only a claim: the supervisor must separately verify the pinned source and the selected binary.",
+      "raw_outcome_retained": true,
+      "no_exception": true
+    },
+    {
+      "case": "binary_sha256_trailing_newline",
+      "raw_outcome": 0,
+      "declared_signal": null,
+      "patch": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4\n",
+      "contract": "unbound",
+      "complete": false,
+      "producer_bound": false,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_problem": null,
+      "unbound_reason": "the manifest carries no usable binary_sha256, so it names no producer this acquisition can be bound to. A well-formed digest is still only a claim: the supervisor must separately verify the pinned source and the selected binary.",
+      "raw_outcome_retained": true,
+      "no_exception": true
+    },
+    {
+      "case": "declared_sigterm",
+      "raw_outcome": -15,
+      "declared_signal": 15,
+      "patch": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "contract": "repaired",
+      "complete": false,
+      "producer_bound": true,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_problem": "the retained producer exit status is -15; a successful outcome is a non-boolean integer zero. A declared stop signal (-15) does not excuse a nonzero outcome: the retained smoke exited 0 under SIGTERM, so the contract costs nothing to honour",
+      "unbound_reason": null,
+      "raw_outcome_retained": true,
+      "no_exception": true
+    },
+    {
+      "case": "declared_sigkill",
+      "raw_outcome": -9,
+      "declared_signal": 9,
+      "patch": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "contract": "repaired",
+      "complete": false,
+      "producer_bound": true,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_problem": "the retained producer exit status is -9; a successful outcome is a non-boolean integer zero. A declared stop signal (-9) does not excuse a nonzero outcome: the retained smoke exited 0 under SIGTERM, so the contract costs nothing to honour",
+      "unbound_reason": null,
+      "raw_outcome_retained": true,
+      "no_exception": true
+    },
+    {
+      "case": "positive_exit_declared_negative",
+      "raw_outcome": 1,
+      "declared_signal": -1,
+      "patch": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "contract": "repaired",
+      "complete": false,
+      "producer_bound": true,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_problem": "the retained producer exit status is 1; a successful outcome is a non-boolean integer zero. A declared stop signal (--1) does not excuse a nonzero outcome: the retained smoke exited 0 under SIGTERM, so the contract costs nothing to honour",
+      "unbound_reason": null,
+      "raw_outcome_retained": true,
+      "no_exception": true
+    },
+    {
+      "case": "boolean_declaration",
+      "raw_outcome": -1,
+      "declared_signal": true,
+      "patch": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "contract": "repaired",
+      "complete": false,
+      "producer_bound": true,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_problem": "the retained producer exit status is -1; a successful outcome is a non-boolean integer zero. A declared stop signal (-True) does not excuse a nonzero outcome: the retained smoke exited 0 under SIGTERM, so the contract costs nothing to honour",
+      "unbound_reason": null,
+      "raw_outcome_retained": true,
+      "no_exception": true
+    },
+    {
+      "case": "float_declaration",
+      "raw_outcome": -15,
+      "declared_signal": 15.9,
+      "patch": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "contract": "repaired",
+      "complete": false,
+      "producer_bound": true,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_problem": "the retained producer exit status is -15; a successful outcome is a non-boolean integer zero. A declared stop signal (-15.9) does not excuse a nonzero outcome: the retained smoke exited 0 under SIGTERM, so the contract costs nothing to honour",
+      "unbound_reason": null,
+      "raw_outcome_retained": true,
+      "no_exception": true
+    },
+    {
+      "case": "numeric_string_declaration",
+      "raw_outcome": -15,
+      "declared_signal": "15",
+      "patch": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "contract": "repaired",
+      "complete": false,
+      "producer_bound": true,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_problem": "the retained producer exit status is -15; a successful outcome is a non-boolean integer zero. A declared stop signal (-15) does not excuse a nonzero outcome: the retained smoke exited 0 under SIGTERM, so the contract costs nothing to honour",
+      "unbound_reason": null,
+      "raw_outcome_retained": true,
+      "no_exception": true
+    },
+    {
+      "case": "invalid_string_declaration",
+      "raw_outcome": -15,
+      "declared_signal": "bad",
+      "patch": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "contract": "repaired",
+      "complete": false,
+      "producer_bound": true,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_problem": "the retained producer exit status is -15; a successful outcome is a non-boolean integer zero. A declared stop signal (-bad) does not excuse a nonzero outcome: the retained smoke exited 0 under SIGTERM, so the contract costs nothing to honour",
+      "unbound_reason": null,
+      "raw_outcome_retained": true,
+      "no_exception": true
+    },
+    {
+      "case": "mapping_declaration",
+      "raw_outcome": -15,
+      "declared_signal": {
+        "signal": 15
+      },
+      "patch": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "contract": "repaired",
+      "complete": false,
+      "producer_bound": true,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_problem": "the retained producer exit status is -15; a successful outcome is a non-boolean integer zero. A declared stop signal (-{'signal': 15}) does not excuse a nonzero outcome: the retained smoke exited 0 under SIGTERM, so the contract costs nothing to honour",
+      "unbound_reason": null,
+      "raw_outcome_retained": true,
+      "no_exception": true
+    }
+  ],
+  "focused_tests": {
+    "run": 2,
+    "failures": 0,
+    "errors": 0,
+    "log": "test_a_DECLARED_STOP_SIGNAL_EXCUSES_NOTHING (tests_lab_design.AcquisitionSealTests.test_a_DECLARED_STOP_SIGNAL_EXCUSES_NOTHING)\nWITHDRAWN EXCEPTION. I accepted `outcome == -expected_signal`, arguing ... ok\ntest_identity_digests_are_not_coerced_and_anchor_exactly (tests_lab_design.AcquisitionSealTests.test_identity_digests_are_not_coerced_and_anchor_exactly)\nRoot: \"do not coerce arbitrary values with `str()` and do not use a ... ok\n\n----------------------------------------------------------------------\nRan 2 tests in 0.004s\n\nOK\n"
+  },
+  "disposition": {
+    "accepted": [
+      "Actual-string fullmatch identity validation",
+      "Every old signal-success bypass now refuses",
+      "Previously invalid signal declaration coercions no longer throw",
+      "Retained process outcome preserved; zero control passes"
+    ],
+    "new_reader_gap_found": false,
+    "actual_artifact_binding": "Separate trusted launch/supervisor review; not inferred from declaration syntax",
+    "historical_v4_scope": "Preserved unchanged, not reaudited or expanded"
+  },
+  "readiness": {
+    "full_percent": 75,
+    "change": 0,
+    "bounded_v1_percent": 90,
+    "cpu_validation_and_integration": "complete unchanged"
+  }
+}

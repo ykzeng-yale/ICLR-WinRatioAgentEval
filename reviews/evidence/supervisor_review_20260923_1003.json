@@ -1,0 +1,447 @@
+{
+  "head": "b3c4f4a4abe05f39ed8716ee91743c59201f2b87",
+  "source": "58ad9435fc1d08624b4bb859db83f68ba10c412e",
+  "scope": "Six actual main cases with all HTTP, child process, signal, clock and threading interactions mocked. Real lifecycle reader and write-once receipt persistence on closed synthetic files. No external execution.",
+  "cases": {
+    "positive": {
+      "main_returncode": 0,
+      "exception": null,
+      "receipt_count": 1,
+      "write_calls": 1,
+      "events": [
+        {
+          "event": "request_join",
+          "timeout": 150.0
+        },
+        {
+          "event": "request_join",
+          "timeout": 150.0
+        },
+        {
+          "event": "signal",
+          "signal": 15
+        },
+        {
+          "event": "wait",
+          "timeout": 60
+        },
+        {
+          "event": "drain_join",
+          "timeout": 30.0
+        },
+        {
+          "event": "observe",
+          "process_outcome": 0
+        },
+        {
+          "event": "read_log_text",
+          "child_returncode": 0
+        },
+        {
+          "event": "read_raw_bytes",
+          "child_returncode": 0
+        },
+        {
+          "event": "read_raw_bytes",
+          "child_returncode": 0
+        }
+      ],
+      "receipt_summary": {
+        "child_confirmed_stopped": true,
+        "acquisition_not_analyzed": null,
+        "raw_artifacts_preserved_unread": null,
+        "supervisor_problems": [],
+        "producer_diagnostics": {
+          "capture_complete": true,
+          "chars_per_line_cap": 400,
+          "drain_error": null,
+          "drain_reached_eof": true,
+          "drain_thread_finished": true,
+          "dropped_chars": 0,
+          "dropped_lines": 0,
+          "line_cap": 2000,
+          "lines": [
+            "producer diagnostic"
+          ],
+          "lines_are_a_bounded_preview": true,
+          "stream": "the child stdout+stderr pipe, drained continuously from launch",
+          "truncated_lines": 0
+        },
+        "raw_log": {
+          "bytes": 1169,
+          "decodes_as_utf8": true,
+          "path": "<TMP>/supervisor_review1003_0mlyn6tl/positive/l.jsonl",
+          "present": true,
+          "preview": "{\"schema\": \"live_ab/slot_lifecycle-v1\", \"seq\": 0, \"run_token\": \"smoke_4167e395ccfd\", \"instance_id\": \"smoke_4167e395ccfd\", \"slot_id\": 0, \"task_id\": 0, \"clock\": \"clock_gettime(CLOCK_MONOTONIC)\", \"units\": \"microseconds\", \"t_assigned_us\": 5213025142879, \"t_prompt_start_us\": 5213025142893, \"t_gen_last_us\": 5213078720513, \"t_released_us\": 5213078720538, \"n_prompt_processed\": 50, \"n_gen\": 1024, \"complete\": true, \"means\": \"occupied decoding slot, not uninterrupted hardware utilization\"}\n{\"schema\": \"live_ab/slot_lifecycle-v1\", \"seq\": 1, \"run_token\": \"smoke_4167e395ccfd\", \"instance_id\": \"smoke_4167e395ccfd\", \"slot_id\": 1, \"task_id\": 1, \"clock\": \"clock_gettime(CLOCK_MONOTONIC)\", \"units\": \"microseconds\", \"t_assigned_us\": 5213025142870, \"t_prompt_start_us\": 5213025142914, \"t_gen_last_us\": 5213078720803, \"t_released_us\": 5213078720813, \"n_prompt_processed\": 50, \"n_gen\": 1024, \"complete\": true, \"means\": \"occupied decoding slot, not uninterrupted hardware utilization\"}\n{\"schema\": \"live_ab/acquisition_seal-v1\", \"run_token\": \"smoke_4167e395ccfd\", \"records\": 2, \"write_failures\": 0, \"t_us\": 5213078774412, \"clock\": \"clock_gettime(CLOCK_MONOTONIC)\", \"sidecar_failures\": 0}\n",
+          "preview_chars_cap": 4000,
+          "preview_is_bounded": true,
+          "preview_truncated": false,
+          "sha256": "f405615147300ea812ca5c7e882ec52047cecae44882a28abc912eb27ed0aab0"
+        }
+      },
+      "observe_calls": 1,
+      "raw_reads_before_stop": 0
+    },
+    "failed_reap": {
+      "main_returncode": null,
+      "exception": "KeyError: 'raw_log_bytes'",
+      "receipt_count": 1,
+      "write_calls": 1,
+      "events": [
+        {
+          "event": "request_join",
+          "timeout": 150.0
+        },
+        {
+          "event": "request_join",
+          "timeout": 150.0
+        },
+        {
+          "event": "signal",
+          "signal": 15
+        },
+        {
+          "event": "wait",
+          "timeout": 60
+        },
+        {
+          "event": "signal",
+          "signal": 9
+        },
+        {
+          "event": "wait",
+          "timeout": 60
+        },
+        {
+          "event": "drain_join",
+          "timeout": 30.0
+        }
+      ],
+      "receipt_summary": {
+        "child_confirmed_stopped": false,
+        "acquisition_not_analyzed": "the child was never confirmed stopped, so the lifecycle log and its sidecar were NOT opened, parsed or hashed. They are preserved in place; they may still have been open for writing.",
+        "raw_artifacts_preserved_unread": [
+          "<TMP>/supervisor_review1003_0mlyn6tl/failed_reap/l.jsonl",
+          "<TMP>/supervisor_review1003_0mlyn6tl/failed_reap/l.jsonl.error"
+        ],
+        "supervisor_problems": [
+          "child never confirmed stopped",
+          "acquisition not analyzed: the child was never confirmed stopped, so the lifecycle log and its sidecar were NOT opened, parsed or hashed. They are preserved in place; they may still have been open for writing."
+        ],
+        "producer_diagnostics": {
+          "capture_complete": true,
+          "chars_per_line_cap": 400,
+          "drain_error": null,
+          "drain_reached_eof": true,
+          "drain_thread_finished": true,
+          "dropped_chars": 0,
+          "dropped_lines": 0,
+          "line_cap": 2000,
+          "lines": [
+            "producer diagnostic"
+          ],
+          "lines_are_a_bounded_preview": true,
+          "stream": "the child stdout+stderr pipe, drained continuously from launch",
+          "truncated_lines": 0
+        },
+        "raw_log": null
+      },
+      "observe_calls": 0,
+      "raw_reads_before_stop": 0
+    },
+    "drain_error": {
+      "main_returncode": 1,
+      "exception": null,
+      "receipt_count": 1,
+      "write_calls": 1,
+      "events": [
+        {
+          "event": "request_join",
+          "timeout": 150.0
+        },
+        {
+          "event": "request_join",
+          "timeout": 150.0
+        },
+        {
+          "event": "signal",
+          "signal": 15
+        },
+        {
+          "event": "wait",
+          "timeout": 60
+        },
+        {
+          "event": "drain_join",
+          "timeout": 30.0
+        },
+        {
+          "event": "observe",
+          "process_outcome": 0
+        },
+        {
+          "event": "read_log_text",
+          "child_returncode": 0
+        },
+        {
+          "event": "read_raw_bytes",
+          "child_returncode": 0
+        },
+        {
+          "event": "read_raw_bytes",
+          "child_returncode": 0
+        }
+      ],
+      "receipt_summary": {
+        "child_confirmed_stopped": true,
+        "acquisition_not_analyzed": null,
+        "raw_artifacts_preserved_unread": null,
+        "supervisor_problems": [
+          "diagnostic capture incomplete: {'drain_reached_eof': False, 'drain_error': 'OSError: synthetic drain failure', 'dropped_lines': 0, 'truncated_lines': 0}"
+        ],
+        "producer_diagnostics": {
+          "capture_complete": false,
+          "chars_per_line_cap": 400,
+          "drain_error": "OSError: synthetic drain failure",
+          "drain_reached_eof": false,
+          "drain_thread_finished": true,
+          "dropped_chars": 0,
+          "dropped_lines": 0,
+          "line_cap": 2000,
+          "lines": [
+            "before failure",
+            "[drain failed: OSError: synthetic drain failure]"
+          ],
+          "lines_are_a_bounded_preview": true,
+          "stream": "the child stdout+stderr pipe, drained continuously from launch",
+          "truncated_lines": 0
+        },
+        "raw_log": {
+          "bytes": 1169,
+          "decodes_as_utf8": true,
+          "path": "<TMP>/supervisor_review1003_0mlyn6tl/drain_error/l.jsonl",
+          "present": true,
+          "preview": "{\"schema\": \"live_ab/slot_lifecycle-v1\", \"seq\": 0, \"run_token\": \"smoke_4167e395ccfd\", \"instance_id\": \"smoke_4167e395ccfd\", \"slot_id\": 0, \"task_id\": 0, \"clock\": \"clock_gettime(CLOCK_MONOTONIC)\", \"units\": \"microseconds\", \"t_assigned_us\": 5213025142879, \"t_prompt_start_us\": 5213025142893, \"t_gen_last_us\": 5213078720513, \"t_released_us\": 5213078720538, \"n_prompt_processed\": 50, \"n_gen\": 1024, \"complete\": true, \"means\": \"occupied decoding slot, not uninterrupted hardware utilization\"}\n{\"schema\": \"live_ab/slot_lifecycle-v1\", \"seq\": 1, \"run_token\": \"smoke_4167e395ccfd\", \"instance_id\": \"smoke_4167e395ccfd\", \"slot_id\": 1, \"task_id\": 1, \"clock\": \"clock_gettime(CLOCK_MONOTONIC)\", \"units\": \"microseconds\", \"t_assigned_us\": 5213025142870, \"t_prompt_start_us\": 5213025142914, \"t_gen_last_us\": 5213078720803, \"t_released_us\": 5213078720813, \"n_prompt_processed\": 50, \"n_gen\": 1024, \"complete\": true, \"means\": \"occupied decoding slot, not uninterrupted hardware utilization\"}\n{\"schema\": \"live_ab/acquisition_seal-v1\", \"run_token\": \"smoke_4167e395ccfd\", \"records\": 2, \"write_failures\": 0, \"t_us\": 5213078774412, \"clock\": \"clock_gettime(CLOCK_MONOTONIC)\", \"sidecar_failures\": 0}\n",
+          "preview_chars_cap": 4000,
+          "preview_is_bounded": true,
+          "preview_truncated": false,
+          "sha256": "f405615147300ea812ca5c7e882ec52047cecae44882a28abc912eb27ed0aab0"
+        }
+      },
+      "observe_calls": 1,
+      "raw_reads_before_stop": 0
+    },
+    "drain_incomplete": {
+      "main_returncode": 1,
+      "exception": null,
+      "receipt_count": 1,
+      "write_calls": 1,
+      "events": [
+        {
+          "event": "request_join",
+          "timeout": 150.0
+        },
+        {
+          "event": "request_join",
+          "timeout": 150.0
+        },
+        {
+          "event": "signal",
+          "signal": 15
+        },
+        {
+          "event": "wait",
+          "timeout": 60
+        },
+        {
+          "event": "drain_join",
+          "timeout": 30.0
+        },
+        {
+          "event": "observe",
+          "process_outcome": 0
+        },
+        {
+          "event": "read_log_text",
+          "child_returncode": 0
+        },
+        {
+          "event": "read_raw_bytes",
+          "child_returncode": 0
+        },
+        {
+          "event": "read_raw_bytes",
+          "child_returncode": 0
+        }
+      ],
+      "receipt_summary": {
+        "child_confirmed_stopped": true,
+        "acquisition_not_analyzed": null,
+        "raw_artifacts_preserved_unread": null,
+        "supervisor_problems": [
+          "diagnostic capture incomplete: {'drain_reached_eof': False, 'drain_error': None, 'dropped_lines': 0, 'truncated_lines': 0}"
+        ],
+        "producer_diagnostics": {
+          "capture_complete": false,
+          "chars_per_line_cap": 400,
+          "drain_error": null,
+          "drain_reached_eof": false,
+          "drain_thread_finished": false,
+          "dropped_chars": 0,
+          "dropped_lines": 0,
+          "line_cap": 2000,
+          "lines": [],
+          "lines_are_a_bounded_preview": true,
+          "stream": "the child stdout+stderr pipe, drained continuously from launch",
+          "truncated_lines": 0
+        },
+        "raw_log": {
+          "bytes": 1169,
+          "decodes_as_utf8": true,
+          "path": "<TMP>/supervisor_review1003_0mlyn6tl/drain_incomplete/l.jsonl",
+          "present": true,
+          "preview": "{\"schema\": \"live_ab/slot_lifecycle-v1\", \"seq\": 0, \"run_token\": \"smoke_4167e395ccfd\", \"instance_id\": \"smoke_4167e395ccfd\", \"slot_id\": 0, \"task_id\": 0, \"clock\": \"clock_gettime(CLOCK_MONOTONIC)\", \"units\": \"microseconds\", \"t_assigned_us\": 5213025142879, \"t_prompt_start_us\": 5213025142893, \"t_gen_last_us\": 5213078720513, \"t_released_us\": 5213078720538, \"n_prompt_processed\": 50, \"n_gen\": 1024, \"complete\": true, \"means\": \"occupied decoding slot, not uninterrupted hardware utilization\"}\n{\"schema\": \"live_ab/slot_lifecycle-v1\", \"seq\": 1, \"run_token\": \"smoke_4167e395ccfd\", \"instance_id\": \"smoke_4167e395ccfd\", \"slot_id\": 1, \"task_id\": 1, \"clock\": \"clock_gettime(CLOCK_MONOTONIC)\", \"units\": \"microseconds\", \"t_assigned_us\": 5213025142870, \"t_prompt_start_us\": 5213025142914, \"t_gen_last_us\": 5213078720803, \"t_released_us\": 5213078720813, \"n_prompt_processed\": 50, \"n_gen\": 1024, \"complete\": true, \"means\": \"occupied decoding slot, not uninterrupted hardware utilization\"}\n{\"schema\": \"live_ab/acquisition_seal-v1\", \"run_token\": \"smoke_4167e395ccfd\", \"records\": 2, \"write_failures\": 0, \"t_us\": 5213078774412, \"clock\": \"clock_gettime(CLOCK_MONOTONIC)\", \"sidecar_failures\": 0}\n",
+          "preview_chars_cap": 4000,
+          "preview_is_bounded": true,
+          "preview_truncated": false,
+          "sha256": "f405615147300ea812ca5c7e882ec52047cecae44882a28abc912eb27ed0aab0"
+        }
+      },
+      "observe_calls": 1,
+      "raw_reads_before_stop": 0
+    },
+    "drain_trimmed": {
+      "main_returncode": 1,
+      "exception": null,
+      "receipt_count": 1,
+      "write_calls": 1,
+      "events": [
+        {
+          "event": "request_join",
+          "timeout": 150.0
+        },
+        {
+          "event": "request_join",
+          "timeout": 150.0
+        },
+        {
+          "event": "signal",
+          "signal": 15
+        },
+        {
+          "event": "wait",
+          "timeout": 60
+        },
+        {
+          "event": "drain_join",
+          "timeout": 30.0
+        },
+        {
+          "event": "observe",
+          "process_outcome": 0
+        },
+        {
+          "event": "read_log_text",
+          "child_returncode": 0
+        },
+        {
+          "event": "read_raw_bytes",
+          "child_returncode": 0
+        },
+        {
+          "event": "read_raw_bytes",
+          "child_returncode": 0
+        }
+      ],
+      "receipt_summary": {
+        "child_confirmed_stopped": true,
+        "acquisition_not_analyzed": null,
+        "raw_artifacts_preserved_unread": null,
+        "supervisor_problems": [
+          "diagnostic capture incomplete: {'drain_reached_eof': True, 'drain_error': None, 'dropped_lines': 0, 'truncated_lines': 1}"
+        ],
+        "producer_diagnostics": {
+          "capture_complete": false,
+          "chars_per_line_cap": 400,
+          "drain_error": null,
+          "drain_reached_eof": true,
+          "drain_thread_finished": true,
+          "dropped_chars": 500,
+          "dropped_lines": 0,
+          "line_cap": 2000,
+          "lines": [
+            "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+          ],
+          "lines_are_a_bounded_preview": true,
+          "stream": "the child stdout+stderr pipe, drained continuously from launch",
+          "truncated_lines": 1
+        },
+        "raw_log": {
+          "bytes": 1169,
+          "decodes_as_utf8": true,
+          "path": "<TMP>/supervisor_review1003_0mlyn6tl/drain_trimmed/l.jsonl",
+          "present": true,
+          "preview": "{\"schema\": \"live_ab/slot_lifecycle-v1\", \"seq\": 0, \"run_token\": \"smoke_4167e395ccfd\", \"instance_id\": \"smoke_4167e395ccfd\", \"slot_id\": 0, \"task_id\": 0, \"clock\": \"clock_gettime(CLOCK_MONOTONIC)\", \"units\": \"microseconds\", \"t_assigned_us\": 5213025142879, \"t_prompt_start_us\": 5213025142893, \"t_gen_last_us\": 5213078720513, \"t_released_us\": 5213078720538, \"n_prompt_processed\": 50, \"n_gen\": 1024, \"complete\": true, \"means\": \"occupied decoding slot, not uninterrupted hardware utilization\"}\n{\"schema\": \"live_ab/slot_lifecycle-v1\", \"seq\": 1, \"run_token\": \"smoke_4167e395ccfd\", \"instance_id\": \"smoke_4167e395ccfd\", \"slot_id\": 1, \"task_id\": 1, \"clock\": \"clock_gettime(CLOCK_MONOTONIC)\", \"units\": \"microseconds\", \"t_assigned_us\": 5213025142870, \"t_prompt_start_us\": 5213025142914, \"t_gen_last_us\": 5213078720803, \"t_released_us\": 5213078720813, \"n_prompt_processed\": 50, \"n_gen\": 1024, \"complete\": true, \"means\": \"occupied decoding slot, not uninterrupted hardware utilization\"}\n{\"schema\": \"live_ab/acquisition_seal-v1\", \"run_token\": \"smoke_4167e395ccfd\", \"records\": 2, \"write_failures\": 0, \"t_us\": 5213078774412, \"clock\": \"clock_gettime(CLOCK_MONOTONIC)\", \"sidecar_failures\": 0}\n",
+          "preview_chars_cap": 4000,
+          "preview_is_bounded": true,
+          "preview_truncated": false,
+          "sha256": "f405615147300ea812ca5c7e882ec52047cecae44882a28abc912eb27ed0aab0"
+        }
+      },
+      "observe_calls": 1,
+      "raw_reads_before_stop": 0
+    },
+    "decode_failure": {
+      "main_returncode": null,
+      "exception": "UnicodeDecodeError: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte",
+      "receipt_count": 0,
+      "write_calls": 0,
+      "events": [
+        {
+          "event": "request_join",
+          "timeout": 150.0
+        },
+        {
+          "event": "request_join",
+          "timeout": 150.0
+        },
+        {
+          "event": "signal",
+          "signal": 15
+        },
+        {
+          "event": "wait",
+          "timeout": 60
+        },
+        {
+          "event": "drain_join",
+          "timeout": 30.0
+        },
+        {
+          "event": "observe",
+          "process_outcome": 0
+        },
+        {
+          "event": "read_log_text",
+          "child_returncode": 0
+        }
+      ],
+      "receipt_summary": null,
+      "observe_calls": 1,
+      "raw_reads_before_stop": 0
+    }
+  },
+  "raw_helper_invalid_utf8": {
+    "present": true,
+    "bytes": 2,
+    "sha256": "e4688624e5f1ad0629505e6768e3bb36244f2f3e33e751215afa820334a76ed3",
+    "path": "<TMP>/supervisor_review1003_0mlyn6tl/invalid.bin",
+    "preview_is_bounded": true,
+    "preview_chars_cap": 4000,
+    "decodes_as_utf8": false,
+    "decode_error": "invalid start byte at byte 0",
+    "preview": "\ufffd\n",
+    "preview_truncated": false,
+    "sha256_matches": true
+  }
+}

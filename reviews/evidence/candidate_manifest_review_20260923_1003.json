@@ -1,0 +1,67 @@
+{
+  "review": "candidate_manifest_review_20260923_1003",
+  "head": "b3c4f4a4abe05f39ed8716ee91743c59201f2b87",
+  "substantive_commit": "58ad9435fc1d08624b4bb859db83f68ba10c412e",
+  "reviewed_at_utc": "2026-09-23T10:07:28.380898+00:00",
+  "manifest_generated_utc": "2026-09-23T09:52:59Z",
+  "manifest_sha256": "75e2a1d1a7fd786b2dff70ba8602390c5e3460de7e06ad045660650d1e7913c0",
+  "checks": {
+    "patch_bytes_match_manifest": true,
+    "patch_digest_match_manifest": true,
+    "base_match_previous_receipt": true,
+    "launcher_declaration_match_previous_receipt": true,
+    "build_times_targets_match_previous_receipt": true,
+    "nine_non_system_library_entries": true,
+    "non_system_entries_well_formed": true
+  },
+  "counts": {
+    "document_consistency_checks": 7,
+    "passed": 7,
+    "native_executions": 0,
+    "model_executions": 0,
+    "builds": 0,
+    "owner_current_artifact_reads": 0,
+    "declared_non_system_libraries": 9,
+    "independently_hashed_non_system_libraries": 0,
+    "independently_hashed_launcher": 0
+  },
+  "accepted": [
+    "Truthfully labelled post-execution candidate identity inventory, not pin-before-launch or native reproduction.",
+    "Deposited patch bytes agree with accepted v7 identity; base/launcher/build declarations agree with previous immutable receipt.",
+    "Four reported model-free cases retained with explicit permanent output/script gaps."
+  ],
+  "findings": [
+    {
+      "id": "R1",
+      "kind": "provenance_reconciliation",
+      "finding": "UNAVAILABLE_MATERIAL.per_case_stdout_stderr says first two cases redirected stdout and stderr to /dev/null, while both case rows say stderr inherited terminal.",
+      "action": "Add an immutable correction identifying supported routing or unknown; retain original contradictory receipt; no rerun."
+    },
+    {
+      "id": "R2",
+      "kind": "provenance_reconciliation",
+      "finding": "UNAVAILABLE_MATERIAL.exact_reader_invocation points to producing code in V7_FAILURE_INJECTION.json, which contains only parsed seal/result summaries and prose, not invocation or code.",
+      "action": "Correct to unavailable exact invocation, or deposit retained contemporaneous code if it exists; do not reconstruct as original."
+    },
+    {
+      "id": "R3",
+      "kind": "available_evidence_delivery",
+      "finding": "Build log (26350 bytes) and control lifecycle log (178 bytes) are declared present only at owner scratch paths; original bytes not deposited by this delivery.",
+      "action": "Deposit immutable copies and validate against the declared hashes; no build/native rerun."
+    },
+    {
+      "id": "L1",
+      "kind": "acceptance_limit",
+      "finding": "Nine declared resolved library entries are well-formed and include libllama-server-impl.dylib, but no deposited dependency-edge/loader-resolution output establishes recursive closure. No binary/library bytes independently checked.",
+      "action": "Treat as declared inventory. Attach available loader/dependency evidence and OS/build architecture provenance before calling it complete runtime closure; system library hashes not required by this review."
+    }
+  ],
+  "full_project_readiness_percent": 75,
+  "change_percentage_points": 0,
+  "bounded_v1_percent": 90,
+  "limits": [
+    "No owner-writable current build or original runtime scratch file was opened.",
+    "No build, native binary, model, sandbox, network, or test suite ran.",
+    "Existing v7 source acceptance retained; historical smoke provenance not relabelled."
+  ]
+}
