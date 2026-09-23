@@ -1,0 +1,251 @@
+{
+  "head": "79af3a748d0f9b965dff06ca029e501769d4b77c",
+  "source_commit": "c8b3bd915fac09679dbf2f0afe745280675bd108",
+  "scope": "Saved immutable smoke bytes and mocked native child only. No server, model, native build, sandbox or broad suite. Supplied historical provenance is not fresh remote measurement.",
+  "sidecar_cases": {
+    "absent": {
+      "complete": true,
+      "active": true,
+      "coverage_valid": true,
+      "sidecar_present": false,
+      "sidecar_bytes": 0,
+      "sidecar_records": [],
+      "seal_problem": null,
+      "json_roundtrip": true,
+      "raw_original_unmodified": true
+    },
+    "empty": {
+      "complete": false,
+      "active": true,
+      "coverage_valid": false,
+      "sidecar_present": true,
+      "sidecar_bytes": 0,
+      "sidecar_records": [],
+      "seal_problem": "the log.jsonl.error sidecar EXISTS and carries no legible entry (0 byte(s)); the producer opens it only to report a failure, so an empty one is a failure whose reason could not be written, not an absence of failure",
+      "json_roundtrip": true,
+      "raw_original_unmodified": true
+    },
+    "whitespace": {
+      "complete": false,
+      "active": true,
+      "coverage_valid": false,
+      "sidecar_present": true,
+      "sidecar_bytes": 5,
+      "sidecar_records": [],
+      "seal_problem": "the log.jsonl.error sidecar EXISTS and carries no legible entry (5 byte(s)); the producer opens it only to report a failure, so an empty one is a failure whose reason could not be written, not an absence of failure",
+      "json_roundtrip": true,
+      "raw_original_unmodified": true
+    },
+    "scalar": {
+      "complete": false,
+      "active": true,
+      "coverage_valid": false,
+      "sidecar_present": true,
+      "sidecar_bytes": 2,
+      "sidecar_records": [
+        {
+          "stage": "sidecar_non_object",
+          "reason": "sidecar line is a JSON int, not an object",
+          "retained_text": "5"
+        }
+      ],
+      "seal_problem": "the producer recorded 1 failure(s) in its log.jsonl.error sidecar (['sidecar_non_object']); any terminal writer failure refuses the acquisition",
+      "json_roundtrip": true,
+      "raw_original_unmodified": true
+    },
+    "list": {
+      "complete": false,
+      "active": true,
+      "coverage_valid": false,
+      "sidecar_present": true,
+      "sidecar_bytes": 6,
+      "sidecar_records": [
+        {
+          "stage": "sidecar_non_object",
+          "reason": "sidecar line is a JSON list, not an object",
+          "retained_text": "[1,2]"
+        }
+      ],
+      "seal_problem": "the producer recorded 1 failure(s) in its log.jsonl.error sidecar (['sidecar_non_object']); any terminal writer failure refuses the acquisition",
+      "json_roundtrip": true,
+      "raw_original_unmodified": true
+    },
+    "non_utf8": {
+      "complete": false,
+      "active": true,
+      "coverage_valid": false,
+      "sidecar_present": true,
+      "sidecar_bytes": 7,
+      "sidecar_records": [
+        {
+          "stage": "sidecar_undecodable",
+          "reason": "not valid UTF-8 (invalid start byte at byte 0); retained as hex",
+          "retained_hex": "fffe206261640a",
+          "retained_bytes": 7
+        },
+        {
+          "stage": "sidecar_unparsable",
+          "reason": "unparsable: Expecting value: line 1 column 1 (char 0)",
+          "retained_text": "\ufffd\ufffd bad"
+        }
+      ],
+      "seal_problem": "the producer recorded 2 failure(s) in its log.jsonl.error sidecar (['sidecar_undecodable', 'sidecar_unparsable']); any terminal writer failure refuses the acquisition",
+      "json_roundtrip": true,
+      "raw_original_unmodified": true,
+      "retained_hex_bytes": 7,
+      "retained_bytes_field": 7,
+      "retained_hex_complete": true
+    },
+    "malformed": {
+      "complete": false,
+      "active": true,
+      "coverage_valid": false,
+      "sidecar_present": true,
+      "sidecar_bytes": 6,
+      "sidecar_records": [
+        {
+          "stage": "sidecar_unparsable",
+          "reason": "unparsable: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)",
+          "retained_text": "{oops"
+        }
+      ],
+      "seal_problem": "the producer recorded 1 failure(s) in its log.jsonl.error sidecar (['sidecar_unparsable']); any terminal writer failure refuses the acquisition",
+      "json_roundtrip": true,
+      "raw_original_unmodified": true
+    },
+    "non_utf8_long": {
+      "complete": false,
+      "active": true,
+      "coverage_valid": false,
+      "sidecar_present": true,
+      "sidecar_bytes": 300,
+      "sidecar_records": [
+        {
+          "stage": "sidecar_undecodable",
+          "reason": "not valid UTF-8 (invalid start byte at byte 0); retained as hex",
+          "retained_hex": "ff414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141",
+          "retained_bytes": 300
+        },
+        {
+          "stage": "sidecar_unparsable",
+          "reason": "unparsable: Expecting value: line 1 column 1 (char 0)",
+          "retained_text": "\ufffdAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        }
+      ],
+      "seal_problem": "the producer recorded 2 failure(s) in its log.jsonl.error sidecar (['sidecar_undecodable', 'sidecar_unparsable']); any terminal writer failure refuses the acquisition",
+      "json_roundtrip": true,
+      "raw_original_unmodified": true,
+      "retained_hex_bytes": 256,
+      "retained_bytes_field": 300,
+      "retained_hex_complete": false
+    }
+  },
+  "main_truncated_with_sidecar": {
+    "complete": false,
+    "reason": "the lifecycle log ends mid-line (1072 bytes); the server is still writing. Re-read rather than trimming: a trimmed partial line discards an occupancy that did happen.",
+    "sidecar_keys_retained": [],
+    "raw_original_unmodified": true,
+    "json_roundtrip": true
+  },
+  "seal_cases": {
+    "write_failures:NoneType:None": {
+      "complete": false,
+      "problem": "the seal does not report write_failures at all; an absent count is not a count of zero",
+      "sidecar_failures_reported": false
+    },
+    "write_failures:bool:False": {
+      "complete": false,
+      "problem": "the seal reports write_failures False, a boolean; the producer reports a COUNT, and bool is not an integer count even though Python makes it a subclass of int",
+      "sidecar_failures_reported": false
+    },
+    "write_failures:float:0.0": {
+      "complete": false,
+      "problem": "the seal reports write_failures 0.0 of type float; a count that is not an integer was not written by the instrument this reader is the counterpart of",
+      "sidecar_failures_reported": false
+    },
+    "write_failures:str:0": {
+      "complete": false,
+      "problem": "the seal reports write_failures '0' of type str; a count that is not an integer was not written by the instrument this reader is the counterpart of",
+      "sidecar_failures_reported": false
+    },
+    "write_failures:int:-1": {
+      "complete": false,
+      "problem": "the producer recorded -1 write failure(s); the log is not known to be whole",
+      "sidecar_failures_reported": false
+    },
+    "write_failures:int:0": {
+      "complete": true,
+      "problem": null,
+      "sidecar_failures_reported": false
+    },
+    "sidecar_failures:NoneType:None": {
+      "complete": true,
+      "problem": null,
+      "sidecar_failures_reported": false
+    },
+    "sidecar_failures:bool:False": {
+      "complete": false,
+      "problem": "the seal reports sidecar_failures False, a boolean, not a count",
+      "sidecar_failures_reported": true
+    },
+    "sidecar_failures:float:0.0": {
+      "complete": false,
+      "problem": "the seal reports sidecar_failures 0.0 of type float; a count that is not an integer was not written by this instrument",
+      "sidecar_failures_reported": true
+    },
+    "sidecar_failures:int:2": {
+      "complete": false,
+      "problem": "the producer failed 2 time(s) to write its own failure sidecar; a terminal write failure was detected and its reason could not be persisted",
+      "sidecar_failures_reported": true
+    },
+    "sidecar_failures:int:0": {
+      "complete": true,
+      "problem": null,
+      "sidecar_failures_reported": true
+    }
+  },
+  "actual_build_receipt_witnesses": {
+    "control": {
+      "verdict": "SEAL WRITTEN BY THE BUILT BINARY AND PARSED",
+      "reader_error": null,
+      "reader_records": 0,
+      "seal_contract_ok": true,
+      "seal_only_fixture_shape": true
+    },
+    "count_two": {
+      "verdict": "SEAL WRITTEN BY THE BUILT BINARY AND PARSED",
+      "reader_error": null,
+      "reader_records": 0,
+      "seal_contract_ok": true,
+      "seal_only_fixture_shape": true
+    },
+    "count_bool": {
+      "verdict": "SEAL WRITTEN BY THE BUILT BINARY AND PARSED",
+      "reader_error": null,
+      "reader_records": 0,
+      "seal_contract_ok": true,
+      "seal_only_fixture_shape": true
+    },
+    "failure_bool": {
+      "verdict": "SEAL WRITTEN BY THE BUILT BINARY AND PARSED",
+      "reader_error": null,
+      "reader_records": 0,
+      "seal_contract_ok": true,
+      "seal_only_fixture_shape": true
+    },
+    "failure_float": {
+      "verdict": "SEAL WRITTEN BY THE BUILT BINARY AND PARSED",
+      "reader_error": null,
+      "reader_records": 0,
+      "seal_contract_ok": true,
+      "seal_only_fixture_shape": true
+    },
+    "missing_terminal_newline": {
+      "verdict": "NOT a seal-parser success: child_exit_ok=True, no_parser_rejection=True, no_parser_error=False, seal_only_fixture_shape=False, seal_contract_ok=False",
+      "reader_error": "the lifecycle log ends mid-line (176 bytes); the server is still writing. Re-read rather than trimming: a trimmed partial line discards an occupancy that did happen.",
+      "reader_records": 0,
+      "seal_contract_ok": false,
+      "seal_only_fixture_shape": false
+    }
+  }
+}

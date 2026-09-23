@@ -1,0 +1,236 @@
+{
+  "reviewed_head": "79af3a748d0f9b965dff06ca029e501769d4b77c",
+  "source_commit": "855a40636d4a84d64edee91052652eac6999a1a1",
+  "comparison_base": "08d5987",
+  "config": {
+    "bytes": 13641,
+    "sha256": "05255df3b0d12bb6f5571616378a1366c67c6eb8b913def907c6a5d901e1731c",
+    "three_way_exact_equal": true,
+    "semantic_delta": {
+      "anchor.posting_latency_p95_s": {
+        "before": null,
+        "after": 0.8240070836618543,
+        "added": false
+      },
+      "anchor.posting_latency_p95_source": {
+        "before": null,
+        "after": "root nearest-rank decision, reviews/resumption_root_disposition_20260923_0348.md: authoritative, no repeat calibration",
+        "added": true
+      },
+      "sandbox.profile_base_interpreter": {
+        "before": null,
+        "after": "cpython-3.12.13-macos-aarch64-none",
+        "added": true
+      },
+      "sandbox.profile_bytes": {
+        "before": null,
+        "after": 646,
+        "added": true
+      },
+      "sandbox.profile_preimage_note": {
+        "before": null,
+        "after": "TMPDIR- AND INTERPRETER-DEPENDENT BY DESIGN (protocol 5.7 item 2). These 646 bytes hold the owner home, the base-interpreter prefix and the prescribed sandbox base; they resolve only under TMPDIR=<TMP>/labsbx and base interpreter cpython-3.12.13-macos-aarch64-none. Under any other interpreter the profile text, its length and this digest all differ. An interpreter or path change needs a new environment record, not a weakened hash.",
+        "added": true
+      },
+      "sandbox.profile_sha256": {
+        "before": null,
+        "after": "527d267e1c50c4f66a23312e2a836125395367ddd1398ec7f3c79117803c410b",
+        "added": false
+      },
+      "servers.coder.license_evidence_bytes": {
+        "before": null,
+        "after": 11343,
+        "added": true
+      },
+      "servers.coder.license_evidence_kind": {
+        "before": null,
+        "after": "licence_blob",
+        "added": true
+      },
+      "servers.coder.license_evidence_sha256": {
+        "before": null,
+        "after": "832dd9e00a68dd83b3c3fb9f5588dad7dcf337a0db50f7d9483f310cd292e92e",
+        "added": false
+      },
+      "servers.t3.license_evidence_bytes": {
+        "before": null,
+        "after": 460,
+        "added": true
+      },
+      "servers.t3.license_evidence_kind": {
+        "before": null,
+        "after": "model_card_declaration",
+        "added": true
+      },
+      "servers.t3.license_evidence_kind_note": {
+        "before": null,
+        "after": "NOT a licence text. The repository serves no LICENSE at the pinned revision (HTTP 404); these are the retained model-card bytes declaring apache-2.0. Typed explicitly so the pin is never read as a recovered licence file.",
+        "added": true
+      },
+      "servers.t3.license_evidence_sha256": {
+        "before": null,
+        "after": "3caa21957f57266158c22853e09c7d7d066cfcc9d003e31c8daacf930f9aabb9",
+        "added": false
+      }
+    },
+    "old_rule_block_sha256": "cbfd1792d09c43754eeeab3b282e92e99c76e4f878cd82d00c827f6a90fa7607",
+    "new_rule_block_sha256": "cbfd1792d09c43754eeeab3b282e92e99c76e4f878cd82d00c827f6a90fa7607"
+  },
+  "license": {
+    "bundle_recomputed": "867eca9e36e47408711e2fbc1c066c180589209bb3caecabf59d00d08b1ee96a",
+    "current_detail": {
+      "per_server": {
+        "coder": {
+          "config_pin": "832dd9e00a68dd83b3c3fb9f5588dad7dcf337a0db50f7d9483f310cd292e92e",
+          "retained_file": "<REPO>/experiments/live_ab_licenses/coder__13fb94bfda8c__LICENSE",
+          "bytes_on_disk": 11343,
+          "sha256_recomputed_from_bytes": "832dd9e00a68dd83b3c3fb9f5588dad7dcf337a0db50f7d9483f310cd292e92e",
+          "evidence_kind": "licence_blob",
+          "matches_config_pin": true,
+          "bytes_match_config": true,
+          "matches_evidence_record": true,
+          "kind_matches_evidence_record": true
+        },
+        "t3": {
+          "config_pin": "3caa21957f57266158c22853e09c7d7d066cfcc9d003e31c8daacf930f9aabb9",
+          "retained_file": "<REPO>/experiments/live_ab_licenses/t3__e40e9dd739c7__README.md",
+          "bytes_on_disk": 460,
+          "sha256_recomputed_from_bytes": "3caa21957f57266158c22853e09c7d7d066cfcc9d003e31c8daacf930f9aabb9",
+          "evidence_kind": "model_card_declaration",
+          "matches_config_pin": true,
+          "bytes_match_config": true,
+          "matches_evidence_record": true,
+          "kind_matches_evidence_record": true
+        }
+      },
+      "problems": [],
+      "canonical_map_servers": [
+        "coder",
+        "t3"
+      ],
+      "all_servers_have_evidence": true,
+      "license_evidence_sha256": "867eca9e36e47408711e2fbc1c066c180589209bb3caecabf59d00d08b1ee96a",
+      "note": "t3's evidence is a model_card_declaration, not a licence text: the repository serves no LICENSE at the pinned revision. It is carried as explicitly typed provenance evidence and is not a recovered licence file, and no part of this is a rights attestation."
+    },
+    "modified_coder_byte_refused": true,
+    "modified_byte_problems": [
+      "coder: recomputed digest != config pin",
+      "coder: byte count != config pin",
+      "coder: recomputed digest != evidence record"
+    ]
+  },
+  "profile": {
+    "reconstructed_declared_owner_profile_bytes": 646,
+    "reconstructed_sha256": "527d267e1c50c4f66a23312e2a836125395367ddd1398ec7f3c79117803c410b",
+    "prescribed_tmpdir": "/private/tmp/labsbx",
+    "evidence_for_declared_interpreter": "results/live_ab/FREEZE_REACHABILITY_v3.json",
+    "alternate_parent_tmpdir": "/private/tmp",
+    "alternate_parent_sha256": "92d7f978190a498d17e187af3b62407ef06f8f5c04e26352b530eeead6d6187e",
+    "current_observer_context": "lab_data uses pilot sandbox_info() in calling process with calling tempfile cache and base interpreter; no child worker context observed",
+    "actual_owner_or_root_profile_execution": false
+  },
+  "cpu_successor": {
+    "original_pin": "3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0dd7d2c2",
+    "new_successor": "f75de3235ae0431b727cf7c24b09927204a1da8c5424e14ea428dbfea256f48b",
+    "prior_successors": [
+      "b1ff97cc163ce7ea121ebd578a4c37de09d5ed7223f2029e5d56118cdc790822",
+      "d63717a5519f650394db8aca7eb33d7a15ccfedbaffe78600d9ea3fb7b76294d",
+      "0e1bcb710ce2c13a06a243a7c3034d6bec55389d4de45dce569a7dee15af0284"
+    ],
+    "earlier_prior_history_unchanged": true,
+    "last_successor_object_retained_except_nested_history_and_correction": true,
+    "all_other_cells_and_provenance_unchanged": true,
+    "new_source_commit_hashes_to_successor": true
+  },
+  "tests": {
+    "run": 10,
+    "failures": 0,
+    "errors": 0,
+    "log": "test_config_is_appendix_b_verbatim (tests_lab_e2e.ConfigTests.test_config_is_appendix_b_verbatim)\nThe committed ``config.json`` is the block of ARCHITECTURE_FINAL.md 6.1, which ... ok\ntest_rule_block_hash_is_stable_under_operational_pinning (tests_lab_e2e.ConfigTests.test_rule_block_hash_is_stable_under_operational_pinning) ... ok\ntest_the_amendment_on_disk_leaves_the_original_pin_untouched (tests_validation.PinSuccessorAmendmentTests.test_the_amendment_on_disk_leaves_the_original_pin_untouched) ... ok\ntest_the_previous_successor_is_preserved_not_overwritten (tests_validation.PinSuccessorAmendmentTests.test_the_previous_successor_is_preserved_not_overwritten)\nRoot: \"Preserve the existing successor object in an additive history ... ok\ntest_a_correct_successor_passes (tests_validation.PinSuccessorAmendmentTests.test_a_correct_successor_passes) ... ok\ntest_a_WRONG_successor_fails (tests_validation.PinSuccessorAmendmentTests.test_a_WRONG_successor_fails) ... ok\ntest_MUTATING_THE_ORIGINAL_PIN_still_fails (tests_validation.PinSuccessorAmendmentTests.test_MUTATING_THE_ORIGINAL_PIN_still_fails)\nThe one that matters: the amendment must not have opened a door to ... ok\ntest_a_successor_that_is_recorded_but_stale_fails (tests_validation.PinSuccessorAmendmentTests.test_a_successor_that_is_recorded_but_stale_fails)\nThe invariant F18 actually enforces: no pin is SILENTLY stale. ... ok\ntest_the_sandbox_profile_is_observed_from_the_sandbox_not_read_from_the_freeze (tests_lab_design.FreezeBundleBindingTests.test_the_sandbox_profile_is_observed_from_the_sandbox_not_read_from_the_freeze)\nThe member must come from the SANDBOX, or it cannot ever disagree. ... ok\ntest_an_unobservable_sandbox_profile_refuses_rather_than_agreeing (tests_lab_design.FreezeBundleBindingTests.test_an_unobservable_sandbox_profile_refuses_rather_than_agreeing)\nNone means unobservable, never \"agrees\". The member then drifts as ABSENT. ... ok\n\n----------------------------------------------------------------------\nRan 10 tests in 0.058s\n\nOK\n",
+    "sandbox_info_stub": "pure declared digest; no sandbox directory creation, subprocess or program probe"
+  },
+  "freeze_checker": {
+    "resolved_offline_count": 16,
+    "required_keys_total": 26,
+    "resolved_offline": [
+      "config_sha256",
+      "derivation_sha256",
+      "environment_lock_sha256",
+      "gguf_sha256",
+      "hardware_allowlist",
+      "harness_file_sha256",
+      "license_evidence_sha256",
+      "planning_sha256",
+      "protocol_sha256",
+      "protocol_version",
+      "receipt_mask_sha256",
+      "reused_file_sha256",
+      "rule_block_sha256",
+      "run_book_sha256",
+      "sandbox_profile_sha256",
+      "winstats_sha256"
+    ],
+    "gate_verdict": {
+      "complete": false,
+      "raised": "FreezeIncomplete",
+      "detail": {
+        "extra": [],
+        "missing": [
+          "arrival_order_sha256",
+          "containment_probe_sha256",
+          "golden_generation_settings_sha256",
+          "golden_props_sha256",
+          "prefreeze_bytes",
+          "prefreeze_file_sha256",
+          "prefreeze_head",
+          "roster_sha256",
+          "serving_manifest_sha256",
+          "task_content_sha256"
+        ],
+        "null_or_unknown": []
+      }
+    },
+    "still_required": [
+      "arrival_order_sha256",
+      "containment_probe_sha256",
+      "golden_generation_settings_sha256",
+      "golden_props_sha256",
+      "prefreeze_bytes",
+      "prefreeze_file_sha256",
+      "prefreeze_head",
+      "roster_sha256",
+      "serving_manifest_sha256",
+      "task_content_sha256"
+    ],
+    "null_or_unknown_in_supplied_parts": []
+  },
+  "freeze_count_scope": {
+    "actual_build_freeze_bundle_used": true,
+    "installed_weights_read_or_verified": false,
+    "GGUF_PATHS_mapped_to_absent_temporary_files": true,
+    "reported_gguf_problems": [
+      "coder: GGUF absent at the installed path",
+      "t3: GGUF absent at the installed path"
+    ],
+    "count_is_key_presence_not_component_acceptance": true,
+    "note": "gguf_sha256 is an empty map in this bounded control but is still counted by len(parts); no freeze readiness or weight acceptance follows from16/26"
+  },
+  "readiness": {
+    "full_percent": 75,
+    "change": 0,
+    "bounded_v1_percent": 90
+  },
+  "disposition": {
+    "accepted_subset": [
+      "Approved profile and retained license evidence pins, with typed provenance",
+      "Exact three-way config bytes and unchanged statistical rule block",
+      "Additive CPU successor with original pin and all prior successors retained",
+      "Current-process sandbox profile observation and refusal on changed/missing observation",
+      "Real build_freeze_bundle incomplete verdict, with structural count explicitly separated"
+    ],
+    "profile_scope": "Current preflight process; ordinary worker spawn uses the same default interpreter and inherited environment, and worker independently asserts prescribed TMPDIR. No child profile execution or remote runtime validation was performed by this review.",
+    "new_pin_promotion_defect": false,
+    "new_freeze_approval": false,
+    "readiness_points_awarded": 0
+  }
+}

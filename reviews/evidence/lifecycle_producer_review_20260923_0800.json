@@ -1,0 +1,159 @@
+{
+  "reviewed_head": "79af3a748d0f9b965dff06ca029e501769d4b77c",
+  "source_commit": "c8b3bd915fac09679dbf2f0afe745280675bd108",
+  "scope": "static C++ and patch parser/dry-run only; no build/native binary/model/network",
+  "patch_sha256": "0e79199aeb886e063f7d758b34566eb6dcd3061ee12fb427424475f953f14c43",
+  "patch_checks": [
+    {
+      "command": [
+        "git",
+        "apply",
+        "--numstat",
+        "/Users/yukang/Documents/Codex/2026-09-17/i-x20/outputs/agent_win_eval/experiments/live_ab_serving/live_ab_slot_lifecycle.patch"
+      ],
+      "cwd": "/Users/yukang/Documents/Codex/2026-09-17/i-x20/outputs/agent_win_eval",
+      "returncode": 128,
+      "stdout": "",
+      "stderr": "error: corrupt patch at line 283\n"
+    },
+    {
+      "command": [
+        "git",
+        "apply",
+        "--check",
+        "/Users/yukang/Documents/Codex/2026-09-17/i-x20/outputs/agent_win_eval/experiments/live_ab_serving/live_ab_slot_lifecycle.patch"
+      ],
+      "cwd": "/Users/yukang/Documents/Codex/2026-09-17/i-x20/work/server0459",
+      "returncode": 128,
+      "stdout": "",
+      "stderr": "error: corrupt patch at line 283\n"
+    },
+    {
+      "command": [
+        "git",
+        "apply",
+        "--recount",
+        "--check",
+        "/Users/yukang/Documents/Codex/2026-09-17/i-x20/outputs/agent_win_eval/experiments/live_ab_serving/live_ab_slot_lifecycle.patch"
+      ],
+      "cwd": "/Users/yukang/Documents/Codex/2026-09-17/i-x20/work/server0459",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "hunks": [
+    {
+      "line": 5,
+      "header": "@@ -368,6 +368,16 @@ struct server_slot_stats {",
+      "declared_old": 6,
+      "actual_old": 6,
+      "declared_new": 16,
+      "actual_new": 16
+    },
+    {
+      "line": 26,
+      "header": "@@ -1,4 +1,6 @@",
+      "declared_old": 4,
+      "actual_old": 4,
+      "declared_new": 6,
+      "actual_new": 6
+    },
+    {
+      "line": 33,
+      "header": "@@ -236,6 +238,22 @@ struct server_batch {",
+      "declared_old": 6,
+      "actual_old": 6,
+      "declared_new": 22,
+      "actual_new": 22
+    },
+    {
+      "line": 56,
+      "header": "@@ -548,6 +566,13 @@ struct server_slot {",
+      "declared_old": 6,
+      "actual_old": 6,
+      "declared_new": 13,
+      "actual_new": 13
+    },
+    {
+      "line": 70,
+      "header": "@@ -734,6 +759,181 @@ struct server_slot {",
+      "declared_old": 6,
+      "actual_old": 6,
+      "declared_new": 181,
+      "actual_new": 212
+    },
+    {
+      "line": 283,
+      "header": "@@ -1819,6 +2019,29 @@ private:",
+      "declared_old": 6,
+      "actual_old": 6,
+      "declared_new": 29,
+      "actual_new": 29
+    }
+  ],
+  "local_preimages": [
+    {
+      "path": "tools/server/server-context.cpp",
+      "git_blob": "b6835e43459e3e9f1ea951e9f96f9ade22074cba",
+      "sha256": "2f5d65ce6ef0504b5c8cf55a74c68d3959c49784ba380ef836566b7a7d5fa12b"
+    },
+    {
+      "path": "tools/server/server-common.h",
+      "git_blob": "9894f5f06fb050fa6e1e278a01509be35e00733e",
+      "sha256": "635a7e37085dee6a1a3767bed21793bf1879828372e359350cae2c75fb167b17"
+    }
+  ],
+  "version_digests": [
+    {
+      "commit": "1d669d6",
+      "sha256": "261a54db560ddfccf1f1541361905686177069c4993f2b80e9830a9144631e29",
+      "bytes": 6689
+    },
+    {
+      "commit": "99e1805",
+      "sha256": "984f47df65b0db7b945234660cde2aae9a035c4efcee42ec780c27df9c59a918",
+      "bytes": 11737
+    },
+    {
+      "commit": "31c22fd",
+      "sha256": "4c8b647de674edca06578642b17fff7e24d8625ad9d9933238170c668c4a0840",
+      "bytes": 12644
+    },
+    {
+      "commit": "3f3968d",
+      "sha256": "2c52078f8a541134661eb7ac997114892c7baf68541f9d4be664366d43e85f6a",
+      "bytes": 13669
+    },
+    {
+      "commit": "c8b3bd915fac09679dbf2f0afe745280675bd108",
+      "sha256": "0e79199aeb886e063f7d758b34566eb6dcd3061ee12fb427424475f953f14c43",
+      "bytes": 15472
+    }
+  ],
+  "terminal_failure_trace": {
+    "kind": "static control-flow witness, NOT executed C++",
+    "initial_write_failures": 0,
+    "initial_sidecar_failures": 0,
+    "seal_snapshots_counts_before_own_flush_close": true,
+    "possible_next_step": "fclose reports error after readable complete seal bytes; failure handler cannot persist .error",
+    "in_memory_after_handler": {
+      "write_failures": 1,
+      "sidecar_failures": 1
+    },
+    "already_serialized_seal": {
+      "write_failures": 0,
+      "sidecar_failures": 0
+    },
+    "fallback": "unchecked fprintf(stderr), unchecked fflush(stderr), ordinary return",
+    "process_failure_signal_in_patch": false
+  },
+  "supplied_runner_pipe": {
+    "path": "experiments/live_ab_serving/run_smoke.py",
+    "stderr": "STDOUT",
+    "stdout": "PIPE",
+    "drain_or_save_present": false,
+    "wait_before_drain": true
+  },
+  "runtime_limits": "No native behavior or installed build correctness validated; retained smoke pinned v4, v5 source-only."
+}
