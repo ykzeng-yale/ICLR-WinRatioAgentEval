@@ -91,23 +91,49 @@ index b6835e4..d8b4aab 100644
 +static std::atomic<long long> live_ab_seq{0};
 +static std::atomic<long long> live_ab_write_failures{0};
 +
++//: Failures of the BEST-EFFORT failure channel itself. Root, 2026-09-23 03:48:
++//: "Make producer failure detectable by the supervisor/process when the
++//: best-effort sidecar itself cannot be written."
++static std::atomic<long long> live_ab_sidecar_failures{0};
++
 +static void live_ab_note_write_failure(const char * path, const char * what) {
 +    live_ab_write_failures.fetch_add(1);
 +    // BEST EFFORT, AND ONLY THAT. On a SEPARATE file so a failing log cannot
-+    // hide its own failure by failing again -- but this writer does not check
-+    // its own fprintf/flush/close either, and root is right that a separate
-+    // filename does not make persistence reliable. The supervisor must retain
-+    // process and side-channel failures independently; a missing seal and a
-+    // sequence gap remain the checks that do not depend on this path.
++    // hide its own failure by failing again -- but a separate filename does not
++    // make persistence reliable. What follows is the repair for the case where
++    // THIS writer fails too: every step's result is checked, and a failure is
++    // reported on TWO channels that do not depend on the sidecar -- a counter
++    // carried in the seal, and stderr, which the supervisor captures. Without
++    // that, a full disk makes a terminal write failure completely invisible:
++    // no sidecar line, and nothing anywhere else saying one was attempted.
 +    std::string err = std::string(path) + ".error";
 +    FILE * f = fopen(err.c_str(), "ab");
-+    if (f != nullptr) {
-+        fprintf(f, "{\"schema\":\"live_ab/acquisition_error-v1\",\"stage\":\"%s\","
-+                   "\"t_us\":%lld,\"failures\":%lld}\n",
-+                what, (long long) ggml_time_us(),
-+                (long long) live_ab_write_failures.load());
-+        fflush(f);
-+        fclose(f);
++    if (f == nullptr) {
++        live_ab_sidecar_failures.fetch_add(1);
++        fprintf(stderr, "live_ab: FAILED to open %s to record a '%s' write "
++                        "failure; sidecar_failures=%lld\n",
++                err.c_str(), what,
++                (long long) live_ab_sidecar_failures.load());
++        fflush(stderr);
++        return;
++    }
++    const int n = fprintf(f,
++               "{\"schema\":\"live_ab/acquisition_error-v1\",\"stage\":\"%s\","
++               "\"t_us\":%lld,\"failures\":%lld}\n",
++            what, (long long) ggml_time_us(),
++            (long long) live_ab_write_failures.load());
++    // flush and close checked INDEPENDENTLY, for the same reason as the seal:
++    // `fflush(f) || fclose(f)` short-circuits and never closes on a flush
++    // failure, leaking the handle and discarding the close result.
++    const int flushed = fflush(f);
++    const int closed  = fclose(f);
++    if (n <= 0 || flushed != 0 || closed != 0) {
++        live_ab_sidecar_failures.fetch_add(1);
++        fprintf(stderr, "live_ab: FAILED to persist a '%s' write failure to %s "
++                        "(fprintf=%d flush=%d close=%d); sidecar_failures=%lld\n",
++                what, err.c_str(), n, flushed, closed,
++                (long long) live_ab_sidecar_failures.load());
++        fflush(stderr);
 +    }
 +}
 +
@@ -218,12 +244,17 @@ index b6835e4..d8b4aab 100644
 +        // fprintf returns the bytes written, or NEGATIVE on error; a short
 +        // count means a truncated seal, which is worse than no seal because it
 +        // parses as nothing while looking like something.
++        // `sidecar_failures` rides in the seal so that a lost sidecar is still
++        // DETECTABLE from the log alone: the count of failures of the failure
++        // channel is the one number the sidecar cannot carry about itself.
 +        const int seal_written = fprintf(f,
 +                   "{\"schema\":\"live_ab/acquisition_seal-v1\",\"run_token\":\"%s\","
-+                   "\"records\":%lld,\"write_failures\":%lld,\"t_us\":%lld,"
++                   "\"records\":%lld,\"write_failures\":%lld,"
++                   "\"sidecar_failures\":%lld,\"t_us\":%lld,"
 +                   "\"clock\":\"clock_gettime(CLOCK_MONOTONIC)\"}\n",
 +                live_ab_run_token(), (long long) live_ab_seq.load(),
 +                (long long) live_ab_write_failures.load(),
++                (long long) live_ab_sidecar_failures.load(),
 +                (long long) ggml_time_us());
 +        if (seal_written <= 0) {
 +            live_ab_note_write_failure(path, "seal_format");

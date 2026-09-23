@@ -8,12 +8,55 @@ original build and active shared service."*
 | | |
 |---|---|
 | patch | `experiments/live_ab_serving/live_ab_slot_lifecycle.patch` |
-| sha256 | `261a54db560ddfccf1f1541361905686177069c4993f2b80e9830a9144631e29` |
+| sha256 | **see the version table below** — this row named `261a54db…` for four revisions after the file had stopped having that digest |
 | base revision | `4fea119de30f6a923992780f6fd5ccb0bee5d47d` |
-| size | 144 lines; 2 files, **101 insertions, 0 deletions** |
-| applies cleanly | **yes**, verified by `git apply --check` against a pristine tree at the base revision |
 | built | **NO.** Not compiled, not linked, not run. |
 | original checkout | **untouched** — `git status --porcelain` empty, no worktree metadata added |
+
+## Version history — additive, and the correction that produced it
+
+**This record pinned `261a54db…` while the patch had been through four further
+revisions.** A provenance record naming a digest its artifact no longer carries is the
+same defect class as a stale successor pin: it reads as a binding and is not one. The
+digests below were recovered from `git cat-file` on each commit that touched the file,
+not from memory, and no earlier row is edited.
+
+| v | sha256 | commit | what changed |
+|---|---|---|---|
+| 1 | `261a54db560d…` | `1d669d6` | the producer root authorized: four transition points, clock named per record |
+| 2 | `984f47df65b0…` | `99e1805` | run-token echo, per-record `seq`, static-destructor seal, `.error` sidecar, `n=1` while instrumented |
+| 3 | `4c8b647de674…` | `31c22fd` | three contract repairs; independent `fflush`/`fclose` checks |
+| 4 | `2c52078f8a54…` | `3f3968d` | the seal `fprintf` result actually captured — root found I had claimed this repair in a commit message without making it |
+| 5 | `0e79199aeb88…` | *this change* | the best-effort failure channel reports **its own** failure |
+
+**The retained smoke evidence stays bound to v4 `2c52078f…`** and is not reinterpreted.
+`results/live_ab/SMOKE_LAUNCH_MANIFEST_smoke_4167e395ccfd.json` pins that digest because
+that is the version that produced the retained log, and root's instruction stands: *"these
+witnesses are in the smoke report; do not repeat a loaded smoke to fix them."* The retained
+log was re-read through the repaired reader and still parses with no seal problem and two
+windows — verified, not assumed.
+
+**v5 is SOURCE ONLY. It is not built, and no binary corresponds to it.** The binary built
+from an earlier version was already stale before this change and remains so.
+
+### v5: what it repairs
+
+Root, 2026-09-23 03:48: *"Make producer failure detectable by the supervisor/process when
+the best-effort sidecar itself cannot be written."*
+
+`live_ab_note_write_failure` opened `<log>.error` and discarded every result —
+`fopen` could return `nullptr` and the function simply returned, and `fprintf`/`fflush`/
+`fclose` results were never examined. On a full disk a terminal write failure was therefore
+**completely invisible**: no sidecar line, and nothing anywhere else recording that one had
+been attempted. v5 checks each step and, on failure, reports on two channels that do not
+depend on the sidecar: a `live_ab_sidecar_failures` counter carried **in the seal**, and a
+line on **stderr**, which the supervisor captures. The seal field is the one number the
+sidecar cannot carry about itself — if the sidecar could be written there would be no
+failure to report.
+
+The reader treats `sidecar_failures` as **optional but strictly checked**: absent means an
+emitter that predates the field, recorded as `sidecar_failures_reported: false`, an unknown
+and never rendered as a zero; present means it must be a non-boolean integer zero.
 
 ## The four transition points, exactly
 

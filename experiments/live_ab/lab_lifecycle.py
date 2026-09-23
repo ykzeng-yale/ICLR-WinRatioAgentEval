@@ -172,6 +172,141 @@ def read_records(path: "str | Path") -> Dict[str, Any]:
             'writer_errors': errors, 'error': None}
 
 
+#: How much of an unparsable or non-object sidecar line is retained verbatim.
+SIDECAR_RETAIN_CHARS = 200
+#: How much of a sidecar that cannot be decoded at all is retained as hex.
+SIDECAR_RETAIN_BYTES = 256
+
+
+def read_error_sidecar(sidecar_path: Path) -> tuple:
+    """Read `<log>.error` so that NOTHING in it can raise before it is retained.
+
+    Returns ``(entries, present, byte_count, unreadable)``.
+
+    Root, 2026-09-23 03:48: "A freshly existing lifecycle `.error` sidecar must
+    refuse even when empty. Scalar/list/non-UTF8 data must produce a durable
+    refused observation with retained bytes, not an exception before retention."
+
+    Three properties, each of which the previous reader lacked:
+
+    * **Existence is the signal, not content.** The producer creates this file
+      only when it has a failure to report, so a zero-byte sidecar does not mean
+      "no failures" -- it means the producer could not write even the reason.
+      That is strictly worse than a legible failure and must refuse at least as
+      hard.  The old reader returned an empty list for it and the acquisition
+      passed.
+    * **Bytes, never `read_text`.** `read_text('utf-8')` raises
+      `UnicodeDecodeError` on a truncated or corrupt sidecar, and that is a
+      `ValueError`, which the old `except OSError` did not catch -- so the
+      failure channel destroyed the observation instead of being recorded in it.
+      The bytes are read first, counted, and retained as hex when they cannot be
+      decoded.
+    * **A JSON document is not necessarily an object.** `json.loads('5')` is an
+      `int` and `json.loads('[1,2]')` is a `list`; the old reader appended them
+      and a later `e.get('stage')` raised `AttributeError` -- again after the
+      refusal was already determined but before it could be returned.  Every
+      entry this function yields is a dict, so no consumer can be surprised.
+
+    Errors are never propagated: an unreadable failure channel is recorded as
+    unreadable, which the caller treats as a refusal, never as an absent one.
+    """
+    entries: List[dict] = []
+    if not sidecar_path.exists():
+        return entries, False, 0, None
+    try:
+        raw = sidecar_path.read_bytes()
+    except Exception as exc:                    # OSError and anything else
+        return entries, True, 0, '%s: %s' % (type(exc).__name__, exc)
+
+    try:
+        text = raw.decode('utf-8')
+        undecodable = None
+    except UnicodeDecodeError as exc:
+        text = raw.decode('utf-8', 'replace')
+        undecodable = ('not valid UTF-8 (%s at byte %d); retained as hex'
+                       % (exc.reason, exc.start))
+        entries.append({'stage': 'sidecar_undecodable', 'reason': undecodable,
+                        'retained_hex': raw[:SIDECAR_RETAIN_BYTES].hex(),
+                        'retained_bytes': len(raw)})
+
+    for line in text.splitlines():
+        if not line.strip():
+            continue
+        try:
+            value = json.loads(line)
+        except ValueError as exc:
+            entries.append({'stage': 'sidecar_unparsable',
+                            'reason': 'unparsable: %s' % exc,
+                            'retained_text': line[:SIDECAR_RETAIN_CHARS]})
+            continue
+        if isinstance(value, dict):
+            entries.append(value)
+        else:
+            # A scalar or a list is a real producer failure recorded in a shape
+            # this reader does not model. It is retained, never discarded, and
+            # never handed on as something a consumer may call .get() on.
+            entries.append({'stage': 'sidecar_non_object',
+                            'reason': 'sidecar line is a JSON %s, not an object'
+                                      % type(value).__name__,
+                            'retained_text': line[:SIDECAR_RETAIN_CHARS]})
+    return entries, True, len(raw), None
+
+
+def seal_write_failures_problem(seal: dict) -> Optional[str]:
+    """Why this seal's ``write_failures`` does not certify a whole log, or None.
+
+    Root, 2026-09-23 03:48: "The seal-only fixture must require a non-boolean
+    integer **zero**, not merely an integer."
+
+    `if seal.get('write_failures'):` -- what this replaces -- passes on four
+    distinct things that are not a producer reporting zero failures: the field
+    ABSENT (an emitter that never wrote it, or an older one), `False` (a bool,
+    which is an `int` in Python and would satisfy a naive isinstance check),
+    `0.0` (a float from a JSON writer that did not emit an integer) and `None`.
+    Each of those is an unknown, and an unknown is not a zero.
+    """
+    if 'write_failures' not in seal:
+        return ('the seal does not report write_failures at all; an absent count '
+                'is not a count of zero')
+    value = seal['write_failures']
+    if isinstance(value, bool):
+        return ('the seal reports write_failures %r, a boolean; the producer '
+                'reports a COUNT, and bool is not an integer count even though '
+                'Python makes it a subclass of int' % (value,))
+    if not isinstance(value, int):
+        return ('the seal reports write_failures %r of type %s; a count that is '
+                'not an integer was not written by the instrument this reader is '
+                'the counterpart of' % (value, type(value).__name__))
+    if value != 0:
+        return ('the producer recorded %d write failure(s); the log is not known '
+                'to be whole' % value)
+    # `sidecar_failures` counts failures of the BEST-EFFORT failure channel
+    # itself -- the one number the sidecar cannot carry about itself, because if
+    # the sidecar could be written there would be no failure to report. It rides
+    # in the seal so a lost sidecar stays detectable from the log alone.
+    #
+    # DELIBERATELY OPTIONAL. Emitters built before this field exist, and their
+    # retained smoke evidence must stay readable: root, 2026-09-23 03:48, "these
+    # witnesses are in the smoke report; do not repeat a loaded smoke to fix
+    # them." An absent field is therefore reported as unknown by the caller, not
+    # silently treated as zero -- but when the field IS present it is held to
+    # exactly the same standard as write_failures.
+    if 'sidecar_failures' in seal:
+        side = seal['sidecar_failures']
+        if isinstance(side, bool):
+            return ('the seal reports sidecar_failures %r, a boolean, not a count'
+                    % (side,))
+        if not isinstance(side, int):
+            return ('the seal reports sidecar_failures %r of type %s; a count that '
+                    'is not an integer was not written by this instrument'
+                    % (side, type(side).__name__))
+        if side != 0:
+            return ('the producer failed %d time(s) to write its own failure '
+                    'sidecar; a terminal write failure was detected and its '
+                    'reason could not be persisted' % side)
+    return None
+
+
 def window_from_record(rec: dict, *, expected: Optional[dict] = None) -> Dict[str, Any]:
     """One record -> one certified window, or a refusal with its reason.
 
@@ -410,18 +545,8 @@ def observe(path: "str | Path", *, concurrency_required: int = 2,
     # cannot hide its own failure -- which is useless if the reader never opens
     # it. A seal-close error, in particular, is invisible anywhere else.
     sidecar_path = Path(str(path) + '.error')
-    sidecar: List[dict] = []
-    sidecar_unreadable = None
-    if sidecar_path.exists():
-        try:
-            for line in sidecar_path.read_text('utf-8').splitlines():
-                if line.strip():
-                    try:
-                        sidecar.append(json.loads(line))
-                    except ValueError:
-                        sidecar.append({'unparsable': line[:200]})
-        except OSError as exc:
-            sidecar_unreadable = '%s: %s' % (type(exc).__name__, exc)
+    sidecar, sidecar_present, sidecar_bytes, sidecar_unreadable = read_error_sidecar(
+        sidecar_path)
     base: Dict[str, Any] = {
         'schema': OBSERVATION_SCHEMA,
         'evidence_kind': EVIDENCE_KIND,
@@ -487,6 +612,13 @@ def observe(path: "str | Path", *, concurrency_required: int = 2,
     base['sidecar_path'] = sidecar_path.name
     base['sidecar_records'] = sidecar
     base['sidecar_unreadable'] = sidecar_unreadable
+    base['sidecar_present'] = sidecar_present
+    base['sidecar_bytes'] = sidecar_bytes
+    # Whether the producer reported on its own failure channel at all. An emitter
+    # predating `sidecar_failures` leaves this False, which is an UNKNOWN and is
+    # recorded as one -- never rendered as a zero.
+    base['sidecar_failures_reported'] = bool(
+        seals and isinstance(seals[0], dict) and 'sidecar_failures' in seals[0])
     seal_problem = None
     if not seals:
         seal_problem = ('the acquisition carries NO CLOSING SEAL, so the writer did '
@@ -497,16 +629,26 @@ def observe(path: "str | Path", *, concurrency_required: int = 2,
                         % len(seals))
     else:
         seal = seals[0]
-        if seal.get('write_failures'):
-            seal_problem = ('the producer recorded %r write failure(s); the log is '
-                            'not known to be whole' % seal.get('write_failures'))
+        write_failure_problem = seal_write_failures_problem(seal)
+        if write_failure_problem:
+            seal_problem = write_failure_problem
         elif expected is not None and seal.get('run_token') != expected.get('instance_id'):
             seal_problem = ('the seal names run token %r, not the launched %r'
                             % (seal.get('run_token'), expected.get('instance_id')))
         else:
             seal_problem = sequence_problem(
                 [r.get('seq') for r in parsed['records']], seal.get('records'))
-    if sidecar:
+    if sidecar_present and not sidecar and not sidecar_unreadable:
+        # THE EMPTY SIDECAR. The producer creates this file only when it has a
+        # failure to report, so zero bytes is not "no failures": it is a producer
+        # that could not write even the reason -- a terminal writer failure whose
+        # own record was lost. It must refuse at least as hard as a legible one.
+        seal_problem = seal_problem or (
+            'the %s sidecar EXISTS and carries no legible entry (%d byte(s)); the '
+            'producer opens it only to report a failure, so an empty one is a '
+            'failure whose reason could not be written, not an absence of failure'
+            % (sidecar_path.name, sidecar_bytes))
+    elif sidecar:
         seal_problem = seal_problem or (
             'the producer recorded %d failure(s) in its %s sidecar (%s); any '
             'terminal writer failure refuses the acquisition'

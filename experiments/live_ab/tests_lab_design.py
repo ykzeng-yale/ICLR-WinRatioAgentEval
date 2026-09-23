@@ -4023,6 +4023,144 @@ class AcquisitionSealTests(unittest.TestCase):
         self.assertEqual(parsed['seals'][0]['clock'], lab_lifecycle.CLOCK)
         self.assertEqual(parsed['seals'][0]['records'], 0)
 
+    # -- the failure channel, root 2026-09-23 03:48 -------------------------
+    def _sidecar(self, data: bytes):
+        Path(str(self.log) + '.error').write_bytes(data)
+
+    def _sealed(self):
+        """A complete, otherwise-valid acquisition: the sidecar is then the ONLY
+        thing that can refuse it, which is what makes these witnesses mean
+        anything. Against an unsealed log every case 'refuses' for the wrong
+        reason and the sidecar is never reached."""
+        self._emit(0, 11)
+        self._seal()
+
+    def test_a_sealed_log_with_NO_sidecar_certifies(self):
+        """THE CONTROL. Without it every refusal below is consistent with a
+        reader that refuses everything."""
+        self._sealed()
+        self.assertIsNone(self._obs()['seal_problem'])
+
+    def test_a_freshly_existing_EMPTY_sidecar_refuses(self):
+        """Root: "A freshly existing lifecycle `.error` sidecar must refuse even
+        when empty."
+
+        The producer opens this file only to report a failure. Zero bytes is
+        therefore not "no failures" -- it is a failure whose reason could not be
+        written, which is strictly worse than a legible one. The previous reader
+        collected an empty list from it and the acquisition passed.
+        """
+        self._sealed()
+        self._sidecar(b'')
+        obs = self._obs()
+        self.assertIsNotNone(obs['seal_problem'])
+        self.assertIn('EXISTS', obs['seal_problem'])
+        self.assertTrue(obs['sidecar_present'])
+        self.assertEqual(obs['sidecar_bytes'], 0)
+        self.assertFalse(obs['lifecycle_complete'])
+
+    def test_a_sidecar_of_only_whitespace_refuses(self):
+        """Bytes without a legible entry are the empty case, not the absent one."""
+        self._sealed()
+        self._sidecar(b'\n   \n')
+        obs = self._obs()
+        self.assertIn('EXISTS', obs['seal_problem'])
+        self.assertEqual(obs['sidecar_bytes'], 5)
+
+    def test_scalar_list_and_non_UTF8_sidecars_are_RETAINED_not_raised(self):
+        """Root: "Scalar/list/non-UTF8 data must produce a durable refused
+        observation with retained bytes, not an exception before retention."
+
+        Each of these used to raise AFTER the refusal was determined but BEFORE
+        it could be returned, so the failure channel destroyed the observation
+        instead of being recorded in it: `json.loads('5')` is an int and
+        `e.get('stage')` raised AttributeError; non-UTF8 raised UnicodeDecodeError
+        from `read_text`, which `except OSError` does not catch.
+        """
+        for name, data, retained in (('scalar', b'5\n', '5'),
+                                     ('list', b'[1,2]\n', '[1,2]'),
+                                     ('non-UTF8', b'\xff\xfe bad\n', None)):
+            with self.subTest(sidecar=name):
+                shutil.rmtree(self.log.parent, ignore_errors=True)
+                self.log.parent.mkdir(parents=True, exist_ok=True)
+                self._seq = 0
+                self._sealed()
+                self._sidecar(data)
+                obs = self._obs()                      # must not raise
+                self.assertIsNotNone(obs['seal_problem'])
+                self.assertTrue(obs['sidecar_records'],
+                                'the bytes must be retained, not discarded')
+                for entry in obs['sidecar_records']:
+                    self.assertIsInstance(entry, dict,
+                                          'every retained entry must be a dict so '
+                                          'no consumer can be surprised by .get()')
+                self.assertEqual(obs['sidecar_bytes'], len(data))
+                if retained is not None:
+                    self.assertIn(retained,
+                                  json.dumps(obs['sidecar_records']))
+                else:
+                    blob = json.dumps(obs['sidecar_records'])
+                    self.assertIn('sidecar_undecodable', blob)
+                    self.assertIn(data[:4].hex(), blob,
+                                  'undecodable bytes must be retained as hex')
+
+    def test_write_failures_must_be_a_NON_BOOLEAN_INTEGER_ZERO(self):
+        """Root: "The seal-only fixture must require a non-boolean integer
+        **zero**, not merely an integer."
+
+        `if seal.get('write_failures'):` passed on four distinct things that are
+        not a producer reporting zero: the field absent, `False` (a bool, which
+        IS an int in Python), `0.0`, and `None`. Each is an unknown, and an
+        unknown is not a zero.
+        """
+        for name, kw in (('bool False', {'write_failures': False}),
+                         ('float 0.0', {'write_failures': 0.0}),
+                         ('string "0"', {'write_failures': '0'}),
+                         ('None', {'write_failures': None}),
+                         ('absent', {'write_failures': None, '_omit': True}),
+                         ('int 3', {'write_failures': 3})):
+            with self.subTest(write_failures=name):
+                shutil.rmtree(self.log.parent, ignore_errors=True)
+                self.log.parent.mkdir(parents=True, exist_ok=True)
+                self._seq = 0
+                self._emit(0, 11)
+                if kw.pop('_omit', False):
+                    seal = {'schema': 'live_ab/acquisition_seal-v1',
+                            'run_token': 'srv_1_2', 'records': self._seq,
+                            't_us': 103_000_000, 'clock': lab_lifecycle.CLOCK}
+                    with open(self.log, 'a', encoding='utf-8') as fh:
+                        fh.write(json.dumps(seal, separators=(',', ':')) + '\n')
+                else:
+                    self._seal(**kw)
+                self.assertIsNotNone(self._obs()['seal_problem'],
+                                     '%s is not a reported zero' % name)
+
+    def test_sidecar_failures_is_optional_but_strictly_checked_when_present(self):
+        """Root: "Make producer failure detectable by the supervisor/process when
+        the best-effort sidecar itself cannot be written."
+
+        Patch v5 counts failures of the failure channel and carries the count in
+        the SEAL -- the one number the sidecar cannot carry about itself, since a
+        writable sidecar has no such failure to report.
+
+        The field is OPTIONAL by decision: emitters predating it exist and their
+        retained smoke evidence must stay readable ("do not repeat a loaded smoke
+        to fix them"). Absent is recorded as an UNKNOWN, never rendered as zero.
+        """
+        cases = ((None, False, False), (0, True, False), (2, True, True),
+                 (False, True, True), (0.0, True, True))
+        for value, reported, refuses in cases:
+            with self.subTest(sidecar_failures=value):
+                shutil.rmtree(self.log.parent, ignore_errors=True)
+                self.log.parent.mkdir(parents=True, exist_ok=True)
+                self._seq = 0
+                self._emit(0, 11)
+                self._seal(**({} if value is None
+                              else {'sidecar_failures': value}))
+                obs = self._obs()
+                self.assertEqual(obs['sidecar_failures_reported'], reported)
+                self.assertEqual(bool(obs['seal_problem']), refuses)
+
     # -- the contract -------------------------------------------------------
     def test_an_UNSEALED_log_does_not_certify(self):
         """A crashed producer leaves exactly this: records, no seal."""
