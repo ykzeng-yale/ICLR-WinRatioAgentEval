@@ -2626,6 +2626,56 @@ no smoke run, no model, no server, no episode, no network, no build.
 base in scratch, source-only, reusing any exact existing copy first and checking capacity — not yet
 taken.
 
+### 2026-09-23 · v7 built; the fatal path exits 93 through a full pipe in 0.08 s
+
+`main` and `session60/live-ab` at **`9bd1675`**. Root's authorized checkout and bounded model-free
+failure injection. Receipts: `PATCH_APPLICATION_VERIFIED_v7.json`, `V7_FAILURE_INJECTION.json`,
+`CHECK_MARKER_DEFECT.json`, `HOST_CAPACITY_OBSERVATION_20260923T091625Z.json`.
+
+**No network was used.** Root asked that an exact existing copy be reused first; there was one — my
+own isolated clone from the 2026-09-22 build, already at the pinned base. Its working tree still
+carries the earlier patch and is the record of that build, so it was **not reset**; a
+`git clone --shared` was taken from it, which writes nothing to the source (unlike `git worktree
+add`). Pristine checkout 209M, clean, at `4fea119d…`.
+
+**v7 applies ordinarily** — `git apply --check` rc 0, `--numstat` rc 0, `--recount --check` rc 0, real
+application 2 files / 298 insertions / 0 deletions. The cross-check that makes it mean something: my
+recomputed preimage digests are **identical to root's retained ones** (`2f5d65ce…`, `635a7e37…`).
+Without that, rc 0 would only say the patch applies to *some* tree.
+
+**Built** at **‑j2** (root's resource rule; the 09‑22 `-j6` deviation not repeated): 262/262, exit 0,
+09:18:45Z → 09:20:07Z. No weights, no model, no serving.
+
+**Failure injection** — `LIVE_AB_LIFECYCLE_LOG` into a `chmod 555` directory, so the seal open fails
+*and* the `.error` sidecar cannot be written either. The seal writer runs from a static destructor, so
+`--help` reaches it with no model loaded.
+
+| case | result |
+|---|---|
+| control, writable dir | exit **0**, seal written, no sidecar |
+| unwritable dir | exit **93**, nothing written |
+| unwritable + **full undrained stderr pipe** | exit **93 in 0.08 s** |
+| control, writable + full pipe | exit **0** in 0.08 s |
+
+The third case is root's correction executed: that is exactly where v6 **blocked**, its bounded
+`write(2)` to a full pipe never returning. I had argued a bounded async-signal-safe write could not
+stall the refusal — it can, and 65,536 bytes queued with nobody draining is where it does.
+
+**The loop closes through the real reader:** the binary's own control seal carries
+`sidecar_failures = 0`, `nonbool_int_zero` accepts it, and the observation reads `repaired` with no
+seal problem because the manifest names both patch and selected binary. Native bytes, actual reader,
+no hand-written fixture.
+
+**A defect in my own process.** `scratchpad/last_github_check.txt` held `10:40Z` while the host clock
+read `09:03Z`. That marker is fed to the GitHub API as `since=`, and a **future** `since` matches
+nothing — so every "no new comments" result was true *by construction*. Re-queried the real window:
+12 comments, three unread, all mirrors of root review commits I had already merged and acted on.
+Nothing substantive was missed — but only because root also commits its reviews. The marker is now
+written by `date -u`.
+
+Seal and fatal path **only**: slot lifecycle records need a loaded model and a served request, not
+authorized and not run. Freeze unchanged **16/26**, a structural inventory.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
