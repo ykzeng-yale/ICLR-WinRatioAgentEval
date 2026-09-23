@@ -135,6 +135,10 @@ class _Proc:
         return self.returncode
 
 
+class _Suspend(BaseException):
+    """A POST that has not returned while the supervisor looks."""
+
+
 class _Resp:
     def __init__(self, payload):
         self._p = payload
@@ -229,7 +233,8 @@ class SupervisorEntryPointTests(unittest.TestCase):
              popen_raises=None, no_pointer=False, post_hook=None,
              barrier_hook=None, stray_command=None,
              drain_start_raises=False, drain_construct_raises=False,
-             request_start_raises_at=None, request_join_raises=False):
+             request_start_raises_at=None, request_join_raises=False,
+             unfinished_request=None, unfinished_mode='not_yet_sent'):
         rs = self.rs
         proc = proc if proc is not None else _Proc()
         if hasattr(proc, 'close'):
@@ -239,6 +244,12 @@ class SupervisorEntryPointTests(unittest.TestCase):
 
         def fake_post(url, json=None, timeout=None, **kw):
             posted.append({'url': url, 'timeout': timeout})
+            # IN FLIGHT: the unfinished request's POST never returns while the
+            # supervisor watches. A BaseException, so the worker's `except
+            # Exception` cannot turn it into a finished record.
+            if unfinished_mode == 'in_flight' and unfinished_request is not None \
+                    and len(posted) == unfinished_request + 1:
+                raise _Suspend()
             if post_hook is not None:
                 return post_hook(url, json=json, timeout=timeout, **kw)
             payload = bodies[min(len(posted) - 1, len(bodies) - 1)]
@@ -276,14 +287,45 @@ class SupervisorEntryPointTests(unittest.TestCase):
                         raise RuntimeError('injected supervisor Thread.start '
                                            'failure')
                     request_starts[0] += 1
+                    # AN UNFINISHED WORKER. 'not_yet_sent': the thread exists and
+                    # is alive but has not run; it runs LATE, during reap, after
+                    # the terminal snapshot. 'in_flight': it runs until its POST,
+                    # which never returns.
+                    if unfinished_request is not None and self.args \
+                            and self.args[0] == unfinished_request:
+                        self._alive = True
+                        if unfinished_mode == 'not_yet_sent':
+                            late.append(self)
+                            return
+                        try:
+                            self.target(*self.args, **self.kwargs)
+                        except _Suspend:
+                            return
+                        self._alive = False
+                        return
                 self.target(*self.args, **self.kwargs)
+
+            def run_late(self):
+                self.target(*self.args, **self.kwargs)
+                self._alive = False
 
             def join(self, timeout=None):
                 if request_join_raises and self.name != 'live_ab_smoke_drain':
                     raise RuntimeError('injected supervisor Thread.join failure')
 
             def is_alive(self):
-                return False
+                return getattr(self, '_alive', False)
+
+        # A late worker runs when the child is reaped -- which is AFTER the
+        # terminal snapshot -- so anything it does must not reach the receipt.
+        late = []
+        real_wait = proc.wait
+
+        def wait_then_finish_late(timeout=None):
+            while late:
+                late.pop(0).run_late()
+            return real_wait(timeout=timeout)
+        proc.wait = wait_then_finish_late
 
         self.denied = []
 
@@ -1296,6 +1338,61 @@ class SupervisorEntryPointTests(unittest.TestCase):
         self.assertEqual(status, 0)
         self.assertEqual(receipt['manifest_validation']['problems'], [])
         self.assertEqual(self.rs.DISPATCH_CUTOFF_S, 510.0)
+
+    # -- root 16:30: the unfinished-worker boundary -------------------------
+    def test_all_workers_FINISHED_gives_a_consistent_count_table(self):
+        """THE CONTROL: nothing unfinished, every count agrees."""
+        status, receipt = self._run()
+        self.assertEqual(status, 0)
+        c = receipt['request_counts']
+        self.assertEqual((c['planned'], c['transport_attempted'], c['responses_received'],
+                          c['completed'], c['unfinished_at_terminal_snapshot'],
+                          c['no_worker_record'], c['usage_known']),
+                         (2, 2, 2, 2, 0, 0, 2))
+        self.assertEqual(receipt['terminal_snapshot']['unfinished_workers'], [])
+
+    def test_a_worker_ALIVE_after_join_is_UNFINISHED_and_may_NOT_SEND_later(self):
+        """Root: "a worker still writing after bounded join remains unresolved.
+        Use a stable terminal snapshot/explicit unfinished state." The second
+        worker is alive but has not run; it runs during reap, AFTER the
+        snapshot. It must not send, and nothing it does may reach the receipt."""
+        status, receipt = self._run(unfinished_request=1,
+                                    unfinished_mode='not_yet_sent')
+        self.assertEqual(status, 1)
+        self.assertEqual(len(self.posted), 1, 'the late worker must not send')
+        rows = {r['index']: r for r in receipt['requests']}
+        self.assertEqual(rows[1]['state'], 'unfinished_at_terminal_snapshot')
+        self.assertEqual(receipt['transport_attempted_requests'], 1)
+        self.assertEqual(receipt['responses_received'], 1)
+        self.assertEqual(receipt['requests_unfinished_at_terminal_snapshot'], 1)
+        self.assertTrue(any('had not finished at the terminal snapshot' in p
+                            for p in receipt['supervisor_problems']))
+
+    def test_an_IN_FLIGHT_worker_is_unfinished_and_its_ARTIFACT_is_never_read(self):
+        """The worker invoked the transport and its POST has not returned: it is
+        attempted, not responded, and unfinished -- not 'no worker record', not
+        unsent. A half-written response file sits where it would write; the
+        supervisor must not read it."""
+        rid = '%s_req1' % self.token
+        partial = self.root / ('%s.response' % rid)
+        partial.write_bytes(b'{"usage": {"completion_tok')        # mid-write
+        reads = []
+        real_read = Path.read_bytes
+
+        def spy(p, *a, **k):
+            if str(p) == str(partial):
+                reads.append(str(p))
+            return real_read(p, *a, **k)
+        with mock.patch.object(Path, 'read_bytes', spy):
+            status, receipt = self._run(unfinished_request=1,
+                                        unfinished_mode='in_flight')
+        self.assertEqual(status, 1)
+        rows = {r['index']: r for r in receipt['requests']}
+        self.assertEqual(rows[1]['state'], 'unfinished_at_terminal_snapshot')
+        self.assertEqual(receipt['transport_attempted_requests'], 2)
+        self.assertEqual(receipt['responses_received'], 1)
+        self.assertEqual(reads, [], 'an unfinished worker\'s artifact was read')
+        self.assertEqual(receipt['request_counts']['usage_missing_or_unknown'], 1)
 
 
 if __name__ == '__main__':                                     # pragma: no cover

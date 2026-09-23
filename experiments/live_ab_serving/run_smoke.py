@@ -1073,6 +1073,29 @@ def main() -> int:
     submitted = threading.Lock()
     submitted_count = [0]
     attempted_count = [0]
+    # THE UNFINISHED-WORKER BOUNDARY. Root, 16:30: "a worker still writing
+    # after bounded join remains unresolved. Use a stable terminal snapshot/
+    # explicit unfinished state, never concurrent reads of unfinished raw
+    # artifacts." Workers record ONLY through `_record`, under the same lock
+    # the snapshot takes; once the snapshot is taken, a worker that finishes
+    # late is kept out of everything the receipt reports, and a worker that has
+    # not yet sent may not send at all.
+    finished_ids: set = set()
+    started_ids: list = []
+    request_threads: list = []
+    terminal = {'taken': False}
+    late_records: list = []
+
+    def _record(rec: dict) -> None:
+        with submitted:
+            if terminal['taken']:
+                late_records.append(rec.get('request_id'))
+                return
+            # The one real append. (A blanket rename of every append to
+            # `_record` once rewrote this line into a self-call under a
+            # non-reentrant lock: a deadlock, caught by the harness hanging.)
+            results.append(rec)
+            finished_ids.add(rec.get('request_id'))
     # NOT re-initialising `planned` here. It is populated, and written into the
     # durable intent, ABOVE this point; an `= []` here would silently empty the
     # plan after its intent was persisted -- a first draft of this repair did
@@ -1198,7 +1221,7 @@ def main() -> int:
                                              'and was not sent')
                     rec['t_ack_monotonic'] = rec['t_send_monotonic'] = time.monotonic()
                     rec['elapsed_s'] = 0.0
-                    results.append(rec)
+                    _record(rec)
                     return
                 if not deadline.may_dispatch():
                     # NO NEW DISPATCH AFTER EXHAUSTION.
@@ -1206,7 +1229,7 @@ def main() -> int:
                                             'request was sent'
                     rec['t_ack_monotonic'] = rec['t_send_monotonic'] = time.monotonic()
                     rec['elapsed_s'] = 0.0
-                    results.append(rec)
+                    _record(rec)
                     return
                 # THE TRANSPORT INVOCATION IS RECORDED BEFORE THE CALL. Root,
                 # 11:16: "the new submission counter increments only after
@@ -1232,13 +1255,24 @@ def main() -> int:
                                              'the barrier and the send')
                     rec['t_ack_monotonic'] = rec['t_send_monotonic'] = time.monotonic()
                     rec['elapsed_s'] = 0.0
-                    results.append(rec)
+                    _record(rec)
+                    return
+                # THE ATTEMPT IS COUNTED UNDER THE SNAPSHOT'S LOCK, AND NOT AT
+                # ALL ONCE THE SNAPSHOT EXISTS: the snapshot's attempt count is
+                # therefore final, and no request is sent after the supervisor
+                # has decided.
+                with submitted:
+                    too_late = terminal['taken']
+                    if not too_late:
+                        attempted_count[0] += 1
+                if too_late:
+                    rec['not_dispatched'] = ('the terminal snapshot had been taken, '
+                                             'so this request was not sent')
+                    _record(rec)
                     return
                 rec['transport_attempted'] = True
                 rec['t_send_monotonic'] = time.monotonic()
                 rec['t_send_utc'] = _now()
-                with submitted:
-                    attempted_count[0] += 1
                 try:
                     r = requests.post(plan['endpoint'], json=plan['payload'],
                                       timeout=deadline.bounded(REQUEST_CAP_S))
@@ -1305,7 +1339,7 @@ def main() -> int:
                         rec['t_ack_monotonic'] = time.monotonic()
                         rec['elapsed_s'] = (rec['t_ack_monotonic']
                                             - rec['t_send_monotonic'])
-                        results.append(rec)
+                        _record(rec)
                         return
                     usage = d.get('usage')
                     rec['usage'] = usage                      # original, preserved
@@ -1331,11 +1365,14 @@ def main() -> int:
                         'the transport raised (%s), so no usage was returned and '
                         'delivery is unknown' % type(exc).__name__)
                 rec['elapsed_s'] = rec['t_ack_monotonic'] - rec['t_send_monotonic']
-                results.append(rec)
+                _record(rec)
 
-            threads = [threading.Thread(target=one, args=(i,)) for i in range(2)]
-            for th in threads:
+            threads = [threading.Thread(target=one, args=(i,))
+                       for i in range(PLANNED_WIRE_ATTEMPTS)]
+            request_threads[:] = threads
+            for i, th in enumerate(threads):
                 th.start()
+                started_ids.append(planned[i]['request_id'])
             for th in threads:
                 th.join(timeout=deadline.bounded(REQUEST_CAP_S + 30, use_reserve=True))
 
@@ -1369,38 +1406,100 @@ def main() -> int:
     # Every PLANNED id gets a row. One with no worker record is reported as
     # having no record -- not as unsubmitted, because the transport counter is
     # independent and may say otherwise.
-    by_id = {r.get('request_id'): r for r in results}
+    #
+    # THE TERMINAL SNAPSHOT. Which workers are still alive is read first; then,
+    # under the lock every worker records through, the records, the finished
+    # ids and both counters are frozen together and the flag is set. Nothing
+    # after this line reads `results` or the counters again, and no response
+    # artifact of an unfinished worker is ever read: its bytes may still be
+    # being written.
+    alive_ids = set()
+    for i, th in enumerate(request_threads):
+        try:
+            if th.is_alive():
+                alive_ids.add(planned[i]['request_id'])
+        except Exception:                                      # noqa: BLE001
+            alive_ids.add(planned[i]['request_id'])            # unknown = unfinished
+    with submitted:
+        terminal['taken'] = True
+        snap_results = list(results)
+        snap_finished = set(finished_ids)
+        snap_attempted = attempted_count[0]
+        snap_responses = submitted_count[0]
+    out['terminal_snapshot'] = {
+        'taken_after': 'the bounded joins (or the supervisor exception)',
+        'finished_workers': len(snap_finished),
+        'unfinished_workers': sorted(alive_ids - snap_finished),
+        'rule': ('records, finished ids and both counters were frozen under one '
+                 'lock; completions after it are excluded by construction, and a '
+                 'worker that had not sent by then may not send'),
+    }
+    by_id = {r.get('request_id'): r for r in snap_results}
     request_rows = []
     for plan in planned:
-        row = by_id.get(plan['request_id'])
+        rid = plan['request_id']
+        row = by_id.get(rid)
         if row is None:
-            row = {'index': plan['index'], 'request_id': plan['request_id'],
-                   'payload_sha256': plan['payload_sha256'],
-                   'state': 'no_worker_record',
-                   'note': ('the planned request left no worker record; whether '
-                            'its transport was invoked is given by the '
-                            'supervisor-wide transport counter, not by this row')}
+            base = {'index': plan['index'], 'request_id': rid,
+                    'payload_sha256': plan['payload_sha256']}
+            if rid in alive_ids:
+                row = dict(base, state='unfinished_at_terminal_snapshot',
+                           note=('its worker was still running when the terminal '
+                                 'snapshot was taken; whether it sent, received or '
+                                 'is still writing is not known, and none of its '
+                                 'artifacts were read'))
+            else:
+                row = dict(base, state='no_worker_record',
+                           note=('the planned request left no worker record ('
+                                 + ('its worker was started and ended without one'
+                                    if rid in started_ids else
+                                    'its worker was never started')
+                                 + '); whether its transport was invoked is given '
+                                   'by the supervisor-wide transport counter, not '
+                                   'by this row'))
         request_rows.append(row)
     out['requests'] = sorted(request_rows, key=lambda r: r['index'])
     # UNAMBIGUOUS LABELS. Root, 16:30: "Retain legacy `submitted_requests` with
     # its documented response-count meaning for compatibility; add an
     # unambiguous `responses_received` alias and retain the existing
     # transport-attempt count." Sends are never inferred from responses.
-    out['submitted_requests'] = submitted_count[0]
+    out['submitted_requests'] = snap_responses
     out['submitted_requests_meaning'] = ('LEGACY NAME: counts responses received '
                                          '(incremented after requests.post '
                                          'returns), not sends; see '
                                          'responses_received')
-    out['responses_received'] = submitted_count[0]
-    out['transport_attempted_requests'] = attempted_count[0]
-    out['requests_with_worker_record'] = len(results)
+    out['responses_received'] = snap_responses
+    out['transport_attempted_requests'] = snap_attempted
+    out['requests_with_worker_record'] = len(snap_results)
     out['requests_without_worker_record'] = sum(
         1 for r in request_rows if r.get('state') == 'no_worker_record')
+    out['requests_unfinished_at_terminal_snapshot'] = sum(
+        1 for r in request_rows if r.get('state') == 'unfinished_at_terminal_snapshot')
     out['requests_with_unknown_delivery'] = sum(
-        1 for r in results if r.get('delivery') == 'unknown_server_receipt')
+        1 for r in snap_results if r.get('delivery') == 'unknown_server_receipt')
     if planned:
-        out.update(summarize_usage(results, token_cap=TOKEN_CAP,
+        out.update(summarize_usage(snap_results, token_cap=TOKEN_CAP,
                                    expected=len(planned)))
+    # ONE TABLE, NO INFERENCE BETWEEN ITS ROWS. Root, 16:30: "distinguish
+    # planned, attempted, response-received, completed and missing/unknown
+    # usage. Do not infer sends from response counts."
+    out['request_counts'] = {
+        'planned': len(planned),
+        'transport_attempted': snap_attempted,
+        'responses_received': snap_responses,
+        'completed': sum(1 for r in snap_results
+                         if r.get('delivery') == 'response_received'),
+        'unfinished_at_terminal_snapshot': out['requests_unfinished_at_terminal_snapshot'],
+        'no_worker_record': out['requests_without_worker_record'],
+        'usage_known': sum(1 for r in snap_results if r.get('usage_known')),
+        'usage_missing_or_unknown': len(planned) - sum(1 for r in snap_results
+                                                       if r.get('usage_known')),
+        'definitions': {
+            'transport_attempted': 'requests.post was invoked',
+            'responses_received': 'requests.post returned (legacy submitted_requests)',
+            'completed': 'a finished worker whose response was received',
+            'unfinished_at_terminal_snapshot': 'worker alive at the snapshot; state unknown'},
+    }
 
     # --- stop OUR OWN server, then let the seal be written -------------------
     out['server_stop_utc'] = _now()
@@ -1619,10 +1718,14 @@ def main() -> int:
         ('cleanup failed: %s' % out['cleanup_failure']
          if out.get('cleanup_failure') else None),
         ('%d response(s) were not fully retained' % sum(
-            1 for r in results if r.get('raw_response')
+            1 for r in snap_results if r.get('raw_response')
             and not r['raw_response'].get('complete'))
          if any(r.get('raw_response') and not r['raw_response'].get('complete')
-                for r in results) else None),
+                for r in snap_results) else None),
+        ('%d request worker(s) had not finished at the terminal snapshot; their '
+         'state is unfinished and nothing they were writing was read'
+         % out['requests_unfinished_at_terminal_snapshot']
+         if out.get('requests_unfinished_at_terminal_snapshot') else None),
         ('%d request(s) have unknown server delivery'
          % out.get('requests_with_unknown_delivery', 0)
          if out.get('requests_with_unknown_delivery') else None),

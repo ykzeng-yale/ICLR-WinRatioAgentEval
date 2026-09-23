@@ -1,0 +1,47 @@
+{
+ "NOT_DONE_not_claimed": [
+  "launch wiring (next)",
+  "config amendment and finite costed plan"
+ ],
+ "authority": "root, reviews/acquisition_preparation_disposition_20260923_1630.md, supervisor item 3 (unfinished-worker boundary) and decision 5 (count labels)",
+ "base_commit": "8e801e0",
+ "convention": "deterministic-path",
+ "files": {
+  "experiments/live_ab_serving/run_smoke.py": "8897b11d9ef6256231b3eba97bf4fde685e01d49703862af8b78fbdf712b1d64",
+  "experiments/live_ab_serving/tests_supervisor_entry.py": "75dd3564db1645a2b2786defb1e87ce13bd2aa98384f69c5e88e8c1587dafcca"
+ },
+ "found_in_my_own_draft": "a blanket rename of every results.append(rec) to _record(rec) also rewrote the append INSIDE _record into a self-call under a non-reentrant lock -- a deadlock, caught by the harness hanging; my count assertion passed because I had miscounted the worker sites. The same class of error as the fin() rename earlier today.",
+ "generated_utc": "2026-09-23T18:00:21Z",
+ "harness": {
+  "after_change": {
+   "tests_lab_design": "345 OK",
+   "tests_lab_serving": "89 OK",
+   "tests_supervisor_entry": "Ran 53, OK"
+  },
+  "modes": {
+   "in_flight": "the worker runs until its POST, which never returns (a BaseException the worker cannot catch); a half-written response file sits at its artifact path under a read spy",
+   "not_yet_sent": "the worker thread is alive but has not run; it runs during reap, AFTER the snapshot"
+  },
+  "new_cases": [
+   "test_all_workers_FINISHED_gives_a_consistent_count_table (control)",
+   "test_a_worker_ALIVE_after_join_is_UNFINISHED_and_may_NOT_SEND_later",
+   "test_an_IN_FLIGHT_worker_is_unfinished_and_its_ARTIFACT_is_never_read"
+  ],
+  "witness_before_change": "against 8e801e0 with the new harness: all three fail -- the late worker SENDS (2 POSTs), the in-flight request reads 'no_worker_record', no count table; the other 50 cases pass there, so the harness change alters no old behaviour"
+ },
+ "nothing_executed_THIS_RECEIPT": "mocked Popen/Thread/Barrier/requests/clock; real os.pipe for the fixture child's stdout only",
+ "now": [
+  "workers record only through a locked _record(); after the joins ONE terminal snapshot, under that same lock, freezes the records, the finished ids and both counters and sets a flag",
+  "after the flag, a finishing worker's record goes to a late list the receipt never reads, and a worker that has not sent yet may not send (the attempt is counted under the snapshot's lock, so the snapshot's attempt count is final)",
+  "a planned request whose worker is still alive is 'unfinished_at_terminal_snapshot' -- distinct from 'no_worker_record' (worker ended without one, or never started) -- and the verdict refuses",
+  "every post-join consumer reads the snapshot; no response artifact of an unfinished worker is read",
+  "request_counts: planned, transport_attempted, responses_received, completed, unfinished_at_terminal_snapshot, no_worker_record, usage_known, usage_missing_or_unknown -- each defined, none inferred from another"
+ ],
+ "schema": "live_ab/session60_receipt-v1",
+ "scope": "the snapshot bounds what the RECEIPT reports and prevents sends after it; it cannot stop a POST already on the wire, which the subsequent server stop ends",
+ "was": [
+  "a worker alive after its bounded join had appended nothing, so its planned request was reported 'no_worker_record' -- indistinguishable from a worker that ended without one",
+  "every consumer after the join (rows, counters, usage summary, the verdict's retention check at the old line 1622) read the LIVE results list and counters, so a late completion could change the verdict after the rows were built",
+  "nothing stopped a still-running worker from SENDING after the supervisor had decided"
+ ]
+}
