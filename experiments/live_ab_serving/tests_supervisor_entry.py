@@ -40,9 +40,31 @@ adaptation into owner tests ... a reproducibility fixture, not production code".
 The mocking strategy is root's; the cases and the read-back assertions are this
 module's own.
 
-NOTHING EXTERNAL RUNS: no child process, no HTTP, no signal, no real clock, no
-server, no model, no network, no build. Serialization, retention and
-finalization are real, against fresh temporary files.
+WHAT IS AND IS NOT ISOLATED -- corrected 2026-09-23 12:42, because the first
+version of this docstring overstated it.
+
+The first version said "no child process ... no real clock". Both were wrong in
+the same delivery that reported them:
+
+  * `fake_popen` DELEGATED every non-launcher command to the real `Popen`, so
+    `lab_data.boot_identity` did spawn real `sysctl` processes. Root: "The
+    owner's report says sysctl subprocesses were used while also saying no child
+    process ran." Now an unexpected process raises instead of executing, and the
+    existing `clock_provenance` mock removes the reason it was ever needed.
+  * the module did NOT patch the monotonic clock, despite claiming to.
+    `Deadline` binds `time.monotonic` as a default argument, so patching the
+    module afterwards would not have reached it. One explicit fake clock is now
+    injected, including through the constructor.
+
+Root asked that the phase wording distinguish reported prior behaviour, possible
+fallback behaviour and independently observed guarded behaviour; that is what
+this note does, and no sysctl was run to settle it.
+
+WHAT RUNS NOW: no child process (attempts are denied and fail the test), no
+HTTP, no signal, no real monotonic clock, no server, no model, no network, no
+build. Serialization, retention and finalization are REAL, against fresh
+temporary files. The saved smoke fixtures are a dependency: if they are absent
+these cases SKIP, and a skipped case is not a passing one.
 """
 
 from __future__ import annotations
@@ -215,15 +237,24 @@ class SupervisorEntryPointTests(unittest.TestCase):
             def is_alive(self):
                 return False
 
-        real_popen = rs.subprocess.Popen
+        self.denied = []
 
         def fake_popen(args, *a, **k):
-            # ONLY the server launch is faked. `rs.subprocess` IS the subprocess
-            # module, so a blanket patch also breaks lab_data.boot_identity,
-            # which shells out to sysctl for the kernel boot session. Anything
-            # that is not this test's launcher goes to the real Popen.
+            # NO UNRESTRICTED FALLBACK. Root, 2026-09-23 12:42: "The shipped
+            # `fake_popen` delegates every non-launcher command to real `Popen`
+            # ... reject unexpected process creation rather than letting it
+            # execute."
+            #
+            # It delegated because `rs.subprocess` IS the subprocess module, so
+            # a blanket patch also broke `lab_data.boot_identity`, which shells
+            # out to sysctl. Root's answer is better than mine: the existing
+            # `clock_provenance` mock already removes that need, so an
+            # unexpected process is a TEST FAILURE, not something to execute.
             if not (args and str(args[0]) == str(self.binary)):
-                return real_popen(args, *a, **k)
+                self.denied.append([str(x) for x in (args or [])])
+                raise AssertionError(
+                    'the suite attempted an unexpected process: %r. Nothing but '
+                    'the launcher may be created here.' % (args,))
             if popen_raises is not None:
                 raise popen_raises
             return proc
@@ -232,18 +263,68 @@ class SupervisorEntryPointTests(unittest.TestCase):
             'post': staticmethod(fake_post),
             'get': staticmethod(lambda *a, **k: _Resp({'status': 'ok'}))})
 
+        # A READ SPY. Root, 12:42: "Reading a receipt back from disk verifies
+        # persistence. A receipt lacking `raw_log` or carrying `observation=null`
+        # does not independently prove the lifecycle file was never read ... spy
+        # on the relevant lifecycle/sidecar reads and observer calls after
+        # fixture setup, and require zero premature reads."
+        #
+        # Right: my unreapable-child test INFERRED absence from missing receipt
+        # fields, which is the self-report this module exists not to trust.
+        self.reads = []
+        self.observer_calls = []
+        watched = {str(self.log), str(self.log) + '.error'}
+        real_open = Path.open
+        real_read_bytes = Path.read_bytes
+
+        def spy_open(pself, *a, **k):
+            if str(pself) in watched:
+                self.reads.append(('open', str(pself)))
+            return real_open(pself, *a, **k)
+
+        def spy_read_bytes(pself, *a, **k):
+            if str(pself) in watched:
+                self.reads.append(('read_bytes', str(pself)))
+            return real_read_bytes(pself, *a, **k)
+
+        real_observe = rs.lab_lifecycle.observe
+
+        def spy_observe(*a, **k):
+            self.observer_calls.append(str(a[0]) if a else None)
+            return real_observe(*a, **k)
+
         real_read_text = Path.read_text
         pointer = self.pointer
 
         def reader(p, *a, **k):
+            if str(p) in watched:
+                self.reads.append(('read_text', str(p)))
             if str(p) == '/tmp/lab_smoke_manifest.txt':
                 if no_pointer or not pointer.exists():
                     raise FileNotFoundError('no pointer')
                 return real_read_text(pointer, *a, **k)
             return real_read_text(p, *a, **k)
 
+        # ONE EXPLICIT FAKE CLOCK. Root, 12:42: "The shipped test module does
+        # not patch the monotonic clock or inject `Deadline(now=...)`, despite
+        # the clock-mocked claim. Use one explicit fake clock, including the
+        # constructor's bound default."
+        #
+        # My docstring said the clock was mocked. It was not: `Deadline` binds
+        # `time.monotonic` as a default argument, so patching the module
+        # afterwards would not have reached it either. The claim was false and
+        # is corrected here rather than in the wording alone.
+        self.clock = [1000.0]
+        fake_monotonic = lambda: self.clock[0]
+        real_deadline = rs.Deadline
+
+        def clocked_deadline(budget_s, *, reserve_s=rs.CLEANUP_RESERVE_S, now=None):
+            return real_deadline(budget_s, reserve_s=reserve_s, now=fake_monotonic)
+
         import lab_data
-        with mock.patch.object(lab_data, 'clock_provenance', lambda: dict(self.prov)), \
+        with mock.patch.object(rs, 'Deadline', clocked_deadline), \
+                mock.patch.object(rs.time, 'monotonic', fake_monotonic), \
+                mock.patch.object(lab_data, 'clock_provenance', lambda: dict(self.prov)), \
                 mock.patch.object(rs, 'BIN', self.binary), \
                 mock.patch.object(rs.lab_common, 'RESULTS_ROOT', str(self.results)), \
                 mock.patch.object(rs.subprocess, 'Popen', fake_popen), \
@@ -252,6 +333,9 @@ class SupervisorEntryPointTests(unittest.TestCase):
                 mock.patch.object(rs.os, 'killpg', lambda *a: None), \
                 mock.patch.object(rs.os, 'getpgid', lambda p: p), \
                 mock.patch.object(Path, 'read_text', reader), \
+                mock.patch.object(Path, 'open', spy_open), \
+                mock.patch.object(Path, 'read_bytes', spy_read_bytes), \
+                mock.patch.object(rs.lab_lifecycle, 'observe', spy_observe), \
                 mock.patch.dict(sys.modules, {'requests': fake_requests}), \
                 mock.patch('glob.glob', lambda *a, **k: [str(self.model)]):
             status = rs.main()
@@ -344,12 +428,28 @@ class SupervisorEntryPointTests(unittest.TestCase):
         status, receipt = self._run(proc=_Proc(reaps=False))
         self.assertIsNotNone(receipt)
         self.assertFalse(receipt['child_confirmed_stopped'])
-        self.assertIsNone(receipt['observation'],
-                          'no observation may be taken of an unresolved acquisition')
+        # OBSERVED, not inferred. Root, 12:42: "A receipt lacking `raw_log` or
+        # carrying `observation=null` does not independently prove the lifecycle
+        # file was never read." The spy records every open/read of the lifecycle
+        # file and its sidecar, and every call to the observer.
+        self.assertEqual(self.reads, [],
+                         'the lifecycle log and sidecar must not have been read; '
+                         'the spy saw %r' % (self.reads,))
+        self.assertEqual(self.observer_calls, [],
+                         'the observer must not have been called at all')
+        self.assertIsNone(receipt['observation'])
         self.assertIn('acquisition_not_analyzed', receipt)
-        self.assertNotIn('raw_log', receipt,
-                         'the lifecycle log must not have been read')
         self.assertEqual(status, 1)
+
+    def test_the_read_spy_DOES_see_reads_on_the_healthy_path(self):
+        """The control for the spy itself. Without it, 'zero reads observed'
+        is equally consistent with a spy that observes nothing."""
+        status, receipt = self._run()
+        self.assertEqual(status, 0)
+        self.assertTrue(self.reads,
+                        'a completed acquisition must read the lifecycle file')
+        self.assertTrue(self.observer_calls,
+                        'a completed acquisition must call the observer')
 
     def test_request_intent_is_ON_DISK_before_any_transport(self):
         """Root, 2026-09-23 11:16: "`out['planned_request_intent'] = planned` is
