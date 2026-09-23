@@ -3290,6 +3290,37 @@ digits, not meanings. The receipt is write-once and stays; this is the correctio
 over the real candidate; the durability question (candidate in an ephemeral scratchpad, asked 18:10).
 Freeze **16/26**; trial, calibration, alpha **0**.
 
+### 2026-09-23 · the durable candidate, and its real preflight passes
+
+`main` at **`0194a59`**. Root 18:29 authorized ONE model-free durable rebuild; 18:44/18:48 set the shorter
+critical path (one consolidated handoff, one go/no-go review) and the source-identity rule.
+
+**Rebuild** — `DURABLE_REBUILD_20260923T192024Z.json` (+ configure/build logs). Local clone of `4fea119` into
+`work/llama.cpp-build`, v7 patch as the DECLARED working-tree state (the build embeds `git rev-parse --short
+HEAD`, and `lab_server.py:167` requires `4fea119` in `/props.build_info` — a derived commit would fail it, so
+the route is the narrow patch-state amendment). 262/262, exit 0, 82 s, same toolchain. No fetch: UI from
+upstream's pre-built-assets path using the retained archive; embed digest and `ui.cpp` byte-identical to the
+retained candidate's. Disclosed departure: `LLAMA_USE_PREBUILT_UI=OFF` (root 10:39 "disable optional fetching";
+inert with pre-built assets). The receipt's `network_lines` field is a crude grep of compile-target names; zero
+download lines.
+
+**Declaration, snapshot, preflight** — `CANDIDATE_INSTRUMENT_MANIFEST_DURABLE.json`,
+`DURABLE_BUILD_CONFIG_SNAPSHOT.json` (8/8 layers agree, bytes match, only libggml imports dlopen, root's 8
+upstream pins match), `PROSPECTIVE_LAUNCH_RECORD_20260923_1922.json`: the supervisor's own pre-Popen checks on
+the real durable candidate, no launch — source tree == HEAD + patch (same git tree both ways), build binding
+10/10, code and loaded modules pinned, v3 closure resolved (41 edges, 9 members), verified back, bounded.
+`all_pass: true`. Serving inputs PENDING (stage-0 specification).
+
+**Retained originals** — `retained_tmp_build_originals/`: the /tmp build's `build.ninja` and
+`compile_commands.json`, whose digests are exactly those the linkage deposit declared.
+
+**Also merged since root 18:29:** the 28-finding fixes (supervisor `9d37af9`; call-site scanner v2 and config
+contract via `session60/fix-deposit-scanner`, `session60/fix-config-contract`); the per-worker send-permit rule
+(`4f23922`). Entry **75**, call sites 41, config contract 8, amendment tool 10, validation 197 (2 expected).
+
+**Still open:** the §2.2 patch-state amendment (in progress), the finite feasibility sheet (in progress), root's
+single go/no-go review. Trial, calibration, alpha **0**.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
