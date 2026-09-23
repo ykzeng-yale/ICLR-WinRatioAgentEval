@@ -1,0 +1,652 @@
+{
+  "reviewed_head": "549b60f99c383cb2a9128f52f953c7a2d9d48559",
+  "source_commits": [
+    "9ce153e349f5da51088c174a29e0040c04cbb272",
+    "450cc0b164ffca50c4f42ec6a17361d5091e3ceb"
+  ],
+  "comparison_base": "42cc49f4f4ea173015c08240999ae91ae0793776",
+  "current_patch_sha256": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+  "scope": "Bounded saved-byte mutation cases through actual observe and coverage consumer. No native binary/server/model/sandbox/network or broad suite. Historical provenance is supplied for reader tests, not independently measured remote state.",
+  "cases": [
+    {
+      "case": "strict_current_control",
+      "patch": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "raw_outcome": 0,
+      "declared_signal": null,
+      "contract": "repaired",
+      "producer_bound": true,
+      "complete": true,
+      "coverage": {
+        "valid": true,
+        "interval_version": "live_ab/attempt_interval-v3",
+        "evidence_kind": "server_lifecycle",
+        "concurrency_required": 2,
+        "concurrency_observed_min": 2,
+        "certified_interval": "the legacy wider span including lock wait",
+        "reason": "at least 2 distinct server-acknowledged decoding lifetimes were occupied throughout the attempt interval",
+        "conditional_on": "each window being a SERVER-ACKNOWLEDGED decoding lifetime recorded from pinned server-side start/end events on the same host monotonic clock as the verifier. This asserts occupied decoding slots, NOT continuously busy hardware: server scheduling pauses inside a lifetime are part of the operational regime."
+      },
+      "process_problem": null,
+      "unbound_reason": null,
+      "json_roundtrip": true
+    },
+    {
+      "case": "patch_sha256_missing",
+      "patch": null,
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "raw_outcome": 0,
+      "declared_signal": null,
+      "contract": "unbound",
+      "producer_bound": false,
+      "complete": false,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_problem": null,
+      "unbound_reason": "the manifest carries no usable patch_sha256, so it names no producer this acquisition can be bound to. A well-formed digest is still only a claim: the supervisor must separately verify the pinned source and the selected binary.",
+      "json_roundtrip": true
+    },
+    {
+      "case": "patch_sha256_malformed",
+      "patch": "bad",
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "raw_outcome": 0,
+      "declared_signal": null,
+      "contract": "unbound",
+      "producer_bound": false,
+      "complete": false,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_problem": null,
+      "unbound_reason": "the manifest carries no usable patch_sha256, so it names no producer this acquisition can be bound to. A well-formed digest is still only a claim: the supervisor must separately verify the pinned source and the selected binary.",
+      "json_roundtrip": true
+    },
+    {
+      "case": "patch_sha256_newline",
+      "patch": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184\n",
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "raw_outcome": 0,
+      "declared_signal": null,
+      "contract": "repaired",
+      "producer_bound": true,
+      "complete": true,
+      "coverage": {
+        "valid": true,
+        "interval_version": "live_ab/attempt_interval-v3",
+        "evidence_kind": "server_lifecycle",
+        "concurrency_required": 2,
+        "concurrency_observed_min": 2,
+        "certified_interval": "the legacy wider span including lock wait",
+        "reason": "at least 2 distinct server-acknowledged decoding lifetimes were occupied throughout the attempt interval",
+        "conditional_on": "each window being a SERVER-ACKNOWLEDGED decoding lifetime recorded from pinned server-side start/end events on the same host monotonic clock as the verifier. This asserts occupied decoding slots, NOT continuously busy hardware: server scheduling pauses inside a lifetime are part of the operational regime."
+      },
+      "process_problem": null,
+      "unbound_reason": null,
+      "json_roundtrip": true
+    },
+    {
+      "case": "patch_sha256_integer",
+      "patch": 1111111111111111111111111111111111111111111111111111111111111111,
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "raw_outcome": 0,
+      "declared_signal": null,
+      "contract": "repaired",
+      "producer_bound": true,
+      "complete": true,
+      "coverage": {
+        "valid": true,
+        "interval_version": "live_ab/attempt_interval-v3",
+        "evidence_kind": "server_lifecycle",
+        "concurrency_required": 2,
+        "concurrency_observed_min": 2,
+        "certified_interval": "the legacy wider span including lock wait",
+        "reason": "at least 2 distinct server-acknowledged decoding lifetimes were occupied throughout the attempt interval",
+        "conditional_on": "each window being a SERVER-ACKNOWLEDGED decoding lifetime recorded from pinned server-side start/end events on the same host monotonic clock as the verifier. This asserts occupied decoding slots, NOT continuously busy hardware: server scheduling pauses inside a lifetime are part of the operational regime."
+      },
+      "process_problem": null,
+      "unbound_reason": null,
+      "json_roundtrip": true
+    },
+    {
+      "case": "binary_sha256_missing",
+      "patch": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "binary": null,
+      "raw_outcome": 0,
+      "declared_signal": null,
+      "contract": "unbound",
+      "producer_bound": false,
+      "complete": false,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_problem": null,
+      "unbound_reason": "the manifest carries no usable binary_sha256, so it names no producer this acquisition can be bound to. A well-formed digest is still only a claim: the supervisor must separately verify the pinned source and the selected binary.",
+      "json_roundtrip": true
+    },
+    {
+      "case": "binary_sha256_malformed",
+      "patch": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "binary": "bad",
+      "raw_outcome": 0,
+      "declared_signal": null,
+      "contract": "unbound",
+      "producer_bound": false,
+      "complete": false,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_problem": null,
+      "unbound_reason": "the manifest carries no usable binary_sha256, so it names no producer this acquisition can be bound to. A well-formed digest is still only a claim: the supervisor must separately verify the pinned source and the selected binary.",
+      "json_roundtrip": true
+    },
+    {
+      "case": "binary_sha256_newline",
+      "patch": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4\n",
+      "raw_outcome": 0,
+      "declared_signal": null,
+      "contract": "repaired",
+      "producer_bound": true,
+      "complete": true,
+      "coverage": {
+        "valid": true,
+        "interval_version": "live_ab/attempt_interval-v3",
+        "evidence_kind": "server_lifecycle",
+        "concurrency_required": 2,
+        "concurrency_observed_min": 2,
+        "certified_interval": "the legacy wider span including lock wait",
+        "reason": "at least 2 distinct server-acknowledged decoding lifetimes were occupied throughout the attempt interval",
+        "conditional_on": "each window being a SERVER-ACKNOWLEDGED decoding lifetime recorded from pinned server-side start/end events on the same host monotonic clock as the verifier. This asserts occupied decoding slots, NOT continuously busy hardware: server scheduling pauses inside a lifetime are part of the operational regime."
+      },
+      "process_problem": null,
+      "unbound_reason": null,
+      "json_roundtrip": true
+    },
+    {
+      "case": "binary_sha256_integer",
+      "patch": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "binary": 1111111111111111111111111111111111111111111111111111111111111111,
+      "raw_outcome": 0,
+      "declared_signal": null,
+      "contract": "repaired",
+      "producer_bound": true,
+      "complete": true,
+      "coverage": {
+        "valid": true,
+        "interval_version": "live_ab/attempt_interval-v3",
+        "evidence_kind": "server_lifecycle",
+        "concurrency_required": 2,
+        "concurrency_observed_min": 2,
+        "certified_interval": "the legacy wider span including lock wait",
+        "reason": "at least 2 distinct server-acknowledged decoding lifetimes were occupied throughout the attempt interval",
+        "conditional_on": "each window being a SERVER-ACKNOWLEDGED decoding lifetime recorded from pinned server-side start/end events on the same host monotonic clock as the verifier. This asserts occupied decoding slots, NOT continuously busy hardware: server scheduling pauses inside a lifetime are part of the operational regime."
+      },
+      "process_problem": null,
+      "unbound_reason": null,
+      "json_roundtrip": true
+    },
+    {
+      "case": "archival_0e79199aeb88",
+      "patch": "0e79199aeb886e063f7d758b34566eb6dcd3061ee12fb427424475f953f14c43",
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "raw_outcome": 0,
+      "declared_signal": null,
+      "contract": "unbound",
+      "producer_bound": false,
+      "complete": false,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_problem": null,
+      "unbound_reason": "patch 0e79199aeb88... is preserved and readable as an ARCHIVAL diagnostic, but was never the contract of a retained acquisition and carries no exemption",
+      "json_roundtrip": true
+    },
+    {
+      "case": "archival_261a54db560d",
+      "patch": "261a54db560ddfccf1f1541361905686177069c4993f2b80e9830a9144631e29",
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "raw_outcome": 0,
+      "declared_signal": null,
+      "contract": "unbound",
+      "producer_bound": false,
+      "complete": false,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_problem": null,
+      "unbound_reason": "patch 261a54db560d... is preserved and readable as an ARCHIVAL diagnostic, but was never the contract of a retained acquisition and carries no exemption",
+      "json_roundtrip": true
+    },
+    {
+      "case": "archival_4c8b647de674",
+      "patch": "4c8b647de674edca06578642b17fff7e24d8625ad9d9933238170c668c4a0840",
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "raw_outcome": 0,
+      "declared_signal": null,
+      "contract": "unbound",
+      "producer_bound": false,
+      "complete": false,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_problem": null,
+      "unbound_reason": "patch 4c8b647de674... is preserved and readable as an ARCHIVAL diagnostic, but was never the contract of a retained acquisition and carries no exemption",
+      "json_roundtrip": true
+    },
+    {
+      "case": "archival_984f47df65b0",
+      "patch": "984f47df65b0db7b945234660cde2aae9a035c4efcee42ec780c27df9c59a918",
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "raw_outcome": 0,
+      "declared_signal": null,
+      "contract": "unbound",
+      "producer_bound": false,
+      "complete": false,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_problem": null,
+      "unbound_reason": "patch 984f47df65b0... is preserved and readable as an ARCHIVAL diagnostic, but was never the contract of a retained acquisition and carries no exemption",
+      "json_roundtrip": true
+    },
+    {
+      "case": "historical_v4_actual",
+      "patch": "2c52078f8a541134661eb7ac997114892c7baf68541f9d4be664366d43e85f6a",
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "raw_outcome": 0,
+      "declared_signal": null,
+      "contract": "legacy",
+      "producer_bound": true,
+      "complete": true,
+      "coverage": {
+        "valid": true,
+        "interval_version": "live_ab/attempt_interval-v3",
+        "evidence_kind": "server_lifecycle",
+        "concurrency_required": 2,
+        "concurrency_observed_min": 2,
+        "certified_interval": "the legacy wider span including lock wait",
+        "reason": "at least 2 distinct server-acknowledged decoding lifetimes were occupied throughout the attempt interval",
+        "conditional_on": "each window being a SERVER-ACKNOWLEDGED decoding lifetime recorded from pinned server-side start/end events on the same host monotonic clock as the verifier. This asserts occupied decoding slots, NOT continuously busy hardware: server scheduling pauses inside a lifetime are part of the operational regime."
+      },
+      "process_problem": null,
+      "unbound_reason": null,
+      "json_roundtrip": true
+    },
+    {
+      "case": "new_identity_claiming_v4",
+      "patch": "2c52078f8a541134661eb7ac997114892c7baf68541f9d4be664366d43e85f6a",
+      "binary": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "raw_outcome": null,
+      "declared_signal": null,
+      "contract": "legacy",
+      "producer_bound": true,
+      "complete": true,
+      "coverage": {
+        "valid": true,
+        "interval_version": "live_ab/attempt_interval-v3",
+        "evidence_kind": "server_lifecycle",
+        "concurrency_required": 2,
+        "concurrency_observed_min": 2,
+        "certified_interval": "the legacy wider span including lock wait",
+        "reason": "at least 2 distinct server-acknowledged decoding lifetimes were occupied throughout the attempt interval",
+        "conditional_on": "each window being a SERVER-ACKNOWLEDGED decoding lifetime recorded from pinned server-side start/end events on the same host monotonic clock as the verifier. This asserts occupied decoding slots, NOT continuously busy hardware: server scheduling pauses inside a lifetime are part of the operational regime."
+      },
+      "process_problem": null,
+      "unbound_reason": null,
+      "json_roundtrip": true
+    },
+    {
+      "case": "zero_default",
+      "patch": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "raw_outcome": 0,
+      "declared_signal": null,
+      "contract": "repaired",
+      "producer_bound": true,
+      "complete": true,
+      "coverage": {
+        "valid": true,
+        "interval_version": "live_ab/attempt_interval-v3",
+        "evidence_kind": "server_lifecycle",
+        "concurrency_required": 2,
+        "concurrency_observed_min": 2,
+        "certified_interval": "the legacy wider span including lock wait",
+        "reason": "at least 2 distinct server-acknowledged decoding lifetimes were occupied throughout the attempt interval",
+        "conditional_on": "each window being a SERVER-ACKNOWLEDGED decoding lifetime recorded from pinned server-side start/end events on the same host monotonic clock as the verifier. This asserts occupied decoding slots, NOT continuously busy hardware: server scheduling pauses inside a lifetime are part of the operational regime."
+      },
+      "process_problem": null,
+      "unbound_reason": null,
+      "json_roundtrip": true
+    },
+    {
+      "case": "minus15_default",
+      "patch": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "raw_outcome": -15,
+      "declared_signal": null,
+      "contract": "repaired",
+      "producer_bound": true,
+      "complete": false,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_problem": "the retained producer exit status is -15; a successful outcome is a non-boolean integer zero",
+      "unbound_reason": null,
+      "json_roundtrip": true
+    },
+    {
+      "case": "minus15_declared",
+      "patch": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "raw_outcome": -15,
+      "declared_signal": 15,
+      "contract": "repaired",
+      "producer_bound": true,
+      "complete": true,
+      "coverage": {
+        "valid": true,
+        "interval_version": "live_ab/attempt_interval-v3",
+        "evidence_kind": "server_lifecycle",
+        "concurrency_required": 2,
+        "concurrency_observed_min": 2,
+        "certified_interval": "the legacy wider span including lock wait",
+        "reason": "at least 2 distinct server-acknowledged decoding lifetimes were occupied throughout the attempt interval",
+        "conditional_on": "each window being a SERVER-ACKNOWLEDGED decoding lifetime recorded from pinned server-side start/end events on the same host monotonic clock as the verifier. This asserts occupied decoding slots, NOT continuously busy hardware: server scheduling pauses inside a lifetime are part of the operational regime."
+      },
+      "process_problem": null,
+      "unbound_reason": null,
+      "json_roundtrip": true
+    },
+    {
+      "case": "minus9_sigterm",
+      "patch": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "raw_outcome": -9,
+      "declared_signal": 15,
+      "contract": "repaired",
+      "producer_bound": true,
+      "complete": false,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_problem": "the retained producer exit status is -9; a successful outcome is a non-boolean integer zero or the declared termination signal -15",
+      "unbound_reason": null,
+      "json_roundtrip": true
+    },
+    {
+      "case": "minus9_declared",
+      "patch": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "raw_outcome": -9,
+      "declared_signal": 9,
+      "contract": "repaired",
+      "producer_bound": true,
+      "complete": true,
+      "coverage": {
+        "valid": true,
+        "interval_version": "live_ab/attempt_interval-v3",
+        "evidence_kind": "server_lifecycle",
+        "concurrency_required": 2,
+        "concurrency_observed_min": 2,
+        "certified_interval": "the legacy wider span including lock wait",
+        "reason": "at least 2 distinct server-acknowledged decoding lifetimes were occupied throughout the attempt interval",
+        "conditional_on": "each window being a SERVER-ACKNOWLEDGED decoding lifetime recorded from pinned server-side start/end events on the same host monotonic clock as the verifier. This asserts occupied decoding slots, NOT continuously busy hardware: server scheduling pauses inside a lifetime are part of the operational regime."
+      },
+      "process_problem": null,
+      "unbound_reason": null,
+      "json_roundtrip": true
+    },
+    {
+      "case": "positive1_declared_negative1",
+      "patch": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "raw_outcome": 1,
+      "declared_signal": -1,
+      "contract": "repaired",
+      "producer_bound": true,
+      "complete": true,
+      "coverage": {
+        "valid": true,
+        "interval_version": "live_ab/attempt_interval-v3",
+        "evidence_kind": "server_lifecycle",
+        "concurrency_required": 2,
+        "concurrency_observed_min": 2,
+        "certified_interval": "the legacy wider span including lock wait",
+        "reason": "at least 2 distinct server-acknowledged decoding lifetimes were occupied throughout the attempt interval",
+        "conditional_on": "each window being a SERVER-ACKNOWLEDGED decoding lifetime recorded from pinned server-side start/end events on the same host monotonic clock as the verifier. This asserts occupied decoding slots, NOT continuously busy hardware: server scheduling pauses inside a lifetime are part of the operational regime."
+      },
+      "process_problem": null,
+      "unbound_reason": null,
+      "json_roundtrip": true
+    },
+    {
+      "case": "negative1_declared_bool",
+      "patch": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "raw_outcome": -1,
+      "declared_signal": true,
+      "contract": "repaired",
+      "producer_bound": true,
+      "complete": true,
+      "coverage": {
+        "valid": true,
+        "interval_version": "live_ab/attempt_interval-v3",
+        "evidence_kind": "server_lifecycle",
+        "concurrency_required": 2,
+        "concurrency_observed_min": 2,
+        "certified_interval": "the legacy wider span including lock wait",
+        "reason": "at least 2 distinct server-acknowledged decoding lifetimes were occupied throughout the attempt interval",
+        "conditional_on": "each window being a SERVER-ACKNOWLEDGED decoding lifetime recorded from pinned server-side start/end events on the same host monotonic clock as the verifier. This asserts occupied decoding slots, NOT continuously busy hardware: server scheduling pauses inside a lifetime are part of the operational regime."
+      },
+      "process_problem": null,
+      "unbound_reason": null,
+      "json_roundtrip": true
+    },
+    {
+      "case": "minus15_declared_float",
+      "patch": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "raw_outcome": -15,
+      "declared_signal": 15.9,
+      "contract": "repaired",
+      "producer_bound": true,
+      "complete": true,
+      "coverage": {
+        "valid": true,
+        "interval_version": "live_ab/attempt_interval-v3",
+        "evidence_kind": "server_lifecycle",
+        "concurrency_required": 2,
+        "concurrency_observed_min": 2,
+        "certified_interval": "the legacy wider span including lock wait",
+        "reason": "at least 2 distinct server-acknowledged decoding lifetimes were occupied throughout the attempt interval",
+        "conditional_on": "each window being a SERVER-ACKNOWLEDGED decoding lifetime recorded from pinned server-side start/end events on the same host monotonic clock as the verifier. This asserts occupied decoding slots, NOT continuously busy hardware: server scheduling pauses inside a lifetime are part of the operational regime."
+      },
+      "process_problem": null,
+      "unbound_reason": null,
+      "json_roundtrip": true
+    },
+    {
+      "case": "minus15_declared_string",
+      "patch": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "raw_outcome": -15,
+      "declared_signal": "15",
+      "contract": "repaired",
+      "producer_bound": true,
+      "complete": true,
+      "coverage": {
+        "valid": true,
+        "interval_version": "live_ab/attempt_interval-v3",
+        "evidence_kind": "server_lifecycle",
+        "concurrency_required": 2,
+        "concurrency_observed_min": 2,
+        "certified_interval": "the legacy wider span including lock wait",
+        "reason": "at least 2 distinct server-acknowledged decoding lifetimes were occupied throughout the attempt interval",
+        "conditional_on": "each window being a SERVER-ACKNOWLEDGED decoding lifetime recorded from pinned server-side start/end events on the same host monotonic clock as the verifier. This asserts occupied decoding slots, NOT continuously busy hardware: server scheduling pauses inside a lifetime are part of the operational regime."
+      },
+      "process_problem": null,
+      "unbound_reason": null,
+      "json_roundtrip": true
+    },
+    {
+      "case": "reserved93_declared_negative93",
+      "patch": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "raw_outcome": 93,
+      "declared_signal": -93,
+      "contract": "repaired",
+      "producer_bound": true,
+      "complete": false,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_problem": "the producer exited 93: it detected a write failure it could not record, and refused the acquisition itself. A readable earlier seal with zero counts does not override this",
+      "unbound_reason": null,
+      "json_roundtrip": true
+    },
+    {
+      "case": "missing_declared_sigterm",
+      "patch": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "raw_outcome": null,
+      "declared_signal": 15,
+      "contract": "repaired",
+      "producer_bound": true,
+      "complete": false,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_problem": "the acquisition contract requires a RETAINED producer exit status and none was supplied; a readable seal is not evidence about how the process ended",
+      "unbound_reason": null,
+      "json_roundtrip": true
+    },
+    {
+      "case": "outcome_mapping",
+      "patch": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "raw_outcome": {
+        "returncode": 0
+      },
+      "declared_signal": null,
+      "contract": "repaired",
+      "producer_bound": true,
+      "complete": false,
+      "coverage": {
+        "valid": false,
+        "reason": "the observation does not assert lifecycle_complete. Root: \"Unknown/missing endpoint or lifecycle discontinuity refuses coverage and retains the attempt; it does not become a task exclusion.\""
+      },
+      "process_problem": "the retained producer exit status is {'returncode': 0}; a successful outcome is a non-boolean integer zero",
+      "unbound_reason": null,
+      "json_roundtrip": true
+    },
+    {
+      "case": "invalid_signal_string",
+      "raw_outcome": -15,
+      "declared_signal": "bad",
+      "exception": "ValueError",
+      "message": "invalid literal for int() with base 10: 'bad'",
+      "observation_returned": false
+    },
+    {
+      "case": "invalid_signal_mapping",
+      "raw_outcome": -15,
+      "declared_signal": {
+        "signal": 15
+      },
+      "exception": "TypeError",
+      "message": "int() argument must be a string, a bytes-like object or a real number, not 'dict'",
+      "observation_returned": false
+    },
+    {
+      "case": "parity_control",
+      "patch": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "binary": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4",
+      "raw_outcome": 0,
+      "declared_signal": null,
+      "contract": "repaired",
+      "producer_bound": true,
+      "complete": true,
+      "coverage": {
+        "valid": true,
+        "interval_version": "live_ab/attempt_interval-v3",
+        "evidence_kind": "server_lifecycle",
+        "concurrency_required": 2,
+        "concurrency_observed_min": 2,
+        "certified_interval": "the legacy wider span including lock wait",
+        "reason": "at least 2 distinct server-acknowledged decoding lifetimes were occupied throughout the attempt interval",
+        "conditional_on": "each window being a SERVER-ACKNOWLEDGED decoding lifetime recorded from pinned server-side start/end events on the same host monotonic clock as the verifier. This asserts occupied decoding slots, NOT continuously busy hardware: server scheduling pauses inside a lifetime are part of the operational regime."
+      },
+      "process_problem": null,
+      "unbound_reason": null,
+      "json_roundtrip": true
+    }
+  ],
+  "case_count": 30,
+  "path_parity": {
+    "whole_observation_equal": true,
+    "Path": {
+      "present": true,
+      "bytes": 1094,
+      "sha256": "f1b549c3a78484a285984817899c9019d803cfcbb75a9eb757188387861efbb2",
+      "path": "<TMP>/contract0919_dywnu_zy/lifecycle.jsonl"
+    },
+    "str": {
+      "present": true,
+      "bytes": 1094,
+      "sha256": "f1b549c3a78484a285984817899c9019d803cfcbb75a9eb757188387861efbb2",
+      "path": "<TMP>/contract0919_dywnu_zy/lifecycle.jsonl"
+    },
+    "coverage_equal": true
+  },
+  "selected_tests": {
+    "run": 2,
+    "failures": 0,
+    "errors": 0,
+    "log": "test_a_MISSING_field_cannot_select_the_legacy_exemption (tests_lab_design.AcquisitionSealTests.test_a_MISSING_field_cannot_select_the_legacy_exemption)\nRoot: \"Missing data must not automatically select a legacy exemption. ... ok\ntest_only_the_DECLARED_termination_signal_is_a_successful_outcome (tests_lab_design.AcquisitionSealTests.test_only_the_DECLARED_termination_signal_is_a_successful_outcome)\nThis producer is a SERVER the supervisor stops on purpose, and ... ok\n\n----------------------------------------------------------------------\nRan 2 tests in 0.003s\n\nOK\n"
+  },
+  "historical_smoke_exit_code": 0,
+  "legacy_patch_set": [
+    "2c52078f8a541134661eb7ac997114892c7baf68541f9d4be664366d43e85f6a"
+  ],
+  "archival_patch_set": [
+    "0e79199aeb886e063f7d758b34566eb6dcd3061ee12fb427424475f953f14c43",
+    "261a54db560ddfccf1f1541361905686177069c4993f2b80e9830a9144631e29",
+    "4c8b647de674edca06578642b17fff7e24d8625ad9d9933238170c668c4a0840",
+    "984f47df65b0db7b945234660cde2aae9a035c4efcee42ec780c27df9c59a918"
+  ],
+  "readiness": {
+    "full_percent": 75,
+    "change": 0,
+    "bounded_v1_percent": 90,
+    "cpu_validation_and_integration": "complete, unchanged"
+  },
+  "disposition": {
+    "accepted": [
+      "Path/string observation and raw-artifact parity",
+      "Absent and ordinary malformed source/binary identities refuse",
+      "v1-v3/v5 archival versions no longer receive legacy exemption",
+      "Saved v4 engineering receipt with retained zero exit remains readable",
+      "Raw process outcome retained; undeclared nonzero and reserved93 refuse"
+    ],
+    "finite_repairs": [
+      "Root decision: remove declared-signal success exception; every nonzero or unknown retained process outcome refuses. Stop request is diagnostic only.",
+      "Require actual string and full 64-character lowercase hexadecimal match for patch/binary digests; do not coerce integers or accept newline suffix."
+    ],
+    "scope_note": "Legacy selector is still v4-digest based, not an exact saved-manifest authorization check. Preserve saved historical scope; future acquisitions must not select that historical exemption. Actual artifact agreement remains a trusted-launch responsibility.",
+    "native_or_supervisor_behavior_claimed": false
+  }
+}

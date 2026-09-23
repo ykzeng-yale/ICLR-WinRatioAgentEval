@@ -1,0 +1,234 @@
+{
+  "received_head": "549b60f99c383cb2a9128f52f953c7a2d9d48559",
+  "substantive_commit": "9ce153e349f5da51088c174a29e0040c04cbb272",
+  "base": "42cc49f",
+  "scope": "static fatal-path extraction and ordinary read-only patch validation; no new pipe test/build/native/model/network",
+  "patch_sha256": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+  "patch_bytes": 17188,
+  "ordinary_application_checks": [
+    {
+      "command": [
+        "git",
+        "apply",
+        "--numstat",
+        "/Users/yukang/Documents/Codex/2026-09-17/i-x20/outputs/agent_win_eval/experiments/live_ab_serving/live_ab_slot_lifecycle.patch"
+      ],
+      "returncode": 0,
+      "stdout": "10\t0\ttools/server/server-common.h\n288\t0\ttools/server/server-context.cpp\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "apply",
+        "--check",
+        "/Users/yukang/Documents/Codex/2026-09-17/i-x20/outputs/agent_win_eval/experiments/live_ab_serving/live_ab_slot_lifecycle.patch"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "hunks": [
+    {
+      "line": 5,
+      "header": "@@ -368,6 +368,16 @@ struct server_slot_stats {",
+      "old_count_correct": true,
+      "new_count_correct": true
+    },
+    {
+      "line": 26,
+      "header": "@@ -1,4 +1,7 @@",
+      "old_count_correct": true,
+      "new_count_correct": true
+    },
+    {
+      "line": 34,
+      "header": "@@ -236,6 +239,22 @@ struct server_batch {",
+      "old_count_correct": true,
+      "new_count_correct": true
+    },
+    {
+      "line": 57,
+      "header": "@@ -548,6 +567,13 @@ struct server_slot {",
+      "old_count_correct": true,
+      "new_count_correct": true
+    },
+    {
+      "line": 71,
+      "header": "@@ -734,6 +760,245 @@ struct server_slot {",
+      "old_count_correct": true,
+      "new_count_correct": true
+    },
+    {
+      "line": 317,
+      "header": "@@ -1819,6 +2084,29 @@ private:",
+      "old_count_correct": true,
+      "new_count_correct": true
+    }
+  ],
+  "preimages": [
+    {
+      "path": "tools/server/server-context.cpp",
+      "git_blob": "b6835e43459e3e9f1ea951e9f96f9ade22074cba"
+    },
+    {
+      "path": "tools/server/server-common.h",
+      "git_blob": "9894f5f06fb050fa6e1e278a01509be35e00733e"
+    }
+  ],
+  "fatal_function": "[[noreturn]] static void live_ab_die_unrecordable(const char * what) {\n    (void) what;   // deliberately unreported: see above\n    // _exit, NOT exit/abort: it runs no atexit handler and no static\n    // destructor, so it cannot re-enter the seal writer that may have called\n    // us. Whatever was already durably written STAYS written -- root:\n    // \"Preserve available observations on failure.\"\n    _exit(LIVE_AB_EXIT_UNRECORDABLE);\n}",
+  "fatal_executable_statements": [
+    "(void) what;",
+    "_exit(LIVE_AB_EXIT_UNRECORDABLE);"
+  ],
+  "direct_exit_without_diagnostic": true,
+  "exit_code": 93,
+  "retained_smoke_patch": "2c52078f8a541134661eb7ac997114892c7baf68541f9d4be664366d43e85f6a",
+  "v7_source_only_unbuilt": true,
+  "owner_recount_receipt": {
+    "bodies_unchanged": true,
+    "check_after": {
+      "numstat_parses_without_recount": true,
+      "numstat_plain": {
+        "command": [
+          "git",
+          "apply",
+          "--numstat",
+          "live_ab_slot_lifecycle.patch"
+        ],
+        "returncode": 0,
+        "stderr": "",
+        "stdout": "10\t0\ttools/server/server-common.h\n288\t0\ttools/server/server-context.cpp"
+      },
+      "numstat_recounted": {
+        "command": [
+          "git",
+          "apply",
+          "--recount",
+          "--numstat",
+          "live_ab_slot_lifecycle.patch"
+        ],
+        "returncode": 0,
+        "stderr": "",
+        "stdout": "10\t0\ttools/server/server-common.h\n288\t0\ttools/server/server-context.cpp"
+      },
+      "plain_equals_recounted": true,
+      "what_this_does_not_establish": "that the patch applies to the pinned base tree: that needs a checkout of llama.cpp at 4fea119de30f6a923992780f6fd5ccb0bee5d47d, which this host does not have. Root's --recount --check rc 0 is the evidence that the BODIES match the preimages."
+    },
+    "check_before": {
+      "numstat_parses_without_recount": false,
+      "numstat_plain": {
+        "command": [
+          "git",
+          "apply",
+          "--numstat",
+          "live_ab_slot_lifecycle.patch"
+        ],
+        "returncode": 128,
+        "stderr": "error: corrupt patch at line 317",
+        "stdout": ""
+      },
+      "numstat_recounted": {
+        "command": [
+          "git",
+          "apply",
+          "--recount",
+          "--numstat",
+          "live_ab_slot_lifecycle.patch"
+        ],
+        "returncode": 0,
+        "stderr": "",
+        "stdout": "10\t0\ttools/server/server-common.h\n288\t0\ttools/server/server-context.cpp"
+      },
+      "plain_equals_recounted": false,
+      "what_this_does_not_establish": "that the patch applies to the pinned base tree: that needs a checkout of llama.cpp at 4fea119de30f6a923992780f6fd5ccb0bee5d47d, which this host does not have. Root's --recount --check rc 0 is the evidence that the BODIES match the preimages."
+    },
+    "convention": "deterministic-path",
+    "disagreeing_hunks": 2,
+    "hunks": [
+      {
+        "actual_new": 16,
+        "actual_old": 6,
+        "counts_agreed": true,
+        "declared_new": 16,
+        "declared_new_start": 368,
+        "declared_old": 6,
+        "header_after": "@@ -368,6 +368,16 @@ struct server_slot_stats {",
+        "header_before": "@@ -368,6 +368,16 @@ struct server_slot_stats {",
+        "line": 5,
+        "new_start": 368,
+        "start_agreed": true
+      },
+      {
+        "actual_new": 7,
+        "actual_old": 4,
+        "counts_agreed": true,
+        "declared_new": 7,
+        "declared_new_start": 1,
+        "declared_old": 4,
+        "header_after": "@@ -1,4 +1,7 @@",
+        "header_before": "@@ -1,4 +1,7 @@",
+        "line": 26,
+        "new_start": 1,
+        "start_agreed": true
+      },
+      {
+        "actual_new": 22,
+        "actual_old": 6,
+        "counts_agreed": true,
+        "declared_new": 22,
+        "declared_new_start": 239,
+        "declared_old": 6,
+        "header_after": "@@ -236,6 +239,22 @@ struct server_batch {",
+        "header_before": "@@ -236,6 +239,22 @@ struct server_batch {",
+        "line": 34,
+        "new_start": 239,
+        "start_agreed": true
+      },
+      {
+        "actual_new": 13,
+        "actual_old": 6,
+        "counts_agreed": true,
+        "declared_new": 13,
+        "declared_new_start": 567,
+        "declared_old": 6,
+        "header_after": "@@ -548,6 +567,13 @@ struct server_slot {",
+        "header_before": "@@ -548,6 +567,13 @@ struct server_slot {",
+        "line": 57,
+        "new_start": 567,
+        "start_agreed": true
+      },
+      {
+        "actual_new": 245,
+        "actual_old": 6,
+        "counts_agreed": false,
+        "declared_new": 237,
+        "declared_new_start": 760,
+        "declared_old": 6,
+        "header_after": "@@ -734,6 +760,245 @@ struct server_slot {",
+        "header_before": "@@ -734,6 +760,237 @@ struct server_slot {",
+        "line": 71,
+        "new_start": 760,
+        "start_agreed": true
+      },
+      {
+        "actual_new": 29,
+        "actual_old": 6,
+        "counts_agreed": true,
+        "declared_new": 29,
+        "declared_new_start": 2076,
+        "declared_old": 6,
+        "header_after": "@@ -1819,6 +2084,29 @@ private:",
+        "header_before": "@@ -1819,6 +2076,29 @@ private:",
+        "line": 317,
+        "new_start": 2084,
+        "start_agreed": false
+      }
+    ],
+    "patch": "experiments/live_ab_serving/live_ab_slot_lifecycle.patch",
+    "schema": "live_ab/patch_recount-v1",
+    "sha256_after": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+    "sha256_before": "5c60d2b8a830ab9acc2d654846d1ef09e52574505eb5f1eb3b59d2bc5b6ff8c6"
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "received_head": "ad9d58f0014d14e9c10e47e73cce9472a380e02d",
+  "application_commit": "52ae99a387d436cace354b6f811e955d568632c6",
+  "native_receipt_commit": "9bd1675b2a94c081c5dba7c221a7521d3a249629",
+  "scope": "summary receipt and deposited source-byte reconciliation only; no native/build/model rerun",
+  "receipt_sha256": {
+    "PATCH_APPLICATION_VERIFIED_v7.json": "f02b41bcdefedc9ed10e5abaf796918d7178f6f01220720a61f921144cf981fb",
+    "V7_FAILURE_INJECTION.json": "97a6d413528c5181546e6536c90e514ce98490b07f6deb5dd9de2596b5f5b3a0",
+    "HOST_CAPACITY_OBSERVATION_20260923T091625Z.json": "212e9aa10e0651b316239cf02c4806f37d947fcbbe8c2d02cb6a03b96fd4cd98",
+    "CHECK_MARKER_DEFECT.json": "a5d37b33e3eee8bf768973fcb0fe62a06287f421223e27e172066882e6f12268"
+  },
+  "local_patch_sha256": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+  "patch_pin_agrees_across_source_application_build": true,
+  "source_preimages_agree": true,
+  "build_duration_seconds_from_reported_times": 82.0,
+  "reported_native_case_count": 4,
+  "reported_native_cases": {
+    "control_writable_dir": {
+      "exit": 0,
+      "seal_written": true,
+      "sidecar_present": false
+    },
+    "control_writable_dir_with_FULL_pipe": {
+      "exit": 0,
+      "seconds": 0.08
+    },
+    "unwritable_dir": {
+      "exit": 93,
+      "log_written": false,
+      "note": "the first execution of the _exit(93) path",
+      "sidecar_written": false
+    },
+    "unwritable_dir_with_FULL_undrained_stderr_pipe": {
+      "exit": 93,
+      "pipe_bytes_queued": 65536,
+      "seconds": 0.08,
+      "why_this_is_the_decisive_case": "this is exactly where root's witness showed v6 BLOCKING: its bounded diagnostic write(2) to a full pipe never returned, so the process never reached its exit. v7 removes the write and terminates in 0.08 s."
+    }
+  },
+  "saved_control_seal_object": {
+    "clock": "clock_gettime(CLOCK_MONOTONIC)",
+    "records": 0,
+    "run_token": "inj_ctrl",
+    "schema": "live_ab/acquisition_seal-v1",
+    "sidecar_failures": 0,
+    "t_us": 5303503053881,
+    "write_failures": 0
+  },
+  "saved_seal_zero_counts_typed": true,
+  "native_control_raw_log_bytes_deposited": false,
+  "current_artifact_closure_deposited": false,
+  "build_and_injection_raw_scripts_logs_deposited": false,
+  "owner_capacity_observed_utc": "2026-09-23T09:16:25Z",
+  "owner_capacity_summary": {
+    "baseline_processes": [
+      "mediaanalysisd"
+    ],
+    "degraded": [],
+    "detector": "lab_hostcheck.preflight_host_quiescent",
+    "findings": [],
+    "foreign_consumers_present": false,
+    "note": "a DEGRADED scan is not a clean scan: if the detector could not read what it needed, absence of findings means absence of evidence, not evidence of absence",
+    "own_pids_allowlisted": 2,
+    "processes_scanned": 1286
+  },
+  "check_marker_summary": {
+    "generated_utc": "2026-09-23T09:19:11Z",
+    "repair": "the marker is now written by `date -u`, never by an assumed time. The same command that writes it reads the clock.",
+    "missed_comment_reconciliation": "owner reported; not independently re-queried in this bounded review"
+  },
+  "verdict": "internally consistent delivered native results; complete runtime artifact/raw-byte provenance acceptance pending"
+}

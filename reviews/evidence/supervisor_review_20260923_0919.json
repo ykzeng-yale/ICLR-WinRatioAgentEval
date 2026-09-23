@@ -1,0 +1,512 @@
+{
+  "head": "549b60f99c383cb2a9128f52f953c7a2d9d48559",
+  "scope": "Eight actual run_smoke.main cases; every HTTP/process/signal/clock/thread interaction mocked. Actual reader, local synthetic closed files and write-once receipt persistence exercised. No native/model/sandbox/network execution.",
+  "cases": {
+    "positive_exit0": {
+      "main_returncode": 0,
+      "exception": null,
+      "receipt_count": 1,
+      "write_calls": 1,
+      "events": [
+        {
+          "event": "Popen"
+        },
+        {
+          "event": "request_join",
+          "timeout": 150.0
+        },
+        {
+          "event": "request_join",
+          "timeout": 150.0
+        },
+        {
+          "event": "signal",
+          "signal": 15
+        },
+        {
+          "event": "wait",
+          "timeout": 60
+        },
+        {
+          "event": "drain_join",
+          "timeout": 30.0
+        },
+        {
+          "event": "observe",
+          "process_outcome": 0,
+          "child_returncode_at_read": 0
+        },
+        {
+          "event": "read_log_text",
+          "child_returncode_at_read": 0
+        },
+        {
+          "event": "read_log_bytes",
+          "child_returncode_at_read": 0
+        },
+        {
+          "event": "read_log_text",
+          "child_returncode_at_read": 0
+        }
+      ],
+      "receipt_summary": {
+        "server_exit_code": 0,
+        "child_confirmed_stopped": true,
+        "stopped_cleanly": true,
+        "supervisor_problems": [],
+        "acquisition_invalidated_by_process_outcome": null,
+        "producer_diagnostics": {
+          "chars_per_line_cap": 400,
+          "drain_finished": true,
+          "dropped_chars": 0,
+          "dropped_lines": 0,
+          "line_cap": 2000,
+          "lines": [
+            "producer diagnostic"
+          ],
+          "lines_are_a_bounded_preview": true,
+          "stream": "the child stdout+stderr pipe, drained continuously from launch"
+        }
+      },
+      "reader_outcome": 0,
+      "problems_present_before_only_write": true
+    },
+    "exit93": {
+      "main_returncode": 1,
+      "exception": null,
+      "receipt_count": 1,
+      "write_calls": 1,
+      "events": [
+        {
+          "event": "Popen"
+        },
+        {
+          "event": "request_join",
+          "timeout": 150.0
+        },
+        {
+          "event": "request_join",
+          "timeout": 150.0
+        },
+        {
+          "event": "signal",
+          "signal": 15
+        },
+        {
+          "event": "wait",
+          "timeout": 60
+        },
+        {
+          "event": "drain_join",
+          "timeout": 30.0
+        },
+        {
+          "event": "observe",
+          "process_outcome": 93,
+          "child_returncode_at_read": 93
+        },
+        {
+          "event": "read_log_text",
+          "child_returncode_at_read": 93
+        },
+        {
+          "event": "read_log_bytes",
+          "child_returncode_at_read": 93
+        },
+        {
+          "event": "read_log_text",
+          "child_returncode_at_read": 93
+        }
+      ],
+      "receipt_summary": {
+        "server_exit_code": 93,
+        "child_confirmed_stopped": true,
+        "stopped_cleanly": true,
+        "supervisor_problems": [
+          "process outcome: the producer exited 93: it detected a write failure it could not record, and refused the acquisition itself. A readable earlier seal with zero counts does not override this",
+          "acquisition not complete: None"
+        ],
+        "acquisition_invalidated_by_process_outcome": "the producer exited 93: it detected a write failure it could not record, and refused the acquisition itself. A readable earlier seal with zero counts does not override this",
+        "producer_diagnostics": {
+          "chars_per_line_cap": 400,
+          "drain_finished": true,
+          "dropped_chars": 0,
+          "dropped_lines": 0,
+          "line_cap": 2000,
+          "lines": [
+            "producer diagnostic"
+          ],
+          "lines_are_a_bounded_preview": true,
+          "stream": "the child stdout+stderr pipe, drained continuously from launch"
+        }
+      },
+      "reader_outcome": 93,
+      "problems_present_before_only_write": true
+    },
+    "forced_kill_reaped": {
+      "main_returncode": 1,
+      "exception": null,
+      "receipt_count": 1,
+      "write_calls": 1,
+      "events": [
+        {
+          "event": "Popen"
+        },
+        {
+          "event": "request_join",
+          "timeout": 150.0
+        },
+        {
+          "event": "request_join",
+          "timeout": 150.0
+        },
+        {
+          "event": "signal",
+          "signal": 15
+        },
+        {
+          "event": "wait",
+          "timeout": 60
+        },
+        {
+          "event": "signal",
+          "signal": 9
+        },
+        {
+          "event": "wait",
+          "timeout": 60
+        },
+        {
+          "event": "drain_join",
+          "timeout": 30.0
+        },
+        {
+          "event": "observe",
+          "process_outcome": -9,
+          "child_returncode_at_read": -9
+        },
+        {
+          "event": "read_log_text",
+          "child_returncode_at_read": -9
+        },
+        {
+          "event": "read_log_bytes",
+          "child_returncode_at_read": -9
+        },
+        {
+          "event": "read_log_text",
+          "child_returncode_at_read": -9
+        }
+      ],
+      "receipt_summary": {
+        "server_exit_code": -9,
+        "child_confirmed_stopped": true,
+        "stopped_cleanly": false,
+        "supervisor_problems": [
+          "process outcome: the retained producer exit status is -9; a successful outcome is a non-boolean integer zero or the declared termination signal -15",
+          "acquisition not complete: None"
+        ],
+        "acquisition_invalidated_by_process_outcome": "the retained producer exit status is -9; a successful outcome is a non-boolean integer zero or the declared termination signal -15",
+        "producer_diagnostics": {
+          "chars_per_line_cap": 400,
+          "drain_finished": true,
+          "dropped_chars": 0,
+          "dropped_lines": 0,
+          "line_cap": 2000,
+          "lines": [
+            "producer diagnostic"
+          ],
+          "lines_are_a_bounded_preview": true,
+          "stream": "the child stdout+stderr pipe, drained continuously from launch"
+        }
+      },
+      "reader_outcome": -9,
+      "problems_present_before_only_write": true
+    },
+    "reap_never_confirms": {
+      "main_returncode": 1,
+      "exception": null,
+      "receipt_count": 1,
+      "write_calls": 1,
+      "events": [
+        {
+          "event": "Popen"
+        },
+        {
+          "event": "request_join",
+          "timeout": 150.0
+        },
+        {
+          "event": "request_join",
+          "timeout": 150.0
+        },
+        {
+          "event": "signal",
+          "signal": 15
+        },
+        {
+          "event": "wait",
+          "timeout": 60
+        },
+        {
+          "event": "signal",
+          "signal": 9
+        },
+        {
+          "event": "wait",
+          "timeout": 60
+        },
+        {
+          "event": "drain_join",
+          "timeout": 30.0
+        },
+        {
+          "event": "observe",
+          "process_outcome": null,
+          "child_returncode_at_read": null
+        },
+        {
+          "event": "read_log_text",
+          "child_returncode_at_read": null
+        },
+        {
+          "event": "read_log_bytes",
+          "child_returncode_at_read": null
+        },
+        {
+          "event": "read_log_text",
+          "child_returncode_at_read": null
+        }
+      ],
+      "receipt_summary": {
+        "server_exit_code": null,
+        "child_confirmed_stopped": false,
+        "stopped_cleanly": false,
+        "supervisor_problems": [
+          "process outcome: the acquisition contract requires a RETAINED producer exit status and none was supplied; a readable seal is not evidence about how the process ended",
+          "child never confirmed stopped",
+          "acquisition not complete: None"
+        ],
+        "acquisition_invalidated_by_process_outcome": "the acquisition contract requires a RETAINED producer exit status and none was supplied; a readable seal is not evidence about how the process ended",
+        "producer_diagnostics": {
+          "chars_per_line_cap": 400,
+          "drain_finished": true,
+          "dropped_chars": 0,
+          "dropped_lines": 0,
+          "line_cap": 2000,
+          "lines": [
+            "producer diagnostic"
+          ],
+          "lines_are_a_bounded_preview": true,
+          "stream": "the child stdout+stderr pipe, drained continuously from launch"
+        }
+      },
+      "reader_outcome": null,
+      "problems_present_before_only_write": true
+    },
+    "drain_exception": {
+      "main_returncode": 0,
+      "exception": null,
+      "receipt_count": 1,
+      "write_calls": 1,
+      "events": [
+        {
+          "event": "Popen"
+        },
+        {
+          "event": "request_join",
+          "timeout": 150.0
+        },
+        {
+          "event": "request_join",
+          "timeout": 150.0
+        },
+        {
+          "event": "signal",
+          "signal": 15
+        },
+        {
+          "event": "wait",
+          "timeout": 60
+        },
+        {
+          "event": "drain_join",
+          "timeout": 30.0
+        },
+        {
+          "event": "observe",
+          "process_outcome": 0,
+          "child_returncode_at_read": 0
+        },
+        {
+          "event": "read_log_text",
+          "child_returncode_at_read": 0
+        },
+        {
+          "event": "read_log_bytes",
+          "child_returncode_at_read": 0
+        },
+        {
+          "event": "read_log_text",
+          "child_returncode_at_read": 0
+        }
+      ],
+      "receipt_summary": {
+        "server_exit_code": 0,
+        "child_confirmed_stopped": true,
+        "stopped_cleanly": true,
+        "supervisor_problems": [],
+        "acquisition_invalidated_by_process_outcome": null,
+        "producer_diagnostics": {
+          "chars_per_line_cap": 400,
+          "drain_finished": true,
+          "dropped_chars": 0,
+          "dropped_lines": 0,
+          "line_cap": 2000,
+          "lines": [
+            "before failure",
+            "[drain failed: OSError: synthetic drain failure]"
+          ],
+          "lines_are_a_bounded_preview": true,
+          "stream": "the child stdout+stderr pipe, drained continuously from launch"
+        }
+      },
+      "reader_outcome": 0,
+      "problems_present_before_only_write": true
+    },
+    "drain_unfinished": {
+      "main_returncode": 0,
+      "exception": null,
+      "receipt_count": 1,
+      "write_calls": 1,
+      "events": [
+        {
+          "event": "Popen"
+        },
+        {
+          "event": "request_join",
+          "timeout": 150.0
+        },
+        {
+          "event": "request_join",
+          "timeout": 150.0
+        },
+        {
+          "event": "signal",
+          "signal": 15
+        },
+        {
+          "event": "wait",
+          "timeout": 60
+        },
+        {
+          "event": "drain_join",
+          "timeout": 30.0
+        },
+        {
+          "event": "observe",
+          "process_outcome": 0,
+          "child_returncode_at_read": 0
+        },
+        {
+          "event": "read_log_text",
+          "child_returncode_at_read": 0
+        },
+        {
+          "event": "read_log_bytes",
+          "child_returncode_at_read": 0
+        },
+        {
+          "event": "read_log_text",
+          "child_returncode_at_read": 0
+        }
+      ],
+      "receipt_summary": {
+        "server_exit_code": 0,
+        "child_confirmed_stopped": true,
+        "stopped_cleanly": true,
+        "supervisor_problems": [],
+        "acquisition_invalidated_by_process_outcome": null,
+        "producer_diagnostics": {
+          "chars_per_line_cap": 400,
+          "drain_finished": false,
+          "dropped_chars": 0,
+          "dropped_lines": 0,
+          "line_cap": 2000,
+          "lines": [],
+          "lines_are_a_bounded_preview": true,
+          "stream": "the child stdout+stderr pipe, drained continuously from launch"
+        }
+      },
+      "reader_outcome": 0,
+      "problems_present_before_only_write": true
+    },
+    "invalid_log_decode": {
+      "main_returncode": null,
+      "exception": "UnicodeDecodeError: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte",
+      "receipt_count": 0,
+      "write_calls": 0,
+      "events": [
+        {
+          "event": "Popen"
+        },
+        {
+          "event": "request_join",
+          "timeout": 150.0
+        },
+        {
+          "event": "request_join",
+          "timeout": 150.0
+        },
+        {
+          "event": "signal",
+          "signal": 15
+        },
+        {
+          "event": "wait",
+          "timeout": 60
+        },
+        {
+          "event": "drain_join",
+          "timeout": 30.0
+        },
+        {
+          "event": "observe",
+          "process_outcome": 0,
+          "child_returncode_at_read": 0
+        },
+        {
+          "event": "read_log_text",
+          "child_returncode_at_read": 0
+        }
+      ],
+      "receipt_summary": null,
+      "reader_outcome": null,
+      "problems_present_before_only_write": null
+    },
+    "startup_failure": {
+      "main_returncode": null,
+      "exception": "OSError: synthetic spawn failure",
+      "receipt_count": 0,
+      "write_calls": 0,
+      "events": [
+        {
+          "event": "Popen"
+        }
+      ],
+      "receipt_summary": null,
+      "reader_outcome": null,
+      "problems_present_before_only_write": null
+    }
+  },
+  "drain_long_line_accounting": {
+    "input_chars_excluding_newlines": 901,
+    "retained_chars": 401,
+    "dropped": {
+      "lines": 0,
+      "chars": 0
+    },
+    "unaccounted_trimmed_chars": 500,
+    "reason": "Characters trimmed inside admitted lines are not counted by dropped_chars; iterator obtains the whole line before truncation."
+  }
+}
