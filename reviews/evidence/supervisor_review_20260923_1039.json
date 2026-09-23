@@ -1,0 +1,227 @@
+{
+  "head": "9e33602f61e263ed9792df177aba58f2303ef2bc",
+  "source": "b8e9e197d887c043d58046945defda023a005cc4",
+  "scope": "Three changed actual-main cases, mocked HTTP/process/signals/clocks/threads. Synthetic diagnostic prefix is a closed temporary file even when mock drain state says alive; no actual growing file is read. No native/model/sandbox/network execution.",
+  "cases": {
+    "failed_reap": {
+      "main_returncode": 1,
+      "exception": null,
+      "receipt_count": 1,
+      "write_calls": 1,
+      "events": [
+        {
+          "event": "request_join",
+          "timeout": 150.0
+        },
+        {
+          "event": "request_join",
+          "timeout": 150.0
+        },
+        {
+          "event": "wait",
+          "timeout": 60
+        },
+        {
+          "event": "wait",
+          "timeout": 60
+        },
+        {
+          "event": "drain_join",
+          "timeout": 30.0
+        },
+        {
+          "event": "capture_read",
+          "mock_writer_alive": false,
+          "child_returncode": null
+        },
+        {
+          "event": "check_drain_alive",
+          "alive": false
+        }
+      ],
+      "problems": [
+        "child never confirmed stopped",
+        "acquisition not analyzed: the child was never confirmed stopped, so the lifecycle log and its sidecar were NOT opened, parsed or hashed. They are preserved in place; they may still have been open for writing."
+      ],
+      "diagnostics": {
+        "artifact": "<TMP>/supervisor_review1039_x4ock9uk/failed_reap/smoke_4167e395ccfd.producer_stream",
+        "artifact_sha256": "d5d024c46a3c702fe98ce8808f4392b8f19e64fea8c40b5b319bfa4e5680e5d0",
+        "budget_exhausted": false,
+        "byte_budget": 8388608,
+        "bytes_captured": 29,
+        "bytes_dropped": 0,
+        "capture_sha256": "d5d024c46a3c702fe98ce8808f4392b8f19e64fea8c40b5b319bfa4e5680e5d0",
+        "deadline_exhausted": false,
+        "derived_from": "<TMP>/supervisor_review1039_x4ock9uk/failed_reap/smoke_4167e395ccfd.producer_stream",
+        "drain_error": null,
+        "drain_thread_finished": true,
+        "note": "draining the owned child pipe is ACQUISITION, not analysis of an owner-written lifecycle file, so it runs before the closed-file gate (root, 10:03)",
+        "preview_chars_cap": 4000,
+        "preview_truncated": false,
+        "raw_capture_complete": true,
+        "reached_eof": true,
+        "stream": "the owned child stdout+stderr pipe, captured to an immutable per-attempt artifact from launch",
+        "preview_length": 29
+      },
+      "child_confirmed_stopped": false,
+      "observe_calls": 0,
+      "lifecycle_reads_unconfirmed": 0,
+      "diagnostic_reads_with_mock_writer_alive": 0,
+      "capture_file_bytes": 29,
+      "capture_hash_matches": true
+    },
+    "complete_long_preview": {
+      "main_returncode": 0,
+      "exception": null,
+      "receipt_count": 1,
+      "write_calls": 1,
+      "events": [
+        {
+          "event": "request_join",
+          "timeout": 150.0
+        },
+        {
+          "event": "request_join",
+          "timeout": 150.0
+        },
+        {
+          "event": "wait",
+          "timeout": 60
+        },
+        {
+          "event": "drain_join",
+          "timeout": 30.0
+        },
+        {
+          "event": "capture_read",
+          "mock_writer_alive": false,
+          "child_returncode": 0
+        },
+        {
+          "event": "check_drain_alive",
+          "alive": false
+        },
+        {
+          "event": "observe"
+        },
+        {
+          "event": "lifecycle_read",
+          "child_returncode": 0
+        },
+        {
+          "event": "lifecycle_read",
+          "child_returncode": 0
+        },
+        {
+          "event": "lifecycle_read",
+          "child_returncode": 0
+        }
+      ],
+      "problems": [],
+      "diagnostics": {
+        "artifact": "<TMP>/supervisor_review1039_x4ock9uk/complete_long_preview/smoke_4167e395ccfd.producer_stream",
+        "artifact_sha256": "c59d3c0480cc2d71d8f646e735e92da65450311eec46e81a5db8c7e6e8a92054",
+        "budget_exhausted": false,
+        "byte_budget": 8388608,
+        "bytes_captured": 5000,
+        "bytes_dropped": 0,
+        "capture_sha256": "c59d3c0480cc2d71d8f646e735e92da65450311eec46e81a5db8c7e6e8a92054",
+        "deadline_exhausted": false,
+        "derived_from": "<TMP>/supervisor_review1039_x4ock9uk/complete_long_preview/smoke_4167e395ccfd.producer_stream",
+        "drain_error": null,
+        "drain_thread_finished": true,
+        "note": "draining the owned child pipe is ACQUISITION, not analysis of an owner-written lifecycle file, so it runs before the closed-file gate (root, 10:03)",
+        "preview_chars_cap": 4000,
+        "preview_truncated": true,
+        "raw_capture_complete": true,
+        "reached_eof": true,
+        "stream": "the owned child stdout+stderr pipe, captured to an immutable per-attempt artifact from launch",
+        "preview_length": 4000
+      },
+      "child_confirmed_stopped": true,
+      "observe_calls": 1,
+      "lifecycle_reads_unconfirmed": 0,
+      "diagnostic_reads_with_mock_writer_alive": 0,
+      "capture_file_bytes": 5000,
+      "capture_hash_matches": true
+    },
+    "unfinished_drain": {
+      "main_returncode": 1,
+      "exception": null,
+      "receipt_count": 1,
+      "write_calls": 1,
+      "events": [
+        {
+          "event": "request_join",
+          "timeout": 150.0
+        },
+        {
+          "event": "request_join",
+          "timeout": 150.0
+        },
+        {
+          "event": "wait",
+          "timeout": 60
+        },
+        {
+          "event": "drain_join",
+          "timeout": 30.0
+        },
+        {
+          "event": "capture_read",
+          "mock_writer_alive": true,
+          "child_returncode": 0
+        },
+        {
+          "event": "check_drain_alive",
+          "alive": true
+        },
+        {
+          "event": "observe"
+        },
+        {
+          "event": "lifecycle_read",
+          "child_returncode": 0
+        },
+        {
+          "event": "lifecycle_read",
+          "child_returncode": 0
+        },
+        {
+          "event": "lifecycle_read",
+          "child_returncode": 0
+        }
+      ],
+      "problems": [
+        "raw diagnostic capture incomplete: {'reached_eof': False, 'drain_error': None, 'bytes_dropped': 0, 'budget_exhausted': False, 'deadline_exhausted': False}",
+        "the drain thread had not finished, so its state is not a final snapshot"
+      ],
+      "diagnostics": {
+        "artifact": "/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/supervisor_review1039_x4ock9uk/unfinished_drain/smoke_4167e395ccfd.producer_stream",
+        "artifact_sha256": null,
+        "budget_exhausted": false,
+        "byte_budget": 8388608,
+        "bytes_captured": 32,
+        "bytes_dropped": 0,
+        "capture_sha256": null,
+        "deadline_exhausted": false,
+        "derived_from": "/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/supervisor_review1039_x4ock9uk/unfinished_drain/smoke_4167e395ccfd.producer_stream",
+        "drain_error": null,
+        "drain_thread_finished": false,
+        "note": "draining the owned child pipe is ACQUISITION, not analysis of an owner-written lifecycle file, so it runs before the closed-file gate (root, 10:03)",
+        "preview_chars_cap": 4000,
+        "preview_truncated": false,
+        "raw_capture_complete": false,
+        "reached_eof": false,
+        "stream": "the owned child stdout+stderr pipe, captured to an immutable per-attempt artifact from launch",
+        "preview_length": 32
+      },
+      "child_confirmed_stopped": true,
+      "observe_calls": 1,
+      "lifecycle_reads_unconfirmed": 0,
+      "diagnostic_reads_with_mock_writer_alive": 1,
+      "capture_file_bytes": 32,
+      "capture_hash_matches": false
+    }
+  }
+}

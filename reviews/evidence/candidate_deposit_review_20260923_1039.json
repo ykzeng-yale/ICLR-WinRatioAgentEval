@@ -1,0 +1,93 @@
+{
+  "review": "candidate_deposit_review_20260923_1039",
+  "head": "9e33602f61e263ed9792df177aba58f2303ef2bc",
+  "substantive_commit": "b8e9e197d887c043d58046945defda023a005cc4",
+  "reviewed_at_utc": "2026-09-23T10:42:01.499137+00:00",
+  "checks": {
+    "original_candidate_manifest_preserved": true,
+    "build_log_bytes_match": true,
+    "build_log_digest_match": true,
+    "control_log_bytes_match": true,
+    "control_log_digest_match": true,
+    "all_262_target_numbers_once": true,
+    "build_exit_and_end_agree": true,
+    "single_seal_jsonl_record": true,
+    "seal_equals_prior_parsed_object": true,
+    "seal_integer_nonbool_zero_counters": true
+  },
+  "counts": {
+    "passed": 10,
+    "checks": 10,
+    "build_targets_in_saved_log": 262,
+    "deposited_native_seal_records": 1,
+    "deposited_lifecycle_event_records": 0,
+    "reviewer_native_executions": 0,
+    "reviewer_builds": 0,
+    "reviewer_model_runs": 0,
+    "owner_current_artifact_reads": 0
+  },
+  "artifacts": {
+    "build_log": {
+      "bytes": 26350,
+      "sha256": "51876ff3cd8922cc292fdac162c395e0b5d418d0701a1307654cbf0aa2078746"
+    },
+    "control_life": {
+      "bytes": 178,
+      "sha256": "26aa81b3646b08a34cbef0b7e562ab358b87229b1bf9366415b5560b24fe062e",
+      "seal": {
+        "schema": "live_ab/acquisition_seal-v1",
+        "run_token": "inj_ctrl",
+        "records": 0,
+        "write_failures": 0,
+        "sidecar_failures": 0,
+        "t_us": 5303503053881,
+        "clock": "clock_gettime(CLOCK_MONOTONIC)"
+      }
+    }
+  },
+  "accepted": [
+    "Exact deposited log bytes match previously declared hashes and sizes.",
+    "Build log records sequential targets1 through262, BUILD_EXIT=0 and matching BUILD_END.",
+    "Single deposited control seal exactly equals prior parsed object, with typed-zero failure counters.",
+    "Routing addendum labels owner reconstruction; no original invocation falsely upgraded to retained evidence.",
+    "Library inventory explicitly no longer claimed to prove transitive closure."
+  ],
+  "remaining_findings": [
+    {
+      "priority": 1,
+      "id": "build_ui_source_network",
+      "evidence": "v7_build.log lines331-338: b1 checksum fetch failed, mutable latest fallback succeeded,70 UI assets embedded.",
+      "consequence": "The build used network and an additional mutable UI input; blanket no-network receipt cannot apply to the whole build/injection batch.",
+      "action": "Add a scoped network/UI-source qualification and preserve available exact UI archive/stamp/digest or explicitly mark unavailable. Do not rebuild or download to reconstruct past evidence."
+    },
+    {
+      "priority": 2,
+      "id": "reader_code_wording",
+      "evidence": "correction_2_reader_invocation still says V7_FAILURE_INJECTION.json contains producing code; it contains summary fields/prose only.",
+      "action": "Replace in a further additive correction with contains summary assertions/parsed object; exact original invocation/code unavailable."
+    }
+  ],
+  "warnings": {
+    "compiler": "AppleClang21.0.0.21000101",
+    "architecture": "arm64/ARM",
+    "configuration": [
+      "Release",
+      "CPU",
+      "Accelerate BLAS",
+      "Metal"
+    ],
+    "nonfatal_config": [
+      "ccache absent",
+      "OpenMP absent",
+      "ARM march/mcpu unspecified; native chosen",
+      "OpenSSL absent; HTTPS support disabled"
+    ],
+    "build_failure_marker_present": false
+  },
+  "native_outcome_limit": "The four native case exits/timings remain owner-reported, now with one original control seal independently reconciled. Original stdout/stderr/script and original parser invocation unavailable; no negative-case raw execution transcript delivered.",
+  "readiness": {
+    "full_percent": 75,
+    "change": 0,
+    "bounded_v1_percent": 90
+  }
+}
