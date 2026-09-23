@@ -983,7 +983,12 @@ class AnchorTests(unittest.TestCase):
         blocking anchor can never be satisfied by a dry run."""
         tree = Tree(pairs=2, anchor=False)
         try:
-            paths = orch._trial_paths(tree.trial, tree.results, tree.work)
+            # ISOLATED lock: without it this tree binds the real canonical
+            # host-wide sandbox.lock, which couples the e2e suite to every
+            # other suite's state and makes the run order-dependent. Root
+            # permits an isolated fixture to carry its own lock.
+            paths = orch._trial_paths(tree.trial, tree.results, tree.work,
+                                      execution_lock=tree.work / 'sandbox.lock')
             paths.mkdirs()
             req = {'request_id': 'r1', 'trial': tree.trial, 'anchor_seq': 1,
                    'upto_seq': 0, 'upto_h': '0' * 64, 'segment_index': 0,

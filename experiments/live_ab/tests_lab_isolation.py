@@ -232,7 +232,10 @@ SIGNATURES: dict[str, dict[str, tuple]] = {
                              'spools', 'records', 'requests', 'anchor_spool',
                              'anchors_private', 'logs', 'run_lock', 'sandbox_lock'),
         'TrialPaths.mkdirs': fn(('self', None, PO)),
-        'trial_paths': fn(('trial', None, PO)),
+        # `execution_lock` is keyword-only and defaults to None: production
+        # callers pass nothing and get the canonical host-wide lock. It
+        # exists so an ISOLATED tree can carry its own, which root permits.
+        'trial_paths': fn(('trial', None, PO), ('execution_lock', 'None', KW)),
         'tokenize_path': fn(('p', None, PO)),
         'canonical_json': fn(('obj', None, PO)),
         'sha256_bytes': fn(('b', None, PO)),
@@ -706,63 +709,105 @@ class ContenderSourceTests(unittest.TestCase):
 
 
 class ExecutionLockConformanceTests(unittest.TestCase):
-    """protocol 5.7 item 1: ONE lock file, host-wide.
+    """protocol 5.7 item 1: ONE lock file, host-wide, across trials AND checkouts.
 
     The section is titled "Sandbox under two workers: the host-wide execution
-    lock" and item 1 says the worker wraps `sandbox.run_program` "in an exclusive
-    `flock` on ONE LOCK FILE. At most one generated program exists and runs at any
-    instant." The hazard named one paragraph above it is a Seatbelt writable
-    directory "shared by every run ON THE HOST", holding the hidden tests and the
-    nonce sentinel in clear text during verification. So the property is a
-    property of the host, not of a trial.
+    lock" and item 1 requires an exclusive `flock` on ONE LOCK FILE. The hazard is
+    a Seatbelt writable directory "shared by every run ON THE HOST".
 
-    THE FIRST TEST BELOW CURRENTLY FAILS, and that is deliberate. Production
-    resolves five distinct lock files: `<WORK>/sandbox.lock` for the reference
-    sweep and `<WORK>/<trial>/sandbox.lock` for each trial's workers. Pointing
-    them at one file changes a production lock path that the orchestrator
-    serialises into every job, which is a protocol-conformance decision for the
-    root, not a repair I make quietly. Marking it `expectedFailure` would hide
-    exactly the thing the root needs to see, so it is left red.
+    This test was RED BY INTENT from 2026-09-22 13:23 until root ruled. Root's
+    ruling (`reviews/lock_anchor_review_20260923_0348.md`, and the 03:51 issue
+    decision): repair it, bind every cooperating path to the canonical owner-host
+    file, and *"do not skip the failing test"*. It is now green because the code
+    conforms, not because the assertion was weakened.
     """
 
     def _resolve(self):
         import lab_orchestrator
         import lab_common as C
-        cfg = json.loads((Path(__file__).resolve().parent / 'config.json')
-                         .read_text('utf-8'))
+        cfg = C.harness_config()
         sweep = Path((cfg.get('sandbox') or {}).get('execution_lock_path')
-                     or (C.WORK_ROOT / 'sandbox.lock'))
+                     or C.canonical_execution_lock(cfg))
         workers = {t: Path(lab_orchestrator._trial_paths(
             t, Path(C.RESULTS_ROOT), Path(C.WORK_ROOT)).sandbox_lock)
             for t in ('T1', 'T2', 'T3', 'T4')}
         return sweep, workers
 
     def test_protocol_5_7_item_1_resolves_to_one_lock_file(self) -> None:
+        import lab_common as C
         sweep, workers = self._resolve()
-        distinct = sorted({str(sweep)} | {str(p) for p in workers.values()})
+        fallbacks = {t: Path(C.trial_paths(t).sandbox_lock)
+                     for t in ('T1', 'T2', 'T3', 'T4')}
+        distinct = sorted({str(sweep)}
+                          | {str(p) for p in workers.values()}
+                          | {str(p) for p in fallbacks.values()})
         self.assertEqual(
             len(distinct), 1,
             'protocol 5.7 item 1 requires ONE lock file host-wide; production '
-            'resolves %d:\n  %s\nTwo trials, or a reference sweep and an episode '
-            'worker, would not exclude each other, while the Seatbelt writable '
-            'base is shared by every run on the host. See '
-            'results/live_ab/LOCK_TOPOLOGY.json.' % (len(distinct),
-                                                     '\n  '.join(distinct)))
+            'resolves %d:\n  %s' % (len(distinct), '\n  '.join(distinct)))
+        self.assertEqual(distinct[0],
+                         str(C.canonical_execution_lock(C.harness_config())))
 
-    def test_the_two_workers_of_one_trial_do_share_a_lock(self) -> None:
-        # The intra-trial case the section is titled for IS covered: both workers
-        # receive the same ctx.paths.sandbox_lock. Recorded so the failure above
-        # is not read as "the lock does nothing".
-        _sweep, workers = self._resolve()
-        for trial, path in workers.items():
-            self.assertEqual(path.name, 'sandbox.lock')
-            self.assertIn(trial, str(path))
+    def test_the_canonical_lock_does_not_move_with_the_checkout(self) -> None:
+        # THE PROPERTY THAT MAKES IT HOST-WIDE. `<WORK>` is checkout-relative by
+        # design; the lock must NOT be. Simulated by resolving the token against
+        # a foreign work root -- the pin comes from config, so the answer cannot
+        # depend on which checkout asks.
+        import lab_common as C
+        cfg = C.harness_config()
+        want = C.canonical_execution_lock(cfg)
+        self.assertEqual(C.resolve_execution_lock_token(
+            C.tokenize_execution_lock(cfg), cfg), want)
+        foreign = dict(cfg)
+        self.assertEqual(C.canonical_execution_lock(foreign), want)
+        self.assertTrue(Path(want).is_absolute())
+
+    def test_run_locks_stay_per_trial(self) -> None:
+        # Root explicitly preserved these. Only the SANDBOX lock is host-wide; a
+        # host-wide run lock would serialize whole trials against each other.
+        import lab_common as C
+        runs = {str(C.trial_paths(t).run_lock) for t in ('T1', 'T2', 'T3', 'T4')}
+        self.assertEqual(len(runs), 4)
+
+    def test_a_stale_job_lock_path_refuses(self) -> None:
+        # A job serialized BEFORE this repair carries <WORK>/<trial>/sandbox.lock.
+        # Resolving it would open a second inode and the two workers would not
+        # exclude each other. It must refuse, not run unlocked.
+        import lab_common as C
+        cfg = C.harness_config()
+        stale = Path(C.WORK_ROOT) / 'T1' / 'sandbox.lock'
+        with self.assertRaises(C.PreflightError):
+            C.assert_canonical_execution_lock(stale, cfg, stage='stale-job')
+        C.assert_canonical_execution_lock(
+            C.canonical_execution_lock(cfg), cfg, stage='canonical')
+
+    def test_host_work_root_must_be_an_absolute_pin(self) -> None:
+        # Deriving it from the checkout is the defect itself, so a missing or
+        # relative pin refuses rather than falling back.
+        import lab_common as C
+        for bad in (None, '', 'work/live_ab', 123):
+            with self.assertRaises(C.PreflightError):
+                C.host_work_root({'sandbox': {'host_work_root': bad}})
+
+    def test_a_stale_serialized_job_token_refuses_at_the_worker_entry(self) -> None:
+        # THE CASE ROOT NAMED: "do not permit an arbitrary job path to split it."
+        # A job written before this repair carries the TOKEN
+        # <WORK>/<trial>/sandbox.lock. The worker must refuse it rather than
+        # resolve a second inode and run effectively unlocked. An ABSOLUTE path
+        # is the explicit fixture injection root permits and is accepted.
+        import inspect
+        import lab_worker
+        src = inspect.getsource(lab_worker.main)
+        self.assertIn("_s.startswith('<')", src)
+        self.assertIn('assert_canonical_execution_lock', src)
+        # the discrimination is on token shape, and both arms are present
+        self.assertIn("'explicit_fixture_path'", src)
+        self.assertIn("('token', 'fallback')", src)
 
     def test_there_are_two_flock_implementations_and_they_differ(self) -> None:
-        # Not a style complaint: they differ in poll interval, clock and
-        # exception, so "the execution lock" names two behaviours. A reader who
-        # validates one has not validated the other -- which is what happened to
-        # my own two-worker fixture.
+        # Retained: root ruled two wrappers are acceptable PROVIDED they hold the
+        # same physical file. This records that they still differ observably, so
+        # validating one is still not validating the other.
         import inspect
         import lab_data
         import lab_worker
@@ -770,7 +815,7 @@ class ExecutionLockConformanceTests(unittest.TestCase):
         b = inspect.getsource(lab_worker.ExecutionLock)
         self.assertIn('PreflightError', a)
         self.assertIn('LockWaitExceeded', b)
-        self.assertNotEqual('0.05' in a, '0.05' in b)      # different poll interval
+        self.assertNotEqual('0.05' in a, '0.05' in b)
         self.assertIn('_LOCK_DEPTH', b)
         self.assertNotIn('_LOCK_DEPTH', a)
 

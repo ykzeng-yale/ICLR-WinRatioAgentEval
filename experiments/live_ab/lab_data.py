@@ -938,8 +938,6 @@ def sweep_references(tasks: list[Task], cfg: dict, *, on_progress: Callable | No
     cpu_s = int(sandbox_cfg.get('cpu_s', 10))
     output_cap = int(sandbox_cfg.get('output_cap_bytes', 65536))
     mem_bytes = int(sandbox_cfg.get('mem_bytes_requested_not_enforced_on_macos', 2 << 30))
-    lock_path = Path(sandbox_cfg.get('execution_lock_path')
-                     or (lab_common.WORK_ROOT / 'sandbox.lock'))
     max_lock_wait_s = float(((cfg or {}).get('execution') or {}).get('max_lock_wait_s', 120))
     threshold = REFERENCE_TIME_FRACTION * REFERENCE_VERIFIER_WALL_LIMIT_S
     # REFUSE BEFORE DISPATCH, root 2026-09-22 04:02: "With actual
@@ -956,7 +954,18 @@ def sweep_references(tasks: list[Task], cfg: dict, *, on_progress: Callable | No
             'a new production attempt cannot carry the named POSIX domain. '
             'Refusing BEFORE the verifier is dispatched rather than emitting '
             'a v2 record that a legacy observation would then certify.')
+    # CANONICAL, and the override cannot bypass it. `execution_lock_path` used
+    # to be honoured unconditionally; root: "prevent ... an unconstrained
+    # execution_lock_path override from bypassing the canonical production path."
+    #
+    # ORDER: after the provenance guard, still above the task loop and therefore
+    # above any dispatch. The provenance refusal is documented as hoisted above
+    # the loop and a test asserts an empty sweep refuses on provenance; putting
+    # the lock check first would have changed which precondition an operator
+    # hears about, for no safety gain -- both fire before anything executes.
     _prov = clock_provenance()          # raises if provenance is unavailable
+    lock_path, _lock_info = lab_common.resolve_execution_lock(
+        cfg, stage='lab_data.sweep_references')
     _boot_id, _host_id = _prov['boot_id'], _prov['host_id']
 
     out: list[Exclusion] = []

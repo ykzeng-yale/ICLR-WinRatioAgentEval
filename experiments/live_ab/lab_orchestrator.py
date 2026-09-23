@@ -1811,7 +1811,10 @@ class World:
                 'spool': tokenize_path(ctx.paths.spools / f'ep_{arrival}_{attempt}.jsonl'),
                 'records': tokenize_path(ctx.paths.records),
                 'requests': tokenize_path(ctx.paths.requests),
-                'sandbox_lock': tokenize_path(ctx.paths.sandbox_lock),
+                # <HOST_WORK>/sandbox.lock, NOT tokenize_path(): a <WORK> token would
+                # resolve against whatever checkout reads this job.
+                'sandbox_lock': lab_common.tokenize_execution_lock(
+                    lab_common.harness_config()),
                 'tasks': str(self.rt.get('tasks_path') or ''),
                 # protocol 5.5 promises "the used-seed set of earlier TRIALS of the
                 # PROGRAM", so the registry is the one at the program work root; a per-trial
@@ -3181,7 +3184,8 @@ def _arg_value(args: Sequence[str], flag: str, default: int) -> int:
     return default
 
 
-def _trial_paths(trial: str, results_root: Path, work_root: Path) -> TrialPaths:
+def _trial_paths(trial: str, results_root: Path, work_root: Path,
+                 *, execution_lock: Path | str | None = None) -> TrialPaths:
     results = Path(results_root) / trial
     work = Path(work_root) / trial
     return TrialPaths(trial=trial, results=results, events=results / 'events',
@@ -3189,7 +3193,13 @@ def _trial_paths(trial: str, results_root: Path, work_root: Path) -> TrialPaths:
                       spools=work / 'spools', records=work / 'records',
                       requests=work / 'requests', anchor_spool=work / 'anchor_spool',
                       anchors_private=work / 'anchors_private', logs=work / 'logs',
-                      run_lock=work / 'run.lock', sandbox_lock=work / 'sandbox.lock')
+                      run_lock=work / 'run.lock',
+                      # HOST-WIDE, not per trial: protocol 5.7 item 1 wants one
+                      # lock inode. run_lock stays per trial.
+                      sandbox_lock=(Path(execution_lock)
+                                    if execution_lock is not None
+                                    else lab_common.canonical_execution_lock(
+                                        lab_common.harness_config())))
 
 
 # ---------------------------------------------------------------------------

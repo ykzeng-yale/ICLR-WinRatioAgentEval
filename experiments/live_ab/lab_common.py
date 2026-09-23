@@ -71,8 +71,18 @@ class TrialPaths:
             d.mkdir(parents=True, exist_ok=True, mode=0o755)
 
 
-def trial_paths(trial: str) -> TrialPaths:
-    """The directory layout of one chain id (a trial, '_program' or '_prefreeze')."""
+def trial_paths(trial: str, *, execution_lock: Path | str | None = None) -> TrialPaths:
+    """The directory layout of one chain id (a trial, '_program' or '_prefreeze').
+
+    ``execution_lock`` exists for ISOLATED TREES ONLY. Production passes nothing
+    and gets the canonical host-wide file. An isolated fixture tree passes its
+    own, because a unit test must not contend for the production inode -- and
+    because hard-wiring the canonical lock into every constructed layout made two
+    concurrently running suites serialize on one real file, which is how I first
+    noticed. The CONTRACT is not enforced here: it is enforced at production
+    entry by `resolve_execution_lock` and `assert_canonical_execution_lock`,
+    which is where root asked for it.
+    """
     if not isinstance(trial, str) or not trial:
         raise ValueError('trial must be a non-empty string')
     results = RESULTS_ROOT / trial
@@ -91,8 +101,164 @@ def trial_paths(trial: str) -> TrialPaths:
         anchors_private=work / 'anchors_private',
         logs=work / 'logs',
         run_lock=work / 'run.lock',
-        sandbox_lock=work / 'sandbox.lock',
+        # PER-TRIAL run.lock, HOST-WIDE sandbox.lock. The sandbox lock used to be
+        # `work / 'sandbox.lock'`, which gave every trial its own inode and every
+        # checkout its own again -- five files where protocol 5.7 item 1 requires
+        # one. run.lock stays per trial: root explicitly preserved it.
+        sandbox_lock=(Path(execution_lock) if execution_lock is not None
+                      else canonical_execution_lock(harness_config())),
     )
+
+
+#: THE CANONICAL HOST-WIDE EXECUTION LOCK, token and resolver.
+#:
+#: Protocol 5.7 is titled "the host-wide execution lock" and item 1 requires an
+#: exclusive `flock` on ONE LOCK FILE, because the Seatbelt writable directory is
+#: shared by EVERY run on the host. Production resolved FIVE files
+#: (`results/live_ab/LOCK_TOPOLOGY_v2.json`): `<WORK>/sandbox.lock` for the
+#: reference sweep and `<WORK>/<trial>/sandbox.lock` per trial.
+#:
+#: Root's ruling, `reviews/lock_anchor_review_20260923_0348.md`:
+#:
+#:     "All cooperating execution paths on that host must bind to this same
+#:      resolved file ... A relative `work/live_ab/sandbox.lock` in each clone
+#:      would still create one lock per clone and would not satisfy the contract
+#:      ... Use one frozen host-root resolver/token (for example `<HOST_WORK>`)
+#:      consistently in serialization and resolution."
+#:
+#: WHY A SEPARATE TOKEN AND NOT `<WORK>`. `<WORK>` resolves against whatever
+#: checkout is reading the job, so a job serialized in one clone and resolved in
+#: another names a DIFFERENT physical file and the exclusion domain splits
+#: silently. `flock` protects an inode; two inodes exclude nothing. `<HOST_WORK>`
+#: resolves from a FROZEN pin in config, identically in every checkout.
+#:
+#: `run.lock` stays per trial -- root: "Preserve per-trial run locks." Only the
+#: sandbox execution lock is host-wide.
+_HARNESS_CONFIG: dict | None = None
+
+
+def harness_config() -> dict:
+    """`config.json` beside this module, read once.
+
+    `trial_paths` has no cfg argument and is called from the worker fallback, so
+    the canonical lock has to be reachable without threading config through every
+    caller. Cached because it is read on every path construction.
+    """
+    global _HARNESS_CONFIG
+    if _HARNESS_CONFIG is None:
+        _HARNESS_CONFIG = json.loads((HERE / 'config.json').read_text('utf-8'))
+    return _HARNESS_CONFIG
+
+
+HOST_WORK_TOKEN: str = '<HOST_WORK>'
+EXECUTION_LOCK_NAME: str = 'sandbox.lock'
+
+
+def host_work_root(cfg: Mapping | None) -> Path:
+    """The frozen host work root the execution lock lives under.
+
+    Read from `config.sandbox.host_work_root`, which is a PIN, not a derivation:
+    deriving it from this checkout is exactly the bug -- every clone would derive
+    its own. Absent or relative means the contract cannot be honoured, and that
+    refuses rather than silently falling back to a checkout-local path.
+    """
+    declared = (((cfg or {}).get('sandbox') or {}) or {}).get('host_work_root')
+    if not declared or not isinstance(declared, str):
+        raise PreflightError(
+            'config.sandbox.host_work_root is %r; protocol 5.7 item 1 needs a '
+            'frozen host path so every checkout binds the same lock inode'
+            % (declared,))
+    if not os.path.isabs(declared):
+        raise PreflightError(
+            'config.sandbox.host_work_root must be ABSOLUTE; %r would resolve '
+            'per checkout and split the lock' % (declared,))
+    return Path(declared)
+
+
+def canonical_execution_lock(cfg: Mapping | None) -> Path:
+    """The ONE file every cooperating execution path must flock."""
+    return host_work_root(cfg) / EXECUTION_LOCK_NAME
+
+
+def tokenize_execution_lock(cfg: Mapping | None) -> str:
+    """`<HOST_WORK>/sandbox.lock` -- serialized into job payloads."""
+    return '%s/%s' % (HOST_WORK_TOKEN, EXECUTION_LOCK_NAME)
+
+
+def resolve_execution_lock_token(tok: str, cfg: Mapping | None) -> Path:
+    """Resolve `<HOST_WORK>/...` against the FROZEN pin, never the local checkout."""
+    s = str(tok)
+    if s == HOST_WORK_TOKEN:
+        return host_work_root(cfg)
+    if s.startswith(HOST_WORK_TOKEN + '/'):
+        return host_work_root(cfg) / s[len(HOST_WORK_TOKEN) + 1:]
+    raise PreflightError('%r is not a %s path' % (s, HOST_WORK_TOKEN))
+
+
+EXECUTION_LOCK_FIXTURE_KEY: str = 'execution_lock_is_fixture'
+
+
+def resolve_execution_lock(cfg: Mapping | None, *, stage: str) -> tuple:
+    """THE ONE resolver every cooperating execution path uses. Returns (path, info).
+
+    Root allows both of these and they must not be confusable:
+
+      * "isolated unit fixtures may inject their own temporary lock explicitly"
+      * "prevent ... an unconstrained `execution_lock_path` override from
+        bypassing the canonical production path"
+
+    So an override is honoured ONLY when the configuration also declares
+    ``sandbox.execution_lock_is_fixture: true``. Bypassing the host-wide lock
+    becomes a thing you have to SAY, in the config, where a reader can see it --
+    not something a stray key does silently. Production config carries neither
+    key and gets the canonical file, checked.
+
+    The old code honoured any `execution_lock_path` unconditionally, which is the
+    unconstrained override root named.
+    """
+    sandbox_cfg = ((cfg or {}).get('sandbox') or {})
+    override = sandbox_cfg.get('execution_lock_path')
+    is_fixture = bool(sandbox_cfg.get(EXECUTION_LOCK_FIXTURE_KEY))
+    if override and not is_fixture:
+        raise PreflightError(
+            'sandbox.execution_lock_path=%r at %s without %s: an override that '
+            'does not declare itself a fixture would silently split the '
+            'host-wide lock of protocol 5.7 item 1'
+            % (override, stage, EXECUTION_LOCK_FIXTURE_KEY))
+    if is_fixture:
+        if not override:
+            raise PreflightError(
+                '%s is set at %s but no execution_lock_path was supplied'
+                % (EXECUTION_LOCK_FIXTURE_KEY, stage))
+        return Path(override), {'stage': stage, 'fixture_lock': True,
+                                'path': str(override),
+                                'note': 'EXPLICIT fixture lock; not the host-wide file'}
+    path = canonical_execution_lock(cfg)
+    return path, assert_canonical_execution_lock(path, cfg, stage=stage)
+
+
+def assert_canonical_execution_lock(path, cfg: Mapping | None, *, stage: str) -> dict:
+    """Refuse any execution lock that is not the canonical file.
+
+    Root: "Bind and check the canonical execution-lock identity at production
+    entry; do not permit an arbitrary job path to split it." A stale serialized
+    job from before this repair carries `<WORK>/<trial>/sandbox.lock`; resolving
+    it would open a second inode and the two workers would not exclude each
+    other. That must REFUSE, not proceed.
+
+    Compared on the REALPATH, because /tmp and /var reach the same inode through
+    /private on macOS and a string comparison would refuse a correct path.
+    """
+    want = canonical_execution_lock(cfg)
+    got = Path(path)
+    same = os.path.realpath(str(got)) == os.path.realpath(str(want))
+    if not same:
+        raise PreflightError(
+            'execution lock at %s is %s; protocol 5.7 item 1 requires the '
+            'canonical host-wide file %s. A different path is a different inode '
+            'and excludes nothing.' % (stage, got, want))
+    return {'stage': stage, 'canonical': str(want), 'bound': str(got),
+            'compared_on': 'realpath'}
 
 
 def _token_roots() -> list[tuple[str, str]]:

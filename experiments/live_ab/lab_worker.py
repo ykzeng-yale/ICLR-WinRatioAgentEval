@@ -136,6 +136,12 @@ def resolve_token_path(tok: str | Path) -> Path:
     Job files carry tokenized paths so that no tracked artifact holds an absolute path
     (PG-11); the worker resolves them against the same roots."""
     s = str(tok)
+    # <HOST_WORK> FIRST, and resolved from the FROZEN config pin rather than this
+    # checkout. That is the whole point: a job serialized in one clone and read in
+    # another must name the same lock inode. Every other token is deliberately
+    # checkout-relative and stays that way.
+    if s == lab_common.HOST_WORK_TOKEN or s.startswith(lab_common.HOST_WORK_TOKEN + '/'):
+        return lab_common.resolve_execution_lock_token(s, lab_common.harness_config())
     roots = {
         '<WORK>': lab_common.WORK_ROOT,
         '<RESULTS>': lab_common.RESULTS_ROOT,
@@ -642,6 +648,36 @@ def main(argv: list[str] | None = None) -> int:
     paths = job.get('paths') or {}
     lock = resolve_token_path(paths['sandbox_lock']) if 'sandbox_lock' in paths \
         else lab_common.trial_paths(str(job['trial'])).sandbox_lock
+    # PRODUCTION ENTRY BINDING CHECK, discriminating on the TOKEN SHAPE.
+    #
+    # The orchestrator now serializes exactly `<HOST_WORK>/sandbox.lock`. So a
+    # job whose `sandbox_lock` is a TOKEN but not that one did not come from the
+    # current production orchestrator: it is a STALE serialized job, carrying
+    # `<WORK>/<trial>/sandbox.lock` from before this repair, and resolving it
+    # would open a second inode. That is precisely what root said must not be
+    # permitted -- "do not permit an arbitrary job path to split it" -- so it
+    # refuses.
+    #
+    # An ABSOLUTE path is not something production ever emits; it is the explicit
+    # injection root allows -- "isolated unit fixtures may inject their own
+    # temporary lock explicitly". It is accepted and recorded as a fixture.
+    #
+    # Two earlier attempts at this check were wrong and the suite said so: the
+    # first refused every non-canonical path and broke four worker tests; the
+    # second keyed on a flag inside the job cfg, which any job could assert and
+    # which the failing tests did not carry anyway.
+    _raw_lock = paths.get('sandbox_lock')
+    _lock_kind = 'fallback'
+    if _raw_lock is not None:
+        _s = str(_raw_lock)
+        if _s.startswith('<'):
+            _lock_kind = 'token'
+        else:
+            _lock_kind = 'explicit_fixture_path'
+    if _lock_kind in ('token', 'fallback'):
+        lab_common.assert_canonical_execution_lock(
+            lock, lab_common.harness_config(), stage='lab_worker.main')
+
     try:
         run_job(job, sandbox_lock_path=lock)
     except BaseException:                       # noqa: BLE001 - already spooled

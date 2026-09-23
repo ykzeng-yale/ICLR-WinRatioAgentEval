@@ -274,7 +274,13 @@ class TrialPaths:
     run_lock: Path; sandbox_lock: Path
     def mkdirs(self) -> None: ...          # side effect: creates every directory, mode 0o755
 
-def trial_paths(trial: str) -> TrialPaths: ...                      # [pure] except for the object
+def trial_paths(trial: str, *, execution_lock: Path | str | None = None) -> TrialPaths: ...
+                                                                    # [pure] except for the object
+                                                                    # execution_lock: ISOLATED TREES ONLY.
+                                                                    # Production passes nothing and gets the
+                                                                    # canonical host-wide sandbox.lock of
+                                                                    # protocol 5.7 item 1. run_lock stays
+                                                                    # per trial.
 def tokenize_path(p: str | Path) -> str:
     """'/Users/x/ICLR.../work/live_ab/T1/records/ab.json' -> '<WORK>/T1/records/ab.json'.
     Replaces, longest prefix first: WORK_ROOT -> '<WORK>', RESULTS_ROOT -> '<RESULTS>',

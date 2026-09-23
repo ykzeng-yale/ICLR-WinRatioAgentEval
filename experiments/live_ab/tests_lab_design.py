@@ -640,7 +640,15 @@ class SweepTests(unittest.TestCase):
             slow = self._task('mbpp_full/9003',
                               'import time\ntime.sleep(2.7)\n\ndef f(a, b):\n    return a + b\n',
                               'assert f(1, 2) == 3')
-            cfg = {'sandbox': {'timeout_s': 10.0, 'cpu_s': 10, 'output_cap_bytes': 65536},
+            # EXPLICIT fixture lock: this unit sweep really executes reference
+            # programs, so it must not contend for the host-wide production
+            # inode. Root allows an injected fixture lock provided it declares
+            # itself, which is what execution_lock_is_fixture is for.
+            cfg = {'sandbox': {'timeout_s': 10.0, 'cpu_s': 10,
+                               'output_cap_bytes': 65536,
+                               'execution_lock_path': str(
+                                   Path(tempfile.mkdtemp()) / 'unit_sweep.lock'),
+                               'execution_lock_is_fixture': True},
                    'execution': {'max_lock_wait_s': 30}}
             seen: list = []
             exclusions = lab_data.sweep_references([good, broken, slow], cfg,
@@ -1969,7 +1977,8 @@ class AttemptLedgerRetentionTests(unittest.TestCase):
                     'test': ''}
             cfg = {'sandbox': {'timeout_s': 10.0, 'cpu_s': 10,
                                'output_cap_bytes': 65536,
-                               'execution_lock_path': str(tmp / 'lock')},
+                               'execution_lock_path': str(tmp / 'lock'),
+                               'execution_lock_is_fixture': True},
                    'execution': {'max_lock_wait_s': 5}}
             with mock.patch.object(lab_data, '_pilot_verify', lambda: stub):
                 exclusions = lab_data.sweep_references([task], cfg,
@@ -2001,7 +2010,8 @@ class AttemptLedgerRetentionTests(unittest.TestCase):
                     'reference': 'def f():\n    return 1\n',
                     'test_imports': [], 'test_list': [], 'challenge_test_list': [],
                     'test': ''}
-            cfg = {'sandbox': {'execution_lock_path': str(tmp / 'lock')},
+            cfg = {'sandbox': {'execution_lock_path': str(tmp / 'lock'),
+                               'execution_lock_is_fixture': True},
                    'execution': {'max_lock_wait_s': 5}}
             with mock.patch.object(lab_data, '_pilot_verify', lambda: stub):
                 with self.assertRaises(OSError):

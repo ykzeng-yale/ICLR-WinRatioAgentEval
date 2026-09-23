@@ -400,8 +400,10 @@ def run_two_worker(fixture_root: Optional[Path] = None,
     src = probe_source(targets, os.path.join(base, 'p_*'))
 
     sandbox_cfg = cfg.get('sandbox') or {}
-    lock_path = Path(sandbox_cfg.get('execution_lock_path')
-                     or (lab_common.WORK_ROOT / 'sandbox.lock'))
+    # CANONICAL host-wide lock, checked at entry. Both containment routes are
+    # named in root's ruling as cooperating paths that must bind the same inode.
+    lock_path, _lock_info = lab_common.resolve_execution_lock(
+        cfg, stage='lab_containment')
     max_lock_wait = float((cfg.get('execution') or {}).get('max_lock_wait_s', 120))
     py = sys.executable
 
@@ -600,8 +602,10 @@ def run_probe(fixture_root: Optional[Path] = None) -> Dict[str, Any]:
     src = probe_source(targets, os.path.join(base, 'p_*'))
 
     sandbox_cfg = cfg.get('sandbox') or {}
-    lock_path = Path(sandbox_cfg.get('execution_lock_path')
-                     or (lab_common.WORK_ROOT / 'sandbox.lock'))
+    # CANONICAL host-wide lock, checked at entry. Both containment routes are
+    # named in root's ruling as cooperating paths that must bind the same inode.
+    lock_path, _lock_info = lab_common.resolve_execution_lock(
+        cfg, stage='lab_containment')
     import lab_data
     started = time.time()
     with lab_data._ExecutionLock(lock_path, float((cfg.get('execution') or {})
