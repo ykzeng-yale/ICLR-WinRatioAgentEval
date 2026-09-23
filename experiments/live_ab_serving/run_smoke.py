@@ -50,9 +50,19 @@ REQUEST_CAP_S = 120.0
 #: Bounds on the drained producer diagnostics. Root asked for them to be drained
 #: and saved "within the already required absolute deadline", so the join is
 #: bounded and what exceeds the caps is COUNTED rather than silently lost.
-DIAGNOSTIC_LINE_CAP = 2000
-DIAGNOSTIC_LINE_CHARS = 400
+#: The FINITE byte budget for the retained diagnostic capture. Root, 10:03:
+#: "Freeze that finite byte budget in the existing costed preparation plan; do
+#: not use a new model run to tune it." Declared here and carried into the plan.
+DIAGNOSTIC_BYTE_BUDGET = 8 * 1024 * 1024
+#: Fixed-size reads: a line iterator would consume an entire line before any cap
+#: applied, so one enormous line could exhaust memory whatever the cap said.
+DIAGNOSTIC_CHUNK_BYTES = 65536
+#: Display only. Preview length never decides whether an acquisition is valid.
+DIAGNOSTIC_PREVIEW_CHARS = 4000
 DRAIN_JOIN_S = 30.0
+#: Time reserved at the end of the absolute budget for stop, reap and
+#: finalisation, so cleanup is never the thing that runs out of clock.
+CLEANUP_RESERVE_S = 90.0
 TOKEN_CAP = 2048
 
 
@@ -99,50 +109,104 @@ def _retain_bytes(p: Path) -> dict:
     return out
 
 
-def drain_stream(stream, sink: list, dropped: dict, *,
-                 line_cap: int = DIAGNOSTIC_LINE_CAP,
-                 char_cap: int = DIAGNOSTIC_LINE_CHARS) -> None:
-    """Read `stream` to EOF into `sink`, counting whatever exceeds the caps.
+def drain_to_artifact(stream, artifact_path: Path, state: dict, *,
+                      byte_budget: int = DIAGNOSTIC_BYTE_BUDGET,
+                      chunk: int = DIAGNOSTIC_CHUNK_BYTES,
+                      deadline=None) -> None:
+    """Copy `stream` to an IMMUTABLE per-attempt artifact, in bounded chunks.
 
-    Module level, and not the closure it started as, so it can be exercised with
-    a mocked child. Root, 2026-09-23 08:00: "Mocked-child and saved-file
-    regressions suffice for these Python repairs."
+    Root, 2026-09-23 10:03, deciding the question put to it:
 
-    The caps bound memory; `dropped` records exactly what they cost, because a
-    silently truncated diagnostic reads as a quiet server. Nothing here raises:
-    a failure to drain is appended to the sink as data, since this runs on a
-    daemon thread whose exception would otherwise vanish.
+        "A shortened display preview alone must not invalidate an otherwise
+         complete acquisition. Missing required raw capture still must. The
+         current stream helper keeps only truncated lines, so those lost
+         characters are currently lost raw evidence, not merely hidden from the
+         display. ... Retain the full bounded diagnostic byte stream as an
+         immutable per-attempt artifact, with byte count and hash/reference;
+         derive the bounded receipt preview from that capture. Read in bounded
+         chunks, not an unbounded line iterator."
+
+    THE DEFECT THAT MAKES THIS NECESSARY. The previous helper kept only trimmed
+    lines. Its counts said how much was lost, but the bytes themselves were
+    gone, so the receipt's digest covered the RETAINED TEXT rather than the
+    stream. Root: "A digest of bytes that were discarded is not a retained raw
+    artifact." Truncation was therefore never a display question -- it was
+    destruction of evidence, which is exactly why the strict gate could not
+    simply be dropped.
+
+    Also: a line iterator consumes a whole line before any per-line cap applies,
+    so one enormous line could exhaust memory however small the cap. Fixed-size
+    reads bound that, which is the "bounded previews do not imply bounded
+    memory" point root made.
+
+    `raw_capture_complete` requires EOF, no error, and every byte read written
+    to the artifact. Preview length plays no part in it.
     """
-    dropped.setdefault('lines', 0)
-    dropped.setdefault('chars', 0)
-    dropped.setdefault('truncated_lines', 0)
-    dropped['complete'] = False
-    dropped['error'] = None
+    state.setdefault('bytes_captured', 0)
+    state.setdefault('bytes_dropped', 0)
+    state['reached_eof'] = False
+    state['error'] = None
+    state['budget_exhausted'] = False
+    state['deadline_exhausted'] = False
+    state['artifact'] = lab_common.display_path(artifact_path)
+    digest = hashlib.sha256()
     try:
-        for line in stream:
-            if len(sink) < line_cap:
-                kept = line.rstrip('\n')[:char_cap]
-                # COUNT WHAT TRIMMING COSTS. Root, 2026-09-23 09:19:
-                # "characters removed from retained lines are not counted (a
-                # 900-character line trimmed to 400 reports zero dropped
-                # characters)." A retained-but-truncated line looked identical
-                # to a short one, so the receipt under-reported what was lost.
-                lost = len(line.rstrip('\n')) - len(kept)
-                if lost > 0:
-                    dropped['truncated_lines'] += 1
-                    dropped['chars'] += lost
-                sink.append(kept)
-            else:
-                dropped['lines'] += 1
-                dropped['chars'] += len(line)
-        dropped['complete'] = True
+        raw = getattr(stream, 'buffer', stream)      # bytes, not decoded text
+        with open(artifact_path, 'wb') as fh:
+            while True:
+                if deadline is not None and time.monotonic() > deadline:
+                    state['deadline_exhausted'] = True
+                    break
+                block = raw.read(chunk)
+                if not block:
+                    state['reached_eof'] = True
+                    break
+                if isinstance(block, str):
+                    block = block.encode('utf-8', 'surrogateescape')
+                room = byte_budget - state['bytes_captured']
+                if room <= 0:
+                    # The PREFIX is retained and the loss stated precisely. Root:
+                    # "retain the available prefix and precise failure/loss state
+                    # and refuse full capture."
+                    state['budget_exhausted'] = True
+                    state['bytes_dropped'] += len(block)
+                    continue
+                keep = block[:room]
+                fh.write(keep)
+                digest.update(keep)
+                state['bytes_captured'] += len(keep)
+                if len(keep) < len(block):
+                    state['budget_exhausted'] = True
+                    state['bytes_dropped'] += len(block) - len(keep)
     except Exception as exc:                                   # noqa: BLE001
-        # Recorded as STRUCTURED state, not only as a line in the sink: root
-        # observed that "an exception or unfinished drain can still accompany
-        # supervisor success", because the caller only looked at the returned
-        # lines.
-        dropped['error'] = '%s: %s' % (type(exc).__name__, exc)
-        sink.append('[drain failed: %s: %s]' % (type(exc).__name__, exc))
+        state['error'] = '%s: %s' % (type(exc).__name__, exc)
+    state['sha256'] = digest.hexdigest()
+    state['raw_capture_complete'] = bool(
+        state['reached_eof'] and not state['error']
+        and not state['budget_exhausted'] and not state['deadline_exhausted']
+        and state['bytes_dropped'] == 0)
+
+
+def preview_of_artifact(artifact_path: Path, state: dict, *,
+                        chars: int = DIAGNOSTIC_PREVIEW_CHARS) -> dict:
+    """The bounded display preview, DERIVED from the retained capture.
+
+    Two distinct states, as root required: `preview_truncated` says the display
+    was shortened; `raw_capture_complete` says whether evidence was lost. Only
+    the second may refuse an acquisition.
+    """
+    out: dict = {'preview_chars_cap': chars, 'preview_truncated': False,
+                 'preview': '', 'derived_from': state.get('artifact'),
+                 'capture_sha256': state.get('sha256')}
+    try:
+        raw = artifact_path.read_bytes() if artifact_path.exists() else b''
+    except Exception as exc:                                   # noqa: BLE001
+        out['preview_unavailable'] = '%s: %s' % (type(exc).__name__, exc)
+        return out
+    text = raw.decode('utf-8', 'replace')
+    out['preview'] = text[:chars]
+    out['preview_truncated'] = len(text) > chars
+    return out
 
 
 def main() -> int:
@@ -201,11 +265,11 @@ def main() -> int:
     # the caller already enforces, and a bounded buffer, so a chatty or looping
     # server cannot exhaust memory. What is dropped is COUNTED, never silently
     # truncated.
-    diagnostics: list = []
-    dropped = {'lines': 0, 'chars': 0}
-
+    capture = {}
+    capture_path = log.parent / ('%s.producer_stream' % token)
     drain_thread = threading.Thread(
-        target=drain_stream, args=(proc.stdout, diagnostics, dropped),
+        target=drain_to_artifact, args=(proc.stdout, capture_path, capture),
+        kwargs={'deadline': t_wall0 + WALL_CAP_S - CLEANUP_RESERVE_S},
         daemon=True, name='live_ab_smoke_drain')
     drain_thread.start()
 
@@ -306,27 +370,28 @@ def main() -> int:
     # Join the drain within the deadline, then RETAIN what it collected. A drain
     # that has not finished is reported as unfinished rather than waited on.
     drain_thread.join(timeout=DRAIN_JOIN_S)
-    out['producer_diagnostics'] = {
-        'lines': list(diagnostics),
-        'lines_are_a_bounded_preview': True,
-        'line_cap': DIAGNOSTIC_LINE_CAP,
-        'chars_per_line_cap': DIAGNOSTIC_LINE_CHARS,
-        'dropped_lines': dropped.get('lines', 0),
-        'dropped_chars': dropped.get('chars', 0),
-        'truncated_lines': dropped.get('truncated_lines', 0),
-        'drain_reached_eof': bool(dropped.get('complete')),
-        'drain_error': dropped.get('error'),
-        'drain_thread_finished': not drain_thread.is_alive(),
-        # The capture is COMPLETE only if the drain reached EOF, raised nothing,
-        # and dropped nothing. Root: "Incomplete diagnostic capture must not be
-        # reported as complete evidence." This flag is consumed by the
-        # supervisor verdict below, not merely recorded.
-        'capture_complete': (bool(dropped.get('complete'))
-                             and not dropped.get('error')
-                             and not dropped.get('lines', 0)
-                             and not dropped.get('truncated_lines', 0)),
-        'stream': 'the child stdout+stderr pipe, drained continuously from launch',
-    }
+    out['producer_diagnostics'] = dict(
+        preview_of_artifact(capture_path, capture),
+        # TWO DISTINCT STATES, as root decided on 2026-09-23 10:03: a shortened
+        # display preview must not invalidate an otherwise complete acquisition,
+        # but missing raw capture still must. Only `raw_capture_complete` below
+        # enters the verdict; `preview_truncated` never does.
+        raw_capture_complete=bool(capture.get('raw_capture_complete')),
+        bytes_captured=capture.get('bytes_captured', 0),
+        bytes_dropped=capture.get('bytes_dropped', 0),
+        reached_eof=bool(capture.get('reached_eof')),
+        drain_error=capture.get('error'),
+        budget_exhausted=bool(capture.get('budget_exhausted')),
+        deadline_exhausted=bool(capture.get('deadline_exhausted')),
+        byte_budget=DIAGNOSTIC_BYTE_BUDGET,
+        drain_thread_finished=not drain_thread.is_alive(),
+        artifact=capture.get('artifact'),
+        artifact_sha256=capture.get('sha256'),
+        stream='the owned child stdout+stderr pipe, captured to an immutable '
+               'per-attempt artifact from launch',
+        note='draining the owned child pipe is ACQUISITION, not analysis of an '
+             'owner-written lifecycle file, so it runs before the closed-file '
+             'gate (root, 10:03)')
 
     # --- THE GATE: nothing is parsed, read or hashed until the child is
     # --- CONFIRMED STOPPED -------------------------------------------------
@@ -405,22 +470,41 @@ def main() -> int:
          if out.get('acquisition_not_analyzed') else None),
         ('acquisition not complete: %s' % (obs or {}).get('reason')
          if obs is not None and not obs.get('lifecycle_complete') else None),
-        ('diagnostic capture incomplete: %s'
+        ('raw diagnostic capture incomplete: %s'
          % {k: out['producer_diagnostics'][k] for k in
-            ('drain_reached_eof', 'drain_error', 'dropped_lines', 'truncated_lines')}
-         if not out['producer_diagnostics']['capture_complete'] else None),
+            ('reached_eof', 'drain_error', 'bytes_dropped',
+             'budget_exhausted', 'deadline_exhausted')}
+         if not out['producer_diagnostics']['raw_capture_complete'] else None),
+        ('the drain thread had not finished, so its state is not a final snapshot'
+         if not out['producer_diagnostics']['drain_thread_finished'] else None),
     ) if p]
     out['supervisor_problems'] = problems
     dest = Path(lab_common.RESULTS_ROOT) / ('SMOKE_RECEIPT_%s.json' % token)
     lab_common.write_json_atomic(dest, out)
-    print(json.dumps({k: out[k] for k in
+    # THE SUMMARY MUST NOT OUTLIVE THE RECEIPT. Root, 2026-09-23 10:03: "after
+    # writing its valid refusal receipt, the console summary accesses the absent
+    # `raw_log_bytes` key, then would call `obs.get` on `None`. Guard the summary
+    # to return the intended nonzero status normally."
+    #
+    # Both are real on the route I added last cycle: when the child is not
+    # confirmed stopped, `raw_log_bytes` is never set (KeyError) and `obs` stays
+    # None (AttributeError). Both fire AFTER the refusal receipt is on disk and
+    # BEFORE `return 1`, so the supervisor would die with a traceback instead of
+    # the designed exit status -- a correct refusal reported as a crash. Printing
+    # is cosmetic; the exit status is the contract, and nothing cosmetic may
+    # stand between the two.
+    print(json.dumps({k: out.get(k) for k in
                       ('server_ready', 'submitted_requests',
                        'generated_tokens_total', 'wall_seconds_total',
                        'distinct_slots', 'observed_overlap_s',
-                       'two_slots_overlapped', 'raw_log_bytes')}, indent=1))
-    print('observation active:', obs.get('active'),
-          '| lifecycle_complete:', obs.get('lifecycle_complete'),
-          '| reason:', obs.get('reason'))
+                       'two_slots_overlapped', 'raw_log_bytes',
+                       'child_confirmed_stopped')}, indent=1))
+    if obs is None:
+        print('observation: NOT TAKEN -', out.get('acquisition_not_analyzed'))
+    else:
+        print('observation active:', obs.get('active'),
+              '| lifecycle_complete:', obs.get('lifecycle_complete'),
+              '| reason:', obs.get('reason'))
     print('written:', dest)
 
     # THE EXIT STATUS REPORTS THE ACQUISITION. Root, 2026-09-23 08:40: the

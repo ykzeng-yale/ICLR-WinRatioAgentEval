@@ -19,6 +19,7 @@ import ast
 import hashlib
 import inspect
 import contextlib
+import io
 import json
 import os
 import re
@@ -4319,73 +4320,74 @@ class AcquisitionSealTests(unittest.TestCase):
     # test_a_DECLARED_STOP_SIGNAL_EXCUSES_NOTHING above, which asserts the
     # opposite and cites the retained smoke receipt that settles it.
 
-    def test_the_supervisor_drain_is_bounded_and_counts_what_it_drops(self):
-        """Root: "The terminal-failure path still depends on an unchecked stderr
-        stream that the supplied supervisor does not drain or save ... Drain/save
-        diagnostics within the already required absolute deadline."
-
-        Nothing read that pipe. The missing diagnostics were the lesser problem:
-        a child writing more than the pipe buffer BLOCKS on write, so the
-        supervisor's own plumbing could hang the producer it is measuring.
-
-        Mocked child, per root's "mocked-child ... regressions suffice".
-        """
+    def _run_smoke_module(self):
         import importlib.util
         spec = importlib.util.spec_from_file_location(
             'run_smoke_for_test',
             Path(__file__).resolve().parents[1] / 'live_ab_serving' / 'run_smoke.py')
-        run_smoke = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(run_smoke)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod
 
-        sink, dropped = [], {}
-        run_smoke.drain_stream(iter(['a\n', 'b' * 900 + '\n', 'c\n']), sink,
-                               dropped, line_cap=2, char_cap=10)
-        self.assertEqual(sink, ['a', 'b' * 10])
-        self.assertEqual(dropped['lines'], 1)
-        self.assertGreater(dropped['chars'], 0)
+    def test_the_whole_stream_is_RETAINED_not_just_the_trimmed_lines(self):
+        """Root, 2026-09-23 10:03: "A shortened display preview alone must not
+        invalidate an otherwise complete acquisition. Missing required raw
+        capture still must ... A digest of bytes that were discarded is not a
+        retained raw artifact."
 
-        # a stream that raises mid-read is DATA, not an exception on a daemon
-        # thread where it would vanish
-        def exploding():
-            yield 'first\n'
-            raise OSError('pipe went away')
-        sink2, dropped2 = [], {}
-        run_smoke.drain_stream(exploding(), sink2, dropped2)
-        self.assertEqual(sink2[0], 'first')
-        self.assertIn('drain failed', sink2[1])
-        # STRUCTURED state, not just a line in the sink: root observed that "an
-        # exception or unfinished drain can still accompany supervisor success"
-        # because the caller only looked at the returned lines.
-        self.assertFalse(dropped2['complete'])
-        self.assertIn('OSError', dropped2['error'])
+        The previous helper kept only trimmed lines, so root's own
+        counterexample -- a 900-character line trimmed to 400 -- DESTROYED 500
+        bytes while reporting a digest of what survived. Truncation was never a
+        display question; it was loss of evidence.
 
-    def test_trimming_a_retained_line_is_COUNTED(self):
-        """Root: "characters removed from retained lines are not counted (a
-        900-character line trimmed to 400 reports zero dropped characters)."
-
-        A retained-but-truncated line looked identical to a short one, so the
-        receipt under-reported what was lost.
+        Here the full stream reaches an immutable artifact, the digest is of
+        THOSE bytes, and the preview is derived from them afterwards.
         """
-        import importlib.util
-        spec = importlib.util.spec_from_file_location(
-            'run_smoke_trim',
-            Path(__file__).resolve().parents[1] / 'live_ab_serving' / 'run_smoke.py')
-        run_smoke = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(run_smoke)
+        run_smoke = self._run_smoke_module()
+        art = self.tmp / 'cap.bin'
+        payload = ('x' * 900 + '\n').encode()
+        state = {}
+        run_smoke.drain_to_artifact(io.BytesIO(payload), art, state)
+        self.assertTrue(state['raw_capture_complete'])
+        self.assertEqual(state['bytes_captured'], len(payload))
+        self.assertEqual(state['bytes_dropped'], 0)
+        self.assertEqual(art.read_bytes(), payload)
+        self.assertEqual(state['sha256'], hashlib.sha256(payload).hexdigest(),
+                         'the digest must cover the STREAM, not the survivors')
 
-        sink, dropped = [], {}
-        run_smoke.drain_stream(iter(['x' * 900 + '\n']), sink, dropped,
-                               line_cap=10, char_cap=400)
-        self.assertEqual(len(sink[0]), 400)
-        self.assertEqual(dropped['truncated_lines'], 1)
-        self.assertEqual(dropped['chars'], 500)      # 900 - 400, not zero
-        self.assertEqual(dropped['lines'], 0)        # the line was RETAINED
-        self.assertTrue(dropped['complete'])
+        # the preview is short; that is a DISPLAY fact and nothing else
+        prev = run_smoke.preview_of_artifact(art, state, chars=400)
+        self.assertTrue(prev['preview_truncated'])
+        self.assertEqual(len(prev['preview']), 400)
+        self.assertTrue(state['raw_capture_complete'],
+                        'a shortened preview must not invalidate the capture')
 
-        sink2, dropped2 = [], {}
-        run_smoke.drain_stream(iter(['short\n']), sink2, dropped2, char_cap=400)
-        self.assertEqual(dropped2['chars'], 0)       # control: nothing trimmed
-        self.assertEqual(dropped2['truncated_lines'], 0)
+    def test_an_exhausted_byte_budget_retains_the_prefix_and_REFUSES(self):
+        """Root: "If the predeclared raw-storage budget or absolute deadline is
+        exhausted, retain the available prefix and precise failure/loss state and
+        refuse full capture." """
+        run_smoke = self._run_smoke_module()
+        art = self.tmp / 'cap2.bin'
+        state = {}
+        run_smoke.drain_to_artifact(io.BytesIO(b'a' * 5000), art, state,
+                                    byte_budget=1000, chunk=256)
+        self.assertFalse(state['raw_capture_complete'])
+        self.assertTrue(state['budget_exhausted'])
+        self.assertEqual(state['bytes_captured'], 1000)
+        self.assertEqual(state['bytes_dropped'], 4000)
+        self.assertEqual(len(art.read_bytes()), 1000, 'the PREFIX is retained')
+
+    def test_a_reader_that_raises_records_structured_failure(self):
+        run_smoke = self._run_smoke_module()
+
+        class Boom:
+            def read(self, n):
+                raise OSError('pipe went away')
+        state = {}
+        run_smoke.drain_to_artifact(Boom(), self.tmp / 'cap3.bin', state)
+        self.assertFalse(state['raw_capture_complete'])
+        self.assertIn('OSError', state['error'])
+        self.assertFalse(state['reached_eof'])
 
     # -- root 2026-09-23 09:19 ----------------------------------------------
     def test_a_DECLARED_STOP_SIGNAL_EXCUSES_NOTHING(self):
