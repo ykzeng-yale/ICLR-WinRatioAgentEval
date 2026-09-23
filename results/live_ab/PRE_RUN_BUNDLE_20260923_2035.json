@@ -1,0 +1,330 @@
+{
+ "component_verdicts": {
+  "decisions_for_root": [
+   "OD21 server lifecycle in the pinned orchestrator (executable blocker EB1)",
+   "freeze blocker 1: ruling on the per-worker send_permit rule (4f23922) (EB5)",
+   "OD20 exclusive-host window (calendar feasibility)",
+   "OD19 trial restarts (not bounded by frozen rules)",
+   "OD8(a) which build serves stages 1-6, 11 and the trials (freeze-review decision)",
+   "OD7(a) acceptance of the delivered \u00a72.2 patch-state amendment (48f4d70)",
+   "OD2 retries in prefreeze stages",
+   "OD1 pre-c_max timeout and censoring",
+   "OD3 the four missing conformance prompts",
+   "OD4/OD10 rehearsal configuration and anchor postings",
+   "OD6/OD9 loaded-sweep transport, concurrency and sealed blocks (the cadence and totals this sheet resolves as a proposal)",
+   "OD18 whether a stage-11 engineering acquisition is required",
+   "the remaining ODs in open_decisions_for_root",
+   "engineering scope and time for EB2-EB4 (drivers for stages 1-6, the stage-3 load driver, the 11.5 replay code and seed): not costed here"
+  ],
+  "executable_launch_blockers": [
+   [
+    "EB1",
+    "the pinned production orchestrator does not start, smoke-check or supervise servers"
+   ],
+   [
+    "EB2",
+    "drivers for stages 1, 2, 4, 5 and 6 do not exist"
+   ],
+   [
+    "EB3",
+    "the stage-3 two-stream loaded-sweep driver does not exist"
+   ],
+   [
+    "EB4",
+    "the 11.5 extended-replay code and seed are absent"
+   ],
+   [
+    "EB5",
+    "freeze blocker 1 (the send gate is not atomic with the POST; per-worker send_permit rule 4f23922) awaits a root ruling"
+   ]
+  ],
+  "feasibility_verdict": "RESOURCE-FEASIBLE, NOT YET EXECUTABLE. Disk, server slots, model calls and tokens are finite and within the host (below). It is not executable as pinned: five executable launch blockers stand (executable_launch_blockers EB1-EB5), and their engineering time is not in the calendar arithmetic. Wall time is finite only through the frozen per-episode hard cap, so calendar feasibility depends on an exclusive-host window no record fixes (OD20). Window rule, stated before outcomes (reviews/live_progress_bottleneck_20260923_1844.md:17): with W = root's exclusive-host window, P = prefreeze exclusive-host stop caps 134,700 s (+600 s if stage 11 runs), if W < P + 6 h (protocol pilot-based trial central, protocol_FINAL.md:2266-2267) the original design is infeasible on this host and must be declared so before outcomes; if P + 6 h <= W < P + 506,041 s (the conservative every-call-1,024-tokens planning figure) it is feasible with completion at risk; no W bounds completion, since the trial hard bound is 95.5 days at request_timeout_s 180. This sheet proposes no narrower design and changes no margin, horizon, alpha or stopping rule.",
+  "launch_record_pending": {
+   "host_id_boot_id": "measured at the launch, not at preparation",
+   "why": "identity of the boot that launches; the request and server arguments are bound in stage0_binding (PROPOSED)"
+  },
+  "launch_record_preflight_all_pass": true,
+  "sheet_consistency_assertions": 71,
+  "sheet_consistency_assertions_all_hold": true,
+  "sheet_status": "DRAFT v2r3: the finite feasibility sheet (reviews/live_progress_bottleneck_20260923_1844.md:16) with the costed stage pl",
+  "source_tree_three_checks_all_pass": true
+ },
+ "components": {
+  "experiments/live_ab/config.json": {
+   "bytes": 13917,
+   "sha256": "e4d42f5d442dde7e709222e0a4ad4985de0f20604061fec01f2e3ea95f75d824"
+  },
+  "experiments/live_ab/design/protocol_FINAL.md": {
+   "bytes": 317228,
+   "sha256": "64ace6d3e37732b372fd316055208e9deaab4d4e0722708563c8ebcc1579e82b"
+  },
+  "experiments/live_ab_serving/dependency_closure.py": {
+   "bytes": 39118,
+   "sha256": "f581ff9378d1c8e004dc3c0e50ef29b85ea5c7eacbf00d6b9cfa73e2384e02ce"
+  },
+  "experiments/live_ab_serving/live_ab_slot_lifecycle.patch": {
+   "bytes": 17188,
+   "sha256": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184"
+  },
+  "experiments/live_ab_serving/run_smoke.py": {
+   "bytes": 136283,
+   "sha256": "bf1ef6ae24178dc45d6da7840e4f7fc663a13d974cf316ee1ae1d0539d438fa5"
+  },
+  "experiments/live_ab_serving/stage0_request_argv.json": {
+   "bytes": 1541,
+   "sha256": "b4ba13506cef290b380e05dd1d60fc749134358c1702b34bb56e54392299db4c"
+  },
+  "experiments/live_ab_validation/cells.json": {
+   "bytes": 93463,
+   "sha256": "5c4a28f76a066d110205335b66c7df12a0c5d70045ad24fecace0ebec75e7784"
+  },
+  "results/live_ab/CANDIDATE_INSTRUMENT_MANIFEST_DURABLE.json": {
+   "bytes": 7520,
+   "sha256": "bc180e4e85b3563564dffb8e4ad6ef3c8818c549c4f7cfc1c17b3869c13c2096"
+  },
+  "results/live_ab/DURABLE_BUILD_CONFIG_SNAPSHOT.json": {
+   "bytes": 27328,
+   "sha256": "913c945b81d00833272f0eb269720b3eef66065f842d8d2dbd9e7d006019eae1"
+  },
+  "results/live_ab/DURABLE_LINKAGE_DELTA.json": {
+   "bytes": 10496,
+   "sha256": "0deffe0fae6b08c20bade58fe54e43401d475c88479c4d3edd6236b8f66df270"
+  },
+  "results/live_ab/DURABLE_LINKAGE_DELTA_EXPLAINED.json": {
+   "bytes": 21303,
+   "sha256": "c107494aef1c748af577e507d1f53f85c85fe2d3626d689ffa171d3c9c735e53"
+  },
+  "results/live_ab/DURABLE_REBUILD_20260923T192024Z.json": {
+   "bytes": 6845,
+   "sha256": "bcdcc6a7b4c57bc81c4a0c21d940e272a344773d318a0476d23418072234fe85"
+  },
+  "results/live_ab/FINITE_COSTED_PLAN_DRAFT_v2r3_20260923.json": {
+   "bytes": 311068,
+   "sha256": "d5596a2d41654bf64bc8fcdafa027c34c28b717fb93f63a021922f7ca7b97596"
+  },
+  "results/live_ab/FREEZE_REACHABILITY_v4.json": {
+   "bytes": 12669,
+   "sha256": "1e3ca4286b209771a71f4651507ac783f9c192ec8c925e0cbc518737ec2c5b23"
+  },
+  "results/live_ab/LOADER_CALL_SITE_EXCERPTS_v2.json": {
+   "bytes": 250374,
+   "sha256": "ed7347215b4f4bc645b174c3eb84ee6fd1bb0cf8ee45edfe3ea9fa10098e1962"
+  },
+  "results/live_ab/LOADER_LINKAGE_BUILD_RULES_v2.json": {
+   "bytes": 224406,
+   "sha256": "17add6e40ffd5764b300dd2c0cdc78c3f3a5f3fc89d5acb4304cddfec604ff75"
+  },
+  "results/live_ab/PATCH_STATE_AMENDMENT_RECEIPT_20260923_1933.json": {
+   "bytes": 8321,
+   "sha256": "01b00a6d0133b50d9434fff2b830e4a118d84c3114bba33160cb2dd6bb4a4d65"
+  },
+  "results/live_ab/PROSPECTIVE_LAUNCH_RECORD_20260923_2030.json": {
+   "bytes": 50159,
+   "sha256": "2c9bc44a344734fa5276bebe97e4ca7337213c34fb72c54908829940227a5ae4"
+  },
+  "results/live_ab/SOURCE_TREE_THREE_CHECKS_20260923_2033.json": {
+   "bytes": 1971,
+   "sha256": "b2d9ed4757d026a0aa8ca458b7f83e337860bb0a76eb2a345eb1de2c7a1f7434"
+  },
+  "results/live_ab/durable_build_originals/build.ninja": {
+   "bytes": 1221929,
+   "sha256": "c20432f6c971ea4f75717db31115be09956407fea66047b197da5bc852901e5d"
+  },
+  "results/live_ab/durable_build_originals/compile_commands.json": {
+   "bytes": 464845,
+   "sha256": "45502c34ceaa96b1ebcda3a09f65a8f16930eb27aca599f9283bc2b6334a1db4"
+  }
+ },
+ "convention": "deterministic-path",
+ "fresh_observation": {
+  "boot_time": "{ sec = 1784851748, usec = 896366 } Thu Jul 23 20:09:08 2026",
+  "disk_free_bytes_repo_volume": 100186234880,
+  "load_average": "{ 2.08 2.27 2.36 }",
+  "memory_bytes": 34359738368,
+  "observed_utc": "2026-09-23T20:35:03Z",
+  "processes_matching": {
+   "count": 0,
+   "patterns": [
+    "llama-server",
+    "run_smoke",
+    "lab_orchestrator",
+    "run_live_ab",
+    "ninja",
+    "cmake"
+   ],
+   "rows": []
+  },
+  "reading": "an observation at observed_utc, not a capacity lease or reservation; a loaded stage re-observes at its own start (capacity gate)"
+ },
+ "generated_utc": "2026-09-23T20:35:03Z",
+ "program_state": {
+  "alpha_spent": 0,
+  "calibration_episodes": 0,
+  "sources": [
+   "reviews/live_progress_bottleneck_20260923_1844.md:7 (owner 18:46:22Z)",
+   "reviews/durable_candidate_delta_20260923_1926.md:5 (owner 19:24 report)"
+  ],
+  "structural_freeze_inputs": "16/26",
+  "trial_episodes": 0
+ },
+ "repo_head_at_assembly": "54971a99b452e6ef93c20698e97c3d96466b1039",
+ "requirements_keys_absent_from_the_sheet": [],
+ "requirements_map": [
+  {
+   "answered_by": "results/live_ab/FINITE_COSTED_PLAN_DRAFT_v2r3_20260923.json",
+   "keys": [
+    "finite_feasibility_sheet.stage_rows",
+    "finite_feasibility_sheet.trial_rows",
+    "finite_feasibility_sheet.totals",
+    "finite_feasibility_sheet.feasibility_verdict"
+   ],
+   "root_20_03": "stage-by-stage time/token/host-capacity sheet"
+  },
+  {
+   "answered_by": "results/live_ab/FINITE_COSTED_PLAN_DRAFT_v2r3_20260923.json",
+   "keys": [
+    "finite_feasibility_sheet.remaining_structural_freeze_inputs"
+   ],
+   "root_20_03": "the remaining structural inputs",
+   "value": [
+    "golden_props_sha256",
+    "golden_generation_settings_sha256",
+    "serving_manifest_sha256",
+    "containment_probe_sha256",
+    "roster_sha256",
+    "task_content_sha256",
+    "arrival_order_sha256",
+    "prefreeze_head",
+    "prefreeze_bytes",
+    "prefreeze_file_sha256"
+   ]
+  },
+  {
+   "answered_by": "this file (components by SHA-256) and results/live_ab/PROSPECTIVE_LAUNCH_RECORD_20260923_2030.json",
+   "keys": [
+    "components",
+    "launch_manifest_fields (in the launch record)"
+   ],
+   "root_20_03": "immutable manifest"
+  },
+  {
+   "answered_by": "results/live_ab/PROSPECTIVE_LAUNCH_RECORD_20260923_2030.json",
+   "keys": [
+    "stage0_binding"
+   ],
+   "root_20_03": "exact stage-0 request/argv",
+   "value": {
+    "all_pass": true,
+    "negative_controls_all_refused": true,
+    "request": {
+     "max_tokens": 1024,
+     "n": 1,
+     "prompt": "Output the integers from 1 to 1000 separated by spaces. Do not add commentary.",
+     "seed": 0,
+     "stream": false,
+     "temperature": 0
+    },
+    "server_args": [
+     "--alias",
+     "qwen2.5-coder-7b-instruct-q4km",
+     "--host",
+     "127.0.0.1",
+     "--port",
+     "8091",
+     "-np",
+     "2",
+     "-c",
+     "16384",
+     "--no-kv-unified",
+     "-ngl",
+     "99",
+     "--jinja",
+     "--metrics",
+     "--no-context-shift",
+     "--offline",
+     "--no-cache-prompt",
+     "--cache-ram",
+     "0",
+     "--slot-prompt-similarity",
+     "0.0",
+     "--log-file",
+     "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/results/live_ab/SERVER_LOG_stage0_eng_acq_1.log",
+     "--log-timestamps"
+    ]
+   }
+  },
+  {
+   "answered_by": "results/live_ab/SOURCE_TREE_THREE_CHECKS_20260923_2033.json",
+   "keys": [
+    "check_1_head",
+    "check_2_status_porcelain",
+    "check_3_tree_equality"
+   ],
+   "root_20_03": "source-tree three-check receipt",
+   "value": {
+    "all_three_pass": true
+   }
+  },
+  {
+   "answered_by": "results/live_ab/FINITE_COSTED_PLAN_DRAFT_v2r3_20260923.json",
+   "keys": [
+    "finite_feasibility_sheet.stage_rows[*].completed/planned/failures_and_missingness/resource_use_timestamps",
+    "finite_feasibility_sheet.program_state"
+   ],
+   "root_20_03": "completed versus planned counts, failures/missingness and usage"
+  },
+  {
+   "answered_by": "results/live_ab/FINITE_COSTED_PLAN_DRAFT_v2r3_20260923.json",
+   "keys": [
+    "preserved_design.paired_AB_BA_rules",
+    "preserved_design.four_trial_order"
+   ],
+   "root_20_03": "AB/BA assignment"
+  },
+  {
+   "answered_by": "results/live_ab/FINITE_COSTED_PLAN_DRAFT_v2r3_20260923.json",
+   "keys": [
+    "preserved_design.enrollment_indexed_partial_bounds"
+   ],
+   "root_20_03": "enrollment-indexed partial bounds"
+  },
+  {
+   "answered_by": "results/live_ab/FINITE_COSTED_PLAN_DRAFT_v2r3_20260923.json",
+   "keys": [
+    "preserved_design.simultaneous_error_allocation",
+    "preserved_design.alpha_program_trial_gate",
+    "preserved_design.alpha_not_reallocated_on_deferral"
+   ],
+   "root_20_03": "simultaneous alpha allocation"
+  },
+  {
+   "answered_by": "results/live_ab/FINITE_COSTED_PLAN_DRAFT_v2r3_20260923.json",
+   "keys": [
+    "preserved_design.guardrails_and_decision_conditions"
+   ],
+   "root_20_03": "success/cost guardrails"
+  },
+  {
+   "answered_by": "results/live_ab/FINITE_COSTED_PLAN_DRAFT_v2r3_20260923.json",
+   "keys": [
+    "preserved_design.effect_independent_stopping",
+    "preserved_design.no_outcome_driven_extension_or_margin_relaxation"
+   ],
+   "root_20_03": "effect-independent stopping"
+  },
+  {
+   "answered_by": "this file",
+   "keys": [
+    "fresh_observation.observed_utc"
+   ],
+   "root_20_03": "actual timestamp of a fresh capacity/process observation"
+  }
+ ],
+ "schema": "live_ab/pre_run_bundle-v1",
+ "status": "FOR ROOT'S ONE GO/NO-GO FREEZE REVIEW. NOT A FREEZE and not an authorization: no trial episode, loaded stage, model load or server start is authorized by this bundle. Root's explicit freeze decision is required (reviews/patch_state_and_durable_linkage_delta_20260923_2003.md).",
+ "what_this_bundle_does_not_show": [
+  "native execution of the durable candidate: no launch is authorized, so the loaded behaviour is unmeasured",
+  "owner-host claims root cannot rerun from its checkout (the 41-edge closure, the 373-unit map over the owner-host trees, the three checks): owner evidence",
+  "engineering time for the executable blockers EB1-EB5: not costed"
+ ]
+}

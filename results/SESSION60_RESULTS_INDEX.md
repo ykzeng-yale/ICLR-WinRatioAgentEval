@@ -3346,6 +3346,38 @@ write-once receipts (post-build-provenance), file reads and digests only:
 
 Tests: delta 6; serving suites together **173**.
 
+### 2026-09-23 · the one pre-run bundle for root's go/no-go freeze review
+
+Root 20:03 (`reviews/patch_state_and_durable_linkage_delta_20260923_2003.md`) accepted the §2.2 successor and the
+durable generated-original deposit, kept the path-normalized linkage reading as owner evidence, and asked for ONE
+finite pre-run bundle. Delivered as **`results/live_ab/PRE_RUN_BUNDLE_20260923_2035.json`** (deterministic-path,
+write-once): 21 components by SHA-256, each of root's 12 requirements mapped to the component and key that
+answers it (0 keys absent), component verdicts read from the files, and a fresh observation. Components:
+- `FINITE_COSTED_PLAN_DRAFT_v2r3_20260923.json` — DRAFT feasibility sheet. v2r2 went through one independent
+  recheck (7 problems: 1 medium, 6 low), and all were corrected. 71 consistency assertions hold. Verdict: **resource-feasible, not yet
+  executable**. Five executable launch blockers are listed, and their engineering time is not costed:
+  - **EB1**: the pinned `lab_orchestrator.start_servers()` never starts a server. On the live path it writes
+    `props_matches_golden True` and a smoke body hashed from `"mock"` with no comparison (`lab_orchestrator.py:1598-1637`), so
+    it needs root route OD21.
+  - EB2-EB4: the missing stage drivers, and the 11.5 replay code and seed.
+  - EB5: the freeze blocker 1 ruling.
+
+  Exclusive-host planning figure: 640,741 s (7.42 d), with the CPU-only stages 7-8 excluded. The window rule is stated before
+  outcomes. The 10 remaining structural freeze inputs are named, each with the stage that produces it.
+- `PROSPECTIVE_LAUNCH_RECORD_20260923_2030.json` — durable-candidate dry preflight, `all_pass` **true**, now with the
+  PROPOSED stage-0 request (the spent smoke's) and `server_args` (the frozen 2.2 line after `-m`, with an absolute log file
+  outside `build/bin`):
+  - `validate_manifest` reports 0 problems; host/boot are placeholders.
+  - The argv equals `lab_server.server_argv`.
+  - 2 × 1,024 = 2,048 ≤ 2,048.
+  - Three negative controls, each refused: `-m` inside server_args, `--jinja` dropped, and a relative log path.
+- `SOURCE_TREE_THREE_CHECKS_20260923_2033.json` — the amended §2.2 item 1 checks: HEAD `4fea119…`; porcelain is exactly
+  the two patched files; tree equality through `verify_source_binding` (`88f89184…` both ways). **All three pass.**
+- Fresh observation **2026-09-23T20:35:03Z**: 0 matching processes (llama-server, run_smoke, orchestrator, ninja,
+  cmake); 100,186,234,880 B free; not a lease.
+
+Tests: three-checks 3; serving suites **176**. Trial, calibration, alpha **0**; freeze **16/26**.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
