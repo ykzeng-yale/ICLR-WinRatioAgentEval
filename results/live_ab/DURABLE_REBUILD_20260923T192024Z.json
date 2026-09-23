@@ -1,0 +1,136 @@
+{
+ "authority": "root, reviews/preparation_wiring_disposition_20260923_1829.md",
+ "build_succeeded": true,
+ "convention": "deterministic-path",
+ "ended_utc": "2026-09-23T19:21:46Z",
+ "llama_build": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build",
+ "members": {
+  "libggml-base.0.dylib": {
+   "bytes": 733208,
+   "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-base.0.24.0.dylib",
+   "path": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-base.0.dylib",
+   "sha256": "19fe34f3997f908122e4d74f9a16e15de9d53445345f1774c849767c1e1f321b"
+  },
+  "libggml-blas.0.dylib": {
+   "bytes": 58776,
+   "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-blas.0.24.0.dylib",
+   "path": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-blas.0.dylib",
+   "sha256": "07fec714cad379ea0593ec88ff4118f8a39dd496c77d28a15e0ea4076031c01d"
+  },
+  "libggml-cpu.0.dylib": {
+   "bytes": 1001776,
+   "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-cpu.0.24.0.dylib",
+   "path": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-cpu.0.dylib",
+   "sha256": "c2ed19a6ea799849aab747321ea07ef8211c90c3a8078bbe69b05d3d1bdd2bee"
+  },
+  "libggml-metal.0.dylib": {
+   "bytes": 2163544,
+   "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-metal.0.24.0.dylib",
+   "path": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-metal.0.dylib",
+   "sha256": "fceb6ba00f28c4004b66d8e65a3fd4350ce33f773b20a435fea1ec9313f5d37b"
+  },
+  "libggml.0.dylib": {
+   "bytes": 60064,
+   "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.24.0.dylib",
+   "path": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.dylib",
+   "sha256": "145bad33a11be7d0c9c3e9d7d56af04031e37280d75a60015f73882769aec79a"
+  },
+  "libllama-common.0.dylib": {
+   "bytes": 4948792,
+   "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-common.0.4.1.dylib",
+   "path": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-common.0.dylib",
+   "sha256": "7d605efa6d32b8c08da4968a96ff5997bcc7a2bd6f92f2e836d498369d0e5f34"
+  },
+  "libllama-server-impl.dylib": {
+   "bytes": 6306200,
+   "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-server-impl.dylib",
+   "path": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-server-impl.dylib",
+   "sha256": "baceaef2b2ac2e95d68eff4c1ff59426a4a22ed411ac2fff7b5970d3a6708d8b"
+  },
+  "libllama.0.dylib": {
+   "bytes": 3132416,
+   "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama.0.4.1.dylib",
+   "path": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama.0.dylib",
+   "sha256": "ebe3d9d96ae05ea387fee18985636345b42bfb1d65e4afdae7768d2a0277e70f"
+  },
+  "libmtmd.0.dylib": {
+   "bytes": 1378576,
+   "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libmtmd.0.4.1.dylib",
+   "path": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libmtmd.0.dylib",
+   "sha256": "eaa01688087b245c53c3e600f1a06280d6f784976f9e1d43b0b8c9f5096c936f"
+  },
+  "llama-server": {
+   "bytes": 33472,
+   "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server",
+   "path": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server",
+   "sha256": "35231ad4e83623e4aef72267f155a78bcf960f609ded6cf587dcb3a09f52eac3"
+  }
+ },
+ "network_lines_in_logs": [
+  "CMake Warning at vendor/cpp-httplib/CMakeLists.txt:154 (message):",
+  "  OpenSSL not found, HTTPS support disabled",
+  "[141/262] Building CXX object vendor/cpp-httplib/CMakeFiles/cpp-httplib.dir/httplib.cpp.o",
+  "[142/262] Linking CXX static library vendor/cpp-httplib/libcpp-httplib.a",
+  "[165/262] Building CXX object common/CMakeFiles/llama-common.dir/download.cpp.o",
+  "[258/262] Building CXX object tools/server/CMakeFiles/llama-server-impl.dir/server-http.cpp.o"
+ ],
+ "preconditions": {
+  "build_processes_running": [],
+  "exists": false,
+  "free_bytes": 100657381376,
+  "llama_build": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build",
+  "load_average": [
+   2.4580078125,
+   2.8525390625,
+   2.875
+  ]
+ },
+ "protocol_2_2_item_1": {
+  "build_exit": 0,
+  "build_log_sha256": "b14953d38bb7183b58cc47c9ec7c7a6fa4b921f2c0681b027aa186fae10df8d9",
+  "cmake_options": [
+   "-G",
+   "Ninja",
+   "-DCMAKE_BUILD_TYPE=Release",
+   "-DLLAMA_CURL=OFF",
+   "-DGGML_METAL=ON",
+   "-DLLAMA_USE_PREBUILT_UI=OFF",
+   "-DLLAMA_BUILD_UI=OFF"
+  ],
+  "configure_exit": 0,
+  "configure_log_sha256": "ffbb78ba0509f127ff40b7ed01e282c03f2ce6365fa4bc9a7d866558bc536ada",
+  "toolchain": {
+   "cmake": "cmake version 4.4.3",
+   "compiler": "Apple clang version 21.0.0 (clang-2100.1.1.101)",
+   "ninja": "1.13.2.git.kitware.jobserver-pipe-1",
+   "sdk": "26.5"
+  }
+ },
+ "schema": "live_ab/durable_rebuild-v1",
+ "source_checkout": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/src",
+ "source_state": {
+  "declared_working_tree_state": "HEAD + the v7 lifecycle patch, not committed (so build_info embeds the pinned commit)",
+  "git_status_porcelain": [
+   " M tools/server/server-common.h",
+   " M tools/server/server-context.cpp"
+  ],
+  "head": "4fea119de30f6a923992780f6fd5ccb0bee5d47d",
+  "origin_remote": "removed after the local clone",
+  "patch_sha256": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+  "pinned_commit": "4fea119de30f6a923992780f6fd5ccb0bee5d47d"
+ },
+ "started_utc": "2026-09-23T19:20:24Z",
+ "ui": {
+  "archive_sha256": "3de85ed97697c04e1614e95021eef6b668dc089eb66e7f0db1f83cbef1121a89",
+  "embed_equals_retained_candidate": true,
+  "embed_sha256": "2b5941122d67ce4c5abc62a56333c429630fba4784ff8e46bcd9c1f59d668c5d",
+  "generated_ui_cpp": {
+   "identical": true,
+   "new_sha256": "f89b4bf0e0df945b9a418cc052d3ca254c1d86b766d80ca9123fa9dbb0c2da93",
+   "retained_sha256": "f89b4bf0e0df945b9a418cc052d3ca254c1d86b766d80ca9123fa9dbb0c2da93"
+  },
+  "hf_download": "disabled (LLAMA_USE_PREBUILT_UI=OFF) with a dead proxy",
+  "path": "upstream priority 1: pre-built assets in the git-ignored tools/ui/dist, extracted from the retained archive"
+ },
+ "what_this_is": "ONE local, model-free rebuild of the pinned candidate source into the durable <LLAMA_BUILD>. The build ran the compiler; nothing ran the candidate, loaded a model or used the network."
+}

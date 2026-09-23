@@ -1,0 +1,157 @@
+{
+ "authority": "root, reviews/preparation_wiring_disposition_20260923_1829.md",
+ "build": {
+  "build_log_sha256": "b14953d38bb7183b58cc47c9ec7c7a6fa4b921f2c0681b027aa186fae10df8d9",
+  "build_tree": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build",
+  "cmake_options": [
+   "-G",
+   "Ninja",
+   "-DCMAKE_BUILD_TYPE=Release",
+   "-DLLAMA_CURL=OFF",
+   "-DGGML_METAL=ON",
+   "-DLLAMA_USE_PREBUILT_UI=OFF",
+   "-DLLAMA_BUILD_UI=OFF"
+  ],
+  "configure_log_sha256": "ffbb78ba0509f127ff40b7ed01e282c03f2ce6365fa4bc9a7d866558bc536ada",
+  "llama_build": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build",
+  "toolchain": {
+   "cmake": "cmake version 4.4.3",
+   "compiler": "Apple clang version 21.0.0 (clang-2100.1.1.101)",
+   "ninja": "1.13.2.git.kitware.jobserver-pipe-1",
+   "sdk": "26.5"
+  },
+  "ui": {
+   "archive_sha256": "3de85ed97697c04e1614e95021eef6b668dc089eb66e7f0db1f83cbef1121a89",
+   "embed_equals_retained_candidate": true,
+   "embed_sha256": "2b5941122d67ce4c5abc62a56333c429630fba4784ff8e46bcd9c1f59d668c5d",
+   "generated_ui_cpp": {
+    "identical": true,
+    "new_sha256": "f89b4bf0e0df945b9a418cc052d3ca254c1d86b766d80ca9123fa9dbb0c2da93",
+    "retained_sha256": "f89b4bf0e0df945b9a418cc052d3ca254c1d86b766d80ca9123fa9dbb0c2da93"
+   },
+   "hf_download": "disabled (LLAMA_USE_PREBUILT_UI=OFF) with a dead proxy",
+   "path": "upstream priority 1: pre-built assets in the git-ignored tools/ui/dist, extracted from the retained archive"
+  }
+ },
+ "candidate_instrument": {
+  "closure_note": "the members llama-server links, as the rebuild measured them; the transitive v3 closure is derived separately",
+  "launcher": {
+   "bytes": 33472,
+   "path": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server",
+   "present": true,
+   "sha256": "35231ad4e83623e4aef72267f155a78bcf960f609ded6cf587dcb3a09f52eac3"
+  },
+  "library_closure": {
+   "/usr/lib/libSystem.B.dylib": {
+    "note": "OS-provided; not pinned by this manifest",
+    "reference": "/usr/lib/libSystem.B.dylib",
+    "system_library": true
+   },
+   "/usr/lib/libc++.1.dylib": {
+    "note": "OS-provided; not pinned by this manifest",
+    "reference": "/usr/lib/libc++.1.dylib",
+    "system_library": true
+   },
+   "libggml-base.0.dylib": {
+    "bytes": 733208,
+    "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-base.0.24.0.dylib",
+    "present": true,
+    "reference": "@rpath/libggml-base.0.dylib",
+    "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-base.0.dylib",
+    "sha256": "19fe34f3997f908122e4d74f9a16e15de9d53445345f1774c849767c1e1f321b"
+   },
+   "libggml-blas.0.dylib": {
+    "bytes": 58776,
+    "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-blas.0.24.0.dylib",
+    "present": true,
+    "reference": "@rpath/libggml-blas.0.dylib",
+    "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-blas.0.dylib",
+    "sha256": "07fec714cad379ea0593ec88ff4118f8a39dd496c77d28a15e0ea4076031c01d"
+   },
+   "libggml-cpu.0.dylib": {
+    "bytes": 1001776,
+    "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-cpu.0.24.0.dylib",
+    "present": true,
+    "reference": "@rpath/libggml-cpu.0.dylib",
+    "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-cpu.0.dylib",
+    "sha256": "c2ed19a6ea799849aab747321ea07ef8211c90c3a8078bbe69b05d3d1bdd2bee"
+   },
+   "libggml-metal.0.dylib": {
+    "bytes": 2163544,
+    "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-metal.0.24.0.dylib",
+    "present": true,
+    "reference": "@rpath/libggml-metal.0.dylib",
+    "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-metal.0.dylib",
+    "sha256": "fceb6ba00f28c4004b66d8e65a3fd4350ce33f773b20a435fea1ec9313f5d37b"
+   },
+   "libggml.0.dylib": {
+    "bytes": 60064,
+    "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.24.0.dylib",
+    "present": true,
+    "reference": "@rpath/libggml.0.dylib",
+    "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.dylib",
+    "sha256": "145bad33a11be7d0c9c3e9d7d56af04031e37280d75a60015f73882769aec79a"
+   },
+   "libllama-common.0.dylib": {
+    "bytes": 4948792,
+    "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-common.0.4.1.dylib",
+    "present": true,
+    "reference": "@rpath/libllama-common.0.dylib",
+    "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-common.0.dylib",
+    "sha256": "7d605efa6d32b8c08da4968a96ff5997bcc7a2bd6f92f2e836d498369d0e5f34"
+   },
+   "libllama-server-impl.dylib": {
+    "bytes": 6306200,
+    "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-server-impl.dylib",
+    "present": true,
+    "reference": "@rpath/libllama-server-impl.dylib",
+    "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-server-impl.dylib",
+    "sha256": "baceaef2b2ac2e95d68eff4c1ff59426a4a22ed411ac2fff7b5970d3a6708d8b"
+   },
+   "libllama.0.dylib": {
+    "bytes": 3132416,
+    "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama.0.4.1.dylib",
+    "present": true,
+    "reference": "@rpath/libllama.0.dylib",
+    "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama.0.dylib",
+    "sha256": "ebe3d9d96ae05ea387fee18985636345b42bfb1d65e4afdae7768d2a0277e70f"
+   },
+   "libmtmd.0.dylib": {
+    "bytes": 1378576,
+    "canonical": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libmtmd.0.4.1.dylib",
+    "present": true,
+    "reference": "@rpath/libmtmd.0.dylib",
+    "resolved": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libmtmd.0.dylib",
+    "sha256": "eaa01688087b245c53c3e600f1a06280d6f784976f9e1d43b0b8c9f5096c936f"
+   }
+  }
+ },
+ "convention": "deterministic-path",
+ "generated_utc": "2026-09-23T19:22:17Z",
+ "rebuild_receipt": {
+  "path": "results/live_ab/DURABLE_REBUILD_20260923T192024Z.json",
+  "sha256": "bcdcc6a7b4c57bc81c4a0c21d940e272a344773d318a0476d23418072234fe85"
+ },
+ "schema": "live_ab/candidate_instrument_manifest-durable-v1",
+ "source_and_patch": {
+  "base_commit": "4fea119de30f6a923992780f6fd5ccb0bee5d47d",
+  "base_declared": "4fea119de30f6a923992780f6fd5ccb0bee5d47d",
+  "declared_state": "HEAD + the v7 lifecycle patch, not committed (so build_info embeds the pinned commit)",
+  "git_status_porcelain": [
+   " M tools/server/server-common.h",
+   " M tools/server/server-context.cpp"
+  ],
+  "patch": {
+   "path": "experiments/live_ab_serving/live_ab_slot_lifecycle.patch",
+   "present": true,
+   "sha256": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+   "version": 7
+  },
+  "source_tree": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/llama.cpp-build/src"
+ },
+ "supersedes_for_prospective_use": {
+  "path": "results/live_ab/CANDIDATE_INSTRUMENT_MANIFEST.json",
+  "sha256": "75e2a1d1a7fd786b2dff70ba8602390c5e3460de7e06ad045660650d1e7913c0",
+  "status": "retained as retrospective engineering evidence; not frozen or trialled (root 18:29)"
+ }
+}
