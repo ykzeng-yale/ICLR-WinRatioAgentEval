@@ -1,0 +1,675 @@
+{
+ "authority": "root, reviews/completion_and_backend_disposition_20260923_1441.md, helper items 1-3 on 6b83860",
+ "closure": {
+  "duplicate_install_names": {},
+  "dynamic_loading": {
+   "bounded": true,
+   "checked": true,
+   "discovered": [],
+   "members_importing_dlopen": [
+    "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml.0.dylib"
+   ],
+   "problems": [],
+   "search_locations": [
+    {
+     "candidates": [],
+     "directory": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin",
+     "exists": true
+    }
+   ]
+  },
+  "edges": {
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-blas.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-blas.0.dylib",
+    "reference": "@rpath/libggml-base.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-base.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-base.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-cpu.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-cpu.0.dylib",
+    "reference": "@rpath/libggml-base.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-base.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-base.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-metal.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-metal.0.dylib",
+    "reference": "@rpath/libggml-base.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-base.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-base.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml.0.dylib",
+    "reference": "@rpath/libggml-base.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-base.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-base.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-blas.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml.0.dylib",
+    "reference": "@rpath/libggml-blas.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-blas.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-blas.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-cpu.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml.0.dylib",
+    "reference": "@rpath/libggml-cpu.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-cpu.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-cpu.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-metal.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml.0.dylib",
+    "reference": "@rpath/libggml-metal.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-metal.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-metal.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-common.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-common.0.dylib",
+    "reference": "@rpath/libggml-base.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-base.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-base.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-common.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-blas.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-common.0.dylib",
+    "reference": "@rpath/libggml-blas.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-blas.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-blas.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-common.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-cpu.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-common.0.dylib",
+    "reference": "@rpath/libggml-cpu.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-cpu.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-cpu.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-common.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-metal.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-common.0.dylib",
+    "reference": "@rpath/libggml-metal.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-metal.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-metal.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-common.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-common.0.dylib",
+    "reference": "@rpath/libggml.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-common.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libllama.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-common.0.dylib",
+    "reference": "@rpath/libllama.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-server-impl.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-server-impl.dylib",
+    "reference": "@rpath/libggml-base.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-base.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-base.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-server-impl.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-blas.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-server-impl.dylib",
+    "reference": "@rpath/libggml-blas.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-blas.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-blas.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-server-impl.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-cpu.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-server-impl.dylib",
+    "reference": "@rpath/libggml-cpu.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-cpu.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-cpu.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-server-impl.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-metal.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-server-impl.dylib",
+    "reference": "@rpath/libggml-metal.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-metal.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-metal.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-server-impl.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-server-impl.dylib",
+    "reference": "@rpath/libggml.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-server-impl.dylib -[LC_LOAD_DYLIB]-> @rpath/libllama-common.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-server-impl.dylib",
+    "reference": "@rpath/libllama-common.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-common.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-common.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-server-impl.dylib -[LC_LOAD_DYLIB]-> @rpath/libllama.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-server-impl.dylib",
+    "reference": "@rpath/libllama.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-server-impl.dylib -[LC_LOAD_DYLIB]-> @rpath/libmtmd.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-server-impl.dylib",
+    "reference": "@rpath/libmtmd.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libmtmd.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libmtmd.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama.0.dylib",
+    "reference": "@rpath/libggml-base.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-base.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-base.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-blas.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama.0.dylib",
+    "reference": "@rpath/libggml-blas.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-blas.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-blas.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-cpu.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama.0.dylib",
+    "reference": "@rpath/libggml-cpu.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-cpu.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-cpu.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-metal.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama.0.dylib",
+    "reference": "@rpath/libggml-metal.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-metal.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-metal.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama.0.dylib",
+    "reference": "@rpath/libggml.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libmtmd.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libmtmd.0.dylib",
+    "reference": "@rpath/libggml-base.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-base.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-base.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libmtmd.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-blas.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libmtmd.0.dylib",
+    "reference": "@rpath/libggml-blas.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-blas.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-blas.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libmtmd.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-cpu.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libmtmd.0.dylib",
+    "reference": "@rpath/libggml-cpu.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-cpu.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-cpu.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libmtmd.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-metal.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libmtmd.0.dylib",
+    "reference": "@rpath/libggml-metal.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-metal.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-metal.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libmtmd.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libmtmd.0.dylib",
+    "reference": "@rpath/libggml.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libmtmd.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libllama.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libmtmd.0.dylib",
+    "reference": "@rpath/libllama.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/llama-server",
+    "reference": "@rpath/libggml-base.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-base.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-base.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libggml-blas.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/llama-server",
+    "reference": "@rpath/libggml-blas.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-blas.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-blas.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libggml-cpu.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/llama-server",
+    "reference": "@rpath/libggml-cpu.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-cpu.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-cpu.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libggml-metal.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/llama-server",
+    "reference": "@rpath/libggml-metal.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-metal.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-metal.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libggml.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/llama-server",
+    "reference": "@rpath/libggml.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libllama-common.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/llama-server",
+    "reference": "@rpath/libllama-common.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-common.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-common.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libllama-server-impl.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/llama-server",
+    "reference": "@rpath/libllama-server-impl.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-server-impl.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-server-impl.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libllama.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/llama-server",
+    "reference": "@rpath/libllama.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama.0.dylib"
+    ],
+    "shadowed": []
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libmtmd.0.dylib": {
+    "command": "LC_LOAD_DYLIB",
+    "parent": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/llama-server",
+    "reference": "@rpath/libmtmd.0.dylib",
+    "resolved": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libmtmd.0.dylib",
+    "searched": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libmtmd.0.dylib"
+    ],
+    "shadowed": []
+   }
+  },
+  "executable_dir": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin",
+  "files": {
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-base.0.dylib": {
+    "bytes": 733208,
+    "reached_by": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib",
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-server-impl.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib",
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-common.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib",
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libmtmd.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib",
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib",
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib",
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-cpu.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib",
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-blas.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib",
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-metal.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-base.0.dylib"
+    ],
+    "sha256": "036a256d0558dee147994971464e502017465f2e740a11a8ce3905409590204a"
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-blas.0.dylib": {
+    "bytes": 58776,
+    "reached_by": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libggml-blas.0.dylib",
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-server-impl.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-blas.0.dylib",
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-common.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-blas.0.dylib",
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libmtmd.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-blas.0.dylib",
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-blas.0.dylib",
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-blas.0.dylib"
+    ],
+    "sha256": "d773f980ad9d97f4dd7791eaf1fc6b6b45e032c0647e2b9c7243b1ce8f37e2a1"
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-cpu.0.dylib": {
+    "bytes": 1001776,
+    "reached_by": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libggml-cpu.0.dylib",
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-server-impl.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-cpu.0.dylib",
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-common.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-cpu.0.dylib",
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libmtmd.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-cpu.0.dylib",
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-cpu.0.dylib",
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-cpu.0.dylib"
+    ],
+    "sha256": "5063b11e826932b28465fc850a28a36e3d2df2cf110a5360f9e02b9daa68341d"
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-metal.0.dylib": {
+    "bytes": 2163544,
+    "reached_by": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libggml-metal.0.dylib",
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-server-impl.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-metal.0.dylib",
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-common.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-metal.0.dylib",
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libmtmd.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-metal.0.dylib",
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-metal.0.dylib",
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml-metal.0.dylib"
+    ],
+    "sha256": "313820e660fb58c886080f3d369c332133c2057475a628ce5c6a0ee52ac955b1"
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml.0.dylib": {
+    "bytes": 60064,
+    "reached_by": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libggml.0.dylib",
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-server-impl.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml.0.dylib",
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-common.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml.0.dylib",
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libmtmd.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml.0.dylib",
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libggml.0.dylib"
+    ],
+    "sha256": "84b0b166e6d476b8787d6861350de2394d7bd9955c4e597af77f4cb408f803d9"
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-common.0.dylib": {
+    "bytes": 4948792,
+    "reached_by": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libllama-common.0.dylib",
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-server-impl.dylib -[LC_LOAD_DYLIB]-> @rpath/libllama-common.0.dylib"
+    ],
+    "sha256": "bc3c8096e56a3ff7093827a5bb5b9faad1a7a65589bd38fb1265d72bca1f769b"
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-server-impl.dylib": {
+    "bytes": 6306200,
+    "reached_by": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libllama-server-impl.dylib"
+    ],
+    "sha256": "22270c80b501a615748c91b1bba0d74b75d2c037e0c2699cfd6ed624ab61f99b"
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama.0.dylib": {
+    "bytes": 3148928,
+    "reached_by": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libllama.0.dylib",
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-server-impl.dylib -[LC_LOAD_DYLIB]-> @rpath/libllama.0.dylib",
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-common.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libllama.0.dylib",
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libmtmd.0.dylib -[LC_LOAD_DYLIB]-> @rpath/libllama.0.dylib"
+    ],
+    "sha256": "fb59dd44594ec695138a4202defbf774251c92a5b0ef2b2661a1df498c0b5aaa"
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libmtmd.0.dylib": {
+    "bytes": 1378576,
+    "reached_by": [
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/llama-server -[LC_LOAD_DYLIB]-> @rpath/libmtmd.0.dylib",
+     "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-server-impl.dylib -[LC_LOAD_DYLIB]-> @rpath/libmtmd.0.dylib"
+    ],
+    "sha256": "51203470bf9f36ab3bf20b9acaa4ad52565676f4e7dc2fcaa4f2fab8e4e26c0f"
+   },
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/llama-server": {
+    "bytes": 33472,
+    "reached_by": [],
+    "sha256": "5260887866c85a07750ebc71349e13c985c17b4983f0619f10b4c355180a6bd6"
+   }
+  },
+  "install_names": {
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-base.0.dylib": "@rpath/libggml-base.0.dylib",
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-blas.0.dylib": "@rpath/libggml-blas.0.dylib",
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-cpu.0.dylib": "@rpath/libggml-cpu.0.dylib",
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-metal.0.dylib": "@rpath/libggml-metal.0.dylib",
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml.0.dylib": "@rpath/libggml.0.dylib",
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-common.0.dylib": "@rpath/libllama-common.0.dylib",
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-server-impl.dylib": "@rpath/libllama-server-impl.dylib",
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama.0.dylib": "@rpath/libllama.0.dylib",
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libmtmd.0.dylib": "@rpath/libmtmd.0.dylib",
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/llama-server": null
+  },
+  "launch_context": {
+   "compiled_backend_dir": null,
+   "cwd": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin",
+   "environment": {},
+   "executable_invoked_path": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/llama-server",
+   "provenance": {
+    "build_config_snapshot": "results/live_ab/CANDIDATE_BUILD_CONFIG_SNAPSHOT.json",
+    "candidate_declaration": "results/live_ab/CANDIDATE_INSTRUMENT_MANIFEST.json",
+    "compiled_backend_dir": "absent: no compile command defines GGML_BACKEND_DIR (build snapshot)",
+    "status": "PROPOSED for item 4, not frozen into any launch manifest"
+   }
+  },
+  "member_count": 9,
+  "note": "transitive over non-system members. System references are recorded by name and never pinned or traversed, per root 2026-09-23 12:42.",
+  "resolved": true,
+  "root": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/llama-server",
+  "schema": "live_ab/dependency_closure-v2",
+  "system_references": [
+   "/System/Library/Frameworks/Accelerate.framework/Versions/A/Accelerate",
+   "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+   "/System/Library/Frameworks/Foundation.framework/Versions/C/Foundation",
+   "/System/Library/Frameworks/Metal.framework/Versions/A/Metal",
+   "/System/Library/Frameworks/MetalKit.framework/Versions/A/MetalKit",
+   "/usr/lib/libSystem.B.dylib",
+   "/usr/lib/libc++.1.dylib",
+   "/usr/lib/libobjc.A.dylib"
+  ],
+  "unresolved": []
+ },
+ "convention": "deterministic-path",
+ "derived": {
+  "duplicate_install_names": {},
+  "dynamic_loading": {
+   "bounded": true,
+   "checked": true,
+   "discovered": [],
+   "members_importing_dlopen": [
+    "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml.0.dylib"
+   ],
+   "problems": [],
+   "search_locations": [
+    {
+     "candidates": [],
+     "directory": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin",
+     "exists": true
+    }
+   ]
+  },
+  "edge_count": 41,
+  "member_count": 9,
+  "members": [
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-base.0.dylib",
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-blas.0.dylib",
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-cpu.0.dylib",
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml-metal.0.dylib",
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libggml.0.dylib",
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-common.0.dylib",
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama-server-impl.dylib",
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libllama.0.dylib",
+   "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/libmtmd.0.dylib"
+  ],
+  "members_equal_the_declared_nine": true,
+  "resolved": true,
+  "shadowed_edges": {},
+  "system_references": [
+   "/System/Library/Frameworks/Accelerate.framework/Versions/A/Accelerate",
+   "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+   "/System/Library/Frameworks/Foundation.framework/Versions/C/Foundation",
+   "/System/Library/Frameworks/Metal.framework/Versions/A/Metal",
+   "/System/Library/Frameworks/MetalKit.framework/Versions/A/MetalKit",
+   "/usr/lib/libSystem.B.dylib",
+   "/usr/lib/libc++.1.dylib",
+   "/usr/lib/libobjc.A.dylib"
+  ],
+  "unresolved": []
+ },
+ "generated_utc": "2026-09-23T16:15:13Z",
+ "nothing_executed_THIS_RECEIPT": "otool -h/-l and nm -u read metadata; the search locations were listed, not opened; no candidate execution, model load or build",
+ "proposed_launch_context": {
+  "compiled_backend_dir": null,
+  "cwd": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin",
+  "environment": {},
+  "executable_invoked_path": "/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin/llama-server",
+  "provenance": {
+   "build_config_snapshot": "results/live_ab/CANDIDATE_BUILD_CONFIG_SNAPSHOT.json",
+   "candidate_declaration": "results/live_ab/CANDIDATE_INSTRUMENT_MANIFEST.json",
+   "compiled_backend_dir": "absent: no compile command defines GGML_BACKEND_DIR (build snapshot)",
+   "status": "PROPOSED for item 4, not frozen into any launch manifest"
+  }
+ },
+ "real_metadata_refusal_controls": {
+  "DYLD_LIBRARY_PATH set": {
+   "first_problems": [
+    "the launch context field environment is {'DYLD_LIBRARY_PATH': '/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin'} now but was frozen as {}",
+    "the closure cannot be resolved now: the child environment sets loader variables DYLD_LIBRARY_PATH, which change where every edge resolves"
+   ],
+   "verified": false
+  },
+  "GGML_BACKEND_PATH set": {
+   "first_problems": [
+    "the launch context field environment is {'GGML_BACKEND_PATH': '/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin'} now but was frozen as {}",
+    "the closure cannot be resolved now: the child environment sets GGML_BACKEND_PATH; root chose it explicitly unset"
+   ],
+   "verified": false
+  },
+  "no dynamic reader": {
+   "first_problems": [
+    "the closure cannot be resolved now: no dynamic-loading reader was supplied, so that check was not made"
+   ],
+   "verified": false
+  },
+  "operator cwd inherited": {
+   "first_problems": [
+    "the launch context field cwd is '/Users/yukangzengcmac/ICLR-WinRatioAgentEvals' now but was frozen as '/private/tmp/claude-501/-Users-yukangzengcmac-ICLR-WinRatioAgentEvals/35a3ef1c-e430-45ac-b78e-94ba942c34a1/scratchpad/llama_pristine_4fea119/build/bin'"
+   ],
+   "verified": false
+  }
+ },
+ "schema": "live_ab/session60_receipt-v1",
+ "verified_straight_back": {
+  "edges_agreeing": 41,
+  "edges_checked": 41,
+  "files_checked": 10,
+  "problems": [],
+  "verified": true
+ },
+ "what_this_is_not": "not a frozen launch requirement and not wired: run_smoke still uses its inventory-only check (item 4 is next)"
+}

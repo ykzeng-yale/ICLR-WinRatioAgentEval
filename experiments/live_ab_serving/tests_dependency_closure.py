@@ -6,15 +6,20 @@ unrelated-only inventory; wrong resolved path/search environment;
 source/patch/build mismatch. No candidate binary execution, rebuild, model load
 or extra historical smoke is needed for this gate work."
 
-Every graph here is a dictionary. Nothing is executed, nothing is loaded, and no
-file on this host is read: `metadata`, `exists` and `read_bytes` are supplied by
-the fixture, which is what makes the traversal testable at all.
+Root, 14:41, on `6b83860`: carry the dynamic contract through verification;
+fail closed on unsupported dependency metadata (the `LC_REEXPORT_DYLIB` probe);
+key an edge by its parent/resolution context (the two-parent
+`@loader_path/helper` probe), preserving rejection where one context truly
+cannot select.
+
+Every graph here is a dictionary and every `otool` output a string. Nothing is
+executed, nothing is loaded, and no file on this host is read: every reader is
+supplied by the fixture, which is what makes the traversal testable at all.
 """
 
 from __future__ import annotations
 
 import importlib.util
-import sys
 import unittest
 from pathlib import Path
 
@@ -30,10 +35,12 @@ def _load():
 
 
 class _Graph:
-    """A synthetic dependency graph: files, their load commands, their bytes."""
+    """A synthetic dependency graph: files, load commands, bytes, `dlopen`
+    imports, and what each search location holds."""
 
-    def __init__(self, files):
+    def __init__(self, files, dirs=None):
         self.files = dict(files)
+        self.dirs = dict(dirs or {})
 
     def metadata(self, path):
         f = self.files.get(path)
@@ -41,7 +48,10 @@ class _Graph:
             return {'error': 'no such file: %s' % path}
         if f.get('metadata_error'):
             return {'error': f['metadata_error']}
-        return {'path': path, 'load_references': list(f.get('refs', [])),
+        refs = [r if isinstance(r, tuple) else ('LC_LOAD_DYLIB', r)
+                for r in f.get('refs', [])]
+        return {'path': path, 'install_name': f.get('id'),
+                'load_references': [{'command': c, 'reference': r} for c, r in refs],
                 'rpaths': list(f.get('rpaths', []))}
 
     def exists(self, path):
@@ -53,23 +63,84 @@ class _Graph:
             raise FileNotFoundError(path)
         return f.get('bytes', b'')
 
+    def dynamic_loader(self, path):
+        f = self.files.get(path) or {}
+        if f.get('nm_error'):
+            return {'error': f['nm_error']}
+        return {'dlopen': bool(f.get('dlopen'))}
+
+    def enumerate_dir(self, d):
+        if d in self.dirs:
+            return {'directory': d, 'exists': True, 'candidates': list(self.dirs[d])}
+        return {'directory': d, 'exists': False, 'candidates': []}
+
+
+LAUNCHER = '/cand/bin/llama-server'
+
+
+def _ctx(**kw):
+    c = {'executable_invoked_path': LAUNCHER, 'cwd': '/run',
+         'compiled_backend_dir': None, 'environment': {}}
+    c.update(kw)
+    return c
+
 
 def _complete():
-    """Launcher -> impl -> ggml-base, plus a metal backend. One matched graph."""
+    """Launcher -> impl -> ggml-base, plus a metal backend, plus libggml, which
+    imports dlopen -- the candidate's real shape, in miniature."""
     return _Graph({
-        '/cand/bin/llama-server': {
-            'refs': ['@rpath/libllama-server-impl.dylib',
-                     '@rpath/libggml-metal.0.dylib',
-                     '/usr/lib/libSystem.B.dylib'],
+        LAUNCHER: {
+            'refs': ['@rpath/libllama-server-impl.dylib', '@rpath/libggml.0.dylib',
+                     '@rpath/libggml-metal.0.dylib', '/usr/lib/libSystem.B.dylib'],
             'rpaths': ['@loader_path'], 'bytes': b'LAUNCHER'},
         '/cand/bin/libllama-server-impl.dylib': {
-            'refs': ['@rpath/libggml-base.0.dylib'],
-            'rpaths': ['@loader_path'], 'bytes': b'IMPL'},
+            'refs': ['@rpath/libggml-base.0.dylib'], 'rpaths': ['@loader_path'],
+            'id': '@rpath/libllama-server-impl.dylib', 'bytes': b'IMPL'},
+        '/cand/bin/libggml.0.dylib': {
+            'refs': ['@rpath/libggml-base.0.dylib'], 'rpaths': ['@loader_path'],
+            'id': '@rpath/libggml.0.dylib', 'dlopen': True, 'bytes': b'GGML'},
         '/cand/bin/libggml-metal.0.dylib': {
-            'refs': ['@rpath/libggml-base.0.dylib'],
-            'rpaths': ['@loader_path'], 'bytes': b'METAL'},
-        '/cand/bin/libggml-base.0.dylib': {'refs': [], 'bytes': b'BASE'},
-    })
+            'refs': ['@rpath/libggml-base.0.dylib'], 'rpaths': ['@loader_path'],
+            'id': '@rpath/libggml-metal.0.dylib', 'bytes': b'METAL'},
+        '/cand/bin/libggml-base.0.dylib': {
+            'refs': [], 'id': '@rpath/libggml-base.0.dylib', 'bytes': b'BASE'},
+    }, dirs={'/cand/bin': [], '/run': []})
+
+
+def _readers(g, **kw):
+    r = {'metadata': g.metadata, 'exists': g.exists, 'read_bytes': g.read_bytes,
+         'dynamic_loader': g.dynamic_loader, 'enumerate_dir': g.enumerate_dir,
+         'launch_context': _ctx(), 'realpath': lambda p: p}
+    r.update(kw)
+    return r
+
+
+OTOOL_DYLIB = """/x/libggml.0.dylib:
+Load command 0
+      cmd LC_SEGMENT_64
+  cmdsize 72
+  segname __TEXT
+Load command 1
+          cmd LC_ID_DYLIB
+      cmdsize 48
+         name @rpath/libggml.0.dylib (offset 24)
+   time stamp 1 Wed Dec 31 19:00:01 1969
+Load command 2
+          cmd LC_RPATH
+      cmdsize 32
+         path /cand/bin (offset 12)
+Load command 3
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name @rpath/libggml-base.0.dylib (offset 24)
+Load command 4
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libSystem.B.dylib (offset 24)
+Load command 5
+      cmd LC_CODE_SIGNATURE
+  cmdsize 16
+"""
 
 
 class DependencyClosureTests(unittest.TestCase):
@@ -78,28 +149,31 @@ class DependencyClosureTests(unittest.TestCase):
     def setUpClass(cls):
         cls.dc = _load()
 
-    def _derive(self, g, root='/cand/bin/llama-server'):
-        return self.dc.derive_closure(root, metadata=g.metadata,
-                                      exists=g.exists, read_bytes=g.read_bytes)
+    def _derive(self, g, root=LAUNCHER, **kw):
+        return self.dc.derive_closure(root, **_readers(g, **kw))
+
+    def _problems(self, c):
+        return ' | '.join(u['problem'] for u in c['unresolved'])
 
     # -- stage one: derivation ----------------------------------------------
     def test_a_complete_matched_graph_resolves_TRANSITIVELY(self):
         """THE CONTROL, and it must be transitive: `libggml-base` is reached
-        only THROUGH the implementation library, never named by the launcher.
-        A direct-only walk would miss it and call the closure complete."""
+        only THROUGH other libraries, never named by the launcher. A
+        direct-only walk would miss it and call the closure complete."""
         c = self._derive(_complete())
-        self.assertTrue(c['resolved'], c['unresolved'])
-        self.assertEqual(sorted(c['members']),
-                         ['@rpath/libggml-base.0.dylib',
-                          '@rpath/libggml-metal.0.dylib',
-                          '@rpath/libllama-server-impl.dylib'])
+        self.assertTrue(c['resolved'], self._problems(c))
+        self.assertEqual(sorted(Path(f).name for f in c['files']),
+                         ['libggml-base.0.dylib', 'libggml-metal.0.dylib',
+                          'libggml.0.dylib', 'libllama-server-impl.dylib',
+                          'llama-server'])
+        self.assertEqual(c['member_count'], 4)
+        self.assertEqual(len(c['files']['/cand/bin/libggml-base.0.dylib']['reached_by']),
+                         3)
         self.assertEqual(c['system_references'], ['/usr/lib/libSystem.B.dylib'])
-        # system members are recorded by name and NOT pinned
-        self.assertNotIn('/usr/lib/libSystem.B.dylib', c['members'])
+        self.assertNotIn('/usr/lib/libSystem.B.dylib', c['files'])
+        self.assertTrue(c['dynamic_loading']['bounded'])
 
     def test_an_OMITTED_transitive_member_leaves_the_closure_unresolved(self):
-        """Root's "omitted implementation/backend/transitive member" control.
-        The edge is still declared; the file is gone."""
         g = _complete()
         del g.files['/cand/bin/libggml-base.0.dylib']
         c = self._derive(g)
@@ -108,168 +182,359 @@ class DependencyClosureTests(unittest.TestCase):
                             for u in c['unresolved']))
 
     def test_unreadable_metadata_is_UNRESOLVED_not_an_absent_edge(self):
-        """Silence about an edge is never evidence that it is absent."""
         g = _complete()
         g.files['/cand/bin/libllama-server-impl.dylib']['metadata_error'] = \
             'otool -l failed'
         c = self._derive(g)
         self.assertFalse(c['resolved'])
-        self.assertTrue(any('otool' in u['problem'] for u in c['unresolved']))
+        self.assertIn('otool', self._problems(c))
 
-    def test_a_reference_that_resolves_two_ways_is_ambiguous(self):
-        """If the same reference can resolve to two different files, the
-        selection is not bounded and must not be frozen."""
+    # -- root item 3: an edge is (parent, command, reference) ----------------
+    def test_ROOTS_PROBE_two_loader_path_helpers_from_different_parents_resolve(self):
+        """Root, 14:41: "Two legitimate `@loader_path/helper` references from
+        different parent directories are collapsed under the reference text and
+        rejected as ambiguous. This is a conservative false refusal." Two
+        parents, two edges, two files -- no ambiguity."""
+        g = _Graph({
+            LAUNCHER: {'refs': ['/a/liba.dylib', '/b/libb.dylib'], 'bytes': b'L'},
+            '/a/liba.dylib': {'refs': ['@loader_path/helper'], 'bytes': b'A'},
+            '/b/libb.dylib': {'refs': ['@loader_path/helper'], 'bytes': b'B'},
+            '/a/helper': {'bytes': b'HA'}, '/b/helper': {'bytes': b'HB'},
+        })
+        c = self._derive(g)
+        self.assertTrue(c['resolved'], self._problems(c))
+        helpers = sorted(e['resolved'] for e in c['edges'].values()
+                         if e['reference'] == '@loader_path/helper')
+        self.assertEqual(helpers, ['/a/helper', '/b/helper'])
+
+    def test_the_same_rpath_reference_from_TWO_PARENTS_is_two_bound_edges(self):
+        """Was refused as ambiguous under the old key. Each parent's own rpath
+        selects its file; both files are bound and both are verified. Two files
+        answering to one install name are RECORDED, not refused."""
         g = _complete()
-        g.files['/other/libggml-base.0.dylib'] = {'refs': [], 'bytes': b'OTHER'}
+        g.files['/other/libggml-base.0.dylib'] = {
+            'refs': [], 'id': '@rpath/libggml-base.0.dylib', 'bytes': b'OTHER'}
         g.files['/cand/bin/libggml-metal.0.dylib']['rpaths'] = ['/other']
         c = self._derive(g)
-        self.assertFalse(c['resolved'])
-        self.assertTrue(any('ambiguous' in u['problem'] for u in c['unresolved']))
+        self.assertTrue(c['resolved'], self._problems(c))
+        self.assertIn('/other/libggml-base.0.dylib', c['files'])
+        self.assertEqual(sorted(c['duplicate_install_names']['@rpath/libggml-base.0.dylib']),
+                         ['/cand/bin/libggml-base.0.dylib', '/other/libggml-base.0.dylib'])
 
-    def test_a_dlopen_member_leaves_the_closure_UNBOUNDED_without_a_policy(self):
-        """Root: "account for dynamically discovered backend/plugin paths under
-        the selected configuration. If that selection cannot be bounded, mark
-        the closure unresolved and refuse."
+    def test_rejection_is_PRESERVED_where_one_context_cannot_select(self):
+        """Root: "Preserve rejection where the same supported context truly has
+        unresolved selection." A relative rpath, a relative reference and a bare
+        leaf name are each resolved by dyld against the working directory or
+        fallback paths, so the same parent context does not pick one file."""
+        for label, mutate in (
+                ('relative rpath', lambda g: g.files[LAUNCHER].update(
+                    rpaths=['lib'])),
+                ('relative reference', lambda g: g.files[LAUNCHER]['refs'].append(
+                    'lib/libx.dylib')),
+                ('bare leaf name', lambda g: g.files[LAUNCHER]['refs'].append(
+                    'libx.dylib'))):
+            with self.subTest(label):
+                g = _complete()
+                mutate(g)
+                c = self._derive(g)
+                self.assertFalse(c['resolved'])
+                self.assertTrue(any(('relative' in u['problem'])
+                                    for u in c['unresolved']), self._problems(c))
 
-        This is not hypothetical for the candidate: `libggml.0.dylib` imports
-        `dlopen` and carries GGML_BACKEND_PATH, so a backend can be chosen at
-        run time from a search path that NO traversal of load commands can show.
-        A static closure is then not a bound on what will load, and the
-        nine-member answer is the comfortable one rather than the true one.
-        """
+    def test_a_shadowed_later_hit_is_recorded_not_loaded(self):
         g = _complete()
-        loader = lambda path: {'dlopen': path.endswith('libggml-metal.0.dylib')}
-        c = self.dc.derive_closure('/cand/bin/llama-server', metadata=g.metadata,
-                                   exists=g.exists, read_bytes=g.read_bytes,
-                                   dynamic_loader=loader)
+        g.files['/cand/lib2/libggml-base.0.dylib'] = {'bytes': b'SHADOW'}
+        g.files['/cand/bin/libllama-server-impl.dylib']['rpaths'] = [
+            '@loader_path', '/cand/lib2']
+        c = self._derive(g)
+        self.assertTrue(c['resolved'], self._problems(c))
+        e = c['edges'][self.dc.edge_key('/cand/bin/libllama-server-impl.dylib',
+                                        'LC_LOAD_DYLIB', '@rpath/libggml-base.0.dylib')]
+        self.assertEqual(e['resolved'], '/cand/bin/libggml-base.0.dylib')
+        self.assertEqual(e['shadowed'], ['/cand/lib2/libggml-base.0.dylib'])
+
+    # -- root item 2: fail closed on metadata --------------------------------
+    def test_the_REAL_FORMAT_parses_completely(self):
+        """THE CONTROL for the parser: an ordinary dylib's commands, every one
+        of them classified, nothing refused."""
+        m = self.dc.parse_load_commands(OTOOL_DYLIB, ncmds=6)
+        self.assertNotIn('error', m)
+        self.assertEqual(m['install_name'], '@rpath/libggml.0.dylib')
+        self.assertEqual(m['rpaths'], ['/cand/bin'])
+        self.assertEqual([r['reference'] for r in m['load_references']],
+                         ['@rpath/libggml-base.0.dylib', '/usr/lib/libSystem.B.dylib'])
+
+    def test_ROOTS_PROBE_a_REEXPORTED_dependency_is_an_edge(self):
+        """Root's parser probe: an `LC_REEXPORT_DYLIB` dependency was silently
+        omitted, so a missing member became `resolved=True` with zero
+        members."""
+        text = OTOOL_DYLIB.replace('cmd LC_LOAD_DYLIB\n      cmdsize 56\n         '
+                                   'name @rpath/libggml-base',
+                                   'cmd LC_REEXPORT_DYLIB\n      cmdsize 56\n'
+                                   '         name @rpath/libggml-base')
+        m = self.dc.parse_load_commands(text, ncmds=6)
+        self.assertNotIn('error', m)
+        self.assertIn({'command': 'LC_REEXPORT_DYLIB',
+                       'reference': '@rpath/libggml-base.0.dylib'},
+                      m['load_references'])
+        # ... and a MISSING re-exported member now leaves the closure unresolved
+        g = _complete()
+        g.files[LAUNCHER]['refs'].append(('LC_REEXPORT_DYLIB', '@rpath/libgone.dylib'))
+        c = self._derive(g)
         self.assertFalse(c['resolved'])
-        self.assertTrue(any('import dlopen' in u['problem']
+        self.assertTrue(any(u.get('command') == 'LC_REEXPORT_DYLIB'
                             for u in c['unresolved']))
-        self.assertEqual([Path(x).name for x in
-                          c['dynamic_loading']['members_importing_dlopen']],
-                         ['libggml-metal.0.dylib'])
 
-    def test_a_declared_bound_permits_the_closure(self):
-        """The control: with the search environment declared bounded, the same
-        graph resolves. Without it the refusal would be unconditional and would
-        prove nothing about the check."""
-        g = _complete()
-        loader = lambda path: {'dlopen': path.endswith('libggml-metal.0.dylib')}
-        c = self.dc.derive_closure('/cand/bin/llama-server', metadata=g.metadata,
-                                   exists=g.exists, read_bytes=g.read_bytes,
-                                   dynamic_loader=loader,
-                                   dynamic_policy={'bounded': True,
-                                                   'how': 'search path pinned '
-                                                          'and enumerated'})
-        self.assertTrue(c['resolved'], c['unresolved'])
+    def test_every_dependency_command_is_an_edge(self):
+        for cmd in self.dc.DEPENDENCY_COMMANDS:
+            with self.subTest(cmd):
+                g = _complete()
+                g.files[LAUNCHER]['refs'].append((cmd, '@rpath/libgone.dylib'))
+                c = self._derive(g)
+                self.assertFalse(c['resolved'])
 
-    def test_no_dlopen_importer_needs_no_policy(self):
+    def test_an_UNSUPPORTED_command_refuses(self):
+        """`LC_DYLD_ENVIRONMENT` sets loader variables from inside the binary.
+        A deny-list would let it pass; the closed list refuses it."""
+        text = OTOOL_DYLIB.replace('cmd LC_CODE_SIGNATURE', 'cmd LC_DYLD_ENVIRONMENT')
+        m = self.dc.parse_load_commands(text, ncmds=6)
+        self.assertIn('unsupported load command LC_DYLD_ENVIRONMENT', m['error'])
+        text = OTOOL_DYLIB.replace('cmd LC_CODE_SIGNATURE', 'cmd ?(0x80000099)')
+        self.assertIn('unsupported', self.dc.parse_load_commands(text, ncmds=6)['error'])
+
+    def test_a_MALFORMED_dependency_record_refuses(self):
+        text = OTOOL_DYLIB.replace('name @rpath/libggml-base.0.dylib (offset 24)',
+                                   'nmae garbled')
+        self.assertIn('no readable name',
+                      self.dc.parse_load_commands(text, ncmds=6)['error'])
+        text = OTOOL_DYLIB.replace('path /cand/bin (offset 12)', 'path')
+        self.assertIn('no readable path',
+                      self.dc.parse_load_commands(text, ncmds=6)['error'])
+
+    def test_a_COMMAND_COUNT_mismatch_refuses(self):
+        """Truncated output lists fewer commands than the header declares; the
+        missing ones cannot be assumed harmless."""
+        self.assertIn('declares 7',
+                      self.dc.parse_load_commands(OTOOL_DYLIB, ncmds=7)['error'])
+
+    def test_the_mach_header_must_be_ONE_readable_header(self):
+        one = ('/x:\nMach header\n      magic  cputype cpusubtype  caps    filetype '
+               'ncmds sizeofcmds      flags\n 0xfeedfacf 16777228          0  0x00  '
+               '         6    22       1648 0x00110085\n')
+        self.assertEqual(self.dc.parse_mach_header(one), {'ncmds': 22})
+        self.assertIn('error', self.dc.parse_mach_header(one + one))
+        self.assertIn('error', self.dc.parse_mach_header('/x:\nMach header\n'))
+
+    # -- root item 1: the dynamic contract, measured -------------------------
+    def test_a_MODELLED_dlopen_importer_under_an_enumerated_search_resolves(self):
+        """THE CONTROL for the dynamic half: libggml imports dlopen, every
+        location the pinned source searches is enumerated and empty, and the
+        environment sets no loader variable. `bounded` is computed, not
+        supplied."""
+        c = self._derive(_complete())
+        self.assertTrue(c['resolved'], self._problems(c))
+        d = c['dynamic_loading']
+        self.assertEqual([Path(x).name for x in d['members_importing_dlopen']],
+                         ['libggml.0.dylib'])
+        self.assertEqual([r['directory'] for r in d['search_locations']],
+                         ['/cand/bin', '/run'])
+        self.assertTrue(d['bounded'])
+
+    def test_an_UNMODELLED_dlopen_importer_refuses(self):
         g = _complete()
-        c = self.dc.derive_closure('/cand/bin/llama-server', metadata=g.metadata,
-                                   exists=g.exists, read_bytes=g.read_bytes,
-                                   dynamic_loader=lambda path: {'dlopen': False})
-        self.assertTrue(c['resolved'], c['unresolved'])
-        self.assertTrue(c['dynamic_loading']['checked'])
+        g.files['/cand/bin/libggml-metal.0.dylib']['dlopen'] = True
+        c = self._derive(g)
+        self.assertFalse(c['resolved'])
+        self.assertIn('search is not modelled', self._problems(c))
+        self.assertFalse(c['dynamic_loading']['bounded'])
+
+    def test_a_MISSING_reader_or_context_is_a_check_NOT_MADE(self):
+        """Root: `verify_closure` "re-derives without a dynamic reader or
+        policy, allowing verified=True while making zero dynamic checks."
+        Leaving a reader out is now a refusal, never a pass."""
+        for missing in ('dynamic_loader', 'enumerate_dir', 'launch_context'):
+            with self.subTest(missing):
+                c = self._derive(_complete(), **{missing: None})
+                self.assertFalse(c['resolved'])
+                self.assertFalse(c['dynamic_loading']['bounded'])
 
     def test_an_unreadable_dynamic_check_is_unresolved(self):
         g = _complete()
-        c = self.dc.derive_closure('/cand/bin/llama-server', metadata=g.metadata,
-                                   exists=g.exists, read_bytes=g.read_bytes,
-                                   dynamic_loader=lambda path: {'error': 'nm failed'})
+        g.files['/cand/bin/libggml.0.dylib']['nm_error'] = 'nm failed'
+        self.assertFalse(self._derive(g)['resolved'])
+
+    def test_a_DISCOVERABLE_backend_is_bound_and_its_dependencies_walked(self):
+        """Root: enumerate "the complete possible candidate set, including
+        scoring candidates and the ordinary recursively resolved
+        implementation-library dependencies." A candidate in cwd is not refused
+        for existing -- it becomes an edge, and what IT loads is walked."""
+        g = _complete()
+        g.files['/run/libggml-vulkan-x.so'] = {
+            'refs': ['/opt/vk/libvk.dylib'], 'bytes': b'VK'}
+        g.files['/opt/vk/libvk.dylib'] = {'bytes': b'VKDEP'}
+        g.dirs['/run'] = [{'name': 'libggml-vulkan-x.so', 'path': '/run/libggml-vulkan-x.so',
+                           'resolved': '/run/libggml-vulkan-x.so', 'is_symlink': False}]
+        c = self._derive(g)
+        self.assertTrue(c['resolved'], self._problems(c))
+        self.assertIn('/run/libggml-vulkan-x.so', c['files'])
+        self.assertIn('/opt/vk/libvk.dylib', c['files'])
+
+    def test_a_discoverable_candidate_that_CANNOT_be_pinned_refuses(self):
+        g = _complete()
+        g.dirs['/run'] = [{'name': 'libggml-x.so', 'path': '/run/libggml-x.so',
+                           'error': 'FileNotFoundError: dangling symlink'}]
+        c = self._derive(g)
         self.assertFalse(c['resolved'])
+        self.assertIn('cannot be pinned', self._problems(c))
+
+    def test_an_UNENUMERABLE_search_location_refuses(self):
+        g = _complete()
+        g.enumerate_dir = lambda d: {'directory': d, 'error': 'PermissionError'}
+        self.assertFalse(self._derive(g)['resolved'])
+
+    def test_LOADER_and_BACKEND_PATH_environment_refuse_other_GGML_is_recorded(self):
+        for env, ok in (({'DYLD_LIBRARY_PATH': '/x'}, False),
+                        ({'DYLD_INSERT_LIBRARIES': '/x.dylib'}, False),
+                        ({'GGML_BACKEND_PATH': '/cand/bin'}, False),
+                        ({'GGML_METAL_NO_RESIDENCY': '1'}, True),
+                        ({'HOME': '/Users/x'}, True)):
+            with self.subTest(env=env):
+                c = self._derive(_complete(), launch_context=_ctx(environment=env))
+                self.assertIs(c['resolved'], ok, self._problems(c))
+        c = self._derive(_complete(), launch_context=_ctx(
+            environment={'HOME': '/Users/x', 'GGML_METAL_NO_RESIDENCY': '1'}))
+        self.assertEqual(c['launch_context']['environment'],
+                         {'GGML_METAL_NO_RESIDENCY': '1'})
+
+    def test_the_EXECUTABLE_PATH_must_be_the_root_and_canonical(self):
+        c = self._derive(_complete(), launch_context=_ctx(
+            executable_invoked_path='/elsewhere/llama-server'))
+        self.assertFalse(c['resolved'])
+        c = self._derive(_complete(), realpath=lambda p: '/private' + p)
+        self.assertFalse(c['resolved'])
+        self.assertIn('not canonical', self._problems(c))
+        c = self._derive(_complete(), launch_context=_ctx(cwd='relative/dir'))
+        self.assertFalse(c['resolved'])
+
+    def test_a_COMPILED_backend_dir_is_searched_first(self):
+        g = _complete()
+        g.dirs['/opt/backends'] = []
+        c = self._derive(g, launch_context=_ctx(compiled_backend_dir='/opt/backends'))
+        self.assertTrue(c['resolved'], self._problems(c))
+        self.assertEqual([r['directory'] for r in c['dynamic_loading']['search_locations']],
+                         ['/opt/backends', '/cand/bin', '/run'])
 
     # -- stage two: verification --------------------------------------------
     def _frozen(self):
-        return self._derive(_complete())
+        c = self._derive(_complete())
+        self.assertTrue(c['resolved'], self._problems(c))
+        return c
+
+    def _verify(self, frozen, g=None, **kw):
+        g = g or _complete()
+        r = _readers(g, **kw)
+        return self.dc.verify_closure(frozen, **r)
 
     def test_an_unchanged_graph_verifies(self):
         """THE CONTROL for stage two."""
-        v = self.dc.verify_closure(self._frozen(), metadata=_complete().metadata,
-                                   exists=_complete().exists,
-                                   read_bytes=_complete().read_bytes)
+        v = self._verify(self._frozen())
         self.assertTrue(v['verified'], v['problems'])
-        self.assertEqual(v['members_agreeing'], 3)
+        self.assertEqual(v['edges_agreeing'], v['edges_checked'])
+        self.assertTrue(v['dynamic_loading_now']['bounded'])
+
+    def test_ROOTS_PROBE_verification_without_a_dynamic_reader_REFUSES(self):
+        """Root, 14:41: verification "re-derives without a dynamic reader or
+        policy, allowing verified=True while making zero dynamic checks." Under
+        the old code this call verified."""
+        for missing in ('dynamic_loader', 'enumerate_dir', 'launch_context'):
+            with self.subTest(missing):
+                v = self._verify(self._frozen(), **{missing: None})
+                self.assertFalse(v['verified'])
+
+    def test_a_CHANGED_launch_context_refuses(self):
+        v = self._verify(self._frozen(), launch_context=_ctx(cwd='/elsewhere'))
+        self.assertFalse(v['verified'])
+        self.assertTrue(any('launch context field cwd' in p for p in v['problems']))
+
+    def test_GGML_BACKEND_PATH_set_at_preflight_refuses(self):
+        v = self._verify(self._frozen(), launch_context=_ctx(
+            environment={'GGML_BACKEND_PATH': '/tmp/libggml-evil.so'}))
+        self.assertFalse(v['verified'])
+
+    def test_a_backend_that_APPEARS_in_a_search_location_after_freezing_refuses(self):
+        """Root: "do not infer that a directory remained unchanged from an old
+        inventory." The search is re-enumerated at preflight."""
+        g = _complete()
+        g.files['/cand/bin/libggml-cuda.so'] = {'bytes': b'NEW'}
+        g.dirs['/cand/bin'] = [{'name': 'libggml-cuda.so',
+                                'path': '/cand/bin/libggml-cuda.so',
+                                'resolved': '/cand/bin/libggml-cuda.so'}]
+        v = self._verify(self._frozen(), g)
+        self.assertFalse(v['verified'])
+        self.assertTrue(any('not in the frozen closure' in p for p in v['problems']))
 
     def test_a_HASH_CORRECT_file_at_the_WRONG_PATH_does_not_satisfy_an_edge(self):
         """Root: "A hash-correct unrelated file cannot satisfy a required
-        implementation edge."
-
-        The bytes are identical; only the path the loader would choose has
-        moved. Membership is keyed by the EDGE, because what loads is chosen by
-        path, not by digest.
-        """
+        implementation edge." Same bytes; only the path the loader would choose
+        has moved."""
         frozen = self._frozen()
         g = _complete()
-        g.files['/elsewhere/libggml-base.0.dylib'] = {'refs': [], 'bytes': b'BASE'}
-        g.files['/cand/bin/libllama-server-impl.dylib']['rpaths'] = ['/elsewhere']
-        del g.files['/cand/bin/libggml-base.0.dylib']
-        g.files['/cand/bin/libggml-metal.0.dylib']['rpaths'] = ['/elsewhere']
-        v = self.dc.verify_closure(frozen, metadata=g.metadata, exists=g.exists,
-                                   read_bytes=g.read_bytes)
+        g.files['/elsewhere/libggml-base.0.dylib'] = dict(
+            g.files.pop('/cand/bin/libggml-base.0.dylib'))
+        for f in ('/cand/bin/libllama-server-impl.dylib', '/cand/bin/libggml.0.dylib',
+                  '/cand/bin/libggml-metal.0.dylib'):
+            g.files[f]['rpaths'] = ['/elsewhere']
+        v = self._verify(frozen, g)
         self.assertFalse(v['verified'])
-        self.assertTrue(any('was frozen at' in p for p in v['problems']),
-                        v['problems'])
+        self.assertTrue(any('was frozen at' in p for p in v['problems']), v['problems'])
 
     def test_CHANGED_BYTES_at_the_same_path_refuse(self):
         frozen = self._frozen()
         g = _complete()
         g.files['/cand/bin/libllama-server-impl.dylib']['bytes'] = b'TAMPERED'
-        v = self.dc.verify_closure(frozen, metadata=g.metadata, exists=g.exists,
-                                   read_bytes=g.read_bytes)
+        v = self._verify(frozen, g)
         self.assertFalse(v['verified'])
         self.assertTrue(any('changed bytes' in p for p in v['problems']))
 
     def test_an_UNEXPECTED_non_system_member_refuses(self):
-        """Root: "unexpected non-system resolution" must refuse. A member that
-        appears now and was not frozen is as much a difference as one that
-        disappears."""
         frozen = self._frozen()
         g = _complete()
         g.files['/cand/bin/libextra.dylib'] = {'refs': [], 'bytes': b'EXTRA'}
-        g.files['/cand/bin/llama-server']['refs'].append('@rpath/libextra.dylib')
-        v = self.dc.verify_closure(frozen, metadata=g.metadata, exists=g.exists,
-                                   read_bytes=g.read_bytes)
+        g.files[LAUNCHER]['refs'].append('@rpath/libextra.dylib')
+        v = self._verify(frozen, g)
         self.assertFalse(v['verified'])
-        self.assertTrue(any('not in the frozen closure' in p
-                            for p in v['problems']))
+        self.assertTrue(any('not in the frozen closure' in p for p in v['problems']))
 
     def test_an_UNRELATED_ONLY_inventory_cannot_stand_in(self):
-        """Root's "unrelated-only inventory" control, and the reason my own
-        default was insufficient: a frozen set that names only unrelated files
-        must not verify against the real graph, and its omissions must not read
-        as compliance."""
-        frozen = self._frozen()
-        frozen = dict(frozen, members={
-            '@rpath/libunrelated.dylib': {
-                'reference': '@rpath/libunrelated.dylib',
-                'resolved': '/cand/bin/libunrelated.dylib',
-                'sha256': 'f' * 64, 'bytes': 4}})
-        g = _complete()
-        v = self.dc.verify_closure(frozen, metadata=g.metadata, exists=g.exists,
-                                   read_bytes=g.read_bytes)
+        """A frozen set naming only unrelated files must not verify against the
+        real graph, and its omissions must not read as compliance."""
+        frozen = dict(self._frozen())
+        key = self.dc.edge_key(LAUNCHER, 'LC_LOAD_DYLIB', '@rpath/libunrelated.dylib')
+        frozen['edges'] = {key: {'parent': LAUNCHER, 'command': 'LC_LOAD_DYLIB',
+                                 'reference': '@rpath/libunrelated.dylib',
+                                 'resolved': '/cand/bin/libunrelated.dylib'}}
+        frozen['files'] = {'/cand/bin/libunrelated.dylib': {'sha256': 'f' * 64}}
+        v = self._verify(frozen)
         self.assertFalse(v['verified'])
         self.assertTrue(any('no longer reached' in p for p in v['problems']))
-        self.assertTrue(any('not in the frozen closure' in p
-                            for p in v['problems']))
+        self.assertTrue(any('not in the frozen closure' in p for p in v['problems']))
 
     def test_an_UNRESOLVED_frozen_closure_cannot_be_a_requirement(self):
         g = _complete()
         del g.files['/cand/bin/libggml-base.0.dylib']
         bad = self._derive(g)
         self.assertFalse(bad['resolved'])
-        v = self.dc.verify_closure(bad, metadata=_complete().metadata,
-                                   exists=_complete().exists,
-                                   read_bytes=_complete().read_bytes)
+        v = self._verify(bad)
         self.assertFalse(v['verified'])
         self.assertTrue(any('itself unresolved' in p for p in v['problems']))
 
-    def test_no_frozen_closure_at_all_refuses(self):
-        for junk in ({}, None, {'schema': 'something else'}):
+    def test_no_frozen_closure_or_an_OLD_SCHEMA_one_refuses(self):
+        """A v1 closure carries no dynamic contract, so it cannot be verified
+        under one."""
+        for junk in ({}, None, {'schema': 'something else'},
+                     {'schema': 'live_ab/dependency_closure-v1', 'resolved': True}):
             with self.subTest(frozen=junk):
-                v = self.dc.verify_closure(junk, metadata=_complete().metadata,
-                                           exists=_complete().exists,
-                                           read_bytes=_complete().read_bytes)
-                self.assertFalse(v['verified'])
+                self.assertFalse(self._verify(junk)['verified'])
 
 
 if __name__ == '__main__':                                     # pragma: no cover
