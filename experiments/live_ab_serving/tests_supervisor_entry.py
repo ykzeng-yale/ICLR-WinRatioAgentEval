@@ -71,6 +71,7 @@ from __future__ import annotations
 
 import copy
 import hashlib
+import os
 import importlib.util
 import io
 import json
@@ -104,7 +105,25 @@ class _Proc:
         self.returncode = None
         self._exit_code = exit_code
         self._reaps = reaps
-        self.stdout = io.BytesIO(stdout)
+        # A REAL OS PIPE, not a BytesIO. Root, 16:30: production main() must
+        # require a verified usable non-blocking pipe, so the fixture child
+        # gives it one: the bytes are written, the write end closed, and the
+        # drain meets data then EOF through a real descriptor and select().
+        # Well under the pipe buffer, so the write can never block.
+        assert len(stdout) < 16384, 'fixture output must fit the pipe buffer'
+        r, w = os.pipe()
+        try:
+            os.write(w, stdout)
+        finally:
+            os.close(w)
+        self.stdout = self._pipe = os.fdopen(r, 'rb', buffering=0)
+
+    def close(self):
+        # Its OWN pipe, even when a test has swapped `stdout` for something else.
+        try:
+            self._pipe.close()
+        except Exception:                                      # noqa: BLE001
+            pass
 
     def poll(self):
         return self.returncode
@@ -213,6 +232,8 @@ class SupervisorEntryPointTests(unittest.TestCase):
              request_start_raises_at=None, request_join_raises=False):
         rs = self.rs
         proc = proc if proc is not None else _Proc()
+        if hasattr(proc, 'close'):
+            self.addCleanup(proc.close)
         bodies = bodies if bodies is not None else [OK_BODY, OK_BODY]
         posted = []
 
@@ -1059,12 +1080,157 @@ class SupervisorEntryPointTests(unittest.TestCase):
         self.assertFalse(state['nonblocking_reads'])
         self.assertFalse(art.exists())
 
-    def test_an_in_memory_stream_is_recorded_ABSENT_not_nonblocking(self):
-        """The fixture's BytesIO has no OS descriptor. That is recorded as what
-        it is, not dressed up as a non-blocking production pipe."""
+    def test_the_fixture_child_gives_main_a_REAL_nonblocking_pipe(self):
+        """THE CONTROL for the refusals below: a valid run succeeds through a
+        real descriptor, made non-blocking and drained to EOF."""
         status, receipt = self._run()
         self.assertEqual(status, 0)
-        self.assertEqual(receipt['capture_descriptor']['descriptor'], 'absent')
+        self.assertEqual(receipt['capture_descriptor']['descriptor'], 'nonblocking')
+        self.assertTrue(receipt['producer_diagnostics']['raw_capture_complete'])
+
+    def test_an_IN_MEMORY_stream_is_REFUSED_by_production_main(self):
+        """Root, 16:30: descriptor-free leniency belongs to "an explicit offline
+        helper fixture", never "a production dispatch path". At `c7bd714` a
+        BytesIO reached dispatch labelled 'absent'."""
+        proc = _Proc()
+        proc.stdout.close()
+        proc.stdout = io.BytesIO(b'in memory\n')
+        status, receipt = self._run(proc=proc)
+        self.assertEqual(status, 1)
+        self.assertEqual(self.posted, [])
+        self.assertEqual(receipt['capture_descriptor']['descriptor'],
+                         'in_memory_fixture')
+        self.assertTrue(receipt['child_confirmed_stopped'])
+
+    def test_ROOTS_WITNESS_an_UNAVAILABLE_descriptor_refuses_with_NO_POST_or_read(self):
+        """Root's exact injection: a non-memory stream whose `fileno()` raises
+        OSError and whose `read()` only counts calls and returns EOF. At
+        `c7bd714` it produced two POSTs, one read, return 0, no problems."""
+        reads = []
+
+        class _Lost:
+            def fileno(self):
+                raise OSError('synthetic descriptor lookup failure, not an '
+                              'in-memory fixture')
+
+            def read(self, n=-1):
+                reads.append(n)
+                return b''
+        proc = _Proc()
+        proc.stdout.close()
+        proc.stdout = _Lost()
+        status, receipt = self._run(proc=proc)
+        self.assertEqual(status, 1)
+        self.assertEqual(self.posted, [], 'no POST may be sent')
+        self.assertEqual(reads, [], 'nothing may be read')
+        self.assertEqual(receipt['capture_descriptor']['descriptor'], 'unavailable')
+        self.assertIn('not a verified non-blocking pipe',
+                      ' '.join(receipt['supervisor_problems']))
+        self.assertTrue(receipt['child_confirmed_stopped'])
+
+    def test_a_stream_with_NO_fileno_at_all_is_REFUSED_by_production_main(self):
+        """The drain helper's offline-fixture path covers an object with no
+        descriptor interface; production main() still refuses it."""
+        class _NoFd:
+            def read(self, n=-1):
+                raise AssertionError('must not be read')
+        proc = _Proc()
+        proc.stdout = _NoFd()
+        status, receipt = self._run(proc=proc)
+        self.assertEqual(status, 1)
+        self.assertEqual(self.posted, [])
+        self.assertEqual(receipt['capture_descriptor']['descriptor'],
+                         'in_memory_fixture')
+
+    def test_a_fileno_that_returns_a_NON_DESCRIPTOR_is_unavailable(self):
+        for bogus in (None, -1, True, '3'):
+            with self.subTest(bogus=bogus):
+                class _Odd:
+                    def fileno(self, _b=bogus):
+                        return _b
+                self.assertEqual(self.rs.make_nonblocking(_Odd())['descriptor'],
+                                 'unavailable')
+
+    def test_the_DRAIN_HELPER_alone_keeps_the_in_memory_fixture_path(self):
+        """The narrow leniency, where root allowed it: the drain called
+        directly with an io.BytesIO (as the pinned design tests do) still
+        captures -- and the same helper refuses an unavailable descriptor."""
+        state = {}
+        art = self.root / 'mem.bin'
+        self.rs.drain_to_artifact(io.BytesIO(b'abc'), art, state)
+        self.assertEqual(state['descriptor']['descriptor'], 'in_memory_fixture')
+        self.assertTrue(state['raw_capture_complete'])
+
+        class _Lost:
+            def fileno(self):
+                raise OSError('lost')
+
+            def read(self, n=-1):
+                raise AssertionError('must not be read')
+        state2 = {}
+        self.rs.drain_to_artifact(_Lost(), self.root / 'lost.bin', state2)
+        self.assertIn('unavailable', state2['error'])
+        self.assertFalse(state2['raw_capture_complete'])
+
+    def test_ROOTS_WITNESS_crossing_the_budget_AT_FINALIZATION_refuses(self):
+        """Root's exact injection: wrap the real finalize with only
+        `clock += 601` before its call. At `c7bd714` a valid run returned 0
+        with wall_cap_respected=false and supervisor_problems=[]."""
+        rs = self.rs
+        real = rs.finalize
+
+        def late(*a, **k):
+            self.clock[0] += 601.0
+            return real(*a, **k)
+        with mock.patch.object(rs, 'finalize', late):
+            status, receipt = self._run()
+        self.assertEqual(status, 1)
+        self.assertFalse(receipt['wall_cap_respected'])
+        self.assertTrue(any('wall budget was exceeded' in p
+                            for p in receipt['supervisor_problems']))
+        self.assertTrue(receipt['deadline']['single_reading'])
+        self.assertEqual(receipt['deadline']['elapsed_s'],
+                         receipt['wall_seconds_total'])
+
+    def test_the_final_snapshot_UNDER_budget_does_not_refuse(self):
+        """The control: 599 s at finalization is within budget."""
+        rs = self.rs
+        real = rs.finalize
+
+        def late(*a, **k):
+            self.clock[0] += 599.0
+            return real(*a, **k)
+        with mock.patch.object(rs, 'finalize', late):
+            status, receipt = self._run()
+        self.assertEqual(status, 0, receipt['supervisor_problems'])
+        self.assertTrue(receipt['wall_cap_respected'])
+
+    def test_the_2048_TOKENS_are_a_PROSPECTIVE_budget_before_any_child(self):
+        """Root, 16:30: require the sum of per-request allocations over all
+        planned wire attempts to be at most 2,048 before dispatch -- for two
+        identical requests, at most 1,024 each."""
+        for max_tokens, ok in ((1025, False), (4096, False), (1024, True)):
+            with self.subTest(max_tokens=max_tokens):
+                self.setUp()
+                m = json.loads(self.man_path.read_text('utf-8'))
+                m['request']['max_tokens'] = max_tokens
+                self.man_path.write_text(json.dumps(m), encoding='utf-8')
+                status, receipt = self._run()
+                probs = ' '.join(receipt['manifest_validation']['problems'])
+                if ok:
+                    self.assertNotIn('acquisition budget', probs)
+                else:
+                    self.assertEqual(status, 1)
+                    self.assertFalse(receipt['child_started'])
+                    self.assertEqual(self.posted, [])
+                    self.assertIn('acquisition budget', probs)
+
+    def test_RESPONSES_RECEIVED_is_reported_beside_the_legacy_name(self):
+        status, receipt = self._run()
+        self.assertEqual(receipt['responses_received'], 2)
+        self.assertEqual(receipt['submitted_requests'], 2)
+        self.assertEqual(receipt['transport_attempted_requests'], 2)
+        self.assertIn('LEGACY', receipt['submitted_requests_meaning'])
 
     def test_ELAPSED_is_measured_in_finalize_on_an_EARLY_refusal(self):
         """Root: "measure elapsed time through finalization with its boundary

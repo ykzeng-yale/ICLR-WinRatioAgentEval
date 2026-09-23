@@ -1,0 +1,59 @@
+{
+ "NOT_DONE_not_claimed": [
+  "unfinished-worker stable terminal snapshot (next)",
+  "launch wiring: launcher from the frozen closure, cwd = pinned executable dir, independent child env with GGML_*/DYLD_* removed and names recorded, same dict for preflight and Popen, source/build/acquisition-code binding, verify_closure before Popen",
+  "the authorized config amendment and the finite costed plan"
+ ],
+ "authority": "root, reviews/acquisition_preparation_disposition_20260923_1630.md and reviews/supervisor_completion_review_20260923_1630.md, supervisor items 1 and 2 plus decision-3 token allocation and decision-5 labels",
+ "base_commit": "072f934",
+ "convention": "deterministic-path",
+ "descriptor": {
+  "harness": "the fixture child now gives main() a real os.pipe (bytes written, write end closed), so the valid control runs through a real non-blocking descriptor to EOF; pipes are closed per test (clean under -W error::ResourceWarning)",
+  "now": "make_nonblocking classifies by what the stream IS: nonblocking | blocking (set_blocking failed) | unavailable (fileno raised, or returned a non-descriptor: None, -1, bool, str) | in_memory_fixture (an io.BytesIO or an object with NO fileno attribute). Production main() accepts ONLY 'nonblocking' and refuses the rest before a drain exists or anything is sent. The drain helper, called directly, keeps the in_memory_fixture path -- five pinned tests_lab_design.py cases feed it BytesIO and one an object without fileno -- and refuses blocking and unavailable.",
+  "root_witness": "fileno() raising OSError was mapped to 'absent' and labelled in-memory: two POSTs, one read, return 0"
+ },
+ "files": {
+  "experiments/live_ab_serving/run_smoke.py": "02d1a874b06ee43c20977ee4d05af6f89a67a219b40b60d00c3a94b6a5950de3",
+  "experiments/live_ab_serving/tests_supervisor_entry.py": "916cedaf3ea649520154067d1da61ff7894a1888205abed17c13f224a24c69cf"
+ },
+ "final_deadline": {
+  "control": "599 s at finalization still returns 0",
+  "now": "Deadline.snapshot() takes ONE clock reading; finalize records elapsed/expired from it, appends a refusal when expired, and derives the status from that same final problem list. Boundary unchanged (ends before the receipt write) and now states it is not an end-to-end hard wall-clock guarantee.",
+  "root_witness": "clock += 601 immediately before finalize: return 0, wall_cap_respected=false, supervisor_problems=[]"
+ },
+ "found_in_my_own_draft": "the first descriptor rule refused an object WITHOUT fileno in the drain helper too, which broke pinned tests_lab_design.test_a_reader_that_raises_records_structured_failure; the fixture path is now defined by what the stream is (no descriptor interface), never by a lookup failure",
+ "generated_utc": "2026-09-23T17:53:45Z",
+ "harness": {
+  "after_change": {
+   "tests_lab_chain": "70 OK",
+   "tests_lab_design": "345 OK",
+   "tests_lab_isolation": "33 OK",
+   "tests_lab_serving": "89 OK",
+   "tests_supervisor_entry": "Ran 50, OK (also clean with -W error::ResourceWarning)"
+  },
+  "harness_files_pin_set": "33, unchanged; no pinned file edited",
+  "new_cases": [
+   "test_the_fixture_child_gives_main_a_REAL_nonblocking_pipe (control)",
+   "test_an_IN_MEMORY_stream_is_REFUSED_by_production_main",
+   "test_a_stream_with_NO_fileno_at_all_is_REFUSED_by_production_main",
+   "test_ROOTS_WITNESS_an_UNAVAILABLE_descriptor_refuses_with_NO_POST_or_read",
+   "test_a_fileno_that_returns_a_NON_DESCRIPTOR_is_unavailable (4 subcases)",
+   "test_the_DRAIN_HELPER_alone_keeps_the_in_memory_fixture_path",
+   "test_ROOTS_WITNESS_crossing_the_budget_AT_FINALIZATION_refuses",
+   "test_the_final_snapshot_UNDER_budget_does_not_refuse (control)",
+   "test_the_2048_TOKENS_are_a_PROSPECTIVE_budget_before_any_child (3 subcases)",
+   "test_RESPONSES_RECEIVED_is_reported_beside_the_legacy_name"
+  ],
+  "replaced": "test_an_in_memory_stream_is_recorded_ABSENT_not_nonblocking asserted the leniency root rejected",
+  "witness_before_change": "against 072f934 (detached worktree): the 8 non-control new cases fail (11 failures + 1 error counting subcases); both controls pass there too, as controls should"
+ },
+ "labels": {
+  "now": "responses_received added (== legacy submitted_requests, which keeps its name and now carries submitted_requests_meaning); transport_attempted_requests unchanged"
+ },
+ "nothing_executed_THIS_RECEIPT": "no server, model, candidate binary or network request; mocked Popen/Thread/Barrier/requests/clock; the fixture child's stdout is now a REAL os.pipe (written, closed, drained through select) -- the only real OS object used",
+ "schema": "live_ab/session60_receipt-v1",
+ "token_budget": {
+  "now": "validate_manifest refuses before any child when max_tokens x PLANNED_WIRE_ATTEMPTS (2) > TOKEN_CAP (2048); 1025 and 4096 refuse, 1024 passes. The observed-usage aggregate check is unchanged and separate. range(2) and planned_requests now use PLANNED_WIRE_ATTEMPTS.",
+  "was": "2048 was an aggregate acceptance check after responses; any positive max_tokens allowed"
+ }
+}

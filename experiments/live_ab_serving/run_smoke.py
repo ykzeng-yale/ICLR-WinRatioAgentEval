@@ -23,6 +23,7 @@ read. Root: "Do not analyze a file still being written."
 from __future__ import annotations
 
 import hashlib
+import io
 import json
 import math
 import os
@@ -75,6 +76,10 @@ TOKEN_CAP = 2048
 #: The work cutoff is DERIVED, never a fifth literal: the dispatch budget ends
 #: where the cleanup reserve begins.
 DISPATCH_CUTOFF_S = WALL_CAP_S - CLEANUP_RESERVE_S
+#: Wire attempts this acquisition plans: two identical requests, never retried.
+#: Every one may consume its whole `max_tokens`, so the prospective budget is
+#: PLANNED_WIRE_ATTEMPTS x max_tokens <= TOKEN_CAP.
+PLANNED_WIRE_ATTEMPTS = 2
 #: THE LIMITS BOUND ACROSS CODE AND THE IMMUTABLE LAUNCH MANIFEST. Root,
 #: 2026-09-23 14:41: "bind 8 MiB/90-second/600-second/510-second limits across
 #: code, immutable configuration and finite costed plan." The launch manifest's
@@ -137,7 +142,15 @@ def _retain_bytes(p: Path) -> dict:
 
 
 class CaptureDescriptorError(RuntimeError):
-    """The child's output descriptor could not be made non-blocking."""
+    """The child's output descriptor is not a verified non-blocking pipe."""
+
+
+#: Streams accepted without an OS descriptor -- these, and objects with no
+#: `fileno` attribute at all -- and only by the drain helper called directly.
+#: Classified by what the stream IS, so no failure mode of a descriptor that
+#: exists -- an OSError from `fileno()`, a bogus return value -- can be
+#: mistaken for one.
+IN_MEMORY_FIXTURE_TYPES = (io.BytesIO,)
 
 
 def make_nonblocking(stream) -> dict:
@@ -149,26 +162,57 @@ def make_nonblocking(stream) -> dict:
     cannot interrupt, so the fallback quietly reinstated the defect the
     non-blocking repair existed to remove.
 
-    Three outcomes, and only one of them is a refusal:
-      'nonblocking' -- a descriptor, now non-blocking;
-      'blocking'    -- a descriptor that could NOT be made non-blocking: refuse;
-      'absent'      -- no OS descriptor at all. That is an in-memory fixture; a
-                       `subprocess.PIPE` always has one, so production cannot
-                       reach this branch. It is recorded, not assumed.
+    Root, 16:30: "A non-memory object whose `fileno()` raises `OSError` is
+    currently treated as an in-memory fixture ... Production `main()` must
+    require a verified usable nonblocking pipe. Keep any BytesIO/no-descriptor
+    leniency confined to an explicit offline helper fixture." I had mapped
+    EVERY lookup failure to "absent" and called it an in-memory stream, so an
+    unavailable production descriptor was dispatched against.
+
+    Four outcomes, told apart by what the stream IS, not by how it failed:
+      'nonblocking'       -- a descriptor, now non-blocking. The ONLY outcome
+                             production main() accepts;
+      'blocking'          -- a descriptor that could not be made non-blocking;
+      'unavailable'       -- the descriptor lookup failed, or returned something
+                             that is not a descriptor;
+      'in_memory_fixture' -- the stream has NO descriptor interface: an
+                             `io.BytesIO`, or an object with no `fileno` at
+                             all. Accepted ONLY by the drain helper when called
+                             directly (the offline fixture tests do exactly
+                             that); main() refuses it. A `fileno()` that exists
+                             and FAILS is 'unavailable', never this.
     """
     raw = getattr(stream, 'buffer', stream)
+    if isinstance(raw, IN_MEMORY_FIXTURE_TYPES) or not hasattr(raw, 'fileno'):
+        return {'descriptor': 'in_memory_fixture',
+                'note': 'no descriptor interface (an io.BytesIO or an object '
+                        'without fileno); accepted by the offline drain helper '
+                        'only, never by main()'}
     try:
         fd = raw.fileno()
-    except Exception:                                          # noqa: BLE001
-        return {'descriptor': 'absent',
-                'note': 'no OS descriptor (an in-memory stream); a subprocess '
-                        'PIPE always has one'}
+    except Exception as exc:                                   # noqa: BLE001
+        return {'descriptor': 'unavailable',
+                'error': 'the descriptor lookup failed: %s: %s'
+                         % (type(exc).__name__, exc)}
+    if isinstance(fd, bool) or not isinstance(fd, int) or fd < 0:
+        return {'descriptor': 'unavailable',
+                'error': 'fileno() returned %r, which is not a descriptor' % (fd,)}
     try:
         os.set_blocking(fd, False)
     except Exception as exc:                                   # noqa: BLE001
         return {'descriptor': 'blocking', 'fd': fd,
                 'error': '%s: %s' % (type(exc).__name__, exc)}
     return {'descriptor': 'nonblocking', 'fd': fd}
+
+
+def _descriptor_reason(mode: dict) -> str:
+    """One wording per outcome, so a refusal names what actually failed."""
+    return {
+        'blocking': 'the descriptor could not be made non-blocking (%s)',
+        'unavailable': 'the descriptor is unavailable (%s)',
+        'in_memory_fixture': 'the stream is an in-memory fixture with no descriptor (%s)',
+    }.get(mode.get('descriptor'), 'unexpected descriptor state %r' % mode
+          + ' (%s)') % (mode.get('error') or mode.get('note'))
 
 
 def drain_to_artifact(stream, artifact_path: Path, state: dict, *,
@@ -245,13 +289,12 @@ def drain_to_artifact(stream, artifact_path: Path, state: dict, *,
         fd = mode.get('fd')
         nonblocking = mode['descriptor'] == 'nonblocking'
         state['nonblocking_reads'] = nonblocking
-        if mode['descriptor'] == 'blocking':
+        if mode['descriptor'] in ('blocking', 'unavailable'):
             # NO FALLBACK. Nothing is read, no artifact is created, and the
             # capture is incomplete by construction.
             raise CaptureDescriptorError(
-                'refused: the production descriptor could not be made '
-                'non-blocking (%s); a blocking read cannot be bounded by the '
-                'deadline, so nothing was read' % mode['error'])
+                'refused: %s; a read that is not non-blocking cannot be bounded '
+                'by the deadline, so nothing was read' % _descriptor_reason(mode))
         with open(artifact_path, 'xb') as fh:
             while True:
                 if deadline is not None and time.monotonic() > deadline:
@@ -395,6 +438,21 @@ class Deadline:
         left = self.remaining() if use_reserve else self.dispatch_remaining()
         return max(0.0, min(float(want_s), left))
 
+    def snapshot(self) -> dict:
+        """ONE clock reading, and everything derived from it.
+
+        `state()` reads the clock once per field, so its elapsed, remaining and
+        expired figures can describe three different instants. The final
+        decision must rest on one instant, and the recorded figures must be the
+        ones that instant gave."""
+        now = self._now()
+        elapsed = now - self.started
+        remaining = max(0.0, self.hard - now)
+        return {'budget_s': self.budget_s, 'reserve_s': self.reserve_s,
+                'elapsed_s': round(elapsed, 3), 'remaining_s': round(remaining, 3),
+                'expired': remaining <= 0.0,
+                'single_reading': True}
+
     def state(self) -> dict:
         return {'budget_s': self.budget_s, 'reserve_s': self.reserve_s,
                 'elapsed_s': round(self.elapsed(), 3),
@@ -514,9 +572,14 @@ def verify_launch_artifacts(manifest: dict, *, binary: Path, model: Path) -> dic
 ELAPSED_BOUNDARY = {
     'from': ('the Deadline created at main() entry, before the manifest is '
              'read -- so the 600 s budget covers selection and hashing too'),
-    'to': ('finalize(), immediately before the one terminal receipt write'),
+    'to': ('finalize(), immediately before the one terminal receipt write, as '
+           'ONE clock reading that also decides the verdict'),
     'excludes': ('the receipt write itself and the console lines printed after '
                  'it; nothing else'),
+    'not_a_guarantee': ('a measurement at a declared point. It is not an '
+                        'end-to-end hard wall-clock guarantee: time spent '
+                        'writing the receipt and printing afterwards is outside '
+                        'it by construction.'),
 }
 
 
@@ -533,16 +596,26 @@ def finalize(out: dict, dest: Path, problems: list, *, clock=None) -> int:
     failed `Popen` and an undecodable log each produced no receipt at all. The
     attempt that cannot be described is the one most worth describing.
     """
-    out['supervisor_problems'] = list(problems)
-    out['ended_utc'] = _now()
-    # ELAPSED IS MEASURED HERE, ON EVERY PATH. It used to be taken at the end of
-    # main() -- after the console summary, on the normal path only -- and every
-    # early refusal through this function carried no elapsed figure at all.
+    problems = list(problems)
+    # ELAPSED IS MEASURED HERE, ON EVERY PATH, AND IT DECIDES. Root, 16:30:
+    # advancing the clock to 601 s through finalization "records
+    # wall_cap_respected=false but still returns success with no supervisor
+    # problems." I sampled the final value and then returned from the problem
+    # list built before it -- a diagnostic that disagreed with its own verdict.
+    # One reading now sets the recorded figures AND appends the refusal, and
+    # the status is derived from that same final list.
     if clock is not None:
-        out['deadline'] = clock.state()
-        out['wall_seconds_total'] = round(clock.elapsed(), 3)
-        out['wall_cap_respected'] = not clock.expired()
+        snap = clock.snapshot()
+        out['deadline'] = snap
+        out['wall_seconds_total'] = snap['elapsed_s']
+        out['wall_cap_respected'] = not snap['expired']
         out['elapsed_boundary'] = ELAPSED_BOUNDARY
+        if snap['expired']:
+            problems.append('the %.0f s wall budget was exceeded at the final '
+                            'measurement (%.3f s elapsed)'
+                            % (snap['budget_s'], snap['elapsed_s']))
+    out['supervisor_problems'] = problems
+    out['ended_utc'] = _now()
     try:
         lab_common.write_json_atomic(dest, out)
         out['receipt_written'] = True
@@ -679,6 +752,18 @@ def validate_manifest(m: object) -> list:
             elif isinstance(v, int) and k == 'max_tokens' and v < 1:
                 problems.append('manifest["request"]["max_tokens"] %r is not '
                                 'positive' % (v,))
+            elif isinstance(v, int) and k == 'max_tokens' \
+                    and v * PLANNED_WIRE_ATTEMPTS > TOKEN_CAP:
+                # A CONSUMPTION BUDGET, NOT ONLY AN ACCEPTANCE CHECK. Root,
+                # 16:30: the 2,048 total was checked after responses while "any
+                # positive per-request max_tokens" was allowed. Every planned
+                # wire attempt may use its whole allocation, so the allocations
+                # must fit before anything is sent.
+                problems.append('manifest["request"]["max_tokens"] %d x %d planned '
+                                'wire attempts = %d exceeds the %d-token '
+                                'acquisition budget'
+                                % (v, PLANNED_WIRE_ATTEMPTS,
+                                   v * PLANNED_WIRE_ATTEMPTS, TOKEN_CAP))
         # TEMPERATURE IS CONSUMED, SO IT IS REQUIRED. Root, 13:20: the validator
         # "still accepts missing request temperature, host ID, boot ID and patch
         # digest, plus negative max-tokens and boolean/nonfinite temperature ...
@@ -825,7 +910,7 @@ def main() -> int:
         'started_utc': _now(),
         'attempted': True,
         'child_started': False,
-        'planned_requests': 2,
+        'planned_requests': PLANNED_WIRE_ATTEMPTS,
         'submitted_requests': 0,
         'is_a_trial_episode': False,
     }
@@ -912,7 +997,7 @@ def main() -> int:
     # thing that can fail after launch goes through the shared cleanup below.
     base = 'http://127.0.0.1:%d' % m['port']
     planned = []
-    for idx in range(2):
+    for idx in range(PLANNED_WIRE_ATTEMPTS):
         body = {'model': 'coder',
                 'messages': [{'role': 'user', 'content': m['request']['prompt']}],
                 'max_tokens': m['request']['max_tokens'],
@@ -1041,13 +1126,16 @@ def main() -> int:
         # it runs on its own thread; checking here means a run whose capture
         # cannot be bounded sends nothing at all, rather than dispatching and
         # being refused afterwards.
+        # ONLY A VERIFIED NON-BLOCKING PIPE. Anything else -- blocking,
+        # unavailable, or an in-memory stream that production never produces --
+        # refuses here, before a drain exists or a request is sent.
         out['capture_descriptor'] = {k: v for k, v in make_nonblocking(
             proc.stdout).items() if k != 'fd'}
-        if out['capture_descriptor']['descriptor'] == 'blocking':
+        if out['capture_descriptor']['descriptor'] != 'nonblocking':
             raise CaptureDescriptorError(
-                'the child output descriptor could not be made non-blocking (%s); '
+                'the child output is not a verified non-blocking pipe: %s; '
                 'refusing before any dispatch'
-                % out['capture_descriptor']['error'])
+                % _descriptor_reason(out['capture_descriptor']))
         drain_thread = threading.Thread(
             target=drain_to_artifact, args=(proc.stdout, capture_path, capture),
             # THE DRAIN RUNS TO THE HARD END, NOT THE WORK CUTOFF. Root, 10:39:
@@ -1294,7 +1382,16 @@ def main() -> int:
                             'supervisor-wide transport counter, not by this row')}
         request_rows.append(row)
     out['requests'] = sorted(request_rows, key=lambda r: r['index'])
+    # UNAMBIGUOUS LABELS. Root, 16:30: "Retain legacy `submitted_requests` with
+    # its documented response-count meaning for compatibility; add an
+    # unambiguous `responses_received` alias and retain the existing
+    # transport-attempt count." Sends are never inferred from responses.
     out['submitted_requests'] = submitted_count[0]
+    out['submitted_requests_meaning'] = ('LEGACY NAME: counts responses received '
+                                         '(incremented after requests.post '
+                                         'returns), not sends; see '
+                                         'responses_received')
+    out['responses_received'] = submitted_count[0]
     out['transport_attempted_requests'] = attempted_count[0]
     out['requests_with_worker_record'] = len(results)
     out['requests_without_worker_record'] = sum(
