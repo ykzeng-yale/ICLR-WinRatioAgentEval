@@ -1,0 +1,125 @@
+{
+  "reviewed_commit": "a95ba08e9b21d00f73521f3f098a7ba0222bac29",
+  "scope": "offline mocked entry; no model, sandbox or actual lock acquisition",
+  "witnesses": [
+    {
+      "name": "canonical_token",
+      "raw_path": "<HOST_WORK>/sandbox.lock",
+      "called_run_job": true,
+      "return_code": 0,
+      "bound_path": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab/sandbox.lock"
+    },
+    {
+      "name": "stale_trial_token",
+      "raw_path": "<WORK>/T1/sandbox.lock",
+      "called_run_job": false,
+      "refusal_type": "PreflightError",
+      "reason": "execution lock at lab_worker.main is /Users/yukang/Documents/Codex/2026-09-17/i-x20/outputs/agent_win_eval/work/live_ab/T1/sandbox.lock; protocol 5.7 item 1 requires the canonical host-wide file /Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab/sandbox.lock. A different path is a different inode and excludes nothing."
+    },
+    {
+      "name": "arbitrary_absolute_fixture_bypass",
+      "raw_path": "/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/lock_binding_review_xhb4qgd4/other.lock",
+      "called_run_job": true,
+      "return_code": 0,
+      "bound_path": "/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/lock_binding_review_xhb4qgd4/other.lock"
+    },
+    {
+      "name": "arbitrary_relative_fixture_bypass",
+      "raw_path": "relative-other.lock",
+      "called_run_job": true,
+      "return_code": 0,
+      "bound_path": "relative-other.lock"
+    },
+    {
+      "name": "runtime_job_pin_ignored",
+      "raw_path": "<HOST_WORK>/sandbox.lock",
+      "called_run_job": true,
+      "return_code": 0,
+      "bound_path": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab/sandbox.lock"
+    },
+    {
+      "name": "actual_sweep_fixture_override",
+      "fixture_value": null,
+      "reached_lock_constructor": false,
+      "lock_paths": [],
+      "exception": "PreflightError",
+      "reason": "sandbox.execution_lock_path='/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/lock_binding_review_xhb4qgd4/override.lock' at lab_data.sweep_references without execution_lock_is_fixture: an override that does not declare itself a fixture would silently split the host-wide lock of protocol 5.7 item 1"
+    },
+    {
+      "name": "actual_sweep_fixture_override",
+      "fixture_value": true,
+      "reached_lock_constructor": true,
+      "lock_paths": [
+        "/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/lock_binding_review_xhb4qgd4/override.lock"
+      ],
+      "exception": "StopAtLock",
+      "reason": "stopped before acquisition"
+    },
+    {
+      "name": "actual_sweep_fixture_override",
+      "fixture_value": "false",
+      "reached_lock_constructor": true,
+      "lock_paths": [
+        "/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/lock_binding_review_xhb4qgd4/override.lock"
+      ],
+      "exception": "StopAtLock",
+      "reason": "stopped before acquisition"
+    },
+    {
+      "name": "two_checkout_roots_same_cfg",
+      "resolved": [
+        "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab/sandbox.lock",
+        "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab/sandbox.lock"
+      ],
+      "same": true
+    },
+    {
+      "name": "same_runtime_cfg_worker_vs_sweep",
+      "runtime_cfg_lock": "/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/lock_binding_review_xhb4qgd4/runtime-host/sandbox.lock",
+      "worker_cached_config_lock": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab/sandbox.lock",
+      "same": false
+    },
+    {
+      "name": "current_topology_tool_on_root_checkout",
+      "error": "UntokenizablePath: /Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab/sandbox.lock"
+    }
+  ],
+  "immutable_cross_wrapper_receipt": {
+    "generated_utc": "2026-09-23T04:09:33Z",
+    "checks": [
+      {
+        "holder_present": true,
+        "expected_acquired": false,
+        "acquired": false,
+        "proper_typed_refusal": true,
+        "inside_hold": true,
+        "same_path": true
+      },
+      {
+        "holder_present": false,
+        "expected_acquired": true,
+        "acquired": true,
+        "proper_typed_refusal": null,
+        "inside_hold": null,
+        "same_path": null
+      },
+      {
+        "holder_present": true,
+        "expected_acquired": false,
+        "acquired": false,
+        "proper_typed_refusal": true,
+        "inside_hold": true,
+        "same_path": true
+      },
+      {
+        "holder_present": false,
+        "expected_acquired": true,
+        "acquired": true,
+        "proper_typed_refusal": null,
+        "inside_hold": null,
+        "same_path": null
+      }
+    ],
+    "reexecuted": false
+  }
+}

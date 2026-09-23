@@ -1,0 +1,31 @@
+{
+  "head": "a95ba08e9b21d00f73521f3f098a7ba0222bac29",
+  "config_sha256": "ee2a404f5b07cdbd6905e09c58f39ad99af169681406b86d50fde1f204d7b378",
+  "semantic_delta": {
+    "sandbox.host_work_root": {
+      "before": null,
+      "after": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab"
+    },
+    "sandbox.host_work_root_note": {
+      "before": null,
+      "after": "FROZEN owner-host path, per reviews/lock_anchor_review_20260923_0348.md. Protocol 5.7 item 1 needs ONE lock inode across trials AND checkouts; a checkout-relative work root would give each clone its own file. Derived paths must never replace this pin."
+    }
+  },
+  "embedded_blocks": {
+    "ARCHITECTURE_FINAL.md": {
+      "equals_current_config_semantically": false,
+      "equals_previous_config_semantically": true,
+      "host_work_root": null,
+      "raw_config_equal": false
+    },
+    "protocol_FINAL.md": {
+      "equals_current_config_semantically": false,
+      "equals_previous_config_semantically": true,
+      "host_work_root": null,
+      "raw_config_equal": false
+    }
+  },
+  "rule_block_before": "cbfd1792d09c43754eeeab3b282e92e99c76e4f878cd82d00c827f6a90fa7607",
+  "rule_block_after": "cbfd1792d09c43754eeeab3b282e92e99c76e4f878cd82d00c827f6a90fa7607",
+  "rule_block_unchanged": true
+}
