@@ -283,14 +283,25 @@ def _run(argv):
 
 
 def main(argv=None) -> int:
-    manifest_path = REPO / 'results/live_ab/CANDIDATE_INSTRUMENT_MANIFEST.json'
+    # PARAMETERIZED for the durable rebuild (root 18:29): the declaration, the
+    # receipt and the copies directory are arguments; the defaults reproduce
+    # the original /tmp candidate's snapshot exactly.
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--declaration', default='results/live_ab/CANDIDATE_INSTRUMENT_MANIFEST.json')
+    ap.add_argument('--receipt', default='results/live_ab/CANDIDATE_BUILD_CONFIG_SNAPSHOT.json')
+    ap.add_argument('--copies', default='results/live_ab/candidate_build_snapshot')
+    a = ap.parse_args(argv)
+    manifest_path = REPO / a.declaration
     manifest = json.loads(manifest_path.read_text())
     src = Path(manifest['source_and_patch']['source_tree'])
-    build = src / 'build'
+    # the declaration may name its build tree; the original candidate's was
+    # inside its source tree
+    build = Path(manifest.get('build', {}).get('build_tree') or (src / 'build'))
     launcher_decl = manifest['candidate_instrument']['launcher']
     closure_decl = manifest['candidate_instrument']['library_closure']
-    out_dir = REPO / 'results/live_ab/candidate_build_snapshot'
-    receipt = REPO / 'results/live_ab/CANDIDATE_BUILD_CONFIG_SNAPSHOT.json'
+    out_dir = REPO / a.copies
+    receipt = REPO / a.receipt
     if receipt.exists() or out_dir.exists():
         print('refusing: a snapshot already exists; this is write-once', file=sys.stderr)
         return 2
