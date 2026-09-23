@@ -1,0 +1,42 @@
+{
+ "additivity_from_git": {
+  "deleting_the_inserted_text_reproduces_the_prior_bytes": {
+   "architecture": true,
+   "config": true,
+   "protocol": true
+  },
+  "inserted_text_occurs_once_per_document": {
+   "architecture": 1,
+   "config": 1,
+   "protocol": 1
+  },
+  "prior_block_sha256": "05255df3b0d12bb6f5571616378a1366c67c6eb8b913def907c6a5d901e1731c"
+ },
+ "all_verified": true,
+ "amendment_commit": "0e05d96",
+ "convention": "deterministic-path",
+ "generated_utc": "2026-09-23T18:21:44Z",
+ "negative_control": {
+  "amended_all_three_passes": true,
+  "old_documents_fail": true,
+  "old_protocol_only_fails": true,
+  "what": "the e2e verbatim comparison, exactly as written (text mode), run three ways: all three amended documents (must pass); the amended config with the PRE-amendment ARCHITECTURE and protocol (must fail); the amended config and ARCHITECTURE with the PRE-amendment protocol (must fail)"
+ },
+ "nothing_executed": "git show and file reads only",
+ "raw_bytes": {
+  "block_bytes": 13917,
+  "block_sha256": "e4d42f5d442dde7e709222e0a4ad4985de0f20604061fec01f2e3ea95f75d824",
+  "cr_bytes": {
+   "architecture": 0,
+   "config": 0,
+   "protocol": 0
+  },
+  "three_blocks_byte_identical": true
+ },
+ "rule_block_sha256": {
+  "after": "cbfd1792d09c43754eeeab3b282e92e99c76e4f878cd82d00c827f6a90fa7607",
+  "before": "cbfd1792d09c43754eeeab3b282e92e99c76e4f878cd82d00c827f6a90fa7607"
+ },
+ "schema": "live_ab/config_amendment_verification-v1",
+ "working_tree_equals_amendment_commit": true
+}
