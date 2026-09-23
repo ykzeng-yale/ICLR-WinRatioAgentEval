@@ -32,6 +32,7 @@ import subprocess
 import sys
 import threading
 import time
+import traceback
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -65,6 +66,8 @@ DRAIN_JOIN_S = 30.0
 #: How long a single bounded wait on the child pipe may last before
 #: the deadline is consulted again. Never an unbounded blocking read.
 DRAIN_POLL_S = 0.5
+#: Bounded traceback retained for a supervisor-boundary failure.
+TRACEBACK_CHARS = 4000
 #: Time reserved at the end of the absolute budget for stop, reap and
 #: finalisation, so cleanup is never the thing that runs out of clock.
 CLEANUP_RESERVE_S = 90.0
@@ -544,6 +547,20 @@ def _persist_response_bytes(directory: Path, request_id: str, raw: bytes) -> dic
     return out
 
 
+def _overflows_to_float(value: object) -> bool:
+    """Does converting this to a float raise instead of yielding a number?
+
+    `float(10**400)` raises OverflowError rather than returning inf, so a
+    validator that calls `math.isfinite(float(x))` throws on exactly the input
+    it exists to describe.
+    """
+    try:
+        float(value)                                # type: ignore[arg-type]
+        return False
+    except (OverflowError, ValueError, TypeError):
+        return True
+
+
 def validate_manifest(m: object) -> list:
     """Every manifest field this supervisor will dereference, checked up front.
 
@@ -599,11 +616,28 @@ def validate_manifest(m: object) -> list:
         # DEREFERENCES. m['request']['temperature'] is read when the payload is
         # built, so its absence threw exactly where validation was meant to
         # prevent throwing.
+        # EXPLICIT NULL IS NOT A VALUE. Root, 14:03: "Explicit `temperature:
+        # null` passes validation and returns success after two mock POSTs
+        # carrying null." My `if temp is not None` treated a present-but-null
+        # field as absent-and-therefore-fine, so null sailed through into the
+        # payload -- the one shape `need()` could not catch, because the key WAS
+        # there.
+        if 'temperature' in req and req['temperature'] is None:
+            problems.append('manifest["request"]["temperature"] is explicitly '
+                            'null; null is not a temperature')
         temp = need(req, 'temperature', None, 'manifest["request"]')
         if temp is not None:
             if isinstance(temp, bool) or not isinstance(temp, (int, float)):
                 problems.append('manifest["request"]["temperature"] %r is not a '
                                 'number' % (temp,))
+            elif _overflows_to_float(temp):
+                # BOUNDED CONVERSION. Root: "temperature=10**400 raises
+                # OverflowError during validation, before launch but without a
+                # terminal receipt." float() on a huge int RAISES rather than
+                # returning inf, so the validator -- the thing whose job is to
+                # turn bad input into a description -- threw on bad input.
+                problems.append('manifest["request"]["temperature"] is too large '
+                                'to represent as a float')
             elif not math.isfinite(float(temp)):
                 problems.append('manifest["request"]["temperature"] %r is not '
                                 'finite' % (temp,))
@@ -839,6 +873,20 @@ def main() -> int:
                          'request was dispatched: %s' % exc])
 
 
+    # EVERY PIECE OF ATTEMPT AND CLEANUP STATE EXISTS BEFORE THE CHILD DOES.
+    # Root, 2026-09-23 14:03: "Initialize all request/attempt/cleanup state
+    # before creating the child ... A `proc.poll()` failure triggers cleanup but
+    # then uninitialized `results` loses the receipt."
+    #
+    # `results` was created INSIDE the protected block, so any failure before
+    # that line left it undefined and the cleanup that followed raised on it --
+    # losing the very receipt the protection existed to guarantee.
+    results: list = []
+    capture: dict = {}
+    drain_thread = None
+    proc = None
+    capture_path = log.parent / ('%s.producer_stream' % token)
+
     # AND AFTER ARTIFACT VERIFICATION, BEFORE THE CHILD EXISTS. Hashing the
     # launcher, model and library closure reads real bytes and takes real time.
     if not deadline.may_dispatch():
@@ -872,31 +920,29 @@ def main() -> int:
     # the caller already enforces, and a bounded buffer, so a chatty or looping
     # server cannot exhaust memory. What is dropped is COUNTED, never silently
     # truncated.
-    capture = {}
-    capture_path = log.parent / ('%s.producer_stream' % token)
-    drain_thread = threading.Thread(
-        target=drain_to_artifact, args=(proc.stdout, capture_path, capture),
-        # THE DRAIN RUNS TO THE HARD END, NOT THE WORK CUTOFF. Root, 10:39:
-        # "Use the reserve for cleanup, not to stop collecting its diagnostics
-        # early ... Keep the drain collecting shutdown diagnostics through EOF
-        # within the hard deadline. The newly supplied `drain deadline =
-        # start+510` can end capture before shutdown diagnostics arrive; it is
-        # not the correct use of the reserve." Exactly right: the diagnostics
-        # that matter most are the ones the server emits WHILE SHUTTING DOWN,
-        # which is precisely the window the reserve exists for.
-        kwargs={'deadline': deadline.hard},
-        daemon=True, name='live_ab_smoke_drain')
-    drain_thread.start()
 
-    # ONE PROTECTED PATH ONCE A CHILD EXISTS. Root, 13:20: "Once a child
-    # starts, every exception/refusal must pass through bounded stop/reap/drain
-    # completion and one terminal receipt ... use a shared cleanup/finalization
-    # path, rather than adding another early return that bypasses it."
+    # PROTECTION BEGINS THE INSTANT A CHILD EXISTS, AND INCLUDES THE DRAIN.
+    # Root, 14:03: "Enter protection immediately when the child exists,
+    # including drain construction/start ... injected `drain.start()` failure
+    # leaves the mock child unreaped and no receipt." And: "the current partial
+    # `try` starts too late and ends too early."
     #
-    # Anything raised between here and the stop section used to escape, leaving
-    # the server running and no receipt written. It is now recorded and falls
-    # through to the same cleanup as a clean run.
+    # Both were true. The drain was built and started one line ABOVE the `try`,
+    # so a failure there escaped with the server already running.
     try:
+        drain_thread = threading.Thread(
+            target=drain_to_artifact, args=(proc.stdout, capture_path, capture),
+            # THE DRAIN RUNS TO THE HARD END, NOT THE WORK CUTOFF. Root, 10:39:
+            # "Use the reserve for cleanup, not to stop collecting its diagnostics
+            # early ... Keep the drain collecting shutdown diagnostics through EOF
+            # within the hard deadline. The newly supplied `drain deadline =
+            # start+510` can end capture before shutdown diagnostics arrive; it is
+            # not the correct use of the reserve." Exactly right: the diagnostics
+            # that matter most are the ones the server emits WHILE SHUTTING DOWN,
+            # which is precisely the window the reserve exists for.
+            kwargs={'deadline': deadline.hard},
+            daemon=True, name='live_ab_smoke_drain')
+        drain_thread.start()
         import requests
         ready = False
         while deadline.may_dispatch():
@@ -912,7 +958,6 @@ def main() -> int:
         out['server_ready'] = ready
         out['seconds_to_ready'] = round(time.monotonic() - t_wall0, 2)
 
-        results: list = []
         # DURABLE REQUEST INTENT, DEPOSITED BEFORE THE BARRIER. Root, 2026-09-23
         # 09:19: "Planned request IDs/payloads are not durably deposited before the
         # barrier; `submitted_requests=2` is assigned before either thread submits."
@@ -1038,6 +1083,26 @@ def main() -> int:
                     # usability from the same nonnegative, non-boolean integer
                     # rule." The aggregate was strict while the row it summarised
                     # was not, so the receipt disagreed with itself.
+                    # A DECODED NON-OBJECT IS A SHAPE FAILURE AFTER RECEIPT.
+                    # Root, 14:03: "HTTP200 with decoded `[]` still becomes
+                    # response_received=false/unknown delivery when `.get`
+                    # raises." The body parsed; it is simply not an object, and
+                    # an AttributeError from `.get` was landing in the outer
+                    # handler that means "the transport raised".
+                    if not isinstance(d, dict):
+                        rec['body_wrong_shape'] = (
+                            'the response decoded to %s, not an object'
+                            % type(d).__name__)
+                        rec['response_received'] = True
+                        rec['delivery'] = 'response_received'
+                        rec['usage'] = None
+                        rec['usage_known'] = False
+                        rec['usage_unusable_reason'] = rec['body_wrong_shape']
+                        rec['t_ack_monotonic'] = time.monotonic()
+                        rec['elapsed_s'] = (rec['t_ack_monotonic']
+                                            - rec['t_send_monotonic'])
+                        results.append(rec)
+                        return
                     usage = d.get('usage')
                     rec['usage'] = usage                      # original, preserved
                     tokens = usage.get('completion_tokens') if isinstance(usage, dict) else None
@@ -1079,7 +1144,15 @@ def main() -> int:
 
 
     except Exception as exc:                                   # noqa: BLE001
-        out['unhandled_during_dispatch'] = '%s: %s' % (type(exc).__name__, exc)
+        # PRESERVED, NOT SUMMARISED. Root, 14:03: "preserve stage, type, message
+        # and a bounded traceback, force refusal/nonzero status, and expose that
+        # failed attempt to the owner. This should improve diagnosis rather than
+        # turn an implementation failure into a usable null result."
+        out['dispatch_failure'] = {
+            'stage': 'dispatch', 'type': type(exc).__name__,
+            'message': str(exc)[:500],
+            'traceback': ''.join(traceback.format_exception(
+                type(exc), exc, exc.__traceback__))[-TRACEBACK_CHARS:]}
         out.setdefault('server_ready', False)
 
     # --- stop OUR OWN server, then let the seal be written -------------------
@@ -1119,7 +1192,15 @@ def main() -> int:
 
     # Join the drain within the deadline, then RETAIN what it collected. A drain
     # that has not finished is reported as unfinished rather than waited on.
-    drain_thread.join(timeout=deadline.bounded(DRAIN_JOIN_S, use_reserve=True))
+    # A CLEANUP FAILURE MUST NOT BYPASS FINALISATION. Root, 14:03: "Ensure
+    # cleanup failures themselves are recorded and do not bypass terminal
+    # finalization ... A drain-join exception after reap also loses it."
+    try:
+        if drain_thread is not None:
+            drain_thread.join(timeout=deadline.bounded(DRAIN_JOIN_S,
+                                                       use_reserve=True))
+    except Exception as exc:                                   # noqa: BLE001
+        out['cleanup_failure'] = '%s: %s' % (type(exc).__name__, exc)
     # DO NOT READ THE CAPTURE WHILE ITS WRITER MAY STILL BE ACTIVE. Root,
     # 10:39: "Do not call `preview_of_artifact`, hash or parse the capture while
     # its drain writer is still active. Check completion first; unresolved
@@ -1155,7 +1236,8 @@ def main() -> int:
         budget_exhausted=bool(capture.get('budget_exhausted')),
         deadline_exhausted=bool(capture.get('deadline_exhausted')),
         byte_budget=DIAGNOSTIC_BYTE_BUDGET,
-        drain_thread_finished=not drain_thread.is_alive(),
+        drain_thread_finished=(drain_thread is None
+                               or not drain_thread.is_alive()),
         artifact=capture.get('artifact'),
         artifact_sha256=capture.get('measured_sha256'),
         stream='the owned child stdout+stderr pipe, captured to an immutable '
@@ -1249,6 +1331,15 @@ def main() -> int:
         ('the drain thread had not finished, so its state is not a final snapshot'
          if not out['producer_diagnostics']['drain_thread_finished'] else None),
         ('the absolute deadline expired' if deadline.expired() else None),
+        # IN THE VERDICT, NOT AN INFORMATIONAL FIELD. Root, 14:03: "Put the
+        # dispatch/cleanup exception in the refusal verdict directly, not merely
+        # in an informational field."
+        ('dispatch failed at stage %r: %s: %s'
+         % (out['dispatch_failure']['stage'], out['dispatch_failure']['type'],
+            out['dispatch_failure']['message'])
+         if out.get('dispatch_failure') else None),
+        ('cleanup failed: %s' % out['cleanup_failure']
+         if out.get('cleanup_failure') else None),
         ('%d response(s) were not fully retained' % sum(
             1 for r in results if r.get('raw_response')
             and not r['raw_response'].get('complete'))

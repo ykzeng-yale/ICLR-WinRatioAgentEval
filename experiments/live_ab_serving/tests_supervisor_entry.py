@@ -201,7 +201,8 @@ class SupervisorEntryPointTests(unittest.TestCase):
     # -- the harness ---------------------------------------------------------
     def _run(self, *, proc=None, bodies=None, break_barrier=False,
              popen_raises=None, no_pointer=False, post_hook=None,
-             barrier_hook=None, stray_command=None):
+             barrier_hook=None, stray_command=None,
+             drain_start_raises=False):
         rs = self.rs
         proc = proc if proc is not None else _Proc()
         bodies = bodies if bodies is not None else [OK_BODY, OK_BODY]
@@ -232,6 +233,8 @@ class SupervisorEntryPointTests(unittest.TestCase):
                 self.name = name
 
             def start(self):
+                if drain_start_raises and self.name == 'live_ab_smoke_drain':
+                    raise RuntimeError('injected drain start failure')
                 self.target(*self.args, **self.kwargs)
 
             def join(self, timeout=None):
@@ -352,6 +355,19 @@ class SupervisorEntryPointTests(unittest.TestCase):
             status = rs.main()
         self.posted = posted
         return status, self._persisted()
+
+    def tearDown(self):
+        # THE LEDGER IS ENFORCED AFTER EVERY CASE. Root, 14:03: "Enforce the
+        # denied-operation ledger after EVERY harness case, including
+        # production-caught exceptions; the deliberate violation control must
+        # assert harness failure, not just that its list is nonempty." Checking
+        # it in one healthy test left every other case free to swallow a denied
+        # command inside a production `except`.
+        if getattr(self, '_expect_denied', False):
+            return
+        self.assertEqual(getattr(self, 'denied', []), [],
+                         'a process attempt was denied and then swallowed: %r'
+                         % (getattr(self, 'denied', []),))
 
     def _persisted(self):
         """The receipt READ BACK FROM DISK. Never the in-memory dict."""
@@ -794,10 +810,103 @@ class SupervisorEntryPointTests(unittest.TestCase):
     def test_the_deny_ledger_DOES_record_a_violation(self):
         """The negative control for the ledger itself: an empty ledger is
         otherwise equally consistent with a ledger that records nothing."""
+        self._expect_denied = True
         status, receipt = self._run(stray_command=['/bin/echo', 'stray'])
+        # the control asserts the HARNESS would have failed: tearDown's check,
+        # run here explicitly, must raise on this ledger.
+        with self.assertRaises(AssertionError):
+            self.assertEqual(self.denied, [])
         self.assertTrue(self.denied,
                         'a deliberate stray command must appear in the ledger')
         self.assertIn('/bin/echo', self.denied[0][0])
+
+    def test_a_drain_start_failure_still_reaps_and_leaves_a_receipt(self):
+        """Root, 2026-09-23 14:03: "Drain startup remains before the protected
+        block: injected `drain.start()` failure leaves the mock child unreaped
+        and no receipt."
+
+        The drain was built and started one line ABOVE the `try`, so a failure
+        there escaped with the server already running.
+        """
+        proc = _Proc()
+        status, receipt = self._run(proc=proc, drain_start_raises=True)
+        self.assertIsNotNone(receipt, 'a drain-start failure must still persist a receipt')
+        self.assertEqual(proc.returncode, 0, 'the child must still be reaped')
+        self.assertIn('dispatch_failure', receipt)
+        self.assertTrue(any('dispatch failed' in p
+                            for p in receipt['supervisor_problems']),
+                        'the failure must be in the VERDICT, not only a field')
+        self.assertIn('traceback', receipt['dispatch_failure'])
+        self.assertEqual(status, 1)
+
+    def test_partial_dispatch_still_reports_request_state(self):
+        """Root: "Partial-dispatch/start/join errors lose request summaries
+        despite observed POSTs ... one/two observed POSTs are reported with no
+        request/attempt summary, default submitted=0 and even 'usage not
+        measurable for 0 requests'. Keep unknown usage unknown over the expected
+        denominator."
+        """
+        boom = RuntimeError('the second worker exploded')
+        status, receipt = self._run(bodies=[OK_BODY, boom])
+        self.assertEqual(len(self.posted), 2)
+        self.assertEqual(receipt['transport_attempted_requests'], 2)
+        self.assertEqual(receipt['requests_expected'], 2,
+                         'the denominator stays what was PLANNED')
+        self.assertEqual(len(receipt['requests']), 2,
+                         'both planned requests must appear in the summary')
+        self.assertIsNone(receipt['generated_tokens_total'])
+        self.assertEqual(status, 1)
+
+    def test_explicit_null_temperature_refuses_before_any_POST(self):
+        """Root: "Explicit `temperature: null` passes validation and returns
+        success after two mock POSTs carrying null." `if temp is not None`
+        treated a present-but-null field as absent-and-fine."""
+        m = json.loads(self.man_path.read_text('utf-8'))
+        m['request']['temperature'] = None
+        self.man_path.write_text(json.dumps(m), encoding='utf-8')
+        proc = _Proc()
+        status, receipt = self._run(proc=proc)
+        self.assertFalse(receipt['manifest_validation']['usable'])
+        self.assertTrue(any('null' in p for p in
+                            receipt['manifest_validation']['problems']))
+        self.assertEqual(self.posted, [])
+        self.assertIsNone(proc.returncode, 'no child was started')
+        self.assertEqual(status, 1)
+
+    def test_an_unrepresentable_temperature_refuses_without_raising(self):
+        """Root: "temperature=10**400 raises OverflowError during validation,
+        before launch but without a terminal receipt." `float()` on a huge int
+        RAISES rather than returning inf, so the validator threw on exactly the
+        input it exists to describe."""
+        m = json.loads(self.man_path.read_text('utf-8'))
+        m['request']['temperature'] = 10 ** 400
+        self.man_path.write_text(json.dumps(m), encoding='utf-8')
+        status, receipt = self._run()
+        self.assertIsNotNone(receipt, 'validation must not raise past the receipt')
+        self.assertTrue(any('too large' in p for p in
+                            receipt['manifest_validation']['problems']))
+        self.assertEqual(status, 1)
+
+    def test_a_decoded_NON_OBJECT_body_keeps_delivery_received(self):
+        """Root: "HTTP200 with decoded `[]` still becomes
+        response_received=false/unknown delivery when `.get` raises." The body
+        parsed; it is simply not an object, and the AttributeError was landing
+        in the handler that means "the transport raised"."""
+        class _ListBody:
+            status_code = 200
+            content = b'[]'
+
+            def json(self):
+                return []
+
+        status, receipt = self._run(post_hook=lambda *a, **k: _ListBody())
+        for row in receipt['requests']:
+            self.assertTrue(row['response_received'])
+            self.assertEqual(row['delivery'], 'response_received')
+            self.assertIn('body_wrong_shape', row)
+            self.assertFalse(row['usage_known'])
+        self.assertIsNone(receipt['generated_tokens_total'])
+        self.assertEqual(status, 1)
 
     def test_a_producer_that_refused_itself_invalidates_a_clean_log(self):
         """Exit 93 beside a readable seal full of zeros must still refuse."""
