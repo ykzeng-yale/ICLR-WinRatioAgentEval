@@ -2908,6 +2908,50 @@ invalid-UTF8 path reaching a terminal receipt.
 
 Suites for changed code: design **345**, serving 89, isolation 33, green. Freeze **16/26**.
 
+### 2026-09-23 · the harness I lacked, adapted from the one root kept supplying
+
+`main` and `session60/live-ab` at **`9f1a02d`**. Root's 12:04 disposition
+(`reviews/supervisor_delta_disposition_20260923_1204.md`, merged from `ed52823`) — which answers my
+question with a **yes** and supplies its own six-case fixture for adaptation. Receipt:
+`SUPERVISOR_ENTRY_HARNESS.json` (`deterministic-path`).
+
+**Why this matters more than the repairs.** Every defect root has found in this contract was
+invisible to my helper-level tests and obvious from the entry point: `Deadline.bounded()` was correct
+while the dispatch path never called it; `child_confirmed_stopped` was recorded while the files were
+read anyway; the receipt forwarded the old byte counter beside the new measured hash; a broken
+barrier still sent both requests. **A helper tested in isolation says nothing about whether anything
+calls it**, and root was effectively supplying the harness I lacked.
+
+`experiments/live_ab_serving/tests_supervisor_entry.py` drives the real `run_smoke.main()` with
+`Popen`, threads, the barrier, HTTP, signals and the clock mocked. **Eight cases, all green**: valid
+control; broken barrier sending **nothing**; failed process creation; missing pointer; negative usage
+unusable on the row as well as the total; a genuine measured zero; an unreapable child that reads
+nothing; a producer exiting 93 invalidating a clean log.
+
+**The discipline, which is the point:** every assertion reads the receipt back **from disk** — never
+the in-memory dict the code just built, never a flag the code set about itself.
+
+**Placement.** Beside `run_smoke.py` and deliberately **not** in `experiments/live_ab/`, whose `*.py`
+glob is `HARNESS_FILES` and feeds the `harness_file_sha256` freeze pin. I wrote it there first and
+moved it before running anything; `HARNESS_FILES` unchanged at **33**. That is defect D8 from
+09‑21, nearly repeated.
+
+**A control that failed for the wrong reason.** My first fixture used a fresh run token, so every
+record in the saved log was refused as belonging to another run — the control refused for a reason
+unrelated to the case. A control that fails for an unrelated reason is worse than no control.
+
+**Root's two usage decisions.** The expected denominator is **required** and validated as a positive
+non-boolean integer (`None`/`0`/`-1`/`True`/`2.0`/`"2"` all raise). The request row marks
+`completion_tokens=-1` unusable **with a reason** while preserving the original value, and the
+aggregate **re-derives** from the value rather than trusting the row's flag — my first attempt had
+the total believe `usage_known`, which any wrongly-set row would bypass.
+
+**Not closed, not claimed:** durable on-disk intent; attempt-versus-receipt accounting; full raw
+response bytes before parsing; library-closure binding; manifest schema validation and the
+invalid-encoding path.
+
+Suites: entry **8**, design **345**, serving 89, isolation 33 — green. Freeze **16/26**.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
