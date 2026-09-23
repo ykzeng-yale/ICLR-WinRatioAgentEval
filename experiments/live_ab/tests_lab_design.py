@@ -4489,6 +4489,83 @@ class AcquisitionSealTests(unittest.TestCase):
         self.assertEqual(json.loads(clean.read_text('utf-8'))['supervisor_problems'],
                          [])
 
+    def test_a_capture_COLLISION_is_refused_before_the_original_changes(self):
+        """Root, 2026-09-23 10:39: "Create the per-attempt artifact without
+        truncating an existing path; refuse collision before changing the
+        original."
+
+        `open(..., 'wb')` truncates, so a repeated token would have destroyed
+        the earlier attempt's evidence in the very act of recording the new one.
+        """
+        run_smoke = self._run_smoke_module()
+        art = self.tmp / 'existing.bin'
+        art.write_bytes(b'EARLIER ATTEMPT EVIDENCE')
+        state = {}
+        run_smoke.drain_to_artifact(io.BytesIO(b'new data'), art, state)
+        self.assertFalse(state['raw_capture_complete'])
+        self.assertIn('refusing to overwrite', state['error'])
+        self.assertEqual(art.read_bytes(), b'EARLIER ATTEMPT EVIDENCE',
+                         'the original must be untouched')
+
+    def test_a_write_failure_does_not_misdescribe_the_persisted_prefix(self):
+        """Root: "a mocked sink persists two bytes before raising, while the
+        receipt reports zero bytes and the empty digest ... do not label an
+        attempted-write digest as a measured persisted digest."
+
+        The counters were incremented after a successful `write`, so bytes that
+        reached the file during a failing write were invisible to them.
+        """
+        run_smoke = self._run_smoke_module()
+        art = self.tmp / 'partial.bin'
+
+        real_open = open
+
+        class HalfWriter:
+            """Persists the first chunk, then raises on the second."""
+            def __init__(self, fh): self.fh, self.n = fh, 0
+            def write(self, b):
+                self.n += 1
+                if self.n > 1:
+                    raise OSError('device full')
+                return self.fh.write(b)
+            def __enter__(self): return self
+            def __exit__(self, *a): return self.fh.__exit__(*a)
+
+        import builtins
+        def fake_open(path, mode='r', *a, **k):
+            fh = real_open(path, mode, *a, **k)
+            return HalfWriter(fh) if 'b' in mode and ('x' in mode or 'w' in mode) else fh
+
+        with mock.patch.object(builtins, 'open', fake_open):
+            state = {}
+            run_smoke.drain_to_artifact(io.BytesIO(b'AB' + b'C' * 200), art,
+                                        state, chunk=2)
+        self.assertFalse(state['raw_capture_complete'])
+        # the MEASURED size comes from the closed file, not from the counters
+        self.assertEqual(state['measured_bytes'], art.stat().st_size)
+        self.assertEqual(state['measured_sha256'],
+                         hashlib.sha256(art.read_bytes()).hexdigest())
+        self.assertIn('attempted_write_sha256', state,
+                      'the attempted-write digest must be named as such')
+        self.assertEqual(state['sha256'], state['measured_sha256'],
+                         'the reported digest must be the measured one')
+
+    def test_the_drain_runs_to_the_HARD_deadline_not_the_work_cutoff(self):
+        """Root: "Use the reserve for cleanup, not to stop collecting its
+        diagnostics early ... The newly supplied `drain deadline = start+510`
+        can end capture before shutdown diagnostics arrive."
+
+        The diagnostics that matter most are the ones emitted WHILE SHUTTING
+        DOWN, which is exactly the window the reserve exists for.
+        """
+        run_smoke = self._run_smoke_module()
+        clock = [0.0]
+        d = run_smoke.Deadline(600.0, reserve_s=90.0, now=lambda: clock[0])
+        self.assertEqual(d.dispatch_until, 510.0)
+        self.assertEqual(d.hard, 600.0)
+        self.assertGreater(d.hard, d.dispatch_until,
+                           'the drain deadline must be the later of the two')
+
     # -- root 2026-09-23 09:19 ----------------------------------------------
     def test_a_DECLARED_STOP_SIGNAL_EXCUSES_NOTHING(self):
         """WITHDRAWN EXCEPTION. I accepted `outcome == -expected_signal`, arguing

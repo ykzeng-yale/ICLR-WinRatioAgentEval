@@ -150,9 +150,20 @@ def drain_to_artifact(stream, artifact_path: Path, state: dict, *,
     state['deadline_exhausted'] = False
     state['artifact'] = lab_common.display_path(artifact_path)
     digest = hashlib.sha256()
+    # REFUSE A COLLISION BEFORE TOUCHING THE ORIGINAL. Root, 10:39: "Create the
+    # per-attempt artifact without truncating an existing path; refuse collision
+    # before changing the original." `open(..., 'wb')` truncates, so a repeated
+    # token would have destroyed the earlier attempt's evidence in the act of
+    # recording the new one.
+    if artifact_path.exists():
+        state['error'] = ('refusing to overwrite an existing capture artifact at '
+                          '%s' % lab_common.display_path(artifact_path))
+        state['sha256'] = None
+        state['raw_capture_complete'] = False
+        return
     try:
         raw = getattr(stream, 'buffer', stream)      # bytes, not decoded text
-        with open(artifact_path, 'wb') as fh:
+        with open(artifact_path, 'xb') as fh:
             while True:
                 if deadline is not None and time.monotonic() > deadline:
                     state['deadline_exhausted'] = True
@@ -180,11 +191,33 @@ def drain_to_artifact(stream, artifact_path: Path, state: dict, *,
                     state['bytes_dropped'] += len(block) - len(keep)
     except Exception as exc:                                   # noqa: BLE001
         state['error'] = '%s: %s' % (type(exc).__name__, exc)
-    state['sha256'] = digest.hexdigest()
+    # ATTEMPTED-WRITE counters, named as such. Root, 10:39: "On write failure,
+    # the current incremental counters can also misdescribe the saved prefix: a
+    # mocked sink persists two bytes before raising, while the receipt reports
+    # zero bytes and the empty digest ... do not label an attempted-write digest
+    # as a measured persisted digest."
+    state['attempted_write_sha256'] = digest.hexdigest()
+    state['attempted_write_bytes'] = state['bytes_captured']
+    # MEASURED from the closed file. The `with` block has exited, so the writer
+    # is done with it either way.
+    try:
+        persisted = artifact_path.read_bytes()
+        state['measured_bytes'] = len(persisted)
+        state['measured_sha256'] = hashlib.sha256(persisted).hexdigest()
+        state['measured_unavailable'] = None
+    except Exception as exc:                                   # noqa: BLE001
+        state['measured_bytes'] = None
+        state['measured_sha256'] = None
+        state['measured_unavailable'] = '%s: %s' % (type(exc).__name__, exc)
+    state['sha256'] = state['measured_sha256']
+    state['attempted_equals_measured'] = (
+        state['measured_sha256'] is not None
+        and state['measured_sha256'] == state['attempted_write_sha256'])
     state['raw_capture_complete'] = bool(
         state['reached_eof'] and not state['error']
         and not state['budget_exhausted'] and not state['deadline_exhausted']
-        and state['bytes_dropped'] == 0)
+        and state['bytes_dropped'] == 0
+        and state['attempted_equals_measured'])
 
 
 def preview_of_artifact(artifact_path: Path, state: dict, *,
@@ -451,7 +484,15 @@ def main() -> int:
     capture_path = log.parent / ('%s.producer_stream' % token)
     drain_thread = threading.Thread(
         target=drain_to_artifact, args=(proc.stdout, capture_path, capture),
-        kwargs={'deadline': deadline.dispatch_until},
+        # THE DRAIN RUNS TO THE HARD END, NOT THE WORK CUTOFF. Root, 10:39:
+        # "Use the reserve for cleanup, not to stop collecting its diagnostics
+        # early ... Keep the drain collecting shutdown diagnostics through EOF
+        # within the hard deadline. The newly supplied `drain deadline =
+        # start+510` can end capture before shutdown diagnostics arrive; it is
+        # not the correct use of the reserve." Exactly right: the diagnostics
+        # that matter most are the ones the server emits WHILE SHUTTING DOWN,
+        # which is precisely the window the reserve exists for.
+        kwargs={'deadline': deadline.hard},
         daemon=True, name='live_ab_smoke_drain')
     drain_thread.start()
 
@@ -552,8 +593,18 @@ def main() -> int:
     # Join the drain within the deadline, then RETAIN what it collected. A drain
     # that has not finished is reported as unfinished rather than waited on.
     drain_thread.join(timeout=deadline.bounded(DRAIN_JOIN_S, use_reserve=True))
+    # DO NOT READ THE CAPTURE WHILE ITS WRITER MAY STILL BE ACTIVE. Root,
+    # 10:39: "Do not call `preview_of_artifact`, hash or parse the capture while
+    # its drain writer is still active. Check completion first; unresolved
+    # capture stays unread with paths/state retained, just as unresolved
+    # lifecycle files do." The same rule I applied to the lifecycle log, which I
+    # had not applied to my own capture artifact.
+    drain_finished = not drain_thread.is_alive()
     out['producer_diagnostics'] = dict(
-        preview_of_artifact(capture_path, capture),
+        (preview_of_artifact(capture_path, capture) if drain_finished else
+         {'preview_unavailable': 'the drain writer had not finished, so the '
+                                 'capture was not read, hashed or parsed',
+          'derived_from': capture.get('artifact')}),
         # TWO DISTINCT STATES, as root decided on 2026-09-23 10:03: a shortened
         # display preview must not invalidate an otherwise complete acquisition,
         # but missing raw capture still must. Only `raw_capture_complete` below
