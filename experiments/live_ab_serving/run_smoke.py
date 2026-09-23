@@ -72,6 +72,25 @@ TRACEBACK_CHARS = 4000
 #: finalisation, so cleanup is never the thing that runs out of clock.
 CLEANUP_RESERVE_S = 90.0
 TOKEN_CAP = 2048
+#: The work cutoff is DERIVED, never a fifth literal: the dispatch budget ends
+#: where the cleanup reserve begins.
+DISPATCH_CUTOFF_S = WALL_CAP_S - CLEANUP_RESERVE_S
+#: THE LIMITS BOUND ACROSS CODE AND THE IMMUTABLE LAUNCH MANIFEST. Root,
+#: 2026-09-23 14:41: "bind 8 MiB/90-second/600-second/510-second limits across
+#: code, immutable configuration and finite costed plan." The launch manifest's
+#: `caps` must declare every one of these and agree with the value enforced
+#: here, or the launch refuses before any child exists. Before this, the
+#: manifest declared 600 s, 120 s and 2,048 tokens and the supervisor merely
+#: copied them into the receipt: a manifest saying 60 s would have been recorded
+#: beside a supervisor enforcing 600, and nothing would have noticed.
+BOUND_LIMITS = {
+    'wall_seconds_total': WALL_CAP_S,                 # 600
+    'cleanup_reserve_seconds': CLEANUP_RESERVE_S,     # 90
+    'dispatch_cutoff_seconds': DISPATCH_CUTOFF_S,     # 510
+    'diagnostic_byte_budget': DIAGNOSTIC_BYTE_BUDGET, # 8 MiB
+    'seconds_per_request': REQUEST_CAP_S,             # 120
+    'total_generated_tokens': TOKEN_CAP,              # 2,048
+}
 
 
 def _now() -> str:
@@ -115,6 +134,41 @@ def _retain_bytes(p: Path) -> dict:
     out['preview'] = text[:RAW_PREVIEW_CHARS]
     out['preview_truncated'] = len(text) > RAW_PREVIEW_CHARS
     return out
+
+
+class CaptureDescriptorError(RuntimeError):
+    """The child's output descriptor could not be made non-blocking."""
+
+
+def make_nonblocking(stream) -> dict:
+    """Put the stream's OS descriptor in non-blocking mode, and say what happened.
+
+    Root, 2026-09-23 14:41: "Refuse a production descriptor that cannot be made
+    nonblocking." The drain used to fall back to a blocking read when
+    `os.set_blocking` failed -- and a blocking read is exactly what the deadline
+    cannot interrupt, so the fallback quietly reinstated the defect the
+    non-blocking repair existed to remove.
+
+    Three outcomes, and only one of them is a refusal:
+      'nonblocking' -- a descriptor, now non-blocking;
+      'blocking'    -- a descriptor that could NOT be made non-blocking: refuse;
+      'absent'      -- no OS descriptor at all. That is an in-memory fixture; a
+                       `subprocess.PIPE` always has one, so production cannot
+                       reach this branch. It is recorded, not assumed.
+    """
+    raw = getattr(stream, 'buffer', stream)
+    try:
+        fd = raw.fileno()
+    except Exception:                                          # noqa: BLE001
+        return {'descriptor': 'absent',
+                'note': 'no OS descriptor (an in-memory stream); a subprocess '
+                        'PIPE always has one'}
+    try:
+        os.set_blocking(fd, False)
+    except Exception as exc:                                   # noqa: BLE001
+        return {'descriptor': 'blocking', 'fd': fd,
+                'error': '%s: %s' % (type(exc).__name__, exc)}
+    return {'descriptor': 'nonblocking', 'fd': fd}
 
 
 def drain_to_artifact(stream, artifact_path: Path, state: dict, *,
@@ -186,18 +240,18 @@ def drain_to_artifact(stream, artifact_path: Path, state: dict, *,
         # rather than returning None, so the call itself must be guarded. A
         # stream with no descriptor simply reads blockingly, which is correct
         # for an in-memory fixture and is recorded rather than assumed.
-        try:
-            fd = raw.fileno()
-        except Exception:                                      # noqa: BLE001
-            fd = None
-        nonblocking = False
-        if fd is not None:
-            try:
-                os.set_blocking(fd, False)
-                nonblocking = True
-            except (OSError, ValueError):
-                nonblocking = False
+        mode = make_nonblocking(stream)
+        state['descriptor'] = mode
+        fd = mode.get('fd')
+        nonblocking = mode['descriptor'] == 'nonblocking'
         state['nonblocking_reads'] = nonblocking
+        if mode['descriptor'] == 'blocking':
+            # NO FALLBACK. Nothing is read, no artifact is created, and the
+            # capture is incomplete by construction.
+            raise CaptureDescriptorError(
+                'refused: the production descriptor could not be made '
+                'non-blocking (%s); a blocking read cannot be bounded by the '
+                'deadline, so nothing was read' % mode['error'])
         with open(artifact_path, 'xb') as fh:
             while True:
                 if deadline is not None and time.monotonic() > deadline:
@@ -455,7 +509,18 @@ def verify_launch_artifacts(manifest: dict, *, binary: Path, model: Path) -> dic
                      'transitive closure.')}
 
 
-def finalize(out: dict, dest: Path, problems: list) -> int:
+#: Where the one elapsed figure starts and stops. Root, 2026-09-23 14:41:
+#: "measure elapsed time through finalization with its boundary explicit."
+ELAPSED_BOUNDARY = {
+    'from': ('the Deadline created at main() entry, before the manifest is '
+             'read -- so the 600 s budget covers selection and hashing too'),
+    'to': ('finalize(), immediately before the one terminal receipt write'),
+    'excludes': ('the receipt write itself and the console lines printed after '
+                 'it; nothing else'),
+}
+
+
+def finalize(out: dict, dest: Path, problems: list, *, clock=None) -> int:
     """Write EXACTLY ONE receipt and return the supervisor status.
 
     Root, 2026-09-23 09:19: "Startup `Popen` failure and non-UTF8 lifecycle
@@ -470,6 +535,14 @@ def finalize(out: dict, dest: Path, problems: list) -> int:
     """
     out['supervisor_problems'] = list(problems)
     out['ended_utc'] = _now()
+    # ELAPSED IS MEASURED HERE, ON EVERY PATH. It used to be taken at the end of
+    # main() -- after the console summary, on the normal path only -- and every
+    # early refusal through this function carried no elapsed figure at all.
+    if clock is not None:
+        out['deadline'] = clock.state()
+        out['wall_seconds_total'] = round(clock.elapsed(), 3)
+        out['wall_cap_respected'] = not clock.expired()
+        out['elapsed_boundary'] = ELAPSED_BOUNDARY
     try:
         lab_common.write_json_atomic(dest, out)
         out['receipt_written'] = True
@@ -660,7 +733,25 @@ def validate_manifest(m: object) -> list:
     args = need(m, 'server_args', list, 'manifest')
     if args is not None and not all(isinstance(a, str) for a in args):
         problems.append('manifest["server_args"] contains a non-string')
-    need(m, 'caps', dict, 'manifest')
+    caps = need(m, 'caps', dict, 'manifest')
+    if caps is not None:
+        for key, enforced in sorted(BOUND_LIMITS.items()):
+            if key not in caps:
+                problems.append('manifest["caps"] does not declare %r; the '
+                                'supervisor enforces %r' % (key, enforced))
+                continue
+            v = caps[key]
+            # `_overflows_to_float` FIRST: `float(10**400)` raises, and a
+            # validator must describe that input, not throw on it -- the same
+            # defect as the temperature field, which I repeated here on the
+            # first draft and caught only by re-reading the line.
+            if isinstance(v, bool) or not isinstance(v, (int, float)) \
+                    or _overflows_to_float(v) or not math.isfinite(float(v)) \
+                    or float(v) != float(enforced):
+                shown = repr(v)
+                problems.append('manifest["caps"][%r] is %s but the supervisor '
+                                'enforces %r' % (key, shown if len(shown) <= 80
+                                                 else shown[:77] + '...', enforced))
     return problems
 
 
@@ -741,6 +832,12 @@ def main() -> int:
     dest = Path(lab_common.RESULTS_ROOT) / ('SMOKE_RECEIPT_unstarted_%s.json'
                                             % time.strftime('%Y%m%dT%H%M%SZ',
                                                             time.gmtime()))
+    # ONE ORIGIN FOR THE WHOLE ATTEMPT, taken first. Every refusal below reaches
+    # finalize() with it, so each carries its own elapsed figure and boundary.
+    deadline = Deadline(WALL_CAP_S)
+
+    def fin(out_, dest_, problems_):
+        return finalize(out_, dest_, problems_, clock=deadline)
     try:
         manifest_path, log_path, token = (
             Path(l) if i < 2 else l
@@ -748,7 +845,7 @@ def main() -> int:
                                   .read_text().strip().splitlines()))
         m = json.loads(Path(manifest_path).read_text('utf-8'))
     except Exception as exc:                                   # noqa: BLE001
-        return finalize(out, dest,
+        return fin(out, dest,
                         ['the launch manifest could not be read: %s: %s'
                          % (type(exc).__name__, exc)])
     out['manifest'] = manifest_path.name
@@ -758,7 +855,7 @@ def main() -> int:
     out['manifest_validation'] = {'problems': manifest_problems,
                                   'usable': not manifest_problems}
     if manifest_problems:
-        return finalize(out, Path(lab_common.RESULTS_ROOT)
+        return fin(out, Path(lab_common.RESULTS_ROOT)
                         / ('SMOKE_RECEIPT_%s.json' % token),
                         ['the launch manifest is unusable: %s'
                          % '; '.join(manifest_problems)])
@@ -768,10 +865,9 @@ def main() -> int:
     try:
         log.parent.mkdir(parents=True, exist_ok=True)
     except Exception as exc:                                   # noqa: BLE001
-        return finalize(out, dest, ['the log directory could not be created: %s'
+        return fin(out, dest, ['the log directory could not be created: %s'
                                     % exc])
 
-    deadline = Deadline(WALL_CAP_S)
     out['deadline'] = deadline.state()
 
     model = None
@@ -781,13 +877,13 @@ def main() -> int:
         model = Path(cand)
         break
     if model is None:
-        return finalize(out, dest, ['the pinned weight was not found locally'])
+        return fin(out, dest, ['the pinned weight was not found locally'])
 
     # THE TRUSTED LAUNCH BOUNDARY. Measured bytes, compared with the immutable
     # manifest, BEFORE Popen -- not manifest hashes copied into `expected`.
     out['launch_verification'] = verify_launch_artifacts(m, binary=BIN, model=model)
     if not out['launch_verification']['verified']:
-        return finalize(out, dest, ['launch artifacts do not match their pins: %s'
+        return fin(out, dest, ['launch artifacts do not match their pins: %s'
                                     % '; '.join(out['launch_verification']['problems'])])
 
     out.update({
@@ -868,7 +964,7 @@ def main() -> int:
         out['request_intent_artifact'] = {
             'path': lab_common.display_path(intent_path), 'persisted': False,
             'error': '%s: %s' % (type(exc).__name__, exc)}
-        return finalize(out, dest,
+        return fin(out, dest,
                         ['the request intent could not be persisted, so no '
                          'request was dispatched: %s' % exc])
 
@@ -901,7 +997,7 @@ def main() -> int:
     # AND AFTER ARTIFACT VERIFICATION, BEFORE THE CHILD EXISTS. Hashing the
     # launcher, model and library closure reads real bytes and takes real time.
     if not deadline.may_dispatch():
-        return finalize(out, dest, ['the work cutoff was reached during launch '
+        return fin(out, dest, ['the work cutoff was reached during launch '
                                     'artifact verification; no child was started'])
     try:
         proc = subprocess.Popen(args, env=env, stdout=subprocess.PIPE,
@@ -911,7 +1007,7 @@ def main() -> int:
         # ATTEMPTED but never STARTED, and that distinction is retained.
         out['child_started'] = False
         out['popen_error'] = '%s: %s' % (type(exc).__name__, exc)
-        return finalize(out, dest, ['the child could not be started: %s' % exc])
+        return fin(out, dest, ['the child could not be started: %s' % exc])
     out['child_started'] = True
     out['server_pid'] = proc.pid
     out['server_started_utc'] = _now()
@@ -941,6 +1037,17 @@ def main() -> int:
     # Both were true. The drain was built and started one line ABOVE the `try`,
     # so a failure there escaped with the server already running.
     try:
+        # BEFORE ANY DISPATCH. The drain refuses a blocking descriptor too, but
+        # it runs on its own thread; checking here means a run whose capture
+        # cannot be bounded sends nothing at all, rather than dispatching and
+        # being refused afterwards.
+        out['capture_descriptor'] = {k: v for k, v in make_nonblocking(
+            proc.stdout).items() if k != 'fd'}
+        if out['capture_descriptor']['descriptor'] == 'blocking':
+            raise CaptureDescriptorError(
+                'the child output descriptor could not be made non-blocking (%s); '
+                'refusing before any dispatch'
+                % out['capture_descriptor']['error'])
         drain_thread = threading.Thread(
             target=drain_to_artifact, args=(proc.stdout, capture_path, capture),
             # THE DRAIN RUNS TO THE HARD END, NOT THE WORK CUTOFF. Root, 10:39:
@@ -1230,8 +1337,9 @@ def main() -> int:
     out['stopped_cleanly'] = stopped_cleanly
     out['child_confirmed_stopped'] = proc.returncode is not None
     out['server_exit_code'] = proc.returncode
-    out['wall_seconds_total'] = round(time.monotonic() - t_wall0, 2)
-    out['wall_cap_respected'] = out['wall_seconds_total'] <= WALL_CAP_S
+    # An intermediate mark, NAMED as one. The attempt's elapsed figure is taken
+    # in finalize(); this is only how long it took to get the child reaped.
+    out['seconds_to_child_reap'] = round(time.monotonic() - t_wall0, 3)
 
     # Join the drain within the deadline, then RETAIN what it collected. A drain
     # that has not finished is reported as unfinished rather than waited on.
@@ -1454,7 +1562,7 @@ def main() -> int:
     # stand between the two.
     print(json.dumps({k: out.get(k) for k in
                       ('server_ready', 'submitted_requests',
-                       'generated_tokens_total', 'wall_seconds_total',
+                       'generated_tokens_total', 'seconds_to_child_reap',
                        'distinct_slots', 'observed_overlap_s',
                        'two_slots_overlapped', 'raw_log_bytes',
                        'child_confirmed_stopped')}, indent=1))
@@ -1464,12 +1572,9 @@ def main() -> int:
         print('observation active:', obs.get('active'),
               '| lifecycle_complete:', obs.get('lifecycle_complete'),
               '| reason:', obs.get('reason'))
-    # ELAPSED IS RECORDED AFTER CLEANUP AND BEFORE FINALISATION, as root asked:
-    # "record final elapsed time after cleanup/finalization".
-    out['deadline'] = deadline.state()
-    out['wall_seconds_total'] = round(deadline.elapsed(), 2)
-    out['wall_cap_respected'] = not deadline.expired()
-    return finalize(out, dest, problems)
+    # Elapsed, the deadline state and cap respect are set in finalize(), at
+    # the explicit boundary, on this path as on every other.
+    return fin(out, dest, problems)
 
 
 if __name__ == '__main__':

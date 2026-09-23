@@ -1,0 +1,75 @@
+{
+ "NOT_DONE_not_claimed": [
+  "binding to the IMMUTABLE CONFIGURATION: experiments/live_ab/config.json carries none of the six limits and is under the three-way verbatim contract; adding them is a configuration amendment and root's decision (asked)",
+  "binding to the FINITE COSTED PLAN: no current costed plan exists to bind; PREFREEZE_EXECUTION_PLAN_20260921_1910.json carries 600 and 90 but not 510 or 8 MiB",
+  "the refusal's recorded stage is still the generic 'dispatch' label the boundary handler uses; the type and message name the descriptor",
+  "item 4 wiring (launcher from the frozen closure, child cwd and environment, source/patch/build binding, verify_closure before Popen) -- design posted 16:18Z, starts ~17:00Z absent objection",
+  "unfinished-worker / join-boundary accounting stays expressly open",
+  "clock-window persistence, anchor-event joins, per-server maps, old-smoke supplement"
+ ],
+ "authority": "root, reviews/completion_and_backend_disposition_20260923_1441.md, supervisor item 4 (first three clauses)",
+ "base_commit": "734faa7",
+ "convention": "deterministic-path",
+ "descriptor": {
+  "leniency_stated_not_hidden": "'absent' (no OS descriptor at all) is recorded and allowed: it is the in-memory fixture. subprocess.PIPE always has a descriptor, so production cannot reach it. Five pinned tests in tests_lab_design.py feed the drain io.BytesIO; refusing 'absent' would require editing a file under the harness pin.",
+  "now": "make_nonblocking() returns nonblocking / blocking / absent. 'blocking' (a descriptor that could not be made non-blocking) refuses TWICE: in main() before the drain is built and before any dispatch, and inside drain_to_artifact, which then reads nothing and creates no artifact. The receipt records capture_descriptor.",
+  "was": "the drain fell back to a BLOCKING read when os.set_blocking failed -- the one read the deadline cannot interrupt, so the fallback quietly reinstated the defect the non-blocking repair removed"
+ },
+ "elapsed": {
+  "boundary": {
+   "excludes": "the receipt write itself and the console lines printed after it",
+   "from": "the Deadline created at main() entry, before the manifest is read",
+   "to": "finalize(), immediately before the terminal receipt write"
+  },
+  "now": "one Deadline created at main() entry; every finalize() call in main() carries it; finalize() records wall_seconds_total, wall_cap_respected, deadline state and elapsed_boundary immediately before the one terminal receipt write. The reap mark is renamed seconds_to_child_reap.",
+  "was": "measured at the end of main() after the console summary, on the normal path only; every early refusal through finalize() carried no elapsed figure; the Deadline started only after the manifest was read; an intermediate wall_seconds_total at child reap was overwritten later"
+ },
+ "files": {
+  "experiments/live_ab_serving/run_smoke.py": "d65853254bdd3f87679a76e829f85d7d5a3abd887789f8a09a1e82655dbeb459",
+  "experiments/live_ab_serving/tests_supervisor_entry.py": "1f69470513e6f7cdaa394e3bf8bf384c802baae1e2f5d7fbd473db9b7c8ef681"
+ },
+ "found_in_my_own_draft": "validate_manifest called float(v) on a manifest value; float(10**400) raises -- the exact temperature defect repaired earlier today. Caught by re-reading the line, reproduced, guarded with _overflows_to_float, and added as a subcase.",
+ "generated_utc": "2026-09-23T16:28:03Z",
+ "harness": {
+  "adjacent_suites": {
+   "tests_lab_chain": "70 OK",
+   "tests_lab_design": "345 OK",
+   "tests_lab_e2e": "42 OK",
+   "tests_lab_hostcheck": "117 OK",
+   "tests_lab_isolation": "33 OK",
+   "tests_lab_serving": "89 OK",
+   "tests_lab_stats": "70 OK"
+  },
+  "after_change": {
+   "tests_build_config_snapshot": "Ran 13, OK",
+   "tests_dependency_closure": "Ran 35, OK",
+   "tests_supervisor_entry": "Ran 41, OK"
+  },
+  "harness_files_pin_set": "33, unchanged",
+  "new_cases": [
+   "test_a_BLOCKING_production_descriptor_refuses_before_any_POST",
+   "test_the_drain_ITSELF_refuses_a_blocking_descriptor",
+   "test_an_in_memory_stream_is_recorded_ABSENT_not_nonblocking",
+   "test_ELAPSED_is_measured_in_finalize_on_an_EARLY_refusal",
+   "test_ELAPSED_counts_time_spent_AFTER_the_child_is_reaped",
+   "test_a_manifest_LIMIT_that_disagrees_with_the_code_refuses_before_any_child (9 subcases)",
+   "test_the_LITERAL_limits_root_named_are_what_the_code_enforces"
+  ],
+  "witness_before_change": "the seven new cases against unmodified run_smoke.py at 734faa7 (detached worktree): all seven fail (11 failures + 3 errors counting subcases); the 34 existing cases still pass there with the new fixture caps"
+ },
+ "limits": {
+  "bound_to": "the immutable launch manifest: caps must declare all six (the four root named plus the two the manifest already carried) and each must equal the enforced value, else validate_manifest refuses before any child. Missing, bool, string, NaN, 10**400 and off-by-one values all refuse.",
+  "code": {
+   "CLEANUP_RESERVE_S": 90.0,
+   "DIAGNOSTIC_BYTE_BUDGET": 8388608,
+   "DISPATCH_CUTOFF_S": "600 - 90 = 510.0, DERIVED, not a literal",
+   "REQUEST_CAP_S": 120.0,
+   "TOKEN_CAP": 2048,
+   "WALL_CAP_S": 600.0
+  },
+  "fixture": "the retained manifest lacked three keys; the harness declares 90 / 510 / 8 MiB as LITERALS, never copied from BOUND_LIMITS, so agreement is between two independent statements",
+  "was": "the manifest's caps were copied into the receipt and never compared: a manifest declaring 60 s would have been recorded beside a supervisor enforcing 600"
+ },
+ "nothing_executed_THIS_RECEIPT": "no server, model, candidate binary or network request; every case drives run_smoke.main() with mocked Popen/Thread/Barrier/requests/clock",
+ "schema": "live_ab/session60_receipt-v1"
+}

@@ -166,6 +166,13 @@ class SupervisorEntryPointTests(unittest.TestCase):
         m.setdefault('model', {})['sha256'] = hashlib.sha256(
             self.model.read_bytes()).hexdigest()
         m['model']['file'] = 'weights.gguf'
+        # DECLARED FIXTURE INPUT. The retained manifest predates the bound
+        # limits, so the three it lacks are declared here -- as LITERALS, the
+        # values root named, never copied from `rs.BOUND_LIMITS`: a fixture that
+        # read the code's own constants would compare the code with itself.
+        m['caps'].update({'cleanup_reserve_seconds': 90,
+                          'dispatch_cutoff_seconds': 510,
+                          'diagnostic_byte_budget': 8 * 1024 * 1024})
         # THE IMPLEMENTATION LIBRARIES, declared and present. Root, 11:16: "the
         # small launcher is not the implementation"; a manifest that declares no
         # non-system closure now refuses before Popen. The fixture declares one
@@ -1008,6 +1015,121 @@ class SupervisorEntryPointTests(unittest.TestCase):
         self.assertEqual(receipt['server_exit_code'], 93)
         self.assertTrue(receipt['acquisition_invalidated_by_process_outcome'])
         self.assertEqual(status, 1)
+
+    # -- root 14:41 item 4: descriptor, elapsed boundary, bound limits -------
+    def test_a_BLOCKING_production_descriptor_refuses_before_any_POST(self):
+        """Root: "Refuse a production descriptor that cannot be made
+        nonblocking." The drain used to fall back to a blocking read, which is
+        the one read the deadline cannot interrupt.
+
+        The descriptor is a number beyond the process limit, so
+        `os.set_blocking` fails with EBADF deterministically; a closed-and-
+        reused fd number could be silently valid again."""
+        class _Unblockable:
+            def fileno(self):
+                return 1 << 20
+
+            def read(self, n=-1):
+                raise AssertionError('a blocking descriptor must not be read')
+        proc = _Proc()
+        proc.stdout = _Unblockable()
+        status, receipt = self._run(proc=proc)
+        self.assertEqual(status, 1)
+        self.assertEqual(self.posted, [], 'nothing may be dispatched')
+        self.assertEqual(receipt['capture_descriptor']['descriptor'], 'blocking')
+        self.assertTrue(receipt['child_confirmed_stopped'], 'the child is reaped')
+        self.assertEqual(receipt['producer_diagnostics']['drain_state'], 'not_created')
+        verdict = ' '.join(receipt['supervisor_problems'])
+        self.assertIn('could not be made non-blocking', verdict)
+
+    def test_the_drain_ITSELF_refuses_a_blocking_descriptor(self):
+        """The same rule inside the drain, so the function is safe on its own:
+        nothing read, no artifact, capture incomplete by construction."""
+        class _Unblockable:
+            def fileno(self):
+                return 1 << 20
+
+            def read(self, n=-1):
+                raise AssertionError('must not be read')
+        state = {}
+        art = self.root / 'blocked.bin'
+        self.rs.drain_to_artifact(_Unblockable(), art, state)
+        self.assertIn('could not be made non-blocking', state['error'])
+        self.assertFalse(state['raw_capture_complete'])
+        self.assertFalse(state['nonblocking_reads'])
+        self.assertFalse(art.exists())
+
+    def test_an_in_memory_stream_is_recorded_ABSENT_not_nonblocking(self):
+        """The fixture's BytesIO has no OS descriptor. That is recorded as what
+        it is, not dressed up as a non-blocking production pipe."""
+        status, receipt = self._run()
+        self.assertEqual(status, 0)
+        self.assertEqual(receipt['capture_descriptor']['descriptor'], 'absent')
+
+    def test_ELAPSED_is_measured_in_finalize_on_an_EARLY_refusal(self):
+        """Root: "measure elapsed time through finalization with its boundary
+        explicit." An early refusal used to carry no elapsed figure at all."""
+        m = json.loads(self.man_path.read_text('utf-8'))
+        del m['caps']['dispatch_cutoff_seconds']
+        self.man_path.write_text(json.dumps(m), encoding='utf-8')
+        status, receipt = self._run()
+        self.assertEqual(status, 1)
+        self.assertIn('wall_seconds_total', receipt)
+        self.assertIn('finalize()', receipt['elapsed_boundary']['to'])
+        self.assertIn('main() entry', receipt['elapsed_boundary']['from'])
+        self.assertEqual(receipt['deadline']['budget_s'], 600.0)
+
+    def test_ELAPSED_counts_time_spent_AFTER_the_child_is_reaped(self):
+        """Seven seconds pass while the lifecycle log is read, after reap. The
+        attempt's elapsed figure must include them; the named reap mark must
+        not."""
+        rs = self.rs
+        real = rs.lab_lifecycle.observe
+
+        def slow_observe(*a, **k):
+            self.clock[0] += 7.0
+            return real(*a, **k)
+        with mock.patch.object(rs.lab_lifecycle, 'observe', slow_observe):
+            status, receipt = self._run()
+        self.assertGreaterEqual(receipt['wall_seconds_total']
+                                - receipt['seconds_to_child_reap'], 7.0)
+
+    def test_a_manifest_LIMIT_that_disagrees_with_the_code_refuses_before_any_child(self):
+        """Root: "bind 8 MiB/90-second/600-second/510-second limits across code,
+        immutable configuration and finite costed plan." A manifest that
+        declared a different limit was copied into the receipt beside a
+        supervisor enforcing its own."""
+        cases = [('wall_seconds_total', 601), ('cleanup_reserve_seconds', 89),
+                 ('dispatch_cutoff_seconds', 509),
+                 ('diagnostic_byte_budget', 8 * 1024 * 1024 + 1),
+                 ('dispatch_cutoff_seconds', True),
+                 ('diagnostic_byte_budget', '8388608'),
+                 ('wall_seconds_total', float('nan')),
+                 ('wall_seconds_total', 10 ** 400),          # float() RAISES
+                 ('cleanup_reserve_seconds', None)]          # None = deleted
+        for key, bad in cases:
+            with self.subTest(key=key, bad=bad):
+                self.setUp()            # a fresh directory: receipts are write-once
+                m = json.loads(self.man_path.read_text('utf-8'))
+                if bad is None:
+                    del m['caps'][key]
+                else:
+                    m['caps'][key] = bad
+                self.man_path.write_text(json.dumps(m), encoding='utf-8')
+                status, receipt = self._run()
+                self.assertEqual(status, 1)
+                self.assertFalse(receipt['child_started'])
+                self.assertEqual(self.posted, [])
+                self.assertIn(key, ' '.join(receipt['manifest_validation']['problems']))
+
+    def test_the_LITERAL_limits_root_named_are_what_the_code_enforces(self):
+        """The control for the binding: the fixture declares 600/90/510/8 MiB
+        as literals and a valid run is accepted, so agreement is between two
+        independent statements, not the code and a copy of itself."""
+        status, receipt = self._run()
+        self.assertEqual(status, 0)
+        self.assertEqual(receipt['manifest_validation']['problems'], [])
+        self.assertEqual(self.rs.DISPATCH_CUTOFF_S, 510.0)
 
 
 if __name__ == '__main__':                                     # pragma: no cover
