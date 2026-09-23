@@ -3162,6 +3162,9 @@ freeze cannot change it.
                 "calibration_plan": {"repetitions": 5, "smoke_tasks": 6, "workflows": 2,
                                      "models": 2, "concurrency_levels": 2, "episodes": 240},
                 "side_by_side_compression_C": {"T1": null, "T2": null, "T3": null, "T4": null}},
+  "engineering_acquisition": {"wall_seconds_total": 600, "cleanup_reserve_seconds": 90,
+                              "dispatch_cutoff_seconds": 510, "diagnostic_byte_budget": 8388608,
+                              "seconds_per_request": 120, "total_generated_tokens": 2048},
   "hardware_allowlist": ["arm64-darwin"], "environment_lock_sha256": "842a7a19d738604fbe665231a593a11f12cc02abfe9b1dc4034bc3817a9081ac"
 }
 ```

@@ -1,0 +1,126 @@
+{
+ "authority": "root, reviews/acquisition_preparation_disposition_20260923_1630.md decision 3 (quoted in this tool's docstring)",
+ "convention": "deterministic-path",
+ "dependent_hashes_that_do_not_move": [
+  "rule_block_sha256",
+  "receipt_mask_sha256",
+  "monitor.winstats_sha256",
+  "environment_lock_sha256"
+ ],
+ "dependent_hashes_that_move": {
+  "config_sha256 / harness_file_sha256[config.json]": "moves, as any config byte change must; no freeze exists yet, so nothing frozen is invalidated",
+  "protocol_sha256": "moves; recorded as the new successor above"
+ },
+ "documents_amended_in_lockstep": [
+  "experiments/live_ab/config.json",
+  "experiments/live_ab/design/ARCHITECTURE_FINAL.md",
+  "experiments/live_ab/design/protocol_FINAL.md"
+ ],
+ "field_by_field": {
+  "cleanup_reserve_seconds": {
+   "derivation": "literal",
+   "now": 90,
+   "source": "root 16:30 disposition table",
+   "was": "absent"
+  },
+  "diagnostic_byte_budget": {
+   "derivation": "literal",
+   "now": 8388608,
+   "source": "root 16:30 disposition table",
+   "was": "absent"
+  },
+  "dispatch_cutoff_seconds": {
+   "derivation": "600 - 90",
+   "now": 510,
+   "source": "root 16:30 disposition table",
+   "was": "absent"
+  },
+  "seconds_per_request": {
+   "derivation": "literal",
+   "now": 120,
+   "source": "root 16:30 disposition table",
+   "was": "absent"
+  },
+  "total_generated_tokens": {
+   "derivation": "literal",
+   "now": 2048,
+   "source": "root 16:30 disposition table",
+   "was": "absent"
+  },
+  "wall_seconds_total": {
+   "derivation": "literal",
+   "now": 600,
+   "source": "root 16:30 disposition table",
+   "was": "absent"
+  }
+ },
+ "generated_utc": "2026-09-23T18:04:02Z",
+ "inserted_text": "  \"engineering_acquisition\": {\"wall_seconds_total\": 600, \"cleanup_reserve_seconds\": 90,\n                              \"dispatch_cutoff_seconds\": 510, \"diagnostic_byte_budget\": 8388608,\n                              \"seconds_per_request\": 120, \"total_generated_tokens\": 2048},\n",
+ "nothing_executed": "no CPU simulation, model, server or build; text edits and digests only",
+ "placement": "a NEW top-level key, not under sampling (sent on the wire by lab_client) nor execution (execution.auto_abort is in the rule block)",
+ "postcondition_checked": {
+  "added_keys": [
+   "engineering_acquisition.cleanup_reserve_seconds",
+   "engineering_acquisition.diagnostic_byte_budget",
+   "engineering_acquisition.dispatch_cutoff_seconds",
+   "engineering_acquisition.seconds_per_request",
+   "engineering_acquisition.total_generated_tokens",
+   "engineering_acquisition.wall_seconds_total"
+  ],
+  "architecture_sha256": "727003c1efe2b210fff0cf7d0a60ca30f53948516171b863548849676b1242ab",
+  "block_bytes": 13917,
+  "block_sha256": "e4d42f5d442dde7e709222e0a4ad4985de0f20604061fec01f2e3ea95f75d824",
+  "changed_keys": [],
+  "deleting_the_added_lines_reproduces_the_prior_block": true,
+  "dispatch_cutoff_is_wall_minus_reserve": true,
+  "environment_lock_unchanged": true,
+  "exactly_the_six_fields_added": true,
+  "execution_unchanged": true,
+  "protocol_change_is_inside_appendix_b_only": true,
+  "protocol_sha256": "7f6664770b0d88ac5904967d9b8e2225d20932942824cd689278a03a2ee45e53",
+  "receipt_mask_sha256_unchanged": true,
+  "removed_keys": [],
+  "rule_block_sha256_after": "cbfd1792d09c43754eeeab3b282e92e99c76e4f878cd82d00c827f6a90fa7607",
+  "rule_block_sha256_before": "cbfd1792d09c43754eeeab3b282e92e99c76e4f878cd82d00c827f6a90fa7607",
+  "sampling_unchanged": true,
+  "section_equals_root_table": true,
+  "three_blocks_identical": true,
+  "winstats_pin_unchanged": true
+ },
+ "precondition_checked": {
+  "architecture_sha256": "6b36c4a41a23612bc2b8035ac2538977f81f341ed1527fee9c5535578254241c",
+  "block_bytes": 13641,
+  "block_sha256": "05255df3b0d12bb6f5571616378a1366c67c6eb8b913def907c6a5d901e1731c",
+  "cells_round_trips": true,
+  "cells_sha256": "225477fa559215d05a75926907298293b45bf02dc8623494b33d85a7b95dc187",
+  "head": "d859fa8338daa6ffd9f03d79187cfca98223f707",
+  "is_the_reviewed_block": true,
+  "protocol_sha256": "f75de3235ae0431b727cf7c24b09927204a1da8c5424e14ea428dbfea256f48b",
+  "three_blocks_identical": true
+ },
+ "prior_versions_retained": {
+  "config_block_bytes": 13641,
+  "config_block_sha256": "05255df3b0d12bb6f5571616378a1366c67c6eb8b913def907c6a5d901e1731c",
+  "note": "recoverable byte-exactly by `git show <revision>:<path>`, and by deleting inserted_text from each document",
+  "revision": "d859fa8338daa6ffd9f03d79187cfca98223f707"
+ },
+ "schema": "live_ab.config_amendment_receipt.1",
+ "scope": "the section is declarative configuration. Its agreement with the supervisor's enforced constants is a separate code check, delivered with the launch wiring.",
+ "successor_provenance": {
+  "demoted_successor": "f75de3235ae0431b727cf7c24b09927204a1da8c5424e14ea428dbfea256f48b",
+  "demoted_successor_commit_verified": "855a40636d4a84d64edee91052652eac6999a1a1",
+  "new_successor": "7f6664770b0d88ac5904967d9b8e2225d20932942824cd689278a03a2ee45e53",
+  "original_pin_untouched": "3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0dd7d2c2",
+  "prior_successors_now": 4
+ },
+ "this_is_not_a_freeze": true,
+ "written": {
+  "architecture_sha256": "727003c1efe2b210fff0cf7d0a60ca30f53948516171b863548849676b1242ab",
+  "cells_sha256": "eab68b1a64f80406409338130e5befcab4e18d74909092f921004432f2a23056",
+  "config_bytes": 13917,
+  "config_sha256": "e4d42f5d442dde7e709222e0a4ad4985de0f20604061fec01f2e3ea95f75d824",
+  "harness_file_sha256_config": "e4d42f5d442dde7e709222e0a4ad4985de0f20604061fec01f2e3ea95f75d824",
+  "harness_files": 33,
+  "protocol_sha256": "7f6664770b0d88ac5904967d9b8e2225d20932942824cd689278a03a2ee45e53"
+ }
+}

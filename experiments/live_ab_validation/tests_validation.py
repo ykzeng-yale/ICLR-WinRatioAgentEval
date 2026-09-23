@@ -2913,16 +2913,19 @@ class PinSuccessorAmendmentTests(unittest.TestCase):
     REPO = HERE.parent.parent
 
     ORIGINAL = '3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0dd7d2c2'
-    # FOUR transitions now, preserved additively and never collapsed:
+    # FIVE transitions now, preserved additively and never collapsed:
     #   ORIGINAL      -> ENCLOSURE      (coordinator ruling 60)
     #   ENCLOSURE     -> APPENDIX_B     (hardware_allowlist / environment_lock pins)
     #   APPENDIX_B    -> HOST_WORK_ROOT (host_work_root, the canonical lock pin)
-    #   HOST_WORK_ROOT-> CURRENT        (sandbox profile and licence evidence pins)
+    #   HOST_WORK_ROOT-> EVIDENCE_PINS  (sandbox profile and licence evidence pins)
+    #   EVIDENCE_PINS -> CURRENT        (the engineering_acquisition caps, root
+    #                                    16:30 decision 3)
     ENCLOSURE = 'b1ff97cc163ce7ea121ebd578a4c37de09d5ed7223f2029e5d56118cdc790822'
     APPENDIX_B = 'd63717a5519f650394db8aca7eb33d7a15ccfedbaffe78600d9ea3fb7b76294d'
     HOST_WORK_ROOT = '0e1bcb710ce2c13a06a243a7c3034d6bec55389d4de45dce569a7dee15af0284'
-    PREVIOUS = HOST_WORK_ROOT
-    CURRENT = 'f75de3235ae0431b727cf7c24b09927204a1da8c5424e14ea428dbfea256f48b'
+    EVIDENCE_PINS = 'f75de3235ae0431b727cf7c24b09927204a1da8c5424e14ea428dbfea256f48b'
+    PREVIOUS = EVIDENCE_PINS
+    CURRENT = '7f6664770b0d88ac5904967d9b8e2225d20932942824cd689278a03a2ee45e53'
 
     def _inputs(self):
         import copy
@@ -2963,7 +2966,7 @@ class PinSuccessorAmendmentTests(unittest.TestCase):
         # Every superseded successor is kept, in order. The enclosure entry is
         # substantive history root ruled on and must never be dropped when a
         # later amendment lands on top of it.
-        self.assertEqual(len(prior), 3)
+        self.assertEqual(len(prior), 4)
         self.assertEqual(prior[0]['sha256'], self.ENCLOSURE)
         self.assertIn('enclosure', prior[0]['reason'].lower())
         self.assertIn('ruling 60', prior[0]['ruling'])
@@ -2975,6 +2978,13 @@ class PinSuccessorAmendmentTests(unittest.TestCase):
         self.assertEqual(prior[2]['sha256'], self.HOST_WORK_ROOT)
         self.assertIn('host_work_root', prior[2]['reason'])
         self.assertIn('changing_commit_of_this_successor', prior[2])
+        # the evidence-pin successor, demoted WHOLE when the engineering caps
+        # landed on top of it, with its changing commit resolved after the fact
+        # (verified: that commit's protocol_FINAL.md hashes to it).
+        self.assertEqual(prior[3]['sha256'], self.EVIDENCE_PINS)
+        self.assertIn('license_evidence_sha256', prior[3]['reason'])
+        self.assertEqual(prior[3]['changing_commit_of_this_successor'],
+                         '855a40636d4a84d64edee91052652eac6999a1a1')
 
     def test_a_correct_successor_passes(self):
         cfg, manifest, protocol = self._inputs()
