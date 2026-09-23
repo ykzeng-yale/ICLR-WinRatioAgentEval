@@ -134,6 +134,12 @@ class FakeServers:
                 'restart_index': int(kw.get('restart_index') or 0)})
         pid = self.next_pid
         self.next_pid += 1
+        # A start that matched the golden object carries ITS digest: lab_server.start hashes
+        # the tokenized observation, which equals the golden object exactly then (and the
+        # verifier's verified_start now checks it against config.receipt, EB1c).
+        golden_props = kw.get('golden_props')
+        props_sha = (sha256_canonical(golden_props) if isinstance(golden_props, dict)
+                     else PROPS_SHA)
         self.procs[pid] = {'server_id': spec.server_id, 'alive': True, 'rc': None,
                            'healthy': True, 'prompt': SMOKE_USAGE['prompt_tokens'],
                            'predicted': SMOKE_USAGE['completion_tokens']}
@@ -141,7 +147,7 @@ class FakeServers:
         body = {
             'server_id': spec.server_id, 'pid': pid, 'port': int(spec.port),
             'argv_sha256': argv_sha, 'gguf': {'bytes': 1024, 'sha256': '9' * 64},
-            'props_sha256': PROPS_SHA, 'props_matches_golden': True, 'total_slots': 2,
+            'props_sha256': props_sha, 'props_matches_golden': True, 'total_slots': 2,
             'n_ctx': 8192, 'load_seconds': 0.5,
             'smoke': {'request_sha256': sha256_text('eb1b smoke'),
                       'receipt_matches_golden': True, 'usage': dict(SMOKE_USAGE),
@@ -541,8 +547,9 @@ class HealthPollTests(TreeCase):
         self.assertNotEqual(world.server_pids['coder'], old)
         kind, _, kw = self.fake.calls[-1]
         self.assertEqual(kind, 'restart')
+        golden_sha = self.tree.frozen_cfg()['receipt']['golden_props_sha256']['coder']
         self.assertEqual((kw['previous_pid'], kw['previous_props_sha256'], kw['timeout_s'],
-                          kw['restart_index']), (old, PROPS_SHA, 180.0, 1))
+                          kw['restart_index']), (old, golden_sha, 180.0, 1))
         self.assertIsNotNone(kw['golden_props'])
         for ev in world.log.events:
             lab_eventlog.validate_event(ev['type'], ev['body'])

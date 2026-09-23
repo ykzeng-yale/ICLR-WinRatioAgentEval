@@ -2332,6 +2332,34 @@ class World:
             if self.health_failures[server_id] >= threshold:
                 self.supervise_down(server_id, 'health', None)
 
+    def supervise_exits(self) -> None:
+        """The exit half of :meth:`health_poll`, unthrottled, at a pair boundary (IDLE).
+
+        For each server this invocation holds, ``lab_server.exit_status`` -- a non-blocking
+        ``Popen.poll`` of its own child -- and, when the process has exited,
+        :meth:`supervise_down` (``detected_by='exit'``) before anything is enrolled.  Without
+        it a server that died after the last health poll (``execution.health_poll_s``) was
+        handed a whole new pair, whose two arrivals then waited on recovery and were revealed
+        with ``infra_flag`` (EB1c control C6, pre-fix: an ``ok: false`` ``pair_boundary``
+        scrape followed by ``pair_enrolled``).  ``/health`` is NOT polled here: the
+        consecutive-failure rule of protocol 5.3 keeps its cadence.  Does nothing on a
+        simulated run, for a server not held, or for a pid this process did not start.
+        Not called before the follow-up cohort's one-at-a-time dispatch, which still relies on
+        the health poll's cadence."""
+        if self.rt.get('sim'):
+            return
+        for server_id in sorted(self.ctx.servers):
+            pid = int(self.server_pids.get(server_id) or 0)
+            if not pid:
+                continue
+            try:
+                returncode = lab_server.exit_status(pid)
+            except lab_common.LabError:
+                continue                   # not a child of this process: /health decides
+            if returncode is not None:
+                self.server_ok[server_id] = False
+                self.supervise_down(server_id, 'exit', int(returncode))
+
     def supervise_down(self, server_id: str, detected_by: str,
                        returncode: int | None) -> None:
         """One ``server_down`` and what supervision does about it (repair contract EB1 item
@@ -2942,6 +2970,10 @@ def _step(state: State, ctx: RunContext, world: World) -> State:      # noqa: C9
         return 'OPENING_WAIT'                                # type: ignore[return-value]
 
     if state == 'IDLE':
+        # A held server whose process has already exited is answered (restart, cap, failure)
+        # BEFORE a pair is enrolled onto it (EB1c: the C6 control showed a pair enrolled and
+        # dispatched to an exited server that the 5 s health poll had not yet seen).
+        world.supervise_exits()
         # Nothing is open here, so an outcome supervision owes is taken now, before any
         # enrollment (repair contract EB1: no new arrival after a failed restart or the cap).
         world.raise_pending()

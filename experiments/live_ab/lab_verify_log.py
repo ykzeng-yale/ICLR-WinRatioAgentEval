@@ -289,7 +289,17 @@ def _check_server_lifecycle(col: _Collector, events: Sequence[Mapping],
        ``props_matches_golden: true`` and a smoke with ``receipt_matches_golden: true`` and
        ``ok: true`` -- the orchestrator appends only bodies ``lab_server.start`` returned
        after those comparisons passed, so any other value is a body it could not have
-       written.
+       written -- AND its ``props_sha256`` is the golden digest of that server, as recorded
+       by the chain's ``trial_started.golden_props_sha256`` and by the frozen
+       ``config.receipt.golden_props_sha256`` (each that is present must match; the
+       orchestrator writes the former from the latter at seq 0).  ``lab_server.start``
+       computes ``props_sha256`` over the tokenized observation, which IS the golden object
+       exactly when ``props_matches_golden`` is true, so this is the one claim of the body
+       the verifier can check against the freeze.  A success-valued body that did not come
+       from that comparison fails it: the pre-repair placeholder (b049307) hashed the raw
+       ``/props`` (EB1c mutation control, ``tests_eb1_entry.MutationControl``).  With
+       neither golden digest present (or a non-digest value) every live start fails:
+       nothing could be checked against it.
     2. ``down_answered``: every ``server_down`` is followed by a ``server_restarted`` or
        ``server_start_failed`` of the same server, a ``trial_paused`` or a
        ``trial_aborted`` -- and by it BEFORE any further ``episode_started`` (a server that
@@ -319,6 +329,14 @@ def _check_server_lifecycle(col: _Collector, events: Sequence[Mapping],
         col.add(check, {'rule': 'mixed',
                         'error': 'simulated and live server bodies in one chain'})
     terminal = any(e['type'] in ('trial_ended', 'trial_aborted') for e in events)
+    # the golden /props digests a live start must carry: the chain's own trial_started
+    # record and the frozen configuration, each wherever it is present
+    golden_sources: list[Mapping] = []
+    opened = next((e['body'] for e in events if e['type'] == 'trial_started'), None)
+    for source in ((opened or {}).get('golden_props_sha256'),
+                   ((cfg or {}).get('receipt') or {}).get('golden_props_sha256')):
+        if isinstance(source, Mapping):
+            golden_sources.append(source)
 
     for ev in events:
         if ev['type'] not in ('server_started', 'server_restarted'):
@@ -327,11 +345,16 @@ def _check_server_lifecycle(col: _Collector, events: Sequence[Mapping],
         if lab_eventlog.is_sim_server_body(body):
             continue
         smoke = body.get('smoke') if isinstance(body.get('smoke'), Mapping) else {}
+        wants = [src.get(str(body.get('server_id'))) for src in golden_sources]
+        is_golden = bool(wants) and all(
+            isinstance(w, str) and len(w) == 64 and body.get('props_sha256') == w
+            for w in wants)
         if not (body.get('props_matches_golden') is True
                 and smoke.get('receipt_matches_golden') is True
-                and smoke.get('ok') is True):
+                and smoke.get('ok') is True and is_golden):
             col.add(check, {'rule': 'verified_start', 'type': ev['type'],
-                            'server_id': str(body.get('server_id'))}, seq=ev['seq'])
+                            'server_id': str(body.get('server_id')),
+                            'props_sha256_is_golden': bool(is_golden)}, seq=ev['seq'])
 
     for i, ev in enumerate(events):
         if ev['type'] == 'server_down':
