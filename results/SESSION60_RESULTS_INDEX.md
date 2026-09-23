@@ -3077,6 +3077,49 @@ members with resolved load paths; an unrelated nonempty inventory still passes. 
 non-blockable production descriptor still falls back to a blocking read; the 8 MiB / 90 s / 600 s /
 510 s agreement across plan, configuration and code; elapsed reporting through finalization.
 
+### 2026-09-23 · the protection started too late and ended too early
+
+`main` and `session60/live-ab` at **`20aada0`**. Root's 14:03 disposition
+(`reviews/protected_acquisition_disposition_20260923_1403.md`, merged from `6c6e97b`). Receipt:
+`PROTECTED_PATH_COMPLETION.json` (`deterministic-path`).
+
+**Root answered blocker 4:** derive the required set at *preparation* from the selected launcher,
+backend configuration and dependency metadata, **freeze** it, then verify resolution against it at
+launch. My default — verify only the members a manifest names — is insufficient "if omissions can
+redefine what is required." **Not implemented this delivery and not claimed.**
+
+**The protection I added last cycle had three holes**, all root's witnesses. The drain was built and
+started one line **above** the `try`, so an injected `drain.start()` failure escaped with the server
+already running — the same leak I had just repaired, one statement higher. `results` was created
+*inside* the block, so any earlier failure left it undefined and the cleanup that followed raised on
+it, losing the very receipt the protection existed to guarantee. A drain-join exception after reap
+lost it too.
+
+All attempt and cleanup state is now initialised **before** the child exists; protection begins the
+instant the child exists and **includes drain construction and start**; the drain join is guarded.
+
+**The failure is in the verdict**, with stage, type, message and a bounded traceback — root resolved
+my broad-`except` concern exactly this way: catch at the boundary so cleanup and evidence survive,
+but preserve the diagnosis and force refusal, so an implementation failure does not become a usable
+null result.
+
+**Explicit `temperature: null` passed.** `if temp is not None` treated a present-but-null field as
+absent-and-fine, so null sailed into the payload and two POSTs carried it — the one shape `need()`
+could not catch, because the key *was* there.
+
+**`temperature = 10**400` raised during validation.** `float()` on a huge int raises rather than
+returning inf, so the validator — whose job is to turn bad input into a description — threw on bad
+input, before any receipt.
+
+**A decoded `[]` became unknown delivery.** The body parsed; it is simply not an object, and the
+`AttributeError` from `.get` was landing in the handler meaning "the transport raised".
+
+**The ledger is enforced after every case** in `tearDown`, not in one healthy test — which left every
+other case free to swallow a denial inside a production `except`. The deliberate-violation control
+now asserts that check **fails**.
+
+Entry cases **25 → 30**, green; design **345**, serving 89, isolation 33. Freeze **16/26**.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
