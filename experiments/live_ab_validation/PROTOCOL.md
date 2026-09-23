@@ -1516,3 +1516,15 @@ description that flattened the two transitions into one: [`PIN_AMENDMENT_2026092
 Authorized by root 2026-09-22 04:27 (`reviews/protocol_pin_disposition_20260922_0422.md`).
 Administrative provenance repair only: no scientific parameter, seed, horizon, estimator, outcome,
 decision rule, result label or execution pin changes.
+
+**Update 2026-09-23: the count above is stale; the pin is not.** "Moved twice" was true when this
+amendment was written. Since then `cells.json` has recorded three more successors of that file. Each
+one is an Appendix B-only synchronisation of the #11 configuration block with `config.json`:
+`0e1bcb71…` (`host_work_root`, root ruling 2026-09-23 03:51), `f75de323…` (the sandbox-profile and
+licence evidence pins, root ruling 2026-09-23 03:48) and `7f666477…` (the scoped
+`engineering_acquisition` caps, root decision 3 of 2026-09-23 16:30). That makes five moves in all.
+They are written truncated for the reason given above. The full digests, reasons and rulings are in
+`cells.json` under `provenance.vocabulary_alignment.superseded_by`, and so is each changing commit
+once a later commit has resolved it. The
+recorded pin is still the original snapshot named above. This note only corrects the count: nothing
+this study pre-registered, ran or reported changes.
