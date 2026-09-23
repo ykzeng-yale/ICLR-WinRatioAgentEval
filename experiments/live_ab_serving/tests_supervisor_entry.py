@@ -1775,6 +1775,22 @@ class SupervisorEntryPointTests(unittest.TestCase):
         self.assertEqual(status, 1)
         self.assertIsNotNone(receipt)
         self.assertEqual(receipt['producer_diagnostics']['drain_state'], 'liveness_unknown')
+    def test_ROOT_1829_each_unfinished_worker_says_whether_it_may_STILL_SEND(self):
+        """Root, 18:29: "A late permitted-but-not-yet-entered call must remain
+        explicitly possible/unknown in the receipt." Two interleavings, both
+        bounded and deterministic: a worker suspended INSIDE its POST (it passed
+        the gate) and a worker that had not reached the gate at the snapshot."""
+        status, receipt = self._run(unfinished_request=1, unfinished_mode='in_flight')
+        row = {r['index']: r for r in receipt['requests']}[1]
+        self.assertTrue(row['send_permit'].startswith('PERMIT USED'))
+        self.assertEqual(status, 1)
+        self.setUp()
+        status, receipt = self._run(unfinished_request=1, unfinished_mode='not_yet_sent')
+        row = {r['index']: r for r in receipt['requests']}[1]
+        self.assertTrue(row['send_permit'].startswith('NO PERMIT'))
+        self.assertEqual(len(self.posted), 1, 'a worker without a permit never sends')
+        self.assertEqual(status, 1)
+
 
 if __name__ == '__main__':                                     # pragma: no cover
     unittest.main()

@@ -1613,6 +1613,11 @@ def main() -> int:
     # late is kept out of everything the receipt reports, and a worker that has
     # not yet sent may not send at all.
     finished_ids: set = set()
+    # WHO PASSED THE SEND GATE, per worker, recorded under the same lock. Root,
+    # 18:29: "A late permitted-but-not-yet-entered call must remain explicitly
+    # possible/unknown in the receipt." With this set the snapshot can say, for
+    # each unfinished worker, whether a POST may still happen after it.
+    permitted_ids: set = set()
     started_ids: list = []
     request_threads: list = []
     terminal = {'taken': False}
@@ -1846,6 +1851,7 @@ def main() -> int:
                     too_late = terminal['taken']
                     if not too_late:
                         attempted_count[0] += 1
+                        permitted_ids.add(plan['request_id'])
                 if too_late:
                     rec['not_dispatched'] = ('the terminal snapshot had been taken, '
                                              'so this request was not sent')
@@ -2035,6 +2041,7 @@ def main() -> int:
         snap_finished = set(finished_ids)
         snap_attempted = attempted_count[0]
         snap_responses = submitted_count[0]
+        snap_permitted = set(permitted_ids)
     out['terminal_snapshot'] = {
         'taken_after': 'the bounded joins (or the supervisor exception)',
         'finished_workers': len(snap_finished),
@@ -2061,6 +2068,14 @@ def main() -> int:
                                  'artifacts were read'))
             elif rid in alive_ids:
                 row = dict(base, state='unfinished_at_terminal_snapshot',
+                           send_permit=('PERMIT USED: it passed the send gate before '
+                                        'the snapshot, so its POST may have been '
+                                        'invoked, or may be invoked after this '
+                                        'snapshot; invocation and delivery are unknown'
+                                        if rid in snap_permitted else
+                                        'NO PERMIT: it had not passed the send gate '
+                                        'by the snapshot, and after it the gate '
+                                        'refuses, so it cannot send'),
                            response_artifact_path=lab_common.display_path(
                                log.parent / ('%s.response' % rid)),
                            note=('its worker was still running when the terminal '
