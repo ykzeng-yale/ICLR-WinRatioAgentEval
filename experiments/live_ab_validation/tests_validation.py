@@ -2913,8 +2913,14 @@ class PinSuccessorAmendmentTests(unittest.TestCase):
     REPO = HERE.parent.parent
 
     ORIGINAL = '3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0dd7d2c2'
-    PREVIOUS = 'b1ff97cc163ce7ea121ebd578a4c37de09d5ed7223f2029e5d56118cdc790822'
-    CURRENT = 'd63717a5519f650394db8aca7eb33d7a15ccfedbaffe78600d9ea3fb7b76294d'
+    # THREE transitions now, preserved additively and never collapsed:
+    #   ORIGINAL      -> ENCLOSURE      (coordinator ruling 60)
+    #   ENCLOSURE     -> APPENDIX_B     (hardware_allowlist / environment_lock pins)
+    #   APPENDIX_B    -> CURRENT        (host_work_root, the canonical lock pin)
+    ENCLOSURE = 'b1ff97cc163ce7ea121ebd578a4c37de09d5ed7223f2029e5d56118cdc790822'
+    APPENDIX_B = 'd63717a5519f650394db8aca7eb33d7a15ccfedbaffe78600d9ea3fb7b76294d'
+    PREVIOUS = APPENDIX_B
+    CURRENT = '0e1bcb710ce2c13a06a243a7c3034d6bec55389d4de45dce569a7dee15af0284'
 
     def _inputs(self):
         import copy
@@ -2952,10 +2958,15 @@ class PinSuccessorAmendmentTests(unittest.TestCase):
         entry." The enclosure ruling is substantive history, not a stale value."""
         cfg, _, _ = self._inputs()
         prior = self._va(cfg)['superseded_by']['prior_successors']
-        self.assertEqual(len(prior), 1)
-        self.assertEqual(prior[0]['sha256'], self.PREVIOUS)
+        # Every superseded successor is kept, in order. The enclosure entry is
+        # substantive history root ruled on and must never be dropped when a
+        # later amendment lands on top of it.
+        self.assertEqual(len(prior), 2)
+        self.assertEqual(prior[0]['sha256'], self.ENCLOSURE)
         self.assertIn('enclosure', prior[0]['reason'].lower())
         self.assertIn('ruling 60', prior[0]['ruling'])
+        self.assertEqual(prior[1]['sha256'], self.APPENDIX_B)
+        self.assertIn('appendix b', prior[1]['reason'].lower())
 
     def test_a_correct_successor_passes(self):
         cfg, manifest, protocol = self._inputs()

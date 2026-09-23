@@ -1997,6 +1997,8 @@ phase (protocol Appendix A) and no `null` may survive into the freeze bundle.
   "sandbox": {"timeout_s": 10.0, "cpu_s": 10, "output_cap_bytes": 65536,
               "mem_bytes_requested_not_enforced_on_macos": 2147483648,
               "tmpdir": "<TMP>/labsbx", "host_wide_execution_lock": true,
+              "host_work_root": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab",
+              "host_work_root_note": "FROZEN owner-host path, per reviews/lock_anchor_review_20260923_0348.md. Protocol 5.7 item 1 needs ONE lock inode across trials AND checkouts; a checkout-relative work root would give each clone its own file. Derived paths must never replace this pin.",
               "profile_sha256": null, "containment_probe_sha256": null},
   "max_repair_rounds": 2,
 

@@ -2122,6 +2122,83 @@ corpus omits where digests live manufactures false alarms** — the same defect 
 that named one of several valid providers. Corpus widened to every committed JSON under `results/`
 and `evidence/`; `reviews/` is root-owned and is read, never written.
 
+### Root ruled, and the five lock files are now one (2026-09-23, head `a95ba08`)
+
+`deterministic-path`. Root's first completed response since 2026-09-22 07:04 arrived at 03:51/03:58 as
+commit `cba8796` with five review documents. **Both open questions answered.**
+
+**Decision 1 — the lock: "Yes: one host-wide execution lock … do not skip the failing test."** Root
+independently reproduced the five-file finding *and added the part I had missed*: a clone-relative
+path **still** splits the lock, so it needs a frozen host-root token used in **both** serialization and
+resolution.
+
+**Repaired.** `results/live_ab/LOCK_TOPOLOGY_v3.json`: **1 distinct lock file, `conforms=True`**, down
+from five. `config.sandbox.host_work_root` is a **pin, not a derivation** — deriving it from the
+checkout is the bug itself, so an absent or relative value refuses. `<HOST_WORK>` resolves from that
+pin; `<WORK>` deliberately still resolves per checkout. Witnessed in a **real second clone**: `<WORK>`
+differs between checkouts, `<HOST_WORK>/sandbox.lock` and `trial_paths(T1).sandbox_lock` are identical.
+`run.lock` stays **per trial**, which root preserved explicitly.
+
+**The control root asked for.** `results/live_ab/CROSS_WRAPPER_LOCK_CONTROL.json`: the two **different**
+production wrappers exclude each other on the canonical inode **in both directions** — `lab_data`
+holds → `lab_worker` refused (`LockWaitExceeded`); `lab_worker` holds → `lab_data` refused
+(`PreflightError`) — and **both no-holder controls acquire**. 2/2 exclusions, 2/2 controls. The
+existing two-worker fixture used `lab_data` on *both* sides, so it had only ever shown one wrapper
+excluding itself.
+
+**The override is no longer unconstrained.** `execution_lock_path` is honoured only when the config
+also declares `execution_lock_is_fixture` — root: *"prevent … an unconstrained execution_lock_path
+override from bypassing the canonical production path."* Bypassing is now something you have to say,
+where a reader can see it.
+
+**I got the production-entry check wrong twice, and the suite said so.** The first version refused
+every non-canonical path and broke four worker tests — `tests_lab_serving` went **15 s → 255 s** with
+three errors. The second keyed on a flag any job could assert. The third discriminates on **token
+shape**: the orchestrator now emits exactly `<HOST_WORK>/sandbox.lock`, so a job whose lock is a
+*token* but not that one is a **stale pre-repair job** and refuses, while an *absolute* path is the
+explicit fixture injection root permits. That is root's own distinction, and I only reached it after
+reading the traceback instead of theorising about it.
+
+**Isolated trees keep isolated locks.** Hard-wiring the canonical file into every constructed layout
+coupled unrelated suites to one real inode. The contract is enforced at **production entry**, which is
+where root asked for it — not by denying test isolation.
+
+`ExecutionLockConformanceTests` is **green because the code conforms**, not because the assertion was
+weakened; it now also asserts cross-checkout invariance, per-trial run locks, stale-token refusal and
+the absolute-pin requirement. `ARCHITECTURE_FINAL` §3 synchronized.
+
+**Decision 2 — anchors: my framing was too broad.** Production anchors are *already* correct at
+`results/live_ab/<trial>/anchors`; only the drill constructor is wrong. **Root found three defects I
+had not:** the drill clone's `origin` is the local repo, not GitHub (my *"pushes to the SAME remote"*
+claim was unsupported by the implementation); the API base forms
+`https://api.github.com/issues/13/comments`; and `lab_anchor.post_comment` raises
+`NameError: sha256_bytes` on HTTP 201. **Not yet repaired — next.**
+
+**TWO CORRECTIONS to what I committed in `a95ba08`, both found the same cycle.**
+
+**1. The e2e failure was never intermittent.** I reported it as *"one intermittent failure I have not
+identified"*. Run three times consecutively it fails three times: **`test_config_is_appendix_b_verbatim`**.
+My "passes alone" conclusion came from reading **empty grep output** instead of the verdict line —
+the same not-reading-the-thing failure I keep a rule against, applied to my own release note. It was
+deterministic and one grep away the whole time.
+
+**2. I reformatted the entire `config.json` and did not notice.** Adding the pin with
+`json.dumps(cfg, indent=2)` rewrote the hand-authored compact layout: **411 insertions, 136 deletions**
+where two lines were intended — in a file whose bytes are a freeze pin (`config_sha256`) and one leg of
+the three-way verbatim contract. Restored to the original formatting with the two keys inserted **in
+its own style**; the diff is now exactly **+2 lines**. That is also what broke the e2e test: the
+contract compares config.json byte-for-byte against ARCHITECTURE §6.1 and protocol Appendix B, and I
+had synced neither.
+
+**Three-way contract restored and verified** (`config == ARCHITECTURE §6.1 == protocol Appendix B`).
+The protocol digest moved, so the vocabulary pin is amended **additively** per root's standing
+2026-09-22 04:27 ruling: the ORIGINAL `3c76e8eb…` is untouched, and `prior_successors` now holds
+**both** earlier successors — the enclosure change and the Appendix-B pins change — with the new
+successor recorded on top. The history is three transitions and is no longer collapsible.
+
+**Suites: ten of ten green** — chain 70, design 316, e2e 42, hostcheck 117, isolation 28, serving 89,
+stats 70, validation 190 (2 expected failures), panel 83, shard 31. `HARNESS_FILES` 33.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.

@@ -100,16 +100,12 @@
    ],
    "sha256": "3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0dd7d2c2",
    "superseded_by": {
-    "sha256": "d63717a5519f650394db8aca7eb33d7a15ccfedbaffe78600d9ea3fb7b76294d",
+    "sha256": "0e1bcb710ce2c13a06a243a7c3034d6bec55389d4de45dce569a7dee15af0284",
     "supersedes": "3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0dd7d2c2",
-    "recorded_utc": "2026-09-22T04:45:38Z",
-    "changing_commits": [
-     "869317f",
-     "7a17f06"
-    ],
-    "changing_commit_of_this_successor": "7a17f064f3f15a1944e88803982e3847915c35ce",
-    "reason": "Appendix B ONLY: the configuration block gained \"hardware_allowlist\": [\"arm64-darwin\"] and \"environment_lock_sha256\": \"842a7a19d738604fbe665231a593a11f12cc02abfe9b1dc4034bc3817a9081ac\" in place of nulls, synchronising it with config.json under the three-way verbatim contract. It changes NO CPU cell, parameter, seed, horizon, estimator, outcome, decision rule, or any of the vocabulary sections 1, 3 and 11 this pin reads.",
-    "ruling": "Root ruling 2026-09-22 04:27 (reviews/protocol_pin_disposition_20260922_0422.md): \"preserve the original pin; record an explicit post-freeze provenance amendment ... Do not replace the original sha256.\" This is an administrative successor-mapping repair, not a new pre-registration, not a scientific version bump, and not validation of the current live implementation.",
+    "recorded_utc": "2026-09-23T05:10:00Z",
+    "changing_commit_of_this_successor": "2665c36f35f576442bafcfb0b49583720f2f0a3f",
+    "reason": "Appendix B ONLY: the configuration block gained \"host_work_root\" (the frozen owner-host path of the canonical execution lock) and its explanatory \"host_work_root_note\", synchronising it with config.json under the three-way verbatim contract. It changes NO CPU cell, parameter, seed, horizon, estimator, outcome, decision rule, or any of the vocabulary sections 1, 3 and 11 this pin reads. Verified: the diff against the prior protocol_FINAL.md is exactly the two added configuration lines.",
+    "ruling": "Root ruling 2026-09-23 03:51 (issue #11 comment 5788656743) and reviews/lock_anchor_review_20260923_0348.md: \"Yes: one host-wide execution lock ... Use the existing owner-host canonical file\". The pin amendment follows the standing root ruling of 2026-09-22 04:27: \"preserve the original pin; record an explicit post-freeze provenance amendment ... Do not replace the original sha256.\" This is an administrative successor-mapping repair, not a new pre-registration and not validation of the current live implementation.",
     "correction_to_the_owner_report": "Session 60 described the whole original-to-current history as \"one editorial line\". That FLATTENED TWO DISTINCT TRANSITIONS. Root: the original-to-previous-successor change was the separately documented ENCLOSURE change (see prior_successors below); only previous-successor-to-current is the Appendix B delta. The two are not the same kind of change and are no longer described as if they were.",
     "prior_successors": [
      {
@@ -118,6 +114,18 @@
       "ruling": "Coordinator ruling 60: the pin is NOT updated. This grid validated the #11 monitor as it stood at commit 5776877 against protocol hash 3c76e8eb...; re-pinning would assert that the completed run covered a version of #11 that did not exist when it ran. A comparison against the completed enclosure requires a re-pin, a re-snapshot of pinned/, and a RE-RUN, which is #12 v2 under its own section 14 version bump, not an edit.",
       "recorded_utc": "2026-09-20",
       "supersedes": "3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0dd7d2c2"
+     },
+     {
+      "sha256": "d63717a5519f650394db8aca7eb33d7a15ccfedbaffe78600d9ea3fb7b76294d",
+      "supersedes": "3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0dd7d2c2",
+      "recorded_utc": "2026-09-22T04:45:38Z",
+      "changing_commits": [
+       "869317f",
+       "7a17f06"
+      ],
+      "changing_commit_of_this_successor": "7a17f064f3f15a1944e88803982e3847915c35ce",
+      "reason": "Appendix B ONLY: the configuration block gained \"hardware_allowlist\": [\"arm64-darwin\"] and \"environment_lock_sha256\": \"842a7a19d738604fbe665231a593a11f12cc02abfe9b1dc4034bc3817a9081ac\" in place of nulls, synchronising it with config.json under the three-way verbatim contract. It changes NO CPU cell, parameter, seed, horizon, estimator, outcome, decision rule, or any of the vocabulary sections 1, 3 and 11 this pin reads.",
+      "ruling": "Root ruling 2026-09-22 04:27 (reviews/protocol_pin_disposition_20260922_0422.md): \"preserve the original pin; record an explicit post-freeze provenance amendment ... Do not replace the original sha256.\" This is an administrative successor-mapping repair, not a new pre-registration, not a scientific version bump, and not validation of the current live implementation."
      }
     ]
    }
