@@ -201,7 +201,7 @@ class SupervisorEntryPointTests(unittest.TestCase):
     # -- the harness ---------------------------------------------------------
     def _run(self, *, proc=None, bodies=None, break_barrier=False,
              popen_raises=None, no_pointer=False, post_hook=None,
-             barrier_hook=None):
+             barrier_hook=None, stray_command=None):
         rs = self.rs
         proc = proc if proc is not None else _Proc()
         bodies = bodies if bodies is not None else [OK_BODY, OK_BODY]
@@ -261,6 +261,14 @@ class SupervisorEntryPointTests(unittest.TestCase):
             if popen_raises is not None:
                 raise popen_raises
             return proc
+
+        if stray_command is not None:
+            # a deliberate stray process attempt, so the ledger has something to
+            # record; without this control an empty ledger proves nothing
+            try:
+                fake_popen(stray_command)
+            except AssertionError:
+                pass
 
         fake_requests = type('R', (), {
             'post': staticmethod(fake_post),
@@ -665,6 +673,131 @@ class SupervisorEntryPointTests(unittest.TestCase):
                         'the drain must give up at its deadline, not block')
         self.assertFalse(state['raw_capture_complete'])
         self.assertTrue(state.get('nonblocking_reads'))
+
+    def test_an_intent_COLLISION_creates_no_child_at_all(self):
+        """Root, 2026-09-23 13:20: "a persistence failure or collision must
+        create no child ... Current intent-write failure/collision produces zero
+        stop/reap/drain-join calls and leaves the mocked child alive."
+
+        That leak was mine: the intent was written AFTER Popen, so the refusal
+        was described while the server it had started kept running. Preparation
+        now happens before any child exists.
+        """
+        # a differing intent file already there: write_json_atomic refuses
+        (self.log.parent / ('%s.intent.json' % self.token)).write_text(
+            '{"schema":"earlier attempt"}', encoding='utf-8')
+        proc = _Proc()
+        status, receipt = self._run(proc=proc)
+        self.assertIsNotNone(receipt)
+        self.assertFalse(receipt['child_started'],
+                         'no child may be created once preparation has failed')
+        self.assertIsNone(proc.returncode,
+                          'the mock child was never started, so never reaped')
+        self.assertEqual(self.posted, [])
+        self.assertEqual(status, 1)
+
+    def test_missing_consumed_fields_reach_a_terminal_receipt(self):
+        """Root's four late witnesses: missing temperature left the started child
+        unreaped with no intent or terminal receipt; missing host_id, boot_id or
+        patch digest each permitted two POSTs and a reap, then raised without a
+        terminal receipt.
+
+        I had validated the keys I happened to LIST, not the fields the
+        supervisor DEREFERENCES.
+        """
+        for field, mutate in (
+                ('temperature', lambda d: d['request'].pop('temperature')),
+                ('host_id', lambda d: d.pop('host_id')),
+                ('boot_id', lambda d: d.pop('boot_id')),
+                ('patch_sha256', lambda d: d.pop('patch_sha256'))):
+            with self.subTest(missing=field):
+                self.setUp()
+                m = json.loads(self.man_path.read_text('utf-8'))
+                mutate(m)
+                self.man_path.write_text(json.dumps(m), encoding='utf-8')
+                proc = _Proc()
+                status, receipt = self._run(proc=proc)
+                self.assertIsNotNone(receipt,
+                                     'a missing consumed field must still '
+                                     'persist a terminal receipt')
+                self.assertFalse(receipt['manifest_validation']['usable'])
+                self.assertTrue(any(field in p for p in
+                                    receipt['manifest_validation']['problems']))
+                self.assertFalse(receipt['child_started'])
+                self.assertIsNone(proc.returncode, 'no child was started')
+                self.assertEqual(self.posted, [])
+                self.assertEqual(status, 1)
+
+    def test_SAME_LENGTH_response_corruption_is_detected(self):
+        """Root, 13:20: "the bounded same-length corruption fixture currently
+        returns `complete=true` and success ... compare the read-back
+        bytes/digest with the received bytes, not just length."
+
+        A length check passes any corruption that preserves size, which is most
+        of them. Injected validation evidence, not a claim about real storage.
+        """
+        rs = self.rs
+        real_read_bytes_fn = Path.read_bytes
+
+        def corrupting(pself, *a, **k):
+            blob = real_read_bytes_fn(pself, *a, **k)
+            if str(pself).endswith('.response') and blob:
+                return b'X' + blob[1:]          # same length, different bytes
+            return blob
+
+        with mock.patch.object(Path, 'read_bytes', corrupting):
+            status, receipt = self._run()
+        self.assertIsNotNone(receipt)
+        for row in receipt['requests']:
+            rr = row['raw_response']
+            self.assertFalse(rr['complete'],
+                             'same-length corruption must not read as complete')
+            self.assertIn('retention_mismatch', rr)
+            self.assertNotEqual(rr['sha256'], rr['received_sha256'])
+        self.assertEqual(status, 1)
+
+    def test_a_parse_failure_after_200_keeps_response_received(self):
+        """Root: "A parsing/shape failure after HTTP 200 must retain
+        `response_received=true`; it cannot retroactively make transport
+        delivery unknown." The response arrived; only its shape is wrong."""
+        class _Garbage:
+            status_code = 200
+            content = b'not json at all'
+
+            def json(self):
+                raise ValueError('no JSON object could be decoded')
+
+        status, receipt = self._run(post_hook=lambda *a, **k: _Garbage())
+        for row in receipt['requests']:
+            self.assertTrue(row['response_received'])
+            self.assertEqual(row['delivery'], 'response_received')
+            self.assertIn('body_unparsable', row)
+            self.assertFalse(row['usage_known'])
+        self.assertIsNone(receipt['generated_tokens_total'])
+        self.assertEqual(status, 1)
+
+    def test_no_process_attempt_was_swallowed_by_production_handlers(self):
+        """Root, 13:20: "Denied commands can be caught by production exception
+        handling without failing the test. Check the recorded violation ledger
+        at test completion."
+
+        The deny guard raises, but `run_smoke` catches broadly in several
+        places, so a denied attempt could be absorbed and the suite still pass.
+        The ledger is asserted here rather than relying on the raise.
+        """
+        status, receipt = self._run()
+        self.assertEqual(self.denied, [],
+                         'a process attempt was made and swallowed: %r'
+                         % (self.denied,))
+        self.assertEqual(status, 0)
+
+    def test_the_deny_ledger_DOES_record_a_violation(self):
+        """The negative control for the ledger itself: an empty ledger is
+        otherwise equally consistent with a ledger that records nothing."""
+        status, receipt = self._run(stray_command=['/bin/echo', 'stray'])
+        self.assertTrue(self.denied,
+                        'a deliberate stray command must appear in the ledger')
+        self.assertIn('/bin/echo', self.denied[0][0])
 
     def test_a_producer_that_refused_itself_invalidates_a_clean_log(self):
         """Exit 93 beside a readable seal full of zeros must still refuse."""

@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import os
 import select
 import signal
@@ -525,7 +526,18 @@ def _persist_response_bytes(directory: Path, request_id: str, raw: bytes) -> dic
         out['retained'] = True
         out['bytes'] = len(persisted)
         out['sha256'] = hashlib.sha256(persisted).hexdigest()
-        out['complete'] = (len(persisted) == len(raw))
+        # BYTES, NOT LENGTH. Root, 13:20: "compare the read-back bytes/digest
+        # with the received bytes, not just length: the bounded same-length
+        # corruption fixture currently returns complete=true and success."
+        # A length check passes any corruption that preserves size.
+        out['received_sha256'] = hashlib.sha256(raw).hexdigest()
+        out['complete'] = (persisted == raw)
+        if not out['complete']:
+            out['retention_mismatch'] = (
+                'the bytes read back differ from the bytes received (%d vs %d '
+                'bytes, %s vs %s); the original is preserved and the acquisition '
+                'refuses' % (len(persisted), len(raw), out['sha256'][:12],
+                             out['received_sha256'][:12]))
     except Exception as exc:                                   # noqa: BLE001
         out['retention_error'] = '%s: %s' % (type(exc).__name__, exc)
         out['complete'] = False
@@ -574,8 +586,40 @@ def validate_manifest(m: object) -> list:
             v = need(req, k, int, 'manifest["request"]')
             if isinstance(v, bool):
                 problems.append('manifest["request"][%r] is a bool, not an int' % k)
-        if 'temperature' in req and not isinstance(req['temperature'], (int, float)):
-            problems.append('manifest["request"]["temperature"] is not a number')
+            elif isinstance(v, int) and k == 'max_tokens' and v < 1:
+                problems.append('manifest["request"]["max_tokens"] %r is not '
+                                'positive' % (v,))
+        # TEMPERATURE IS CONSUMED, SO IT IS REQUIRED. Root, 13:20: the validator
+        # "still accepts missing request temperature, host ID, boot ID and patch
+        # digest, plus negative max-tokens and boolean/nonfinite temperature ...
+        # missing temperature leaves the started mock child unreaped with no
+        # intent or terminal receipt."
+        #
+        # I validated the keys I happened to LIST, not the fields the supervisor
+        # DEREFERENCES. m['request']['temperature'] is read when the payload is
+        # built, so its absence threw exactly where validation was meant to
+        # prevent throwing.
+        temp = need(req, 'temperature', None, 'manifest["request"]')
+        if temp is not None:
+            if isinstance(temp, bool) or not isinstance(temp, (int, float)):
+                problems.append('manifest["request"]["temperature"] %r is not a '
+                                'number' % (temp,))
+            elif not math.isfinite(float(temp)):
+                problems.append('manifest["request"]["temperature"] %r is not '
+                                'finite' % (temp,))
+            elif float(temp) < 0:
+                problems.append('manifest["request"]["temperature"] %r is '
+                                'negative' % (temp,))
+    # LAUNCH IDENTITY, also consumed: host_id and boot_id go into `expected` and
+    # patch_sha256 is compared by the reader. Each was dereferenced without being
+    # required, and each permitted two POSTs and a reap before raising.
+    for key in ('host_id', 'boot_id'):
+        v = need(m, key, str, 'manifest')
+        if isinstance(v, str) and not v.strip():
+            problems.append('manifest[%r] is empty' % key)
+    patch = need(m, 'patch_sha256', str, 'manifest')
+    if isinstance(patch, str) and not lab_lifecycle.is_digest(patch):
+        problems.append('manifest["patch_sha256"] is not 64 lowercase hex')
     port = need(m, 'port', int, 'manifest')
     if isinstance(port, bool) or (isinstance(port, int) and not 1 <= port <= 65535):
         problems.append('manifest["port"] %r is not a usable TCP port' % (port,))
@@ -725,80 +769,18 @@ def main() -> int:
     args = [str(BIN), '-m', str(model)] + m['server_args']
     t_wall0 = deadline.started
 
-    # AND AFTER ARTIFACT VERIFICATION, BEFORE THE CHILD EXISTS. Hashing the
-    # launcher, model and library closure reads real bytes and takes real time.
-    if not deadline.may_dispatch():
-        return finalize(out, dest, ['the work cutoff was reached during launch '
-                                    'artifact verification; no child was started'])
-    try:
-        proc = subprocess.Popen(args, env=env, stdout=subprocess.PIPE,
-                                stderr=subprocess.STDOUT, text=True,
-                                start_new_session=True)
-    except Exception as exc:                                   # noqa: BLE001
-        # ATTEMPTED but never STARTED, and that distinction is retained.
-        out['child_started'] = False
-        out['popen_error'] = '%s: %s' % (type(exc).__name__, exc)
-        return finalize(out, dest, ['the child could not be started: %s' % exc])
-    out['child_started'] = True
-    out['server_pid'] = proc.pid
-    out['server_started_utc'] = _now()
-
-    # DRAIN THE PIPE. Root, 2026-09-23 08:00: "The terminal-failure path still
-    # depends on an unchecked stderr stream that the supplied supervisor does
-    # not drain or save ... Drain/save diagnostics within the already required
-    # absolute deadline."
+    # EVERYTHING THE ATTEMPT NEEDS IS PREPARED AND PERSISTED BEFORE A CHILD
+    # EXISTS. Root, 2026-09-23 13:20: "Validate the complete launch inputs and
+    # persist an immutable launch/request intent before `Popen`; a persistence
+    # failure or collision must create no child ... Current intent-write
+    # failure/collision produces zero stop/reap/drain-join calls and leaves the
+    # mocked child alive."
     #
-    # Nothing read this pipe. Two consequences, and the first is worse than the
-    # missing diagnostics: a child that writes more than the pipe buffer (~64 KB)
-    # BLOCKS FOREVER on write, so the supervisor's own plumbing could hang the
-    # producer it is measuring. And the process-level refusal's diagnostic line
-    # went into a buffer nobody emptied.
-    #
-    # A daemon thread, so a stuck read can never outlive the absolute deadline
-    # the caller already enforces, and a bounded buffer, so a chatty or looping
-    # server cannot exhaust memory. What is dropped is COUNTED, never silently
-    # truncated.
-    capture = {}
-    capture_path = log.parent / ('%s.producer_stream' % token)
-    drain_thread = threading.Thread(
-        target=drain_to_artifact, args=(proc.stdout, capture_path, capture),
-        # THE DRAIN RUNS TO THE HARD END, NOT THE WORK CUTOFF. Root, 10:39:
-        # "Use the reserve for cleanup, not to stop collecting its diagnostics
-        # early ... Keep the drain collecting shutdown diagnostics through EOF
-        # within the hard deadline. The newly supplied `drain deadline =
-        # start+510` can end capture before shutdown diagnostics arrive; it is
-        # not the correct use of the reserve." Exactly right: the diagnostics
-        # that matter most are the ones the server emits WHILE SHUTTING DOWN,
-        # which is precisely the window the reserve exists for.
-        kwargs={'deadline': deadline.hard},
-        daemon=True, name='live_ab_smoke_drain')
-    drain_thread.start()
-
-    import requests
+    # That leak was mine: I wrote the intent AFTER Popen and returned through
+    # finalize() on failure, so the refusal was described while the server it
+    # had started kept running. Preparation now happens first, and the only
+    # thing that can fail after launch goes through the shared cleanup below.
     base = 'http://127.0.0.1:%d' % m['port']
-    ready = False
-    while deadline.may_dispatch():
-        if proc.poll() is not None:
-            break
-        try:
-            if requests.get(base + '/health',
-                            timeout=deadline.bounded(2)).status_code == 200:
-                ready = True
-                break
-        except Exception:                                      # noqa: BLE001
-            time.sleep(deadline.bounded(1.0))
-    out['server_ready'] = ready
-    out['seconds_to_ready'] = round(time.monotonic() - t_wall0, 2)
-
-    results: list = []
-    # DURABLE REQUEST INTENT, DEPOSITED BEFORE THE BARRIER. Root, 2026-09-23
-    # 09:19: "Planned request IDs/payloads are not durably deposited before the
-    # barrier; `submitted_requests=2` is assigned before either thread submits."
-    #
-    # The payload was built inside the worker, after the thread had started, so
-    # an attempt that died at the barrier left no record of what it had been
-    # about to send. Intent is now written down first, with the exact payload
-    # and its digest, so a failed dispatch is still a described dispatch.
     planned = []
     for idx in range(2):
         body = {'model': 'coder',
@@ -856,153 +838,249 @@ def main() -> int:
                         ['the request intent could not be persisted, so no '
                          'request was dispatched: %s' % exc])
 
-    submitted = threading.Lock()
-    submitted_count = [0]
-    attempted_count = [0]
 
-    if ready:
-        barrier = threading.Barrier(2)
+    # AND AFTER ARTIFACT VERIFICATION, BEFORE THE CHILD EXISTS. Hashing the
+    # launcher, model and library closure reads real bytes and takes real time.
+    if not deadline.may_dispatch():
+        return finalize(out, dest, ['the work cutoff was reached during launch '
+                                    'artifact verification; no child was started'])
+    try:
+        proc = subprocess.Popen(args, env=env, stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT, text=True,
+                                start_new_session=True)
+    except Exception as exc:                                   # noqa: BLE001
+        # ATTEMPTED but never STARTED, and that distinction is retained.
+        out['child_started'] = False
+        out['popen_error'] = '%s: %s' % (type(exc).__name__, exc)
+        return finalize(out, dest, ['the child could not be started: %s' % exc])
+    out['child_started'] = True
+    out['server_pid'] = proc.pid
+    out['server_started_utc'] = _now()
 
-        def one(idx: int) -> None:
-            plan = planned[idx]
-            rec: dict = {'index': idx, 'request_id': plan['request_id'],
-                         'payload_sha256': plan['payload_sha256'],
-                         'submitted': False}
+    # DRAIN THE PIPE. Root, 2026-09-23 08:00: "The terminal-failure path still
+    # depends on an unchecked stderr stream that the supplied supervisor does
+    # not drain or save ... Drain/save diagnostics within the already required
+    # absolute deadline."
+    #
+    # Nothing read this pipe. Two consequences, and the first is worse than the
+    # missing diagnostics: a child that writes more than the pipe buffer (~64 KB)
+    # BLOCKS FOREVER on write, so the supervisor's own plumbing could hang the
+    # producer it is measuring. And the process-level refusal's diagnostic line
+    # went into a buffer nobody emptied.
+    #
+    # A daemon thread, so a stuck read can never outlive the absolute deadline
+    # the caller already enforces, and a bounded buffer, so a chatty or looping
+    # server cannot exhaust memory. What is dropped is COUNTED, never silently
+    # truncated.
+    capture = {}
+    capture_path = log.parent / ('%s.producer_stream' % token)
+    drain_thread = threading.Thread(
+        target=drain_to_artifact, args=(proc.stdout, capture_path, capture),
+        # THE DRAIN RUNS TO THE HARD END, NOT THE WORK CUTOFF. Root, 10:39:
+        # "Use the reserve for cleanup, not to stop collecting its diagnostics
+        # early ... Keep the drain collecting shutdown diagnostics through EOF
+        # within the hard deadline. The newly supplied `drain deadline =
+        # start+510` can end capture before shutdown diagnostics arrive; it is
+        # not the correct use of the reserve." Exactly right: the diagnostics
+        # that matter most are the ones the server emits WHILE SHUTTING DOWN,
+        # which is precisely the window the reserve exists for.
+        kwargs={'deadline': deadline.hard},
+        daemon=True, name='live_ab_smoke_drain')
+    drain_thread.start()
+
+    # ONE PROTECTED PATH ONCE A CHILD EXISTS. Root, 13:20: "Once a child
+    # starts, every exception/refusal must pass through bounded stop/reap/drain
+    # completion and one terminal receipt ... use a shared cleanup/finalization
+    # path, rather than adding another early return that bypasses it."
+    #
+    # Anything raised between here and the stop section used to escape, leaving
+    # the server running and no receipt written. It is now recorded and falls
+    # through to the same cleanup as a clean run.
+    try:
+        import requests
+        ready = False
+        while deadline.may_dispatch():
+            if proc.poll() is not None:
+                break
             try:
-                barrier.wait(timeout=deadline.bounded(30))
-            except Exception as exc:                           # noqa: BLE001
-                # A FAILED BARRIER IS NOT PERMISSION TO SEND. Root, 11:16: "the
-                # actual-main early-broken-barrier case still makes both POST
-                # calls and returns success while budget remains; the
-                # post-barrier cutoff repair does not close it." The barrier is
-                # the coordination this smoke exists to observe -- two requests
-                # overlapping. If it broke, the pair was never coordinated, and
-                # sending anyway produces traffic that answers no question.
-                rec['barrier_error'] = '%s: %s' % (type(exc).__name__, exc)
-                rec['not_dispatched'] = ('the barrier failed, so this request '
-                                         'was never coordinated with its pair '
-                                         'and was not sent')
-                rec['t_ack_monotonic'] = rec['t_send_monotonic'] = time.monotonic()
-                rec['elapsed_s'] = 0.0
-                results.append(rec)
-                return
-            if not deadline.may_dispatch():
-                # NO NEW DISPATCH AFTER EXHAUSTION.
-                rec['not_dispatched'] = 'the work cutoff was reached before this '\
-                                        'request was sent'
-                rec['t_ack_monotonic'] = rec['t_send_monotonic'] = time.monotonic()
-                rec['elapsed_s'] = 0.0
-                results.append(rec)
-                return
-            # THE TRANSPORT INVOCATION IS RECORDED BEFORE THE CALL. Root,
-            # 11:16: "the new submission counter increments only after
-            # `requests.post` returns, so a request that was attempted and then
-            # timed out still counts as unsubmitted ... records
-            # submitted_requests=0 and incorrectly calls both 'never submitted'.
-            # Record transport invocation before the call and response receipt
-            # afterward; preserve timeout and unknown server receipt/usage
-            # without claiming no request was sent."
-            #
-            # Three distinct states, and conflating them is how a timed-out
-            # request became a request that was never made: ATTEMPTED (we called
-            # the transport), RESPONSE RECEIVED (it returned), and DELIVERY
-            # UNKNOWN (it raised, so whether the server got it is not knowable
-            # from here).
-            # RECHECKED IMMEDIATELY BEFORE THE CALL. Root, 11:16: "recheck
-            # the deadline immediately before every POST". The earlier check
-            # happens before the barrier wait, which can itself consume the
-            # remaining allowance -- so a request could pass the check and then
-            # sit at the barrier until the cutoff had gone by.
-            if not deadline.may_dispatch():
-                rec['not_dispatched'] = ('the work cutoff was reached between '
-                                         'the barrier and the send')
-                rec['t_ack_monotonic'] = rec['t_send_monotonic'] = time.monotonic()
-                rec['elapsed_s'] = 0.0
-                results.append(rec)
-                return
-            rec['transport_attempted'] = True
-            rec['t_send_monotonic'] = time.monotonic()
-            rec['t_send_utc'] = _now()
-            with submitted:
-                attempted_count[0] += 1
-            try:
-                r = requests.post(plan['endpoint'], json=plan['payload'],
-                                  timeout=deadline.bounded(REQUEST_CAP_S))
-                rec['response_received'] = True
-                rec['delivery'] = 'response_received'
-                rec['submitted'] = True
-                with submitted:
-                    submitted_count[0] += 1
-                rec['t_ack_monotonic'] = time.monotonic()
-                rec['status'] = r.status_code
-                # RAW RESPONSE BYTES RETAINED. Root: "raw HTTP responses are
-                # reduced to a few fields." The three summary fields below are
-                # derived; these bytes are the evidence they were derived from.
-                # THE BYTES ARE PERSISTED ONCE, BEFORE PARSING. Root, 11:16:
-                # "Length, hash and a 4,000-character preview cannot recover the
-                # omitted bytes. Valid responses longer than 9 KB return
-                # supervisor success while their tail bytes are absent from
-                # every persisted file ... Persist the response bytes once under
-                # unique request identity before parsing."
-                #
-                # A digest plus a preview describes bytes that no longer exist,
-                # which is the same finding as the diagnostic capture: a digest
-                # of discarded bytes is not a retained artifact.
-                raw = r.content
-                rec['raw_response'] = _persist_response_bytes(
-                    log.parent, plan['request_id'], raw)
+                if requests.get(base + '/health',
+                                timeout=deadline.bounded(2)).status_code == 200:
+                    ready = True
+                    break
+            except Exception:                                      # noqa: BLE001
+                time.sleep(deadline.bounded(1.0))
+        out['server_ready'] = ready
+        out['seconds_to_ready'] = round(time.monotonic() - t_wall0, 2)
+
+        results: list = []
+        # DURABLE REQUEST INTENT, DEPOSITED BEFORE THE BARRIER. Root, 2026-09-23
+        # 09:19: "Planned request IDs/payloads are not durably deposited before the
+        # barrier; `submitted_requests=2` is assigned before either thread submits."
+        #
+        # The payload was built inside the worker, after the thread had started, so
+        # an attempt that died at the barrier left no record of what it had been
+        # about to send. Intent is now written down first, with the exact payload
+        # and its digest, so a failed dispatch is still a described dispatch.
+        submitted = threading.Lock()
+        submitted_count = [0]
+        attempted_count = [0]
+
+        if ready:
+            barrier = threading.Barrier(2)
+
+            def one(idx: int) -> None:
+                plan = planned[idx]
+                rec: dict = {'index': idx, 'request_id': plan['request_id'],
+                             'payload_sha256': plan['payload_sha256'],
+                             'submitted': False}
                 try:
-                    d = r.json()
-                except Exception as exc:                       # noqa: BLE001
-                    rec['body_unparsable'] = '%s: %s' % (type(exc).__name__, exc)
-                    d = {}
-                # USAGE IS UNKNOWN WHEN ABSENT, NEVER ZERO.
-                # ONE PREDICATE FOR THE ROW AND THE TOTAL. Root, 12:04: "the
-                # negative-token actual-main witness now refuses correctly, but
-                # its request rows still label completion_tokens=-1 as
-                # usage_known=true. Preserve the original value, mark it
-                # unusable with a reason, and derive both row and total
-                # usability from the same nonnegative, non-boolean integer
-                # rule." The aggregate was strict while the row it summarised
-                # was not, so the receipt disagreed with itself.
-                usage = d.get('usage')
-                rec['usage'] = usage                      # original, preserved
-                tokens = usage.get('completion_tokens') if isinstance(usage, dict) else None
-                rec['usage_known'] = usable_token_count(tokens)
-                if not rec['usage_known']:
+                    barrier.wait(timeout=deadline.bounded(30))
+                except Exception as exc:                           # noqa: BLE001
+                    # A FAILED BARRIER IS NOT PERMISSION TO SEND. Root, 11:16: "the
+                    # actual-main early-broken-barrier case still makes both POST
+                    # calls and returns success while budget remains; the
+                    # post-barrier cutoff repair does not close it." The barrier is
+                    # the coordination this smoke exists to observe -- two requests
+                    # overlapping. If it broke, the pair was never coordinated, and
+                    # sending anyway produces traffic that answers no question.
+                    rec['barrier_error'] = '%s: %s' % (type(exc).__name__, exc)
+                    rec['not_dispatched'] = ('the barrier failed, so this request '
+                                             'was never coordinated with its pair '
+                                             'and was not sent')
+                    rec['t_ack_monotonic'] = rec['t_send_monotonic'] = time.monotonic()
+                    rec['elapsed_s'] = 0.0
+                    results.append(rec)
+                    return
+                if not deadline.may_dispatch():
+                    # NO NEW DISPATCH AFTER EXHAUSTION.
+                    rec['not_dispatched'] = 'the work cutoff was reached before this '\
+                                            'request was sent'
+                    rec['t_ack_monotonic'] = rec['t_send_monotonic'] = time.monotonic()
+                    rec['elapsed_s'] = 0.0
+                    results.append(rec)
+                    return
+                # THE TRANSPORT INVOCATION IS RECORDED BEFORE THE CALL. Root,
+                # 11:16: "the new submission counter increments only after
+                # `requests.post` returns, so a request that was attempted and then
+                # timed out still counts as unsubmitted ... records
+                # submitted_requests=0 and incorrectly calls both 'never submitted'.
+                # Record transport invocation before the call and response receipt
+                # afterward; preserve timeout and unknown server receipt/usage
+                # without claiming no request was sent."
+                #
+                # Three distinct states, and conflating them is how a timed-out
+                # request became a request that was never made: ATTEMPTED (we called
+                # the transport), RESPONSE RECEIVED (it returned), and DELIVERY
+                # UNKNOWN (it raised, so whether the server got it is not knowable
+                # from here).
+                # RECHECKED IMMEDIATELY BEFORE THE CALL. Root, 11:16: "recheck
+                # the deadline immediately before every POST". The earlier check
+                # happens before the barrier wait, which can itself consume the
+                # remaining allowance -- so a request could pass the check and then
+                # sit at the barrier until the cutoff had gone by.
+                if not deadline.may_dispatch():
+                    rec['not_dispatched'] = ('the work cutoff was reached between '
+                                             'the barrier and the send')
+                    rec['t_ack_monotonic'] = rec['t_send_monotonic'] = time.monotonic()
+                    rec['elapsed_s'] = 0.0
+                    results.append(rec)
+                    return
+                rec['transport_attempted'] = True
+                rec['t_send_monotonic'] = time.monotonic()
+                rec['t_send_utc'] = _now()
+                with submitted:
+                    attempted_count[0] += 1
+                try:
+                    r = requests.post(plan['endpoint'], json=plan['payload'],
+                                      timeout=deadline.bounded(REQUEST_CAP_S))
+                    rec['response_received'] = True
+                    rec['delivery'] = 'response_received'
+                    rec['submitted'] = True
+                    with submitted:
+                        submitted_count[0] += 1
+                    rec['t_ack_monotonic'] = time.monotonic()
+                    rec['status'] = r.status_code
+                    # RAW RESPONSE BYTES RETAINED. Root: "raw HTTP responses are
+                    # reduced to a few fields." The three summary fields below are
+                    # derived; these bytes are the evidence they were derived from.
+                    # THE BYTES ARE PERSISTED ONCE, BEFORE PARSING. Root, 11:16:
+                    # "Length, hash and a 4,000-character preview cannot recover the
+                    # omitted bytes. Valid responses longer than 9 KB return
+                    # supervisor success while their tail bytes are absent from
+                    # every persisted file ... Persist the response bytes once under
+                    # unique request identity before parsing."
+                    #
+                    # A digest plus a preview describes bytes that no longer exist,
+                    # which is the same finding as the diagnostic capture: a digest
+                    # of discarded bytes is not a retained artifact.
+                    raw = r.content
+                    rec['raw_response'] = _persist_response_bytes(
+                        log.parent, plan['request_id'], raw)
+                    try:
+                        d = r.json()
+                    except Exception as exc:                       # noqa: BLE001
+                        # A PARSE FAILURE AFTER 200 IS NOT UNKNOWN DELIVERY.
+                        # Root, 13:20: "A parsing/shape failure after HTTP 200
+                        # must retain response_received=true; it cannot
+                        # retroactively make transport delivery unknown." The
+                        # response arrived; only its shape is wrong, and its
+                        # bytes are already retained.
+                        rec['body_unparsable'] = '%s: %s' % (type(exc).__name__, exc)
+                        rec['response_received'] = True
+                        rec['delivery'] = 'response_received'
+                        d = {}
+                    # USAGE IS UNKNOWN WHEN ABSENT, NEVER ZERO.
+                    # ONE PREDICATE FOR THE ROW AND THE TOTAL. Root, 12:04: "the
+                    # negative-token actual-main witness now refuses correctly, but
+                    # its request rows still label completion_tokens=-1 as
+                    # usage_known=true. Preserve the original value, mark it
+                    # unusable with a reason, and derive both row and total
+                    # usability from the same nonnegative, non-boolean integer
+                    # rule." The aggregate was strict while the row it summarised
+                    # was not, so the receipt disagreed with itself.
+                    usage = d.get('usage')
+                    rec['usage'] = usage                      # original, preserved
+                    tokens = usage.get('completion_tokens') if isinstance(usage, dict) else None
+                    rec['usage_known'] = usable_token_count(tokens)
+                    if not rec['usage_known']:
+                        rec['usage_unusable_reason'] = (
+                            'no usage object in the response' if not isinstance(usage, dict)
+                            else 'completion_tokens %r is not a non-negative, '
+                                 'non-boolean integer' % (tokens,))
+                    rec['finish_reason'] = (d.get('choices') or [{}])[0].get('finish_reason')
+                    rec['content_chars'] = len(
+                        ((d.get('choices') or [{}])[0].get('message') or {}).get('content') or '')
+                except Exception as exc:                           # noqa: BLE001
+                    rec['t_ack_monotonic'] = time.monotonic()
+                    rec['error'] = '%s: %s' % (type(exc).__name__, exc)
+                    rec['response_received'] = False
+                    # NOT 'never submitted'. The transport was invoked; whether the
+                    # server received it cannot be known from this side.
+                    rec['delivery'] = 'unknown_server_receipt'
+                    rec['usage_known'] = False
                     rec['usage_unusable_reason'] = (
-                        'no usage object in the response' if not isinstance(usage, dict)
-                        else 'completion_tokens %r is not a non-negative, '
-                             'non-boolean integer' % (tokens,))
-                rec['finish_reason'] = (d.get('choices') or [{}])[0].get('finish_reason')
-                rec['content_chars'] = len(
-                    ((d.get('choices') or [{}])[0].get('message') or {}).get('content') or '')
-            except Exception as exc:                           # noqa: BLE001
-                rec['t_ack_monotonic'] = time.monotonic()
-                rec['error'] = '%s: %s' % (type(exc).__name__, exc)
-                rec['response_received'] = False
-                # NOT 'never submitted'. The transport was invoked; whether the
-                # server received it cannot be known from this side.
-                rec['delivery'] = 'unknown_server_receipt'
-                rec['usage_known'] = False
-                rec['usage_unusable_reason'] = (
-                    'the transport raised (%s), so no usage was returned and '
-                    'delivery is unknown' % type(exc).__name__)
-            rec['elapsed_s'] = rec['t_ack_monotonic'] - rec['t_send_monotonic']
-            results.append(rec)
+                        'the transport raised (%s), so no usage was returned and '
+                        'delivery is unknown' % type(exc).__name__)
+                rec['elapsed_s'] = rec['t_ack_monotonic'] - rec['t_send_monotonic']
+                results.append(rec)
 
-        threads = [threading.Thread(target=one, args=(i,)) for i in range(2)]
-        for th in threads:
-            th.start()
-        for th in threads:
-            th.join(timeout=deadline.bounded(REQUEST_CAP_S + 30, use_reserve=True))
-    out['submitted_requests'] = submitted_count[0]
-    out['transport_attempted_requests'] = attempted_count[0]
-    out['requests_with_unknown_delivery'] = sum(
-        1 for r in results if r.get('delivery') == 'unknown_server_receipt')
-    out['requests'] = sorted(results, key=lambda r: r['index'])
-    out.update(summarize_usage(results, token_cap=TOKEN_CAP,
-                               expected=len(planned)))
+            threads = [threading.Thread(target=one, args=(i,)) for i in range(2)]
+            for th in threads:
+                th.start()
+            for th in threads:
+                th.join(timeout=deadline.bounded(REQUEST_CAP_S + 30, use_reserve=True))
+        out['submitted_requests'] = submitted_count[0]
+        out['transport_attempted_requests'] = attempted_count[0]
+        out['requests_with_unknown_delivery'] = sum(
+            1 for r in results if r.get('delivery') == 'unknown_server_receipt')
+        out['requests'] = sorted(results, key=lambda r: r['index'])
+        out.update(summarize_usage(results, token_cap=TOKEN_CAP,
+                                   expected=len(planned)))
+
+
+    except Exception as exc:                                   # noqa: BLE001
+        out['unhandled_during_dispatch'] = '%s: %s' % (type(exc).__name__, exc)
+        out.setdefault('server_ready', False)
 
     # --- stop OUR OWN server, then let the seal be written -------------------
     out['server_stop_utc'] = _now()
