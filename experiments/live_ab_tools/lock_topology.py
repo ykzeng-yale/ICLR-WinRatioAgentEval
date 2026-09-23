@@ -75,7 +75,18 @@ def _workers_share_a_lock() -> Dict[str, Any]:
         for k, v in zip(n.keys, n.values):
             if isinstance(k, _ast.Constant) and k.value == 'sandbox_lock':
                 exprs.append(_ast.unparse(v))
-    from_trial_paths = bool(exprs) and all('paths.sandbox_lock' in e for e in exprs)
+    # OBSOLETE DETECTOR, CORRECTED. This looked for `paths.sandbox_lock` in the
+    # job payload, which was how two workers of one trial came to share a lock
+    # BEFORE the canonical repair. The payload now serializes the canonical token
+    # instead, so the old expression is gone and the detector reported False
+    # alongside conforms=True -- root flagged exactly that contradiction. After
+    # the repair the workers share a lock for a STRONGER reason: there is only one
+    # lock file, for every worker of every trial. Both routes are recognised, and
+    # which one matched is reported rather than collapsed into a bare boolean.
+    via_trial_paths = bool(exprs) and all('paths.sandbox_lock' in e for e in exprs)
+    via_canonical_token = bool(exprs) and all(
+        'tokenize_execution_lock' in e for e in exprs)
+    from_trial_paths = via_trial_paths or via_canonical_token
     per_trial_calls = sum(
         1 for n in _ast.walk(tree)
         if isinstance(n, _ast.Call) and getattr(n.func, 'id', None) == '_trial_paths')
@@ -83,6 +94,15 @@ def _workers_share_a_lock() -> Dict[str, Any]:
         'two_workers_in_one_trial_share_a_lock': from_trial_paths,
         'job_payload_sandbox_lock_expressions': sorted(set(exprs)),
         'all_derive_from_trial_paths': from_trial_paths,
+        'route': ('canonical_token' if via_canonical_token else
+                  'trial_paths' if via_trial_paths else 'unrecognised'),
+        'obsolete_label_note': (
+            'before the canonical repair this was measured as "the payload reads '
+            'the lock off ONE TrialPaths". After it, the payload serializes '
+            '<HOST_WORK>/sandbox.lock and there is only ONE lock file at all, '
+            'which is strictly stronger. A receipt generated between the repair '
+            'and this correction reports False here beside conforms=True; that is '
+            'an obsolete detector, not a route regression.'),
         'trial_paths_call_sites_in_orchestrator': per_trial_calls,
         'why_this_is_the_measurement': (
             'resolving the same trial twice returns the same string and measures '
