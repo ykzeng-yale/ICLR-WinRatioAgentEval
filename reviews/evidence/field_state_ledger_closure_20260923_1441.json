@@ -1,0 +1,233 @@
+{
+  "head": "358f04d3db830d13e0600c81ce22d67499b4cb69",
+  "source_commit": "20aada0139683d7f9bce024d48331888aece7e45",
+  "selected_owner_tests": [
+    "test_explicit_null_temperature_refuses_before_any_POST",
+    "test_an_unrepresentable_temperature_refuses_without_raising",
+    "test_a_decoded_NON_OBJECT_body_keeps_delivery_received",
+    "test_the_deny_ledger_DOES_record_a_violation"
+  ],
+  "owner_tests_run": 4,
+  "failures": [],
+  "errors": [],
+  "skips": [],
+  "additional_actual_main_scenarios": [
+    {
+      "case": "temperature_null",
+      "status": 1,
+      "fake_popen_calls": 0,
+      "mock_POST_calls": 0,
+      "child_started": false,
+      "manifest_validation": {
+        "problems": [
+          "manifest[\"request\"][\"temperature\"] is explicitly null; null is not a temperature"
+        ],
+        "usable": false
+      },
+      "unknown_delivery_count": null,
+      "requests": null,
+      "response_artifacts_independently_read": [],
+      "terminal_receipt_count": 1
+    },
+    {
+      "case": "temperature_huge",
+      "status": 1,
+      "fake_popen_calls": 0,
+      "mock_POST_calls": 0,
+      "child_started": false,
+      "manifest_validation": {
+        "problems": [
+          "manifest[\"request\"][\"temperature\"] is too large to represent as a float"
+        ],
+        "usable": false
+      },
+      "unknown_delivery_count": null,
+      "requests": null,
+      "response_artifacts_independently_read": [],
+      "terminal_receipt_count": 1
+    },
+    {
+      "case": "HTTP200_list",
+      "status": 1,
+      "fake_popen_calls": 1,
+      "mock_POST_calls": 2,
+      "child_started": true,
+      "manifest_validation": {
+        "problems": [],
+        "usable": true
+      },
+      "unknown_delivery_count": 0,
+      "requests": [
+        {
+          "body_wrong_shape": "the response decoded to list, not an object",
+          "delivery": "response_received",
+          "elapsed_s": 0.0,
+          "index": 0,
+          "payload_sha256": "4ef1084c351470f52e34493a3f35e9f84c08263b3d0474c8c21dcfc84ae73a89",
+          "raw_response": {
+            "bytes": 2,
+            "bytes_received": 2,
+            "complete": true,
+            "path": "<TMP>/sup_entry_c2lhdoii/smoke_4167e395ccfd_req0.response",
+            "preview": "[]",
+            "preview_chars_cap": 4000,
+            "preview_truncated": false,
+            "received_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+            "request_id": "smoke_4167e395ccfd_req0",
+            "retained": true,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "request_id": "smoke_4167e395ccfd_req0",
+          "response_received": true,
+          "status": 200,
+          "submitted": true,
+          "t_ack_monotonic": 1000.0,
+          "t_send_monotonic": 1000.0,
+          "t_send_utc": "2026-09-23T14:43:44Z",
+          "transport_attempted": true,
+          "usage": null,
+          "usage_known": false,
+          "usage_unusable_reason": "the response decoded to list, not an object"
+        },
+        {
+          "body_wrong_shape": "the response decoded to list, not an object",
+          "delivery": "response_received",
+          "elapsed_s": 0.0,
+          "index": 1,
+          "payload_sha256": "4ef1084c351470f52e34493a3f35e9f84c08263b3d0474c8c21dcfc84ae73a89",
+          "raw_response": {
+            "bytes": 2,
+            "bytes_received": 2,
+            "complete": true,
+            "path": "<TMP>/sup_entry_c2lhdoii/smoke_4167e395ccfd_req1.response",
+            "preview": "[]",
+            "preview_chars_cap": 4000,
+            "preview_truncated": false,
+            "received_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+            "request_id": "smoke_4167e395ccfd_req1",
+            "retained": true,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "request_id": "smoke_4167e395ccfd_req1",
+          "response_received": true,
+          "status": 200,
+          "submitted": true,
+          "t_ack_monotonic": 1000.0,
+          "t_send_monotonic": 1000.0,
+          "t_send_utc": "2026-09-23T14:43:44Z",
+          "transport_attempted": true,
+          "usage": null,
+          "usage_known": false,
+          "usage_unusable_reason": "the response decoded to list, not an object"
+        }
+      ],
+      "response_artifacts_independently_read": [
+        {
+          "file": "smoke_4167e395ccfd_req0.response",
+          "bytes": 2,
+          "raw_utf8": "[]",
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        {
+          "file": "smoke_4167e395ccfd_req1.response",
+          "bytes": 2,
+          "raw_utf8": "[]",
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        }
+      ],
+      "terminal_receipt_count": 1
+    }
+  ],
+  "caught_attempt_negative_control": {
+    "tests_run": 1,
+    "failures": [
+      [
+        "runTest (__main__.CaughtAttemptControl.runTest)",
+        "Traceback (most recent call last):\n  File \"/Users/yukang/Documents/Codex/2026-09-17/i-x20/outputs/agent_win_eval/experiments/live_ab_serving/tests_supervisor_entry.py\", line 368, in tearDown\n    self.assertEqual(getattr(self, 'denied', []), [],\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                     'a process attempt was denied and then swallowed: %r'\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                     % (getattr(self, 'denied', []),))\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: Lists differ: [['unexpected-review-command'], ['unexpected-review-command']] != []\n\nFirst list contains 2 additional elements.\nFirst extra element 0:\n['unexpected-review-command']\n\n- [['unexpected-review-command'], ['unexpected-review-command']]\n+ [] : a process attempt was denied and then swallowed: [['unexpected-review-command'], ['unexpected-review-command']]\n"
+      ]
+    ],
+    "errors": [],
+    "skips": [],
+    "status_before_teardown": 1,
+    "denied_commands": [
+      [
+        "unexpected-review-command"
+      ],
+      [
+        "unexpected-review-command"
+      ]
+    ],
+    "opt_out_present": false
+  },
+  "outer_external_guard_events": [],
+  "source_hashes": {
+    "tests_supervisor_entry.py": "98ab1972aca555e97a8d6f5df9c5242495de8ead21da320a95b5b9ac14638491",
+    "run_smoke.py": "644aaeacabc3932d3fcf78761ec8fbf882f0cde3ec51b0d72816180cedb16a30"
+  },
+  "owner_receipt_generated_utc": "2026-09-23T14:17:41Z",
+  "owner_harness_receipt": {
+    "cases": [
+      "test_SAME_LENGTH_response_corruption_is_detected",
+      "test_a_CHANGED_IMPLEMENTATION_LIBRARY_refuses_before_launch",
+      "test_a_broken_barrier_sends_NOTHING_and_refuses",
+      "test_a_decoded_NON_OBJECT_body_keeps_delivery_received",
+      "test_a_drain_start_failure_still_reaps_and_leaves_a_receipt",
+      "test_a_failed_process_creation_leaves_ONE_receipt_on_disk",
+      "test_a_genuine_zero_from_a_real_response_is_a_measurement",
+      "test_a_manifest_with_NO_declared_closure_refuses",
+      "test_a_missing_pointer_leaves_ONE_receipt_on_disk",
+      "test_a_parse_failure_after_200_keeps_response_received",
+      "test_a_producer_that_refused_itself_invalidates_a_clean_log",
+      "test_a_timed_out_request_is_ATTEMPTED_with_unknown_delivery",
+      "test_a_valid_run_writes_one_receipt_and_returns_zero",
+      "test_an_UNDECODABLE_lifecycle_log_reaches_a_terminal_receipt",
+      "test_an_incomplete_manifest_reaches_a_TERMINAL_RECEIPT",
+      "test_an_intent_COLLISION_creates_no_child_at_all",
+      "test_an_unreapable_child_reads_NOTHING_and_refuses",
+      "test_an_unrepresentable_temperature_refuses_without_raising",
+      "test_explicit_null_temperature_refuses_before_any_POST",
+      "test_manifest_domain_errors_are_named_not_thrown",
+      "test_missing_consumed_fields_reach_a_terminal_receipt",
+      "test_negative_usage_is_unusable_on_the_ROW_as_well_as_the_total",
+      "test_no_POST_is_sent_if_the_cutoff_passes_during_the_barrier",
+      "test_no_process_attempt_was_swallowed_by_production_handlers",
+      "test_partial_dispatch_still_reports_request_state",
+      "test_request_intent_is_ON_DISK_before_any_transport",
+      "test_the_WHOLE_response_body_is_on_disk_not_just_a_preview",
+      "test_the_deny_ledger_DOES_record_a_violation",
+      "test_the_drain_does_not_block_on_a_quiet_pipe",
+      "test_the_read_spy_DOES_see_reads_on_the_healthy_path"
+    ],
+    "cases_run": 30,
+    "path": "experiments/live_ab_serving/tests_supervisor_entry.py",
+    "result": "OK",
+    "run_smoke_sha256": "644aaeacabc3932d3fcf78761ec8fbf882f0cde3ec51b0d72816180cedb16a30",
+    "sha256": "98ab1972aca555e97a8d6f5df9c5242495de8ead21da320a95b5b9ac14638491"
+  },
+  "counts": {
+    "owner_tests": 4,
+    "additional_actual_main_cases": 3,
+    "expected_harness_failure_control": 1,
+    "actual_child_HTTP_network_signal_model_build_pipe_realwait": 0
+  },
+  "readiness": {
+    "full_percent": 75,
+    "change": 0,
+    "bounded_v1_percent": 90
+  },
+  "receipt_hash_matches": {
+    "harness": true,
+    "runtime": true
+  },
+  "deliberate_opt_out_assignments": 1,
+  "accepted_closures": [
+    "Explicit null and oversized integer temperature refuse at actual entry before launch/transport and persist terminal receipt.",
+    "Decoded top-level JSON list keeps response_received and raw bytes while refusing unusable usage.",
+    "Common unittest tearDown turns production-caught denied process attempts into test failure; deliberate opt-out is limited to one dedicated negative-control case."
+  ],
+  "scope_limits": [
+    "No general acceptance of every possible nested response shape or arbitrary malformed manifest.",
+    "No whole30-case suite, pipe/deadline timing test, already-closed byte-corruption test or historical audit repeated.",
+    "No actual external operation executed."
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "last_seen_main_live": "358f04d3db830d13e0600c81ce22d67499b4cb69",
+  "substantive_commit": "20aada0139683d7f9bce024d48331888aece7e45",
+  "receipt_sha256": "0150af463fc2969ac140afae6f5d95674172a0d2dd4ceec64cda3d917dd11c10",
+  "source_receipt_matches": [
+    {
+      "path": "experiments/live_ab_serving/run_smoke.py",
+      "sha256": "644aaeacabc3932d3fcf78761ec8fbf882f0cde3ec51b0d72816180cedb16a30",
+      "agrees": true
+    },
+    {
+      "path": "experiments/live_ab_serving/tests_supervisor_entry.py",
+      "sha256": "98ab1972aca555e97a8d6f5df9c5242495de8ead21da320a95b5b9ac14638491",
+      "agrees": true
+    }
+  ],
+  "unchanged_helpers": {
+    "verify_launch_artifacts": true,
+    "_persist_response_bytes": true,
+    "summarize_usage": true,
+    "drain_to_artifact": true
+  },
+  "scope": "Receipt/hash/AST comparison only; no unchanged helper retest or native run"
+}

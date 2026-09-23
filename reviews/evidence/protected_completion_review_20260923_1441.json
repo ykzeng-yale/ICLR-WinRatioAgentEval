@@ -1,0 +1,822 @@
+{
+  "head": "358f04d3db830d13e0600c81ce22d67499b4cb69",
+  "source": "20aada0139683d7f9bce024d48331888aece7e45",
+  "scope": "Seven bounded actual-main protected-path delta witnesses. All process/HTTP/signals/monotonic-clock/thread interactions mocked, real reader/finalizer and file persistence on closed synthetic temporary fixtures; launch artifact verification stubbed for separate review. No child, network, model, build, full suite or real waits. All injected failures target process/drain/request bookkeeping; no actual unfinished task or growing file. Monotonic clock and _now are synthetic; filename wall-clock formatting unchanged.",
+  "source_sha256": {
+    "experiments/live_ab_serving/run_smoke.py": "644aaeacabc3932d3fcf78761ec8fbf882f0cde3ec51b0d72816180cedb16a30",
+    "experiments/live_ab/lab_common.py": "aa32c13a0f3c6895f6a4d7936cc2b883930e5f4db9491a7f3aa444c8e1c3bb1c",
+    "experiments/live_ab/lab_lifecycle.py": "604556893fb5d381049756f765251bc45bd1f57ea632630d68fe2ee5610ac0b2"
+  },
+  "harness_sha256": "4c94c28beba3f4e96df47f38fee8282fd5dfdfe882d91d307e29a939560201a0",
+  "cases": {
+    "normal_control": {
+      "main_returncode": 0,
+      "exception": null,
+      "receipt_count": 1,
+      "events": [
+        {
+          "event": "Popen",
+          "intent_exists": true
+        },
+        {
+          "event": "barrier",
+          "intent_exists": true,
+          "intent_sha256": "39715e26d655d586653e538bbec779db532a5635d67b6032e3cba13854a37558"
+        },
+        {
+          "event": "POST",
+          "index": 0,
+          "intent_exists": true,
+          "intent_sha256": "39715e26d655d586653e538bbec779db532a5635d67b6032e3cba13854a37558"
+        },
+        {
+          "event": "barrier",
+          "intent_exists": true,
+          "intent_sha256": "39715e26d655d586653e538bbec779db532a5635d67b6032e3cba13854a37558"
+        },
+        {
+          "event": "POST",
+          "index": 1,
+          "intent_exists": true,
+          "intent_sha256": "39715e26d655d586653e538bbec779db532a5635d67b6032e3cba13854a37558"
+        },
+        {
+          "event": "request_join",
+          "alive": false,
+          "timeout": 150.0
+        },
+        {
+          "event": "request_join",
+          "alive": false,
+          "timeout": 150.0
+        },
+        {
+          "event": "signal",
+          "signal": 15
+        },
+        {
+          "event": "wait",
+          "timeout": 60.0
+        },
+        {
+          "event": "drain_join",
+          "alive": false,
+          "timeout": 30.0
+        }
+      ],
+      "writes": [
+        {
+          "path": "smoke_4167e395ccfd.intent.json",
+          "kind": "live_ab/request_intent-v1"
+        },
+        {
+          "path": "SMOKE_RECEIPT_smoke_4167e395ccfd.json",
+          "kind": "live_ab/smoke_receipt-v1"
+        }
+      ],
+      "parse_time_checks": [
+        {
+          "request_id": "smoke_4167e395ccfd_req0",
+          "artifact_exists_before_parse": true,
+          "input_bytes": 12124,
+          "persisted_bytes": 12124,
+          "input_sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df",
+          "persisted_sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df",
+          "bytes_equal_before_parse": true
+        },
+        {
+          "request_id": "smoke_4167e395ccfd_req1",
+          "artifact_exists_before_parse": true,
+          "input_bytes": 12124,
+          "persisted_bytes": 12124,
+          "input_sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df",
+          "persisted_sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df",
+          "bytes_equal_before_parse": true
+        }
+      ],
+      "mock_child_returncode_after_main": 0,
+      "receipt": {
+        "child_started": true,
+        "child_confirmed_stopped": true,
+        "submitted_requests": 2,
+        "transport_attempted_requests": 2,
+        "requests_with_unknown_delivery": 0,
+        "requests_expected": 2,
+        "requests_with_records": 2,
+        "requests_unaccounted_for": 0,
+        "generated_tokens_total": 2048,
+        "token_cap_respected": true,
+        "request_intent_artifact": {
+          "attempt_id": "smoke_4167e395ccfd_20260923T144303Z",
+          "bytes": 1188,
+          "path": "<TMP>/request_durability_1320_8acr107o/smoke_4167e395ccfd.intent.json",
+          "persisted": true,
+          "sha256": "39715e26d655d586653e538bbec779db532a5635d67b6032e3cba13854a37558"
+        },
+        "supervisor_problems": [],
+        "unhandled_during_dispatch": null,
+        "dispatch_failure": null,
+        "cleanup_failure": null,
+        "requests": [
+          {
+            "content_chars": 12016,
+            "delivery": "response_received",
+            "elapsed_s": 0.0,
+            "finish_reason": "length",
+            "index": 0,
+            "payload_sha256": "4ef1084c351470f52e34493a3f35e9f84c08263b3d0474c8c21dcfc84ae73a89",
+            "raw_response": {
+              "bytes": 12124,
+              "bytes_received": 12124,
+              "complete": true,
+              "path": "<TMP>/request_durability_1320_8acr107o/smoke_4167e395ccfd_req0.response",
+              "preview_chars_cap": 4000,
+              "preview_truncated": true,
+              "received_sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df",
+              "request_id": "smoke_4167e395ccfd_req0",
+              "retained": true,
+              "sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df"
+            },
+            "request_id": "smoke_4167e395ccfd_req0",
+            "response_received": true,
+            "status": 200,
+            "submitted": true,
+            "t_ack_monotonic": 0.0,
+            "t_send_monotonic": 0.0,
+            "t_send_utc": "SYNTHETIC_1320",
+            "transport_attempted": true,
+            "usage": {
+              "completion_tokens": 1024
+            },
+            "usage_known": true
+          },
+          {
+            "content_chars": 12016,
+            "delivery": "response_received",
+            "elapsed_s": 0.0,
+            "finish_reason": "length",
+            "index": 1,
+            "payload_sha256": "4ef1084c351470f52e34493a3f35e9f84c08263b3d0474c8c21dcfc84ae73a89",
+            "raw_response": {
+              "bytes": 12124,
+              "bytes_received": 12124,
+              "complete": true,
+              "path": "<TMP>/request_durability_1320_8acr107o/smoke_4167e395ccfd_req1.response",
+              "preview_chars_cap": 4000,
+              "preview_truncated": true,
+              "received_sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df",
+              "request_id": "smoke_4167e395ccfd_req1",
+              "retained": true,
+              "sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df"
+            },
+            "request_id": "smoke_4167e395ccfd_req1",
+            "response_received": true,
+            "status": 200,
+            "submitted": true,
+            "t_ack_monotonic": 0.0,
+            "t_send_monotonic": 0.0,
+            "t_send_utc": "SYNTHETIC_1320",
+            "transport_attempted": true,
+            "usage": {
+              "completion_tokens": 1024
+            },
+            "usage_known": true
+          }
+        ]
+      },
+      "intent_payload_hashes_match": [
+        true,
+        true
+      ],
+      "original_collision_bytes_preserved": {},
+      "full_response_bytes_equal_after_main": {
+        "smoke_4167e395ccfd_req0": true,
+        "smoke_4167e395ccfd_req1": true
+      }
+    },
+    "drain_start_failure": {
+      "main_returncode": 1,
+      "exception": null,
+      "receipt_count": 1,
+      "events": [
+        {
+          "event": "Popen",
+          "intent_exists": true
+        },
+        {
+          "event": "signal",
+          "signal": 15
+        },
+        {
+          "event": "wait",
+          "timeout": 60.0
+        },
+        {
+          "event": "drain_join",
+          "alive": false,
+          "timeout": 30.0
+        }
+      ],
+      "writes": [
+        {
+          "path": "smoke_4167e395ccfd.intent.json",
+          "kind": "live_ab/request_intent-v1"
+        },
+        {
+          "path": "SMOKE_RECEIPT_smoke_4167e395ccfd.json",
+          "kind": "live_ab/smoke_receipt-v1"
+        }
+      ],
+      "parse_time_checks": [],
+      "mock_child_returncode_after_main": 0,
+      "receipt": {
+        "child_started": true,
+        "child_confirmed_stopped": true,
+        "submitted_requests": 0,
+        "transport_attempted_requests": null,
+        "requests_with_unknown_delivery": null,
+        "requests_expected": null,
+        "requests_with_records": null,
+        "requests_unaccounted_for": null,
+        "generated_tokens_total": null,
+        "token_cap_respected": null,
+        "request_intent_artifact": {
+          "attempt_id": "smoke_4167e395ccfd_20260923T144303Z",
+          "bytes": 1188,
+          "path": "<TMP>/request_durability_1320_8ksmcquu/smoke_4167e395ccfd.intent.json",
+          "persisted": true,
+          "sha256": "39715e26d655d586653e538bbec779db532a5635d67b6032e3cba13854a37558"
+        },
+        "supervisor_problems": [
+          "raw diagnostic capture incomplete: {'reached_eof': False, 'drain_error': None, 'bytes_dropped': 0, 'budget_exhausted': False, 'deadline_exhausted': False}",
+          "dispatch failed at stage 'dispatch': RuntimeError: synthetic drain start failed",
+          "token usage was not measurable for 0 request(s), so the token cap could not be judged",
+          "2 request(s) were planned but never submitted"
+        ],
+        "unhandled_during_dispatch": null,
+        "dispatch_failure": {
+          "message": "synthetic drain start failed",
+          "stage": "dispatch",
+          "traceback": "Traceback (most recent call last):\n  File \"/Users/yukang/Documents/Codex/2026-09-17/i-x20/outputs/agent_win_eval/experiments/live_ab_serving/run_smoke.py\", line 945, in main\n    drain_thread.start()\n    ~~~~~~~~~~~~~~~~~~^^\n  File \"/private/tmp/protected_completion_review_1441.py\", line 34, in start\n    if name=='drain_start_failure' and self.name=='live_ab_smoke_drain':raise RuntimeError('synthetic drain start failed')\n                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: synthetic drain start failed\n",
+          "type": "RuntimeError"
+        },
+        "cleanup_failure": null,
+        "requests": []
+      },
+      "intent_payload_hashes_match": [
+        true,
+        true
+      ],
+      "original_collision_bytes_preserved": {},
+      "full_response_bytes_equal_after_main": {}
+    },
+    "health_poll_failure": {
+      "main_returncode": 1,
+      "exception": null,
+      "receipt_count": 1,
+      "events": [
+        {
+          "event": "Popen",
+          "intent_exists": true
+        },
+        {
+          "event": "signal",
+          "signal": 15
+        },
+        {
+          "event": "wait",
+          "timeout": 60.0
+        },
+        {
+          "event": "drain_join",
+          "alive": false,
+          "timeout": 30.0
+        }
+      ],
+      "writes": [
+        {
+          "path": "smoke_4167e395ccfd.intent.json",
+          "kind": "live_ab/request_intent-v1"
+        },
+        {
+          "path": "SMOKE_RECEIPT_smoke_4167e395ccfd.json",
+          "kind": "live_ab/smoke_receipt-v1"
+        }
+      ],
+      "parse_time_checks": [],
+      "mock_child_returncode_after_main": 0,
+      "receipt": {
+        "child_started": true,
+        "child_confirmed_stopped": true,
+        "submitted_requests": 0,
+        "transport_attempted_requests": null,
+        "requests_with_unknown_delivery": null,
+        "requests_expected": null,
+        "requests_with_records": null,
+        "requests_unaccounted_for": null,
+        "generated_tokens_total": null,
+        "token_cap_respected": null,
+        "request_intent_artifact": {
+          "attempt_id": "smoke_4167e395ccfd_20260923T144303Z",
+          "bytes": 1188,
+          "path": "<TMP>/request_durability_1320_p164nln0/smoke_4167e395ccfd.intent.json",
+          "persisted": true,
+          "sha256": "39715e26d655d586653e538bbec779db532a5635d67b6032e3cba13854a37558"
+        },
+        "supervisor_problems": [
+          "dispatch failed at stage 'dispatch': RuntimeError: synthetic poll failure before results initialization",
+          "token usage was not measurable for 0 request(s), so the token cap could not be judged",
+          "2 request(s) were planned but never submitted"
+        ],
+        "unhandled_during_dispatch": null,
+        "dispatch_failure": {
+          "message": "synthetic poll failure before results initialization",
+          "stage": "dispatch",
+          "traceback": "Traceback (most recent call last):\n  File \"/Users/yukang/Documents/Codex/2026-09-17/i-x20/outputs/agent_win_eval/experiments/live_ab_serving/run_smoke.py\", line 949, in main\n    if proc.poll() is not None:\n       ~~~~~~~~~^^\n  File \"/private/tmp/protected_completion_review_1441.py\", line 25, in poll\n    if name=='health_poll_failure':raise RuntimeError('synthetic poll failure before results initialization')\n                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: synthetic poll failure before results initialization\n",
+          "type": "RuntimeError"
+        },
+        "cleanup_failure": null,
+        "requests": []
+      },
+      "intent_payload_hashes_match": [
+        true,
+        true
+      ],
+      "original_collision_bytes_preserved": {},
+      "full_response_bytes_equal_after_main": {}
+    },
+    "drain_join_failure": {
+      "main_returncode": 1,
+      "exception": null,
+      "receipt_count": 1,
+      "events": [
+        {
+          "event": "Popen",
+          "intent_exists": true
+        },
+        {
+          "event": "barrier",
+          "intent_exists": true,
+          "intent_sha256": "39715e26d655d586653e538bbec779db532a5635d67b6032e3cba13854a37558"
+        },
+        {
+          "event": "POST",
+          "index": 0,
+          "intent_exists": true,
+          "intent_sha256": "39715e26d655d586653e538bbec779db532a5635d67b6032e3cba13854a37558"
+        },
+        {
+          "event": "barrier",
+          "intent_exists": true,
+          "intent_sha256": "39715e26d655d586653e538bbec779db532a5635d67b6032e3cba13854a37558"
+        },
+        {
+          "event": "POST",
+          "index": 1,
+          "intent_exists": true,
+          "intent_sha256": "39715e26d655d586653e538bbec779db532a5635d67b6032e3cba13854a37558"
+        },
+        {
+          "event": "request_join",
+          "alive": false,
+          "timeout": 150.0
+        },
+        {
+          "event": "request_join",
+          "alive": false,
+          "timeout": 150.0
+        },
+        {
+          "event": "signal",
+          "signal": 15
+        },
+        {
+          "event": "wait",
+          "timeout": 60.0
+        },
+        {
+          "event": "drain_join",
+          "alive": false,
+          "timeout": 30.0
+        }
+      ],
+      "writes": [
+        {
+          "path": "smoke_4167e395ccfd.intent.json",
+          "kind": "live_ab/request_intent-v1"
+        },
+        {
+          "path": "SMOKE_RECEIPT_smoke_4167e395ccfd.json",
+          "kind": "live_ab/smoke_receipt-v1"
+        }
+      ],
+      "parse_time_checks": [
+        {
+          "request_id": "smoke_4167e395ccfd_req0",
+          "artifact_exists_before_parse": true,
+          "input_bytes": 12124,
+          "persisted_bytes": 12124,
+          "input_sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df",
+          "persisted_sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df",
+          "bytes_equal_before_parse": true
+        },
+        {
+          "request_id": "smoke_4167e395ccfd_req1",
+          "artifact_exists_before_parse": true,
+          "input_bytes": 12124,
+          "persisted_bytes": 12124,
+          "input_sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df",
+          "persisted_sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df",
+          "bytes_equal_before_parse": true
+        }
+      ],
+      "mock_child_returncode_after_main": 0,
+      "receipt": {
+        "child_started": true,
+        "child_confirmed_stopped": true,
+        "submitted_requests": 2,
+        "transport_attempted_requests": 2,
+        "requests_with_unknown_delivery": 0,
+        "requests_expected": 2,
+        "requests_with_records": 2,
+        "requests_unaccounted_for": 0,
+        "generated_tokens_total": 2048,
+        "token_cap_respected": true,
+        "request_intent_artifact": {
+          "attempt_id": "smoke_4167e395ccfd_20260923T144303Z",
+          "bytes": 1188,
+          "path": "<TMP>/request_durability_1320_8gzmyxta/smoke_4167e395ccfd.intent.json",
+          "persisted": true,
+          "sha256": "39715e26d655d586653e538bbec779db532a5635d67b6032e3cba13854a37558"
+        },
+        "supervisor_problems": [
+          "cleanup failed: RuntimeError: synthetic drain join failed"
+        ],
+        "unhandled_during_dispatch": null,
+        "dispatch_failure": null,
+        "cleanup_failure": "RuntimeError: synthetic drain join failed",
+        "requests": [
+          {
+            "content_chars": 12016,
+            "delivery": "response_received",
+            "elapsed_s": 0.0,
+            "finish_reason": "length",
+            "index": 0,
+            "payload_sha256": "4ef1084c351470f52e34493a3f35e9f84c08263b3d0474c8c21dcfc84ae73a89",
+            "raw_response": {
+              "bytes": 12124,
+              "bytes_received": 12124,
+              "complete": true,
+              "path": "<TMP>/request_durability_1320_8gzmyxta/smoke_4167e395ccfd_req0.response",
+              "preview_chars_cap": 4000,
+              "preview_truncated": true,
+              "received_sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df",
+              "request_id": "smoke_4167e395ccfd_req0",
+              "retained": true,
+              "sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df"
+            },
+            "request_id": "smoke_4167e395ccfd_req0",
+            "response_received": true,
+            "status": 200,
+            "submitted": true,
+            "t_ack_monotonic": 0.0,
+            "t_send_monotonic": 0.0,
+            "t_send_utc": "SYNTHETIC_1320",
+            "transport_attempted": true,
+            "usage": {
+              "completion_tokens": 1024
+            },
+            "usage_known": true
+          },
+          {
+            "content_chars": 12016,
+            "delivery": "response_received",
+            "elapsed_s": 0.0,
+            "finish_reason": "length",
+            "index": 1,
+            "payload_sha256": "4ef1084c351470f52e34493a3f35e9f84c08263b3d0474c8c21dcfc84ae73a89",
+            "raw_response": {
+              "bytes": 12124,
+              "bytes_received": 12124,
+              "complete": true,
+              "path": "<TMP>/request_durability_1320_8gzmyxta/smoke_4167e395ccfd_req1.response",
+              "preview_chars_cap": 4000,
+              "preview_truncated": true,
+              "received_sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df",
+              "request_id": "smoke_4167e395ccfd_req1",
+              "retained": true,
+              "sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df"
+            },
+            "request_id": "smoke_4167e395ccfd_req1",
+            "response_received": true,
+            "status": 200,
+            "submitted": true,
+            "t_ack_monotonic": 0.0,
+            "t_send_monotonic": 0.0,
+            "t_send_utc": "SYNTHETIC_1320",
+            "transport_attempted": true,
+            "usage": {
+              "completion_tokens": 1024
+            },
+            "usage_known": true
+          }
+        ]
+      },
+      "intent_payload_hashes_match": [
+        true,
+        true
+      ],
+      "original_collision_bytes_preserved": {},
+      "full_response_bytes_equal_after_main": {
+        "smoke_4167e395ccfd_req0": true,
+        "smoke_4167e395ccfd_req1": true
+      }
+    },
+    "drain_construction_failure": {
+      "main_returncode": null,
+      "exception": "AttributeError: 'NoneType' object has no attribute 'is_alive'",
+      "receipt_count": 0,
+      "events": [
+        {
+          "event": "Popen",
+          "intent_exists": true
+        },
+        {
+          "event": "signal",
+          "signal": 15
+        },
+        {
+          "event": "wait",
+          "timeout": 60.0
+        }
+      ],
+      "writes": [
+        {
+          "path": "smoke_4167e395ccfd.intent.json",
+          "kind": "live_ab/request_intent-v1"
+        }
+      ],
+      "parse_time_checks": [],
+      "mock_child_returncode_after_main": 0,
+      "receipt": {
+        "child_started": null,
+        "child_confirmed_stopped": null,
+        "submitted_requests": null,
+        "transport_attempted_requests": null,
+        "requests_with_unknown_delivery": null,
+        "requests_expected": null,
+        "requests_with_records": null,
+        "requests_unaccounted_for": null,
+        "generated_tokens_total": null,
+        "token_cap_respected": null,
+        "request_intent_artifact": null,
+        "supervisor_problems": null,
+        "unhandled_during_dispatch": null,
+        "dispatch_failure": null,
+        "cleanup_failure": null,
+        "requests": []
+      },
+      "intent_payload_hashes_match": [
+        true,
+        true
+      ],
+      "original_collision_bytes_preserved": {},
+      "full_response_bytes_equal_after_main": {}
+    },
+    "second_request_start_failure": {
+      "main_returncode": 1,
+      "exception": null,
+      "receipt_count": 1,
+      "events": [
+        {
+          "event": "Popen",
+          "intent_exists": true
+        },
+        {
+          "event": "barrier",
+          "intent_exists": true,
+          "intent_sha256": "39715e26d655d586653e538bbec779db532a5635d67b6032e3cba13854a37558"
+        },
+        {
+          "event": "POST",
+          "index": 0,
+          "intent_exists": true,
+          "intent_sha256": "39715e26d655d586653e538bbec779db532a5635d67b6032e3cba13854a37558"
+        },
+        {
+          "event": "signal",
+          "signal": 15
+        },
+        {
+          "event": "wait",
+          "timeout": 60.0
+        },
+        {
+          "event": "drain_join",
+          "alive": false,
+          "timeout": 30.0
+        }
+      ],
+      "writes": [
+        {
+          "path": "smoke_4167e395ccfd.intent.json",
+          "kind": "live_ab/request_intent-v1"
+        },
+        {
+          "path": "SMOKE_RECEIPT_smoke_4167e395ccfd.json",
+          "kind": "live_ab/smoke_receipt-v1"
+        }
+      ],
+      "parse_time_checks": [
+        {
+          "request_id": "smoke_4167e395ccfd_req0",
+          "artifact_exists_before_parse": true,
+          "input_bytes": 12124,
+          "persisted_bytes": 12124,
+          "input_sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df",
+          "persisted_sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df",
+          "bytes_equal_before_parse": true
+        }
+      ],
+      "mock_child_returncode_after_main": 0,
+      "receipt": {
+        "child_started": true,
+        "child_confirmed_stopped": true,
+        "submitted_requests": 0,
+        "transport_attempted_requests": null,
+        "requests_with_unknown_delivery": null,
+        "requests_expected": null,
+        "requests_with_records": null,
+        "requests_unaccounted_for": null,
+        "generated_tokens_total": null,
+        "token_cap_respected": null,
+        "request_intent_artifact": {
+          "attempt_id": "smoke_4167e395ccfd_20260923T144303Z",
+          "bytes": 1188,
+          "path": "<TMP>/request_durability_1320_87zrq0q7/smoke_4167e395ccfd.intent.json",
+          "persisted": true,
+          "sha256": "39715e26d655d586653e538bbec779db532a5635d67b6032e3cba13854a37558"
+        },
+        "supervisor_problems": [
+          "dispatch failed at stage 'dispatch': RuntimeError: synthetic second worker start failed",
+          "token usage was not measurable for 0 request(s), so the token cap could not be judged",
+          "2 request(s) were planned but never submitted"
+        ],
+        "unhandled_during_dispatch": null,
+        "dispatch_failure": {
+          "message": "synthetic second worker start failed",
+          "stage": "dispatch",
+          "traceback": "Traceback (most recent call last):\n  File \"/Users/yukang/Documents/Codex/2026-09-17/i-x20/outputs/agent_win_eval/experiments/live_ab_serving/run_smoke.py\", line 1134, in main\n    th.start()\n    ~~~~~~~~^^\n  File \"/private/tmp/protected_completion_review_1441.py\", line 35, in start\n    if name=='second_request_start_failure' and self.name is None and self.args==(1,):raise RuntimeError('synthetic second worker start failed')\n                                                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: synthetic second worker start failed\n",
+          "type": "RuntimeError"
+        },
+        "cleanup_failure": null,
+        "requests": []
+      },
+      "intent_payload_hashes_match": [
+        true,
+        true
+      ],
+      "original_collision_bytes_preserved": {},
+      "full_response_bytes_equal_after_main": {
+        "smoke_4167e395ccfd_req0": true
+      }
+    },
+    "request_join_failure": {
+      "main_returncode": 1,
+      "exception": null,
+      "receipt_count": 1,
+      "events": [
+        {
+          "event": "Popen",
+          "intent_exists": true
+        },
+        {
+          "event": "barrier",
+          "intent_exists": true,
+          "intent_sha256": "39715e26d655d586653e538bbec779db532a5635d67b6032e3cba13854a37558"
+        },
+        {
+          "event": "POST",
+          "index": 0,
+          "intent_exists": true,
+          "intent_sha256": "39715e26d655d586653e538bbec779db532a5635d67b6032e3cba13854a37558"
+        },
+        {
+          "event": "barrier",
+          "intent_exists": true,
+          "intent_sha256": "39715e26d655d586653e538bbec779db532a5635d67b6032e3cba13854a37558"
+        },
+        {
+          "event": "POST",
+          "index": 1,
+          "intent_exists": true,
+          "intent_sha256": "39715e26d655d586653e538bbec779db532a5635d67b6032e3cba13854a37558"
+        },
+        {
+          "event": "request_join",
+          "alive": false,
+          "timeout": 150.0
+        },
+        {
+          "event": "signal",
+          "signal": 15
+        },
+        {
+          "event": "wait",
+          "timeout": 60.0
+        },
+        {
+          "event": "drain_join",
+          "alive": false,
+          "timeout": 30.0
+        }
+      ],
+      "writes": [
+        {
+          "path": "smoke_4167e395ccfd.intent.json",
+          "kind": "live_ab/request_intent-v1"
+        },
+        {
+          "path": "SMOKE_RECEIPT_smoke_4167e395ccfd.json",
+          "kind": "live_ab/smoke_receipt-v1"
+        }
+      ],
+      "parse_time_checks": [
+        {
+          "request_id": "smoke_4167e395ccfd_req0",
+          "artifact_exists_before_parse": true,
+          "input_bytes": 12124,
+          "persisted_bytes": 12124,
+          "input_sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df",
+          "persisted_sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df",
+          "bytes_equal_before_parse": true
+        },
+        {
+          "request_id": "smoke_4167e395ccfd_req1",
+          "artifact_exists_before_parse": true,
+          "input_bytes": 12124,
+          "persisted_bytes": 12124,
+          "input_sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df",
+          "persisted_sha256": "825392aa994e2cd58fdb0d3155d627780f8662984de95f146ab507a50c2564df",
+          "bytes_equal_before_parse": true
+        }
+      ],
+      "mock_child_returncode_after_main": 0,
+      "receipt": {
+        "child_started": true,
+        "child_confirmed_stopped": true,
+        "submitted_requests": 0,
+        "transport_attempted_requests": null,
+        "requests_with_unknown_delivery": null,
+        "requests_expected": null,
+        "requests_with_records": null,
+        "requests_unaccounted_for": null,
+        "generated_tokens_total": null,
+        "token_cap_respected": null,
+        "request_intent_artifact": {
+          "attempt_id": "smoke_4167e395ccfd_20260923T144303Z",
+          "bytes": 1188,
+          "path": "<TMP>/request_durability_1320_8dhv829x/smoke_4167e395ccfd.intent.json",
+          "persisted": true,
+          "sha256": "39715e26d655d586653e538bbec779db532a5635d67b6032e3cba13854a37558"
+        },
+        "supervisor_problems": [
+          "dispatch failed at stage 'dispatch': RuntimeError: synthetic request join failed",
+          "token usage was not measurable for 0 request(s), so the token cap could not be judged",
+          "2 request(s) were planned but never submitted"
+        ],
+        "unhandled_during_dispatch": null,
+        "dispatch_failure": {
+          "message": "synthetic request join failed",
+          "stage": "dispatch",
+          "traceback": "Traceback (most recent call last):\n  File \"/Users/yukang/Documents/Codex/2026-09-17/i-x20/outputs/agent_win_eval/experiments/live_ab_serving/run_smoke.py\", line 1136, in main\n    th.join(timeout=deadline.bounded(REQUEST_CAP_S + 30, use_reserve=True))\n    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/private/tmp/protected_completion_review_1441.py\", line 42, in join\n    if name=='request_join_failure' and self.name is None:raise RuntimeError('synthetic request join failed')\n                                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: synthetic request join failed\n",
+          "type": "RuntimeError"
+        },
+        "cleanup_failure": null,
+        "requests": []
+      },
+      "intent_payload_hashes_match": [
+        true,
+        true
+      ],
+      "original_collision_bytes_preserved": {},
+      "full_response_bytes_equal_after_main": {
+        "smoke_4167e395ccfd_req0": true,
+        "smoke_4167e395ccfd_req1": true
+      }
+    }
+  },
+  "readiness": {
+    "full_project_percent": 75,
+    "delta_points": 0,
+    "bounded_v1_percent": 90,
+    "remaining_points": 25
+  },
+  "scenarios": 7,
+  "actual_main_invocations": 7,
+  "outcome_counts": {
+    "normal_return_with_one_terminal_receipt": 6,
+    "escaped_exception_with_no_terminal_receipt": 1
+  },
+  "coverage_note": "The owner partial-dispatch test supplies an exception as the second fake POST response. That exception is caught inside one(), unlike Thread.start/Thread.join failures that skip aggregate reconciliation."
+}

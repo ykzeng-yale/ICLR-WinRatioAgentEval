@@ -1,0 +1,154 @@
+{
+  "review": "selected_dependency_delta_review_20260923_1441",
+  "head": "71ff4dc6434a1fa994f01a9c045608ca45dd3f89",
+  "source_commit": "6b83860f128e1cc6a103d1955047b8e58ab29789",
+  "receipt_generated_utc": "2026-09-23T14:49:04Z",
+  "hashes": {
+    "dependency_closure.py": "fc24f4e98a162f449b6a45f846271ce2b96447b98c0d5afcc5510539dc43ea82",
+    "tests_dependency_closure.py": "6324ce507b7dfe142e913220effdc61d71162c20af6581c8551165fae0338390"
+  },
+  "receipt_hash_matches": {
+    "module": true,
+    "tests": true
+  },
+  "synthetic_tests_run": 15,
+  "failures": [],
+  "errors": [],
+  "skips": [],
+  "targeted_probe_count": 3,
+  "probes": {
+    "dynamic_assurance_dropped": {
+      "frozen_resolved": true,
+      "frozen_dynamic_loading": {
+        "checked": true,
+        "members_importing_dlopen": [
+          "/cand/bin/libggml-metal.0.dylib"
+        ],
+        "policy": {
+          "bounded": true,
+          "how": "synthetic declared freeze"
+        }
+      },
+      "verification": {
+        "verified": true,
+        "problems": [],
+        "members_checked": 3,
+        "members_agreeing": 3,
+        "rows": [
+          {
+            "reference": "@rpath/libggml-base.0.dylib",
+            "frozen_path": "/cand/bin/libggml-base.0.dylib",
+            "resolved_path": "/cand/bin/libggml-base.0.dylib",
+            "frozen_sha256": "cbf36a964ba8c0894fcc9ec491b4d1dd94d221a7dc88308e9c6b892445a8574b",
+            "measured_sha256": "cbf36a964ba8c0894fcc9ec491b4d1dd94d221a7dc88308e9c6b892445a8574b",
+            "agrees": true
+          },
+          {
+            "reference": "@rpath/libggml-metal.0.dylib",
+            "frozen_path": "/cand/bin/libggml-metal.0.dylib",
+            "resolved_path": "/cand/bin/libggml-metal.0.dylib",
+            "frozen_sha256": "3f75104d4594555e5ef7a1cb3997c42b801f71c9c2f581605fa939598187b2f3",
+            "measured_sha256": "3f75104d4594555e5ef7a1cb3997c42b801f71c9c2f581605fa939598187b2f3",
+            "agrees": true
+          },
+          {
+            "reference": "@rpath/libllama-server-impl.dylib",
+            "frozen_path": "/cand/bin/libllama-server-impl.dylib",
+            "resolved_path": "/cand/bin/libllama-server-impl.dylib",
+            "frozen_sha256": "d76a3bb261b2183037ccc297772012109961a68e610da77d6ba84738eb72e41f",
+            "measured_sha256": "d76a3bb261b2183037ccc297772012109961a68e610da77d6ba84738eb72e41f",
+            "agrees": true
+          }
+        ],
+        "note": "membership is keyed by the dependency EDGE. A hash-correct unrelated file at another path cannot satisfy a required edge, because what loads is chosen by path."
+      },
+      "preflight_dynamic_callback_calls": 0,
+      "preflight_derivation": [
+        {
+          "dynamic_loader_supplied": false,
+          "dynamic_policy_supplied": false,
+          "dynamic_loading": {
+            "checked": false,
+            "members_importing_dlopen": []
+          }
+        }
+      ]
+    },
+    "unhandled_load_command_omitted": {
+      "synthetic_load_command": "LC_REEXPORT_DYLIB",
+      "parsed_metadata": {
+        "path": "/cand/bin/root",
+        "load_references": [],
+        "rpaths": [
+          "@loader_path"
+        ]
+      },
+      "derive_resolved": true,
+      "member_count": 0,
+      "unresolved": [],
+      "required_file_present": false
+    },
+    "parent_context_edges_conflated": {
+      "all_targets_exist": true,
+      "contexts": [
+        "/a/parent.dylib -> /a/helper.dylib",
+        "/b/parent.dylib -> /b/helper.dylib"
+      ],
+      "derive_resolved": false,
+      "members": {
+        "/a/parent.dylib": {
+          "reference": "/a/parent.dylib",
+          "system": false,
+          "resolved": "/a/parent.dylib",
+          "searched": [
+            "/a/parent.dylib"
+          ],
+          "required_by": "/cand/bin/root",
+          "bytes": 1,
+          "sha256": "559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd"
+        },
+        "/b/parent.dylib": {
+          "reference": "/b/parent.dylib",
+          "system": false,
+          "resolved": "/b/parent.dylib",
+          "searched": [
+            "/b/parent.dylib"
+          ],
+          "required_by": "/cand/bin/root",
+          "bytes": 1,
+          "sha256": "df7e70e5021544f4834bbee64a9e3789febc4be81470df629cad6ddb03320a5c"
+        },
+        "@loader_path/helper.dylib": {
+          "reference": "@loader_path/helper.dylib",
+          "system": false,
+          "resolved": "/a/helper.dylib",
+          "searched": [
+            "/a/helper.dylib"
+          ],
+          "required_by": "/a/parent.dylib",
+          "bytes": 2,
+          "sha256": "52198b80bf68e8139a9be342771e2085d658d71ccc132fe04945ab902283a446"
+        }
+      },
+      "unresolved": [
+        {
+          "reference": "@loader_path/helper.dylib",
+          "problem": "the same reference resolves to two different paths (/a/helper.dylib and /b/helper.dylib); the selection is ambiguous"
+        }
+      ]
+    }
+  },
+  "external_guard_events": [],
+  "scope": [
+    "Files extracted by exact git show into temporary isolated directory; no merge.",
+    "Unused lab_common import replaced by inert module; no production reader executed.",
+    "15 dictionary tests once plus3 bounded pure/mocked probes.",
+    "No otool/nm/candidate/native execution, real process, network, model, build, pipe or sleep.",
+    "Owner candidate metadata/dynamic-loader discovery remains owner-reported; declared9librarybytes not independently read."
+  ],
+  "readiness": {
+    "full_percent": 75,
+    "change": 0,
+    "bounded_v1_percent": 90
+  }
+}

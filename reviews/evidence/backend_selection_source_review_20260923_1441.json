@@ -1,0 +1,250 @@
+{
+  "schema": "root/backend_selection_source_review-v1",
+  "upstream_commit": "4fea119de30f6a923992780f6fd5ccb0bee5d47d",
+  "upstream_identity_verified_at": "https://github.com/ggml-org/llama.cpp/commit/4fea119de30f6a923992780f6fd5ccb0bee5d47d",
+  "sources": [
+    {
+      "path": "ggml/CMakeLists.txt",
+      "bytes": 21658,
+      "sha256": "f4754450a3a00e405d2ffb6a904fe5571ec85c39ad12c666e73af1addccd5e00",
+      "url": "https://github.com/ggml-org/llama.cpp/blob/4fea119de30f6a923992780f6fd5ccb0bee5d47d/ggml/CMakeLists.txt",
+      "retrieval": "Exact raw.githubusercontent.com commit URL; bounded text-only GET, no clone."
+    },
+    {
+      "path": "ggml/src/CMakeLists.txt",
+      "bytes": 26989,
+      "sha256": "38ddf053a1adfc14bb84b7722e3c4ec01909694f7e51e32013f36e7a324fa4f0",
+      "url": "https://github.com/ggml-org/llama.cpp/blob/4fea119de30f6a923992780f6fd5ccb0bee5d47d/ggml/src/CMakeLists.txt",
+      "retrieval": "Exact raw.githubusercontent.com commit URL; bounded text-only GET, no clone."
+    },
+    {
+      "path": "ggml/src/ggml-backend-reg.cpp",
+      "bytes": 18555,
+      "sha256": "0f63c69ad083e0744872f57d59d049b069283303f5bbc646222907d779afe4d1",
+      "url": "https://github.com/ggml-org/llama.cpp/blob/4fea119de30f6a923992780f6fd5ccb0bee5d47d/ggml/src/ggml-backend-reg.cpp",
+      "retrieval": "Exact raw.githubusercontent.com commit URL; bounded text-only GET, no clone."
+    },
+    {
+      "path": "ggml/src/ggml-metal/CMakeLists.txt",
+      "bytes": 11007,
+      "sha256": "0f042e911c804fbae3dabefb5f5446bbeb39ac3148ad1e5f8b0310990a4941f8",
+      "url": "https://github.com/ggml-org/llama.cpp/blob/4fea119de30f6a923992780f6fd5ccb0bee5d47d/ggml/src/ggml-metal/CMakeLists.txt",
+      "retrieval": "Exact raw.githubusercontent.com commit URL; bounded text-only GET, no clone."
+    },
+    {
+      "path": "tools/server/server.cpp",
+      "bytes": 23501,
+      "sha256": "a0b400372a697182fb552c946579f74e81a845aa6d37e4b40b978ff4be5e016c",
+      "url": "https://github.com/ggml-org/llama.cpp/blob/4fea119de30f6a923992780f6fd5ccb0bee5d47d/tools/server/server.cpp",
+      "retrieval": "Exact raw.githubusercontent.com commit URL; bounded text-only GET, no clone."
+    },
+    {
+      "path": "ggml/src/ggml-metal/ggml-metal-device.m",
+      "bytes": 92517,
+      "sha256": "a250e60cf82b851a6b3d28147ab4ff5e023ec98029ddca1e2c0d9f1783d22e96",
+      "url": "https://github.com/ggml-org/llama.cpp/blob/4fea119de30f6a923992780f6fd5ccb0bee5d47d/ggml/src/ggml-metal/ggml-metal-device.m",
+      "retrieval": "Exact raw.githubusercontent.com commit URL; bounded text-only GET, no clone."
+    },
+    {
+      "path": "common/common.cpp",
+      "bytes": 79588,
+      "sha256": "e6eccdf376a80a3f534fc71ad7775fcac52eb6089367f1592ce1d293b147db66",
+      "url": "https://github.com/ggml-org/llama.cpp/blob/4fea119de30f6a923992780f6fd5ccb0bee5d47d/common/common.cpp",
+      "retrieval": "Exact raw.githubusercontent.com commit URL; bounded text-only GET, no clone."
+    },
+    {
+      "path": "ggml/src/ggml-backend-dl.cpp",
+      "bytes": 1051,
+      "sha256": "acd76df8b83bcdef6807bc7b0520f57b379d61b4ff1027c04aa4d140d16ad07f",
+      "url": "https://github.com/ggml-org/llama.cpp/blob/4fea119de30f6a923992780f6fd5ccb0bee5d47d/ggml/src/ggml-backend-dl.cpp",
+      "retrieval": "Exact raw.githubusercontent.com commit URL; bounded text-only GET, no clone."
+    }
+  ],
+  "source_bytes_total": 274866,
+  "retained_local_pins": {
+    "results/live_ab/CANDIDATE_INSTRUMENT_MANIFEST.json": {
+      "bytes": 9070,
+      "sha256": "75e2a1d1a7fd786b2dff70ba8602390c5e3460de7e06ad045660650d1e7913c0"
+    },
+    "evidence_session60/candidate_v7/v7_build.log": {
+      "bytes": 26350,
+      "sha256": "51876ff3cd8922cc292fdac162c395e0b5d418d0701a1307654cbf0aa2078746"
+    },
+    "experiments/live_ab_serving/live_ab_slot_lifecycle.patch": {
+      "bytes": 17188,
+      "sha256": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184"
+    }
+  },
+  "source_line_ranges": {
+    "ggml/CMakeLists.txt": [
+      [
+        78,
+        80
+      ]
+    ],
+    "ggml/src/CMakeLists.txt": [
+      [
+        382,
+        410
+      ],
+      [
+        426,
+        439
+      ]
+    ],
+    "ggml/src/ggml-backend-reg.cpp": [
+      [
+        119,
+        173
+      ],
+      [
+        220,
+        261
+      ],
+      [
+        465,
+        571
+      ],
+      [
+        574,
+        604
+      ]
+    ],
+    "ggml/src/ggml-metal/CMakeLists.txt": [
+      [
+        56,
+        116
+      ]
+    ],
+    "ggml/src/ggml-metal/ggml-metal-device.m": [
+      [
+        452,
+        487
+      ],
+      [
+        488,
+        565
+      ]
+    ],
+    "tools/server/server.cpp": [
+      [
+        99,
+        110
+      ]
+    ],
+    "common/common.cpp": [
+      [
+        385,
+        396
+      ]
+    ]
+  },
+  "observed_candidate_build_log": {
+    "hash_agrees_with_manifest": true,
+    "configured_backends": [
+      "CPU",
+      "BLAS",
+      "METAL"
+    ],
+    "versioned_shared_backend_link_lines": [
+      164,
+      165,
+      166
+    ],
+    "embedded_metal_assembly_lines": [
+      143,
+      144,
+      145,
+      146,
+      147,
+      148,
+      149,
+      150,
+      152,
+      153,
+      154,
+      155,
+      156,
+      157,
+      158,
+      159,
+      160,
+      161,
+      162,
+      163
+    ],
+    "GGML_BACKEND_DL_cache_value": "not delivered / not independently observed",
+    "GGML_METAL_EMBED_LIBRARY_cache_value": "not delivered / not independently observed",
+    "branch_inference": "Versioned shared dylib link/symlink records support the non-MODULE registration branch and embedded Metal assembly supports embedding; these are inferences from logs plus exact source, not a read of actual cache."
+  },
+  "unavailable": {
+    "manifest_owner_source_tree_on_root_host": true,
+    "retained_candidate_CMakeCache_compile_commands_build_ninja": true,
+    "full_current_server_loader_call_path": "Not independently closed here. common/arg.cpp bounded GET failed DNS; no retry or further source expansion. Registry loader capability and relevant source branches are verified, not an executed selected backend."
+  },
+  "conclusion": "GGML_METAL=ON alone does not imply unbounded selection or permanent refusal. Refuse unresolved launches; a complete finite possible-load set under frozen build/runtime resolution suffices without predicting the selected winner. GGML_BACKEND_DL default OFF is not observed actual configuration and does not remove the unguarded registry loader functions.",
+  "owner_next_evidence": [
+    "Closed existing CMakeCache.txt plus ggml/Metal compile-definition and backend link rules from compile_commands.json/build.ninja, all hashed as post-execution reconciliation.",
+    "Actual values: BUILD_SHARED_LIBS, GGML_BACKEND_DL, GGML_BACKEND_DIR, enabled GGML backend options/available backends, GGML_CPU_ALL_VARIANTS, GGML_METAL_EMBED_LIBRARY.",
+    "Freeze executable realpath/directory, cwd, compiled backend directory, effective GGML_BACKEND_PATH unset or exact pinned value, and relevant loader environment. Enumerate all possible candidate paths/bytes plus linked-library resolution under that context.",
+    "If embedding cannot be established, additionally bound external Metal library/source resources and GGML_METAL_PATH_RESOURCES. Include all variant candidates opened for scoring, not only an expected winner.",
+    "No new build/native run/model is needed to copy existing configuration and statically construct the candidate set; unresolved evidence stays a refusal."
+  ],
+  "actions": {
+    "small_public_source_reads": 8,
+    "tests": 0,
+    "models": 0,
+    "binary_executions": 0,
+    "builds": 0,
+    "clones": 0,
+    "weights_accessed": 0,
+    "owner_files_changed": 0,
+    "configuration_changes": 0
+  },
+  "progress": {
+    "full_project": 75,
+    "change": 0,
+    "bounded_v1": 90,
+    "remaining_points": {
+      "prospective_study": 10,
+      "final_QA": 5,
+      "author_checks": 10
+    },
+    "CPU_validation_integration": "complete unchanged"
+  },
+  "owner_question_20260923T145018Z": {
+    "url": "https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/11#issuecomment-5797048270",
+    "new_helper_source_ref_reported_by_root": "6b83860",
+    "new_head_ref_reported_by_root": "71ff4dc",
+    "helper_reviewed_here": false,
+    "answer": "GGML_BACKEND_PATH is one direct library load target, not a discovery directory. It is processed after ordinary directory searches and is additive; setting it to build/bin does not confine discovery.",
+    "recommended_preparation": "Explicitly unset it or bind a library file and its dependencies; independently bound compiled GGML_BACKEND_DIR (when set), executable directory, cwd and all candidates. Do not confuse the env variable with the directory parameter of ggml_backend_load_all_from_path.",
+    "source_lines": {
+      "ggml/src/ggml-backend-reg.cpp": [
+        [
+          393,
+          395
+        ],
+        [
+          486,
+          503
+        ],
+        [
+          574,
+          604
+        ]
+      ],
+      "ggml/src/ggml-backend-dl.cpp": [
+        [
+          34,
+          36
+        ]
+      ]
+    },
+    "retained_source_hashes_rechecked": true,
+    "new_network_requests": 0,
+    "new_runtime_or_tests": 0,
+    "configuration_changes": 0,
+    "DNS_and_callgraph_limitations_unchanged": true
+  }
+}
