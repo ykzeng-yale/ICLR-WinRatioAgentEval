@@ -1,0 +1,304 @@
+{
+  "head": "2c60654b0968caa7b066e5ede8e248e0430ad15f",
+  "source": "9f1a02da1cdaddc6982eeecf3c7b94c636cd7c25",
+  "base": "9f2658b849d4f3d2fd2ce8fc9680b4e6b85454c9",
+  "scope": "Only negative-usage pair and known-zero pair through actual main in preserved root all-mock harness adapted in TEMP. All process creation, HTTP, signals, clocks and scheduling mocked; real reader/capture/finalizer only on synthetic closed temp artifacts. No other cases/helper suites/model/native/network/build.",
+  "cases": {
+    "negative_usage": {
+      "returncode": 1,
+      "exception": null,
+      "receipt_count": 1,
+      "write_calls": 1,
+      "events": [
+        {
+          "event": "barrier",
+          "clock": 0.0,
+          "timeout": 30.0,
+          "durable_write_count": 0
+        },
+        {
+          "event": "HTTP_POST",
+          "clock": 0.0,
+          "timeout": 120.0,
+          "durable_write_count": 0,
+          "results_files_before_dispatch": []
+        },
+        {
+          "event": "barrier",
+          "clock": 0.0,
+          "timeout": 30.0,
+          "durable_write_count": 0
+        },
+        {
+          "event": "HTTP_POST",
+          "clock": 0.0,
+          "timeout": 120.0,
+          "durable_write_count": 0,
+          "results_files_before_dispatch": []
+        }
+      ],
+      "receipt": {
+        "child_started": true,
+        "loaded_a_model": null,
+        "popen_error": null,
+        "requests_expected": 2,
+        "requests_with_records": 2,
+        "requests_unaccounted_for": 0,
+        "submitted_requests": 2,
+        "planned_requests": 2,
+        "generated_tokens_total": null,
+        "generated_tokens_known_sum": 0,
+        "requests_with_known_usage": 0,
+        "requests_with_unknown_usage": 2,
+        "token_cap_respected": null,
+        "supervisor_problems": [
+          "token usage was not measurable for 2 request(s), so the token cap could not be judged"
+        ],
+        "deadline": {
+          "budget_s": 600.0,
+          "dispatch_remaining_s": 510.0,
+          "elapsed_s": 0.0,
+          "enforcement": "every wait is bounded by remaining(); this is arithmetic on one monotonic origin, NOT a daemon thread",
+          "expired": false,
+          "may_dispatch": true,
+          "remaining_s": 600.0,
+          "reserve_s": 90.0
+        },
+        "requests": [
+          {
+            "content_chars": 2,
+            "elapsed_s": 0.0,
+            "finish_reason": "length",
+            "index": 0,
+            "payload_sha256": "4ef1084c351470f52e34493a3f35e9f84c08263b3d0474c8c21dcfc84ae73a89",
+            "request_id": "smoke_4167e395ccfd_req0",
+            "status": 200,
+            "submitted": true,
+            "t_ack_monotonic": 0.0,
+            "t_send_monotonic": 0.0,
+            "t_send_utc": "SYNTHETIC",
+            "usage": {
+              "completion_tokens": -1
+            },
+            "usage_known": false,
+            "usage_unusable_reason": "completion_tokens -1 is not a non-negative, non-boolean integer",
+            "raw_response": {
+              "bytes": 108,
+              "preview_chars_cap": 4000,
+              "preview_truncated": false,
+              "sha256": "60bc534e96a0aa2fcd70dd1b39f8c0fef2b05caf201ef1c0e05b5c1dcfba8912"
+            },
+            "preview_length": 108
+          },
+          {
+            "content_chars": 2,
+            "elapsed_s": 0.0,
+            "finish_reason": "length",
+            "index": 1,
+            "payload_sha256": "4ef1084c351470f52e34493a3f35e9f84c08263b3d0474c8c21dcfc84ae73a89",
+            "request_id": "smoke_4167e395ccfd_req1",
+            "status": 200,
+            "submitted": true,
+            "t_ack_monotonic": 0.0,
+            "t_send_monotonic": 0.0,
+            "t_send_utc": "SYNTHETIC",
+            "usage": {
+              "completion_tokens": -1
+            },
+            "usage_known": false,
+            "usage_unusable_reason": "completion_tokens -1 is not a non-negative, non-boolean integer",
+            "raw_response": {
+              "bytes": 108,
+              "preview_chars_cap": 4000,
+              "preview_truncated": false,
+              "sha256": "60bc534e96a0aa2fcd70dd1b39f8c0fef2b05caf201ef1c0e05b5c1dcfba8912"
+            },
+            "preview_length": 108
+          }
+        ]
+      },
+      "persistence_checks": {
+        "input_response_bytes": [
+          108,
+          108
+        ],
+        "input_response_sha256": [
+          "60bc534e96a0aa2fcd70dd1b39f8c0fef2b05caf201ef1c0e05b5c1dcfba8912",
+          "60bc534e96a0aa2fcd70dd1b39f8c0fef2b05caf201ef1c0e05b5c1dcfba8912"
+        ],
+        "tail_marker_persisted_anywhere": false,
+        "persisted_files": [
+          "smoke_4167e395ccfd.producer_stream",
+          "lifecycle.jsonl",
+          "manifest.json",
+          "results/SMOKE_RECEIPT_smoke_4167e395ccfd.json"
+        ],
+        "intent_payload_hashes_match": [
+          true,
+          true
+        ]
+      }
+    },
+    "known_zero": {
+      "returncode": 0,
+      "exception": null,
+      "receipt_count": 1,
+      "write_calls": 1,
+      "events": [
+        {
+          "event": "barrier",
+          "clock": 0.0,
+          "timeout": 30.0,
+          "durable_write_count": 0
+        },
+        {
+          "event": "HTTP_POST",
+          "clock": 0.0,
+          "timeout": 120.0,
+          "durable_write_count": 0,
+          "results_files_before_dispatch": []
+        },
+        {
+          "event": "barrier",
+          "clock": 0.0,
+          "timeout": 30.0,
+          "durable_write_count": 0
+        },
+        {
+          "event": "HTTP_POST",
+          "clock": 0.0,
+          "timeout": 120.0,
+          "durable_write_count": 0,
+          "results_files_before_dispatch": []
+        }
+      ],
+      "receipt": {
+        "child_started": true,
+        "loaded_a_model": null,
+        "popen_error": null,
+        "requests_expected": 2,
+        "requests_with_records": 2,
+        "requests_unaccounted_for": 0,
+        "submitted_requests": 2,
+        "planned_requests": 2,
+        "generated_tokens_total": 0,
+        "generated_tokens_known_sum": 0,
+        "requests_with_known_usage": 2,
+        "requests_with_unknown_usage": 0,
+        "token_cap_respected": true,
+        "supervisor_problems": [],
+        "deadline": {
+          "budget_s": 600.0,
+          "dispatch_remaining_s": 510.0,
+          "elapsed_s": 0.0,
+          "enforcement": "every wait is bounded by remaining(); this is arithmetic on one monotonic origin, NOT a daemon thread",
+          "expired": false,
+          "may_dispatch": true,
+          "remaining_s": 600.0,
+          "reserve_s": 90.0
+        },
+        "requests": [
+          {
+            "content_chars": 2,
+            "elapsed_s": 0.0,
+            "finish_reason": "length",
+            "index": 0,
+            "payload_sha256": "4ef1084c351470f52e34493a3f35e9f84c08263b3d0474c8c21dcfc84ae73a89",
+            "request_id": "smoke_4167e395ccfd_req0",
+            "status": 200,
+            "submitted": true,
+            "t_ack_monotonic": 0.0,
+            "t_send_monotonic": 0.0,
+            "t_send_utc": "SYNTHETIC",
+            "usage": {
+              "completion_tokens": 0
+            },
+            "usage_known": true,
+            "raw_response": {
+              "bytes": 107,
+              "preview_chars_cap": 4000,
+              "preview_truncated": false,
+              "sha256": "73535fb5f3064ea80697abf430012252e5eace9b2156ce03b7a02778c8468dd7"
+            },
+            "preview_length": 107
+          },
+          {
+            "content_chars": 2,
+            "elapsed_s": 0.0,
+            "finish_reason": "length",
+            "index": 1,
+            "payload_sha256": "4ef1084c351470f52e34493a3f35e9f84c08263b3d0474c8c21dcfc84ae73a89",
+            "request_id": "smoke_4167e395ccfd_req1",
+            "status": 200,
+            "submitted": true,
+            "t_ack_monotonic": 0.0,
+            "t_send_monotonic": 0.0,
+            "t_send_utc": "SYNTHETIC",
+            "usage": {
+              "completion_tokens": 0
+            },
+            "usage_known": true,
+            "raw_response": {
+              "bytes": 107,
+              "preview_chars_cap": 4000,
+              "preview_truncated": false,
+              "sha256": "73535fb5f3064ea80697abf430012252e5eace9b2156ce03b7a02778c8468dd7"
+            },
+            "preview_length": 107
+          }
+        ]
+      },
+      "persistence_checks": {
+        "input_response_bytes": [
+          107,
+          107
+        ],
+        "input_response_sha256": [
+          "73535fb5f3064ea80697abf430012252e5eace9b2156ce03b7a02778c8468dd7",
+          "73535fb5f3064ea80697abf430012252e5eace9b2156ce03b7a02778c8468dd7"
+        ],
+        "tail_marker_persisted_anywhere": false,
+        "persisted_files": [
+          "smoke_4167e395ccfd.producer_stream",
+          "lifecycle.jsonl",
+          "manifest.json",
+          "results/SMOKE_RECEIPT_smoke_4167e395ccfd.json"
+        ],
+        "intent_payload_hashes_match": [
+          true,
+          true
+        ]
+      }
+    }
+  },
+  "readiness": {
+    "full_project_percent": 75,
+    "delta_points": 0,
+    "bounded_v1_percent": 90,
+    "remaining_points": 25
+  },
+  "source_sha256": {
+    "experiments/live_ab_serving/run_smoke.py": "c9d59799fe21d0a2ff44b5eb2d16d23e6debe5d7182250e8ab305d178e69cef8",
+    "experiments/live_ab/lab_lifecycle.py": "96748320661b0cff2deec7550022f30e1a0615e8215df4b9e8e6218cdc992398",
+    "experiments/live_ab/lab_common.py": "aa32c13a0f3c6895f6a4d7936cc2b883930e5f4db9491a7f3aa444c8e1c3bb1c",
+    "experiments/live_ab/lab_data.py": "7291fea66a25ca33c12c84c9a46d0f8246e35e0d8cc4d83aff2496a10c2b9977"
+  },
+  "harness_sha256": "cf864ae3925dba09d5acbff17df95a889683b16cd715c290fa1948378b376eb3",
+  "findings": {
+    "accepted": [
+      "Both original -1 values preserved, each usage_known false with explicit reason",
+      "Aggregate unknown and refusal remain consistent with per-request labels",
+      "Both observed zero values usable, measured total zero and cap respected in successful control"
+    ],
+    "remaining_delta_issue": null
+  },
+  "adaptation": {
+    "original_harness_path": "reviews/evidence/request_delta_harness_20260923_1204.py",
+    "original_harness_sha256": "570d8d28c6f4be45e1443a72b10246a9f5eb40c2be2d32d6bddf2844d820d989",
+    "original_harness_unchanged": true,
+    "executed_harness_sha256": "cf864ae3925dba09d5acbff17df95a889683b16cd715c290fa1948378b376eb3",
+    "delta": "--- original\n+++ temporary-adaptation\n@@ -21,9 +21,9 @@\n output_path = arguments.output.resolve()\n if output_path.exists():\n     parser.error(\"output already exists; refusing to overwrite: \" + str(output_path))\n-REPO = Path(__file__).resolve().parents[2]\n+REPO = Path('/Users/yukang/Documents/Codex/2026-09-17/i-x20/outputs/agent_win_eval')\n os.chdir(REPO)\n-SOURCE_SHA256 = {'experiments/live_ab_serving/run_smoke.py': 'b15cb34cdefbdd931b3960b303b993f968182deb773baa243e3ffaf5349c5b40', 'experiments/live_ab/lab_lifecycle.py': '96748320661b0cff2deec7550022f30e1a0615e8215df4b9e8e6218cdc992398', 'experiments/live_ab/lab_common.py': 'aa32c13a0f3c6895f6a4d7936cc2b883930e5f4db9491a7f3aa444c8e1c3bb1c', 'experiments/live_ab/lab_data.py': '7291fea66a25ca33c12c84c9a46d0f8246e35e0d8cc4d83aff2496a10c2b9977'}\n+SOURCE_SHA256 = {'experiments/live_ab_serving/run_smoke.py': 'c9d59799fe21d0a2ff44b5eb2d16d23e6debe5d7182250e8ab305d178e69cef8', 'experiments/live_ab/lab_lifecycle.py': '96748320661b0cff2deec7550022f30e1a0615e8215df4b9e8e6218cdc992398', 'experiments/live_ab/lab_common.py': 'aa32c13a0f3c6895f6a4d7936cc2b883930e5f4db9491a7f3aa444c8e1c3bb1c', 'experiments/live_ab/lab_data.py': '7291fea66a25ca33c12c84c9a46d0f8246e35e0d8cc4d83aff2496a10c2b9977'}\n for source_path, expected_sha256 in SOURCE_SHA256.items():\n     actual_sha256 = hashlib.sha256((REPO / source_path).read_bytes()).hexdigest()\n     if actual_sha256 != expected_sha256:\n@@ -39,7 +39,7 @@\n real_read=Path.read_text; real_write=rs.lab_common.write_json_atomic; real_deadline=rs.Deadline\n prov={k:saved['observation'][k] for k in ('host_id','boot_id','host_source','boot_source')}\n all_cases={}\n-for case in ('barrier_failure_before_cutoff','no_worker_records','one_worker_record','negative_usage','known_zero','popen_failure'):\n+for case in ('negative_usage','known_zero'):\n  with tempfile.TemporaryDirectory(prefix='request_review_1116_') as td:\n   root=Path(td); result=root/'results';result.mkdir(); log=root/'lifecycle.jsonl';mp=root/'manifest.json';clock=[0.];events=[];writes=[];bodies=[]\n   m=copy.deepcopy(manifest);m['patch_sha256']=hashlib.sha256(Path('experiments/live_ab_serving/live_ab_slot_lifecycle.patch').read_bytes()).hexdigest();mp.write_text(json.dumps(m))\n"
+  },
+  "execution_stdout": "negative_usage {\"return\": 1, \"exception\": null, \"receipts\": 1, \"writes\": 1, \"posts\": 2, \"submitted\": 2, \"total\": null, \"cap\": null, \"problems\": [\"token usage was not measurable for 2 request(s), so the token cap could not be judged\"], \"expected\": 2, \"records\": 2, \"unaccounted\": 0, \"loaded\": null}\nknown_zero {\"return\": 0, \"exception\": null, \"receipts\": 1, \"writes\": 1, \"posts\": 2, \"submitted\": 2, \"total\": 0, \"cap\": true, \"problems\": [], \"expected\": 2, \"records\": 2, \"unaccounted\": 0, \"loaded\": null}\n",
+  "execution_stderr": ""
+}
