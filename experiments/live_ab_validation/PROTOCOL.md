@@ -1518,11 +1518,16 @@ Administrative provenance repair only: no scientific parameter, seed, horizon, e
 decision rule, result label or execution pin changes.
 
 **Update 2026-09-23: the count above is stale; the pin is not.** "Moved twice" was true when this
-amendment was written. Since then `cells.json` has recorded three more successors of that file. Each
-one is an Appendix B-only synchronisation of the #11 configuration block with `config.json`:
+amendment was written. Since then `cells.json` has recorded four more successors of that file. The
+first three are Appendix B-only synchronisations of the #11 configuration block with `config.json`:
 `0e1bcb71…` (`host_work_root`, root ruling 2026-09-23 03:51), `f75de323…` (the sandbox-profile and
 licence evidence pins, root ruling 2026-09-23 03:48) and `7f666477…` (the scoped
-`engineering_acquisition` caps, root decision 3 of 2026-09-23 16:30). That makes five moves in all.
+`engineering_acquisition` caps, root decision 3 of 2026-09-23 16:30). The fourth, `64ace6d3…`, is not
+an Appendix B change: it is one paragraph inserted into section 2.2 item 1 only, declaring the patch
+state of the llama.cpp checkout and the three recorded checks that replace, for that checkout, the
+empty-status requirement (root disposition 2026-09-23 18:29 and issue #11 at 18:48, the narrow
+patch-state route). It leaves the Appendix B block and sections 1, 3 and 11, the sections this pin
+reads, byte-identical. That makes six moves in all.
 They are written truncated for the reason given above. The full digests, reasons and rulings are in
 `cells.json` under `provenance.vocabulary_alignment.superseded_by`, and so is each changing commit
 once a later commit has resolved it. The

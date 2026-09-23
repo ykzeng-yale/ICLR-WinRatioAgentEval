@@ -1,0 +1,186 @@
+{
+ "anchor_line": "   are recorded;\n",
+ "authority": "root, reviews/preparation_wiring_disposition_20260923_1829.md freeze blocker 2, and issue #11 comment 5800875382 (18:48), the narrow patch-state route (quoted in this tool's docstring; the comment was not fetched by the tool)",
+ "convention": "deterministic-path",
+ "dependent_hashes_that_do_not_move": [
+  "config_sha256",
+  "architecture_sha256",
+  "rule_block_sha256",
+  "harness_file_sha256 (every entry)"
+ ],
+ "dependent_hashes_that_move": {
+  "protocol_sha256": "moves; recorded as the new successor above. No freeze exists, so nothing frozen is invalidated"
+ },
+ "difference_from_the_1829_wording": "root 18:29 named \"exact status/reverse-apply checks\"; the authorized paragraph states a tree comparison (HEAD plus the patch, built in a temporary index with a temporary object directory, against the working tree). Inserted verbatim.",
+ "document_amended": "experiments/live_ab/design/protocol_FINAL.md",
+ "documents_checked_byte_unchanged": [
+  "experiments/live_ab/config.json",
+  "experiments/live_ab/design/ARCHITECTURE_FINAL.md"
+ ],
+ "generated_utc": "2026-09-23T19:33:29Z",
+ "inserted_text": "\n   *Amendment 2026-09-23 (pre-outcome; root, `reviews/preparation_wiring_disposition_20260923_1829.md` and issue #11\n   comment 5800875382 -- the narrow patch-state route):* the checkout is the pinned commit with the lifecycle patch\n   `experiments/live_ab_serving/live_ab_slot_lifecycle.patch` (SHA-256\n   `88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184`) applied as its **declared working-tree\n   state**, uncommitted, so that `/props.build_info` reports the pinned commit prefix. For this checkout the\n   empty-status requirement above is replaced by three recorded checks: `HEAD` is\n   `4fea119de30f6a923992780f6fd5ccb0bee5d47d`; `git status --porcelain` lists exactly the two files the patch\n   modifies; and the working tree equals `HEAD` with the patch applied, compared as git trees built in temporary\n   indexes with a temporary object directory. No statistical rule, estimator, stopping rule or margin changes.\n",
+ "negative_control": {
+  "every_variant_refused_on_placement": true,
+  "how": "postconditions() -- the predicate main() applies before writing -- on scratch copies in a temporary directory, removed afterwards",
+  "real_documents_unchanged": true,
+  "scratch_copies_unchanged": true,
+  "variants": {
+   "moved_into_section_2.1": {
+    "accepted": false,
+    "deleting_the_inserted_text_reproduces_the_preimage": true,
+    "directly_after_the_anchor": false,
+    "directly_before_item_2": false,
+    "insertion_inside_section_2_2": false,
+    "refused": true,
+    "sha256": "5758c0aa0df756f1d7dc30d1ba22f52ae97a83d86eeda0124152da39e8381a81"
+   },
+   "moved_into_section_2.3": {
+    "accepted": false,
+    "deleting_the_inserted_text_reproduces_the_preimage": true,
+    "directly_after_the_anchor": false,
+    "directly_before_item_2": false,
+    "insertion_inside_section_2_2": false,
+    "refused": true,
+    "sha256": "4464ffc05a587fb1b518d65428cb1b1e9cb1ccdb42451f484c33ff93501b2e87"
+   }
+  }
+ },
+ "nothing_executed": "no CPU simulation, model, server, build or network request; no llama.cpp checkout examined; text edits and digests only",
+ "postcondition_checked": {
+  "appendix_b_block_unchanged": true,
+  "cr_bytes_after": 0,
+  "deleting_the_inserted_text_reproduces_the_preimage": true,
+  "inserted_occurrences": 1,
+  "insertion_placement": {
+   "directly_after_the_anchor": true,
+   "directly_before_item_2": true,
+   "insert_at": 41355,
+   "insert_end": 42295,
+   "insertion_inside_section_2_2": true,
+   "section_2_2": [
+    40509,
+    45317
+   ],
+   "section_ends_at_2_3_heading": true,
+   "section_heading_occurs_once": true
+  },
+  "protocol_bytes": 317228,
+  "protocol_change_is_inside_section_2_2_item_1_only": true,
+  "protocol_sha256": "64ace6d3e37732b372fd316055208e9deaab4d4e0722708563c8ebcc1579e82b",
+  "rule_block_sha256": "cbfd1792d09c43754eeeab3b282e92e99c76e4f878cd82d00c827f6a90fa7607",
+  "three_way_contract_after": {
+   "architecture_block_equals_protocol_block": true,
+   "block_bytes": 13917,
+   "block_sha256": "e4d42f5d442dde7e709222e0a4ad4985de0f20604061fec01f2e3ea95f75d824",
+   "config_equals_architecture_block": true,
+   "cr_bytes": {
+    "architecture": 0,
+    "config": 0,
+    "protocol": 0
+   },
+   "holds": true
+  },
+  "vocabulary_sections_1_3_11_byte_identical": {
+   "1": true,
+   "11": true,
+   "3": true
+  }
+ },
+ "precondition_checked": {
+  "anchor": {
+   "anchor_at": 41338,
+   "anchor_inside_section_2_2": true,
+   "anchor_is_item_1_last_line": true,
+   "anchor_occurrences": 1,
+   "section_2_2": [
+    40509,
+    44377
+   ]
+  },
+  "architecture_is_the_reviewed_preimage": true,
+  "architecture_sha256": "727003c1efe2b210fff0cf7d0a60ca30f53948516171b863548849676b1242ab",
+  "cells_current_successor": "7f6664770b0d88ac5904967d9b8e2225d20932942824cd689278a03a2ee45e53",
+  "cells_original_pin": "3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0dd7d2c2",
+  "cells_prior_successors": 4,
+  "cells_round_trips": true,
+  "cells_sha256": "eab68b1a64f80406409338130e5befcab4e18d74909092f921004432f2a23056",
+  "config_is_the_reviewed_preimage": true,
+  "config_sha256": "e4d42f5d442dde7e709222e0a4ad4985de0f20604061fec01f2e3ea95f75d824",
+  "cr_bytes": {
+   "architecture": 0,
+   "cells": 0,
+   "config": 0,
+   "protocol": 0
+  },
+  "head": "0194a594dd0079696ba9e107e24caf9bf7875360",
+  "inserted_text_already_present": 0,
+  "inserted_text_form": {
+   "cr_bytes": 0,
+   "ends_with_a_newline": true,
+   "every_line_empty_or_item_indented": true,
+   "lines": 10,
+   "max_line_chars": 116,
+   "no_trailing_whitespace": true,
+   "starts_with_an_empty_line": true
+  },
+  "patch_digest_matches_the_stated_digest": true,
+  "patch_modifies": [
+   "tools/server/server-common.h",
+   "tools/server/server-context.cpp"
+  ],
+  "patch_modifies_exactly_the_two_files": true,
+  "patch_sha256": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+  "protocol_is_the_reviewed_preimage": true,
+  "protocol_sha256": "7f6664770b0d88ac5904967d9b8e2225d20932942824cd689278a03a2ee45e53",
+  "stated_commit_is_the_one_section_2_2_pins": true,
+  "three_way_contract_before": {
+   "architecture_block_equals_protocol_block": true,
+   "block_bytes": 13917,
+   "block_sha256": "e4d42f5d442dde7e709222e0a4ad4985de0f20604061fec01f2e3ea95f75d824",
+   "config_equals_architecture_block": true,
+   "cr_bytes": {
+    "architecture": 0,
+    "config": 0,
+    "protocol": 0
+   },
+   "holds": true
+  }
+ },
+ "prior_versions_retained": {
+  "note": "recoverable byte-exactly by `git show <revision>:<path>`, and by deleting inserted_text from the protocol",
+  "protocol_sha256": "7f6664770b0d88ac5904967d9b8e2225d20932942824cd689278a03a2ee45e53",
+  "revision": "0194a594dd0079696ba9e107e24caf9bf7875360"
+ },
+ "schema": "live_ab.patch_state_amendment_receipt.1",
+ "successor_provenance": {
+  "demoted_successor": "7f6664770b0d88ac5904967d9b8e2225d20932942824cd689278a03a2ee45e53",
+  "demoted_successor_commit_verified": "0e05d9658b15c6248a41b094db99e31231943d55",
+  "new_successor": "64ace6d3e37732b372fd316055208e9deaab4d4e0722708563c8ebcc1579e82b",
+  "original_pin_untouched": "3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0dd7d2c2",
+  "prior_successors_now": 5
+ },
+ "this_is_not_a_freeze": true,
+ "written": {
+  "architecture_byte_unchanged": true,
+  "architecture_sha256_after": "727003c1efe2b210fff0cf7d0a60ca30f53948516171b863548849676b1242ab",
+  "cells_sha256": "5c4a28f76a066d110205335b66c7df12a0c5d70045ad24fecace0ebec75e7784",
+  "config_byte_unchanged": true,
+  "config_sha256_after": "e4d42f5d442dde7e709222e0a4ad4985de0f20604061fec01f2e3ea95f75d824",
+  "harness_file_hashes_unchanged": true,
+  "protocol_sha256": "64ace6d3e37732b372fd316055208e9deaab4d4e0722708563c8ebcc1579e82b",
+  "read_back_equals_computed": true,
+  "rule_block_sha256_on_disk": "cbfd1792d09c43754eeeab3b282e92e99c76e4f878cd82d00c827f6a90fa7607",
+  "three_way_contract_on_disk": {
+   "architecture_block_equals_protocol_block": true,
+   "block_bytes": 13917,
+   "block_sha256": "e4d42f5d442dde7e709222e0a4ad4985de0f20604061fec01f2e3ea95f75d824",
+   "config_equals_architecture_block": true,
+   "cr_bytes": {
+    "architecture": 0,
+    "config": 0,
+    "protocol": 0
+   },
+   "holds": true
+  }
+ }
+}
