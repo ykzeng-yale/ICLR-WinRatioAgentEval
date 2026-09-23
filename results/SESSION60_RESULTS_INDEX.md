@@ -2316,6 +2316,48 @@ controls — I have not.
 
 **Suites: ten of ten green.**
 
+### The three anchor drill defects root found, repaired and checked offline (2026-09-23)
+
+`deterministic-path`. `results/live_ab/ANCHOR_DRILL_OFFLINE_CHECKS.json`. **The transaction is NOT
+executed** — root authorizes one repaired synthetic transaction *after* these offline checks, so the
+checks are deposited first, against a recorded state rather than my say-so.
+
+**1. Wrong push destination — my claim was unsupported by my own code.** `git clone --shared` leaves
+`origin` pointing at the **local** repo while `commit_and_push` runs `git push origin <branch>`. I had
+written that the clone *"pushes to the SAME remote"*; root: *"unsupported by its implementation."*
+The clone's origin is now set to the source GitHub remote **and read back**; a non-GitHub source
+origin, or a mismatch after setting, refuses.
+
+**2. Wrong issue API base.** `https://api.github.com` composed
+`https://api.github.com/issues/13/comments`, which addresses no repository. Fixed at the **source**,
+not just in the drill script: `lab_anchor.DEFAULT_ISSUE_API_BASE` is repository-scoped, and
+`assert_repo_scoped_api` **refuses any base without `/repos/` before a request is made**. A
+well-formed URL that addresses nothing is worse than a malformed one.
+
+**3. `NameError: sha256_bytes` on HTTP 201.** The success branch could never return a receipt.
+`sha256_bytes` is imported, and — because making a name resolve is not evidence the receipt lands —
+the 201 branch is driven through the **real function** with a stubbed response:
+`https://api.github.com/repos/ykzeng-yale/ICLR-WinRatioAgentEval/issues/13/comments`, `ok: true`,
+comment id, receipt digest present, **no `NameError`**.
+
+**Two of my own defects, caught while fixing root's.** My first stub rebound `lab_anchor.requests`,
+but `post_comment` does `import requests` *inside* the function — so the stub never applied and the
+**real** `requests.post` was called with a stub token. Now `requests.post` itself is patched, which
+makes a real request impossible rather than merely unlikely. And the receipt carried
+`no_NameError: true` as a **literal** — the exact defect my own audit detectors exist to catch. It is
+now derived from whether the exception fired.
+
+**Public drill path.** `results/live_ab/anchor_drills/<run_id>/anchors/anchor_1.json`, with segments,
+private receipts, spool and logs left under ignored `work/`. Verified **both ways**: the new path is
+inside the checkout and unignored; the old `work/…` path is **refused**. Decided by
+**`git check-ignore`**, not by reimplementing `.gitignore` matching — git's answer is the one that
+decides whether `git add` refuses.
+
+**Still owed before the transaction**, and recorded in the receipt rather than assumed: root's
+*"any uncertain past or future posting must be reconciled against issue 13 before retrying."*
+
+**Suites: ten of ten green.**
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.

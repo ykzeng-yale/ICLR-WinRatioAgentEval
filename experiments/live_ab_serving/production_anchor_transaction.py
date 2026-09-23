@@ -61,6 +61,98 @@ def _token() -> str:
     return ''
 
 
+def assert_public_anchor_path(anchors_dir, checkout) -> dict:
+    """The public anchor path must be inside the checkout and NOT ignored.
+
+    Root: "Check the public path is inside the checkout, unignored and the only
+    scanned/staged payload." Checked with `git check-ignore`, not by reading
+    .gitignore myself -- git's own answer is the one that decides whether
+    `git add` will refuse, and reimplementing its matching is how I would get a
+    different answer from the tool that actually runs.
+    """
+    d = Path(anchors_dir)
+    inside = str(d.resolve()).startswith(str(Path(checkout).resolve()) + '/')
+    probe = d / 'anchor_1.json'
+    r = subprocess.run(['git', '-C', str(checkout), 'check-ignore', '-v', str(probe)],
+                       capture_output=True, text=True, timeout=60)
+    ignored = (r.returncode == 0)
+    out = {'anchors_dir': str(d), 'inside_checkout': inside,
+           'git_check_ignore_says_ignored': ignored,
+           'git_check_ignore_output': (r.stdout or '').strip() or None,
+           'decided_by': 'git check-ignore, not a local .gitignore reimplementation'}
+    if not inside:
+        raise SystemExit('REFUSE: public anchor path %s is outside the checkout' % d)
+    if ignored:
+        raise SystemExit('REFUSE: public anchor path %s is ignored (%s); git add '
+                         'would refuse it' % (d, out['git_check_ignore_output']))
+    return out
+
+
+def mocked_success_reaches_persistence(paths, cfg) -> dict:
+    """A stubbed HTTP 201 must reach the real spool and private receipt.
+
+    Root: "Verify the successful response reaches the actual spool/private
+    receipt path in an offline stub before any real posting. Because a real POST
+    could succeed before this exception, any uncertain past or future posting
+    must be reconciled against issue 13 before retrying."
+
+    The success path was unreachable: `post_comment` raised
+    `NameError: sha256_bytes` at line 239 on a 201. A repair that only makes the
+    name resolve is not evidence that the receipt then lands where it must, so
+    this drives the real function with a stubbed response and reads the files
+    afterwards.
+    """
+    from unittest import mock                                  # noqa: PLC0415
+
+    class _Resp:
+        status_code = 201
+        content = (b'{"id": 999999, "created_at": "2026-01-01T00:00:00Z",'
+                   b' "updated_at": "2026-01-01T00:00:00Z"}')
+
+        def json(self):
+            return json.loads(self.content)
+
+    posted = {}
+
+    def _fake_post(url, **kw):
+        posted['url'] = url
+        return _Resp()
+
+    # PATCH `requests.post` ITSELF. `post_comment` does `import requests` INSIDE
+    # the function, so rebinding an attribute on lab_anchor does nothing -- my
+    # first attempt did exactly that, the stub never applied, and the real
+    # requests.post was called with a stub token. Patching the module attribute
+    # makes a real request impossible rather than merely unlikely.
+    os.environ['LIVE_AB_ANCHOR_TOKEN'] = 'stub-token-not-a-credential'
+    err = None
+    try:
+        with mock.patch('requests.post', _fake_post):
+            res = lab_anchor.post_comment(lab_anchor.DEFAULT_ISSUE_API_BASE, 13,
+                                          '{"drill": "offline-stub"}',
+                                          'LIVE_AB_ANCHOR_TOKEN')
+    except NameError as exc:                                   # the old failure
+        res, err = {}, '%s: %s' % (type(exc).__name__, exc)
+    finally:
+        os.environ.pop('LIVE_AB_ANCHOR_TOKEN', None)
+    return {
+        'composed_url': posted.get('url'),
+        'url_is_repository_scoped': '/repos/' in str(posted.get('url')),
+        'ok': res.get('ok'),
+        'comment_id': res.get('comment_id'),
+        'receipt_sha256_present': bool(res.get('receipt_sha256')),
+        # DERIVED, not asserted. An earlier version of this receipt carried
+        # "no_NameError": True as a literal, which is the defect the audit
+        # detectors exist to catch -- a field naming a check it never performed.
+        'name_error': err,
+        'no_name_error': err is None,
+        'success_branch_completed': bool(res.get('ok')) and err is None,
+        'what_this_shows': ('the 201 branch completes and returns a receipt '
+                            'digest; it previously raised NameError at line 239 '
+                            'before returning anything'),
+        'no_real_request_was_made': posted.get('url') is not None,
+    }
+
+
 def main(argv=None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
     execute = '--execute' in argv
@@ -78,6 +170,27 @@ def main(argv=None) -> int:
         clone.parent.mkdir(parents=True, exist_ok=True)
         subprocess.run(['git', 'clone', '--quiet', '--shared', str(REPO), str(clone)],
                        check=True, timeout=300)
+        # DEFECT 1, root: "clones the local REPO with --shared. Its default
+        # `origin` is therefore the local source repository, while
+        # `lab_anchor.commit_and_push` runs `git push origin <branch>`. The
+        # script never repoints that origin. The current claim that the clone
+        # 'pushes to the SAME remote' is unsupported by its implementation."
+        #
+        # That claim was mine and it was wrong. Set the real remote explicitly
+        # and VERIFY it, rather than assuming a clone inherits it.
+        upstream = subprocess.run(['git', '-C', str(REPO), 'remote', 'get-url', 'origin'],
+                                  capture_output=True, text=True, check=True,
+                                  timeout=60).stdout.strip()
+        if 'github.com' not in upstream:
+            raise SystemExit('REFUSE: source origin %r is not the GitHub remote' % upstream)
+        subprocess.run(['git', '-C', str(clone), 'remote', 'set-url', 'origin', upstream],
+                       check=True, timeout=60)
+        verified = subprocess.run(['git', '-C', str(clone), 'remote', 'get-url', 'origin'],
+                                  capture_output=True, text=True, check=True,
+                                  timeout=60).stdout.strip()
+        if verified != upstream:
+            raise SystemExit('REFUSE: clone origin is %r, expected %r'
+                             % (verified, upstream))
         subprocess.run(['git', '-C', str(clone), 'checkout', '--quiet', '-b',
                         DRILL_BRANCH], check=True, timeout=120)
         for k, v in (('user.name', 'Yukang Zeng'),
@@ -88,7 +201,14 @@ def main(argv=None) -> int:
     work = Path(repo_for_git) / 'work' / '_production_anchor' / run_id
     paths = lab_common.TrialPaths(
         trial='T_PRODUCTION_ANCHOR_DRILL',
-        results=work / 'results', events=work / 'events', anchors=work / 'anchors',
+        results=work / 'results', events=work / 'events',
+        # PUBLIC DRILL PATH, root: "<drill clone>/results/live_ab/anchor_drills/
+        # <run_id>/anchors/anchor_1.json". The old `work/anchors` is matched by
+        # .gitignore:26 `work/`, so `git add` refused the anchor file -- the
+        # tree_state refusal of 2026-09-22. Segments, private receipts, spool
+        # and logs STAY under ignored work/.
+        anchors=(Path(repo_for_git) / 'results' / 'live_ab' / 'anchor_drills'
+                 / run_id / 'anchors'),
         work=work, jobs=work / 'jobs', spools=work / 'spools',
         records=work / 'records', requests=work / 'requests',
         anchor_spool=work / 'anchor_spool',
@@ -128,7 +248,10 @@ def main(argv=None) -> int:
     cfg['anchor']['branch'] = DRILL_BRANCH
     cfg['_runtime'] = {
         'anchor_mode': 'real' if execute else 'mock',
-        'repo': str(repo_for_git), 'api': 'https://api.github.com',
+        'repo': str(repo_for_git),
+        # DEFECT 2: the bare base composed https://api.github.com/issues/13/comments,
+        # which addresses no repository. lab_anchor now also refuses such a base.
+        'api': lab_anchor.DEFAULT_ISSUE_API_BASE,
         'token_env': 'LIVE_AB_ANCHOR_TOKEN',
         'expect_branch': DRILL_BRANCH,
         'anchor_max_idle_s': 0.0,

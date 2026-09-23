@@ -33,8 +33,8 @@ from pathlib import Path
 from typing import Mapping, Sequence, TypedDict
 
 import lab_common
-from lab_common import (TrialPaths, append_line_durable, canonical_json, sha256_file,
-                        sha256_text, tokenize_path)
+from lab_common import (TrialPaths, append_line_durable, canonical_json, sha256_bytes,
+                        sha256_file, sha256_text, tokenize_path)
 
 #: Release-hygiene patterns, ``class:regex`` (protocol 15.2).  The scanner reports the
 #: class and the line, never the matched text.
@@ -208,6 +208,33 @@ def commit_and_push(repo: Path, files: Sequence[Path], message_id: str, *,
             'pushed': pushed}
 
 
+#: The REPOSITORY-SPECIFIC issue API base.
+#:
+#: `post_comment` appends "/issues/<n>/comments". With the old default
+#: "https://api.github.com" that composes to
+#: "https://api.github.com/issues/13/comments", which addresses no repository.
+#: Root, reviews/lock_anchor_review_20260923_0348.md: "Supply
+#: `https://api.github.com/repos/ykzeng-yale/ICLR-WinRatioAgentEval` as the base,
+#: yielding the repository-specific issue13 endpoint."
+DEFAULT_ISSUE_API_BASE: str = 'https://api.github.com/repos/ykzeng-yale/ICLR-WinRatioAgentEval'
+
+
+def assert_repo_scoped_api(api: str, *, stage: str) -> str:
+    """An issue API base that names no repository cannot address an issue.
+
+    Checked rather than assumed: the composed URL is what matters, and a base
+    without "/repos/<owner>/<name>" silently produces a well-formed URL that
+    addresses nothing.
+    """
+    base = str(api).rstrip('/')
+    if '/repos/' not in base:
+        raise ValueError(
+            'issue API base %r at %s names no repository; "%s/issues/N/comments" '
+            'would address nothing. Expected a ".../repos/<owner>/<name>" base.'
+            % (base, stage, base))
+    return base
+
+
 def post_comment(api: str, issue: int, body: str, token_env: str) -> dict:
     """One issue comment (protocol 12.4 item 3).  The API response fields ``id``,
     ``created_at`` and ``updated_at`` and the SHA-256 of the raw response are recorded; the
@@ -217,7 +244,9 @@ def post_comment(api: str, issue: int, body: str, token_env: str) -> dict:
     if not token:
         return {'ok': False, 'error_class': 'api', 'comment_id': None,
                 'created_at': None, 'updated_at': None, 'receipt_sha256': None}
-    url = '%s/issues/%d/comments' % (str(api).rstrip('/'), int(issue))
+    # REFUSE a base that names no repository, before any request is made.
+    url = '%s/issues/%d/comments' % (
+        assert_repo_scoped_api(api, stage='post_comment'), int(issue))
     try:
         res = requests.post(url, json={'body': str(body)}, timeout=60, headers={
             'Authorization': 'Bearer %s' % token,
@@ -365,7 +394,7 @@ def _handle(paths: TrialPaths, cfg: Mapping, req: Mapping, *, mode: str,
         body = canonical_json({'trial': req.get('trial'), 'upto_seq': req.get('upto_seq'),
                                'upto_h': req.get('upto_h'),
                                'segment_sha256': req.get('segment_sha256')})
-        comment = post_comment(str(rt.get('api') or 'https://api.github.com'),
+        comment = post_comment(str(rt.get('api') or DEFAULT_ISSUE_API_BASE),
                                int(anchor_cfg.get('issue') or 0), body,
                                str(rt.get('token_env') or 'GITHUB_TOKEN'))
         if comment.get('ok'):
