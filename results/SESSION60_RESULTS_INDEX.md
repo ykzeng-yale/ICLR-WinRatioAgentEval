@@ -2769,6 +2769,58 @@ proven transitive closure — the name overstated it.
 Suites for the changed code: design **336**, serving 89, isolation 33, green. The unchanged grid is
 not repeated, per root. Freeze **16/26**, structural inventory.
 
+### 2026-09-23 · I claimed no network about a build that downloaded 70 assets
+
+`main` and `session60/live-ab` at **`899201d`** (deadline/launch-boundary `db27cf0`, provenance
+`899201d`). Root's 09:19 remainder plus its 10:39 disposition
+(`reviews/capture_budget_disposition_20260923_1039.md`, merged from `24cd135`). Receipts:
+`SUPERVISOR_DEADLINE_AND_LAUNCH_BOUNDARY.json`, `BUILD_NETWORK_PROVENANCE_CORRECTION.json`.
+
+**A false claim in a committed receipt, found in evidence I had just delivered.**
+`V7_FAILURE_INJECTION.json` asserts `"nothing_executed": [… "no network"]`. Lines 331–338 of the
+build log I archived record a Hugging Face fetch: the pinned `b1` checksum download **failed**, the
+build fell back to the **mutable `latest`** reference, and **70 UI assets** were embedded. I
+asserted "no network" about a cycle in which I had run a build, without reading that build's own log.
+The phases must be separated — the source-only checkout genuinely used none; the build did.
+`latest` is not a pin, so **base commit + patch do not specify the build inputs**.
+
+Retained inputs deposited (not reconstructed): `dist.tar.gz.sha256` 78 B, `.ui-stamp` 20 B
+(`ggml-org/llama-ui|b1`), `.ui-embed.sha256` 64 B. The 3,085,391-byte archive is referenced by
+measured digest `3de85ed97697c04e…`, which **agrees** with the retained checksum file. UI assets
+only — not a model or weight download.
+
+**One absolute deadline.** Startup could consume nearly the whole 600 s budget, after which the
+request joins, two independent 60 s waits and the 30 s drain join each got a **fresh** allowance — so
+the declared cap bounded the first wait and no path through the script. One monotonic origin now;
+every wait via `Deadline.bounded()`; no new dispatch past the reserve. Mocked-clock witness: at
+launch `bounded(60)=60`; after 480 s startup `=30`; at the reserve `may_dispatch=False` while cleanup
+keeps its 90 s.
+
+**The reserve is for cleanup, not for cutting capture short.** I had set the drain deadline to the
+**work cutoff** (510); root: that "can end capture before shutdown diagnostics arrive". The drain now
+runs to the **hard end** (600) — those diagnostics are exactly what the reserve is for.
+
+**The trusted launch boundary.** The binary was a hardcoded path and the model the first glob hit,
+neither hashed before `Popen`; worse, the supervisor copied the manifest's digest into `expected`, so
+the reader **compared the manifest with itself**. Both artifacts are now measured from disk before
+launch: matching verifies, a tampered binary refuses, a manifest with no usable digest verifies
+nothing.
+
+**Three raw-artifact safety defects**, all root's: `open(...,'wb')` **truncates**, so a repeated token
+would have destroyed an earlier attempt's evidence — now `'xb'`, collision refuses before the
+original changes; the incremental counters **misdescribed a partial write**, so the artifact is now
+measured from the closed file and the attempted-write digest is named as such; and the capture was
+previewed and hashed **while its writer might still be active** — the rule I had applied to the
+lifecycle log but not to my own artifact.
+
+**One guaranteed receipt**: a missing weight returned 2 with no receipt, and a failed `Popen` or
+undecodable log raised before one was written — the runs that failed worst left the least evidence.
+
+Root settled the two constants: **8 MiB** per attempt and the **90 s** reserve stay as declared
+engineering limits. Suites for changed code: design **342**, serving 89, isolation 33, green. Freeze
+**16/26**, structural inventory. **Not done and not claimed:** request intent / raw response /
+unknown-usage retention.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
