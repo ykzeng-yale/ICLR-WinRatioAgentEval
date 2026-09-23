@@ -2862,6 +2862,52 @@ exercised as a pure function.
 Suites for changed code: design **343**, serving 89, isolation 33, green. Freeze **16/26**,
 structural inventory.
 
+### 2026-09-23 · I reported a deadline as enforced that the dispatch path never asked
+
+`main` and `session60/live-ab` at **`d208bfa`**. Root's 11:16 disposition
+(`reviews/launch_acceptance_disposition_20260923_1116.md`, merged from `1bd5cd0`). Receipts:
+`DEADLINE_CLAIM_CORRECTION.json`, `NOTHING_EXECUTED_CLAIM_AUDIT.json`.
+
+**The false claim, and the worst thing here.** My deadline receipt said *"every wait passes through
+`Deadline.bounded()`; new dispatch stops at the cleanup reserve"*. At `db27cf0` the **helper was
+correct and the dispatch path never consulted it**. Root's witness: health polling starts at 509 s,
+the 2 s health request returns ready at 511, **both threads POST at 511 with fresh 120 s timeouts**,
+and the supervisor returns success while `may_dispatch` is false.
+
+A check that names what it does not perform — the same shape as the sandbox profile "recomputed" by
+copying the config, and `child_confirmed_stopped` recorded while the files were read anyway. My tests
+proved the arithmetic, which was never in doubt; **nothing drove the actual dispatch path**, so
+nothing could observe that the path ignored it. Root found it by running the entry point.
+
+**The same defect one level up.** `summarize_usage([])` returned a confident total of **0** with the
+cap respected. I had stopped an absent *usage* becoming zero and left an absent *request record*
+doing exactly that — a worker that never appended its row simply shrank the population. The
+denominator is now what was **planned**: two expected requests with no records give `None` and two
+unaccounted. Negative, float and boolean token counts are rejected; a genuine zero from a real
+response is still a measurement.
+
+**A failed barrier is not permission to send** — the early-broken-barrier case still POSTed twice.
+The barrier is the coordination this smoke exists to observe.
+
+**Measured capture facts now travel together** — the receipt forwarded `bytes_captured` from the old
+counter beside the newly measured hash, so root's two-byte witness became **zero bytes paired with
+the hash of those two bytes**.
+
+**`loaded_a_model` is unknown** until a child exists, instead of `True` beside `child_started=false`.
+
+**The audit root authorized:** **26** receipts carrying a `nothing_executed`-family assertion —
+matching root's count. **1 CONTRADICTED** (already corrected), **3 UNVERIFIABLE**, **22
+SUPPORTED_BY_ABSENCE_ONLY**, which the audit states plainly is consistency with the retained record
+and **not** certification: truth cannot be inferred from a missing log. No receipt rewritten, no
+probe rerun.
+
+**Not done, and not claimed:** durable on-disk intent before `Popen`/barrier; attempt-versus-receipt
+accounting (a timed-out request still counts as unsubmitted); full raw response bytes persisted
+before parsing; library-closure binding beyond the two-file check; manifest schema validation and the
+invalid-UTF8 path reaching a terminal receipt.
+
+Suites for changed code: design **345**, serving 89, isolation 33, green. Freeze **16/26**.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
