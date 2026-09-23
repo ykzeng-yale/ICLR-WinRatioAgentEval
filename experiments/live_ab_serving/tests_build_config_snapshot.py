@@ -34,6 +34,8 @@ GGML_METAL:BOOL=ON
 GGML_CUDA:BOOL=OFF
 GGML_CPU_ALL_VARIANTS:BOOL=OFF
 GGML_METAL_EMBED_LIBRARY:BOOL=ON
+GGML_ET:BOOL=OFF
+GGML_AVAILABLE_BACKENDS:INTERNAL=ggml-cpu;ggml-blas;ggml-metal
 """
 
 NINJA = """build bin/libggml.0.24.0.dylib: CXX_SHARED_LIBRARY_LINKER__ggml_Release a.o | x
@@ -137,6 +139,31 @@ class BuildConfigSnapshotTests(unittest.TestCase):
             r = self.m.discovery_candidates(Path(d))
             self.assertTrue(r['exists'])
             self.assertEqual(r['candidates'], [])
+
+    # -- root 16:30: GGML_ET and the cache's available-backend list ----------
+    def test_the_option_list_is_the_SOURCES_whole_backend_list(self):
+        """Root: the list omitted GGML_ET although the pinned source declares
+        `ggml_add_backend(ET)`. Eighteen names, ET among them."""
+        self.assertIn('GGML_ET', self.m.BACKEND_OPTIONS)
+        self.assertEqual(len(set(self.m.BACKEND_OPTIONS)), 18)
+
+    def test_an_ENABLED_ET_backend_disagrees_rather_than_passing_unseen(self):
+        c = self._checks(cache=CACHE.replace('GGML_ET:BOOL=OFF', 'GGML_ET:BOOL=ON'))
+        self.assertIs(c['enabled backends == GGML_USE_* on the registry']['agrees'],
+                      False)
+
+    def test_an_AVAILABLE_backend_with_no_known_option_is_UNSUPPORTED(self):
+        c = self._checks(cache=CACHE.replace('ggml-cpu;ggml-blas;ggml-metal',
+                                             'ggml-cpu;ggml-blas;ggml-metal;ggml-newthing'))
+        row = c['GGML_AVAILABLE_BACKENDS == enabled options, all supported']
+        self.assertIs(row['agrees'], False)
+        self.assertEqual(row['unsupported_available'], ['NEWTHING'])
+
+    def test_a_cache_with_NO_available_list_is_not_agreement(self):
+        c = self._checks(cache=CACHE.replace(
+            'GGML_AVAILABLE_BACKENDS:INTERNAL=ggml-cpu;ggml-blas;ggml-metal\n', ''))
+        self.assertIsNone(
+            c['GGML_AVAILABLE_BACKENDS == enabled options, all supported']['agrees'])
 
 
 if __name__ == '__main__':                                     # pragma: no cover

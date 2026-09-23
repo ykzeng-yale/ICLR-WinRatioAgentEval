@@ -40,14 +40,19 @@ HERE = Path(__file__).resolve().parent
 REPO = HERE.parent.parent
 
 # The settings root named, plus every backend switch the pinned revision knows,
-# so an enabled backend cannot hide by being left off the list.
+# so an enabled backend cannot hide by being left off the list. Root, 16:30: the
+# list omitted `GGML_ET` although ggml/src/CMakeLists.txt at 4fea119 declares
+# `ggml_add_backend(ET)`. It is now the source's whole `ggml_add_backend` list,
+# and the cache's own GGML_AVAILABLE_BACKENDS is checked against it, so an
+# enabled backend outside this list disagrees instead of passing unseen.
 REQUIRED_CACHE = ('BUILD_SHARED_LIBS', 'GGML_BACKEND_DL', 'GGML_BACKEND_DIR',
                   'GGML_CPU_ALL_VARIANTS', 'GGML_METAL_EMBED_LIBRARY',
                   'GGML_NATIVE', 'CMAKE_BUILD_TYPE', 'CMAKE_SKIP_RPATH')
-BACKEND_OPTIONS = ('GGML_CPU', 'GGML_BLAS', 'GGML_METAL', 'GGML_CUDA', 'GGML_HIP',
-                   'GGML_VULKAN', 'GGML_OPENCL', 'GGML_RPC', 'GGML_SYCL',
-                   'GGML_CANN', 'GGML_MUSA', 'GGML_HEXAGON', 'GGML_ZDNN',
-                   'GGML_ZENDNN', 'GGML_VIRTGPU', 'GGML_OPENVINO', 'GGML_WEBGPU')
+BACKEND_OPTIONS = ('GGML_CPU', 'GGML_BLAS', 'GGML_CANN', 'GGML_CUDA', 'GGML_ET',
+                   'GGML_HIP', 'GGML_METAL', 'GGML_MUSA', 'GGML_RPC',
+                   'GGML_VIRTGPU', 'GGML_SYCL', 'GGML_VULKAN', 'GGML_WEBGPU',
+                   'GGML_ZDNN', 'GGML_OPENCL', 'GGML_HEXAGON', 'GGML_ZENDNN',
+                   'GGML_OPENVINO')
 # The registry translation unit: its -D flags decide which backends are
 # registered at compile time and whether the dynamic-loading branch exists.
 REGISTRY_SOURCES = ('ggml/src/ggml-backend-reg.cpp', 'ggml/src/ggml-backend-dl.cpp')
@@ -191,6 +196,21 @@ def agreement_checks(cache: dict, registry_defs: list, metal_defs: list,
         'check': 'enabled backends == GGML_USE_* on the registry',
         'cache_enabled': enabled, 'registry_GGML_USE': registered,
         'agrees': None if registry_defs is None else (enabled == registered)})
+
+    # THE CACHE'S OWN LIST, against the options this module knows. An available
+    # backend with no option here is UNSUPPORTED and disagrees -- the list is
+    # only exhaustive if nothing enabled can fall outside it.
+    avail_raw = val('GGML_AVAILABLE_BACKENDS')
+    available = sorted(a.strip()[len('ggml-'):].upper() for a in (avail_raw or '').split(';')
+                       if a.strip())
+    known = {k[len('GGML_'):] for k in BACKEND_OPTIONS}
+    unsupported = sorted(a for a in available if a not in known)
+    checks.append({
+        'check': 'GGML_AVAILABLE_BACKENDS == enabled options, all supported',
+        'cache_available': available, 'cache_enabled': enabled,
+        'unsupported_available': unsupported,
+        'agrees': None if avail_raw is None else (available == enabled
+                                                   and not unsupported)})
 
     # With DL OFF the enabled backends are LINKED into libggml, not discovered.
     linked = sorted(set(re.sub(r'^.*libggml-([a-z]+)\..*$', r'\1', t).upper()

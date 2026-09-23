@@ -38,12 +38,24 @@ class _Graph:
     """A synthetic dependency graph: files, load commands, bytes, `dlopen`
     imports, and what each search location holds."""
 
-    def __init__(self, files, dirs=None):
+    def __init__(self, files, dirs=None, links=None):
         self.files = dict(files)
         self.dirs = dict(dirs or {})
+        # spelling -> target: a symlink. `realpath` follows it; `exists` and the
+        # readers see through it, exactly as the filesystem would.
+        self.links = dict(links or {})
+
+    def realpath(self, path):
+        seen = set()
+        while path in self.links:
+            if path in seen:
+                raise OSError('symlink loop at %s' % path)
+            seen.add(path)
+            path = self.links[path]
+        return path
 
     def metadata(self, path):
-        f = self.files.get(path)
+        f = self.files.get(self.realpath(path))
         if f is None:
             return {'error': 'no such file: %s' % path}
         if f.get('metadata_error'):
@@ -55,10 +67,13 @@ class _Graph:
                 'rpaths': list(f.get('rpaths', []))}
 
     def exists(self, path):
-        return path in self.files
+        try:                               # as os.path.exists: False, not raise
+            return self.realpath(path) in self.files
+        except OSError:
+            return False
 
     def read_bytes(self, path):
-        f = self.files.get(path)
+        f = self.files.get(self.realpath(path))
         if f is None:
             raise FileNotFoundError(path)
         return f.get('bytes', b'')
@@ -110,9 +125,19 @@ def _complete():
 def _readers(g, **kw):
     r = {'metadata': g.metadata, 'exists': g.exists, 'read_bytes': g.read_bytes,
          'dynamic_loader': g.dynamic_loader, 'enumerate_dir': g.enumerate_dir,
-         'launch_context': _ctx(), 'realpath': lambda p: p}
+         'launch_context': _ctx(), 'realpath': g.realpath}
     r.update(kw)
     return r
+
+
+def _alias_graph():
+    """The candidate's real shape for ggml-base: the load command names
+    `libggml-base.0.dylib`, a same-directory symlink to the versioned file."""
+    g = _complete()
+    g.files['/cand/bin/libggml-base.0.24.0.dylib'] = g.files.pop(
+        '/cand/bin/libggml-base.0.dylib')
+    g.links['/cand/bin/libggml-base.0.dylib'] = '/cand/bin/libggml-base.0.24.0.dylib'
+    return g
 
 
 OTOOL_DYLIB = """/x/libggml.0.dylib:
@@ -207,19 +232,37 @@ class DependencyClosureTests(unittest.TestCase):
                          if e['reference'] == '@loader_path/helper')
         self.assertEqual(helpers, ['/a/helper', '/b/helper'])
 
-    def test_the_same_rpath_reference_from_TWO_PARENTS_is_two_bound_edges(self):
-        """Was refused as ambiguous under the old key. Each parent's own rpath
-        selects its file; both files are bound and both are verified. Two files
-        answering to one install name are RECORDED, not refused."""
+    def test_the_same_rpath_reference_from_TWO_PARENTS_is_two_edges(self):
+        """Two parents, two edges, two distinct files -- not an ambiguity."""
+        g = _complete()
+        g.files['/other/libggml-base.0.dylib'] = {
+            'refs': [], 'id': '@rpath/libggml-base-other.0.dylib', 'bytes': b'OTHER'}
+        g.files['/cand/bin/libggml-metal.0.dylib']['rpaths'] = ['/other']
+        c = self._derive(g)
+        self.assertTrue(c['resolved'], self._problems(c))
+        self.assertIn('/other/libggml-base.0.dylib', c['files'])
+
+    def test_ROOTS_CHOICE_two_canonical_files_sharing_an_INSTALL_NAME_refuse(self):
+        """Root, 16:30: "root chooses refusal for distinct canonical files
+        sharing an install name" until the loader's selection among them is
+        specified. Was recorded and passed at `ab38e61`."""
         g = _complete()
         g.files['/other/libggml-base.0.dylib'] = {
             'refs': [], 'id': '@rpath/libggml-base.0.dylib', 'bytes': b'OTHER'}
         g.files['/cand/bin/libggml-metal.0.dylib']['rpaths'] = ['/other']
         c = self._derive(g)
+        self.assertFalse(c['resolved'])
+        self.assertIn('install name @rpath/libggml-base.0.dylib', self._problems(c))
+
+    def test_an_ALIAS_and_its_target_are_ONE_file_not_a_duplicate(self):
+        """The control for the refusal above: a same-directory symlink and its
+        target are one canonical file, so one install name, one file."""
+        g = _alias_graph()
+        g.files['/cand/bin/libggml-metal.0.dylib']['refs'] = [
+            '@rpath/libggml-base.0.24.0.dylib']                # names the target
+        c = self._derive(g)
         self.assertTrue(c['resolved'], self._problems(c))
-        self.assertIn('/other/libggml-base.0.dylib', c['files'])
-        self.assertEqual(sorted(c['duplicate_install_names']['@rpath/libggml-base.0.dylib']),
-                         ['/cand/bin/libggml-base.0.dylib', '/other/libggml-base.0.dylib'])
+        self.assertEqual(c['duplicate_install_names'], {})
 
     def test_rejection_is_PRESERVED_where_one_context_cannot_select(self):
         """Root: "Preserve rejection where the same supported context truly has
@@ -529,12 +572,80 @@ class DependencyClosureTests(unittest.TestCase):
         self.assertTrue(any('itself unresolved' in p for p in v['problems']))
 
     def test_no_frozen_closure_or_an_OLD_SCHEMA_one_refuses(self):
-        """A v1 closure carries no dynamic contract, so it cannot be verified
-        under one."""
+        """A v1 closure carries no dynamic contract and a v2 closure no
+        canonical targets, so neither can be verified under this one."""
         for junk in ({}, None, {'schema': 'something else'},
-                     {'schema': 'live_ab/dependency_closure-v1', 'resolved': True}):
+                     {'schema': 'live_ab/dependency_closure-v1', 'resolved': True},
+                     {'schema': 'live_ab/dependency_closure-v2', 'resolved': True}):
             with self.subTest(frozen=junk):
                 self.assertFalse(self._verify(junk)['verified'])
+
+    # -- root 16:30: canonical targets ----------------------------------------
+    def test_a_SAME_DIRECTORY_alias_binds_its_CANONICAL_target(self):
+        """THE CONTROL, and the candidate's real shape: the file that will be
+        mapped is the versioned target, and it is what the closure pins."""
+        c = self._derive(_alias_graph())
+        self.assertTrue(c['resolved'], self._problems(c))
+        self.assertIn('/cand/bin/libggml-base.0.24.0.dylib', c['files'])
+        self.assertNotIn('/cand/bin/libggml-base.0.dylib', c['files'])
+        e = c['edges'][self.dc.edge_key('/cand/bin/libllama-server-impl.dylib',
+                                        'LC_LOAD_DYLIB', '@rpath/libggml-base.0.dylib')]
+        self.assertEqual(e['resolved'], '/cand/bin/libggml-base.0.dylib')
+        self.assertEqual(e['canonical'], '/cand/bin/libggml-base.0.24.0.dylib')
+        v = self.dc.verify_closure(c, **_readers(_alias_graph()))
+        self.assertTrue(v['verified'], v['problems'])
+
+    def test_ROOTS_PROBE_a_RETARGETED_alias_with_IDENTICAL_BYTES_refuses(self):
+        """Root's witness at `ab38e61`: the canonical target of a selected
+        dependency changed while its spelling, bytes and metadata did not, and
+        verification returned verified=true. A changed target cannot be
+        certified merely because its bytes match."""
+        frozen = self._derive(_alias_graph())
+        self.assertTrue(frozen['resolved'], self._problems(frozen))
+        g = _alias_graph()
+        g.files['/cand/bin/libggml-base.0.25.0.dylib'] = dict(
+            g.files['/cand/bin/libggml-base.0.24.0.dylib'])      # same bytes
+        del g.files['/cand/bin/libggml-base.0.24.0.dylib']
+        g.links['/cand/bin/libggml-base.0.dylib'] = '/cand/bin/libggml-base.0.25.0.dylib'
+        v = self.dc.verify_closure(frozen, **_readers(g))
+        self.assertFalse(v['verified'])
+        self.assertTrue(any('canonical target' in p for p in v['problems']),
+                        v['problems'])
+
+    def test_ROOTS_PROBE_an_alias_into_ANOTHER_DIRECTORY_refuses(self):
+        """Root's exact spelling: `/cand/bin/helper.dylib` -> `/payload/A/...`.
+        The loader context of the spelling (/cand/bin) and of the target
+        (/payload/A) differ, so the alias is outside the supported profile --
+        and a later retarget to /payload/B can never have been frozen."""
+        g = _complete()
+        g.files['/payload/A/helper.dylib'] = {'refs': [], 'bytes': b'HELPER'}
+        g.links['/cand/bin/helper.dylib'] = '/payload/A/helper.dylib'
+        g.files[LAUNCHER]['refs'].append('@rpath/helper.dylib')
+        c = self._derive(g)
+        self.assertFalse(c['resolved'])
+        self.assertIn('different directory', self._problems(c))
+
+    def test_a_DISCOVERED_backend_alias_into_another_directory_refuses(self):
+        g = _complete()
+        g.files['/opt/x/libggml-vk.so'] = {'bytes': b'VK'}
+        g.links['/run/libggml-vk.so'] = '/opt/x/libggml-vk.so'
+        g.dirs['/run'] = [{'name': 'libggml-vk.so', 'path': '/run/libggml-vk.so',
+                           'resolved': '/opt/x/libggml-vk.so'}]
+        c = self._derive(g)
+        self.assertFalse(c['resolved'])
+        self.assertIn('different directory', self._problems(c))
+
+    def test_an_UNREADABLE_canonical_target_refuses(self):
+        """The spelling exists, but its canonical target cannot be read."""
+        g = _alias_graph()
+
+        def realpath(p):
+            if p == '/cand/bin/libggml-base.0.dylib':
+                raise OSError('permission denied reading the link')
+            return g.realpath(p)
+        c = self._derive(g, realpath=realpath)
+        self.assertFalse(c['resolved'])
+        self.assertIn('could not be read', self._problems(c))
 
 
 if __name__ == '__main__':                                     # pragma: no cover

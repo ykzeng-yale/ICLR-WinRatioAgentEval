@@ -72,6 +72,34 @@ REPAIRED 2026-09-23, root's 14:41 ranked response to `6b83860`:
      path, a bare leaf name or a relative rpath, each resolved by dyld against
      the working directory or fallback paths.
 
+REPAIRED AGAIN 2026-09-23, root's 16:30 ranked response to `ab38e61`
+(reviews/dependency_contract_review_20260923_1630.md):
+
+  1. "Bind every selected non-system member to its canonical target." Only
+     the root was canonicalized. Retargeting a dependency symlink to a
+     different canonical file with IDENTICAL BYTES still verified, because the
+     edge kept only the path spelling. Every selected member -- ordinary and
+     discovered -- is now bound by its canonical target: files are keyed by
+     canonical path, each edge keeps its spelling as context AND its canonical
+     target, and verification compares both as well as the bytes.
+  2. "Keep unsupported loader semantics outside the accepted domain." Two
+     distinct canonical files answering to one install name now REFUSE (root
+     chose refusal until that selection behaviour is specified). An alias whose
+     canonical target lies in a DIFFERENT directory refuses too: the loader
+     context attached to the spelling and to the target would differ.
+     The earlier claim that an own-rpaths-only resolver "can only refuse more,
+     never pass more" is withdrawn; see THE SUPPORTED PROFILE below.
+
+THE SUPPORTED PROFILE, stated rather than implied. This module is not a model of
+dyld. It accepts a candidate only inside a narrow profile its controls justify:
+absolute or loader/executable/rpath-relative references resolved against the
+LOADING image's own rpaths (a miss refuses; the run-path stack of ancestors is
+not searched); canonical selected paths, or same-directory aliases of them;
+one canonical file per install name; `dlopen` only from ggml's registry, whose
+search is enumerated. Anything outside that profile refuses. That the profile
+agrees with dyld for the candidate is an assumption supported by the candidate's
+metadata, not a proof covering loader reuse, ordering or every shadowing case.
+
 """
 
 from __future__ import annotations
@@ -91,7 +119,7 @@ if str(LAB) not in sys.path:                                   # pragma: no cove
 
 import lab_common                                              # noqa: E402
 
-SCHEMA = 'live_ab/dependency_closure-v2'
+SCHEMA = 'live_ab/dependency_closure-v3'
 
 #: Prefixes whose members are OS-provided. Root, 12:42: "System library names
 #: are sufficient here when linked to the already required OS build/architecture
@@ -300,13 +328,14 @@ def resolve_reference(ref: str, *, rpaths: List[str], loader_dir: str,
 
     The loader's rules: ``@rpath`` is tried against each of the LOADING image's
     rpaths in order and the first hit wins; ``@loader_path`` and
-    ``@executable_path`` are substituted. Two things are deliberately
-    conservative. A miss on the image's own rpaths refuses rather than walking
-    the run-path stack of the images that loaded it, which dyld would also
-    search: that can only refuse more, never pass more. And a reference or rpath
-    that is RELATIVE, or a bare leaf name, is resolved by dyld against the
-    working directory or fallback paths -- the same context does not select one
-    file -- so it refuses.
+    ``@executable_path`` are substituted. A miss on the image's own rpaths
+    refuses rather than walking the run-path stack of the images that loaded
+    it: that case lies outside the supported profile (see the module notes),
+    and the tested inherited-only miss refuses. This is a scope, not a proof
+    that the resolver never passes what dyld would load differently. A
+    reference or rpath that is RELATIVE, or a bare leaf name, is resolved by
+    dyld against the working directory or fallback paths -- the same context
+    does not select one file -- so it refuses.
     """
     if is_system_reference(ref):
         return {'reference': ref, 'system': True, 'resolved': ref}
@@ -453,6 +482,23 @@ def derive_closure(root_path: str, *, metadata: Callable[[str], Dict[str, Any]],
             files[path]['reached_by'].append(via)
         return True
 
+    def _canonical(spelling: str) -> Dict[str, Any]:
+        """The canonical target a selected spelling will map, or why the
+        alias is outside the supported profile."""
+        try:
+            target = realpath(spelling)
+        except Exception as exc:                               # noqa: BLE001
+            return {'problem': 'the canonical target of %s could not be read: %s'
+                               % (spelling, exc)}
+        if str(Path(target).parent) != str(Path(spelling).parent):
+            return {'canonical': target,
+                    'problem': ('the selected path %s is an alias of %s in a '
+                                'different directory; the loader-relative context '
+                                'of the spelling and of the target differ, so this '
+                                'alias is outside the supported profile'
+                                % (spelling, target))}
+        return {'canonical': target}
+
     _add_file(root_path, None)
 
     # THE DYNAMIC SEARCH, ENUMERATED BEFORE THE WALK. Root: a "complete finite
@@ -482,14 +528,21 @@ def derive_closure(root_path: str, *, metadata: Callable[[str], Dict[str, Any]],
                                                     'be pinned: %s'
                                                     % (c.get('path'), c.get('error'))})
                     continue
+                spelling = c.get('path') or str(Path(loc) / c['name'])
+                canon = _canonical(spelling)
+                if canon.get('problem'):
+                    dyn_problems.append({'problem': 'discoverable candidate: %s'
+                                                    % canon['problem']})
+                    continue
                 key = edge_key('search:' + loc, 'ggml_backend_load_best', c['name'])
                 edges[key] = {'parent': 'search:' + loc,
                               'command': 'ggml_backend_load_best',
-                              'reference': c['name'], 'resolved': c['resolved'],
+                              'reference': c['name'], 'resolved': spelling,
+                              'canonical': canon['canonical'],
                               'searched': [loc], 'shadowed': []}
-                dynamic['discovered'].append(c['resolved'])
-                if _add_file(c['resolved'], key):
-                    queue.append(c['resolved'])
+                dynamic['discovered'].append(canon['canonical'])
+                if _add_file(canon['canonical'], key):
+                    queue.append(canon['canonical'])
 
     while queue:
         current = queue.pop(0)
@@ -520,16 +573,25 @@ def derive_closure(root_path: str, *, metadata: Callable[[str], Dict[str, Any]],
             # KEYED BY EDGE: parent, command and reference. A hash-correct file
             # at the wrong path cannot satisfy it, because what loads is chosen
             # by path; and two parents naming the same text are two edges.
+            # AND BOUND BY ITS CANONICAL TARGET. Root, 16:30: a dependency
+            # symlink retargeted to a different file with identical bytes still
+            # verified, because only the spelling was kept. The spelling stays
+            # as context; the file that will be mapped is the canonical target.
+            canon = _canonical(r['resolved'])
+            if canon.get('problem'):
+                unresolved.append({'file': current, 'command': command,
+                                   'reference': ref, 'problem': canon['problem']})
+                continue
             edges[key] = {'parent': current, 'command': command, 'reference': ref,
-                          'resolved': r['resolved'], 'searched': r['searched'],
-                          'shadowed': r['shadowed']}
-            if not _add_file(r['resolved'], key):
+                          'resolved': r['resolved'], 'canonical': canon['canonical'],
+                          'searched': r['searched'], 'shadowed': r['shadowed']}
+            if not _add_file(canon['canonical'], key):
                 continue
             if len(files) > max_members:
                 truncated = True
                 queue = []
                 break
-            queue.append(r['resolved'])
+            queue.append(canon['canonical'])
     if truncated:
         unresolved.append({'problem': 'the closure exceeded %d members and was '
                                       'not bounded' % max_members})
@@ -557,10 +619,21 @@ def derive_closure(root_path: str, *, metadata: Callable[[str], Dict[str, Any]],
     dynamic['bounded'] = not dyn_problems
     unresolved.extend(dyn_problems)
 
+    # ONE CANONICAL FILE PER INSTALL NAME. Root, 16:30: "root chooses refusal
+    # for distinct canonical files sharing an install name" until the loader's
+    # selection among them is specified. `install_names` is keyed by canonical
+    # path, so a same-directory alias and its target are one file, not two.
     ids: Dict[str, List[str]] = {}
     for f, n in install_names.items():
         if n:
             ids.setdefault(n, []).append(f)
+    duplicates = {n: sorted(fs) for n, fs in ids.items() if len(fs) > 1}
+    for n, fs in sorted(duplicates.items()):
+        unresolved.append({'problem': ('%d distinct canonical files answer to the '
+                                       'install name %s (%s); which one the loader '
+                                       'reuses for each edge is outside the '
+                                       'supported profile'
+                                       % (len(fs), n, ', '.join(fs)))})
     return {
         'schema': SCHEMA,
         'root': root_path,
@@ -570,10 +643,7 @@ def derive_closure(root_path: str, *, metadata: Callable[[str], Dict[str, Any]],
         'files': files,
         'member_count': len(files) - 1,
         'install_names': install_names,
-        # Recorded, not refused: two different files answering to one install
-        # name are both bound and both verified. Root's item 3 treats distinct
-        # parent contexts as distinct edges.
-        'duplicate_install_names': {n: fs for n, fs in ids.items() if len(fs) > 1},
+        'duplicate_install_names': duplicates,
         'system_references': sorted(system_refs),
         'dynamic_loading': dynamic,
         'unresolved': unresolved,
@@ -640,6 +710,11 @@ def verify_closure(frozen: Dict[str, Any], *,
         elif w['resolved'] != g['resolved']:
             row['problem'] = ('%r resolves to %s but was frozen at %s'
                               % (key, g['resolved'], w['resolved']))
+        elif w.get('canonical') != g.get('canonical'):
+            row['problem'] = ('%r still resolves to %s, but its canonical target is '
+                              '%s now and was frozen as %s'
+                              % (key, g['resolved'], g.get('canonical'),
+                                 w.get('canonical')))
         else:
             row['agrees'] = True
         rows.append(row)
@@ -663,7 +738,8 @@ def verify_closure(frozen: Dict[str, Any], *,
         'files_checked': len(want_f.keys() | got_f.keys()),
         'dynamic_loading_now': now['dynamic_loading'],
         'rows': rows,
-        'note': ('an edge is (parent, command, reference). A hash-correct file at '
-                 'another path cannot satisfy it, because what loads is chosen by '
-                 'path.'),
+        'note': ('an edge is (parent, command, reference), bound by its spelling '
+                 'AND its canonical target; files are keyed by canonical path. A '
+                 'hash-correct file at another path or behind a retargeted alias '
+                 'cannot satisfy it.'),
     }
