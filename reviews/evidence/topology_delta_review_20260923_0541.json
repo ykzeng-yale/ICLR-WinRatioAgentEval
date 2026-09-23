@@ -1,0 +1,50 @@
+{
+  "reviewed_commit": "337ab26d91513389b0f54f2c8db822d94073ac7c",
+  "scope": "read-only current topology reporter and immutable receipt comparison; no locks, models, sandbox or remote execution",
+  "new_structural_detector": {
+    "two_workers_in_one_trial_share_a_lock": true,
+    "job_payload_sandbox_lock_expressions": [
+      "lab_common.tokenize_execution_lock(lab_common.harness_config())"
+    ],
+    "all_derive_from_trial_paths": true,
+    "route": "canonical_token",
+    "obsolete_label_note": "before the canonical repair this was measured as \"the payload reads the lock off ONE TrialPaths\". After it, the payload serializes <HOST_WORK>/sandbox.lock and there is only ONE lock file at all, which is strictly stronger. A receipt generated between the repair and this correction reports False here beside conforms=True; that is an obsolete detector, not a route regression.",
+    "trial_paths_call_sites_in_orchestrator": 1,
+    "why_this_is_the_measurement": "resolving the same trial twice returns the same string and measures nothing. What makes the two workers share a lock is that the job payload reads it off ONE TrialPaths per trial -- a structural fact with a real failure mode."
+  },
+  "reporter_resolve_refusal": {
+    "type": "UntokenizablePath",
+    "message": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab/sandbox.lock"
+  },
+  "receipts": {
+    "results/live_ab/LOCK_TOPOLOGY_v3.json": {
+      "sha256": "6cf7e14b5dee7feff76f0f4f24f6202b7d50763542e63203cc5d05aa417d4682",
+      "owner_timestamp": "2026-09-23T04:05:49Z",
+      "unchanged_from_8322f16": true
+    },
+    "results/live_ab/LOCK_TOPOLOGY_v4.json": {
+      "sha256": "506f4c96e14cc34d1ea66e9b6e2d2d63ee8635b86226bc9f63a9a727b4cc2959",
+      "owner_timestamp": "2026-09-23T05:23:57Z"
+    },
+    "results/live_ab/LOCK_TOPOLOGY_v5.json": {
+      "sha256": "77354c6685716f4335890e9064ac51d46fbf8fb32160df93daf147e69448c8c4",
+      "owner_timestamp": "2026-09-23T05:29:18Z"
+    },
+    "results/live_ab/CROSS_WRAPPER_LOCK_CONTROL.json": {
+      "sha256": "47cd14f16eecc39a726b9d2caa87e649bb203cf0842cbea4f671f0e6e1d2e015",
+      "owner_timestamp": "2026-09-23T04:09:33Z",
+      "unchanged_from_8322f16": true
+    },
+    "results/live_ab/HOST_CAPACITY_OBSERVATION_20260923T050357Z.json": {
+      "sha256": "522750015bc8077d47a623c3d1dc75b28830da7bce75f5cd23d43e07c8f5287d",
+      "owner_timestamp": "2026-09-23T05:03:57Z"
+    }
+  },
+  "production_implementation_unchanged_from_8322f16": {
+    "experiments/live_ab/lab_common.py": true,
+    "experiments/live_ab/lab_worker.py": true,
+    "experiments/live_ab/lab_orchestrator.py": true,
+    "experiments/live_ab/lab_data.py": true,
+    "experiments/live_ab/lab_containment.py": true
+  }
+}
