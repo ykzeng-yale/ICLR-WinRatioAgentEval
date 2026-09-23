@@ -2478,6 +2478,55 @@ refusal tests, inherited by a subclass). `HARNESS_FILES` 33. No model, no server
 network. **No rights attestation**: the t3 evidence is a model-card declaration, not a recovered
 licence text.
 
+### 2026-09-23 · the failure channel could not report its own failure
+
+`main` and `session60/live-ab` at **`c8b3bd9`**. Root's 03:48 item 3, bullet 1. Receipt:
+`results/live_ab/LIFECYCLE_FAILURE_CHANNEL_REPAIR.json` (`deterministic-path`).
+
+**All four findings reproduced before any repair**, against a *sealed, otherwise-valid* log — against
+an unsealed log every case "refuses" for the wrong reason and the sidecar is never reached:
+
+| case | before | after |
+|---|---|---|
+| empty `.error` sidecar | `seal_problem=None` | refuses |
+| whitespace-only sidecar | `seal_problem=None` | refuses |
+| scalar / list JSON sidecar | **AttributeError** | retained, refuses |
+| non-UTF8 sidecar | **UnicodeDecodeError** | retained as hex, refuses |
+| seal `write_failures` `False` / `0.0` / absent | `seal_problem=None` | refuses |
+| *no sidecar at all* (control) | passes | **still passes** |
+| *seal `write_failures` integer 0* (control) | passes | **still passes** |
+
+**Existence is the signal.** The producer opens `.error` only to report a failure, so zero bytes is
+not "no failures" — it is a failure whose reason could not be written. The sidecar is now read as
+**bytes**: `read_text('utf-8')` raises `UnicodeDecodeError`, a `ValueError`, which the old
+`except OSError` did not catch, so the failure channel destroyed the observation instead of being
+recorded in it. `json.loads('5')` is an `int` and `json.loads('[1,2]')` a `list`; both were appended
+and a later `e.get('stage')` raised. Every retained entry is now a dict.
+
+**`write_failures` must be a non-boolean integer zero.** `if seal.get('write_failures'):` passed on
+four things that are not a reported zero — absent, `False` (a bool, which *is* an `int` in Python),
+`0.0`, `None`. An unknown is not a zero.
+
+**Producer patch v5 — SOURCE ONLY, NOT BUILT.** `live_ab_note_write_failure` discarded every result;
+`fopen` could return `nullptr` and the function simply returned, so on a full disk a terminal write
+failure was **completely invisible**. Each step is now checked and failures reported on two channels
+that do not depend on the sidecar: a `sidecar_failures` count carried **in the seal** — the one number
+the sidecar cannot carry about itself — and **stderr**, which the supervisor captures.
+
+`sidecar_failures` is **optional but strictly checked**: emitters predating it exist and root said not
+to repeat a loaded smoke to fix these witnesses. The retained smoke log was re-read through the
+repaired reader — **no seal problem, 2 windows, `sidecar_failures_reported: false`**, an UNKNOWN never
+rendered as a zero. Verified, not assumed.
+
+**A stale provenance record, corrected additively.** `PATCH_RECORD.md` pinned `261a54db560d…` while
+the patch had been through **four further revisions** since 09-22 00:31 — a record naming a digest its
+artifact no longer carries reads as a binding and is not one. The version table was recovered with
+`git cat-file` on every commit touching the file; no earlier row edited, and the retained smoke stays
+bound to **v4 `2c52078f8a54…`**, the version that produced it.
+
+Ten suites green; `design` 320 → **326**. Freeze unchanged at **16/26** (`config.json` untouched). No
+model, no server, no episode, no network, no build.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
