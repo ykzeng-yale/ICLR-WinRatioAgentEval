@@ -2576,6 +2576,56 @@ Ten suites green; `design` 326 → **331**. Freeze unchanged at **16/26** (`conf
 and per root, that is a **structural inventory, not sixteen scientifically validated components**. No
 model, no server, no episode, no network, no build.
 
+### 2026-09-23 · a bounded write to a full pipe still blocks
+
+`main` and `session60/live-ab` at **`9ce153e`**. Root's 08:40 disposition
+(`reviews/lifecycle_batch_disposition_20260923_0840.md`, merged from `42cc49f`) plus the supervisor
+half of its 08:00 item 2. Receipts: `ACQUISITION_CONTRACT_CLOSURE.json`,
+`SUPERVISOR_OUTCOME_REPAIR.json`, `PATCH_RECOUNT_v7.json` (all `deterministic-path`).
+
+**Root accepted** the patch packaging — it verified *ordinary application* against the exact
+preimages, all six hunks agreeing — plus the seal-only count repair and the early-return diagnostic
+repairs. It then found two defects in what I delivered.
+
+**The fatal path could block.** v6 wrote one diagnostic line to fd 2 before `_exit(93)`, which I
+justified as *"bounded and async-signal-safe, so a blocked stderr cannot stall the refusal"*. **That
+does not follow** — a bounded write to a *full* pipe still blocks; size and async-signal safety are
+not nonblocking. Root's isolated pipe witness settles it: with fd 2 a full blocking pipe, the
+diagnostic case reports **no exit code at all**, while the same case without it terminates with
+**93**. v7 removes the write entirely.
+
+**The path-form defect was mine too**, introduced with `_raw_artifacts` last cycle: `observe` accepts
+`str | Path` but passed the original string to `_file_evidence`, which calls `.exists()` on it — so
+the string route reported an `AttributeError` as *"unreadable"* and omitted the log hash. A bug in
+the reader that reads like a finding about the artifact. Normalised once at the entry; `str`/`Path`
+parity asserted.
+
+**Producer identity is now required.** A manifest without usable patch *and* selected-binary digests
+refuses as `unbound` even with all strict fields and exit zero. A partially specified manifest was
+yielding valid coverage — the same exemption-by-omission root rejected, one level up, with the
+manifest buying the pass by silence instead of the producer.
+
+**Legacy narrowed to v4 only.** I had admitted v1–v4 because all predate the repair; that grants an
+*acquisition* exemption to three versions that never acquired anything. v1–v3 and v5 stay readable as
+archival diagnostics and certify nothing.
+
+**Supervisor.** The SIGKILL branch fell through to `proc.returncode`, which is `None` until the child
+is reaped — so a run needing SIGKILL read the lifecycle log while the producer might still have had
+it open, and recorded a null exit code as an outcome. It now reaps and records
+`child_confirmed_stopped`. It also returned zero unconditionally; it now returns 1 when the outcome
+invalidates, the child was never confirmed stopped, or the acquisition is incomplete — with the
+verdict computed *before* the single write, because the sink is write-once. The diagnostic pipe,
+previously never read (a child past the ~64 KB buffer would **block on write**), is drained from
+launch within the absolute deadline.
+
+Six fixtures then refused for want of a producer identity; they now **declare** one. Ten suites
+green; `design` 331 → **333**. Freeze unchanged at **16/26**, a structural inventory. v7 **unbuilt**,
+no smoke run, no model, no server, no episode, no network, no build.
+
+**Root authorized the source checkout** I asked for: a shallow, blob-filtered llama.cpp at the pinned
+base in scratch, source-only, reusing any exact existing copy first and checking capacity — not yet
+taken.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
