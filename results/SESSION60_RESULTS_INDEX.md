@@ -3120,6 +3120,47 @@ now asserts that check **fails**.
 
 Entry cases **25 → 30**, green; design **345**, serving 89, isolation 33. Freeze **16/26**.
 
+### 2026-09-23 · the nine-member closure was the comfortable answer, not the true one
+
+`main` and `session60/live-ab` at **`6b83860`**. Root's ranked item 3 — the selected-dependency
+contract. Receipt: `SELECTED_DEPENDENCY_CONTRACT.json` (`deterministic-path`).
+
+**Why my default was insufficient.** I proposed verifying the members a manifest names. Root: that
+"is insufficient if omissions can redefine what is required" — a manifest omitting the
+implementation library would have nothing to verify, and its absence would read as compliance. The
+required set is now **derived from the artifact** and frozen before any outcome is known.
+
+**The finding.** Traversing the candidate's load commands transitively gives **9 non-system
+members** — exactly the count the retrospective inventory declared. *That agreement is not evidence
+the inventory was right.* `libggml.0.dylib` **imports `dlopen`**, and the binary carries
+`GGML_BACKEND_PATH` and `ggml_backend_load_best`, so a backend can be selected at run time from a
+search path no load-command traversal can show. With root's dynamic bound applied and no pinned
+search environment, the closure is **unresolved and a new launch refuses** — the strict reading, and
+the default I stated at 14:18.
+
+Observed with `otool -l` and `nm -u`, both **metadata readers**: the candidate was not executed, no
+model loaded, nothing rebuilt.
+
+**The contract.** `derive_closure` walks the launcher and every non-system member it reaches,
+transitively; `verify_closure` re-resolves now and compares membership, canonical resolved paths and
+measured bytes. Membership is keyed by the dependency **edge**, so a hash-correct unrelated file at
+another path cannot satisfy a required edge — what loads is chosen by path. An unreadable edge, an
+unplaceable reference, an ambiguous resolution or an unbounded dynamic search all leave
+`resolved: False`.
+
+**Fifteen finite controls**, every graph a dictionary — including a complete matched graph resolving
+**transitively** (`libggml-base` is reached only *through* the implementation library, so a
+direct-only walk would miss it and call the closure complete), a hash-correct file at the wrong path,
+an unrelated-only inventory, and `dlopen` with and without a declared bound.
+
+**Not done, not claimed:** the gate is **not wired into `run_smoke`** — `verify_launch_artifacts`
+still does the inventory-only check and no closure is frozen into a launch manifest. Source/patch/
+build binding is designed, not implemented. Also open: the non-blockable descriptor, elapsed through
+finalisation, and the 8 MiB / 90 s / 600 s / 510 s agreement.
+
+Controls **15**, entry **30**, design **345**, isolation 33 — green. `HARNESS_FILES` **33**; both new
+files sit in `live_ab_serving`, outside the pinned glob. Freeze **16/26**.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
