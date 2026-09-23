@@ -202,7 +202,8 @@ class SupervisorEntryPointTests(unittest.TestCase):
     def _run(self, *, proc=None, bodies=None, break_barrier=False,
              popen_raises=None, no_pointer=False, post_hook=None,
              barrier_hook=None, stray_command=None,
-             drain_start_raises=False):
+             drain_start_raises=False, drain_construct_raises=False,
+             request_start_raises_at=None, request_join_raises=False):
         rs = self.rs
         proc = proc if proc is not None else _Proc()
         bodies = bodies if bodies is not None else [OK_BODY, OK_BODY]
@@ -227,18 +228,31 @@ class SupervisorEntryPointTests(unittest.TestCase):
                 if break_barrier:
                     raise RuntimeError('broken barrier')
 
+        request_starts = [0]
+
         class _Thread:
             def __init__(self, target, args=(), kwargs=None, daemon=None, name=None):
+                if drain_construct_raises and name == 'live_ab_smoke_drain':
+                    raise RuntimeError('injected drain construction failure')
                 self.target, self.args, self.kwargs = target, args, kwargs or {}
                 self.name = name
 
             def start(self):
                 if drain_start_raises and self.name == 'live_ab_smoke_drain':
                     raise RuntimeError('injected drain start failure')
+                if self.name != 'live_ab_smoke_drain':
+                    # SUPERVISOR-side failure: raised by Thread.start itself,
+                    # AFTER earlier workers have already run and POSTed.
+                    if request_start_raises_at is not None and \
+                            request_starts[0] == request_start_raises_at:
+                        raise RuntimeError('injected supervisor Thread.start '
+                                           'failure')
+                    request_starts[0] += 1
                 self.target(*self.args, **self.kwargs)
 
             def join(self, timeout=None):
-                pass
+                if request_join_raises and self.name != 'live_ab_smoke_drain':
+                    raise RuntimeError('injected supervisor Thread.join failure')
 
             def is_alive(self):
                 return False
@@ -907,6 +921,85 @@ class SupervisorEntryPointTests(unittest.TestCase):
             self.assertFalse(row['usage_known'])
         self.assertIsNone(receipt['generated_tokens_total'])
         self.assertEqual(status, 1)
+
+    def test_a_drain_that_was_NEVER_CREATED_is_not_a_finished_capture(self):
+        """Root, 2026-09-23 14:41: "If constructing the drain raises, protection
+        now catches the original error and reaps the child. But `drain_finished
+        = not drain_thread.is_alive()` still dereferences None ... causing a
+        secondary AttributeError and no receipt ... Do not describe a
+        nonexistent drain as a completed capture."
+
+        Two defects: the crash, and a later line that read `drain_thread is None`
+        as FINISHED. "Not running" had been standing in for "ran to completion".
+        """
+        proc = _Proc()
+        status, receipt = self._run(proc=proc, drain_construct_raises=True)
+        self.assertIsNotNone(receipt, 'a drain-construction failure must still '
+                                      'persist one refusal receipt')
+        self.assertEqual(proc.returncode, 0, 'the child must still be reaped')
+        pd = receipt['producer_diagnostics']
+        self.assertEqual(pd['drain_state'], 'not_created')
+        self.assertFalse(pd['drain_thread_finished'],
+                         'a drain that never existed did not finish')
+        self.assertFalse(pd['capture_exists'])
+        self.assertIn('NO capture exists', pd['preview_unavailable'])
+        self.assertIn('construction', receipt['dispatch_failure']['message'])
+        self.assertTrue(any('no diagnostic capture exists' in p
+                            for p in receipt['supervisor_problems']))
+        self.assertEqual(status, 1)
+
+    def test_a_drain_that_was_created_but_NEVER_STARTED(self):
+        """A constructed drain whose start() raised is not alive either, so the
+        old reading called it finished."""
+        status, receipt = self._run(drain_start_raises=True)
+        pd = receipt['producer_diagnostics']
+        self.assertEqual(pd['drain_state'], 'not_started')
+        self.assertFalse(pd['drain_thread_finished'])
+        self.assertFalse(pd['capture_exists'])
+        self.assertEqual(status, 1)
+
+    def test_a_SUPERVISOR_Thread_start_failure_still_reconciles_requests(self):
+        """Root: "The new owner test makes the second requests.post raise inside
+        the request handler; it does not exercise failure of Thread.start or
+        Thread.join in the supervisor. Use the original stage failures as
+        controls."
+
+        That is exactly right: my last test exercised the handler, a case I had
+        already fixed. Here Thread.start itself raises for the SECOND worker,
+        after the first has POSTed. The summary used to sit inside the `try`,
+        so this jumped past it and the receipt said nothing was sent.
+        """
+        status, receipt = self._run(request_start_raises_at=1)
+        self.assertEqual(len(self.posted), 1, 'the first worker did POST')
+        self.assertEqual(receipt['transport_attempted_requests'], 1)
+        self.assertEqual(receipt['submitted_requests'], 1)
+        self.assertEqual(len(receipt['requests']), 2,
+                         'EVERY planned id gets a row, including the unstarted one')
+        states = sorted(r.get('state', 'recorded') for r in receipt['requests'])
+        self.assertEqual(states, ['no_worker_record', 'recorded'])
+        self.assertEqual(receipt['requests_expected'], 2)
+        self.assertIsNone(receipt['generated_tokens_total'])
+        self.assertFalse(any('never submitted' in p
+                             for p in receipt['supervisor_problems']),
+                         'an attempted request must not be called never submitted')
+        self.assertTrue(any('had no transport attempt' in p
+                            for p in receipt['supervisor_problems']))
+        self.assertIn('Thread.start', receipt['dispatch_failure']['message'])
+        self.assertEqual(status, 1)
+
+    def test_a_SUPERVISOR_Thread_join_failure_still_reconciles_requests(self):
+        """Both workers POSTed; the SUPERVISOR's join then raised. The request
+        summary must still describe two attempted, two answered requests."""
+        status, receipt = self._run(request_join_raises=True)
+        self.assertEqual(len(self.posted), 2)
+        self.assertEqual(receipt['transport_attempted_requests'], 2)
+        self.assertEqual(receipt['submitted_requests'], 2)
+        self.assertEqual(len(receipt['requests']), 2)
+        self.assertEqual(receipt['requests_with_worker_record'], 2)
+        self.assertFalse(any('never submitted' in p or 'no transport attempt' in p
+                             for p in receipt['supervisor_problems']))
+        self.assertIn('Thread.join', receipt['dispatch_failure']['message'])
+        self.assertEqual(status, 1, 'the join failure itself still refuses')
 
     def test_a_producer_that_refused_itself_invalidates_a_clean_log(self):
         """Exit 93 beside a readable seal full of zeros must still refuse."""

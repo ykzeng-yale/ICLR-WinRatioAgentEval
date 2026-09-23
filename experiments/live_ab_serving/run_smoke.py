@@ -884,7 +884,18 @@ def main() -> int:
     results: list = []
     capture: dict = {}
     drain_thread = None
+    drain_started = False
     proc = None
+    # THE ATTEMPT LEDGER EXISTS BEFORE ANY FALLIBLE WORK. Root, 14:41:
+    # "initialize the planned-ID/attempt ledger before fallible work, and
+    # perform truthful reconciliation on normal and exceptional paths."
+    submitted = threading.Lock()
+    submitted_count = [0]
+    attempted_count = [0]
+    # NOT re-initialising `planned` here. It is populated, and written into the
+    # durable intent, ABOVE this point; an `= []` here would silently empty the
+    # plan after its intent was persisted -- a first draft of this repair did
+    # exactly that.
     capture_path = log.parent / ('%s.producer_stream' % token)
 
     # AND AFTER ARTIFACT VERIFICATION, BEFORE THE CHILD EXISTS. Hashing the
@@ -943,6 +954,7 @@ def main() -> int:
             kwargs={'deadline': deadline.hard},
             daemon=True, name='live_ab_smoke_drain')
         drain_thread.start()
+        drain_started = True
         import requests
         ready = False
         while deadline.may_dispatch():
@@ -966,9 +978,6 @@ def main() -> int:
         # an attempt that died at the barrier left no record of what it had been
         # about to send. Intent is now written down first, with the exact payload
         # and its digest, so a failed dispatch is still a described dispatch.
-        submitted = threading.Lock()
-        submitted_count = [0]
-        attempted_count = [0]
 
         if ready:
             barrier = threading.Barrier(2)
@@ -1134,13 +1143,6 @@ def main() -> int:
                 th.start()
             for th in threads:
                 th.join(timeout=deadline.bounded(REQUEST_CAP_S + 30, use_reserve=True))
-        out['submitted_requests'] = submitted_count[0]
-        out['transport_attempted_requests'] = attempted_count[0]
-        out['requests_with_unknown_delivery'] = sum(
-            1 for r in results if r.get('delivery') == 'unknown_server_receipt')
-        out['requests'] = sorted(results, key=lambda r: r['index'])
-        out.update(summarize_usage(results, token_cap=TOKEN_CAP,
-                                   expected=len(planned)))
 
 
     except Exception as exc:                                   # noqa: BLE001
@@ -1154,6 +1156,47 @@ def main() -> int:
             'traceback': ''.join(traceback.format_exception(
                 type(exc), exc, exc.__traceback__))[-TRACEBACK_CHARS:]}
         out.setdefault('server_ready', False)
+
+    # RECONCILIATION RUNS ON EVERY PATH. Root, 14:41: "The existing
+    # second-worker-start and request-join witnesses still observe one/two
+    # completed POSTs but retain submitted=0, no planned-denominator/request
+    # summary, 'usage not measurable for 0,' and '2 never submitted' ... The new
+    # owner test makes the second requests.post raise INSIDE the request
+    # handler; it does not exercise failure of Thread.start or Thread.join in
+    # the supervisor."
+    #
+    # Both halves were true. The summary sat inside the `try`, so a supervisor-
+    # side failure in `start()` or `join()` jumped straight past it, and the
+    # receipt's defaults then described a run in which POSTs had been observed
+    # as one in which nothing was sent. And my test exercised the handler, not
+    # the supervisor -- a test of the case I had already fixed.
+    #
+    # Every PLANNED id gets a row. One with no worker record is reported as
+    # having no record -- not as unsubmitted, because the transport counter is
+    # independent and may say otherwise.
+    by_id = {r.get('request_id'): r for r in results}
+    request_rows = []
+    for plan in planned:
+        row = by_id.get(plan['request_id'])
+        if row is None:
+            row = {'index': plan['index'], 'request_id': plan['request_id'],
+                   'payload_sha256': plan['payload_sha256'],
+                   'state': 'no_worker_record',
+                   'note': ('the planned request left no worker record; whether '
+                            'its transport was invoked is given by the '
+                            'supervisor-wide transport counter, not by this row')}
+        request_rows.append(row)
+    out['requests'] = sorted(request_rows, key=lambda r: r['index'])
+    out['submitted_requests'] = submitted_count[0]
+    out['transport_attempted_requests'] = attempted_count[0]
+    out['requests_with_worker_record'] = len(results)
+    out['requests_without_worker_record'] = sum(
+        1 for r in request_rows if r.get('state') == 'no_worker_record')
+    out['requests_with_unknown_delivery'] = sum(
+        1 for r in results if r.get('delivery') == 'unknown_server_receipt')
+    if planned:
+        out.update(summarize_usage(results, token_cap=TOKEN_CAP,
+                                   expected=len(planned)))
 
     # --- stop OUR OWN server, then let the seal be written -------------------
     out['server_stop_utc'] = _now()
@@ -1207,11 +1250,35 @@ def main() -> int:
     # capture stays unread with paths/state retained, just as unresolved
     # lifecycle files do." The same rule I applied to the lifecycle log, which I
     # had not applied to my own capture artifact.
-    drain_finished = not drain_thread.is_alive()
+    # FOUR STATES, NOT TWO. Root, 2026-09-23 14:41: "`drain_finished = not
+    # drain_thread.is_alive()` still dereferences `None` ... Handle
+    # not-created/not-started drain states throughout diagnostics and
+    # finalization ... Do not describe a nonexistent drain as a completed
+    # capture."
+    #
+    # The crash was the visible half. The worse half was a line further down:
+    # `drain_thread is None or not drain_thread.is_alive()` reported a drain
+    # that NEVER EXISTED as `finished` -- and a drain whose `start()` raised is
+    # not alive either, so it read as finished too. "Not running" had been
+    # standing in for "ran to completion".
+    if drain_thread is None:
+        drain_state = 'not_created'
+    elif not drain_started:
+        drain_state = 'not_started'
+    elif drain_thread.is_alive():
+        drain_state = 'running'
+    else:
+        drain_state = 'finished'
+    drain_finished = (drain_state == 'finished')
     out['producer_diagnostics'] = dict(
         (preview_of_artifact(capture_path, capture) if drain_finished else
-         {'preview_unavailable': 'the drain writer had not finished, so the '
-                                 'capture was not read, hashed or parsed',
+         {'preview_unavailable': (
+              'no drain was ever created, so NO capture exists'
+              if drain_state == 'not_created' else
+              'the drain was created but never started, so NO capture exists'
+              if drain_state == 'not_started' else
+              'the drain writer had not finished, so the capture was not '
+              'read, hashed or parsed'),
           'derived_from': capture.get('artifact')}),
         # TWO DISTINCT STATES, as root decided on 2026-09-23 10:03: a shortened
         # display preview must not invalidate an otherwise complete acquisition,
@@ -1236,8 +1303,9 @@ def main() -> int:
         budget_exhausted=bool(capture.get('budget_exhausted')),
         deadline_exhausted=bool(capture.get('deadline_exhausted')),
         byte_budget=DIAGNOSTIC_BYTE_BUDGET,
-        drain_thread_finished=(drain_thread is None
-                               or not drain_thread.is_alive()),
+        drain_state=drain_state,
+        drain_thread_finished=drain_finished,
+        capture_exists=drain_state in ('running', 'finished'),
         artifact=capture.get('artifact'),
         artifact_sha256=capture.get('measured_sha256'),
         stream='the owned child stdout+stderr pipe, captured to an immutable '
@@ -1328,8 +1396,13 @@ def main() -> int:
             ('reached_eof', 'drain_error', 'bytes_dropped',
              'budget_exhausted', 'deadline_exhausted')}
          if not out['producer_diagnostics']['raw_capture_complete'] else None),
+        ('no diagnostic capture exists: the drain was %s'
+         % out['producer_diagnostics']['drain_state'].replace('_', ' ')
+         if out['producer_diagnostics']['drain_state'] in ('not_created',
+                                                           'not_started')
+         else None),
         ('the drain thread had not finished, so its state is not a final snapshot'
-         if not out['producer_diagnostics']['drain_thread_finished'] else None),
+         if out['producer_diagnostics']['drain_state'] == 'running' else None),
         ('the absolute deadline expired' if deadline.expired() else None),
         # IN THE VERDICT, NOT AN INFORMATIONAL FIELD. Root, 14:03: "Put the
         # dispatch/cleanup exception in the refusal verdict directly, not merely
@@ -1353,10 +1426,19 @@ def main() -> int:
          if out.get('token_cap_respected') is None else None),
         ('the token cap was exceeded' if out.get('token_cap_respected') is False
          else None),
-        ('%d request(s) were planned but never submitted'
-         % (len(out.get('planned_request_intent') or []) - out.get('submitted_requests', 0))
-         if out.get('submitted_requests', 0)
+        # TRUTHFUL WORDING. "never submitted" was printed for requests whose
+        # transport HAD been invoked, because it compared against the response
+        # counter. Never-attempted and attempted-without-response are different.
+        ('%d planned request(s) had no transport attempt'
+         % (len(out.get('planned_request_intent') or [])
+            - out.get('transport_attempted_requests', 0))
+         if out.get('transport_attempted_requests', 0)
             < len(out.get('planned_request_intent') or []) else None),
+        ('%d request(s) were attempted but received no response'
+         % (out.get('transport_attempted_requests', 0)
+            - out.get('submitted_requests', 0))
+         if out.get('submitted_requests', 0)
+            < out.get('transport_attempted_requests', 0) else None),
     ) if p]
     # THE SUMMARY MUST NOT OUTLIVE THE RECEIPT. Root, 2026-09-23 10:03: "after
     # writing its valid refusal receipt, the console summary accesses the absent

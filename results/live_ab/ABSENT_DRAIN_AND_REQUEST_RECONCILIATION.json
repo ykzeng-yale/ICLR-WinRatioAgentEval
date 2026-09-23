@@ -1,0 +1,57 @@
+{
+ "NOT_DONE_not_claimed": [
+  "unfinished-worker / join-boundary accounting is expressly OPEN, as root directed: a request thread still alive after its bounded join may append to `results` while reconciliation reads it, so counts can disagree with a later state of that worker",
+  "the selected-dependency contract is not yet wired into run_smoke before Popen (root item 3); verify_closure still does not carry the dynamic contract; LC_REEXPORT_DYLIB is not yet failed closed; edges are still keyed by reference text only",
+  "a production descriptor that cannot be made non-blocking still falls back to a blocking read",
+  "elapsed is still measured at child reap rather than through finalisation",
+  "the 8 MiB / 90 s / 600 s / 510 s agreement across plan, configuration and code",
+  "the read-only post-build configuration snapshot root requested as the next receipt"
+ ],
+ "authority": "root, reviews/completion_and_backend_disposition_20260923_1441.md, supervisor items 1 and 2",
+ "base_commit": "2bef6c1",
+ "convention": "deterministic-path",
+ "files": {
+  "experiments/live_ab_serving/run_smoke.py": "0f5cad4296b83fe8e0eb4c7fd2d43731013dcec11e6bda5c2f5af01c71f1303f",
+  "experiments/live_ab_serving/tests_supervisor_entry.py": "34ef550c3d9c38d9ab07448ccd95ff3325db924c6ea3e2633fb97cb73fd8d910"
+ },
+ "generated_utc": "2026-09-23T15:59:57Z",
+ "harness": {
+  "adjacent_suites_after_repair": {
+   "tests_lab_chain": "Ran 70, OK",
+   "tests_lab_design": "Ran 345, OK",
+   "tests_lab_e2e": "Ran 42, OK",
+   "tests_lab_hostcheck": "Ran 117, OK",
+   "tests_lab_isolation": "Ran 33, OK",
+   "tests_lab_serving": "Ran 89, OK",
+   "tests_lab_stats": "Ran 70, OK"
+  },
+  "after_repair": {
+   "tests_dependency_closure": "Ran 15, OK",
+   "tests_supervisor_entry": "Ran 34, OK"
+  },
+  "failure_is_raised_in": "the supervisor's own Thread construction/start/join (the mock _Thread), not the request handler -- the gap root named",
+  "harness_files_pin_set": "33 (32 experiments/live_ab/*.py + config.json), unchanged; nothing added under the pinned glob",
+  "new_cases": [
+   "test_a_drain_that_was_NEVER_CREATED_is_not_a_finished_capture",
+   "test_a_drain_that_was_created_but_NEVER_STARTED",
+   "test_a_SUPERVISOR_Thread_start_failure_still_reconciles_requests",
+   "test_a_SUPERVISOR_Thread_join_failure_still_reconciles_requests"
+  ],
+  "witness_before_repair": "the four new cases run against the unmodified run_smoke.py at 2bef6c1 (detached worktree, harness copied in): Ran 4, FAILED (errors=4)"
+ },
+ "item_1_absent_drain_state": {
+  "now": "four explicit states -- not_created, not_started, running, finished -- carried as producer_diagnostics.drain_state; drain_thread_finished is true only for 'finished'; capture_exists is true only for running/finished; the capture is read only when finished; not_created/not_started put 'no diagnostic capture exists: the drain was <state>' into the refusal verdict; the 'had not finished' verdict line now applies only to 'running'",
+  "was": "`drain_finished = not drain_thread.is_alive()` dereferenced None when the drain was never created; and `drain_thread_finished=(drain_thread is None or not drain_thread.is_alive())` reported a nonexistent drain, and a drain whose start() raised, as finished"
+ },
+ "item_2_reconciliation_on_supervisor_exceptions": {
+  "now": "the attempt ledger (submitted/attempted counters and their lock) is initialised before the child exists; reconciliation runs after the try on every path; every PLANNED request id gets a row -- a worker's own record where one exists, otherwise a synthesised row with state='no_worker_record'; new counts requests_with_worker_record and requests_without_worker_record; usage is summarised against the planned denominator whenever a plan exists",
+  "verdict_wording": "'N planned request(s) had no transport attempt' (planned minus transport_attempted) is now separate from 'N request(s) were attempted but received no response' (transport_attempted minus submitted); the old 'never submitted' line compared against the response counter and so named sent requests as unsent",
+  "was": "the request summary sat inside the try, so a supervisor-side Thread.start or Thread.join failure skipped it and receipt defaults described observed POSTs as 'submitted 0 / never submitted'; my earlier test raised inside the request handler, not the supervisor"
+ },
+ "nothing_executed_THIS_RECEIPT": "no server, model, candidate binary or network request was run; every case drives run_smoke.main() with mocked Popen/Thread/Barrier/requests/clock",
+ "reading_notes": [
+  "`submitted_requests` counts RESPONSES RECEIVED (incremented after requests.post returns), not sends; the name predates this change and is kept because it is already reported. transport_attempted_requests counts sends.",
+  "worker rows carry no `state` key; only rows synthesised for a missing worker record carry state='no_worker_record'. The test's 'recorded' label is the test's own default, not a receipt value."
+ ],
+ "schema": "live_ab/session60_receipt-v1"
+}
