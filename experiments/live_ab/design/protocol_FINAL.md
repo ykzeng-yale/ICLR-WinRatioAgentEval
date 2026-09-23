@@ -439,6 +439,16 @@ git-ignored.
 1. the checkout is built into `<LLAMA_BUILD>`, a durable directory; `git status --porcelain` of the checkout must be
    empty and is recorded; cmake options, compiler version, SDK version and the SHA-256 of the configure and build logs
    are recorded;
+
+   *Amendment 2026-09-23 (pre-outcome; root, `reviews/preparation_wiring_disposition_20260923_1829.md` and issue #11
+   comment 5800875382 -- the narrow patch-state route):* the checkout is the pinned commit with the lifecycle patch
+   `experiments/live_ab_serving/live_ab_slot_lifecycle.patch` (SHA-256
+   `88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184`) applied as its **declared working-tree
+   state**, uncommitted, so that `/props.build_info` reports the pinned commit prefix. For this checkout the
+   empty-status requirement above is replaced by three recorded checks: `HEAD` is
+   `4fea119de30f6a923992780f6fd5ccb0bee5d47d`; `git status --porcelain` lists exactly the two files the patch
+   modifies; and the working tree equals `HEAD` with the patch applied, compared as git trees built in temporary
+   indexes with a temporary object directory. No statistical rule, estimator, stopping rule or margin changes.
 2. the **serving manifest** is assembled and is part of the freeze bundle; it is re-verified at every invocation and at
    every server start and restart. **Manifest fields, all pinned:**
 
