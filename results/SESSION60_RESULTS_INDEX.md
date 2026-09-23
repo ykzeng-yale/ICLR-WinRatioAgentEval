@@ -3321,6 +3321,31 @@ contract via `session60/fix-deposit-scanner`, `session60/fix-config-contract`); 
 **Still open:** the §2.2 patch-state amendment (in progress), the finite feasibility sheet (in progress), root's
 single go/no-go review. Trial, calibration, alpha **0**.
 
+### 2026-09-23 · the patch-state amendment, and the durable linkage delta
+
+**Patch-state amendment** (root 18:29/18:48 wording, merged `8f3f50d`) — `PATCH_STATE_AMENDMENT_RECEIPT_20260923_1933.json`
+(post-build-provenance): protocol §2.2 item 1 gains the declared patch state, additively. Successor
+`64ace6d3…`; `7f666477…` demoted to `prior_successors` (changing commit `0e05d96` verified); original pin
+`3c76e8eb…` untouched. Validation **203** (2 expected failures).
+
+**Durable linkage delta** (root 19:26 item 3) — `experiments/live_ab_serving/durable_linkage_delta.py`, two
+write-once receipts (post-build-provenance), file reads and digests only:
+- `DURABLE_LINKAGE_DELTA.json` — byte-complete durable originals in `durable_build_originals/`
+  (`build.ninja` 1,221,929 B `c20432f6…`, `compile_commands.json` 464,845 B `45502c34…`). One walk (the v2
+  `main()` walk) over both build trees: **373** linked units each, same units, same targets, no problems; the
+  walk over the temporary tree equals the authenticated v2 deposit's own re-derivation, and the temporary
+  originals still match its digests. **30** linked units differ in bytes, so this receipt says
+  `v2_classification_applies_unchanged: false`.
+- `DURABLE_LINKAGE_DELTA_EXPLAINED.json` — the 30 are 20 Metal embed `.s` files and 10 `llama` unity units;
+  each is equal once the two tree roots are replaced by tokens (CMake writes absolute `.incbin` and
+  `#include` paths). The 20 `.incbin`-embedded `.metal` files are byte-identical. Tree-wide delta over every
+  C-family/Metal/assembly file: source 1,454 compared, 0 differ; build 60 compared, 30 differ only by roots,
+  0 beyond (`build-info.cpp`, `ui.cpp`, `license.cpp`, version headers identical). Hence
+  `v2_classification_applies_to_the_durable_build: true`. Not shown: identical object files (not compared;
+  they embed paths).
+
+Tests: delta 6; serving suites together **173**.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
