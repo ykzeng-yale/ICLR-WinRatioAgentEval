@@ -22,6 +22,7 @@ read. Root: "Do not analyze a file still being written."
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import signal
@@ -59,6 +60,45 @@ def _now() -> str:
     return time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
 
 
+#: How much of a retained raw file is decoded into the receipt as a preview.
+RAW_PREVIEW_CHARS = 4000
+
+
+def _retain_bytes(p: Path) -> dict:
+    """Retain a closed file by DIGEST, decoding only a labelled preview.
+
+    Root, 2026-09-23 09:19: "retain raw bytes by digest/reference and decode
+    only a labeled preview; a decoding failure must not erase the refusal
+    record."
+
+    The previous code did `log.read_text('utf-8').splitlines()`, which raises
+    `UnicodeDecodeError` on non-UTF8 bytes -- and that exception escaped before
+    the receipt was written, so the one artifact that would have recorded the
+    problem was destroyed by it. Nothing here raises: an undecodable file is
+    retained by digest and says so.
+    """
+    if not p.exists():
+        return {'present': False}
+    try:
+        raw = p.read_bytes()
+    except Exception as exc:                                   # noqa: BLE001
+        return {'present': True, 'unreadable': '%s: %s' % (type(exc).__name__, exc)}
+    out = {'present': True, 'bytes': len(raw),
+           'sha256': hashlib.sha256(raw).hexdigest(),
+           'path': lab_common.display_path(p),
+           'preview_is_bounded': True, 'preview_chars_cap': RAW_PREVIEW_CHARS}
+    try:
+        text = raw.decode('utf-8')
+        out['decodes_as_utf8'] = True
+    except UnicodeDecodeError as exc:
+        out['decodes_as_utf8'] = False
+        out['decode_error'] = '%s at byte %d' % (exc.reason, exc.start)
+        text = raw.decode('utf-8', 'replace')
+    out['preview'] = text[:RAW_PREVIEW_CHARS]
+    out['preview_truncated'] = len(text) > RAW_PREVIEW_CHARS
+    return out
+
+
 def drain_stream(stream, sink: list, dropped: dict, *,
                  line_cap: int = DIAGNOSTIC_LINE_CAP,
                  char_cap: int = DIAGNOSTIC_LINE_CHARS) -> None:
@@ -73,14 +113,35 @@ def drain_stream(stream, sink: list, dropped: dict, *,
     a failure to drain is appended to the sink as data, since this runs on a
     daemon thread whose exception would otherwise vanish.
     """
+    dropped.setdefault('lines', 0)
+    dropped.setdefault('chars', 0)
+    dropped.setdefault('truncated_lines', 0)
+    dropped['complete'] = False
+    dropped['error'] = None
     try:
         for line in stream:
             if len(sink) < line_cap:
-                sink.append(line.rstrip('\n')[:char_cap])
+                kept = line.rstrip('\n')[:char_cap]
+                # COUNT WHAT TRIMMING COSTS. Root, 2026-09-23 09:19:
+                # "characters removed from retained lines are not counted (a
+                # 900-character line trimmed to 400 reports zero dropped
+                # characters)." A retained-but-truncated line looked identical
+                # to a short one, so the receipt under-reported what was lost.
+                lost = len(line.rstrip('\n')) - len(kept)
+                if lost > 0:
+                    dropped['truncated_lines'] += 1
+                    dropped['chars'] += lost
+                sink.append(kept)
             else:
-                dropped['lines'] = dropped.get('lines', 0) + 1
-                dropped['chars'] = dropped.get('chars', 0) + len(line)
+                dropped['lines'] += 1
+                dropped['chars'] += len(line)
+        dropped['complete'] = True
     except Exception as exc:                                   # noqa: BLE001
+        # Recorded as STRUCTURED state, not only as a line in the sink: root
+        # observed that "an exception or unfinished drain can still accompany
+        # supervisor success", because the caller only looked at the returned
+        # lines.
+        dropped['error'] = '%s: %s' % (type(exc).__name__, exc)
         sink.append('[drain failed: %s: %s]' % (type(exc).__name__, exc))
 
 
@@ -250,37 +311,75 @@ def main() -> int:
         'lines_are_a_bounded_preview': True,
         'line_cap': DIAGNOSTIC_LINE_CAP,
         'chars_per_line_cap': DIAGNOSTIC_LINE_CHARS,
-        'dropped_lines': dropped['lines'],
-        'dropped_chars': dropped['chars'],
-        'drain_finished': not drain_thread.is_alive(),
+        'dropped_lines': dropped.get('lines', 0),
+        'dropped_chars': dropped.get('chars', 0),
+        'truncated_lines': dropped.get('truncated_lines', 0),
+        'drain_reached_eof': bool(dropped.get('complete')),
+        'drain_error': dropped.get('error'),
+        'drain_thread_finished': not drain_thread.is_alive(),
+        # The capture is COMPLETE only if the drain reached EOF, raised nothing,
+        # and dropped nothing. Root: "Incomplete diagnostic capture must not be
+        # reported as complete evidence." This flag is consumed by the
+        # supervisor verdict below, not merely recorded.
+        'capture_complete': (bool(dropped.get('complete'))
+                             and not dropped.get('error')
+                             and not dropped.get('lines', 0)
+                             and not dropped.get('truncated_lines', 0)),
         'stream': 'the child stdout+stderr pipe, drained continuously from launch',
     }
 
-    # --- ONLY NOW read the closed acquisition -------------------------------
+    # --- THE GATE: nothing is parsed, read or hashed until the child is
+    # --- CONFIRMED STOPPED -------------------------------------------------
+    # Root, 2026-09-23 09:19: "both waits timing out still reaches `observe` and
+    # three raw-log reads even though `child_confirmed_stopped=false`. A later
+    # nonzero verdict cannot undo reading a file that may still be written.
+    # Gate before every parse/read/hash."
+    #
+    # Exactly right, and the ordering was the whole point of the reap I added
+    # last cycle: I recorded `child_confirmed_stopped` and then read the files
+    # regardless, so the flag described the situation without governing it.
+    # A refusal computed afterwards does not un-read a file a live producer was
+    # still appending to.
     expected = {'host_id': m['host_id'], 'boot_id': m['boot_id'],
                 'instance_id': token, 'binary_sha256': m['launcher']['sha256'],
                 'patch_sha256': m['patch_sha256']}
-    # THE RETAINED EXIT OUTCOME REACHES THE READER. Root: "The supervisor must
-    # retain this exit outcome and invalidate acquisition even if a readable
-    # earlier seal contains zero counts." It was recorded in the receipt above
-    # and never used, which retains a number without acting on it.
-    #
-    # This supervisor STOPS the server on purpose with SIGTERM, and subprocess
-    # reports a signal death as a NEGATIVE return code, so a healthy teardown is
-    # -15 and not 0. The expectation is DECLARED to the reader rather than the
-    # reader being taught to forgive negative codes, and the raw value is kept.
-    obs = lab_lifecycle.observe(
-        log, expected=expected, process_outcome=proc.returncode,
-        expected_termination_signal=int(signal.SIGTERM))
-    out['acquisition_invalidated_by_process_outcome'] = (
-        obs.get('process_outcome_problem'))
-    out['observation'] = obs
-    out['raw_log_bytes'] = log.stat().st_size if log.exists() else 0
     side = Path(str(log) + '.error')
-    out['sidecar_bytes'] = side.stat().st_size if side.exists() else 0
-    out['raw_log_lines'] = (log.read_text('utf-8').splitlines() if log.exists() else [])
+    obs = None
+    if not out['child_confirmed_stopped']:
+        # The raw files are LEFT IN PLACE, unopened, for later closed-file
+        # recovery. Root: "Preserve the raw files in place ... do not claim that
+        # they are already closed or that their analysis completed."
+        out['acquisition_not_analyzed'] = (
+            'the child was never confirmed stopped, so the lifecycle log and its '
+            'sidecar were NOT opened, parsed or hashed. They are preserved in '
+            'place; they may still have been open for writing.')
+        out['raw_artifacts_preserved_unread'] = [lab_common.display_path(log),
+                                                 lab_common.display_path(side)]
+        out['acquisition_invalidated_by_process_outcome'] = None
+        out['observation'] = None
+    else:
+        # THE RETAINED EXIT OUTCOME REACHES THE READER. The declared stop signal
+        # is passed as a DIAGNOSTIC only: root withdrew the signal-success
+        # exception on 2026-09-23 09:19, and the retained smoke
+        # (SMOKE_RECEIPT_smoke_4167e395ccfd.json) exited 0 under SIGTERM, so the
+        # exception was never needed in the first place.
+        obs = lab_lifecycle.observe(
+            log, expected=expected, process_outcome=proc.returncode,
+            expected_termination_signal=int(signal.SIGTERM))
+        out['acquisition_invalidated_by_process_outcome'] = (
+            obs.get('process_outcome_problem'))
+        out['observation'] = obs
+        out['raw_log_bytes'] = log.stat().st_size if log.exists() else 0
+        out['sidecar_bytes'] = side.stat().st_size if side.exists() else 0
+        # Retain by DIGEST, and decode only a labelled preview. Root: "retain raw
+        # bytes by digest/reference and decode only a labeled preview; a decoding
+        # failure must not erase the refusal record." The previous
+        # `log.read_text('utf-8')` raised on non-UTF8 bytes and took the receipt
+        # with it.
+        out['raw_log'] = _retain_bytes(log)
+        out['raw_sidecar'] = _retain_bytes(side)
 
-    wins = obs.get('active_windows') or []
+    wins = (obs or {}).get('active_windows') or []
     overlap = None
     if len(wins) >= 2:
         a, b = sorted(wins, key=lambda w: w['start'])[:2]
@@ -302,8 +401,14 @@ def main() -> int:
         if out.get('acquisition_invalidated_by_process_outcome') else None,
         ('child never confirmed stopped'
          if not out.get('child_confirmed_stopped') else None),
-        ('acquisition not complete: %s' % obs.get('reason')
-         if not obs.get('lifecycle_complete') else None),
+        ('acquisition not analyzed: %s' % out['acquisition_not_analyzed']
+         if out.get('acquisition_not_analyzed') else None),
+        ('acquisition not complete: %s' % (obs or {}).get('reason')
+         if obs is not None and not obs.get('lifecycle_complete') else None),
+        ('diagnostic capture incomplete: %s'
+         % {k: out['producer_diagnostics'][k] for k in
+            ('drain_reached_eof', 'drain_error', 'dropped_lines', 'truncated_lines')}
+         if not out['producer_diagnostics']['capture_complete'] else None),
     ) if p]
     out['supervisor_problems'] = problems
     dest = Path(lab_common.RESULTS_ROOT) / ('SMOKE_RECEIPT_%s.json' % token)

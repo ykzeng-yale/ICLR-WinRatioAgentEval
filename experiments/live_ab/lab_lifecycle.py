@@ -281,7 +281,30 @@ ARCHIVAL_PATCH_SHA256: frozenset = frozenset({
     '0e79199aeb886e063f7d758b34566eb6dcd3061ee12fb427424475f953f14c43',  # v5
 })
 
-_HEX64 = re.compile(r'^[0-9a-f]{64}$')
+_HEX64 = re.compile(r'[0-9a-f]{64}')
+
+
+def is_digest(value: object) -> bool:
+    """Is this EXACTLY a 64-lowercase-hex digest string?
+
+    Root, 2026-09-23 09:19: "do not coerce arbitrary values with `str()` and do
+    not use a regex ending in `$` as an exact byte-format check. A 64-digit
+    integer and a trailing-newline digest currently pass."
+
+    Both counterexamples reproduce, and both are Python traps:
+
+    * ``str(int('1'*64))`` is a 64-character run of digits, which is valid
+      lowercase hex. Coercing before validating invents a well-formed identity
+      out of something that was never a digest.
+    * ``re.match(r'^[0-9a-f]{64}$', 'a'*64 + '\\n')`` MATCHES, because ``$``
+      anchors at end-of-string *or just before a trailing newline*. ``fullmatch``
+      with no anchor is the exact check; ``\\Z`` would be the other spelling.
+
+    A digest that passes here is still only a DECLARATION. Root: "A
+    syntactically valid digest remains a declaration until the trusted launcher
+    checks actual files."
+    """
+    return isinstance(value, str) and _HEX64.fullmatch(value) is not None
 
 #: What a manifest that selects neither is read as.
 CONTRACT_REPAIRED = 'repaired'
@@ -307,19 +330,32 @@ def process_outcome_problem(outcome: object, *, required: bool,
     process-level refusal is that it happens when no further write can be
     trusted, so the log cannot be the witness to it.
 
-    ``expected_termination_signal`` exists because this producer is a SERVER and
-    the supervisor stops it on purpose. `subprocess` reports a signal death as a
-    NEGATIVE return code, so a perfectly healthy smoke teardown yields ``-15``,
-    not ``0``. Requiring a literal zero would refuse every good acquisition.
+    ``expected_termination_signal`` is a DIAGNOSTIC ONLY. It is recorded and it
+    excuses nothing.
 
-    The supervisor therefore states which signal it sent, and only THAT signal's
-    negation is accepted -- the normalisation is declared by the caller and
-    recorded, rather than the reader quietly mapping any negative code to
-    success. Root's warning against "normalizing the process to manufacture
-    agreement" is why this is a parameter and not a default.
+    WITHDRAWN, 2026-09-23 09:19, and the reasoning that was wrong. I introduced
+    an exception accepting ``outcome == -expected_termination_signal``, arguing
+    that this producer is a server the supervisor stops on purpose, that
+    `subprocess` reports a signal death as a negative code, and therefore that
+    "a healthy teardown is -15, not 0, so requiring a literal zero would refuse
+    every good acquisition".
 
-    ``EXIT_UNRECORDABLE`` is checked FIRST and is never excused: the producer
-    refusing itself outranks any expectation the supervisor had.
+    **The one real run I had says otherwise.** Root checked the immutable
+    ``results/live_ab/SMOKE_RECEIPT_smoke_4167e395ccfd.json``: ``server_exit_code
+    = 0``, wall 54.72 s. llama-server handles SIGTERM and exits cleanly. I
+    reasoned from `subprocess` semantics about what SIGTERM *would* produce
+    instead of reading the retained receipt that answered the question directly
+    -- the same failure as describing a population from a principle while
+    holding the one observation that settles it.
+
+    Root: "Declaring an intended stop signal is not evidence of successful
+    lifecycle finalization." The exception also admitted a declared SIGKILL, a
+    positive exit 1 declared as -1, and coerced boolean/float signal values.
+
+    So the rule is exactly what it was before: a successful outcome is a
+    non-boolean integer zero and nothing else. ``EXIT_UNRECORDABLE`` is named
+    separately because the producer refusing itself deserves its own message,
+    not because it is a different severity.
     """
     if outcome is None:
         if not required:
@@ -334,16 +370,13 @@ def process_outcome_problem(outcome: object, *, required: bool,
                 % EXIT_UNRECORDABLE)
     if nonbool_int_zero(outcome):
         return None
-    if (expected_termination_signal is not None
-            and isinstance(outcome, int) and not isinstance(outcome, bool)
-            and outcome == -int(expected_termination_signal)):
-        return None          # the supervisor stopped it, and said so in advance
     return ('the retained producer exit status is %r; a successful outcome is a '
-            'non-boolean integer zero%s' % (
-                outcome,
-                (' or the declared termination signal -%d'
-                 % int(expected_termination_signal))
-                if expected_termination_signal is not None else ''))
+            'non-boolean integer zero. A declared stop signal%s does not excuse '
+            'a nonzero outcome: the retained smoke exited 0 under SIGTERM, so '
+            'the contract costs nothing to honour'
+            % (outcome,
+               (' (-%s)' % expected_termination_signal)
+               if expected_termination_signal is not None else ''))
 
 
 def sidecar_contract(expected: Optional[dict]) -> Dict[str, Any]:
@@ -379,7 +412,9 @@ def sidecar_contract(expected: Optional[dict]) -> Dict[str, Any]:
                 'identity_problem': 'no manifest at all',
                 'selected_by': 'no manifest: the acquisition is unbound and '
                                'certifies nothing, so no exemption is granted'}
-    declared = str(expected.get('patch_sha256') or '')
+    # NO COERCION: the raw value is validated as it stands (root 09:19).
+    declared_raw = expected.get('patch_sha256')
+    declared = declared_raw if isinstance(declared_raw, str) else ''
     # A PRODUCER IDENTITY IS REQUIRED. Root, 2026-09-23 08:40: "a manifest
     # without usable patch and selected-binary digests must refuse as unbound
     # even if the seal supplies all strict fields and exit zero ... Neither a
@@ -390,10 +425,10 @@ def sidecar_contract(expected: Optional[dict]) -> Dict[str, Any]:
     # zero fields plus exit zero, with the patch and binary simply omitted. That
     # is the same shape as the exemption-by-omission root rejected, one level
     # up -- the manifest, rather than the producer, buying the pass by silence.
-    binary = str(expected.get('binary_sha256') or '')
-    missing = [name for name, value in (('patch_sha256', declared),
-                                        ('binary_sha256', binary))
-               if not _HEX64.match(value)]
+    binary_raw = expected.get('binary_sha256')
+    missing = [name for name, value in (('patch_sha256', declared_raw),
+                                        ('binary_sha256', binary_raw))
+               if not is_digest(value)]
     if missing:
         return {'contract': CONTRACT_UNBOUND,
                 'sidecar_failures_required': False,

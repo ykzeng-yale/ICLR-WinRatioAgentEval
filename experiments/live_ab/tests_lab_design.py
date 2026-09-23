@@ -4312,40 +4312,12 @@ class AcquisitionSealTests(unittest.TestCase):
         self.assertTrue(obs['sidecar_records_are_previews'])
 
     # -- the supervisor half of root's item 2 -------------------------------
-    def test_only_the_DECLARED_termination_signal_is_a_successful_outcome(self):
-        """This producer is a SERVER the supervisor stops on purpose, and
-        `subprocess` reports a signal death as a NEGATIVE return code -- so a
-        healthy teardown is -15, not 0, and requiring a literal zero would refuse
-        every good acquisition.
-
-        The supervisor therefore DECLARES which signal it sent. The reader is not
-        taught to forgive negative codes generally: an undeclared -15 refuses, a
-        SIGKILL refuses while SIGTERM was declared, and exit 93 refuses even then
-        -- the producer refusing itself outranks any expectation the supervisor
-        had. Root warned against "normalizing the process to manufacture
-        agreement", which is why the expectation is a declared parameter and the
-        raw value is retained.
-        """
-        self._emit(0, 11)
-        self._seal(sidecar_failures=0)
-        sigterm = int(signal.SIGTERM)
-
-        def obs(outcome, declared):
-            return lab_lifecycle.observe(
-                self.log, provenance=self.prov,
-                expected=dict(self.expected, patch_sha256='f' * 64),
-                process_outcome=outcome,
-                expected_termination_signal=declared)
-
-        self.assertIsNone(obs(0, None)['seal_problem'])            # control
-        self.assertIsNone(obs(-sigterm, sigterm)['seal_problem'])  # control
-        self.assertEqual(obs(-sigterm, sigterm)['process_outcome'], -sigterm,
-                         'the RAW outcome must be retained, not normalised away')
-        for outcome, declared in ((-sigterm, None), (-9, sigterm),
-                                  (1, sigterm),
-                                  (lab_lifecycle.EXIT_UNRECORDABLE, sigterm)):
-            with self.subTest(outcome=outcome, declared=declared):
-                self.assertIsNotNone(obs(outcome, declared)['seal_problem'])
+    # REMOVED 2026-09-23 09:19: test_only_the_DECLARED_termination_signal_
+    # is_a_successful_outcome asserted the signal-success exception root has
+    # since WITHDRAWN. It encoded the rule, so keeping it would have held the
+    # withdrawn behaviour in place. Superseded by
+    # test_a_DECLARED_STOP_SIGNAL_EXCUSES_NOTHING above, which asserts the
+    # opposite and cites the retained smoke receipt that settles it.
 
     def test_the_supervisor_drain_is_bounded_and_counts_what_it_drops(self):
         """Root: "The terminal-failure path still depends on an unchecked stderr
@@ -4381,6 +4353,105 @@ class AcquisitionSealTests(unittest.TestCase):
         run_smoke.drain_stream(exploding(), sink2, dropped2)
         self.assertEqual(sink2[0], 'first')
         self.assertIn('drain failed', sink2[1])
+        # STRUCTURED state, not just a line in the sink: root observed that "an
+        # exception or unfinished drain can still accompany supervisor success"
+        # because the caller only looked at the returned lines.
+        self.assertFalse(dropped2['complete'])
+        self.assertIn('OSError', dropped2['error'])
+
+    def test_trimming_a_retained_line_is_COUNTED(self):
+        """Root: "characters removed from retained lines are not counted (a
+        900-character line trimmed to 400 reports zero dropped characters)."
+
+        A retained-but-truncated line looked identical to a short one, so the
+        receipt under-reported what was lost.
+        """
+        import importlib.util
+        spec = importlib.util.spec_from_file_location(
+            'run_smoke_trim',
+            Path(__file__).resolve().parents[1] / 'live_ab_serving' / 'run_smoke.py')
+        run_smoke = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(run_smoke)
+
+        sink, dropped = [], {}
+        run_smoke.drain_stream(iter(['x' * 900 + '\n']), sink, dropped,
+                               line_cap=10, char_cap=400)
+        self.assertEqual(len(sink[0]), 400)
+        self.assertEqual(dropped['truncated_lines'], 1)
+        self.assertEqual(dropped['chars'], 500)      # 900 - 400, not zero
+        self.assertEqual(dropped['lines'], 0)        # the line was RETAINED
+        self.assertTrue(dropped['complete'])
+
+        sink2, dropped2 = [], {}
+        run_smoke.drain_stream(iter(['short\n']), sink2, dropped2, char_cap=400)
+        self.assertEqual(dropped2['chars'], 0)       # control: nothing trimmed
+        self.assertEqual(dropped2['truncated_lines'], 0)
+
+    # -- root 2026-09-23 09:19 ----------------------------------------------
+    def test_a_DECLARED_STOP_SIGNAL_EXCUSES_NOTHING(self):
+        """WITHDRAWN EXCEPTION. I accepted `outcome == -expected_signal`, arguing
+        that a healthy teardown is -15 so requiring zero would refuse every good
+        acquisition.
+
+        The one real run I had says otherwise: the immutable
+        `results/live_ab/SMOKE_RECEIPT_smoke_4167e395ccfd.json` records
+        `server_exit_code = 0` under SIGTERM. I reasoned from `subprocess`
+        semantics about what SIGTERM *would* produce instead of reading the
+        receipt that answered it.
+
+        Root: "Declaring an intended stop signal is not evidence of successful
+        lifecycle finalization." The exception also admitted a declared SIGKILL,
+        a positive exit 1 declared as -1, and coerced boolean/float signals.
+        """
+        smoke = json.loads((Path(__file__).resolve().parents[2] / 'results'
+                            / 'live_ab'
+                            / 'SMOKE_RECEIPT_smoke_4167e395ccfd.json').read_text('utf-8'))
+        self.assertEqual(smoke['server_exit_code'], 0,
+                         'the retained smoke is the evidence that the exception '
+                         'was never needed')
+        self._emit(0, 11)
+        self._seal(sidecar_failures=0)
+
+        def obs(outcome, declared):
+            return lab_lifecycle.observe(
+                self.log, provenance=self.prov,
+                expected=dict(self.expected, patch_sha256='f' * 64,
+                              binary_sha256='b' * 64),
+                process_outcome=outcome, expected_termination_signal=declared)
+
+        self.assertIsNone(obs(0, 15)['seal_problem'], 'control: zero certifies')
+        for outcome, declared in ((-15, 15), (-9, 9), (1, -1), (-15, True),
+                                  (-15, 15.0), (lab_lifecycle.EXIT_UNRECORDABLE, 15)):
+            with self.subTest(outcome=outcome, declared=declared):
+                self.assertIsNotNone(obs(outcome, declared)['seal_problem'],
+                                     'a declared signal must excuse nothing')
+
+    def test_identity_digests_are_not_coerced_and_anchor_exactly(self):
+        """Root: "do not coerce arbitrary values with `str()` and do not use a
+        regex ending in `$` as an exact byte-format check. A 64-digit integer and
+        a trailing-newline digest currently pass."
+
+        Both are Python traps. `str(int('1'*64))` is 64 valid hex digits, so
+        coercing before validating invents a well-formed identity. And
+        `re.match(r'^[0-9a-f]{64}$', 'a'*64 + '\\n')` MATCHES, because `$`
+        anchors at end-of-string *or just before a trailing newline*.
+        """
+        self.assertTrue(lab_lifecycle.is_digest('a' * 64))
+        for bad in (int('1' * 64), 'a' * 64 + '\n', 'A' * 64, 'a' * 63,
+                    'a' * 65, b'a' * 64, None, True, 12345):
+            with self.subTest(value=repr(bad)[:24]):
+                self.assertFalse(lab_lifecycle.is_digest(bad))
+        self._emit(0, 11)
+        self._seal(sidecar_failures=0)
+        for bad in (int('1' * 64), 'a' * 64 + '\n'):
+            with self.subTest(patch=repr(bad)[:24]):
+                o = lab_lifecycle.observe(
+                    self.log, provenance=self.prov,
+                    expected=dict(self.expected, patch_sha256=bad,
+                                  binary_sha256='b' * 64),
+                    process_outcome=0)
+                self.assertEqual(o['acquisition_contract']['contract'], 'unbound')
+                self.assertFalse(o['lifecycle_complete'])
 
     # -- the contract -------------------------------------------------------
     def test_an_UNSEALED_log_does_not_certify(self):
