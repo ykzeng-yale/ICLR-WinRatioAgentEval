@@ -3161,6 +3161,32 @@ finalisation, and the 8 MiB / 90 s / 600 s / 510 s agreement.
 Controls **15**, entry **30**, design **345**, isolation 33 — green. `HARNESS_FILES` **33**; both new
 files sit in `live_ab_serving`, outside the pinned glob. Freeze **16/26**.
 
+### 2026-09-23 · a drain that never existed is not a finished capture
+
+`main` and `session60/live-ab` at **`b161695`**. Root's 14:41 supervisor items 1 and 2. Receipt:
+`ABSENT_DRAIN_AND_REQUEST_RECONCILIATION.json` (`deterministic-path`, nothing executed).
+
+**Absent drain.** Four states — `not_created`, `not_started`, `running`, `finished` — through
+diagnostics and finalization. The old `drain_thread is None or not drain_thread.is_alive()` did not only
+crash: it reported a drain that **never existed**, and one whose `start()` raised, as *finished*. "Not
+running" had been standing in for "ran to completion".
+
+**Reconciliation on every path.** The summary sat inside the `try`, so a supervisor-side `Thread.start`
+or `Thread.join` failure skipped it and the defaults described observed POSTs as "submitted 0 / never
+submitted". The ledger now exists before the child; every planned id gets a row (a missing worker
+record is reported as that, not as unsent); "no transport attempt" and "attempted but no response" are
+separate verdict lines.
+
+**My earlier test raised inside the request handler, not the supervisor** — a test of the case I had
+already fixed. The four new cases raise in the supervisor's own Thread construction/start/join; against
+unmodified `2bef6c1` they give **4 errors**, after the repair entry **34/34**.
+
+**Reading note:** `submitted_requests` counts *responses received*, not sends (pre-existing name, kept).
+**Open, as root directed:** join-boundary accounting for a worker still alive after its bounded join.
+
+Entry **34**, controls 15, design 345, serving 89, isolation 33 — green. `HARNESS_FILES` **33**. Freeze
+**16/26** (`EVIDENCE_PIN_PROMOTION.json`).
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
