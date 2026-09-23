@@ -1,0 +1,49 @@
+{
+  "source_commit": "3befd1507362904aaef8d3424983ae145b7a1480",
+  "source_sha256": "1be7ff7fd208859d916512fa829b11f908cdcf5894c411fc93e30fa40710e2d8",
+  "method": "AST-extracted exact validator, nine in-memory dictionaries; no launch, imports from candidate, network or model",
+  "cases": [
+    {
+      "case": "historical_shape",
+      "problems": []
+    },
+    {
+      "case": "missing_temperature",
+      "problems": []
+    },
+    {
+      "case": "missing_host_id",
+      "problems": []
+    },
+    {
+      "case": "missing_boot_id",
+      "problems": []
+    },
+    {
+      "case": "missing_patch_sha256",
+      "problems": []
+    },
+    {
+      "case": "negative_max_tokens",
+      "problems": []
+    },
+    {
+      "case": "boolean_temperature",
+      "problems": []
+    },
+    {
+      "case": "nonfinite_temperature",
+      "problems": []
+    },
+    {
+      "case": "empty_object",
+      "problems": [
+        "manifest is missing 'model'",
+        "manifest is missing 'request'",
+        "manifest is missing 'port'",
+        "manifest is missing 'server_args'",
+        "manifest is missing 'caps'"
+      ]
+    }
+  ]
+}

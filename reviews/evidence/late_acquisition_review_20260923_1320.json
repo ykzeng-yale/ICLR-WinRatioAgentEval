@@ -1,0 +1,233 @@
+{
+  "head": "4ccfbbc71d7c14259b340ae5de6d030997ce4751",
+  "source_commit": "3befd1507362904aaef8d3424983ae145b7a1480",
+  "hashes": {
+    "experiments/live_ab_serving/run_smoke.py": "1be7ff7fd208859d916512fa829b11f908cdcf5894c411fc93e30fa40710e2d8",
+    "experiments/live_ab/lab_lifecycle.py": "604556893fb5d381049756f765251bc45bd1f57ea632630d68fe2ee5610ac0b2",
+    "experiments/live_ab_serving/tests_supervisor_entry.py": "a178b49afbef6537db13d79231afc5674c34c209e4978aaab30a5942a3dba779",
+    "results/live_ab/SMOKE_RECEIPT_smoke_4167e395ccfd.json": "087961a921bc0ec7c5980650f67ee901e7cfa9ada6799ee64c59b494b869a388",
+    "results/live_ab/SMOKE_LAUNCH_MANIFEST_smoke_4167e395ccfd.json": "9694ac9b76dc0e567ba3c152f4407e6358bdc4ddba48d972eb651f2204992934",
+    "results/live_ab/ACQUISITION_FINALIZATION_AND_DEADLINE.json": "226191ddec2e7716fae88cf5c1a6b0cddddcfe28373e67bcedee0ad7d7b21be7"
+  },
+  "owner_tests": [
+    {
+      "name": "test_an_incomplete_manifest_reaches_a_TERMINAL_RECEIPT",
+      "result": "PASS",
+      "elapsed_seconds": 0.011227374896407127,
+      "terminal_receipts": 1,
+      "unexpected_processes": [],
+      "child_started": false,
+      "manifest_validation": {
+        "problems": [
+          "manifest is missing 'model'",
+          "manifest is missing 'request'",
+          "manifest is missing 'port'",
+          "manifest is missing 'server_args'",
+          "manifest is missing 'caps'"
+        ],
+        "usable": false
+      },
+      "attempted_requests": null,
+      "posted_calls": 0,
+      "observation_reason": null
+    },
+    {
+      "name": "test_manifest_domain_errors_are_named_not_thrown",
+      "result": "PASS",
+      "elapsed_seconds": 0.011508875526487827,
+      "terminal_receipts": 1,
+      "unexpected_processes": [],
+      "child_started": false,
+      "manifest_validation": {
+        "problems": [
+          "manifest[\"request\"]['max_tokens'] is a bool, not an int",
+          "manifest[\"port\"] 99999 is not a usable TCP port",
+          "manifest[\"server_args\"] contains a non-string"
+        ],
+        "usable": false
+      },
+      "attempted_requests": null,
+      "posted_calls": 0,
+      "observation_reason": null
+    },
+    {
+      "name": "test_an_UNDECODABLE_lifecycle_log_reaches_a_terminal_receipt",
+      "result": "PASS",
+      "elapsed_seconds": 0.021657957695424557,
+      "terminal_receipts": 1,
+      "unexpected_processes": [],
+      "child_started": true,
+      "manifest_validation": {
+        "problems": [],
+        "usable": true
+      },
+      "attempted_requests": 2,
+      "posted_calls": 2,
+      "observation_reason": "the lifecycle log at <TMP>/sup_entry_g02ukelp/lifecycle.jsonl is not valid UTF-8 (invalid start byte at byte 0 of 19); it is REFUSED and retained, not decoded with replacements, because a replaced byte is not the byte the producer wrote"
+    },
+    {
+      "name": "test_no_POST_is_sent_if_the_cutoff_passes_during_the_barrier",
+      "result": "PASS",
+      "elapsed_seconds": 0.018913707695901394,
+      "terminal_receipts": 1,
+      "unexpected_processes": [],
+      "child_started": true,
+      "manifest_validation": {
+        "problems": [],
+        "usable": true
+      },
+      "attempted_requests": 0,
+      "posted_calls": 0,
+      "observation_reason": null
+    },
+    {
+      "name": "test_the_drain_does_not_block_on_a_quiet_pipe",
+      "result": "PASS",
+      "elapsed_seconds": 0.4097929997369647,
+      "terminal_receipts": 0,
+      "unexpected_processes": []
+    }
+  ],
+  "missing_fields": [
+    {
+      "omitted_field": "request.temperature",
+      "validate_manifest_problems": [],
+      "manifest_sha256": "ec6048c8277ce0e09e03e8dbc9fe481a805a692d7c12670e0c05073ed3476fcb",
+      "uncaught_exception": "KeyError",
+      "exception_message": "'temperature'",
+      "terminal_receipts": 0,
+      "post_calls": 0,
+      "poll_calls": 1,
+      "wait_calls": 0,
+      "child_returncode": null,
+      "stdout_bytes_consumed": 21,
+      "intent_artifacts": 0,
+      "response_artifacts": 0,
+      "unexpected_processes": []
+    },
+    {
+      "omitted_field": "host_id",
+      "validate_manifest_problems": [],
+      "manifest_sha256": "f543af394944fa72dc630332ba78b5be8dfd5f17bfdb29187db10aa1efcc0974",
+      "uncaught_exception": "KeyError",
+      "exception_message": "'host_id'",
+      "terminal_receipts": 0,
+      "post_calls": 2,
+      "poll_calls": 1,
+      "wait_calls": 1,
+      "child_returncode": 0,
+      "stdout_bytes_consumed": 21,
+      "intent_artifacts": 1,
+      "response_artifacts": 2,
+      "unexpected_processes": []
+    },
+    {
+      "omitted_field": "boot_id",
+      "validate_manifest_problems": [],
+      "manifest_sha256": "144aab02b67b00779ca85d144c58854f079a51bfc40a616caac05cc192e6c101",
+      "uncaught_exception": "KeyError",
+      "exception_message": "'boot_id'",
+      "terminal_receipts": 0,
+      "post_calls": 2,
+      "poll_calls": 1,
+      "wait_calls": 1,
+      "child_returncode": 0,
+      "stdout_bytes_consumed": 21,
+      "intent_artifacts": 1,
+      "response_artifacts": 2,
+      "unexpected_processes": []
+    },
+    {
+      "omitted_field": "patch_sha256",
+      "validate_manifest_problems": [],
+      "manifest_sha256": "166a95e160e312bb106f04536e058c8cc15848bda524818c65ebe6e57a678efe",
+      "uncaught_exception": "KeyError",
+      "exception_message": "'patch_sha256'",
+      "terminal_receipts": 0,
+      "post_calls": 2,
+      "poll_calls": 1,
+      "wait_calls": 1,
+      "child_returncode": 0,
+      "stdout_bytes_consumed": 21,
+      "intent_artifacts": 1,
+      "response_artifacts": 2,
+      "unexpected_processes": []
+    }
+  ],
+  "guards": {
+    "denied_external_calls": [],
+    "pipe_pairs": 1
+  },
+  "quiet_pipe": {
+    "elapsed_seconds": 0.4092341670766473,
+    "state": {
+      "bytes_captured": 0,
+      "bytes_dropped": 0,
+      "reached_eof": false,
+      "error": null,
+      "budget_exhausted": false,
+      "deadline_exhausted": true,
+      "artifact": "<TMP>/sup_entry_t66bddgg/quiet.bin",
+      "nonblocking_reads": true,
+      "attempted_write_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "attempted_write_bytes": 0,
+      "measured_bytes": 0,
+      "measured_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "measured_unavailable": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "attempted_equals_measured": true,
+      "raw_capture_complete": false
+    },
+    "artifact_bytes": 0
+  },
+  "counts": {
+    "owner_tests_run": 5,
+    "owner_tests_passed": 5,
+    "skipped": 0,
+    "actual_main_missing_field_witnesses": 4,
+    "simulations": 0,
+    "models": 0,
+    "native_children": 0,
+    "http": 0,
+    "builds": 0
+  },
+  "review_script_sha256": "f02d89d9e41658285da3923e7886f02de8207e2554f3f392765d1caf184eee26",
+  "scope": "Five newly added owner test methods and four missing-field actual-main witnesses; no unchanged suite rerun.",
+  "isolation": "Fake launcher, HTTP, signals and actual-main time; independent external Popen/socket/system/signal guards. One real quiet local os.pipe pair with 0.4-second drain deadline was explicitly authorized. Temporary artifacts were closed and inspected before cleanup.",
+  "fixture_transformations": {
+    "base": "Owner setUp uses pinned saved smoke+launch manifest, fake launcher/model/two library bytes, host/boot values from pinned smoke and a zero-failure seal.",
+    "counterexamples": "Individually delete request.temperature, host_id, boot_id or patch_sha256 from that otherwise usable manifest; no other modifications."
+  },
+  "accepted_subset": [
+    "Empty object schema refusal persists one terminal receipt before launch.",
+    "The three named port/max_tokens/server_args domain errors persist a refusal.",
+    "Invalid UTF-8 lifecycle bytes reach refusal and raw-byte retention.",
+    "A deadline elapsed at barrier prevents both POSTs.",
+    "Nonblocking descriptor drain exits the tested quiet pipe at its bounded deadline."
+  ],
+  "remaining_contract": "Validation does not cover all actual dereferences. Four valid-JSON missing-field cases escape with KeyError and no terminal receipt, one before cleanup. Existing artifact/source binding and remaining acquisition-plan deadline agreement are separate root-owned work, not closed by these tests.",
+  "deadline_source_inspection": {
+    "after_artifact_verification_before_launch": 730,
+    "health_timeout_and_sleep": [
+      784,
+      785,
+      789
+    ],
+    "post_barrier_deadline": 889,
+    "immediately_before_transport_deadline": 916,
+    "post_timeout": 930,
+    "claim_limit": "These exact call sites and one quiet descriptor witness are checked; no blanket 600-second elapsed-time guarantee or additional boundary sweep was tested."
+  },
+  "progress": {
+    "full_project_readiness_percent": 75,
+    "change_percentage_points": 0,
+    "bounded_v1_percent": 90,
+    "remaining": {
+      "prospective_study": 10,
+      "final_integration_QA": 5,
+      "author_checks": 10
+    },
+    "cpu_validation_and_integration": "complete, unchanged"
+  },
+  "reproduction_script": "import contextlib, hashlib, importlib.util, io, json, os, socket, subprocess, time\nfrom pathlib import Path\nfrom unittest import mock\nROOT=Path('/Users/yukang/Documents/Codex/2026-09-17/i-x20/outputs/agent_win_eval')\npaths=['experiments/live_ab_serving/run_smoke.py','experiments/live_ab/lab_lifecycle.py','experiments/live_ab_serving/tests_supervisor_entry.py','results/live_ab/SMOKE_RECEIPT_smoke_4167e395ccfd.json','results/live_ab/SMOKE_LAUNCH_MANIFEST_smoke_4167e395ccfd.json','results/live_ab/ACQUISITION_FINALIZATION_AND_DEADLINE.json']\nev={'head':'4ccfbbc71d7c14259b340ae5de6d030997ce4751','source_commit':'3befd1507362904aaef8d3424983ae145b7a1480','hashes':{p:hashlib.sha256((ROOT/p).read_bytes()).hexdigest() for p in paths},'owner_tests':[],'missing_fields':[],'guards':{'denied_external_calls':[], 'pipe_pairs':0},'quiet_pipe':{}}\nspec=importlib.util.spec_from_file_location('independent_late_harness',ROOT/paths[2]); H=importlib.util.module_from_spec(spec); spec.loader.exec_module(H)\nH.SupervisorEntryPointTests.setUpClass()\nreal_pipe=os.pipe\n\ndef deny(name):\n def f(*a,**k):\n  ev['guards']['denied_external_calls'].append(name)\n  raise AssertionError('independent guard denied '+name)\n return f\n\ndef pipe_once():\n ev['guards']['pipe_pairs']+=1\n assert ev['guards']['pipe_pairs']==1\n return real_pipe()\n\nrs=H.SupervisorEntryPointTests.rs\nreal_drain=rs.drain_to_artifact\n\ndef measured_drain(*a,**kw):\n start=time.perf_counter()\n result=real_drain(*a,**kw)\n if Path(a[1]).name=='quiet.bin':\n  ev['quiet_pipe']={'elapsed_seconds':time.perf_counter()-start,'state':dict(a[2]),'artifact_bytes':Path(a[1]).stat().st_size}\n return result\n\nnames=['test_an_incomplete_manifest_reaches_a_TERMINAL_RECEIPT','test_manifest_domain_errors_are_named_not_thrown','test_an_UNDECODABLE_lifecycle_log_reaches_a_terminal_receipt','test_no_POST_is_sent_if_the_cutoff_passes_during_the_barrier','test_the_drain_does_not_block_on_a_quiet_pipe']\nwith contextlib.ExitStack() as stack:\n for obj,attr,name in [(subprocess,'Popen','Popen'),(socket,'socket','socket'),(os,'system','system'),(os,'kill','kill'),(os,'killpg','killpg')]: stack.enter_context(mock.patch.object(obj,attr,deny(name)))\n stack.enter_context(mock.patch.object(os,'pipe',pipe_once))\n stack.enter_context(mock.patch.object(rs,'drain_to_artifact',measured_drain))\n for name in names:\n  test=H.SupervisorEntryPointTests(name); test.setUp(); console=io.StringIO(); start=time.perf_counter()\n  try:\n   with contextlib.redirect_stdout(console),contextlib.redirect_stderr(console): getattr(test,name)()\n   receipt=test._persisted()\n   row={'name':name,'result':'PASS','elapsed_seconds':time.perf_counter()-start,'terminal_receipts':len(list(test.results.glob('SMOKE_RECEIPT*.json'))),'unexpected_processes':getattr(test,'denied',[])}\n   if receipt:\n    row.update(child_started=receipt.get('child_started'),manifest_validation=receipt.get('manifest_validation'),attempted_requests=receipt.get('transport_attempted_requests'),posted_calls=len(getattr(test,'posted',[])),observation_reason=(receipt.get('observation') or {}).get('reason'))\n   ev['owner_tests'].append(row)\n  finally: test.doCleanups()\n class Proc(H._Proc):\n  def __init__(self): super().__init__(); self.poll_calls=0; self.wait_calls=0\n  def poll(self): self.poll_calls+=1; return super().poll()\n  def wait(self,timeout=None): self.wait_calls+=1; return super().wait(timeout=timeout)\n for field in ['request.temperature','host_id','boot_id','patch_sha256']:\n  test=H.SupervisorEntryPointTests('test_a_valid_run_writes_one_receipt_and_returns_zero'); test.setUp(); proc=Proc(); posts=[]\n  try:\n   m=json.loads(test.man_path.read_text())\n   if '.' in field: section,key=field.split('.'); del m[section][key]\n   else: del m[field]\n   test.man_path.write_text(json.dumps(m),encoding='utf-8')\n   row={'omitted_field':field,'validate_manifest_problems':rs.validate_manifest(m),'manifest_sha256':hashlib.sha256(test.man_path.read_bytes()).hexdigest()}\n   def post_watch(*a,**kw): posts.append(kw); return H._Resp(H.OK_BODY)\n   try:\n    with contextlib.redirect_stdout(io.StringIO()),contextlib.redirect_stderr(io.StringIO()): status,receipt=test._run(proc=proc,post_hook=post_watch)\n    row.update(status=status,uncaught_exception=None)\n   except Exception as exc: row.update(uncaught_exception=type(exc).__name__,exception_message=str(exc))\n   row.update(terminal_receipts=len(list(test.results.glob('SMOKE_RECEIPT*.json'))),post_calls=len(posts),poll_calls=proc.poll_calls,wait_calls=proc.wait_calls,child_returncode=proc.returncode,stdout_bytes_consumed=proc.stdout.tell(),intent_artifacts=len(list(test.root.glob('*.intent.json'))),response_artifacts=len(list(test.root.glob('*.response'))),unexpected_processes=test.denied)\n   ev['missing_fields'].append(row)\n  finally: test.doCleanups()\nev['counts']={'owner_tests_run':len(ev['owner_tests']),'owner_tests_passed':sum(x['result']=='PASS' for x in ev['owner_tests']),'skipped':0,'actual_main_missing_field_witnesses':len(ev['missing_fields']),'simulations':0,'models':0,'native_children':0,'http':0,'builds':0}\nassert all(x['uncaught_exception']=='KeyError' and x['terminal_receipts']==0 and not x['validate_manifest_problems'] for x in ev['missing_fields'])\nev['review_script_sha256']=hashlib.sha256(Path(__file__).read_bytes()).hexdigest()\nPath('/private/tmp/late_acquisition_1320_result.json').write_text(json.dumps(ev,indent=2)+'\\n')\nprint(json.dumps(ev,indent=2))\n"
+}

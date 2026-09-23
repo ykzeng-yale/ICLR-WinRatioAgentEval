@@ -1,0 +1,662 @@
+{
+  "reviewed_head": "0a3e64d6b8627eb3b70d8531391c91f528a1429a",
+  "source_commit": "60e85489768e60297210904859d01463522fb472",
+  "run_smoke_sha256": "845102536cacbb6910032ee25c900eddc28c9b54c4296c567a04acc750acbda7",
+  "receipt_sha256": "8e9f736a8c392bdcd3fdfb7af874147e203fd891c07c24100e46fe7c374e27b9",
+  "scope": "11 finite synthetic-file calls to verify_launch_artifacts only. No main/Popen/child/server/model/native/network/build/fullsuite. Closure/control files are dummy bytes, not verified binary artifacts.",
+  "fixtures": {
+    "llama-server": {
+      "bytes": 18,
+      "sha256": "aa35ef74e0979a937244f7d07a083703cfd88de27fd638192db0777b7c98af90"
+    },
+    "model.gguf": {
+      "bytes": 15,
+      "sha256": "6bd8f29788b203c2c450e1f34c8de0bd01b55eb7f05d55d24672b070251e1d64"
+    },
+    "libllama-server-impl.dylib": {
+      "bytes": 23,
+      "sha256": "9b4b07ba60693770951f4b2e5ad5149daa5da0ea2000a560f68711d19cc6e33a"
+    },
+    "libggml-cpu.dylib": {
+      "bytes": 16,
+      "sha256": "6f812770d0cf2d88832b9d7bce9be4babd17484a890613b0437611d5ebb28189"
+    },
+    "unrelated.dylib": {
+      "bytes": 14,
+      "sha256": "855261c29c20a6fa95b92298459695fbdbaaedcd8c205b982e46ce31a49fcd45"
+    }
+  },
+  "cases": [
+    {
+      "case": "declared_two_member_inventory_control",
+      "manifest": {
+        "launcher": {
+          "sha256": "aa35ef74e0979a937244f7d07a083703cfd88de27fd638192db0777b7c98af90"
+        },
+        "model": {
+          "sha256": "6bd8f29788b203c2c450e1f34c8de0bd01b55eb7f05d55d24672b070251e1d64"
+        },
+        "base_revision": "4fea119de30f6a923992780f6fd5ccb0bee5d47d",
+        "patch_sha256": "5e29eebafcf7fffec67ea35d5ebf468e07a1a55625c8508ef221c3f499b05f73",
+        "non_system_library_closure": {
+          "libllama-server-impl.dylib": {
+            "sha256": "9b4b07ba60693770951f4b2e5ad5149daa5da0ea2000a560f68711d19cc6e33a"
+          },
+          "libggml-cpu.dylib": {
+            "sha256": "6f812770d0cf2d88832b9d7bce9be4babd17484a890613b0437611d5ebb28189"
+          }
+        }
+      },
+      "verdict": {
+        "checks": [
+          {
+            "artifact": "launcher",
+            "path": "<TMP>/launch1320_vjkybi7a/llama-server",
+            "declared_sha256": "aa35ef74e0979a937244f7d07a083703cfd88de27fd638192db0777b7c98af90",
+            "measured_sha256": "aa35ef74e0979a937244f7d07a083703cfd88de27fd638192db0777b7c98af90",
+            "bytes": 18,
+            "agrees": true
+          },
+          {
+            "artifact": "model",
+            "path": "<TMP>/launch1320_vjkybi7a/model.gguf",
+            "declared_sha256": "6bd8f29788b203c2c450e1f34c8de0bd01b55eb7f05d55d24672b070251e1d64",
+            "measured_sha256": "6bd8f29788b203c2c450e1f34c8de0bd01b55eb7f05d55d24672b070251e1d64",
+            "bytes": 15,
+            "agrees": true
+          },
+          {
+            "library": "libggml-cpu.dylib",
+            "declared_sha256": "6f812770d0cf2d88832b9d7bce9be4babd17484a890613b0437611d5ebb28189",
+            "path": "<TMP>/launch1320_vjkybi7a/libggml-cpu.dylib",
+            "measured_sha256": "6f812770d0cf2d88832b9d7bce9be4babd17484a890613b0437611d5ebb28189",
+            "agrees": true
+          },
+          {
+            "library": "libllama-server-impl.dylib",
+            "declared_sha256": "9b4b07ba60693770951f4b2e5ad5149daa5da0ea2000a560f68711d19cc6e33a",
+            "path": "<TMP>/launch1320_vjkybi7a/libllama-server-impl.dylib",
+            "measured_sha256": "9b4b07ba60693770951f4b2e5ad5149daa5da0ea2000a560f68711d19cc6e33a",
+            "agrees": true
+          }
+        ],
+        "problems": [],
+        "verified": true,
+        "measured_from_disk": true,
+        "libraries_declared": 2,
+        "libraries_verified": 2,
+        "note": "measured byte digests of the launcher, the model AND the declared non-system library closure, compared with the immutable launch manifest BEFORE Popen. This is an inventory check of the declared members, not a proven transitive closure."
+      }
+    },
+    {
+      "case": "missing_closure",
+      "manifest": {
+        "launcher": {
+          "sha256": "aa35ef74e0979a937244f7d07a083703cfd88de27fd638192db0777b7c98af90"
+        },
+        "model": {
+          "sha256": "6bd8f29788b203c2c450e1f34c8de0bd01b55eb7f05d55d24672b070251e1d64"
+        },
+        "base_revision": "4fea119de30f6a923992780f6fd5ccb0bee5d47d",
+        "patch_sha256": "5e29eebafcf7fffec67ea35d5ebf468e07a1a55625c8508ef221c3f499b05f73"
+      },
+      "verdict": {
+        "checks": [
+          {
+            "artifact": "launcher",
+            "path": "<TMP>/launch1320_vjkybi7a/llama-server",
+            "declared_sha256": "aa35ef74e0979a937244f7d07a083703cfd88de27fd638192db0777b7c98af90",
+            "measured_sha256": "aa35ef74e0979a937244f7d07a083703cfd88de27fd638192db0777b7c98af90",
+            "bytes": 18,
+            "agrees": true
+          },
+          {
+            "artifact": "model",
+            "path": "<TMP>/launch1320_vjkybi7a/model.gguf",
+            "declared_sha256": "6bd8f29788b203c2c450e1f34c8de0bd01b55eb7f05d55d24672b070251e1d64",
+            "measured_sha256": "6bd8f29788b203c2c450e1f34c8de0bd01b55eb7f05d55d24672b070251e1d64",
+            "bytes": 15,
+            "agrees": true
+          },
+          {
+            "problem": "the manifest declares no non-system library closure, so the implementation libraries this launcher loads are unverified. A missing required input refuses before Popen."
+          }
+        ],
+        "problems": [
+          "the manifest declares no non-system library closure, so the implementation libraries this launcher loads are unverified. A missing required input refuses before Popen."
+        ],
+        "verified": false,
+        "measured_from_disk": true,
+        "libraries_declared": 0,
+        "libraries_verified": 0,
+        "note": "measured byte digests of the launcher, the model AND the declared non-system library closure, compared with the immutable launch manifest BEFORE Popen. This is an inventory check of the declared members, not a proven transitive closure."
+      }
+    },
+    {
+      "case": "empty_closure",
+      "manifest": {
+        "launcher": {
+          "sha256": "aa35ef74e0979a937244f7d07a083703cfd88de27fd638192db0777b7c98af90"
+        },
+        "model": {
+          "sha256": "6bd8f29788b203c2c450e1f34c8de0bd01b55eb7f05d55d24672b070251e1d64"
+        },
+        "base_revision": "4fea119de30f6a923992780f6fd5ccb0bee5d47d",
+        "patch_sha256": "5e29eebafcf7fffec67ea35d5ebf468e07a1a55625c8508ef221c3f499b05f73",
+        "non_system_library_closure": {}
+      },
+      "verdict": {
+        "checks": [
+          {
+            "artifact": "launcher",
+            "path": "<TMP>/launch1320_vjkybi7a/llama-server",
+            "declared_sha256": "aa35ef74e0979a937244f7d07a083703cfd88de27fd638192db0777b7c98af90",
+            "measured_sha256": "aa35ef74e0979a937244f7d07a083703cfd88de27fd638192db0777b7c98af90",
+            "bytes": 18,
+            "agrees": true
+          },
+          {
+            "artifact": "model",
+            "path": "<TMP>/launch1320_vjkybi7a/model.gguf",
+            "declared_sha256": "6bd8f29788b203c2c450e1f34c8de0bd01b55eb7f05d55d24672b070251e1d64",
+            "measured_sha256": "6bd8f29788b203c2c450e1f34c8de0bd01b55eb7f05d55d24672b070251e1d64",
+            "bytes": 15,
+            "agrees": true
+          },
+          {
+            "problem": "the manifest declares no non-system library closure, so the implementation libraries this launcher loads are unverified. A missing required input refuses before Popen."
+          }
+        ],
+        "problems": [
+          "the manifest declares no non-system library closure, so the implementation libraries this launcher loads are unverified. A missing required input refuses before Popen."
+        ],
+        "verified": false,
+        "measured_from_disk": true,
+        "libraries_declared": 0,
+        "libraries_verified": 0,
+        "note": "measured byte digests of the launcher, the model AND the declared non-system library closure, compared with the immutable launch manifest BEFORE Popen. This is an inventory check of the declared members, not a proven transitive closure."
+      }
+    },
+    {
+      "case": "declared_implementation_changed",
+      "manifest": {
+        "launcher": {
+          "sha256": "aa35ef74e0979a937244f7d07a083703cfd88de27fd638192db0777b7c98af90"
+        },
+        "model": {
+          "sha256": "6bd8f29788b203c2c450e1f34c8de0bd01b55eb7f05d55d24672b070251e1d64"
+        },
+        "base_revision": "4fea119de30f6a923992780f6fd5ccb0bee5d47d",
+        "patch_sha256": "5e29eebafcf7fffec67ea35d5ebf468e07a1a55625c8508ef221c3f499b05f73",
+        "non_system_library_closure": {
+          "libllama-server-impl.dylib": {
+            "sha256": "9b4b07ba60693770951f4b2e5ad5149daa5da0ea2000a560f68711d19cc6e33a"
+          },
+          "libggml-cpu.dylib": {
+            "sha256": "6f812770d0cf2d88832b9d7bce9be4babd17484a890613b0437611d5ebb28189"
+          }
+        }
+      },
+      "verdict": {
+        "checks": [
+          {
+            "artifact": "launcher",
+            "path": "<TMP>/launch1320_vjkybi7a/llama-server",
+            "declared_sha256": "aa35ef74e0979a937244f7d07a083703cfd88de27fd638192db0777b7c98af90",
+            "measured_sha256": "aa35ef74e0979a937244f7d07a083703cfd88de27fd638192db0777b7c98af90",
+            "bytes": 18,
+            "agrees": true
+          },
+          {
+            "artifact": "model",
+            "path": "<TMP>/launch1320_vjkybi7a/model.gguf",
+            "declared_sha256": "6bd8f29788b203c2c450e1f34c8de0bd01b55eb7f05d55d24672b070251e1d64",
+            "measured_sha256": "6bd8f29788b203c2c450e1f34c8de0bd01b55eb7f05d55d24672b070251e1d64",
+            "bytes": 15,
+            "agrees": true
+          },
+          {
+            "library": "libggml-cpu.dylib",
+            "declared_sha256": "6f812770d0cf2d88832b9d7bce9be4babd17484a890613b0437611d5ebb28189",
+            "path": "<TMP>/launch1320_vjkybi7a/libggml-cpu.dylib",
+            "measured_sha256": "6f812770d0cf2d88832b9d7bce9be4babd17484a890613b0437611d5ebb28189",
+            "agrees": true
+          },
+          {
+            "library": "libllama-server-impl.dylib",
+            "declared_sha256": "9b4b07ba60693770951f4b2e5ad5149daa5da0ea2000a560f68711d19cc6e33a",
+            "path": "<TMP>/launch1320_vjkybi7a/libllama-server-impl.dylib",
+            "measured_sha256": "5eac4c3aaa1477000ab18c518a75c2f955f5441a89304acc7a5b481fbd93bf6f",
+            "agrees": false,
+            "problem": "libllama-server-impl.dylib does not match its declared pin"
+          }
+        ],
+        "problems": [
+          "libllama-server-impl.dylib does not match its declared pin"
+        ],
+        "verified": false,
+        "measured_from_disk": true,
+        "libraries_declared": 2,
+        "libraries_verified": 1,
+        "note": "measured byte digests of the launcher, the model AND the declared non-system library closure, compared with the immutable launch manifest BEFORE Popen. This is an inventory check of the declared members, not a proven transitive closure."
+      }
+    },
+    {
+      "case": "declared_backend_absent",
+      "manifest": {
+        "launcher": {
+          "sha256": "aa35ef74e0979a937244f7d07a083703cfd88de27fd638192db0777b7c98af90"
+        },
+        "model": {
+          "sha256": "6bd8f29788b203c2c450e1f34c8de0bd01b55eb7f05d55d24672b070251e1d64"
+        },
+        "base_revision": "4fea119de30f6a923992780f6fd5ccb0bee5d47d",
+        "patch_sha256": "5e29eebafcf7fffec67ea35d5ebf468e07a1a55625c8508ef221c3f499b05f73",
+        "non_system_library_closure": {
+          "libllama-server-impl.dylib": {
+            "sha256": "9b4b07ba60693770951f4b2e5ad5149daa5da0ea2000a560f68711d19cc6e33a"
+          },
+          "libggml-cpu.dylib": {
+            "sha256": "6f812770d0cf2d88832b9d7bce9be4babd17484a890613b0437611d5ebb28189"
+          }
+        }
+      },
+      "verdict": {
+        "checks": [
+          {
+            "artifact": "launcher",
+            "path": "<TMP>/launch1320_vjkybi7a/llama-server",
+            "declared_sha256": "aa35ef74e0979a937244f7d07a083703cfd88de27fd638192db0777b7c98af90",
+            "measured_sha256": "aa35ef74e0979a937244f7d07a083703cfd88de27fd638192db0777b7c98af90",
+            "bytes": 18,
+            "agrees": true
+          },
+          {
+            "artifact": "model",
+            "path": "<TMP>/launch1320_vjkybi7a/model.gguf",
+            "declared_sha256": "6bd8f29788b203c2c450e1f34c8de0bd01b55eb7f05d55d24672b070251e1d64",
+            "measured_sha256": "6bd8f29788b203c2c450e1f34c8de0bd01b55eb7f05d55d24672b070251e1d64",
+            "bytes": 15,
+            "agrees": true
+          },
+          {
+            "library": "libggml-cpu.dylib",
+            "declared_sha256": "6f812770d0cf2d88832b9d7bce9be4babd17484a890613b0437611d5ebb28189",
+            "path": "<TMP>/launch1320_vjkybi7a/libggml-cpu.dylib",
+            "problem": "libggml-cpu.dylib is declared but absent beside the launcher"
+          },
+          {
+            "library": "libllama-server-impl.dylib",
+            "declared_sha256": "9b4b07ba60693770951f4b2e5ad5149daa5da0ea2000a560f68711d19cc6e33a",
+            "path": "<TMP>/launch1320_vjkybi7a/libllama-server-impl.dylib",
+            "measured_sha256": "9b4b07ba60693770951f4b2e5ad5149daa5da0ea2000a560f68711d19cc6e33a",
+            "agrees": true
+          }
+        ],
+        "problems": [
+          "libggml-cpu.dylib is declared but absent beside the launcher"
+        ],
+        "verified": false,
+        "measured_from_disk": true,
+        "libraries_declared": 2,
+        "libraries_verified": 1,
+        "note": "measured byte digests of the launcher, the model AND the declared non-system library closure, compared with the immutable launch manifest BEFORE Popen. This is an inventory check of the declared members, not a proven transitive closure."
+      }
+    },
+    {
+      "case": "declared_library_digest_malformed",
+      "manifest": {
+        "launcher": {
+          "sha256": "aa35ef74e0979a937244f7d07a083703cfd88de27fd638192db0777b7c98af90"
+        },
+        "model": {
+          "sha256": "6bd8f29788b203c2c450e1f34c8de0bd01b55eb7f05d55d24672b070251e1d64"
+        },
+        "base_revision": "4fea119de30f6a923992780f6fd5ccb0bee5d47d",
+        "patch_sha256": "5e29eebafcf7fffec67ea35d5ebf468e07a1a55625c8508ef221c3f499b05f73",
+        "non_system_library_closure": {
+          "libllama-server-impl.dylib": {
+            "sha256": "bad"
+          },
+          "libggml-cpu.dylib": {
+            "sha256": "6f812770d0cf2d88832b9d7bce9be4babd17484a890613b0437611d5ebb28189"
+          }
+        }
+      },
+      "verdict": {
+        "checks": [
+          {
+            "artifact": "launcher",
+            "path": "<TMP>/launch1320_vjkybi7a/llama-server",
+            "declared_sha256": "aa35ef74e0979a937244f7d07a083703cfd88de27fd638192db0777b7c98af90",
+            "measured_sha256": "aa35ef74e0979a937244f7d07a083703cfd88de27fd638192db0777b7c98af90",
+            "bytes": 18,
+            "agrees": true
+          },
+          {
+            "artifact": "model",
+            "path": "<TMP>/launch1320_vjkybi7a/model.gguf",
+            "declared_sha256": "6bd8f29788b203c2c450e1f34c8de0bd01b55eb7f05d55d24672b070251e1d64",
+            "measured_sha256": "6bd8f29788b203c2c450e1f34c8de0bd01b55eb7f05d55d24672b070251e1d64",
+            "bytes": 15,
+            "agrees": true
+          },
+          {
+            "library": "libggml-cpu.dylib",
+            "declared_sha256": "6f812770d0cf2d88832b9d7bce9be4babd17484a890613b0437611d5ebb28189",
+            "path": "<TMP>/launch1320_vjkybi7a/libggml-cpu.dylib",
+            "measured_sha256": "6f812770d0cf2d88832b9d7bce9be4babd17484a890613b0437611d5ebb28189",
+            "agrees": true
+          },
+          {
+            "library": "libllama-server-impl.dylib",
+            "declared_sha256": "bad",
+            "path": "<TMP>/launch1320_vjkybi7a/libllama-server-impl.dylib",
+            "problem": "libllama-server-impl.dylib declares no usable digest"
+          }
+        ],
+        "problems": [
+          "libllama-server-impl.dylib declares no usable digest"
+        ],
+        "verified": false,
+        "measured_from_disk": true,
+        "libraries_declared": 2,
+        "libraries_verified": 1,
+        "note": "measured byte digests of the launcher, the model AND the declared non-system library closure, compared with the immutable launch manifest BEFORE Popen. This is an inventory check of the declared members, not a proven transitive closure."
+      }
+    },
+    {
+      "case": "implementation_omitted_and_changed",
+      "manifest": {
+        "launcher": {
+          "sha256": "aa35ef74e0979a937244f7d07a083703cfd88de27fd638192db0777b7c98af90"
+        },
+        "model": {
+          "sha256": "6bd8f29788b203c2c450e1f34c8de0bd01b55eb7f05d55d24672b070251e1d64"
+        },
+        "base_revision": "4fea119de30f6a923992780f6fd5ccb0bee5d47d",
+        "patch_sha256": "5e29eebafcf7fffec67ea35d5ebf468e07a1a55625c8508ef221c3f499b05f73",
+        "non_system_library_closure": {
+          "libggml-cpu.dylib": {
+            "sha256": "6f812770d0cf2d88832b9d7bce9be4babd17484a890613b0437611d5ebb28189"
+          }
+        }
+      },
+      "verdict": {
+        "checks": [
+          {
+            "artifact": "launcher",
+            "path": "<TMP>/launch1320_vjkybi7a/llama-server",
+            "declared_sha256": "aa35ef74e0979a937244f7d07a083703cfd88de27fd638192db0777b7c98af90",
+            "measured_sha256": "aa35ef74e0979a937244f7d07a083703cfd88de27fd638192db0777b7c98af90",
+            "bytes": 18,
+            "agrees": true
+          },
+          {
+            "artifact": "model",
+            "path": "<TMP>/launch1320_vjkybi7a/model.gguf",
+            "declared_sha256": "6bd8f29788b203c2c450e1f34c8de0bd01b55eb7f05d55d24672b070251e1d64",
+            "measured_sha256": "6bd8f29788b203c2c450e1f34c8de0bd01b55eb7f05d55d24672b070251e1d64",
+            "bytes": 15,
+            "agrees": true
+          },
+          {
+            "library": "libggml-cpu.dylib",
+            "declared_sha256": "6f812770d0cf2d88832b9d7bce9be4babd17484a890613b0437611d5ebb28189",
+            "path": "<TMP>/launch1320_vjkybi7a/libggml-cpu.dylib",
+            "measured_sha256": "6f812770d0cf2d88832b9d7bce9be4babd17484a890613b0437611d5ebb28189",
+            "agrees": true
+          }
+        ],
+        "problems": [],
+        "verified": true,
+        "measured_from_disk": true,
+        "libraries_declared": 1,
+        "libraries_verified": 1,
+        "note": "measured byte digests of the launcher, the model AND the declared non-system library closure, compared with the immutable launch manifest BEFORE Popen. This is an inventory check of the declared members, not a proven transitive closure."
+      }
+    },
+    {
+      "case": "backend_omitted_and_absent",
+      "manifest": {
+        "launcher": {
+          "sha256": "aa35ef74e0979a937244f7d07a083703cfd88de27fd638192db0777b7c98af90"
+        },
+        "model": {
+          "sha256": "6bd8f29788b203c2c450e1f34c8de0bd01b55eb7f05d55d24672b070251e1d64"
+        },
+        "base_revision": "4fea119de30f6a923992780f6fd5ccb0bee5d47d",
+        "patch_sha256": "5e29eebafcf7fffec67ea35d5ebf468e07a1a55625c8508ef221c3f499b05f73",
+        "non_system_library_closure": {
+          "libllama-server-impl.dylib": {
+            "sha256": "9b4b07ba60693770951f4b2e5ad5149daa5da0ea2000a560f68711d19cc6e33a"
+          }
+        }
+      },
+      "verdict": {
+        "checks": [
+          {
+            "artifact": "launcher",
+            "path": "<TMP>/launch1320_vjkybi7a/llama-server",
+            "declared_sha256": "aa35ef74e0979a937244f7d07a083703cfd88de27fd638192db0777b7c98af90",
+            "measured_sha256": "aa35ef74e0979a937244f7d07a083703cfd88de27fd638192db0777b7c98af90",
+            "bytes": 18,
+            "agrees": true
+          },
+          {
+            "artifact": "model",
+            "path": "<TMP>/launch1320_vjkybi7a/model.gguf",
+            "declared_sha256": "6bd8f29788b203c2c450e1f34c8de0bd01b55eb7f05d55d24672b070251e1d64",
+            "measured_sha256": "6bd8f29788b203c2c450e1f34c8de0bd01b55eb7f05d55d24672b070251e1d64",
+            "bytes": 15,
+            "agrees": true
+          },
+          {
+            "library": "libllama-server-impl.dylib",
+            "declared_sha256": "9b4b07ba60693770951f4b2e5ad5149daa5da0ea2000a560f68711d19cc6e33a",
+            "path": "<TMP>/launch1320_vjkybi7a/libllama-server-impl.dylib",
+            "measured_sha256": "9b4b07ba60693770951f4b2e5ad5149daa5da0ea2000a560f68711d19cc6e33a",
+            "agrees": true
+          }
+        ],
+        "problems": [],
+        "verified": true,
+        "measured_from_disk": true,
+        "libraries_declared": 1,
+        "libraries_verified": 1,
+        "note": "measured byte digests of the launcher, the model AND the declared non-system library closure, compared with the immutable launch manifest BEFORE Popen. This is an inventory check of the declared members, not a proven transitive closure."
+      }
+    },
+    {
+      "case": "unrelated_member_only_inventory",
+      "manifest": {
+        "launcher": {
+          "sha256": "aa35ef74e0979a937244f7d07a083703cfd88de27fd638192db0777b7c98af90"
+        },
+        "model": {
+          "sha256": "6bd8f29788b203c2c450e1f34c8de0bd01b55eb7f05d55d24672b070251e1d64"
+        },
+        "base_revision": "4fea119de30f6a923992780f6fd5ccb0bee5d47d",
+        "patch_sha256": "5e29eebafcf7fffec67ea35d5ebf468e07a1a55625c8508ef221c3f499b05f73",
+        "non_system_library_closure": {
+          "unrelated.dylib": {
+            "sha256": "855261c29c20a6fa95b92298459695fbdbaaedcd8c205b982e46ce31a49fcd45"
+          }
+        }
+      },
+      "verdict": {
+        "checks": [
+          {
+            "artifact": "launcher",
+            "path": "<TMP>/launch1320_vjkybi7a/llama-server",
+            "declared_sha256": "aa35ef74e0979a937244f7d07a083703cfd88de27fd638192db0777b7c98af90",
+            "measured_sha256": "aa35ef74e0979a937244f7d07a083703cfd88de27fd638192db0777b7c98af90",
+            "bytes": 18,
+            "agrees": true
+          },
+          {
+            "artifact": "model",
+            "path": "<TMP>/launch1320_vjkybi7a/model.gguf",
+            "declared_sha256": "6bd8f29788b203c2c450e1f34c8de0bd01b55eb7f05d55d24672b070251e1d64",
+            "measured_sha256": "6bd8f29788b203c2c450e1f34c8de0bd01b55eb7f05d55d24672b070251e1d64",
+            "bytes": 15,
+            "agrees": true
+          },
+          {
+            "library": "unrelated.dylib",
+            "declared_sha256": "855261c29c20a6fa95b92298459695fbdbaaedcd8c205b982e46ce31a49fcd45",
+            "path": "<TMP>/launch1320_vjkybi7a/unrelated.dylib",
+            "measured_sha256": "855261c29c20a6fa95b92298459695fbdbaaedcd8c205b982e46ce31a49fcd45",
+            "agrees": true
+          }
+        ],
+        "problems": [],
+        "verified": true,
+        "measured_from_disk": true,
+        "libraries_declared": 1,
+        "libraries_verified": 1,
+        "note": "measured byte digests of the launcher, the model AND the declared non-system library closure, compared with the immutable launch manifest BEFORE Popen. This is an inventory check of the declared members, not a proven transitive closure."
+      }
+    },
+    {
+      "case": "source_and_patch_declarations_absent",
+      "manifest": {
+        "launcher": {
+          "sha256": "aa35ef74e0979a937244f7d07a083703cfd88de27fd638192db0777b7c98af90"
+        },
+        "model": {
+          "sha256": "6bd8f29788b203c2c450e1f34c8de0bd01b55eb7f05d55d24672b070251e1d64"
+        },
+        "non_system_library_closure": {
+          "libllama-server-impl.dylib": {
+            "sha256": "9b4b07ba60693770951f4b2e5ad5149daa5da0ea2000a560f68711d19cc6e33a"
+          },
+          "libggml-cpu.dylib": {
+            "sha256": "6f812770d0cf2d88832b9d7bce9be4babd17484a890613b0437611d5ebb28189"
+          }
+        }
+      },
+      "verdict": {
+        "checks": [
+          {
+            "artifact": "launcher",
+            "path": "<TMP>/launch1320_vjkybi7a/llama-server",
+            "declared_sha256": "aa35ef74e0979a937244f7d07a083703cfd88de27fd638192db0777b7c98af90",
+            "measured_sha256": "aa35ef74e0979a937244f7d07a083703cfd88de27fd638192db0777b7c98af90",
+            "bytes": 18,
+            "agrees": true
+          },
+          {
+            "artifact": "model",
+            "path": "<TMP>/launch1320_vjkybi7a/model.gguf",
+            "declared_sha256": "6bd8f29788b203c2c450e1f34c8de0bd01b55eb7f05d55d24672b070251e1d64",
+            "measured_sha256": "6bd8f29788b203c2c450e1f34c8de0bd01b55eb7f05d55d24672b070251e1d64",
+            "bytes": 15,
+            "agrees": true
+          },
+          {
+            "library": "libggml-cpu.dylib",
+            "declared_sha256": "6f812770d0cf2d88832b9d7bce9be4babd17484a890613b0437611d5ebb28189",
+            "path": "<TMP>/launch1320_vjkybi7a/libggml-cpu.dylib",
+            "measured_sha256": "6f812770d0cf2d88832b9d7bce9be4babd17484a890613b0437611d5ebb28189",
+            "agrees": true
+          },
+          {
+            "library": "libllama-server-impl.dylib",
+            "declared_sha256": "9b4b07ba60693770951f4b2e5ad5149daa5da0ea2000a560f68711d19cc6e33a",
+            "path": "<TMP>/launch1320_vjkybi7a/libllama-server-impl.dylib",
+            "measured_sha256": "9b4b07ba60693770951f4b2e5ad5149daa5da0ea2000a560f68711d19cc6e33a",
+            "agrees": true
+          }
+        ],
+        "problems": [],
+        "verified": true,
+        "measured_from_disk": true,
+        "libraries_declared": 2,
+        "libraries_verified": 2,
+        "note": "measured byte digests of the launcher, the model AND the declared non-system library closure, compared with the immutable launch manifest BEFORE Popen. This is an inventory check of the declared members, not a proven transitive closure."
+      }
+    },
+    {
+      "case": "malformed_source_and_patch_declarations",
+      "manifest": {
+        "launcher": {
+          "sha256": "aa35ef74e0979a937244f7d07a083703cfd88de27fd638192db0777b7c98af90"
+        },
+        "model": {
+          "sha256": "6bd8f29788b203c2c450e1f34c8de0bd01b55eb7f05d55d24672b070251e1d64"
+        },
+        "base_revision": "not-a-source-revision",
+        "patch_sha256": "not-a-patch-digest",
+        "non_system_library_closure": {
+          "libllama-server-impl.dylib": {
+            "sha256": "9b4b07ba60693770951f4b2e5ad5149daa5da0ea2000a560f68711d19cc6e33a"
+          },
+          "libggml-cpu.dylib": {
+            "sha256": "6f812770d0cf2d88832b9d7bce9be4babd17484a890613b0437611d5ebb28189"
+          }
+        }
+      },
+      "verdict": {
+        "checks": [
+          {
+            "artifact": "launcher",
+            "path": "<TMP>/launch1320_vjkybi7a/llama-server",
+            "declared_sha256": "aa35ef74e0979a937244f7d07a083703cfd88de27fd638192db0777b7c98af90",
+            "measured_sha256": "aa35ef74e0979a937244f7d07a083703cfd88de27fd638192db0777b7c98af90",
+            "bytes": 18,
+            "agrees": true
+          },
+          {
+            "artifact": "model",
+            "path": "<TMP>/launch1320_vjkybi7a/model.gguf",
+            "declared_sha256": "6bd8f29788b203c2c450e1f34c8de0bd01b55eb7f05d55d24672b070251e1d64",
+            "measured_sha256": "6bd8f29788b203c2c450e1f34c8de0bd01b55eb7f05d55d24672b070251e1d64",
+            "bytes": 15,
+            "agrees": true
+          },
+          {
+            "library": "libggml-cpu.dylib",
+            "declared_sha256": "6f812770d0cf2d88832b9d7bce9be4babd17484a890613b0437611d5ebb28189",
+            "path": "<TMP>/launch1320_vjkybi7a/libggml-cpu.dylib",
+            "measured_sha256": "6f812770d0cf2d88832b9d7bce9be4babd17484a890613b0437611d5ebb28189",
+            "agrees": true
+          },
+          {
+            "library": "libllama-server-impl.dylib",
+            "declared_sha256": "9b4b07ba60693770951f4b2e5ad5149daa5da0ea2000a560f68711d19cc6e33a",
+            "path": "<TMP>/launch1320_vjkybi7a/libllama-server-impl.dylib",
+            "measured_sha256": "9b4b07ba60693770951f4b2e5ad5149daa5da0ea2000a560f68711d19cc6e33a",
+            "agrees": true
+          }
+        ],
+        "problems": [],
+        "verified": true,
+        "measured_from_disk": true,
+        "libraries_declared": 2,
+        "libraries_verified": 2,
+        "note": "measured byte digests of the launcher, the model AND the declared non-system library closure, compared with the immutable launch manifest BEFORE Popen. This is an inventory check of the declared members, not a proven transitive closure."
+      }
+    }
+  ],
+  "case_count": 11,
+  "disposition": {
+    "accepted": [
+      "Missing/empty declared closure refuses",
+      "Changed, absent, or malformed-digest declared members refuse",
+      "Correct declared members are measured and counted"
+    ],
+    "remaining": [
+      "Required implementation/backend inventory completeness not established",
+      "Source revision/patch identity and matching build relationship unchecked",
+      "Sibling-name construction is not runtime-loader resolution or transitive closure"
+    ],
+    "v4_policy": "Original v4 evidence retained/readable only; no historical exemption for a new acquisition."
+  },
+  "readiness": {
+    "full_percent": 75,
+    "change": 0,
+    "bounded_v1_percent": 90,
+    "cpu": "complete and integrated unchanged"
+  }
+}

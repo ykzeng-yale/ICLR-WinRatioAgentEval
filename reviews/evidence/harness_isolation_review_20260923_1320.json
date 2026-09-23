@@ -1,0 +1,89 @@
+{
+  "head": "0a3e64d6b8627eb3b70d8531391c91f528a1429a",
+  "reviewed_commit": "de9ca8b116c7c82b5bc231de96c910fd35a71040",
+  "owner_receipt_generated_utc": "2026-09-23T12:50:26Z",
+  "harness_sha256": "b80485fba28447b54bb6e019449f27aec49c90fb431e657e4c7f4f61937d47e8",
+  "receipt_hash_matches": true,
+  "declared_case_names_match": true,
+  "declared_case_count": 14,
+  "actual_declared_method_count": 14,
+  "changed_tests_run": 2,
+  "failures": [],
+  "errors": [],
+  "skipped": [],
+  "observations": [
+    {
+      "case": "test_an_unreapable_child_reads_NOTHING_and_refuses",
+      "read_events": [],
+      "observer_calls": [],
+      "denied_process_attempts": [],
+      "fake_clock": [
+        1000.0
+      ]
+    },
+    {
+      "case": "test_the_read_spy_DOES_see_reads_on_the_healthy_path",
+      "read_events": [
+        [
+          "read_text",
+          "/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry_09cmu7de/lifecycle.jsonl"
+        ],
+        [
+          "open",
+          "/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry_09cmu7de/lifecycle.jsonl"
+        ],
+        [
+          "read_bytes",
+          "/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry_09cmu7de/lifecycle.jsonl"
+        ],
+        [
+          "open",
+          "/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry_09cmu7de/lifecycle.jsonl"
+        ],
+        [
+          "read_bytes",
+          "/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry_09cmu7de/lifecycle.jsonl"
+        ],
+        [
+          "open",
+          "/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry_09cmu7de/lifecycle.jsonl"
+        ]
+      ],
+      "observer_calls": [
+        "/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/sup_entry_09cmu7de/lifecycle.jsonl"
+      ],
+      "denied_process_attempts": [],
+      "fake_clock": [
+        1000.0
+      ]
+    }
+  ],
+  "extra_deny_guards_reached": [],
+  "negative_control": {
+    "harness_raised": false,
+    "status": 1,
+    "denied_attempts": [
+      [
+        "unexpected-review-command"
+      ],
+      [
+        "unexpected-review-command"
+      ]
+    ],
+    "request_errors": [
+      "AssertionError: the suite attempted an unexpected process: ['unexpected-review-command']. Nothing but the launcher may be created here.",
+      "AssertionError: the suite attempted an unexpected process: ['unexpected-review-command']. Nothing but the launcher may be created here."
+    ]
+  },
+  "limits": [
+    "Only2changed/relevant owner cases rerun;14-case historical OK remains owner-reported.",
+    "Additional mocked transport control never invokes real process.",
+    "No real child/HTTP/network/signal/model/build/sleep executed.",
+    "No elapsed-time-boundary coverage added."
+  ],
+  "readiness": {
+    "full_percent": 75,
+    "change": 0,
+    "bounded_v1_percent": 90
+  }
+}

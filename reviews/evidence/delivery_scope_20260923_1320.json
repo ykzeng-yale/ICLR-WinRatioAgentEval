@@ -1,0 +1,40 @@
+{
+  "prior_root": "911383f7272b89cf1eeae55c4f4c40e3a4833ac9",
+  "early_review_head": "0a3e64d6b8627eb3b70d8531391c91f528a1429a",
+  "last_seen_main_live": "4ccfbbc71d7c14259b340ae5de6d030997ce4751",
+  "unchanged_functions": [
+    {
+      "path": "experiments/live_ab_serving/run_smoke.py",
+      "function": "verify_launch_artifacts",
+      "ast_unchanged": true
+    },
+    {
+      "path": "experiments/live_ab_serving/run_smoke.py",
+      "function": "_persist_response_bytes",
+      "ast_unchanged": true
+    },
+    {
+      "path": "experiments/live_ab_serving/run_smoke.py",
+      "function": "summarize_usage",
+      "ast_unchanged": true
+    },
+    {
+      "path": "experiments/live_ab_serving/tests_supervisor_entry.py",
+      "function": "fake_popen",
+      "ast_unchanged": true
+    }
+  ],
+  "changed_paths": [
+    "experiments/live_ab/lab_lifecycle.py",
+    "experiments/live_ab/tests_lab_design.py",
+    "experiments/live_ab_serving/run_smoke.py",
+    "experiments/live_ab_serving/tests_supervisor_entry.py",
+    "results/SESSION60_RESULTS_INDEX.md",
+    "results/live_ab/ACQUISITION_FINALIZATION_AND_DEADLINE.json",
+    "results/live_ab/HARNESS_ISOLATION_CORRECTIONS.json",
+    "results/live_ab/REQUEST_DURABILITY_AND_LAUNCH_BINDING.json",
+    "scratchpad/last_github_check.txt"
+  ],
+  "paper_release_changes": false,
+  "scope": "Static comparison supports carry-forward of the three unchanged helpers and fake_popen findings only; request-main failure branches separately inspected, not reexecuted at late commit."
+}
