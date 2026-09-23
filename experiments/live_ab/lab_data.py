@@ -192,6 +192,46 @@ def _pilot():
     return mod
 
 
+def _pilot_sandbox():
+    """The pilot's `sandbox` module, through the same matrix row `(s)` grant as `_pilot`."""
+    mod = _pilot_cache.get('sandbox')
+    if mod is None:
+        lab_common.add_import_paths()
+        import sandbox as _ls_sandbox    # noqa: E402  (deliberately late)
+        _pilot_cache['sandbox'] = mod = _ls_sandbox
+    return mod
+
+
+def observed_sandbox_profile_sha256() -> str | None:
+    """The sha256 of the seatbelt profile THIS host would actually enforce, or None.
+
+    The freeze bundle pins `sandbox_profile_sha256` and `BUNDLE_MEMBERS_RECOMPUTED`
+    declares it recomputed at every preflight.  Reading it back out of the frozen
+    config -- which is what preflight used to do -- makes that comparison test the
+    config against itself, so it can never report a disagreement.  This asks the
+    sandbox instead.
+
+    Returns None rather than raising, and never substitutes a configured value, when
+    the pilot module is unimportable or the platform has no `sandbox-exec` (`kind`
+    `'none'` carries `profile_sha256=None`).  `verify_bundle_members` then reports the
+    member as drift against `MEMBER_ABSENT`: unobservable is not agreement.
+
+    The digest is a function of the owner home, the base-interpreter prefix and the
+    sandbox base directory (`ls_sbx` inside the ambient TMPDIR), so it identifies an
+    exact execution environment by design (protocol 5.7 item 2).  TMPDIR and the
+    interpreter are deliberately NOT normalised to the prescribed ones here:
+    normalising would report a profile that nobody is going to enforce, and the whole
+    point is to catch the run that never exported the prescribed TMPDIR --
+    `results/live_ab/SANDBOX_TMPDIR_RECONCILIATION.json` records that failure passing
+    silently.
+    """
+    try:
+        digest = _pilot_sandbox().sandbox_info().get('profile_sha256')
+    except Exception:
+        return None
+    return str(digest) if isinstance(digest, str) and digest else None
+
+
 def _pilot_verify():
     """Import the pilot's `verify` module (used only by `sweep_references`)."""
     mod = _pilot_cache.get('verify')

@@ -156,7 +156,17 @@ def build_mock_freeze(root: Path, *, n_pairs: int, trial: str, delta: float | No
     cfg['execution']['request_timeout_s'] = 180.0
     cfg['execution']['episode_hard_cap_s'] = lab_orchestrator.episode_hard_cap_s(
         cfg['execution'])
-    cfg['sandbox']['profile_sha256'] = sha256_text('mock-sandbox-profile')
+    # Preflight now OBSERVES the seatbelt profile this host would actually enforce
+    # instead of copying the frozen pin (lab_orchestrator.observed_sandbox_profile_
+    # sha256), for the same reason the allowlist below names the real host: a member
+    # compared against itself can report no disagreement. The profile text is TMPDIR-
+    # and interpreter-dependent by design (protocol 5.7 item 2) and this suite runs
+    # under the ambient TMPDIR, so the mock tree must pin what is observable HERE.
+    # Falling back to the literal keeps the fixture runnable where no profile can be
+    # observed at all; there the member simply drifts, as it should.
+    cfg['sandbox']['profile_sha256'] = (
+        lab_orchestrator.observed_sandbox_profile_sha256()
+        or sha256_text('mock-sandbox-profile'))
     cfg['sandbox']['containment_probe_sha256'] = sha256_text('mock-containment-probe')
     cfg['anchor']['posting_latency_p95_s'] = 0.0
     # Preflight now COMPARES the running host with the frozen allowlist, so a mock tree must

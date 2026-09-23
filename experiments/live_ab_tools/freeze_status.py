@@ -38,6 +38,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import platform
 import sys
 import time
@@ -222,6 +223,117 @@ def _gguf_digests() -> Tuple[Dict[str, Any], List[str]]:
     return out, problems
 
 
+def _sandbox_profile_agreement(cfg: Dict[str, Any]) -> Dict[str, Any]:
+    """Does the pinned profile digest still match the one this host would enforce?
+
+    Reports, never raises and never decides: the gate is the freeze checker, and the
+    refusal at run time is the preflight drift row.  ``observed`` is None when the
+    profile is unobservable here, and that is stated rather than scored as agreement.
+    """
+    pinned = (cfg.get("sandbox") or {}).get("profile_sha256")
+    try:
+        import lab_orchestrator
+        observed = lab_orchestrator.observed_sandbox_profile_sha256()
+    except Exception as exc:                                    # pragma: no cover
+        return {"pinned": pinned, "observed": None,
+                "observation_failed": type(exc).__name__}
+    return {"pinned": pinned, "observed": observed,
+            "agrees": (observed is not None and observed == pinned),
+            "observed_under_tmpdir": os.environ.get("TMPDIR"),
+            "prescribed_tmpdir": (cfg.get("sandbox") or {}).get("tmpdir"),
+            "note": ("the profile text is TMPDIR- and interpreter-dependent by design "
+                     "(protocol 5.7 item 2); a disagreement here means this shell is "
+                     "not the pinned environment, not that the pin is wrong")}
+
+
+def _license_evidence() -> Tuple[Any, Dict[str, Any]]:
+    """Recompute the bundle licence digest AT ASSEMBLY, or return (None, why-not).
+
+    Root, `reviews/resumption_root_disposition_20260923_0348.md`: the key is "the
+    documented canonical map of per-server URL, byte count, content digest and
+    evidence kind ... Preserve this component-versus-bundle mapping and recompute it
+    at freeze assembly."
+
+    So nothing here is copied from a receipt and trusted.  For every server the
+    config pins, the retained file is re-read and re-hashed from disk, and its byte
+    count, digest and evidence kind must agree with BOTH the config pin and the
+    deposited evidence record.  The URL, which config does not carry, comes from the
+    evidence record and is bound to the rest by those agreements.  Any server missing,
+    unreadable or disagreeing leaves the key absent: a partial retrieval must not
+    produce a digest, and the hole stays a hole.
+    """
+    cfg = json.loads((HERE / "config.json").read_text())
+    receipt_path = REPO / "results" / "live_ab" / "LICENSE_EVIDENCE_v2.json"
+    detail: Dict[str, Any] = {"per_server": {}, "problems": []}
+    if not receipt_path.is_file():
+        detail["problems"].append("no deposited evidence record at %s"
+                                  % display_path(receipt_path))
+        return None, detail
+    try:
+        record = json.loads(receipt_path.read_text("utf-8"))
+    except (OSError, ValueError) as exc:
+        detail["problems"].append("evidence record unreadable: %s" % type(exc).__name__)
+        return None, detail
+
+    canonical: Dict[str, Dict[str, Any]] = {}
+    for name in sorted(cfg["servers"]):
+        pinned = cfg["servers"][name]
+        want = pinned.get("license_evidence_sha256")
+        row: Dict[str, Any] = {"config_pin": want}
+        if not want:
+            detail["problems"].append("%s: config carries no licence evidence pin" % name)
+            detail["per_server"][name] = row
+            continue
+        retained = ((record.get("servers") or {}).get(name) or {}).get("retained") or {}
+        saved_as = retained.get("saved_as")
+        blob = REPO / str(saved_as) if saved_as else None
+        if blob is None or not blob.is_file():
+            detail["problems"].append("%s: retained evidence bytes absent on disk" % name)
+            detail["per_server"][name] = row
+            continue
+        data = blob.read_bytes()
+        got = hashlib.sha256(data).hexdigest()
+        row.update({"retained_file": display_path(blob), "bytes_on_disk": len(data),
+                    "sha256_recomputed_from_bytes": got,
+                    "evidence_kind": pinned.get("license_evidence_kind"),
+                    "matches_config_pin": got == want,
+                    "bytes_match_config": len(data) == pinned.get("license_evidence_bytes"),
+                    "matches_evidence_record": got == retained.get("sha256"),
+                    "kind_matches_evidence_record":
+                        pinned.get("license_evidence_kind") == retained.get("evidence_kind")})
+        for flag, why in (("matches_config_pin", "recomputed digest != config pin"),
+                          ("bytes_match_config", "byte count != config pin"),
+                          ("matches_evidence_record", "recomputed digest != evidence record"),
+                          ("kind_matches_evidence_record",
+                           "evidence kind != evidence record")):
+            if not row[flag]:
+                detail["problems"].append("%s: %s" % (name, why))
+        detail["per_server"][name] = row
+        if all(row[f] for f in ("matches_config_pin", "bytes_match_config",
+                                "matches_evidence_record",
+                                "kind_matches_evidence_record")):
+            canonical[name] = {"url": retained.get("url"), "bytes": len(data),
+                               "sha256": got,
+                               "evidence_kind": pinned.get("license_evidence_kind")}
+
+    complete = (not detail["problems"]
+                and set(canonical) == set(cfg["servers"]) and bool(canonical))
+    detail["canonical_map_servers"] = sorted(canonical)
+    detail["all_servers_have_evidence"] = complete
+    if not complete:
+        return None, detail
+    digest = lab_common.sha256_canonical(
+        {k: {kk: canonical[k][kk] for kk in ("url", "bytes", "sha256", "evidence_kind")}
+         for k in sorted(canonical)})
+    detail["license_evidence_sha256"] = digest
+    detail["note"] = ("t3's evidence is a model_card_declaration, not a licence text: "
+                      "the repository serves no LICENSE at the pinned revision. It is "
+                      "carried as explicitly typed provenance evidence and is not a "
+                      "recovered licence file, and no part of this is a rights "
+                      "attestation.")
+    return digest, detail
+
+
 def resolve_offline() -> Tuple[Dict[str, Any], Dict[str, Any]]:
     """Every bundle component derivable from committed bytes and installed files."""
     cfg = json.loads((HERE / "config.json").read_text())
@@ -250,6 +362,10 @@ def resolve_offline() -> Tuple[Dict[str, Any], Dict[str, Any]]:
     if (cfg.get("sandbox") or {}).get("profile_sha256"):
         parts["sandbox_profile_sha256"] = cfg["sandbox"]["profile_sha256"]
 
+    license_digest, license_detail = _license_evidence()
+    if license_digest:
+        parts["license_evidence_sha256"] = license_digest
+
     # The three documents root cleared on 2026-09-21 18:17 ("drafting these
     # artifacts need no further permission"). They were unblocked for seven
     # cycles before being written; nothing but my own attention prevented it.
@@ -276,6 +392,12 @@ def resolve_offline() -> Tuple[Dict[str, Any], Dict[str, Any]]:
         "from_preparation_manifest": sorted(
             k for k in ("environment_lock_sha256", "hardware_allowlist",
                         "sandbox_profile_sha256") if k in parts),
+        "license_evidence": license_detail,
+        # The bundle records the PIN; preflight observes the profile this host would
+        # actually enforce (lab_orchestrator.observed_sandbox_profile_sha256). Report
+        # the agreement here as evidence rather than assuming it: a pin that no longer
+        # matches the live sandbox is visible at assembly, not first at preflight.
+        "sandbox_profile_agreement": _sandbox_profile_agreement(cfg),
     }
     return parts, evidence
 

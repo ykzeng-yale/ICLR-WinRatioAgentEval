@@ -590,6 +590,21 @@ MEMBER_REFUSAL: dict[str, str] = {
 }
 
 
+def observed_sandbox_profile_sha256() -> str | None:
+    """The sha256 of the seatbelt profile THIS host would actually enforce, or None.
+
+    Delegates to ``lab_data``, whose matrix row carries the ``(s)`` grant to reach the
+    pilot's ``sandbox`` module through ``lab_common.add_import_paths()``.  This
+    module's own row of ARCHITECTURE_FINAL.md 3.16 forbids the pilot outright, and
+    ``tests_lab_isolation`` refuses a direct import here -- correctly: the fix for a
+    forbidden import is to route through the module that owns the access, never to
+    widen the row or to re-derive the profile text locally.  A local re-derivation
+    would be a second implementation of the profile and could silently drift from the
+    one the sandbox actually builds, which is the only thing worth observing.
+    """
+    return lab_data.observed_sandbox_profile_sha256()
+
+
 def observed_bundle_members(freeze_dir: Path, *, trial: str | None = None,
                             bundle: Mapping | None = None,
                             harness_dir: Path | None = None,
@@ -651,10 +666,21 @@ def observed_bundle_members(freeze_dir: Path, *, trial: str | None = None,
         if receipt.get('mask') is not None:
             out['receipt_mask_sha256'] = sha256_canonical(receipt['mask'])
         sandbox = cfg.get('sandbox') or {}
-        for member, key in (('sandbox_profile_sha256', 'profile_sha256'),
-                            ('containment_probe_sha256', 'containment_probe_sha256')):
-            if sandbox.get(key) is not None:
-                out[member] = str(sandbox[key])
+        # The profile digest is OBSERVED FROM THE SANDBOX, never copied from the frozen
+        # config.  Copying it would make this member's drift row compare the config with
+        # itself: it would read as "recomputed and compared" -- which is what
+        # BUNDLE_MEMBERS_RECOMPUTED declares it to be -- while being incapable of
+        # reporting any disagreement.  The profile text is derived from the owner home,
+        # the base-interpreter prefix and the sandbox base under the AMBIENT TMPDIR, so
+        # this observes the profile that would ACTUALLY be enforced.  That is the point:
+        # `results/live_ab/SANDBOX_TMPDIR_RECONCILIATION.json` records a run that forgets
+        # to export TMPDIR silently getting a different profile "with no error anywhere".
+        # Observed here, that run drifts against the pin instead of passing.
+        observed_profile = observed_sandbox_profile_sha256()
+        if observed_profile is not None:
+            out['sandbox_profile_sha256'] = observed_profile
+        if sandbox.get('containment_probe_sha256') is not None:
+            out['containment_probe_sha256'] = str(sandbox['containment_probe_sha256'])
         if cfg.get('environment_lock_sha256') is not None:
             out['environment_lock_sha256'] = str(cfg['environment_lock_sha256'])
         if cfg.get('hardware_allowlist') is not None:

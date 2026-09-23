@@ -1746,6 +1746,50 @@ class FreezeBundleBindingTests(unittest.TestCase):
         self.assertIn('hardware_allowlist', codes)
         self.assertIn('hardware_identity', items)
 
+    def test_the_sandbox_profile_is_observed_from_the_sandbox_not_read_from_the_freeze(self):
+        """The member must come from the SANDBOX, or it cannot ever disagree.
+
+        Before this, `observed_bundle_members` copied `sandbox.profile_sha256` out of the
+        frozen config -- so the drift row for a member that `BUNDLE_MEMBERS_RECOMPUTED`
+        declares "recomputed from the deposited freeze tree and the working copy" compared
+        the config with itself. While the pin was null the member was simply absent and
+        nothing showed; promoting root's approved pin is what would have made a check that
+        names what it does not perform.
+
+        Two limbs, and the second is the one that matters: the observation must FOLLOW the
+        sandbox when the sandbox changes, and the run must REFUSE at the real preflight
+        entry when it does. The profile text is TMPDIR- and interpreter-dependent by design
+        (protocol 5.7 item 2), which is exactly how a run that forgets to export the
+        prescribed TMPDIR is caught -- the silent failure recorded in
+        `results/live_ab/SANDBOX_TMPDIR_RECONCILIATION.json`.
+        """
+        observed = orch.observed_bundle_members(self.freeze, trial='T4', bundle=self.bundle)
+        self.assertEqual(observed['sandbox_profile_sha256'],
+                         orch.observed_sandbox_profile_sha256())
+        self.assertEqual(lab_common.verify_bundle_members(self.bundle, observed), [])
+
+        # the sandbox now reports a different profile; the freeze is untouched
+        other = lab_common.sha256_text('a profile this host does not enforce')
+        with mock.patch.object(orch, 'observed_sandbox_profile_sha256', lambda: other):
+            drifted = orch.observed_bundle_members(self.freeze, trial='T4',
+                                                   bundle=self.bundle)
+            rows = lab_common.verify_bundle_members(self.bundle, drifted)
+            self.assertEqual({r['item'] for r in rows}, {'sandbox_profile_sha256'})
+            self.assertEqual(rows[0]['found'], other)
+            codes, items = self._refusal()
+        self.assertIn('sandbox_profile_sha256', items)
+        self.assertTrue(codes, 'a disagreeing sandbox profile must refuse the run')
+
+    def test_an_unobservable_sandbox_profile_refuses_rather_than_agreeing(self):
+        """None means unobservable, never "agrees". The member then drifts as ABSENT."""
+        with mock.patch.object(orch, 'observed_sandbox_profile_sha256', lambda: None):
+            observed = orch.observed_bundle_members(self.freeze, trial='T4',
+                                                    bundle=self.bundle)
+            self.assertNotIn('sandbox_profile_sha256', observed)
+            rows = lab_common.verify_bundle_members(self.bundle, observed)
+        self.assertEqual({r['item'] for r in rows}, {'sandbox_profile_sha256'})
+        self.assertEqual(rows[0]['found'], lab_common.MEMBER_ABSENT)
+
     # -- the recomputation really reads the artifacts ----------------------------------------
     def test_observed_members_read_the_files_they_name(self):
         """No stub at all: copy the harness into a temporary directory, append one comment

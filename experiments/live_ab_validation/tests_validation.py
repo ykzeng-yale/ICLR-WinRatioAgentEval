@@ -2913,14 +2913,16 @@ class PinSuccessorAmendmentTests(unittest.TestCase):
     REPO = HERE.parent.parent
 
     ORIGINAL = '3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0dd7d2c2'
-    # THREE transitions now, preserved additively and never collapsed:
+    # FOUR transitions now, preserved additively and never collapsed:
     #   ORIGINAL      -> ENCLOSURE      (coordinator ruling 60)
     #   ENCLOSURE     -> APPENDIX_B     (hardware_allowlist / environment_lock pins)
-    #   APPENDIX_B    -> CURRENT        (host_work_root, the canonical lock pin)
+    #   APPENDIX_B    -> HOST_WORK_ROOT (host_work_root, the canonical lock pin)
+    #   HOST_WORK_ROOT-> CURRENT        (sandbox profile and licence evidence pins)
     ENCLOSURE = 'b1ff97cc163ce7ea121ebd578a4c37de09d5ed7223f2029e5d56118cdc790822'
     APPENDIX_B = 'd63717a5519f650394db8aca7eb33d7a15ccfedbaffe78600d9ea3fb7b76294d'
-    PREVIOUS = APPENDIX_B
-    CURRENT = '0e1bcb710ce2c13a06a243a7c3034d6bec55389d4de45dce569a7dee15af0284'
+    HOST_WORK_ROOT = '0e1bcb710ce2c13a06a243a7c3034d6bec55389d4de45dce569a7dee15af0284'
+    PREVIOUS = HOST_WORK_ROOT
+    CURRENT = 'f75de3235ae0431b727cf7c24b09927204a1da8c5424e14ea428dbfea256f48b'
 
     def _inputs(self):
         import copy
@@ -2961,12 +2963,18 @@ class PinSuccessorAmendmentTests(unittest.TestCase):
         # Every superseded successor is kept, in order. The enclosure entry is
         # substantive history root ruled on and must never be dropped when a
         # later amendment lands on top of it.
-        self.assertEqual(len(prior), 2)
+        self.assertEqual(len(prior), 3)
         self.assertEqual(prior[0]['sha256'], self.ENCLOSURE)
         self.assertIn('enclosure', prior[0]['reason'].lower())
         self.assertIn('ruling 60', prior[0]['ruling'])
         self.assertEqual(prior[1]['sha256'], self.APPENDIX_B)
         self.assertIn('appendix b', prior[1]['reason'].lower())
+        # the host_work_root successor, demoted here when the evidence pins landed
+        # on top of it: a superseded successor is kept whole, with its own ruling
+        # and its after-the-fact commit resolution, never summarised away.
+        self.assertEqual(prior[2]['sha256'], self.HOST_WORK_ROOT)
+        self.assertIn('host_work_root', prior[2]['reason'])
+        self.assertIn('changing_commit_of_this_successor', prior[2])
 
     def test_a_correct_successor_passes(self):
         cfg, manifest, protocol = self._inputs()
