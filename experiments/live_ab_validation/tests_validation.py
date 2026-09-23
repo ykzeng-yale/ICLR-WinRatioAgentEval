@@ -2926,6 +2926,87 @@ class PinSuccessorAmendmentTests(unittest.TestCase):
     EVIDENCE_PINS = 'f75de3235ae0431b727cf7c24b09927204a1da8c5424e14ea428dbfea256f48b'
     PREVIOUS = EVIDENCE_PINS
     CURRENT = '7f6664770b0d88ac5904967d9b8e2225d20932942824cd689278a03a2ee45e53'
+    EVIDENCE_PINS_COMMIT = '855a40636d4a84d64edee91052652eac6999a1a1'
+
+    # -- the successor history, pinned WHOLE (review finding config 3) ----------
+    # The finding: "PinSuccessorAmendmentTests does not check that the successor
+    # history was kept whole, although its comments say so". A cells.json whose
+    # four prior_successors were cut down to sha256 plus one keyword passed.
+    # Canonical digest = sha256(json.dumps(entry, sort_keys=True)). These values
+    # were computed on 2026-09-23. The test runs no git: every constant below is
+    # a value recorded at that time.
+    #
+    # Each prior_successors entry, as recorded in cells.json at 5a81c34
+    # (unchanged since 0e05d96):
+    PRIOR_ENTRY_DIGESTS = (
+        '06d606dc055340ec2c2607a16c98a4af866e2b27956929a27009084997c3942c',  # ENCLOSURE
+        'd2857b0d6e292f944f07ac4a5da360dff18df0ecaf617cecff07dd760749d312',  # APPENDIX_B
+        '33fa39c17e4b63e40e2ebb8241c56ab04866267ec3878ab11037699d0bebabe2',  # HOST_WORK_ROOT
+        'ca1be58e4119a7a2bf95354899c9c4120b4b293d1b6cd84427677aa4405941db',  # EVIDENCE_PINS
+    )
+    # From the PRE-amendment successor
+    # (`git show 0e05d96~1:experiments/live_ab_validation/cells.json`):
+    #   its prior_successors list, whole, which is entries [0..2] above:
+    PRE_AMENDMENT_PRIOR_LIST_DIGEST = (
+        '06d573c01756d63fa553cdd0332fa769253ce91167c34c98217d623f1cdfe2b2')
+    #   the object itself, minus the keys the amendment tool documents as moved
+    #   (live_ab_tools/engineering_cap_amendment.py step 4). This must equal
+    #   prior[3] minus the fields the demotion added:
+    DEMOTION_MOVED_KEYS = ('prior_successors', 'changing_commit_note',
+                           'correction_to_the_owner_report')
+    DEMOTION_ADDED_KEYS = ('changing_commit_of_this_successor', 'changing_commit_note')
+    PRE_AMENDMENT_SUCCESSOR_KEPT_DIGEST = (
+        '7e3b49ec82f01512306174c385e6651fa2e7642f89c48c399f8aa975e8c7751f')
+    #   its correction_to_the_owner_report, which moved to the NEW successor:
+    PRE_AMENDMENT_CORRECTION_DIGEST = (
+        'b0519448f3757eecf8487cd17c65d9f41940d2ec836c328c49b18a77c71ff87c')
+    # Its old changing_commit_note, a promise that "this newest successor's own
+    # commit is recorded the same way next cycle", is NOT kept verbatim anywhere
+    # in cells.json. It was replaced by the note that keeps the promise, and it
+    # remains recoverable only from git at 0e05d96~1. This test does not claim
+    # otherwise.
+
+    @staticmethod
+    def _canon(obj):
+        return hashlib.sha256(json.dumps(obj, sort_keys=True).encode('utf-8')).hexdigest()
+
+    def _history_failures(self, sb):
+        """Every way ``sb`` (a superseded_by object) departs from the successor
+        history as recorded. An empty list means the history is whole."""
+        prior = sb.get('prior_successors')
+        if not isinstance(prior, list):
+            return ['prior_successors is not a list']
+        fails = []
+        if len(prior) != len(self.PRIOR_ENTRY_DIGESTS):
+            fails.append(f'prior_successors has {len(prior)} entries, recorded '
+                         f'{len(self.PRIOR_ENTRY_DIGESTS)}')
+        for i, (entry, want) in enumerate(zip(prior, self.PRIOR_ENTRY_DIGESTS)):
+            if self._canon(entry) != want:
+                fails.append(f'prior_successors[{i}] is not the entry as recorded')
+        if self._canon(prior[:3]) != self.PRE_AMENDMENT_PRIOR_LIST_DIGEST:
+            fails.append('prior_successors[0..2] is not the pre-amendment history')
+        if len(prior) >= 4:
+            last = prior[3]
+            for k in self.DEMOTION_MOVED_KEYS:
+                if k in last and k not in self.DEMOTION_ADDED_KEYS:
+                    fails.append(f'prior_successors[3] still carries moved key {k!r}')
+            kept = {k: v for k, v in last.items() if k not in self.DEMOTION_ADDED_KEYS}
+            if self._canon(kept) != self.PRE_AMENDMENT_SUCCESSOR_KEPT_DIGEST:
+                fails.append('prior_successors[3] is not the pre-amendment successor '
+                             'minus the documented moved keys')
+            if last.get('changing_commit_of_this_successor') != self.EVIDENCE_PINS_COMMIT:
+                fails.append('prior_successors[3] does not name its changing commit')
+            # (the path is matched in two parts: F16 forbids naming the other
+            # study's tree in a string outside a docstring)
+            note = str(last.get('changing_commit_note'))
+            if not ('git show %s:' % self.EVIDENCE_PINS_COMMIT[:7] in note
+                    and '/design/protocol_FINAL.md' in note):
+                fails.append('prior_successors[3] does not say how its commit was resolved')
+        if self._canon(sb.get('correction_to_the_owner_report')) != \
+                self.PRE_AMENDMENT_CORRECTION_DIGEST:
+            fails.append('correction_to_the_owner_report did not move whole to the '
+                         'current successor')
+        return fails
 
     def _inputs(self):
         import copy
@@ -2934,10 +3015,15 @@ class PinSuccessorAmendmentTests(unittest.TestCase):
         manifest = json.loads(
             vfixtures.PINNED_MANIFEST.read_text(encoding='utf-8'))
         # The SAME protocol text F18 itself passes: this experiment's own
-        # PROTOCOL.md, not the pinned file. The check requires the recorded pin
-        # (or its successor) to be stated in the report as well as in cells.json,
-        # which is exactly root's "add a short dated amendment in the
-        # protocol/report" obligation, enforced mechanically.
+        # PROTOCOL.md, not the pinned file. F18 (vfixtures.check_pinned_file_hashes)
+        # requires only the ORIGINAL recorded pin, vocabulary_alignment.sha256, to
+        # appear in it as a full 64-hex token. It does not require the dated
+        # amendment, or any successor, to be mentioned. Review finding config 4:
+        # this comment used to say the check required "the recorded pin (or its
+        # successor)" to be stated and was "enforced mechanically"; neither claim
+        # was true. A separate test,
+        # test_every_successor_is_named_in_the_amendment_truncated_never_in_full
+        # below, checks that each successor is named, truncated and never in full.
         protocol = vfixtures.PROTOCOL_PATH.read_text(encoding='utf-8')
         return cfg, manifest, protocol
 
@@ -2962,7 +3048,17 @@ class PinSuccessorAmendmentTests(unittest.TestCase):
         """Root: "Preserve the existing successor object in an additive history
         entry." The enclosure ruling is substantive history, not a stale value."""
         cfg, _, _ = self._inputs()
-        prior = self._va(cfg)['superseded_by']['prior_successors']
+        self._shallow_history_checks(self._va(cfg)['superseded_by']['prior_successors'])
+        # WHOLE, which the shallow checks do not establish on their own: each
+        # entry equals its recorded canonical digest; [0..2] are the pre-amendment
+        # history; and [3] is the pre-amendment successor minus the documented
+        # moved keys, plus the two changing-commit fields.
+        self.assertEqual(self._history_failures(self._va(cfg)['superseded_by']), [])
+
+    def _shallow_history_checks(self, prior):
+        """Order, each entry's sha256 field, and one identifying phrase or field
+        per entry. These are the checks this test made before review finding
+        config 3. On their own they pass a history that has been gutted."""
         # Every superseded successor is kept, in order. The enclosure entry is
         # substantive history root ruled on and must never be dropped when a
         # later amendment lands on top of it.
@@ -2972,19 +3068,108 @@ class PinSuccessorAmendmentTests(unittest.TestCase):
         self.assertIn('ruling 60', prior[0]['ruling'])
         self.assertEqual(prior[1]['sha256'], self.APPENDIX_B)
         self.assertIn('appendix b', prior[1]['reason'].lower())
-        # the host_work_root successor, demoted here when the evidence pins landed
-        # on top of it: a superseded successor is kept whole, with its own ruling
-        # and its after-the-fact commit resolution, never summarised away.
+        # the host_work_root successor, demoted when the evidence pins landed on
+        # top of it
         self.assertEqual(prior[2]['sha256'], self.HOST_WORK_ROOT)
         self.assertIn('host_work_root', prior[2]['reason'])
         self.assertIn('changing_commit_of_this_successor', prior[2])
-        # the evidence-pin successor, demoted WHOLE when the engineering caps
-        # landed on top of it, with its changing commit resolved after the fact
-        # (verified: that commit's protocol_FINAL.md hashes to it).
+        # the evidence-pin successor, demoted when the engineering caps landed on
+        # top of it, with its changing commit resolved after the fact. That
+        # 855a406's protocol_FINAL.md hashes to EVIDENCE_PINS was checked with git
+        # when the amendment landed (and again by the reviewer). This test runs
+        # no git; it pins the recorded value.
         self.assertEqual(prior[3]['sha256'], self.EVIDENCE_PINS)
         self.assertIn('license_evidence_sha256', prior[3]['reason'])
         self.assertEqual(prior[3]['changing_commit_of_this_successor'],
-                         '855a40636d4a84d64edee91052652eac6999a1a1')
+                         self.EVIDENCE_PINS_COMMIT)
+
+    # -- negative controls for the history check: it must be able to fail ------
+    def test_a_STUBBED_history_fails(self):
+        """The reviewer's witness: every entry is cut down to exactly the fields
+        the shallow checks read, and those fields are kept intact. The shallow
+        checks still pass it, and that is asserted here. The whole-entry check
+        must not pass it."""
+        cfg, _, _ = self._inputs()
+        sb = self._va(cfg)['superseded_by']
+        keep = ('sha256', 'reason', 'ruling', 'changing_commit_of_this_successor')
+        sb['prior_successors'] = [{k: e[k] for k in keep if k in e}
+                                  for e in sb['prior_successors']]
+        self._shallow_history_checks(sb['prior_successors'])
+        fails = self._history_failures(sb)
+        for i in range(4):
+            self.assertIn(f'prior_successors[{i}] is not the entry as recorded', fails)
+
+    def test_a_FALSIFIED_but_complete_history_fails(self):
+        cfg, _, _ = self._inputs()
+        sb = self._va(cfg)['superseded_by']
+        for e in sb['prior_successors']:
+            e['supersedes'] = '0' * 64
+        self.assertEqual(len([f for f in self._history_failures(sb)
+                              if 'is not the entry as recorded' in f]), 4)
+
+    def test_a_DROPPED_entry_fails(self):
+        cfg, _, _ = self._inputs()
+        sb = self._va(cfg)['superseded_by']
+        del sb['prior_successors'][1]
+        self.assertNotEqual(self._history_failures(sb), [])
+
+    def test_a_moved_key_left_behind_in_the_demoted_entry_fails(self):
+        cfg, _, _ = self._inputs()
+        sb = self._va(cfg)['superseded_by']
+        sb['prior_successors'][3]['correction_to_the_owner_report'] = (
+            sb['correction_to_the_owner_report'])
+        self.assertIn("prior_successors[3] still carries moved key "
+                      "'correction_to_the_owner_report'", self._history_failures(sb))
+
+    # -- the dated amendment names every successor (review finding config 4) ----
+    AMENDMENT_HEADING = '## Amendment 2026-09-22'
+
+    def _successor_mention_failures(self, protocol, sb):
+        """Each recorded successor must be named in the pin amendment section of
+        PROTOCOL.md, TRUNCATED to 8 hex digits and an ellipsis, and must never
+        appear in full anywhere in PROTOCOL.md. A full successor would let the
+        mutated-original-pin rewrite pass F18; see the section's own
+        explanation."""
+        i = protocol.find(self.AMENDMENT_HEADING)
+        if i < 0:
+            return ['PROTOCOL.md has no pin amendment section']
+        section = protocol[i:]
+        j = section.find('\n## ', 1)
+        section = section if j < 0 else section[:j]
+        fails = []
+        for h in [e['sha256'] for e in sb['prior_successors']] + [sb['sha256']]:
+            if h[:8] + '…' not in section:
+                fails.append(f'successor {h[:8]} is not named in the amendment')
+            if h in protocol:
+                fails.append(f'successor {h[:8]} is written in FULL in PROTOCOL.md')
+        return fails
+
+    def test_every_successor_is_named_in_the_amendment_truncated_never_in_full(self):
+        cfg, _, protocol = self._inputs()
+        self.assertEqual(
+            self._successor_mention_failures(protocol, self._va(cfg)['superseded_by']), [])
+
+    def test_the_amendment_as_it_stood_before_the_update_fails(self):
+        """Negative control: the section as it stood before the 2026-09-23 update
+        ("moved twice") names only the first two successors."""
+        cfg, _, protocol = self._inputs()
+        marker = '**Update 2026-09-23: '
+        self.assertIn(marker, protocol, 'the dated update moved; fix this control')
+        before = protocol.split(marker)[0]
+        fails = self._successor_mention_failures(before, self._va(cfg)['superseded_by'])
+        self.assertEqual(sorted(fails), sorted(
+            f'successor {h[:8]} is not named in the amendment'
+            for h in (self.HOST_WORK_ROOT, self.EVIDENCE_PINS, self.CURRENT)))
+
+    def test_a_successor_written_in_full_fails_and_would_open_the_door(self):
+        """Why truncation is required: with CURRENT written in full, the mention
+        check refuses the text, AND F18 would accept the mutated original pin."""
+        cfg, manifest, protocol = self._inputs()
+        leaky = protocol + '\nCurrent successor: `%s`.\n' % self.CURRENT
+        self.assertIn(f'successor {self.CURRENT[:8]} is written in FULL in PROTOCOL.md',
+                      self._successor_mention_failures(leaky, self._va(cfg)['superseded_by']))
+        self._va(cfg)['sha256'] = self.CURRENT
+        self.assertEqual(self._vocab_failures(self._run(cfg, manifest, leaky)), [])
 
     def test_a_correct_successor_passes(self):
         cfg, manifest, protocol = self._inputs()
