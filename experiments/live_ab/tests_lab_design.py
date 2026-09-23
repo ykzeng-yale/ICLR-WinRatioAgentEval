@@ -4389,6 +4389,106 @@ class AcquisitionSealTests(unittest.TestCase):
         self.assertIn('OSError', state['error'])
         self.assertFalse(state['reached_eof'])
 
+    def test_ONE_absolute_deadline_bounds_every_later_wait(self):
+        """Root, 2026-09-23 09:19: "Startup can consume nearly the entire
+        600-second budget, after which request joins, two independent 60-second
+        waits and the 30-second drain join still receive fresh time allowances
+        ... Use one absolute monotonic deadline, reserve cleanup time, bound
+        every remaining wait by time left, prevent new dispatch after budget
+        exhaustion ... Do not describe a daemon thread as enforcement."
+
+        Every fresh `timeout=60` was a new budget grant, so the declared 600 s
+        cap bounded only the FIRST wait, not any path through the script.
+        """
+        run_smoke = self._run_smoke_module()
+        clock = [1000.0]
+        d = run_smoke.Deadline(600.0, reserve_s=90.0, now=lambda: clock[0])
+
+        self.assertTrue(d.may_dispatch())
+        self.assertEqual(d.bounded(60), 60.0)          # early: full wait allowed
+
+        clock[0] += 480.0                              # 480s spent on startup
+        self.assertAlmostEqual(d.bounded(60), 30.0)    # only 30s before reserve
+        self.assertTrue(d.may_dispatch())
+
+        clock[0] += 30.0                               # reserve reached
+        self.assertFalse(d.may_dispatch(), 'no NEW dispatch after exhaustion')
+        self.assertEqual(d.bounded(60), 0.0)
+        # cleanup may use the reserve, and is still bounded by it
+        self.assertAlmostEqual(d.bounded(600, use_reserve=True), 90.0)
+        self.assertFalse(d.expired())
+
+        clock[0] += 90.0
+        self.assertTrue(d.expired())
+        self.assertEqual(d.bounded(60, use_reserve=True), 0.0)
+        self.assertIn('NOT a daemon thread', d.state()['enforcement'])
+
+    def test_launch_artifacts_are_MEASURED_not_copied_from_the_manifest(self):
+        """Root: "never treat copying manifest hashes into `expected` as that
+        verification."
+
+        The supervisor took `m['launcher']['sha256']` and handed it to the
+        reader, so the reader compared the manifest with itself and the bytes on
+        disk were never read -- an agreement between a dict and a copy of that
+        dict, which is the same shape as the foreign-records-plus-foreign-
+        manifest witness root produced in September.
+        """
+        run_smoke = self._run_smoke_module()
+        binary = self.tmp / 'launcher.bin'
+        model = self.tmp / 'weights.gguf'
+        binary.write_bytes(b'BINARY')
+        model.write_bytes(b'WEIGHTS')
+        bh = hashlib.sha256(b'BINARY').hexdigest()
+        mh = hashlib.sha256(b'WEIGHTS').hexdigest()
+
+        ok = run_smoke.verify_launch_artifacts(
+            {'launcher': {'sha256': bh}, 'model': {'sha256': mh}},
+            binary=binary, model=model)
+        self.assertTrue(ok['verified'], ok['problems'])       # control
+        self.assertEqual(ok['checks'][0]['measured_sha256'], bh)
+
+        # the file on disk changes; the manifest does not
+        binary.write_bytes(b'TAMPERED')
+        bad = run_smoke.verify_launch_artifacts(
+            {'launcher': {'sha256': bh}, 'model': {'sha256': mh}},
+            binary=binary, model=model)
+        self.assertFalse(bad['verified'])
+        self.assertIn('does not match its declared pin', bad['problems'][0])
+
+        # a manifest that declares no usable digest verifies NOTHING
+        none = run_smoke.verify_launch_artifacts(
+            {'launcher': {}, 'model': {'sha256': mh}}, binary=binary, model=model)
+        self.assertFalse(none['verified'])
+        self.assertIn('nothing to verify against', none['problems'][0])
+
+        missing = run_smoke.verify_launch_artifacts(
+            {'launcher': {'sha256': bh}, 'model': {'sha256': mh}},
+            binary=self.tmp / 'absent', model=model)
+        self.assertFalse(missing['verified'])
+
+    def test_finalize_writes_ONE_receipt_and_returns_the_status(self):
+        """Root: "Startup `Popen` failure and non-UTF8 lifecycle bytes both
+        currently raise before the receipt is written ... route failures through
+        one guaranteed receipt/finalization path."
+
+        The runs that failed WORST left the least evidence: a missing weight, a
+        failed `Popen` and an undecodable log each produced no receipt at all.
+        """
+        run_smoke = self._run_smoke_module()
+        dest = self.tmp / 'receipt.json'
+        rc = run_smoke.finalize({'schema': 'x', 'attempted': True}, dest,
+                                ['the child could not be started'])
+        self.assertEqual(rc, 1)
+        written = json.loads(dest.read_text('utf-8'))
+        self.assertEqual(written['supervisor_problems'],
+                         ['the child could not be started'])
+        self.assertIn('ended_utc', written)
+
+        clean = self.tmp / 'ok.json'
+        self.assertEqual(run_smoke.finalize({'schema': 'x'}, clean, []), 0)
+        self.assertEqual(json.loads(clean.read_text('utf-8'))['supervisor_problems'],
+                         [])
+
     # -- root 2026-09-23 09:19 ----------------------------------------------
     def test_a_DECLARED_STOP_SIGNAL_EXCUSES_NOTHING(self):
         """WITHDRAWN EXCEPTION. I accepted `outcome == -expected_signal`, arguing

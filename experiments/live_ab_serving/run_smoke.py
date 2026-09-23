@@ -209,44 +209,226 @@ def preview_of_artifact(artifact_path: Path, state: dict, *,
     return out
 
 
+class Deadline:
+    """ONE absolute monotonic deadline for the whole attempt, with a reserve.
+
+    Root, 2026-09-23 09:19: "Startup can consume nearly the entire 600-second
+    budget, after which request joins, two independent 60-second waits and the
+    30-second drain join still receive fresh time allowances ... Use one absolute
+    monotonic deadline, reserve cleanup time, bound every remaining wait by time
+    left, prevent new dispatch after budget exhaustion, and record final elapsed
+    time after cleanup/finalization. Do not describe a daemon thread as
+    enforcement of that deadline."
+
+    Every fresh `timeout=60` was a new budget grant. Four of them in sequence
+    meant the declared 600 s cap bounded no path through the script; it bounded
+    only the first wait. `bounded()` is the repair: a wait may have at most the
+    time actually left.
+
+    `CLEANUP_RESERVE_S` is held back from the dispatch budget so stopping,
+    reaping and writing the receipt are never the operations that run out of
+    clock -- an attempt that cannot finalise leaves no evidence at all.
+    """
+
+    def __init__(self, budget_s: float, *, reserve_s: float = CLEANUP_RESERVE_S,
+                 now=time.monotonic) -> None:
+        self._now = now
+        self.started = now()
+        self.budget_s = float(budget_s)
+        self.reserve_s = float(reserve_s)
+        self.hard = self.started + self.budget_s
+        self.dispatch_until = self.hard - self.reserve_s
+
+    def elapsed(self) -> float:
+        return self._now() - self.started
+
+    def remaining(self) -> float:
+        return max(0.0, self.hard - self._now())
+
+    def dispatch_remaining(self) -> float:
+        """Time left before the cleanup reserve begins."""
+        return max(0.0, self.dispatch_until - self._now())
+
+    def may_dispatch(self) -> bool:
+        """False once the reserve is reached: no NEW work after exhaustion."""
+        return self.dispatch_remaining() > 0.0
+
+    def expired(self) -> bool:
+        return self.remaining() <= 0.0
+
+    def bounded(self, want_s: float, *, use_reserve: bool = False) -> float:
+        """The largest wait permitted now: never more than the time left."""
+        left = self.remaining() if use_reserve else self.dispatch_remaining()
+        return max(0.0, min(float(want_s), left))
+
+    def state(self) -> dict:
+        return {'budget_s': self.budget_s, 'reserve_s': self.reserve_s,
+                'elapsed_s': round(self.elapsed(), 3),
+                'remaining_s': round(self.remaining(), 3),
+                'dispatch_remaining_s': round(self.dispatch_remaining(), 3),
+                'may_dispatch': self.may_dispatch(), 'expired': self.expired(),
+                'enforcement': ('every wait is bounded by remaining(); this is '
+                                'arithmetic on one monotonic origin, NOT a '
+                                'daemon thread')}
+
+
+def verify_launch_artifacts(manifest: dict, *, binary: Path, model: Path) -> dict:
+    """MEASURE the artifacts about to be launched and compare with the manifest.
+
+    Root, 2026-09-23 09:19: "The selected binary is a hardcoded path and the
+    model is the first matching glob result; their measured byte hashes are not
+    checked against the immutable launch manifest before `Popen`. Verify the
+    selected source/patch, launcher/library closure and model artifact against
+    their declared pins at the trusted launch boundary; never treat copying
+    manifest hashes into `expected` as that verification."
+
+    That last clause is the point. The supervisor took `m['launcher']['sha256']`
+    and put it into the `expected` dict handed to the reader -- so the reader
+    compared the manifest with itself and the bytes on disk were never read.
+    An agreement between a dict and a copy of that dict is not evidence about a
+    file, the same shape as the foreign-records-plus-foreign-manifest witness
+    root produced in September.
+
+    Returns a verdict; raises nothing. The caller refuses before `Popen`.
+    """
+    checks = []
+    for name, path, declared in (
+            ('launcher', binary, (manifest.get('launcher') or {}).get('sha256')),
+            ('model', model, (manifest.get('model') or {}).get('sha256'))):
+        row: dict = {'artifact': name, 'path': lab_common.display_path(path),
+                     'declared_sha256': declared}
+        if not isinstance(declared, str) or not lab_lifecycle.is_digest(declared):
+            row['problem'] = ('the manifest declares no usable %s digest, so '
+                              'there is nothing to verify against' % name)
+        elif not path.exists():
+            row['problem'] = 'the selected %s does not exist at that path' % name
+        else:
+            h = hashlib.sha256()
+            try:
+                with path.open('rb') as fh:
+                    for block in iter(lambda: fh.read(1 << 20), b''):
+                        h.update(block)
+                row['measured_sha256'] = h.hexdigest()
+                row['bytes'] = path.stat().st_size
+                row['agrees'] = (row['measured_sha256'] == declared)
+                if not row['agrees']:
+                    row['problem'] = ('the selected %s does not match its '
+                                      'declared pin' % name)
+            except Exception as exc:                           # noqa: BLE001
+                row['problem'] = 'could not read the %s: %s' % (name, exc)
+        checks.append(row)
+    problems = [c['problem'] for c in checks if c.get('problem')]
+    return {'checks': checks, 'problems': problems, 'verified': not problems,
+            'measured_from_disk': True,
+            'note': ('measured byte digests of the artifacts actually selected, '
+                     'compared with the immutable launch manifest BEFORE Popen')}
+
+
+def finalize(out: dict, dest: Path, problems: list) -> int:
+    """Write EXACTLY ONE receipt and return the supervisor status.
+
+    Root, 2026-09-23 09:19: "Startup `Popen` failure and non-UTF8 lifecycle
+    bytes both currently raise before the receipt is written. Persist the launch
+    intent before attempting the child, preserve actual attempted-versus-started
+    state, and route failures through one guaranteed receipt/finalization path."
+
+    Every early exit used to be a bare `return 2` or an escaping exception, so
+    the runs that failed WORST left the least evidence: a missing weight, a
+    failed `Popen` and an undecodable log each produced no receipt at all. The
+    attempt that cannot be described is the one most worth describing.
+    """
+    out['supervisor_problems'] = list(problems)
+    out['ended_utc'] = _now()
+    try:
+        lab_common.write_json_atomic(dest, out)
+        out['receipt_written'] = True
+    except Exception as exc:                                   # noqa: BLE001
+        # Last resort: say so on stderr. There is nowhere else left.
+        print('FATAL: could not write the receipt: %s: %s'
+              % (type(exc).__name__, exc), file=sys.stderr)
+        return 3
+    for p in problems:
+        print('REFUSED:', p)
+    print('written:', dest)
+    return 1 if problems else 0
+
+
 def main() -> int:
-    manifest_path, log_path, token = (
-        Path(l) if i < 2 else l
-        for i, l in enumerate(Path('/tmp/lab_smoke_manifest.txt')
-                              .read_text().strip().splitlines()))
-    m = json.loads(Path(manifest_path).read_text('utf-8'))
-    log = Path(log_path)
-    log.parent.mkdir(parents=True, exist_ok=True)
-
-    model = None
-    import glob
-    for p in glob.glob(str(Path.home() / '.cache/huggingface/**' / m['model']['file']),
-                       recursive=True):
-        model = Path(p)
-        break
-    if model is None:
-        print('REFUSE: pinned weight not found locally', file=sys.stderr)
-        return 2
-
+    # LAUNCH INTENT IS PERSISTED BEFORE ANYTHING IS ATTEMPTED, so a failure
+    # during selection or startup still leaves a receipt describing what was
+    # about to happen and how far it got.
     out: dict = {
         'schema': 'live_ab/smoke_receipt-v1',
         'convention': 'model-dependent',
-        'manifest': manifest_path.name,
-        'run_token': token,
         'started_utc': _now(),
-        'caps': m['caps'],
+        'attempted': True,
+        'child_started': False,
         'planned_requests': 2,
         'submitted_requests': 0,
-        'loaded_a_model': True,
         'is_a_trial_episode': False,
     }
+    dest = Path(lab_common.RESULTS_ROOT) / ('SMOKE_RECEIPT_unstarted_%s.json'
+                                            % time.strftime('%Y%m%dT%H%M%SZ',
+                                                            time.gmtime()))
+    try:
+        manifest_path, log_path, token = (
+            Path(l) if i < 2 else l
+            for i, l in enumerate(Path('/tmp/lab_smoke_manifest.txt')
+                                  .read_text().strip().splitlines()))
+        m = json.loads(Path(manifest_path).read_text('utf-8'))
+    except Exception as exc:                                   # noqa: BLE001
+        return finalize(out, dest,
+                        ['the launch manifest could not be read: %s: %s'
+                         % (type(exc).__name__, exc)])
+    out['manifest'] = manifest_path.name
+    out['run_token'] = token
+    out['caps'] = m.get('caps')
+    dest = Path(lab_common.RESULTS_ROOT) / ('SMOKE_RECEIPT_%s.json' % token)
+    log = Path(log_path)
+    try:
+        log.parent.mkdir(parents=True, exist_ok=True)
+    except Exception as exc:                                   # noqa: BLE001
+        return finalize(out, dest, ['the log directory could not be created: %s'
+                                    % exc])
+
+    deadline = Deadline(WALL_CAP_S)
+    out['deadline'] = deadline.state()
+
+    model = None
+    import glob
+    for cand in glob.glob(str(Path.home() / '.cache/huggingface/**'
+                              / m['model']['file']), recursive=True):
+        model = Path(cand)
+        break
+    if model is None:
+        return finalize(out, dest, ['the pinned weight was not found locally'])
+
+    # THE TRUSTED LAUNCH BOUNDARY. Measured bytes, compared with the immutable
+    # manifest, BEFORE Popen -- not manifest hashes copied into `expected`.
+    out['launch_verification'] = verify_launch_artifacts(m, binary=BIN, model=model)
+    if not out['launch_verification']['verified']:
+        return finalize(out, dest, ['launch artifacts do not match their pins: %s'
+                                    % '; '.join(out['launch_verification']['problems'])])
+
+    out.update({
+        'schema': 'live_ab/smoke_receipt-v1',
+        'convention': 'model-dependent',
+        'loaded_a_model': True,
+    })
     env = dict(os.environ, LIVE_AB_LIFECYCLE_LOG=str(log), LIVE_AB_RUN_TOKEN=token)
     args = [str(BIN), '-m', str(model)] + m['server_args']
-    t_wall0 = time.monotonic()
+    t_wall0 = deadline.started
 
-    proc = subprocess.Popen(args, env=env, stdout=subprocess.PIPE,
-                            stderr=subprocess.STDOUT, text=True,
-                            start_new_session=True)
+    try:
+        proc = subprocess.Popen(args, env=env, stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT, text=True,
+                                start_new_session=True)
+    except Exception as exc:                                   # noqa: BLE001
+        # ATTEMPTED but never STARTED, and that distinction is retained.
+        out['child_started'] = False
+        out['popen_error'] = '%s: %s' % (type(exc).__name__, exc)
+        return finalize(out, dest, ['the child could not be started: %s' % exc])
+    out['child_started'] = True
     out['server_pid'] = proc.pid
     out['server_started_utc'] = _now()
 
@@ -269,14 +451,14 @@ def main() -> int:
     capture_path = log.parent / ('%s.producer_stream' % token)
     drain_thread = threading.Thread(
         target=drain_to_artifact, args=(proc.stdout, capture_path, capture),
-        kwargs={'deadline': t_wall0 + WALL_CAP_S - CLEANUP_RESERVE_S},
+        kwargs={'deadline': deadline.dispatch_until},
         daemon=True, name='live_ab_smoke_drain')
     drain_thread.start()
 
     import requests
     base = 'http://127.0.0.1:%d' % m['port']
     ready = False
-    while time.monotonic() - t_wall0 < WALL_CAP_S:
+    while deadline.may_dispatch():
         if proc.poll() is not None:
             break
         try:
@@ -300,7 +482,7 @@ def main() -> int:
                 'seed': m['request']['seed'], 'stream': False, 'n': 1}
             rec: dict = {'index': idx}
             try:
-                barrier.wait(timeout=30)
+                barrier.wait(timeout=deadline.bounded(30))
             except Exception as exc:                           # noqa: BLE001
                 rec['barrier_error'] = str(exc)
             rec['t_send_monotonic'] = time.monotonic()
@@ -326,7 +508,7 @@ def main() -> int:
         for t in threads:
             t.start()
         for t in threads:
-            t.join(timeout=REQUEST_CAP_S + 30)
+            t.join(timeout=deadline.bounded(REQUEST_CAP_S + 30))
     out['requests'] = sorted(results, key=lambda r: r['index'])
     out['generated_tokens_total'] = sum(
         (r.get('usage') or {}).get('completion_tokens', 0) for r in results)
@@ -349,7 +531,7 @@ def main() -> int:
     # had it open, and recorded a null exit code as if it were an outcome.
     stopped_cleanly = True
     try:
-        proc.wait(timeout=60)
+        proc.wait(timeout=deadline.bounded(60, use_reserve=True))
     except Exception:                                          # noqa: BLE001
         stopped_cleanly = False
         try:
@@ -358,7 +540,7 @@ def main() -> int:
         except Exception as exc:                               # noqa: BLE001
             out['forced_stop_error'] = '%s: %s' % (type(exc).__name__, exc)
         try:
-            proc.wait(timeout=60)                              # REAP after SIGKILL
+            proc.wait(timeout=deadline.bounded(60, use_reserve=True))  # REAP
         except Exception as exc:                               # noqa: BLE001
             out['reap_error'] = '%s: %s' % (type(exc).__name__, exc)
     out['stopped_cleanly'] = stopped_cleanly
@@ -369,7 +551,7 @@ def main() -> int:
 
     # Join the drain within the deadline, then RETAIN what it collected. A drain
     # that has not finished is reported as unfinished rather than waited on.
-    drain_thread.join(timeout=DRAIN_JOIN_S)
+    drain_thread.join(timeout=deadline.bounded(DRAIN_JOIN_S, use_reserve=True))
     out['producer_diagnostics'] = dict(
         preview_of_artifact(capture_path, capture),
         # TWO DISTINCT STATES, as root decided on 2026-09-23 10:03: a shortened
@@ -477,10 +659,8 @@ def main() -> int:
          if not out['producer_diagnostics']['raw_capture_complete'] else None),
         ('the drain thread had not finished, so its state is not a final snapshot'
          if not out['producer_diagnostics']['drain_thread_finished'] else None),
+        ('the absolute deadline expired' if deadline.expired() else None),
     ) if p]
-    out['supervisor_problems'] = problems
-    dest = Path(lab_common.RESULTS_ROOT) / ('SMOKE_RECEIPT_%s.json' % token)
-    lab_common.write_json_atomic(dest, out)
     # THE SUMMARY MUST NOT OUTLIVE THE RECEIPT. Root, 2026-09-23 10:03: "after
     # writing its valid refusal receipt, the console summary accesses the absent
     # `raw_log_bytes` key, then would call `obs.get` on `None`. Guard the summary
@@ -505,18 +685,12 @@ def main() -> int:
         print('observation active:', obs.get('active'),
               '| lifecycle_complete:', obs.get('lifecycle_complete'),
               '| reason:', obs.get('reason'))
-    print('written:', dest)
-
-    # THE EXIT STATUS REPORTS THE ACQUISITION. Root, 2026-09-23 08:40: the
-    # script "returns zero unconditionally". A supervisor whose own status is
-    # always success cannot be used in any chain that checks it, and it reported
-    # success for a run whose acquisition the reader had refused -- the same
-    # shape as a receipt claiming a success its parser rejected.
-    if problems:
-        for p in problems:
-            print('REFUSED:', p)
-        return 1
-    return 0
+    # ELAPSED IS RECORDED AFTER CLEANUP AND BEFORE FINALISATION, as root asked:
+    # "record final elapsed time after cleanup/finalization".
+    out['deadline'] = deadline.state()
+    out['wall_seconds_total'] = round(deadline.elapsed(), 2)
+    out['wall_cap_respected'] = not deadline.expired()
+    return finalize(out, dest, problems)
 
 
 if __name__ == '__main__':
