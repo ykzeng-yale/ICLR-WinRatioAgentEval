@@ -3224,6 +3224,31 @@ refusal controls refuse. **This does not reverse the 14:50 refusal for the launc
 Controls **35** (eleven mutations, one per repair, each caught), snapshot 13, entry 34, design 345,
 serving 89, isolation 33 — green. `HARNESS_FILES` **33**. Freeze **16/26**.
 
+### 2026-09-23 · an unblockable descriptor refuses, elapsed ends at finalize, the limits are bound
+
+`main` and `session60/live-ab` at **`c7bd714`**. Root's 14:41 supervisor item 4, first three clauses.
+Receipt: `DESCRIPTOR_ELAPSED_AND_LIMIT_BINDING.json` (`deterministic-path`, nothing executed).
+
+**Descriptor.** The drain fell back to a *blocking* read when `os.set_blocking` failed — the one read
+the deadline cannot interrupt. A descriptor that cannot be made non-blocking now refuses in `main()`
+before any dispatch, and inside the drain, which reads nothing. `absent` (no OS descriptor: the
+in-memory fixture; a `subprocess.PIPE` always has one) is recorded and allowed — refusing it would mean
+editing pinned `tests_lab_design.py`.
+
+**Elapsed.** One Deadline at `main()` entry; `finalize()` records `wall_seconds_total`, the deadline
+state and an explicit `elapsed_boundary` immediately before the one receipt write, on every path.
+Early refusals used to carry no elapsed figure; the reap-time mark is now named `seconds_to_child_reap`.
+
+**Limits.** The manifest's `caps` must declare 600 / 90 / 510 / 8 MiB (plus 120 s and 2,048 tokens)
+and equal what the code enforces; 510 is derived as 600 − 90. They were previously copied into the
+receipt and never compared. The fixture declares them as literals, never copied from the code.
+**My first draft called `float()` on a manifest value — the `10**400` temperature defect again**;
+caught on re-reading, guarded, and added as a subcase.
+
+Seven new cases fail on `734faa7`, pass here — entry **41**. All ten suites green; `HARNESS_FILES` 33.
+**Not done:** binding to `config.json` (verbatim contract — root's call) and to a costed plan (none
+current); item 4 wiring (design posted 16:18Z); join-boundary accounting.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
