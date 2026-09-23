@@ -235,6 +235,49 @@ def resolve_execution_lock(cfg: Mapping | None, *, stage: str) -> tuple:
     return path, assert_canonical_execution_lock(path, harness_config(), stage=stage)
 
 
+def assert_job_host_root_agreement(job: Mapping | None, *, stage: str) -> dict:
+    """Validate the host pin in EVERY place a job can carry one, and reject copies
+    that contradict each other.
+
+    Root, `reviews/lock_anchor_disposition_20260923_0618.md`:
+
+        "`World.build_job` emits top-level `job['sandbox']`, with no
+         `job['cfg']`. The worker's new host-root agreement guard instead checks
+         only `job.get('cfg') or {}`. An actual producer-shaped job with a
+         conflicting top-level host pin reaches stubbed dispatch ... apply
+         agreement validation to the actual top-level sandbox block used by the
+         worker and validate any supported nested configuration as well; reject
+         contradictory copies."
+
+    My guard checked the shape I ASSUMED the producer emits rather than the shape
+    it does emit -- the same defect as a fixture written by the same mind as the
+    reader. `run_job` already reads both spellings (`job['sandbox']` at one site,
+    `job['cfg']['sandbox']` at another), so both are live and both must be
+    validated. Two copies that disagree are refused outright: there is no rule
+    for choosing between them that is not a guess.
+    """
+    job = job or {}
+    blocks = {
+        'job.sandbox': (job.get('sandbox') or {}),
+        'job.cfg.sandbox': (((job.get('cfg') or {}).get('sandbox')) or {}),
+    }
+    declared = {where: b.get('host_work_root')
+                for where, b in blocks.items() if b.get('host_work_root')}
+    values = {os.path.realpath(str(v)) for v in declared.values()}
+    if len(values) > 1:
+        raise PreflightError(
+            'contradictory host_work_root copies at %s: %r. A job carrying two '
+            'different host pins has no correct reading; it refuses.'
+            % (stage, declared))
+    out = {'stage': stage, 'declared_in': sorted(declared),
+           'checked_both_shapes': sorted(blocks)}
+    for where, value in declared.items():
+        assert_host_root_agreement({'sandbox': {'host_work_root': value}},
+                                   stage='%s (%s)' % (stage, where))
+        out['agrees_with_audited_pin'] = True
+    return out
+
+
 def assert_host_root_agreement(cfg: Mapping | None, *, stage: str) -> dict:
     """A job-carried host root must AGREE with the audited module pin.
 

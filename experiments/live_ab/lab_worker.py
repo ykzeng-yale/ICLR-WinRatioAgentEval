@@ -665,8 +665,10 @@ def main(argv: list[str] | None = None) -> int:
     # The job's own sandbox block is checked for agreement first, so a job cannot
     # quietly relocate the host root and then satisfy the check against its own
     # relocated pin.
-    lab_common.assert_host_root_agreement(
-        job.get('cfg') or {}, stage='lab_worker.main')
+    # BOTH SHAPES. World.build_job emits TOP-LEVEL job['sandbox']; this guard
+    # used to read only job['cfg'], which the producer never writes, so a
+    # producer-shaped job with a conflicting host pin sailed past it.
+    lab_common.assert_job_host_root_agreement(job, stage='lab_worker.main')
     if 'sandbox_lock' in paths:
         # the SPELLING, before it is resolved: <WORK>/sandbox.lock resolves to the
         # canonical file here and to a different file in a clone.

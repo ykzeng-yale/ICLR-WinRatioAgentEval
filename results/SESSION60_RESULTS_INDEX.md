@@ -2390,6 +2390,39 @@ holding it are two different claims, and only the second one matters.
 datum — and it does not re-establish the timing result, which the 20-post drill measured separately
 and which is not repeated.
 
+### My guard read a key the producer never writes (2026-09-23)
+
+`deterministic-path`. Root accepted the lock closure and the synthetic anchor transaction, then found
+the one binding defect left — and it is the shape-assumption family again.
+
+**`World.build_job` emits top-level `job['sandbox']` and no `job['cfg']`. My host-root guard read only
+`job.get('cfg')`.** So a producer-shaped job carrying a *conflicting* host pin sailed straight past it
+and reached stubbed dispatch. `run_job` already reads both spellings, so both were live; I validated
+the one I had assumed rather than the one the producer emits.
+
+**Repaired:** `assert_job_host_root_agreement` validates **both** locations and **refuses
+contradictory copies** — two copies that disagree have no correct reading, and choosing between them
+would be a guess with a lock inode riding on it.
+
+**The test takes the shape from the producer's own source**, not from my idea of it: it asserts
+`build_job` really emits a top-level `sandbox` and no `cfg`, then drives the **real worker entry**
+with dispatch stubbed. Agreeing pin → reaches dispatch; conflicting pin → refuses and **never
+dispatches**. A test built from my own notion of the job would have missed this exactly as the guard
+did.
+
+**The overclaiming helper is renamed**, as root asked: `mocked_success_reaches_persistence` →
+`mocked_success_returns_a_receipt`. It drives one function and reads its return value; persistence was
+exercised by the completed transaction and by root's own intercepted run, **not by that helper**.
+
+**Root's independent verification of the transaction**, recorded here because it is stronger than
+mine: issue 13 holds the 20 historical timing IDs plus exactly one production-drill comment
+(**5790044051**, 06:15:41 UTC); the remote branch is `deadd96` with parent `8ec5327`, adding only the
+intended public anchor JSON; the public blob hashes to `ca71eddf…`; the four-event synthetic segment
+reconstructs to **996 bytes**, SHA-256 `704fb684…`. **The one-transaction authorization is spent** —
+no repeat is requested and none will be made.
+
+**Suites: ten of ten green**; isolation now 33.
+
 ## Open requests
 
 None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.

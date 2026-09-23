@@ -844,6 +844,64 @@ class ExecutionLockConformanceTests(unittest.TestCase):
                              '%s: refused but the spool was already written, so '
                              'the refusal was not before dispatch' % name)
 
+    def test_a_producer_shaped_job_is_validated_in_the_shape_it_is_emitted(self) -> None:
+        """Through the REAL World.build_job shape and the REAL worker entry.
+
+        Root found the guard reading `job['cfg']` while `World.build_job` emits
+        top-level `job['sandbox']`, so a producer-shaped job with a conflicting
+        host pin reached stubbed dispatch. A test built from my own idea of the
+        job shape would have missed it exactly as the guard did, so this one
+        takes the shape from the producer's own source.
+        """
+        import inspect
+        import json as _json
+        import tempfile
+        from unittest import mock as _mock
+        import lab_common as C
+        import lab_orchestrator
+        import lab_worker
+
+        # the producer really does emit a TOP-LEVEL sandbox block and no 'cfg'
+        src = inspect.getsource(lab_orchestrator.World.build_job)
+        self.assertIn("'sandbox': dict(self.cfg.get('sandbox') or {})", src)
+        self.assertNotIn("'cfg':", src)
+
+        good = str(C.host_work_root(C.harness_config()))
+        for label, pin, expect_refused in (('agreeing', good, False),
+                                           ('conflicting', '/tmp/elsewhere', True)):
+            tmp = tempfile.mkdtemp()
+            job = {'trial': 'T1', 'arrival': 1,
+                   'sandbox': {'host_work_root': pin},      # PRODUCER SHAPE
+                   'paths': {'sandbox_lock': C.tokenize_execution_lock(
+                                 C.harness_config()),
+                             'spool': str(Path(tmp) / 'spool.jsonl')}}
+            f = Path(tmp) / 'job.json'
+            f.write_text(_json.dumps(job), encoding='utf-8')
+            dispatched = []
+            with _mock.patch.object(lab_worker, 'run_job',
+                                    lambda *a, **k: dispatched.append(1)):
+                refused = False
+                try:
+                    lab_worker.main(['--job', str(f)])
+                except C.PreflightError:
+                    refused = True
+            self.assertEqual(refused, expect_refused,
+                             'producer-shaped job with a %s host pin' % label)
+            self.assertEqual(bool(dispatched), not expect_refused,
+                             'a %s pin must%s reach dispatch'
+                             % (label, '' if not expect_refused else ' NOT'))
+
+    def test_contradictory_host_pin_copies_refuse(self) -> None:
+        # Two copies that disagree have no correct reading; choosing one would
+        # be a guess with a lock inode riding on it.
+        import lab_common as C
+        good = str(C.host_work_root(C.harness_config()))
+        with self.assertRaises(C.PreflightError):
+            C.assert_job_host_root_agreement(
+                {'sandbox': {'host_work_root': good},
+                 'cfg': {'sandbox': {'host_work_root': '/tmp/other'}}},
+                stage='probe')
+
     def test_entry_accepts_the_canonical_spelling(self) -> None:
         # It must get PAST the lock check. Anything after that (a missing task
         # file, an unwritable path) is not a lock refusal, so only a

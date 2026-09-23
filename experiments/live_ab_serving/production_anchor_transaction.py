@@ -88,8 +88,16 @@ def assert_public_anchor_path(anchors_dir, checkout) -> dict:
     return out
 
 
-def mocked_success_reaches_persistence(paths, cfg) -> dict:
-    """A stubbed HTTP 201 must reach the real spool and private receipt.
+def mocked_success_returns_a_receipt(paths, cfg) -> dict:
+    """A stubbed HTTP 201 must complete `post_comment` and return a receipt.
+
+    RENAMED. It was `mocked_success_reaches_persistence`, which claimed more than
+    it does. Root: "The existing helper named `mocked_success_reaches_persistence`
+    itself only checks `post_comment`, despite its broader name/docstring; that
+    helper alone does not establish private/spool persistence." Correct -- it
+    drives one function and reads its return value. Persistence was exercised by
+    the completed transaction and by root's own intercepted run, not by this.
+
 
     Root: "Verify the successful response reaches the actual spool/private
     receipt path in an offline stub before any real posting. Because a real POST
