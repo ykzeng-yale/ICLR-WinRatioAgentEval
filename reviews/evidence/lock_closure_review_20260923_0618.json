@@ -1,0 +1,128 @@
+{
+  "reviewed_commit": "9db77f5ae6ce1cfe27ac75caece2d025b5d44359",
+  "source_commit": "367bac7594391ec1438f22a8624311273bd77d1f",
+  "scope": "offline actual-entry and resolver calls; no model/sandbox/lock acquisition/network; second checkout root bindings simulated, owner clone receipt inspected",
+  "witness_count": 16,
+  "witnesses": [
+    {
+      "name": "path_<HOST_WORK>/sandbox.lock",
+      "called_run_job": true,
+      "return_code": 0,
+      "bound_lock": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab/sandbox.lock"
+    },
+    {
+      "name": "path_/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab/sandbox.lock",
+      "called_run_job": true,
+      "return_code": 0,
+      "bound_lock": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab/sandbox.lock"
+    },
+    {
+      "name": "path_<WORK>/T1/sandbox.lock",
+      "called_run_job": false,
+      "refused": "PreflightError",
+      "reason": "execution lock spelling at lab_worker.main is '<WORK>/T1/sandbox.lock'; only '<HOST_WORK>/sandbox.lock' or '/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab/sandbox.lock' are admissible. A spelling that merely resolves correctly in THIS checkout resolves elsewhere in a clone, which is the splitting protocol 5.7 item 1 forbids."
+    },
+    {
+      "name": "path_<WORK>/sandbox.lock",
+      "called_run_job": false,
+      "refused": "PreflightError",
+      "reason": "execution lock spelling at lab_worker.main is '<WORK>/sandbox.lock'; only '<HOST_WORK>/sandbox.lock' or '/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab/sandbox.lock' are admissible. A spelling that merely resolves correctly in THIS checkout resolves elsewhere in a clone, which is the splitting protocol 5.7 item 1 forbids."
+    },
+    {
+      "name": "path_/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/lock_closure_review_oce8j2bq/other.lock",
+      "called_run_job": false,
+      "refused": "PreflightError",
+      "reason": "execution lock spelling at lab_worker.main is '/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/lock_closure_review_oce8j2bq/other.lock'; only '<HOST_WORK>/sandbox.lock' or '/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab/sandbox.lock' are admissible. A spelling that merely resolves correctly in THIS checkout resolves elsewhere in a clone, which is the splitting protocol 5.7 item 1 forbids."
+    },
+    {
+      "name": "path_relative.lock",
+      "called_run_job": false,
+      "refused": "PreflightError",
+      "reason": "execution lock spelling at lab_worker.main is 'relative.lock'; only '<HOST_WORK>/sandbox.lock' or '/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab/sandbox.lock' are admissible. A spelling that merely resolves correctly in THIS checkout resolves elsewhere in a clone, which is the splitting protocol 5.7 item 1 forbids."
+    },
+    {
+      "name": "actual_World_build_job_conflicting_top_level_host",
+      "called_run_job": true,
+      "return_code": 0,
+      "bound_lock": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab/sandbox.lock",
+      "has_cfg_field": false,
+      "job_host_root": "/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/lock_closure_review_oce8j2bq/different_host",
+      "job_token": "<HOST_WORK>/sandbox.lock",
+      "payload_digest_matches": true
+    },
+    {
+      "name": "same_conflict_also_in_nested_cfg",
+      "called_run_job": false,
+      "refused": "PreflightError",
+      "reason": "host_work_root at lab_worker.main is '/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/lock_closure_review_oce8j2bq/different_host' but the audited pin is '/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab'; a job may not relocate the host-wide lock"
+    },
+    {
+      "name": "actual_sweep_override_flag_true",
+      "reached_lock_constructor": false,
+      "exception": "PreflightError",
+      "reason": "sandbox.execution_lock_path='/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/lock_closure_review_oce8j2bq/override.lock' at lab_data.sweep_references: the execution lock is not configurable. Protocol 5.7 item 1 admits one host-wide file, and a configuration cannot license its own exception. Isolate by patching the canonical root inside the test process instead."
+    },
+    {
+      "name": "actual_sweep_override_flag_string_false",
+      "reached_lock_constructor": false,
+      "exception": "PreflightError",
+      "reason": "sandbox.execution_lock_path='/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/lock_closure_review_oce8j2bq/override.lock' at lab_data.sweep_references: the execution lock is not configurable. Protocol 5.7 item 1 admits one host-wide file, and a configuration cannot license its own exception. Isolate by patching the canonical root inside the test process instead."
+    },
+    {
+      "name": "actual_sweep_override_without_flag",
+      "reached_lock_constructor": false,
+      "exception": "PreflightError",
+      "reason": "sandbox.execution_lock_path='/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/lock_closure_review_oce8j2bq/override.lock' at lab_data.sweep_references: the execution lock is not configurable. Protocol 5.7 item 1 admits one host-wide file, and a configuration cannot license its own exception. Isolate by patching the canonical root inside the test process instead."
+    },
+    {
+      "name": "actual_sweep_runtime_host_conflict",
+      "reached_lock_constructor": false,
+      "exception": "PreflightError",
+      "reason": "host_work_root at lab_data.sweep_references is '/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/lock_closure_review_oce8j2bq/different_host' but the audited pin is '/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab'; a job may not relocate the host-wide lock"
+    },
+    {
+      "name": "containment_shared_resolver",
+      "declared": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab",
+      "bound_lock": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab/sandbox.lock"
+    },
+    {
+      "name": "containment_shared_resolver",
+      "declared": "/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/lock_closure_review_oce8j2bq/conflict",
+      "exception": "PreflightError",
+      "reason": "host_work_root at lab_containment is '/var/folders/36/0v652_p11r7fv5f1n0h8vcv00000gn/T/lock_closure_review_oce8j2bq/conflict' but the audited pin is '/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab'; a job may not relocate the host-wide lock"
+    },
+    {
+      "name": "reporter_first_checkout_roots",
+      "distinct_count": 1,
+      "sweep": "<HOST_WORK>/sandbox.lock",
+      "workers": {
+        "T1": "<HOST_WORK>/sandbox.lock",
+        "T2": "<HOST_WORK>/sandbox.lock",
+        "T3": "<HOST_WORK>/sandbox.lock",
+        "T4": "<HOST_WORK>/sandbox.lock"
+      },
+      "same_one_path": true,
+      "canonical_token_route": "canonical_token"
+    },
+    {
+      "name": "reporter_second_checkout_roots",
+      "distinct_count": 1,
+      "sweep": "<HOST_WORK>/sandbox.lock",
+      "workers": {
+        "T1": "<HOST_WORK>/sandbox.lock",
+        "T2": "<HOST_WORK>/sandbox.lock",
+        "T3": "<HOST_WORK>/sandbox.lock",
+        "T4": "<HOST_WORK>/sandbox.lock"
+      },
+      "same_one_path": true,
+      "canonical_token_route": "canonical_token"
+    }
+  ],
+  "owner_v8_second_checkout": {
+    "clone_canonical_lock": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab/sandbox.lock",
+    "clone_work_root_differs": true,
+    "identical_across_checkouts": true,
+    "owner_canonical_lock": "/Users/yukangzengcmac/ICLR-WinRatioAgentEvals/work/live_ab/sandbox.lock"
+  },
+  "owner_v8_entry_note": "the production assertions are called directly; no source string is inspected"
+}

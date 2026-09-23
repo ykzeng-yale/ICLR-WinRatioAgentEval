@@ -1,0 +1,118 @@
+{
+  "reviewed_head": "9db77f5ae6ce1cfe27ac75caece2d025b5d44359",
+  "source_commit": "8ec53277641a1949052a5210ab03f505baadaecc",
+  "comparison_base": "79e5827",
+  "files": {
+    "experiments/live_ab/lab_anchor.py": {
+      "sha256": "9f81cbb70d5ef79a32fa460c91232dc5febf9ccfb35bb467b921ac7ec7955084",
+      "bytes": 21170,
+      "equals_source_commit": true
+    },
+    "experiments/live_ab_serving/production_anchor_transaction.py": {
+      "sha256": "1226b738704f3d2a3ea506560c4098360a08b28941ee41a2bda2b196446aecaf",
+      "bytes": 16008,
+      "equals_source_commit": true
+    },
+    "results/live_ab/ANCHOR_DRILL_OFFLINE_CHECKS.json": {
+      "sha256": "d508ba56f3edc944a3a1760defce05748b7bd6195b3dab373a7613ba019ad386",
+      "bytes": 2685,
+      "equals_source_commit": null
+    },
+    "results/live_ab/ANCHOR_DRILL_RECONCILIATION.json": {
+      "sha256": "0523ea5ed141dd57938def340d703c5dbf9eca0a8c866f2d2e71790a26dcfac2",
+      "bytes": 1486,
+      "equals_source_commit": null
+    },
+    "results/live_ab/PRODUCTION_ANCHOR_panchor_1725577ad9.json": {
+      "sha256": "a2a6695c1adb2744e4715a2c01bc589fac4c97fe56579f4bc7e4eee89842f857",
+      "bytes": 2101,
+      "equals_source_commit": null
+    },
+    "results/live_ab/PRODUCTION_ANCHOR_panchor_e4841774f5.json": {
+      "sha256": "0a47b6df370dfd8763d0a34a54bfc37974c58161c489165b0d1460c8a5f4e86f",
+      "bytes": 2689,
+      "equals_source_commit": null
+    }
+  },
+  "checks": {
+    "fully_mocked_real_mode_path": {
+      "passed": true,
+      "http_post_calls_intercepted": 1,
+      "network_transport_disabled": true,
+      "subprocess_calls_all_intercepted": true,
+      "subprocess_call_count": 14,
+      "actual_git_mutations": 0,
+      "actual_network_calls": 0,
+      "code_path": "main(real mode) -> serve -> _handle -> commit_and_push(stubbed subprocess) -> post_comment(stubbed requests.post) -> private and spool receipts",
+      "http_url": "https://api.github.com/repos/ykzeng-yale/ICLR-WinRatioAgentEval/issues/13/comments",
+      "public_relative_stage": [
+        "results/live_ab/anchor_drills/panchor_review0618/anchors/anchor_1.json"
+      ],
+      "public_anchor_bytes": 301,
+      "public_anchor_sha256": "ca71eddf2c8b74d4d8d6255f6ab1ce6917762346e1005dccce7b5069fdcd3b5d",
+      "private_spool_bytes_identical": true,
+      "response_sha256": "8fb31e36c93672716eae071d5f588a747ab198eeb5ffe33cf6eecdf92982ebff",
+      "returned_response_sha256": "8fb31e36c93672716eae071d5f588a747ab198eeb5ffe33cf6eecdf92982ebff",
+      "comment_id": 999999,
+      "requests_handled": 1,
+      "simulated_origin_verified": "https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval.git",
+      "simulated_commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "stored_receipt_ok": true,
+      "main_exit_code": 0
+    },
+    "bare_api_refusal": {
+      "passed": true,
+      "exception": "issue API base 'https://api.github.com' at post_comment names no repository; \"https://api.github.com/issues/N/comments\" would address nothing. Expected a \".../repos/<owner>/<name>\" base.",
+      "post_calls": 0
+    },
+    "public_and_ignored_path_checks": {
+      "public": {
+        "accepted": true,
+        "details": {
+          "anchors_dir": "/Users/yukang/Documents/Codex/2026-09-17/i-x20/outputs/agent_win_eval/results/live_ab/anchor_drills/REVIEW_ONLY_0618/anchors",
+          "inside_checkout": true,
+          "git_check_ignore_says_ignored": false,
+          "git_check_ignore_output": null,
+          "decided_by": "git check-ignore, not a local .gitignore reimplementation"
+        }
+      },
+      "ignored": {
+        "accepted": false,
+        "reason": "REFUSE: public anchor path /Users/yukang/Documents/Codex/2026-09-17/i-x20/outputs/agent_win_eval/work/_production_anchor/REVIEW_ONLY_0618/anchors is ignored (.gitignore:26:work/\t/Users/yukang/Documents/Codex/2026-09-17/i-x20/outputs/agent_win_eval/work/_production_anchor/REVIEW_ONLY_0618/anchors/anchor_1.json); git add would refuse it"
+      }
+    },
+    "retained_receipt_crosscheck": {
+      "passed": true,
+      "live_run_id": "panchor_e4841774f5",
+      "live_generated_utc": "2026-09-23T06:15:37Z",
+      "live_comment_created_at": "2026-09-23T06:15:41Z",
+      "comment_id": 5790044051,
+      "commit": "deadd9648ef1f0d1396620afab13254b4c303659",
+      "private_spool_objects_identical": true,
+      "live_request_count": 1,
+      "segment_bytes_reconstructed": 996,
+      "segment_sha256_reconstructed": "704fb68465052633dd0b826d838c8038fa54fe5c30e9fb772ab4399509ada512",
+      "segment_final_hash_reconstructed": "740d4bd0bd888800bcd52e0f316c732d93327fef4703486fa3719a744b7ed20e",
+      "anchor_file_sha256_recomputed": "ca71eddf2c8b74d4d8d6255f6ab1ce6917762346e1005dccce7b5069fdcd3b5d",
+      "mock_run_id": "panchor_1725577ad9",
+      "mock_has_private_receipt": false,
+      "remote_truth_verified_in_this_subreview": false
+    }
+  },
+  "verification_summary": {
+    "focused_checks": 5,
+    "passed": 5,
+    "count_convention": "full mocked path; bare API refusal; public path accepted; ignored path refused; retained receipt deterministic reconstruction"
+  },
+  "limitations": [
+    "No mutating Git operation, real HTTP request or actual drill transaction repeated; read-only git show/check-ignore were used.",
+    "Saved private/spool copies are owner-deposited evidence; original ignored private files are not independently retrieved.",
+    "Remote comment, commit, payload and parent are separately checked by root.",
+    "The offline helper itself does not exercise persistence despite its name/docstring; this review supplies the missing isolated source-path check."
+  ],
+  "readiness": {
+    "full": 75,
+    "change": 0,
+    "bounded_v1": 90
+  }
+}
