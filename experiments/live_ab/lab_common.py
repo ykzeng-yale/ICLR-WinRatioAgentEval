@@ -850,9 +850,11 @@ def _dotted(cfg: dict, dotted: str) -> object:
 #: The supervised-restart cap of repair contract EB1 (root 20:40 item 4,
 #: ``reviews/prerun_bundle_go_nogo_20260923_2040.md:19``): a TOP-LEVEL configuration key,
 #: outside :data:`RULE_BLOCK_KEYS`, so pinning it does not move ``rule_block_sha256``.  The
-#: amendment lane adds it to config.json / ARCHITECTURE 6.1 / Appendix B; until then only a
-#: temporary freeze tree carries it, and a non-simulated invocation without it is refused
-#: before seq 0.  The key set is CLOSED: an unknown member is malformed, never ignored.
+#: synchronized amendment v2 (commit 474f9d8, receipt
+#: ``results/live_ab/REPAIR_AMENDMENT_V2_RECEIPT_20260924_0927.json``) put it in config.json,
+#: the ARCHITECTURE 6.1 fence and the Appendix B fence (value 3, ``abort_trial_incomplete``);
+#: a non-simulated invocation whose frozen config lacks it is refused before seq 0.  The key
+#: set is CLOSED: an unknown member is malformed, never ignored.
 SERVER_SUPERVISION_KEY: str = 'server_supervision'
 SERVER_SUPERVISION_MEMBERS: tuple[str, ...] = ('max_supervised_restarts_per_server_per_trial',
                                                'on_exceeding')

@@ -236,8 +236,9 @@ def build_mock_freeze(root: Path, *, n_pairs: int, trial: str, delta: float | No
         cfg['prefreeze']['side_by_side_compression_C'][t] = 1.0
     # The supervised-restart cap of repair contract EB1 (root 20:40 item 4), a top-level key
     # outside the rule block that every non-simulated invocation now requires before seq 0.
-    # The amendment lane adds it to config.json; until then this temporary tree carries the
-    # contract's value, and setdefault leaves an amended configuration's own block in force.
+    # The config.json read above carries it since the synchronized amendment v2 (commit
+    # 474f9d8), so setdefault keeps that block; the literal takes effect only beside a
+    # config.json without one (a copy of a pre-amendment tree).
     cfg.setdefault(lab_common.SERVER_SUPERVISION_KEY, {
         'max_supervised_restarts_per_server_per_trial': 3,
         'on_exceeding': lab_common.SERVER_SUPERVISION_ON_EXCEEDING})
