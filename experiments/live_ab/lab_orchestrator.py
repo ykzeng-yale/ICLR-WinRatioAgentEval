@@ -1340,6 +1340,20 @@ def preflight(ctx: RunContext) -> dict:
             if row is not None:
                 failed.append('weights_hash')
                 drift.append(row)
+            # Root 21:14 item 3 / the 21:15 EB1 corrections: the MEASURED digest must equal
+            # the frozen servers entry, and that entry records two digests -- the declared
+            # ``sha256_expected`` (what ``_gguf_drift`` measures against) and the freeze's own
+            # ``sha256_recomputed``.  A freeze whose two disagree (or whose recomputation is
+            # absent) cannot be matched by any file, so it is refused here too.  Performs: a
+            # string comparison of the two frozen values; the file itself is hashed once,
+            # above, and never taken from the configuration.
+            recomputed = ((cfg.get('servers') or {}).get(sid) or {}).get('sha256_recomputed')
+            if recomputed != spec.gguf_sha256:
+                failed.append('weights_hash')
+                _drift(_drift_label('gguf_recomputed.%s' % sid),
+                       str(spec.gguf_sha256) if _hex64(spec.gguf_sha256)
+                       else lab_common.MEMBER_ABSENT,
+                       str(recomputed) if _hex64(recomputed) else lab_common.MEMBER_ABSENT)
             if manifest is not None:
                 for label in lab_server.serving_manifest_problems(spec, manifest,
                                                                   want_manifest):
@@ -2022,6 +2036,23 @@ class World:
         #: port: a reused pid, never signalled).
         self.previous_pids: dict[str, int] = {}
         self.previous_gone: set[int] = set()
+        # -- the restart-cap estimand (root 21:14 ruling; root 00:22) --------------------
+        #: the frozen tree is a dry run (the verifier's and the builder's MOCK rule): only
+        #: there may a decision receipt without an external server time count as one
+        #: (``lab_eventlog.decision_receipt``).
+        self.tree_mock = bool(self.cfg.get('mock') or self.cfg.get('mock_overrides'))
+        #: every anchor request of this chain by request id (this invocation's, and the
+        #: previous invocations' read back from ``anchor_spool/requests.jsonl``): a receipt
+        #: is chained under the ``anchor_seq`` of the request it answers.
+        self.anchor_requests: dict[str, dict] = {}
+        #: ``anchor_seq`` -> ``'receipt'`` / ``'failed'`` as chained: a receipt line read
+        #: again (a resumed invocation re-reads the receipt spool from its start) is not
+        #: chained twice.
+        self.anchor_resolved: dict[int, str] = {}
+        #: this invocation's blocking ``decision`` anchor came back ``ok: false``
+        #: (protocol 6.4 row 26, 12.4 item 2: ``trial_paused(anchor_unavailable)``).
+        self.decision_anchor_failed = False
+        self._decision_receipted = False
 
     # -- configuration --------------------------------------------------------
     def _execution(self) -> dict:
@@ -2166,6 +2197,14 @@ class World:
             raise PauseTrial('monitor_mismatch')
         if trigger == 'drain' or self.decision is not None:
             return None                     # the decision prefix is closed at the crossing
+        if self.pending_abort == RESTART_CAP_REASON:
+            # Root 21:14 ruling, case (a): a fourth restart was required BEFORE any decision,
+            # so the trial is aborted incomplete and "no new decision" is taken.  The look
+            # above is logged exactly as without the cap (the band, the enclosures and the
+            # reference rule's shadow are untouched: the cap changes no monitor output); only
+            # the decision event is not appended.  An abort can only remove decisions,
+            # never create one (protocol 6.4).
+            return None
         # The decision is taken here, immediately after the monitor_update it quotes
         # (ordering invariant 7): nothing may sit between the two lines.
         return self.take_decision(lab_monitor.decide(self.monitor, self.ctx.mc))
@@ -2504,6 +2543,15 @@ class World:
            dispatched, the open attempts drain through the ordinary pump (the hard-cap kill
            still applies) and are revealed, and then ``trial_aborted(server_restart_cap)``.
            This outranks any other pending outcome.  No replacement trial, no extra pair.
+           Root's 21:14 ruling fixes what the abort means by where the chain stands
+           (``lab_eventlog.restart_cap_case``): (a) before any decision -- incomplete, and
+           no decision is taken afterwards (:meth:`_write_one_look`); (b) after a decision
+           whose blocking anchor carries its chained external receipt -- the decision and
+           its tau stand and the follow-up is truncated; (c) while the logged decision still
+           awaits that receipt -- the abort waits in ``ANCHOR_BLOCK`` for the existing
+           receipt rule (:meth:`raise_pending`), and if the receipt never comes the existing
+           anchor-failure rule pauses the trial (``anchor_unavailable``) with the abort still
+           owed.  The cap touches no monitor input, allocation, margin or score.
         5. Otherwise, unless an abort is already owed, :meth:`supervised_restart`."""
         self._ingest_open()
         old_pid = int(self.server_pids.get(server_id) or 0)
@@ -2600,8 +2648,20 @@ class World:
                 self._interrupt(att)
 
     def raise_pending(self) -> None:
-        """Take the owed supervision outcome once nothing is open: an abort before a pause."""
+        """Take the owed supervision outcome once nothing is open: an abort before a pause.
+
+        While a logged decision still awaits its blocking receipt it is NOT taken here
+        (root 21:14 ruling, case (c)): the decision is provisional, nothing post-switch is
+        dispatched, and ``ANCHOR_BLOCK`` takes the owed outcome only once the existing receipt
+        rule has succeeded -- or, if it never does, the existing anchor-failure rule pauses
+        the trial (``anchor_unavailable``, protocol 6.4 row 26) with the outcome still owed
+        (``supervision_state``: an owed abort survives a pause).  An abort taken before the
+        receipt would supersede the decision's blocking anchor with its own."""
         if self.open_arrivals:
+            return
+        if self.pending_abort is None and self.pending_pause is None:
+            return
+        if self.decision is not None and not self.decision_receipted():
             return
         if self.pending_abort is not None:
             raise AbortTrial(self.pending_abort)
@@ -2647,6 +2707,9 @@ class World:
         finally:
             os.close(fd)
         self.pending_anchor = request
+        self.anchor_requests[str(request['request_id'])] = request
+        if trigger == 'decision':
+            self.decision_anchor_failed = False
         self._anchor_t0 = time.monotonic()
 
     def _cumulative_bytes(self, current: int) -> int:
@@ -2660,19 +2723,67 @@ class World:
         names = sorted(p.name for p in rec_dir.glob('*.json')) if rec_dir.exists() else []
         return sha256_canonical(names)
 
+    def _anchor_request(self, request_id: object) -> dict | None:
+        """The anchor request a receipt line answers, by its request id: this invocation's
+        own, else read back from the durable ``anchor_spool/requests.jsonl`` (a previous
+        invocation's request, answered after that invocation ended).  ``None`` when no
+        request carries the id."""
+        rid = str(request_id or '')
+        if rid in self.anchor_requests:
+            return self.anchor_requests[rid]
+        path = self.ctx.paths.anchor_spool / 'requests.jsonl'
+        try:
+            rows, _ = read_spool_lines(path, 0)
+        except (OSError, SpoolError):
+            rows = []
+        for row in rows:
+            if row.get('request_id') is not None and row.get('anchor_seq') is not None:
+                self.anchor_requests.setdefault(str(row['request_id']), dict(row))
+        return self.anchor_requests.get(rid)
+
+    def decision_receipted(self) -> bool:
+        """Whether the logged decision is externally receipted on the chain as it stands
+        (``lab_eventlog.decision_receipt``; root 00:22).  Once true it stays true."""
+        if self.decision is None or self.log is None:
+            return False
+        if not self._decision_receipted:
+            self._decision_receipted = lab_eventlog.decision_receipt(
+                self.log.events, mock=self.tree_mock)['status'] == 'receipted'
+        return self._decision_receipted
+
     def ingest_receipts(self) -> bool:
         """Turn the anchor process's receipts into ``anchor_receipt`` / ``anchor_failed``.
 
-        The orchestrator remains the only writer of the chain (AD-2, PG-12)."""
+        The orchestrator remains the only writer of the chain (AD-2, PG-12).  A receipt is
+        chained under the ``anchor_seq`` of the REQUEST it answers (:meth:`_anchor_request`),
+        and a line whose anchor is already resolved in the chain is not chained again: the
+        restart-cap ruling's case (c) is decided by which anchor a receipt answers, and a
+        resumed invocation re-reads the receipt spool from its start (it used to chain every
+        old line again, under the newest anchor's seq).  A line whose request cannot be found
+        keeps the old attribution (the newest anchor).  A blocking ``decision`` request that
+        comes back ``ok: false`` sets :attr:`decision_anchor_failed`."""
         path = self.ctx.paths.anchor_spool / 'receipts.jsonl'
         lines, self.receipt_offset = read_spool_lines(path, self.receipt_offset)
         got = False
         for row in lines:
             pending = self.pending_anchor
-            anchor_seq = self.anchor_seq
+            request = self._anchor_request(row.get('request_id'))
+            anchor_seq = (int(request['anchor_seq']) if request is not None
+                          else self.anchor_seq)
             if pending is not None and row.get('request_id') == pending['request_id']:
                 got = True
                 self.pending_anchor = None
+                if pending.get('trigger') == 'decision' and not (
+                        row.get('ok') and (self.tree_mock
+                                           or row.get('created_at') is not None)):
+                    # failed, or "ok" without the external server time of a decision
+                    # receipt (12.4 item 3; claim 3 of 1.4) -- a local-only commit is not
+                    # an external receipt outside a MOCK tree
+                    self.decision_anchor_failed = True
+            seen = self.anchor_resolved.get(anchor_seq)
+            if seen == 'receipt' or (seen is not None and not row.get('ok')):
+                continue
+            self.anchor_resolved[anchor_seq] = 'receipt' if row.get('ok') else 'failed'
             if row.get('ok'):
                 self.append('anchor_receipt', {
                     'anchor_seq': anchor_seq,
@@ -2686,10 +2797,11 @@ class World:
                 }, durable=True)
                 self.receipts_obtained += 1
             else:
+                answered = request if request is not None else pending
                 self.append('anchor_failed', {
                     'anchor_seq': anchor_seq,
                     'error_class': str(row.get('error_class') or 'api'),
-                    'blocking': bool(pending['blocking']) if pending else False,
+                    'blocking': bool(answered['blocking']) if answered else False,
                 }, durable=True)
         return got
 
@@ -3148,17 +3260,39 @@ def _step(state: State, ctx: RunContext, world: World) -> State:      # noqa: C9
         return 'ANCHOR_BLOCK'
 
     if state == 'ANCHOR_BLOCK':
+        # Protocol 9.1 steps 1-2 and 12.4 item 5: nothing post-switch before the decision's
+        # CHAINED external receipt (root 21:14 ruling case (c); root 00:22).  The servers
+        # stay supervised while the receipt is awaited (up to 30 minutes), so a restart the
+        # cap forbids is recorded when it is required, not after the switch.
+        if not rt.get('sim'):
+            world.health_poll()
         world.ingest_receipts()
-        if world.pending_anchor is not None:
-            if world.anchor_timed_out():
+        assert world.decision is not None
+        if world.decision_receipted():
+            # A supervision outcome owed while the decision was provisional (a restart-cap
+            # abort, a failed restart) is taken now, before any switch: the decision stands
+            # at its original tau and the follow-up is truncated (ruling cases (b)/(c)).
+            world.raise_pending()
+            if world.decision['kind'] == 'horizon_no_decision':
+                return 'CLOSING'
+            world.write_traffic_switch()
+            return 'POST_DECISION'
+        if world.pending_anchor is None:
+            if world.decision_anchor_failed:
+                # 6.4 row 26 / 12.4 item 2: a blocking receipt that could not be obtained
+                # (the anchor process retried for its full window) is a pause, never a
+                # switch.  It used to fall through to traffic_switch with no receipt.
                 world.pause_reason = 'anchor_unavailable'
                 return 'PAUSED'
+            # No decision anchor is outstanding in THIS invocation (a resumed invocation,
+            # or a trigger that found another request pending): request it now (14.5).
+            world.request_anchor('decision', blocking=True)
+            world.decision_anchor_done = True
             return 'ANCHOR_BLOCK'
-        assert world.decision is not None
-        if world.decision['kind'] == 'horizon_no_decision':
-            return 'CLOSING'
-        world.write_traffic_switch()
-        return 'POST_DECISION'
+        if world.anchor_timed_out():
+            world.pause_reason = 'anchor_unavailable'
+            return 'PAUSED'
+        return 'ANCHOR_BLOCK'
 
     if state == 'POST_DECISION':
         world.pump()
@@ -3571,6 +3705,12 @@ def _w_close_trial(self: World, status: str) -> None:
         'longest_unreceipted_span_s': 0.0,
         'what_was_known': self.what_was_known(),
         'final_head': self.log.head,
+        # Root 21:14 ruling: the restart-cap case, the decision's receipt state and the
+        # cap's effect on completion and exposure (arrivals not run, follow-up not run),
+        # over the chain before this record; the verifier's server.lifecycle recounts it.
+        'completion': lab_eventlog.completion_record(
+            self.log.events, [int(a) for slot in self.ctx.order for a in slot['arrivals']],
+            self.restart_cap, mock=self.tree_mock),
     }
     self.append('trial_ended' if status == 'ended' else 'trial_aborted', body,
                 durable=True)
@@ -3770,6 +3910,13 @@ def _w_rebuild_from_chain(self: World, events: Sequence[Mapping], plan: ResumePl
     self.anchor_seq = sum(1 for e in events if e['type'] == 'anchor')
     self.reveal_index = sum(1 for e in events if e['type'] == 'episode_revealed')
     self.receipts_obtained = sum(1 for e in events if e['type'] == 'anchor_receipt')
+    # which anchors the chain has already resolved: the receipt spool is re-read from its
+    # start by this invocation, and a line already chained is not chained again
+    for e in events:
+        if e['type'] == 'anchor_receipt':
+            self.anchor_resolved[int(e['body']['anchor_seq'])] = 'receipt'
+        elif e['type'] == 'anchor_failed':
+            self.anchor_resolved.setdefault(int(e['body']['anchor_seq']), 'failed')
     self._current_pair = plan.monitor_prefix
     for ev in events:
         if ev['type'] == 'pair_enrolled':

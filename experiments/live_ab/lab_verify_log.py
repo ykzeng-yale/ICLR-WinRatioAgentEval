@@ -294,7 +294,8 @@ def _answer_after(events: Sequence[Mapping], index: int, answers) -> str:
 
 
 def _check_server_lifecycle(col: _Collector, events: Sequence[Mapping],
-                            cfg: Mapping | None) -> None:
+                            cfg: Mapping | None,
+                            arrivals: Sequence[int] | None = None) -> None:
     """``server.lifecycle`` (FAIL; repair contract EB1 item 5): the server lifecycle of a
     NON-SIMULATED chain, read from the chain and the frozen configuration alone.
 
@@ -345,8 +346,30 @@ def _check_server_lifecycle(col: _Collector, events: Sequence[Mapping],
        beyond the cap would have been required); on a chain that is not yet terminal only the
        "if" direction is enforced.
 
+    The restart-cap estimand of root's 21:14 ruling (``lab_eventlog.restart_cap_case``;
+    root 00:22 on "externally receipted"), on every chain the cap bound in, and rule 9 on
+    every live chain:
+
+    6. ``restart_cap_case`` (INFO, never a failure): the case, labelled -- ``before_decision``
+       (a), ``after_receipted_decision`` (b) or ``decision_provisional`` (c) -- with the
+       decision's receipt state at the end of the chain.
+    7. ``decision_after_cap``: in case (a) no ``decision`` follows the ``server_down`` that
+       required the fourth restart (the ruling: "no new decision").
+    8. ``post_switch_after_cap``: no ``traffic_switch`` and no ``arm_assigned_by_decision``
+       follows that ``server_down`` (the follow-up is truncated, never continued).
+    9. ``switch_before_decision_receipt``: a ``traffic_switch`` or ``arm_assigned_by_decision``
+       only after the decision's OWN blocking anchor carries its chained receipt (protocol
+       12.4 item 5; in a tree that is not a dry run, a receipt with the external server time)
+       -- the case (c) rule "no post-switch dispatch without the receipt".
+    10. ``completion_record``: a terminal record's ``completion`` equals
+       ``lab_eventlog.completion_record`` recounted over the chain before it and the frozen
+       arrival order (``arrivals``); a chain the cap bound in must carry one.  This checks the
+       record against the chain; the function's own correctness rests on the controls
+       (``tests_eb1_cap_estimand``), not on this comparison.
+
     What it does NOT perform: it never re-derives a start's comparisons from a server (the
-    verifier reads no server); it does not check pids against a process table."""
+    verifier reads no server); it does not check pids against a process table; it cannot tell
+    a genuine anchor receipt from a fabricated one."""
     check = 'server.lifecycle'
     events = list(events)
     kind = server_start_kind(events)
@@ -413,6 +436,18 @@ def _check_server_lifecycle(col: _Collector, events: Sequence[Mapping],
                                 'server_id': str(ev['body'].get('server_id')),
                                 'state': state}, seq=ev['seq'])
 
+    # 9. switch_before_decision_receipt: no post-switch step before the decision's own
+    # chained receipt (protocol 12.4 item 5; root 21:14 ruling case (c), root 00:22)
+    mock = _config_is_mock(cfg)
+    for ev in events:
+        if ev['type'] in ('traffic_switch', 'arm_assigned_by_decision'):
+            state = lab_eventlog.decision_receipt(events, mock=mock,
+                                                  before_seq=int(ev['seq']))['status']
+            if state != 'receipted':
+                col.add(check, {'rule': 'switch_before_decision_receipt', 'type': ev['type'],
+                                'decision_status': state}, seq=ev['seq'])
+                break
+
     cap_aborts = [e for e in events if e['type'] == 'trial_aborted'
                   and e['body'].get('reason') == 'server_restart_cap']
     relevant = cap_aborts or any(
@@ -429,8 +464,27 @@ def _check_server_lifecycle(col: _Collector, events: Sequence[Mapping],
             col.add(check, {'rule': 'cap', 'error': 'the frozen restart cap is unreadable, '
                             'so the restarts of this chain could not be checked',
                             'problem': problem})
+        _check_completion_record(col, events, cap, mock, arrivals)
         col.ok(check)
         return
+    # 6-8: the restart-cap estimand of root's 21:14 ruling
+    cc = lab_eventlog.restart_cap_case(events, cap, mock=mock)
+    if cc['case'] != 'none':
+        required_seq = int(cc['cap_required_seq'])
+        col.add(check, {'rule': 'restart_cap_case', 'case': cc['case'],
+                        'cap_required_seq': required_seq,
+                        'decision_status': cc['decision']['status']},
+                seq=required_seq, severity='INFO')
+        if cc['decision_after_cap_seq'] is not None:
+            col.add(check, {'rule': 'decision_after_cap', 'cap_required_seq': required_seq},
+                    seq=cc['decision_after_cap_seq'])
+        late = next((e for e in events if int(e['seq']) > required_seq
+                     and e['type'] in ('traffic_switch', 'arm_assigned_by_decision')), None)
+        if late is not None:
+            col.add(check, {'rule': 'post_switch_after_cap', 'type': late['type'],
+                            'cap_required_seq': required_seq}, seq=late['seq'])
+    _check_completion_record(col, events, cap, mock, arrivals,
+                             required=cc['case'] != 'none')
     restarts: dict = {}
     required: list[int] = []
     for ev in events:
@@ -453,6 +507,34 @@ def _check_server_lifecycle(col: _Collector, events: Sequence[Mapping],
         col.add(check, {'rule': 'cap_abort_iff_required', 'required': len(required),
                         'cap_aborts': 0}, seq=required[0])
     col.ok(check)
+
+
+def _check_completion_record(col: _Collector, events: Sequence[Mapping], cap: int | None,
+                             mock: bool, arrivals: Sequence[int] | None, *,
+                             required: bool = False) -> None:
+    """Rule 10 of ``server.lifecycle``: every terminal record's ``completion`` equals
+    ``lab_eventlog.completion_record`` recounted over the chain before it and the frozen
+    arrival order; ``required`` (the cap bound) makes a terminal record without one a failure
+    too.  Skipped when the caller has no arrival order (``arrivals`` None)."""
+    if arrivals is None:
+        return
+    for i, ev in enumerate(events):
+        if ev['type'] not in ('trial_ended', 'trial_aborted'):
+            continue
+        logged = ev['body'].get('completion')
+        if logged is None:
+            if required:
+                col.add('server.lifecycle', {'rule': 'completion_record',
+                                             'error': 'the cap bound and the terminal '
+                                                      'record carries no completion'},
+                        seq=ev['seq'])
+            continue
+        recount = lab_eventlog.completion_record(events[:i], arrivals, cap, mock=mock)
+        differs = sorted(k for k in set(recount) | set(logged)
+                         if recount.get(k) != logged.get(k))
+        if differs:
+            col.add('server.lifecycle', {'rule': 'completion_record',
+                                         'fields': ','.join(differs)}, seq=ev['seq'])
 
 
 # The two closed vocabularies of the host-scan records, read off the schema itself so the
@@ -995,10 +1077,32 @@ def _verify_trial(trial: str, freeze_bundle_sha256: str, *, mode: str = 'full',
                          'consequence': 'LIVE_DECISION_INVALID'},
                         seq=decision_events[0]['seq'])
         elif ref['kind'] != 'none':
-            col.add('reference_rule.agreement',
-                    {'live_kind': 'none', 'reference_kind': str(ref['kind']),
-                     'reference_n': -1 if ref['n'] is None else int(ref['n']),
-                     'consequence': 'LIVE_DECISION_INVALID'})
+            # Root 21:14 ruling, case (a): a crossing the reference rule finds at a look
+            # logged AFTER the server_down that required a fourth restart (and before any
+            # decision) is not acted on -- the trial is incomplete and takes no new decision.
+            # That is labelled (INFO), not a disagreement; a crossing at or before that
+            # point with no decision is still LIVE_DECISION_INVALID.
+            try:
+                cap_now: int | None = lab_common.server_supervision_cap(cfg)
+            except lab_common.FrozenMismatch:
+                cap_now = None
+            required_seq = lab_eventlog.restart_cap_required_seq(events, cap_now)
+            idx = next((i for i, lk in enumerate(looks or []) if lk.action != 'none'), None)
+            crossing_seq = (int(updates[idx]['seq'])
+                            if idx is not None and idx < len(updates) else None)
+            if required_seq is not None and crossing_seq is not None \
+                    and crossing_seq > required_seq:
+                col.add('reference_rule.agreement',
+                        {'live_kind': 'none', 'reference_kind': str(ref['kind']),
+                         'reference_n': -1 if ref['n'] is None else int(ref['n']),
+                         'consequence': 'NOT_ACTED_ON_restart_cap_before_decision',
+                         'cap_required_seq': int(required_seq)},
+                        seq=crossing_seq, severity='INFO')
+            else:
+                col.add('reference_rule.agreement',
+                        {'live_kind': 'none', 'reference_kind': str(ref['kind']),
+                         'reference_n': -1 if ref['n'] is None else int(ref['n']),
+                         'consequence': 'LIVE_DECISION_INVALID'})
         assert looks is not None
         if decision_events:
             d = decision_events[0]['body']
@@ -1197,7 +1301,8 @@ def _verify_trial(trial: str, freeze_bundle_sha256: str, *, mode: str = 'full',
     _check_host_scans(col, events, 'foreign_load_detected')
 
     # ---- server.lifecycle (repair contract EB1) --------------------------------
-    _check_server_lifecycle(col, events, cfg)
+    _check_server_lifecycle(col, events, cfg,
+                            [int(a) for slot in slots for a in slot['arrivals']])
 
     # ---- integrity.table (INFO) ---------------------------------------------
     terminal_by_arm = {arm: 0 for arm in ARMS}

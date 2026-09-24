@@ -353,6 +353,36 @@ def is_sim_server_body(body: Mapping) -> bool:
             and smoke.get('request_sha256') == SIM_SERVER_SHA256)
 
 
+#: The restart-cap estimand of root's 21:14 ruling
+#: (``reviews/restart_cap_estimand_ruling_20260923_2114.md``), one value per terminal record:
+#: ``none`` -- the cap never bound; ``before_decision`` -- a fourth restart was required
+#: before any logged decision (case (a): incomplete, no decision); ``after_receipted_decision``
+#: -- required after a logged decision whose blocking anchor carries its chained external
+#: receipt (case (b): the decision and its ``tau`` stand, the follow-up is truncated);
+#: ``decision_provisional`` -- required while the logged decision still awaited that receipt
+#: (case (c): no post-switch dispatch and no finalized claim until the existing receipt rules
+#: succeed).  :func:`restart_cap_case` computes it from the chain alone.
+RESTART_CAP_CASES: tuple[str, ...] = ('none', 'before_decision', 'after_receipted_decision',
+                                      'decision_provisional')
+E_RESTART_CAP_CASE = _E(*RESTART_CAP_CASES)
+#: A logged decision is ``provisional`` until an ``anchor_receipt`` answers one of ITS
+#: blocking ``anchor``s (trigger ``decision``) -- root 00:22: "a local decision event alone is
+#: provisional"; :func:`decision_receipt`.
+E_DECISION_STATUS = _E('none', 'provisional', 'receipted')
+
+#: ``trial_ended.completion`` / ``trial_aborted.completion`` (optional, so that chains written
+#: before it still validate; the orchestrator writes it on every terminal record since the
+#: 21:14 ruling, and the verifier's ``server.lifecycle`` recounts it): what the cap did to
+#: completion and exposure, and nothing about any score.  :func:`completion_record`.
+COMPLETION = _O({
+    'restart_cap_case': E_RESTART_CAP_CASE, 'cap_required_seq': _N(_I()),
+    'decision_seq': _N(_I()), 'decision_status': E_DECISION_STATUS,
+    'decision_receipt_seq': _N(_I()), 'decision_receipt_server_time': _N(_ISO()),
+    'arrivals_total': _I(), 'arrivals_run': _I(), 'arrivals_not_run': _I(),
+    'follow_up_run': _I(), 'follow_up_not_run': _N(_I()),
+})
+
+
 ANCHOR_FIELDS: dict[str, FieldSpec] = {
     'anchor_seq': _I(), 'upto_seq': _I(), 'upto_h': _H64(), 'segment_index': _I(),
     'segment_bytes': _I(), 'segment_sha256': _H64(), 'cumulative_bytes': _I(),
@@ -628,14 +658,14 @@ EVENT_SCHEMA: dict[str, dict[str, FieldSpec]] = {
         'exposure_ledger': _O(), 'reconciliation_totals': _O(),
         'terminal_failures_by_arm': INT_MAP, 'n_torn_recoveries': _I(),
         'longest_unreceipted_span_s': _F(), 'what_was_known': WHAT_WAS_KNOWN,
-        'final_head': _H64(),
+        'final_head': _H64(), 'completion': _opt(COMPLETION),
     },
     'trial_aborted': {
         'status': _E('aborted'), 'reason': _N(E_ABORT_REASON), 'phase': E_PHASE,
         'exposure_ledger': _O(), 'reconciliation_totals': _O(),
         'terminal_failures_by_arm': INT_MAP, 'n_torn_recoveries': _I(),
         'longest_unreceipted_span_s': _F(), 'what_was_known': WHAT_WAS_KNOWN,
-        'final_head': _H64(),
+        'final_head': _H64(), 'completion': _opt(COMPLETION),
     },
 }
 
@@ -1011,6 +1041,139 @@ def clock_anomalies(events: Sequence[Mapping]) -> list[dict]:
             out.append({'seq': ev['seq'], 'delta_ns': t - last[inv]})
         last[inv] = max(last.get(inv, t), t)
     return out
+
+
+# =============================================================================
+# the restart-cap estimand (root 21:14 ruling; root 00:22 on "externally receipted")
+# =============================================================================
+def restart_cap_required_seq(events: Sequence[Mapping], cap: int | None) -> int | None:
+    """[pure] The seq of the first ``server_down`` that found its server's attempted
+    supervised restarts (``server_restarted`` plus ``server_start_failed`` with
+    ``kind='restart'``) already at ``cap`` -- the point at which a restart beyond the cap
+    would have been required -- or ``None`` (``cap`` None: a simulated run, which supervises
+    nothing).  The counting rule is the orchestrator's ``supervision_state`` and the
+    verifier's ``server.lifecycle`` ``cap`` rule."""
+    if cap is None:
+        return None
+    restarts: dict[str, int] = {}
+    for ev in events:
+        body = ev.get('body') or {}
+        sid = str(body.get('server_id'))
+        if ev['type'] == 'server_down':
+            if restarts.get(sid, 0) >= int(cap):
+                return int(ev['seq'])
+        elif ev['type'] == 'server_restarted' or (ev['type'] == 'server_start_failed'
+                                                  and body.get('kind') == 'restart'):
+            restarts[sid] = restarts.get(sid, 0) + 1
+    return None
+
+
+def decision_receipt(events: Sequence[Mapping], *, mock: bool,
+                     before_seq: int | None = None) -> dict:
+    """[pure] The trial's logged decision and whether it is EXTERNALLY RECEIPTED, read from the
+    chain (events with ``seq < before_seq`` only, when given).
+
+    Root 00:22: "externally receipted" means the existing decision blocking anchor and its
+    chained external receipt of protocol 12.4 (item 5: "the first ``arm_assigned_by_decision``
+    requires the chained receipt of the decision anchor"), including the external server time
+    of the decision claim of 1.4 (claim 3: "externally receipted at server time t"); a local
+    decision event alone is provisional.  Performs: finds the first ``decision``; collects the
+    ``anchor`` events after it whose ``trigger`` is ``decision`` (a resumed invocation may
+    request a second one: either counts); the decision is ``receipted`` at the first
+    ``anchor_receipt`` whose ``anchor_seq`` is one of those anchors' AND, unless ``mock``,
+    whose ``created_at`` (the comment's server time, 12.4 item 3) is present -- a MOCK tree's
+    receipt carries no external evidence and no server time and is accepted only there.
+    ``anchor_failed`` rows answering a decision anchor are listed, never read as a receipt.
+    Does NOT perform: any check that the receipt is genuine (the verifier reads no server)."""
+    evs = [e for e in events if before_seq is None or int(e['seq']) < int(before_seq)]
+    out: dict = {'status': 'none', 'decision_seq': None, 'anchor_seqs': [],
+                 'receipt_seq': None, 'server_time': None, 'failed_seqs': []}
+    decision = next((e for e in evs if e['type'] == 'decision'), None)
+    if decision is None:
+        return out
+    dseq = int(decision['seq'])
+    anchors: dict[int, int] = {}
+    for ev in evs:
+        if int(ev['seq']) <= dseq:
+            continue
+        body = ev.get('body') or {}
+        if ev['type'] == 'anchor' and body.get('trigger') == 'decision':
+            anchors.setdefault(int(body['anchor_seq']), int(ev['seq']))
+        elif ev['type'] == 'anchor_receipt' and int(body.get('anchor_seq', -1)) in anchors:
+            if out['receipt_seq'] is None and (mock or body.get('created_at') is not None):
+                out['receipt_seq'] = int(ev['seq'])
+                out['server_time'] = body.get('created_at')
+        elif ev['type'] == 'anchor_failed' and int(body.get('anchor_seq', -1)) in anchors:
+            out['failed_seqs'].append(int(ev['seq']))
+    out.update(status='receipted' if out['receipt_seq'] is not None else 'provisional',
+               decision_seq=dseq, anchor_seqs=sorted(anchors))
+    return out
+
+
+def restart_cap_case(events: Sequence[Mapping], cap: int | None, *, mock: bool) -> dict:
+    """[pure] Which case of root's 21:14 ruling a chain is in (:data:`RESTART_CAP_CASES`).
+
+    The case is fixed by the chain's order at the ``server_down`` that required a restart
+    beyond the cap (:func:`restart_cap_required_seq`): no ``decision`` before it ->
+    ``before_decision``; a decision receipted before it (:func:`decision_receipt` over the
+    prefix) -> ``after_receipted_decision``; a decision not yet receipted ->
+    ``decision_provisional``.  ``decision`` is the receipt state over the WHOLE chain (a
+    provisional decision may be receipted later, when the existing receipt rules succeed);
+    ``decision_after_cap_seq`` is the seq of a decision logged after a ``before_decision`` cap
+    (the orchestrator never writes one: case (a) takes no new decision)."""
+    required = restart_cap_required_seq(events, cap)
+    final = decision_receipt(events, mock=mock)
+    case = 'none'
+    if required is not None:
+        at = decision_receipt(events, mock=mock, before_seq=required)
+        case = {'none': 'before_decision', 'receipted': 'after_receipted_decision',
+                'provisional': 'decision_provisional'}[at['status']]
+    return {'case': case, 'cap_required_seq': required, 'decision': final,
+            'decision_after_cap_seq': (final['decision_seq'] if case == 'before_decision'
+                                       else None)}
+
+
+def completion_record(events: Sequence[Mapping], arrivals: Iterable[int],
+                      cap: int | None, *, mock: bool) -> dict:
+    """[pure] The ``completion`` object of a terminal record (:data:`COMPLETION`): the
+    restart-cap case, the decision's receipt state, and the cap's effect on completion and
+    exposure, over ``events`` (the chain BEFORE the terminal event) and ``arrivals`` (every
+    arrival of the frozen order, pairs then leftovers).
+
+    ``arrivals_run``: arrivals with an ``episode_started``.  ``arrivals_not_run``: the rest
+    of the frozen order -- the truncation (an arrival revealed ``interrupted`` without ever
+    running counts as not run).  ``follow_up_run``: arrivals assigned by the decision
+    (``arm_assigned_by_decision``) that were started.  ``follow_up_not_run``: when a decision
+    is logged, the arrivals of the frozen order that no coin and no decision ever assigned --
+    the follow-up arrivals that did not run (protocol 9.3, 6.4 "the number of arrivals that
+    did not run is reported"); null with no decision.  Nothing here reads an outcome."""
+    order = [int(a) for a in arrivals]
+    cc = restart_cap_case(events, cap, mock=mock)
+    started: set[int] = set()
+    assigned: set[int] = set()
+    follow: set[int] = set()
+    for ev in events:
+        body = ev.get('body') or {}
+        if ev['type'] == 'episode_started':
+            started.add(int(body['arrival']))
+        elif ev['type'] == 'coin_drawn':
+            assigned |= {int(a) for a in (body.get('assignment') or {})}
+        elif ev['type'] == 'arm_assigned_by_decision':
+            assigned.add(int(body['arrival']))
+            follow.add(int(body['arrival']))
+    dec = cc['decision']
+    return {
+        'restart_cap_case': cc['case'], 'cap_required_seq': cc['cap_required_seq'],
+        'decision_seq': dec['decision_seq'], 'decision_status': dec['status'],
+        'decision_receipt_seq': dec['receipt_seq'],
+        'decision_receipt_server_time': dec['server_time'],
+        'arrivals_total': len(order),
+        'arrivals_run': sum(1 for a in order if a in started),
+        'arrivals_not_run': sum(1 for a in order if a not in started),
+        'follow_up_run': len(follow & started),
+        'follow_up_not_run': (None if dec['decision_seq'] is None
+                              else sum(1 for a in order if a not in assigned)),
+    }
 
 
 # =============================================================================

@@ -191,9 +191,15 @@ class EntryTree:
     library, the shim's state directory, a relocated lock root) and a freeze tree built by
     ``dryrun_live_ab.build_mock_freeze`` and then bound to that host."""
 
-    def __init__(self, name: str, *, n_pairs: int = 3, shim_as: str | None = None) -> None:
+    def __init__(self, name: str, *, n_pairs: int = 3, shim_as: str | None = None,
+                 trial: str = TRIAL, freeze_kw: dict | None = None) -> None:
         self.name = name
         self.n_pairs = int(n_pairs)
+        #: the trial run (T4 unless a control needs two different arms) and the MOCK-ONLY
+        #: freeze overrides of ``dryrun_live_ab.build_mock_freeze`` (``n_min``, ``delta``),
+        #: recorded by it in the tree's ``mock_overrides`` (tests_eb1_cap_estimand)
+        self.trial = str(trial)
+        self.freeze_kw = dict(freeze_kw or {})
         self.root = Path(tempfile.mkdtemp(prefix='eb1c_%s_' % name, dir=LABSBX))
         self.results = self.root / 'results'
         self.work = self.root / 'work'
@@ -265,7 +271,8 @@ class EntryTree:
     def build(self, scenarios: list[dict] | None = None, *, runtime: dict | None = None,
               production_preflight: bool = False, golden_raw: bool = False,
               execution: dict | None = None) -> 'EntryTree':
-        built = dry.build_mock_freeze(self.results, n_pairs=self.n_pairs, trial=TRIAL)
+        built = dry.build_mock_freeze(self.results, n_pairs=self.n_pairs, trial=self.trial,
+                                      **self.freeze_kw)
         self.cfg = cfg = built['cfg']
         self.roster = built['roster']
         self.freeze = Path(built['freeze'])
@@ -360,13 +367,13 @@ class EntryTree:
             gguf_bytes=int(sc['bytes']), gguf_sha256=str(sc['sha256_expected']),
             llama_bin=self.launcher, llama_commit=str(self.cfg['llama_cpp']['commit']),
             args=tuple(str(a) for a in self.cfg['llama_args']),
-            log_path=self.work / TRIAL / 'logs' / ('llama_%d.log' % self.port),
+            log_path=self.work / self.trial / 'logs' / ('llama_%d.log' % self.port),
             n_slots=int(self.cfg['execution']['workers']),
             n_ctx=int(orch._arg_value(self.cfg['llama_args'], '-c', 16384)))
 
     # -- running -------------------------------------------------------------------------
     def argv(self) -> list[str]:
-        return ['--trial', TRIAL, '--config', str(self.run_config),
+        return ['--trial', self.trial, '--config', str(self.run_config),
                 '--results', str(self.results), '--work', str(self.work),
                 '--llama-bin', str(self.launcher), '--gguf', 'coder=%s' % self.gguf]
 
@@ -381,7 +388,7 @@ class EntryTree:
         (:func:`host_refusal`): the control could not run on this host."""
         if anchor:
             anchor_cfg = json.loads(self.run_config.read_text(encoding='utf-8'))
-            self.anchor = dry._start_anchor(TRIAL, anchor_cfg, self.results, self.work)
+            self.anchor = dry._start_anchor(self.trial, anchor_cfg, self.results, self.work)
         script = entry or (LIVE / 'lab_orchestrator.py')
         try:
             self.proc = subprocess.Popen([PY, str(script)] + list(entry_args) + self.argv(),
@@ -407,10 +414,14 @@ class EntryTree:
 
     # -- reading ---------------------------------------------------------------------------
     def chain(self) -> list[dict]:
-        events_dir = self.results / TRIAL / 'events'
+        events_dir = self.results / self.trial / 'events'
         if not lab_eventlog.segment_paths(events_dir):
             return []
-        return list(lab_eventlog.read_chain(events_dir, TRIAL, self.bundle_sha).events)
+        # the schema checks task uids against the INSTALLED roster (a module global that
+        # the last make_context of any test in this process set): read this tree's chain
+        # under this tree's roster
+        lab_eventlog.load_roster_uids(self.freeze / 'roster.json')
+        return list(lab_eventlog.read_chain(events_dir, self.trial, self.bundle_sha).events)
 
     def program_chain(self) -> list[dict]:
         events_dir = self.results / lab_common.PROGRAM_CHAIN_ID / 'events'
@@ -429,7 +440,7 @@ class EntryTree:
     def verify(self) -> dict:
         """The verifier's own CLI (``lab_verify_log --mode full --json``)."""
         out = self.work / 'verify.json'
-        res = subprocess.run([PY, str(LIVE / 'lab_verify_log.py'), '--trial', TRIAL,
+        res = subprocess.run([PY, str(LIVE / 'lab_verify_log.py'), '--trial', self.trial,
                               '--mode', 'full', '--results', str(self.results),
                               '--work', str(self.work), '--json', str(out)],
                              cwd=str(LIVE), env=child_env(), capture_output=True, text=True,
@@ -519,15 +530,33 @@ def lifecycle(events) -> list[tuple]:
     return out
 
 
+def lifecycle_findings(t: EntryTree) -> list:
+    """Every ``server.lifecycle`` finding on the control's chain and frozen configuration,
+    with the tree's frozen arrival order (so the ``completion_record`` recount runs too)."""
+    col = lab_verify_log._Collector(trial=t.trial, mode='full')
+    cfg = json.loads((t.freeze / 'config.json').read_text(encoding='utf-8'))
+    order = json.loads((t.freeze / ('arrival_order_%s.json' % t.trial)).read_text('utf-8'))
+    slots = order['pairs'] if isinstance(order, dict) else order
+    lab_verify_log._check_server_lifecycle(col, t.chain(), cfg,
+                                           [int(a) for s in slots for a in s['arrivals']])
+    assert 'server.lifecycle' in col.seen
+    return [f for f in col.findings if f.check == 'server.lifecycle']
+
+
 def lifecycle_rules(t: EntryTree) -> list:
     """The verifier's ``server.lifecycle`` check run directly on the control's chain and
     frozen configuration: the violated rules, ``[]`` when it passes.  (The verifier CLI's
-    JSON names findings, not the checks that passed; this shows the check RAN.)"""
-    col = lab_verify_log._Collector(trial=TRIAL, mode='full')
-    cfg = json.loads((t.freeze / 'config.json').read_text(encoding='utf-8'))
-    lab_verify_log._check_server_lifecycle(col, t.chain(), cfg)
-    assert 'server.lifecycle' in col.seen
-    return [f.detail.get('rule') for f in col.findings if f.check == 'server.lifecycle']
+    JSON names findings, not the checks that passed; this shows the check RAN.)  The one
+    INFO row -- the restart-cap case label of root's 21:14 ruling -- is not a violation:
+    :func:`lifecycle_case` reads it."""
+    return [f.detail.get('rule') for f in lifecycle_findings(t) if f.severity != 'INFO']
+
+
+def lifecycle_case(t: EntryTree) -> str:
+    """The verifier's restart-cap case label (``none`` when it wrote none)."""
+    rows = [f.detail for f in lifecycle_findings(t)
+            if f.severity == 'INFO' and f.detail.get('rule') == 'restart_cap_case']
+    return str(rows[0]['case']) if rows else 'none'
 
 
 # --------------------------------------------------------------------------- #
@@ -652,6 +681,14 @@ class C1PositiveRun(EntryCase):
         self.assertNotIn('preflight_mode', rt, 'C1 runs the production preflight')
         self.assertNotIn('clock_window_s', rt)
         self.assertEqual(lifecycle_rules(t), [])
+        # the negative control of every restart-cap case label (root's 21:14 ruling): the
+        # cap never bound, nothing is truncated, and the verifier labels no case
+        (ended,) = of(events, 'trial_ended')
+        comp = ended['body']['completion']
+        self.assertEqual((comp['restart_cap_case'], comp['cap_required_seq'],
+                          comp['arrivals_total'], comp['arrivals_run'],
+                          comp['arrivals_not_run']), ('none', None, 6, 6, 0))
+        self.assertEqual(lifecycle_case(t), 'none')
         report = t.verify()
         self.assertEqual((report['_exit'], report['verdict']), (0, 'PASS'), report['_stdout'])
         self.assertNoOrphans(t)
@@ -924,7 +961,9 @@ class C6RestartCap(EntryCase):
     """Every process dies at its first task call.  Three supervised restarts are made; the
     fourth ``server_down`` finds the cap reached: nothing restarts, nothing new is dispatched,
     every open attempt drains and is revealed, ``trial_aborted(server_restart_cap)``; the
-    results builder reports no decision; the verifier PASSes (``cap_abort_iff_required``)."""
+    results builder reports it incomplete -- root's 21:14 ruling, case (a): no decision, not a
+    null -- and the terminal record counts the arrivals that did not run; the verifier PASSes
+    (``cap_abort_iff_required``, ``completion_record``) and labels the case."""
 
     n_pairs = 5
 
@@ -958,15 +997,35 @@ class C6RestartCap(EntryCase):
                          'every enrolled arrival revealed exactly once, none replaced')
         self.assertLessEqual(len(of(events, 'pair_enrolled')), t.n_pairs)
         self.assertNoSuccessForBadLaunch(t, {0})
-        # the results builder: no decision from an incomplete trial
+        # root's 21:14 ruling, case (a): the cap bound before any decision -- the trial is
+        # incomplete and reports no decision (none could be taken here: n_min is 100; the
+        # control that CROSSES during a cap drain is tests_eb1_cap_estimand's case (a)).  The
+        # terminal record counts the truncation.
+        (aborted,) = of(events, 'trial_aborted')
+        comp = aborted['body']['completion']
+        self.assertEqual((comp['restart_cap_case'], comp['cap_required_seq'],
+                          comp['decision_status'], comp['decision_seq'],
+                          comp['follow_up_not_run']),
+                         ('before_decision', int(fourth['seq']), 'none', None, None))
+        started = {int(e['body']['arrival']) for e in of(events, 'episode_started')}
+        self.assertEqual((comp['arrivals_total'], comp['arrivals_run'],
+                          comp['arrivals_not_run']),
+                         (2 * t.n_pairs, len(started), 2 * t.n_pairs - len(started)))
+        self.assertGreater(comp['arrivals_not_run'], 0, 'the cap truncated the trial')
         out = builder.build([TRIAL], t.bundle_sha, results_root=t.results,
                             work_root=t.work, out_dir=t.root / 'derived')
-        self.assertEqual(out['trials'][TRIAL]['decision'], builder.RESTART_CAP_LABEL)
+        self.assertEqual(out['trials'][TRIAL]['decision'],
+                         builder.RESTART_CAP_INCOMPLETE_LABEL)
         self.assertIs(out['trials'][TRIAL]['reportable'], False)
+        self.assertEqual((out['trials'][TRIAL]['restart_cap_case'],
+                          out['trials'][TRIAL]['arrivals_not_run']),
+                         ('before_decision', comp['arrivals_not_run']))
         decision = json.loads((t.root / 'derived' / TRIAL / 'decision.json').read_text('utf-8'))
-        self.assertEqual((decision['primary_result'], decision['reportable']),
-                         (builder.RESTART_CAP_LABEL, False))
+        self.assertEqual((decision['primary_result'], decision['reportable'],
+                          decision['restart_cap']['case']),
+                         (builder.RESTART_CAP_INCOMPLETE_LABEL, False, 'before_decision'))
         self.assertEqual(lifecycle_rules(t), [])
+        self.assertEqual(lifecycle_case(t), 'before_decision')
         report = t.verify()
         self.assertEqual((report['_exit'], report['verdict']), (0, 'PASS'), report['_stdout'])
         self.assertNoOrphans(t)

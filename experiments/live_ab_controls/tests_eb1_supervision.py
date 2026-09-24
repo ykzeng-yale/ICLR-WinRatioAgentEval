@@ -1093,10 +1093,20 @@ class ReconciliationTests(unittest.TestCase):
 # 6. the verifier: server.lifecycle
 # --------------------------------------------------------------------------- #
 def lifecycle(events, cfg) -> list:
+    """The FAILED ``server.lifecycle`` rules.  (Its one INFO row, the restart-cap case label
+    of root's 21:14 ruling, is not a failure; :func:`lifecycle_info` reads it.)"""
     col = lab_verify_log._Collector(trial='T4', mode='full')
     lab_verify_log._check_server_lifecycle(col, events, cfg)
     assert 'server.lifecycle' in col.seen
-    return [f.detail.get('rule') for f in col.findings if f.check == 'server.lifecycle']
+    return [f.detail.get('rule') for f in col.findings
+            if f.check == 'server.lifecycle' and f.severity != 'INFO']
+
+
+def lifecycle_info(events, cfg) -> list:
+    col = lab_verify_log._Collector(trial='T4', mode='full')
+    lab_verify_log._check_server_lifecycle(col, events, cfg)
+    return [dict(f.detail) for f in col.findings
+            if f.check == 'server.lifecycle' and f.severity == 'INFO']
 
 
 class LifecycleVerifierTests(unittest.TestCase):
@@ -1128,6 +1138,13 @@ class LifecycleVerifierTests(unittest.TestCase):
                          ['ended', 'aborted', 'aborted'])
         for _, events, cfg in (self.restarted, self.capped, self.failed):
             self.assertEqual(lifecycle(events, cfg), [])
+        # the capped chain is labelled (INFO) with its case of root's 21:14 ruling; the
+        # chains the cap never bound in carry no label (negative control)
+        _, capped, cfg = self.capped
+        self.assertEqual([(r['rule'], r['case']) for r in lifecycle_info(capped, cfg)],
+                         [('restart_cap_case', 'before_decision')])
+        for _, events, cfg in (self.restarted, self.failed):
+            self.assertEqual(lifecycle_info(events, cfg), [])
 
     @staticmethod
     def mutate(events, fn) -> list:
@@ -1240,12 +1257,20 @@ class LifecycleWiringTests(TreeCase):
 
 
 # --------------------------------------------------------------------------- #
-# 7. the results builder: an incomplete trial reports no decision
+# 7. the results builder: root's 21:14 restart-cap ruling, case (b)
 # --------------------------------------------------------------------------- #
 class ReportabilityTests(unittest.TestCase):
-    """A deploy decision logged in the randomized phase, then a fourth server_down in the
-    follow-up cohort: ``trial_aborted(server_restart_cap)``.  The builder keeps the logged
-    decision, labels it not reportable, and reports no deployment/harm decision."""
+    """Root's 21:14 ruling (``reviews/restart_cap_estimand_ruling_20260923_2114.md``), which
+    WITHDREW the repair contract's reportability default this class used to pin ("no
+    decision from a cap-aborted trial"): a deploy decision logged in the randomized phase and
+    externally receipted (the decision anchor's chained receipt, in process), then a fourth
+    ``server_down`` in the follow-up cohort -- case (b).  ``trial_aborted(server_restart_cap)``;
+    the decision and its original tau STAND and are reported; the follow-up is truncated and
+    its unrun arrivals are counted in the terminal record and the results.  Negative controls:
+    the same trial without the fourth down (``trial_ended``, nothing truncated, case
+    ``none``), and the capped chain with the decision's receipt removed (a local decision
+    event alone is provisional: case (c) label, not reportable, and the verifier FAILs the
+    switch that no longer follows a receipt)."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -1263,7 +1288,7 @@ class ReportabilityTests(unittest.TestCase):
                                     results_root=tree.results, work_root=tree.work,
                                     out_dir=out, mock=True)
             decision = json.loads((out / tree.trial / 'decision.json').read_text('utf-8'))
-            return status, tree.events(), summary, decision
+            return status, tree.events(), summary, decision, tree
         cls.capped = make(post=1)
         cls.complete = make(post=0)
 
@@ -1272,41 +1297,112 @@ class ReportabilityTests(unittest.TestCase):
         for tree in cls.trees:
             tree.close()
 
-    def test_the_cap_aborted_trial_reports_no_decision_and_keeps_the_logged_one(self):
-        status, events, summary, decision = self.capped
+    def test_case_b_the_receipted_decision_stands_and_the_follow_up_is_truncated(self):
+        status, events, summary, decision, tree = self.capped
         self.assertEqual(status, 'aborted')
         logged = bodies(events, 'decision')
-        self.assertEqual([b['kind'] for b in logged], ['deploy_candidate'],
+        self.assertEqual([(b['kind'], b['n']) for b in logged], [('deploy_candidate', 44)],
                          'the fixture must log a deployment decision before the abort')
-        self.assertEqual(bodies(events, 'trial_aborted')[0]['reason'], 'server_restart_cap')
-        self.assertLess(first_seq(events, 'decision'), first_seq(events, 'trial_aborted'))
-        self.assertEqual(decision['primary_result'], builder.RESTART_CAP_LABEL)
-        self.assertIs(decision['reportable'], False)
-        self.assertEqual(decision['decision']['kind'], 'deploy_candidate', 'kept')
-        self.assertEqual(decision['decision_label'],
-                         'not reportable: trial incomplete (restart cap)')
+        (aborted,) = bodies(events, 'trial_aborted')
+        self.assertEqual(aborted['reason'], 'server_restart_cap')
+        required = lab_eventlog.restart_cap_required_seq(events, CAP)
+        receipt = lab_eventlog.decision_receipt(events, mock=True)
+        self.assertLess(first_seq(events, 'decision'), receipt['receipt_seq'])
+        self.assertLess(receipt['receipt_seq'], required)
+        self.assertLess(first_seq(events, 'traffic_switch'), required)
+        self.assertLess(required, first_seq(events, 'trial_aborted'))
+        # nothing post-switch after the cap was required, and no second decision
+        self.assertEqual([e for e in events if e['seq'] > required and e['type'] in (
+            'arm_assigned_by_decision', 'episode_started', 'decision', 'traffic_switch')], [])
+        # the terminal record counts the truncation
+        comp = aborted['completion']
+        self.assertEqual((comp['restart_cap_case'], comp['cap_required_seq'],
+                          comp['decision_status'], comp['decision_seq']),
+                         ('after_receipted_decision', required, 'receipted',
+                          first_seq(events, 'decision')))
+        never_assigned = 100 - len(assigned_arrivals(events))
+        self.assertGreater(never_assigned, 0, 'the follow-up was truncated')
+        self.assertEqual(comp['follow_up_not_run'], never_assigned)
+        self.assertEqual(comp['follow_up_run'], len(types(events, 'arm_assigned_by_decision')))
+        self.assertEqual(comp['arrivals_total'], 100)
+        self.assertEqual(comp['arrivals_not_run'],
+                         100 - len({b['arrival'] for b in bodies(events, 'episode_started')}))
+        # the builder reports the decision at its original tau, labelled
+        self.assertEqual((decision['primary_result'], decision['reportable'],
+                          decision['decision']['kind'], decision['decision']['n']),
+                         ('deploy_candidate', True, 'deploy_candidate', 44))
+        self.assertEqual(decision['restart_cap']['case'], 'after_receipted_decision')
+        self.assertTrue(decision['decision_label'].startswith(
+            'decision stands at tau=44; follow-up truncated by the restart cap (%d '
+            % never_assigned), decision['decision_label'])
         row = summary['trials']['T4']
-        self.assertEqual((row['decision'], row['logged_decision'], row['reportable']),
-                         (builder.RESTART_CAP_LABEL, 'deploy_candidate', False))
+        self.assertEqual((row['decision'], row['reportable'], row['restart_cap_case'],
+                          row['follow_up_not_run']),
+                         ('deploy_candidate', True, 'after_receipted_decision',
+                          never_assigned))
+        self.assertNotIn('logged_decision', row)
+        # the verifier: no failure, and the case labelled
+        self.assertEqual(tree.verify_fails(), [])
+        self.assertEqual([(r['rule'], r['case']) for r in
+                          lifecycle_info(events, tree.frozen_cfg())],
+                         [('restart_cap_case', 'after_receipted_decision')])
 
-    def test_control_the_same_trial_without_the_fourth_down_reports_its_decision(self):
-        status, events, summary, decision = self.complete
+    def test_control_the_same_trial_without_the_fourth_down_is_complete(self):
+        status, events, summary, decision, tree = self.complete
         self.assertEqual(status, 'ended')
         self.assertEqual(decision['primary_result'], 'deploy_candidate')
         self.assertIs(decision['reportable'], True)
         self.assertIsNone(decision['decision_label'])
+        self.assertEqual(decision['restart_cap']['case'], 'none')
+        (ended,) = bodies(events, 'trial_ended')
+        self.assertEqual((ended['completion']['restart_cap_case'],
+                          ended['completion']['follow_up_not_run'],
+                          ended['completion']['arrivals_not_run']), ('none', 0, 0))
         self.assertEqual(summary['trials']['T4']['decision'], 'deploy_candidate')
         self.assertNotIn('logged_decision', summary['trials']['T4'])
+        self.assertEqual(tree.verify_fails(), [])
 
-    def test_only_the_restart_cap_reason_is_unreportable(self):
-        _, events, _, _ = self.capped
-        for reason, want in (('server_restart_cap', True), ('infrastructure', False),
-                             ('server_identity', False)):
+    def test_control_only_the_cap_makes_a_case_whatever_the_abort_reason(self):
+        """The case is fixed by the ``server_down`` that found the cap reached, never by an
+        abort's reason (the check the removed ``restart_cap_incomplete`` test made): the
+        complete run's chain relabelled ``trial_aborted(<reason>)`` is case ``none`` and its
+        receipted decision stays reportable; the capped chain is case (b) whatever reason its
+        terminal record carries."""
+        _, complete, _, _, tree = self.complete
+        _, capped, _, _, _ = self.capped
+        cfg = tree.frozen_cfg()
+        for reason in ('server_restart_cap', 'infrastructure', 'server_identity'):
             with self.subTest(reason=reason):
-                evs = copy.deepcopy(events)
+                evs = copy.deepcopy(complete)
+                term = next(e for e in reversed(evs) if e['type'] == 'trial_ended')
+                term['type'] = 'trial_aborted'
+                term['body'].update(status='aborted', reason=reason)
+                obj = builder.decision_object(evs, cfg, 'T4')
+                self.assertEqual((obj['restart_cap']['case'], obj['reportable'],
+                                  obj['primary_result']),
+                                 ('none', True, 'deploy_candidate'))
+                evs = copy.deepcopy(capped)
                 next(e for e in reversed(evs)
                      if e['type'] == 'trial_aborted')['body']['reason'] = reason
-                self.assertIs(builder.restart_cap_incomplete(evs), want)
+                self.assertEqual(builder.decision_object(evs, cfg, 'T4')['restart_cap']['case'],
+                                 'after_receipted_decision')
+
+    def test_control_without_its_receipt_the_same_decision_is_provisional(self):
+        _, events, _, _, tree = self.capped
+        receipt = lab_eventlog.decision_receipt(events, mock=True)
+        stripped = [e for e in events if e['seq'] != receipt['receipt_seq']]
+        cfg = tree.frozen_cfg()
+        self.assertEqual(lab_eventlog.restart_cap_case(stripped, CAP, mock=True)['case'],
+                         'decision_provisional')
+        obj = builder.decision_object(stripped, cfg, 'T4')
+        self.assertEqual((obj['primary_result'], obj['reportable'], obj['decision_status']),
+                         (builder.PROVISIONAL_LABEL, False, 'provisional'))
+        self.assertIn('switch_before_decision_receipt', lifecycle(stripped, cfg))
+        # and a receipt WITHOUT the external server time counts only in a MOCK tree
+        live_cfg = {k: v for k, v in cfg.items() if k not in ('mock', 'mock_overrides')}
+        self.assertEqual(lab_eventlog.decision_receipt(events, mock=False)['status'],
+                         'provisional')
+        self.assertIn('switch_before_decision_receipt', lifecycle(events, live_cfg))
 
 
 # --------------------------------------------------------------------------- #

@@ -179,11 +179,30 @@ def pair_rows(events: Sequence[Mapping], cfg: Mapping) -> list[dict]:
 # ---------------------------------------------------------------------------
 # the derived objects
 # ---------------------------------------------------------------------------
-#: Repair contract EB1, reportability default (root 20:40 item 4): a trial whose terminal
-#: event is ``trial_aborted(server_restart_cap)`` is reported INCOMPLETE and carries no
-#: deployment or harm decision.  A ``decision`` it logged before the abort stays in the chain
-#: and in ``decision.json``, under this label, never as a result.
-RESTART_CAP_LABEL: str = 'not reportable: trial incomplete (restart cap)'
+#: Root's 21:14 ruling (``reviews/restart_cap_estimand_ruling_20260923_2114.md``) replaces
+#: the repair contract's withdrawn reportability default ("no decision from any cap-aborted
+#: trial").  The restart cap is phase-aware (``lab_eventlog.restart_cap_case``):
+#:
+#: * (a) ``before_decision`` -- a fourth restart was required before any decision: the trial
+#:   is INCOMPLETE and reports no deploy/harm decision; it is not a null result and not a
+#:   valid abstention (an arm-related crash remains possible), and it keeps every enrolled
+#:   pair, attempt, band endpoint, failure and unknown usage;
+#: * (b) ``after_receipted_decision`` -- required after a logged decision whose blocking
+#:   anchor carries its chained external receipt: the decision and its original ``tau``
+#:   stand and are reported; the follow-up cohort is truncated and its unrun arrivals are
+#:   counted (protocol 6.4 "Aborts in the post-decision phase", 14.6);
+#: * (c) ``decision_provisional`` -- required while the logged decision still awaited that
+#:   receipt: no finalized claim until the existing receipt rules succeed.  If the chain
+#:   later carries the receipt the decision is reported as in (b); if not, it stays
+#:   :data:`PROVISIONAL_LABEL`.
+#:
+#: Root 00:22: a decision is externally receipted only by its own blocking anchor's chained
+#: receipt, with the external server time outside a MOCK tree; a local decision event alone
+#: is provisional -- for every trial, capped or not.
+RESTART_CAP_INCOMPLETE_LABEL: str = ('incomplete: restart cap before any decision '
+                                     '(no decision; not a null result, not an abstention)')
+PROVISIONAL_LABEL: str = ('provisional: the logged decision has no chained external '
+                          'receipt (no finalized claim)')
 
 
 def terminal_event(events: Sequence[Mapping]) -> Mapping | None:
@@ -192,24 +211,42 @@ def terminal_event(events: Sequence[Mapping]) -> Mapping | None:
                  if e['type'] in ('trial_ended', 'trial_aborted')), None)
 
 
-def restart_cap_incomplete(events: Sequence[Mapping]) -> bool:
-    """Whether the terminal event is ``trial_aborted(server_restart_cap)``."""
+def restart_cap_reading(events: Sequence[Mapping], cfg: Mapping) -> dict:
+    """[pure] The restart-cap case of a chain under the frozen configuration's cap, the
+    decision's receipt state, and the terminal record's ``completion`` (arrivals not run,
+    follow-up not run; recounted by the verifier's ``server.lifecycle``), or None when the
+    chain has no terminal record carrying one."""
+    cfg = dict(cfg or {})
+    try:
+        cap: int | None = lab_common.server_supervision_cap(cfg)
+    except lab_common.FrozenMismatch:
+        cap = None
+    mock = bool(cfg.get('mock') or cfg.get('mock_overrides'))
+    cc = lab_eventlog.restart_cap_case(list(events), cap, mock=mock)
     term = terminal_event(events)
-    return bool(term is not None and term['type'] == 'trial_aborted'
-                and term['body'].get('reason') == 'server_restart_cap')
+    dec = cc['decision']
+    return {'case': cc['case'], 'cap_required_seq': cc['cap_required_seq'],
+            'decision_status': dec['status'], 'decision_seq': dec['decision_seq'],
+            'decision_receipt_seq': dec['receipt_seq'],
+            'decision_receipt_server_time': dec['server_time'],
+            'decision_after_cap_seq': cc['decision_after_cap_seq'],
+            'completion': (dict(term['body']['completion'])
+                           if term is not None and term['body'].get('completion')
+                           else None)}
 
 
 def decision_object(events: Sequence[Mapping], cfg: Mapping, trial: str) -> dict:
     """The logged decision, with the reference rule's own result beside it.
 
     The builder does not decide: it prints what the chain carries and whether the second
-    code path and the replay agree with it (protocol 8.9).  A trial that ended in
-    ``trial_aborted(server_restart_cap)`` reports no decision: ``primary_result`` is
-    :data:`RESTART_CAP_LABEL`, ``reportable`` is false, and a logged decision is kept under
-    ``decision`` with ``decision_label`` saying it is not reportable."""
+    code path and the replay agree with it (protocol 8.9), and it labels the restart-cap
+    case of root's 21:14 ruling (``restart_cap``).  ``reportable`` is false for case (a)
+    (:data:`RESTART_CAP_INCOMPLETE_LABEL`) and for a decision without its chained external
+    receipt (:data:`PROVISIONAL_LABEL`, any case); a decision logged after a case-(a) cap
+    (which the orchestrator never writes) is kept under ``decision`` and never reported."""
     logged = next((dict(e['body'], seq=int(e['seq'])) for e in events
                    if e['type'] == 'decision'), None)
-    incomplete = restart_cap_incomplete(events)
+    cap = restart_cap_reading(events, cfg)
     reference = lab_reference_rule.decide_from_chain(list(events), dict(cfg), trial)
     replayed = lab_monitor.replay(list(events), dict(cfg), trial)
     updates = [e for e in events if e['type'] == 'monitor_update']
@@ -222,6 +259,38 @@ def decision_object(events: Sequence[Mapping], cfg: Mapping, trial: str) -> dict
                  and reference.get('n') == int(logged['n']))
     if logged is None:
         agreement = reference.get('kind') == 'none'
+    label: str | None = None
+    not_acted_on: dict | None = None
+    if cap['case'] == 'before_decision':
+        primary, reportable = RESTART_CAP_INCOMPLETE_LABEL, False
+        if logged is not None:
+            label = ('not reportable: logged after the restart cap was required before any '
+                     'decision (case a takes no new decision)')
+        elif reference.get('kind') != 'none':
+            # a crossing the reference rule finds at a look logged AFTER the cap was
+            # required is not acted on (case a); one at or before it stays a disagreement
+            looks = lab_reference_rule.looks_from_chain(list(events), dict(cfg), trial)
+            idx = next((i for i, lk in enumerate(looks) if lk.action != 'none'), None)
+            if idx is not None and idx < len(updates) \
+                    and int(updates[idx]['seq']) > int(cap['cap_required_seq']):
+                agreement = True
+                not_acted_on = {'kind': str(reference.get('kind')),
+                                'n': int(reference['n']), 'seq': int(updates[idx]['seq'])}
+    elif logged is not None and cap['decision_status'] != 'receipted':
+        primary, reportable = PROVISIONAL_LABEL, False
+        label = PROVISIONAL_LABEL
+    else:
+        primary = ('LIVE_DECISION_INVALID (harness defect)' if not agreement
+                   else (logged['kind'] if logged else 'none'))
+        reportable = True
+        if cap['case'] in ('after_receipted_decision', 'decision_provisional') \
+                and logged is not None:
+            not_run = (cap['completion'] or {}).get('follow_up_not_run')
+            label = ('decision stands at tau=%d; follow-up truncated by the restart cap '
+                     '(%s follow-up arrivals not run)%s'
+                     % (int(logged['n']), 'unknown' if not_run is None else int(not_run),
+                        '; provisional when the cap bound, receipted afterwards'
+                        if cap['case'] == 'decision_provisional' else ''))
     return {
         'trial': trial,
         'decision': logged,
@@ -230,12 +299,12 @@ def decision_object(events: Sequence[Mapping], cfg: Mapping, trial: str) -> dict
         'replay_agrees_elementwise': bool(replay_agrees),
         'n_shadow_mismatches': sum(1 for u in updates
                                    if u['body']['shadow']['mismatch']),
-        'primary_result': (RESTART_CAP_LABEL if incomplete
-                           else 'LIVE_DECISION_INVALID (harness defect)' if not agreement
-                           else (logged['kind'] if logged else 'none')),
-        'reportable': not incomplete,
-        'decision_label': (RESTART_CAP_LABEL if incomplete and logged is not None
-                           else None),
+        'primary_result': primary,
+        'reportable': bool(reportable),
+        'decision_label': label,
+        'decision_status': cap['decision_status'],
+        'restart_cap': cap,
+        'crossing_not_acted_on': not_acted_on,
         'margin_delta': float(dict(cfg)['monitor']['delta']),
         'alpha_gate': float(dict(cfg)['monitor']['alpha_gate']),
         'rho': float(dict(cfg)['monitor']['rho']),
@@ -801,6 +870,7 @@ def build(trials: Sequence[str], bundle_sha: str, *, results_root: Path, work_ro
         terminal = terminal_event(events)
         logged_kind = next((e['body']['kind'] for e in events
                             if e['type'] == 'decision'), 'none')
+        dobj = decision_object(events, cfg, trial)
         summary['trials'][trial] = {
             'status': terminal['body']['status'] if terminal else 'open',
             'final_head': read.events[-1]['h'] if read.events else None,
@@ -809,13 +879,19 @@ def build(trials: Sequence[str], bundle_sha: str, *, results_root: Path, work_ro
             'episodes_revealed': sum(1 for e in events
                                      if e['type'] == 'episode_revealed'),
             'decision': logged_kind,
+            'restart_cap_case': dobj['restart_cap']['case'],
+            'reportable': dobj['reportable'],
         }
-        if restart_cap_incomplete(events):
-            # no deployment/harm decision from an incomplete trial; the logged one is kept,
-            # labelled, beside it
-            summary['trials'][trial].update({'decision': RESTART_CAP_LABEL,
-                                             'logged_decision': logged_kind,
-                                             'reportable': False})
+        if not dobj['reportable']:
+            # case (a), or a decision without its chained external receipt: the logged
+            # decision (if any) is kept, labelled, beside the result -- never as the result
+            summary['trials'][trial].update({'decision': dobj['primary_result'],
+                                             'logged_decision': logged_kind})
+        completion = dobj['restart_cap']['completion']
+        if completion is not None:
+            summary['trials'][trial].update({
+                'arrivals_not_run': completion['arrivals_not_run'],
+                'follow_up_not_run': completion['follow_up_not_run']})
         summary['files'][trial] = files
     summary['program_alpha'] = float(cfg.get('monitor', {}).get('alpha_program', 0.05))
     summary['statement'] = (
