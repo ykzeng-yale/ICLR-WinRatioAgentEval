@@ -62,7 +62,8 @@ its terminal acceptance; preserve any unresolved attempt as a failed/incomplete
 phase."  At b049307 ``StreamingHttpLoad`` had no durable intent, no per-request
 record and no usage; ``stop()`` joined for 10 s and then set ``_thread = None``
 unconditionally, so a thread still blocked in ``post`` was forgotten
-(``understand_eb5.md`` Sec. 4).  Now, per source:
+(``git show b049307:experiments/live_ab/lab_load.py``, lines 632-636).  Now, per
+source:
 
 * a durable ``load_intent`` line (``LOAD_LEDGER_SCHEMA``, fsynced) is written under
   ``_gate`` AFTER checking the terminal flag and BEFORE the POST; ``stop()`` sets
@@ -83,10 +84,15 @@ unconditionally, so a thread still blocked in ``post`` was forgotten
 * ``resolution()`` reports stop state, liveness, intents without terminals, the
   durable ledger re-read from disk, and ``resolved``.
   ``lab_prepare.run_reference_sweep`` refuses ``completed=True`` unless every
-  source it was handed is resolved.
+  source it was handed is resolved and made at least one tracked load POST.
 What this does NOT establish: that the SERVER stopped decoding when the client
-socket closed.  Server-side slot release is a separate check (``understand_eb5.md``
-Sec. 5 verdict item 4: ``/metrics requests_processing == 0``); it is not done here.
+socket closed.  Server-side slot release is a separate check (``/metrics``
+``requests_processing == 0`` on each server); it is not done here.  And this class
+is the superseded client-stream DIAGNOSTIC (above), not the stage-3 two-stream
+``stream: false`` driver the plan proposes, which does not exist yet: EB5 stays
+OPEN until that driver is gated (root item 3,
+``reviews/prerun_bundle_go_nogo_20260923_2040.md:18``: "Keep EB5 open for that
+actual production-path verification").
 """
 
 from __future__ import annotations
@@ -909,7 +915,8 @@ class StreamingHttpLoad:
         The first version joined for 10 s and then set ``_thread = None``
         unconditionally, so a thread still blocked in ``post`` or ``iter_lines`` was
         forgotten and ``healthy()`` read exactly as after a clean stop
-        (``understand_eb5.md`` Sec. 4).  Returns ``resolution()``.
+        (``git show b049307:experiments/live_ab/lab_load.py``, lines 632-636).
+        Returns ``resolution()``.
         """
         self._stop.set()
         with self._gate:

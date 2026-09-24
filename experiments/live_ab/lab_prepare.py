@@ -100,6 +100,25 @@ def run_reference_sweep(tasks: Sequence[dict], cfg: dict, *,
     ``resolved`` -- every load intent has a terminal line in its durable ledger and
     no source thread is alive or was alive at its stop. Otherwise the sweep is
     refused as incomplete, with each source's resolution in the refusal.
+
+    What the acceptance gate PERFORMS for a loaded sweep (``require_load``):
+    (1) before the first attempt, if ``load_observer`` is bound to an object with a
+    ``source`` (``lab_load.ContinuousLoadObserver.observe``), that very object must be
+    among ``load_sources`` -- the handed-over sources are the observed load;
+    (2) at acceptance, every source must be resolved AND must be real load: a
+    ``scripted_fixture`` source, or one that made no tracked load POST (``intents``
+    not an int >= 1, e.g. a source never started), is refused. The review of
+    2026-09-23 showed a ``ScriptedLoad([])`` handed over while a real source still had
+    a live thread and an unterminated intent: that sweep was accepted.
+    What it does NOT perform, so EB5 stays OPEN (root item 3, "Keep EB5 open for
+    that actual production-path verification"): an observer that names no source
+    (a plain callable, as the server-lifecycle observer is) cannot be bound to the
+    load it observed; server-side slot release (``/metrics`` ``requests_processing
+    == 0``) is not checked; the contract's ``phase_resolution_verdict`` does not
+    exist on this branch and is not called here; and the stage-3 two-stream
+    (``stream: false``) load driver the plan proposes does not exist, so the gate
+    is shown only on ``lab_load.StreamingHttpLoad`` -- the superseded client-stream
+    diagnostic -- and on test fixtures, not on the path a loaded stage would run.
     """
     if require_load and load_observer is None:
         raise PreparationRefused(
@@ -123,6 +142,16 @@ def run_reference_sweep(tasks: Sequence[dict], cfg: dict, *,
             raise PreparationRefused(
                 'load source %r has no stop()/resolution(); its POSTs cannot be shown '
                 'resolved. Refusing.' % (type(src).__name__,))
+    # EB5 binding: an observer that names its source observes THAT load, so that
+    # very object must be among the sources whose resolution gates acceptance.
+    observed = getattr(getattr(load_observer, '__self__', None), 'source', None)
+    if require_load and observed is not None and \
+            not any(observed is src for src in sources):
+        raise PreparationRefused(
+            'the load observer observes a %s source that is not among load_sources; '
+            'the resolution of other sources says nothing about the observed load '
+            '(EB5, root 2026-09-23 20:40 item 3). Refusing.'
+            % (getattr(observed, 'kind', type(observed).__name__),))
 
     # TMPDIR ENFORCEMENT AT THE REAL ENTRY POINT, root 2026-09-21 20:43: "The new
     # assertion currently has no callers: adding a helper alone did not yet
@@ -246,6 +275,24 @@ def run_reference_sweep(tasks: Sequence[dict], cfg: dict, *,
             'line, or a source thread alive at its stop). The sweep is preserved as '
             'INCOMPLETE and is not accepted: %s'
             % (len(unresolved), lab_common.canonical_json(outcome)))
+    # EB5: a resolved source that generated no load says nothing about the load the
+    # sweep ran under. A fixture has no thread and sends nothing; a source that never
+    # sent has nothing to resolve. Neither may stand behind a loaded acceptance.
+    not_load = [r for r in resolution
+                if r.get('kind') == 'scripted_fixture' or isinstance(r.get('intents'), bool)
+                or not isinstance(r.get('intents'), int) or r['intents'] < 1] \
+        if require_load else []
+    if not_load:
+        outcome.update(completed=False,
+                       error='no tracked load: %d of %d source(s)' % (len(not_load),
+                                                                     len(resolution)),
+                       records_retained=ledger.count - started, load_resolution=resolution,
+                       ended_utc=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()))
+        raise PreparationRefused(
+            'EB5: %d load source(s) made no tracked load POST (a scripted fixture, or a '
+            'source that never sent); a loaded sweep is accepted only on sources that '
+            'generated the load and resolved it. Not accepted: %s'
+            % (len(not_load), lab_common.canonical_json(outcome)))
     outcome.update(completed=True, exclusions=len(exclusions),
                    records_retained=ledger.count - started,
                    load_coverage_records=len(coverage), load_resolution=resolution,

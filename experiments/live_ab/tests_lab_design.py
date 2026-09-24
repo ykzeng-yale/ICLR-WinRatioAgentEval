@@ -2138,6 +2138,37 @@ class PreparationWiringTests(unittest.TestCase):
                                         lab_data.detail_from_attempts([rec]))]
         return sweep
 
+    def _tracked_load(self):
+        """EB5 (root 2026-09-23 20:40 item 3): a loaded sweep is accepted only on a
+        source that generated TRACKED load. A real ``StreamingHttpLoad`` with an
+        in-process session (no socket, no server, no model): every generation writes
+        its durable intent and terminal. Started here; the sweep stops it."""
+        class _Resp:
+            status_code = 200
+
+            def iter_lines(self):
+                time.sleep(0.005)
+                return iter([b'data: {"choices":[{"delta":{"content":"a"}}]}',
+                             b'data: {"choices":[],"usage":{"completion_tokens":1}}',
+                             b'data: [DONE]'])
+
+            def close(self):
+                pass
+
+        class _Session:
+            def post(self, *a, **kw):
+                return _Resp()
+
+        src = lab_load.StreamingHttpLoad(
+            base_url='http://127.0.0.1:8193', model='m', prompt='p',
+            session_factory=_Session, ledger_path=self.tmp / 'load_ledger.jsonl')
+        src.start(lambda gid, t: None)
+        self.addCleanup(src.stop)
+        deadline = time.monotonic() + 10.0
+        while src.generations < 1 and time.monotonic() < deadline:
+            time.sleep(0.005)
+        return src
+
     def test_refuses_without_a_load_observer(self):
         """An unloaded sweep must not be reachable through the entry point."""
         with self.assertRaises(lab_prepare.PreparationRefused) as ctx:
@@ -2190,11 +2221,12 @@ class PreparationWiringTests(unittest.TestCase):
                         {'start': 99.0, 'end': 101.0, 'identity': 'slot0/req_a'},
                         {'start': 99.0, 'end': 101.0, 'identity': 'slot1/req_b'}]}
         # EB5 (root 2026-09-23 20:40 item 3): a loaded sweep hands over its load
-        # sources; this fixture's source is a script with no thread and no POST.
+        # sources, and a scripted fixture (no thread, no POST) is no longer accepted
+        # as one; the source here generated tracked (in-process, model-free) load.
         res = lab_prepare.run_reference_sweep(
             [], {}, ledger_path=self.tmp / 'l.jsonl', load_observer=observer,
             enforce_tmpdir=False, sweep_fn=self._stub_sweep(),
-            load_sources=[lab_load.ScriptedLoad([])])
+            load_sources=[self._tracked_load()])
         self.assertEqual(len(res['coverage']), 1)
         self.assertEqual(res['coverage'][0]['observation']['window_id'], 'w1')
         # The RAW attempt is stored first and UNMODIFIED; coverage is a separate
