@@ -3,7 +3,8 @@
 Repair contract EB5 (session 60; root 20:40 item 3, root 21:15 item 3).  ``--mutation NAMES``
 comes first (a comma-separated list); the rest of the argv is ``lab_orchestrator.main``'s.
 Never used outside ``tests_eb5_resolution``.  Each mutation restores the pre-EB5 behaviour of
-one mechanism (``understand_eb5.md`` section 2, lines of b049307), so that a control run
+one mechanism (the ``O:`` lines below are lines of
+``git show b049307:experiments/live_ab/lab_orchestrator.py``), so that a control run
 through it shows that THIS mechanism is what produced the behaviour the control asserts:
 
 * ``drain_disabled`` -- ``World.drain_workers`` does nothing: an abort or a pause closes at once

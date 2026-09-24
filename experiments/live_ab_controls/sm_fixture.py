@@ -44,6 +44,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -152,14 +153,93 @@ def _sources_key() -> str:
     return h.hexdigest()[:16]
 
 
+#: The compiled outputs, with the source MARKERS each must carry (string constants of the
+#: C sources above, so they are the same in every compile of THIS module's sources).
+OUTPUT_MARKERS = {'llama-server': (LAUNCHER_MARKER,),
+                  'libeb1c-core.0.dylib': (CORE_MARKER,),
+                  'libeb1c-base.0.1.0.dylib': (BASE_MARKER, METAL_MARKER)}
+#: The record ``compiled()`` writes beside its outputs, and the log of every use.
+CACHE_MANIFEST = 'sm_fixture_manifest.json'
+USES_LOG = 'eb1c_sm_fixture_uses.jsonl'
+
+
+def _tool_version(argv: list) -> str:
+    try:
+        res = subprocess.run(argv, capture_output=True, text=True, timeout=60, check=False)
+    except (OSError, subprocess.SubprocessError):
+        return 'unavailable'
+    return ((res.stdout or res.stderr).splitlines() or ['unavailable'])[0].strip()
+
+
+def cache_problems(cache: Path) -> list:
+    """[read-only] Why the cache directory ``cache`` is NOT the output of ``compiled()`` for
+    this module's sources (``[]`` when it is): its :data:`CACHE_MANIFEST` is missing or
+    unreadable, names another sources key, or its outputs' SHA-256 are not the ones it
+    recorded at compile time, or an output lacks its source markers (:data:`OUTPUT_MARKERS`).
+    Review of 988baf7 (reviewer 2): the cache used to be trusted by its NAME alone -- binaries
+    compiled from other C source, planted under the key, were served to every control.
+    Does NOT perform: an independent rebuild (the outputs are not byte-reproducible), so a
+    cache planted WITH a forged manifest and the committed markers is not detected."""
+    out = []
+    try:
+        man = json.loads((cache / CACHE_MANIFEST).read_text('utf-8'))
+    except (OSError, ValueError):
+        return ['manifest_unreadable']
+    if not isinstance(man, dict) or man.get('sources_key') != _sources_key():
+        out.append('sources_key')
+    recorded = (man.get('outputs') or {}) if isinstance(man, dict) else {}
+    for name, markers in OUTPUT_MARKERS.items():
+        try:
+            data = (cache / name).read_bytes()
+        except OSError:
+            out.append('missing:%s' % name)
+            continue
+        if hashlib.sha256(data).hexdigest() != recorded.get(name):
+            out.append('digest:%s' % name)
+        if not all(m in data for m in markers):
+            out.append('markers:%s' % name)
+    return out
+
+
+def _log_use(cache: Path, event: str) -> dict:
+    """Append one line to ``<tempdir>/`` :data:`USES_LOG`: which binaries this process is
+    about to execute (their SHA-256 and the compiler that built them) -- the record a suite
+    run leaves of the test double it actually used."""
+    try:
+        man = json.loads((cache / CACHE_MANIFEST).read_text('utf-8'))
+    except (OSError, ValueError):
+        man = {}
+    row = {'utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()), 'pid': os.getpid(),
+           'event': event, 'cache': str(cache), 'sources_key': man.get('sources_key'),
+           'outputs': man.get('outputs'), 'clang_version': man.get('clang_version'),
+           'ld_version': man.get('ld_version')}
+    try:
+        with open(cache.parent / USES_LOG, 'a', encoding='utf-8') as fh:
+            fh.write(json.dumps(row, sort_keys=True) + '\n')
+    except OSError:
+        pass
+    return row
+
+
 def compiled() -> Path:
     """The directory holding the three compiled binaries, compiled at most once per source
     digest (a cache under the temporary directory; concurrent callers race to an atomic
-    rename, and the loser's copy is discarded)."""
+    rename, and the loser's copy is discarded).  A cache is used only when
+    :func:`cache_problems` finds nothing: its manifest (written here at compile time: sources
+    key, output SHA-256, ``clang --version``, ``ld -v``) must match the files and each output
+    must carry its source markers.  An untrusted cache is moved aside
+    (``<name>.untrusted.<ns>``) and the sources are compiled again.  Every return is logged
+    (:func:`_log_use`)."""
     cache = Path(os.path.realpath(tempfile.gettempdir())) / ('eb1c_sm_fixture_%s'
                                                               % _sources_key())
-    if (cache / 'llama-server').is_file():
-        return cache
+    if cache.exists():
+        if not cache_problems(cache):
+            _log_use(cache, 'cache_verified')
+            return cache
+        try:
+            os.rename(str(cache), '%s.untrusted.%d' % (cache, time.monotonic_ns()))
+        except OSError:
+            pass
     work = Path(tempfile.mkdtemp(prefix='eb1c_sm_compile_', dir=str(cache.parent)))
     try:
         (work / 'base.c').write_text(BASE_C, encoding='utf-8')
@@ -180,6 +260,13 @@ def compiled() -> Path:
                 raise RuntimeError('sm_fixture: %s failed: %s' % (argv[0], res.stderr[-400:]))
         for name in ('base.c', 'core.c', 'launcher.c'):
             (work / name).unlink()
+        (work / CACHE_MANIFEST).write_text(json.dumps({
+            'sources_key': _sources_key(),
+            'outputs': {name: hashlib.sha256((work / name).read_bytes()).hexdigest()
+                        for name in OUTPUT_MARKERS},
+            'clang_version': _tool_version(['clang', '--version']),
+            'ld_version': _tool_version(['ld', '-v'])}, indent=1, sort_keys=True) + '\n',
+            encoding='utf-8')
         try:
             os.rename(str(work), str(cache))
         except OSError:
@@ -187,6 +274,10 @@ def compiled() -> Path:
     except BaseException:
         shutil.rmtree(str(work), ignore_errors=True)
         raise
+    problems = cache_problems(cache)
+    if problems:
+        raise RuntimeError('sm_fixture: the compiled cache does not verify: %s' % problems)
+    _log_use(cache, 'compiled')
     return cache
 
 

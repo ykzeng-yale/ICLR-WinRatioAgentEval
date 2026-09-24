@@ -110,6 +110,12 @@ def plumbing_allows(check: str) -> bool:
     return check in _PLUMBING_EXTRA or check.startswith(_PLUMBING_PREFIXES)
 
 
+def _failure_limit(cfg: Mapping | None) -> int:
+    """The ten-failure rule's frozen count (``execution.auto_abort``; the orchestrator's)."""
+    return int((((cfg or {}).get('execution') or {}).get('auto_abort') or {})
+               .get('consecutive_infrastructure_failures', 10))
+
+
 def condition_list(check: str) -> str:
     if check in CONDITION_LIST_B:
         return 'B'
@@ -346,10 +352,12 @@ def _check_server_lifecycle(col: _Collector, events: Sequence[Mapping],
        by ``trial_aborted`` with the reason :data:`FIRST_START_ABORT_REASON` gives its stage
        (``state: 'wrong_answer'`` otherwise): a pause there would let a resume run the trial
        the live rules had aborted (EB1 fix, reviewer 1 finding 1).
-    5. ``cap_abort_iff_required``: ``trial_aborted(server_restart_cap)`` exists IFF some
-       ``server_down`` found its server's attempted restarts already at the cap (a restart
-       beyond the cap would have been required); on a chain that is not yet terminal only the
-       "if" direction is enforced.
+    5. ``cap_abort_iff_required``: ``trial_aborted(server_restart_cap)`` -- or the
+       ``trial_aborted(unresolved_worker)`` whose ``resolution.superseded_reason`` is
+       ``server_restart_cap`` (protocol 14.6: the close's resolution verdict failed) --
+       exists IFF some ``server_down`` found its server's attempted restarts already at the
+       cap (a restart beyond the cap would have been required); on a chain that is not yet
+       terminal only the "if" direction is enforced.
 
     The restart-cap estimand of root's 21:14 ruling (``lab_eventlog.restart_cap_case``;
     root 00:22 on "externally receipted"), on every chain the cap bound in, and rule 9 on
@@ -453,8 +461,15 @@ def _check_server_lifecycle(col: _Collector, events: Sequence[Mapping],
                                 'decision_status': state}, seq=ev['seq'])
                 break
 
+    # the cap's abort, or the ``unresolved_worker`` abort that superseded it (protocol 14.6:
+    # the close's resolution verdict failed; ``resolution.superseded_reason`` names it) --
+    # review of 988baf7, reviewer 1 finding 3: that chain, which the orchestrator writes
+    # correctly, used to FAIL rule 5
     cap_aborts = [e for e in events if e['type'] == 'trial_aborted'
-                  and e['body'].get('reason') == 'server_restart_cap']
+                  and (e['body'].get('reason') == 'server_restart_cap'
+                       or (e['body'].get('reason') == 'unresolved_worker'
+                           and ((e['body'].get('resolution') or {})
+                                .get('superseded_reason')) == 'server_restart_cap'))]
     relevant = cap_aborts or any(
         e['type'] in ('server_down', 'server_restarted')
         or (e['type'] == 'server_start_failed' and e['body'].get('kind') == 'restart')
@@ -1072,6 +1087,14 @@ def _verify_trial(trial: str, freeze_bundle_sha256: str, *, mode: str = 'full',
     # ---- reference_rule.agreement / first crossing -------------------------
     if ref_error is None and cfg is not None:
         ref = lab_reference_rule.decide_from_chain(events, cfg, trial)
+        # The chain's no-decision point (``lab_eventlog.no_decision_point``, the function the
+        # orchestrator reads before every look): after it no new decision is taken.
+        try:
+            cap_now: int | None = lab_common.server_supervision_cap(cfg)
+        except lab_common.FrozenMismatch:
+            cap_now = None
+        point = lab_eventlog.no_decision_point(
+            events, cap_now, failure_limit=_failure_limit(cfg))
         if decision_events:
             d = decision_events[0]['body']
             if ref['kind'] != d['kind'] or ref['n'] != int(d['n']):
@@ -1081,28 +1104,43 @@ def _verify_trial(trial: str, freeze_bundle_sha256: str, *, mode: str = 'full',
                          'reference_n': -1 if ref['n'] is None else int(ref['n']),
                          'consequence': 'LIVE_DECISION_INVALID'},
                         seq=decision_events[0]['seq'])
+            if point is not None and point['reason'] != 'server_restart_cap' \
+                    and int(decision_events[0]['seq']) > point['seq']:
+                # A decision logged after an abort was owed or triggered (review of 988baf7,
+                # reviewer 1 finding 1): an abort can only remove decisions, never create one
+                # (protocol 6.4).  The cap's own case is ``server.lifecycle``
+                # ``decision_after_cap``.
+                col.add('reference_rule.agreement',
+                        {'rule': 'decision_after_no_decision_point',
+                         'no_decision_reason': point['reason'],
+                         'no_decision_seq': int(point['seq']),
+                         'live_kind': d['kind'], 'live_n': int(d['n']),
+                         'consequence': 'LIVE_DECISION_INVALID'},
+                        seq=decision_events[0]['seq'])
         elif ref['kind'] != 'none':
-            # Root 21:14 ruling, case (a): a crossing the reference rule finds at a look
-            # logged AFTER the server_down that required a fourth restart (and before any
-            # decision) is not acted on -- the trial is incomplete and takes no new decision.
-            # That is labelled (INFO), not a disagreement; a crossing at or before that
-            # point with no decision is still LIVE_DECISION_INVALID.
-            try:
-                cap_now: int | None = lab_common.server_supervision_cap(cfg)
-            except lab_common.FrozenMismatch:
-                cap_now = None
-            required_seq = lab_eventlog.restart_cap_required_seq(events, cap_now)
+            # Root 21:14 ruling, case (a), and every other no-decision point: a crossing the
+            # reference rule finds at a look logged AFTER the point (and with no decision) is
+            # not acted on -- the trial takes no new decision there (the orchestrator's rule
+            # read from the same chain).  That is labelled (INFO), not a disagreement; a
+            # crossing at or before the point with no decision is still LIVE_DECISION_INVALID.
+            # Review of 988baf7, reviewer 1 finding 2: a crossing left undecided in the drain
+            # of a receipt-mismatch or ten-failure abort used to be LIVE_DECISION_INVALID
+            # (condition list B) because only the cap was exempted.
             idx = next((i for i, lk in enumerate(looks or []) if lk.action != 'none'), None)
             crossing_seq = (int(updates[idx]['seq'])
                             if idx is not None and idx < len(updates) else None)
-            if required_seq is not None and crossing_seq is not None \
-                    and crossing_seq > required_seq:
-                col.add('reference_rule.agreement',
-                        {'live_kind': 'none', 'reference_kind': str(ref['kind']),
-                         'reference_n': -1 if ref['n'] is None else int(ref['n']),
-                         'consequence': 'NOT_ACTED_ON_restart_cap_before_decision',
-                         'cap_required_seq': int(required_seq)},
-                        seq=crossing_seq, severity='INFO')
+            if point is not None and crossing_seq is not None \
+                    and crossing_seq > point['seq']:
+                row = {'live_kind': 'none', 'reference_kind': str(ref['kind']),
+                       'reference_n': -1 if ref['n'] is None else int(ref['n']),
+                       'no_decision_reason': point['reason'],
+                       'no_decision_seq': int(point['seq'])}
+                if point['reason'] == 'server_restart_cap':
+                    row.update(consequence='NOT_ACTED_ON_restart_cap_before_decision',
+                               cap_required_seq=int(point['seq']))
+                else:
+                    row.update(consequence='NOT_ACTED_ON_abort_before_decision')
+                col.add('reference_rule.agreement', row, seq=crossing_seq, severity='INFO')
             else:
                 col.add('reference_rule.agreement',
                         {'live_kind': 'none', 'reference_kind': str(ref['kind']),
@@ -1545,10 +1583,11 @@ def _resolution_recount(events: Sequence[Mapping], servers: Sequence[Mapping],
         problems.append('call_unresolved')
     for row in late:
         found = row.get('bytes_found')
-        at = int(row.get('bytes_at_resolution') or 0)
-        if found is None:
+        if found is None or row.get('bytes_at_resolution') is None:
+            # unreadable at the seal, or unread at its resolution (recorded null)
             problems.append('spool_unreadable')
             continue
+        at = int(row['bytes_at_resolution'])
         if int(found) > at:
             problems.append('spool_grew')
         if int(found) <= at:
@@ -1654,9 +1693,9 @@ def _check_workers_resolved(col: _Collector, events: Sequence[Mapping],
                 raw = path.read_bytes() if path.exists() else b''
             except OSError:
                 raw = None
-            at = int(rec['spool_bytes_at_resolution'])
-            if raw is None or len(raw) != at \
-                    or sha256_bytes(raw[:at]) != rec['spool_sha256_at_resolution']:
+            at = rec['spool_bytes_at_resolution']
+            if at is None or raw is None or len(raw) != int(at) \
+                    or sha256_bytes(raw[:int(at)]) != rec['spool_sha256_at_resolution']:
                 col.add(check, {'rule': 'spool_after_resolution', 'arrival': a,
                                 'bytes_at_resolution': at,
                                 'bytes_found': None if raw is None else len(raw)})

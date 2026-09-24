@@ -80,6 +80,13 @@ PY = sys.executable
 HARD_CAP_S = 8.0
 REQUEST_TIMEOUT_S = 3.0
 RUN_BOUND_S = 60.0
+#: How long an :class:`Observer` holds the POST it was told to hold (longer than the client's
+#: request timeout: the client gives up first, inside the observer's hold).
+OBSERVER_HOLD_S = 20.0
+#: ``execution.max_connection_retries`` of the controls whose un-killed worker must still be
+#: sending when the observer is bound after the run (frozen 2): its tries keep coming with the
+#: frozen backoff ``min(2*(k+1), 10)`` s for about two minutes instead of about ten seconds.
+LATE_SENDER_RETRIES = 12
 MUTANT = HERE / 'eb5_mutant_entry.py'
 GATE_RETRIES = 5
 
@@ -295,17 +302,47 @@ def terminal(events) -> dict:
 
 class Observer:
     """A fresh ``lab_mock_server`` bound on the frozen port AFTER the orchestrator stopped its
-    own server: whatever POST reaches it was sent after the terminal record."""
+    own server: whatever POST reaches it was sent after the terminal record.  ``faults`` are
+    the mock's own (``hold``: the observer keeps that POST open, so its sender is provably
+    inside it -- the review of 988baf7, K1)."""
 
-    def __init__(self, tree: Tree) -> None:
-        self.srv, _port = lab_mock_server.make_server(dict(tree.good_scenario),
-                                                      port=tree.port)
+    def __init__(self, tree: Tree, faults: list | None = None) -> None:
+        self.srv, _port = lab_mock_server.make_server(
+            dict(tree.good_scenario, faults=list(faults or [])), port=tree.port)
         self.thread = threading.Thread(target=self.srv.serve_forever,
                                        kwargs={'poll_interval': 0.05}, daemon=True)
         self.thread.start()
 
     def n(self) -> int:
         return int(self.srv.state.snapshot()['n_requests'])
+
+    def holding(self) -> int:
+        """POSTs this observer is holding open right now (its ``requests_processing``)."""
+        return int(self.srv.state.snapshot()['requests_processing'])
+
+    def assert_alive_inside_held_post(self, case: unittest.TestCase, pid: int,
+                                      what: str) -> None:
+        """Wait for ``pid``'s POST at this observer (which HOLDS it), then assert, while the
+        POST is still held, that ``pid`` is that live worker, and kill its group.
+
+        Deterministic (K1): the worker cannot exit while its client waits inside the held
+        POST -- it only exits after the call's last try and its episode's final line -- and
+        its client waits up to ``execution.request_timeout_s`` (:data:`REQUEST_TIMEOUT_S`).
+        The liveness read and the kill happen inside that window, which is asserted: a host
+        too slow for it fails with that message, never by a race with the worker's exit.
+        The kill cannot race the exit either (the same window).  It used to be read after the
+        observer had ANSWERED the POST and been closed, 32-100 ms later, while the answered
+        worker exits 43-64 ms after its POST (review of 988baf7: C3 failed 8 of 20, C6's
+        ``killpg`` raised ``ProcessLookupError`` 5 of 6)."""
+        wait_for(lambda: self.n() >= 1, 45, what)
+        seen = time.monotonic()
+        case.assertGreaterEqual(self.holding(), 1, 'the observer holds the POST')
+        alive = eb1.pid_alive(pid) and 'worker_entry' in eb1.pid_command(pid)
+        inside = time.monotonic() - seen
+        case.assertLess(inside, REQUEST_TIMEOUT_S / 2,
+                        'the liveness read left the held window (%.2f s)' % inside)
+        case.assertTrue(alive, '%s: the worker is alive inside its held POST' % what)
+        os.killpg(pid, signal.SIGKILL)
 
     def close(self) -> None:
         self.srv.shutdown()
@@ -867,7 +904,8 @@ class C2AbortWithThePartnerHeld(Case):
         self.assertNoOrphans(t)
 
     def test_c2_mutation_drain_disabled_is_refused_and_drops_nothing(self):
-        t = self.tree('C2MUT', idle_wait_s=2.0)
+        t = self.tree('C2MUT', idle_wait_s=2.0,
+                      execution={'max_connection_retries': LATE_SENDER_RETRIES})
         t.serve(self.faults(t))
         t.start(mutation='drain_disabled')
         self.assertEqual(t.finish(self), 1, t.stdout[-3000:])
@@ -880,7 +918,15 @@ class C2AbortWithThePartnerHeld(Case):
                       res['unresolved_attempts'])
         self.assertEqual(by_arrival(events, 'episode_revealed', t.a2), [])
         ledger = end['body']['exposure_ledger']
-        self.assertEqual(ledger['unrevealed']['episodes'], 1)
+        # the partner is unrevealed (asserted above); position 1 may be too -- whether its
+        # reveal was ingested before the undrained close is timing (review of 988baf7: the
+        # exact count 1 failed 1 of 6 as "2 != 1")
+        self.assertGreaterEqual(ledger['unrevealed']['episodes'], 1)
+        before = events[:end['seq']]
+        unrevealed = ({int(e['body']['arrival']) for e in of(before, 'episode_started')}
+                      - {int(e['body']['arrival']) for e in of(before, 'episode_revealed')})
+        self.assertIn(t.a2, unrevealed)
+        self.assertEqual(ledger['unrevealed']['episodes'], len(unrevealed))
         self.assertGreaterEqual(ledger['unrevealed']['unknown_usage_calls'], 1)
         self.assertEqual(_old_ledger_unknown(events[:end['seq']])
                          - sum(ledger[p][a]['unknown_usage_calls']
@@ -890,9 +936,14 @@ class C2AbortWithThePartnerHeld(Case):
                         ledger['totals']['unknown_usage_calls'],
                         'the pre-EB5 attribution drops the partner\'s call')
         self.assertTruthfulRecord(t)
-        pid = t.worker_pid(t.a2)
-        self.assertTrue(eb1.pid_alive(pid), 'the pre-EB5 abort left the partner running')
-        os.killpg(pid, signal.SIGKILL)
+        # the pre-EB5 abort left the partner running: its next try reaches an observer bound
+        # after the run, which holds it while the partner's liveness is read and it is killed
+        obs = Observer(t, faults=[hold(t.u2, OBSERVER_HOLD_S)])
+        try:
+            obs.assert_alive_inside_held_post(self, t.worker_pid(t.a2),
+                                              'the running partner\'s next try')
+        finally:
+            obs.close()
         self.assertNoOrphans(t)
 
 
@@ -939,7 +990,8 @@ class C3GarbageSpoolLine(Case):
         self.assertNoOrphans(t)
 
     def test_c3_mutation_no_kill_keeps_sending_and_is_refused(self):
-        t = self.tree('C3MUT', idle_wait_s=2.0)
+        t = self.tree('C3MUT', idle_wait_s=2.0,
+                      execution={'max_connection_retries': LATE_SENDER_RETRIES})
         t.serve([hold(t.u2, 6.0)])
         t.start(mutation='spool_error_no_kill')
         self.inject(t)
@@ -950,13 +1002,11 @@ class C3GarbageSpoolLine(Case):
         rules = [f['detail'].get('rule') for f in verifier_findings(t, 'workers.resolved')]
         self.assertIn('reveal_before_resolution', rules)
         pid = t.worker_pid(t.a2)
-        obs = Observer(t)
+        obs = Observer(t, faults=[hold(t.u2, OBSERVER_HOLD_S)])
         try:
-            wait_for(lambda: obs.n() >= 1, 25, 'the unkilled worker\'s next POST')
+            obs.assert_alive_inside_held_post(self, pid, 'the unkilled worker\'s next POST')
         finally:
             obs.close()
-        self.assertTrue(eb1.pid_alive(pid))
-        os.killpg(pid, signal.SIGKILL)
         self.assertNoOrphans(t)
 
 
@@ -994,7 +1044,8 @@ class C4ReapNeverConfirmed(Case):
 # C5: a file barrier between call_started and the POST
 # --------------------------------------------------------------------------- #
 class C5FileBarrier(Case):
-    """C5 (understand_eb5 section 1: no witness existed of a POST entered after the snapshot):
+    """C5 (at b049307 no witness existed of a POST entered after the snapshot; see
+    ``eb5_worker_entry``):
     position 2 runs ``eb5_worker_entry``, which stops between its durable ``call_started`` and
     its POST until the control releases it; position 1's receipt mismatch aborts the trial.
 
@@ -1114,13 +1165,23 @@ class C6DispatcherExitsMidEpisode(Case):
     ``interrupted``; the trial ends; nothing reaches the port afterwards.  Mutation
     ``no_orphan_resolution`` (pre-EB5: ``finished()`` read 0, no liveness check) reveals the live
     orphan ``interrupted`` -- it keeps sending (an observer counts its POST), the verdict refuses
-    and the verifier FAILs the reveal.  Mutation ``orphan_kill_fails``: the resume REFUSES --
-    ``invocation_ended(refused)``, exit 3, no reveal, no server start -- and a later resume, once
-    the orphan is gone, completes the trial."""
+    and the verifier FAILs the reveal.  Mutation ``orphan_kill_fails``: the resume RECORDS the
+    orphan ``worker_resolved(alive_unresolved)`` and REFUSES -- ``invocation_ended(refused)``,
+    exit 3, no reveal, no server start; a later resume, once the orphan is gone, records it
+    ``exited``, reveals it, and the close refuses ``trial_ended``: the unresolved record is
+    never undone (protocol 14.6; review of 988baf7, reviewer 1 finding 4 -- this resume used to
+    record nothing and the later resume ended the trial ``trial_ended``)."""
 
     def first_invocation(self, name: str) -> Tree:
-        t = self.tree(name, idle_wait_s=20.0, execution={'max_connection_retries': 4})
-        t.serve([hold(t.u2, 60.0)], after=3)
+        t = self.tree(name, idle_wait_s=20.0,
+                      execution={'max_connection_retries': LATE_SENDER_RETRIES})
+        # EVERY server start holds position 2's call, the resumed invocation's too: an orphan
+        # left running can then never complete its call (and exit) before the control looks
+        # at it -- with the hold on the first start only, a resumed server could answer it (the
+        # first full run of the subset fix: no POST reached the observer in 45 s); a resumed
+        # invocation that resolves the orphan first sends position 2 nothing, so there the
+        # hold is never reached
+        t.set_scenarios([dict(t.good_scenario, faults=[hold(t.u2, 60.0)])] * 4)
         t.start()
         wait_for(lambda: t.posts(t.u2), 30, 'position 2 inside its POST')
         wait_for(lambda: any(r.get('kind') == 'episode_final' for r in t.spool(t.a1)), 30,
@@ -1167,13 +1228,14 @@ class C6DispatcherExitsMidEpisode(Case):
         self.assertEqual(terminal(events)['body']['reason'], 'unresolved_worker')
         rules = [f['detail'].get('rule') for f in verifier_findings(t, 'workers.resolved')]
         self.assertIn('reveal_before_resolution', rules)
-        self.assertTrue(eb1.pid_alive(self.orphan), 'revealed interrupted while alive')
-        obs = Observer(t)
+        # revealed interrupted while alive: the orphan's next POST reaches an observer bound
+        # after the run, which holds it while the orphan's liveness is read and it is killed
+        obs = Observer(t, faults=[hold(t.u2, OBSERVER_HOLD_S)])
         try:
-            wait_for(lambda: obs.n() >= 1, 25, 'the live orphan\'s next POST')
+            obs.assert_alive_inside_held_post(self, self.orphan,
+                                              'the live orphan\'s next POST')
         finally:
             obs.close()
-        os.killpg(self.orphan, signal.SIGKILL)
         self.assertNoOrphans(t)
 
     def test_c6_mutation_the_kill_fails_so_the_resume_refuses(self):
@@ -1183,13 +1245,14 @@ class C6DispatcherExitsMidEpisode(Case):
         events = t.chain()
         second = [e for e in self.resumed(events, self.first_len)
                   if e['type'] != 'log_recovery']
-        # the partner (gone) may be recorded exited; the orphan is NOT recorded, nothing is
-        # revealed, started or dispatched: the invocation ends refused
+        # the partner (gone) may be recorded exited; the orphan IS recorded alive_unresolved;
+        # nothing is revealed, started or dispatched: the invocation ends refused
         self.assertEqual(second[0]['type'], 'invocation_started')
         self.assertEqual(second[-1]['type'], 'invocation_ended')
-        self.assertEqual([(e['type'], e['body']['arrival'], e['body']['state'])
-                          for e in second[1:-1]],
-                         [('worker_resolved', t.a1, 'exited')][:len(second) - 2])
+        middle = [(e['type'], e['body']['arrival'], e['body']['state']) for e in second[1:-1]]
+        self.assertIn(('worker_resolved', t.a2, 'alive_unresolved'), middle)
+        self.assertLessEqual(set(middle), {('worker_resolved', t.a1, 'exited'),
+                                           ('worker_resolved', t.a2, 'alive_unresolved')})
         self.assertEqual(second[-1]['body']['status'], 'refused')
         self.assertEqual(second[-1]['body']['counts']['workers_alive_unresolved'], 1)
         self.assertEqual(len(t.launches()), 1, 'the refused resume started no server')
@@ -1199,13 +1262,19 @@ class C6DispatcherExitsMidEpisode(Case):
                  10, 'the orphan gone')
         t.first_procs.append(t.proc)
         t.start(resume=True)
-        self.assertEqual(t.finish(self), 0, t.stdout[-3000:])
+        self.assertEqual(t.finish(self), 1, 'aborted: ' + t.stdout[-3000:])
         events = t.chain()
         starts = [i for i, e in enumerate(events) if e['type'] == 'invocation_started']
         third = events[starts[-1]:]
         rec = self.assertResolvedBefore(third, t.a2, 'exited', 'episode_revealed')
         self.assertIsNone(rec['returncode'])
-        self.assertEqual(terminal(events)['type'], 'trial_ended')
+        end = terminal(events)
+        self.assertEqual((end['type'], end['body']['reason']),
+                         ('trial_aborted', 'unresolved_worker'))
+        self.assertEqual(end['body']['resolution']['unresolved_attempts'],
+                         [{'arrival': t.a2, 'attempt': 1, 'state': 'alive_unresolved'}])
+        self.assertEqual(of(events, 'trial_ended'), [])
+        self.assertTruthfulRecord(t)
         self.assertNoOrphans(t)
 
 

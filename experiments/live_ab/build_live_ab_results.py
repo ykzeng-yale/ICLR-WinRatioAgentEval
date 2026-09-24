@@ -212,6 +212,14 @@ RESTART_CAP_INCOMPLETE_LABEL: str = ('incomplete: restart cap before any decisio
                                      '(no decision; not a null result, not an abstention)')
 PROVISIONAL_LABEL: str = ('provisional: the logged decision has no chained external '
                           'receipt (no finalized claim)')
+#: Protocol 6.4 ("An abort can only remove decisions, never create one"): the chain reached a
+#: no-decision point other than the cap (``lab_eventlog.no_decision_point``: an owed or
+#: triggered abort, an unresolved worker) before any decision, and a crossing was logged after
+#: it and not acted on.  Review of 988baf7, reviewer 1 finding 2: such a trial used to be
+#: reported ``LIVE_DECISION_INVALID (harness defect)``.
+ABORT_INCOMPLETE_LABEL: str = ('incomplete: aborted before any decision; a crossing logged '
+                               'after the abort point was not acted on (no decision; not a '
+                               'null result, not an abstention)')
 
 
 def terminal_event(events: Sequence[Mapping]) -> Mapping | None:
@@ -244,6 +252,17 @@ def restart_cap_reading(events: Sequence[Mapping], cfg: Mapping) -> dict:
                            else None)}
 
 
+def _crossing_seq(events: Sequence[Mapping], cfg: Mapping, trial: str,
+                  updates: Sequence[Mapping]) -> int | None:
+    """The seq of the ``monitor_update`` at which the reference rule first crosses, or None
+    (the verifier's ``reference_rule.agreement`` reads it the same way)."""
+    looks = lab_reference_rule.looks_from_chain(list(events), dict(cfg), trial)
+    idx = next((i for i, lk in enumerate(looks) if lk.action != 'none'), None)
+    if idx is None or idx >= len(updates):
+        return None
+    return int(updates[idx]['seq'])
+
+
 def decision_object(events: Sequence[Mapping], cfg: Mapping, trial: str) -> dict:
     """The logged decision, with the reference rule's own result beside it.
 
@@ -252,7 +271,12 @@ def decision_object(events: Sequence[Mapping], cfg: Mapping, trial: str) -> dict
     case of root's 21:14 ruling (``restart_cap``).  ``reportable`` is false for case (a)
     (:data:`RESTART_CAP_INCOMPLETE_LABEL`) and for a decision without its chained external
     receipt (:data:`PROVISIONAL_LABEL`, any case); a decision logged after a case-(a) cap
-    (which the orchestrator never writes) is kept under ``decision`` and never reported."""
+    (which the orchestrator never writes) is kept under ``decision`` and never reported.
+    Any other no-decision point of the chain (``lab_eventlog.no_decision_point``: an owed or
+    triggered abort, an unresolved worker; review of 988baf7, reviewer 1 findings 1 and 2):
+    with no decision, a crossing logged after it is not acted on
+    (:data:`ABORT_INCOMPLETE_LABEL`, not reportable); a decision logged after it is
+    ``LIVE_DECISION_INVALID`` (the verifier's ``decision_after_no_decision_point``)."""
     logged = next((dict(e['body'], seq=int(e['seq'])) for e in events
                    if e['type'] == 'decision'), None)
     cap = restart_cap_reading(events, cfg)
@@ -270,6 +294,19 @@ def decision_object(events: Sequence[Mapping], cfg: Mapping, trial: str) -> dict
         agreement = reference.get('kind') == 'none'
     label: str | None = None
     not_acted_on: dict | None = None
+    try:
+        cap_int: int | None = lab_common.server_supervision_cap(dict(cfg or {}))
+    except lab_common.FrozenMismatch:
+        cap_int = None
+    point = lab_eventlog.no_decision_point(
+        list(events), cap_int, failure_limit=int(
+            ((dict(cfg).get('execution') or {}).get('auto_abort') or {})
+            .get('consecutive_infrastructure_failures', 10)))
+    after_point = (point is not None and point['reason'] != 'server_restart_cap'
+                   and cap['case'] != 'before_decision')
+    crossing_seq = (_crossing_seq(events, cfg, trial, updates)
+                    if after_point and logged is None and reference.get('kind') != 'none'
+                    else None)
     if cap['case'] == 'before_decision':
         primary, reportable = RESTART_CAP_INCOMPLETE_LABEL, False
         if logged is not None:
@@ -285,6 +322,23 @@ def decision_object(events: Sequence[Mapping], cfg: Mapping, trial: str) -> dict
                 agreement = True
                 not_acted_on = {'kind': str(reference.get('kind')),
                                 'n': int(reference['n']), 'seq': int(updates[idx]['seq'])}
+    elif crossing_seq is not None and crossing_seq > int(point['seq']):
+        # a crossing logged after an abort's point with no decision: not acted on (the
+        # verifier's INFO), never a disagreement
+        primary, reportable = ABORT_INCOMPLETE_LABEL, False
+        agreement = True
+        not_acted_on = {'kind': str(reference.get('kind')), 'n': int(reference['n']),
+                        'seq': int(crossing_seq),
+                        'no_decision_reason': point['reason'],
+                        'no_decision_seq': int(point['seq'])}
+    elif after_point and logged is not None and int(logged['seq']) > int(point['seq']):
+        # a decision logged after an abort was owed or triggered: the verifier FAILs it
+        # (``decision_after_no_decision_point``); it is kept under ``decision``, never
+        # reported as the result
+        primary, reportable = 'LIVE_DECISION_INVALID (harness defect)', True
+        agreement = False
+        label = ('not reportable: logged after the no-decision point (%s at seq %d; an '
+                 'abort can only remove decisions)' % (point['reason'], int(point['seq'])))
     elif logged is not None and cap['decision_status'] != 'receipted':
         primary, reportable = PROVISIONAL_LABEL, False
         label = PROVISIONAL_LABEL

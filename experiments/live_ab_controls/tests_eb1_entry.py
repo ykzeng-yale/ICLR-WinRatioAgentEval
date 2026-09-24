@@ -127,6 +127,9 @@ BUILD_INFO = 'b6000-%s' % str(LIVE_CFG['llama_cpp']['commit'])[:8]
 assert BUILD_INFO == sm_fixture.BUILD_INFO   # the build string the fixture's build-info.cpp gives
 RECOVERY_S = 10
 RUN_TIMEOUT_S = 240.0
+#: How many more times :meth:`EntryTree.run` starts a run the host gate refused on a
+#: DEGRADED scan alone (no offender named): see :meth:`EntryTree.run`.
+DEGRADED_RETRIES = 2
 #: The fault that kills a mock process on its first task call and never on the smoke: the
 #: mock's ``exit`` fault is a real ``os._exit`` under ``lab_mock_server.main``.
 CRASH_ON_CODE = {'match': {'kind': 'code'}, 'do': 'exit', 'code': 9}
@@ -207,6 +210,8 @@ class EntryTree:
         #: recorded by it in the tree's ``mock_overrides`` (tests_eb1_cap_estimand)
         self.trial = str(trial)
         self.freeze_kw = dict(freeze_kw or {})
+        #: the sandbox program directories that existed before this control (cleanup)
+        self.sandbox_before = sandbox_program_dirs()
         self.root = Path(tempfile.mkdtemp(prefix='eb1c_%s_' % name, dir=LABSBX))
         self.results = self.root / 'results'
         self.work = self.root / 'work'
@@ -386,8 +391,31 @@ class EntryTree:
         before the orchestrator's own argv (the mutation entry's ``--mutation NAME``).
 
         Unless ``host_refusal_expected``, a run the host-quiescence gate refused raises
-        ``AssertionError`` naming ``host_not_quiescent`` and the offenders' detectors
-        (:func:`host_refusal`): the control could not run on this host."""
+        ``AssertionError`` naming ``host_not_quiescent`` and the gate's own reason -- the
+        offenders' detectors, or the causes of a degraded scan (:func:`host_refusal`): the
+        control could not run on this host.  A refusal whose record names NO offender and
+        only a degraded scan (``lab_hostcheck.preflight_host_quiescent``: "host quiescence
+        could not be established", e.g. a ``ps`` line it could not parse) is transient: it
+        happened before seq 0 and changed nothing but the program chain, so the run is
+        started again once the host scans clean, at most :data:`DEGRADED_RETRIES` more
+        times (the integration run of 79bb1ab lost ``tests_sm_entry`` SM10 to one; the
+        refusals stay in the program chain)."""
+        for attempt in range(DEGRADED_RETRIES + 1):
+            before = host_refusal_count(self.program_chain())
+            self._run_once(entry=entry, entry_args=entry_args, anchor=anchor,
+                           timeout_s=timeout_s)
+            if host_refusal_expected:
+                return self.returncode
+            program = self.program_chain()
+            if host_refusal_count(program) == before:
+                return self.returncode
+            if not degraded_only_refusal(program) or attempt == DEGRADED_RETRIES:
+                raise AssertionError(host_refusal(program))
+            wait_for_clean_scan()
+        return self.returncode                                  # pragma: no cover
+
+    def _run_once(self, *, entry: Path | None, entry_args: tuple, anchor: bool,
+                  timeout_s: float) -> None:
         if anchor:
             anchor_cfg = json.loads(self.run_config.read_text(encoding='utf-8'))
             self.anchor = dry._start_anchor(self.trial, anchor_cfg, self.results, self.work)
@@ -408,11 +436,6 @@ class EntryTree:
             self.stdout = (out or b'').decode('utf-8', 'replace')
         finally:
             dry._stop_anchor(self.anchor)
-        if not host_refusal_expected:
-            refused = host_refusal(self.program_chain())
-            if refused is not None:
-                raise AssertionError(refused)
-        return self.returncode
 
     # -- reading ---------------------------------------------------------------------------
     def chain(self) -> list[dict]:
@@ -453,30 +476,113 @@ class EntryTree:
         return report
 
     def cleanup(self) -> None:
-        """Kill anything a failed control left behind, then remove the tree."""
+        """Kill anything a failed control left behind, then remove the tree -- and the
+        sandbox program directories its workers left (review of 988baf7, reviewer 2: a worker
+        a control SIGKILLs inside its sandbox verification leaves ``ls_sbx/p_*`` behind)."""
         for row in self.launches():
             if pid_alive(row['pid']) and self.shim_token in pid_command(row['pid']):
                 try:
                     os.killpg(int(row['pid']), signal.SIGKILL)
                 except OSError:
                     pass
+        remove_new_sandbox_dirs(self.sandbox_before)
         shutil.rmtree(self.root, ignore_errors=True)
 
 
+#: The shared sandbox base of every worker on this host (``lab_prepare``:
+#: ``<prescribed TMPDIR>/ls_sbx``); each program verification runs in a fresh ``p_*`` there.
+SANDBOX_BASE = Path(LABSBX) / 'ls_sbx'
+
+
+def sandbox_program_dirs() -> set:
+    """The names of the ``p_*`` program directories under :data:`SANDBOX_BASE` now."""
+    try:
+        return {p.name for p in SANDBOX_BASE.iterdir() if p.name.startswith('p_')}
+    except OSError:
+        return set()
+
+
+def remove_new_sandbox_dirs(before: set) -> list:
+    """Remove the ``p_*`` program directories created since ``before`` was listed and return
+    their names.  A control runs ALONE on a quiescent host (module docstring), so a program
+    directory that appeared during it and survives its cleanup is one its own killed workers
+    left; nothing that existed before is touched."""
+    removed = []
+    for name in sorted(sandbox_program_dirs() - set(before)):
+        shutil.rmtree(SANDBOX_BASE / name, ignore_errors=True)
+        removed.append(name)
+    return removed
+
+
+def host_refusal_count(program_events) -> int:
+    """How many ``preflight_refused(host_not_quiescent)`` the PROGRAM chain holds."""
+    return sum(1 for e in program_events if e['type'] == 'preflight_refused'
+               and 'host_not_quiescent' in (e['body'].get('checks_failed') or []))
+
+
+def _last_host_record(program_events) -> dict | None:
+    rows = [e['body'] for e in program_events if e['type'] == 'host_quiescence_refused']
+    return rows[-1] if rows else None
+
+
+def degraded_only_refusal(program_events) -> bool:
+    """[pure] Whether the LAST host-gate refusal record names no offender and only a
+    degraded scan (``lab_hostcheck.preflight_host_quiescent``'s second refusal: the scan
+    could not establish quiescence).  A record naming an offender is never degraded-only."""
+    last = _last_host_record(program_events)
+    return bool(last is not None and not (last.get('findings') or [])
+                and (last.get('degraded') or []))
+
+
 def host_refusal(program_events) -> str | None:
-    """[pure] A message naming ``host_not_quiescent`` and the offenders' detectors when the
+    """[pure] A message naming ``host_not_quiescent`` and the gate's own REASON when the
     PROGRAM chain carries the host gate's refusal, ``None`` otherwise (any other refusal is
-    the control's own business)."""
-    refused = [e for e in program_events if e['type'] == 'preflight_refused'
-               and 'host_not_quiescent' in (e['body'].get('checks_failed') or [])]
-    if not refused:
+    the control's own business).
+
+    The gate (``lab_hostcheck.preflight_host_quiescent``) refuses on two conditions: foreign
+    consumers found (the record's ``findings``, each with its ``detector``), or a scan that
+    could not establish quiescence (``findings`` EMPTY, the causes in ``degraded``, e.g.
+    ``ps_line_unparsed``).  This helper used to read ``findings`` only, so the second
+    condition printed "offending detectors []" (the integration run of 79bb1ab, SM10) and the
+    cause was lost with the tree.  The message now copies the last refusal record's
+    detectors and degraded causes, and says so explicitly when a record names neither or is
+    missing -- never an empty list."""
+    n = host_refusal_count(program_events)
+    if not n:
         return None
-    detectors = sorted({str(f.get('detector')) for e in program_events
-                        if e['type'] == 'host_quiescence_refused'
-                        for f in (e['body'].get('findings') or [])})
+    last = _last_host_record(program_events)
+    if last is None:
+        reason = ('no host_quiescence_refused record in the program chain names the reason '
+                  '(the gate\'s record could not be written)')
+    else:
+        detectors = sorted({str(f.get('detector')) for f in (last.get('findings') or [])})
+        degraded = ['%s x%d' % (d.get('cause'), int(d.get('count') or 0))
+                    for d in (last.get('degraded') or [])]
+        parts = []
+        if detectors:
+            parts.append('offending detectors: %s' % ', '.join(detectors))
+        if degraded:
+            parts.append('degraded scan, quiescence could not be established: %s'
+                         % ', '.join(degraded))
+        if not parts:
+            parts.append('the refusal record names neither a detector nor a degraded cause')
+        reason = '; '.join(parts)
     return ('host_not_quiescent: the real host gate refused this control before seq 0 '
-            '(offending detectors %r) -- run tests_eb1_entry alone on a quiescent host'
-            % (detectors,))
+            '(%s; %d host refusal(s) in the program chain) -- run it alone on a quiescent '
+            'host' % (reason, n))
+
+
+def wait_for_clean_scan(timeout: float = 600.0) -> None:
+    """Block until the real host gate would pass for this process (read only: ps / lsof)."""
+    deadline = time.monotonic() + timeout
+    while True:
+        try:
+            lab_hostcheck.preflight_host_quiescent(orch.own_harness_pids())
+            return
+        except lab_hostcheck.HostNotQuiescent:
+            if time.monotonic() >= deadline:
+                raise AssertionError('the host never scanned clean')
+            time.sleep(2.0)
 
 
 def group_members(pgid: int) -> set[int] | None:
@@ -1435,14 +1541,57 @@ class EntryHelperTests(unittest.TestCase):
                  'body': {'trial': TRIAL, 'checks_failed': ['host_not_quiescent'],
                           'drift': []}},
                 {'type': 'host_quiescence_refused',
-                 'body': {'findings': [{'detector': 'llama-server'}]}}]
+                 'body': {'findings': [{'detector': 'llama-server'}], 'degraded': []}}]
         message = host_refusal(gate)
         self.assertIn('host_not_quiescent', message)
         self.assertIn('llama-server', message)
+        self.assertFalse(degraded_only_refusal(gate), 'an offender is never degraded-only')
         other = [{'type': 'preflight_refused',
                   'body': {'trial': TRIAL, 'checks_failed': ['golden_objects'], 'drift': []}}]
         self.assertIsNone(host_refusal(other), 'control: another refusal is the control\'s')
         self.assertIsNone(host_refusal([]))
+
+    def test_cleanup_removes_only_the_sandbox_dirs_created_during_the_control(self):
+        """Reviewer 2 (review of 988baf7): the program directory of a worker killed inside
+        its sandbox verification is removed by the control's cleanup; one that existed
+        before the control is not (the negative control)."""
+        SANDBOX_BASE.mkdir(parents=True, exist_ok=True)
+        old = Path(tempfile.mkdtemp(prefix='p_', dir=SANDBOX_BASE))
+        self.addCleanup(shutil.rmtree, old, True)
+        before = sandbox_program_dirs()
+        new = Path(tempfile.mkdtemp(prefix='p_', dir=SANDBOX_BASE))
+        (new / 'prog.py').write_text('# left by a killed worker\n', encoding='utf-8')
+        self.assertEqual(remove_new_sandbox_dirs(before), [new.name])
+        self.assertFalse(new.exists())
+        self.assertTrue(old.exists(), 'a directory that existed before is kept')
+
+    def test_a_degraded_refusal_names_its_causes_never_an_empty_list(self):
+        """K2 (integration run of 79bb1ab, SM10 "offending detectors []"): the gate's second
+        refusal condition -- ``lab_hostcheck.preflight_host_quiescent`` with NO finding and a
+        degraded scan -- is named by its causes; a record naming neither, and a missing
+        record, are each said in words.  Negative control: the pre-fix message of such a
+        refusal is the empty list this test refuses."""
+        head = {'type': 'preflight_refused',
+                'body': {'trial': TRIAL, 'checks_failed': ['host_not_quiescent'], 'drift': []}}
+        degraded = [head, {'type': 'host_quiescence_refused',
+                           'body': {'findings': [],
+                                    'degraded': [{'cause': 'ps_line_unparsed', 'count': 1}]}}]
+        message = host_refusal(degraded)
+        self.assertIn('ps_line_unparsed x1', message)
+        self.assertNotIn('[]', message)
+        self.assertTrue(degraded_only_refusal(degraded))
+        neither = [head, {'type': 'host_quiescence_refused',
+                          'body': {'findings': [], 'degraded': []}}]
+        self.assertIn('names neither a detector nor a degraded cause', host_refusal(neither))
+        self.assertFalse(degraded_only_refusal(neither))
+        self.assertIn('no host_quiescence_refused record', host_refusal([head]))
+        for events in (degraded, neither, [head]):
+            self.assertNotIn('[]', host_refusal(events))
+        # negative control: the pre-fix reader (findings only) of the degraded record
+        pre_fix = sorted({str(f.get('detector')) for e in degraded
+                          if e['type'] == 'host_quiescence_refused'
+                          for f in (e['body'].get('findings') or [])})
+        self.assertIn('[]', 'offending detectors %r' % (pre_fix,))
 
 if __name__ == '__main__':
     unittest.main()

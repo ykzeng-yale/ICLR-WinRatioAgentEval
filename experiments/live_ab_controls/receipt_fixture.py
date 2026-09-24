@@ -139,6 +139,84 @@ EVIDENCE_VARIANTS: dict[str, tuple[dict, str]] = {
 }
 
 
+class AnchorRepo:
+    """A throwaway ANCHOR repository for the pushed-commit evidence (root 3e18d69; review of
+    988baf7, owner ruling R-push): ``lab_orchestrator.anchor_commit_problem`` reads the commit a
+    decision receipt names from the anchor repository, so a control whose receipt must clear
+    the gate commits the anchor's file there and pushes it, exactly as
+    ``lab_anchor.commit_and_push`` does (explicit path, ``git push origin <branch>``).
+
+    ``root`` becomes a git repository on ``branch`` whose ``origin`` is a local BARE repository
+    beside it -- a directory, no network -- so a push moves ``refs/remotes/origin/<branch>`` as
+    a real push does.  Only files :meth:`commit` names are ever added."""
+
+    def __init__(self, root: Path, branch: str = ANCHOR_BRANCH) -> None:
+        self.root = Path(root)
+        self.branch = str(branch)
+        self.origin = self.root.parent / (self.root.name + '_anchor_origin.git')
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.git('init', '-q')
+        # a local identity, no signing and no hooks in THIS repository, so that the real
+        # ``lab_anchor.commit_and_push`` (plain ``git``) commits here as the fixture does
+        for key, value in (('user.name', 'anchor-fixture'),
+                           ('user.email', 'anchor-fixture@invalid'),
+                           ('commit.gpgsign', 'false'), ('core.hooksPath', '/dev/null')):
+            self.git('config', key, value)
+        self.git('checkout', '-q', '-b', self.branch)
+        _run_git(self.origin.parent, 'init', '-q', '--bare', str(self.origin))
+        self.git('remote', 'add', 'origin', str(self.origin))
+        # the branch's first commit, pushed (``commit_and_push`` reads ``HEAD``'s branch)
+        self.commit([], message='anchor branch')
+
+    def git(self, *args: str) -> str:
+        return _run_git(self.root, *args)
+
+    def commit(self, paths, *, push: bool = True, message: str = 'anchor') -> str:
+        """Commit exactly ``paths`` (and push the branch unless ``push`` is false); returns
+        the new commit id."""
+        rel = [str(Path(p).resolve().relative_to(self.root.resolve())) for p in paths]
+        self.git('add', '--', *rel)
+        self.git('commit', '-q', '--allow-empty', '-m', message)
+        if push:
+            self.git('push', '-q', 'origin', self.branch)
+        return self.git('rev-parse', 'HEAD').strip()
+
+    def commit_anchor(self, anchors_dir: Path, trial: str, request: Mapping, *,
+                      push: bool = True) -> str:
+        """Write the anchor file of ``request`` (the bytes ``lab_anchor.write_anchor_file``
+        writes) under ``anchors_dir`` unless it is already there, commit it and push."""
+        path = Path(anchors_dir) / ('anchor_%d.json' % int(request['anchor_seq']))
+        if not path.exists():
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(canonical_json(lab_common.anchor_file_object(trial, request)),
+                            encoding='utf-8')
+        return self.commit([path], push=push)
+
+    def checker(self, anchors_dir: Path, trial: str):
+        """The ``commit_check`` of ``lab_orchestrator.judge_receipt_line`` over this
+        repository -- what ``World.anchor_commit_check`` computes for its own tree."""
+        import lab_orchestrator
+
+        def check(commit: str, branch: str, request: Mapping) -> str | None:
+            path = Path(anchors_dir) / ('anchor_%d.json' % int(request['anchor_seq']))
+            want = sha256_canonical(lab_common.anchor_file_object(trial, request))
+            return lab_orchestrator.anchor_commit_problem(self.root, commit, branch, path,
+                                                          want)
+        return check
+
+
+def _run_git(cwd: Path, *args: str) -> str:
+    """``git`` in ``cwd`` with a fixture identity, no signing, no hooks; raises on failure."""
+    import subprocess
+    res = subprocess.run(['git', '-c', 'user.name=anchor-fixture',
+                          '-c', 'user.email=anchor-fixture@invalid', '-c', 'commit.gpgsign=false',
+                          '-c', 'core.hooksPath=/dev/null', '-C', str(cwd)] + list(args),
+                         capture_output=True, text=True, timeout=60, check=False)
+    if res.returncode != 0:
+        raise RuntimeError('git %s: %s' % (' '.join(args), res.stderr.strip()))
+    return res.stdout
+
+
 def append_line(spool: Path, line: bytes | Mapping) -> bytes:
     """Append ONE line to ``anchor_spool/receipts.jsonl`` as the anchor process does (one
     ``write`` under ``O_APPEND``, then fsync).  ``line`` is a row (canonical JSON) or raw

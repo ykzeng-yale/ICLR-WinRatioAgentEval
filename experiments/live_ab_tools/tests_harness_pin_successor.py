@@ -405,6 +405,62 @@ class FixtureTests(unittest.TestCase):
         partial = json.loads(json.dumps(good))
         partial['D_real_control_rebuilds']['ran'] = n - 1
         self.assertFalse(hps.judge_fixture_controls(partial)['D_real_control_rebuilds']['ok'])
+        # since the subset fix a partial cache may instead be moved aside and REBUILT: ok only
+        # when the rebuilt cache verifies and the partial one was really moved aside
+        rebuilt = json.loads(json.dumps(good))
+        rebuilt['C_partial_cache'] = {'raised': None, 'cache_verified_after': True,
+                                      'moved_aside': 1}
+        self.assertTrue(hps.judge_fixture_controls(rebuilt)['C_partial_cache']['ok'])
+        for edit in ({'moved_aside': 0}, {'cache_verified_after': False},
+                     {'cache_verified_after': None}):
+            with self.subTest(rebuilt_but=edit):
+                case = json.loads(json.dumps(rebuilt))
+                case['C_partial_cache'].update(edit)
+                self.assertFalse(hps.judge_fixture_controls(case)['C_partial_cache']['ok'])
+
+    def test_the_uses_log_is_read_inside_the_suite_window_only(self):
+        """Reviewer 2 finding 6 (review of 988baf7): the digests of the test double a suite
+        executed are recorded from the lines sm_fixture logged during that suite."""
+        with tempfile.TemporaryDirectory() as tmp:
+            log = Path(tmp) / hps.FIXTURE_USES_LOG
+            rows = [{'utc': '2026-09-24T10:00:00Z', 'event': 'compiled',
+                     'outputs': {'llama-server': 'a' * 64}, 'clang_version': 'c1',
+                     'ld_version': 'l1'},
+                    {'utc': '2026-09-24T11:00:00Z', 'event': 'cache_verified',
+                     'outputs': {'llama-server': 'b' * 64}, 'clang_version': 'c1',
+                     'ld_version': 'l1'},
+                    {'utc': '2026-09-24T13:00:00Z', 'event': 'compiled',
+                     'outputs': {'llama-server': 'c' * 64}}]
+            log.write_text(''.join(json.dumps(r) + '\n' for r in rows) + 'not json\n')
+            got = hps.fixture_uses(log, '2026-09-24T10:30:00Z', '2026-09-24T12:00:00Z')
+            self.assertEqual((got['uses'], got['events']), (1, {'cache_verified': 1}))
+            self.assertEqual(got['distinct_output_sets'], [{'llama-server': 'b' * 64}])
+            # negative control: a window that holds none, and a missing log
+            self.assertEqual(hps.fixture_uses(log, '2026-09-25T00:00:00Z',
+                                              '2026-09-25T01:00:00Z')['uses'], 0)
+            self.assertEqual(hps.fixture_uses(Path(tmp) / 'absent.jsonl', '0', '9')['uses'], 0)
+
+
+class SupersedesTests(unittest.TestCase):
+
+    def test_the_superseded_receipt_is_the_committed_bytes_and_a_change_refuses(self):
+        path = REPO / hps.SUPERSEDES['path']
+        data = path.read_bytes()
+        rec, problems = hps.supersedes_record(data)
+        self.assertEqual((rec['byte_identical'], problems), (True, []))
+        self.assertEqual(rec['sha256_at_head'], hps.SUPERSEDES['sha256'])
+        rec, problems = hps.supersedes_record(data + b' ')
+        self.assertEqual((rec['byte_identical'], problems),
+                         (False, ['superseded_receipt_changed']))
+        rec, problems = hps.supersedes_record(None)
+        self.assertEqual((rec['present_at_head'], problems), (False, []))
+
+    def test_the_disclosed_red_runs_name_their_result_and_disposition(self):
+        self.assertGreaterEqual(len(hps.DISCLOSED_RED_RUNS), 1)
+        for row in hps.DISCLOSED_RED_RUNS:
+            for key in ('when', 'suite', 'result', 'disposition'):
+                self.assertTrue(row.get(key), key)
+        self.assertIn('FAILED (failures=2)', hps.DISCLOSED_RED_RUNS[0]['result'])
 
 
 class SuiteParseTests(unittest.TestCase):

@@ -41,7 +41,14 @@ WHAT IT COMPUTES, WITHOUT EDITING ANY EXISTING FILE (every value from git object
    reasons, failure headers, wall time, start/end UTC, child rusage, host snapshots before and
    after, and a ``ps`` sampler that lists any watched process outside the suite's own tree
    (the evidence that it ran alone; sampled, not continuous; a process the suite itself
-   orphans is told apart from a foreign one, see ``watched_outside``).
+   orphans is told apart from a foreign one, see ``watched_outside``) -- and, per suite, the
+   compiled test double it actually executed (``fixture_uses``: the lines ``sm_fixture``
+   logged during the suite, with every output SHA-256 and the compiler and linker that built
+   it), which the exclusion check of 6 then searches the freeze tree for as well (review of
+   988baf7, reviewer 2 finding 6: those digests were recorded nowhere).
+8. The receipt this one SUPERSEDES (SUPERSEDES: path, SHA-256, why; it stays byte-identical)
+   and every red run of the subset before it that the commits and that receipt did not
+   report (DISCLOSED_RED_RUNS; review of 988baf7, reviewer 2 finding 5).
 
 It writes ONE write-once receipt ``<out-dir>/HARNESS_PIN_SUCCESSOR_<UTC>.json``.  The default
 out-dir is ``results/live_ab``; ``--no-suites`` is refused there, so a receipt in results always
@@ -136,6 +143,62 @@ FIXTURE_CONTROL_TESTS = (
 PRESCRIBED_LABSBX = '/private/tmp/labsbx'
 FIXTURE_CONTROL_TAGS = ('A_rebuild', 'B_no_compiler', 'C_partial_cache',
                         'D_real_control_rebuilds', 'E_real_control_no_compiler')
+#: The log every ``sm_fixture.compiled()`` appends to under its temporary directory (review of
+#: 988baf7, reviewer 2 finding 6): which binaries each suite actually executed.
+FIXTURE_USES_LOG = 'eb1c_sm_fixture_uses.jsonl'
+
+#: The receipt this one supersedes (write-once: it stays, byte-identical), and why.
+SUPERSEDES = {
+    'path': RESULTS_REL + '/HARNESS_PIN_SUCCESSOR_20260924_1217.json',
+    'sha256': '25010726114a05415c519a5c4ab297d75f8bdeeca9a0f8d91930dc6c170f2462',
+    'head_when_written': '988baf7',
+    'why': ('the subset fix answering the two reviews of 988baf7 changes harness files '
+            '(lab_orchestrator, lab_eventlog, lab_verify_log, build_live_ab_results); that '
+            'receipt pins the 988baf7 harness and stays as written'),
+}
+
+#: Red runs of the subset BEFORE this successor, which the commit messages 79bb1ab..988baf7
+#: and the superseded receipt did not report (review of 988baf7, reviewer 2 finding 5).  Each
+#: is an observation of an earlier run, named with the log it left where one is kept (the
+#: session's scratch logs are not tracked; their SHA-256 identifies the bytes read).
+DISCLOSED_RED_RUNS = (
+    {'when': '2026-09-24 03:06-03:43 local, integration solo run at 79bb1ab',
+     'suite': 'live_ab_controls', 'result': 'Ran 357 tests, FAILED (failures=2)',
+     'failures': ['tests_eb5_resolution.C3GarbageSpoolLine.test_c3_mutation_no_kill_keeps_'
+                  'sending_and_is_refused (AssertionError: pid_alive after obs.close(); a '
+                  'timing race in the control: the worker exits 43-64 ms after the POST the '
+                  'observer answered)',
+                  'tests_sm_entry.SM10SelfComparisonMutants.test_mutant_digest_self_accepts_'
+                  'the_null_digest_of_sm3 (the real host gate refused on a DEGRADED scan; '
+                  'the helper printed "offending detectors []")'],
+     'log_sha256': 'e3f2b645cba6c95a84099c5234f32d109e21838a66ba6bd9a98b1bc09ce4c37f',
+     'disposition': 'both controls repaired by the subset fix (K1, K2); the second '
+                    'run of the same suite at 79bb1ab was OK'},
+    {'when': 'review of 988baf7 (reviewer 2), solo runs in a clone of 988baf7',
+     'suite': 'live_ab_controls (single controls)',
+     'result': ('C3 mutation control failed 8 of 20, C6 mutation control failed 5 of 6 '
+                '(ProcessLookupError at its killpg), C2 mutation control failed 1 of 6 '
+                '("2 != 1"), the whole tests_eb5_resolution module failed 2 of 3'),
+     'log_sha256': None,
+     'disposition': 'the three controls made deterministic by the subset fix (K1)'},
+    {'when': 'review of 988baf7 (reviewer 1), an independent clone of 988baf7',
+     'suite': 'live_ab_controls',
+     'result': ('C6 mutation control ERROR 3 of 3 (ProcessLookupError); other non-passes of '
+                'a contended run were host_not_quiescent refusals caused by a concurrent '
+                'suite and passed on quiet solo reruns'),
+     'log_sha256': None,
+     'disposition': 'repaired by the subset fix (K1)'},
+    {'when': '2026-09-24 14:0x UTC, this session, the pre-fix clone of 988baf7',
+     'suite': 'live_ab_controls (single controls, solo)',
+     'result': ('C3 mutation control failed 2 of 6, C6 mutation control failed 2 of 4, C2 '
+                'mutation control failed 0 of 4'),
+     'log_sha256': {
+         'c3': ['365073e4f3363ef5ddf8ed14c367b7b107eea746d4cabb0899c19a255177c181',
+                'e2118de0987b2e87e8ddd9a3b834da801e589b6b4594f2f0ba6a8e61cd6f038b'],
+         'c6': ['a10d3174f90e42e6d11a03ebf58c2ff70ea79dfbf7d09e3e819abfb8f240fa90',
+                'ed81c61b4cdb36bc50232344fe4bc5b68df70dea5377ba79b6f7ed12fcf5bb92']},
+     'disposition': 'the reproduction the K1 repair started from'},
+)
 
 #: The unified-diff form whose bytes are hashed (every option fixed; see git_env()).
 DIFF_ARGV = ('-c', 'core.quotePath=true', '-c', 'diff.noprefix=false',
@@ -588,6 +651,10 @@ except BaseException as exc:
     out['raised'] = type(exc).__name__
     out['message'] = str(exc)[:300]
 out['cache_launcher_exists_after'] = (cache / 'llama-server').is_file()
+out['moved_aside'] = sum(1 for p in Path(out['tempdir']).iterdir() if '.untrusted.' in p.name)
+check = getattr(sm_fixture, 'cache_problems', None)
+out['cache_verified_after'] = (None if check is None or not cache.is_dir()
+                               else check(cache) == [])
 out['files'] = {}
 if cache.is_dir():
     for p in sorted(cache.iterdir()):
@@ -641,7 +708,12 @@ def judge_fixture_controls(out: dict) -> dict:
                and a.get('otool_L_links_core') is True)
     b['ok'] = (b.get('raised') is not None and b.get('cache_existed_before') is False
                and b.get('cache_launcher_exists_after') is False)
-    c['ok'] = c.get('raised') is not None
+    # a partial cache fails visibly (an exception), or -- since the subset fix, whose
+    # compiled() trusts a cache only when its compile-time manifest verifies -- is moved
+    # aside and rebuilt, the rebuilt cache verifying; never accepted as it is
+    c['ok'] = (c.get('raised') is not None
+               or (c.get('raised') is None and c.get('cache_verified_after') is True
+                   and int(c.get('moved_aside') or 0) >= 1))
     d['ok'] = (d.get('ran') == n and d.get('successful') is True and d.get('skipped') == 0
                and d.get('cache_launcher_exists_after') is True)
     e['ok'] = (e.get('ran') == n and e.get('successful') is False and e.get('skipped') == 0
@@ -655,7 +727,8 @@ def fixture_missing_cache_controls(repo: Path, cache_dir_name: str) -> dict:
 
     A. no cache -> ``compiled()`` rebuilds it (launcher present after, links libeb1c-core);
     B. no cache and a ``clang`` that fails (a stub first on PATH) -> an exception, no cache;
-    C. a partial cache (launcher present, core library missing) -> ``Build()`` raises;
+    C. a partial cache (launcher present, core library missing) -> ``Build()`` raises, or
+       (since the subset fix) the cache is moved aside as untrusted and rebuilt, and verifies;
     D. the real control tests FIXTURE_CONTROL_TESTS with their LABSBX pointed at an empty
        root -> both run and pass, and the cache exists afterwards (rebuilt by the control);
     E. D with the failing ``clang`` -> both run and ERROR (visible; none skipped, none pass)."""
@@ -709,6 +782,43 @@ def fixture_missing_cache_controls(repo: Path, cache_dir_name: str) -> dict:
     finally:
         for r in roots:
             shutil.rmtree(str(r), ignore_errors=True)
+
+
+def supersedes_record(data: bytes | None) -> tuple[dict, list]:
+    """[pure] The SUPERSEDES entry of the receipt from the superseded receipt's bytes at HEAD
+    (``None``: not in this revision), and ``['superseded_receipt_changed']`` when they are
+    present and are not the bytes it was written with (write-once)."""
+    rec = dict(SUPERSEDES, present_at_head=data is not None,
+               sha256_at_head=None if data is None else sha256(data))
+    rec['byte_identical'] = data is not None and rec['sha256_at_head'] == SUPERSEDES['sha256']
+    return rec, (['superseded_receipt_changed'] if data is not None
+                 and not rec['byte_identical'] else [])
+
+
+def fixture_uses(log: Path, start_utc: str, end_utc: str) -> dict:
+    """[read-only] The lines of the fixture's uses log (``sm_fixture._log_use``) written in
+    ``[start_utc, end_utc]``: how often a suite used the compiled test double, how (a verified
+    cache or a fresh compile), and the SHA-256 of every binary it executed with the compiler
+    and linker that built them.  A missing log is zero uses."""
+    rows = []
+    try:
+        lines = Path(log).read_text('utf-8').splitlines()
+    except OSError:
+        lines = []
+    for line in lines:
+        try:
+            row = json.loads(line)
+        except ValueError:
+            continue
+        if isinstance(row, dict) and start_utc <= str(row.get('utc', '')) <= end_utc:
+            rows.append(row)
+    outputs = sorted({json.dumps(r.get('outputs'), sort_keys=True) for r in rows})
+    return {'log': FIXTURE_USES_LOG, 'uses': len(rows),
+            'events': {e: sum(1 for r in rows if r.get('event') == e)
+                       for e in sorted({str(r.get('event')) for r in rows})},
+            'distinct_output_sets': [json.loads(o) for o in outputs],
+            'compilers': sorted({str(r.get('clang_version')) for r in rows}),
+            'linkers': sorted({str(r.get('ld_version')) for r in rows})}
 
 
 def fixture_section(repo: Path, head: GitTree) -> tuple[dict, list]:
@@ -1298,6 +1408,9 @@ def build_receipt(repo: Path, predecessor: str, *, run_suites: bool) -> dict:
     # 6. the compiled C test double
     fixture, fproblems = fixture_section(repo, head)
     problems += fproblems
+    # the receipt this one supersedes stays byte-identical where the head carries it
+    supersedes, sproblems = supersedes_record(head.read(SUPERSEDES['path']))
+    problems += sproblems
 
     commits = [ln.split('\t', 1) for ln in git(
         repo, 'log', '--reverse', '--topo-order', '--format=%H%x09%s',
@@ -1388,6 +1501,8 @@ def build_receipt(repo: Path, predecessor: str, *, run_suites: bool) -> dict:
             'harness_count_statements': statements,
         },
         'compiled_c_test_double': fixture,
+        'supersedes': supersedes,
+        'disclosed_red_runs_before_this_successor': list(DISCLOSED_RED_RUNS),
         'nothing_executed': ('no model, llama-server, llama.cpp build or network request; the '
                              'C test double compiled under temporary roots; the suites start '
                              'their own loopback mocks'),
@@ -1396,6 +1511,23 @@ def build_receipt(repo: Path, predecessor: str, *, run_suites: bool) -> dict:
     }
     if run_suites:
         runs = [run_suite(repo, name, argv, tokenize) for name, argv in SUITES]
+        uses_log = Path(PRESCRIBED_LABSBX) / FIXTURE_USES_LOG
+        used: set = set()
+        for r in runs:
+            r['fixture_uses'] = fixture_uses(uses_log, r['start_utc'], r['end_utc'])
+            used |= {h for outs in r['fixture_uses']['distinct_output_sets']
+                     for h in (outs or {}).values() if isinstance(h, str)
+                     and HEX64.fullmatch(h)}
+        freeze_blobs = {p: head.read(p) or b'' for p in blob_digests(
+            repo, head.rev, [RESULTS_REL + '/freeze'])}
+        in_freeze = sorted(p for p, data in freeze_blobs.items()
+                           if any(h.encode() in data for h in used))
+        receipt['compiled_c_test_double']['exclusion_checks'][
+            'fixture_output_digests_the_suites_executed'] = sorted(used)
+        receipt['compiled_c_test_double']['exclusion_checks'][
+            'freeze_tree_files_containing_any_the_suites_executed'] = in_freeze
+        if in_freeze:
+            problems.append('fixture_outputs_used_by_the_suites_not_excluded')
         receipt['solo_run_suites'] = {
             'python': tokenize(PY),
             'order': [s[0] for s in SUITES],

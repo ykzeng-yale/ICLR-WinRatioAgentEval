@@ -459,15 +459,20 @@ _REAL_LOOK = orch.World._write_one_look
 
 def look_without_case_a(self, snap, refs):
     """MUTATION: ``_write_one_look`` without the case-(a) rule (a cap-owed abort does not stop
-    a new decision)."""
-    saved = self.pending_abort
+    a new decision): both halves of it are removed -- the owed ``server_restart_cap`` and the
+    chain's no-decision point when it is the cap's (``lab_eventlog.no_decision_point``)."""
+    saved, saved_point = self.pending_abort, self.no_decision
     if saved == orch.RESTART_CAP_REASON:
         self.pending_abort = None
+    if saved_point is not None and saved_point['reason'] == 'server_restart_cap':
+        self.no_decision = None
     try:
         return _REAL_LOOK(self, snap, refs)
     finally:
         if self.pending_abort is None:
             self.pending_abort = saved
+        if self.no_decision is None:
+            self.no_decision = saved_point
 
 
 def build(tree: sup.Tree) -> tuple[dict, dict]:

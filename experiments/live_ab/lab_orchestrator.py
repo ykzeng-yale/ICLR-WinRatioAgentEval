@@ -214,8 +214,62 @@ def _is_int(value: object) -> bool:
     return isinstance(value, int) and not isinstance(value, bool)
 
 
+#: The closed problem codes of :func:`anchor_commit_problem` (the pushed commit bound to its
+#: anchor, read from the anchor repository; root 3e18d69).
+ANCHOR_COMMIT_PROBLEMS: tuple[str, ...] = ('repo_unreadable', 'anchor_outside_repo',
+                                           'commit_absent', 'not_on_pushed_branch',
+                                           'anchor_file_absent', 'anchor_file_mismatch')
+
+
+def anchor_commit_problem(repo: str | Path, commit: str, branch: str,
+                          anchor_path: str | Path, want_sha256: str) -> str | None:
+    """Whether the receipt's pushed ``commit`` is bound to its anchor, read LOCALLY from the
+    anchor repository (read-only ``git``, no network): ``None`` when it is, else one code of
+    :data:`ANCHOR_COMMIT_PROBLEMS`.
+
+    Root 3e18d69 asks the gate to "verify the pushed commit/anchor-head evidence"; review of
+    988baf7 (reviewer 1 finding 5; owner ruling R-push): the gate checked only that ``pushed``
+    was true, the commit 40 hex and the branch the frozen name, and ``anchor_file_sha256``
+    against a digest anyone can compute from the durable request -- a receipt naming a commit
+    that does not exist cleared it.  ``lab_anchor.commit_and_push`` commits the anchor file
+    (``anchors/anchor_<anchor_seq>.json``) in the anchor repository and pushes that branch to
+    ``origin``, which moves the repository's own ``refs/remotes/origin/<branch>``.  Performs:
+    the anchor file lies inside the repository (``anchor_outside_repo``); ``git cat-file -e
+    <commit>^{commit}`` (``commit_absent``); ``git merge-base --is-ancestor <commit>
+    refs/remotes/origin/<branch>`` -- the commit is on the branch as the repository recorded
+    its last push (``not_on_pushed_branch``); ``git show <commit>:<anchor file>`` exists
+    (``anchor_file_absent``) and its bytes hash to ``want_sha256``, the digest of this
+    anchor's own file object (``anchor_file_mismatch``); a ``git`` that cannot run is
+    ``repo_unreadable``.  Does NOT perform: any check that the remote itself (GitHub) holds
+    the commit -- no network is read; the push's evidence is the repository's own record of
+    it."""
+    def git(*args: str) -> subprocess.CompletedProcess:
+        return subprocess.run(['git', '-C', str(repo)] + list(args), capture_output=True,
+                              timeout=60, check=False)
+    try:
+        rel = Path(anchor_path).resolve().relative_to(Path(repo).resolve()).as_posix()
+    except (OSError, ValueError):
+        return 'anchor_outside_repo'
+    try:
+        if git('rev-parse', '--git-dir').returncode != 0:
+            return 'repo_unreadable'
+        if git('cat-file', '-e', '%s^{commit}' % commit).returncode != 0:
+            return 'commit_absent'
+        if git('merge-base', '--is-ancestor', commit,
+               'refs/remotes/origin/%s' % branch).returncode != 0:
+            return 'not_on_pushed_branch'
+        shown = git('show', '%s:%s' % (commit, rel))
+    except (OSError, subprocess.SubprocessError):
+        return 'repo_unreadable'
+    if shown.returncode != 0:
+        return 'anchor_file_absent'
+    if sha256_bytes(shown.stdout) != want_sha256:
+        return 'anchor_file_mismatch'
+    return None
+
+
 def decision_evidence_verdict(row: Mapping, request: Mapping, trial: str, *,
-                              anchor_branch: str) -> tuple[str | None, dict]:
+                              anchor_branch: str, commit_check) -> tuple[str | None, dict]:
     """[pure] Whether an ``ok`` receipt spool ``row`` bound to the durable DECISION anchor
     ``request`` carries the external evidence of protocol 12.4 items 3 and 5 as root's
     3e18d69 ruling reads them: ``(None, digests)`` when it does, else ``('malformed', {})``
@@ -234,9 +288,12 @@ def decision_evidence_verdict(row: Mapping, request: Mapping, trial: str, *,
     the raw response's SHA-256 is not ``receipt_sha256``; the response's own ``id``,
     ``node_id``, ``created_at``, ``updated_at`` differ from the row's, or its ``body`` is not
     exactly that comment body (the metadata is then not the response to the matching body);
-    ``updated_at`` earlier than ``created_at``.  No wall-clock equality and no latency window
-    is imposed (12.4: no timestamp authority).  Does NOT perform: any check that the commit
-    was pushed or the comment exists on a server (no network is read)."""
+    ``updated_at`` earlier than ``created_at``; and, once all of that holds, the pushed commit
+    is not bound to this anchor -- ``commit_check(commit, branch, request)`` (the World's
+    :func:`anchor_commit_problem` over the anchor repository) names a problem.  No wall-clock
+    equality and no latency window is imposed (12.4: no timestamp authority).  Does NOT
+    perform: any check that the comment exists on a server, or that the remote holds the
+    commit (no network is read; the push is the anchor repository's own record of it)."""
     commit, branch = row.get('commit'), row.get('branch')
     comment_id, node_id = row.get('comment_id'), row.get('node_id')
     created = lab_eventlog.parse_utc_instant(row.get('created_at'))
@@ -273,6 +330,8 @@ def decision_evidence_verdict(row: Mapping, request: Mapping, trial: str, *,
             or response.get('body') != body_text
             or updated < created):
         return 'conflict', {}
+    if commit_check(str(commit), str(branch), request) is not None:
+        return 'conflict', {}
     return None, {'anchor_file_sha256': want_file,
                   'comment_body_sha256': sha256_text(body_text),
                   'node_id_sha256': sha256_text(node_id)}
@@ -280,8 +339,10 @@ def decision_evidence_verdict(row: Mapping, request: Mapping, trial: str, *,
 
 def judge_receipt_line(raw: bytes, *, trial: str, request_of, anchors: Mapping[int, Mapping],
                        resolved: Mapping[int, str], resolving_sha: Mapping[int, str],
-                       newest_anchor_seq: int, mock: bool, anchor_branch: str) -> dict:
-    """[pure but for ``request_of``] What ONE line of ``anchor_spool/receipts.jsonl`` becomes.
+                       newest_anchor_seq: int, mock: bool, anchor_branch: str,
+                       commit_check) -> dict:
+    """[pure but for ``request_of`` and ``commit_check``] What ONE line of
+    ``anchor_spool/receipts.jsonl`` becomes.
 
     Root f855e45 (``reviews/eb1_receipt_attribution_review_20260924_0254.md``): 8df2558
     attributed a line whose ``request_id`` no request carried to the NEWEST anchor, and an
@@ -369,7 +430,8 @@ def judge_receipt_line(raw: bytes, *, trial: str, request_of, anchors: Mapping[i
     if request.get('trigger') == 'decision' and (
             not mock or lab_eventlog.claims_external_evidence(row)):
         verdict, digests = decision_evidence_verdict(row, request, trial,
-                                                     anchor_branch=anchor_branch)
+                                                     anchor_branch=anchor_branch,
+                                                     commit_check=commit_check)
         if verdict is not None:
             return reject(verdict, rid)
         body.update(digests)
@@ -560,8 +622,9 @@ class _WorkerUnknown:
 #: :meth:`World.finished` of an attempt whose process this invocation does not hold (an
 #: attempt rebuilt from the chain on resume): whether it still runs is NOT known from a poll.
 #: It used to be ``0`` -- "exited" -- which let a resumed invocation reveal a live orphan as
-#: ``interrupted`` (understand_eb5 section 2, O:1930-1934).  A caller must compare it by
-#: identity (``is WORKER_UNKNOWN``) before reading a return code.
+#: ``interrupted`` (``git show b049307:experiments/live_ab/lab_orchestrator.py``
+#: lines 1930-1934).  A caller must compare it by identity (``is WORKER_UNKNOWN``) before
+#: reading a return code.
 WORKER_UNKNOWN: Any = _WorkerUnknown()
 
 #: The two ``worker_resolved.state`` values that RESOLVE a worker (``lab_eventlog``).
@@ -714,13 +777,16 @@ def phase_resolution_verdict(events: Sequence[Mapping], spool_stats: Mapping,
         if effective.get(key) not in RESOLVED_WORKER_STATES:
             continue
         obs = dict(spool_stats.get(spool_name(*key)) or {})
-        at = int(rec['spool_bytes_at_resolution'])
+        at = rec['spool_bytes_at_resolution']
         found = obs.get('bytes')
-        if not isinstance(found, int) or isinstance(found, bool):
+        if not isinstance(found, int) or isinstance(found, bool) or at is None:
+            # unreadable now, or unread at its resolution (recorded null): never sealed
             problems.add('spool_unreadable')
-            late.append({'arrival': key[0], 'attempt': key[1], 'bytes_at_resolution': at,
+            late.append({'arrival': key[0], 'attempt': key[1],
+                         'bytes_at_resolution': None if at is None else int(at),
                          'bytes_found': None})
             continue
+        at = int(at)
         if found > at:
             problems.add('spool_grew')
         if found < at or obs.get('prefix_sha256') != rec['spool_sha256_at_resolution']:
@@ -974,7 +1040,8 @@ def exposure_recount(events: Sequence[Mapping]) -> dict:
     receipt reports, so the two token totals are a LOWER BOUND and ``tokens_are_lower_bound``
     says so in the ledger itself: missing usage is never rewritten as zero.
 
-    Repair contract EB5 (root 21:15 item 3; understand_eb5 section 3 item 2): a call of an
+    Repair contract EB5 (root 21:15 item 3;
+    ``git show b049307:experiments/live_ab/lab_orchestrator.py`` lines 460-464): a call of an
     arrival that was never REVEALED -- the in-flight partner of a mid-pair abort, an attempt
     whose worker could not be resolved -- used to be dropped, because only a reveal gives it
     an arm and a phase (``if arm is not None and phase is not None``), so
@@ -1107,7 +1174,8 @@ def reconciliation_windows(events: Sequence[Mapping], server_ids: Iterable[str],
       counters (the process started at 0), ``client_usage_sum`` the smoke plus the responses
       appended before the scrape, and any non-zero residual is a ``reconciliation_defect``.
       A window with no exact scrape is ``counters_lost: true`` (unreconciled, row 20), never
-      a residual against a guessed counter.
+      a residual against a guessed counter; its ``counter_delta`` is the last counters read
+      in it, or ``null`` / ``null`` when none was ever read (never 0).
     * ``window`` is ``'restart'`` when a supervised restart bounds it (it opened at a
       ``server_restarted`` or a ``server_down`` cut it) and ``'trial'`` otherwise.
 
@@ -1168,11 +1236,16 @@ def reconciliation_windows(events: Sequence[Mapping], server_ids: Iterable[str],
                 upto = w['cut'] if w['cut'] is not None else w['to']
                 prompt = w['base'][0] + sum(r[1] for r in w['responses'] if r[0] <= upto)
                 predicted = w['base'][1] + sum(r[2] for r in w['responses'] if r[0] <= upto)
-                known = w['last_counters'] or (0, 0)
+                # the last counters read in the window, or null when none ever was: a
+                # count never observed is unknown, never 0 (review of 988baf7, reviewer 1;
+                # root 21:14, reconciliation carries unknown usage explicitly)
+                known = w['last_counters']
                 out.append({
                     'server_id': sid, 'window': label, 'window_from_seq': int(w['from']),
                     'window_to_seq': int(upto),
-                    'counter_delta': {'prompt': int(known[0]), 'predicted': int(known[1])},
+                    'counter_delta': ({'prompt': None, 'predicted': None} if known is None
+                                      else {'prompt': int(known[0]),
+                                            'predicted': int(known[1])}),
                     'client_usage_sum': {'prompt': int(prompt), 'predicted': int(predicted)},
                     'residual': {'prompt': None, 'predicted': None},
                     'reconciliation_defect': False, 'counters_lost': True})
@@ -1900,6 +1973,17 @@ def preflight(ctx: RunContext) -> dict:
         _drift('runtime_sim_without_substitute_world',
                sha256_text('no runtime sim on the real path'),
                sha256_text('sim=%r' % (rt.get('sim'),)))
+    # The close's server-idle bound is the frozen ``execution.request_timeout_s`` (repair
+    # contract EB5 item 4).  A runtime ``resolution_idle_wait_s`` replaces it; it exists for
+    # the model-free controls, whose trees are dry runs, and is refused on every tree that
+    # is not one (review of 988baf7, reviewer 2: the comment said "controls only" and no
+    # code enforced it).
+    if rt.get('resolution_idle_wait_s') is not None \
+            and not (cfg.get('mock') or cfg.get('mock_overrides')):
+        failed.append('preflight_rule_failed')
+        _drift('runtime_resolution_idle_wait_override',
+               sha256_text('execution.request_timeout_s bounds the close idle wait'),
+               sha256_text('resolution_idle_wait_s=%r' % (rt.get('resolution_idle_wait_s'),)))
     if 'golden' in rt and not simulated_path(rt):
         failed.append('golden_objects')
         try:
@@ -2660,9 +2744,15 @@ class World:
         #: reveals, the final flush) never takes a decision -- an abort can only remove
         #: decisions, never create one (protocol 6.4).
         self.closing = False
+        #: the chain's no-decision point (``lab_eventlog.no_decision_point``) as of the last
+        #: :meth:`_write_looks`; ``failure_limit`` is the ten-failure rule's frozen count.
+        self.no_decision: dict | None = None
+        self.failure_limit = int(((self.cfg.get('execution') or {}).get('auto_abort') or {})
+                                 .get('consecutive_infrastructure_failures', 10))
         #: how long the close waits for every held server to be idle once the clients are
         #: resolved (``execution.request_timeout_s``, the frozen budget of one request; a
-        #: runtime ``resolution_idle_wait_s`` overrides it in controls only).
+        #: runtime ``resolution_idle_wait_s`` overrides it -- :func:`preflight` refuses that
+        #: override unless the frozen tree is a dry run, so only the controls can set it).
         self.idle_wait_s = float(self.rt.get('resolution_idle_wait_s')
                                  if self.rt.get('resolution_idle_wait_s') is not None
                                  else self._execution()['request_timeout_s'])
@@ -2761,6 +2851,11 @@ class World:
             self.deferred_resume = True
         elif new:
             self.deferred_resume = False
+        # The no-decision point of this chain (``lab_eventlog.no_decision_point``), read
+        # once: every look written below is appended after every event it reads, and a
+        # ``monitor_update`` is never itself such a point.
+        self.no_decision = lab_eventlog.no_decision_point(
+            events, self.restart_cap, failure_limit=self.failure_limit)
         decision = None
         for snap in new:
             decision = self._write_one_look(snap, refs)
@@ -2810,13 +2905,18 @@ class World:
             raise PauseTrial('monitor_mismatch')
         if trigger == 'drain' or self.decision is not None:
             return None                     # the decision prefix is closed at the crossing
-        if self.pending_abort == RESTART_CAP_REASON:
-            # Root 21:14 ruling, case (a): a fourth restart was required BEFORE any decision,
-            # so the trial is aborted incomplete and "no new decision" is taken.  The look
-            # above is logged exactly as without the cap (the band, the enclosures and the
-            # reference rule's shadow are untouched: the cap changes no monitor output); only
-            # the decision event is not appended.  An abort can only remove decisions,
-            # never create one (protocol 6.4).
+        if self.pending_abort is not None or self.no_decision is not None:
+            # An abort is owed, or its trigger is in the chain: the trial takes no new
+            # decision (protocol 6.4: "An abort can only remove decisions, never create
+            # one").  Root 21:14 ruling, case (a): a fourth restart was required before any
+            # decision.  Review of 988baf7, reviewer 1 finding 1: the same holds for EVERY
+            # owed abort -- a restart that failed its identity or smoke stage used to leave
+            # the drain free to take a new decision, which the deferred abort then treated
+            # as a post-decision abort.  The look above is logged exactly as without the
+            # abort (the band, the enclosures and the reference rule's shadow are untouched);
+            # only the decision event is not appended.  ``no_decision`` is the chain's own
+            # point (``lab_eventlog.no_decision_point``), which the verifier and the builder
+            # read: a crossing after it is reported not acted on.
             return None
         if self.closing or self.unresolved_seen:
             # Repair contract EB5: a look logged while the trial closes (the abort drain's
@@ -3366,6 +3466,19 @@ class World:
                 self.anchor_requests.setdefault(str(row['request_id']), dict(row))
         return self.anchor_requests.get(rid)
 
+    def anchor_commit_check(self, commit: str, branch: str, request: Mapping) -> str | None:
+        """:func:`anchor_commit_problem` for ``request``'s anchor in the anchor repository --
+        the one ``lab_anchor`` commits in (``_runtime.repo``, else the repository root) -- and
+        that anchor's own file object; a problem is kept in :attr:`findings`."""
+        repo = Path(self.rt.get('repo') or lab_common.REPO_ROOT)
+        anchor_path = self.ctx.paths.anchors / ('anchor_%d.json' % int(request['anchor_seq']))
+        want = sha256_canonical(lab_common.anchor_file_object(self.ctx.trial, request))
+        problem = anchor_commit_problem(repo, commit, branch, anchor_path, want)
+        if problem is not None:
+            self.findings.append('decision_commit_unbound:%s:%d'
+                                 % (problem, int(request['anchor_seq'])))
+        return problem
+
     def decision_receipted(self) -> bool:
         """Whether the logged decision is externally receipted on the chain as it stands
         (``lab_eventlog.decision_receipt``; root 00:22).  Once true it stays true."""
@@ -3413,7 +3526,8 @@ class World:
                 raw, trial=self.ctx.trial, request_of=self._anchor_request, anchors=anchors,
                 resolved=self.anchor_resolved, resolving_sha=self.anchor_resolving_sha,
                 newest_anchor_seq=self.anchor_seq, mock=self.tree_mock,
-                anchor_branch=str((self.cfg.get('anchor') or {}).get('branch') or ''))
+                anchor_branch=str((self.cfg.get('anchor') or {}).get('branch') or ''),
+                commit_check=self.anchor_commit_check)
             if verdict['kind'] == 'rejected':
                 self.append('anchor_receipt_rejected', verdict['body'], durable=True)
                 self.receipts_rejected += 1
@@ -3582,8 +3696,9 @@ class World:
         the caller records ``worker_resolved(alive_unresolved)`` and the trial owes
         ``trial_aborted(unresolved_worker)`` (repair contract EB5 item 1; the old ``kill``
         caught every exception of ``proc.wait`` and the reveal followed whether or not the
-        process had exited, understand_eb5 section 2).  An attempt this invocation does not
-        hold (``proc`` None, rebuilt on resume) is killed by pid only if
+        process had exited, ``git show b049307:experiments/live_ab/lab_orchestrator.py``
+        lines 1914-1928).  An attempt this invocation does not hold (``proc`` None, rebuilt on
+        resume) is killed by pid only if
         :func:`probe_worker` says it is still that worker."""
         proc = att.proc
         if proc is None:
@@ -4231,11 +4346,12 @@ def _w_pump_attempts(self: World) -> None:
       it was reaped) and ``worker_resolved(killed_reaped | alive_unresolved)`` is written
       BEFORE the ``episode_timeout`` reveal.
     * A spool that cannot be read (``SpoolError``) no longer reveals ``interrupted`` over a
-      live worker: the worker is killed and reaped first (EB5 item 1; understand_eb5 section
-      2, O:2474-2475: "revealed via _interrupt as interrupted with no kill at all").
+      live worker: the worker is killed and reaped first (EB5 item 1;
+      ``git show b049307:experiments/live_ab/lab_orchestrator.py`` lines 2474-2475 revealed it via
+      ``_interrupt`` with no kill at all).
     * A worker whose attempt is already revealed (``episode_final`` is written just before
       the process exits) is still polled until its exit is confirmed (:meth:`poll_resolutions`);
-      it used to be dropped from ``open_arrivals`` and never polled again (O:2477-2478).
+      it used to be skipped and never polled again (b049307 lines 2477-2478).
     Never raises ``SpoolError``."""
     for arrival in list(self.open_arrivals):
         att = self.attempts[arrival]
@@ -4350,13 +4466,15 @@ def _w_resolve_worker(self: World, att: Attempt, state: str,
 
 def _w__resolution_body(self: World, arrival: int, attempt: int, pid: int, state: str,
                         returncode: int | None, spool: Path) -> dict:
+    # an unreadable spool is recorded unread (null, null): never the size and digest of an
+    # empty file (review of 988baf7, reviewer 1) -- the verdict fails it ``spool_unreadable``
     obs = spool_observation(spool)
-    size = obs['bytes'] if isinstance(obs['bytes'], int) else 0
+    readable = isinstance(obs['bytes'], int) and obs['sha256'] is not None
     return {'arrival': int(arrival), 'attempt': int(attempt), 'pid': int(pid),
             'state': str(state),
             'returncode': None if returncode is None else int(returncode),
-            'spool_bytes_at_resolution': int(size),
-            'spool_sha256_at_resolution': str(obs['sha256'] or sha256_bytes(b''))}
+            'spool_bytes_at_resolution': int(obs['bytes']) if readable else None,
+            'spool_sha256_at_resolution': str(obs['sha256']) if readable else None}
 
 
 def _w_kill_and_resolve(self: World, att: Attempt) -> dict:
@@ -4372,9 +4490,10 @@ def _w_kill_and_resolve(self: World, att: Attempt) -> dict:
 
 def _w_drain_workers(self: World, *, reveal: bool) -> None:
     """The BOUNDED drain an abort and a pause run first (repair contract EB5 item 2; ARCHITECTURE
-    7.1 rows 24b/27, "let in-flight episodes finish into their spools"; understand_eb5 section
-    2: abort and pause used to close at once, with workers still running and their spools
-    still growing).
+    7.1 rows 24b/27, "let in-flight episodes finish into their spools";
+    ``git show b049307:experiments/live_ab/lab_orchestrator.py`` lines 2266-2273 and 2606-2625:
+    abort and pause used to close at once, with workers still running and their spools still
+    growing).
 
     The attempts are pumped until every worker this invocation spawned is resolved -- the
     hard-cap kill still applies, and a kill whose exit cannot be confirmed resolves the attempt
@@ -4427,10 +4546,10 @@ def server_idle_observation(base_url: str, *, timeout: float = 5.0) -> dict:
 def _w_observe_servers_idle(self: World) -> dict:
     """After every client is resolved: each server this invocation still holds, observed until
     it is idle (``requests_processing == 0`` and no busy slot) or :attr:`idle_wait_s` has
-    passed (repair contract EB5 item 4; understand_eb5 C1: a killed client's request may still
-    be decoding on the server).  A held server whose process has exited holds no request and
-    is not held.  A simulated run's servers are the simulated counters (idle by
-    construction)."""
+    passed (repair contract EB5 item 4; control C1 of ``tests_eb5_resolution``: a killed
+    client's request may still be decoding on the server).  A held server whose process has
+    exited holds no request and is not held.  A simulated run's servers are the simulated
+    counters (idle by construction)."""
     out: dict = {}
     deadline = time.monotonic() + max(0.0, float(self.idle_wait_s))
     for server_id, spec in sorted(self.ctx.servers.items()):
@@ -4497,9 +4616,7 @@ def _w__interrupt(self: World, att: Attempt) -> None:
 
 def _w__auto_abort(self: World) -> None:
     """The deterministic aborts of protocol 6.4 (rows 12, 13 and the ten-failure rule)."""
-    limit = int(((self.cfg.get('execution') or {}).get('auto_abort') or {})
-                .get('consecutive_infrastructure_failures', 10))
-    if self.consecutive_terminal >= limit:
+    if self.consecutive_terminal >= self.failure_limit:
         raise AbortTrial('infrastructure')
     assert self.log is not None
     for ev in self.log.events[self._abort_cursor:]:
@@ -4683,12 +4800,15 @@ def _w_reconcile(self: World) -> None:
 
 def _w_seal_deposit(self: World) -> dict:
     """``deposit_sealed``: the records and the spools, each spool sealed only up to its
-    worker's recorded resolution offset (repair contract EB5 item 2; understand_eb5 section 3:
-    the old seal hashed spools that live workers were still writing, "a digest of a possibly
-    growing file presented as sealed").  A spool found longer than that offset, or whose
-    first ``spool_bytes_at_resolution`` bytes no longer hash to the recorded digest, is listed
-    in ``late_unread``: its later bytes are never read.  A spool whose worker is not resolved
-    is sealed as it stands (the resolution verdict fails on that worker anyway).  Returns the
+    worker's recorded resolution offset (repair contract EB5 item 2;
+    ``git show b049307:experiments/live_ab/lab_orchestrator.py`` lines 2691-2701: the old seal
+    hashed every spool whole, including spools that live workers were still writing -- a
+    digest of a possibly growing file presented as sealed).  A spool found longer than that
+    offset, or whose first ``spool_bytes_at_resolution`` bytes no longer hash to the recorded
+    digest, is listed in ``late_unread``: its later bytes are never read.  A spool whose worker
+    is not resolved is sealed as it stands (the resolution verdict fails on that worker
+    anyway).  A spool that cannot be read, or was not read at its resolution, is sealed
+    ``null`` -- never the digest of an empty file (review of 988baf7, reviewer 1).  Returns the
     observation of every spool (stem -> :func:`spool_observation`), which the resolution
     verdict reads: the verdict and the seal see the same bytes."""
     assert self.log is not None
@@ -4705,15 +4825,24 @@ def _w_seal_deposit(self: World) -> dict:
     total = sum(p.stat().st_size for p in records)
     for path in spools:
         rec = by_stem.get(path.stem)
-        upto = int(rec['spool_bytes_at_resolution']) if rec is not None else None
+        upto = rec['spool_bytes_at_resolution'] if rec is not None else None
         obs = spool_observation(path, upto)
         stats[path.stem] = obs
-        found = obs['bytes'] if isinstance(obs['bytes'], int) else 0
+        found = obs['bytes'] if isinstance(obs['bytes'], int) else None
         if rec is None:
-            sealed.append(obs['sha256'] or sha256_bytes(b''))
-            total += found
+            # an unreadable spool is sealed as unread (null), never as an empty file
+            sealed.append(obs['sha256'])
+            total += found or 0
             continue
-        sealed.append(obs['prefix_sha256'] or obs['sha256'] or sha256_bytes(b''))
+        if upto is None or found is None or obs['prefix_sha256'] is None:
+            # unread at its resolution, unreadable now, or shorter than its offset: nothing
+            # of it is sealed (null), never an empty file's digest
+            sealed.append(None)
+            late.append({'arrival': int(rec['arrival']), 'attempt': int(rec['attempt']),
+                         'bytes_at_resolution': None if upto is None else int(upto),
+                         'bytes_found': found})
+            continue
+        sealed.append(obs['prefix_sha256'])
         total += min(found, int(upto))
         if found != upto or obs['prefix_sha256'] != rec['spool_sha256_at_resolution']:
             late.append({'arrival': int(rec['arrival']), 'attempt': int(rec['attempt']),
@@ -4723,7 +4852,7 @@ def _w_seal_deposit(self: World) -> dict:
             # a worker that died before its first line left no spool: observed as 0 bytes,
             # which is what its resolution recorded (a spool appearing later is late)
             path = self.ctx.paths.spools / ('%s.jsonl' % stem)
-            stats[stem] = spool_observation(path, int(rec['spool_bytes_at_resolution']))
+            stats[stem] = spool_observation(path, rec['spool_bytes_at_resolution'])
     manifest = {'records': [sha256_file(p) for p in records], 'spools': sealed}
     self.append('deposit_sealed', {
         'deposit_sha256': sha256_canonical(manifest),
@@ -4893,11 +5022,18 @@ def _w_resolve_previous_workers(self: World, events: Sequence[Mapping]) -> bool:
     return code null (it was never this process's child); still that worker ->
     :func:`kill_orphan_worker` (SIGKILL to its own process group, then confirmed gone) ->
     ``worker_resolved(killed_reaped)``.  One that cannot be resolved (its kill not confirmed,
-    or ``ps`` could not answer) is NOT recorded: this invocation refuses --
+    or ``ps`` could not answer) is RECORDED as it was found -- ``worker_resolved(
+    alive_unresolved | liveness_unknown)``, durable -- and then this invocation refuses --
     ``invocation_ended(refused)`` with the counts -- and reveals, starts and dispatches
-    nothing; a later resume tries again.  ``finished()`` of such an attempt used to be ``0``
-    ("exited"), and ``_w_reveal_interrupted`` revealed it with no liveness check
-    (understand_eb5 section 2, O:1930-1934, O:2923-2938)."""
+    nothing.  A later resume tries again to resolve the process (it must be gone before
+    anything is revealed), but the unresolved record is never undone
+    (:func:`effective_worker_states`; protocol 14.6): the phase cannot complete and its close
+    is ``trial_aborted(unresolved_worker)``, exactly as when the same fact is observed inside
+    one invocation.  Review of 988baf7, reviewer 1 finding 4: the refusal used to record
+    nothing, so a later resume recorded the orphan ``exited`` and the trial could end
+    ``trial_ended``.  ``finished()`` of such an attempt used to be ``0`` ("exited"), and
+    ``_w_reveal_interrupted`` revealed it with no liveness check (``git show
+    b049307:experiments/live_ab/lab_orchestrator.py`` lines 1930-1934 and 2923-2938)."""
     last = last_worker_resolutions(events)
     candidates: dict[int, tuple[int, int | None]] = {}
     for ev in events:
@@ -4940,11 +5076,16 @@ def _w_resolve_previous_workers(self: World, events: Sequence[Mapping]) -> bool:
             state, rc = kill_orphan_worker(pid, job, not_after_ns=not_after)
         else:
             state = 'liveness_unknown'
-        if state not in RESOLVED_WORKER_STATES:
-            refused[state] += 1
-            continue
         body = self._resolution_body(arrival, 1, pid, state, rc,
                                      spool_dir / ('%s.jsonl' % spool_name(arrival)))
+        if state not in RESOLVED_WORKER_STATES:
+            refused[state] += 1
+            if rec is None or rec['state'] != state or rec['pid'] != pid:
+                # recorded once per state found (a resume that finds the same process in the
+                # same state again adds nothing): the phase is incomplete from here on
+                self.append('worker_resolved', body, durable=True)
+            self.unresolved_seen = True
+            continue
         self.append('worker_resolved', body, durable=True)
         att = self.attempts.get(arrival)
         if att is not None:
@@ -5241,14 +5382,18 @@ def _w_reveal_interrupted(self: World, arrival: int, lines: Sequence[Mapping],
 
 def _w_assert_resolved_before_interrupt(self: World, arrival: int) -> None:
     """Repair contract EB5 item 3: never an ``interrupted`` reveal over a worker that is not
-    recorded as resolved.  An arrival that ran (its spool holds bytes) must have a
-    ``worker_resolved`` of a resolving state on the chain; :meth:`resolve_previous_workers`
-    runs first and refuses the invocation otherwise, so reaching the raise is the harness's
-    own defect, never a reveal."""
+    recorded as resolved.  An arrival that ran (its spool holds bytes) must have, as its LAST
+    ``worker_resolved``, a resolving state -- its process confirmed gone now;
+    :meth:`resolve_previous_workers` runs first and refuses the invocation otherwise, so
+    reaching the raise is the harness's own defect, never a reveal.  An EARLIER unresolved
+    record of the same worker (a refused resume) still makes the phase incomplete
+    (:func:`effective_worker_states`, the verdict), but does not forbid revealing a process
+    that is now confirmed gone."""
     assert self.log is not None
     path = self.ctx.paths.spools / ('%s.jsonl' % spool_name(arrival))
     ran = path.exists() and path.stat().st_size > 0
-    state = effective_worker_states(self.log.events).get((int(arrival), 1))
+    last = last_worker_resolutions(self.log.events).get((int(arrival), 1))
+    state = None if last is None else last['state']
     if ran and state not in RESOLVED_WORKER_STATES:
         raise lab_common.LabError('refusing to reveal arrival %d as interrupted: its '
                                   'worker is not resolved' % int(arrival))

@@ -146,11 +146,25 @@ class JudgeLineTests(unittest.TestCase):
         self.start_line = line(rf.mock_row(self.start))
         self.resolved = {1: 'receipt'}
         self.resolving = {1: sha256_bytes(self.start_line)}
+        # the anchor repository: the decision anchor's file committed and pushed (to a local
+        # bare origin) exactly as lab_anchor.commit_and_push does -- the pushed commit the
+        # complete row names (owner ruling R-push)
+        tmp = Path(tempfile.mkdtemp(prefix='eb1r_judge_'))
+        self.addCleanup(lambda: __import__('shutil').rmtree(tmp, ignore_errors=True))
+        self.repo = rf.AnchorRepo(tmp / 'anchor_repo')
+        self.anchors_dir = self.repo.root / 'anchors'
+        self.commit = self.repo.commit_anchor(self.anchors_dir, TRIAL, self.decision)
+        self.check = self.repo.checker(self.anchors_dir, TRIAL)
+
+    def ext(self, request, **kw) -> dict:
+        """``receipt_fixture.external_row`` naming this repository's pushed anchor commit."""
+        kw.setdefault('commit', self.commit)
+        return rf.external_row(request, **kw)
 
     def judge(self, raw: bytes, *, mock_tree: bool = False, **over) -> dict:
         kw = dict(trial=TRIAL, request_of=self.requests.get, anchors=self.anchors,
                   resolved=self.resolved, resolving_sha=self.resolving, newest_anchor_seq=5,
-                  mock=mock_tree, anchor_branch=BRANCH)
+                  mock=mock_tree, anchor_branch=BRANCH, commit_check=self.check)
         kw.update(over)
         return orch.judge_receipt_line(raw, **kw)
 
@@ -166,7 +180,7 @@ class JudgeLineTests(unittest.TestCase):
 
     # -- the negative control of every rejection ------------------------------------------
     def test_the_complete_external_receipt_is_the_decision_receipt_in_both_trees(self):
-        raw = line(rf.external_row(self.decision))
+        raw = line(self.ext(self.decision))
         for mock_tree in (False, True):
             with self.subTest(mock_tree=mock_tree):
                 v = self.judge(raw, mock_tree=mock_tree)
@@ -190,7 +204,7 @@ class JudgeLineTests(unittest.TestCase):
         evidence consistent with the pending decision anchor -- but a request id no durable
         request carries.  8df2558 chained it under the newest anchor (5)."""
         stranger = uuid.uuid4().hex
-        raw = line(rf.external_row(dict(self.decision, request_id=stranger)))
+        raw = line(self.ext(dict(self.decision, request_id=stranger)))
         for mock_tree in (False, True):
             with self.subTest(mock_tree=mock_tree):
                 self.assertRejected(self.judge(raw, mock_tree=mock_tree),
@@ -198,7 +212,7 @@ class JudgeLineTests(unittest.TestCase):
 
     def test_malformed_lines(self):
         rid = self.decision['request_id']
-        good = rf.external_row(self.decision)
+        good = self.ext(self.decision)
         cases = [
             (b'{"request_id":"%s","ok":tru' % rid.encode(), None),
             (b'[1, 2, 3]', None),
@@ -219,13 +233,13 @@ class JudgeLineTests(unittest.TestCase):
         self.assertRejected(self.judge(self.start_line), 'duplicate', self.start_line,
                             self.start['request_id'])
         # another line for that earlier, already-receipted anchor: stale
-        stale = line(rf.external_row(self.start))
+        stale = line(self.ext(self.start))
         self.assertRejected(self.judge(stale), 'stale', stale, self.start['request_id'])
         # another line for the NEWEST anchor once it is resolved: conflict
-        first = line(rf.external_row(self.decision))
+        first = line(self.ext(self.decision))
         resolved = {**self.resolved, 5: 'receipt'}
         resolving = {**self.resolving, 5: sha256_bytes(first)}
-        second = line(rf.external_row(self.decision, created_at=rf.LATER))
+        second = line(self.ext(self.decision, created_at=rf.LATER))
         self.assertRejected(self.judge(second, resolved=resolved, resolving_sha=resolving),
                             'conflict', second, self.decision['request_id'])
         self.assertRejected(self.judge(first, resolved=resolved, resolving_sha=resolving),
@@ -236,7 +250,7 @@ class JudgeLineTests(unittest.TestCase):
         self.assertEqual((v['kind'], v['anchor_seq']), ('receipt', 3))
 
     def test_a_request_that_disagrees_with_its_chained_anchor_is_a_conflict(self):
-        raw = line(rf.external_row(self.decision))
+        raw = line(self.ext(self.decision))
         rid = self.decision['request_id']
         edits = {
             'anchor_head': {5: dict(self.decision_anchor, upto_h='0' * 64)},
@@ -257,7 +271,7 @@ class JudgeLineTests(unittest.TestCase):
     def test_every_missing_or_inconsistent_evidence_item_is_refused_in_both_trees(self):
         self.assertEqual(len(rf.EVIDENCE_VARIANTS), 24)
         for name, (kw, reason) in rf.EVIDENCE_VARIANTS.items():
-            raw = line(rf.external_row(self.decision, **kw))
+            raw = line(self.ext(self.decision, **kw))
             for mock_tree in (False, True):
                 with self.subTest(variant=name, mock_tree=mock_tree):
                     self.assertRejected(self.judge(raw, mock_tree=mock_tree), reason, raw,
@@ -272,7 +286,7 @@ class JudgeLineTests(unittest.TestCase):
                                  ('2099-12-31T23:59:59.999999999Z',
                                   '2099-12-31T23:59:59.999999999Z')):
             with self.subTest(created=created):
-                raw = line(rf.external_row(self.decision, created_at=created,
+                raw = line(self.ext(self.decision, created_at=created,
                                            updated_at=updated))
                 self.assertEqual(self.judge(raw)['kind'], 'receipt')
 
@@ -289,6 +303,55 @@ class JudgeLineTests(unittest.TestCase):
         self.assertEqual(self.judge(local, mock_tree=True)['kind'], 'receipt')
         self.assertRejected(self.judge(local, mock_tree=False), 'malformed', local,
                             self.decision['request_id'])
+
+    def test_the_pushed_commit_must_be_the_anchors_own_in_both_trees(self):
+        """Owner ruling R-push (review of 988baf7, reviewer 1 finding 5; root 3e18d69 "verify
+        the pushed commit/anchor-head evidence"): a row whose commit is not bound to its
+        anchor in the anchor repository is refused ``conflict`` in both trees, and
+        ``anchor_commit_problem`` names why.  The complete row with the pushed anchor commit
+        is the negative control (``test_the_complete_external_receipt_...``).  Before the
+        ruling every one of these rows was accepted as the decision's external receipt."""
+        rid = self.decision['request_id']
+        path = self.anchors_dir / 'anchor_5.json'
+        want = sha256_canonical(lab_common.anchor_file_object(TRIAL, self.decision))
+
+        def refused(name: str, commit: str, problem: str) -> None:
+            # each case is judged against the repository as it stands when it is made
+            with self.subTest(case=name):
+                self.assertEqual(orch.anchor_commit_problem(self.repo.root, commit, BRANCH,
+                                                            path, want), problem)
+                raw = line(self.ext(self.decision, commit=commit))
+                for mock_tree in (False, True):
+                    self.assertRejected(self.judge(raw, mock_tree=mock_tree), 'conflict',
+                                        raw, rid)
+        refused('the_fixture_commit_that_exists_nowhere', rf.COMMIT, 'commit_absent')
+        refused('zeros', '0' * 40, 'commit_absent')
+        other_repo = rf.AnchorRepo(self.repo.root.parent / 'another_repo')
+        other_repo.git('commit', '-q', '--allow-empty', '-m', 'another repository')
+        foreign = other_repo.commit_anchor(other_repo.root / 'anchors', TRIAL, self.decision)
+        refused('a_commit_of_another_repository', foreign, 'commit_absent')
+        refused('committed_but_never_pushed',
+                self.repo.commit([path], push=False, message='local only'),
+                'not_on_pushed_branch')
+        # a pushed commit whose anchors/anchor_5.json is another anchor's file object
+        path.write_text(canonical_json(lab_common.anchor_file_object(TRIAL, self.periodic)),
+                        encoding='utf-8')
+        refused('another_anchors_file', self.repo.commit([path]), 'anchor_file_mismatch')
+        # a pushed commit that no longer carries the anchor file at all
+        self.repo.git('rm', '-q', '--', 'anchors/anchor_5.json')
+        refused('no_anchor_file', self.repo.commit([]), 'anchor_file_absent')
+        # the anchor's own pushed commit still verifies, and an anchor file outside the
+        # repository is never one it holds
+        self.assertIsNone(orch.anchor_commit_problem(self.repo.root, self.commit, BRANCH,
+                                                     path, want))
+        self.assertEqual(orch.anchor_commit_problem(self.repo.root, self.commit, BRANCH,
+                                                    other_repo.root / 'anchors' /
+                                                    'anchor_5.json', want),
+                         'anchor_outside_repo')
+        self.assertEqual(orch.anchor_commit_problem(self.repo.root.parent / 'no_repo',
+                                                    self.commit, BRANCH,
+                                                    self.repo.root.parent / 'no_repo' / 'x',
+                                                    want), 'repo_unreadable')
 
     def test_non_decision_anchors_and_failures(self):
         rid = self.periodic['request_id']
@@ -442,6 +505,9 @@ class AnchorWriterTests(unittest.TestCase):
         self.anchor, self.request = request_pair(5, 'decision')
         os.environ['EB1R_STUB_TOKEN'] = 'stub-token-not-a-credential'
         self.addCleanup(os.environ.pop, 'EB1R_STUB_TOKEN', None)
+        # the anchor repository the REAL lab_anchor.commit_and_push commits in and pushes
+        # from (its origin a local bare repository: no network)
+        self.repo = rf.AnchorRepo(self.paths.results)
 
     def post(self, content: bytes, status: int = 201) -> dict:
         with mock.patch('requests.post', lambda url, **kw: _Resp(content, status)):
@@ -480,17 +546,23 @@ class AnchorWriterTests(unittest.TestCase):
         self.assertIsNone(self.post(content, status=422)['node_id'])
 
     def handle(self, echo) -> dict:
-        """``lab_anchor._handle`` in REAL mode for the decision request: git stubbed (a pushed
-        commit), ``requests.post`` stubbed with a response built by ``echo(posted_body)``."""
+        """``lab_anchor._handle`` in REAL mode for the decision request: the REAL
+        ``commit_and_push`` in a local anchor repository (explicit path, commit, ``git push
+        origin <branch>`` to a local bare origin), ``requests.post`` stubbed with a response
+        built by ``echo(posted_body)``."""
         cfg = {'anchor': {'comment_triggers': ['decision'], 'issue': 13, 'branch': BRANCH},
-               '_runtime': {'anchor_mode': 'real', 'token_env': 'EB1R_STUB_TOKEN'}}
+               '_runtime': {'anchor_mode': 'real', 'token_env': 'EB1R_STUB_TOKEN',
+                            'repo': str(self.repo.root)}}
 
         def fake_post(url, json=None, **kw):
             return _Resp(canonical_json(echo(json['body'])).encode('utf-8'))
-        pushed = {'ok': True, 'error_class': None, 'commit': rf.COMMIT, 'branch': BRANCH,
-                  'pushed': True}
-        with mock.patch.object(lab_anchor, 'commit_and_push', lambda *a, **k: dict(pushed)), \
-                mock.patch('requests.post', fake_post):
+        path = self.paths.anchors / 'anchor_5.json'
+        if path.exists():
+            # this test answers ONE request three times: the file an earlier answer committed
+            # is removed first, so that the real commit_and_push has something to commit
+            self.repo.git('rm', '-q', '--', 'anchors/anchor_5.json')
+            self.repo.commit([], message='remove the earlier answer\'s anchor file')
+        with mock.patch('requests.post', fake_post):
             return lab_anchor._handle(self.paths, cfg, self.request, mode='real', wait_s=0.0)
 
     def judge(self, receipt: dict) -> dict:
@@ -498,7 +570,8 @@ class AnchorWriterTests(unittest.TestCase):
             line(receipt), trial=TRIAL, request_of={self.request['request_id']:
                                                     self.request}.get,
             anchors={5: self.anchor}, resolved={}, resolving_sha={}, newest_anchor_seq=5,
-            mock=False, anchor_branch=BRANCH)
+            mock=False, anchor_branch=BRANCH,
+            commit_check=self.repo.checker(self.paths.anchors, TRIAL))
 
     def test_the_real_mode_row_is_the_decision_receipt_and_another_body_is_not(self):
         def echo(body):
@@ -507,6 +580,8 @@ class AnchorWriterTests(unittest.TestCase):
         receipt = self.handle(echo)
         self.assertEqual((receipt['ok'], receipt['node_id'], receipt['pushed']),
                          (True, rf.NODE_ID, True))
+        self.assertEqual(receipt['commit'], self.repo.git('rev-parse', 'HEAD').strip(),
+                         'the commit lab_anchor made and pushed')
         self.assertEqual(receipt['anchor_file_sha256'], sha256_canonical(
             lab_common.anchor_file_object(TRIAL, self.request)))
         v = self.judge(receipt)
@@ -768,10 +843,15 @@ class ProdReceiptGate(cap.ProdCase):
         t = entry.EntryTree(name, n_pairs=cap.HARM_PAIRS, trial=cap.HARM_TRIAL,
                             freeze_kw={'n_min': cap.HARM_N_MIN})
         self.addCleanup(t.cleanup)
-        t.build(**build_kw)
+        # the anchor repository (``_runtime.repo``, as lab_anchor reads it) is the tree's
+        # results root: a control's good receipt names a commit that really carries the
+        # decision anchor's file and was pushed (owner ruling R-push)
+        runtime = dict(build_kw.pop('runtime', {}) or {}, repo=str(t.results))
+        t.build(runtime=runtime, **build_kw)
         t.set_scenarios([cap.harm_scenario(t, None)])
         self.branch = str(json.loads((t.freeze / 'config.json').read_text('utf-8'))
                           ['anchor']['branch'])
+        t.anchor_repo = rf.AnchorRepo(t.results, branch=self.branch)
         return t
 
     def fresh(self, name: str, inj_factory, *, mutation: str | None = None,
@@ -808,6 +888,8 @@ class ProdReceiptGate(cap.ProdCase):
             (rf.external_row(start, branch=self.branch), 'stale'),
             (resolving_line(t, start['request_id']), 'duplicate'),
             (b'{"request_id":"%s","ok":tru' % req['request_id'].encode(), 'malformed'),
+            # complete and consistent, but its commit is bound to nothing (R-push)
+            (rf.external_row(req, branch=self.branch), 'conflict'),
         ]
         for kw, reason in rf.EVIDENCE_VARIANTS.values():
             kw = dict(kw)
@@ -816,7 +898,15 @@ class ProdReceiptGate(cap.ProdCase):
         return pairs
 
     def good_for(self, index: int):
-        return lambda t, decisions: [rf.external_row(decisions[index], branch=self.branch)]
+        """The decision request's receipt: its anchor file (written by the anchor process)
+        committed and pushed in the tree's anchor repository, and the row naming that
+        commit."""
+        def good(t, decisions):
+            req = decisions[index]
+            commit = t.anchor_repo.commit_anchor(t.results / t.trial / 'anchors', t.trial,
+                                                 req)
+            return [rf.external_row(req, branch=self.branch, commit=commit)]
+        return good
 
     def line_event_pairs(self, t, events) -> list[tuple[bytes, dict]]:
         """The receipt spool's lines paired with the chain's receipt-line events (one per
@@ -858,7 +948,7 @@ class ProdReceiptGate(cap.ProdCase):
             return Injector(nth=0, bad=bad, good=self.good_for(0))
         t, inj = self.fresh('RA1', make)
         events = t.chain()
-        self.assertEqual(len(inj.bad_lines), 4 + len(rf.EVIDENCE_VARIANTS))
+        self.assertEqual(len(inj.bad_lines), 5 + len(rf.EVIDENCE_VARIANTS))
         self.assertEqual(set(reasons), set(REASONS), 'every reason is exercised')
         self.assertEqual(gate_problems(events, inj, reasons, inj.decisions[0]), [])
         # while the wrong lines were chained the decision stayed provisional and nothing
@@ -1015,6 +1105,92 @@ class ProdReceiptGate(cap.ProdCase):
         self.assertEqual(report['verdict'], 'FAIL')
         self.assertIn('switch.phase', {f['check'] for f in report['findings']
                                        if f['severity'] == 'FAIL'})
+
+
+class ProdCaseBExternalReceipt(ProdReceiptGate):
+    """Case (b) of root's 21:14 ruling through ``main()`` with an EVIDENCE-BEARING decision
+    receipt (review of 988baf7, reviewer 1: case (b) on the production path was shown only
+    with the mock anchor's receipt, which claims no evidence and counts only in a dry-run
+    tree).  Three supervised restarts in pairs 1-3 (``tests_eb1_cap_estimand``'s
+    THREE_EARLY_RESTARTS), the frozen band crosses to ``harm_keep_incumbent`` at tau = 39,
+    the withholding anchor process answers no ``decision`` request, and the control answers
+    it with ``receipt_fixture.external_row`` naming a commit that really carries the decision
+    anchor's file and was pushed in the tree's anchor repository -- judged by the full rule
+    (every evidence item and the commit binding of owner ruling R-push).  Once the traffic
+    has switched the control SIGKILLs the server: the fourth down, ``trial_aborted(
+    server_restart_cap)``.  The decision stands at its tau, receipted by a receipt that the
+    NON-mock rule accepts too; the follow-up is truncated and counted; the verifier PASSes.
+    Negative controls: E1 above (the same gate holds on every wrong line, including a
+    complete row whose commit is bound to nothing), and ``tests_eb1_cap_estimand.ProdCaseC``
+    (the receipt not yet chained when the cap binds: provisional, not reportable)."""
+
+    def test_case_b_the_externally_receipted_decision_stands(self):
+        state: dict = {}
+        refusals = []
+        for _ in range(3):
+            t = self.harm_tree('RB', runtime={'blocking_wait_s': 120.0})
+            t.set_scenarios([cap.harm_scenario(t, n) for n in cap.THREE_EARLY_RESTARTS])
+            inj = Injector(nth=0, bad=lambda t, decisions: [], good=self.good_for(0))
+            state.clear()
+
+            def on_poll(t, inj=inj):
+                inj(t)
+                if 'killed' in state:
+                    return
+                try:
+                    events = t.chain()
+                except (lab_common.ChainError, lab_common.SchemaError, ValueError, OSError):
+                    return
+                if of(events, 'traffic_switch'):
+                    pid = int(t.launches()[-1]['pid'])
+                    os.kill(pid, __import__('signal').SIGKILL)
+                    state['killed'] = pid
+            if not run_invocation(t, on_poll=on_poll):
+                break
+            refusals.append(entry.host_refusal(t.program_chain()))
+            cap.quiet_host()
+        else:
+            self.fail('the host gate refused three runs: %s' % refusals)
+        self.assertEqual(t.returncode, 1, t.stdout[-3000:])
+        self.assertIn('killed', state)
+        events = t.chain()
+        tau = cap.expected_harm_tau(t)
+        (decision,) = of(events, 'decision')
+        self.assertEqual((decision['body']['kind'], decision['body']['n']),
+                         ('harm_keep_incumbent', tau))
+        # the decision receipt is the injected, evidence-bearing one -- accepted by the rule
+        # outside a dry-run tree as well (mock=False), not by the mock exemption
+        full = lab_eventlog.decision_receipt(events, mock=False)
+        self.assertEqual(full['status'], 'receipted')
+        receipt = events[full['receipt_seq']]['body']
+        self.assertEqual((receipt['created_at'], receipt['node_id_sha256']),
+                         (rf.CREATED_AT, sha256_text(rf.NODE_ID)))
+        self.assertEqual(receipt['request_id'], inj.decisions[0]['request_id'])
+        self.assertEqual(len(inj.good_lines), 1)
+        self.assertEqual(receipt['receipt_sha256'],
+                         json.loads(inj.good_lines[0])['receipt_sha256'])
+        (switch,) = of(events, 'traffic_switch')
+        downs = of(events, 'server_down')
+        self.assertEqual(len(downs), 4)
+        self.assertLess(full['receipt_seq'], switch['seq'])
+        self.assertLess(switch['seq'], downs[3]['seq'])
+        (aborted,) = of(events, 'trial_aborted')
+        self.assertEqual(aborted['body']['reason'], 'server_restart_cap')
+        comp = aborted['body']['completion']
+        self.assertEqual((comp['restart_cap_case'], comp['decision_status'],
+                          comp['decision_receipt_seq'], comp['decision_receipt_server_time']),
+                         ('after_receipted_decision', 'receipted', full['receipt_seq'],
+                          rf.CREATED_AT))
+        self.assertGreater(comp['follow_up_not_run'], 0, 'the follow-up was truncated')
+        builder.build([t.trial], t.bundle_sha, results_root=t.results, work_root=t.work,
+                      out_dir=t.root / 'derived')
+        obj = json.loads((t.root / 'derived' / t.trial / 'decision.json').read_text('utf-8'))
+        self.assertEqual((obj['primary_result'], obj['reportable'], obj['decision']['n'],
+                          obj['restart_cap']['case']),
+                         ('harm_keep_incumbent', True, tau, 'after_receipted_decision'))
+        report = t.verify()
+        self.assertEqual((report['_exit'], report['verdict']), (0, 'PASS'), report['_stdout'])
+        self.assertNoOrphans(t)
 
 
 if __name__ == '__main__':

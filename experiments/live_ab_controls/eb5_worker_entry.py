@@ -2,9 +2,11 @@
 POST (control C5).
 
 Repair contract EB5 (session 60; root 20:40 item 3: "A worker with a used permit can invoke POST
-after the terminal snapshot").  ``understand_eb5.md`` section 1 found no test of the third
-interleaving -- the permit granted before the snapshot and the POST entered after it -- and
-section 5 names this control: a test-only ``worker_cmd`` wrapper that blocks on a file barrier
+after the terminal snapshot").  At b049307 no test exercised the third interleaving -- the
+permit granted before the snapshot and the POST entered after it: the send-permit controls of
+``experiments/live_ab_serving/tests_supervisor_entry.py`` (``in_flight`` / ``not_yet_sent``)
+are fake-thread interleavings, not a real late POST.  This control is a test-only ``worker_cmd``
+wrapper that blocks on a file barrier
 between ``call_started`` (``lab_client.py``: spooled and fsynced first) and ``session.post``.
 This is that wrapper::
 

@@ -409,18 +409,24 @@ COMPLETION = _O({
 #: ``alive_unresolved`` -- a kill was sent and its exit could NOT be confirmed within the
 #: bound.  Only the first two RESOLVE a worker (:data:`WORKER_RESOLVED_STATES`); a worker is a
 #: used send permit until then, because the orchestrator has no gate that can revoke a live
-#: worker's POST (understand_eb5 section 2).
+#: worker's POST (the worker POSTs from its own process after an fsynced ``call_started``:
+#: ``lab_client.py`` ``LlamaClient.chat``;
+#: ``git show b049307:experiments/live_ab/lab_orchestrator.py`` lines 1914-1934, ``kill`` /
+#: ``finished``).
 WORKER_STATES: tuple[str, ...] = ('exited', 'killed_reaped', 'liveness_unknown',
                                   'alive_unresolved')
 WORKER_RESOLVED_STATES: frozenset[str] = frozenset({'exited', 'killed_reaped'})
 E_WORKER_STATE = _E(*WORKER_STATES)
 #: ``worker_resolved`` (durable, trial-only): the one record of a worker's end.  The spool's
 #: size and digest AT that moment are the offset the deposit is sealed to; bytes found past it
-#: later are listed as late and never read (``deposit_sealed.late_unread``).
+#: later are listed as late and never read (``deposit_sealed.late_unread``).  A spool that
+#: could not be read at that moment is recorded ``null`` / ``null`` -- never the size and
+#: digest of an empty file (review of 988baf7, reviewer 1: an observation never made) -- and
+#: the resolution verdict then fails ``spool_unreadable``.
 WORKER_RESOLVED_FIELDS: dict[str, FieldSpec] = {
     'arrival': _I(), 'attempt': _I(), 'pid': _I(), 'state': E_WORKER_STATE,
-    'returncode': _N(_I()), 'spool_bytes_at_resolution': _I(),
-    'spool_sha256_at_resolution': _H64(),
+    'returncode': _N(_I()), 'spool_bytes_at_resolution': _N(_I()),
+    'spool_sha256_at_resolution': _N(_H64()),
 }
 #: The closed problem codes of the resolution verdict, one per rule of
 #: ``lab_orchestrator.phase_resolution_verdict`` (and of the verifier's ``workers.resolved``).
@@ -442,8 +448,8 @@ RESOLUTION = _O({
     'unfinished_calls': _L(_O({'arrival': _I(), 'attempt': _I(), 'request_id': _H32(),
                                'worker_state': _E('no_record', *WORKER_STATES),
                                'usage': _N(USAGE)})),
-    'late_spools': _L(_O({'arrival': _I(), 'attempt': _I(), 'bytes_at_resolution': _I(),
-                          'bytes_found': _N(_I())})),
+    'late_spools': _L(_O({'arrival': _I(), 'attempt': _I(),
+                          'bytes_at_resolution': _N(_I()), 'bytes_found': _N(_I())})),
     'servers': _L(_O({'server_id': E_SERVER, 'held': _B(), 'observed': _B(),
                       'requests_processing': _N(_I()), 'slots_busy': _N(_I())})),
     'superseded_reason': _N(E_ABORT_REASON),
@@ -740,7 +746,10 @@ EVENT_SCHEMA: dict[str, dict[str, FieldSpec]] = {
                         'what_was_known': WHAT_WAS_KNOWN},
     'usage_reconciliation': {
         'server_id': E_SERVER, 'window': E_WINDOW, 'window_from_seq': _I(),
-        'window_to_seq': _I(), 'counter_delta': INT_MAP, 'client_usage_sum': INT_MAP,
+        # ``counter_delta`` values are null in a window whose counters were never read
+        # (review of 988baf7, reviewer 1: a zero there stood for an unknown server count)
+        'window_to_seq': _I(), 'counter_delta': _O(item=_N(_I())),
+        'client_usage_sum': INT_MAP,
         'residual': _O({'prompt': _N(_I()), 'predicted': _N(_I())}),
         'reconciliation_defect': _B(), 'counters_lost': _B(),
     },
@@ -749,8 +758,8 @@ EVENT_SCHEMA: dict[str, dict[str, FieldSpec]] = {
     'deposit_sealed': {'deposit_sha256': _H64(), 'deposit_bytes': _I(),
                        'n_records': _I(), 'n_spools': _I(),
                        'late_unread': _opt(_L(_O({'arrival': _I(), 'attempt': _I(),
-                                                  'bytes_at_resolution': _I(),
-                                                  'bytes_found': _I()})))},
+                                                  'bytes_at_resolution': _N(_I()),
+                                                  'bytes_found': _N(_I())})))},
     'publication_withheld': {'segment_index': _I(), 'pattern_class': E_PATTERN_CLASS},
     'invocation_ended': {'status': E_INVOCATION_STATUS, 'counts': INT_MAP},
     'trial_ended': {
@@ -1222,9 +1231,12 @@ def decision_receipt_problems(receipt: Mapping, anchor: Mapping, trial: str | No
     response's own two times disagree (the ONLY ordering read: no wall-clock equality and no
     latency window is imposed, root 3e18d69).  The raw-response SHA-256 is the schema's
     required ``receipt_sha256``.  Does NOT perform: any check that the push or the comment
-    exists (the chain's readers read no server); the orchestrator additionally checked, before
-    it chained the receipt, that the raw response's own ``id``, ``node_id``, times and body
-    agree with the row and hash to ``receipt_sha256``."""
+    exists (the chain's readers read no server, and the chain carries only the commit's
+    SHA-256); the orchestrator additionally checked, before it chained the receipt, that the
+    raw response's own ``id``, ``node_id``, times and body agree with the row and hash to
+    ``receipt_sha256``, and that the pushed commit is bound to this anchor in the anchor
+    repository (``lab_orchestrator.anchor_commit_problem``: the commit exists, is on the
+    pushed branch, and carries this anchor's file with this digest)."""
     out: list[str] = []
     rid, aid = receipt.get('request_id'), anchor.get('request_id')
     if not isinstance(rid, str) or not isinstance(aid, str):
@@ -1343,6 +1355,90 @@ def restart_cap_case(events: Sequence[Mapping], cap: int | None, *, mock: bool) 
     return {'case': case, 'cap_required_seq': required, 'decision': final,
             'decision_after_cap_seq': (final['decision_seq'] if case == 'before_decision'
                                        else None)}
+
+
+#: ``server_start_failed.stage`` values of a server that never became healthy: after a
+#: supervised restart (or a resumed invocation's start) they owe a PAUSE, every other stage an
+#: abort (``lab_orchestrator.NEVER_HEALTHY_STAGES``, ``supervision_state``).
+NEVER_HEALTHY_START_STAGES: frozenset[str] = frozenset({'launch', 'health'})
+#: The reveal classes the ten-failure rule counts (protocol 6.4; ``lab_orchestrator``
+#: ``TERMINAL_CLASSES``).
+CONSECUTIVE_FAILURE_CLASSES: frozenset[str] = frozenset({'episode_timeout', 'worker_died',
+                                                         'interrupted'})
+
+
+def no_decision_point(events: Sequence[Mapping], cap: int | None, *,
+                      failure_limit: int = 10) -> dict | None:
+    """[pure] The first chain event AFTER which the orchestrator takes no new decision, as
+    ``{'seq', 'reason'}``, or ``None``.  Protocol 6.4: "An abort can only remove decisions,
+    never create one"; root's 21:14 ruling, case (a).  ``lab_orchestrator.World._write_looks``
+    reads this very function over its own chain before it writes a look, so a look logged
+    after the point never takes a decision, and the verifier (``reference_rule.agreement``)
+    and the builder read the same point: a crossing logged after it is NOT ACTED ON (never a
+    disagreement), a decision logged after it is a defect.  The events, earliest wins:
+
+    * ``server_restart_cap`` -- :func:`restart_cap_required_seq` (case (a) of the ruling);
+    * an abort OWED by supervision (``lab_orchestrator.supervision_state``): a
+      ``server_start_failed`` whose stage owes an abort -- every stage of a first-invocation
+      start (before any ``invocation_started``), every stage but
+      :data:`NEVER_HEALTHY_START_STAGES` otherwise -- reason ``server_start_failed``; a
+      ``server_restarted`` whose ``props_equal_previous`` is false -- ``server_identity``
+      (review of 988baf7, reviewer 1 finding 1: a failed restart used to owe an abort that
+      a look in its drain could pre-empt with a new decision);
+    * an automatic abort's trigger (6.4 rows 12 and 13 and the ten-failure rule, taken by
+      ``World._auto_abort`` at the end of the pump pass that logged it): an ``llm_response``
+      with ``receipt_mismatch``, or an ``episode_revealed`` whose ``error_class`` is
+      ``receipt_mismatch`` -- ``receipt_mismatch``; the reveal that makes ``failure_limit``
+      consecutive reveals of :data:`CONSECUTIVE_FAILURE_CLASSES` in one invocation (the
+      orchestrator's counter starts at 0 in every invocation) -- ``infrastructure``;
+    * a ``worker_resolved`` whose state does not resolve the worker -- ``unresolved_worker``
+      (repair contract EB5: the phase can no longer complete).
+
+    Not in the chain, so not here: an abort the run loop raises for an exception
+    ``lab_server`` raised outside ``start_servers`` / ``supervised_restart`` (its backstop),
+    and a restart ``lab_server.restart`` refused (``harness_defect``).  The orchestrator takes
+    no decision in their drains either (``World.closing``, ``pending_abort``); a crossing such
+    a drain logs is still reported LIVE_DECISION_INVALID, because the chain cannot show where
+    that close began.  ``cap`` None (a simulated run) never binds the cap."""
+    points: list[tuple[int, str]] = []
+    required = restart_cap_required_seq(events, cap)
+    if required is not None:
+        points.append((int(required), 'server_restart_cap'))
+    first_invocation = True
+    consecutive = 0
+    for ev in events:
+        etype = ev['type']
+        body = ev.get('body') or {}
+        seq = int(ev['seq'])
+        if points and seq >= min(p[0] for p in points):
+            break
+        if etype == 'invocation_started':
+            first_invocation = False
+            consecutive = 0
+        elif etype == 'server_start_failed':
+            if (body.get('kind') == 'start' and first_invocation) \
+                    or str(body.get('stage')) not in NEVER_HEALTHY_START_STAGES:
+                points.append((seq, 'server_start_failed'))
+        elif etype == 'server_restarted' and body.get('props_equal_previous') is False:
+            points.append((seq, 'server_identity'))
+        elif etype == 'llm_response' and body.get('receipt_mismatch'):
+            points.append((seq, 'receipt_mismatch'))
+        elif etype == 'episode_revealed':
+            cls = (body.get('outcome') or {}).get('error_class')
+            if cls == 'receipt_mismatch':
+                points.append((seq, 'receipt_mismatch'))
+            elif cls in CONSECUTIVE_FAILURE_CLASSES:
+                consecutive += 1
+                if consecutive >= int(failure_limit):
+                    points.append((seq, 'infrastructure'))
+            else:
+                consecutive = 0
+        elif etype == 'worker_resolved' and body.get('state') not in WORKER_RESOLVED_STATES:
+            points.append((seq, 'unresolved_worker'))
+    if not points:
+        return None
+    seq, reason = min(points)
+    return {'seq': int(seq), 'reason': reason}
 
 
 def completion_record(events: Sequence[Mapping], arrivals: Iterable[int],
