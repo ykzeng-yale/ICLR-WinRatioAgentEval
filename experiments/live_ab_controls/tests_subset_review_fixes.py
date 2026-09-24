@@ -261,11 +261,17 @@ class OwedAbortInProcess(unittest.TestCase):
                 fails = [(c, d.get('rule')) for c, d in tree.verify_fails()]
                 self.assertIn(('reference_rule.agreement', 'decision_after_no_decision_point'),
                               fails)
-                _summary, obj = cap.build(tree)
-                self.assertEqual(obj['primary_result'],
-                                 'LIVE_DECISION_INVALID (harness defect)')
+                summary, obj = cap.build(tree)
+                self.assertEqual((obj['primary_result'], obj['reportable']),
+                                 ('LIVE_DECISION_INVALID (harness defect)', False))
                 self.assertTrue(obj['decision_label'].startswith(
                     'not reportable: logged after the no-decision point'))
+                # root 19:05: the summary's pair, not only decision.json (at 03fe0ca this read
+                # deploy_candidate / reportable true; tests_invalid_decision_summary)
+                row = summary['trials']['T4']
+                self.assertEqual((row['decision'], row['reportable'], row['logged_decision']),
+                                 ('LIVE_DECISION_INVALID (harness defect)', False,
+                                  'deploy_candidate'))
 
 
 # --------------------------------------------------------------------------- #

@@ -497,7 +497,8 @@ class CaseAInProcess(unittest.TestCase):
     reports it incomplete (no decision, not a null) and names the crossing not acted on, and
     the verifier labels the case and fails nothing.  Mutation control: without the rule the
     same run appends a decision after the cap -- which the verifier FAILs
-    (``decision_after_cap``) and the builder refuses to report."""
+    (``decision_after_cap``) and the builder refuses to report (``LIVE_DECISION_INVALID``, not
+    reportable, in decision.json and in the summary; root 19:05)."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -562,10 +563,18 @@ class CaseAInProcess(unittest.TestCase):
         self.assertGreater(decision['seq'], required, 'a decision AFTER the cap was required')
         fails = [d.get('rule') for c, d in tree.verify_fails() if c == 'server.lifecycle']
         self.assertIn('decision_after_cap', fails)
-        _, obj = build(tree)
+        summary, obj = build(tree)
+        # root 19:05: an invalid post-boundary decision -- the cap's included -- is reported
+        # as the invalidity label, not reportable, the logged kind beside it (before root
+        # 19:05 this read RESTART_CAP_INCOMPLETE_LABEL; the case stays ``before_decision``)
         self.assertEqual((obj['primary_result'], obj['reportable']),
-                         (builder.RESTART_CAP_INCOMPLETE_LABEL, False))
+                         (builder.DECISION_INVALID_LABEL, False))
         self.assertTrue(obj['decision_label'].startswith('not reportable: logged after'))
+        row = summary['trials']['T4']
+        self.assertEqual((row['decision'], row['reportable'], row['logged_decision'],
+                          row['restart_cap_case']),
+                         (builder.DECISION_INVALID_LABEL, False, 'deploy_candidate',
+                          'before_decision'))
 
     def test_control_the_uncapped_run_decides_at_the_same_crossing(self):
         tree = d3_tree()

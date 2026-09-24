@@ -329,7 +329,7 @@ class RealChainOrderingTests(unittest.TestCase):
         ev = self.variant('after')
         obj = builder.decision_object(ev, self.cfg, 'T4')
         self.assertEqual(obj['eligibility']['crossing']['verdict'], 'missed')
-        self.assertEqual(obj['primary_result'], INVALID)
+        self.assertEqual((obj['primary_result'], obj['reportable']), (INVALID, False))
         self.assertIsNone(obj['crossing_not_acted_on'])
         rows = agreement_rows(ev, self.cfg)
         self.assertEqual([(s, r['consequence'], r.get('crossing_verdict')) for s, r in rows],
@@ -515,8 +515,12 @@ class AbortPathsInProcess(unittest.TestCase):
                          for c, d in tree.verify_fails()}
                 self.assertIn(('reference_rule.agreement', 'LIVE_DECISION_INVALID'), fails)
                 self.assertIn(('reference_rule.agreement', 'abort_point_missing'), fails)
-                _summary, obj = cap.build(tree)
-                self.assertEqual(obj['primary_result'], INVALID)
+                summary, obj = cap.build(tree)
+                self.assertEqual((obj['primary_result'], obj['reportable']), (INVALID, False))
+                # root 19:05: the summary never reports the missed crossing's trial as 'none'
+                row = summary['trials']['T4']
+                self.assertEqual((row['decision'], row['reportable'], row['logged_decision']),
+                                 (INVALID, False, 'none'))
 
     def test_recovery_and_control_paths_still_decide_at_the_eligible_crossing(self):
         for name in ('control', 'recovered', 'post_decision'):

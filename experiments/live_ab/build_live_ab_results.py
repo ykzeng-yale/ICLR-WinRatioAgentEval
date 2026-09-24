@@ -220,6 +220,14 @@ PROVISIONAL_LABEL: str = ('provisional: the logged decision has no chained exter
 ABORT_INCOMPLETE_LABEL: str = ('incomplete: aborted before any decision; a crossing logged '
                                'after the abort point was not acted on (no decision; not a '
                                'null result, not an abstention)')
+#: Protocol 8.9: the chain's decision (or its absence) is invalid -- a decision logged after the
+#: no-decision point (the cap's included), a decision the reference rule's first crossing does
+#: not agree with, or a reference crossing at an ELIGIBLE look with no decision.  Root 19:05
+#: (``reviews/eb1_eb5_invalid_decision_summary_20260924_1905.md``): it is NEVER reportable; the
+#: summary's ``decision`` is this label and the logged decision is kept beside it
+#: (``logged_decision``) -- at 03fe0ca / 7ebffad a decision after a non-cap point was labelled
+#: invalid with ``reportable`` true, and the summary published the logged kind.
+DECISION_INVALID_LABEL: str = 'LIVE_DECISION_INVALID (harness defect)'
 
 
 def terminal_event(events: Sequence[Mapping]) -> Mapping | None:
@@ -277,20 +285,33 @@ def decision_object(events: Sequence[Mapping], cfg: Mapping, trial: str) -> dict
 
     The builder does not decide: it prints what the chain carries and whether the second
     code path and the replay agree with it (protocol 8.9), and it labels the restart-cap
-    case of root's 21:14 ruling (``restart_cap``).  ``reportable`` is false for case (a)
-    (:data:`RESTART_CAP_INCOMPLETE_LABEL`) and for a decision without its chained external
-    receipt (:data:`PROVISIONAL_LABEL`, any case); a decision logged after a case-(a) cap
-    (which the orchestrator never writes) is kept under ``decision`` and never reported.
-    Any other no-decision point of the chain (``lab_eventlog.no_decision_point``: an owed or
-    triggered abort -- every abort path writes its ``abort_owed`` before its drain -- or an
-    unresolved worker; review of 988baf7, reviewer 1 findings 1 and 2; root 16:05): read
-    through :func:`eligibility_object`, the classification the orchestrator and the verifier
-    share.  With no decision, a crossing at a look it makes NOT eligible is not acted on
-    (:data:`ABORT_INCOMPLETE_LABEL`, not reportable, with the look's concrete reason); a
-    crossing at an ELIGIBLE look with no decision is ``LIVE_DECISION_INVALID`` however the
-    trial ended; a decision logged after the point is ``LIVE_DECISION_INVALID`` (the
-    verifier's ``decision_after_no_decision_point``).  ``eligibility`` carries the whole
-    classification: every look, eligible or not, and why."""
+    case of root's 21:14 ruling (``restart_cap``).  The no-decision point of the chain
+    (``lab_eventlog.no_decision_point``: the cap, an owed or triggered abort -- every abort
+    path writes its ``abort_owed`` before its drain -- or an unresolved worker; review of
+    988baf7, reviewer 1 findings 1 and 2; root 16:05) is read through
+    :func:`eligibility_object`, the classification the orchestrator and the verifier share.
+
+    ``primary_result`` is, first match wins:
+
+    1. :data:`DECISION_INVALID_LABEL` -- a decision logged after the point (the cap's
+       included: the verifier's ``decision_after_no_decision_point`` / ``decision_after_cap``;
+       the orchestrator never writes one), a logged decision the reference rule's first
+       crossing does not agree with (kind and ``n``), or a crossing at an ELIGIBLE look with no
+       decision, however the trial ended (``missed``: no blanket exemption);
+    2. :data:`RESTART_CAP_INCOMPLETE_LABEL` -- case (a) with no decision;
+    3. :data:`ABORT_INCOMPLETE_LABEL` -- no decision, and the reference rule's crossing is at a
+       look the classification makes NOT eligible (not acted on, with its concrete reason);
+    4. :data:`PROVISIONAL_LABEL` -- a valid decision without its chained external receipt
+       (any case);
+    5. the logged decision's kind, or ``none`` with no decision and no crossing.
+
+    ``reportable`` is true ONLY in 5, where the result IS the logged decision (root 19:05:
+    "for any invalid post-boundary decision ... set ``reportable = false``, and make the
+    summary's decision the invalidity label"); every label beginning "not reportable" is on a
+    non-reportable result.  The logged event always stays under ``decision``, whatever the
+    result; :func:`build` makes the summary's ``decision`` the ``primary_result`` and keeps the
+    logged kind beside it (``logged_decision``) whenever it is not reportable.
+    ``eligibility`` carries the whole classification: every look, eligible or not, and why."""
     logged = next((dict(e['body'], seq=int(e['seq'])) for e in events
                    if e['type'] == 'decision'), None)
     cap = restart_cap_reading(events, cfg)
@@ -311,8 +332,6 @@ def decision_object(events: Sequence[Mapping], cfg: Mapping, trial: str) -> dict
     elig = eligibility_object(events, cfg, trial)
     point = elig['exclusion']
     crossing = elig['crossing']
-    after_point = (point is not None and point['reason'] != 'server_restart_cap'
-                   and cap['case'] != 'before_decision')
     if logged is None and crossing is not None and crossing['verdict'] == 'not_acted_on':
         # the reference rule's first crossing is at a look the shared classification makes
         # NOT eligible: not acted on, with its concrete reason -- never a disagreement
@@ -325,29 +344,44 @@ def decision_object(events: Sequence[Mapping], cfg: Mapping, trial: str) -> dict
         if point is not None and point.get('abort_reason') is not None:
             not_acted_on.update(abort_reason=point['abort_reason'],
                                 abort_source=point['source'])
-    if cap['case'] == 'before_decision':
+    invalid: str | None = None
+    if logged is not None and elig['decision_verdict'] == 'after_exclusion':
+        # a decision logged after the point: an abort can only remove decisions (protocol
+        # 6.4); the verifier FAILs it (``decision_after_no_decision_point``, or the cap's
+        # ``decision_after_cap``)
+        agreement = False
+        if point['reason'] == 'server_restart_cap':
+            invalid = ('not reportable: logged after the restart cap was required before any '
+                       'decision (case a takes no new decision)')
+        else:
+            invalid = ('not reportable: logged after the no-decision point (%s at seq %d; an '
+                       'abort can only remove decisions)' % (point['reason'], int(point['seq'])))
+    elif not agreement and logged is not None:
+        invalid = ('not reportable: the logged decision (%s at n=%d) does not agree with the '
+                   "reference rule's first crossing (%s at n=%s; protocol 8.9)"
+                   % (logged['kind'], int(logged['n']), reference.get('kind'),
+                      reference.get('n')))
+    elif not agreement:
+        invalid = ("not reportable: no decision was logged, but the reference rule's first "
+                   'crossing (%s at n=%s) is at a look eligible to carry it (crossing verdict '
+                   '%s)' % (reference.get('kind'), reference.get('n'),
+                            None if crossing is None else crossing['verdict']))
+    if invalid is not None:
+        # root 19:05: never reportable, whatever else holds; the logged event stays under
+        # ``decision`` and beside the summary's result (``logged_decision``)
+        primary, reportable, label = DECISION_INVALID_LABEL, False, invalid
+    elif cap['case'] == 'before_decision':
         primary, reportable = RESTART_CAP_INCOMPLETE_LABEL, False
-        if logged is not None:
-            label = ('not reportable: logged after the restart cap was required before any '
-                     'decision (case a takes no new decision)')
     elif not_acted_on is not None:
         # a crossing logged after an abort's point with no decision: not acted on (the
         # verifier's INFO), never a disagreement
         primary, reportable = ABORT_INCOMPLETE_LABEL, False
-    elif after_point and logged is not None and elig['decision_verdict'] == 'after_exclusion':
-        # a decision logged after an abort was owed or triggered: the verifier FAILs it
-        # (``decision_after_no_decision_point``); it is kept under ``decision``, never
-        # reported as the result
-        primary, reportable = 'LIVE_DECISION_INVALID (harness defect)', True
-        agreement = False
-        label = ('not reportable: logged after the no-decision point (%s at seq %d; an '
-                 'abort can only remove decisions)' % (point['reason'], int(point['seq'])))
     elif logged is not None and cap['decision_status'] != 'receipted':
         primary, reportable = PROVISIONAL_LABEL, False
         label = PROVISIONAL_LABEL
     else:
-        primary = ('LIVE_DECISION_INVALID (harness defect)' if not agreement
-                   else (logged['kind'] if logged else 'none'))
+        # the only reportable result: the valid logged decision (or none with no crossing)
+        primary = logged['kind'] if logged else 'none'
         reportable = True
         if cap['case'] in ('after_receipted_decision', 'decision_provisional') \
                 and logged is not None:
@@ -916,13 +950,14 @@ def build(trials: Sequence[str], bundle_sha: str, *, results_root: Path, work_ro
         tdir = out_dir / trial
         pairs = pair_rows(events, cfg)
         episodes = episode_rows(events)
+        # ONE decision object: decision.json and the summary row below are the same reading
+        dobj = decision_object(events, cfg, trial)
         files = {
             'monitor_table.csv': _write_csv(tdir / 'monitor_table.csv',
                                             monitor_rows(events), mock),
             'pairs.csv': _write_csv(tdir / 'pairs.csv', pairs, mock),
             'episodes.csv': _write_csv(tdir / 'episodes.csv', episodes, mock),
-            'decision.json': _write_json(tdir / 'decision.json',
-                                         decision_object(events, cfg, trial), mock),
+            'decision.json': _write_json(tdir / 'decision.json', dobj, mock),
             'sensitivity.json': _write_json(tdir / 'sensitivity.json',
                                             sensitivity_object(pairs, episodes), mock),
             'integrity.json': _write_json(tdir / 'integrity.json',
@@ -937,7 +972,11 @@ def build(trials: Sequence[str], bundle_sha: str, *, results_root: Path, work_ro
         terminal = terminal_event(events)
         logged_kind = next((e['body']['kind'] for e in events
                             if e['type'] == 'decision'), 'none')
-        dobj = decision_object(events, cfg, trial)
+        # root 19:05: the summary's ``decision`` IS decision.json's ``primary_result`` --
+        # never the logged kind on its own authority (03fe0ca / 7ebffad kept the logged kind
+        # unless ``reportable`` was false, and an invalid decision was flagged reportable).
+        # ``primary_result`` is the logged kind only when the result is reportable
+        # (:func:`decision_object`, case 5).
         summary['trials'][trial] = {
             'status': terminal['body']['status'] if terminal else 'open',
             'final_head': read.events[-1]['h'] if read.events else None,
@@ -945,15 +984,15 @@ def build(trials: Sequence[str], bundle_sha: str, *, results_root: Path, work_ro
                                   and not e['body'].get('re_enrolled')),
             'episodes_revealed': sum(1 for e in events
                                      if e['type'] == 'episode_revealed'),
-            'decision': logged_kind,
+            'decision': dobj['primary_result'],
             'restart_cap_case': dobj['restart_cap']['case'],
             'reportable': dobj['reportable'],
         }
         if not dobj['reportable']:
-            # case (a), or a decision without its chained external receipt: the logged
-            # decision (if any) is kept, labelled, beside the result -- never as the result
-            summary['trials'][trial].update({'decision': dobj['primary_result'],
-                                             'logged_decision': logged_kind})
+            # an invalid decision, case (a), a crossing not acted on, or a decision without
+            # its chained external receipt: the logged decision (if any) is kept beside the
+            # result -- never as the result
+            summary['trials'][trial]['logged_decision'] = logged_kind
         completion = dobj['restart_cap']['completion']
         if completion is not None:
             summary['trials'][trial].update({
