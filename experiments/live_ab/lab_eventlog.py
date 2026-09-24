@@ -455,6 +455,35 @@ RESOLUTION = _O({
     'superseded_reason': _N(E_ABORT_REASON),
 })
 
+#: Which path of the orchestrator owed a terminal abort (``abort_owed.source``; root 16:05
+#: ruling item 2 and the fix step's disclosed limit at 159e747: "an abort with no trigger in
+#: the chain -- the run loop's backstop, a refused restart, a hook script -- still reports its
+#: drain crossing as LIVE_DECISION_INVALID").  ``supervision`` -- supervision set an owed abort
+#: (``World.pending_abort``: a failed or refused restart, the cap, a missing frozen health
+#: threshold or cap, a resumed invocation's failed or refused start); ``abort_raised`` -- an
+#: ``AbortTrial`` reached the run loop (the automatic aborts, a first start's failure,
+#: ``raise_pending``, and any other code that raises it -- a hook, a script);
+#: ``run_loop_backstop`` -- the run loop caught a ``lab_server`` exception outside supervision;
+#: ``close_with_open_work`` -- the close of an ENDED trial found open work and no decision;
+#: ``resolution_verdict`` -- the close's resolution verdict did not pass
+#: (``trial_aborted(unresolved_worker)``); ``look_guard`` -- a look found an abort owed in
+#: memory that no path had written (never expected; the orchestrator records a finding).
+ABORT_SOURCES: tuple[str, ...] = ('supervision', 'abort_raised', 'run_loop_backstop',
+                                  'close_with_open_work', 'resolution_verdict', 'look_guard')
+E_ABORT_SOURCE = _E(*ABORT_SOURCES)
+#: ``abort_owed`` (durable, trial-only): the DURABLE NO-DECISION POINT of every abort path,
+#: written the moment a terminal abort becomes owed and BEFORE its drain reveals anything
+#: (``lab_orchestrator.World.owe_abort``).  ``reason`` is the abort owed, ``decision_logged``
+#: whether a decision precedes it (then it truncates the follow-up only; the decision prefix
+#: closed at the decision), ``open_arrivals`` the arrivals the drain still has to reveal.
+#: :func:`no_decision_point` reads it, so every look logged after it -- the drain's reveals --
+#: is classified NOT eligible by :func:`decision_eligibility`, the one classification the
+#: orchestrator, the verifier and the builder share.
+ABORT_OWED_FIELDS: dict[str, FieldSpec] = {
+    'reason': E_ABORT_REASON, 'source': E_ABORT_SOURCE, 'decision_logged': _B(),
+    'open_arrivals': _L(_I()),
+}
+
 
 ANCHOR_FIELDS: dict[str, FieldSpec] = {
     'anchor_seq': _I(), 'upto_seq': _I(), 'upto_h': _H64(), 'segment_index': _I(),
@@ -703,6 +732,9 @@ EVENT_SCHEMA: dict[str, dict[str, FieldSpec]] = {
     },
     # repair contract EB5: how a worker process ended (``WORKER_RESOLVED_FIELDS``).
     'worker_resolved': dict(WORKER_RESOLVED_FIELDS),
+    # root 16:05 item 2: an abort's durable no-decision point, before its drain
+    # (``ABORT_OWED_FIELDS``).
+    'abort_owed': dict(ABORT_OWED_FIELDS),
     'orphan_rejected': {'arrival': _I(), 'attempt': _I(), 'check_failed': E_ORPHAN_CHECK,
                         'record_sha256': _N(_H64()), 'spool_sha256': _H64()},
     'monitor_update': {
@@ -792,7 +824,8 @@ TRIAL_ONLY_TYPES: frozenset[str] = frozenset({
     'server_down', 'server_stopped', 'server_start_failed',
     'pair_enrolled', 'coin_drawn', 'arm_assigned_by_decision', 'episode_started',
     'job_accepted', 'llm_request', 'llm_response', 'llm_error', 'episode_revealed',
-    'worker_resolved', 'orphan_rejected', 'monitor_update', 'decision', 'traffic_switch',
+    'worker_resolved', 'abort_owed', 'orphan_rejected', 'monitor_update', 'decision',
+    'traffic_switch',
     'trial_paused', 'trial_resumed', 'operator_action', 'usage_reconciliation', 'deposit_sealed',
     'publication_withheld', 'invocation_ended', 'trial_ended', 'trial_aborted'})
 
@@ -1371,11 +1404,13 @@ def no_decision_point(events: Sequence[Mapping], cap: int | None, *,
                       failure_limit: int = 10) -> dict | None:
     """[pure] The first chain event AFTER which the orchestrator takes no new decision, as
     ``{'seq', 'reason'}``, or ``None``.  Protocol 6.4: "An abort can only remove decisions,
-    never create one"; root's 21:14 ruling, case (a).  ``lab_orchestrator.World._write_looks``
-    reads this very function over its own chain before it writes a look, so a look logged
-    after the point never takes a decision, and the verifier (``reference_rule.agreement``)
-    and the builder read the same point: a crossing logged after it is NOT ACTED ON (never a
-    disagreement), a decision logged after it is a defect.  The events, earliest wins:
+    never create one"; root's 21:14 ruling, case (a); root 16:05 items 1 and 2.  It is the
+    exclusion point of :func:`decision_eligibility`, the ONE classification the orchestrator
+    (``lab_orchestrator.World._write_one_look``, over its own chain before it writes a look),
+    the verifier (``reference_rule.agreement``) and the builder (``decision_object``) call: a
+    look logged after the point never takes a decision, a crossing logged after it is NOT ACTED
+    ON (never a disagreement), a decision logged after it is a defect, and a crossing logged
+    BEFORE it with no decision remains a defect.  The events, earliest wins:
 
     * ``server_restart_cap`` -- :func:`restart_cap_required_seq` (case (a) of the ruling);
     * an abort OWED by supervision (``lab_orchestrator.supervision_state``): a
@@ -1392,15 +1427,22 @@ def no_decision_point(events: Sequence[Mapping], cap: int | None, *,
       consecutive reveals of :data:`CONSECUTIVE_FAILURE_CLASSES` in one invocation (the
       orchestrator's counter starts at 0 in every invocation) -- ``infrastructure``;
     * a ``worker_resolved`` whose state does not resolve the worker -- ``unresolved_worker``
-      (repair contract EB5: the phase can no longer complete).
+      (repair contract EB5: the phase can no longer complete);
+    * an ``abort_owed`` -- ``abort_owed``, with its ``abort_reason`` and ``source``: the
+      durable point EVERY abort path writes before its drain (``lab_orchestrator.World.
+      owe_abort``; root 16:05 item 2).  It closes the limit the fix step disclosed at 159e747:
+      an abort with no trigger in the chain -- the run loop's backstop for a ``lab_server``
+      exception, a restart ``lab_server.restart`` refused (``harness_defect``), an
+      ``AbortTrial`` raised by any other code (a hook, a script) -- used to leave its drain's
+      crossing reported LIVE_DECISION_INVALID, because the chain could not show where that
+      close began.
 
-    Not in the chain, so not here: an abort the run loop raises for an exception
-    ``lab_server`` raised outside ``start_servers`` / ``supervised_restart`` (its backstop),
-    and a restart ``lab_server.restart`` refused (``harness_defect``).  The orchestrator takes
-    no decision in their drains either (``World.closing``, ``pending_abort``); a crossing such
-    a drain logs is still reported LIVE_DECISION_INVALID, because the chain cannot show where
-    that close began.  ``cap`` None (a simulated run) never binds the cap."""
+    The point is a function of the chain PREFIX before it: every rule reads only events before
+    the event it names, and the earliest wins, so the point of a prefix that contains it is the
+    point of the whole chain (``tests_decision_eligibility`` checks this look by look).
+    ``cap`` None (a simulated run) never binds the cap."""
     points: list[tuple[int, str]] = []
+    owed: dict[int, Mapping] = {}
     required = restart_cap_required_seq(events, cap)
     if required is not None:
         points.append((int(required), 'server_restart_cap'))
@@ -1435,10 +1477,148 @@ def no_decision_point(events: Sequence[Mapping], cap: int | None, *,
                 consecutive = 0
         elif etype == 'worker_resolved' and body.get('state') not in WORKER_RESOLVED_STATES:
             points.append((seq, 'unresolved_worker'))
+        elif etype == 'abort_owed':
+            points.append((seq, 'abort_owed'))
+            owed[seq] = body
     if not points:
         return None
     seq, reason = min(points)
-    return {'seq': int(seq), 'reason': reason}
+    out: dict = {'seq': int(seq), 'reason': reason}
+    if reason == 'abort_owed':
+        out.update(abort_reason=str(owed[seq].get('reason')),
+                   source=str(owed[seq].get('source')))
+    return out
+
+
+#: The concrete operational reason a look is NOT eligible to carry a decision -- what closed
+#: the decision prefix before it (:func:`decision_eligibility`).  A crossing at such a look is
+#: labelled NOT ACTED ON with this reason (root 16:05 item 2).
+INELIGIBLE_REASONS: dict[str, str] = {
+    'decision_logged': ('a decision is already logged before this look: the decision prefix '
+                        'closed at it (protocol 8.3, 9.1: no second decision)'),
+    'drain_look': ('a drain look (a post-decision reveal of a pre-decision pair): no second '
+                   'decision (protocol 8.3)'),
+    'server_restart_cap': ('a fourth supervised restart of one server was required before '
+                           'this look (root 21:14 case (a): no new decision)'),
+    'server_start_failed': ('a server start or supervised restart failed at a stage that '
+                            'owes trial_aborted before this look'),
+    'server_identity': ('a restarted server did not reproduce the previous /props before '
+                        'this look (owes trial_aborted(server_identity))'),
+    'receipt_mismatch': ('a response receipt mismatched the golden settings before this '
+                         'look (automatic abort, protocol 6.4)'),
+    'infrastructure': ('the ten-consecutive-failure rule fired before this look (automatic '
+                       'abort, protocol 6.4)'),
+    'unresolved_worker': ('a worker was recorded alive_unresolved or liveness_unknown before '
+                          'this look: the phase cannot complete (repair contract EB5)'),
+    'abort_owed': ('a terminal abort was owed before this look (abort_owed, written before '
+                   'its drain)'),
+}
+#: :func:`decision_eligibility` ``crossing.verdict`` values: ``acted_on`` -- the logged
+#: decision quotes the crossing look, which is eligible; ``not_acted_on`` -- no decision and
+#: the crossing look is not eligible (INFO, with the reason); ``missed`` -- no decision and the
+#: crossing look IS eligible (a DEFECT: the verifier FAILs it; no blanket exemption because the
+#: trial later aborted); ``decision_ineligible`` -- a decision quotes a look that is not
+#: eligible (LIVE_DECISION_INVALID); ``decision_elsewhere`` -- a decision quotes another look
+#: (the reference-rule agreement disagrees); ``unlogged`` -- the reference rule crosses at a
+#: look the chain does not carry.
+CROSSING_VERDICTS: tuple[str, ...] = ('acted_on', 'not_acted_on', 'missed',
+                                      'decision_ineligible', 'decision_elsewhere', 'unlogged')
+
+
+def decision_eligibility(events: Sequence[Mapping], cap: int | None, *,
+                         failure_limit: int = 10,
+                         reference_actions: Sequence[str] | None = None,
+                         next_trigger: str | None = None) -> dict:
+    """[pure] THE decision-eligibility classification of a trial chain (root 16:05 item 2:
+    "Define the earliest eligible decision prefix from durable event ordering, including the
+    reason a later look is ineligible; apply that same classification in the orchestrator,
+    verifier and results builder").  All three call this function:
+    ``lab_orchestrator.World._look_eligibility`` over its chain before it appends a look (and
+    decides only when ``next_look.eligible``), ``lab_verify_log`` (``reference_rule.
+    agreement``) and ``build_live_ab_results.decision_object`` over the whole chain with the
+    reference rule's action at every look.
+
+    A look is ELIGIBLE to carry a decision iff, in the chain before it, there is no
+    ``decision`` (``decision_logged``), it is not a ``drain`` look (``drain_look``), and
+    :func:`no_decision_point` lies not before it (the point's reason: ``server_restart_cap``,
+    ``server_start_failed``, ``server_identity``, ``receipt_mismatch``, ``infrastructure``,
+    ``unresolved_worker``, ``abort_owed``; :data:`INELIGIBLE_REASONS`).  Nothing else --
+    in particular NOT the trial's terminal record: a trial that aborts later keeps every look
+    before its point eligible (no blanket exemption).  Because the point is a function of the
+    prefix before it, the classification of a look over the whole chain equals the
+    orchestrator's over the prefix it had when it wrote that look.
+
+    Returns ``exclusion`` (the point, or None) and ``exclusion_text``; ``decision_seq`` and
+    ``decision_verdict`` (``none`` | ``eligible`` | ``after_exclusion``); ``looks`` -- EVERY
+    ``monitor_update`` with its ``seq``, ``index``, ``trigger``, ``n``, ``eligible``,
+    ``reason`` (and ``reference_action`` when given): the unfiltered diagnostics;
+    ``next_look`` -- the classification of a look appended after the last event (with trigger
+    ``next_trigger``), which is what the orchestrator acts on; and, when
+    ``reference_actions`` (the reference rule's action at each look, aligned with the logged
+    looks, as ``monitor.shadow`` and ``monitor.cadence`` require) is given, ``crossing`` -- the
+    reference rule's UNFILTERED first crossing, with its look's classification and its
+    ``verdict`` (:data:`CROSSING_VERDICTS`).  Reads no score and changes no margin, alpha,
+    observation or stop rule: it only says which logged look may carry the decision."""
+    evs = list(events)
+    point = no_decision_point(evs, cap, failure_limit=failure_limit)
+    decision = next((e for e in evs if e['type'] == 'decision'), None)
+    dseq = None if decision is None else int(decision['seq'])
+    dmon = (None if decision is None
+            else int((decision.get('body') or {}).get('monitor_seq', dseq - 1)))
+
+    def classify(seq: int, trigger: str | None) -> tuple[bool, str | None]:
+        if dseq is not None and seq > dseq:
+            return False, 'decision_logged'
+        if trigger == 'drain':
+            return False, 'drain_look'
+        if point is not None and seq > int(point['seq']):
+            return False, str(point['reason'])
+        return True, None
+
+    looks: list[dict] = []
+    updates = [e for e in evs if e['type'] == 'monitor_update']
+    for i, ev in enumerate(updates):
+        body = ev.get('body') or {}
+        ok, why = classify(int(ev['seq']), body.get('trigger'))
+        row = {'index': i, 'seq': int(ev['seq']), 'trigger': body.get('trigger'),
+               'n': body.get('n'), 'eligible': ok, 'reason': why}
+        if reference_actions is not None:
+            row['reference_action'] = (str(reference_actions[i]) if i < len(reference_actions)
+                                       else None)
+        looks.append(row)
+    nxt = (int(evs[-1]['seq']) + 1) if evs else 0
+    ok, why = classify(nxt, next_trigger)
+    crossing: dict | None = None
+    if reference_actions is not None:
+        idx = next((i for i, a in enumerate(reference_actions) if a != 'none'), None)
+        if idx is not None and idx >= len(looks):
+            crossing = {'index': idx, 'seq': None, 'action': str(reference_actions[idx]),
+                        'eligible': None, 'reason': None, 'verdict': 'unlogged'}
+        elif idx is not None:
+            lk = looks[idx]
+            here = dmon is not None and dmon == lk['seq']
+            if here:
+                verdict = 'acted_on' if lk['eligible'] else 'decision_ineligible'
+            elif dseq is not None:
+                verdict = 'decision_elsewhere'
+            else:
+                verdict = 'missed' if lk['eligible'] else 'not_acted_on'
+            crossing = dict(lk, action=str(reference_actions[idx]), verdict=verdict)
+            if not lk['eligible']:
+                crossing['reason_text'] = INELIGIBLE_REASONS.get(str(lk['reason']))
+    return {
+        'exclusion': point,
+        'exclusion_text': (None if point is None
+                           else INELIGIBLE_REASONS.get(str(point['reason']))),
+        'decision_seq': dseq,
+        'decision_verdict': ('none' if dseq is None
+                             else 'after_exclusion' if point is not None
+                             and dseq > int(point['seq']) else 'eligible'),
+        'looks': looks,
+        'eligible_looks': sum(1 for lk in looks if lk['eligible']),
+        'next_look': {'eligible': ok, 'reason': why},
+        'crossing': crossing,
+    }
 
 
 def completion_record(events: Sequence[Mapping], arrivals: Iterable[int],

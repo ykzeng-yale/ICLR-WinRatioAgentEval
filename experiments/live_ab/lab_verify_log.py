@@ -304,6 +304,95 @@ def _answer_after(events: Sequence[Mapping], index: int, answers) -> str:
     return 'open'
 
 
+def _check_decision_eligibility(col: '_Collector', events: Sequence[Mapping], elig: Mapping,
+                                ref: Mapping, decision_events: Sequence[Mapping]) -> None:
+    """``reference_rule.agreement`` from the ONE classification ``lab_eventlog.
+    decision_eligibility`` (root 16:05 item 2), over the whole chain with the reference rule's
+    action at every logged look (``elig``) and its first crossing (``ref``):
+
+    * the logged decision agrees with the reference rule's first crossing (kind and ``n``),
+      else ``LIVE_DECISION_INVALID`` (protocol 8.9);
+    * ``decision_after_no_decision_point``: a decision logged after the exclusion point
+      (``decision_verdict == 'after_exclusion'``) -- an abort can only remove decisions, never
+      create one (protocol 6.4); the cap's own case is ``server.lifecycle``
+      ``decision_after_cap``;
+    * no decision and a reference crossing: at a look the classification makes NOT eligible
+      (``crossing.verdict == 'not_acted_on'``) it is NOT ACTED ON -- an INFO row with the
+      look's concrete reason (``no_decision_reason``, ``reason_text``), never a disagreement;
+      at an ELIGIBLE look (``missed``: before the exclusion point, however the trial ended) it
+      is ``LIVE_DECISION_INVALID`` -- no blanket exemption because the trial later aborted;
+    * ``abort_point_missing``: a ``trial_aborted`` whose reason (or the reason an
+      ``unresolved_worker`` verdict superseded) no earlier ``abort_owed`` names: every abort
+      path writes its durable point before its drain (``lab_orchestrator.World.owe_abort``),
+      and a chain without it cannot show where that abort's drain began.
+    """
+    point = elig['exclusion']
+    crossing = elig['crossing']
+    if decision_events:
+        d = decision_events[0]['body']
+        if ref['kind'] != d['kind'] or ref['n'] != int(d['n']):
+            col.add('reference_rule.agreement',
+                    {'live_kind': d['kind'], 'live_n': int(d['n']),
+                     'reference_kind': str(ref['kind']),
+                     'reference_n': -1 if ref['n'] is None else int(ref['n']),
+                     'consequence': 'LIVE_DECISION_INVALID'},
+                    seq=decision_events[0]['seq'])
+        if elig['decision_verdict'] == 'after_exclusion' \
+                and point['reason'] != 'server_restart_cap':
+            col.add('reference_rule.agreement',
+                    {'rule': 'decision_after_no_decision_point',
+                     'no_decision_reason': point['reason'],
+                     'no_decision_seq': int(point['seq']),
+                     'live_kind': d['kind'], 'live_n': int(d['n']),
+                     'consequence': 'LIVE_DECISION_INVALID'},
+                    seq=decision_events[0]['seq'])
+    elif ref['kind'] != 'none':
+        if crossing is not None and crossing['verdict'] == 'not_acted_on':
+            row = {'live_kind': 'none', 'reference_kind': str(ref['kind']),
+                   'reference_n': -1 if ref['n'] is None else int(ref['n']),
+                   'no_decision_reason': str(crossing['reason']),
+                   'reason_text': crossing.get('reason_text'),
+                   'look_seq': int(crossing['seq'])}
+            if point is not None:
+                row['no_decision_seq'] = int(point['seq'])
+                if point.get('abort_reason') is not None:
+                    row.update(abort_reason=point['abort_reason'],
+                               abort_source=point['source'])
+            if crossing['reason'] == 'server_restart_cap':
+                row.update(consequence='NOT_ACTED_ON_restart_cap_before_decision',
+                           cap_required_seq=int(point['seq']))
+            else:
+                row.update(consequence='NOT_ACTED_ON_abort_before_decision')
+            col.add('reference_rule.agreement', row, seq=int(crossing['seq']),
+                    severity='INFO')
+        else:
+            row = {'live_kind': 'none', 'reference_kind': str(ref['kind']),
+                   'reference_n': -1 if ref['n'] is None else int(ref['n']),
+                   'consequence': 'LIVE_DECISION_INVALID'}
+            if crossing is not None:
+                row.update(crossing_verdict=str(crossing['verdict']))
+                if crossing['seq'] is not None:
+                    row['look_seq'] = int(crossing['seq'])
+            if point is not None:
+                row.update(no_decision_reason=str(point['reason']),
+                           no_decision_seq=int(point['seq']))
+            col.add('reference_rule.agreement', row,
+                    seq=None if crossing is None else crossing['seq'])
+    owed = {str(e['body'].get('reason')) for e in events if e['type'] == 'abort_owed'}
+    for ev in events:
+        if ev['type'] != 'trial_aborted':
+            continue
+        body = ev['body']
+        named = {str(body.get('reason')),
+                 str((body.get('resolution') or {}).get('superseded_reason'))}
+        before = {str(e['body'].get('reason')) for e in events
+                  if e['type'] == 'abort_owed' and int(e['seq']) < int(ev['seq'])}
+        if not (named & before):
+            col.add('reference_rule.agreement',
+                    {'rule': 'abort_point_missing', 'reason': str(body.get('reason')),
+                     'abort_owed_reasons': sorted(owed)}, seq=int(ev['seq']))
+
+
 def _check_server_lifecycle(col: _Collector, events: Sequence[Mapping],
                             cfg: Mapping | None,
                             arrivals: Sequence[int] | None = None) -> None:
@@ -1087,65 +1176,18 @@ def _verify_trial(trial: str, freeze_bundle_sha256: str, *, mode: str = 'full',
     # ---- reference_rule.agreement / first crossing -------------------------
     if ref_error is None and cfg is not None:
         ref = lab_reference_rule.decide_from_chain(events, cfg, trial)
-        # The chain's no-decision point (``lab_eventlog.no_decision_point``, the function the
-        # orchestrator reads before every look): after it no new decision is taken.
         try:
             cap_now: int | None = lab_common.server_supervision_cap(cfg)
         except lab_common.FrozenMismatch:
             cap_now = None
-        point = lab_eventlog.no_decision_point(
-            events, cap_now, failure_limit=_failure_limit(cfg))
-        if decision_events:
-            d = decision_events[0]['body']
-            if ref['kind'] != d['kind'] or ref['n'] != int(d['n']):
-                col.add('reference_rule.agreement',
-                        {'live_kind': d['kind'], 'live_n': int(d['n']),
-                         'reference_kind': str(ref['kind']),
-                         'reference_n': -1 if ref['n'] is None else int(ref['n']),
-                         'consequence': 'LIVE_DECISION_INVALID'},
-                        seq=decision_events[0]['seq'])
-            if point is not None and point['reason'] != 'server_restart_cap' \
-                    and int(decision_events[0]['seq']) > point['seq']:
-                # A decision logged after an abort was owed or triggered (review of 988baf7,
-                # reviewer 1 finding 1): an abort can only remove decisions, never create one
-                # (protocol 6.4).  The cap's own case is ``server.lifecycle``
-                # ``decision_after_cap``.
-                col.add('reference_rule.agreement',
-                        {'rule': 'decision_after_no_decision_point',
-                         'no_decision_reason': point['reason'],
-                         'no_decision_seq': int(point['seq']),
-                         'live_kind': d['kind'], 'live_n': int(d['n']),
-                         'consequence': 'LIVE_DECISION_INVALID'},
-                        seq=decision_events[0]['seq'])
-        elif ref['kind'] != 'none':
-            # Root 21:14 ruling, case (a), and every other no-decision point: a crossing the
-            # reference rule finds at a look logged AFTER the point (and with no decision) is
-            # not acted on -- the trial takes no new decision there (the orchestrator's rule
-            # read from the same chain).  That is labelled (INFO), not a disagreement; a
-            # crossing at or before the point with no decision is still LIVE_DECISION_INVALID.
-            # Review of 988baf7, reviewer 1 finding 2: a crossing left undecided in the drain
-            # of a receipt-mismatch or ten-failure abort used to be LIVE_DECISION_INVALID
-            # (condition list B) because only the cap was exempted.
-            idx = next((i for i, lk in enumerate(looks or []) if lk.action != 'none'), None)
-            crossing_seq = (int(updates[idx]['seq'])
-                            if idx is not None and idx < len(updates) else None)
-            if point is not None and crossing_seq is not None \
-                    and crossing_seq > point['seq']:
-                row = {'live_kind': 'none', 'reference_kind': str(ref['kind']),
-                       'reference_n': -1 if ref['n'] is None else int(ref['n']),
-                       'no_decision_reason': point['reason'],
-                       'no_decision_seq': int(point['seq'])}
-                if point['reason'] == 'server_restart_cap':
-                    row.update(consequence='NOT_ACTED_ON_restart_cap_before_decision',
-                               cap_required_seq=int(point['seq']))
-                else:
-                    row.update(consequence='NOT_ACTED_ON_abort_before_decision')
-                col.add('reference_rule.agreement', row, seq=crossing_seq, severity='INFO')
-            else:
-                col.add('reference_rule.agreement',
-                        {'live_kind': 'none', 'reference_kind': str(ref['kind']),
-                         'reference_n': -1 if ref['n'] is None else int(ref['n']),
-                         'consequence': 'LIVE_DECISION_INVALID'})
+        # THE decision-eligibility classification (``lab_eventlog.decision_eligibility``, the
+        # function the orchestrator calls before every look and the builder calls): the
+        # exclusion point, every look classified, and the reference rule's UNFILTERED first
+        # crossing with its verdict.  Root 16:05 item 2.
+        elig = lab_eventlog.decision_eligibility(
+            events, cap_now, failure_limit=_failure_limit(cfg),
+            reference_actions=[lk.action for lk in (looks or [])])
+        _check_decision_eligibility(col, events, elig, ref, decision_events)
         assert looks is not None
         if decision_events:
             d = decision_events[0]['body']

@@ -1335,7 +1335,11 @@ def supervision_state(events: Sequence[Mapping], cap: int | None) -> Supervision
     :meth:`World.start_servers` ends it; a failed restart, or a failed start of a resumed
     invocation, owes ``trial_paused(server_unrecoverable)`` when it never became healthy and
     ``trial_aborted(<START_FAILURE_REASON>)`` otherwise; a ``server_restarted`` whose
-    ``props_equal_previous`` is false owes ``trial_aborted(server_identity)``.  A
+    ``props_equal_previous`` is false owes ``trial_aborted(server_identity)``.  An
+    ``abort_owed`` owes its ``reason`` (root 16:05 item 2: every abort path writes it before its
+    drain, so an abort the chain carries no other trigger for -- a refused restart, the run
+    loop's backstop, an ``AbortTrial`` from any other code -- is still owed by the invocation
+    that resumes after a crash inside its drain; it used to be forgotten there).  A
     ``trial_paused`` discharges a pending pause and every unresolved ``server_down``, never a
     pending abort; ``trial_aborted`` discharges everything.  ``cap`` None (a simulated run)
     never binds.
@@ -1384,6 +1388,9 @@ def supervision_state(events: Sequence[Mapping], cap: int | None) -> Supervision
                 cap_required = True
             else:
                 unresolved[sid] = int(ev['seq'])
+        elif etype == 'abort_owed':
+            if pending_abort is None:
+                pending_abort = str(body.get('reason'))
         elif etype == 'trial_paused':
             pending_pause = None
             unresolved.clear()
@@ -2647,6 +2654,9 @@ class World:
         self.next_arrival_cursor = 0
         self.post_decision_dispatched = 0
         self.abort_reason: str | None = None
+        #: which path owes the abort the run loop takes (``lab_eventlog.ABORT_SOURCES``): the
+        #: ``abort_owed`` the close writes before its drain names it (root 16:05 item 2).
+        self.abort_source: str | None = None
         self.pause_reason: str | None = None
         self.pause_digests: list | None = None
         self.last_health = 0.0
@@ -2740,13 +2750,17 @@ class World:
         #: so nothing new is enrolled or dispatched and no decision is taken; the close's
         #: resolution verdict then refuses ``trial_ended`` (it is the one gate, EB5 C9).
         self.unresolved_seen = False
-        #: set by :meth:`close_trial`: a look written while the trial closes (the abort drain's
-        #: reveals, the final flush) never takes a decision -- an abort can only remove
-        #: decisions, never create one (protocol 6.4).
+        #: set by :meth:`close_trial` once the close's own ``abort_owed`` (an abort) is in the
+        #: chain: a look written while the trial closes (the abort drain's reveals, the final
+        #: flush) never takes a decision -- an abort can only remove decisions, never create
+        #: one (protocol 6.4) -- because the chain's own point says so
+        #: (:meth:`_look_eligibility`), not because of this flag.
         self.closing = False
-        #: the chain's no-decision point (``lab_eventlog.no_decision_point``) as of the last
-        #: :meth:`_write_looks`; ``failure_limit`` is the ten-failure rule's frozen count.
+        #: the chain's no-decision point (``lab_eventlog.no_decision_point``) and the whole
+        #: classification (``lab_eventlog.decision_eligibility``) as of the last look;
+        #: ``failure_limit`` is the ten-failure rule's frozen count.
         self.no_decision: dict | None = None
+        self.eligibility: dict | None = None
         self.failure_limit = int(((self.cfg.get('execution') or {}).get('auto_abort') or {})
                                  .get('consecutive_infrastructure_failures', 10))
         #: how long the close waits for every held server to be idle once the clients are
@@ -2851,11 +2865,8 @@ class World:
             self.deferred_resume = True
         elif new:
             self.deferred_resume = False
-        # The no-decision point of this chain (``lab_eventlog.no_decision_point``), read
-        # once: every look written below is appended after every event it reads, and a
-        # ``monitor_update`` is never itself such a point.
-        self.no_decision = lab_eventlog.no_decision_point(
-            events, self.restart_cap, failure_limit=self.failure_limit)
+        # Each look is classified by ``lab_eventlog.decision_eligibility`` over the chain
+        # before it (:meth:`_look_eligibility`, in :meth:`_write_one_look`).
         decision = None
         for snap in new:
             decision = self._write_one_look(snap, refs)
@@ -2899,33 +2910,90 @@ class World:
         body['shadow'] = shadow
         body['monitor_code_sha256'] = self.monitor_code_sha256
         assert self.log is not None
+        # The ONE decision-eligibility classification (root 16:05 items 1 and 2), taken over
+        # the chain BEFORE this look -- exactly the prefix the verifier and the builder
+        # classify this look by (``lab_eventlog.decision_eligibility``).  Not eligible: a
+        # decision is already logged (the prefix closed at the crossing), a drain look, or a
+        # no-decision point precedes it -- an abort owed or triggered (the cap, a failed or
+        # identity-changing restart, a refused restart, the run loop's backstop, an automatic
+        # abort, any ``AbortTrial``: each writes ``abort_owed`` before its drain) or an
+        # unresolved worker.  Protocol 6.4: "An abort can only remove decisions, never create
+        # one"; root 21:14 case (a).  The look itself is logged exactly as without the abort
+        # (the band, the enclosures and the reference rule's shadow are untouched); only the
+        # decision event is not appended.
+        eligible = self._look_eligibility(trigger)
         self.log.append('monitor_update', body, durable=False)
         self.looks_written += 1
         if mismatch:
             raise PauseTrial('monitor_mismatch')
-        if trigger == 'drain' or self.decision is not None:
-            return None                     # the decision prefix is closed at the crossing
-        if self.pending_abort is not None or self.no_decision is not None:
-            # An abort is owed, or its trigger is in the chain: the trial takes no new
-            # decision (protocol 6.4: "An abort can only remove decisions, never create
-            # one").  Root 21:14 ruling, case (a): a fourth restart was required before any
-            # decision.  Review of 988baf7, reviewer 1 finding 1: the same holds for EVERY
-            # owed abort -- a restart that failed its identity or smoke stage used to leave
-            # the drain free to take a new decision, which the deferred abort then treated
-            # as a post-decision abort.  The look above is logged exactly as without the
-            # abort (the band, the enclosures and the reference rule's shadow are untouched);
-            # only the decision event is not appended.  ``no_decision`` is the chain's own
-            # point (``lab_eventlog.no_decision_point``), which the verifier and the builder
-            # read: a crossing after it is reported not acted on.
-            return None
-        if self.closing or self.unresolved_seen:
-            # Repair contract EB5: a look logged while the trial closes (the abort drain's
-            # reveals) or while an unresolved worker makes the phase incomplete takes no
-            # decision -- the look itself is logged unchanged.
+        if not eligible['eligible']:
             return None
         # The decision is taken here, immediately after the monitor_update it quotes
         # (ordering invariant 7): nothing may sit between the two lines.
         return self.take_decision(lab_monitor.decide(self.monitor, self.ctx.mc))
+
+    def _look_eligibility(self, trigger: str) -> dict:
+        """``next_look`` of ``lab_eventlog.decision_eligibility`` over this chain: whether a
+        look appended now (with ``trigger``) may carry a decision, and if not why.
+
+        Every in-memory reason this orchestrator has to withhold a decision -- an owed abort
+        (:attr:`pending_abort`), the close of an aborting trial (:attr:`closing`), an
+        unresolved worker (:attr:`unresolved_seen`) -- is written to the chain by the path that
+        sets it (:meth:`owe_abort`, :meth:`close_trial`, :meth:`resolve_worker`), before any
+        look it concerns.  If one ever is not (a path this module does not know), this guard
+        writes it now -- ``abort_owed(source='look_guard')``, durable, before the look -- and
+        names it in :attr:`findings`, so the decision is withheld only where the chain itself
+        shows the reason: the orchestrator, the verifier and the builder never disagree about
+        a look (root 16:05 item 2)."""
+        assert self.log is not None
+        cls = lab_eventlog.decision_eligibility(
+            self.log.events, self.restart_cap, failure_limit=self.failure_limit,
+            next_trigger=trigger)
+        owed = self.pending_abort
+        if owed is None and self.unresolved_seen:
+            owed = UNRESOLVED_WORKER_REASON
+        if owed is None and self.closing and self.decision is None:
+            owed = self.abort_reason or 'harness_defect'
+        if owed is not None and cls['next_look']['eligible']:
+            self.findings.append('abort_point_written_by_look_guard:%s' % owed)
+            self.write_abort_owed(owed, 'look_guard')
+            cls = lab_eventlog.decision_eligibility(
+                self.log.events, self.restart_cap, failure_limit=self.failure_limit,
+                next_trigger=trigger)
+        self.eligibility = cls
+        self.no_decision = cls['exclusion']
+        return cls['next_look']
+
+    def owe_abort(self, reason: str, source: str = 'supervision', *,
+                  override: bool = False) -> None:
+        """Owe a terminal abort -- :attr:`pending_abort` -- and write its durable no-decision
+        point: ``abort_owed`` (:meth:`write_abort_owed`) BEFORE any open attempt is drained
+        (root 16:05 item 2; the limit the fix step disclosed at 159e747).  The first abort owed
+        stays owed (an abort outranks nothing it follows) unless ``override`` (the restart
+        cap outranks every other pending outcome); the marker names the abort actually owed.
+        """
+        if override or self.pending_abort is None:
+            self.pending_abort = str(reason)
+        self.write_abort_owed(self.pending_abort, source)
+
+    def write_abort_owed(self, reason: str, source: str) -> dict | None:
+        """Append ``abort_owed`` (durable) unless this chain already carries one for
+        ``reason`` (an earlier invocation's, or this one's): ``reason``, ``source``
+        (``lab_eventlog.ABORT_SOURCES``), whether a decision precedes it, and the open
+        attempts its drain still has to reveal.  ``lab_eventlog.no_decision_point`` reads it
+        (reason ``abort_owed``) and ``supervision_state`` replays it (the abort stays owed
+        across a crash)."""
+        if self.log is None:
+            return None
+        if any(e['type'] == 'abort_owed' and e['body'].get('reason') == reason
+               for e in self.log.events):
+            return None
+        return self.append('abort_owed', {
+            'reason': str(reason), 'source': str(source),
+            'decision_logged': self.decision is not None,
+            'open_arrivals': sorted(int(a) for a in self.open_arrivals
+                                    if a in self.attempts and not self.attempts[a].revealed)},
+            durable=True)
 
     def _shadow_for(self, index: int, trigger: str, snap: Mapping,
                     refs: Sequence) -> tuple[dict, bool]:
@@ -3211,7 +3279,7 @@ class World:
             threshold = self.health_threshold
             if threshold is None:
                 # preflight refuses this before seq 0; reaching it is the harness's defect
-                self.pending_abort = self.pending_abort or 'harness_defect'
+                self.owe_abort('harness_defect')
                 continue
             if self.health_failures[server_id] >= threshold:
                 self.supervise_down(server_id, 'health', None)
@@ -3293,10 +3361,12 @@ class World:
         if self.restart_cap is None:
             # preflight refuses this before seq 0; reaching it is the harness's defect, and
             # an unbounded restart is never the fallback
-            self.pending_abort = self.pending_abort or 'harness_defect'
+            self.owe_abort('harness_defect')
             return
         if self.restarts.get(server_id, 0) >= self.restart_cap:
-            self.pending_abort = RESTART_CAP_REASON
+            # the cap outranks any other pending outcome; its point is this server_down
+            # (``restart_cap_required_seq``), the abort_owed after it names the abort
+            self.owe_abort(RESTART_CAP_REASON, override=True)
             return
         if self.pending_abort is not None:
             return                      # an abort is owed: the trial drains, nothing restarts
@@ -3337,20 +3407,21 @@ class World:
             stage = str(exc.record.get('stage'))
             if stage in NEVER_HEALTHY_STAGES:
                 self.pending_pause = self.pending_pause or 'server_unrecoverable'
-            elif self.pending_abort is None:
-                self.pending_abort = START_FAILURE_REASON.get(stage, 'infrastructure')
+            else:
+                self.owe_abort(START_FAILURE_REASON.get(stage, 'infrastructure'))
             return
         except Exception:               # PreflightError (refused) or anything unconverted
-            if self.pending_abort is None:
-                self.pending_abort = 'harness_defect'
+            # a refused restart has no trigger in the chain: its abort_owed is the point
+            # (root 16:05 item 2; the limit disclosed at 159e747)
+            self.owe_abort('harness_defect')
             return
         self.server_pids[server_id] = int(body['pid'])
         self.server_props_sha[server_id] = str(body['props_sha256'])
         self.health_failures[server_id] = 0
         self.append('server_restarted', body, durable=True)
         self.server_ok[server_id] = bool(body['props_matches_golden'] and body['smoke']['ok'])
-        if not body.get('props_equal_previous', False) and self.pending_abort is None:
-            self.pending_abort = 'server_identity'
+        if not body.get('props_equal_previous', False):
+            self.owe_abort('server_identity')
         self.scrape('restart', server_ids=[server_id])
 
     def _ingest_open(self) -> None:
@@ -4500,8 +4571,10 @@ def _w_drain_workers(self: World, *, reveal: bool) -> None:
     as ``alive_unresolved`` -- so the loop ends at the latest one hard cap plus
     :data:`KILL_CONFIRM_S` after the last dispatch.  ``reveal`` (the abort, and the close of an
     ended trial): open attempts are ingested and revealed as the pump does, the looks they
-    produce are logged and take no decision (:attr:`closing`), and neither an automatic abort
-    nor an owed outcome is raised from inside the drain.  Not ``reveal`` (a pause): the
+    produce are logged and take no decision (the abort's ``abort_owed``, written by
+    :meth:`close_trial` before this drain, makes them ineligible in
+    ``lab_eventlog.decision_eligibility``), and neither an automatic abort nor an owed outcome
+    is raised from inside the drain.  Not ``reveal`` (a pause): the
     processes are only waited for (or killed at the cap); their spools are read by the resumed
     invocation, which reveals them (the monitor may be what paused the trial, so no look is
     written here)."""
@@ -4695,6 +4768,16 @@ def _w_close_trial(self: World, status: str) -> str:
     EB5 (root 20:40 item 3; root 21:15 item 3, "Unresolved workers/usage make the phase
     incomplete, not zero"):
 
+    0. An abort writes its durable no-decision point FIRST: ``abort_owed`` (reason, source,
+       the open attempts), before the drain reveals anything (root 16:05 item 2; the limit
+       the fix step disclosed at 159e747 -- the run loop's backstop, a refused restart, an
+       ``AbortTrial`` from any other code used to close with no point in the chain, and their
+       drain's crossing was reported LIVE_DECISION_INVALID).  A path that already wrote it
+       (supervision's :meth:`owe_abort`, an earlier invocation) is not written twice.  A close
+       of an ENDED trial is reached with nothing open or after a decision; one that finds open
+       work and no decision is a harness defect and closes as an abort
+       (``close_with_open_work``), never as an ended trial whose drain could decide.
+
     1. the bounded drain (:meth:`drain_workers`): every open attempt is revealed and every
        worker this invocation spawned is resolved, or recorded ``alive_unresolved`` when its
        kill could not be confirmed -- an abort no longer closes over running workers;
@@ -4709,6 +4792,14 @@ def _w_close_trial(self: World, status: str) -> str:
 
     Returns the status actually written (``'ended'`` or ``'aborted'``)."""
     assert self.log is not None
+    if status == 'ended' and self.decision is None and any(
+            a in self.attempts and not self.attempts[a].revealed for a in self.open_arrivals):
+        status = 'aborted'
+        self.abort_reason = self.abort_reason or 'harness_defect'
+        self.abort_source = 'close_with_open_work'
+    if status == 'aborted':
+        self.abort_reason = self.abort_reason or 'harness_defect'
+        self.write_abort_owed(self.abort_reason, self.abort_source or 'abort_raised')
     self.closing = True
     self.drain_workers(reveal=True)
     self.flush_looks()
@@ -4738,6 +4829,10 @@ def _w_close_trial(self: World, status: str) -> str:
             and self.abort_reason != UNRESOLVED_WORKER_REASON else None)
         status = 'aborted'
         self.abort_reason = UNRESOLVED_WORKER_REASON
+        # the drain is over: nothing is revealed after this point, which every
+        # trial_aborted is preceded by (verifier ``reference_rule.agreement``
+        # ``abort_point_missing``)
+        self.write_abort_owed(UNRESOLVED_WORKER_REASON, 'resolution_verdict')
     self.append('invocation_ended', {
         'status': 'ended' if status == 'ended' else 'aborted',
         'counts': {'pairs_enrolled': self.pairs_enrolled,
@@ -5304,12 +5399,13 @@ def _w_resume_servers(self: World) -> None:
             if stage in NEVER_HEALTHY_STAGES:
                 self.pending_pause = 'server_unrecoverable'
             else:
-                self.pending_abort = START_FAILURE_REASON.get(stage, 'infrastructure')
+                self.owe_abort(START_FAILURE_REASON.get(stage, 'infrastructure'))
             break
         except Exception:
             # PreflightError (refused), or an exception lab_server.start did not convert (EB1
             # fix, reviewer 1 finding 7): nothing more is started, the trial owes the abort
-            self.pending_abort = 'harness_defect'
+            # -- and its abort_owed is its point (root 16:05 item 2)
+            self.owe_abort('harness_defect')
             break
         started.append(server_id)
     if started:
@@ -5505,6 +5601,7 @@ def run_trial(ctx: RunContext, *, resume: bool = True) -> str:
                 continue
             except AbortTrial as exc:
                 world.abort_reason = exc.reason
+                world.abort_source = world.abort_source or 'abort_raised'
                 state = 'ABORTED'
                 continue
             except (MonitorError, lab_common.EnclosureError) as exc:
@@ -5532,6 +5629,9 @@ def run_trial(ctx: RunContext, *, resume: bool = True) -> str:
                     world.abort_reason = 'receipt_mismatch'
                 else:
                     world.abort_reason = 'server_identity'
+                # the close writes abort_owed(source=run_loop_backstop) before its drain: the
+                # backstop's abort has no other trigger in the chain (root 16:05 item 2)
+                world.abort_source = 'run_loop_backstop'
                 state = 'ABORTED'
                 continue
             if nxt in ('ENDED', 'ENDED_ABORTED', 'ENDED_PAUSED', 'ENDED_REFUSED'):

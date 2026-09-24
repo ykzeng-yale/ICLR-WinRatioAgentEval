@@ -619,7 +619,10 @@ class HealthPollTests(TreeCase):
         self.assertEqual(sum(1 for c in self.fake.calls if c[0] == 'restart'),
                          n_restart_calls, 'no fourth restart was attempted')
         self.assertNotIn('coder', world.server_pids)
-        self.assertEqual(types(world.log.events)[-2:], ['server_down', 'server_stopped'])
+        # root 16:05 item 2: the owed cap abort writes its durable point (abort_owed) at once
+        self.assertEqual(types(world.log.events)[-3:],
+                         ['server_down', 'server_stopped', 'abort_owed'])
+        self.assertEqual(world.log.events[-1]['body']['reason'], 'server_restart_cap')
         with self.assertRaises(lab_common.AbortTrial) as caught:
             world.raise_pending()
         self.assertEqual(caught.exception.reason, 'server_restart_cap')

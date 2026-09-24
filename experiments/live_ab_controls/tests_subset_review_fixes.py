@@ -8,9 +8,11 @@ wrote -- and that the verifier or the builder now refuses that chain.  Three kin
 in-process ``lab_server``, SimWorld episodes, in-process anchor receipts); and read-only unit
 calls of production functions.
 
-* :class:`NoDecisionPointTests` -- ``lab_eventlog.no_decision_point``, the one definition the
-  orchestrator (``World._write_looks``), the verifier (``reference_rule.agreement``) and the
-  builder read: each trigger and the event that is NOT one beside it.
+* :class:`NoDecisionPointTests` -- ``lab_eventlog.no_decision_point``, the exclusion point of
+  ``lab_eventlog.decision_eligibility``, the one classification the orchestrator
+  (``World._look_eligibility``), the verifier (``reference_rule.agreement``) and the builder call
+  (``tests_decision_eligibility``, root 16:05): each trigger and the event that is NOT one beside
+  it.  The 988baf7 mutation below now restricts that gate (``World._look_eligibility``).
 * :class:`OwedAbortInProcess` -- reviewer 1 finding 1: a restart that fails its identity or
   smoke stage while the crossing pair is in flight owes an abort; the drain's crossing look now
   takes NO decision; the mutation (the 988baf7 gate: only the cap suppressed a decision) decides
@@ -99,25 +101,24 @@ def crossing(events) -> dict:
                 if e['body']['shadow']['action'] != 'none')
 
 
-_REAL_LOOK = orch.World._write_one_look
+_REAL_ELIGIBILITY = orch.World._look_eligibility
 
 
-def look_988baf7(self, snap, refs):
-    """MUTATION: ``_write_one_look`` of 988baf7 -- only the restart cap's owed abort (and the
-    close / an unresolved worker) withheld a decision; another owed abort, or an abort trigger
-    already in the chain, did not."""
-    saved_abort, saved_point = self.pending_abort, self.no_decision
-    if saved_abort is not None and saved_abort != orch.RESTART_CAP_REASON:
-        self.pending_abort = None
-    if saved_point is not None and saved_point['reason'] != 'server_restart_cap':
-        self.no_decision = None
-    try:
-        return _REAL_LOOK(self, snap, refs)
-    finally:
-        if self.pending_abort is None:
-            self.pending_abort = saved_abort
-        if self.no_decision is None:
-            self.no_decision = saved_point
+def look_988baf7(self, trigger):
+    """MUTATION: the look gate of 988baf7 (``World._look_eligibility`` restricted to what
+    988baf7 checked) -- only the restart cap's owed abort or point, the close, or an unresolved
+    worker withheld a decision; another owed abort, or an abort trigger already in the chain,
+    did not."""
+    got = _REAL_ELIGIBILITY(self, trigger)
+    if got['eligible'] or got['reason'] in ('decision_logged', 'drain_look',
+                                            'server_restart_cap'):
+        return got
+    point = self.no_decision or {}
+    if got['reason'] == 'abort_owed' and point.get('abort_reason') == orch.RESTART_CAP_REASON:
+        return got
+    if self.pending_abort == orch.RESTART_CAP_REASON or self.closing or self.unresolved_seen:
+        return got
+    return {'eligible': True, 'reason': None}
 
 
 # --------------------------------------------------------------------------- #
@@ -207,7 +208,7 @@ class OwedAbortInProcess(unittest.TestCase):
             cls.trees.append(tree)
             fake = sup.FakeServers()
             fake.script = [None, stage]
-            patch = (mock.patch.object(orch.World, '_write_one_look', look_988baf7)
+            patch = (mock.patch.object(orch.World, '_look_eligibility', look_988baf7)
                      if mutated else mock.patch.object(orch, 'FIX_TEST_NOOP', None,
                                                        create=True))
             with patch:
@@ -299,7 +300,7 @@ class MismatchAt44World(sup.SupWorld):
 
 def run_mismatch(tree, fake, *, hold_partner: bool, mutated: bool = False) -> str:
     MismatchAt44World.hold_partner = bool(hold_partner)
-    patch = (mock.patch.object(orch.World, '_write_one_look', look_988baf7) if mutated
+    patch = (mock.patch.object(orch.World, '_look_eligibility', look_988baf7) if mutated
              else mock.patch.object(orch, 'FIX_TEST_NOOP', None, create=True))
     with patch, mock.patch.object(sup, 'SupWorld', MismatchAt44World):
         return sup.run(tree, fake)

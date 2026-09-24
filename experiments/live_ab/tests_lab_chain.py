@@ -1412,8 +1412,9 @@ class SchemaTests(TempTree):
         # repair contract EB1: the record of a failed server start or restart), plus
         # anchor_receipt_rejected (either chain, root f855e45: a receipt spool line that no
         # anchor's durable request binds), plus worker_resolved (trial chain, repair
-        # contract EB5: how a worker process ended).
-        self.assertEqual(len(EVENT_SCHEMA), 52)
+        # contract EB5: how a worker process ended), plus abort_owed (trial chain, root
+        # 16:05 item 2: an abort's durable no-decision point, written before its drain).
+        self.assertEqual(len(EVENT_SCHEMA), 53)
         for etype in sorted(EVENT_SCHEMA):
             with self.subTest(etype=etype):
                 validate_event(etype, synth_body(etype))

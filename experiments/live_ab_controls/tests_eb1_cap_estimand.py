@@ -454,25 +454,22 @@ def old_decision_receipt(events, *, mock: bool, before_seq=None) -> dict:
     return out
 
 
-_REAL_LOOK = orch.World._write_one_look
+_REAL_ELIGIBILITY = orch.World._look_eligibility
 
 
-def look_without_case_a(self, snap, refs):
-    """MUTATION: ``_write_one_look`` without the case-(a) rule (a cap-owed abort does not stop
-    a new decision): both halves of it are removed -- the owed ``server_restart_cap`` and the
-    chain's no-decision point when it is the cap's (``lab_eventlog.no_decision_point``)."""
-    saved, saved_point = self.pending_abort, self.no_decision
-    if saved == orch.RESTART_CAP_REASON:
-        self.pending_abort = None
-    if saved_point is not None and saved_point['reason'] == 'server_restart_cap':
-        self.no_decision = None
-    try:
-        return _REAL_LOOK(self, snap, refs)
-    finally:
-        if self.pending_abort is None:
-            self.pending_abort = saved
-        if self.no_decision is None:
-            self.no_decision = saved_point
+def look_without_case_a(self, trigger):
+    """MUTATION: the look gate (``World._look_eligibility``, the orchestrator's call of
+    ``lab_eventlog.decision_eligibility``) without the case-(a) rule: a look whose ONLY reason
+    is the cap -- the cap's point (``server_restart_cap``: the ``server_down`` that required the
+    fourth restart) or the cap's own ``abort_owed`` -- is let take a decision."""
+    got = _REAL_ELIGIBILITY(self, trigger)
+    point = self.no_decision or {}
+    if not got['eligible'] and (
+            got['reason'] == 'server_restart_cap'
+            or (got['reason'] == 'abort_owed'
+                and point.get('abort_reason') == orch.RESTART_CAP_REASON)):
+        return {'eligible': True, 'reason': None}
+    return got
 
 
 def build(tree: sup.Tree) -> tuple[dict, dict]:
@@ -510,7 +507,7 @@ class CaseAInProcess(unittest.TestCase):
             tree = d3_tree()
             cls.trees.append(tree)
             fake = sup.FakeServers()
-            patch = (mock.patch.object(orch.World, '_write_one_look', look_without_case_a)
+            patch = (mock.patch.object(orch.World, '_look_eligibility', look_without_case_a)
                      if mutated else mock.patch.object(orch, 'CAP_TEST_NOOP', None,
                                                        create=True))
             with patch:

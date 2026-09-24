@@ -252,15 +252,24 @@ def restart_cap_reading(events: Sequence[Mapping], cfg: Mapping) -> dict:
                            else None)}
 
 
-def _crossing_seq(events: Sequence[Mapping], cfg: Mapping, trial: str,
-                  updates: Sequence[Mapping]) -> int | None:
-    """The seq of the ``monitor_update`` at which the reference rule first crosses, or None
-    (the verifier's ``reference_rule.agreement`` reads it the same way)."""
-    looks = lab_reference_rule.looks_from_chain(list(events), dict(cfg), trial)
-    idx = next((i for i, lk in enumerate(looks) if lk.action != 'none'), None)
-    if idx is None or idx >= len(updates):
-        return None
-    return int(updates[idx]['seq'])
+def eligibility_object(events: Sequence[Mapping], cfg: Mapping, trial: str) -> dict:
+    """THE decision-eligibility classification of the chain (``lab_eventlog.
+    decision_eligibility`` -- the function the orchestrator calls before every look and the
+    verifier's ``reference_rule.agreement`` calls; root 16:05 item 2) under the frozen cap and
+    ten-failure count, with the reference rule's action at every logged look: the exclusion
+    point, EVERY look classified eligible or not with its concrete reason (the unfiltered
+    diagnostics), and the reference rule's unfiltered first crossing with its verdict."""
+    cfg = dict(cfg or {})
+    try:
+        cap: int | None = lab_common.server_supervision_cap(cfg)
+    except lab_common.FrozenMismatch:
+        cap = None
+    looks = lab_reference_rule.looks_from_chain(list(events), cfg, trial)
+    return lab_eventlog.decision_eligibility(
+        list(events), cap,
+        failure_limit=int(((cfg.get('execution') or {}).get('auto_abort') or {})
+                          .get('consecutive_infrastructure_failures', 10)),
+        reference_actions=[lk.action for lk in looks])
 
 
 def decision_object(events: Sequence[Mapping], cfg: Mapping, trial: str) -> dict:
@@ -273,10 +282,15 @@ def decision_object(events: Sequence[Mapping], cfg: Mapping, trial: str) -> dict
     receipt (:data:`PROVISIONAL_LABEL`, any case); a decision logged after a case-(a) cap
     (which the orchestrator never writes) is kept under ``decision`` and never reported.
     Any other no-decision point of the chain (``lab_eventlog.no_decision_point``: an owed or
-    triggered abort, an unresolved worker; review of 988baf7, reviewer 1 findings 1 and 2):
-    with no decision, a crossing logged after it is not acted on
-    (:data:`ABORT_INCOMPLETE_LABEL`, not reportable); a decision logged after it is
-    ``LIVE_DECISION_INVALID`` (the verifier's ``decision_after_no_decision_point``)."""
+    triggered abort -- every abort path writes its ``abort_owed`` before its drain -- or an
+    unresolved worker; review of 988baf7, reviewer 1 findings 1 and 2; root 16:05): read
+    through :func:`eligibility_object`, the classification the orchestrator and the verifier
+    share.  With no decision, a crossing at a look it makes NOT eligible is not acted on
+    (:data:`ABORT_INCOMPLETE_LABEL`, not reportable, with the look's concrete reason); a
+    crossing at an ELIGIBLE look with no decision is ``LIVE_DECISION_INVALID`` however the
+    trial ended; a decision logged after the point is ``LIVE_DECISION_INVALID`` (the
+    verifier's ``decision_after_no_decision_point``).  ``eligibility`` carries the whole
+    classification: every look, eligible or not, and why."""
     logged = next((dict(e['body'], seq=int(e['seq'])) for e in events
                    if e['type'] == 'decision'), None)
     cap = restart_cap_reading(events, cfg)
@@ -294,44 +308,33 @@ def decision_object(events: Sequence[Mapping], cfg: Mapping, trial: str) -> dict
         agreement = reference.get('kind') == 'none'
     label: str | None = None
     not_acted_on: dict | None = None
-    try:
-        cap_int: int | None = lab_common.server_supervision_cap(dict(cfg or {}))
-    except lab_common.FrozenMismatch:
-        cap_int = None
-    point = lab_eventlog.no_decision_point(
-        list(events), cap_int, failure_limit=int(
-            ((dict(cfg).get('execution') or {}).get('auto_abort') or {})
-            .get('consecutive_infrastructure_failures', 10)))
+    elig = eligibility_object(events, cfg, trial)
+    point = elig['exclusion']
+    crossing = elig['crossing']
     after_point = (point is not None and point['reason'] != 'server_restart_cap'
                    and cap['case'] != 'before_decision')
-    crossing_seq = (_crossing_seq(events, cfg, trial, updates)
-                    if after_point and logged is None and reference.get('kind') != 'none'
-                    else None)
+    if logged is None and crossing is not None and crossing['verdict'] == 'not_acted_on':
+        # the reference rule's first crossing is at a look the shared classification makes
+        # NOT eligible: not acted on, with its concrete reason -- never a disagreement
+        agreement = True
+        not_acted_on = {'kind': str(reference.get('kind')), 'n': int(reference['n']),
+                        'seq': int(crossing['seq']),
+                        'no_decision_reason': str(crossing['reason']),
+                        'reason_text': crossing.get('reason_text'),
+                        'no_decision_seq': None if point is None else int(point['seq'])}
+        if point is not None and point.get('abort_reason') is not None:
+            not_acted_on.update(abort_reason=point['abort_reason'],
+                                abort_source=point['source'])
     if cap['case'] == 'before_decision':
         primary, reportable = RESTART_CAP_INCOMPLETE_LABEL, False
         if logged is not None:
             label = ('not reportable: logged after the restart cap was required before any '
                      'decision (case a takes no new decision)')
-        elif reference.get('kind') != 'none':
-            # a crossing the reference rule finds at a look logged AFTER the cap was
-            # required is not acted on (case a); one at or before it stays a disagreement
-            looks = lab_reference_rule.looks_from_chain(list(events), dict(cfg), trial)
-            idx = next((i for i, lk in enumerate(looks) if lk.action != 'none'), None)
-            if idx is not None and idx < len(updates) \
-                    and int(updates[idx]['seq']) > int(cap['cap_required_seq']):
-                agreement = True
-                not_acted_on = {'kind': str(reference.get('kind')),
-                                'n': int(reference['n']), 'seq': int(updates[idx]['seq'])}
-    elif crossing_seq is not None and crossing_seq > int(point['seq']):
+    elif not_acted_on is not None:
         # a crossing logged after an abort's point with no decision: not acted on (the
         # verifier's INFO), never a disagreement
         primary, reportable = ABORT_INCOMPLETE_LABEL, False
-        agreement = True
-        not_acted_on = {'kind': str(reference.get('kind')), 'n': int(reference['n']),
-                        'seq': int(crossing_seq),
-                        'no_decision_reason': point['reason'],
-                        'no_decision_seq': int(point['seq'])}
-    elif after_point and logged is not None and int(logged['seq']) > int(point['seq']):
+    elif after_point and logged is not None and elig['decision_verdict'] == 'after_exclusion':
         # a decision logged after an abort was owed or triggered: the verifier FAILs it
         # (``decision_after_no_decision_point``); it is kept under ``decision``, never
         # reported as the result
@@ -368,6 +371,7 @@ def decision_object(events: Sequence[Mapping], cfg: Mapping, trial: str) -> dict
         'decision_status': cap['decision_status'],
         'restart_cap': cap,
         'crossing_not_acted_on': not_acted_on,
+        'eligibility': elig,
         'margin_delta': float(dict(cfg)['monitor']['delta']),
         'alpha_gate': float(dict(cfg)['monitor']['alpha_gate']),
         'rho': float(dict(cfg)['monitor']['rho']),
