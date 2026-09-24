@@ -321,9 +321,12 @@ def probe(base_url: str, *, timeout: float = 5.0) -> dict:
 
 def health(base_url: str, *, timeout: float = 5.0) -> dict:
     """``/health`` plus the busy-slot count.  Never raises: the supervisor of protocol 5.3
-    counts consecutive failures and logs ``server_down`` on the third."""
+    counts consecutive failures and logs ``server_down`` on the third.  ``slots_read`` says
+    whether ``/slots`` actually answered with a list: when it did not, ``slots_busy`` is 0 for
+    the supervisor's ``server_health`` record but is NOT an observation of idle slots (repair
+    contract EB5: the close's idle check reads ``slots_read``)."""
     root = _root(base_url)
-    out = {'ok': False, 'slots_busy': 0, 'status': 'no_answer'}
+    out = {'ok': False, 'slots_busy': 0, 'status': 'no_answer', 'slots_read': False}
     try:
         r = requests.get(root + '/health', timeout=timeout)
         out['ok'] = r.status_code == 200
@@ -337,6 +340,7 @@ def health(base_url: str, *, timeout: float = 5.0) -> dict:
             # finding 7: a malformed 200 answer must not raise out of a never-raising call)
             out['slots_busy'] = sum(1 for s in slots
                                     if isinstance(s, Mapping) and s.get('is_processing'))
+            out['slots_read'] = True
     except (requests.RequestException, ValueError):
         pass
     return out

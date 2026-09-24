@@ -493,8 +493,11 @@ class SimWorld(World):
     def finished(self, att):                             # type: ignore[override]
         return 0
 
-    def kill(self, att) -> None:                         # type: ignore[override]
-        return None
+    def kill(self, att) -> bool:                         # type: ignore[override]
+        # The simulated episode ran in-process inside spawn(): there is no process to
+        # signal and nothing left running, so a kill is confirmed at once (repair contract
+        # EB5: World.kill returns whether the worker was reaped).
+        return True
 
 
 # ---------------------------------------------------------------------------

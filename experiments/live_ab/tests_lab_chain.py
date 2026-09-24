@@ -372,6 +372,15 @@ def build_good_chain(outcome=default_outcome) -> dict:
                                               'U_s': look.U_s}},
             'sums_fsum': True, 'monitor_code_sha256': _digest('monitor_code')})
 
+    def resolved(arrival: int) -> None:
+        # repair contract EB5: the worker's exit, confirmed after its final line
+        b.add('worker_resolved', {
+            'arrival': arrival, 'attempt': 1, 'pid': 5000 + arrival,
+            'state': 'exited', 'returncode': 0,
+            'spool_bytes_at_resolution': 4096 + arrival,
+            'spool_sha256_at_resolution': _digest(f'spool{arrival}')})
+
+    last_pair: list[int] = []
     seed_counter = 0x10000000
     for i, slot in enumerate(order, start=1):
         a1, a2 = slot['arrivals']
@@ -492,8 +501,18 @@ def build_good_chain(outcome=default_outcome) -> dict:
                             'partner_arm': arms[2 - pos],
                             'partner_state_at_verify': 'running'},
                 'certified_ell': (t_recv - t_c1) / 1e9, 'tokens_known': 240,
-                'recovered_orphan': False, 'post_decision': False})
+                'recovered_orphan': False, 'post_decision': False,
+                # repair contract EB5: pair 6 position 1's timed-out first try has no
+                # usage receipt, so that episode's usage is incomplete by one call
+                'usage_complete': not (i == 6 and pos == 1),
+                'unknown_usage_calls': 1 if (i == 6 and pos == 1) else 0})
             sync(i)
+            if i < N_PAIRS:
+                resolved(arrival)
+            else:
+                # the horizon decision quotes the last reveal's look immediately
+                # (ordering invariant 7); the last pair's exits follow the decision anchor
+                last_pair.append(arrival)
         if i == 4:
             # a planned pause, a new invocation, and the ONE resume look of protocol 8.3
             # trigger 4 -- taken at the last fully enrolled prefix, before any new
@@ -528,6 +547,8 @@ def build_good_chain(outcome=default_outcome) -> dict:
         'delta': 0.03, 'alpha_gate': 0.00625, 'inflight': [],
         'next_unassigned_arrival': None, 'decided_on_resume': False})
     anchor('decision', True, N_PAIRS, N_PAIRS)
+    for arrival in last_pair:
+        resolved(arrival)
     b.add('usage_reconciliation', {
         'server_id': 'coder', 'window': 'trial', 'window_from_seq': 0,
         'window_to_seq': len(b.events), 'counter_delta': {'prompt': 1920,
@@ -542,7 +563,7 @@ def build_good_chain(outcome=default_outcome) -> dict:
                              'seconds': 300.0})
     b.add('deposit_sealed', {'deposit_sha256': _digest('deposit'),
                              'deposit_bytes': 1048576, 'n_records': 2 * N_PAIRS,
-                             'n_spools': 2 * N_PAIRS})
+                             'n_spools': 2 * N_PAIRS, 'late_unread': []})
     ledger = lab_verify_log._recount_exposure(b.events)
     b.add('trial_ended', {
         'status': 'ended', 'reason': None, 'phase': 'ended',
@@ -551,7 +572,13 @@ def build_good_chain(outcome=default_outcome) -> dict:
         'terminal_failures_by_arm': {'incumbent': 0, 'candidate': 0},
         'n_torn_recoveries': 0, 'longest_unreceipted_span_s': 0.0,
         'what_was_known': _what_was_known(N_PAIRS, N_PAIRS, final_look),
-        'final_head': b.events[-1]['h']})
+        'final_head': b.events[-1]['h'],
+        # repair contract EB5: every worker resolved, every call answered, the server idle
+        'resolution': {'verdict': 'PASS', 'problems': [], 'unresolved_attempts': [],
+                       'unfinished_calls': [], 'late_spools': [],
+                       'servers': [{'server_id': 'coder', 'held': True, 'observed': True,
+                                    'requests_processing': 0, 'slots_busy': 0}],
+                       'superseded_reason': None}})
     anchor('trial_ended', True, N_PAIRS, N_PAIRS)
 
     return {'events': b.events, 'config': cfg, 'roster': roster, 'order': order,
@@ -1382,8 +1409,9 @@ class SchemaTests(TempTree):
         # 47 event types of ARCHITECTURE_FINAL.md 4.3/4.4, plus the two the host
         # quiescence gate of protocol 5.7 adds: host_quiescence_refused (program chain)
         # and foreign_load_detected (trial chain), plus server_start_failed (trial chain,
-        # repair contract EB1: the record of a failed server start or restart).
-        self.assertEqual(len(EVENT_SCHEMA), 50)
+        # repair contract EB1: the record of a failed server start or restart), plus
+        # worker_resolved (trial chain, repair contract EB5: how a worker process ended).
+        self.assertEqual(len(EVENT_SCHEMA), 51)
         for etype in sorted(EVENT_SCHEMA):
             with self.subTest(etype=etype):
                 validate_event(etype, synth_body(etype))

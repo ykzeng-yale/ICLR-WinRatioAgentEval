@@ -67,7 +67,7 @@ from lab_server import ServerSpec
 State = Literal['PREFLIGHT', 'OPENING', 'OPENING_WAIT', 'IDLE', 'ENROLLED', 'COMMITTED',
                 'RUNNING', 'PARTIAL', 'LOOK', 'DECIDED', 'ANCHOR_BLOCK', 'SWITCHING',
                 'POST_DECISION', 'DRAINING', 'PAUSED', 'CLOSING', 'ENDED', 'ABORTED',
-                'ENDED_ABORTED', 'ENDED_PAUSED']
+                'ENDED_ABORTED', 'ENDED_PAUSED', 'ENDED_REFUSED']
 
 #: The event types ``lab_monitor.replay`` consumes.  Appending one of these is the only
 #: thing that can produce a look, so it is the only thing that triggers an evaluation.
@@ -331,6 +331,315 @@ def unknown_usage_by_request(events: Sequence[Mapping]) -> dict[str, int]:
 
 
 # ---------------------------------------------------------------------------
+# worker resolution (repair contract EB5; root 20:40 item 3, root 21:15 item 3:
+# "Unresolved workers/usage make the phase incomplete, not zero")
+# ---------------------------------------------------------------------------
+class _WorkerUnknown:
+    """The type of :data:`WORKER_UNKNOWN`: never an int, never None, never falsy-by-accident."""
+
+    def __repr__(self) -> str:
+        return 'WORKER_UNKNOWN'
+
+
+#: :meth:`World.finished` of an attempt whose process this invocation does not hold (an
+#: attempt rebuilt from the chain on resume): whether it still runs is NOT known from a poll.
+#: It used to be ``0`` -- "exited" -- which let a resumed invocation reveal a live orphan as
+#: ``interrupted`` (understand_eb5 section 2, O:1930-1934).  A caller must compare it by
+#: identity (``is WORKER_UNKNOWN``) before reading a return code.
+WORKER_UNKNOWN: Any = _WorkerUnknown()
+
+#: The two ``worker_resolved.state`` values that RESOLVE a worker (``lab_eventlog``).
+RESOLVED_WORKER_STATES: frozenset[str] = lab_eventlog.WORKER_RESOLVED_STATES
+UNRESOLVED_WORKER_REASON: str = 'unresolved_worker'
+#: How long a SIGKILL may take to be confirmed (a reaped child, or a pid found gone).
+KILL_CONFIRM_S: float = 5.0
+
+
+def usage_of_lines(lines: Sequence[Mapping]) -> tuple[bool, int]:
+    """[pure] ``(usage_complete, unknown_usage_calls)`` of one attempt's spool lines: every
+    started request id (``call_started``) without a ``call_response`` is a call whose
+    consumed tokens are unknown -- a ``call_error`` (the client never knows the usage of a
+    failed try, ``lab_client`` spools ``usage_known: False``) and a call with no terminal line
+    at all alike.  Keyed by request id, so a line read twice counts once."""
+    started: set[str] = set()
+    known: set[str] = set()
+    for row in lines:
+        rid = (row.get('body') or {}).get('request_id')
+        if rid is None:
+            continue
+        if row.get('kind') == 'call_started':
+            started.add(str(rid))
+        elif row.get('kind') == 'call_response':
+            known.add(str(rid))
+    unknown = len(started - known)
+    return unknown == 0, unknown
+
+
+def spool_name(arrival: int, attempt: int = 1) -> str:
+    """The stem of an attempt's spool file (``ep_<arrival>_<attempt>``)."""
+    return 'ep_%d_%d' % (int(arrival), int(attempt))
+
+
+def spool_observation(path: str | Path, upto: int | None = None) -> dict:
+    """The spool file as it is NOW: ``{'bytes', 'sha256', 'prefix_sha256'}`` -- its size, the
+    digest of all of it, and the digest of its first ``upto`` bytes (``None`` when ``upto``
+    is None or the file is shorter).  A missing file is 0 bytes (a worker that died before its
+    first line); an unreadable one is ``bytes: None``."""
+    p = Path(path)
+    try:
+        raw = p.read_bytes() if p.exists() else b''
+    except OSError:
+        return {'bytes': None, 'sha256': None, 'prefix_sha256': None}
+    prefix = None
+    if upto is not None and len(raw) >= int(upto):
+        prefix = sha256_bytes(raw[:int(upto)])
+    return {'bytes': len(raw), 'sha256': sha256_bytes(raw), 'prefix_sha256': prefix}
+
+
+def last_worker_resolutions(events: Sequence[Mapping]) -> dict[tuple[int, int], dict]:
+    """[pure] ``(arrival, attempt) -> body`` of the LAST ``worker_resolved`` of each attempt
+    in ``events``."""
+    out: dict[tuple[int, int], dict] = {}
+    for ev in events:
+        if ev['type'] == 'worker_resolved':
+            body = ev['body']
+            out[(int(body['arrival']), int(body['attempt']))] = dict(body)
+    return out
+
+
+def effective_worker_states(events: Sequence[Mapping]) -> dict[tuple[int, int], str]:
+    """[pure] ``(arrival, attempt) -> state`` over EVERY ``worker_resolved`` of the attempt:
+    the first state that does not resolve the worker if there is one (an attempt once
+    recorded ``alive_unresolved`` / ``liveness_unknown`` stays unresolved whatever is recorded
+    later -- root 21:14: "killing/reaping does not turn unknown historical usage into zero"),
+    else the last state.  An attempt with no record is absent."""
+    out: dict[tuple[int, int], str] = {}
+    for ev in events:
+        if ev['type'] != 'worker_resolved':
+            continue
+        key = (int(ev['body']['arrival']), int(ev['body']['attempt']))
+        state = str(ev['body']['state'])
+        if out.get(key) in RESOLVED_WORKER_STATES or key not in out:
+            out[key] = state
+    return out
+
+
+def phase_resolution_verdict(events: Sequence[Mapping], spool_stats: Mapping,
+                             server_obs: Mapping) -> dict:
+    """[pure] Whether every permitted worker of a phase is resolved, taken BEFORE its terminal
+    record (repair contract EB5; root 20:40 item 3: "A successful loaded phase must demonstrate
+    all permitted workers resolved before its terminal acceptance").
+
+    ``events``: the chain before the terminal record.  ``spool_stats``: spool stem ->
+    :func:`spool_observation` taken at the seal, with ``prefix_sha256`` over the attempt's
+    recorded ``spool_bytes_at_resolution``.  ``server_obs``: server id -> ``{'held',
+    'observed', 'requests_processing', 'slots_busy'}`` taken after every client was resolved
+    (:meth:`World.observe_servers_idle`).  In this harness every attempt is attempt 1
+    (``max_attempts = 1``, PG-7), so ``episode_started`` names ``(arrival, 1)``.
+
+    PASS only when all four hold; each failure adds its closed code
+    (``lab_eventlog.RESOLUTION_PROBLEMS``):
+
+    1. ``worker_unresolved`` -- some ``episode_started`` whose attempt has no
+       ``worker_resolved``, or has one whose state is not ``exited`` / ``killed_reaped``
+       (:func:`effective_worker_states`: a later resolution does not undo an unresolved one);
+    2. ``call_unresolved`` -- some ``llm_request`` with no ``llm_response`` / ``llm_error``
+       whose worker is not resolved.  A started call with no terminal event under a RESOLVED
+       worker is not a failure: it is listed in ``unfinished_calls`` with usage ``null`` and
+       counted as unknown usage, never as zero and never as unsent;
+    3. ``spool_grew`` / ``spool_changed`` / ``spool_unreadable`` -- a resolved attempt's spool
+       is now longer than its resolution offset, its first ``spool_bytes_at_resolution`` bytes
+       no longer hash to ``spool_sha256_at_resolution`` (or it is shorter), or it could not
+       be read;
+    4. ``server_busy`` / ``server_unobserved`` -- a server this invocation still held was not
+       idle (``requests_processing != 0`` or a busy slot) after the clients were resolved, or
+       could not be observed.  A server not held (stopped before the close, or never
+       started) runs no request.
+
+    Returns the ``resolution`` object of the terminal record (``lab_eventlog.RESOLUTION``)
+    with ``superseded_reason`` None (the caller sets it)."""
+    events = list(events)
+    started: dict[int, int] = {}
+    for ev in events:
+        if ev['type'] == 'episode_started':
+            started.setdefault(int(ev['body']['arrival']), int(ev['seq']))
+    last = last_worker_resolutions(events)
+    effective = effective_worker_states(events)
+    problems: set[str] = set()
+    unresolved: list[dict] = []
+    for arrival in sorted(started):
+        state = effective.get((arrival, 1), 'no_record')
+        if state not in RESOLVED_WORKER_STATES:
+            unresolved.append({'arrival': arrival, 'attempt': 1, 'state': state})
+            problems.add('worker_unresolved')
+    terminals: set[str] = set()
+    for ev in events:
+        if ev['type'] in ('llm_response', 'llm_error'):
+            terminals.add(str(ev['body']['request_id']))
+    unfinished: list[dict] = []
+    seen: set[str] = set()
+    for ev in events:
+        if ev['type'] != 'llm_request':
+            continue
+        body = ev['body']
+        rid = str(body['request_id'])
+        if rid in terminals or rid in seen:
+            continue
+        seen.add(rid)
+        key = (int(body['arrival']), int(body['attempt']))
+        state = effective.get(key, 'no_record')
+        unfinished.append({'arrival': key[0], 'attempt': key[1], 'request_id': rid,
+                           'worker_state': state, 'usage': None})
+        if state not in RESOLVED_WORKER_STATES:
+            problems.add('call_unresolved')
+    late: list[dict] = []
+    for key in sorted(last):
+        rec = last[key]
+        if effective.get(key) not in RESOLVED_WORKER_STATES:
+            continue
+        obs = dict(spool_stats.get(spool_name(*key)) or {})
+        at = int(rec['spool_bytes_at_resolution'])
+        found = obs.get('bytes')
+        if not isinstance(found, int) or isinstance(found, bool):
+            problems.add('spool_unreadable')
+            late.append({'arrival': key[0], 'attempt': key[1], 'bytes_at_resolution': at,
+                         'bytes_found': None})
+            continue
+        if found > at:
+            problems.add('spool_grew')
+        if found < at or obs.get('prefix_sha256') != rec['spool_sha256_at_resolution']:
+            problems.add('spool_changed')
+        if found != at or obs.get('prefix_sha256') != rec['spool_sha256_at_resolution']:
+            late.append({'arrival': key[0], 'attempt': key[1], 'bytes_at_resolution': at,
+                         'bytes_found': int(found)})
+    servers: list[dict] = []
+    for sid in sorted(server_obs):
+        obs = dict(server_obs[sid] or {})
+        row = {'server_id': str(sid), 'held': bool(obs.get('held')),
+               'observed': bool(obs.get('observed')),
+               'requests_processing': obs.get('requests_processing'),
+               'slots_busy': obs.get('slots_busy')}
+        servers.append(row)
+        if row['observed']:
+            if row['requests_processing'] != 0 or row['slots_busy'] != 0:
+                problems.add('server_busy')
+        elif row['held']:
+            problems.add('server_unobserved')
+    return {'verdict': 'FAIL' if problems else 'PASS',
+            'problems': [p for p in lab_eventlog.RESOLUTION_PROBLEMS if p in problems],
+            'unresolved_attempts': unresolved, 'unfinished_calls': unfinished,
+            'late_spools': late, 'servers': servers, 'superseded_reason': None}
+
+
+def _ps_process(pid: int) -> tuple[str, str | None]:
+    """``('gone' | 'row' | 'unknown', text)``: one ``ps -o lstart=,stat=,command= -p PID``.
+    ps's exit 1 with no output is "no such process"; anything else it could not answer is
+    unknown, never "gone"."""
+    try:
+        res = subprocess.run(['ps', '-o', 'lstart=,stat=,command=', '-p', str(int(pid))],
+                             capture_output=True, text=True, timeout=10, check=False)
+    except (OSError, subprocess.SubprocessError):
+        return 'unknown', None
+    out = (res.stdout or '').strip()
+    if res.returncode == 1 and not out:
+        return 'gone', None
+    if res.returncode != 0 or not out:
+        return 'unknown', None
+    return 'row', out
+
+
+def probe_worker(pid: int, job_name: str, *, not_after_ns: int | None = None) -> str:
+    """Whether the worker process an earlier invocation recorded is STILL that worker
+    (repair contract EB5 item 3): ``'alive'``, ``'gone'`` or ``'unknown'``.
+
+    Liveness is read from the pid AND the process's identity, never from the pid alone (a pid
+    is reused): ``'alive'`` only when ``ps`` shows the pid running (not a zombie), its command
+    line names this attempt's job file (``--job .../<job_name>``) and its start time
+    (``lstart``, one-second resolution) is not after ``not_after_ns`` (+2 s; the
+    ``episode_started`` dispatch stamp, which follows the spawn).  A pid that is not running,
+    is a zombie (it has exited and waits for its parent), or is running something else, is
+    ``'gone'``.  This process's own pid is ``'gone'`` (a simulated in-process worker).  A child
+    of THIS process that has exited is reaped here.  ``'unknown'`` when ``ps`` could not
+    answer.  Performs: at most one ``waitpid(WNOHANG)``, one signal-0 probe, one ``ps``."""
+    pid = int(pid)
+    if pid <= 0 or pid == os.getpid():
+        return 'gone'
+    try:
+        got, _status = os.waitpid(pid, os.WNOHANG)
+        if got == pid:
+            return 'gone'
+    except ChildProcessError:
+        pass
+    except OSError:
+        pass
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return 'gone'
+    except PermissionError:
+        pass
+    except OSError:
+        return 'unknown'
+    kind, text = _ps_process(pid)
+    if kind != 'row':
+        return kind
+    parts = str(text).split(None, 6)
+    if len(parts) < 7:
+        return 'unknown'
+    lstart, stat, command = ' '.join(parts[:5]), parts[5], parts[6]
+    if 'Z' in stat:
+        return 'gone'
+    if str(job_name) not in command or '--job' not in command:
+        return 'gone'
+    if not_after_ns is not None:
+        try:
+            started = time.mktime(time.strptime(lstart, '%a %b %d %H:%M:%S %Y'))
+        except (ValueError, OverflowError):
+            return 'unknown'
+        if started > float(not_after_ns) / 1e9 + 2.0:
+            return 'gone'
+    return 'alive'
+
+
+def kill_orphan_worker(pid: int, job_name: str, *, not_after_ns: int | None = None,
+                       wait_s: float = KILL_CONFIRM_S) -> tuple[str, int | None]:
+    """Kill a live orphan worker (its own process group: ``lab_orchestrator`` spawns every
+    worker with ``start_new_session``) and confirm it is gone: ``('killed_reaped', rc)`` or
+    ``('alive_unresolved', None)``.  ``rc`` is known only when the orphan is a child of this
+    process.  Never signals this process's own group."""
+    pid = int(pid)
+    try:
+        pgid = os.getpgid(pid)
+    except OSError:
+        pgid = None
+    try:
+        if pgid is not None and pgid == pid and pgid != os.getpgrp():
+            os.killpg(pgid, signal.SIGKILL)
+        else:
+            os.kill(pid, signal.SIGKILL)
+    except ProcessLookupError:
+        pass
+    except OSError:
+        return 'alive_unresolved', None
+    deadline = time.monotonic() + float(wait_s)
+    while True:
+        try:
+            got, status = os.waitpid(pid, os.WNOHANG)
+            if got == pid:
+                return 'killed_reaped', (os.waitstatus_to_exitcode(status)
+                                         if hasattr(os, 'waitstatus_to_exitcode') else None)
+        except ChildProcessError:
+            pass
+        except OSError:
+            pass
+        if probe_worker(pid, job_name, not_after_ns=not_after_ns) == 'gone':
+            return 'killed_reaped', None
+        if time.monotonic() >= deadline:
+            return 'alive_unresolved', None
+        time.sleep(0.05)
+
+
+# ---------------------------------------------------------------------------
 # the program-wide seed registry (protocol 5.5; execution review E2)
 # ---------------------------------------------------------------------------
 #: The one file every worker of every trial reads before its first request.  It lives at the
@@ -447,15 +756,34 @@ def exposure_recount(events: Sequence[Mapping]) -> dict:
     ``prompt_tokens`` / ``completion_tokens`` are the tokens the chain can PROVE were
     consumed.  When ``unknown_usage_calls`` is non-zero the server consumed tokens that no
     receipt reports, so the two token totals are a LOWER BOUND and ``tokens_are_lower_bound``
-    says so in the ledger itself: missing usage is never rewritten as zero."""
+    says so in the ledger itself: missing usage is never rewritten as zero.
+
+    Repair contract EB5 (root 21:15 item 3; understand_eb5 section 3 item 2): a call of an
+    arrival that was never REVEALED -- the in-flight partner of a mid-pair abort, an attempt
+    whose worker could not be resolved -- used to be dropped, because only a reveal gives it
+    an arm and a phase (``if arm is not None and phase is not None``), so
+    ``tokens_are_lower_bound`` could read False with a live partner's calls on the chain.
+    Such calls now stay in the ledger, in the ``unrevealed`` cell: its ``episodes`` are the
+    started arrivals with no reveal, its tokens the usage of their ``llm_response`` events and
+    its ``unknown_usage_calls`` their calls without a usage receipt.  A response of a revealed
+    arrival that the chain carries only AFTER its reveal (a late call of a worker still being
+    resolved) is added to that arrival's cell.  ``totals`` is the whole trial: its token sums
+    are ``null`` with ``null_reason: 'unknown_usage'`` whenever any call's usage is unknown --
+    never a sum presented as complete (protocol 13.1, P:2535).  The verifier recounts every
+    cell independently and compares byte for byte (``lab_verify_log._recount_exposure``)."""
     out: dict = {phase: {arm: {'episodes': 0, 'wall_seconds': 0.0, 'prompt_tokens': 0,
                                'completion_tokens': 0, 'unknown_usage_calls': 0,
                                'tokens_are_lower_bound': False}
                          for arm in lab_common.ARMS}
                  for phase in ('randomizing', 'post_decision')}
+    unrevealed = {'episodes': 0, 'prompt_tokens': 0, 'completion_tokens': 0,
+                  'unknown_usage_calls': 0, 'tokens_are_lower_bound': False}
     arm_of: dict[int, str] = {}
     phase_of: dict[int, str] = {}
+    started: set[int] = set()
     for ev in events:
+        if ev['type'] == 'episode_started':
+            started.add(int(ev['body']['arrival']))
         if ev['type'] != 'episode_revealed':
             continue
         body = ev['body']
@@ -469,16 +797,50 @@ def exposure_recount(events: Sequence[Mapping]) -> dict:
         row['wall_seconds'] += float(body['outcome']['latency_s'])
         row['prompt_tokens'] += int(body['outcome']['prompt_tokens'])
         row['completion_tokens'] += int(body['outcome']['completion_tokens'])
+    for ev in events:
+        if ev['type'] != 'llm_response':
+            continue
+        arrival = int(ev['body']['arrival'])
+        prompt, completion = _usage_pair(ev['body'].get('usage'))
+        if arrival not in arm_of:
+            unrevealed['prompt_tokens'] += prompt
+            unrevealed['completion_tokens'] += completion
+    revealed_at: dict[int, int] = {}
+    for ev in events:
+        if ev['type'] == 'episode_revealed':
+            revealed_at.setdefault(int(ev['body']['arrival']), int(ev['seq']))
+        elif ev['type'] == 'llm_response':
+            arrival = int(ev['body']['arrival'])
+            if arrival in revealed_at and int(ev['seq']) > revealed_at[arrival]:
+                prompt, completion = _usage_pair(ev['body'].get('usage'))
+                row = out[phase_of[arrival]][arm_of[arrival]]
+                row['prompt_tokens'] += prompt
+                row['completion_tokens'] += completion
     for arrival in unknown_usage_by_request(events).values():
         arm = arm_of.get(arrival)
         phase = phase_of.get(arrival)
         if arm is not None and phase is not None:
             out[phase][arm]['unknown_usage_calls'] += 1
-    for phase in out:
+        else:
+            unrevealed['unknown_usage_calls'] += 1
+            started.add(int(arrival))
+    unrevealed['episodes'] = len(started - set(arm_of))
+    unrevealed['tokens_are_lower_bound'] = unrevealed['unknown_usage_calls'] > 0
+    for phase in ('randomizing', 'post_decision'):
         for arm in out[phase]:
             out[phase][arm]['wall_seconds'] = round(out[phase][arm]['wall_seconds'], 6)
             out[phase][arm]['tokens_are_lower_bound'] = \
                 out[phase][arm]['unknown_usage_calls'] > 0
+    cells = [out[p][a] for p in ('randomizing', 'post_decision') for a in out[p]]
+    cells.append(unrevealed)
+    unknown = sum(int(c['unknown_usage_calls']) for c in cells)
+    out['unrevealed'] = unrevealed
+    out['totals'] = {
+        'prompt_tokens': (None if unknown else sum(int(c['prompt_tokens']) for c in cells)),
+        'completion_tokens': (None if unknown
+                              else sum(int(c['completion_tokens']) for c in cells)),
+        'unknown_usage_calls': unknown,
+        'null_reason': 'unknown_usage' if unknown else None}
     return out
 
 
@@ -1940,6 +2302,9 @@ class Attempt:
     logged: set = field(default_factory=set)
     suppress_final: bool = False
     worker_index: int = 0
+    #: the ``worker_resolved`` body of this attempt's worker, once written (repair contract
+    #: EB5); ``None`` while the process may still run -- a used send permit.
+    resolution: dict | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -2056,6 +2421,26 @@ class World:
         #: (protocol 6.4 row 26, 12.4 item 2: ``trial_paused(anchor_unavailable)``).
         self.decision_anchor_failed = False
         self._decision_receipted = False
+        # -- worker resolution (repair contract EB5; root 20:40 item 3, 21:15 item 3) ------
+        #: arrivals whose worker THIS invocation spawned and has not resolved yet: every one
+        #: is a used send permit (no orchestrator gate can revoke a live worker's POST), so
+        #: nothing terminal, no pause and no new pair may be written while one is here.
+        self.live_workers: set[int] = set()
+        #: a worker was recorded ``alive_unresolved`` / ``liveness_unknown`` (by this
+        #: invocation, or by an earlier one on this chain): the phase can no longer complete,
+        #: so nothing new is enrolled or dispatched and no decision is taken; the close's
+        #: resolution verdict then refuses ``trial_ended`` (it is the one gate, EB5 C9).
+        self.unresolved_seen = False
+        #: set by :meth:`close_trial`: a look written while the trial closes (the abort drain's
+        #: reveals, the final flush) never takes a decision -- an abort can only remove
+        #: decisions, never create one (protocol 6.4).
+        self.closing = False
+        #: how long the close waits for every held server to be idle once the clients are
+        #: resolved (``execution.request_timeout_s``, the frozen budget of one request; a
+        #: runtime ``resolution_idle_wait_s`` overrides it in controls only).
+        self.idle_wait_s = float(self.rt.get('resolution_idle_wait_s')
+                                 if self.rt.get('resolution_idle_wait_s') is not None
+                                 else self._execution()['request_timeout_s'])
 
     # -- configuration --------------------------------------------------------
     def _execution(self) -> dict:
@@ -2207,6 +2592,11 @@ class World:
             # reference rule's shadow are untouched: the cap changes no monitor output); only
             # the decision event is not appended.  An abort can only remove decisions,
             # never create one (protocol 6.4).
+            return None
+        if self.closing or self.unresolved_seen:
+            # Repair contract EB5: a look logged while the trial closes (the abort drain's
+            # reveals) or while an unresolved worker makes the phase incomplete takes no
+            # decision -- the look itself is logged unchanged.
             return None
         # The decision is taken here, immediately after the monitor_update it quotes
         # (ordering invariant 7): nothing may sit between the two lines.
@@ -2640,7 +3030,8 @@ class World:
 
     def _ingest_open(self) -> None:
         """Ingest the new spool bytes of every open attempt (as the pump does, without
-        reaping or the hard cap); a spool that cannot be read is an interrupted attempt."""
+        reaping or the hard cap); a spool that cannot be read is an interrupted attempt,
+        revealed only once its worker is killed and reaped (repair contract EB5 item 1)."""
         for arrival in list(self.open_arrivals):
             att = self.attempts.get(arrival)
             if att is None or att.revealed:
@@ -2648,7 +3039,7 @@ class World:
             try:
                 ingest_spool(self, att)
             except SpoolError:
-                self._interrupt(att)
+                self.interrupt_unreadable(att)
 
     def raise_pending(self) -> None:
         """Take the owed supervision outcome once nothing is open: an abort before a pause.
@@ -2659,8 +3050,10 @@ class World:
         rule has succeeded -- or, if it never does, the existing anchor-failure rule pauses
         the trial (``anchor_unavailable``, protocol 6.4 row 26) with the outcome still owed
         (``supervision_state``: an owed abort survives a pause).  An abort taken before the
-        receipt would supersede the decision's blocking anchor with its own."""
-        if self.open_arrivals:
+        receipt would supersede the decision's blocking anchor with its own.  Nothing is
+        taken while a worker this invocation spawned is still unresolved (repair contract
+        EB5)."""
+        if self.open_arrivals or self.live_workers:
             return
         if self.pending_abort is None and self.pending_pause is None:
             return
@@ -2890,6 +3283,7 @@ class World:
         att.pid = self.spawn(att, job_path)
         att.dispatched_mono = time.monotonic()
         self.attempts[att.arrival] = att
+        self.live_workers.add(att.arrival)
         if att.arrival not in self.open_arrivals:
             self.open_arrivals.append(att.arrival)
         self.append('episode_started', {
@@ -2922,26 +3316,44 @@ class World:
         att._log_handle = handle                            # type: ignore[attr-defined]
         return proc.pid
 
-    def kill(self, att: Attempt) -> None:
+    def kill(self, att: Attempt) -> bool:
+        """SIGKILL the worker's process group and confirm the exit.  Returns True only when
+        the process is REAPED (its return code is then ``att.proc.returncode``), False when
+        its exit could not be confirmed within :data:`KILL_CONFIRM_S` -- never swallowed:
+        the caller records ``worker_resolved(alive_unresolved)`` and the trial owes
+        ``trial_aborted(unresolved_worker)`` (repair contract EB5 item 1; the old ``kill``
+        caught every exception of ``proc.wait`` and the reveal followed whether or not the
+        process had exited, understand_eb5 section 2).  An attempt this invocation does not
+        hold (``proc`` None, rebuilt on resume) is killed by pid only if
+        :func:`probe_worker` says it is still that worker."""
         proc = att.proc
         if proc is None:
-            return
+            state, _rc = kill_orphan_worker(att.pid, 'job_%d_%d.json' % (att.arrival,
+                                                                          att.attempt))
+            return state == 'killed_reaped'
+        if proc.poll() is not None:
+            return True
         try:
             os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
         except (ProcessLookupError, PermissionError, OSError):
             try:
                 proc.kill()
-            except Exception:                               # noqa: BLE001
+            except OSError:
                 pass
         try:
-            proc.wait(timeout=5)
-        except Exception:                                   # noqa: BLE001
-            pass
+            proc.wait(timeout=KILL_CONFIRM_S)
+        except subprocess.TimeoutExpired:
+            return False
+        return proc.returncode is not None
 
-    def finished(self, att: Attempt) -> int | None:
+    def finished(self, att: Attempt) -> Any:
+        """The worker's return code once it has exited, ``None`` while it runs, and
+        :data:`WORKER_UNKNOWN` when this invocation holds no process for it (an attempt
+        rebuilt from the chain): that is unknown, never "exited" (repair contract EB5
+        item 3)."""
         proc = att.proc
         if proc is None:
-            return 0
+            return WORKER_UNKNOWN
         return proc.poll()
 
 
@@ -3137,6 +3549,7 @@ def _reveal(world: World, att: Attempt, *, outcome: dict, record_sha256: str,
                           for r in att.lines if r.get('kind') == 'sandbox_exec'))
     ell = certified_ell_from_spool(att.lines)
     known = tokens_known_from_spool(att.lines)
+    usage_complete, unknown_calls = usage_of_lines(att.lines)
     att.revealed = True
     att.ended_mono = att.ended_mono or time.monotonic()
     if att.arrival in world.open_arrivals:
@@ -3158,7 +3571,9 @@ def _reveal(world: World, att: Attempt, *, outcome: dict, record_sha256: str,
         'sandbox_lock_wait_s': float(round(lock_wait, 6)),
         'overlap': _overlap(world, att), 'certified_ell': ell, 'tokens_known': known,
         'recovered_orphan': bool(att.recovered_orphan),
-        'post_decision': bool(att.post_decision)}, durable=True)
+        'post_decision': bool(att.post_decision),
+        'usage_complete': bool(usage_complete),
+        'unknown_usage_calls': int(unknown_calls)}, durable=True)
     cls = outcome.get('error_class')
     if cls in TERMINAL_CLASSES:
         world.terminal_failures += 1
@@ -3223,9 +3638,11 @@ def _step(state: State, ctx: RunContext, world: World) -> State:      # noqa: C9
         # Nothing is open here, so an outcome supervision owes is taken now, before any
         # enrollment (repair contract EB1: no new arrival after a failed restart or the cap).
         world.raise_pending()
-        if world.pairs_enrolled >= world.max_pairs:
+        if world.pairs_enrolled >= world.max_pairs or world.unresolved_seen:
             # the horizon: no further enrollment is possible, so a deferred resume look is
-            # written here and the frozen decide() runs on it (7.1 row 4a).
+            # written here and the frozen decide() runs on it (7.1 row 4a).  A worker that
+            # could not be resolved ends enrollment too (repair contract EB5): the close
+            # then refuses trial_ended by the resolution verdict.
             world.flush_looks()
             return 'DECIDED' if world.decision is not None else 'CLOSING'
         world.scrape('pair_boundary')
@@ -3244,7 +3661,9 @@ def _step(state: State, ctx: RunContext, world: World) -> State:      # noqa: C9
         world.pump()
         if world.decision is not None:
             return 'DECIDED'
-        if not world.open_arrivals:
+        if not world.open_arrivals and not world.live_workers:
+            # the pair boundary waits for both workers to be RESOLVED, not only revealed
+            # (repair contract EB5: a live worker is a used send permit)
             return 'IDLE'
         if any(world.attempts[a].revealed for a in world.pair_arrivals()):
             return 'PARTIAL'
@@ -3258,7 +3677,7 @@ def _step(state: State, ctx: RunContext, world: World) -> State:      # noqa: C9
 
     if state == 'DRAINING':
         world.pump()
-        if world.open_arrivals:
+        if world.open_arrivals or world.live_workers:
             return 'DRAINING'
         return 'ANCHOR_BLOCK'
 
@@ -3301,12 +3720,14 @@ def _step(state: State, ctx: RunContext, world: World) -> State:      # noqa: C9
         world.pump()
         if world.dispatch_follow_up():
             return 'POST_DECISION'
-        if world.open_arrivals:
+        if world.open_arrivals or world.live_workers:
             return 'POST_DECISION'
         return 'CLOSING'
 
     if state == 'CLOSING':
-        world.close_trial('ended')
+        # the resolution verdict may turn the close into trial_aborted(unresolved_worker)
+        if world.close_trial('ended') == 'aborted':
+            return 'ENDED_ABORTED'                           # type: ignore[return-value]
         return 'ENDED'
 
     if state == 'ABORTED':
@@ -3517,26 +3938,7 @@ def _w_pump(self: World) -> dict | None:
     """Reap workers, ingest spools, poll health, enforce the hard cap, take the look."""
     self.health_poll()
     self.ingest_receipts()
-    decision = None
-    for arrival in list(self.open_arrivals):
-        att = self.attempts[arrival]
-        try:
-            ingest_spool(self, att)
-        except SpoolError:
-            self._interrupt(att)
-            continue
-        if att.revealed:
-            continue
-        rc = self.finished(att)
-        if rc is not None:
-            ingest_spool(self, att)
-            if not att.revealed:
-                self._terminal(att, 'worker_died')
-        elif (time.monotonic() - att.dispatched_mono) > self.hard_cap_s:
-            self.kill(att)
-            ingest_spool(self, att)
-            if not att.revealed:
-                self._terminal(att, 'episode_timeout')
+    self.pump_attempts()
     # E2: flush the used-seed registry as soon as this pump saw new seeds, not only at the
     # next dispatch.  Without this the LAST pair's seeds never reach the file -- the trial
     # ends with no further dispatch -- and the next trial of the program would start from a
@@ -3554,6 +3956,249 @@ def _w_pump(self: World) -> dict | None:
         self._auto_abort()
     self.raise_pending()
     return self.decision
+
+
+def _job_name(att: Attempt) -> str:
+    return 'job_%d_%d.json' % (int(att.arrival), int(att.attempt))
+
+
+def _w_pump_attempts(self: World) -> None:
+    """One pass over the attempts: ingest every open spool, reveal from a final line, reap
+    an exited worker, enforce the hard cap -- and resolve every worker (repair contract EB5).
+
+    * A worker seen to have exited is recorded ``worker_resolved(exited, rc)`` BEFORE the
+      ingest of its last lines and before a ``worker_died`` reveal.
+    * At the hard cap the worker is killed and its exit confirmed (``kill`` returns whether
+      it was reaped) and ``worker_resolved(killed_reaped | alive_unresolved)`` is written
+      BEFORE the ``episode_timeout`` reveal.
+    * A spool that cannot be read (``SpoolError``) no longer reveals ``interrupted`` over a
+      live worker: the worker is killed and reaped first (EB5 item 1; understand_eb5 section
+      2, O:2474-2475: "revealed via _interrupt as interrupted with no kill at all").
+    * A worker whose attempt is already revealed (``episode_final`` is written just before
+      the process exits) is still polled until its exit is confirmed (:meth:`poll_resolutions`);
+      it used to be dropped from ``open_arrivals`` and never polled again (O:2477-2478).
+    Never raises ``SpoolError``."""
+    for arrival in list(self.open_arrivals):
+        att = self.attempts[arrival]
+        if att.revealed:
+            continue
+        try:
+            ingest_spool(self, att)
+        except SpoolError:
+            self.interrupt_unreadable(att)
+            continue
+        if att.revealed:
+            continue
+        ended = self._exit_state(att)
+        if ended is not None:
+            if att.resolution is None:
+                self.resolve_worker(att, *ended)
+            try:
+                ingest_spool(self, att)
+            except SpoolError:
+                self._interrupt(att)
+                continue
+            if not att.revealed:
+                self._terminal(att, 'worker_died' if ended[0] == 'exited' else 'interrupted')
+        elif (time.monotonic() - att.dispatched_mono) > self.hard_cap_s:
+            if att.resolution is None:
+                self.kill_and_resolve(att)
+            try:
+                ingest_spool(self, att)
+            except SpoolError:
+                self._interrupt(att)
+                continue
+            if not att.revealed:
+                self._terminal(att, 'episode_timeout')
+    self.poll_resolutions()
+
+
+def _w_interrupt_unreadable(self: World, att: Attempt) -> None:
+    """A spool that cannot be read (``SpoolError``): kill the worker and confirm its exit,
+    THEN reveal the attempt ``interrupted`` (repair contract EB5 item 1).  The worker is
+    killed because its spool can no longer be trusted as the record of what it sends; a
+    worker left running would keep POSTing after its reveal (control C3)."""
+    if att.resolution is None:
+        self.kill_and_resolve(att)
+    self._interrupt(att)
+
+
+def _w__exit_state(self: World, att: Attempt) -> tuple[str, int | None] | None:
+    """``('exited', rc)`` once the worker has exited, ``None`` while it runs.  For an attempt
+    this invocation holds no process for (``finished`` is :data:`WORKER_UNKNOWN`) the pid and
+    the process identity decide (:func:`probe_worker`): gone -> ``('exited', None)``, a ps
+    that cannot answer -> ``('liveness_unknown', None)``, still that worker -> ``None``."""
+    rc = self.finished(att)
+    if rc is WORKER_UNKNOWN:
+        seen = probe_worker(att.pid, _job_name(att))
+        if seen == 'gone':
+            return 'exited', None
+        if seen == 'unknown':
+            return 'liveness_unknown', None
+        return None
+    if rc is None:
+        return None
+    return 'exited', int(rc)
+
+
+def _w_poll_resolutions(self: World) -> None:
+    """Resolve every worker whose attempt is already revealed: poll it until its exit is
+    confirmed, and kill it at the hard cap.  Lines it spools after its reveal (a late call)
+    are still ingested -- they are chain evidence and stay in the exposure ledger -- up to the
+    moment it is resolved."""
+    for arrival in sorted(self.live_workers):
+        att = self.attempts.get(arrival)
+        if att is None or not att.revealed or att.resolution is not None:
+            continue
+        try:
+            ingest_spool(self, att)
+        except SpoolError:
+            self.kill_and_resolve(att)
+            continue
+        ended = self._exit_state(att)
+        if ended is not None:
+            self.resolve_worker(att, *ended)
+        elif (time.monotonic() - att.dispatched_mono) > self.hard_cap_s:
+            self.kill_and_resolve(att)
+        else:
+            continue
+        try:
+            ingest_spool(self, att)
+        except SpoolError:
+            self.findings.append('late_spool_unreadable:%d' % arrival)
+
+
+def _w_resolve_worker(self: World, att: Attempt, state: str,
+                      returncode: int | None) -> dict:
+    """Append ``worker_resolved`` (durable) for ``att`` with the spool's size and digest AT
+    this moment (the offset the deposit is sealed to) and stop treating the worker as a live
+    permit.  A state that does not resolve the worker (``alive_unresolved`` /
+    ``liveness_unknown``) is final: nothing observed later turns it into a resolution
+    (:func:`phase_resolution_verdict` fails an attempt with ANY unresolved record -- root
+    21:14: "killing/reaping does not turn unknown historical usage into zero"), the worker is
+    no longer polled, and :attr:`unresolved_seen` stops all further enrollment and dispatch:
+    a phase with a live or unaccounted worker is incomplete (root 20:40 item 3, 21:15 item
+    3), and the close writes ``trial_aborted(unresolved_worker)``."""
+    body = self._resolution_body(att.arrival, att.attempt, att.pid, state, returncode,
+                                 att.spool)
+    self.append('worker_resolved', body, durable=True)
+    att.resolution = body
+    self.live_workers.discard(att.arrival)
+    if state not in RESOLVED_WORKER_STATES:
+        self.unresolved_seen = True
+    return body
+
+
+def _w__resolution_body(self: World, arrival: int, attempt: int, pid: int, state: str,
+                        returncode: int | None, spool: Path) -> dict:
+    obs = spool_observation(spool)
+    size = obs['bytes'] if isinstance(obs['bytes'], int) else 0
+    return {'arrival': int(arrival), 'attempt': int(attempt), 'pid': int(pid),
+            'state': str(state),
+            'returncode': None if returncode is None else int(returncode),
+            'spool_bytes_at_resolution': int(size),
+            'spool_sha256_at_resolution': str(obs['sha256'] or sha256_bytes(b''))}
+
+
+def _w_kill_and_resolve(self: World, att: Attempt) -> dict:
+    """Kill the worker (unless it has already exited) and record what was confirmed."""
+    ended = self._exit_state(att)
+    if ended is not None and ended[0] == 'exited':
+        return self.resolve_worker(att, 'exited', ended[1])
+    reaped = self.kill(att)
+    rc = (att.proc.returncode if reaped and att.proc is not None
+          and att.proc.returncode is not None else None)
+    return self.resolve_worker(att, 'killed_reaped' if reaped else 'alive_unresolved', rc)
+
+
+def _w_drain_workers(self: World, *, reveal: bool) -> None:
+    """The BOUNDED drain an abort and a pause run first (repair contract EB5 item 2; ARCHITECTURE
+    7.1 rows 24b/27, "let in-flight episodes finish into their spools"; understand_eb5 section
+    2: abort and pause used to close at once, with workers still running and their spools
+    still growing).
+
+    The attempts are pumped until every worker this invocation spawned is resolved -- the
+    hard-cap kill still applies, and a kill whose exit cannot be confirmed resolves the attempt
+    as ``alive_unresolved`` -- so the loop ends at the latest one hard cap plus
+    :data:`KILL_CONFIRM_S` after the last dispatch.  ``reveal`` (the abort, and the close of an
+    ended trial): open attempts are ingested and revealed as the pump does, the looks they
+    produce are logged and take no decision (:attr:`closing`), and neither an automatic abort
+    nor an owed outcome is raised from inside the drain.  Not ``reveal`` (a pause): the
+    processes are only waited for (or killed at the cap); their spools are read by the resumed
+    invocation, which reveals them (the monitor may be what paused the trial, so no look is
+    written here)."""
+    while True:
+        waiting = [a for a in self.open_arrivals
+                   if a in self.attempts and not self.attempts[a].revealed] if reveal else []
+        if not waiting and not self.live_workers:
+            return
+        if reveal:
+            try:
+                self.pump_attempts()
+            except (MonitorError, PauseTrial, lab_common.EnclosureError) as exc:
+                self.findings.append('drain_look:%s' % type(exc).__name__)
+        else:
+            for arrival in sorted(self.live_workers):
+                att = self.attempts[arrival]
+                ended = self._exit_state(att)
+                if ended is not None:
+                    self.resolve_worker(att, *ended)
+                elif (time.monotonic() - att.dispatched_mono) > self.hard_cap_s:
+                    self.kill_and_resolve(att)
+        time.sleep(max(0.005, self.poll_s))
+
+
+def server_idle_observation(base_url: str, *, timeout: float = 5.0) -> dict:
+    """One observation of a server's in-flight work: ``/metrics`` ``requests_processing``
+    (``lab_server.metrics``) and the busy slots of ``/slots`` (``lab_server.health``), each
+    ``None`` when it could not be read -- an unread value is never 0 (``slots_read``)."""
+    got = lab_server.metrics(base_url, timeout=timeout, tries=1)
+    processing = got.get('requests_processing') if got.get('ok') else None
+    if not (isinstance(processing, int) and not isinstance(processing, bool)):
+        processing = None
+    seen = lab_server.health(base_url, timeout=timeout)
+    busy = seen.get('slots_busy') if (seen.get('ok') and seen.get('slots_read', True)) \
+        else None
+    if not (isinstance(busy, int) and not isinstance(busy, bool)):
+        busy = None
+    return {'observed': processing is not None and busy is not None,
+            'requests_processing': processing, 'slots_busy': busy}
+
+
+def _w_observe_servers_idle(self: World) -> dict:
+    """After every client is resolved: each server this invocation still holds, observed until
+    it is idle (``requests_processing == 0`` and no busy slot) or :attr:`idle_wait_s` has
+    passed (repair contract EB5 item 4; understand_eb5 C1: a killed client's request may still
+    be decoding on the server).  A held server whose process has exited holds no request and
+    is not held.  A simulated run's servers are the simulated counters (idle by
+    construction)."""
+    out: dict = {}
+    deadline = time.monotonic() + max(0.0, float(self.idle_wait_s))
+    for server_id, spec in sorted(self.ctx.servers.items()):
+        if self.rt.get('sim'):
+            out[server_id] = {'held': False, 'observed': True, 'requests_processing': 0,
+                              'slots_busy': 0}
+            continue
+        pid = int(self.server_pids.get(server_id) or 0)
+        held = bool(pid)
+        if held:
+            try:
+                held = lab_server.exit_status(pid) is None
+            except lab_common.LabError:
+                held = True
+        obs = {'held': held, 'observed': False, 'requests_processing': None,
+               'slots_busy': None}
+        while held:
+            got = server_idle_observation(spec.base_url)
+            if got['observed']:
+                obs.update(got)
+                if got['requests_processing'] == 0 and got['slots_busy'] == 0:
+                    break
+            if time.monotonic() >= deadline:
+                break
+            time.sleep(0.2)
+        out[server_id] = obs
+    return out
 
 
 def _w__terminal(self: World, att: Attempt, error_class: str) -> None:
@@ -3631,13 +4276,15 @@ def _w_dispatch_follow_up(self: World) -> bool:
     workers = int((self.cfg.get('execution') or {}).get('workers', 2))
     if self.pending_abort is not None or self.pending_pause is not None:
         return False                  # supervision owes an abort or a pause: drain only
-    if len(self.open_arrivals) >= workers:
-        return False
+    if self.unresolved_seen:
+        return False                  # EB5: an unresolved worker ends all dispatch
+    if len(set(self.open_arrivals) | self.live_workers) >= workers:
+        return False                  # a live worker holds its slot until it is resolved
     arrival = self.next_unassigned_arrival()
     if arrival is None:
         return False
     if self.post_decision_dispatched and self.post_decision_dispatched % 50 == 0:
-        if self.open_arrivals:
+        if self.open_arrivals or self.live_workers:
             return False                              # drain before the quiescent scrape
         # The cohort of 50 has drained -- nothing is open -- so this scrape IS quiescent;
         # it is taken before the next arrival is dispatched.  (It used to be taken right
@@ -3667,10 +4314,29 @@ def _w_dispatch_follow_up(self: World) -> bool:
     return True
 
 
-def _w_close_trial(self: World, status: str) -> None:
-    """CLOSING / ABORTED (7.1 rows 26 and 27)."""
+def _w_close_trial(self: World, status: str) -> str:
+    """CLOSING / ABORTED (7.1 rows 26 and 27), with the worker resolution of repair contract
+    EB5 (root 20:40 item 3; root 21:15 item 3, "Unresolved workers/usage make the phase
+    incomplete, not zero"):
+
+    1. the bounded drain (:meth:`drain_workers`): every open attempt is revealed and every
+       worker this invocation spawned is resolved, or recorded ``alive_unresolved`` when its
+       kill could not be confirmed -- an abort no longer closes over running workers;
+    2. every server still held is observed until idle (:meth:`observe_servers_idle`);
+    3. scrape, reconciliation, the exposure ledger, the server stops as before; the deposit
+       is sealed to the recorded resolution offsets (:meth:`seal_deposit`);
+    4. :func:`phase_resolution_verdict` over the chain, the seal's spool observations and the
+       server observation.  If it does not PASS there is NO ``trial_ended``: the terminal
+       record is ``trial_aborted(unresolved_worker)``, its ``resolution`` lists every
+       unresolved attempt and unfinished call, and names the abort reason it superseded.
+       Every terminal record carries its ``resolution`` (verifier ``workers.resolved``).
+
+    Returns the status actually written (``'ended'`` or ``'aborted'``)."""
     assert self.log is not None
+    self.closing = True
+    self.drain_workers(reveal=True)
     self.flush_looks()
+    server_obs = self.observe_servers_idle()
     self.scrape('trial_end')
     self.reconcile()
     ledger = exposure_recount(self.log.events)
@@ -3688,7 +4354,14 @@ def _w_close_trial(self: World, status: str) -> None:
         # described by its server_start_failed record, and one stopped already is not
         # stopped (or recorded) twice.
         self.stop_servers()
-    self.seal_deposit()
+    spool_stats = self.seal_deposit()
+    resolution = phase_resolution_verdict(self.log.events, spool_stats, server_obs)
+    if resolution['verdict'] != 'PASS':
+        resolution['superseded_reason'] = (
+            self.abort_reason if status == 'aborted'
+            and self.abort_reason != UNRESOLVED_WORKER_REASON else None)
+        status = 'aborted'
+        self.abort_reason = UNRESOLVED_WORKER_REASON
     self.append('invocation_ended', {
         'status': 'ended' if status == 'ended' else 'aborted',
         'counts': {'pairs_enrolled': self.pairs_enrolled,
@@ -3714,12 +4387,15 @@ def _w_close_trial(self: World, status: str) -> None:
         'completion': lab_eventlog.completion_record(
             self.log.events, [int(a) for slot in self.ctx.order for a in slot['arrivals']],
             self.restart_cap, mock=self.tree_mock),
+        # repair contract EB5: the resolution verdict taken before this record
+        'resolution': resolution,
     }
     self.append('trial_ended' if status == 'ended' else 'trial_aborted', body,
                 durable=True)
     self.request_anchor('trial_ended' if status == 'ended' else 'trial_aborted',
                         blocking=True)
     self.wait_for_receipt()
+    return status
 
 
 def _w__terminal_by_arm(self: World) -> dict:
@@ -3746,20 +4422,63 @@ def _w_reconcile(self: World) -> None:
         self.append('usage_reconciliation', body, durable=True)
 
 
-def _w_seal_deposit(self: World) -> None:
+def _w_seal_deposit(self: World) -> dict:
+    """``deposit_sealed``: the records and the spools, each spool sealed only up to its
+    worker's recorded resolution offset (repair contract EB5 item 2; understand_eb5 section 3:
+    the old seal hashed spools that live workers were still writing, "a digest of a possibly
+    growing file presented as sealed").  A spool found longer than that offset, or whose
+    first ``spool_bytes_at_resolution`` bytes no longer hash to the recorded digest, is listed
+    in ``late_unread``: its later bytes are never read.  A spool whose worker is not resolved
+    is sealed as it stands (the resolution verdict fails on that worker anyway).  Returns the
+    observation of every spool (stem -> :func:`spool_observation`), which the resolution
+    verdict reads: the verdict and the seal see the same bytes."""
+    assert self.log is not None
     records = sorted(self.ctx.paths.records.glob('*.json')) \
         if self.ctx.paths.records.exists() else []
     spools = sorted(self.ctx.paths.spools.glob('*.jsonl')) \
         if self.ctx.paths.spools.exists() else []
-    manifest = {'records': [sha256_file(p) for p in records],
-                'spools': [sha256_file(p) for p in spools]}
+    last = last_worker_resolutions(self.log.events)
+    by_stem = {spool_name(*key): rec for key, rec in last.items()
+               if rec['state'] in RESOLVED_WORKER_STATES}
+    stats: dict = {}
+    sealed: list = []
+    late: list = []
+    total = sum(p.stat().st_size for p in records)
+    for path in spools:
+        rec = by_stem.get(path.stem)
+        upto = int(rec['spool_bytes_at_resolution']) if rec is not None else None
+        obs = spool_observation(path, upto)
+        stats[path.stem] = obs
+        found = obs['bytes'] if isinstance(obs['bytes'], int) else 0
+        if rec is None:
+            sealed.append(obs['sha256'] or sha256_bytes(b''))
+            total += found
+            continue
+        sealed.append(obs['prefix_sha256'] or obs['sha256'] or sha256_bytes(b''))
+        total += min(found, int(upto))
+        if found != upto or obs['prefix_sha256'] != rec['spool_sha256_at_resolution']:
+            late.append({'arrival': int(rec['arrival']), 'attempt': int(rec['attempt']),
+                         'bytes_at_resolution': int(upto), 'bytes_found': int(found)})
+    for stem, rec in sorted(by_stem.items()):
+        if stem not in stats:
+            # a worker that died before its first line left no spool: observed as 0 bytes,
+            # which is what its resolution recorded (a spool appearing later is late)
+            path = self.ctx.paths.spools / ('%s.jsonl' % stem)
+            stats[stem] = spool_observation(path, int(rec['spool_bytes_at_resolution']))
+    manifest = {'records': [sha256_file(p) for p in records], 'spools': sealed}
     self.append('deposit_sealed', {
         'deposit_sha256': sha256_canonical(manifest),
-        'deposit_bytes': sum(p.stat().st_size for p in records + spools),
-        'n_records': len(records), 'n_spools': len(spools)}, durable=True)
+        'deposit_bytes': int(total),
+        'n_records': len(records), 'n_spools': len(spools),
+        'late_unread': late}, durable=True)
+    return stats
 
 
 def _w_write_pause(self: World) -> None:
+    # Repair contract EB5 item 2: the bounded drain first -- every worker this invocation
+    # spawned runs into its spool or is killed at its hard cap, and is resolved; the resumed
+    # invocation reveals what the spools hold.  A pause no longer ends over running workers.
+    self.drain_workers(reveal=False)
     # An invocation that ends paused leaves no server behind: the servers it started are
     # stopped, each with a durable server_stopped record, before trial_paused (repair
     # contract EB1 item 4).  The resumed invocation stops any recorded server that is still
@@ -3826,6 +4545,26 @@ def resume_into(ctx: RunContext, world: World) -> State:
         'boottime_hash': lab_common.boottime_hash() or '0' * 64,
         'drift': list(drift)}, durable=True)
 
+    # (0) Repair contract EB5 item 3: every worker an earlier invocation spawned and never
+    # recorded as resolved is resolved NOW, before any server is touched and before anything
+    # is revealed: gone -> worker_resolved(exited); still that worker (pid + start time + its
+    # job file, probe_worker) -> killed by process group and reaped -> worker_resolved(
+    # killed_reaped).  If one cannot be resolved the invocation REFUSES: nothing is revealed
+    # (never a live orphan as `interrupted`), nothing is started or dispatched.
+    if not world.resolve_previous_workers(events):
+        return 'ENDED_REFUSED'                               # type: ignore[return-value]
+    # The plan is taken again over the spools as they stand after the kills: a worker that
+    # wrote its final line between the first plan and its kill is revealed from it.
+    events = world.log.events
+    spools = {}
+    if ctx.paths.spools.exists():
+        for path in sorted(ctx.paths.spools.glob('ep_*.jsonl')):
+            try:
+                spools[path.stem] = read_whole_spool(path)
+            except SpoolError:
+                spools[path.stem] = []
+    plan = plan_resume(events, spools, ctx.order, frozen_cfg(ctx.cfg))
+
     live = plan.phase in ('randomizing', 'post_decision')
     supervised = not world.rt.get('sim')
     # (1) Repair contract EB1 item 4: a server an earlier invocation started and never
@@ -3881,6 +4620,93 @@ def resume_into(ctx: RunContext, world: World) -> State:
     if world.open_arrivals:
         return 'RUNNING'
     return 'IDLE'
+
+
+def _w_resolve_previous_workers(self: World, events: Sequence[Mapping]) -> bool:
+    """Resume, repair contract EB5 item 3: resolve every worker an earlier invocation spawned
+    whose attempt has no resolving ``worker_resolved`` yet; True when all are resolved.
+
+    The workers are the ``episode_started`` of the chain (pid ``worker_pid``, dispatched at
+    ``dispatched_ns``) and -- because ``episode_started`` is not durable -- every spool whose
+    ``job_accepted`` names a pid for an arrival the chain never recorded as started.  Each
+    is read by :func:`probe_worker` (pid AND identity: its command line names its own job
+    file, it started no later than its dispatch): gone -> ``worker_resolved(exited)`` with
+    return code null (it was never this process's child); still that worker ->
+    :func:`kill_orphan_worker` (SIGKILL to its own process group, then confirmed gone) ->
+    ``worker_resolved(killed_reaped)``.  One that cannot be resolved (its kill not confirmed,
+    or ``ps`` could not answer) is NOT recorded: this invocation refuses --
+    ``invocation_ended(refused)`` with the counts -- and reveals, starts and dispatches
+    nothing; a later resume tries again.  ``finished()`` of such an attempt used to be ``0``
+    ("exited"), and ``_w_reveal_interrupted`` revealed it with no liveness check
+    (understand_eb5 section 2, O:1930-1934, O:2923-2938)."""
+    last = last_worker_resolutions(events)
+    candidates: dict[int, tuple[int, int | None]] = {}
+    for ev in events:
+        if ev['type'] == 'episode_started':
+            body = ev['body']
+            candidates.setdefault(int(body['arrival']),
+                                  (int(body['worker_pid']), int(body['dispatched_ns'])))
+    spool_dir = self.ctx.paths.spools
+    if spool_dir.exists():
+        for path in sorted(spool_dir.glob('ep_*_1.jsonl')):
+            try:
+                arrival = int(path.stem.split('_')[1])
+            except (IndexError, ValueError):
+                continue
+            if arrival in candidates:
+                continue
+            first = b''
+            try:
+                with open(path, 'rb') as fh:
+                    first = fh.readline()
+                row = json.loads(first.decode('utf-8'))
+            except (OSError, ValueError, UnicodeDecodeError):
+                row = None
+            pid = row.get('pid') if isinstance(row, dict) \
+                and row.get('kind') == 'job_accepted' else None
+            if isinstance(pid, int) and not isinstance(pid, bool) and pid > 0:
+                candidates[arrival] = (pid, None)
+    refused = {'alive_unresolved': 0, 'liveness_unknown': 0}
+    for arrival in sorted(candidates):
+        rec = last.get((arrival, 1))
+        if rec is not None and rec['state'] in RESOLVED_WORKER_STATES:
+            continue
+        pid, not_after = candidates[arrival]
+        job = 'job_%d_1.json' % arrival
+        seen = probe_worker(pid, job, not_after_ns=not_after)
+        rc: int | None = None
+        if seen == 'gone':
+            state = 'exited'
+        elif seen == 'alive':
+            state, rc = kill_orphan_worker(pid, job, not_after_ns=not_after)
+        else:
+            state = 'liveness_unknown'
+        if state not in RESOLVED_WORKER_STATES:
+            refused[state] += 1
+            continue
+        body = self._resolution_body(arrival, 1, pid, state, rc,
+                                     spool_dir / ('%s.jsonl' % spool_name(arrival)))
+        self.append('worker_resolved', body, durable=True)
+        att = self.attempts.get(arrival)
+        if att is not None:
+            att.resolution = body
+            if att.revealed:
+                # a worker that outlived its own reveal may have spooled calls after it:
+                # they are chain evidence and stay in the exposure ledger (never "unsent")
+                att.offset, att.lines = 0, []
+                try:
+                    ingest_spool(self, att)
+                except SpoolError:
+                    self.findings.append('late_spool_unreadable:%d' % arrival)
+    if refused['alive_unresolved'] or refused['liveness_unknown']:
+        self.append('invocation_ended', {
+            'status': 'refused',
+            'counts': {'workers_alive_unresolved': refused['alive_unresolved'],
+                       'workers_liveness_unknown': refused['liveness_unknown'],
+                       'pairs_enrolled': self.pairs_enrolled,
+                       'pairs_completed': self.pairs_completed}}, durable=True)
+        return False
+    return True
 
 
 def _w_rebuild_from_chain(self: World, events: Sequence[Mapping], plan: ResumePlan) -> None:
@@ -3965,6 +4791,14 @@ def _w_rebuild_from_chain(self: World, events: Sequence[Mapping], plan: ResumePl
             if att is not None:
                 att.revealed = True
                 att.logged.add(('episode_final', ''))
+        elif ev['type'] == 'worker_resolved':
+            att = self.attempts.get(int(ev['body']['arrival']))
+            if att is not None:
+                att.resolution = dict(ev['body'])
+            if ev['body']['state'] not in RESOLVED_WORKER_STATES:
+                # an earlier invocation's pump or pause drain recorded a worker it could
+                # not resolve: the phase can no longer complete (EB5)
+                self.unresolved_seen = True
     self.pairs_completed = sum(
         1 for pair in set(self.pair_of_arrival.values())
         if len([a for a, p in self.pair_of_arrival.items() if p == pair
@@ -4131,6 +4965,7 @@ def _w_reveal_interrupted(self: World, arrival: int, lines: Sequence[Mapping],
     att = self._ensure_attempt(arrival, plan)
     if att is None or att.revealed:
         return
+    self.assert_resolved_before_interrupt(int(arrival))
     att.offset = 0
     att.lines = []
     att.suppress_final = True
@@ -4139,6 +4974,21 @@ def _w_reveal_interrupted(self: World, arrival: int, lines: Sequence[Mapping],
     ingest_spool(self, att)
     if not att.revealed:
         self._terminal(att, 'interrupted')
+
+
+def _w_assert_resolved_before_interrupt(self: World, arrival: int) -> None:
+    """Repair contract EB5 item 3: never an ``interrupted`` reveal over a worker that is not
+    recorded as resolved.  An arrival that ran (its spool holds bytes) must have a
+    ``worker_resolved`` of a resolving state on the chain; :meth:`resolve_previous_workers`
+    runs first and refuses the invocation otherwise, so reaching the raise is the harness's
+    own defect, never a reveal."""
+    assert self.log is not None
+    path = self.ctx.paths.spools / ('%s.jsonl' % spool_name(arrival))
+    ran = path.exists() and path.stat().st_size > 0
+    state = effective_worker_states(self.log.events).get((int(arrival), 1))
+    if ran and state not in RESOLVED_WORKER_STATES:
+        raise lab_common.LabError('refusing to reveal arrival %d as interrupted: its '
+                                  'worker is not resolved' % int(arrival))
 
 
 def _w_redispatch(self: World, arrival: int, plan: ResumePlan) -> None:
@@ -4196,7 +5046,8 @@ WORLD_FACTORY: Any = None
 
 def run_trial(ctx: RunContext, *, resume: bool = True) -> str:
     """The whole trial.  Returns the terminal status (``'ended'`` | ``'aborted'`` |
-    ``'paused'``).  Single-threaded."""
+    ``'paused'``), or ``'refused'`` when a resumed invocation could not resolve an earlier
+    invocation's worker (repair contract EB5).  Single-threaded."""
     rt = runtime(ctx.cfg)
     ctx.paths.mkdirs()
     lock = RunLock(ctx.paths.run_lock, ctx.inv)
@@ -4275,9 +5126,9 @@ def run_trial(ctx: RunContext, *, resume: bool = True) -> str:
                     world.abort_reason = 'server_identity'
                 state = 'ABORTED'
                 continue
-            if nxt in ('ENDED', 'ENDED_ABORTED', 'ENDED_PAUSED'):
+            if nxt in ('ENDED', 'ENDED_ABORTED', 'ENDED_PAUSED', 'ENDED_REFUSED'):
                 status = {'ENDED': 'ended', 'ENDED_ABORTED': 'aborted',
-                          'ENDED_PAUSED': 'paused'}[nxt]
+                          'ENDED_PAUSED': 'paused', 'ENDED_REFUSED': 'refused'}[nxt]
                 break
             if nxt == state:
                 time.sleep(world.poll_s)
@@ -4485,7 +5336,8 @@ def main(argv: list[str] | None = None) -> int:
     """CLI: ``--trial T4 --config results/live_ab/freeze/config.json [--resume]
     [--mock URL] [--max-pairs N (mock only)] [--results DIR] [--work DIR]
     [--llama-bin PATH] [--gguf coder=PATH] [--gguf t3=PATH]``.
-    Exit 0 ended, 1 aborted, 2 paused, 3 preflight refusal."""
+    Exit 0 ended, 1 aborted, 2 paused, 3 preflight refusal or a resumed invocation that
+    refused because an earlier invocation's worker could not be resolved (EB5)."""
     ap = argparse.ArgumentParser(prog='lab_orchestrator')
     ap.add_argument('--trial', required=True, choices=list(lab_common.TRIALS))
     ap.add_argument('--config', required=True)
@@ -4541,7 +5393,7 @@ def main(argv: list[str] | None = None) -> int:
     except PreflightError:
         return 3
     status = run_trial(ctx, resume=args.resume)
-    return {'ended': 0, 'aborted': 1, 'paused': 2}.get(status, 1)
+    return {'ended': 0, 'aborted': 1, 'paused': 2, 'refused': 3}.get(status, 1)
 
 
 if __name__ == '__main__':                                   # pragma: no cover
