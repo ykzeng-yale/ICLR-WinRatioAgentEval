@@ -16,6 +16,11 @@ of the argv is ``lab_orchestrator.main``'s.  Never used outside ``tests_eb1_entr
   added) becomes a no-op, restoring the EB1b behaviour in which a server that exited after
   the last health poll was handed the next pair.  ``tests_eb1_entry.C4bExitBetweenPairs``
   shows its assertions fail under it.
+* ``gate_without_chain_orphans`` -- the hard host gate of HEAD 2437a24 (EB1 fix, reviewer 1
+  finding 2): only this orchestrator is allowlisted, so a recorded server of the trial that
+  survived its killed invocation is a foreign consumer and the resume is refused before
+  ``resume_into`` could stop it.  ``tests_eb1_entry.C10ResumeStopsTheOrphan`` shows the
+  resume refused ``host_not_quiescent`` under it.
 
 Prepared and checked by AI agent sessions; not human peer review or author sign-off
 (protocol 14.7).
@@ -77,7 +82,16 @@ def placeholder_start(spec, *, timeout_s: float = 600.0, **_ignored) -> dict:
 
 
 #: The mutations this entry can restore, by name (``--mutation NAME`` comes first).
-MUTATIONS: tuple[str, ...] = ('placeholder', 'no_boundary_exit_check')
+MUTATIONS: tuple[str, ...] = ('placeholder', 'no_boundary_exit_check',
+                               'gate_without_chain_orphans')
+
+
+def pre_fix_gate(ctx):
+    """``lab_orchestrator.host_quiescence_gate`` as it was at 2437a24."""
+    if not lab_orchestrator.host_scan_is_required(ctx.cfg):
+        return None
+    return lab_orchestrator.lab_hostcheck.preflight_host_quiescent(
+        lab_orchestrator.own_harness_pids())
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -88,6 +102,8 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     if argv[1] == 'placeholder':
         lab_server.start = placeholder_start
+    elif argv[1] == 'gate_without_chain_orphans':
+        lab_orchestrator.host_quiescence_gate = pre_fix_gate
     else:
         # the pre-fix pair boundary: an exited server is seen only by the next health poll
         lab_orchestrator.World.supervise_exits = lambda self: None

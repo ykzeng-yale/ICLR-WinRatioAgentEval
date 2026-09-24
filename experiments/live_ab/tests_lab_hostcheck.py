@@ -1201,6 +1201,10 @@ class OrchestratorWiringTests(unittest.TestCase):
             orch.WORLD_FACTORY = SimWorld
             cfg = tree._cfg()
             cfg['_runtime']['sim'] = False        # a gated invocation
+            # ... whose golden objects are the freeze tree's: a runtime `golden` overlay is
+            # refused before the gate on every path that is not simulated (EB1 fix, reviewer
+            # 1 finding 8), and this test is about the gate
+            cfg['_runtime'].pop('golden', None)
             ctx = orch.make_context(tree.trial, cfg, results_root=tree.results,
                                     work_root=tree.work, inv=uuid.uuid4().hex)
             self.assertTrue(orch.host_scan_is_required(ctx.cfg))

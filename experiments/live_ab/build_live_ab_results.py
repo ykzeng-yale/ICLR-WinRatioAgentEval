@@ -751,20 +751,31 @@ def build(trials: Sequence[str], bundle_sha: str, *, results_root: Path, work_ro
     """Read the chains and the record files and write every table of 3.15.
 
     ``mock`` is forced on when any input chain's configuration marks it a dry run, so a
-    mock output can never be mistaken for a trial's."""
+    mock output can never be mistaken for a trial's -- and ALSO when any input chain
+    carries a simulated server body (``lab_eventlog.is_sim_server_body``): a chain that
+    started no server is a dry run whatever its configuration says (EB1 fix, reviewer 1
+    finding 5; the verifier's ``server.lifecycle`` FAILs such a chain under a configuration
+    that is not a dry run)."""
     results_root = Path(results_root)
     work_root = Path(work_root)
     out_dir = Path(out_dir)
     cfg_path = results_root / 'freeze' / 'config.json'
     cfg = _read(cfg_path) if cfg_path.exists() else {}
     mock = bool(mock or cfg.get('mock') or cfg.get('mock_overrides'))
-    summary: dict = {'trials': {}, 'bundle_sha256': bundle_sha, 'files': {}}
+    reads: dict = {}
     for trial in trials:
         events_dir = results_root / trial / 'events'
-        if not events_dir.exists():
+        if events_dir.exists():
+            reads[trial] = lab_eventlog.read_chain(events_dir, trial, bundle_sha)
+            mock = mock or any(
+                e['type'] in ('server_started', 'server_restarted')
+                and lab_eventlog.is_sim_server_body(e['body']) for e in reads[trial].events)
+    summary: dict = {'trials': {}, 'bundle_sha256': bundle_sha, 'files': {}}
+    for trial in trials:
+        if trial not in reads:
             summary['trials'][trial] = {'status': 'not_started'}
             continue
-        read = lab_eventlog.read_chain(events_dir, trial, bundle_sha)
+        read = reads[trial]
         events = read.events
         tdir = out_dir / trial
         pairs = pair_rows(events, cfg)

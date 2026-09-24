@@ -263,6 +263,23 @@ def server_start_kind(events: Sequence[Mapping]) -> str:
 #: The two events that answer a ``server_down`` or a ``server_start_failed`` for every server.
 _LIFECYCLE_STOPS: tuple[str, ...] = ('trial_paused', 'trial_aborted')
 
+#: ``trial_aborted.reason`` that must answer a FIRST start's ``server_start_failed``, by its
+#: stage: ``lab_orchestrator.START_FAILURE_REASON``, transcribed because the isolation matrix
+#: (ARCHITECTURE_FINAL.md 3.16) forbids this module to import the orchestrator;
+#: ``tests_eb1_supervision`` asserts the two maps are equal.
+FIRST_START_ABORT_REASON: dict[str, str] = {
+    'gguf': 'server_identity', 'serving_manifest': 'server_identity',
+    'identity': 'server_identity', 'smoke': 'receipt_mismatch',
+    'launch': 'infrastructure', 'health': 'infrastructure',
+}
+
+
+def _config_is_mock(cfg: Mapping | None) -> bool:
+    """Whether the FROZEN configuration marks its tree a dry run: the same rule as the
+    results builder's MOCK banner (``mock`` or ``mock_overrides`` present and truthy)."""
+    cfg = cfg or {}
+    return bool(cfg.get('mock') or cfg.get('mock_overrides'))
+
 
 def _answer_after(events: Sequence[Mapping], index: int, answers) -> str:
     """Scan forward from ``events[index]``: ``'answered'`` when an event ``answers(ev)``
@@ -283,23 +300,29 @@ def _check_server_lifecycle(col: _Collector, events: Sequence[Mapping],
 
     Skipped (passed) only when every ``server_started`` / ``server_restarted`` body is the
     simulated one (``server_start_kind``, decided by the sentinel digests, never by the flags
-    under test); a chain mixing simulated and live bodies fails.  What it performs:
+    under test) AND the frozen configuration marks the tree a dry run (``mock`` or
+    ``mock_overrides``, the results builder's MOCK rule).  A simulated chain under a
+    configuration that is not a dry run FAILS (``simulated_under_live_config``): the
+    sentinels are values the chain writer controls, so they alone may not switch the check
+    off (EB1 fix, reviewer 1 finding 5).  A chain mixing simulated and live bodies fails.
+    What it performs:
 
     1. ``verified_start``: every live ``server_started`` / ``server_restarted`` carries
        ``props_matches_golden: true`` and a smoke with ``receipt_matches_golden: true`` and
-       ``ok: true`` -- the orchestrator appends only bodies ``lab_server.start`` returned
-       after those comparisons passed, so any other value is a body it could not have
-       written -- AND its ``props_sha256`` is the golden digest of that server, as recorded
-       by the chain's ``trial_started.golden_props_sha256`` and by the frozen
+       ``ok: true``, AND its ``props_sha256`` is the golden digest of that server, as
+       recorded by the chain's ``trial_started.golden_props_sha256`` and by the frozen
        ``config.receipt.golden_props_sha256`` (each that is present must match; the
-       orchestrator writes the former from the latter at seq 0).  ``lab_server.start``
-       computes ``props_sha256`` over the tokenized observation, which IS the golden object
-       exactly when ``props_matches_golden`` is true, so this is the one claim of the body
-       the verifier can check against the freeze.  A success-valued body that did not come
-       from that comparison fails it: the pre-repair placeholder (b049307) hashed the raw
-       ``/props`` (EB1c mutation control, ``tests_eb1_entry.MutationControl``).  With
-       neither golden digest present (or a non-digest value) every live start fails:
-       nothing could be checked against it.
+       orchestrator writes the former from the latter at seq 0).  With neither golden
+       digest present (or a non-digest value) every live start fails: nothing could be
+       checked against it.  What this rejects: a body whose flags are not all true, and a
+       body whose digest is not the frozen golden one -- such as the pre-repair placeholder
+       (b049307), which hashed the RAW ``/props`` (``tests_eb1_entry.MutationControl``).
+       What it CANNOT detect: a fabricated body that copies the golden digest and sets the
+       flags true, whatever the server actually served -- the verifier reads no server and
+       has no per-start observation of its own to compare with (EB1 fix, reviewer 2 finding
+       2; ``tests_eb1_supervision.VerifiedStartScopeTests`` pins this limit).  That a live
+       body came from ``lab_server.start``'s comparisons rests on the orchestrator code (the
+       harness pin) and on the EB1c controls, not on this check.
     2. ``down_answered``: every ``server_down`` is followed by a ``server_restarted`` or
        ``server_start_failed`` of the same server, a ``trial_paused`` or a
        ``trial_aborted`` -- and by it BEFORE any further ``episode_started`` (a server that
@@ -312,6 +335,11 @@ def _check_server_lifecycle(col: _Collector, events: Sequence[Mapping],
        carries no well-formed cap fails: the cap could not be checked.
     4. ``failure_answered``: every ``server_start_failed`` is followed by ``trial_aborted``
        or ``trial_paused`` before any further ``episode_started`` (same pending rule as 2).
+       A FIRST start's failure -- ``kind='start'`` before the chain's first
+       ``invocation_started``, which only a resumed invocation writes -- must be answered
+       by ``trial_aborted`` with the reason :data:`FIRST_START_ABORT_REASON` gives its stage
+       (``state: 'wrong_answer'`` otherwise): a pause there would let a resume run the trial
+       the live rules had aborted (EB1 fix, reviewer 1 finding 1).
     5. ``cap_abort_iff_required``: ``trial_aborted(server_restart_cap)`` exists IFF some
        ``server_down`` found its server's attempted restarts already at the cap (a restart
        beyond the cap would have been required); on a chain that is not yet terminal only the
@@ -323,8 +351,12 @@ def _check_server_lifecycle(col: _Collector, events: Sequence[Mapping],
     events = list(events)
     kind = server_start_kind(events)
     if kind == 'simulated':
-        col.ok(check)
-        return
+        if _config_is_mock(cfg):
+            col.ok(check)
+            return
+        col.add(check, {'rule': 'simulated_under_live_config',
+                        'error': 'simulated server bodies under a configuration that is '
+                                 'not a dry run'})
     if kind == 'mixed':
         col.add(check, {'rule': 'mixed',
                         'error': 'simulated and live server bodies in one chain'})
@@ -368,7 +400,15 @@ def _check_server_lifecycle(col: _Collector, events: Sequence[Mapping],
                                 'state': state}, seq=ev['seq'])
         elif ev['type'] == 'server_start_failed':
             state = _answer_after(events, i, lambda e: e['type'] in _LIFECYCLE_STOPS)
-            if state == 'dispatched' or (state == 'open' and terminal):
+            first_start = (ev['body'].get('kind') == 'start' and not any(
+                e['type'] == 'invocation_started' for e in events[:i]))
+            if state == 'answered' and first_start:
+                answer = next(e for e in events[i + 1:] if e['type'] in _LIFECYCLE_STOPS)
+                want = FIRST_START_ABORT_REASON.get(str(ev['body'].get('stage')))
+                if answer['type'] != 'trial_aborted' \
+                        or answer['body'].get('reason') != want:
+                    state = 'wrong_answer'
+            if state in ('dispatched', 'wrong_answer') or (state == 'open' and terminal):
                 col.add(check, {'rule': 'failure_answered',
                                 'server_id': str(ev['body'].get('server_id')),
                                 'state': state}, seq=ev['seq'])

@@ -78,13 +78,23 @@ START_STAGES: tuple[str, ...] = ('gguf', 'serving_manifest', 'launch', 'health',
 
 #: The start-failure findings that are neither identity nor receipt codes (contract EB1).
 #: ``process_exited``: the launch produced no live process (the OS refused the exec, or the
-#: child exited before ``/health`` answered 200).  ``health_timeout``: it never answered
-#: within ``timeout_s``.  ``smoke_transport``: the smoke completion did not arrive as an HTTP
-#: 200 JSON object.  ``smoke_no_usage``: a key the event schema's closed USAGE / TIMINGS
-#: sets require was absent -- never replaced by 0.  ``serving_manifest``: the frozen serving
-#: manifest was absent or did not re-verify (protocol 5.3, P:918).
+#: child exited before it was healthy).  ``health_timeout``: it was not healthy -- ``/health``
+#: 200 with the child itself the port's only listener -- within ``timeout_s``.
+#: ``smoke_transport``: the smoke completion did not arrive as an HTTP 200 JSON object.
+#: ``smoke_no_usage``: a key the event schema's closed USAGE / TIMINGS sets require was
+#: absent -- never replaced by 0.  ``serving_manifest``: the frozen serving manifest was
+#: absent or did not re-verify (protocol 5.3, P:918).
 START_FINDINGS: tuple[str, ...] = ('process_exited', 'health_timeout', 'smoke_transport',
                                    'smoke_no_usage', 'serving_manifest')
+
+#: The finding :func:`start` records when an ``Exception`` it did not anticipate ends a stage
+#: after the launch (EB1 fix, reviewer 1 finding 7).  Each is the closed code of "this stage
+#: could not be completed": the child never became healthy (``launch`` / ``health``), its
+#: ``/props`` could not be compared (``identity``), its smoke answer was not a usable
+#: completion (``smoke``).  The record never carries the exception's text.
+UNANTICIPATED_FINDING: dict[str, str] = {
+    'launch': 'process_exited', 'health': 'health_timeout', 'identity': 'props_mismatch',
+    'smoke': 'smoke_transport'}
 
 #: The event schema's closed ``USAGE`` and ``TIMINGS`` key sets (``lab_eventlog.USAGE`` /
 #: ``lab_eventlog.TIMINGS``), transcribed because the matrix forbids importing
@@ -241,7 +251,11 @@ def identity_findings(spec: ServerSpec, props: Mapping, models: Mapping | None =
     if spec.llama_commit[:7] not in str(props.get('build_info') or ''):
         findings.add('build_info')
     if models is not None:
-        ids = [d.get('id') for d in (models.get('data') or []) if isinstance(d, Mapping)]
+        # a ``data`` member that is not a list (or a listing that is not an object) lists
+        # nothing: it is the finding, never a TypeError (EB1 fix, reviewer 1 finding 7)
+        data = models.get('data') if isinstance(models, Mapping) else None
+        ids = [d.get('id') for d in (data if isinstance(data, list) else [])
+               if isinstance(d, Mapping)]
         if spec.alias not in ids:
             findings.add('models_endpoint')
     sps = props_slot_prompt_similarity(props)
@@ -314,7 +328,10 @@ def health(base_url: str, *, timeout: float = 5.0) -> dict:
     try:
         slots = requests.get(root + '/slots', timeout=timeout).json()
         if isinstance(slots, list):
-            out['slots_busy'] = sum(1 for s in slots if s.get('is_processing'))
+            # an element that is not an object is not a busy slot (EB1 fix, reviewer 1
+            # finding 7: a malformed 200 answer must not raise out of a never-raising call)
+            out['slots_busy'] = sum(1 for s in slots
+                                    if isinstance(s, Mapping) and s.get('is_processing'))
     except (requests.RequestException, ValueError):
         pass
     return out
@@ -474,9 +491,16 @@ def start(spec: ServerSpec, *, golden_props: Mapping | None = None,
     * ``gguf`` -- :func:`assert_gguf` (bytes and recomputed SHA-256);
     * ``serving_manifest`` -- :func:`serving_manifest_problems`; an ABSENT manifest is a
       failure of this stage, never a skip (P:918: re-verified at every start and restart);
-    * ``launch`` -- the OS refused the exec, or the child exited before ``/health`` answered
-      200 (``process_exited``, with the child's return code; never ``build_info``);
-    * ``health`` -- no 200 within ``timeout_s`` (``health_timeout``);
+    * ``launch`` -- the OS refused the exec, or the child exited before it was healthy
+      (``process_exited``, with the child's return code; never ``build_info``);
+    * ``health`` -- the child is healthy only when ``/health`` on the frozen port answers
+      200 AND :func:`listening_pids` of that port is exactly ``{child pid}``; not so within
+      ``timeout_s`` is ``health_timeout``.  A 200 from any other process on the port -- a
+      foreign listener, or a leftover server -- is never taken as the child's health, so no
+      ``/props`` or smoke of another process is ever recorded under the child's pid (EB1
+      fix, reviewers 1 and 2: a launcher that never bound the port used to get a
+      success-valued body from the listener that did).  An unreadable listener table is
+      not "ours" either: the stage keeps polling and times out;
     * ``identity`` -- :func:`identity_findings` on the RAW ``/props`` (a probe that fails is
       ``props_mismatch``), the full TOKENIZED object against ``golden_props``, and the raw
       ``build_info`` against the manifest's ``props_build_info``;
@@ -484,14 +508,23 @@ def start(spec: ServerSpec, *, golden_props: Mapping | None = None,
       TIMINGS sets; a missing key is ``smoke_no_usage`` (never 0), a transport failure
       ``smoke_transport``, and the receipt is compared finding for finding with ``golden``.
 
-    On EVERY failure after the child was launched -- including an exception this function
-    did not anticipate -- the child is stopped through :func:`stop` before anything is
-    raised, so no failed start leaves a process behind.  The raised record's ``returncode``
-    is the one that stop observed.
+    On EVERY failure after the child was launched the child is stopped through :func:`stop`
+    before anything is raised, so no failed start leaves a process behind.  The raised
+    record's ``returncode`` is the one that stop observed.  An ``Exception`` this function
+    did not anticipate (a malformed answer a check did not model) is ALSO a
+    ``ServerStartFailed``, recorded under the stage that was running with that stage's
+    generic finding from :data:`UNANTICIPATED_FINDING` -- it names the stage that could not
+    be completed, not the exception -- so the caller's failure handling, and the chain's
+    ``server_start_failed`` record, cover it (EB1 fix, reviewer 1 finding 7: a plain
+    ``TypeError`` used to escape the orchestrator after ``trial_started``).  A
+    ``BaseException`` that is not an ``Exception`` (an interrupt) still stops the child and
+    propagates unchanged.
 
     Refused before any side effect, with ``PreflightError``: ``mode='trial'`` (the default,
     every trial start and restart) without ``golden_props``, ``golden`` and ``sampling`` --
-    there is no placeholder smoke; an unknown ``mode`` or ``kind``.  ``mode='capture'`` is
+    there is no placeholder smoke; ``mode='trial'`` with ``recompute_gguf_sha256=False``,
+    which would put the configuration's digest in the body as if it had been observed (EB1
+    fix, reviewer 1 finding 9); an unknown ``mode`` or ``kind``.  ``mode='capture'`` is
     the pre-freeze capture of protocol 5.8 item 1, where the golden objects are being made:
     it may omit them, and then returns ``props_matches_golden: None`` / ``smoke: None`` --
     values the ``server_started`` schema rejects, so a capture body can never be appended as
@@ -508,6 +541,10 @@ def start(spec: ServerSpec, *, golden_props: Mapping | None = None,
         raise lab_common.PreflightError(
             'lab_server.start: a trial start needs golden_props, golden and sampling; a '
             'start that cannot compare is refused, never given a placeholder smoke')
+    if mode == 'trial' and not recompute_gguf_sha256:
+        raise lab_common.PreflightError(
+            'lab_server.start: a trial start recomputes the GGUF SHA-256; a copied digest '
+            'is not an observation')
     argv = server_argv(spec)
     record: dict[str, Any] = {
         'server_id': spec.server_id, 'kind': kind, 'stage': None, 'findings': [],
@@ -549,15 +586,24 @@ def start(spec: ServerSpec, *, golden_props: Mapping | None = None,
     except OSError:
         fail('launch', ['process_exited'])
     _CHILDREN[proc.pid] = proc
+    stage = 'launch'
+    load_seconds = 0.0
+    props_sha: str | None = None
     try:
         base = spec.base_url
         deadline = time.perf_counter() + float(timeout_s)
         # -- health --------------------------------------------------------------
+        # Healthy means: /health answers 200 on the frozen port AND the one process holding
+        # that port's LISTEN socket is the child launched above.  A 200 from anything else
+        # is not the child's (see the docstring); the loop keeps polling until the child
+        # exits (launch / process_exited) or the deadline (health / health_timeout).
+        stage = 'health'
         while True:
             if proc.poll() is not None:
                 fail('launch', ['process_exited'], proc,
                      load_seconds=time.perf_counter() - t0)
-            if health(base, timeout=2.0)['ok']:
+            if health(base, timeout=2.0)['ok'] \
+                    and listening_pids(spec.port) == {int(proc.pid)}:
                 break
             if time.perf_counter() > deadline:
                 fail('health', ['health_timeout'], proc,
@@ -565,6 +611,7 @@ def start(spec: ServerSpec, *, golden_props: Mapping | None = None,
             time.sleep(0.2)
         load_seconds = time.perf_counter() - t0
         # -- identity ------------------------------------------------------------
+        stage = 'identity'
         try:
             p = probe(base)
         except lab_common.ServerIdentityError as exc:
@@ -589,6 +636,7 @@ def start(spec: ServerSpec, *, golden_props: Mapping | None = None,
         props_matches = (None if golden_props is None
                          else bool(props_tok == dict(golden_props)))
         # -- smoke ---------------------------------------------------------------
+        stage = 'smoke'
         smoke_body: dict | None = None
         if golden is not None and sampling is not None:
             smoke_body, smoke_findings = _smoke_attempt(base, spec, golden, sampling)
@@ -612,8 +660,14 @@ def start(spec: ServerSpec, *, golden_props: Mapping | None = None,
             body['props_tokenized'] = props_tok
     except lab_common.ServerStartFailed:
         raise
+    except Exception:
+        # Anything this function did not anticipate is a failure of the stage that was
+        # running, recorded as such; the child is stopped by fail() first.
+        fail(stage, [UNANTICIPATED_FINDING[stage]], proc,
+             load_seconds=load_seconds or (time.perf_counter() - t0),
+             props_sha256=props_sha)
     except BaseException:
-        # Anything this function did not anticipate still may not leave the child running.
+        # An interrupt still may not leave the child running.
         stop(proc.pid)
         raise
     return body
@@ -744,13 +798,16 @@ def smoke_receipt_findings(data: Mapping, golden: object, *, seed_sent: int) -> 
             findings.add('generation_settings_unknown_key')
     if 'seed' in mask and gen.get('seed') != seed_sent:
         findings.add('seed_mismatch')
-    timings = data.get('timings') or {}
+    # A member that is not an object reports nothing: its absent keys are the findings,
+    # never an AttributeError (EB1 fix, reviewer 1 finding 7: ``timings: [1]``).
+    timings = data.get('timings') if isinstance(data.get('timings'), Mapping) else {}
     if timings.get('cache_n') != 0:
         findings.add('cache_n_nonzero')
     cached = verbose.get('tokens_cached') if isinstance(verbose, Mapping) else None
     if cached is None:
-        cached = ((data.get('usage') or {}).get('prompt_tokens_details') or {}) \
-            .get('cached_tokens')
+        usage = data.get('usage') if isinstance(data.get('usage'), Mapping) else {}
+        details = usage.get('prompt_tokens_details')
+        cached = details.get('cached_tokens') if isinstance(details, Mapping) else None
     if cached != 0:
         findings.add('tokens_cached_nonzero')
     return sorted(findings)

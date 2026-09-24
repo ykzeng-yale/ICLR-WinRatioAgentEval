@@ -21,6 +21,13 @@ What runs, and what does not:
   runs each episode lazily at its first reap check (so a pair is IN FLIGHT when a server dies),
   receipts anchors in process, skips the host scan and lets a test act before each health
   poll.  No model, no llama-server, no network.
+* **What these tests cannot see** (EB1 fix, reviewer 2 finding 4): by default
+  :class:`SupWorld` makes EVERY pump poll ``/health`` (``force_poll``), which is what lets a
+  test crash a server at an exact point -- and which also hides every defect that depends on
+  the frozen ``execution.health_poll_s`` cadence (a server that exits between two polls).
+  :class:`CadenceTests` runs with ``force_poll`` off and the frozen cadence kept, as the one
+  in-process control of that class of defect; the production cadence on the real entry path
+  is covered by the EB1c controls ``C4bExitBetweenPairs`` and ``C6RestartCap``.
 
 Outside the ``experiments/live_ab/tests_*.py`` glob on purpose (repair contract, placement).
 """
@@ -231,11 +238,13 @@ class FakeServers:
 class SupWorld(dry.SimWorld):
     """``dryrun_live_ab.SimWorld`` (only the worker process is replaced) run on the LIVE
     supervision path (``sim`` unset), with lazy episodes, in-process anchor receipts, no host
-    scan, and ``hook(world)`` called before every health poll, which always fires."""
+    scan, and ``hook(world)`` called before every health poll, which always fires unless
+    ``force_poll`` is off (then the frozen ``execution.health_poll_s`` cadence is kept)."""
 
     fake: FakeServers | None = None
     hook = None
     scenario: dict = {}
+    force_poll: bool = True
     #: pairs whose episodes never finish (their worker hangs until the hard-cap kill)
     stuck_pairs: frozenset = frozenset()
 
@@ -260,7 +269,8 @@ class SupWorld(dry.SimWorld):
         return 0
 
     def health_poll(self):
-        self.last_health = float('-inf')
+        if type(self).force_poll:
+            self.last_health = float('-inf')
         if type(self).hook is not None:
             type(self).hook(self)
         super().health_poll()
@@ -340,10 +350,11 @@ class Tree:
 
 
 def run(tree: Tree, fake: FakeServers, *, hook=None, resume: bool = False,
-        scenario: dict | None = None, stuck_pairs=(), **rt) -> str:
+        scenario: dict | None = None, stuck_pairs=(), force_poll: bool = True, **rt) -> str:
     """The production ``run_trial`` on the live supervision path with ``fake`` as lab_server."""
     SupWorld.fake = fake
     SupWorld.hook = hook
+    SupWorld.force_poll = bool(force_poll)
     SupWorld.scenario = dict(scenario or SCENARIO)
     SupWorld.stuck_pairs = frozenset(stuck_pairs)
     with fake.patched(), mock.patch.object(orch, 'WORLD_FACTORY', SupWorld), \
@@ -1200,7 +1211,13 @@ class LifecycleVerifierTests(unittest.TestCase):
                'smoke': {'request_sha256': lab_eventlog.SIM_SERVER_SHA256,
                          'receipt_matches_golden': False, 'ok': False}}
         events = [{'seq': 0, 'type': 'server_started', 'body': sim}]
-        self.assertEqual(lifecycle(events, {}), [], 'a simulated start claims nothing')
+        # skipped only under a DRY-RUN configuration (EB1 fix, reviewer 1 finding 5): the
+        # sentinels are values the chain writer controls
+        self.assertEqual(lifecycle(events, {'mock': True}), [],
+                         'a simulated start under a dry-run configuration claims nothing')
+        self.assertEqual(lifecycle(events, {'mock_overrides': {'x': 1}}), [])
+        self.assertEqual(lifecycle(events, {}), ['simulated_under_live_config'],
+                         'negative control: the same chain under a live configuration')
         live = [copy.deepcopy(e) for e in self.restarted[1] if e['type'] == 'server_started']
         self.assertIn('mixed', lifecycle(events + live, {}))
 
@@ -1339,6 +1356,380 @@ class VocabularyTests(unittest.TestCase):
         self.assertEqual(set(orch.QUIESCENT_SCRAPE_POINTS) - set(
             lab_eventlog.E_SCRAPE_POINT.enum), set())
 
+
+# --------------------------------------------------------------------------- #
+# 10. EB1 fix (two adversarial reviews of EB1a-c): each class names its finding
+# --------------------------------------------------------------------------- #
+def _kill_at(fake: FakeServers, pair: int, *, leave_servers: bool = True):
+    def hook(world):
+        if world.open_arrivals and world.pairs_enrolled == pair:
+            fake.survive_stop = leave_servers          # SIGKILL: no finally ran
+            raise Crash()
+    return hook
+
+
+class FirstStartReplayTests(TreeCase):
+    """Reviewer 1 finding 1: a failed FIRST start is trial_aborted live
+    (``START_FAILURE_REASON``); its replay used to owe a PAUSE for launch/health, so a crash
+    between the durable ``server_start_failed`` and ``trial_aborted`` let a resume run the
+    whole trial the live rules had aborted."""
+    pairs = 3
+
+    def test_the_replay_of_a_first_start_owes_its_abort_at_every_stage(self):
+        for stage, reason in orch.START_FAILURE_REASON.items():
+            with self.subTest(stage=stage):
+                events = [ev(0, 'trial_started'),
+                          ev(1, 'server_start_failed', kind='start', stage=stage)]
+                state = orch.supervision_state(events, CAP)
+                self.assertEqual((state.pending_abort, state.pending_pause), (reason, None))
+        # control: the same record written by a RESUMED invocation follows the supervision
+        # rules (never healthy -> pause), as World.resume_servers does
+        resumed = [ev(0, 'trial_started'), ev(1, 'invocation_started'),
+                   ev(2, 'server_start_failed', kind='start', stage='launch')]
+        state = orch.supervision_state(resumed, CAP)
+        self.assertEqual((state.pending_abort, state.pending_pause),
+                         (None, 'server_unrecoverable'))
+
+    def test_a_crash_after_a_failed_first_start_is_resumed_into_its_abort(self):
+        self.fake.script = ['launch']                  # the first start never becomes healthy
+
+        def die(world, status):                        # power loss inside close_trial
+            raise Crash()
+        with mock.patch.object(orch.World, 'close_trial', die):
+            self.assertEqual(run(self.tree, self.fake), 'crashed')
+        events = self.tree.events()
+        self.assertEqual(types(events)[-2:], ['trial_started', 'server_start_failed'])
+        status = run(self.tree, self.fake, resume=True)
+        events = self.tree.events()
+        self.assertEqual(status, 'aborted')
+        self.assertEqual([b['reason'] for b in bodies(events, 'trial_aborted')],
+                         ['infrastructure'])
+        for etype in ('trial_paused', 'server_started', 'pair_enrolled', 'episode_started'):
+            self.assertNotIn(etype, types(events))
+        self.assertEqual(self.tree.verify_fails(), [])
+
+
+class FirstStartVerifierTests(unittest.TestCase):
+    """Reviewer 1 finding 1, the verifier half: ``failure_answered`` used to accept ANY
+    pause or abort after a first start's failure."""
+
+    def chain(self, answer, *, resumed: bool = False, stage: str = 'launch') -> list:
+        out = [ev(0, 'trial_started')]
+        if resumed:
+            out.append(ev(1, 'invocation_started'))
+        out.append(ev(len(out), 'server_start_failed', kind='start', stage=stage))
+        out.append(ev(len(out), *answer[:1], **answer[1]))
+        return out
+
+    def test_a_first_start_failure_is_answered_by_its_abort_reason_only(self):
+        self.assertEqual(lab_verify_log.FIRST_START_ABORT_REASON, orch.START_FAILURE_REASON)
+        paused = self.chain(('trial_paused', {'reason_code': 'server_unrecoverable'}))
+        self.assertEqual(lifecycle(paused, {}), ['failure_answered'])
+        wrong = self.chain(('trial_aborted', {'reason': 'server_identity'}))
+        self.assertEqual(lifecycle(wrong, {}), ['failure_answered'])
+        # controls: the live rule's own answer; and a RESUMED start's failure may pause
+        right = self.chain(('trial_aborted', {'reason': 'infrastructure'}))
+        self.assertEqual(lifecycle(right, {}), [])
+        smoke = self.chain(('trial_aborted', {'reason': 'receipt_mismatch'}), stage='smoke')
+        self.assertEqual(lifecycle(smoke, {}), [])
+        resumed = self.chain(('trial_paused', {'reason_code': 'server_unrecoverable'}),
+                             resumed=True)
+        self.assertEqual(lifecycle(resumed, {}), [])
+
+
+class VerifiedStartScopeTests(unittest.TestCase):
+    """Reviewer 2 finding 2: what ``verified_start`` can and cannot detect, pinned so that
+    the docstring's scope cannot drift into a claim the check does not perform."""
+
+    def test_a_fabricated_body_carrying_the_golden_digest_is_not_detectable(self):
+        golden = sha256_text('the golden tokenized /props')
+        cfg = {'receipt': {'golden_props_sha256': {'coder': golden}}}
+        body = {'server_id': 'coder', 'pid': 4242, 'props_sha256': golden,
+                'props_matches_golden': True, 'gguf': {'sha256': '9' * 64},
+                'smoke': {'request_sha256': sha256_text('mock'),
+                          'receipt_matches_golden': True, 'ok': True}}
+        events = [ev(0, 'trial_started', golden_props_sha256={'coder': golden}),
+                  {'seq': 1, 'type': 'server_started', 'body': body}]
+        self.assertEqual(lifecycle(events, cfg), [],
+                         'the stated limit: copied digest + true flags pass')
+        # control: the b049307 placeholder hashed the RAW /props -- that is rejected
+        raw = copy.deepcopy(events)
+        raw[1]['body']['props_sha256'] = sha256_text('the raw /props')
+        self.assertEqual(lifecycle(raw, cfg), ['verified_start'])
+        doc = lab_verify_log._check_server_lifecycle.__doc__
+        self.assertIn('CANNOT detect', doc)
+
+
+class ReconciliationOpenAttemptTests(unittest.TestCase):
+    """Reviewer 1 finding 4: a scrape at a 'quiescent' point name was taken as exact even
+    with attempts open on the server (``trial_end`` after a mid-pair abort)."""
+
+    def windows(self, events):
+        out = orch.reconciliation_windows(events, ['coder'])
+        for body in out:
+            lab_eventlog.validate_event('usage_reconciliation', body)
+        return out
+
+    PREFIX = [started(1), scrape(2, 'trial_start', 20, 3),
+              ev(3, 'episode_started', arrival=1), resp(4, 100, 10),
+              ev(5, 'episode_revealed', arrival=1), scrape(6, 'pair_boundary', 120, 13),
+              ev(7, 'episode_started', arrival=3), ev(8, 'episode_started', arrival=4)]
+
+    def test_a_scrape_with_an_attempt_open_on_the_server_is_not_exact(self):
+        # the server already counted 80/9 of arrival 3 that the chain has not ingested
+        events = self.PREFIX + [scrape(9, 'trial_end', 200, 22)]
+        (w,) = self.windows(events)
+        self.assertEqual((w['window_to_seq'], w['counters_lost'], w['reconciliation_defect'],
+                          w['residual']), (6, False, False, {'prompt': 0, 'predicted': 0}),
+                         'reconciled at the last EXACT scrape, the pair boundary')
+        # control: the same trial_end scrape once both attempts are revealed IS exact
+        closed = self.PREFIX + [resp(9, 80, 9), ev(10, 'episode_revealed', arrival=3),
+                                ev(11, 'episode_revealed', arrival=4),
+                                scrape(12, 'trial_end', 200, 22)]
+        (w,) = self.windows(closed)
+        self.assertEqual((w['window_to_seq'], w['reconciliation_defect']), (12, False))
+        off = closed[:-1] + [scrape(12, 'trial_end', 201, 22)]
+        self.assertTrue(self.windows(off)[0]['reconciliation_defect'],
+                        'control: the exact scrape is still checked')
+
+    def test_an_attempt_open_on_another_server_does_not_count(self):
+        events = self.PREFIX[:6] + [ev(7, 'episode_started', arrival=3, server_id='t3'),
+                                    scrape(8, 'trial_end', 120, 13)]
+        (w,) = self.windows(events)
+        self.assertEqual(w['window_to_seq'], 8)
+
+
+class FollowUpQuiescentScrapeTests(TreeCase):
+    """Reviewer 1 finding 4: the follow-up cohort's 'quiescent' scrape used to be taken right
+    AFTER dispatching the 50th arrival, with it open."""
+
+    def test_the_quiescent_scrape_follows_the_drain_before_the_next_dispatch(self):
+        with mock.patch.object(orch, 'WORLD_FACTORY', dry.SimWorld):
+            ctx = self.tree.ctx()
+        ctx.paths.mkdirs()
+        w = orch.World(ctx)
+        w.open_chain(create=True)
+        self.addCleanup(lambda: w.log.close())
+        w.decision_seq, w.decided_arm, w.phase = 1, 'candidate', 'post_decision'
+        w.post_decision_dispatched = 48
+        seen: list = []
+        w.build_job = lambda **k: {'workflow': 'x', 'server': {'server_id': 'coder'},
+                                   'task_uid': 'u'}
+
+        def dispatch(att):
+            w.attempts[att.arrival] = att
+            w.open_arrivals.append(att.arrival)
+        w.dispatch = dispatch
+        w.scrape = lambda point, **k: seen.append((point, list(w.open_arrivals)))
+        self.assertTrue(w.dispatch_follow_up())
+        self.assertTrue(w.dispatch_follow_up())            # the 50th of the cohort
+        self.assertEqual((w.post_decision_dispatched, seen), (50, []),
+                         'no scrape while the 50th is open')
+        w.open_arrivals.remove(w.open_arrivals[0])
+        self.assertFalse(w.dispatch_follow_up(), 'the 51st waits for the drain')
+        self.assertEqual(seen, [])
+        w.open_arrivals.clear()                             # drained
+        self.assertTrue(w.dispatch_follow_up())
+        self.assertEqual(seen, [('quiescent', [])], 'taken with nothing open')
+        self.assertEqual((w.post_decision_dispatched, len(w.open_arrivals)), (51, 1))
+
+
+class OwedAbortPrecedenceTests(TreeCase):
+    """Reviewer 2 finding 3: 'While an abort is owed _auto_abort is not consulted' had no
+    control.  The automatic-abort rules are instrumented to fire once armed."""
+    pairs = 6
+
+    def run_armed(self, arm_when, plan=None) -> tuple[str, list]:
+        armed = {'on': False}
+        real = orch.World._auto_abort
+
+        def auto_abort(world):
+            if armed['on']:                             # a rule 12/13 or ten-failure hit
+                raise lab_common.AbortTrial('infrastructure')
+            real(world)
+
+        def hook(world):
+            if plan is not None:
+                plan(world)
+            if arm_when(world):
+                armed['on'] = True
+        with mock.patch.object(orch.World, '_auto_abort', auto_abort):
+            status = run(self.tree, self.fake, hook=hook)
+        return status, self.tree.events()
+
+    def test_no_automatic_abort_preempts_the_owed_restart_cap(self):
+        status, events = self.run_armed(
+            lambda w: w.pending_abort == orch.RESTART_CAP_REASON,
+            plan=CrashPlan(self.fake, pairs=(1, 2, 3, 4)))
+        self.assertEqual(status, 'aborted')
+        self.assertEqual([b['reason'] for b in bodies(events, 'trial_aborted')],
+                         ['server_restart_cap'])
+        self.assertEqual(self.tree.verify_fails(), [])
+
+    def test_control_the_armed_rule_aborts_when_nothing_is_owed(self):
+        status, events = self.run_armed(lambda w: w.pairs_enrolled == 2 and w.open_arrivals)
+        self.assertEqual(status, 'aborted')
+        self.assertEqual([b['reason'] for b in bodies(events, 'trial_aborted')],
+                         ['infrastructure'])
+
+
+class IngestBeforeDownTests(TreeCase):
+    """Reviewer 2 finding 3: 'ingests every open spool first' (supervise_down) had no
+    control.  The pair's episodes have RUN (their spools are written, the old process
+    counted them) but are not yet ingested when the down is detected."""
+    pairs = 4
+
+    def test_responses_the_dying_process_served_land_in_its_own_window(self):
+        state: dict = {}
+
+        def hook(world):
+            if state or world.pairs_enrolled != 2 or not world.open_arrivals:
+                return
+            lazy = world.__dict__.get('_lazy', {})
+            if any(a in lazy for a in world.open_arrivals):
+                return                                  # an episode has not run yet
+            state['arrivals'] = set(world.open_arrivals)
+            self.fake.crash('coder')
+        status = run(self.tree, self.fake, hook=hook)
+        events = self.tree.events()
+        self.assertEqual(status, 'ended')
+        self.assertEqual(len(state['arrivals']), 2)
+        down = first_seq(events, 'server_down')
+        restarted = first_seq(events, 'server_restarted')
+        served = [e['seq'] for e in events if e['type'] == 'llm_response'
+                  and e['body']['arrival'] in state['arrivals']]
+        self.assertTrue(served)
+        self.assertTrue(all(seq < down for seq in served),
+                        'every response of the dying process precedes its server_down')
+        recs = bodies(events, 'usage_reconciliation')
+        after = [r for r in recs if r['window_from_seq'] == restarted]
+        self.assertEqual([(r['counters_lost'], r['reconciliation_defect']) for r in after],
+                         [(False, False)], 'the new process window reconciles exactly')
+        self.assertEqual(self.tree.verify_fails(), [])
+
+
+class CadenceTests(TreeCase):
+    """Reviewer 2 finding 4: with ``force_poll`` off the frozen health-poll cadence is kept,
+    so an exit between two polls is visible only to the pair-boundary exit check."""
+    pairs = 4
+
+    def test_an_exit_between_pairs_is_answered_before_the_next_pair(self):
+        self.tree.edit_config(lambda cfg: cfg['execution'].update(health_poll_s=3600))
+        state: dict = {}
+        real_reveal = orch._reveal
+
+        def reveal(world, att, **kw):
+            real_reveal(world, att, **kw)
+            if att.pair == 2 and not state and all(
+                    world.attempts[a].revealed for a in world.pair_arrivals()):
+                state['pid'] = self.fake.current['coder']
+                self.fake.crash('coder', rc=9)          # no request in flight
+        with mock.patch.object(orch, '_reveal', reveal):
+            status = run(self.tree, self.fake, force_poll=False)
+        events = self.tree.events()
+        self.assertEqual(status, 'ended')
+        self.assertIn('pid', state)
+        downs = [e for e in events if e['type'] == 'server_down']
+        self.assertEqual([(d['body']['detected_by'], d['body']['returncode'])
+                          for d in downs], [('exit', 9)])
+        pair_3 = next(e['seq'] for e in events
+                      if e['type'] == 'pair_enrolled' and e['body']['pair'] == 3)
+        self.assertLess(downs[0]['seq'], pair_3, 'answered before the next pair')
+        self.assertLessEqual(len(bodies(events, 'server_health')), 1,
+                             'control: the periodic poll kept its cadence')
+        self.assertEqual(self.tree.verify_fails(), [])
+
+
+class RestartEscapeTests(TreeCase):
+    """Reviewer 1 finding 7 (restart half): an exception out of lab_server.restart that is
+    not ``ServerStartFailed`` used to escape run_trial mid-pair, leaving the down
+    unanswered and no terminal event."""
+    pairs = 4
+
+    def test_an_unexpected_restart_exception_owes_a_harness_defect_abort(self):
+        self.fake.restart_raises = TypeError
+        status = run(self.tree, self.fake, hook=CrashPlan(self.fake, pairs=(2,)))
+        events = self.tree.events()
+        self.assertEqual(status, 'aborted')
+        self.assertEqual([b['reason'] for b in bodies(events, 'trial_aborted')],
+                         ['harness_defect'])
+        down = first_seq(events, 'server_down')
+        self.assertNotIn('episode_started', types([e for e in events if e['seq'] > down]))
+        self.assertEqual({b['arrival'] for b in bodies(events, 'episode_revealed')},
+                         assigned_arrivals(events), 'drained and revealed, not abandoned')
+        self.assertEqual(self.tree.verify_fails(), [])
+
+
+class ResumeGateTests(TreeCase):
+    """Reviewer 1 finding 2: the hard host gate runs before a resume opens the chain and
+    allowlisted only the new orchestrator, so the orphan the resume exists to stop was a
+    foreign consumer.  (The real gate with a real orphan: tests_eb1_entry.C10.)"""
+    pairs = 3
+
+    def test_the_gate_allowlists_a_recorded_server_that_is_still_ours(self):
+        self.assertEqual(run(self.tree, self.fake, hook=_kill_at(self.fake, 2)), 'crashed')
+        orphan = self.fake.current['coder']
+        with mock.patch.object(orch, 'WORLD_FACTORY', SupWorld):
+            ctx = self.tree.ctx()
+        seen: list = []
+        with self.fake.patched(), mock.patch.object(
+                orch.lab_hostcheck, 'preflight_host_quiescent',
+                lambda own, **kw: seen.append(set(own))):
+            orch.host_quiescence_gate(ctx)
+            self.fake.procs[orphan]['alive'] = False      # our server is gone ...
+            self.fake.foreign_alive.add(orphan)           # ... and the OS reused its pid
+            orch.host_quiescence_gate(ctx)
+        self.assertIn(os.getpid(), seen[0])
+        self.assertIn(orphan, seen[0])
+        self.assertNotIn(orphan, seen[1], 'control: a pid no longer that server stays foreign')
+
+    def test_control_a_fresh_trial_allowlists_only_the_orchestrator(self):
+        with mock.patch.object(orch, 'WORLD_FACTORY', SupWorld):
+            ctx = self.tree.ctx()
+        self.assertEqual(orch.chain_orphan_server_pids(ctx), set())
+
+
+class BuilderMockTests(unittest.TestCase):
+    """Reviewer 1 finding 5, the builder half: the MOCK banner was decided by the
+    configuration alone, so a simulated chain under a live configuration had none."""
+
+    def run_tree(self, *, sim: bool) -> Tree:
+        tree = Tree(pairs=2)
+        self.addCleanup(tree.close)
+        fake = FakeServers()
+        if sim:
+            SupWorld.fake, SupWorld.hook, SupWorld.force_poll = fake, None, True
+            SupWorld.scenario, SupWorld.stuck_pairs = dict(SCENARIO), frozenset()
+            with mock.patch.object(orch, 'WORLD_FACTORY', SupWorld):
+                self.assertEqual(orch.run_trial(tree.ctx(sim=True), resume=False), 'ended')
+        else:
+            self.assertEqual(run(tree, fake), 'ended')
+        path = tree.freeze / 'config.json'
+        cfg = json.loads(path.read_text('utf-8'))
+        cfg.pop('mock', None)
+        cfg.pop('mock_overrides', None)                 # a configuration that is not a dry run
+        path.write_text(canonical_json(cfg) + '\n', encoding='utf-8')
+        return tree
+
+    def build(self, tree: Tree) -> dict:
+        return builder.build([tree.trial], tree.bundle_sha, results_root=tree.results,
+                             work_root=tree.work, out_dir=tree.root / 'built', mock=False)
+
+    def test_a_simulated_chain_carries_the_banner_whatever_the_configuration_says(self):
+        tree = self.run_tree(sim=True)
+        self.assertEqual(lab_verify_log.server_start_kind(tree.events()), 'simulated')
+        summary = self.build(tree)
+        self.assertIs(summary['mock'], True)
+        decision = json.loads((tree.root / 'built' / tree.trial / 'decision.json')
+                              .read_text('utf-8'))
+        self.assertEqual(decision.get('banner'), builder.BANNER)
+        self.assertEqual(lifecycle(tree.events(), tree.frozen_cfg()),
+                         ['simulated_under_live_config'])
+
+    def test_control_a_live_chain_under_the_same_configuration_is_not_forced(self):
+        tree = self.run_tree(sim=False)
+        self.assertEqual(lab_verify_log.server_start_kind(tree.events()), 'live')
+        self.assertIs(self.build(tree)['mock'], False)
 
 if __name__ == '__main__':
     unittest.main()

@@ -518,12 +518,17 @@ def reconciliation_windows(events: Sequence[Mapping], server_ids: Iterable[str],
       residual and no defect: the tail between its last scrape and the crash died with the
       process (protocol 6.4 row 5, "counters lost across a crash reported as an unreconciled
       window").
-    * Otherwise the window is reconciled at its LAST ``ok`` scrape at a
-      :data:`QUIESCENT_SCRAPE_POINTS` point: ``counter_delta`` is that scrape's counters (the
-      process started at 0), ``client_usage_sum`` the smoke plus the responses appended before
-      the scrape, and any non-zero residual is a ``reconciliation_defect``.  A window with no
-      such scrape is ``counters_lost: true`` (unreconciled, row 20), never a residual against
-      a guessed counter.
+    * Otherwise the window is reconciled at its LAST EXACT scrape: an ``ok`` scrape at a
+      :data:`QUIESCENT_SCRAPE_POINTS` point at whose seq the chain shows NO open attempt on
+      that server (an ``episode_started`` of the server with no ``episode_revealed`` of the
+      same arrival before the scrape).  The point name alone is not proof of quiescence: a
+      ``trial_end`` scrape follows a mid-pair abort with workers still running, and a
+      response the server has counted but the chain has not yet ingested would be a
+      spurious defect (EB1 fix, reviewer 1 finding 4).  ``counter_delta`` is that scrape's
+      counters (the process started at 0), ``client_usage_sum`` the smoke plus the responses
+      appended before the scrape, and any non-zero residual is a ``reconciliation_defect``.
+      A window with no exact scrape is ``counters_lost: true`` (unreconciled, row 20), never
+      a residual against a guessed counter.
     * ``window`` is ``'restart'`` when a supervised restart bounds it (it opened at a
       ``server_restarted`` or a ``server_down`` cut it) and ``'trial'`` otherwise.
 
@@ -536,10 +541,17 @@ def reconciliation_windows(events: Sequence[Mapping], server_ids: Iterable[str],
         windows: list[dict] = []
         cur: dict = {'from': 0, 'opened_by': None, 'base': (0, 0), 'responses': [],
                      'point': None, 'cut': None, 'last_counters': None}
+        open_on_server: set[int] = set()
         for ev in events:
             etype = ev['type']
             body = ev.get('body') or {}
+            if etype == 'episode_revealed':
+                open_on_server.discard(int(body.get('arrival', -1)))
+                continue
             if body.get('server_id') != sid:
+                continue
+            if etype == 'episode_started':
+                open_on_server.add(int(body.get('arrival', -1)))
                 continue
             seq = int(ev['seq'])
             if etype in ('server_started', 'server_restarted'):
@@ -565,7 +577,8 @@ def reconciliation_windows(events: Sequence[Mapping], server_ids: Iterable[str],
                            for v in (prompt, predicted)):
                     continue
                 cur['last_counters'] = (int(prompt), int(predicted))
-                if cur['cut'] is None and body.get('point') in QUIESCENT_SCRAPE_POINTS:
+                if cur['cut'] is None and body.get('point') in QUIESCENT_SCRAPE_POINTS \
+                        and not open_on_server:
                     cur['point'] = (seq, int(prompt), int(predicted))
         cur['to'] = end
         windows.append(cur)
@@ -661,15 +674,24 @@ class SupervisionState:
 def supervision_state(events: Sequence[Mapping], cap: int | None) -> SupervisionState:
     """[pure] Replay the server lifecycle events of a chain into a :class:`SupervisionState`.
 
-    The rules are the live ones of :meth:`World.supervise_down`: a ``server_down`` of a server
-    whose attempted restarts already reach ``cap`` owes ``trial_aborted(server_restart_cap)``
-    (and overrides any other pending outcome); a failed restart or start owes
-    ``trial_paused(server_unrecoverable)`` when it never became healthy and
+    The rules are the live ones of :meth:`World.supervise_down`, :meth:`World.start_servers`
+    and :meth:`World.resume_servers`: a ``server_down`` of a server whose attempted restarts
+    already reach ``cap`` owes ``trial_aborted(server_restart_cap)`` (and overrides any other
+    pending outcome); a FIRST start's failure -- a ``kind='start'`` record before the chain's
+    first ``invocation_started``, which only a resumed invocation writes -- owes
+    ``trial_aborted(<START_FAILURE_REASON>)`` at every stage, exactly as
+    :meth:`World.start_servers` ends it; a failed restart, or a failed start of a resumed
+    invocation, owes ``trial_paused(server_unrecoverable)`` when it never became healthy and
     ``trial_aborted(<START_FAILURE_REASON>)`` otherwise; a ``server_restarted`` whose
     ``props_equal_previous`` is false owes ``trial_aborted(server_identity)``.  A
     ``trial_paused`` discharges a pending pause and every unresolved ``server_down``, never a
     pending abort; ``trial_aborted`` discharges everything.  ``cap`` None (a simulated run)
-    never binds."""
+    never binds.
+
+    The first-start rule is the EB1 fix of reviewer 1 finding 1: it used to replay a
+    never-healthy FIRST start as a pause, so an orchestrator that died between the durable
+    ``server_start_failed`` and ``trial_aborted(infrastructure)`` was resumed into a pause
+    and then into the whole trial the live rules had aborted."""
     restarts: dict = {}
     props: dict = {}
     overlap: set = set()
@@ -677,11 +699,14 @@ def supervision_state(events: Sequence[Mapping], cap: int | None) -> Supervision
     pending_abort: str | None = None
     pending_pause: str | None = None
     cap_required = False
+    first_invocation = True
     for ev in events:
         etype = ev['type']
         body = ev.get('body') or {}
         sid = body.get('server_id')
-        if etype in ('server_started', 'server_restarted'):
+        if etype == 'invocation_started':
+            first_invocation = False
+        elif etype in ('server_started', 'server_restarted'):
             props[sid] = body.get('props_sha256')
             unresolved.pop(sid, None)
             if etype == 'server_restarted':
@@ -693,7 +718,10 @@ def supervision_state(events: Sequence[Mapping], cap: int | None) -> Supervision
                 restarts[sid] = restarts.get(sid, 0) + 1
             unresolved.pop(sid, None)
             stage = str(body.get('stage'))
-            if stage in NEVER_HEALTHY_STAGES:
+            if body.get('kind') == 'start' and first_invocation:
+                if pending_abort is None:
+                    pending_abort = START_FAILURE_REASON.get(stage, 'infrastructure')
+            elif stage in NEVER_HEALTHY_STAGES:
                 pending_pause = pending_pause or 'server_unrecoverable'
             elif pending_abort is None:
                 pending_abort = START_FAILURE_REASON.get(stage, 'infrastructure')
@@ -1139,6 +1167,15 @@ def _gguf_drift(server_id: str, spec: ServerSpec) -> dict | None:
     return None
 
 
+def simulated_path(rt: Mapping) -> bool:
+    """Whether this invocation is SIMULATED: a harness installed a substitute world
+    (``WORLD_FACTORY``) AND the runtime overlay says ``sim``.  Only then may the overlay
+    replace the frozen golden objects (``make_context``, ``preflight``).  Either alone is
+    not enough: the overlay can come from inside the configuration file, and a substitute
+    world with ``sim`` unset supervises its servers live."""
+    return WORLD_FACTORY is not None and bool(dict(rt).get('sim'))
+
+
 def health_failures_to_down(cfg: Mapping) -> int:
     """[pure] ``execution.health_failures_to_down`` (protocol 5.3, P:917: "3 consecutive
     failures"), a positive int; raises ``ValueError`` otherwise.  No default."""
@@ -1269,24 +1306,28 @@ def preflight(ctx: RunContext) -> dict:
     for label, problem in supervision_config_problems(cfg, sim=bool(rt.get('sim'))):
         failed.append('preflight_rule_failed')
         _drift(label, sha256_text('%s per repair contract EB1' % label), sha256_text(problem))
-    # A path is SIMULATED only when a harness installed a substitute world; the runtime
-    # overlay -- which ``main`` also accepts from inside the configuration file -- cannot
-    # make it so.  On the real path a runtime ``sim`` (it would skip the host gate and write
-    # the simulated server body) and a runtime ``golden`` (it would replace the frozen
-    # objects every receipt is compared with) are both refused.
+    # A path is SIMULATED only when a harness installed a substitute world AND the runtime
+    # says ``sim``; the runtime overlay alone -- which ``main`` also accepts from inside the
+    # configuration file -- cannot make it so.  On the real path a runtime ``sim`` (it would
+    # skip the host gate and write the simulated server body) is refused.  A runtime
+    # ``golden`` (it would replace the frozen objects every receipt is compared with) is
+    # refused on EVERY path that is not simulated -- including a substitute world with
+    # ``sim`` unset, whose servers are supervised live (EB1 fix, reviewer 1 finding 8:
+    # the refusal used to key on the substitute world alone); ``make_context`` applies the
+    # overlay under the same predicate, :func:`simulated_path`.
+    if WORLD_FACTORY is None and rt.get('sim'):
+        failed.append('preflight_rule_failed')
+        _drift('runtime_sim_without_substitute_world',
+               sha256_text('no runtime sim on the real path'),
+               sha256_text('sim=%r' % (rt.get('sim'),)))
+    if 'golden' in rt and not simulated_path(rt):
+        failed.append('golden_objects')
+        try:
+            found_override = sha256_canonical(rt['golden'])
+        except (TypeError, ValueError):
+            found_override = sha256_text(repr(type(rt['golden'])))
+        _drift('runtime_golden_override', lab_common.MEMBER_ABSENT, found_override)
     if WORLD_FACTORY is None:
-        if rt.get('sim'):
-            failed.append('preflight_rule_failed')
-            _drift('runtime_sim_without_substitute_world',
-                   sha256_text('no runtime sim on the real path'),
-                   sha256_text('sim=%r' % (rt.get('sim'),)))
-        if 'golden' in rt:
-            failed.append('golden_objects')
-            try:
-                found_override = sha256_canonical(rt['golden'])
-            except (TypeError, ValueError):
-                found_override = sha256_text(repr(type(rt['golden'])))
-            _drift('runtime_golden_override', lab_common.MEMBER_ABSENT, found_override)
         # Each server's weights and the launcher, explicitly named, against the frozen
         # values: the GGUF bytes and recomputed SHA-256 of the servers block (protocol 2.3:
         # the cache blob name is not proof of its content) and the serving manifest's
@@ -1299,13 +1340,52 @@ def preflight(ctx: RunContext) -> dict:
             if row is not None:
                 failed.append('weights_hash')
                 drift.append(row)
-            if manifest is None:
-                continue
-            for label in lab_server.serving_manifest_problems(spec, manifest,
-                                                              want_manifest):
-                failed.append('serving_manifest')
-                _drift(_drift_label('serving_manifest.%s.%s' % (sid, label)),
-                       sha256_text('serving manifest re-verifies'), sha256_text(label))
+            if manifest is not None:
+                for label in lab_server.serving_manifest_problems(spec, manifest,
+                                                                  want_manifest):
+                    failed.append('serving_manifest')
+                    _drift(_drift_label('serving_manifest.%s.%s' % (sid, label)),
+                           sha256_text('serving manifest re-verifies'), sha256_text(label))
+        # The golden /props carries the TOKENIZED ``-m`` path (protocol 13.2, P:2586) and a
+        # llama-server reports its ``-m`` argument verbatim as ``model_path``, so the first
+        # start can match the golden object only if ``tokenize_path(--gguf path)`` IS the
+        # golden ``model_path``.  The same file under another spelling (a symlink, a
+        # snapshot link versus its blob) passes the bytes and SHA-256 check above and would
+        # fail the first start's identity stage AFTER seq 0 -- an irreversible
+        # trial_aborted(server_identity).  Refused here instead, under ``golden_objects``
+        # (the golden object does not match this invocation); EB1 fix, reviewer 1 finding 3.
+        # Performs: one tokenize_path per server whose golden object loaded; compares
+        # strings.  Does not resolve symlinks (the server does not either).
+        for sid, spec in sorted(servers.items()):
+            gold_path = str(((ctx.golden or {}).get(sid) or {}).get('props', {})
+                            .get('model_path') or '')
+            if not gold_path:
+                continue                     # no golden object: refused above already
+            try:
+                ours = lab_common.tokenize_path(str(spec.gguf_path))
+            except lab_common.UntokenizablePath:
+                ours = ''
+            if ours != gold_path:
+                failed.append('golden_objects')
+                _drift(_drift_label('golden_model_path.%s' % sid), sha256_text(gold_path),
+                       sha256_text(ours or 'untokenizable'))
+        # protocol 6.4 row 21 (``port_busy``): each server's frozen port must be free
+        # before seq 0, except for the recorded servers of this trial that a resume stops
+        # first (:func:`chain_orphan_server_pids`).  ``lab_server.start`` never takes
+        # another process's answers as its child's (it requires the child to be the port's
+        # only listener), so a busy port at the FIRST start would be an irreversible
+        # trial_aborted(infrastructure) after seq 0; refused here instead.  An unreadable
+        # listener table refuses too: "could not tell" is not "free".  EB1 fix, reviewers
+        # 1 and 2 (foreign listener).
+        ours_listening = chain_orphan_server_pids(ctx) if servers else set()
+        for sid, spec in sorted(servers.items()):
+            holders = lab_server.listening_pids(int(spec.port))
+            if holders is None or (holders - ours_listening):
+                failed.append('port_busy')
+                _drift(_drift_label('port.%s' % sid), sha256_text('port %d free' % spec.port),
+                       sha256_text('unreadable' if holders is None
+                                   else 'held by %d process(es)'
+                                   % len(holders - ours_listening)))
 
     # --- the independent reference rule (protocol 8.6) ----------------------
     # `lab_reference_rule.py` is also a harness file, so the member check above covers it;
@@ -1471,15 +1551,53 @@ def own_harness_pids(world: 'World | None' = None) -> set[int]:
     return pids
 
 
+def chain_orphan_server_pids(ctx: RunContext) -> set[int]:
+    """The server pids an EARLIER invocation of this trial started and never recorded as
+    stopped (:func:`chain_server_pids`) that are STILL that server --
+    ``lab_server.orphan_server`` True: alive and listening on the frozen port of the server
+    the chain names.  These are what a resume stops first (:meth:`World.stop_chain_orphans`),
+    so before the chain is opened they are this harness's own processes, not foreign ones.
+
+    Read-only: the chain is read and verified with ``lab_eventlog.read_chain`` (no lock is
+    held yet, nothing is appended); a chain that is absent or does not verify yields the
+    empty set, so the gate then fails closed on such a process.  A pid that is dead, that
+    no longer listens on its port (the OS reused it), or whose listener table could not be
+    read is NOT in the set.  EB1 fix, reviewer 1 finding 2: the gate used to allowlist only
+    the new orchestrator's pid, so a surviving llama-server of a killed invocation refused
+    every resume as a foreign accelerator consumer before the orphan stop could run."""
+    events_dir = ctx.paths.events
+    if not lab_eventlog.segment_paths(events_dir):
+        return set()
+    try:
+        events = lab_eventlog.read_chain(events_dir, ctx.trial, ctx.bundle_sha).events
+    except (ChainError, lab_common.SchemaError, OSError, ValueError):
+        return set()
+    out: set[int] = set()
+    for server_id, pid in chain_server_pids(events):
+        spec = (getattr(ctx, 'servers', None) or {}).get(server_id)
+        if spec is not None and lab_server.orphan_server(pid, int(spec.port)) is True:
+            out.add(int(pid))
+    return out
+
+
 def host_quiescence_gate(ctx: RunContext) -> lab_hostcheck.ScanResult | None:
     """The HARD gate of protocol 5.7, run before a trial may open its chain.
 
     Returns the clean scan, returns None when this invocation is not gated, and otherwise
     raises ``lab_hostcheck.HostNotQuiescent`` -- which is a ``PreflightError`` -- naming
-    the offenders.  It refuses on an unproven host as well as on a dirty one."""
+    the offenders.  It refuses on an unproven host as well as on a dirty one.
+
+    Allowlisted: this orchestrator (:func:`own_harness_pids`) and, on a resume, the
+    recorded servers of this trial that are still that server
+    (:func:`chain_orphan_server_pids`), which the resume stops before it starts anything.
+    Nothing else: an unrecorded llama-server, or a recorded pid that is no longer listening
+    on its frozen port, is still a foreign consumer.  The run lock is taken AFTER this gate,
+    so if another invocation of the same trial is alive, the lock refuses the run before
+    anything is stopped."""
     if not host_scan_is_required(ctx.cfg):
         return None
-    return lab_hostcheck.preflight_host_quiescent(own_harness_pids())
+    return lab_hostcheck.preflight_host_quiescent(
+        own_harness_pids() | chain_orphan_server_pids(ctx))
 
 
 def write_host_quiescence_refused(ctx: RunContext,
@@ -2128,7 +2246,13 @@ class World:
         stopped with a ``server_stopped`` record, and the trial is aborted: ``server_identity``
         for the GGUF, the serving manifest or the identity stage (protocol 6.4 row 6),
         ``receipt_mismatch`` for the smoke, ``infrastructure`` for launch or health (row 5).
-        A call ``lab_server.start`` REFUSED (it launched nothing) is a harness defect.
+        A call ``lab_server.start`` REFUSED (it launched nothing) is a harness defect, and so
+        is any other ``Exception`` out of the start or the append (``lab_server.start``
+        converts what it did not anticipate after a launch into ``ServerStartFailed``, so
+        what is left launched nothing that is still running or is already held and stopped
+        here): the servers held are stopped and the trial ends in
+        ``trial_aborted(harness_defect)``, never in an exception escaping after
+        ``trial_started`` (EB1 fix, reviewer 1 finding 7).
 
         A simulated invocation starts nothing and appends :meth:`sim_server_started_body`."""
         if self.rt.get('sim'):
@@ -2144,6 +2268,9 @@ class World:
                 self.stop_servers()
                 raise AbortTrial(START_FAILURE_REASON[str(exc.record['stage'])]) from None
             except PreflightError:
+                self.stop_servers()
+                raise AbortTrial('harness_defect') from None
+            except Exception:
                 self.stop_servers()
                 raise AbortTrial('harness_defect') from None
 
@@ -2423,7 +2550,11 @@ class World:
         ``trial_paused(server_unrecoverable)`` after the pair (P:2789), and a GGUF, serving
         manifest, identity or smoke failure owes ``trial_aborted`` by
         :data:`START_FAILURE_REASON`.  A call ``lab_server.restart`` REFUSED (it launched
-        nothing) owes ``trial_aborted(harness_defect)``."""
+        nothing) owes ``trial_aborted(harness_defect)``, and so does any other ``Exception``
+        out of it (``lab_server.start`` converts what it did not anticipate after a launch
+        into ``ServerStartFailed``, which is recorded and counted above; EB1 fix, reviewer 1
+        finding 7: a plain exception used to escape through the pump, leaving the down
+        unanswered and the trial without a terminal event)."""
         spec = self.ctx.servers[server_id]
         index = self.restarts.get(server_id, 0) + 1
         self.restarts[server_id] = index
@@ -2443,7 +2574,7 @@ class World:
             elif self.pending_abort is None:
                 self.pending_abort = START_FAILURE_REASON.get(stage, 'infrastructure')
             return
-        except PreflightError:
+        except Exception:               # PreflightError (refused) or anything unconverted
             if self.pending_abort is None:
                 self.pending_abort = 'harness_defect'
             return
@@ -3368,9 +3499,15 @@ def _w_dispatch_follow_up(self: World) -> bool:
     arrival = self.next_unassigned_arrival()
     if arrival is None:
         return False
-    if self.post_decision_dispatched and self.post_decision_dispatched % 50 == 0 \
-            and self.open_arrivals:
-        return False                                  # drain before the quiescent scrape
+    if self.post_decision_dispatched and self.post_decision_dispatched % 50 == 0:
+        if self.open_arrivals:
+            return False                              # drain before the quiescent scrape
+        # The cohort of 50 has drained -- nothing is open -- so this scrape IS quiescent;
+        # it is taken before the next arrival is dispatched.  (It used to be taken right
+        # after dispatching the 50th arrival, with that arrival still open: EB1 fix,
+        # reviewer 1 finding 4.)  A crash between this scrape and the next dispatch repeats
+        # it on resume, which is one more exact scrape, never a wrong one.
+        self.scrape('quiescent')
     arm = self.decided_arm or 'incumbent'
     ev = self.append('arm_assigned_by_decision', {
         'arrival': int(arrival), 'arm': arm,
@@ -3390,8 +3527,6 @@ def _w_dispatch_follow_up(self: World) -> bool:
                   worker_index=worker_index)
     self.dispatch(att)
     self.post_decision_dispatched += 1
-    if self.post_decision_dispatched % 50 == 0:
-        self.scrape('quiescent')
     return True
 
 
@@ -3756,7 +3891,8 @@ def _w_resume_servers(self: World) -> None:
     other servers are started through ``lab_server.start``.  A failed start follows the
     supervision rules, not the first-start ones: never healthy -> ``trial_paused(
     server_unrecoverable)``; anything else -> ``trial_aborted`` by
-    :data:`START_FAILURE_REASON`; a refused call -> ``trial_aborted(harness_defect)``.  After
+    :data:`START_FAILURE_REASON`; a refused call, or any other ``Exception`` out of the
+    start -> ``trial_aborted(harness_defect)``.  After
     a failure no further server is started.  Every server started here is scraped
     (``metrics_scrape(restart)``)."""
     started: list[str] = []
@@ -3782,7 +3918,9 @@ def _w_resume_servers(self: World) -> None:
             else:
                 self.pending_abort = START_FAILURE_REASON.get(stage, 'infrastructure')
             break
-        except PreflightError:
+        except Exception:
+            # PreflightError (refused), or an exception lab_server.start did not convert (EB1
+            # fix, reviewer 1 finding 7): nothing more is started, the trial owes the abort
             self.pending_abort = 'harness_defect'
             break
         started.append(server_id)
@@ -4139,10 +4277,11 @@ def make_context(trial: str, cfg: dict, *, results_root: Path, work_root: Path,
             n_slots=int(fcfg['execution']['workers']),
             n_ctx=int(_arg_value(fcfg['llama_args'], '-c', 16384)))
     # The golden objects come from the FREEZE TREE (ARCHITECTURE_FINAL.md 2.2 lines 190-191),
-    # never from the invocation.  Only a simulated invocation -- a harness installed a
-    # substitute world -- may overlay its own; preflight refuses the overlay everywhere else.
+    # never from the invocation.  Only a simulated invocation (:func:`simulated_path`: a
+    # substitute world AND runtime ``sim``) may overlay its own; preflight refuses the
+    # overlay everywhere else.
     golden, _ = load_golden_objects(freeze_dir, fcfg, servers)
-    if WORLD_FACTORY is not None and rt.get('golden') is not None:
+    if simulated_path(rt) and rt.get('golden') is not None:
         golden = dict(rt['golden'])
     serving_manifest, _ = load_serving_manifest(freeze_dir, fcfg)
     mc = MonitorConfig.from_config(fcfg, trial)

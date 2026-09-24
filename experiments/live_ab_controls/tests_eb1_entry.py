@@ -45,13 +45,29 @@ What is substituted, and why (each is recorded in the temporary tree's ``mock_ov
 
 Every control asserts the exact chain events it must produce, that no success-valued
 ``server_started`` / ``server_restarted`` body names a process the shim was scripted to fail,
-and that no launched pid (server shim, worker, orchestrator) and no listener on the frozen
-port remains afterwards.  C1 is the negative control of C2-C9 (the same tree, unmutated, is
-not refused) and each failure control is the negative control of C1 (the same entry path
-does refuse).  :class:`MutationControl` restores the pre-repair success placeholder and shows
-C2's assertions and the verifier's ``server.lifecycle`` check then FAIL -- so it is the
-comparison, not something incidental, that refuses.  ``C4bExitBetweenPairs`` has the same
-kind of negative control for the pair-boundary exit check EB1c added.
+and that nothing outlives the run: no launched server shim, no worker, no process left in the
+orchestrator's PROCESS GROUP (``pgrep -g``; the entry point runs as a session and group
+leader, so any descendant it left behind is found whatever its name -- EB1 fix, reviewer 2
+finding 5: the old "orchestrator pid alive" clause could not fail, because the pid had been
+reaped before it was asked), and no listener on the frozen port.  C1 is the negative control
+of C2-C11 (the same tree, unmutated, is not refused) and each failure control is the negative
+control of C1 (the same entry path does refuse).  :class:`MutationControl` restores the
+pre-repair success placeholder: C2's assertions then FAIL -- the refusal C2 observes is
+``lab_server.start``'s comparison -- and the verifier's ``server.lifecycle`` FAILs that
+placeholder because it hashed the RAW ``/props``.  The verifier does NOT prove more than
+that: a fabricated body that copies the golden digest and sets the flags true passes
+``verified_start`` (EB1 fix, reviewer 2 finding 2; ``lab_verify_log._check_server_lifecycle``
+states the limit and ``tests_eb1_supervision.VerifiedStartScopeTests`` pins it).
+``C4bExitBetweenPairs`` and ``C10ResumeStopsTheOrphan`` have the same kind of mutation control
+for the pair-boundary exit check EB1c added and for the resume gate the EB1 fix added.
+
+**Run this file ALONE, on a quiescent host** (EB1 fix, reviewer 2 finding 6).  Every control
+runs the real host-quiescence gate of protocol 5.7 (``ps`` / ``lsof``) and the real preflight;
+another accelerator job, or another suite's servers and workers probed as foreign consumers,
+refuses the run before seq 0 with ``preflight_refused(host_not_quiescent)``.  That is the
+gate working, not a defect of the path under test, so :meth:`EntryTree.run` fails the control
+AT ONCE with that reason (:func:`host_refusal`) instead of letting it fail later on an
+assertion that does not name the cause.
 
 Two defects of EB1a/EB1b these controls exposed are repaired in the same change:
 ``World.supervise_exits`` at IDLE (C6 showed a pair enrolled onto an exited server) and the
@@ -75,6 +91,7 @@ import socket
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import unittest
 from pathlib import Path
@@ -90,6 +107,8 @@ import eb1c_llama_shim as shim                                          # noqa: 
 import lab_common                                                       # noqa: E402
 import lab_data                                                         # noqa: E402
 import lab_eventlog                                                     # noqa: E402
+import lab_hostcheck                                                    # noqa: E402
+import lab_mock_server                                                  # noqa: E402
 import lab_orchestrator as orch                                         # noqa: E402
 import lab_server                                                       # noqa: E402
 import lab_verify_log                                                   # noqa: E402
@@ -172,7 +191,7 @@ class EntryTree:
     library, the shim's state directory, a relocated lock root) and a freeze tree built by
     ``dryrun_live_ab.build_mock_freeze`` and then bound to that host."""
 
-    def __init__(self, name: str, *, n_pairs: int = 3) -> None:
+    def __init__(self, name: str, *, n_pairs: int = 3, shim_as: str | None = None) -> None:
         self.name = name
         self.n_pairs = int(n_pairs)
         self.root = Path(tempfile.mkdtemp(prefix='eb1c_%s_' % name, dir=LABSBX))
@@ -194,6 +213,18 @@ class EntryTree:
         self.launcher.chmod(0o755)
         self.lib = self.bin / 'libmock.0.dylib'
         self.lib.write_bytes(b'eb1c: not a library, only a digest the manifest pins\n')
+        #: the script name a launched shim's command line carries (cleanup, orphan checks)
+        self.shim_token = shim_as or 'eb1c_llama_shim'
+        if shim_as is not None:
+            # the shim under another script name -- C10 gives it a name the host gate's
+            # runner list matches (``llama-server.py``: lab_hostcheck.match_consumer reads
+            # the dotted token's head), so a surviving shim IS a foreign llama-server to
+            # the gate, exactly as a real orphaned llama-server would be
+            alias = self.bin / shim_as
+            os.symlink(HERE / 'eb1c_llama_shim.py', alias)
+            self.launcher.write_text(
+                "#!/bin/sh\n%s='%s' exec '%s' '%s' \"$@\"\n"
+                % (shim.STATE_ENV, self.state, PY, alias), encoding='utf-8')
         self.port = free_port()
         self.anchor = None
         self.proc: subprocess.Popen | None = None
@@ -340,10 +371,14 @@ class EntryTree:
                 '--llama-bin', str(self.launcher), '--gguf', 'coder=%s' % self.gguf]
 
     def run(self, *, entry: Path | None = None, entry_args: tuple = (), anchor: bool = True,
-            timeout_s: float = RUN_TIMEOUT_S) -> int:
+            timeout_s: float = RUN_TIMEOUT_S, host_refusal_expected: bool = False) -> int:
         """Run the entry point to completion (or kill it at ``timeout_s``) and return its
         exit code.  ``entry`` defaults to ``lab_orchestrator.py`` itself; ``entry_args`` go
-        before the orchestrator's own argv (the mutation entry's ``--mutation NAME``)."""
+        before the orchestrator's own argv (the mutation entry's ``--mutation NAME``).
+
+        Unless ``host_refusal_expected``, a run the host-quiescence gate refused raises
+        ``AssertionError`` naming ``host_not_quiescent`` and the offenders' detectors
+        (:func:`host_refusal`): the control could not run on this host."""
         if anchor:
             anchor_cfg = json.loads(self.run_config.read_text(encoding='utf-8'))
             self.anchor = dry._start_anchor(TRIAL, anchor_cfg, self.results, self.work)
@@ -364,6 +399,10 @@ class EntryTree:
             self.stdout = (out or b'').decode('utf-8', 'replace')
         finally:
             dry._stop_anchor(self.anchor)
+        if not host_refusal_expected:
+            refused = host_refusal(self.program_chain())
+            if refused is not None:
+                raise AssertionError(refused)
         return self.returncode
 
     # -- reading ---------------------------------------------------------------------------
@@ -403,12 +442,42 @@ class EntryTree:
     def cleanup(self) -> None:
         """Kill anything a failed control left behind, then remove the tree."""
         for row in self.launches():
-            if pid_alive(row['pid']) and 'eb1c_llama_shim' in pid_command(row['pid']):
+            if pid_alive(row['pid']) and self.shim_token in pid_command(row['pid']):
                 try:
                     os.killpg(int(row['pid']), signal.SIGKILL)
                 except OSError:
                     pass
         shutil.rmtree(self.root, ignore_errors=True)
+
+
+def host_refusal(program_events) -> str | None:
+    """[pure] A message naming ``host_not_quiescent`` and the offenders' detectors when the
+    PROGRAM chain carries the host gate's refusal, ``None`` otherwise (any other refusal is
+    the control's own business)."""
+    refused = [e for e in program_events if e['type'] == 'preflight_refused'
+               and 'host_not_quiescent' in (e['body'].get('checks_failed') or [])]
+    if not refused:
+        return None
+    detectors = sorted({str(f.get('detector')) for e in program_events
+                        if e['type'] == 'host_quiescence_refused'
+                        for f in (e['body'].get('findings') or [])})
+    return ('host_not_quiescent: the real host gate refused this control before seq 0 '
+            '(offending detectors %r) -- run tests_eb1_entry alone on a quiescent host'
+            % (detectors,))
+
+
+def group_members(pgid: int) -> set[int] | None:
+    """The pids whose process GROUP is ``pgid`` (``pgrep -g``), ``None`` when that could not
+    be read.  pgrep's exit 1 with no output is "none"."""
+    try:
+        res = subprocess.run(['pgrep', '-g', str(int(pgid))], capture_output=True,
+                             text=True, timeout=10, check=False)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    out = res.stdout.split()
+    if res.returncode not in (0, 1) or (res.returncode == 1 and out):
+        return None
+    return {int(tok) for tok in out}
 
 
 def with_group_kill(proc: subprocess.Popen) -> None:
@@ -469,24 +538,28 @@ class EntryCase(unittest.TestCase):
     n_pairs = 3
 
     def tree(self, name: str, **kw) -> EntryTree:
-        t = EntryTree(name, n_pairs=kw.pop('n_pairs', self.n_pairs))
+        t = EntryTree(name, n_pairs=kw.pop('n_pairs', self.n_pairs),
+                      shim_as=kw.pop('shim_as', None))
         self.addCleanup(t.cleanup)
         t.build(**kw)
         return t
 
     def assertNoOrphans(self, t: EntryTree) -> None:
-        """No launched server shim, no worker, no orchestrator and no listener on the frozen
-        port outlives the run."""
+        """No launched server shim, no worker, nothing in the orchestrator's process group
+        and no listener on the frozen port outlives the run."""
         self.assertIsNotNone(t.returncode, 'the entry point had to be killed:\n' + t.stdout)
         for row in t.launches():
             self.assertFalse(pid_alive(row['pid'])
-                             and 'eb1c_llama_shim' in pid_command(row['pid']),
+                             and t.shim_token in pid_command(row['pid']),
                              'server shim pid %d survived' % row['pid'])
         for ev in of(t.chain(), 'episode_started'):
             pid = int(ev['body']['worker_pid'])
             self.assertFalse(pid_alive(pid) and 'eb1c_worker_entry' in pid_command(pid),
                              'worker pid %d survived' % pid)
-        self.assertFalse(pid_alive(t.proc.pid) and 'lab_orchestrator' in pid_command(t.proc.pid))
+        # the entry point ran as a session and group leader (start_new_session): whatever
+        # it left running in its group -- a worker, a helper, the entry itself -- is here
+        self.assertEqual(group_members(t.proc.pid), set(),
+                         'a process of the orchestrator\'s group outlived the run')
         self.assertEqual(lab_server.listening_pids(t.port), set(),
                          'something still listens on the frozen port')
 
@@ -1010,15 +1083,173 @@ class PreSeqZeroRefusals(EntryCase):
 
 
 # --------------------------------------------------------------------------- #
+# C10 / C11 (EB1 fix): the resume gate with a real orphan; a foreign listener
+# --------------------------------------------------------------------------- #
+class C10ResumeStopsTheOrphan(EntryCase):
+    """Reviewer 1 finding 2.  An invocation's process group dies mid-trial (SIGKILL of the
+    orchestrator and its workers); its server -- in its own session -- survives, and under
+    the name ``llama-server.py`` the REAL host gate identifies it as a llama-server.  The
+    resume must pass the real gate (the chain records that pid as this trial's server and it
+    still listens on the frozen port: ``chain_orphan_server_pids``), stop it with a durable
+    ``server_stopped`` before anything else, start and verify a new server, finish the trial
+    and PASS the verifier.  The mutation control restores the pre-fix gate (only the
+    orchestrator allowlisted): the same resume is refused ``host_not_quiescent`` naming a
+    llama-server, and the orphan is never stopped."""
+
+    n_pairs = 3
+
+    def kill_mid_trial(self, t: EntryTree) -> int:
+        """Run the entry point until a pair is dispatched, then SIGKILL its process GROUP
+        (the orchestrator and its workers; the server has its own session).  Returns the
+        surviving server's pid."""
+        anchor = dry._start_anchor(TRIAL, json.loads(t.run_config.read_text('utf-8')),
+                                   t.results, t.work)
+        log_path = t.work / 'killed_invocation.log'
+        dispatched = False
+        try:
+            with open(log_path, 'wb') as log:
+                proc = subprocess.Popen([PY, str(LIVE / 'lab_orchestrator.py')] + t.argv(),
+                                        cwd=str(LIVE), env=child_env(), stdout=log,
+                                        stderr=subprocess.STDOUT, start_new_session=True)
+            deadline = time.monotonic() + 120
+            while time.monotonic() < deadline and proc.poll() is None:
+                try:
+                    events = t.chain()
+                except (lab_common.ChainError, ValueError, OSError):
+                    events = []                         # a line mid-write
+                if of(events, 'episode_started'):
+                    dispatched = True
+                    break
+                time.sleep(0.1)
+            with_group_kill(proc)
+            proc.wait(timeout=30)
+        finally:
+            dry._stop_anchor(anchor)
+        output = log_path.read_text('utf-8', 'replace')
+        refused = host_refusal(t.program_chain())
+        if refused is not None:
+            raise AssertionError(refused)
+        self.assertTrue(dispatched, 'the first invocation never dispatched (returncode %r):\n%s'
+                        % (proc.returncode, output[-3000:]))
+        deadline = time.monotonic() + 10
+        while group_members(proc.pid) and time.monotonic() < deadline:
+            time.sleep(0.1)
+        self.assertEqual(group_members(proc.pid), set(), 'the killed group is gone')
+        (launch,) = t.launches()
+        orphan = int(launch['pid'])
+        self.assertTrue(pid_alive(orphan), 'the server survived its orchestrator')
+        self.assertEqual(lab_server.listening_pids(t.port), {orphan})
+        self.assertEqual(lab_hostcheck.match_consumer(pid_command(orphan)), 'llama-server',
+                         'the gate reads the orphan as a llama-server')
+        types_1 = types(t.chain())
+        self.assertIn('server_started', types_1)
+        self.assertNotIn('server_stopped', types_1)
+        return orphan
+
+    def resume_argv(self, t: EntryTree) -> None:
+        base = t.argv
+        t.argv = lambda: base() + ['--resume']
+
+    def test_c10_the_resume_passes_the_real_gate_and_stops_the_orphan_first(self):
+        t = self.tree('C10', shim_as='llama-server.py')
+        orphan = self.kill_mid_trial(t)
+        # what the gate sees: the orphan alone is refused; allowlisted it is not
+        with self.assertRaises(lab_hostcheck.HostNotQuiescent) as caught:
+            lab_hostcheck.preflight_host_quiescent(orch.own_harness_pids())
+        self.assertIn(orphan, [int(f['pid']) for f in caught.exception.findings])
+        self.resume_argv(t)
+        self.assertEqual(t.run(), 0, t.stdout)
+        self.assertEqual(of(t.program_chain(), 'preflight_refused'), [])
+        events = t.chain()
+        self.assertEqual(lifecycle(events), [
+            ('server_started',), ('server_stopped',), ('server_started',),
+            ('server_stopped',), ('trial_ended',)])
+        resumed = [i for i, e in enumerate(events) if e['type'] == 'invocation_started']
+        second = events[resumed[0]:]
+        stopped = of(second, 'server_stopped')[0]
+        self.assertEqual(int(stopped['body']['pid']), orphan, 'the resume stopped the orphan')
+        self.assertLess(second.index(stopped), second.index(of(second, 'server_started')[0]))
+        first_dispatch = of(second, 'episode_started')
+        if first_dispatch:
+            self.assertLess(second.index(stopped), second.index(first_dispatch[0]))
+        self.assertFalse(pid_alive(orphan) and t.shim_token in pid_command(orphan))
+        self.assertEqual(len(t.launches()), 2)
+        self.assertNoSuccessForBadLaunch(t, {0})
+        self.assertEqual(lifecycle_rules(t), [])
+        report = t.verify()
+        self.assertEqual((report['_exit'], report['verdict']), (0, 'PASS'), report['_stdout'])
+        self.assertNoOrphans(t)
+
+    def test_mutation_the_pre_fix_gate_refuses_the_resume_and_leaves_the_orphan(self):
+        t = self.tree('C10MUT', shim_as='llama-server.py')
+        orphan = self.kill_mid_trial(t)
+        before = len(t.chain())
+        self.resume_argv(t)
+        t.run(entry=HERE / 'eb1c_mutant_entry.py',
+              entry_args=('--mutation', 'gate_without_chain_orphans'),
+              anchor=False, host_refusal_expected=True)
+        self.assertEqual(t.returncode, 1, t.stdout)
+        program = t.program_chain()
+        self.assertEqual([e['body']['checks_failed'] for e in of(program, 'preflight_refused')],
+                         [['host_not_quiescent']])
+        (refusal,) = of(program, 'host_quiescence_refused')
+        self.assertIn('llama-server',
+                      [f['detector'] for f in refusal['body']['findings']])
+        self.assertEqual(len(t.chain()), before, 'the trial chain was not touched')
+        self.assertTrue(pid_alive(orphan), 'and the orphan was never stopped')
+        os.killpg(orphan, signal.SIGKILL)                  # the operator's manual step
+        deadline = time.monotonic() + 10
+        while lab_server.listening_pids(t.port) and time.monotonic() < deadline:
+            time.sleep(0.1)
+
+
+class C11ForeignListenerOnThePort(EntryCase):
+    """Reviewers 1 and 2 (foreign listener): a process that is not the harness's holds the
+    frozen port before the first start.  The run is refused BEFORE seq 0 with ``port_busy``
+    (protocol 6.4 row 21) -- nothing launched, no trial chain -- instead of a first start
+    that would take the foreign process's answers (pre-fix: a success-valued
+    ``server_started`` naming a launched pid that never served, verifier PASS).  C1 is the
+    negative control: the same tree with the port free runs."""
+
+    n_pairs = 1
+
+    def test_c11_a_foreign_listener_is_port_busy_before_seq_0(self):
+        t = self.tree('C11')
+        never = t.scenario()
+        never['_shim'] = {'never_listen': True}             # the reviewer's repro
+        t.set_scenarios([never])
+        srv, port = lab_mock_server.make_server(t.good_scenario, port=t.port)
+        thread = threading.Thread(target=srv.serve_forever, kwargs={'poll_interval': 0.01},
+                                  daemon=True)
+        thread.start()
+        try:
+            t.run(anchor=False)
+        finally:
+            srv.shutdown()
+            srv.server_close()
+            thread.join(timeout=5)
+        self.assertEqual(t.returncode, 1, t.stdout)
+        self.assertEqual(t.chain(), [], 'no trial chain before seq 0')
+        self.assertEqual(t.launches(), [], 'nothing was launched')
+        (refused,) = of(t.program_chain(), 'preflight_refused')
+        self.assertEqual(refused['body']['checks_failed'], ['port_busy'])
+        self.assertIn('port.coder', {r['item'] for r in refused['body']['drift']})
+        self.assertNoOrphans(t)
+
+
+# --------------------------------------------------------------------------- #
 # the mutation control
 # --------------------------------------------------------------------------- #
 class MutationControl(EntryCase):
     """C2's scenario through ``eb1c_mutant_entry.py``, which restores the pre-repair
     success placeholder in place of ``lab_server.start``.  C2's assertions must now FAIL (a
-    ``server_started`` claiming a golden match is appended and the trial dispatches), and so
-    must the verifier's ``server.lifecycle`` (``verified_start``: the body's
-    ``props_sha256`` is not the frozen golden digest).  The refusal C2 observes is therefore
-    the comparison's, not an artefact of the entry path."""
+    ``server_started`` claiming a golden match is appended and the trial dispatches): the
+    refusal C2 observes is therefore ``lab_server.start``'s comparison, not an artefact of
+    the entry path.  The verifier's ``server.lifecycle`` FAILs this chain too
+    (``verified_start``), and for a narrower reason: this placeholder hashed the RAW
+    ``/props``, so its ``props_sha256`` is not the frozen golden digest.  A placeholder that
+    copied the golden digest would pass the verifier -- it reads no server (reviewer 2
+    finding 2; stated in ``lab_verify_log._check_server_lifecycle``)."""
 
     n_pairs = 1
 
@@ -1116,6 +1347,41 @@ class VerifiedStartDigestTests(unittest.TestCase):
         self.assertEqual(self.rules(self.GOLDEN, self.cfg(other), {'coder': self.GOLDEN}),
                          ['verified_start'])
 
+
+class EntryHelperTests(unittest.TestCase):
+    """The two helpers the EB1 fix gave every control, each with its negative control."""
+
+    def test_group_members_finds_a_survivor_of_a_dead_group_leader(self):
+        """Reviewer 2 finding 5: the orphan check must be able to FAIL.  A group leader that
+        exits leaving a background child behind is found by its group id."""
+        leader = subprocess.Popen(['/bin/sh', '-c', 'sleep 30 & exit 0'],
+                                  start_new_session=True)
+        leader.wait(timeout=10)
+        try:
+            survivors = group_members(leader.pid)
+            self.assertTrue(survivors, 'the survivor is found although its leader is gone')
+            self.assertNotIn(leader.pid, survivors)
+        finally:
+            with_group_kill(leader)
+        deadline = time.monotonic() + 5
+        while group_members(leader.pid) and time.monotonic() < deadline:
+            time.sleep(0.05)
+        self.assertEqual(group_members(leader.pid), set(), 'control: an empty group is empty')
+
+    def test_host_refusal_names_the_gate_and_nothing_else(self):
+        """Reviewer 2 finding 6: a control the host gate refused says so."""
+        gate = [{'type': 'preflight_refused',
+                 'body': {'trial': TRIAL, 'checks_failed': ['host_not_quiescent'],
+                          'drift': []}},
+                {'type': 'host_quiescence_refused',
+                 'body': {'findings': [{'detector': 'llama-server'}]}}]
+        message = host_refusal(gate)
+        self.assertIn('host_not_quiescent', message)
+        self.assertIn('llama-server', message)
+        other = [{'type': 'preflight_refused',
+                  'body': {'trial': TRIAL, 'checks_failed': ['golden_objects'], 'drift': []}}]
+        self.assertIsNone(host_refusal(other), 'control: another refusal is the control\'s')
+        self.assertIsNone(host_refusal([]))
 
 if __name__ == '__main__':
     unittest.main()

@@ -8,10 +8,16 @@ refused, so no check here can pass by being unable to fail.
 What runs, and what does not:
 
 * ``lab_server.start`` / ``restart`` launch a real child process, but the "launcher" is a
-  two-line shell script (``exec sleep 30`` or ``exit 3``) that is never a model; ``/health``,
-  ``/props``, ``/v1/models`` and the smoke completion are answered by
-  ``lab_mock_server.make_server`` in a thread on a loopback port.  No llama-server, no model,
-  no network beyond 127.0.0.1.
+  two-line shell script that is never a model: by default it ``exec``s
+  ``eb1c_llama_shim.py``, so the CHILD ITSELF binds the frozen port and serves ``/health``,
+  ``/props``, ``/v1/models`` and the smoke completion through ``lab_mock_server`` (the
+  scenario is written to the shim's state directory by :func:`served`); a few tests use a
+  bare ``exit 3`` launcher.  ``lab_server.start`` accepts a server only when the child is
+  the port's one listener (EB1 fix, reviewers 1 and 2), so the fixture that used to answer
+  from a thread of THIS process beside an ``exec sleep 30`` child -- the "two servers on one
+  port" case -- is gone; :func:`mock_server` (an in-thread listener) remains only as the
+  FOREIGN listener that must be refused.  No llama-server, no model, no network beyond
+  127.0.0.1.
 * The orchestrator is exercised through ``preflight``, ``make_context``, ``World.start_servers``
   and ``run_trial`` on the mock freeze tree of ``dryrun_live_ab``.  The subprocess controls
   that run ``lab_orchestrator.main`` end to end are repair step EB1c, not this file.
@@ -44,6 +50,7 @@ if str(LIVE) not in sys.path:
     sys.path.insert(0, str(LIVE))
 
 import dryrun_live_ab as dry                                            # noqa: E402
+import eb1c_llama_shim as shim                                          # noqa: E402
 import lab_client                                                       # noqa: E402
 import lab_common                                                       # noqa: E402
 import lab_eventlog                                                     # noqa: E402
@@ -84,8 +91,19 @@ def golden_generation_settings(scenario: dict) -> dict:
 
 
 @contextlib.contextmanager
-def mock_server(scenario: dict):
-    srv, port = lab_mock_server.make_server(scenario, port=0)
+def served(host: 'Host', scenario: dict):
+    """A free loopback port whose server will be the CHILD ``lab_server.start`` launches:
+    the shim serves ``scenario`` there (every launch, whatever its start count).  Yields
+    ``(port, None)`` in the shape :func:`mock_server` used to."""
+    (host.state / 'scenarios.json').write_text(json.dumps([scenario]), encoding='utf-8')
+    yield free_port(), None
+
+
+@contextlib.contextmanager
+def mock_server(scenario: dict, port: int = 0):
+    """A listener in a thread of THIS process -- never the launched child.  Used only as the
+    foreign listener ``lab_server.start`` must refuse."""
+    srv, port = lab_mock_server.make_server(scenario, port=port)
     thread = threading.Thread(target=srv.serve_forever, kwargs={'poll_interval': 0.01},
                               daemon=True)
     thread.start()
@@ -101,16 +119,22 @@ def mock_server(scenario: dict):
 
 class Host:
     """A temporary 'host': a dummy GGUF, a shell-script launcher, one library beside it and
-    the serving manifest that names them."""
+    the serving manifest that names them.  The default launcher ``exec``s the EB1c shim, which
+    serves the scenario :func:`served` wrote to ``state`` on the port of the argv it got."""
 
-    def __init__(self, root: Path, *, launcher_body: str = 'exec sleep 30') -> None:
+    def __init__(self, root: Path, *, launcher_body: str | None = None) -> None:
         self.root = root
         self.bin = root / 'build' / 'bin'
         self.bin.mkdir(parents=True)
+        self.state = root / 'shim_state'
+        self.state.mkdir(parents=True)
         self.gguf = root / 'weights.gguf'
         self.gguf.write_bytes(b'GGUF' + b'\0' * 252)
         self.launcher = self.bin / 'llama-server'
-        self.write_launcher(launcher_body)
+        self.write_launcher(launcher_body if launcher_body is not None else
+                            "%s='%s' exec '%s' '%s' \"$@\""
+                            % (shim.STATE_ENV, self.state, sys.executable,
+                               HERE / 'eb1c_llama_shim.py'))
         self.lib = self.bin / 'libfake.0.dylib'
         self.lib.write_bytes(b'not a real library')
         self.manifest = {
@@ -189,7 +213,7 @@ class StartTests(ServerCase):
 
     def test_a_good_start_returns_an_observed_body_and_a_live_child(self):
         sc = self.host.scenario()
-        with mock_server(sc) as (port, _srv):
+        with served(self.host, sc) as (port, _srv):
             body = self.start(self.host.spec(port), sc)
             try:
                 lab_eventlog.validate_event('server_started', body)
@@ -207,7 +231,7 @@ class StartTests(ServerCase):
         sc = self.host.scenario()
         golden = self.golden(sc)
         golden['props'] = dict(golden['props'], total_slots=3)
-        with mock_server(sc) as (port, _srv):
+        with served(self.host, sc) as (port, _srv):
             rec = self.failure(self.start, self.host.spec(port), sc, golden=golden)
         self.assertEqual((rec['stage'], rec['findings']), ('identity', ['props_mismatch']))
         self.assertGreater(rec['pid'], 0)
@@ -227,8 +251,10 @@ class StartTests(ServerCase):
         self.assertNotIn('build_info', rec['findings'])
 
     def test_control_a_live_child_that_never_answers_is_a_health_timeout(self):
-        rec = self.failure(self.start, self.host.spec(free_port()), self.host.scenario(),
-                           timeout_s=0.6)
+        sc = self.host.scenario()
+        sc['_shim'] = {'never_listen': True}            # alive, never binds the port
+        with served(self.host, sc) as (port, _srv):
+            rec = self.failure(self.start, self.host.spec(port), sc, timeout_s=0.6)
         self.assertEqual((rec['stage'], rec['findings']), ('health', ['health_timeout']))
         self.assertEqual(rec['returncode'], -signal.SIGTERM, 'stopped by lab_server.stop')
         self.assertIsNone(rec['props_sha256'])
@@ -315,7 +341,7 @@ class IdentityTests(ServerCase):
 
     def test_props_sha256_is_the_tokenized_digest(self):
         sc = self.host.scenario()
-        with mock_server(sc) as (port, _srv):
+        with served(self.host, sc) as (port, _srv):
             body = self.start(self.host.spec(port), sc)
             lab_server.stop(body['pid'])
         self.assertEqual(body['props_sha256'],
@@ -328,7 +354,7 @@ class IdentityTests(ServerCase):
         golden = {'props': dict(sc['props']),          # already tokenized: nothing to do
                   'generation_settings': golden_generation_settings(sc),
                   'mask': ['seed'], 'float_tolerance': 1e-6}
-        with mock_server(sc) as (port, _srv):
+        with served(self.host, sc) as (port, _srv):
             rec = self.failure(self.start, self.host.spec(port), sc, golden=golden)
         self.assertEqual(rec['stage'], 'identity')
         self.assertIn('model_path', rec['findings'])
@@ -411,7 +437,7 @@ class SmokeTests(ServerCase):
             with self.subTest(finding=finding):
                 sc = self.host.scenario()
                 sc['faults'] = [dict(fault, match={'kind': 'smoke'})]
-                with mock_server(sc) as (port, _srv):
+                with served(self.host, sc) as (port, _srv):
                     rec = self.failure(self.start, self.host.spec(port), sc)
                 self.assertEqual(rec['stage'], 'smoke')
                 self.assertIn(finding, rec['findings'])
@@ -429,7 +455,7 @@ class RestartTests(ServerCase):
     def test_restart_refuses_while_the_old_pid_lives_then_compares_with_previous(self):
         sc = self.host.scenario()
         golden = self.golden(sc)
-        with mock_server(sc) as (port, _srv):
+        with served(self.host, sc) as (port, _srv):
             spec = self.host.spec(port)
             first = self.start(spec, sc)
             kw = dict(golden=golden, sampling=dict(SAMPLING), timeout_s=10.0,
@@ -458,18 +484,21 @@ class RestartTests(ServerCase):
     def test_a_failed_restart_records_kind_restart_and_its_index(self):
         sc = self.host.scenario()
         golden = self.golden(sc)
-        rec = self.failure(lab_server.restart, self.host.spec(free_port()), golden['props'],
-                           previous_pid=1 << 22,
-                           previous_props_sha256='4' * 64, golden=golden,
-                           sampling=dict(SAMPLING), timeout_s=0.5,
-                           serving_manifest=self.host.manifest,
-                           serving_manifest_sha256=self.host.manifest_sha, restart_index=3)
+        sc['_shim'] = {'never_listen': True}
+        with served(self.host, sc) as (port, _srv):
+            rec = self.failure(lab_server.restart, self.host.spec(port), golden['props'],
+                               previous_pid=1 << 22,
+                               previous_props_sha256='4' * 64, golden=golden,
+                               sampling=dict(SAMPLING), timeout_s=0.5,
+                               serving_manifest=self.host.manifest,
+                               serving_manifest_sha256=self.host.manifest_sha,
+                               restart_index=3)
         self.assertEqual((rec['kind'], rec['restart_index'], rec['stage']),
                          ('restart', 3, 'health'))
 
     def test_exit_status(self):
         sc = self.host.scenario()
-        with mock_server(sc) as (port, _srv):
+        with served(self.host, sc) as (port, _srv):
             body = self.start(self.host.spec(port), sc)
         self.assertIsNone(lab_server.exit_status(body['pid']))
         os.killpg(body['pid'], signal.SIGKILL)                  # dies behind our back
@@ -507,7 +536,7 @@ class TrialModeTests(ServerCase):
 
     def test_control_capture_mode_may_omit_them_and_its_body_is_not_a_start(self):
         sc = self.host.scenario()
-        with mock_server(sc) as (port, _srv):
+        with served(self.host, sc) as (port, _srv):
             body = lab_server.start(self.host.spec(port), mode='capture', timeout_s=10.0,
                                     serving_manifest=self.host.manifest,
                                     serving_manifest_sha256=self.host.manifest_sha)
@@ -517,6 +546,199 @@ class TrialModeTests(ServerCase):
         self.assertEqual(body['props_tokenized'], lab_server.tokenized_props(sc['props']))
         with self.assertRaises(lab_common.SchemaError):
             lab_eventlog.validate_event('server_started', body)
+
+
+# --------------------------------------------------------------------------- #
+# EB1 fix (reviewers 1 and 2): the listener must be the child; malformed answers are
+# recorded failures; the manifest build string; no copied digest in trial mode
+# --------------------------------------------------------------------------- #
+class ForeignListenerTests(ServerCase):
+    """Reviewer 1 finding 6 / reviewer 2 finding 1: ``lab_server.start`` used to take
+    ``/health``, ``/props`` and the smoke from WHATEVER listened on the frozen port, and
+    returned a success-valued body naming a launched pid that never served."""
+
+    def test_a_foreign_listener_is_never_taken_as_the_childs_health(self):
+        sc = self.host.scenario()
+        never = dict(sc, _shim={'never_listen': True})     # the child never binds
+        with served(self.host, never) as (port, _unused):
+            with mock_server(sc, port=port):                 # someone ELSE answers there
+                self.assertTrue(lab_server.health(self.host.spec(port).base_url)['ok'],
+                                'the foreign listener answers /health 200')
+                rec = self.failure(self.start, self.host.spec(port), sc, timeout_s=1.5)
+        self.assertEqual((rec['stage'], rec['findings']), ('health', ['health_timeout']))
+        self.assertIsNone(rec['props_sha256'], 'no /props of the foreign process recorded')
+
+    def test_a_child_that_cannot_bind_a_held_port_is_process_exited(self):
+        """The reviewer's repro: a launch that never binds and exits 7, beside a listener."""
+        self.host.write_launcher('sleep 1.0; exit 7')
+        self.host.manifest['launcher_sha256'] = sha256_file(self.host.launcher)
+        sc = self.host.scenario()
+        with mock_server(sc) as (port, _srv):
+            rec = self.failure(self.start, self.host.spec(port), sc, timeout_s=10.0)
+        self.assertEqual((rec['stage'], rec['findings'], rec['returncode']),
+                         ('launch', ['process_exited'], 7))
+
+    def test_control_the_child_as_the_ports_only_listener_is_accepted(self):
+        sc = self.host.scenario()
+        with served(self.host, sc) as (port, _unused):
+            body = self.start(self.host.spec(port), sc)
+            try:
+                self.assertEqual(lab_server.listening_pids(port), {body['pid']})
+            finally:
+                lab_server.stop(body['pid'])
+        self.assertIs(body['props_matches_golden'], True)
+
+
+class _BadResp:
+    def __init__(self, data):
+        self._data, self.status_code = data, 200
+
+    def json(self):
+        return self._data
+
+
+class MalformedAnswerTests(ServerCase):
+    """Reviewer 1 finding 7: a malformed HTTP-200 answer used to raise a plain TypeError /
+    AttributeError out of ``lab_server.start``; it is now a recorded failure of its stage,
+    and the child is stopped either way."""
+
+    def test_a_models_listing_that_is_not_a_list_is_the_models_endpoint_finding(self):
+        sc = self.host.scenario()
+        real_probe = lab_server.probe
+
+        def bad_probe(base_url, **kw):
+            got = real_probe(base_url, **kw)
+            return dict(got, models={'data': 5})
+        with served(self.host, sc) as (port, _unused), \
+                mock.patch.object(lab_server, 'probe', bad_probe):
+            rec = self.failure(self.start, self.host.spec(port), sc)
+        self.assertEqual((rec['stage'], rec['findings']), ('identity', ['models_endpoint']))
+        self.assertIsNotNone(rec['returncode'], 'the child was stopped')
+        # control: the pure check on the well-formed listing finds nothing
+        spec = self.host.spec(port)
+        self.assertNotIn('models_endpoint', lab_server.identity_findings(
+            spec, sc['props'], {'data': [{'id': spec.alias}]}))
+
+    def test_a_smoke_whose_timings_is_not_an_object_is_a_smoke_failure(self):
+        golden = self.golden(self.host.scenario())
+        data = {'model': basic_scenario()['alias'],
+                'usage': {'prompt_tokens': 5, 'completion_tokens': 2, 'total_tokens': 7,
+                          'prompt_tokens_details': {'cached_tokens': 0}},
+                'timings': [1],
+                '__verbose': {'generation_settings': dict(
+                    golden_generation_settings(basic_scenario()), seed=1)}}
+        with mock.patch.object(lab_server.requests, 'post', lambda *a, **k: _BadResp(data)):
+            out, findings = lab_server._smoke_attempt('http://127.0.0.1:1',
+                                                      self.host.spec(1), golden, SAMPLING)
+        self.assertIsNone(out)
+        self.assertIn('smoke_no_usage', findings)
+        self.assertIn('cache_n_nonzero', findings)
+        # and through start: a recorded smoke failure, the child stopped
+        sc = self.host.scenario()
+        with served(self.host, sc) as (port, _unused), \
+                mock.patch.object(lab_server.requests, 'post',
+                                  lambda *a, **k: _BadResp(data)):
+            rec = self.failure(self.start, self.host.spec(port), sc)
+        self.assertEqual(rec['stage'], 'smoke')
+        self.assertIsNotNone(rec['returncode'])
+
+    def test_an_unanticipated_exception_is_a_recorded_failure_of_its_stage(self):
+        sc = self.host.scenario()
+        golden = self.golden(sc)
+
+        def boom(props):
+            raise RuntimeError('a check this function did not model')
+        with served(self.host, sc) as (port, _unused), \
+                mock.patch.object(lab_server, 'tokenized_props', boom):
+            rec = self.failure(self.start, self.host.spec(port), sc, golden=golden)
+        self.assertEqual((rec['stage'], rec['findings']), ('identity', ['props_mismatch']))
+        self.assertGreater(rec['pid'], 0)
+        self.assertEqual(lab_server.exit_status(rec['pid']), rec['returncode'])
+        self.assertIsNotNone(rec['returncode'], 'the child was stopped before the raise')
+
+    def test_control_an_interrupt_still_stops_the_child_and_propagates(self):
+        class Interrupt(BaseException):
+            pass
+        sc = self.host.scenario()
+        seen: list = []
+
+        def interrupted(base_url, **kw):
+            seen.append(max(lab_server._CHILDREN))
+            raise Interrupt()
+        with served(self.host, sc) as (port, _unused), \
+                mock.patch.object(lab_server, 'probe', interrupted):
+            with self.assertRaises(Interrupt):
+                self.start(self.host.spec(port), sc)
+        self.assertEqual(len(seen), 1)
+        self.assertNotIn(seen[0], lab_server._CHILDREN, 'stopped and reaped')
+        self.assertIsNotNone(lab_server.exit_status(seen[0]))
+
+    def test_health_never_raises_on_a_malformed_slots_listing(self):
+        class _R:
+            status_code = 200
+
+            def __init__(self, data):
+                self._d = data
+
+            def json(self):
+                return self._d
+        answers = {'/health': _R({}), '/slots': _R([1, 'x', {'is_processing': True}])}
+
+        def get(url, timeout=5.0):
+            return answers[url[url.rindex('/'):]]
+        with mock.patch.object(lab_server.requests, 'get', get):
+            got = lab_server.health('http://127.0.0.1:1')
+        self.assertEqual((got['ok'], got['slots_busy']), (True, 1),
+                         'only the one object slot that is processing is busy')
+
+
+class ManifestBuildInfoTests(ServerCase):
+    """Reviewer 2 finding 3: the raw ``build_info`` is compared with the manifest's
+    ``props_build_info`` -- a check the per-field commit-prefix test does not make."""
+
+    def test_a_build_string_other_than_the_manifests_is_refused(self):
+        sc = self.host.scenario()
+        other = dict(self.host.manifest, props_build_info='b6001-4fea119d')
+        spec = self.host.spec(free_port())
+        self.assertEqual(lab_server.serving_manifest_problems(
+            spec, other, sha256_canonical(other)), [],
+            'the manifest itself re-verifies: the commit prefix is in both strings')
+        self.assertNotIn('build_info', lab_server.identity_findings(
+            spec, sc['props'], None, None), 'the per-field check alone passes it')
+        with served(self.host, sc) as (port, _unused):
+            rec = self.failure(self.start, self.host.spec(port), sc,
+                               serving_manifest=other,
+                               serving_manifest_sha256=sha256_canonical(other))
+        self.assertEqual((rec['stage'], rec['findings']), ('identity', ['build_info']))
+        # control: the manifest's own string (the fixture's) starts -- test_a_good_start
+
+
+class CopiedDigestTests(ServerCase):
+    """Reviewer 1 finding 9: trial mode may not skip the GGUF recomputation."""
+
+    def test_trial_mode_refuses_a_copied_gguf_digest_and_launches_nothing(self):
+        spec = self.host.spec(free_port(), gguf_sha256='f' * 64)
+        golden = self.golden(self.host.scenario())
+        before = dict(lab_server._CHILDREN)
+        with self.assertRaises(lab_common.PreflightError):
+            lab_server.start(spec, golden_props=golden['props'], golden=golden,
+                             sampling=dict(SAMPLING), recompute_gguf_sha256=False,
+                             serving_manifest=self.host.manifest,
+                             serving_manifest_sha256=self.host.manifest_sha)
+        self.assertEqual(dict(lab_server._CHILDREN), before)
+        with self.assertRaises(lab_common.PreflightError):
+            lab_server.restart(spec, golden['props'], previous_pid=1 << 22,
+                               previous_props_sha256='4' * 64, golden=golden,
+                               sampling=dict(SAMPLING), recompute_gguf_sha256=False,
+                               serving_manifest=self.host.manifest,
+                               serving_manifest_sha256=self.host.manifest_sha)
+        self.assertEqual(dict(lab_server._CHILDREN), before)
+        # control: recomputing, the wrong digest is observed and refused at stage gguf
+        rec = self.failure(lab_server.start, spec, golden_props=golden['props'],
+                           golden=golden, sampling=dict(SAMPLING),
+                           serving_manifest=self.host.manifest,
+                           serving_manifest_sha256=self.host.manifest_sha)
+        self.assertEqual((rec['stage'], rec['findings']), ('gguf', ['gguf_sha256']))
 
 
 # --------------------------------------------------------------------------- #
@@ -673,6 +895,68 @@ class PreflightTests(unittest.TestCase):
         with self.sim():
             self.assertEqual(orch.preflight(self.tree.ctx(sim=True, golden=override)), [])
 
+    def test_a_runtime_golden_is_refused_with_a_substitute_world_but_no_sim(self):
+        """Reviewer 1 finding 8: a substitute world with ``sim`` unset supervises its servers
+        live; the overlay may not replace the frozen golden objects there."""
+        override = {'coder': {'props': {'model_path': '<TMP>/x'}, 'generation_settings': {},
+                              'mask': ['seed'], 'float_tolerance': 1e-6}}
+        with self.sim():
+            ctx = self.tree.ctx(golden=override)             # sim NOT set
+            self.assertIsNot(ctx.golden, override)
+            self.assertNotEqual(ctx.golden.get('coder'), override['coder'],
+                                'make_context kept the frozen golden objects')
+            codes, items = self.refusal(ctx)
+        self.assertIn('golden_objects', codes)
+        self.assertIn('runtime_golden_override', items)
+        # control: the same overlay with sim set is the simulated harness's own
+        with self.sim():
+            ctx = self.tree.ctx(sim=True, golden=override)
+            self.assertEqual(ctx.golden, override)
+            self.assertEqual(orch.preflight(ctx), [])
+
+    def _golden_with_model_path(self, model_path: str) -> None:
+        """Rewrite the coder golden /props with ``model_path`` and bind the config to it."""
+        path = self.tree.freeze / 'golden_props_coder.json'
+        obj = dict(json.loads(path.read_text('utf-8')), model_path=model_path)
+        path.write_text(lab_common.canonical_json(obj), encoding='utf-8')
+        cfg_path = self.tree.freeze / 'config.json'
+        cfg = json.loads(cfg_path.read_text('utf-8'))
+        cfg['receipt']['golden_props_sha256']['coder'] = sha256_canonical(obj)
+        cfg_path.write_text(lab_common.canonical_json(cfg), encoding='utf-8')
+
+    def test_a_weights_path_the_golden_model_path_does_not_name_is_refused(self):
+        """Reviewer 1 finding 3: the golden /props carries tokenize_path(-m); the same file
+        under another spelling passes the bytes/SHA check and used to fail only at the
+        first start's identity stage, after seq 0."""
+        tmp = Path(tempfile.mkdtemp(prefix='eb1_spell_'))
+        self.addCleanup(shutil.rmtree, tmp, True)
+        blob = tmp / 'blobs' / 'weights.gguf'
+        blob.parent.mkdir()
+        blob.write_bytes(b'GGUF' + b'\0' * 60)
+        link = tmp / 'snapshot' / 'weights.gguf'
+        link.parent.mkdir()
+        os.symlink(blob, link)
+        self._golden_with_model_path(lab_common.tokenize_path(str(link)))
+        # the trial names the blob: same bytes, other spelling -> refused before seq 0
+        codes, items = self.refusal(self.tree.ctx(gguf_paths={'coder': str(blob)}))
+        self.assertIn('golden_objects', codes)
+        self.assertIn('golden_model_path.coder', items)
+        # control: the spelling the golden object was captured with is not refused for it
+        codes, items = self.refusal(self.tree.ctx(gguf_paths={'coder': str(link)}))
+        self.assertNotIn('golden_model_path.coder', items)
+
+    def test_a_busy_port_is_refused_before_seq_0(self):
+        """Reviewers 1 and 2 (foreign listener): a port another process holds is
+        ``port_busy`` before seq 0, never a first start after it."""
+        with mock_server(basic_scenario()) as (port, _srv):
+            codes, items = self.refusal(self.tree.ctx(ports={'coder': port}))
+        self.assertIn('port_busy', codes)
+        self.assertIn('port.coder', items)
+        # control: a free port is not refused for that reason
+        codes, items = self.refusal(self.tree.ctx(ports={'coder': free_port()}))
+        self.assertNotIn('port_busy', codes)
+        self.assertNotIn('port.coder', items)
+
     def test_the_real_path_needs_explicit_weights_and_a_verified_launcher(self):
         codes, items = self.refusal(self.tree.ctx())
         self.assertIn('weights_hash', codes)
@@ -818,6 +1102,21 @@ class StartServersTests(unittest.TestCase):
                 self.assertEqual(caught.exception.reason, reason)
         self.assertEqual(set(orch.START_FAILURE_REASON), set(lab_server.START_STAGES))
 
+    def test_an_unexpected_exception_stops_the_first_and_is_a_harness_defect(self):
+        """Reviewer 1 finding 7: an exception that is neither ``ServerStartFailed`` nor
+        ``PreflightError`` used to escape start_servers after trial_started."""
+        def fake_start(spec, **kw):
+            if spec.server_id == 't3':
+                raise TypeError("'int' object is not iterable")
+            return _started_body('coder', 111)
+        with mock.patch.object(orch.lab_server, 'start', fake_start):
+            with self.assertRaises(lab_common.AbortTrial) as caught:
+                self.world.start_servers()
+        self.assertEqual(caught.exception.reason, 'harness_defect')
+        self.assertEqual(self.types(), ['server_started', 'server_stopped'])
+        self.assertEqual(self.stopped, [111])
+        self.assertEqual(self.world.server_pids, {})
+
     def test_the_sim_body_claims_no_comparison(self):
         body = self.world.sim_server_started_body('coder', self.ctx.servers['coder'])
         lab_eventlog.validate_event('server_started', body)
@@ -891,6 +1190,44 @@ class RunTrialTests(unittest.TestCase):
                 self.assertEqual(status, 'aborted')
                 self.assertEqual([e['body']['reason'] for e in events
                                   if e['type'] == 'trial_aborted'], [reason])
+
+    def test_an_unexpected_start_exception_ends_in_trial_aborted(self):
+        """Reviewer 1 finding 7: run_trial with the start raising a plain TypeError used to
+        RAISE, leaving a chain of ['trial_started'] with no terminal event."""
+        status, events = self._run(TypeError("'int' object is not iterable"))
+        self.assertEqual(status, 'aborted')
+        self.assertEqual([e['body']['reason'] for e in events
+                          if e['type'] == 'trial_aborted'], ['harness_defect'])
+
+    def test_an_exception_that_escapes_run_trial_still_stops_the_held_server(self):
+        """Reviewer 2 finding 3: the ``finally`` of run_trial stops every server still held
+        when an exception escapes; nothing else would."""
+        tree = _Tree('T4')
+        self.addCleanup(tree.close)
+        stopped: list = []
+
+        class Escape(Exception):
+            pass
+
+        def scrape(world, point, **kw):
+            if point == 'trial_start':
+                raise Escape('after the start, before anything else')
+        with mock.patch.object(orch, 'WORLD_FACTORY', dry.SimWorld), \
+                mock.patch.object(orch, 'host_quiescence_gate', lambda ctx: None), \
+                mock.patch.object(orch.lab_server, 'start',
+                                  lambda spec, **kw: _started_body(spec.server_id, 555)), \
+                mock.patch.object(orch.lab_server, 'stop', lambda pid, **k: (
+                    stopped.append(pid) or {'returncode': -15, 'seconds': 0.1})), \
+                mock.patch.object(orch.World, 'scrape', scrape):
+            ctx = tree.ctx()
+            with self.assertRaises(Escape):
+                orch.run_trial(ctx, resume=False)
+        self.assertEqual(stopped, [555], 'the held server was stopped on the way out')
+        events = lab_eventlog.read_chain(tree.results / 'T4' / 'events', 'T4',
+                                         tree.bundle_sha).events
+        self.assertEqual([e['type'] for e in events][-1], 'server_started',
+                         'control: nothing was written on the way out, and nothing stopped '
+                         'it before the escape')
 
 
 if __name__ == '__main__':
