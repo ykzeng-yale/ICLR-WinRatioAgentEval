@@ -22,6 +22,7 @@ Modes (``main``):
 from __future__ import annotations
 
 import argparse
+import base64
 import json
 import os
 import re
@@ -78,6 +79,16 @@ class AnchorReceipt(TypedDict):
     updated_at: str | None
     receipt_sha256: str | None
     error_class: str | None
+    #: The evidence the orchestrator checks before a DECISION receipt clears its blocking
+    #: gate (root f855e45 / 3e18d69; ``lab_orchestrator.judge_receipt_line``): the SHA-256
+    #: of the anchor file's bytes as written (the anchor head: ``upto_seq``/``upto_h``), and
+    #: of a comment (12.4 item 3) its ``node_id``, the SHA-256 of the exact body posted and
+    #: the RAW response bytes (base64), whose SHA-256 is ``receipt_sha256`` and whose own
+    #: ``id``/``node_id``/``created_at``/``updated_at``/``body`` must agree with this row.
+    anchor_file_sha256: str | None
+    node_id: str | None
+    comment_body_sha256: str | None
+    comment_response_b64: str | None
 
 
 # ---------------------------------------------------------------------------
@@ -91,17 +102,8 @@ def write_anchor_file(paths: TrialPaths, req: AnchorRequest) -> Path:
     of protocol 14.7 meaningful (12.4 item 6)."""
     path = Path(paths.anchors) / ('anchor_%d.json' % int(req['anchor_seq']))
     path.parent.mkdir(parents=True, exist_ok=True)
-    body = {
-        'trial': str(req['trial']),
-        'anchor_seq': int(req['anchor_seq']),
-        'upto_seq': int(req['upto_seq']),
-        'upto_h': str(req['upto_h']),
-        'segment_index': int(req['segment_index']),
-        'segment_bytes': int(req['segment_bytes']),
-        'segment_sha256': str(req['segment_sha256']),
-        'trigger': str(req['trigger']),
-        'blocking': bool(req['blocking']),
-    }
+    # the one definition the orchestrator's receipt check recomputes (lab_common)
+    body = lab_common.anchor_file_object(str(req['trial']), req)
     if path.exists() and path.read_text(encoding='utf-8') == canonical_json(body):
         return path
     lab_common.write_json_atomic(path, body, durable=True)
@@ -235,15 +237,24 @@ def assert_repo_scoped_api(api: str, *, stage: str) -> str:
     return base
 
 
+_NO_COMMENT: dict = {'ok': False, 'error_class': 'api', 'comment_id': None, 'node_id': None,
+                    'created_at': None, 'updated_at': None, 'receipt_sha256': None,
+                    'response_b64': None}
+
+
 def post_comment(api: str, issue: int, body: str, token_env: str) -> dict:
     """One issue comment (protocol 12.4 item 3).  The API response fields ``id``,
-    ``created_at`` and ``updated_at`` and the SHA-256 of the raw response are recorded; the
-    body text never is."""
+    ``node_id``, ``created_at`` and ``updated_at`` and the SHA-256 of the raw response are
+    recorded; the body text never is (the caller records its SHA-256).  ``node_id`` was
+    omitted until root's 3e18d69 ruling.  ``response_b64`` is the raw response bytes, so that
+    the orchestrator can check that these fields are the response's own and that the
+    response echoes the exact body posted; it lives in the anchor spool and the private
+    receipt under ``work/`` only, never in the chain.  Nothing here judges the response: a
+    missing field is returned as ``None`` and refused by the orchestrator."""
     import requests                                    # imported here: never at import time
     token = os.environ.get(str(token_env) or '')
     if not token:
-        return {'ok': False, 'error_class': 'api', 'comment_id': None,
-                'created_at': None, 'updated_at': None, 'receipt_sha256': None}
+        return dict(_NO_COMMENT)
     # REFUSE a base that names no repository, before any request is made.
     url = '%s/issues/%d/comments' % (
         assert_repo_scoped_api(api, stage='post_comment'), int(issue))
@@ -252,20 +263,26 @@ def post_comment(api: str, issue: int, body: str, token_env: str) -> dict:
             'Authorization': 'Bearer %s' % token,
             'Accept': 'application/vnd.github+json'})
     except Exception:                                   # noqa: BLE001
-        return {'ok': False, 'error_class': 'api', 'comment_id': None,
-                'created_at': None, 'updated_at': None, 'receipt_sha256': None}
+        return dict(_NO_COMMENT)
     if res.status_code >= 300:
-        return {'ok': False, 'error_class': 'api', 'comment_id': None,
-                'created_at': None, 'updated_at': None, 'receipt_sha256': None}
+        return dict(_NO_COMMENT)
     try:
         data = res.json()
     except ValueError:
-        return {'ok': False, 'error_class': 'api', 'comment_id': None,
-                'created_at': None, 'updated_at': None, 'receipt_sha256': None}
+        return dict(_NO_COMMENT)
+    if not isinstance(data, dict):
+        return dict(_NO_COMMENT)
+    node_id = data.get('node_id')
+    try:
+        comment_id = int(data.get('id')) if data.get('id') is not None else None
+    except (TypeError, ValueError):
+        comment_id = None
     return {'ok': True, 'error_class': None,
-            'comment_id': int(data.get('id')) if data.get('id') is not None else None,
+            'comment_id': comment_id,
+            'node_id': node_id if isinstance(node_id, str) else None,
             'created_at': data.get('created_at'), 'updated_at': data.get('updated_at'),
-            'receipt_sha256': sha256_bytes(res.content)}
+            'receipt_sha256': sha256_bytes(res.content),
+            'response_b64': base64.b64encode(bytes(res.content)).decode('ascii')}
 
 
 # ---------------------------------------------------------------------------
@@ -342,7 +359,9 @@ def _handle(paths: TrialPaths, cfg: Mapping, req: Mapping, *, mode: str,
     receipt: dict = {'request_id': str(req.get('request_id') or uuid.uuid4().hex),
                      'ok': False, 'commit': None, 'branch': None, 'pushed': False,
                      'comment_id': None, 'created_at': None, 'updated_at': None,
-                     'receipt_sha256': None, 'error_class': None}
+                     'receipt_sha256': None, 'error_class': None,
+                     'anchor_file_sha256': sha256_file(anchor_file), 'node_id': None,
+                     'comment_body_sha256': None, 'comment_response_b64': None}
     if mode == 'dry_run':
         receipt['error_class'] = 'dry_run'
         return receipt
@@ -391,17 +410,18 @@ def _handle(paths: TrialPaths, cfg: Mapping, req: Mapping, *, mode: str,
 
     if mode == 'real' and str(req.get('trigger')) in tuple(
             anchor_cfg.get('comment_triggers') or ()):
-        body = canonical_json({'trial': req.get('trial'), 'upto_seq': req.get('upto_seq'),
-                               'upto_h': req.get('upto_h'),
-                               'segment_sha256': req.get('segment_sha256')})
+        body = lab_common.anchor_comment_body(str(req.get('trial')), req)
         comment = post_comment(str(rt.get('api') or DEFAULT_ISSUE_API_BASE),
                                int(anchor_cfg.get('issue') or 0), body,
                                str(rt.get('token_env') or 'GITHUB_TOKEN'))
         if comment.get('ok'):
             receipt.update({'comment_id': comment.get('comment_id'),
+                            'node_id': comment.get('node_id'),
                             'created_at': comment.get('created_at'),
                             'updated_at': comment.get('updated_at'),
-                            'receipt_sha256': comment.get('receipt_sha256')})
+                            'receipt_sha256': comment.get('receipt_sha256'),
+                            'comment_body_sha256': sha256_text(body),
+                            'comment_response_b64': comment.get('response_b64')})
         else:
             receipt['error_class'] = 'api'
             receipt['ok'] = False

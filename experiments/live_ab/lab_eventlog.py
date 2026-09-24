@@ -20,11 +20,13 @@ import json
 import os
 import re
 from dataclasses import dataclass, replace
+from datetime import datetime
 from pathlib import Path
 from typing import Iterable, Literal, Mapping, Sequence, TypedDict
 
 from lab_common import (ARMS, TRIALS, ChainError, SchemaError, UID_RE, PATH_TOKENS,
-                        append_line_durable, canonical_json, sha256_bytes, sha256_text)
+                        anchor_comment_body, anchor_file_object, append_line_durable,
+                        canonical_json, sha256_bytes, sha256_canonical, sha256_text)
 
 CHAIN_DOMAIN: str = 'live_ab/eventlog-v3'
 SEGMENT_FMT: str = 'seg_%04d.jsonl'
@@ -231,6 +233,18 @@ E_ANCHOR_TRIGGER = _E('trial_started', 'every_25_completed_pairs', 'decision',
                       'program_resumed', 'preflight_refused', 'plumbing_verdict_fail',
                       'erratum', 'chain_unreadable')
 E_ANCHOR_ERROR = _E('tree_state', 'push', 'api', 'scanner', 'timeout', 'dry_run')
+#: Why a line of ``anchor_spool/receipts.jsonl`` was NOT attributed to an anchor (root
+#: f855e45, ``reviews/eb1_receipt_attribution_review_20260924_0254.md``; repair contract,
+#: "Added 03:1x"): ``anchor_receipt_rejected.reason``.  The orchestrator's rule
+#: (``lab_orchestrator.judge_receipt_line``), in order: ``malformed`` -- not a JSON object,
+#: a ``request_id`` that is not 32 lowercase hex, a non-bool ``ok``, a field the chain
+#: cannot hold, or a DECISION receipt missing required external evidence; ``unknown_request``
+#: -- no durable anchor request carries the id; ``duplicate`` -- byte-identical to the line
+#: that already resolved that request's anchor; ``stale`` -- a different line for an EARLIER
+#: anchor already resolved; ``conflict`` -- a different line for the newest anchor already
+#: resolved, a durable request that disagrees with its chained ``anchor``, or a decision
+#: receipt whose evidence disagrees with itself or with its request.
+E_RECEIPT_REJECT = _E('unknown_request', 'stale', 'malformed', 'duplicate', 'conflict')
 E_TRIAL_STATUS = _E('ended', 'aborted', 'not_started', 'chain_unreadable')
 E_INVOCATION_STATUS = _E('ended', 'aborted', 'paused', 'refused', 'interrupted')
 E_SCOPE = _E('reporting_code')
@@ -392,10 +406,30 @@ ANCHOR_FIELDS: dict[str, FieldSpec] = {
     'pairs_enrolled': _I(), 'pairs_completed': _I(), 'records_manifest_sha256': _H64(),
     'server_log_sha256': HASH_MAP, 'server_log_bytes': INT_MAP,
     'trigger': E_ANCHOR_TRIGGER, 'blocking': _B(),
+    # the id of the durable ``anchor_spool/requests.jsonl`` request this anchor was sent as
+    # (optional: chains written before root's f855e45 finding carry none, and such an
+    # anchor's receipt can never be a decision receipt -- :func:`decision_receipt`)
+    'request_id': _opt(_H32()),
 }
 ANCHOR_RECEIPT_FIELDS: dict[str, FieldSpec] = {
     'anchor_seq': _I(), 'pushed': _B(), 'comment_id': _N(_I()), 'created_at': _N(_ISO()),
     'updated_at': _N(_ISO()), 'receipt_sha256': _H64(), 'commit_sha256': _H64(),
+    # Root f855e45 / 3e18d69 (all optional, so earlier chains validate): the request the
+    # receipt line answered, bound EXACTLY by the orchestrator; and, only on a receipt the
+    # orchestrator verified as a DECISION anchor's external receipt, the SHA-256 of the
+    # anchor file committed, of the comment body the response echoed, and of the response's
+    # ``node_id`` (the identifier itself stays under ``work/``).
+    'request_id': _opt(_H32()),
+    'anchor_file_sha256': _opt(_N(_H64())),
+    'comment_body_sha256': _opt(_N(_H64())),
+    'node_id_sha256': _opt(_N(_H64())),
+}
+ANCHOR_RECEIPT_REJECTED_FIELDS: dict[str, FieldSpec] = {
+    # a receipt line attributed to NO anchor: its request id when it is one (32 lowercase
+    # hex), the closed reason, and the SHA-256 and length of the line's exact bytes (without
+    # its newline) as they stay in ``anchor_spool/receipts.jsonl``
+    'request_id': _N(_H32()), 'reason': E_RECEIPT_REJECT, 'raw_sha256': _H64(),
+    'raw_bytes': _I(),
 }
 ANCHOR_FAILED_FIELDS: dict[str, FieldSpec] = {
     'anchor_seq': _I(), 'error_class': E_ANCHOR_ERROR, 'blocking': _B(),
@@ -637,6 +671,7 @@ EVENT_SCHEMA: dict[str, dict[str, FieldSpec]] = {
     'anchor': dict(ANCHOR_FIELDS),
     'anchor_receipt': dict(ANCHOR_RECEIPT_FIELDS),
     'anchor_failed': dict(ANCHOR_FAILED_FIELDS),
+    'anchor_receipt_rejected': dict(ANCHOR_RECEIPT_REJECTED_FIELDS),
     'log_recovery': dict(LOG_RECOVERY_FIELDS),
     'trial_paused': {'reason_code': E_TRIAL_PAUSE, 'what_was_known': WHAT_WAS_KNOWN,
                      'digests': _opt(_L(_O({'file': _TOK(), 'expected': _H64(),
@@ -1071,6 +1106,106 @@ def restart_cap_required_seq(events: Sequence[Mapping], cap: int | None) -> int 
     return None
 
 
+#: ``commit_sha256`` of a receipt that names no commit: ``sha256_text('')``.
+NO_COMMIT_SHA256: str = sha256_text('')
+
+
+def parse_utc_instant(value: object) -> tuple | None:
+    """[pure] A chain ISO-8601 UTC instant (``YYYY-MM-DDTHH:MM:SS[.f{1,9}]Z``) as a comparable
+    ``(datetime, nanoseconds)``, or ``None`` when ``value`` is not one or names no calendar
+    instant (month 13, 30 February).  Parsing only: no clock is read."""
+    if not isinstance(value, str) or not _ISO_RE.match(value):
+        return None
+    try:
+        base = datetime.strptime(value[:19], '%Y-%m-%dT%H:%M:%S')
+    except ValueError:
+        return None
+    frac = value[20:-1] if value[19] == '.' else ''
+    return (base, int(frac.ljust(9, '0')) if frac else 0)
+
+
+def claims_external_evidence(receipt: Mapping) -> bool:
+    """[pure] Whether an ``anchor_receipt`` body (or a receipt spool row) claims any external
+    evidence -- a push, a comment id, a server time, a comment body or a ``node_id``.  A MOCK
+    tree's receipt (``lab_anchor --mock-receipt``; ``--local-only``, whose commit is not
+    pushed) claims none."""
+    return (receipt.get('pushed') is True
+            or any(receipt.get(k) is not None
+                   for k in ('comment_id', 'created_at', 'updated_at', 'node_id',
+                             'node_id_sha256', 'comment_body_sha256',
+                             'comment_response_b64')))
+
+
+def decision_receipt_problems(receipt: Mapping, anchor: Mapping, trial: str | None, *,
+                              mock: bool) -> list[str]:
+    """[pure] Why the chained ``anchor_receipt`` body ``receipt`` is NOT the external receipt
+    of the decision ``anchor`` (its chained body) of trial ``trial``; ``[]`` when it is.
+
+    Root 3e18d69 (``reviews/decision_receipt_metadata_ruling_20260924_0324.md``; protocol
+    12.4 items 3 and 5, which has NO timestamp authority).  Performs, in every tree:
+    ``request_unbound`` / ``request_mismatch`` -- the receipt's ``request_id`` must be the
+    anchor's own (the orchestrator binds the spool line to the exact durable request:
+    ``lab_orchestrator.judge_receipt_line``); ``anchor_mismatch``.  Then, unless ``mock``
+    and the receipt claims no external evidence at all (:func:`claims_external_evidence`:
+    the MOCK tree's receipt, accepted only there): ``not_pushed``; ``no_commit``;
+    ``no_trial``; ``no_anchor_file`` / ``anchor_file_mismatch`` -- the SHA-256 of the
+    committed anchor file must be that of ``lab_common.anchor_file_object`` of this anchor
+    (the anchor head: ``upto_seq``, ``upto_h``, the segment digest); ``no_comment_body`` /
+    ``comment_body_mismatch`` -- the SHA-256 of the body the response echoed must be that of
+    ``lab_common.anchor_comment_body`` (trial id, ``upto_seq``, ``upto_h``, segment SHA-256);
+    ``no_comment_id``; ``no_node_id``; ``no_created_at`` / ``no_updated_at`` -- each a
+    parsable server instant (:func:`parse_utc_instant`); ``updated_before_created`` -- the
+    response's own two times disagree (the ONLY ordering read: no wall-clock equality and no
+    latency window is imposed, root 3e18d69).  The raw-response SHA-256 is the schema's
+    required ``receipt_sha256``.  Does NOT perform: any check that the push or the comment
+    exists (the chain's readers read no server); the orchestrator additionally checked, before
+    it chained the receipt, that the raw response's own ``id``, ``node_id``, times and body
+    agree with the row and hash to ``receipt_sha256``."""
+    out: list[str] = []
+    rid, aid = receipt.get('request_id'), anchor.get('request_id')
+    if not isinstance(rid, str) or not isinstance(aid, str):
+        out.append('request_unbound')
+    elif rid != aid:
+        out.append('request_mismatch')
+    if receipt.get('anchor_seq') != anchor.get('anchor_seq'):
+        out.append('anchor_mismatch')
+    if mock and not claims_external_evidence(receipt):
+        return out
+    if receipt.get('pushed') is not True:
+        out.append('not_pushed')
+    if receipt.get('commit_sha256') in (None, NO_COMMIT_SHA256):
+        out.append('no_commit')
+    want_file = want_body = None
+    if trial is None:
+        out.append('no_trial')
+    else:
+        try:
+            want_file = sha256_canonical(anchor_file_object(trial, anchor))
+            want_body = sha256_text(anchor_comment_body(trial, anchor))
+        except (KeyError, TypeError, ValueError):
+            out.append('anchor_unreadable')
+    for key, want, missing, wrong in (
+            ('anchor_file_sha256', want_file, 'no_anchor_file', 'anchor_file_mismatch'),
+            ('comment_body_sha256', want_body, 'no_comment_body', 'comment_body_mismatch')):
+        if receipt.get(key) is None:
+            out.append(missing)
+        elif want is not None and receipt.get(key) != want:
+            out.append(wrong)
+    if receipt.get('comment_id') is None:
+        out.append('no_comment_id')
+    if receipt.get('node_id_sha256') is None:
+        out.append('no_node_id')
+    created = parse_utc_instant(receipt.get('created_at'))
+    updated = parse_utc_instant(receipt.get('updated_at'))
+    if created is None:
+        out.append('no_created_at')
+    if updated is None:
+        out.append('no_updated_at')
+    if created is not None and updated is not None and updated < created:
+        out.append('updated_before_created')
+    return out
+
+
 def decision_receipt(events: Sequence[Mapping], *, mock: bool,
                      before_seq: int | None = None) -> dict:
     """[pure] The trial's logged decision and whether it is EXTERNALLY RECEIPTED, read from the
@@ -1078,32 +1213,42 @@ def decision_receipt(events: Sequence[Mapping], *, mock: bool,
 
     Root 00:22: "externally receipted" means the existing decision blocking anchor and its
     chained external receipt of protocol 12.4 (item 5: "the first ``arm_assigned_by_decision``
-    requires the chained receipt of the decision anchor"), including the external server time
-    of the decision claim of 1.4 (claim 3: "externally receipted at server time t"); a local
-    decision event alone is provisional.  Performs: finds the first ``decision``; collects the
-    ``anchor`` events after it whose ``trigger`` is ``decision`` (a resumed invocation may
-    request a second one: either counts); the decision is ``receipted`` at the first
-    ``anchor_receipt`` whose ``anchor_seq`` is one of those anchors' AND, unless ``mock``,
-    whose ``created_at`` (the comment's server time, 12.4 item 3) is present -- a MOCK tree's
-    receipt carries no external evidence and no server time and is accepted only there.
-    ``anchor_failed`` rows answering a decision anchor are listed, never read as a receipt.
-    Does NOT perform: any check that the receipt is genuine (the verifier reads no server)."""
+    requires the chained receipt of the decision anchor"); a local decision event alone is
+    provisional.  Root f855e45 / 3e18d69: a receipt that merely carries the decision anchor's
+    ``anchor_seq`` and a server time is NOT enough.  Performs: finds the first ``decision``;
+    collects the ``anchor`` events after it whose ``trigger`` is ``decision`` (a resumed
+    invocation may request a second one: either counts); the decision is ``receipted`` at the
+    first ``anchor_receipt`` answering one of those anchors for which
+    :func:`decision_receipt_problems` finds nothing -- bound to that anchor's own request, and
+    carrying the push, anchor-file, comment-body, id, ``node_id`` and server-time evidence
+    (unless ``mock`` and it claims no external evidence: a MOCK tree's receipt, accepted only
+    there).  A receipt answering a decision anchor that fails the rule is listed in
+    ``unqualified`` with its problems, never read as a receipt; ``anchor_failed`` rows
+    answering a decision anchor are listed in ``failed_seqs``.  Does NOT perform: any check
+    that the receipt is genuine (the verifier reads no server)."""
     evs = [e for e in events if before_seq is None or int(e['seq']) < int(before_seq)]
     out: dict = {'status': 'none', 'decision_seq': None, 'anchor_seqs': [],
-                 'receipt_seq': None, 'server_time': None, 'failed_seqs': []}
+                 'receipt_seq': None, 'server_time': None, 'failed_seqs': [],
+                 'unqualified': []}
     decision = next((e for e in evs if e['type'] == 'decision'), None)
     if decision is None:
         return out
     dseq = int(decision['seq'])
-    anchors: dict[int, int] = {}
+    anchors: dict[int, tuple[Mapping, str | None]] = {}
     for ev in evs:
         if int(ev['seq']) <= dseq:
             continue
         body = ev.get('body') or {}
         if ev['type'] == 'anchor' and body.get('trigger') == 'decision':
-            anchors.setdefault(int(body['anchor_seq']), int(ev['seq']))
+            chain = ev.get('chain')
+            anchors.setdefault(int(body['anchor_seq']),
+                               (body, str(chain) if chain is not None else None))
         elif ev['type'] == 'anchor_receipt' and int(body.get('anchor_seq', -1)) in anchors:
-            if out['receipt_seq'] is None and (mock or body.get('created_at') is not None):
+            anchor, trial = anchors[int(body['anchor_seq'])]
+            problems = decision_receipt_problems(body, anchor, trial, mock=mock)
+            if problems:
+                out['unqualified'].append({'seq': int(ev['seq']), 'problems': problems})
+            elif out['receipt_seq'] is None:
                 out['receipt_seq'] = int(ev['seq'])
                 out['server_time'] = body.get('created_at')
         elif ev['type'] == 'anchor_failed' and int(body.get('anchor_seq', -1)) in anchors:

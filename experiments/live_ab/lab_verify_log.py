@@ -1199,9 +1199,12 @@ def _verify_trial(trial: str, freeze_bundle_sha256: str, *, mode: str = 'full',
         switches = _by_type(events, 'traffic_switch')
         if switches:
             sw = switches[0]
-            receipts = [e for e in events if e['type'] == 'anchor_receipt'
-                        and e['seq'] > dseq]
-            if not receipts or receipts[0]['seq'] > sw['seq']:
+            # the decision's OWN receipt, bound to its request and carrying its evidence
+            # (lab_eventlog.decision_receipt; root f855e45 / 3e18d69) -- not merely the
+            # first anchor_receipt after the decision
+            state = lab_eventlog.decision_receipt(events, mock=_config_is_mock(cfg),
+                                                  before_seq=int(sw['seq']))['status']
+            if state != 'receipted':
                 col.add('switch.phase',
                         {'error': 'traffic_switch does not follow the decision receipt'},
                         seq=sw['seq'])

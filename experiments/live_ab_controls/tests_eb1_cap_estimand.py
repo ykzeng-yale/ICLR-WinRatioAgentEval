@@ -79,6 +79,7 @@ import lab_common                                                       # noqa: 
 import lab_eventlog                                                     # noqa: E402
 import lab_orchestrator as orch                                         # noqa: E402
 import lab_verify_log                                                   # noqa: E402
+import receipt_fixture as rf                                            # noqa: E402
 import tests_eb1_entry as entry                                         # noqa: E402
 import tests_eb1_supervision as sup                                     # noqa: E402
 from lab_common import canonical_json, sha256_file, sha256_text        # noqa: E402
@@ -97,14 +98,23 @@ tearDownModule = entry.tearDownModule
 # synthetic chains
 # --------------------------------------------------------------------------- #
 class Chain:
-    """A synthetic event list: ``add(type, **body)`` numbers the events."""
+    """A synthetic event list of trial ``T4``: ``add(type, **body)`` numbers the events.
+
+    Since root's f855e45 / 3e18d69 rulings a decision receipt must be bound to its anchor's
+    request and carry its external evidence (``lab_eventlog.decision_receipt_problems``), so
+    :meth:`anchor` writes a full anchor body with its ``request_id`` and :meth:`receipt` the
+    body the orchestrator chains for a VERIFIED external receipt of that anchor (with
+    ``created_at``) or for a MOCK receipt (``created_at=None``: no external evidence at all)
+    -- ``receipt_fixture``; ``tests_eb1_receipt_attribution`` controls each clause."""
+
+    TRIAL = 'T4'
 
     def __init__(self) -> None:
         self.events: list[dict] = []
 
     def add(self, etype: str, **body) -> int:
         seq = len(self.events)
-        self.events.append({'seq': seq, 'type': etype, 'body': body})
+        self.events.append({'seq': seq, 'type': etype, 'body': body, 'chain': self.TRIAL})
         return seq
 
     def down(self, sid: str = 'coder') -> int:
@@ -117,10 +127,15 @@ class Chain:
         return self.add('decision', kind='harm_keep_incumbent', n=39)
 
     def anchor(self, anchor_seq: int, trigger: str) -> int:
-        return self.add('anchor', anchor_seq=anchor_seq, trigger=trigger)
+        return self.add('anchor', **rf.anchor_body(anchor_seq, trigger))
 
     def receipt(self, anchor_seq: int, created_at: str | None = '2026-09-23T21:14:00Z') -> int:
-        return self.add('anchor_receipt', anchor_seq=anchor_seq, created_at=created_at)
+        anchor = next(e['body'] for e in self.events if e['type'] == 'anchor'
+                      and e['body']['anchor_seq'] == anchor_seq)
+        if created_at is None:
+            return self.add('anchor_receipt', **rf.mock_receipt_body(anchor))
+        return self.add('anchor_receipt', **rf.external_receipt_body(anchor, self.TRIAL,
+                                                                     created_at=created_at))
 
 
 def three_restarts(c: Chain) -> None:
@@ -405,6 +420,38 @@ def old_ingest_receipts(self) -> bool:
                 'anchor_seq': anchor_seq, 'error_class': str(row.get('error_class') or 'api'),
                 'blocking': bool(pending['blocking']) if pending else False}, durable=True)
     return got
+
+
+def old_decision_receipt(events, *, mock: bool, before_seq=None) -> dict:
+    """MUTATION: ``lab_eventlog.decision_receipt`` of 8df2558, verbatim but for its docstring:
+    any ``anchor_receipt`` carrying a decision anchor's ``anchor_seq`` and (outside a MOCK tree)
+    a ``created_at`` counted -- root f855e45 / 3e18d69 replaced it (no request binding, no
+    push/comment/``node_id`` evidence).  Paired with :func:`old_ingest_receipts`, whose
+    receipts carry no ``request_id`` and so can never satisfy the current rule: alone, that
+    ingest would re-request the decision anchor for ever."""
+    evs = [e for e in events if before_seq is None or int(e['seq']) < int(before_seq)]
+    out: dict = {'status': 'none', 'decision_seq': None, 'anchor_seqs': [],
+                 'receipt_seq': None, 'server_time': None, 'failed_seqs': []}
+    decision = next((e for e in evs if e['type'] == 'decision'), None)
+    if decision is None:
+        return out
+    dseq = int(decision['seq'])
+    anchors: dict[int, int] = {}
+    for ev in evs:
+        if int(ev['seq']) <= dseq:
+            continue
+        body = ev.get('body') or {}
+        if ev['type'] == 'anchor' and body.get('trigger') == 'decision':
+            anchors.setdefault(int(body['anchor_seq']), int(ev['seq']))
+        elif ev['type'] == 'anchor_receipt' and int(body.get('anchor_seq', -1)) in anchors:
+            if out['receipt_seq'] is None and (mock or body.get('created_at') is not None):
+                out['receipt_seq'] = int(ev['seq'])
+                out['server_time'] = body.get('created_at')
+        elif ev['type'] == 'anchor_failed' and int(body.get('anchor_seq', -1)) in anchors:
+            out['failed_seqs'].append(int(ev['seq']))
+    out.update(status='receipted' if out['receipt_seq'] is not None else 'provisional',
+               decision_seq=dseq, anchor_seqs=sorted(anchors))
+    return out
 
 
 _REAL_LOOK = orch.World._write_one_look
@@ -694,7 +741,9 @@ class ReceiptIngestTests(unittest.TestCase):
     re-reads the receipt spool from its start; each line is chained under the anchor_seq of
     the request it answers and at most once.  Mutation control: 1dd9df2's ingest re-chained
     every old line under the newest anchor's seq -- the start anchor's receipt then "answers"
-    the decision anchor a resume requests."""
+    the decision anchor a resume requests.  The mutation restores 1dd9df2/8df2558's receipt
+    path whole (:func:`old_ingest_receipts` with :func:`old_decision_receipt`, the gate it was
+    paired with; see ``tests_eb1_receipt_attribution`` for the attribution itself)."""
 
     def run_pair(self, mutated: bool):
         tree = d3_tree(pairs=6)
@@ -707,7 +756,9 @@ class ReceiptIngestTests(unittest.TestCase):
                 raise sup.Crash()
         patch = (mock.patch.object(orch.World, 'ingest_receipts', old_ingest_receipts)
                  if mutated else mock.patch.object(orch, 'CAP_TEST_NOOP', None, create=True))
-        with patch:
+        gate = (mock.patch.object(lab_eventlog, 'decision_receipt', old_decision_receipt)
+                if mutated else mock.patch.object(orch, 'CAP_TEST_NOOP2', None, create=True))
+        with patch, gate:
             self.assertEqual(sup.run(tree, fake, hook=crash), 'crashed')
             fake.survive_stop = False
             self.assertEqual(sup.run(tree, fake, resume=True), 'ended')

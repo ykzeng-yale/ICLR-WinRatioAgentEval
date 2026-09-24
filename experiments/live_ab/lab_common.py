@@ -453,6 +453,37 @@ def sha256_canonical(obj: object) -> str:
     return sha256_text(canonical_json(obj))
 
 
+# ---- the two objects an anchor publishes (protocol 12.4 items 2-3) ----------
+# One definition, used by the anchor process that WRITES them (``lab_anchor``) and by the
+# orchestrator and ``lab_eventlog.decision_receipt`` that CHECK a receipt against them (root
+# f855e45 / 3e18d69: a decision receipt is bound to its exact request and anchor, and the
+# comment metadata must come from the response to the matching body).  ``anchor`` is a
+# durable anchor request or the chain's ``anchor`` event body (the same fields); ``trial``
+# is the trial id (the chain id of a trial chain).
+def anchor_file_object(trial: str, anchor: Mapping) -> dict:
+    """[pure] The object of ``anchors/anchor_<anchor_seq>.json`` (12.4 item 2: integers and
+    hex digests only); its bytes are ``canonical_json`` of it (``write_json_atomic``)."""
+    return {
+        'trial': str(trial),
+        'anchor_seq': int(anchor['anchor_seq']),
+        'upto_seq': int(anchor['upto_seq']),
+        'upto_h': str(anchor['upto_h']),
+        'segment_index': int(anchor['segment_index']),
+        'segment_bytes': int(anchor['segment_bytes']),
+        'segment_sha256': str(anchor['segment_sha256']),
+        'trigger': str(anchor['trigger']),
+        'blocking': bool(anchor['blocking']),
+    }
+
+
+def anchor_comment_body(trial: str, anchor: Mapping) -> str:
+    """[pure] The issue-comment body of an anchor (12.4 item 3: the trial id, ``upto_seq``,
+    ``upto_h`` and the segment SHA-256), exactly as ``lab_anchor`` posts it."""
+    return canonical_json({'trial': str(trial), 'upto_seq': anchor['upto_seq'],
+                           'upto_h': anchor['upto_h'],
+                           'segment_sha256': anchor['segment_sha256']})
+
+
 # ---- durable writes --------------------------------------------------------
 def fullsync(fd: int) -> None:
     """fcntl.fcntl(fd, fcntl.F_FULLFSYNC) on darwin when available, else os.fsync(fd).

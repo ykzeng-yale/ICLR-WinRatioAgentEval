@@ -29,6 +29,8 @@ its spool is parsed here by :func:`read_spool_lines`.
 from __future__ import annotations
 
 import argparse
+import base64
+import binascii
 import json
 import os
 import signal
@@ -162,6 +164,220 @@ def read_whole_spool(path: str | Path) -> list[dict]:
         if int(row.get('spool_seq', -1)) != i:
             raise SpoolError(f'{Path(path).name}: spool_seq gap at line {i}')
     return lines
+
+
+# ---------------------------------------------------------------------------
+# anchor receipts: attribution and the decision receipt's evidence (root f855e45, 3e18d69)
+# ---------------------------------------------------------------------------
+#: The chain events a line of ``anchor_spool/receipts.jsonl`` turns into: EXACTLY ONE per
+#: complete non-blank line, in spool order, so a resumed invocation re-reads the spool from
+#: its start and skips as many lines as the chain holds these events (``World._receipt_replay``).
+RECEIPT_LINE_EVENTS: tuple[str, ...] = ('anchor_receipt', 'anchor_failed',
+                                        'anchor_receipt_rejected')
+#: The durable request fields the chained ``anchor`` event must carry identically.
+_ANCHOR_BINDING_KEYS: tuple[str, ...] = ('upto_seq', 'upto_h', 'segment_index',
+                                         'segment_bytes', 'segment_sha256', 'trigger',
+                                         'blocking')
+
+
+def read_receipt_lines(path: str | Path, offset: int = 0) -> tuple[list[tuple[int, bytes]],
+                                                                    int]:
+    """``(offset, exact bytes without the newline)`` of every complete non-blank line of the
+    anchor process's receipt spool from ``offset``.  Unlike :func:`read_spool_lines` it never
+    parses: a line that is not JSON is judged (``malformed``), not a crash.  A trailing
+    incomplete line is re-read next time; the file is never rewritten."""
+    p = Path(path)
+    if not p.exists():
+        return [], offset
+    raw = p.read_bytes()
+    if offset > len(raw):
+        raise SpoolError(f'{p.name}: spool shrank from {offset} to {len(raw)} bytes')
+    out: list[tuple[int, bytes]] = []
+    pos = offset
+    while True:
+        nl = raw.find(b'\n', pos)
+        if nl < 0:
+            break
+        chunk = raw[pos:nl]
+        if chunk.strip():
+            out.append((pos, chunk))
+        pos = nl + 1
+    return out, pos
+
+
+def _is_hex(value: object, n: int) -> bool:
+    return (isinstance(value, str) and len(value) == n
+            and all(c in '0123456789abcdef' for c in value))
+
+
+def _is_int(value: object) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool)
+
+
+def decision_evidence_verdict(row: Mapping, request: Mapping, trial: str, *,
+                              anchor_branch: str) -> tuple[str | None, dict]:
+    """[pure] Whether an ``ok`` receipt spool ``row`` bound to the durable DECISION anchor
+    ``request`` carries the external evidence of protocol 12.4 items 3 and 5 as root's
+    3e18d69 ruling reads them: ``(None, digests)`` when it does, else ``('malformed', {})``
+    (evidence missing or unparsable) or ``('conflict', {})`` (evidence present and
+    inconsistent with itself or with the request).
+
+    Performs.  Missing -> ``malformed``: ``pushed`` true, a 40-hex ``commit`` and a
+    ``branch`` (the pushed commit); a 64-hex ``anchor_file_sha256`` (the anchor head); a
+    comment ``comment_id`` (int), a non-empty ``node_id``, parsable ``created_at`` and
+    ``updated_at`` (``lab_eventlog.parse_utc_instant``), a 64-hex ``receipt_sha256`` and
+    ``comment_body_sha256``, and ``comment_response_b64`` decoding to a JSON object.
+    Inconsistent -> ``conflict``: ``branch`` is not the frozen ``anchor.branch`` (when one is
+    frozen); ``anchor_file_sha256`` is not the SHA-256 of ``lab_common.anchor_file_object``
+    of this request; ``comment_body_sha256`` is not the SHA-256 of
+    ``lab_common.anchor_comment_body`` (trial id, ``upto_seq``, ``upto_h``, segment SHA-256);
+    the raw response's SHA-256 is not ``receipt_sha256``; the response's own ``id``,
+    ``node_id``, ``created_at``, ``updated_at`` differ from the row's, or its ``body`` is not
+    exactly that comment body (the metadata is then not the response to the matching body);
+    ``updated_at`` earlier than ``created_at``.  No wall-clock equality and no latency window
+    is imposed (12.4: no timestamp authority).  Does NOT perform: any check that the commit
+    was pushed or the comment exists on a server (no network is read)."""
+    commit, branch = row.get('commit'), row.get('branch')
+    comment_id, node_id = row.get('comment_id'), row.get('node_id')
+    created = lab_eventlog.parse_utc_instant(row.get('created_at'))
+    updated = lab_eventlog.parse_utc_instant(row.get('updated_at'))
+    raw_b64 = row.get('comment_response_b64')
+    response: object = None
+    raw_response = b''
+    if isinstance(raw_b64, str):
+        try:
+            raw_response = base64.b64decode(raw_b64.encode('ascii'), validate=True)
+            response = json.loads(raw_response.decode('utf-8'))
+        except (ValueError, binascii.Error, UnicodeError):
+            response = None
+    if not (row.get('pushed') is True and _is_hex(commit, 40)
+            and isinstance(branch, str) and branch
+            and _is_hex(row.get('anchor_file_sha256'), 64)
+            and _is_int(comment_id) and isinstance(node_id, str) and node_id
+            and created is not None and updated is not None
+            and _is_hex(row.get('receipt_sha256'), 64)
+            and _is_hex(row.get('comment_body_sha256'), 64)
+            and isinstance(response, dict)):
+        return 'malformed', {}
+    body_text = lab_common.anchor_comment_body(trial, request)
+    want_file = sha256_canonical(lab_common.anchor_file_object(trial, request))
+    assert isinstance(response, dict)
+    if ((anchor_branch and branch != anchor_branch)
+            or row['anchor_file_sha256'] != want_file
+            or row['comment_body_sha256'] != sha256_text(body_text)
+            or sha256_bytes(raw_response) != row['receipt_sha256']
+            or not _is_int(response.get('id')) or response.get('id') != comment_id
+            or response.get('node_id') != node_id
+            or response.get('created_at') != row.get('created_at')
+            or response.get('updated_at') != row.get('updated_at')
+            or response.get('body') != body_text
+            or updated < created):
+        return 'conflict', {}
+    return None, {'anchor_file_sha256': want_file,
+                  'comment_body_sha256': sha256_text(body_text),
+                  'node_id_sha256': sha256_text(node_id)}
+
+
+def judge_receipt_line(raw: bytes, *, trial: str, request_of, anchors: Mapping[int, Mapping],
+                       resolved: Mapping[int, str], resolving_sha: Mapping[int, str],
+                       newest_anchor_seq: int, mock: bool, anchor_branch: str) -> dict:
+    """[pure but for ``request_of``] What ONE line of ``anchor_spool/receipts.jsonl`` becomes.
+
+    Root f855e45 (``reviews/eb1_receipt_attribution_review_20260924_0254.md``): 8df2558
+    attributed a line whose ``request_id`` no request carried to the NEWEST anchor, and an
+    ``ok`` line then became a success-valued ``anchor_receipt`` that could clear the decision
+    gate.  Here a line is attributed to an anchor ONLY when its ``request_id`` is bound
+    exactly to that anchor's durable request (``request_of(request_id)``: this invocation's,
+    or ``anchor_spool/requests.jsonl``) AND that request agrees with the chained ``anchor``
+    of its ``anchor_seq`` (``anchors``; the anchor's own ``request_id`` when it carries one).
+    Returns ``{'kind', 'type', 'body', 'request_id', 'anchor_seq', 'raw_sha256'}`` with
+    ``kind`` one of ``receipt`` (-> ``anchor_receipt``), ``failed`` (-> ``anchor_failed``)
+    or ``rejected`` (-> ``anchor_receipt_rejected``, reason in
+    ``lab_eventlog.E_RECEIPT_REJECT``, checked in this order): ``malformed`` (not a JSON
+    object; ``request_id`` not 32 lowercase hex -- then chained as null; ``ok`` not a bool);
+    ``unknown_request``; ``conflict`` (request and chained anchor disagree); for an anchor
+    already resolved -- ``duplicate`` (these exact bytes resolved it), ``stale`` (an earlier
+    anchor), ``conflict`` (the newest anchor); a failed line whose ``error_class`` is not in
+    the closed set -> ``malformed``; an ``ok`` line without a 64-hex ``receipt_sha256`` or
+    whose fields the chain cannot hold -> ``malformed``; an ``ok`` line bound to a
+    ``decision`` request: outside a MOCK tree it must pass :func:`decision_evidence_verdict`
+    (its ``malformed`` / ``conflict``), and in a MOCK tree it must either claim no external
+    evidence at all (``lab_eventlog.claims_external_evidence``: the mock anchor's receipt) or
+    pass it.  A rejected line resolves nothing: its anchor stays pending and the existing
+    timeout / recovery rules apply.  The raw line is never altered; ``raw_sha256`` and
+    ``raw_bytes`` identify it in the spool."""
+    raw_sha = sha256_bytes(raw)
+
+    def out(kind: str, etype: str, body: dict, rid: str | None = None,
+            anchor_seq: int | None = None) -> dict:
+        return {'kind': kind, 'type': etype, 'body': body, 'request_id': rid,
+                'anchor_seq': anchor_seq, 'raw_sha256': raw_sha}
+
+    def reject(reason: str, rid: str | None = None) -> dict:
+        return out('rejected', 'anchor_receipt_rejected',
+                   {'request_id': rid, 'reason': reason, 'raw_sha256': raw_sha,
+                    'raw_bytes': len(raw)}, rid)
+
+    try:
+        row = json.loads(raw.decode('utf-8'))
+    except (UnicodeError, ValueError):
+        return reject('malformed')
+    if not isinstance(row, dict):
+        return reject('malformed')
+    rid = row.get('request_id')
+    if not _is_hex(rid, 32):
+        return reject('malformed')
+    if not isinstance(row.get('ok'), bool):
+        return reject('malformed', rid)
+    request = request_of(rid)
+    if request is None:
+        return reject('unknown_request', rid)
+    try:
+        anchor_seq = int(request['anchor_seq'])
+    except (KeyError, TypeError, ValueError):
+        return reject('conflict', rid)
+    anchor = anchors.get(anchor_seq)
+    if (anchor is None or str(request.get('trial')) != str(trial)
+            or str(request.get('request_id')) != rid
+            or (anchor.get('request_id') is not None and anchor.get('request_id') != rid)
+            or any(request.get(k) != anchor.get(k) for k in _ANCHOR_BINDING_KEYS)):
+        return reject('conflict', rid)
+    if anchor_seq in resolved:
+        if resolving_sha.get(anchor_seq) == raw_sha:
+            return reject('duplicate', rid)
+        return reject('stale' if anchor_seq < int(newest_anchor_seq) else 'conflict', rid)
+    if not row['ok']:
+        error_class = row.get('error_class') or 'api'
+        if error_class not in lab_eventlog.E_ANCHOR_ERROR.enum:
+            return reject('malformed', rid)
+        return out('failed', 'anchor_failed',
+                   {'anchor_seq': anchor_seq, 'error_class': str(error_class),
+                    'blocking': bool(request.get('blocking'))}, rid, anchor_seq)
+    commit = row.get('commit')
+    if (not _is_hex(row.get('receipt_sha256'), 64)
+            or row.get('pushed') not in (True, False, None)
+            or (commit is not None and not _is_hex(commit, 40))
+            or (row.get('comment_id') is not None and not _is_int(row.get('comment_id')))):
+        return reject('malformed', rid)
+    body = {
+        'anchor_seq': anchor_seq, 'pushed': row.get('pushed') is True,
+        'comment_id': row.get('comment_id'), 'created_at': row.get('created_at'),
+        'updated_at': row.get('updated_at'), 'receipt_sha256': row['receipt_sha256'],
+        'commit_sha256': sha256_text(str(commit or '')), 'request_id': rid,
+        'anchor_file_sha256': None, 'comment_body_sha256': None, 'node_id_sha256': None,
+    }
+    if request.get('trigger') == 'decision' and (
+            not mock or lab_eventlog.claims_external_evidence(row)):
+        verdict, digests = decision_evidence_verdict(row, request, trial,
+                                                     anchor_branch=anchor_branch)
+        if verdict is not None:
+            return reject(verdict, rid)
+        body.update(digests)
+    try:
+        lab_eventlog.validate_event('anchor_receipt', body)
+    except lab_common.SchemaError:
+        return reject('malformed', rid)
+    return out('receipt', 'anchor_receipt', body, rid, anchor_seq)
 
 
 def certified_ell_from_spool(lines: Sequence[Mapping]) -> float:
@@ -2052,6 +2268,15 @@ class World:
         #: again (a resumed invocation re-reads the receipt spool from its start) is not
         #: chained twice.
         self.anchor_resolved: dict[int, str] = {}
+        #: ``anchor_seq`` -> SHA-256 of the receipt line that resolved it (a later line with
+        #: these exact bytes is a ``duplicate``; any other later line is never chained over it).
+        self.anchor_resolving_sha: dict[int, str] = {}
+        #: resume only: the chain's receipt-line events (:data:`RECEIPT_LINE_EVENTS`) in
+        #: order -- one per receipt spool line an earlier invocation consumed; those lines
+        #: are replayed (state rebuilt, nothing appended), every later line is judged.
+        self._receipt_replay: list[Mapping] = []
+        self._receipt_lines_read = 0
+        self.receipts_rejected = 0
         #: this invocation's blocking ``decision`` anchor came back ``ok: false``
         #: (protocol 6.4 row 26, 12.4 item 2: ``trial_paused(anchor_unavailable)``).
         self.decision_anchor_failed = False
@@ -2679,6 +2904,10 @@ class World:
         raw = seg_path.read_bytes() if seg_path.exists() else b''
         self.anchor_seq += 1
         publish = trigger in (self.cfg.get('anchor', {}).get('publish_segments_at') or [])
+        # One id for the chained anchor and its durable request (root f855e45): a receipt
+        # line is attributed to this anchor only when it carries exactly this id, and the
+        # chain itself binds the anchor_receipt to the anchor (lab_eventlog.decision_receipt).
+        request_id = uuid.uuid4().hex
         body = {
             'anchor_seq': self.anchor_seq,
             'upto_seq': max(0, self.log.seq - 1),
@@ -2691,11 +2920,11 @@ class World:
             'pairs_completed': self.pairs_completed,
             'records_manifest_sha256': self.records_manifest_sha256(),
             'server_log_sha256': {}, 'server_log_bytes': {},
-            'trigger': trigger, 'blocking': bool(blocking),
+            'trigger': trigger, 'blocking': bool(blocking), 'request_id': request_id,
         }
         self.log.close_segment(anchor_body=body)
         request = {
-            'request_id': uuid.uuid4().hex, 'trial': self.ctx.trial,
+            'request_id': request_id, 'trial': self.ctx.trial,
             'anchor_seq': self.anchor_seq, 'upto_seq': body['upto_seq'],
             'upto_h': body['upto_h'], 'segment_index': body['segment_index'],
             'segment_bytes': body['segment_bytes'],
@@ -2755,58 +2984,88 @@ class World:
         return self._decision_receipted
 
     def ingest_receipts(self) -> bool:
-        """Turn the anchor process's receipts into ``anchor_receipt`` / ``anchor_failed``.
+        """Turn each new line of the anchor process's receipt spool into EXACTLY ONE chain
+        event: ``anchor_receipt``, ``anchor_failed`` or ``anchor_receipt_rejected``.
 
-        The orchestrator remains the only writer of the chain (AD-2, PG-12).  A receipt is
-        chained under the ``anchor_seq`` of the REQUEST it answers (:meth:`_anchor_request`),
-        and a line whose anchor is already resolved in the chain is not chained again: the
-        restart-cap ruling's case (c) is decided by which anchor a receipt answers, and a
-        resumed invocation re-reads the receipt spool from its start (it used to chain every
-        old line again, under the newest anchor's seq).  A line whose request cannot be found
-        keeps the old attribution (the newest anchor).  A blocking ``decision`` request that
-        comes back ``ok: false`` sets :attr:`decision_anchor_failed`."""
+        The orchestrator remains the only writer of the chain (AD-2, PG-12).  Root f855e45:
+        a line is attributed to an anchor only when its ``request_id`` is bound exactly to
+        that anchor's durable request (:func:`judge_receipt_line`); an unknown, stale,
+        malformed, duplicate or conflicting line creates NO ``anchor_receipt`` -- it is
+        chained as ``anchor_receipt_rejected`` (digest and length of its bytes, which stay
+        in the spool), resolves nothing, and leaves the pending anchor pending, so the
+        existing timeout / recovery rules apply (``ANCHOR_BLOCK`` -> ``anchor_unavailable``).
+        It never falls back to the newest anchor (8df2558 did) and never overwrites the line
+        that resolved an anchor.  Root 3e18d69: an ``ok`` line answering a ``decision``
+        request is its external receipt only with the evidence of
+        :func:`decision_evidence_verdict` (MOCK tree: or no external claim at all).  A
+        resumed invocation re-reads the spool from its start and REPLAYS the lines the chain
+        already accounts for (one event each): nothing is chained twice.  A blocking
+        ``decision`` request answered by an accepted ``ok: false`` line sets
+        :attr:`decision_anchor_failed`.  Returns whether the pending request was resolved."""
         path = self.ctx.paths.anchor_spool / 'receipts.jsonl'
-        lines, self.receipt_offset = read_spool_lines(path, self.receipt_offset)
+        lines, self.receipt_offset = read_receipt_lines(path, self.receipt_offset)
         got = False
-        for row in lines:
+        anchors: dict[int, Mapping] | None = None
+        for _offset, raw in lines:
+            index = self._receipt_lines_read
+            self._receipt_lines_read += 1
+            if index < len(self._receipt_replay):
+                self._replay_receipt_line(self._receipt_replay[index], raw)
+                continue
+            if anchors is None:
+                assert self.log is not None
+                anchors = {int(e['body']['anchor_seq']): e['body']
+                           for e in self.log.events if e['type'] == 'anchor'}
+            verdict = judge_receipt_line(
+                raw, trial=self.ctx.trial, request_of=self._anchor_request, anchors=anchors,
+                resolved=self.anchor_resolved, resolving_sha=self.anchor_resolving_sha,
+                newest_anchor_seq=self.anchor_seq, mock=self.tree_mock,
+                anchor_branch=str((self.cfg.get('anchor') or {}).get('branch') or ''))
+            if verdict['kind'] == 'rejected':
+                self.append('anchor_receipt_rejected', verdict['body'], durable=True)
+                self.receipts_rejected += 1
+                continue
+            anchor_seq = int(verdict['anchor_seq'])
             pending = self.pending_anchor
-            request = self._anchor_request(row.get('request_id'))
-            anchor_seq = (int(request['anchor_seq']) if request is not None
-                          else self.anchor_seq)
-            if pending is not None and row.get('request_id') == pending['request_id']:
+            answers_pending = (pending is not None
+                               and verdict['request_id'] == pending['request_id'])
+            self.anchor_resolved[anchor_seq] = verdict['kind']
+            self.anchor_resolving_sha[anchor_seq] = verdict['raw_sha256']
+            self.append(verdict['type'], verdict['body'], durable=True)
+            if verdict['kind'] == 'receipt':
+                self.receipts_obtained += 1
+                if answers_pending and pending.get('trigger') == 'decision' \
+                        and self.decision is not None and not self.decision_receipted():
+                    # Cannot happen while this rule and lab_eventlog.decision_receipt agree;
+                    # if they ever disagree, the blocking anchor is treated as failed (a
+                    # pause, 6.4 row 26) rather than re-requested for ever by ANCHOR_BLOCK.
+                    self.findings.append('decision_receipt_rule_disagreement:%d'
+                                         % anchor_seq)
+                    self.decision_anchor_failed = True
+            elif answers_pending and pending.get('trigger') == 'decision':
+                self.decision_anchor_failed = True
+            if answers_pending:
                 got = True
                 self.pending_anchor = None
-                if pending.get('trigger') == 'decision' and not (
-                        row.get('ok') and (self.tree_mock
-                                           or row.get('created_at') is not None)):
-                    # failed, or "ok" without the external server time of a decision
-                    # receipt (12.4 item 3; claim 3 of 1.4) -- a local-only commit is not
-                    # an external receipt outside a MOCK tree
-                    self.decision_anchor_failed = True
-            seen = self.anchor_resolved.get(anchor_seq)
-            if seen == 'receipt' or (seen is not None and not row.get('ok')):
-                continue
-            self.anchor_resolved[anchor_seq] = 'receipt' if row.get('ok') else 'failed'
-            if row.get('ok'):
-                self.append('anchor_receipt', {
-                    'anchor_seq': anchor_seq,
-                    'pushed': bool(row.get('pushed')),
-                    'comment_id': (int(row['comment_id'])
-                                   if row.get('comment_id') is not None else None),
-                    'created_at': row.get('created_at'),
-                    'updated_at': row.get('updated_at'),
-                    'receipt_sha256': str(row.get('receipt_sha256') or sha256_canonical(row)),
-                    'commit_sha256': sha256_text(str(row.get('commit') or '')),
-                }, durable=True)
-                self.receipts_obtained += 1
-            else:
-                answered = request if request is not None else pending
-                self.append('anchor_failed', {
-                    'anchor_seq': anchor_seq,
-                    'error_class': str(row.get('error_class') or 'api'),
-                    'blocking': bool(answered['blocking']) if answered else False,
-                }, durable=True)
         return got
+
+    def _replay_receipt_line(self, event: Mapping, raw: bytes) -> None:
+        """A receipt line an earlier invocation already turned into ``event``: rebuild the
+        line's digest for duplicate detection; a line that does not match its event (other
+        bytes, another request id) is a finding, never re-chained."""
+        digest = sha256_bytes(raw)
+        body = event.get('body') or {}
+        if event['type'] == 'anchor_receipt_rejected':
+            if body.get('raw_sha256') != digest:
+                self.findings.append('receipt_replay_mismatch:%d' % int(event['seq']))
+            return
+        try:
+            rid = json.loads(raw.decode('utf-8')).get('request_id')
+        except (UnicodeError, ValueError, AttributeError):
+            rid = None
+        if body.get('request_id') is not None and rid != body.get('request_id'):
+            self.findings.append('receipt_replay_mismatch:%d' % int(event['seq']))
+        self.anchor_resolving_sha.setdefault(int(body['anchor_seq']), digest)
 
     # -- dispatch -------------------------------------------------------------
     def build_job(self, *, arrival: int, attempt: int, pair: int | None,
@@ -3920,6 +4179,10 @@ def _w_rebuild_from_chain(self: World, events: Sequence[Mapping], plan: ResumePl
             self.anchor_resolved[int(e['body']['anchor_seq'])] = 'receipt'
         elif e['type'] == 'anchor_failed':
             self.anchor_resolved.setdefault(int(e['body']['anchor_seq']), 'failed')
+    # one chain event per receipt line consumed (root f855e45): those lines are replayed
+    self.receipts_rejected = sum(1 for e in events if e['type'] == 'anchor_receipt_rejected')
+    self._receipt_replay = [e for e in events if e['type'] in RECEIPT_LINE_EVENTS]
+    self._receipt_lines_read = 0
     self._current_pair = plan.monitor_prefix
     for ev in events:
         if ev['type'] == 'pair_enrolled':

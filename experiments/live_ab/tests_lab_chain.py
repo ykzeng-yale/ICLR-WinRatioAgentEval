@@ -1382,8 +1382,10 @@ class SchemaTests(TempTree):
         # 47 event types of ARCHITECTURE_FINAL.md 4.3/4.4, plus the two the host
         # quiescence gate of protocol 5.7 adds: host_quiescence_refused (program chain)
         # and foreign_load_detected (trial chain), plus server_start_failed (trial chain,
-        # repair contract EB1: the record of a failed server start or restart).
-        self.assertEqual(len(EVENT_SCHEMA), 50)
+        # repair contract EB1: the record of a failed server start or restart), plus
+        # anchor_receipt_rejected (either chain, root f855e45: a receipt spool line that no
+        # anchor's durable request binds).
+        self.assertEqual(len(EVENT_SCHEMA), 51)
         for etype in sorted(EVENT_SCHEMA):
             with self.subTest(etype=etype):
                 validate_event(etype, synth_body(etype))
