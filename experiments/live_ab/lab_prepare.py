@@ -114,8 +114,9 @@ def run_reference_sweep(tasks: Sequence[dict], cfg: dict, *,
     that actual production-path verification"): an observer that names no source
     (a plain callable, as the server-lifecycle observer is) cannot be bound to the
     load it observed; server-side slot release (``/metrics`` ``requests_processing
-    == 0``) is not checked; the contract's ``phase_resolution_verdict`` does not
-    exist on this branch and is not called here; and the stage-3 two-stream
+    == 0``) is not checked; the contract's ``phase_resolution_verdict``
+    (``lab_orchestrator``, the verdict over a trial chain before its terminal record)
+    is not called here; and the stage-3 two-stream
     (``stream: false``) load driver the plan proposes does not exist, so the gate
     is shown only on ``lab_load.StreamingHttpLoad`` -- the superseded client-stream
     diagnostic -- and on test fixtures, not on the path a loaded stage would run.

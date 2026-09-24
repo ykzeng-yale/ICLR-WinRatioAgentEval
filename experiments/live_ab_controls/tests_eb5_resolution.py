@@ -4,8 +4,11 @@ Repair contract EB5 (session 60; root 20:40 item 3: "A successful loaded phase m
 all permitted workers resolved before its terminal acceptance; preserve any unresolved attempt
 as a failed/incomplete phase"; root 21:15 item 3: "Unresolved workers/usage make the phase
 incomplete, not zero"; root 21:14: "killing/reaping does not turn unknown historical usage into
-zero").  ``understand_eb5.md`` sections 2, 3 and 5 are the map; its control table C1-C9 is what
-this file runs (C7, ``lab_load``, is not part of this step).
+zero").  The pre-EB5 mechanisms these controls exercise are those of
+``git show b049307:experiments/live_ab/lab_orchestrator.py`` (the pump, the abort and pause
+paths, resume); the controls are numbered C1-C9 as in the session's EB5 design map, and this
+file runs C1-C6, C8 and C9 (C7, ``lab_load``, is not run here: the ``lab_load`` controls are
+``tests_lab_load_resolution.py``).
 
 What runs:
 
