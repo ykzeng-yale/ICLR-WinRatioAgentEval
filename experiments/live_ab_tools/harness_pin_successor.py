@@ -46,7 +46,7 @@ WHAT IT COMPUTES, WITHOUT EDITING ANY EXISTING FILE (every value from git object
    logged during the suite, with every output SHA-256 and the compiler and linker that built
    it), which the exclusion check of 6 then searches the freeze tree for as well (review of
    988baf7, reviewer 2 finding 6: those digests were recorded nowhere).
-8. The receipt this one SUPERSEDES (SUPERSEDES: path, SHA-256, why; it stays byte-identical)
+8. The receipts this one SUPERSEDES (SUPERSEDES: path, SHA-256, why; each stays byte-identical)
    and every red run of the subset before it that the commits and that receipt did not
    report (DISCLOSED_RED_RUNS; review of 988baf7, reviewer 2 finding 5).
 
@@ -147,15 +147,23 @@ FIXTURE_CONTROL_TAGS = ('A_rebuild', 'B_no_compiler', 'C_partial_cache',
 #: 988baf7, reviewer 2 finding 6): which binaries each suite actually executed.
 FIXTURE_USES_LOG = 'eb1c_sm_fixture_uses.jsonl'
 
-#: The receipt this one supersedes (write-once: it stays, byte-identical), and why.
-SUPERSEDES = {
-    'path': RESULTS_REL + '/HARNESS_PIN_SUCCESSOR_20260924_1217.json',
-    'sha256': '25010726114a05415c519a5c4ab297d75f8bdeeca9a0f8d91930dc6c170f2462',
-    'head_when_written': '988baf7',
-    'why': ('the subset fix answering the two reviews of 988baf7 changes harness files '
-            '(lab_orchestrator, lab_eventlog, lab_verify_log, build_live_ab_results); that '
-            'receipt pins the 988baf7 harness and stays as written'),
-}
+#: The receipts this one supersedes (write-once: each stays, byte-identical), and why.
+SUPERSEDES = (
+    {'path': RESULTS_REL + '/HARNESS_PIN_SUCCESSOR_20260924_1217.json',
+     'sha256': '25010726114a05415c519a5c4ab297d75f8bdeeca9a0f8d91930dc6c170f2462',
+     'head_when_written': '988baf7',
+     'why': ('the subset fix answering the two reviews of 988baf7 changes harness files '
+             '(lab_orchestrator, lab_eventlog, lab_verify_log, build_live_ab_results); that '
+             'receipt pins the 988baf7 harness and stays as written')},
+    {'path': RESULTS_REL + '/HARNESS_PIN_SUCCESSOR_20260924_1635.json',
+     'sha256': '7e5cb1c3f333562d1b91cbdb31d8cb7e68a0e17126c69237fc5dc538023d6db5',
+     'head_when_written': '03fe0ca',
+     'why': ('the same harness pins (03fe0ca), but its suites were neither all green nor solo: '
+             'live_ab failed the stochastic tests_lab_design.CoinTests.test_coin_balance_10k '
+             '(10,000 coins outside [4850, 5150], about a 0.3% false failure rate; lab_coin '
+             'unchanged since b049307), and a foreign real llama-server of another project '
+             'ran on the host during it; this receipt re-runs the suites on a quiet host')},
+)
 
 #: Red runs of the subset BEFORE this successor, which the commit messages 79bb1ab..988baf7
 #: and the superseded receipt did not report (review of 988baf7, reviewer 2 finding 5).  Each
@@ -784,14 +792,14 @@ def fixture_missing_cache_controls(repo: Path, cache_dir_name: str) -> dict:
             shutil.rmtree(str(r), ignore_errors=True)
 
 
-def supersedes_record(data: bytes | None) -> tuple[dict, list]:
-    """[pure] The SUPERSEDES entry of the receipt from the superseded receipt's bytes at HEAD
-    (``None``: not in this revision), and ``['superseded_receipt_changed']`` when they are
-    present and are not the bytes it was written with (write-once)."""
-    rec = dict(SUPERSEDES, present_at_head=data is not None,
+def supersedes_record(entry: Mapping, data: bytes | None) -> tuple[dict, list]:
+    """[pure] One SUPERSEDES ``entry`` of the receipt from the superseded receipt's bytes at
+    HEAD (``None``: not in this revision), and ``['superseded_receipt_changed:<path>']`` when
+    they are present and are not the bytes it was written with (write-once)."""
+    rec = dict(entry, present_at_head=data is not None,
                sha256_at_head=None if data is None else sha256(data))
-    rec['byte_identical'] = data is not None and rec['sha256_at_head'] == SUPERSEDES['sha256']
-    return rec, (['superseded_receipt_changed'] if data is not None
+    rec['byte_identical'] = data is not None and rec['sha256_at_head'] == entry['sha256']
+    return rec, (['superseded_receipt_changed:%s' % entry['path']] if data is not None
                  and not rec['byte_identical'] else [])
 
 
@@ -1409,8 +1417,11 @@ def build_receipt(repo: Path, predecessor: str, *, run_suites: bool) -> dict:
     fixture, fproblems = fixture_section(repo, head)
     problems += fproblems
     # the receipt this one supersedes stays byte-identical where the head carries it
-    supersedes, sproblems = supersedes_record(head.read(SUPERSEDES['path']))
-    problems += sproblems
+    supersedes = []
+    for entry in SUPERSEDES:
+        rec, sproblems = supersedes_record(entry, head.read(entry['path']))
+        supersedes.append(rec)
+        problems += sproblems
 
     commits = [ln.split('\t', 1) for ln in git(
         repo, 'log', '--reverse', '--topo-order', '--format=%H%x09%s',

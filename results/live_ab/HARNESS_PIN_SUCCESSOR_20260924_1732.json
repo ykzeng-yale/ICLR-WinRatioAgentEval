@@ -1,0 +1,4245 @@
+{
+ "authority": [
+  "reviews/prerun_bundle_go_nogo_20260923_2040.md:16 (record the pre-outcome pin successor; preserve the old pin and all prior observations)",
+  "reviews/restart_cap_estimand_ruling_20260923_2114.md (main ebcd637) item 2 (exact EB1/EB5 code and controls with old/new hashes, no loaded run)",
+  "reviews/eb1_fixture_and_wip_delta_20260924_0703.md (main ccdda96) items 1 and 3"
+ ],
+ "cells_vocabulary_successor": {
+  "holds": true,
+  "original_pin": "3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0dd7d2c2",
+  "prior_successors": 6,
+  "superseded_by": "6c0ebf2faa7515ff27f01188d9f1e487c928c63373f451dea51f06a8cdacaab9",
+  "supersedes": "3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0dd7d2c2"
+ },
+ "compiled_c_test_double": {
+  "c_sources": {
+   "cache_dir_name": "eb1c_sm_fixture_1a438b19c1216a54",
+   "compile_argv": [
+    [
+     "clang",
+     "-dynamiclib",
+     "-O0",
+     "-o",
+     "libeb1c-base.0.1.0.dylib",
+     "-install_name",
+     "@rpath/libeb1c-base.0.dylib",
+     "base.c"
+    ],
+    [
+     "ln",
+     "-s",
+     "libeb1c-base.0.1.0.dylib",
+     "libeb1c-base.0.dylib"
+    ],
+    [
+     "clang",
+     "-dynamiclib",
+     "-O0",
+     "-o",
+     "libeb1c-core.0.dylib",
+     "-install_name",
+     "@rpath/libeb1c-core.0.dylib",
+     "core.c",
+     "-L.",
+     "-leb1c-base.0",
+     "-Wl,-rpath,@loader_path"
+    ],
+    [
+     "clang",
+     "-O0",
+     "-o",
+     "llama-server",
+     "launcher.c",
+     "-L.",
+     "-leb1c-core.0",
+     "-Wl,-rpath,@executable_path"
+    ]
+   ],
+   "files": {
+    "base.c": {
+     "bytes": 414,
+     "constant": "BASE_C",
+     "sha256": "8f5c97dde7a4a004da4f09a9e461e1731023f47770117250a23d46445f3fa37f"
+    },
+    "core.c": {
+     "bytes": 226,
+     "constant": "CORE_C",
+     "sha256": "728d9da104f885067981c19f9374dbd799f4227569b41153a65deda66994820d"
+    },
+    "launcher.c": {
+     "bytes": 1264,
+     "constant": "LAUNCHER_C",
+     "sha256": "acacaf416608661b506df7029678b2a438c79aa60b10c1d6cf281cc1b62becaa"
+    }
+   },
+   "sources_key": "1a438b19c1216a54",
+   "where": "string constants BASE_C, CORE_C, LAUNCHER_C of the committed experiments/live_ab_controls/sm_fixture.py (no separate .c file is tracked); compiled() writes each to the named file in its compile directory, UTF-8, then deletes it"
+  },
+  "compiler": {
+   "clang_version": [
+    "Apple clang version 21.0.0 (clang-2100.1.1.101)",
+    "Target: arm64-apple-darwin25.5.0",
+    "Thread model: posix",
+    "InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin"
+   ],
+   "clang_version_exit": 0,
+   "invoked_as": "clang (resolved through PATH by subprocess)",
+   "which_clang": "/usr/bin/clang",
+   "which_clang_realpath": "/usr/bin/clang",
+   "xcode_select_p": "/Applications/Xcode.app/Contents/Developer",
+   "xcrun_find_clang": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang"
+  },
+  "consumers": {
+   "import_sm_fixture": [
+    "tests_eb1_entry",
+    "tests_eb1_server",
+    "tests_sm_entry",
+    "tests_sm_manifest",
+    "tests_subset_review_fixes"
+   ],
+   "through_one_of_those": [
+    "tests_eb1_cap_estimand",
+    "tests_eb1_receipt_attribution",
+    "tests_eb5_resolution"
+   ]
+  },
+  "exclusion_checks": {
+   "fixture_output_digests_of_this_run": [
+    "5ba8484d3515e08204268ef0ed921ecfb43cd89c62698a9698ca72fb1e315d33",
+    "a8be4963e73d27cc4647ceef7c05ee9095fc9a263ad4add6b5e2e17cbd8b9779",
+    "b5e9ba33f6b6c7a12e3471ff2e68e878408ddf409351a02290b980376ec3a99a",
+    "ec7c52e387dba56965de49d579d8e23b71cd6ad94e646ddeead409d9a7b4b73b"
+   ],
+   "fixture_output_digests_the_suites_executed": [
+    "1da59ce411953f7101d01152130b4a4c0490c671d29af372917f74e863633c12",
+    "1ec41938dc0281f5c77d5ee8ff59a02abe319c861dc9b98c26730b5b86898668",
+    "85653080c073758584a4a1757db326630bb021df8e7021969934bbafc74a1c16"
+   ],
+   "freeze_tree_files_containing_any_of_them": [],
+   "freeze_tree_files_containing_any_the_suites_executed": [],
+   "real_manifest_launcher_is_a_repo_path_not_a_temp_path": true,
+   "tracked_paths_naming_the_cache": []
+  },
+  "files_naming_the_cache_directory": [
+   "sm_fixture.py"
+  ],
+  "fixture_module": {
+   "bytes": 20842,
+   "path": "experiments/live_ab_controls/sm_fixture.py",
+   "sha256": "9d3f954d4d997c563d742d881aa74e7bd8e0cf9b50193cf85a674706a93166d6"
+  },
+  "missing_cache_controls": {
+   "A_rebuild": {
+    "cache_existed_before": false,
+    "cache_launcher_exists_after": true,
+    "cache_verified_after": true,
+    "exit": 0,
+    "files": {
+     "libeb1c-base.0.1.0.dylib": "a8be4963e73d27cc4647ceef7c05ee9095fc9a263ad4add6b5e2e17cbd8b9779",
+     "libeb1c-base.0.dylib": "symlink -> libeb1c-base.0.1.0.dylib",
+     "libeb1c-core.0.dylib": "ec7c52e387dba56965de49d579d8e23b71cd6ad94e646ddeead409d9a7b4b73b",
+     "llama-server": "5ba8484d3515e08204268ef0ed921ecfb43cd89c62698a9698ca72fb1e315d33",
+     "sm_fixture_manifest.json": "b5e9ba33f6b6c7a12e3471ff2e68e878408ddf409351a02290b980376ec3a99a"
+    },
+    "key": "1a438b19c1216a54",
+    "moved_aside": 0,
+    "ok": true,
+    "otool_L_links_core": true,
+    "raised": null
+   },
+   "B_no_compiler": {
+    "cache_existed_before": false,
+    "cache_launcher_exists_after": false,
+    "cache_verified_after": null,
+    "exit": 0,
+    "files": {},
+    "key": "1a438b19c1216a54",
+    "message": "sm_fixture: clang failed: clang disabled by the missing-cache control\n",
+    "moved_aside": 0,
+    "ok": true,
+    "raised": "RuntimeError"
+   },
+   "C_partial_cache": {
+    "cache_existed_before": false,
+    "cache_launcher_exists_after": true,
+    "cache_verified_after": true,
+    "exit": 0,
+    "files": {
+     "libeb1c-base.0.1.0.dylib": "92adb1d378f96d03ca56ade6a3b984ea8d692e5212f6e0ff42a0d5c6b5d47c82",
+     "libeb1c-base.0.dylib": "symlink -> libeb1c-base.0.1.0.dylib",
+     "libeb1c-core.0.dylib": "39835d0314a81a724dd7c032670206924af4f50f68a5a4cf0e810626fa415b96",
+     "llama-server": "c3d271b66212263b577a6b517bfa82ed449e5784723adc19b63987a79fe98cdc",
+     "sm_fixture_manifest.json": "522a1bbd17a4e4e1774e9abf2ebbfab6323eee70ee7fc4013bbb7bc9b57168f4"
+    },
+    "key": "1a438b19c1216a54",
+    "moved_aside": 1,
+    "ok": true,
+    "raised": null
+   },
+   "D_real_control_rebuilds": {
+    "cache_launcher_exists_after": true,
+    "error_types": [],
+    "errors": 0,
+    "exit": 0,
+    "failures": 0,
+    "ok": true,
+    "ran": 2,
+    "skipped": 0,
+    "successful": true,
+    "tests": [
+     "tests_sm_manifest.RuntimeTests.test_control_the_unchanged_build_reverifies",
+     "tests_sm_manifest.RuntimeTests.test_one_library_byte_changed_after_assembly_refuses"
+    ]
+   },
+   "E_real_control_no_compiler": {
+    "cache_launcher_exists_after": false,
+    "error_types": [
+     "RuntimeError"
+    ],
+    "errors": 2,
+    "exit": 0,
+    "failures": 0,
+    "ok": true,
+    "ran": 2,
+    "skipped": 0,
+    "successful": false,
+    "tests": [
+     "tests_sm_manifest.RuntimeTests.test_control_the_unchanged_build_reverifies",
+     "tests_sm_manifest.RuntimeTests.test_one_library_byte_changed_after_assembly_refuses"
+    ]
+   },
+   "observation_outputs_reproducible": {
+    "byte_identical_between_A_and_C": [
+     "libeb1c-base.0.dylib"
+    ],
+    "files_compared": [
+     "libeb1c-base.0.1.0.dylib",
+     "libeb1c-base.0.dylib",
+     "libeb1c-core.0.dylib",
+     "llama-server",
+     "sm_fixture_manifest.json"
+    ],
+    "reading": "two compiles of the same sources in this run (A and C, different temporary roots); where they differ, the committed C source digest, not an output digest, is the fixture's identity"
+   }
+  },
+  "missing_cache_controls_counts": {
+   "as_expected": 5,
+   "completed": 5,
+   "planned": 5
+  },
+  "ruling": "reviews/eb1_fixture_and_wip_delta_20260924_0703.md (main ccdda96) item 1: acceptable as a model-free control fixture within its disclosed scope",
+  "shared_cache_the_suites_use": {
+   "exists_at_this_run": true,
+   "note": "the suites run under TMPDIR=<prescribed>/labsbx and reuse this cache; the controls below never touch it",
+   "path": "/private/tmp/labsbx/eb1c_sm_fixture_1a438b19c1216a54"
+  },
+  "statement": "the fixture outputs (the compiled launcher and two libraries, the synthetic CMakeCache/build-info/receipt/logs of sm_fixture.Build) are TEST ARTIFACTS under temporary directories: excluded from the freeze manifest and from any evidence about the real durable build; no control result is a real-host receipt"
+ },
+ "convention": "deterministic-path",
+ "convention_note": "pins, maps and diff digests are deterministic functions of git objects; wall times, host snapshots and timestamps are observations of this run",
+ "decision_modules_byte_unchanged": {
+  "lab_coin.py": {
+   "b049307": "6d85578daf3e3fa6bb1160156547b191157d8a005d638fcb818afb14ec50314c",
+   "head": "6d85578daf3e3fa6bb1160156547b191157d8a005d638fcb818afb14ec50314c"
+  },
+  "lab_design.py": {
+   "b049307": "d615e369d579a42acc2042e3580cb1d02a4b4171993dca735352c9b75d975b82",
+   "head": "d615e369d579a42acc2042e3580cb1d02a4b4171993dca735352c9b75d975b82"
+  },
+  "lab_enclosure.py": {
+   "b049307": "42f1b57dff684988cc0725bc0e64d982cd4b8b24f7ff68198c77d8d8a53966c6",
+   "head": "42f1b57dff684988cc0725bc0e64d982cd4b8b24f7ff68198c77d8d8a53966c6"
+  },
+  "lab_monitor.py": {
+   "b049307": "94d70b8d766376a697271087a1879de32170d4827bb25211c33f550232c2af91",
+   "head": "94d70b8d766376a697271087a1879de32170d4827bb25211c33f550232c2af91"
+  },
+  "lab_reference_rule.py": {
+   "b049307": "8f8b69f01e09a92ca77a665e19bbd8f8eeba0ceef1ddab0bc3cb09b0fb9ee6fd",
+   "head": "8f8b69f01e09a92ca77a665e19bbd8f8eeba0ceef1ddab0bc3cb09b0fb9ee6fd"
+  }
+ },
+ "disclosed_red_runs_before_this_successor": [
+  {
+   "disposition": "both controls repaired by the subset fix (K1, K2); the second run of the same suite at 79bb1ab was OK",
+   "failures": [
+    "tests_eb5_resolution.C3GarbageSpoolLine.test_c3_mutation_no_kill_keeps_sending_and_is_refused (AssertionError: pid_alive after obs.close(); a timing race in the control: the worker exits 43-64 ms after the POST the observer answered)",
+    "tests_sm_entry.SM10SelfComparisonMutants.test_mutant_digest_self_accepts_the_null_digest_of_sm3 (the real host gate refused on a DEGRADED scan; the helper printed \"offending detectors []\")"
+   ],
+   "log_sha256": "e3f2b645cba6c95a84099c5234f32d109e21838a66ba6bd9a98b1bc09ce4c37f",
+   "result": "Ran 357 tests, FAILED (failures=2)",
+   "suite": "live_ab_controls",
+   "when": "2026-09-24 03:06-03:43 local, integration solo run at 79bb1ab"
+  },
+  {
+   "disposition": "the three controls made deterministic by the subset fix (K1)",
+   "log_sha256": null,
+   "result": "C3 mutation control failed 8 of 20, C6 mutation control failed 5 of 6 (ProcessLookupError at its killpg), C2 mutation control failed 1 of 6 (\"2 != 1\"), the whole tests_eb5_resolution module failed 2 of 3",
+   "suite": "live_ab_controls (single controls)",
+   "when": "review of 988baf7 (reviewer 2), solo runs in a clone of 988baf7"
+  },
+  {
+   "disposition": "repaired by the subset fix (K1)",
+   "log_sha256": null,
+   "result": "C6 mutation control ERROR 3 of 3 (ProcessLookupError); other non-passes of a contended run were host_not_quiescent refusals caused by a concurrent suite and passed on quiet solo reruns",
+   "suite": "live_ab_controls",
+   "when": "review of 988baf7 (reviewer 1), an independent clone of 988baf7"
+  },
+  {
+   "disposition": "the reproduction the K1 repair started from",
+   "log_sha256": {
+    "c3": [
+     "365073e4f3363ef5ddf8ed14c367b7b107eea746d4cabb0899c19a255177c181",
+     "e2118de0987b2e87e8ddd9a3b834da801e589b6b4594f2f0ba6a8e61cd6f038b"
+    ],
+    "c6": [
+     "a10d3174f90e42e6d11a03ebf58c2ff70ea79dfbf7d09e3e819abfb8f240fa90",
+     "ed81c61b4cdb36bc50232344fe4bc5b68df70dea5377ba79b6f7ed12fcf5bb92"
+    ]
+   },
+   "result": "C3 mutation control failed 2 of 6, C6 mutation control failed 2 of 4, C2 mutation control failed 0 of 4",
+   "suite": "live_ab_controls (single controls, solo)",
+   "when": "2026-09-24 14:0x UTC, this session, the pre-fix clone of 988baf7"
+  }
+ ],
+ "documents": {
+  "ARCHITECTURE_FINAL.md": {
+   "b049307": "727003c1efe2b210fff0cf7d0a60ca30f53948516171b863548849676b1242ab",
+   "b049307_bytes": 201000,
+   "b049307_is_the_reviewed_pre_image": true,
+   "head": "e7ea9c0fb7a28c6bdb47bb4085dcddba41144bd134d7b3a9b026ad7c9a30c86a",
+   "head_bytes": 212984,
+   "path": "experiments/live_ab/design/ARCHITECTURE_FINAL.md"
+  },
+  "cells.json": {
+   "b049307": "5c4a28f76a066d110205335b66c7df12a0c5d70045ad24fecace0ebec75e7784",
+   "b049307_bytes": 93463,
+   "b049307_is_the_reviewed_pre_image": true,
+   "head": "6b31bf20a07cbc4b0c162fb0d309826d88ab5b95b36f9cd3e1d86500d7ff8df5",
+   "head_bytes": 98548,
+   "path": "experiments/live_ab_validation/cells.json"
+  },
+  "config.json": {
+   "b049307": "e4d42f5d442dde7e709222e0a4ad4985de0f20604061fec01f2e3ea95f75d824",
+   "b049307_bytes": 13917,
+   "b049307_is_the_reviewed_pre_image": true,
+   "head": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+   "head_bytes": 16136,
+   "path": "experiments/live_ab/config.json"
+  },
+  "protocol_FINAL.md": {
+   "b049307": "64ace6d3e37732b372fd316055208e9deaab4d4e0722708563c8ebcc1579e82b",
+   "b049307_bytes": 317228,
+   "b049307_is_the_reviewed_pre_image": true,
+   "head": "6c0ebf2faa7515ff27f01188d9f1e487c928c63373f451dea51f06a8cdacaab9",
+   "head_bytes": 345815,
+   "path": "experiments/live_ab/design/protocol_FINAL.md"
+  }
+ },
+ "generated_utc": "2026-09-24T17:32:20Z",
+ "harness_pin": {
+  "changed": {
+   "build_live_ab_results.py": {
+    "changing_commits": [
+     "141c78876ce4cf84b106cfa6564eb967ebbe9fbb",
+     "1dd9df2233267b0a56276eff59d3afde13b00d36",
+     "8df2558baa40eda0e30595aa8d0b66633b02ad6e",
+     "868573297f6877ce8fda44c6319b3150a5e3d04f",
+     "03fe0ca13a4d3acc2ddc022672120d3bb136e2f6"
+    ],
+    "diff_applied_to_old_gives_new": true,
+    "diff_bytes": 17124,
+    "diff_sha256": "9ef3e0d6b240e25a2df05d3befb34267ccad9feb116b9c798815db89f4fea899",
+    "lines_added": 195,
+    "lines_removed": 11,
+    "new_bytes": 50846,
+    "new_sha256": "94f6176e277dd86d055333605a9e8b30922ba2f276799b4172d919cc13fae14f",
+    "old_bytes": 39434,
+    "old_sha256": "62f81cdb3e1a13d1196977ce1d2ae43de5d0de18228ec710e2a42fcf0ad70b64",
+    "status": "modified"
+   },
+   "config.json": {
+    "changing_commits": [
+     "474f9d82aae2b3979910d8a99d8305b5d7bc44c1"
+    ],
+    "diff_applied_to_old_gives_new": true,
+    "diff_bytes": 3950,
+    "diff_sha256": "a242eafb9a4543a74975efafa9d22d4383677a451bf77b77b811776ffb9713dd",
+    "lines_added": 11,
+    "lines_removed": 1,
+    "new_bytes": 16136,
+    "new_sha256": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+    "old_bytes": 13917,
+    "old_sha256": "e4d42f5d442dde7e709222e0a4ad4985de0f20604061fec01f2e3ea95f75d824",
+    "status": "modified"
+   },
+   "dryrun_live_ab.py": {
+    "changing_commits": [
+     "11ba426c194ac8d2b7548afa237c862d98cc54c0",
+     "141c78876ce4cf84b106cfa6564eb967ebbe9fbb",
+     "5ae183d0433e4979a67fb7b09fedd46ca0b03107",
+     "868573297f6877ce8fda44c6319b3150a5e3d04f",
+     "a289fa5e52cf8a1e3e758e750f681f0c299d07c9"
+    ],
+    "diff_applied_to_old_gives_new": true,
+    "diff_bytes": 7370,
+    "diff_sha256": "4d2f9c9a3fc717b82a713f815ad43b475c45f68d163eeb1c70ed71e30d86ab71",
+    "lines_added": 68,
+    "lines_removed": 7,
+    "new_bytes": 35836,
+    "new_sha256": "cfb9e5f67a0074fc37958586f7a8af1d423cacc53aaaf7322f2e76cd32ced3a4",
+    "old_bytes": 31974,
+    "old_sha256": "5e791ca3d1cf86e6577c96678593a8570860d4c934d6682b1f7a0f91e9db339b",
+    "status": "modified"
+   },
+   "lab_anchor.py": {
+    "changing_commits": [
+     "e9bfb18739c3c19b14b5a37f05cd8d11e9a240fc"
+    ],
+    "diff_applied_to_old_gives_new": true,
+    "diff_bytes": 8099,
+    "diff_sha256": "cc1655342aa6cbd27acf1b5833f8456535592d1fcd92e24afb115932c921e2fa",
+    "lines_added": 48,
+    "lines_removed": 28,
+    "new_bytes": 22416,
+    "new_sha256": "d6dbd1fcf66eec6e8d434ac5ff49341eb87313a11ce9bda23a67d63331af456d",
+    "old_bytes": 21170,
+    "old_sha256": "9f81cbb70d5ef79a32fa460c91232dc5febf9ccfb35bb467b921ac7ec7955084",
+    "status": "modified"
+   },
+   "lab_common.py": {
+    "changing_commits": [
+     "11ba426c194ac8d2b7548afa237c862d98cc54c0",
+     "141c78876ce4cf84b106cfa6564eb967ebbe9fbb",
+     "e9bfb18739c3c19b14b5a37f05cd8d11e9a240fc",
+     "a289fa5e52cf8a1e3e758e750f681f0c299d07c9"
+    ],
+    "diff_applied_to_old_gives_new": true,
+    "diff_bytes": 6485,
+    "diff_sha256": "86c2951a8b92973a5b64de1cef30a1e21a0a9483046ed0eb5e11c4e23e6ee5f2",
+    "lines_added": 93,
+    "lines_removed": 0,
+    "new_bytes": 49348,
+    "new_sha256": "a0d46a6b9cf826778b72c568c940479982111c4699680fb6cf0c41b5eee25808",
+    "old_bytes": 44046,
+    "old_sha256": "aa32c13a0f3c6895f6a4d7936cc2b883930e5f4db9491a7f3aa444c8e1c3bb1c",
+    "status": "modified"
+   },
+   "lab_eventlog.py": {
+    "changing_commits": [
+     "11ba426c194ac8d2b7548afa237c862d98cc54c0",
+     "8df2558baa40eda0e30595aa8d0b66633b02ad6e",
+     "5ae183d0433e4979a67fb7b09fedd46ca0b03107",
+     "e9bfb18739c3c19b14b5a37f05cd8d11e9a240fc",
+     "868573297f6877ce8fda44c6319b3150a5e3d04f",
+     "7730e7f586ca610d8d6a1db2f7518bfd817389df",
+     "03fe0ca13a4d3acc2ddc022672120d3bb136e2f6"
+    ],
+    "diff_applied_to_old_gives_new": true,
+    "diff_bytes": 41981,
+    "diff_sha256": "6b028095ed12c3c8461de63c8e4682ede6907b287d4e336ceba61594035dbae7",
+    "lines_added": 548,
+    "lines_removed": 10,
+    "new_bytes": 86272,
+    "new_sha256": "5246e24a23d5a5afc6bad43f1bcf206550e04b8b2b1b99ee3b2bf11fbf0571ac",
+    "old_bytes": 52666,
+    "old_sha256": "aba317adfb035c197bd02e2911f7069598c22238efd6da8db992601410a89f16",
+    "status": "modified"
+   },
+   "lab_load.py": {
+    "changing_commits": [
+     "9c48512823ca1e946b2f93f7732251939188f6b0",
+     "c9310b59c981cc373126de57b83d99547487baba"
+    ],
+    "diff_applied_to_old_gives_new": true,
+    "diff_bytes": 28930,
+    "diff_sha256": "baaaec37867c7e4e7a2bdf062353f5c9dca11ab6bb348cbd6fff79738d7240f1",
+    "lines_added": 398,
+    "lines_removed": 46,
+    "new_bytes": 58117,
+    "new_sha256": "d1f3d99f54925a62671d3ba87149db996c6f53014417f5bf768594c105342e1c",
+    "old_bytes": 39359,
+    "old_sha256": "8d72734c68bbbf1cd0fef5d61494994b944b982611eb4d9d90f51fbae2104efa",
+    "status": "modified"
+   },
+   "lab_orchestrator.py": {
+    "changing_commits": [
+     "11ba426c194ac8d2b7548afa237c862d98cc54c0",
+     "141c78876ce4cf84b106cfa6564eb967ebbe9fbb",
+     "2437a24cc73005f75da6bf47610dcfef625de306",
+     "1dd9df2233267b0a56276eff59d3afde13b00d36",
+     "8df2558baa40eda0e30595aa8d0b66633b02ad6e",
+     "5ae183d0433e4979a67fb7b09fedd46ca0b03107",
+     "e9bfb18739c3c19b14b5a37f05cd8d11e9a240fc",
+     "868573297f6877ce8fda44c6319b3150a5e3d04f",
+     "7730e7f586ca610d8d6a1db2f7518bfd817389df",
+     "03fe0ca13a4d3acc2ddc022672120d3bb136e2f6"
+    ],
+    "diff_applied_to_old_gives_new": true,
+    "diff_bytes": 197856,
+    "diff_sha256": "f38e4b5da587f07c5dbd98b04a965d4137f5a83487bf7ee8074219cdef9b39a4",
+    "lines_added": 2728,
+    "lines_removed": 199,
+    "new_bytes": 307375,
+    "new_sha256": "0dbb4229cc6c11037b7e063d48bf0efd0deb55b37e34ed5546e8cf47916fa644",
+    "old_bytes": 159739,
+    "old_sha256": "c3606972a6a73c77929383e91a19a501a8237a9252cd5223b19ce864a3ef260c",
+    "status": "modified"
+   },
+   "lab_prepare.py": {
+    "changing_commits": [
+     "9c48512823ca1e946b2f93f7732251939188f6b0",
+     "c9310b59c981cc373126de57b83d99547487baba",
+     "79bb1abcbaf3061ad2747ddf3802ff3182a8a029"
+    ],
+    "diff_applied_to_old_gives_new": true,
+    "diff_bytes": 10807,
+    "diff_sha256": "2988728050199edc95c104de556cac7b737bd02c79fdf60a81a930b584c14bf8",
+    "lines_added": 120,
+    "lines_removed": 1,
+    "new_bytes": 60856,
+    "new_sha256": "6f3238a08a53dddb77888d4eeec942bf5d502c39c649fcf29a417a38088d0b66",
+    "old_bytes": 53470,
+    "old_sha256": "50e02a503a2e63febd63f4f8b4d0ce07a3e6672025715f4275c3aea982204f8d",
+    "status": "modified"
+   },
+   "lab_server.py": {
+    "changing_commits": [
+     "11ba426c194ac8d2b7548afa237c862d98cc54c0",
+     "141c78876ce4cf84b106cfa6564eb967ebbe9fbb",
+     "1dd9df2233267b0a56276eff59d3afde13b00d36",
+     "5ae183d0433e4979a67fb7b09fedd46ca0b03107",
+     "868573297f6877ce8fda44c6319b3150a5e3d04f"
+    ],
+    "diff_applied_to_old_gives_new": true,
+    "diff_bytes": 47452,
+    "diff_sha256": "cfe250b02d0e85c917da6bd27b4b1cef9bbe93c5dcd7d87f2b009e1eb2b3064d",
+    "lines_added": 570,
+    "lines_removed": 122,
+    "new_bytes": 47506,
+    "new_sha256": "c1d62da548108fb15684bc1b2902ea5c65f42147e9aeddc58e1f53a46efdb7ce",
+    "old_bytes": 21350,
+    "old_sha256": "b11a9fe4bcc3d738bd802c6accdc39d24edc1b3746d65701232c438d76a3a251",
+    "status": "modified"
+   },
+   "lab_serving_manifest.py": {
+    "changing_commits": [
+     "5ae183d0433e4979a67fb7b09fedd46ca0b03107"
+    ],
+    "diff_applied_to_old_gives_new": true,
+    "diff_bytes": 90774,
+    "diff_sha256": "3256f6cb244afb1be7a86a58d709fe8d405fa5a35b5cb60ca69cb559952c3175",
+    "lines_added": 1711,
+    "lines_removed": 0,
+    "new_bytes": 88767,
+    "new_sha256": "6407603cc8d52ae1db60370474b91f28fab551626161c939566f26efecb7e3e6",
+    "old_bytes": null,
+    "old_sha256": null,
+    "status": "added"
+   },
+   "lab_verify_log.py": {
+    "changing_commits": [
+     "11ba426c194ac8d2b7548afa237c862d98cc54c0",
+     "141c78876ce4cf84b106cfa6564eb967ebbe9fbb",
+     "2437a24cc73005f75da6bf47610dcfef625de306",
+     "1dd9df2233267b0a56276eff59d3afde13b00d36",
+     "8df2558baa40eda0e30595aa8d0b66633b02ad6e",
+     "e9bfb18739c3c19b14b5a37f05cd8d11e9a240fc",
+     "868573297f6877ce8fda44c6319b3150a5e3d04f",
+     "7730e7f586ca610d8d6a1db2f7518bfd817389df",
+     "03fe0ca13a4d3acc2ddc022672120d3bb136e2f6"
+    ],
+    "diff_applied_to_old_gives_new": true,
+    "diff_bytes": 42271,
+    "diff_sha256": "5916c59c2e00be72df666e6a88affbc782d410eccfa571011a5f42383d7c6be9",
+    "lines_added": 611,
+    "lines_removed": 12,
+    "new_bytes": 95727,
+    "new_sha256": "9b30a8891b1b3f8a0c995f7e257fa98ee4c5b60749b7ec65164261560ab4a66d",
+    "old_bytes": 60771,
+    "old_sha256": "45740660e6327b5a2f36c16446a5be50dfe823c480b30131429b16e3a73908dd",
+    "status": "modified"
+   },
+   "tests_lab_chain.py": {
+    "changing_commits": [
+     "11ba426c194ac8d2b7548afa237c862d98cc54c0",
+     "e9bfb18739c3c19b14b5a37f05cd8d11e9a240fc",
+     "868573297f6877ce8fda44c6319b3150a5e3d04f",
+     "7730e7f586ca610d8d6a1db2f7518bfd817389df"
+    ],
+    "diff_applied_to_old_gives_new": true,
+    "diff_bytes": 5311,
+    "diff_sha256": "3df24cae863bdcc6c5ad527d3290e2d40c5c6da6a951cf900c9cb33db34c5f13",
+    "lines_added": 36,
+    "lines_removed": 5,
+    "new_bytes": 114306,
+    "new_sha256": "4d211ef9d7879bf2ba98d0f8c8356406f0317898c8c96f0740973934f7649b5e",
+    "old_bytes": 112383,
+    "old_sha256": "f21b4b4fac0180e4204f189e86fff8d494119d29aa0d59a77500744215a82bc8",
+    "status": "modified"
+   },
+   "tests_lab_design.py": {
+    "changing_commits": [
+     "11ba426c194ac8d2b7548afa237c862d98cc54c0",
+     "9c48512823ca1e946b2f93f7732251939188f6b0",
+     "c9310b59c981cc373126de57b83d99547487baba"
+    ],
+    "diff_applied_to_old_gives_new": true,
+    "diff_bytes": 8460,
+    "diff_sha256": "b6e9493065579ac61d4a5b1e0cbc5c320e1734ea6943e759a98b0e992a4a819d",
+    "lines_added": 64,
+    "lines_removed": 7,
+    "new_bytes": 299179,
+    "new_sha256": "ee284ccf65c5e2ea99d62cd80f5682e200e3d3c07376e54c646ea56a12dded11",
+    "old_bytes": 296064,
+    "old_sha256": "62f2469ac88f204aa0a46d24c8e7970151e9c51d73e28b122020d2eb5729d99d",
+    "status": "modified"
+   },
+   "tests_lab_hostcheck.py": {
+    "changing_commits": [
+     "11ba426c194ac8d2b7548afa237c862d98cc54c0",
+     "1dd9df2233267b0a56276eff59d3afde13b00d36"
+    ],
+    "diff_applied_to_old_gives_new": true,
+    "diff_bytes": 2234,
+    "diff_sha256": "41bd6a0736f1ea5e262eba267dd0232c6b93a5682809fad3a7920898fc163538",
+    "lines_added": 14,
+    "lines_removed": 0,
+    "new_bytes": 79575,
+    "new_sha256": "7be9281b776d159a164bc7c2f694395708b507baf5cf700794c714254d751387",
+    "old_bytes": 78613,
+    "old_sha256": "17c002365fb5d21a72091a70bcc4626bf483cd1b42853ab2ac8cb54a494ce70f",
+    "status": "modified"
+   },
+   "tests_lab_isolation.py": {
+    "changing_commits": [
+     "5ae183d0433e4979a67fb7b09fedd46ca0b03107"
+    ],
+    "diff_applied_to_old_gives_new": true,
+    "diff_bytes": 4513,
+    "diff_sha256": "fb12e15e947f7860dfa20261f1c8d5d82c06a9ddd471148af6d05f061c955c62",
+    "lines_added": 40,
+    "lines_removed": 2,
+    "new_bytes": 52831,
+    "new_sha256": "5e4526d55a59cfcefe131d1059140c5a1e95bfa08a06b868ed1fed71a9b515bb",
+    "old_bytes": 50112,
+    "old_sha256": "47c17db40dcaa8b3f543bac005b7dcc167b9922fca1030a681645232a10d8944",
+    "status": "modified"
+   },
+   "tests_lab_serving.py": {
+    "changing_commits": [
+     "11ba426c194ac8d2b7548afa237c862d98cc54c0"
+    ],
+    "diff_applied_to_old_gives_new": true,
+    "diff_bytes": 1770,
+    "diff_sha256": "91882a7f123828cd10cf6f2468946f5f84acfe21e35cffffd6c10fa02dc706aa",
+    "lines_added": 7,
+    "lines_removed": 2,
+    "new_bytes": 91547,
+    "new_sha256": "73a1ac81eb1eb6f36aa81c3098865864339e6a9243c4bf59789b6b1582099052",
+    "old_bytes": 91146,
+    "old_sha256": "d6ff88dccd4b25f1e81fcfbbc4f18a421a3e3c32359f701930f619d730274e61",
+    "status": "modified"
+   }
+  },
+  "counts": {
+   "added": [
+    "lab_serving_manifest.py"
+   ],
+   "after": 34,
+   "before": 33,
+   "modified": 16,
+   "removed": [],
+   "unchanged": 17
+  },
+  "diff_check": "each diff is applied with git apply -p1 to the predecessor bytes in a directory outside any repository; the result must be the HEAD bytes",
+  "diff_command": "git -c core.quotePath=true -c diff.noprefix=false -c diff.mnemonicPrefix=false -c diff.suppressBlankEmpty=false diff --no-color --no-ext-diff --no-textconv --full-index --no-renames --no-relative --diff-algorithm=myers --indent-heuristic --inter-hunk-context=0 --src-prefix=a/ --dst-prefix=b/ --unified=3 <predecessor> <head> -- <path> (every GIT_* variable unset, then GIT_CONFIG_NOSYSTEM=1, GIT_CONFIG_GLOBAL=/dev/null, GIT_ATTR_NOSYSTEM=1, LC_ALL=C)",
+  "predecessor": {
+   "canonical_sha256": "5675cc5ef970328834314480ec33d0edf237f38c1a3d977d3d22e93dc71f3fee",
+   "count": 33,
+   "equals_expected": true,
+   "expected_canonical_sha256": "5675cc5ef970328834314480ec33d0edf237f38c1a3d977d3d22e93dc71f3fee",
+   "map": {
+    "build_live_ab_results.py": "62f81cdb3e1a13d1196977ce1d2ae43de5d0de18228ec710e2a42fcf0ad70b64",
+    "config.json": "e4d42f5d442dde7e709222e0a4ad4985de0f20604061fec01f2e3ea95f75d824",
+    "dryrun_live_ab.py": "5e791ca3d1cf86e6577c96678593a8570860d4c934d6682b1f7a0f91e9db339b",
+    "lab_anchor.py": "9f81cbb70d5ef79a32fa460c91232dc5febf9ccfb35bb467b921ac7ec7955084",
+    "lab_client.py": "ac9fab9a69951fa59eb96238b4839645e71073dd3dea840b4773b70c25dae9c5",
+    "lab_coin.py": "6d85578daf3e3fa6bb1160156547b191157d8a005d638fcb818afb14ec50314c",
+    "lab_combined_fixture.py": "45403b9e5937075fff293bd366d9f91b55cd351ae9c69017e4fe892dfa78398d",
+    "lab_common.py": "aa32c13a0f3c6895f6a4d7936cc2b883930e5f4db9491a7f3aa444c8e1c3bb1c",
+    "lab_containment.py": "2f9edbd372969f6df4ffa67364ed062798a401a879f5cb30bc9aead1c46425d2",
+    "lab_data.py": "7291fea66a25ca33c12c84c9a46d0f8246e35e0d8cc4d83aff2496a10c2b9977",
+    "lab_design.py": "d615e369d579a42acc2042e3580cb1d02a4b4171993dca735352c9b75d975b82",
+    "lab_enclosure.py": "42f1b57dff684988cc0725bc0e64d982cd4b8b24f7ff68198c77d8d8a53966c6",
+    "lab_eventlog.py": "aba317adfb035c197bd02e2911f7069598c22238efd6da8db992601410a89f16",
+    "lab_hostcheck.py": "23d3efe772b1b354816aecce6591f3f7fec05acbd558a3ce4a1fd5f30d6bca37",
+    "lab_injected_decision.py": "8d82de81ce48979180cd66ae3fae28b67ef8c17168d4a5a070d42f333da69b6b",
+    "lab_lifecycle.py": "604556893fb5d381049756f765251bc45bd1f57ea632630d68fe2ee5610ac0b2",
+    "lab_load.py": "8d72734c68bbbf1cd0fef5d61494994b944b982611eb4d9d90f51fbae2104efa",
+    "lab_lockfixture.py": "cb5ad6362250a365d2a128e786858ddf9233b40d8664e3a9c64f3dd46e1aee68",
+    "lab_mock_server.py": "6576afee392a1a3f2973802a880c00c38838841e6ad172aedf66628b43446ce0",
+    "lab_monitor.py": "94d70b8d766376a697271087a1879de32170d4827bb25211c33f550232c2af91",
+    "lab_orchestrator.py": "c3606972a6a73c77929383e91a19a501a8237a9252cd5223b19ce864a3ef260c",
+    "lab_prepare.py": "50e02a503a2e63febd63f4f8b4d0ce07a3e6672025715f4275c3aea982204f8d",
+    "lab_reference_rule.py": "8f8b69f01e09a92ca77a665e19bbd8f8eeba0ceef1ddab0bc3cb09b0fb9ee6fd",
+    "lab_server.py": "b11a9fe4bcc3d738bd802c6accdc39d24edc1b3746d65701232c438d76a3a251",
+    "lab_verify_log.py": "45740660e6327b5a2f36c16446a5be50dfe823c480b30131429b16e3a73908dd",
+    "lab_worker.py": "f9aa6e9028068bbac3c69bcc7d4a84a572ee727e2349725698e15e1a4b6e5b74",
+    "tests_lab_chain.py": "f21b4b4fac0180e4204f189e86fff8d494119d29aa0d59a77500744215a82bc8",
+    "tests_lab_design.py": "62f2469ac88f204aa0a46d24c8e7970151e9c51d73e28b122020d2eb5729d99d",
+    "tests_lab_e2e.py": "74d481f273a2bb2a5d5e58a252ab11e87c139cd485fcacc485302d20c45e34e6",
+    "tests_lab_hostcheck.py": "17c002365fb5d21a72091a70bcc4626bf483cd1b42853ab2ac8cb54a494ce70f",
+    "tests_lab_isolation.py": "47c17db40dcaa8b3f543bac005b7dcc167b9922fca1030a681645232a10d8944",
+    "tests_lab_serving.py": "d6ff88dccd4b25f1e81fcfbbc4f18a421a3e3c32359f701930f619d730274e61",
+    "tests_lab_stats.py": "c55172decc4d72f82d3111b6c4e94009ac324c05b5ad66a84f5db69ac36fe8a8"
+   },
+   "rev": "b049307ff62153a054f61b6179291ba987de2ba1"
+  },
+  "semantics": "lab_common.harness_file_hashes: the top-level experiments/live_ab/*.py files plus config.json, sha256 of each file; canonical digest = lab_common.sha256_canonical of the name -> sha256 map",
+  "successor": {
+   "canonical_sha256": "0f20e087e273904b7958bac4dfcc7c6f465b1521cfff4b90a8d500f9b4bbc2f7",
+   "count": 34,
+   "equals_lab_common_harness_file_hashes_on_the_working_tree": true,
+   "map": {
+    "build_live_ab_results.py": "94f6176e277dd86d055333605a9e8b30922ba2f276799b4172d919cc13fae14f",
+    "config.json": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+    "dryrun_live_ab.py": "cfb9e5f67a0074fc37958586f7a8af1d423cacc53aaaf7322f2e76cd32ced3a4",
+    "lab_anchor.py": "d6dbd1fcf66eec6e8d434ac5ff49341eb87313a11ce9bda23a67d63331af456d",
+    "lab_client.py": "ac9fab9a69951fa59eb96238b4839645e71073dd3dea840b4773b70c25dae9c5",
+    "lab_coin.py": "6d85578daf3e3fa6bb1160156547b191157d8a005d638fcb818afb14ec50314c",
+    "lab_combined_fixture.py": "45403b9e5937075fff293bd366d9f91b55cd351ae9c69017e4fe892dfa78398d",
+    "lab_common.py": "a0d46a6b9cf826778b72c568c940479982111c4699680fb6cf0c41b5eee25808",
+    "lab_containment.py": "2f9edbd372969f6df4ffa67364ed062798a401a879f5cb30bc9aead1c46425d2",
+    "lab_data.py": "7291fea66a25ca33c12c84c9a46d0f8246e35e0d8cc4d83aff2496a10c2b9977",
+    "lab_design.py": "d615e369d579a42acc2042e3580cb1d02a4b4171993dca735352c9b75d975b82",
+    "lab_enclosure.py": "42f1b57dff684988cc0725bc0e64d982cd4b8b24f7ff68198c77d8d8a53966c6",
+    "lab_eventlog.py": "5246e24a23d5a5afc6bad43f1bcf206550e04b8b2b1b99ee3b2bf11fbf0571ac",
+    "lab_hostcheck.py": "23d3efe772b1b354816aecce6591f3f7fec05acbd558a3ce4a1fd5f30d6bca37",
+    "lab_injected_decision.py": "8d82de81ce48979180cd66ae3fae28b67ef8c17168d4a5a070d42f333da69b6b",
+    "lab_lifecycle.py": "604556893fb5d381049756f765251bc45bd1f57ea632630d68fe2ee5610ac0b2",
+    "lab_load.py": "d1f3d99f54925a62671d3ba87149db996c6f53014417f5bf768594c105342e1c",
+    "lab_lockfixture.py": "cb5ad6362250a365d2a128e786858ddf9233b40d8664e3a9c64f3dd46e1aee68",
+    "lab_mock_server.py": "6576afee392a1a3f2973802a880c00c38838841e6ad172aedf66628b43446ce0",
+    "lab_monitor.py": "94d70b8d766376a697271087a1879de32170d4827bb25211c33f550232c2af91",
+    "lab_orchestrator.py": "0dbb4229cc6c11037b7e063d48bf0efd0deb55b37e34ed5546e8cf47916fa644",
+    "lab_prepare.py": "6f3238a08a53dddb77888d4eeec942bf5d502c39c649fcf29a417a38088d0b66",
+    "lab_reference_rule.py": "8f8b69f01e09a92ca77a665e19bbd8f8eeba0ceef1ddab0bc3cb09b0fb9ee6fd",
+    "lab_server.py": "c1d62da548108fb15684bc1b2902ea5c65f42147e9aeddc58e1f53a46efdb7ce",
+    "lab_serving_manifest.py": "6407603cc8d52ae1db60370474b91f28fab551626161c939566f26efecb7e3e6",
+    "lab_verify_log.py": "9b30a8891b1b3f8a0c995f7e257fa98ee4c5b60749b7ec65164261560ab4a66d",
+    "lab_worker.py": "f9aa6e9028068bbac3c69bcc7d4a84a572ee727e2349725698e15e1a4b6e5b74",
+    "tests_lab_chain.py": "4d211ef9d7879bf2ba98d0f8c8356406f0317898c8c96f0740973934f7649b5e",
+    "tests_lab_design.py": "ee284ccf65c5e2ea99d62cd80f5682e200e3d3c07376e54c646ea56a12dded11",
+    "tests_lab_e2e.py": "74d481f273a2bb2a5d5e58a252ab11e87c139cd485fcacc485302d20c45e34e6",
+    "tests_lab_hostcheck.py": "7be9281b776d159a164bc7c2f694395708b507baf5cf700794c714254d751387",
+    "tests_lab_isolation.py": "5e4526d55a59cfcefe131d1059140c5a1e95bfa08a06b868ed1fed71a9b515bb",
+    "tests_lab_serving.py": "73a1ac81eb1eb6f36aa81c3098865864339e6a9243c4bf59789b6b1582099052",
+    "tests_lab_stats.py": "c55172decc4d72f82d3111b6c4e94009ac324c05b5ad66a84f5db69ac36fe8a8"
+   },
+   "rev": "591ebcd7dd5a7d8ae1605300b9e4c645ac64b3bb"
+  },
+  "unchanged_entries": [
+   "lab_client.py",
+   "lab_coin.py",
+   "lab_combined_fixture.py",
+   "lab_containment.py",
+   "lab_data.py",
+   "lab_design.py",
+   "lab_enclosure.py",
+   "lab_hostcheck.py",
+   "lab_injected_decision.py",
+   "lab_lifecycle.py",
+   "lab_lockfixture.py",
+   "lab_mock_server.py",
+   "lab_monitor.py",
+   "lab_reference_rule.py",
+   "lab_worker.py",
+   "tests_lab_e2e.py",
+   "tests_lab_stats.py"
+  ]
+ },
+ "nothing_executed": "no model, llama-server, llama.cpp build or network request; the C test double compiled under temporary roots; the suites start their own loopback mocks",
+ "other_files_changed_by_the_subset": {
+  "experiments/live_ab/design/ARCHITECTURE_FINAL.md": {
+   "changing_commits": [
+    "474f9d82aae2b3979910d8a99d8305b5d7bc44c1"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 20796,
+   "diff_sha256": "0e7fc1993f958050a934c303a9f30c01e1db18161e9d6b394906a28c827a5ec3",
+   "lines_added": 54,
+   "lines_removed": 1,
+   "new_bytes": 212984,
+   "new_sha256": "e7ea9c0fb7a28c6bdb47bb4085dcddba41144bd134d7b3a9b026ad7c9a30c86a",
+   "old_bytes": 201000,
+   "old_sha256": "727003c1efe2b210fff0cf7d0a60ca30f53948516171b863548849676b1242ab",
+   "status": "modified"
+  },
+  "experiments/live_ab/design/protocol_FINAL.md": {
+   "changing_commits": [
+    "474f9d82aae2b3979910d8a99d8305b5d7bc44c1"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 36923,
+   "diff_sha256": "0b62088b73d046003c9231be54aca1e179ab182c164d3a424df60bf5345b9eac",
+   "lines_added": 274,
+   "lines_removed": 1,
+   "new_bytes": 345815,
+   "new_sha256": "6c0ebf2faa7515ff27f01188d9f1e487c928c63373f451dea51f06a8cdacaab9",
+   "old_bytes": 317228,
+   "old_sha256": "64ace6d3e37732b372fd316055208e9deaab4d4e0722708563c8ebcc1579e82b",
+   "status": "modified"
+  },
+  "experiments/live_ab/testdata/chains/defect_anchor_prefix.jsonl": {
+   "changing_commits": [
+    "868573297f6877ce8fda44c6319b3150a5e3d04f"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 299789,
+   "diff_sha256": "66e815b21c27bb81802f24701d2618f9e89d424f57e9345f51e205fcec85641f",
+   "lines_added": 182,
+   "lines_removed": 166,
+   "new_bytes": 172102,
+   "new_sha256": "3eba983e6c33533bd5bc3e540d8787f12e70d27e01ea83778b28f1c72429e30b",
+   "old_bytes": 162915,
+   "old_sha256": "de364d10d74927c799d7a2536854f287a6246e80194e684ea440b1a71030ef2d",
+   "status": "modified"
+  },
+  "experiments/live_ab/testdata/chains/defect_anchor_receipts.jsonl": {
+   "changing_commits": [
+    "868573297f6877ce8fda44c6319b3150a5e3d04f"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 299793,
+   "diff_sha256": "1904f6b248c77a63a978be11ff7a4c1e33f9c7dfd2dddf8cc4ef6af18edd0592",
+   "lines_added": 182,
+   "lines_removed": 166,
+   "new_bytes": 171515,
+   "new_sha256": "2a099b56c239aa05895250fa2e5a09f7052a31db5d83bd3369aaf8afb239fedd",
+   "old_bytes": 162330,
+   "old_sha256": "1da18a5daca2f2aa94c9241d326e9e4219a509c342e0e50694612c9176854fc5",
+   "status": "modified"
+  },
+  "experiments/live_ab/testdata/chains/defect_calls_one_terminal.jsonl": {
+   "changing_commits": [
+    "868573297f6877ce8fda44c6319b3150a5e3d04f"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 302150,
+   "diff_sha256": "863b4eb3346575832fa1dda46fd5d75117160c6990e0bc4f1d8bd6d280099917",
+   "lines_added": 183,
+   "lines_removed": 167,
+   "new_bytes": 173272,
+   "new_sha256": "8bdd4922c3381ad994a78a5cfa23460a304c6eb32dcb3d2ede92bb590e5fe760",
+   "old_bytes": 164084,
+   "old_sha256": "640e1a148ccd8b33341cb5f3cc94e763f5f7bf6e53c586575050a499b3c8d603",
+   "status": "modified"
+  },
+  "experiments/live_ab/testdata/chains/defect_chain_deletion.jsonl": {
+   "changing_commits": [
+    "868573297f6877ce8fda44c6319b3150a5e3d04f"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 298939,
+   "diff_sha256": "28178ac7b048ed6086ee041f0342d1647ffce0a3d4d483a5b77e5a598ae59a07",
+   "lines_added": 181,
+   "lines_removed": 165,
+   "new_bytes": 171676,
+   "new_sha256": "48d68a45eb7775da8c6869694fe52a196acc1be135f5b2320ae9ab5fef4c2862",
+   "old_bytes": 162489,
+   "old_sha256": "9c0b438990e6a0fcb7667402a48c1f7911fc550d9ebfaaddecc29846053f923c",
+   "status": "modified"
+  },
+  "experiments/live_ab/testdata/chains/defect_chain_reorder.jsonl": {
+   "changing_commits": [
+    "868573297f6877ce8fda44c6319b3150a5e3d04f"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 299789,
+   "diff_sha256": "b4d1c57170b0d698ac81b0c243300adcffb017061deb724bac9473afea8f9200",
+   "lines_added": 182,
+   "lines_removed": 166,
+   "new_bytes": 172102,
+   "new_sha256": "659dbbd281afa2177b981e58a91282392be3d80936e4720e1952316b270e3778",
+   "old_bytes": 162915,
+   "old_sha256": "ffa1a687024a3d7903bc0de0edf3b5db8429905da5ddab0dc22e6889d5a223d8",
+   "status": "modified"
+  },
+  "experiments/live_ab/testdata/chains/defect_chain_tamper.jsonl": {
+   "changing_commits": [
+    "868573297f6877ce8fda44c6319b3150a5e3d04f"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 299785,
+   "diff_sha256": "b86a7cb47b98e6828cbc10a2a8af103866c500cc20d232a628863acf1cada284",
+   "lines_added": 182,
+   "lines_removed": 166,
+   "new_bytes": 172102,
+   "new_sha256": "e822addda08c11fcdb152ac7e47b547aefe8292fa10827b381329e9b98bc0438",
+   "old_bytes": 162915,
+   "old_sha256": "1c74150f69184dd04273a511c0b90a66d2ac59d3da3fb9c90f0ac66ecf67d007",
+   "status": "modified"
+  },
+  "experiments/live_ab/testdata/chains/defect_coin_one_per_pair.jsonl": {
+   "changing_commits": [
+    "868573297f6877ce8fda44c6319b3150a5e3d04f"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 300652,
+   "diff_sha256": "5ee9b9dfcae11f5bd6789c6ba891f605d485ac40a96e2ca54516de2a92cda4cf",
+   "lines_added": 183,
+   "lines_removed": 167,
+   "new_bytes": 172525,
+   "new_sha256": "9be62841110304fc4490ad45ac65a8d5a85ed7458a2e07748a79fc9149223cbf",
+   "old_bytes": 163337,
+   "old_sha256": "26d78d038a1622d1049668ce52f3a91a0f6bd873cac338669cb70370a779fe28",
+   "status": "modified"
+  },
+  "experiments/live_ab/testdata/chains/defect_coin_write_ahead.jsonl": {
+   "changing_commits": [
+    "868573297f6877ce8fda44c6319b3150a5e3d04f"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 299799,
+   "diff_sha256": "59e364f5ed3c605e7c589bc63298297b80565fb1becdf1560521a98567c731f6",
+   "lines_added": 182,
+   "lines_removed": 166,
+   "new_bytes": 172101,
+   "new_sha256": "a60ce99f3ca48787c46865a3ec5eacf15cb98d30cef6ffd4d9b0f7c3644bb5ce",
+   "old_bytes": 162914,
+   "old_sha256": "0f461ee67453349dfe52d7ccd675992b807f2fb8ebea10a77980e6db78f98bf8",
+   "status": "modified"
+  },
+  "experiments/live_ab/testdata/chains/defect_enclosure_containment.jsonl": {
+   "changing_commits": [
+    "868573297f6877ce8fda44c6319b3150a5e3d04f"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 299817,
+   "diff_sha256": "56347eb238f83314359822c51378202575a412bfd70722f69004060bea8729b6",
+   "lines_added": 182,
+   "lines_removed": 166,
+   "new_bytes": 172100,
+   "new_sha256": "52c80df9c3e822077590cf886715aa0d5e2be251003f1770d45ff23aa80f33f0",
+   "old_bytes": 162913,
+   "old_sha256": "b7955c84b3c6849e46275f38e6ff8c82732df6a09367cfc6a385daea5a85304c",
+   "status": "modified"
+  },
+  "experiments/live_ab/testdata/chains/defect_enclosure_monotone.jsonl": {
+   "changing_commits": [
+    "868573297f6877ce8fda44c6319b3150a5e3d04f"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 299807,
+   "diff_sha256": "58bd64406ad53d495c55ee28a2a7d463d6bd59333c20f19a7f9a1958a6343c0f",
+   "lines_added": 182,
+   "lines_removed": 166,
+   "new_bytes": 172101,
+   "new_sha256": "3abab81ae176dadebe1f14bbe210e3e488fd4753696849e0efd3d43b5eeaf2f8",
+   "old_bytes": 162914,
+   "old_sha256": "3143af690d6b2a2e767fcf338788dc72e912e36e22fa50d82a96840d3c53ccb1",
+   "status": "modified"
+  },
+  "experiments/live_ab/testdata/chains/defect_episode_job_accepted.jsonl": {
+   "changing_commits": [
+    "868573297f6877ce8fda44c6319b3150a5e3d04f"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 298959,
+   "diff_sha256": "bead77619c59a04eb82b787f45e21a7ad29d5b4598928f92257a71e341b2789a",
+   "lines_added": 181,
+   "lines_removed": 165,
+   "new_bytes": 171674,
+   "new_sha256": "9576a8d53467cf05c5e43fe3a99fe6ec297bf73edeea1f920600dae9fc2b45d9",
+   "old_bytes": 162487,
+   "old_sha256": "8a516eee7abe9aca13bf15af05cb4fda8ccd67cb541e95eb9874ed4a8d512cdd",
+   "status": "modified"
+  },
+  "experiments/live_ab/testdata/chains/defect_episode_one_reveal.jsonl": {
+   "changing_commits": [
+    "868573297f6877ce8fda44c6319b3150a5e3d04f"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 302635,
+   "diff_sha256": "576d5b5ffe99d459aa39d98182ce893ed568d743e9a699a2317000c1fdb6ed6d",
+   "lines_added": 183,
+   "lines_removed": 167,
+   "new_bytes": 173537,
+   "new_sha256": "6ac48843aa4789ce833594654f433760059eea1fd4d346a795a56177db042a3b",
+   "old_bytes": 164304,
+   "old_sha256": "1daa0edbfa973a5a820581ceca61ba4c7dddce006355d1bd8372af025d83eb90",
+   "status": "modified"
+  },
+  "experiments/live_ab/testdata/chains/defect_genesis_wrong_bundle.jsonl": {
+   "changing_commits": [
+    "868573297f6877ce8fda44c6319b3150a5e3d04f"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 299817,
+   "diff_sha256": "cd2441181aabe9d8e7c6a1f9064634303c804c61674238dd3e831c0a7b926e40",
+   "lines_added": 182,
+   "lines_removed": 166,
+   "new_bytes": 172102,
+   "new_sha256": "8691ba5acb6bbcd8d9fae58fbb4f849e98a7dfbf2c080283bfc81e0993896798",
+   "old_bytes": 162915,
+   "old_sha256": "5ccbb92af29c519f00a30b9117f6d23f676fcc8bed1216524043c047bc300563",
+   "status": "modified"
+  },
+  "experiments/live_ab/testdata/chains/defect_monitor_cadence.jsonl": {
+   "changing_commits": [
+    "868573297f6877ce8fda44c6319b3150a5e3d04f"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 299793,
+   "diff_sha256": "fe2bf5ea90b2fb36aa26c20f2eeb8452ce2f45f87940569239bd779d658709e5",
+   "lines_added": 182,
+   "lines_removed": 166,
+   "new_bytes": 171097,
+   "new_sha256": "6156d168a0a1fbb880a7a00e8c858f948d5f55afce535a2dfda6346e34b34a91",
+   "old_bytes": 161912,
+   "old_sha256": "c2e3a9410e1e2c22764c1134c6eea5c440b2c01c9c65dcf0cd298d5f0aba2edd",
+   "status": "modified"
+  },
+  "experiments/live_ab/testdata/chains/defect_monitor_first_crossing.jsonl": {
+   "changing_commits": [
+    "868573297f6877ce8fda44c6319b3150a5e3d04f"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 299821,
+   "diff_sha256": "ef345ef7fd8fb01c1645661b6632f22249dac36706e0c802a15a0f59a0d96da7",
+   "lines_added": 182,
+   "lines_removed": 166,
+   "new_bytes": 172100,
+   "new_sha256": "f16ee71dc84f718b47fbea6708b0d4c45255ef81f5dfab5f806ac06fe7281973",
+   "old_bytes": 162913,
+   "old_sha256": "0743be6bcbe9f47f3c647f4a5fa3d4d6c35e4a85e5bff00887d33efdcd520213",
+   "status": "modified"
+  },
+  "experiments/live_ab/testdata/chains/defect_monitor_independent_band.jsonl": {
+   "changing_commits": [
+    "868573297f6877ce8fda44c6319b3150a5e3d04f"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 299833,
+   "diff_sha256": "a8bf9932a86010915b3c67f48926897811e68e473799942a25d2504c26e9ca9c",
+   "lines_added": 182,
+   "lines_removed": 166,
+   "new_bytes": 172103,
+   "new_sha256": "b2e0a2be51d28952c05448f8d56629dfdf9048d44bad8b07e52fb1fb824809a5",
+   "old_bytes": 162916,
+   "old_sha256": "3bcbda66606d3a079402a17748c756daaeead795bc2a22998f6ec30e115d382a",
+   "status": "modified"
+  },
+  "experiments/live_ab/testdata/chains/defect_monitor_shadow.jsonl": {
+   "changing_commits": [
+    "868573297f6877ce8fda44c6319b3150a5e3d04f"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 299793,
+   "diff_sha256": "289399cedba42bfd7eb383fca603e5aa119edaad7f0baf7d27935483d2ee60a4",
+   "lines_added": 182,
+   "lines_removed": 166,
+   "new_bytes": 172101,
+   "new_sha256": "f96976abf433b3a4b471deb26818affee45c9e7e04664edec40711e8da9f47c2",
+   "old_bytes": 162914,
+   "old_sha256": "322046778ba58214a797cd96af8a7a794eb991536780ae5d512f0ad59d11aa18",
+   "status": "modified"
+  },
+  "experiments/live_ab/testdata/chains/defect_order_enrollment.jsonl": {
+   "changing_commits": [
+    "868573297f6877ce8fda44c6319b3150a5e3d04f"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 299801,
+   "diff_sha256": "d9963ecfec9f54ec8caa7c9d32c3d3fa3a91cc3bc2bfb767e46ff67f0478f2d4",
+   "lines_added": 182,
+   "lines_removed": 166,
+   "new_bytes": 172102,
+   "new_sha256": "13d2cc867b3d96fd7056cbc9e50127ea7731aa586530d6daed02125afe54ac6f",
+   "old_bytes": 162915,
+   "old_sha256": "56ee3db112eca4f7ad96b41b930d22f80f93e7da5c707d7de752328cbbd9dbe3",
+   "status": "modified"
+  },
+  "experiments/live_ab/testdata/chains/defect_reference_rule_agreement.jsonl": {
+   "changing_commits": [
+    "868573297f6877ce8fda44c6319b3150a5e3d04f"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 299827,
+   "diff_sha256": "44029e7e9b0d4a770ce347dae9443bbc12e5a7b8ec7e9a6dbb73c9c6e5c26384",
+   "lines_added": 182,
+   "lines_removed": 166,
+   "new_bytes": 172099,
+   "new_sha256": "2e5e85dcda742fde55347aed8431f0c3ec6cf0581dd32b4813cd7e196acd9e56",
+   "old_bytes": 162912,
+   "old_sha256": "270b9e80e50a8eadf7a4fbb4e778d87241f440e55c46e9efb873abed8d3c43db",
+   "status": "modified"
+  },
+  "experiments/live_ab/testdata/chains/defect_schema_abspath.jsonl": {
+   "changing_commits": [
+    "868573297f6877ce8fda44c6319b3150a5e3d04f"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 299793,
+   "diff_sha256": "9d2f2d7e78130e49b0c5263873d8f69d3860f195705002b92dd93834b2898898",
+   "lines_added": 182,
+   "lines_removed": 166,
+   "new_bytes": 172115,
+   "new_sha256": "c8bb140b4cacaf2b62a270bed18ceb742517e5b7a3ec57c03ca1ab6a37ceadb5",
+   "old_bytes": 162928,
+   "old_sha256": "64f87c1fda43b5c4d650bc2bcce5757065986257b3a5cad799c25b2533261a9c",
+   "status": "modified"
+  },
+  "experiments/live_ab/testdata/chains/defect_schema_commit_id.jsonl": {
+   "changing_commits": [
+    "868573297f6877ce8fda44c6319b3150a5e3d04f"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 299801,
+   "diff_sha256": "2d1f487e925ea29f59b7480b97a30837ba9e41fb698264d03b4d9a137a2bfaea",
+   "lines_added": 182,
+   "lines_removed": 166,
+   "new_bytes": 172078,
+   "new_sha256": "cb7f66338a4a3736a0b446319f418a3164dfd29a30405e18ff6c2b6ba06e4ac8",
+   "old_bytes": 162891,
+   "old_sha256": "12182e42dadd156221345be022a07ad7b1ed053e1792ab426d4a56cc6ce85626",
+   "status": "modified"
+  },
+  "experiments/live_ab/testdata/chains/defect_schema_free_text.jsonl": {
+   "changing_commits": [
+    "868573297f6877ce8fda44c6319b3150a5e3d04f"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 299885,
+   "diff_sha256": "dc176132f9e6ffdad4f5d8b8a2332d1a0504585bcf2ee8745fa4ac77ab3bdaa2",
+   "lines_added": 182,
+   "lines_removed": 166,
+   "new_bytes": 172144,
+   "new_sha256": "720819f98176d5132c7634d03156360603f46b092b502d5dfbead9fbfe832d91",
+   "old_bytes": 162957,
+   "old_sha256": "4c2ecf6581126f7f28393da718d89f638772b2788c6045dadf4bac7c919567d9",
+   "status": "modified"
+  },
+  "experiments/live_ab/testdata/chains/defect_schema_url.jsonl": {
+   "changing_commits": [
+    "868573297f6877ce8fda44c6319b3150a5e3d04f"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 299777,
+   "diff_sha256": "6c54332eddb806d16c73587fdd9f68d55076d194df27e766fd672d1276c2f3bf",
+   "lines_added": 182,
+   "lines_removed": 166,
+   "new_bytes": 172081,
+   "new_sha256": "20fe0c7f8d978ec487df895f55047126c598d74cb1e3d51d76bd4acbde95c4c8",
+   "old_bytes": 162894,
+   "old_sha256": "1d7a928503fb8612d187f51b440c71c8b032af4fbebb1b51addbade371a4a9a7",
+   "status": "modified"
+  },
+  "experiments/live_ab/testdata/chains/defect_seeds_unique.jsonl": {
+   "changing_commits": [
+    "868573297f6877ce8fda44c6319b3150a5e3d04f"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 299785,
+   "diff_sha256": "7405e784a7d4ff54cd2d1bc7062f3a7bfa8f80508a0dbee6388f91086115d55b",
+   "lines_added": 182,
+   "lines_removed": 166,
+   "new_bytes": 172102,
+   "new_sha256": "e422bea347ff7aa1b562d5b9387e94343970a8cb3e52367ac62fd1b46ffb2a07",
+   "old_bytes": 162915,
+   "old_sha256": "5de726a35e96109bdb9bf720a1fd51c05c584237c7f39483ca75eca8cb5a4db5",
+   "status": "modified"
+  },
+  "experiments/live_ab/testdata/chains/defect_switch_phase.jsonl": {
+   "changing_commits": [
+    "868573297f6877ce8fda44c6319b3150a5e3d04f"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 299783,
+   "diff_sha256": "3f700fd2d8c6b4835354491d7e9fb007d4afc9ee9ce187e30e4f4f943233d816",
+   "lines_added": 182,
+   "lines_removed": 166,
+   "new_bytes": 172101,
+   "new_sha256": "a805b9ecf0bdbbdf2ae1808d060d9424bb58123a13586de7e2defa91b767d1b7",
+   "old_bytes": 162914,
+   "old_sha256": "f4c901663c6ac61e7b8dd16f33757d6e1166a36ca1eb49654993d56b939d94f8",
+   "status": "modified"
+  },
+  "experiments/live_ab/testdata/chains/defect_t4_payload_identity.jsonl": {
+   "changing_commits": [
+    "868573297f6877ce8fda44c6319b3150a5e3d04f"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 299813,
+   "diff_sha256": "7157e71239caf0a99b6c6cdc0d894478a0eb66a914ef7e92c75565bab4d730f0",
+   "lines_added": 182,
+   "lines_removed": 166,
+   "new_bytes": 172102,
+   "new_sha256": "6f8c6d6278c4fcf34f88f1dd9e8ac0c85f90213944d6a4f71c35c94fae09334f",
+   "old_bytes": 162915,
+   "old_sha256": "650ad9cd362a923b80ae6e3b0c300e6031950fbea347c43d48374ae043113a0e",
+   "status": "modified"
+  },
+  "experiments/live_ab/testdata/chains/defect_usage_reconciliation.jsonl": {
+   "changing_commits": [
+    "868573297f6877ce8fda44c6319b3150a5e3d04f"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 299815,
+   "diff_sha256": "15a7ac8e456056d3747792e6f4daec27e9a82f6db64960d66605a0df4a0a3411",
+   "lines_added": 182,
+   "lines_removed": 166,
+   "new_bytes": 172101,
+   "new_sha256": "cfa975a04302af7c64d8e8964f1c5cf39811ad4b535a86969f7d270da1a9d85c",
+   "old_bytes": 162914,
+   "old_sha256": "c8db5ff32b15478717ffb4c43a7308126d69371bb822b82073ebdd4558fd38a5",
+   "status": "modified"
+  },
+  "experiments/live_ab/testdata/chains/defect_worktree_integrity.jsonl": {
+   "changing_commits": [
+    "868573297f6877ce8fda44c6319b3150a5e3d04f"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 300983,
+   "diff_sha256": "6f89fbdd41aad82233fe5681d5062ca23d5fd1844ff6166e25f392437eaf906e",
+   "lines_added": 183,
+   "lines_removed": 167,
+   "new_bytes": 172688,
+   "new_sha256": "ee41c1879d8e3d2e4f74b4da59d161e36a123df55481975a54d9928e34fe02f1",
+   "old_bytes": 163501,
+   "old_sha256": "4b9708d14c39ea15e5f1a9e5cadf0abfc1df7072bfca79cc9f3205d79170809d",
+   "status": "modified"
+  },
+  "experiments/live_ab/testdata/chains/good_T4.jsonl": {
+   "changing_commits": [
+    "868573297f6877ce8fda44c6319b3150a5e3d04f"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 299737,
+   "diff_sha256": "864b9cb00bf6760e9c314b19db2f580e205f6100ac1ccaff7e93d0194656b5d0",
+   "lines_added": 182,
+   "lines_removed": 166,
+   "new_bytes": 172102,
+   "new_sha256": "7a26f1c5b7e13ce7065a3c4f5708fd7ed4c7a40980371bed05d9375953d12723",
+   "old_bytes": 162915,
+   "old_sha256": "c0fd9b19060958d78e4175c884980ca7aa09da473ff4bc7c450a02f81e6b327f",
+   "status": "modified"
+  },
+  "experiments/live_ab/testdata/chains/good_T4_exposure_ledger.json": {
+   "changing_commits": [
+    "868573297f6877ce8fda44c6319b3150a5e3d04f"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 1913,
+   "diff_sha256": "1fa686f7250afa5566efc527d579f6dcff51cb3fcd34d8d33db1d79c2e44b9a7",
+   "lines_added": 1,
+   "lines_removed": 1,
+   "new_bytes": 846,
+   "new_sha256": "14bf6efadd513465d4ded9053975739757e7b50b015fa5c051f478ca32b725eb",
+   "old_bytes": 612,
+   "old_sha256": "f62c920219878d99fed3bc32c7e40ac0703f16d7636c886b9af9e899f59f22ba",
+   "status": "modified"
+  },
+  "experiments/live_ab/testdata/chains/manifest.json": {
+   "changing_commits": [
+    "868573297f6877ce8fda44c6319b3150a5e3d04f"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 3215,
+   "diff_sha256": "a9bceb794cf79ecefbdfd4fbcfbaf8eb68307b6a6eedec0473bf1bc247ae45dd",
+   "lines_added": 1,
+   "lines_removed": 1,
+   "new_bytes": 1439,
+   "new_sha256": "f3dc7008ca72187f9723fad4e493644e4ac78de58a508b10e1cc9c63eaa10b82",
+   "old_bytes": 1439,
+   "old_sha256": "5c5bf58a2777e026c6efb4604792e01cc3759ba6db01c7c4ad52f1e7d49bd79e",
+   "status": "modified"
+  },
+  "experiments/live_ab_controls/eb1_receipt_mutant_entry.py": {
+   "changing_commits": [
+    "e9bfb18739c3c19b14b5a37f05cd8d11e9a240fc"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 7140,
+   "diff_sha256": "da00ab3339b90316359b5c39fd49bc96d9da72812816d55ccffd2594e535d389",
+   "lines_added": 131,
+   "lines_removed": 0,
+   "new_bytes": 6675,
+   "new_sha256": "f9924cd4aa0557fe653675df8469d71c120203e352c36c20e1a2bc33c0137bbd",
+   "old_bytes": null,
+   "old_sha256": null,
+   "status": "added"
+  },
+  "experiments/live_ab_controls/eb1_withhold_anchor.py": {
+   "changing_commits": [
+    "e9bfb18739c3c19b14b5a37f05cd8d11e9a240fc"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 2636,
+   "diff_sha256": "24982d2e0e8776f47092fd790b44407608054e211ebe547da74926ecf45384c7",
+   "lines_added": 54,
+   "lines_removed": 0,
+   "new_bytes": 2264,
+   "new_sha256": "abba610ca0a7f9c6fcf18f06deb3f00b2dd15c39bc42c88ed95125569a686271",
+   "old_bytes": null,
+   "old_sha256": null,
+   "status": "added"
+  },
+  "experiments/live_ab_controls/eb1c_llama_shim.py": {
+   "changing_commits": [
+    "2437a24cc73005f75da6bf47610dcfef625de306",
+    "5ae183d0433e4979a67fb7b09fedd46ca0b03107"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 10404,
+   "diff_sha256": "8716758b0782c9169d6ac973166fe0e6736a0e966d7045af8363eb0883fe729a",
+   "lines_added": 208,
+   "lines_removed": 0,
+   "new_bytes": 9889,
+   "new_sha256": "71ececb3a4b43b2e290fe4affb2f74fb2042867fa8492a0371c02285195b1da0",
+   "old_bytes": null,
+   "old_sha256": null,
+   "status": "added"
+  },
+  "experiments/live_ab_controls/eb1c_mutant_entry.py": {
+   "changing_commits": [
+    "2437a24cc73005f75da6bf47610dcfef625de306",
+    "1dd9df2233267b0a56276eff59d3afde13b00d36"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 6243,
+   "diff_sha256": "bccb254ad624607290401738eda3a831ac09ba03f57cda01ff412745d2d676db",
+   "lines_added": 114,
+   "lines_removed": 0,
+   "new_bytes": 5816,
+   "new_sha256": "1550f2a6ca3ca898d5f8582af3ef0b416f8ed9a8aa2136b395b1729a4b860d19",
+   "old_bytes": null,
+   "old_sha256": null,
+   "status": "added"
+  },
+  "experiments/live_ab_controls/eb1c_worker_entry.py": {
+   "changing_commits": [
+    "2437a24cc73005f75da6bf47610dcfef625de306"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 2894,
+   "diff_sha256": "e76899f05c205221dc09b3af2f0b840d2dae8011fe2332ec89ff4c22c04ceabd",
+   "lines_added": 54,
+   "lines_removed": 0,
+   "new_bytes": 2528,
+   "new_sha256": "d7c8d1805660e51c517419151450f3a879b10f334513ee108a789b4f9e2893f3",
+   "old_bytes": null,
+   "old_sha256": null,
+   "status": "added"
+  },
+  "experiments/live_ab_controls/eb5_llama_shim.py": {
+   "changing_commits": [
+    "868573297f6877ce8fda44c6319b3150a5e3d04f"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 3497,
+   "diff_sha256": "6fb43cae77ca2bf0cc7aab49c1a05541716c900a381e31b4596459e6f1f370d0",
+   "lines_added": 77,
+   "lines_removed": 0,
+   "new_bytes": 3117,
+   "new_sha256": "8d2547dfb96b9d0db9916ffc28cfe2f9433e6933c51478ae46910c0d5d7b3fab",
+   "old_bytes": null,
+   "old_sha256": null,
+   "status": "added"
+  },
+  "experiments/live_ab_controls/eb5_mutant_entry.py": {
+   "changing_commits": [
+    "868573297f6877ce8fda44c6319b3150a5e3d04f",
+    "03fe0ca13a4d3acc2ddc022672120d3bb136e2f6"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 4866,
+   "diff_sha256": "2fd40834108f7d409b430fa80d2969072d9c94779cdd8b9b1cbca83dbe36d175",
+   "lines_added": 96,
+   "lines_removed": 0,
+   "new_bytes": 4461,
+   "new_sha256": "169eff18121d40c3e53c1ddb74d6269ae099c793df8ef50d3b9e5f871c01777b",
+   "old_bytes": null,
+   "old_sha256": null,
+   "status": "added"
+  },
+  "experiments/live_ab_controls/eb5_worker_entry.py": {
+   "changing_commits": [
+    "868573297f6877ce8fda44c6319b3150a5e3d04f",
+    "03fe0ca13a4d3acc2ddc022672120d3bb136e2f6"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 3661,
+   "diff_sha256": "b531041a5080805c0718a1f9f1af20c1f0378af39dff949b0619915fcf1977c2",
+   "lines_added": 79,
+   "lines_removed": 0,
+   "new_bytes": 3273,
+   "new_sha256": "eec6aa2acd4b319f670bc514e5c3b4eff9900371c9850d0bbc0d9df53ca33189",
+   "old_bytes": null,
+   "old_sha256": null,
+   "status": "added"
+  },
+  "experiments/live_ab_controls/receipt_fixture.py": {
+   "changing_commits": [
+    "e9bfb18739c3c19b14b5a37f05cd8d11e9a240fc",
+    "03fe0ca13a4d3acc2ddc022672120d3bb136e2f6"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 15717,
+   "diff_sha256": "90114b0adecb637da536eb7ed1236140556a06cf197c151701a69d62bcd3d49b",
+   "lines_added": 275,
+   "lines_removed": 0,
+   "new_bytes": 15135,
+   "new_sha256": "fa9d5f43bcdad4debcba19f06e8788768e89fa4ed09bf954c47d6c12ceac450d",
+   "old_bytes": null,
+   "old_sha256": null,
+   "status": "added"
+  },
+  "experiments/live_ab_controls/sm_fixture.py": {
+   "changing_commits": [
+    "5ae183d0433e4979a67fb7b09fedd46ca0b03107",
+    "03fe0ca13a4d3acc2ddc022672120d3bb136e2f6"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 21552,
+   "diff_sha256": "896dbf45cf71d1f375a619ebba58feaa1a02c043a5e1070c549eb978a38cec2c",
+   "lines_added": 418,
+   "lines_removed": 0,
+   "new_bytes": 20842,
+   "new_sha256": "9d3f954d4d997c563d742d881aa74e7bd8e0cf9b50193cf85a674706a93166d6",
+   "old_bytes": null,
+   "old_sha256": null,
+   "status": "added"
+  },
+  "experiments/live_ab_controls/sm_mutant_entry.py": {
+   "changing_commits": [
+    "5ae183d0433e4979a67fb7b09fedd46ca0b03107"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 2934,
+   "diff_sha256": "7ff054b672f50aa9de550685762668647e053fed1c4c4d8ed6568cb81f512994",
+   "lines_added": 61,
+   "lines_removed": 0,
+   "new_bytes": 2567,
+   "new_sha256": "2443bc2c06c3922214b833bce1c87597f9bb2c150e73ba8ac07f1fe6889e6775",
+   "old_bytes": null,
+   "old_sha256": null,
+   "status": "added"
+  },
+  "experiments/live_ab_controls/tests_delta_citations.py": {
+   "changing_commits": [
+    "c9310b59c981cc373126de57b83d99547487baba",
+    "03fe0ca13a4d3acc2ddc022672120d3bb136e2f6"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 8770,
+   "diff_sha256": "e63a0d59416b3844e87a93797a60791db72cf16cfd11889b9275a64fbf0a9886",
+   "lines_added": 161,
+   "lines_removed": 0,
+   "new_bytes": 8284,
+   "new_sha256": "a49a101dc185c49fdad01aa9383fe6a3078210fa1dea14df19b10e56c79791cc",
+   "old_bytes": null,
+   "old_sha256": null,
+   "status": "added"
+  },
+  "experiments/live_ab_controls/tests_eb1_cap_estimand.py": {
+   "changing_commits": [
+    "8df2558baa40eda0e30595aa8d0b66633b02ad6e",
+    "e9bfb18739c3c19b14b5a37f05cd8d11e9a240fc",
+    "03fe0ca13a4d3acc2ddc022672120d3bb136e2f6"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 77943,
+   "diff_sha256": "8a5edb6313716d2ac686c142976fd51fc01cb9d019a7f73d1dc808663c31cc81",
+   "lines_added": 1435,
+   "lines_removed": 0,
+   "new_bytes": 76179,
+   "new_sha256": "ded0ebaaa0a7fb41bdcdecae8653e66c673d40e74bb2cfddef8ca6fd3887d230",
+   "old_bytes": null,
+   "old_sha256": null,
+   "status": "added"
+  },
+  "experiments/live_ab_controls/tests_eb1_entry.py": {
+   "changing_commits": [
+    "2437a24cc73005f75da6bf47610dcfef625de306",
+    "1dd9df2233267b0a56276eff59d3afde13b00d36",
+    "8df2558baa40eda0e30595aa8d0b66633b02ad6e",
+    "5ae183d0433e4979a67fb7b09fedd46ca0b03107",
+    "03fe0ca13a4d3acc2ddc022672120d3bb136e2f6"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 88937,
+   "diff_sha256": "35988cd9cb67e3cb7a11bfcbbf1f502cdb3b28ff1efaa2c51ec4e6553e963975",
+   "lines_added": 1597,
+   "lines_removed": 0,
+   "new_bytes": 87032,
+   "new_sha256": "35259026dc22667245c4647bd31c250dcff75b602f0737eefeb9031010156142",
+   "old_bytes": null,
+   "old_sha256": null,
+   "status": "added"
+  },
+  "experiments/live_ab_controls/tests_eb1_receipt_attribution.py": {
+   "changing_commits": [
+    "e9bfb18739c3c19b14b5a37f05cd8d11e9a240fc",
+    "03fe0ca13a4d3acc2ddc022672120d3bb136e2f6"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 70901,
+   "diff_sha256": "5014eb9686fe0e91f59b936ffb767e36f0ca468dcb9e68fe494b176eb49a3df8",
+   "lines_added": 1197,
+   "lines_removed": 0,
+   "new_bytes": 69354,
+   "new_sha256": "5753820bd6ff42825ac297647da3f43921302a5e3f07af1406e52b5c443946ba",
+   "old_bytes": null,
+   "old_sha256": null,
+   "status": "added"
+  },
+  "experiments/live_ab_controls/tests_eb1_server.py": {
+   "changing_commits": [
+    "11ba426c194ac8d2b7548afa237c862d98cc54c0",
+    "1dd9df2233267b0a56276eff59d3afde13b00d36",
+    "5ae183d0433e4979a67fb7b09fedd46ca0b03107"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 69118,
+   "diff_sha256": "acffea417f0f66c0e1173826e9d68edfc0c0053c9ad450d8eae6be48c66f9dbf",
+   "lines_added": 1262,
+   "lines_removed": 0,
+   "new_bytes": 67545,
+   "new_sha256": "ddca826bc09fadd152b571f61641c3c9a5f08f7bad292ac5856986a814a39765",
+   "old_bytes": null,
+   "old_sha256": null,
+   "status": "added"
+  },
+  "experiments/live_ab_controls/tests_eb1_supervision.py": {
+   "changing_commits": [
+    "141c78876ce4cf84b106cfa6564eb967ebbe9fbb",
+    "2437a24cc73005f75da6bf47610dcfef625de306",
+    "1dd9df2233267b0a56276eff59d3afde13b00d36",
+    "8df2558baa40eda0e30595aa8d0b66633b02ad6e"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 98053,
+   "diff_sha256": "24ca0b896e295fc2a909975c5ec68aaf8012ce2cd86b0024d2c814b2bbb83722",
+   "lines_added": 1831,
+   "lines_removed": 0,
+   "new_bytes": 95896,
+   "new_sha256": "514d886cc6b9b8b4e4d51d1e4b06b383a37e81e94271aa7435a214423cc78e80",
+   "old_bytes": null,
+   "old_sha256": null,
+   "status": "added"
+  },
+  "experiments/live_ab_controls/tests_eb5_resolution.py": {
+   "changing_commits": [
+    "868573297f6877ce8fda44c6319b3150a5e3d04f",
+    "79bb1abcbaf3061ad2747ddf3802ff3182a8a029",
+    "03fe0ca13a4d3acc2ddc022672120d3bb136e2f6"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 72175,
+   "diff_sha256": "aeeef0257985745e39d16355a4a01a3106f12e84be722443f8f869ef1ecdf95b",
+   "lines_added": 1318,
+   "lines_removed": 0,
+   "new_bytes": 70534,
+   "new_sha256": "32c5ca9c7d26fb6d09f4465fc32081ea8cd59032d43ac39a335e4c12271dbacc",
+   "old_bytes": null,
+   "old_sha256": null,
+   "status": "added"
+  },
+  "experiments/live_ab_controls/tests_lab_load_resolution.py": {
+   "changing_commits": [
+    "9c48512823ca1e946b2f93f7732251939188f6b0",
+    "c9310b59c981cc373126de57b83d99547487baba"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 35552,
+   "diff_sha256": "25adbc889d9b6efc5ad50dbc2186a0c770757ae83c2e622d3c70d1a6011345d8",
+   "lines_added": 721,
+   "lines_removed": 0,
+   "new_bytes": 34494,
+   "new_sha256": "1717914d9cd8cf77f2f259eed97d8e4cb1e13726678dcb6a394de00432fcceb4",
+   "old_bytes": null,
+   "old_sha256": null,
+   "status": "added"
+  },
+  "experiments/live_ab_controls/tests_sm_entry.py": {
+   "changing_commits": [
+    "5ae183d0433e4979a67fb7b09fedd46ca0b03107"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 18046,
+   "diff_sha256": "6029130740139ff2c491259660e66513e9969586f6d5d039ca1ed2dde1acb843",
+   "lines_added": 364,
+   "lines_removed": 0,
+   "new_bytes": 17378,
+   "new_sha256": "ac4257fbdaa8cc4d4230c32ab53e5c81d550ad1e1658e111c595f05bf02df76d",
+   "old_bytes": null,
+   "old_sha256": null,
+   "status": "added"
+  },
+  "experiments/live_ab_controls/tests_sm_manifest.py": {
+   "changing_commits": [
+    "5ae183d0433e4979a67fb7b09fedd46ca0b03107"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 32275,
+   "diff_sha256": "1d8bc8ed6d70a1a5f330b70e4c32b2a1456e8d032b64d84af3cccef55b15359c",
+   "lines_added": 593,
+   "lines_removed": 0,
+   "new_bytes": 31369,
+   "new_sha256": "33ad007a706dfa4ca47eaf06e3820d7ec5862b4da88a4240066418efbbced48f",
+   "old_bytes": null,
+   "old_sha256": null,
+   "status": "added"
+  },
+  "experiments/live_ab_controls/tests_subset_review_fixes.py": {
+   "changing_commits": [
+    "03fe0ca13a4d3acc2ddc022672120d3bb136e2f6"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 48893,
+   "diff_sha256": "17dbe94408c092aadc2760d7068fbbfd902d2271164618c182de09a59c322dc4",
+   "lines_added": 861,
+   "lines_removed": 0,
+   "new_bytes": 47695,
+   "new_sha256": "c1a09a55af485d12059214f46d8eeb30518253576057f51d56874c0a37ccadf7",
+   "old_bytes": null,
+   "old_sha256": null,
+   "status": "added"
+  },
+  "experiments/live_ab_tools/assemble_serving_manifest.py": {
+   "changing_commits": [
+    "5ae183d0433e4979a67fb7b09fedd46ca0b03107",
+    "474f9d82aae2b3979910d8a99d8305b5d7bc44c1"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 11318,
+   "diff_sha256": "d93d89ed08f5d30f0017ccecc0d5c5e4e6c18d49f991e943dab2378597d15886",
+   "lines_added": 201,
+   "lines_removed": 0,
+   "new_bytes": 10789,
+   "new_sha256": "750337b3db5cc82e719394572dc0b1571638ed13c6d141dd1f5bc8212e1b73c3",
+   "old_bytes": null,
+   "old_sha256": null,
+   "status": "added"
+  },
+  "experiments/live_ab_tools/harness_pin_successor.py": {
+   "changing_commits": [
+    "988baf7ab3f65b9bf4318e5eb12001c49d6387d9",
+    "03fe0ca13a4d3acc2ddc022672120d3bb136e2f6"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 86478,
+   "diff_sha256": "bb853ce7cd87788589e4f3b1dd8647bf80641e991ab0b7b5ddb9bdd84f44c849",
+   "lines_added": 1607,
+   "lines_removed": 0,
+   "new_bytes": 84554,
+   "new_sha256": "144593c53e17bad4659fcefc725e5b6164a767ff253b7fde33e7e4f210e56365",
+   "old_bytes": null,
+   "old_sha256": null,
+   "status": "added"
+  },
+  "experiments/live_ab_tools/repair_amendment_v2.py": {
+   "changing_commits": [
+    "474f9d82aae2b3979910d8a99d8305b5d7bc44c1"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 145725,
+   "diff_sha256": "18e3dfa57b6c4c25dc0019cd87cbac86de2cda2e034dc69a6113071790aa1566",
+   "lines_added": 2173,
+   "lines_removed": 0,
+   "new_bytes": 143241,
+   "new_sha256": "6dc18b7ef26ebae82403582ccbde1d657c70ab51bd2e1a02094a69140b8396f5",
+   "old_bytes": null,
+   "old_sha256": null,
+   "status": "added"
+  },
+  "experiments/live_ab_tools/tests_harness_pin_successor.py": {
+   "changing_commits": [
+    "988baf7ab3f65b9bf4318e5eb12001c49d6387d9",
+    "03fe0ca13a4d3acc2ddc022672120d3bb136e2f6"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 37641,
+   "diff_sha256": "fc607e745ff88fde7107a3edf185c9bf20fde11e874bc0aa2c58e427ea225c93",
+   "lines_added": 646,
+   "lines_removed": 0,
+   "new_bytes": 36661,
+   "new_sha256": "3a1f191584ea7776c2e0c3f31cd5555e61208da9cb1ef4e859ae5479ad972bfe",
+   "old_bytes": null,
+   "old_sha256": null,
+   "status": "added"
+  },
+  "experiments/live_ab_tools/tests_repair_amendment_v2.py": {
+   "changing_commits": [
+    "474f9d82aae2b3979910d8a99d8305b5d7bc44c1"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 107810,
+   "diff_sha256": "3461977d7531df29ed22dd8b46d35580aedab4296edacc609dd8eb1b6153e896",
+   "lines_added": 1830,
+   "lines_removed": 0,
+   "new_bytes": 105651,
+   "new_sha256": "1aded392ce3123014d7caf591ab61cec80e896b39f67670607edd5552faa35de",
+   "old_bytes": null,
+   "old_sha256": null,
+   "status": "added"
+  },
+  "experiments/live_ab_tools/verify_repair_amendment_v2.py": {
+   "changing_commits": [
+    "474f9d82aae2b3979910d8a99d8305b5d7bc44c1"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 41428,
+   "diff_sha256": "aff07f55866843e868c4ef7248922f8526d39b3fec9e15d22a4ca9b0ef08dc89",
+   "lines_added": 720,
+   "lines_removed": 0,
+   "new_bytes": 40377,
+   "new_sha256": "d69b298969318e80075b7bb01a56841fb299d11fe341fd2f356f8cd0fb90b6d1",
+   "old_bytes": null,
+   "old_sha256": null,
+   "status": "added"
+  },
+  "experiments/live_ab_validation/PROTOCOL.md": {
+   "changing_commits": [
+    "474f9d82aae2b3979910d8a99d8305b5d7bc44c1"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 2943,
+   "diff_sha256": "2b5d474a36a16302ef47e3db3108f2c8d16697d933615b763a6ee5271cb04f29",
+   "lines_added": 13,
+   "lines_removed": 2,
+   "new_bytes": 116246,
+   "new_sha256": "a3da07f1973155d405a01accc4622ae713e6e1a1e4b226f55ce8f7b34fc90404",
+   "old_bytes": 115106,
+   "old_sha256": "d052119909c69fb9411db0f87e16ae74c5275b73c860999c290653f59cd399ec",
+   "status": "modified"
+  },
+  "experiments/live_ab_validation/cells.json": {
+   "changing_commits": [
+    "474f9d82aae2b3979910d8a99d8305b5d7bc44c1"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 13755,
+   "diff_sha256": "0c647faf3b51683613cec6ba9ac73b359940ebf8d6decde9a7b5920137cb5b62",
+   "lines_added": 16,
+   "lines_removed": 6,
+   "new_bytes": 98548,
+   "new_sha256": "6b31bf20a07cbc4b0c162fb0d309826d88ab5b95b36f9cd3e1d86500d7ff8df5",
+   "old_bytes": 93463,
+   "old_sha256": "5c4a28f76a066d110205335b66c7df12a0c5d70045ad24fecace0ebec75e7784",
+   "status": "modified"
+  },
+  "experiments/live_ab_validation/tests_validation.py": {
+   "changing_commits": [
+    "474f9d82aae2b3979910d8a99d8305b5d7bc44c1"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 14929,
+   "diff_sha256": "b82501560e650c18a6bac53b6a27e66ed87d70cd52e62c110669864edd8c3482",
+   "lines_added": 99,
+   "lines_removed": 18,
+   "new_bytes": 172522,
+   "new_sha256": "f0ca8b163a6ff5550c97d5c474f61604062650febb4502f6859267a090a1177c",
+   "old_bytes": 167462,
+   "old_sha256": "2452194ae23abf5f836637dbd6414049f7caec9fd7f22a70913ac908912f5e14",
+   "status": "modified"
+  },
+  "results/live_ab/HARNESS_PIN_SUCCESSOR_20260924_1217.json": {
+   "changing_commits": [
+    "988baf7ab3f65b9bf4318e5eb12001c49d6387d9"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 177273,
+   "diff_sha256": "843cc20665b0059087498586c9dab6f3dd7ff9ea4a59efe44294de68ca2d6367",
+   "lines_added": 4008,
+   "lines_removed": 0,
+   "new_bytes": 172930,
+   "new_sha256": "25010726114a05415c519a5c4ab297d75f8bdeeca9a0f8d91930dc6c170f2462",
+   "old_bytes": null,
+   "old_sha256": null,
+   "status": "added"
+  },
+  "results/live_ab/HARNESS_PIN_SUCCESSOR_20260924_1635.json": {
+   "changing_commits": [
+    "591ebcd7dd5a7d8ae1605300b9e4c645ac64b3bb"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 187935,
+   "diff_sha256": "1410740c8e33686d9d0e856c21ef8e750431fcf15f166440fcbf72ca5476a4e0",
+   "lines_added": 4265,
+   "lines_removed": 0,
+   "new_bytes": 183335,
+   "new_sha256": "7e5cb1c3f333562d1b91cbdb31d8cb7e68a0e17126c69237fc5dc538023d6db5",
+   "old_bytes": null,
+   "old_sha256": null,
+   "status": "added"
+  },
+  "results/live_ab/REPAIR_AMENDMENT_V2_RECEIPT_20260924_0927.json": {
+   "changing_commits": [
+    "474f9d82aae2b3979910d8a99d8305b5d7bc44c1"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 123950,
+   "diff_sha256": "02deccfebbd68d6701c1154cc42baaabeec555705f0014fc61f33d6246659876",
+   "lines_added": 2127,
+   "lines_removed": 0,
+   "new_bytes": 121470,
+   "new_sha256": "66efcb8b64b3e54d890ac70c77686e0678255fe6cba78347fa3a30878e12feff",
+   "old_bytes": null,
+   "old_sha256": null,
+   "status": "added"
+  },
+  "results/live_ab/freeze/serving_manifest.json": {
+   "changing_commits": [
+    "474f9d82aae2b3979910d8a99d8305b5d7bc44c1"
+   ],
+   "diff_applied_to_old_gives_new": true,
+   "diff_bytes": 20306,
+   "diff_sha256": "8254e2d0c0b6cde6171441be24f9dd8812a2aa403e534ee1b9b069490ac2ea42",
+   "lines_added": 1,
+   "lines_removed": 0,
+   "new_bytes": 20011,
+   "new_sha256": "8c59dc0059dab3446e9aa57082571c96e04d189485f6fd407c623b93994d98fd",
+   "old_bytes": null,
+   "old_sha256": null,
+   "status": "added"
+  }
+ },
+ "prepared_by": "Prepared and checked by AI agent sessions; not human peer review or author sign-off (protocol 14.7).",
+ "prior_observations_not_reissued": {
+  "classification": "A pin is attributed to the artifact whose repository path its JSON path names (longest\n    match), else to every artifact whose b049307 digest it equals.  Attributed and equal to\n    that artifact's b049307 digest: ``moved`` if the HEAD digest differs, else ``unchanged``.\n    Named but not the b049307 digest: ``already_historical`` (stale before this successor).\n    Otherwise ``successor_only`` (equals a HEAD digest only) or\n    ``not_a_digest_at_either_revision`` (with whether the real serving manifest, or the HEAD\n    config.json, carries it).",
+  "harness_count_statements": [
+   {
+    "cited_line_carries_it": true,
+    "line": 33,
+    "now": "historical: the successor map has 34 entries and 17 changed",
+    "path": "results/live_ab/ABSENT_DRAIN_AND_REQUEST_RECONCILIATION.json",
+    "sha256": "98df6a55c1fc8639acc396df6af20cf6e867f8ce1a656a864d992e4c829e2aa0",
+    "text": "\"harness_files_pin_set\": \"33 (32 experiments/live_ab/*.py + config.json), unchanged; nothing added under the pinned glob\","
+   },
+   {
+    "cited_line_carries_it": true,
+    "line": 41,
+    "now": "historical: the successor map has 34 entries and 17 changed",
+    "path": "results/live_ab/LAUNCH_WIRING.json",
+    "sha256": "8fdd8ba25f94e59815bfbe91e664c35be4c9129b933de82978327a2ba847dc4c",
+    "text": "\"harness_files_pin_set\": \"33, unchanged\","
+   },
+   {
+    "cited_line_carries_it": true,
+    "line": 123,
+    "now": "historical: the successor map has 34 entries and 17 changed",
+    "path": "results/live_ab/CONFIG_AMENDMENT_RECEIPT_20260923_1804.json",
+    "sha256": "4c43c3ad7dcfd875f059abf3fd009f6752e78cb4e811fff0f5aad45fb9cb66ea",
+    "text": "\"harness_files\": 33,"
+   },
+   {
+    "cited_line_carries_it": true,
+    "line": 169,
+    "now": "historical: the successor map has 34 entries and 17 changed",
+    "path": "results/live_ab/PATCH_STATE_AMENDMENT_RECEIPT_20260923_1933.json",
+    "sha256": "01b00a6d0133b50d9434fff2b830e4a118d84c3114bba33160cb2dd6bb4a4d65",
+    "text": "\"harness_file_hashes_unchanged\": true,"
+   }
+  ],
+  "records": [
+   {
+    "added_in_commit": "ea8900c6de9f35997ad187d8b7ae863c191878cd",
+    "already_historical": [],
+    "by_artifact": {},
+    "byte_identical_at_b049307_and_head": true,
+    "bytes": 6228,
+    "moved_artifacts": [],
+    "not_a_digest_at_either_revision": [
+     {
+      "in_real_serving_manifest": false,
+      "in_successor_config": false,
+      "json_path": "$.observation.expected_manifest.binary_sha256",
+      "value": "7a5423a38bcb645f292282a1d76e625c38dcc1a225b7d12a7a94232e88580ec4"
+     },
+     {
+      "in_real_serving_manifest": false,
+      "in_successor_config": false,
+      "json_path": "$.observation.expected_manifest.patch_sha256",
+      "value": "2c52078f8a541134661eb7ac997114892c7baf68541f9d4be664366d43e85f6a"
+     }
+    ],
+    "path": "results/live_ab/SMOKE_RECEIPT_smoke_4167e395ccfd.json",
+    "pins_found": 2,
+    "reissued_by_this_successor": false,
+    "sha256": "087961a921bc0ec7c5980650f67ee901e7cfa9ada6799ee64c59b494b869a388",
+    "successor_only": [],
+    "unchanged_artifacts": [],
+    "verdict": "no pin it carries is a b049307 digest that moved; 2 pin(s) are digests of no tracked file at either revision: 0 carried by the real serving manifest (the durable build), 0 by the HEAD config.json, 2 by neither. Kept as written; not reissued by this successor."
+   },
+   {
+    "added_in_commit": "0194a594dd0079696ba9e107e24caf9bf7875360",
+    "already_historical": [],
+    "by_artifact": {
+     "experiments/live_ab/config.json": {
+      "b049307": "e4d42f5d442dde7e709222e0a4ad4985de0f20604061fec01f2e3ea95f75d824",
+      "head": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+      "json_paths": [
+       "$.launch_manifest_fields.acquisition_code.experiments/live_ab/config.json"
+      ],
+      "moved": true
+     },
+     "experiments/live_ab/lab_common.py": {
+      "b049307": "aa32c13a0f3c6895f6a4d7936cc2b883930e5f4db9491a7f3aa444c8e1c3bb1c",
+      "head": "a0d46a6b9cf826778b72c568c940479982111c4699680fb6cf0c41b5eee25808",
+      "json_paths": [
+       "$.launch_manifest_fields.acquisition_code.experiments/live_ab/lab_common.py"
+      ],
+      "moved": true
+     },
+     "experiments/live_ab/lab_data.py": {
+      "b049307": "7291fea66a25ca33c12c84c9a46d0f8246e35e0d8cc4d83aff2496a10c2b9977",
+      "head": "7291fea66a25ca33c12c84c9a46d0f8246e35e0d8cc4d83aff2496a10c2b9977",
+      "json_paths": [
+       "$.launch_manifest_fields.acquisition_code.experiments/live_ab/lab_data.py"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab/lab_lifecycle.py": {
+      "b049307": "604556893fb5d381049756f765251bc45bd1f57ea632630d68fe2ee5610ac0b2",
+      "head": "604556893fb5d381049756f765251bc45bd1f57ea632630d68fe2ee5610ac0b2",
+      "json_paths": [
+       "$.launch_manifest_fields.acquisition_code.experiments/live_ab/lab_lifecycle.py"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab_serving/dependency_closure.py": {
+      "b049307": "f581ff9378d1c8e004dc3c0e50ef29b85ea5c7eacbf00d6b9cfa73e2384e02ce",
+      "head": "f581ff9378d1c8e004dc3c0e50ef29b85ea5c7eacbf00d6b9cfa73e2384e02ce",
+      "json_paths": [
+       "$.launch_manifest_fields.acquisition_code.experiments/live_ab_serving/dependency_closure.py"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab_serving/live_ab_slot_lifecycle.patch": {
+      "b049307": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "head": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "json_paths": [
+       "$.launch_manifest_fields.patch_sha256",
+       "$.launch_manifest_fields.source_binding.patch_sha256",
+       "$.preflight_dry_run.source_binding.patch_sha256"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab_serving/run_smoke.py": {
+      "b049307": "bf1ef6ae24178dc45d6da7840e4f7fc663a13d974cf316ee1ae1d0539d438fa5",
+      "head": "bf1ef6ae24178dc45d6da7840e4f7fc663a13d974cf316ee1ae1d0539d438fa5",
+      "json_paths": [
+       "$.launch_manifest_fields.acquisition_code.experiments/live_ab_serving/run_smoke.py"
+      ],
+      "moved": false
+     },
+     "results/live_ab/DURABLE_BUILD_CONFIG_SNAPSHOT.json": {
+      "b049307": "913c945b81d00833272f0eb269720b3eef66065f842d8d2dbd9e7d006019eae1",
+      "head": "913c945b81d00833272f0eb269720b3eef66065f842d8d2dbd9e7d006019eae1",
+      "json_paths": [
+       "$.launch_manifest_fields.source_binding.build_snapshot.sha256",
+       "$.preflight_dry_run.source_binding.build_snapshot_sha256"
+      ],
+      "moved": false
+     }
+    },
+    "byte_identical_at_b049307_and_head": true,
+    "bytes": 47842,
+    "moved_artifacts": [
+     "experiments/live_ab/config.json",
+     "experiments/live_ab/lab_common.py"
+    ],
+    "not_a_digest_at_either_revision": [
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.launch_manifest_fields.dependency_closure.files.<HOME>/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-base.0.24.0.dylib.sha256",
+      "value": "19fe34f3997f908122e4d74f9a16e15de9d53445345f1774c849767c1e1f321b"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.launch_manifest_fields.dependency_closure.files.<HOME>/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-blas.0.24.0.dylib.sha256",
+      "value": "07fec714cad379ea0593ec88ff4118f8a39dd496c77d28a15e0ea4076031c01d"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.launch_manifest_fields.dependency_closure.files.<HOME>/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-cpu.0.24.0.dylib.sha256",
+      "value": "c2ed19a6ea799849aab747321ea07ef8211c90c3a8078bbe69b05d3d1bdd2bee"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.launch_manifest_fields.dependency_closure.files.<HOME>/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-metal.0.24.0.dylib.sha256",
+      "value": "fceb6ba00f28c4004b66d8e65a3fd4350ce33f773b20a435fea1ec9313f5d37b"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.launch_manifest_fields.dependency_closure.files.<HOME>/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.24.0.dylib.sha256",
+      "value": "145bad33a11be7d0c9c3e9d7d56af04031e37280d75a60015f73882769aec79a"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.launch_manifest_fields.dependency_closure.files.<HOME>/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-common.0.4.1.dylib.sha256",
+      "value": "7d605efa6d32b8c08da4968a96ff5997bcc7a2bd6f92f2e836d498369d0e5f34"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.launch_manifest_fields.dependency_closure.files.<HOME>/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-server-impl.dylib.sha256",
+      "value": "baceaef2b2ac2e95d68eff4c1ff59426a4a22ed411ac2fff7b5970d3a6708d8b"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.launch_manifest_fields.dependency_closure.files.<HOME>/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama.0.4.1.dylib.sha256",
+      "value": "ebe3d9d96ae05ea387fee18985636345b42bfb1d65e4afdae7768d2a0277e70f"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.launch_manifest_fields.dependency_closure.files.<HOME>/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libmtmd.0.4.1.dylib.sha256",
+      "value": "eaa01688087b245c53c3e600f1a06280d6f784976f9e1d43b0b8c9f5096c936f"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.launch_manifest_fields.dependency_closure.files.<HOME>/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server.sha256",
+      "value": "35231ad4e83623e4aef72267f155a78bcf960f609ded6cf587dcb3a09f52eac3"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.launch_manifest_fields.launcher.sha256",
+      "value": "35231ad4e83623e4aef72267f155a78bcf960f609ded6cf587dcb3a09f52eac3"
+     },
+     {
+      "in_real_serving_manifest": false,
+      "in_successor_config": true,
+      "json_path": "$.launch_manifest_fields.model.sha256",
+      "value": "509287f78cb4d4cf6b3843734733b914b2c158e43e22a7f4bf5e963800894d3c"
+     }
+    ],
+    "path": "results/live_ab/PROSPECTIVE_LAUNCH_RECORD_20260923_1922.json",
+    "pins_found": 23,
+    "reissued_by_this_successor": false,
+    "sha256": "6c8b5bf94fd1a830c5afcede7d7254e32d2c87d19d390fe77d4f44f53a28f1a2",
+    "successor_only": [],
+    "unchanged_artifacts": [
+     "experiments/live_ab/lab_data.py",
+     "experiments/live_ab/lab_lifecycle.py",
+     "experiments/live_ab_serving/dependency_closure.py",
+     "experiments/live_ab_serving/live_ab_slot_lifecycle.patch",
+     "experiments/live_ab_serving/run_smoke.py",
+     "results/live_ab/DURABLE_BUILD_CONFIG_SNAPSHOT.json"
+    ],
+    "verdict": "STALE: pins of 2 artifact(s) moved between b049307 and HEAD (experiments/live_ab/config.json, experiments/live_ab/lab_common.py); 6 pinned artifact(s) unchanged; 12 pin(s) are digests of no tracked file at either revision: 11 carried by the real serving manifest (the durable build), 1 by the HEAD config.json, 0 by neither. Kept as written; not reissued by this successor."
+   },
+   {
+    "added_in_commit": "54971a99b452e6ef93c20698e97c3d96466b1039",
+    "already_historical": [],
+    "by_artifact": {
+     "experiments/live_ab/config.json": {
+      "b049307": "e4d42f5d442dde7e709222e0a4ad4985de0f20604061fec01f2e3ea95f75d824",
+      "head": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+      "json_paths": [
+       "$.launch_manifest_fields.acquisition_code.experiments/live_ab/config.json"
+      ],
+      "moved": true
+     },
+     "experiments/live_ab/lab_common.py": {
+      "b049307": "aa32c13a0f3c6895f6a4d7936cc2b883930e5f4db9491a7f3aa444c8e1c3bb1c",
+      "head": "a0d46a6b9cf826778b72c568c940479982111c4699680fb6cf0c41b5eee25808",
+      "json_paths": [
+       "$.launch_manifest_fields.acquisition_code.experiments/live_ab/lab_common.py"
+      ],
+      "moved": true
+     },
+     "experiments/live_ab/lab_data.py": {
+      "b049307": "7291fea66a25ca33c12c84c9a46d0f8246e35e0d8cc4d83aff2496a10c2b9977",
+      "head": "7291fea66a25ca33c12c84c9a46d0f8246e35e0d8cc4d83aff2496a10c2b9977",
+      "json_paths": [
+       "$.launch_manifest_fields.acquisition_code.experiments/live_ab/lab_data.py"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab/lab_lifecycle.py": {
+      "b049307": "604556893fb5d381049756f765251bc45bd1f57ea632630d68fe2ee5610ac0b2",
+      "head": "604556893fb5d381049756f765251bc45bd1f57ea632630d68fe2ee5610ac0b2",
+      "json_paths": [
+       "$.launch_manifest_fields.acquisition_code.experiments/live_ab/lab_lifecycle.py"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab_serving/dependency_closure.py": {
+      "b049307": "f581ff9378d1c8e004dc3c0e50ef29b85ea5c7eacbf00d6b9cfa73e2384e02ce",
+      "head": "f581ff9378d1c8e004dc3c0e50ef29b85ea5c7eacbf00d6b9cfa73e2384e02ce",
+      "json_paths": [
+       "$.launch_manifest_fields.acquisition_code.experiments/live_ab_serving/dependency_closure.py"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab_serving/live_ab_slot_lifecycle.patch": {
+      "b049307": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "head": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "json_paths": [
+       "$.launch_manifest_fields.patch_sha256",
+       "$.launch_manifest_fields.source_binding.patch_sha256",
+       "$.preflight_dry_run.source_binding.patch_sha256"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab_serving/run_smoke.py": {
+      "b049307": "bf1ef6ae24178dc45d6da7840e4f7fc663a13d974cf316ee1ae1d0539d438fa5",
+      "head": "bf1ef6ae24178dc45d6da7840e4f7fc663a13d974cf316ee1ae1d0539d438fa5",
+      "json_paths": [
+       "$.launch_manifest_fields.acquisition_code.experiments/live_ab_serving/run_smoke.py"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab_serving/stage0_request_argv.json": {
+      "b049307": "b4ba13506cef290b380e05dd1d60fc749134358c1702b34bb56e54392299db4c",
+      "head": "b4ba13506cef290b380e05dd1d60fc749134358c1702b34bb56e54392299db4c",
+      "json_paths": [
+       "$.stage0_binding.spec.sha256"
+      ],
+      "moved": false
+     },
+     "results/live_ab/DURABLE_BUILD_CONFIG_SNAPSHOT.json": {
+      "b049307": "913c945b81d00833272f0eb269720b3eef66065f842d8d2dbd9e7d006019eae1",
+      "head": "913c945b81d00833272f0eb269720b3eef66065f842d8d2dbd9e7d006019eae1",
+      "json_paths": [
+       "$.launch_manifest_fields.source_binding.build_snapshot.sha256",
+       "$.preflight_dry_run.source_binding.build_snapshot_sha256"
+      ],
+      "moved": false
+     }
+    },
+    "byte_identical_at_b049307_and_head": true,
+    "bytes": 50159,
+    "moved_artifacts": [
+     "experiments/live_ab/config.json",
+     "experiments/live_ab/lab_common.py"
+    ],
+    "not_a_digest_at_either_revision": [
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.launch_manifest_fields.dependency_closure.files.<HOME>/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-base.0.24.0.dylib.sha256",
+      "value": "19fe34f3997f908122e4d74f9a16e15de9d53445345f1774c849767c1e1f321b"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.launch_manifest_fields.dependency_closure.files.<HOME>/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-blas.0.24.0.dylib.sha256",
+      "value": "07fec714cad379ea0593ec88ff4118f8a39dd496c77d28a15e0ea4076031c01d"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.launch_manifest_fields.dependency_closure.files.<HOME>/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-cpu.0.24.0.dylib.sha256",
+      "value": "c2ed19a6ea799849aab747321ea07ef8211c90c3a8078bbe69b05d3d1bdd2bee"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.launch_manifest_fields.dependency_closure.files.<HOME>/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml-metal.0.24.0.dylib.sha256",
+      "value": "fceb6ba00f28c4004b66d8e65a3fd4350ce33f773b20a435fea1ec9313f5d37b"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.launch_manifest_fields.dependency_closure.files.<HOME>/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libggml.0.24.0.dylib.sha256",
+      "value": "145bad33a11be7d0c9c3e9d7d56af04031e37280d75a60015f73882769aec79a"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.launch_manifest_fields.dependency_closure.files.<HOME>/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-common.0.4.1.dylib.sha256",
+      "value": "7d605efa6d32b8c08da4968a96ff5997bcc7a2bd6f92f2e836d498369d0e5f34"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.launch_manifest_fields.dependency_closure.files.<HOME>/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama-server-impl.dylib.sha256",
+      "value": "baceaef2b2ac2e95d68eff4c1ff59426a4a22ed411ac2fff7b5970d3a6708d8b"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.launch_manifest_fields.dependency_closure.files.<HOME>/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libllama.0.4.1.dylib.sha256",
+      "value": "ebe3d9d96ae05ea387fee18985636345b42bfb1d65e4afdae7768d2a0277e70f"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.launch_manifest_fields.dependency_closure.files.<HOME>/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/libmtmd.0.4.1.dylib.sha256",
+      "value": "eaa01688087b245c53c3e600f1a06280d6f784976f9e1d43b0b8c9f5096c936f"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.launch_manifest_fields.dependency_closure.files.<HOME>/ICLR-WinRatioAgentEvals/work/llama.cpp-build/build/bin/llama-server.sha256",
+      "value": "35231ad4e83623e4aef72267f155a78bcf960f609ded6cf587dcb3a09f52eac3"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.launch_manifest_fields.launcher.sha256",
+      "value": "35231ad4e83623e4aef72267f155a78bcf960f609ded6cf587dcb3a09f52eac3"
+     },
+     {
+      "in_real_serving_manifest": false,
+      "in_successor_config": true,
+      "json_path": "$.launch_manifest_fields.model.sha256",
+      "value": "509287f78cb4d4cf6b3843734733b914b2c158e43e22a7f4bf5e963800894d3c"
+     }
+    ],
+    "path": "results/live_ab/PROSPECTIVE_LAUNCH_RECORD_20260923_2030.json",
+    "pins_found": 24,
+    "reissued_by_this_successor": false,
+    "sha256": "2c9bc44a344734fa5276bebe97e4ca7337213c34fb72c54908829940227a5ae4",
+    "successor_only": [],
+    "unchanged_artifacts": [
+     "experiments/live_ab/lab_data.py",
+     "experiments/live_ab/lab_lifecycle.py",
+     "experiments/live_ab_serving/dependency_closure.py",
+     "experiments/live_ab_serving/live_ab_slot_lifecycle.patch",
+     "experiments/live_ab_serving/run_smoke.py",
+     "experiments/live_ab_serving/stage0_request_argv.json",
+     "results/live_ab/DURABLE_BUILD_CONFIG_SNAPSHOT.json"
+    ],
+    "verdict": "STALE: pins of 2 artifact(s) moved between b049307 and HEAD (experiments/live_ab/config.json, experiments/live_ab/lab_common.py); 7 pinned artifact(s) unchanged; 12 pin(s) are digests of no tracked file at either revision: 11 carried by the real serving manifest (the durable build), 1 by the HEAD config.json, 0 by neither. Kept as written; not reissued by this successor."
+   },
+   {
+    "added_in_commit": "54971a99b452e6ef93c20698e97c3d96466b1039",
+    "already_historical": [
+     {
+      "artifact": "experiments/live_ab_serving/prepare_launch_record.py",
+      "b049307": "9101847d9b52bac609f069f22d3334cfd5aefb58e253e43c4d406f2c954b402b",
+      "head": "9101847d9b52bac609f069f22d3334cfd5aefb58e253e43c4d406f2c954b402b",
+      "json_path": "$.finite_feasibility_sheet.code_config_pins_at_head.experiments/live_ab_serving/prepare_launch_record.py",
+      "value": "8ba0e3bfacc1bf8c4b77bbd95661ec2daf20a8a0c35d8d6f4ed21b90afd138fb"
+     }
+    ],
+    "by_artifact": {
+     "<rule block of config.json>": {
+      "b049307": "cbfd1792d09c43754eeeab3b282e92e99c76e4f878cd82d00c827f6a90fa7607",
+      "head": "cbfd1792d09c43754eeeab3b282e92e99c76e4f878cd82d00c827f6a90fa7607",
+      "json_paths": [
+       "$.status.drafted_against.rule_block_sha256_recorded"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab/config.json": {
+      "b049307": "e4d42f5d442dde7e709222e0a4ad4985de0f20604061fec01f2e3ea95f75d824",
+      "head": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+      "json_paths": [
+       "$.status.drafted_against.config_sha256",
+       "$.finite_feasibility_sheet.code_config_pins_at_head.experiments/live_ab/config.json",
+       "$.finite_feasibility_sheet.stage_rows[2].pins.config",
+       "$.finite_feasibility_sheet.stage_rows[3].pins.config",
+       "$.finite_feasibility_sheet.stage_rows[4].pins.config",
+       "$.finite_feasibility_sheet.stage_rows[5].pins.config",
+       "$.finite_feasibility_sheet.stage_rows[6].pins.config",
+       "$.finite_feasibility_sheet.stage_rows[7].pins.config",
+       "$.finite_feasibility_sheet.trial_rows[0].pins.config",
+       "$.finite_feasibility_sheet.trial_rows[1].pins.config",
+       "$.finite_feasibility_sheet.trial_rows[2].pins.config",
+       "$.finite_feasibility_sheet.trial_rows[3].pins.config"
+      ],
+      "moved": true
+     },
+     "experiments/live_ab/design/ARCHITECTURE_FINAL.md": {
+      "b049307": "727003c1efe2b210fff0cf7d0a60ca30f53948516171b863548849676b1242ab",
+      "head": "e7ea9c0fb7a28c6bdb47bb4085dcddba41144bd134d7b3a9b026ad7c9a30c86a",
+      "json_paths": [
+       "$.status.drafted_against.architecture_final_sha256",
+       "$.finite_feasibility_sheet.code_config_pins_at_head.experiments/live_ab/design/ARCHITECTURE_FINAL.md"
+      ],
+      "moved": true
+     },
+     "experiments/live_ab/design/DERIVATION.md": {
+      "b049307": "861e8801771a6617b7874b2f545b101dbd3b86a709ee1ee65a9b54e0ec1723bb",
+      "head": "861e8801771a6617b7874b2f545b101dbd3b86a709ee1ee65a9b54e0ec1723bb",
+      "json_paths": [
+       "$.finite_feasibility_sheet.code_config_pins_at_head.experiments/live_ab/design/DERIVATION.md"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab/design/protocol_FINAL.md": {
+      "b049307": "64ace6d3e37732b372fd316055208e9deaab4d4e0722708563c8ebcc1579e82b",
+      "head": "6c0ebf2faa7515ff27f01188d9f1e487c928c63373f451dea51f06a8cdacaab9",
+      "json_paths": [
+       "$.status.drafted_against.protocol_sha256",
+       "$.finite_feasibility_sheet.code_config_pins_at_head.experiments/live_ab/design/protocol_FINAL.md"
+      ],
+      "moved": true
+     },
+     "experiments/live_ab/lab_anchor.py": {
+      "b049307": "9f81cbb70d5ef79a32fa460c91232dc5febf9ccfb35bb467b921ac7ec7955084",
+      "head": "d6dbd1fcf66eec6e8d434ac5ff49341eb87313a11ce9bda23a67d63331af456d",
+      "json_paths": [
+       "$.finite_feasibility_sheet.code_config_pins_at_head.experiments/live_ab/lab_anchor.py",
+       "$.finite_feasibility_sheet.stage_rows[7].pins.code_sha256_at_head.experiments/live_ab/lab_anchor.py",
+       "$.finite_feasibility_sheet.trial_rows[0].pins.code_sha256_at_head.experiments/live_ab/lab_anchor.py",
+       "$.finite_feasibility_sheet.trial_rows[1].pins.code_sha256_at_head.experiments/live_ab/lab_anchor.py",
+       "$.finite_feasibility_sheet.trial_rows[2].pins.code_sha256_at_head.experiments/live_ab/lab_anchor.py",
+       "$.finite_feasibility_sheet.trial_rows[3].pins.code_sha256_at_head.experiments/live_ab/lab_anchor.py"
+      ],
+      "moved": true
+     },
+     "experiments/live_ab/lab_client.py": {
+      "b049307": "ac9fab9a69951fa59eb96238b4839645e71073dd3dea840b4773b70c25dae9c5",
+      "head": "ac9fab9a69951fa59eb96238b4839645e71073dd3dea840b4773b70c25dae9c5",
+      "json_paths": [
+       "$.finite_feasibility_sheet.code_config_pins_at_head.experiments/live_ab/lab_client.py",
+       "$.finite_feasibility_sheet.stage_rows[2].pins.code_sha256_at_head.experiments/live_ab/lab_client.py",
+       "$.finite_feasibility_sheet.stage_rows[5].pins.code_sha256_at_head.experiments/live_ab/lab_client.py",
+       "$.finite_feasibility_sheet.stage_rows[6].pins.code_sha256_at_head.experiments/live_ab/lab_client.py",
+       "$.finite_feasibility_sheet.stage_rows[7].pins.code_sha256_at_head.experiments/live_ab/lab_client.py",
+       "$.finite_feasibility_sheet.trial_rows[0].pins.code_sha256_at_head.experiments/live_ab/lab_client.py",
+       "$.finite_feasibility_sheet.trial_rows[1].pins.code_sha256_at_head.experiments/live_ab/lab_client.py",
+       "$.finite_feasibility_sheet.trial_rows[2].pins.code_sha256_at_head.experiments/live_ab/lab_client.py",
+       "$.finite_feasibility_sheet.trial_rows[3].pins.code_sha256_at_head.experiments/live_ab/lab_client.py"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab/lab_coin.py": {
+      "b049307": "6d85578daf3e3fa6bb1160156547b191157d8a005d638fcb818afb14ec50314c",
+      "head": "6d85578daf3e3fa6bb1160156547b191157d8a005d638fcb818afb14ec50314c",
+      "json_paths": [
+       "$.finite_feasibility_sheet.code_config_pins_at_head.experiments/live_ab/lab_coin.py",
+       "$.finite_feasibility_sheet.trial_rows[0].pins.code_sha256_at_head.experiments/live_ab/lab_coin.py",
+       "$.finite_feasibility_sheet.trial_rows[1].pins.code_sha256_at_head.experiments/live_ab/lab_coin.py",
+       "$.finite_feasibility_sheet.trial_rows[2].pins.code_sha256_at_head.experiments/live_ab/lab_coin.py",
+       "$.finite_feasibility_sheet.trial_rows[3].pins.code_sha256_at_head.experiments/live_ab/lab_coin.py"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab/lab_common.py": {
+      "b049307": "aa32c13a0f3c6895f6a4d7936cc2b883930e5f4db9491a7f3aa444c8e1c3bb1c",
+      "head": "a0d46a6b9cf826778b72c568c940479982111c4699680fb6cf0c41b5eee25808",
+      "json_paths": [
+       "$.finite_feasibility_sheet.code_config_pins_at_head.experiments/live_ab/lab_common.py"
+      ],
+      "moved": true
+     },
+     "experiments/live_ab/lab_containment.py": {
+      "b049307": "2f9edbd372969f6df4ffa67364ed062798a401a879f5cb30bc9aead1c46425d2",
+      "head": "2f9edbd372969f6df4ffa67364ed062798a401a879f5cb30bc9aead1c46425d2",
+      "json_paths": [
+       "$.finite_feasibility_sheet.code_config_pins_at_head.experiments/live_ab/lab_containment.py",
+       "$.finite_feasibility_sheet.stage_rows[8].pins.containment"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab/lab_data.py": {
+      "b049307": "7291fea66a25ca33c12c84c9a46d0f8246e35e0d8cc4d83aff2496a10c2b9977",
+      "head": "7291fea66a25ca33c12c84c9a46d0f8246e35e0d8cc4d83aff2496a10c2b9977",
+      "json_paths": [
+       "$.finite_feasibility_sheet.code_config_pins_at_head.experiments/live_ab/lab_data.py",
+       "$.finite_feasibility_sheet.stage_rows[4].pins.code_sha256_at_head.experiments/live_ab/lab_data.py"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab/lab_design.py": {
+      "b049307": "d615e369d579a42acc2042e3580cb1d02a4b4171993dca735352c9b75d975b82",
+      "head": "d615e369d579a42acc2042e3580cb1d02a4b4171993dca735352c9b75d975b82",
+      "json_paths": [
+       "$.finite_feasibility_sheet.code_config_pins_at_head.experiments/live_ab/lab_design.py",
+       "$.finite_feasibility_sheet.trial_rows[0].pins.code_sha256_at_head.experiments/live_ab/lab_design.py",
+       "$.finite_feasibility_sheet.trial_rows[1].pins.code_sha256_at_head.experiments/live_ab/lab_design.py",
+       "$.finite_feasibility_sheet.trial_rows[2].pins.code_sha256_at_head.experiments/live_ab/lab_design.py",
+       "$.finite_feasibility_sheet.trial_rows[3].pins.code_sha256_at_head.experiments/live_ab/lab_design.py"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab/lab_enclosure.py": {
+      "b049307": "42f1b57dff684988cc0725bc0e64d982cd4b8b24f7ff68198c77d8d8a53966c6",
+      "head": "42f1b57dff684988cc0725bc0e64d982cd4b8b24f7ff68198c77d8d8a53966c6",
+      "json_paths": [
+       "$.finite_feasibility_sheet.code_config_pins_at_head.experiments/live_ab/lab_enclosure.py",
+       "$.finite_feasibility_sheet.trial_rows[0].pins.code_sha256_at_head.experiments/live_ab/lab_enclosure.py",
+       "$.finite_feasibility_sheet.trial_rows[1].pins.code_sha256_at_head.experiments/live_ab/lab_enclosure.py",
+       "$.finite_feasibility_sheet.trial_rows[2].pins.code_sha256_at_head.experiments/live_ab/lab_enclosure.py",
+       "$.finite_feasibility_sheet.trial_rows[3].pins.code_sha256_at_head.experiments/live_ab/lab_enclosure.py"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab/lab_eventlog.py": {
+      "b049307": "aba317adfb035c197bd02e2911f7069598c22238efd6da8db992601410a89f16",
+      "head": "5246e24a23d5a5afc6bad43f1bcf206550e04b8b2b1b99ee3b2bf11fbf0571ac",
+      "json_paths": [
+       "$.finite_feasibility_sheet.code_config_pins_at_head.experiments/live_ab/lab_eventlog.py",
+       "$.finite_feasibility_sheet.trial_rows[0].pins.code_sha256_at_head.experiments/live_ab/lab_eventlog.py",
+       "$.finite_feasibility_sheet.trial_rows[1].pins.code_sha256_at_head.experiments/live_ab/lab_eventlog.py",
+       "$.finite_feasibility_sheet.trial_rows[2].pins.code_sha256_at_head.experiments/live_ab/lab_eventlog.py",
+       "$.finite_feasibility_sheet.trial_rows[3].pins.code_sha256_at_head.experiments/live_ab/lab_eventlog.py"
+      ],
+      "moved": true
+     },
+     "experiments/live_ab/lab_hostcheck.py": {
+      "b049307": "23d3efe772b1b354816aecce6591f3f7fec05acbd558a3ce4a1fd5f30d6bca37",
+      "head": "23d3efe772b1b354816aecce6591f3f7fec05acbd558a3ce4a1fd5f30d6bca37",
+      "json_paths": [
+       "$.finite_feasibility_sheet.code_config_pins_at_head.experiments/live_ab/lab_hostcheck.py"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab/lab_injected_decision.py": {
+      "b049307": "8d82de81ce48979180cd66ae3fae28b67ef8c17168d4a5a070d42f333da69b6b",
+      "head": "8d82de81ce48979180cd66ae3fae28b67ef8c17168d4a5a070d42f333da69b6b",
+      "json_paths": [
+       "$.status.drafted_against.lab_injected_decision_py_sha256",
+       "$.finite_feasibility_sheet.code_config_pins_at_head.experiments/live_ab/lab_injected_decision.py",
+       "$.finite_feasibility_sheet.stage_rows[7].pins.code_sha256_at_head.experiments/live_ab/lab_injected_decision.py",
+       "$.stages[6].injected_decision_fixture.rules"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab/lab_lifecycle.py": {
+      "b049307": "604556893fb5d381049756f765251bc45bd1f57ea632630d68fe2ee5610ac0b2",
+      "head": "604556893fb5d381049756f765251bc45bd1f57ea632630d68fe2ee5610ac0b2",
+      "json_paths": [
+       "$.finite_feasibility_sheet.code_config_pins_at_head.experiments/live_ab/lab_lifecycle.py",
+       "$.finite_feasibility_sheet.stage_rows[4].pins.code_sha256_at_head.experiments/live_ab/lab_lifecycle.py"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab/lab_load.py": {
+      "b049307": "8d72734c68bbbf1cd0fef5d61494994b944b982611eb4d9d90f51fbae2104efa",
+      "head": "d1f3d99f54925a62671d3ba87149db996c6f53014417f5bf768594c105342e1c",
+      "json_paths": [
+       "$.finite_feasibility_sheet.code_config_pins_at_head.experiments/live_ab/lab_load.py"
+      ],
+      "moved": true
+     },
+     "experiments/live_ab/lab_monitor.py": {
+      "b049307": "94d70b8d766376a697271087a1879de32170d4827bb25211c33f550232c2af91",
+      "head": "94d70b8d766376a697271087a1879de32170d4827bb25211c33f550232c2af91",
+      "json_paths": [
+       "$.finite_feasibility_sheet.code_config_pins_at_head.experiments/live_ab/lab_monitor.py",
+       "$.finite_feasibility_sheet.stage_rows[7].pins.code_sha256_at_head.experiments/live_ab/lab_monitor.py",
+       "$.finite_feasibility_sheet.trial_rows[0].pins.code_sha256_at_head.experiments/live_ab/lab_monitor.py",
+       "$.finite_feasibility_sheet.trial_rows[1].pins.code_sha256_at_head.experiments/live_ab/lab_monitor.py",
+       "$.finite_feasibility_sheet.trial_rows[2].pins.code_sha256_at_head.experiments/live_ab/lab_monitor.py",
+       "$.finite_feasibility_sheet.trial_rows[3].pins.code_sha256_at_head.experiments/live_ab/lab_monitor.py"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab/lab_orchestrator.py": {
+      "b049307": "c3606972a6a73c77929383e91a19a501a8237a9252cd5223b19ce864a3ef260c",
+      "head": "0dbb4229cc6c11037b7e063d48bf0efd0deb55b37e34ed5546e8cf47916fa644",
+      "json_paths": [
+       "$.finite_feasibility_sheet.code_config_pins_at_head.experiments/live_ab/lab_orchestrator.py",
+       "$.finite_feasibility_sheet.stage_rows[7].pins.code_sha256_at_head.experiments/live_ab/lab_orchestrator.py",
+       "$.finite_feasibility_sheet.trial_rows[0].pins.code_sha256_at_head.experiments/live_ab/lab_orchestrator.py",
+       "$.finite_feasibility_sheet.trial_rows[1].pins.code_sha256_at_head.experiments/live_ab/lab_orchestrator.py",
+       "$.finite_feasibility_sheet.trial_rows[2].pins.code_sha256_at_head.experiments/live_ab/lab_orchestrator.py",
+       "$.finite_feasibility_sheet.trial_rows[3].pins.code_sha256_at_head.experiments/live_ab/lab_orchestrator.py"
+      ],
+      "moved": true
+     },
+     "experiments/live_ab/lab_prepare.py": {
+      "b049307": "50e02a503a2e63febd63f4f8b4d0ce07a3e6672025715f4275c3aea982204f8d",
+      "head": "6f3238a08a53dddb77888d4eeec942bf5d502c39c649fcf29a417a38088d0b66",
+      "json_paths": [
+       "$.finite_feasibility_sheet.code_config_pins_at_head.experiments/live_ab/lab_prepare.py",
+       "$.finite_feasibility_sheet.stage_rows[4].pins.code_sha256_at_head.experiments/live_ab/lab_prepare.py"
+      ],
+      "moved": true
+     },
+     "experiments/live_ab/lab_reference_rule.py": {
+      "b049307": "8f8b69f01e09a92ca77a665e19bbd8f8eeba0ceef1ddab0bc3cb09b0fb9ee6fd",
+      "head": "8f8b69f01e09a92ca77a665e19bbd8f8eeba0ceef1ddab0bc3cb09b0fb9ee6fd",
+      "json_paths": [
+       "$.finite_feasibility_sheet.code_config_pins_at_head.experiments/live_ab/lab_reference_rule.py",
+       "$.finite_feasibility_sheet.trial_rows[0].pins.code_sha256_at_head.experiments/live_ab/lab_reference_rule.py",
+       "$.finite_feasibility_sheet.trial_rows[1].pins.code_sha256_at_head.experiments/live_ab/lab_reference_rule.py",
+       "$.finite_feasibility_sheet.trial_rows[2].pins.code_sha256_at_head.experiments/live_ab/lab_reference_rule.py",
+       "$.finite_feasibility_sheet.trial_rows[3].pins.code_sha256_at_head.experiments/live_ab/lab_reference_rule.py"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab/lab_server.py": {
+      "b049307": "b11a9fe4bcc3d738bd802c6accdc39d24edc1b3746d65701232c438d76a3a251",
+      "head": "c1d62da548108fb15684bc1b2902ea5c65f42147e9aeddc58e1f53a46efdb7ce",
+      "json_paths": [
+       "$.status.drafted_against.lab_server_py_sha256",
+       "$.finite_feasibility_sheet.code_config_pins_at_head.experiments/live_ab/lab_server.py",
+       "$.finite_feasibility_sheet.stage_rows[2].pins.code_sha256_at_head.experiments/live_ab/lab_server.py",
+       "$.finite_feasibility_sheet.stage_rows[3].pins.code_sha256_at_head.experiments/live_ab/lab_server.py",
+       "$.finite_feasibility_sheet.stage_rows[4].pins.code_sha256_at_head.experiments/live_ab/lab_server.py",
+       "$.finite_feasibility_sheet.stage_rows[5].pins.code_sha256_at_head.experiments/live_ab/lab_server.py",
+       "$.finite_feasibility_sheet.stage_rows[6].pins.code_sha256_at_head.experiments/live_ab/lab_server.py",
+       "$.finite_feasibility_sheet.stage_rows[7].pins.code_sha256_at_head.experiments/live_ab/lab_server.py",
+       "$.finite_feasibility_sheet.trial_rows[0].pins.code_sha256_at_head.experiments/live_ab/lab_server.py",
+       "$.finite_feasibility_sheet.trial_rows[1].pins.code_sha256_at_head.experiments/live_ab/lab_server.py",
+       "$.finite_feasibility_sheet.trial_rows[2].pins.code_sha256_at_head.experiments/live_ab/lab_server.py",
+       "$.finite_feasibility_sheet.trial_rows[3].pins.code_sha256_at_head.experiments/live_ab/lab_server.py"
+      ],
+      "moved": true
+     },
+     "experiments/live_ab/lab_worker.py": {
+      "b049307": "f9aa6e9028068bbac3c69bcc7d4a84a572ee727e2349725698e15e1a4b6e5b74",
+      "head": "f9aa6e9028068bbac3c69bcc7d4a84a572ee727e2349725698e15e1a4b6e5b74",
+      "json_paths": [
+       "$.finite_feasibility_sheet.code_config_pins_at_head.experiments/live_ab/lab_worker.py",
+       "$.finite_feasibility_sheet.stage_rows[5].pins.code_sha256_at_head.experiments/live_ab/lab_worker.py",
+       "$.finite_feasibility_sheet.stage_rows[6].pins.code_sha256_at_head.experiments/live_ab/lab_worker.py",
+       "$.finite_feasibility_sheet.stage_rows[7].pins.code_sha256_at_head.experiments/live_ab/lab_worker.py",
+       "$.finite_feasibility_sheet.trial_rows[0].pins.code_sha256_at_head.experiments/live_ab/lab_worker.py",
+       "$.finite_feasibility_sheet.trial_rows[1].pins.code_sha256_at_head.experiments/live_ab/lab_worker.py",
+       "$.finite_feasibility_sheet.trial_rows[2].pins.code_sha256_at_head.experiments/live_ab/lab_worker.py",
+       "$.finite_feasibility_sheet.trial_rows[3].pins.code_sha256_at_head.experiments/live_ab/lab_worker.py"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab_serving/build_config_snapshot.py": {
+      "b049307": "0d2097532a665c9f2668cee23c58c0832efe8b37a0bcdfacc0238f979986039f",
+      "head": "0d2097532a665c9f2668cee23c58c0832efe8b37a0bcdfacc0238f979986039f",
+      "json_paths": [
+       "$.finite_feasibility_sheet.code_config_pins_at_head.experiments/live_ab_serving/build_config_snapshot.py"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab_serving/dependency_closure.py": {
+      "b049307": "f581ff9378d1c8e004dc3c0e50ef29b85ea5c7eacbf00d6b9cfa73e2384e02ce",
+      "head": "f581ff9378d1c8e004dc3c0e50ef29b85ea5c7eacbf00d6b9cfa73e2384e02ce",
+      "json_paths": [
+       "$.finite_feasibility_sheet.code_config_pins_at_head.experiments/live_ab_serving/dependency_closure.py"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab_serving/live_ab_slot_lifecycle.patch": {
+      "b049307": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "head": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "json_paths": [
+       "$.status.drafted_against.lifecycle_patch_v7_sha256",
+       "$.finite_feasibility_sheet.code_config_pins_at_head.experiments/live_ab_serving/live_ab_slot_lifecycle.patch",
+       "$.stages[10].source_state.patch_sha256"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab_serving/run_smoke.py": {
+      "b049307": "bf1ef6ae24178dc45d6da7840e4f7fc663a13d974cf316ee1ae1d0539d438fa5",
+      "head": "bf1ef6ae24178dc45d6da7840e4f7fc663a13d974cf316ee1ae1d0539d438fa5",
+      "json_paths": [
+       "$.status.drafted_against.run_smoke_py_sha256",
+       "$.finite_feasibility_sheet.code_config_pins_at_head.experiments/live_ab_serving/run_smoke.py",
+       "$.finite_feasibility_sheet.stage_rows[10].pins.code"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab_serving/stage0_request_argv.json": {
+      "b049307": "b4ba13506cef290b380e05dd1d60fc749134358c1702b34bb56e54392299db4c",
+      "head": "b4ba13506cef290b380e05dd1d60fc749134358c1702b34bb56e54392299db4c",
+      "json_paths": [
+       "$.stages[11].request_and_argv_binding.server_args.spec.sha256"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab_tools/declare_durable_candidate.py": {
+      "b049307": "7abdeab0d228cda4e74de79b3dbc73671f9cbb4153e2f2be0b146fed7751afdd",
+      "head": "7abdeab0d228cda4e74de79b3dbc73671f9cbb4153e2f2be0b146fed7751afdd",
+      "json_paths": [
+       "$.finite_feasibility_sheet.code_config_pins_at_head.experiments/live_ab_tools/declare_durable_candidate.py"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab_tools/durable_rebuild.py": {
+      "b049307": "472d5082c7b75bd0d902366f076aa989f417ab47698604be2d746a2a6566e0c8",
+      "head": "472d5082c7b75bd0d902366f076aa989f417ab47698604be2d746a2a6566e0c8",
+      "json_paths": [
+       "$.finite_feasibility_sheet.code_config_pins_at_head.experiments/live_ab_tools/durable_rebuild.py"
+      ],
+      "moved": false
+     },
+     "experiments/local_stream/sandbox.py": {
+      "b049307": "d461570937ddbe1fb241288721a1a06b44bd41dd72ccdc2e2ffa2f144184c6ff",
+      "head": "d461570937ddbe1fb241288721a1a06b44bd41dd72ccdc2e2ffa2f144184c6ff",
+      "json_paths": [
+       "$.finite_feasibility_sheet.code_config_pins_at_head.experiments/local_stream/sandbox.py",
+       "$.finite_feasibility_sheet.stage_rows[4].pins.code_sha256_at_head.experiments/local_stream/sandbox.py",
+       "$.finite_feasibility_sheet.stage_rows[5].pins.code_sha256_at_head.experiments/local_stream/sandbox.py",
+       "$.finite_feasibility_sheet.stage_rows[6].pins.code_sha256_at_head.experiments/local_stream/sandbox.py",
+       "$.finite_feasibility_sheet.trial_rows[0].pins.code_sha256_at_head.experiments/local_stream/sandbox.py",
+       "$.finite_feasibility_sheet.trial_rows[1].pins.code_sha256_at_head.experiments/local_stream/sandbox.py",
+       "$.finite_feasibility_sheet.trial_rows[2].pins.code_sha256_at_head.experiments/local_stream/sandbox.py",
+       "$.finite_feasibility_sheet.trial_rows[3].pins.code_sha256_at_head.experiments/local_stream/sandbox.py"
+      ],
+      "moved": false
+     },
+     "experiments/local_stream/verify.py": {
+      "b049307": "7473678b1990ca2a5a1900b45251fddcd2882f2b371d76d3a59fe669a607dbb6",
+      "head": "7473678b1990ca2a5a1900b45251fddcd2882f2b371d76d3a59fe669a607dbb6",
+      "json_paths": [
+       "$.finite_feasibility_sheet.code_config_pins_at_head.experiments/local_stream/verify.py",
+       "$.finite_feasibility_sheet.stage_rows[4].pins.code_sha256_at_head.experiments/local_stream/verify.py",
+       "$.finite_feasibility_sheet.trial_rows[0].pins.code_sha256_at_head.experiments/local_stream/verify.py",
+       "$.finite_feasibility_sheet.trial_rows[1].pins.code_sha256_at_head.experiments/local_stream/verify.py",
+       "$.finite_feasibility_sheet.trial_rows[2].pins.code_sha256_at_head.experiments/local_stream/verify.py",
+       "$.finite_feasibility_sheet.trial_rows[3].pins.code_sha256_at_head.experiments/local_stream/verify.py"
+      ],
+      "moved": false
+     },
+     "results/live_ab/CANDIDATE_INSTRUMENT_MANIFEST_DURABLE.json": {
+      "b049307": "bc180e4e85b3563564dffb8e4ad6ef3c8818c549c4f7cfc1c17b3869c13c2096",
+      "head": "bc180e4e85b3563564dffb8e4ad6ef3c8818c549c4f7cfc1c17b3869c13c2096",
+      "json_paths": [
+       "$.status.drafted_against.durable_candidate_and_amendment_receipts.results/live_ab/CANDIDATE_INSTRUMENT_MANIFEST_DURABLE.json.sha256",
+       "$.finite_feasibility_sheet.stage_rows[1].pins.declaration",
+       "$.stages[10].receipts.results/live_ab/CANDIDATE_INSTRUMENT_MANIFEST_DURABLE.json.sha256"
+      ],
+      "moved": false
+     },
+     "results/live_ab/DESCRIPTOR_ELAPSED_AND_LIMIT_BINDING.json": {
+      "b049307": "8697b0310a7e0463310cf9147f6fbfe14ed181b3f234d64598fe652b67feb04b",
+      "head": "8697b0310a7e0463310cf9147f6fbfe14ed181b3f234d64598fe652b67feb04b",
+      "json_paths": [
+       "$.correction_recorded.receipt_commit"
+      ],
+      "moved": false
+     },
+     "results/live_ab/DURABLE_BUILD_CONFIG_SNAPSHOT.json": {
+      "b049307": "913c945b81d00833272f0eb269720b3eef66065f842d8d2dbd9e7d006019eae1",
+      "head": "913c945b81d00833272f0eb269720b3eef66065f842d8d2dbd9e7d006019eae1",
+      "json_paths": [
+       "$.status.drafted_against.durable_candidate_and_amendment_receipts.results/live_ab/DURABLE_BUILD_CONFIG_SNAPSHOT.json.sha256",
+       "$.finite_feasibility_sheet.stage_rows[1].pins.snapshot",
+       "$.stages[10].receipts.results/live_ab/DURABLE_BUILD_CONFIG_SNAPSHOT.json.sha256"
+      ],
+      "moved": false
+     },
+     "results/live_ab/DURABLE_LINKAGE_DELTA.json": {
+      "b049307": "0deffe0fae6b08c20bade58fe54e43401d475c88479c4d3edd6236b8f66df270",
+      "head": "0deffe0fae6b08c20bade58fe54e43401d475c88479c4d3edd6236b8f66df270",
+      "json_paths": [
+       "$.status.drafted_against.durable_candidate_and_amendment_receipts.results/live_ab/DURABLE_LINKAGE_DELTA.json.sha256",
+       "$.stages[10].receipts.results/live_ab/DURABLE_LINKAGE_DELTA.json.sha256"
+      ],
+      "moved": false
+     },
+     "results/live_ab/DURABLE_REBUILD_20260923T192024Z.json": {
+      "b049307": "bcdcc6a7b4c57bc81c4a0c21d940e272a344773d318a0476d23418072234fe85",
+      "head": "bcdcc6a7b4c57bc81c4a0c21d940e272a344773d318a0476d23418072234fe85",
+      "json_paths": [
+       "$.status.drafted_against.durable_candidate_and_amendment_receipts.results/live_ab/DURABLE_REBUILD_20260923T192024Z.json.sha256",
+       "$.stages[10].receipts.results/live_ab/DURABLE_REBUILD_20260923T192024Z.json.sha256"
+      ],
+      "moved": false
+     },
+     "results/live_ab/DURABLE_REBUILD_20260923T192024Z_build.log": {
+      "b049307": "b14953d38bb7183b58cc47c9ec7c7a6fa4b921f2c0681b027aa186fae10df8d9",
+      "head": "b14953d38bb7183b58cc47c9ec7c7a6fa4b921f2c0681b027aa186fae10df8d9",
+      "json_paths": [
+       "$.status.drafted_against.durable_candidate_and_amendment_receipts.results/live_ab/DURABLE_REBUILD_20260923T192024Z_build.log.sha256",
+       "$.stages[10].receipts.results/live_ab/DURABLE_REBUILD_20260923T192024Z_build.log.sha256"
+      ],
+      "moved": false
+     },
+     "results/live_ab/DURABLE_REBUILD_20260923T192024Z_configure.log": {
+      "b049307": "ffbb78ba0509f127ff40b7ed01e282c03f2ce6365fa4bc9a7d866558bc536ada",
+      "head": "ffbb78ba0509f127ff40b7ed01e282c03f2ce6365fa4bc9a7d866558bc536ada",
+      "json_paths": [
+       "$.status.drafted_against.durable_candidate_and_amendment_receipts.results/live_ab/DURABLE_REBUILD_20260923T192024Z_configure.log.sha256",
+       "$.stages[10].receipts.results/live_ab/DURABLE_REBUILD_20260923T192024Z_configure.log.sha256"
+      ],
+      "moved": false
+     },
+     "results/live_ab/PATCH_STATE_AMENDMENT_RECEIPT_20260923_1933.json": {
+      "b049307": "01b00a6d0133b50d9434fff2b830e4a118d84c3114bba33160cb2dd6bb4a4d65",
+      "head": "01b00a6d0133b50d9434fff2b830e4a118d84c3114bba33160cb2dd6bb4a4d65",
+      "json_paths": [
+       "$.status.drafted_against.durable_candidate_and_amendment_receipts.results/live_ab/PATCH_STATE_AMENDMENT_RECEIPT_20260923_1933.json.sha256"
+      ],
+      "moved": false
+     },
+     "results/live_ab/PREFREEZE_EXECUTION_PLAN_20260921_1910.json": {
+      "b049307": "e128b174524e020bfeea84cf305c105d245d8ce67cba0906c2417c5ff5c60f39",
+      "head": "e128b174524e020bfeea84cf305c105d245d8ce67cba0906c2417c5ff5c60f39",
+      "json_paths": [
+       "$.supersession.retained_by.sha256",
+       "$.correction_recorded.verified_by"
+      ],
+      "moved": false
+     },
+     "results/live_ab/PROSPECTIVE_LAUNCH_RECORD_20260923_1922.json": {
+      "b049307": "6c8b5bf94fd1a830c5afcede7d7254e32d2c87d19d390fe77d4f44f53a28f1a2",
+      "head": "6c8b5bf94fd1a830c5afcede7d7254e32d2c87d19d390fe77d4f44f53a28f1a2",
+      "json_paths": [
+       "$.status.drafted_against.durable_candidate_and_amendment_receipts.results/live_ab/PROSPECTIVE_LAUNCH_RECORD_20260923_1922.json.sha256",
+       "$.finite_feasibility_sheet.stage_rows[1].pins.launch_record",
+       "$.stages[10].receipts.results/live_ab/PROSPECTIVE_LAUNCH_RECORD_20260923_1922.json.sha256"
+      ],
+      "moved": false
+     },
+     "results/live_ab/ROSTER_STAGE1_20260921_1830.json": {
+      "b049307": "4e1f4b5d18aaf43b517b8f4b83af098eebd5eb5c3bb793bffaa9943354f0c998",
+      "head": "4e1f4b5d18aaf43b517b8f4b83af098eebd5eb5c3bb793bffaa9943354f0c998",
+      "json_paths": [
+       "$.finite_feasibility_sheet.code_config_pins_at_head.results/live_ab/ROSTER_STAGE1_20260921_1830.json",
+       "$.finite_feasibility_sheet.stage_rows[4].pins.code_sha256_at_head.results/live_ab/ROSTER_STAGE1_20260921_1830.json"
+      ],
+      "moved": false
+     }
+    },
+    "byte_identical_at_b049307_and_head": true,
+    "bytes": 311068,
+    "moved_artifacts": [
+     "experiments/live_ab/config.json",
+     "experiments/live_ab/design/ARCHITECTURE_FINAL.md",
+     "experiments/live_ab/design/protocol_FINAL.md",
+     "experiments/live_ab/lab_anchor.py",
+     "experiments/live_ab/lab_common.py",
+     "experiments/live_ab/lab_eventlog.py",
+     "experiments/live_ab/lab_load.py",
+     "experiments/live_ab/lab_orchestrator.py",
+     "experiments/live_ab/lab_prepare.py",
+     "experiments/live_ab/lab_server.py"
+    ],
+    "not_a_digest_at_either_revision": [
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.finite_feasibility_sheet.candidate_pins.build/bin/llama-server (launcher)",
+      "value": "35231ad4e83623e4aef72267f155a78bcf960f609ded6cf587dcb3a09f52eac3"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.finite_feasibility_sheet.candidate_pins.libggml-base.0.dylib",
+      "value": "19fe34f3997f908122e4d74f9a16e15de9d53445345f1774c849767c1e1f321b"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.finite_feasibility_sheet.candidate_pins.libggml-blas.0.dylib",
+      "value": "07fec714cad379ea0593ec88ff4118f8a39dd496c77d28a15e0ea4076031c01d"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.finite_feasibility_sheet.candidate_pins.libggml-cpu.0.dylib",
+      "value": "c2ed19a6ea799849aab747321ea07ef8211c90c3a8078bbe69b05d3d1bdd2bee"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.finite_feasibility_sheet.candidate_pins.libggml-metal.0.dylib",
+      "value": "fceb6ba00f28c4004b66d8e65a3fd4350ce33f773b20a435fea1ec9313f5d37b"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.finite_feasibility_sheet.candidate_pins.libggml.0.dylib",
+      "value": "145bad33a11be7d0c9c3e9d7d56af04031e37280d75a60015f73882769aec79a"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.finite_feasibility_sheet.candidate_pins.libllama-common.0.dylib",
+      "value": "7d605efa6d32b8c08da4968a96ff5997bcc7a2bd6f92f2e836d498369d0e5f34"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.finite_feasibility_sheet.candidate_pins.libllama-server-impl.dylib",
+      "value": "baceaef2b2ac2e95d68eff4c1ff59426a4a22ed411ac2fff7b5970d3a6708d8b"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.finite_feasibility_sheet.candidate_pins.libllama.0.dylib",
+      "value": "ebe3d9d96ae05ea387fee18985636345b42bfb1d65e4afdae7768d2a0277e70f"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.finite_feasibility_sheet.candidate_pins.libmtmd.0.dylib",
+      "value": "eaa01688087b245c53c3e600f1a06280d6f784976f9e1d43b0b8c9f5096c936f"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.finite_feasibility_sheet.stage_rows[1].pins.candidate_bytes.build/bin/llama-server (launcher)",
+      "value": "35231ad4e83623e4aef72267f155a78bcf960f609ded6cf587dcb3a09f52eac3"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.finite_feasibility_sheet.stage_rows[1].pins.candidate_bytes.libggml-base.0.dylib",
+      "value": "19fe34f3997f908122e4d74f9a16e15de9d53445345f1774c849767c1e1f321b"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.finite_feasibility_sheet.stage_rows[1].pins.candidate_bytes.libggml-blas.0.dylib",
+      "value": "07fec714cad379ea0593ec88ff4118f8a39dd496c77d28a15e0ea4076031c01d"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.finite_feasibility_sheet.stage_rows[1].pins.candidate_bytes.libggml-cpu.0.dylib",
+      "value": "c2ed19a6ea799849aab747321ea07ef8211c90c3a8078bbe69b05d3d1bdd2bee"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.finite_feasibility_sheet.stage_rows[1].pins.candidate_bytes.libggml-metal.0.dylib",
+      "value": "fceb6ba00f28c4004b66d8e65a3fd4350ce33f773b20a435fea1ec9313f5d37b"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.finite_feasibility_sheet.stage_rows[1].pins.candidate_bytes.libggml.0.dylib",
+      "value": "145bad33a11be7d0c9c3e9d7d56af04031e37280d75a60015f73882769aec79a"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.finite_feasibility_sheet.stage_rows[1].pins.candidate_bytes.libllama-common.0.dylib",
+      "value": "7d605efa6d32b8c08da4968a96ff5997bcc7a2bd6f92f2e836d498369d0e5f34"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.finite_feasibility_sheet.stage_rows[1].pins.candidate_bytes.libllama-server-impl.dylib",
+      "value": "baceaef2b2ac2e95d68eff4c1ff59426a4a22ed411ac2fff7b5970d3a6708d8b"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.finite_feasibility_sheet.stage_rows[1].pins.candidate_bytes.libllama.0.dylib",
+      "value": "ebe3d9d96ae05ea387fee18985636345b42bfb1d65e4afdae7768d2a0277e70f"
+     },
+     {
+      "in_real_serving_manifest": true,
+      "in_successor_config": false,
+      "json_path": "$.finite_feasibility_sheet.stage_rows[1].pins.candidate_bytes.libmtmd.0.dylib",
+      "value": "eaa01688087b245c53c3e600f1a06280d6f784976f9e1d43b0b8c9f5096c936f"
+     },
+     {
+      "in_real_serving_manifest": false,
+      "in_successor_config": true,
+      "json_path": "$.stages[7].items.downloads.value",
+      "value": "ccf64ceae9c5403bf50a044cb6d505bfd2a2963ee58338ba268fd65beab92a9f"
+     },
+     {
+      "in_real_serving_manifest": false,
+      "in_successor_config": false,
+      "json_path": "$.stages[10].ui_input.archive",
+      "value": "3de85ed97697c04e1614e95021eef6b668dc089eb66e7f0db1f83cbef1121a89"
+     }
+    ],
+    "path": "results/live_ab/FINITE_COSTED_PLAN_DRAFT_v2r3_20260923.json",
+    "pins_found": 176,
+    "reissued_by_this_successor": false,
+    "sha256": "d5596a2d41654bf64bc8fcdafa027c34c28b717fb93f63a021922f7ca7b97596",
+    "successor_only": [],
+    "unchanged_artifacts": [
+     "<rule block of config.json>",
+     "experiments/live_ab/design/DERIVATION.md",
+     "experiments/live_ab/lab_client.py",
+     "experiments/live_ab/lab_coin.py",
+     "experiments/live_ab/lab_containment.py",
+     "experiments/live_ab/lab_data.py",
+     "experiments/live_ab/lab_design.py",
+     "experiments/live_ab/lab_enclosure.py",
+     "experiments/live_ab/lab_hostcheck.py",
+     "experiments/live_ab/lab_injected_decision.py",
+     "experiments/live_ab/lab_lifecycle.py",
+     "experiments/live_ab/lab_monitor.py",
+     "experiments/live_ab/lab_reference_rule.py",
+     "experiments/live_ab/lab_worker.py",
+     "experiments/live_ab_serving/build_config_snapshot.py",
+     "experiments/live_ab_serving/dependency_closure.py",
+     "experiments/live_ab_serving/live_ab_slot_lifecycle.patch",
+     "experiments/live_ab_serving/run_smoke.py",
+     "experiments/live_ab_serving/stage0_request_argv.json",
+     "experiments/live_ab_tools/declare_durable_candidate.py",
+     "experiments/live_ab_tools/durable_rebuild.py",
+     "experiments/local_stream/sandbox.py",
+     "experiments/local_stream/verify.py",
+     "results/live_ab/CANDIDATE_INSTRUMENT_MANIFEST_DURABLE.json",
+     "results/live_ab/DESCRIPTOR_ELAPSED_AND_LIMIT_BINDING.json",
+     "results/live_ab/DURABLE_BUILD_CONFIG_SNAPSHOT.json",
+     "results/live_ab/DURABLE_LINKAGE_DELTA.json",
+     "results/live_ab/DURABLE_REBUILD_20260923T192024Z.json",
+     "results/live_ab/DURABLE_REBUILD_20260923T192024Z_build.log",
+     "results/live_ab/DURABLE_REBUILD_20260923T192024Z_configure.log",
+     "results/live_ab/PATCH_STATE_AMENDMENT_RECEIPT_20260923_1933.json",
+     "results/live_ab/PREFREEZE_EXECUTION_PLAN_20260921_1910.json",
+     "results/live_ab/PROSPECTIVE_LAUNCH_RECORD_20260923_1922.json",
+     "results/live_ab/ROSTER_STAGE1_20260921_1830.json"
+    ],
+    "verdict": "STALE: pins of 10 artifact(s) moved between b049307 and HEAD (experiments/live_ab/config.json, experiments/live_ab/design/ARCHITECTURE_FINAL.md, experiments/live_ab/design/protocol_FINAL.md, experiments/live_ab/lab_anchor.py, experiments/live_ab/lab_common.py, experiments/live_ab/lab_eventlog.py, experiments/live_ab/lab_load.py, experiments/live_ab/lab_orchestrator.py, experiments/live_ab/lab_prepare.py, experiments/live_ab/lab_server.py); 34 pinned artifact(s) unchanged; 1 pin(s) already historical at b049307 (experiments/live_ab_serving/prepare_launch_record.py); 22 pin(s) are digests of no tracked file at either revision: 20 carried by the real serving manifest (the durable build), 1 by the HEAD config.json, 1 by neither. Kept as written; not reissued by this successor."
+   },
+   {
+    "added_in_commit": "85f78fb263bffae6eb1d3cac4d002452b629d8de",
+    "already_historical": [],
+    "by_artifact": {
+     "experiments/live_ab/config.json": {
+      "b049307": "e4d42f5d442dde7e709222e0a4ad4985de0f20604061fec01f2e3ea95f75d824",
+      "head": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+      "json_paths": [
+       "$.components.experiments/live_ab/config.json.sha256"
+      ],
+      "moved": true
+     },
+     "experiments/live_ab/design/protocol_FINAL.md": {
+      "b049307": "64ace6d3e37732b372fd316055208e9deaab4d4e0722708563c8ebcc1579e82b",
+      "head": "6c0ebf2faa7515ff27f01188d9f1e487c928c63373f451dea51f06a8cdacaab9",
+      "json_paths": [
+       "$.components.experiments/live_ab/design/protocol_FINAL.md.sha256"
+      ],
+      "moved": true
+     },
+     "experiments/live_ab_serving/dependency_closure.py": {
+      "b049307": "f581ff9378d1c8e004dc3c0e50ef29b85ea5c7eacbf00d6b9cfa73e2384e02ce",
+      "head": "f581ff9378d1c8e004dc3c0e50ef29b85ea5c7eacbf00d6b9cfa73e2384e02ce",
+      "json_paths": [
+       "$.components.experiments/live_ab_serving/dependency_closure.py.sha256"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab_serving/live_ab_slot_lifecycle.patch": {
+      "b049307": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "head": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "json_paths": [
+       "$.components.experiments/live_ab_serving/live_ab_slot_lifecycle.patch.sha256"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab_serving/run_smoke.py": {
+      "b049307": "bf1ef6ae24178dc45d6da7840e4f7fc663a13d974cf316ee1ae1d0539d438fa5",
+      "head": "bf1ef6ae24178dc45d6da7840e4f7fc663a13d974cf316ee1ae1d0539d438fa5",
+      "json_paths": [
+       "$.components.experiments/live_ab_serving/run_smoke.py.sha256"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab_serving/stage0_request_argv.json": {
+      "b049307": "b4ba13506cef290b380e05dd1d60fc749134358c1702b34bb56e54392299db4c",
+      "head": "b4ba13506cef290b380e05dd1d60fc749134358c1702b34bb56e54392299db4c",
+      "json_paths": [
+       "$.components.experiments/live_ab_serving/stage0_request_argv.json.sha256"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab_validation/cells.json": {
+      "b049307": "5c4a28f76a066d110205335b66c7df12a0c5d70045ad24fecace0ebec75e7784",
+      "head": "6b31bf20a07cbc4b0c162fb0d309826d88ab5b95b36f9cd3e1d86500d7ff8df5",
+      "json_paths": [
+       "$.components.experiments/live_ab_validation/cells.json.sha256"
+      ],
+      "moved": true
+     },
+     "results/live_ab/CANDIDATE_INSTRUMENT_MANIFEST_DURABLE.json": {
+      "b049307": "bc180e4e85b3563564dffb8e4ad6ef3c8818c549c4f7cfc1c17b3869c13c2096",
+      "head": "bc180e4e85b3563564dffb8e4ad6ef3c8818c549c4f7cfc1c17b3869c13c2096",
+      "json_paths": [
+       "$.components.results/live_ab/CANDIDATE_INSTRUMENT_MANIFEST_DURABLE.json.sha256"
+      ],
+      "moved": false
+     },
+     "results/live_ab/DURABLE_BUILD_CONFIG_SNAPSHOT.json": {
+      "b049307": "913c945b81d00833272f0eb269720b3eef66065f842d8d2dbd9e7d006019eae1",
+      "head": "913c945b81d00833272f0eb269720b3eef66065f842d8d2dbd9e7d006019eae1",
+      "json_paths": [
+       "$.components.results/live_ab/DURABLE_BUILD_CONFIG_SNAPSHOT.json.sha256"
+      ],
+      "moved": false
+     },
+     "results/live_ab/DURABLE_LINKAGE_DELTA.json": {
+      "b049307": "0deffe0fae6b08c20bade58fe54e43401d475c88479c4d3edd6236b8f66df270",
+      "head": "0deffe0fae6b08c20bade58fe54e43401d475c88479c4d3edd6236b8f66df270",
+      "json_paths": [
+       "$.components.results/live_ab/DURABLE_LINKAGE_DELTA.json.sha256"
+      ],
+      "moved": false
+     },
+     "results/live_ab/DURABLE_LINKAGE_DELTA_EXPLAINED.json": {
+      "b049307": "c107494aef1c748af577e507d1f53f85c85fe2d3626d689ffa171d3c9c735e53",
+      "head": "c107494aef1c748af577e507d1f53f85c85fe2d3626d689ffa171d3c9c735e53",
+      "json_paths": [
+       "$.components.results/live_ab/DURABLE_LINKAGE_DELTA_EXPLAINED.json.sha256"
+      ],
+      "moved": false
+     },
+     "results/live_ab/DURABLE_REBUILD_20260923T192024Z.json": {
+      "b049307": "bcdcc6a7b4c57bc81c4a0c21d940e272a344773d318a0476d23418072234fe85",
+      "head": "bcdcc6a7b4c57bc81c4a0c21d940e272a344773d318a0476d23418072234fe85",
+      "json_paths": [
+       "$.components.results/live_ab/DURABLE_REBUILD_20260923T192024Z.json.sha256"
+      ],
+      "moved": false
+     },
+     "results/live_ab/FINITE_COSTED_PLAN_DRAFT_v2r3_20260923.json": {
+      "b049307": "d5596a2d41654bf64bc8fcdafa027c34c28b717fb93f63a021922f7ca7b97596",
+      "head": "d5596a2d41654bf64bc8fcdafa027c34c28b717fb93f63a021922f7ca7b97596",
+      "json_paths": [
+       "$.components.results/live_ab/FINITE_COSTED_PLAN_DRAFT_v2r3_20260923.json.sha256"
+      ],
+      "moved": false
+     },
+     "results/live_ab/FREEZE_REACHABILITY_v4.json": {
+      "b049307": "1e3ca4286b209771a71f4651507ac783f9c192ec8c925e0cbc518737ec2c5b23",
+      "head": "1e3ca4286b209771a71f4651507ac783f9c192ec8c925e0cbc518737ec2c5b23",
+      "json_paths": [
+       "$.components.results/live_ab/FREEZE_REACHABILITY_v4.json.sha256"
+      ],
+      "moved": false
+     },
+     "results/live_ab/LOADER_CALL_SITE_EXCERPTS_v2.json": {
+      "b049307": "ed7347215b4f4bc645b174c3eb84ee6fd1bb0cf8ee45edfe3ea9fa10098e1962",
+      "head": "ed7347215b4f4bc645b174c3eb84ee6fd1bb0cf8ee45edfe3ea9fa10098e1962",
+      "json_paths": [
+       "$.components.results/live_ab/LOADER_CALL_SITE_EXCERPTS_v2.json.sha256"
+      ],
+      "moved": false
+     },
+     "results/live_ab/LOADER_LINKAGE_BUILD_RULES_v2.json": {
+      "b049307": "17add6e40ffd5764b300dd2c0cdc78c3f3a5f3fc89d5acb4304cddfec604ff75",
+      "head": "17add6e40ffd5764b300dd2c0cdc78c3f3a5f3fc89d5acb4304cddfec604ff75",
+      "json_paths": [
+       "$.components.results/live_ab/LOADER_LINKAGE_BUILD_RULES_v2.json.sha256"
+      ],
+      "moved": false
+     },
+     "results/live_ab/PATCH_STATE_AMENDMENT_RECEIPT_20260923_1933.json": {
+      "b049307": "01b00a6d0133b50d9434fff2b830e4a118d84c3114bba33160cb2dd6bb4a4d65",
+      "head": "01b00a6d0133b50d9434fff2b830e4a118d84c3114bba33160cb2dd6bb4a4d65",
+      "json_paths": [
+       "$.components.results/live_ab/PATCH_STATE_AMENDMENT_RECEIPT_20260923_1933.json.sha256"
+      ],
+      "moved": false
+     },
+     "results/live_ab/PROSPECTIVE_LAUNCH_RECORD_20260923_2030.json": {
+      "b049307": "2c9bc44a344734fa5276bebe97e4ca7337213c34fb72c54908829940227a5ae4",
+      "head": "2c9bc44a344734fa5276bebe97e4ca7337213c34fb72c54908829940227a5ae4",
+      "json_paths": [
+       "$.components.results/live_ab/PROSPECTIVE_LAUNCH_RECORD_20260923_2030.json.sha256"
+      ],
+      "moved": false
+     },
+     "results/live_ab/SOURCE_TREE_THREE_CHECKS_20260923_2033.json": {
+      "b049307": "b2d9ed4757d026a0aa8ca458b7f83e337860bb0a76eb2a345eb1de2c7a1f7434",
+      "head": "b2d9ed4757d026a0aa8ca458b7f83e337860bb0a76eb2a345eb1de2c7a1f7434",
+      "json_paths": [
+       "$.components.results/live_ab/SOURCE_TREE_THREE_CHECKS_20260923_2033.json.sha256"
+      ],
+      "moved": false
+     },
+     "results/live_ab/durable_build_originals/build.ninja": {
+      "b049307": "c20432f6c971ea4f75717db31115be09956407fea66047b197da5bc852901e5d",
+      "head": "c20432f6c971ea4f75717db31115be09956407fea66047b197da5bc852901e5d",
+      "json_paths": [
+       "$.components.results/live_ab/durable_build_originals/build.ninja.sha256"
+      ],
+      "moved": false
+     },
+     "results/live_ab/durable_build_originals/compile_commands.json": {
+      "b049307": "45502c34ceaa96b1ebcda3a09f65a8f16930eb27aca599f9283bc2b6334a1db4",
+      "head": "45502c34ceaa96b1ebcda3a09f65a8f16930eb27aca599f9283bc2b6334a1db4",
+      "json_paths": [
+       "$.components.results/live_ab/durable_build_originals/compile_commands.json.sha256"
+      ],
+      "moved": false
+     }
+    },
+    "byte_identical_at_b049307_and_head": true,
+    "bytes": 12837,
+    "moved_artifacts": [
+     "experiments/live_ab/config.json",
+     "experiments/live_ab/design/protocol_FINAL.md",
+     "experiments/live_ab_validation/cells.json"
+    ],
+    "not_a_digest_at_either_revision": [],
+    "path": "results/live_ab/PRE_RUN_BUNDLE_20260923_2035.json",
+    "pins_found": 21,
+    "reissued_by_this_successor": false,
+    "sha256": "f0aea5a59c66b5d1740be2f453c1ecbfe886ad83d3b1053770d240b7b97aa147",
+    "successor_only": [],
+    "unchanged_artifacts": [
+     "experiments/live_ab_serving/dependency_closure.py",
+     "experiments/live_ab_serving/live_ab_slot_lifecycle.patch",
+     "experiments/live_ab_serving/run_smoke.py",
+     "experiments/live_ab_serving/stage0_request_argv.json",
+     "results/live_ab/CANDIDATE_INSTRUMENT_MANIFEST_DURABLE.json",
+     "results/live_ab/DURABLE_BUILD_CONFIG_SNAPSHOT.json",
+     "results/live_ab/DURABLE_LINKAGE_DELTA.json",
+     "results/live_ab/DURABLE_LINKAGE_DELTA_EXPLAINED.json",
+     "results/live_ab/DURABLE_REBUILD_20260923T192024Z.json",
+     "results/live_ab/FINITE_COSTED_PLAN_DRAFT_v2r3_20260923.json",
+     "results/live_ab/FREEZE_REACHABILITY_v4.json",
+     "results/live_ab/LOADER_CALL_SITE_EXCERPTS_v2.json",
+     "results/live_ab/LOADER_LINKAGE_BUILD_RULES_v2.json",
+     "results/live_ab/PATCH_STATE_AMENDMENT_RECEIPT_20260923_1933.json",
+     "results/live_ab/PROSPECTIVE_LAUNCH_RECORD_20260923_2030.json",
+     "results/live_ab/SOURCE_TREE_THREE_CHECKS_20260923_2033.json",
+     "results/live_ab/durable_build_originals/build.ninja",
+     "results/live_ab/durable_build_originals/compile_commands.json"
+    ],
+    "verdict": "STALE: pins of 3 artifact(s) moved between b049307 and HEAD (experiments/live_ab/config.json, experiments/live_ab/design/protocol_FINAL.md, experiments/live_ab_validation/cells.json); 18 pinned artifact(s) unchanged. Kept as written; not reissued by this successor."
+   },
+   {
+    "added_in_commit": "0e05d9658b15c6248a41b094db99e31231943d55",
+    "already_historical": [],
+    "by_artifact": {
+     "<rule block of config.json>": {
+      "b049307": "cbfd1792d09c43754eeeab3b282e92e99c76e4f878cd82d00c827f6a90fa7607",
+      "head": "cbfd1792d09c43754eeeab3b282e92e99c76e4f878cd82d00c827f6a90fa7607",
+      "json_paths": [
+       "$.postcondition_checked.rule_block_sha256_after",
+       "$.postcondition_checked.rule_block_sha256_before"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab/config.json": {
+      "b049307": "e4d42f5d442dde7e709222e0a4ad4985de0f20604061fec01f2e3ea95f75d824",
+      "head": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+      "json_paths": [
+       "$.postcondition_checked.block_sha256",
+       "$.written.config_sha256",
+       "$.written.harness_file_sha256_config"
+      ],
+      "moved": true
+     },
+     "experiments/live_ab/design/ARCHITECTURE_FINAL.md": {
+      "b049307": "727003c1efe2b210fff0cf7d0a60ca30f53948516171b863548849676b1242ab",
+      "head": "e7ea9c0fb7a28c6bdb47bb4085dcddba41144bd134d7b3a9b026ad7c9a30c86a",
+      "json_paths": [
+       "$.postcondition_checked.architecture_sha256",
+       "$.written.architecture_sha256"
+      ],
+      "moved": true
+     }
+    },
+    "byte_identical_at_b049307_and_head": true,
+    "bytes": 5654,
+    "moved_artifacts": [
+     "experiments/live_ab/config.json",
+     "experiments/live_ab/design/ARCHITECTURE_FINAL.md"
+    ],
+    "not_a_digest_at_either_revision": [
+     {
+      "in_real_serving_manifest": false,
+      "in_successor_config": false,
+      "json_path": "$.postcondition_checked.protocol_sha256",
+      "value": "7f6664770b0d88ac5904967d9b8e2225d20932942824cd689278a03a2ee45e53"
+     },
+     {
+      "in_real_serving_manifest": false,
+      "in_successor_config": false,
+      "json_path": "$.precondition_checked.architecture_sha256",
+      "value": "6b36c4a41a23612bc2b8035ac2538977f81f341ed1527fee9c5535578254241c"
+     },
+     {
+      "in_real_serving_manifest": false,
+      "in_successor_config": false,
+      "json_path": "$.precondition_checked.block_sha256",
+      "value": "05255df3b0d12bb6f5571616378a1366c67c6eb8b913def907c6a5d901e1731c"
+     },
+     {
+      "in_real_serving_manifest": false,
+      "in_successor_config": false,
+      "json_path": "$.precondition_checked.cells_sha256",
+      "value": "225477fa559215d05a75926907298293b45bf02dc8623494b33d85a7b95dc187"
+     },
+     {
+      "in_real_serving_manifest": false,
+      "in_successor_config": false,
+      "json_path": "$.precondition_checked.protocol_sha256",
+      "value": "f75de3235ae0431b727cf7c24b09927204a1da8c5424e14ea428dbfea256f48b"
+     },
+     {
+      "in_real_serving_manifest": false,
+      "in_successor_config": false,
+      "json_path": "$.prior_versions_retained.config_block_sha256",
+      "value": "05255df3b0d12bb6f5571616378a1366c67c6eb8b913def907c6a5d901e1731c"
+     },
+     {
+      "in_real_serving_manifest": false,
+      "in_successor_config": false,
+      "json_path": "$.successor_provenance.demoted_successor",
+      "value": "f75de3235ae0431b727cf7c24b09927204a1da8c5424e14ea428dbfea256f48b"
+     },
+     {
+      "in_real_serving_manifest": false,
+      "in_successor_config": false,
+      "json_path": "$.successor_provenance.new_successor",
+      "value": "7f6664770b0d88ac5904967d9b8e2225d20932942824cd689278a03a2ee45e53"
+     },
+     {
+      "in_real_serving_manifest": false,
+      "in_successor_config": false,
+      "json_path": "$.successor_provenance.original_pin_untouched",
+      "value": "3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0dd7d2c2"
+     },
+     {
+      "in_real_serving_manifest": false,
+      "in_successor_config": false,
+      "json_path": "$.written.cells_sha256",
+      "value": "eab68b1a64f80406409338130e5befcab4e18d74909092f921004432f2a23056"
+     },
+     {
+      "in_real_serving_manifest": false,
+      "in_successor_config": false,
+      "json_path": "$.written.protocol_sha256",
+      "value": "7f6664770b0d88ac5904967d9b8e2225d20932942824cd689278a03a2ee45e53"
+     }
+    ],
+    "path": "results/live_ab/CONFIG_AMENDMENT_RECEIPT_20260923_1804.json",
+    "pins_found": 18,
+    "reissued_by_this_successor": false,
+    "sha256": "4c43c3ad7dcfd875f059abf3fd009f6752e78cb4e811fff0f5aad45fb9cb66ea",
+    "successor_only": [],
+    "unchanged_artifacts": [
+     "<rule block of config.json>"
+    ],
+    "verdict": "STALE: pins of 2 artifact(s) moved between b049307 and HEAD (experiments/live_ab/config.json, experiments/live_ab/design/ARCHITECTURE_FINAL.md); 1 pinned artifact(s) unchanged; 11 pin(s) are digests of no tracked file at either revision: 0 carried by the real serving manifest (the durable build), 0 by the HEAD config.json, 11 by neither. Kept as written; not reissued by this successor."
+   },
+   {
+    "added_in_commit": "48f4d70fbd580df282b551506448457a09ab514d",
+    "already_historical": [],
+    "by_artifact": {
+     "<rule block of config.json>": {
+      "b049307": "cbfd1792d09c43754eeeab3b282e92e99c76e4f878cd82d00c827f6a90fa7607",
+      "head": "cbfd1792d09c43754eeeab3b282e92e99c76e4f878cd82d00c827f6a90fa7607",
+      "json_paths": [
+       "$.postcondition_checked.rule_block_sha256",
+       "$.written.rule_block_sha256_on_disk"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab/config.json": {
+      "b049307": "e4d42f5d442dde7e709222e0a4ad4985de0f20604061fec01f2e3ea95f75d824",
+      "head": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+      "json_paths": [
+       "$.postcondition_checked.three_way_contract_after.block_sha256",
+       "$.precondition_checked.config_sha256",
+       "$.precondition_checked.three_way_contract_before.block_sha256",
+       "$.written.config_sha256_after",
+       "$.written.three_way_contract_on_disk.block_sha256"
+      ],
+      "moved": true
+     },
+     "experiments/live_ab/design/ARCHITECTURE_FINAL.md": {
+      "b049307": "727003c1efe2b210fff0cf7d0a60ca30f53948516171b863548849676b1242ab",
+      "head": "e7ea9c0fb7a28c6bdb47bb4085dcddba41144bd134d7b3a9b026ad7c9a30c86a",
+      "json_paths": [
+       "$.precondition_checked.architecture_sha256",
+       "$.written.architecture_sha256_after"
+      ],
+      "moved": true
+     },
+     "experiments/live_ab/design/protocol_FINAL.md": {
+      "b049307": "64ace6d3e37732b372fd316055208e9deaab4d4e0722708563c8ebcc1579e82b",
+      "head": "6c0ebf2faa7515ff27f01188d9f1e487c928c63373f451dea51f06a8cdacaab9",
+      "json_paths": [
+       "$.postcondition_checked.protocol_sha256",
+       "$.successor_provenance.new_successor",
+       "$.written.protocol_sha256"
+      ],
+      "moved": true
+     },
+     "experiments/live_ab_serving/live_ab_slot_lifecycle.patch": {
+      "b049307": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "head": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "json_paths": [
+       "$.inserted_text",
+       "$.precondition_checked.patch_sha256"
+      ],
+      "moved": false
+     },
+     "experiments/live_ab_validation/cells.json": {
+      "b049307": "5c4a28f76a066d110205335b66c7df12a0c5d70045ad24fecace0ebec75e7784",
+      "head": "6b31bf20a07cbc4b0c162fb0d309826d88ab5b95b36f9cd3e1d86500d7ff8df5",
+      "json_paths": [
+       "$.written.cells_sha256"
+      ],
+      "moved": true
+     }
+    },
+    "byte_identical_at_b049307_and_head": true,
+    "bytes": 8321,
+    "moved_artifacts": [
+     "experiments/live_ab/config.json",
+     "experiments/live_ab/design/ARCHITECTURE_FINAL.md",
+     "experiments/live_ab/design/protocol_FINAL.md",
+     "experiments/live_ab_validation/cells.json"
+    ],
+    "not_a_digest_at_either_revision": [
+     {
+      "in_real_serving_manifest": false,
+      "in_successor_config": false,
+      "json_path": "$.negative_control.variants.moved_into_section_2.1.sha256",
+      "value": "5758c0aa0df756f1d7dc30d1ba22f52ae97a83d86eeda0124152da39e8381a81"
+     },
+     {
+      "in_real_serving_manifest": false,
+      "in_successor_config": false,
+      "json_path": "$.negative_control.variants.moved_into_section_2.3.sha256",
+      "value": "4464ffc05a587fb1b518d65428cb1b1e9cb1ccdb42451f484c33ff93501b2e87"
+     },
+     {
+      "in_real_serving_manifest": false,
+      "in_successor_config": false,
+      "json_path": "$.precondition_checked.cells_current_successor",
+      "value": "7f6664770b0d88ac5904967d9b8e2225d20932942824cd689278a03a2ee45e53"
+     },
+     {
+      "in_real_serving_manifest": false,
+      "in_successor_config": false,
+      "json_path": "$.precondition_checked.cells_original_pin",
+      "value": "3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0dd7d2c2"
+     },
+     {
+      "in_real_serving_manifest": false,
+      "in_successor_config": false,
+      "json_path": "$.precondition_checked.cells_sha256",
+      "value": "eab68b1a64f80406409338130e5befcab4e18d74909092f921004432f2a23056"
+     },
+     {
+      "in_real_serving_manifest": false,
+      "in_successor_config": false,
+      "json_path": "$.precondition_checked.protocol_sha256",
+      "value": "7f6664770b0d88ac5904967d9b8e2225d20932942824cd689278a03a2ee45e53"
+     },
+     {
+      "in_real_serving_manifest": false,
+      "in_successor_config": false,
+      "json_path": "$.prior_versions_retained.protocol_sha256",
+      "value": "7f6664770b0d88ac5904967d9b8e2225d20932942824cd689278a03a2ee45e53"
+     },
+     {
+      "in_real_serving_manifest": false,
+      "in_successor_config": false,
+      "json_path": "$.successor_provenance.demoted_successor",
+      "value": "7f6664770b0d88ac5904967d9b8e2225d20932942824cd689278a03a2ee45e53"
+     },
+     {
+      "in_real_serving_manifest": false,
+      "in_successor_config": false,
+      "json_path": "$.successor_provenance.original_pin_untouched",
+      "value": "3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0dd7d2c2"
+     }
+    ],
+    "path": "results/live_ab/PATCH_STATE_AMENDMENT_RECEIPT_20260923_1933.json",
+    "pins_found": 24,
+    "reissued_by_this_successor": false,
+    "sha256": "01b00a6d0133b50d9434fff2b830e4a118d84c3114bba33160cb2dd6bb4a4d65",
+    "successor_only": [],
+    "unchanged_artifacts": [
+     "<rule block of config.json>",
+     "experiments/live_ab_serving/live_ab_slot_lifecycle.patch"
+    ],
+    "verdict": "STALE: pins of 4 artifact(s) moved between b049307 and HEAD (experiments/live_ab/config.json, experiments/live_ab/design/ARCHITECTURE_FINAL.md, experiments/live_ab/design/protocol_FINAL.md, experiments/live_ab_validation/cells.json); 2 pinned artifact(s) unchanged; 9 pin(s) are digests of no tracked file at either revision: 0 carried by the real serving manifest (the durable build), 0 by the HEAD config.json, 9 by neither. Kept as written; not reissued by this successor."
+   }
+  ]
+ },
+ "repository": {
+  "commits_predecessor_to_head": [
+   {
+    "commit": "11ba426c194ac8d2b7548afa237c862d98cc54c0",
+    "subject": "EB1a: real server start, identity and golden objects (root 20:40 item 1, route (a))"
+   },
+   {
+    "commit": "141c78876ce4cf84b106cfa6564eb967ebbe9fbb",
+    "subject": "EB1b: supervision, restart cap, reconciliation windows, pause/resume, server.lifecycle (root 20:40 items 1 and 4)"
+   },
+   {
+    "commit": "2437a24cc73005f75da6bf47610dcfef625de306",
+    "subject": "EB1c: model-free controls of the real production entry path (root 20:40 item 1)"
+   },
+   {
+    "commit": "1dd9df2233267b0a56276eff59d3afde13b00d36",
+    "subject": "EB1 fix: answer the two adversarial reviews of EB1a-c"
+   },
+   {
+    "commit": "8df2558baa40eda0e30595aa8d0b66633b02ad6e",
+    "subject": "EB1 restart-cap estimand: three cases, cap invariance, measured model identity (root 21:14)"
+   },
+   {
+    "commit": "5ae183d0433e4979a67fb7b09fedd46ca0b03107",
+    "subject": "Serving-manifest binding: one fixed artifact, assembled from the durable build, re-verified at every invocation, start and restart (root 01:53)"
+   },
+   {
+    "commit": "e9bfb18739c3c19b14b5a37f05cd8d11e9a240fc",
+    "subject": "EB1 receipt attribution: no receipt line reaches an anchor unless bound to its exact request; a decision receipt needs its external evidence (root f855e45, 3e18d69)"
+   },
+   {
+    "commit": "868573297f6877ce8fda44c6319b3150a5e3d04f",
+    "subject": "EB5 orchestrator half: every permitted worker resolved before the terminal record (root 20:40 item 3, 21:15 item 3)"
+   },
+   {
+    "commit": "7730e7f586ca610d8d6a1db2f7518bfd817389df",
+    "subject": "Merge session60/repair-eb5 into session60/repair-eb1: EB1 receipt attribution + EB5 orchestrator half"
+   },
+   {
+    "commit": "9c48512823ca1e946b2f93f7732251939188f6b0",
+    "subject": "EB5 for loaded background streams: durable load ledger, stop never forgets, sweep acceptance gated (root 20:40 item 3)"
+   },
+   {
+    "commit": "c9310b59c981cc373126de57b83d99547487baba",
+    "subject": "EB5: a loaded sweep is accepted only on tracked, observed load; a control per resolution guard"
+   },
+   {
+    "commit": "79bb1abcbaf3061ad2747ddf3802ff3182a8a029",
+    "subject": "Integration fix: two statements the merge and the cherry-picks made false"
+   },
+   {
+    "commit": "474f9d82aae2b3979910d8a99d8305b5d7bc44c1",
+    "subject": "Synchronized pre-outcome amendment v2 with the real serving manifest (root 20:40, 21:14, 01:53, 02:54, 03:24)"
+   },
+   {
+    "commit": "a289fa5e52cf8a1e3e758e750f681f0c299d07c9",
+    "subject": "Two comments the synchronized amendment made false: server_supervision is in config.json"
+   },
+   {
+    "commit": "988baf7ab3f65b9bf4318e5eb12001c49d6387d9",
+    "subject": "Harness pin successor of the EB1+EB5 subset: exact old/new pins, prior observations kept (root 20:40 item 1, 21:14 item 2, 07:03 items 1 and 3)"
+   },
+   {
+    "commit": "03fe0ca13a4d3acc2ddc022672120d3bb136e2f6",
+    "subject": "Subset fix: answer the two reviews of 988baf7 (K1-K3, R-push, reviewer findings)"
+   },
+   {
+    "commit": "591ebcd7dd5a7d8ae1605300b9e4c645ac64b3bb",
+    "subject": "Harness pin successor receipt of the subset fix (supersedes HARNESS_PIN_SUCCESSOR_20260924_1217)"
+   }
+  ],
+  "git_version": "git version 2.50.1 (Apple Git-155)",
+  "head": "591ebcd7dd5a7d8ae1605300b9e4c645ac64b3bb",
+  "predecessor": "b049307ff62153a054f61b6179291ba987de2ba1",
+  "tool_files": {
+   "experiments/live_ab_tools/harness_pin_successor.py": {
+    "git_status": " M",
+    "sha256": "c4afcd7388892a78960da01a4fb56348d7fcd255384e456216a4df11d40c6a44"
+   },
+   "experiments/live_ab_tools/tests_harness_pin_successor.py": {
+    "git_status": " M",
+    "sha256": "1a9cb6329b0a9e8045265cf016b2446041abbaf27fd7365df7ad6073e23144be"
+   }
+  },
+  "tool_run_from": "<REPO>/experiments/live_ab_tools/harness_pin_successor.py",
+  "working_tree_porcelain": [
+   " M experiments/live_ab_tools/harness_pin_successor.py",
+   " M experiments/live_ab_tools/tests_harness_pin_successor.py"
+  ]
+ },
+ "reused_files": {
+  "b049307": {
+   "agent.py": "3cf2056330c72ebd5d2884f48d6ec2daa706fcc685ad67e3c2609d809ff75b64",
+   "common.py": "cdee8821250c315b183769806d84495f3055cad14e0e70809c33aab8a6458a42",
+   "data.py": "ae630675f43786bcf7483ff90d4c641ab9a6c7c16202de456d96b03f19321405",
+   "sandbox.py": "d461570937ddbe1fb241288721a1a06b44bd41dd72ccdc2e2ffa2f144184c6ff",
+   "verify.py": "7473678b1990ca2a5a1900b45251fddcd2882f2b371d76d3a59fe669a607dbb6"
+  },
+  "dir": "experiments/local_stream",
+  "head": {
+   "agent.py": "3cf2056330c72ebd5d2884f48d6ec2daa706fcc685ad67e3c2609d809ff75b64",
+   "common.py": "cdee8821250c315b183769806d84495f3055cad14e0e70809c33aab8a6458a42",
+   "data.py": "ae630675f43786bcf7483ff90d4c641ab9a6c7c16202de456d96b03f19321405",
+   "sandbox.py": "d461570937ddbe1fb241288721a1a06b44bd41dd72ccdc2e2ffa2f144184c6ff",
+   "verify.py": "7473678b1990ca2a5a1900b45251fddcd2882f2b371d76d3a59fe669a607dbb6"
+  },
+  "names_b049307": [
+   "agent.py",
+   "sandbox.py",
+   "verify.py",
+   "data.py",
+   "common.py"
+  ],
+  "names_head": [
+   "agent.py",
+   "sandbox.py",
+   "verify.py",
+   "data.py",
+   "common.py"
+  ],
+  "reused_file_sha256_canonical": "0c1760f33c19e98b2b02323ee0dd0fb49fdcd1a79036c40f12ecc4ee8b4dba3c",
+  "unchanged": true
+ },
+ "rule_block": {
+  "b049307": "cbfd1792d09c43754eeeab3b282e92e99c76e4f878cd82d00c827f6a90fa7607",
+  "head": "cbfd1792d09c43754eeeab3b282e92e99c76e4f878cd82d00c827f6a90fa7607",
+  "head_equals_lab_common_rule_block_sha256": true,
+  "keys_unchanged": true,
+  "unchanged": true
+ },
+ "run_started_utc": "2026-09-24T16:38:57Z",
+ "schema": "live_ab/harness_pin_successor-v1",
+ "server_supervision": {
+  "b049307": null,
+  "config_line": [
+   "  \"server_supervision\": {\"max_supervised_restarts_per_server_per_trial\": 3, \"on_exceeding\": \"abort_trial_incomplete\"},"
+  ],
+  "control_modules_naming_the_block": [
+   "tests_eb1_cap_estimand.py",
+   "tests_eb1_supervision.py",
+   "tests_subset_review_fixes.py"
+  ],
+  "head": {
+   "max_supervised_restarts_per_server_per_trial": 3,
+   "on_exceeding": "abort_trial_incomplete"
+  },
+  "lab_common_server_supervision_cap_at_head": 3,
+  "landed_in_commits": [
+   "474f9d82aae2b3979910d8a99d8305b5d7bc44c1"
+  ],
+  "outside_rule_block": true,
+  "same_line_occurrences_in_the_two_fences": {
+   "ARCHITECTURE_FINAL.md": 1,
+   "protocol_FINAL.md": 1
+  },
+  "statement": "The restart-cap binding is already IN this subset, not deferred to a later amendment: config.json carries server_supervision since commit 474f9d8 (the synchronized amendment v2, receipt results/live_ab/REPAIR_AMENDMENT_V2_RECEIPT_20260924_0927.json), and the ARCHITECTURE 6.1 and Appendix B fences carry the same line once each (same_line_occurrences_in_the_two_fences). Within the subset the cap is exercised only by model-free controls with temporary freeze trees and configurations (dryrun_live_ab.build_mock_freeze reads this config.json at experiments/live_ab/dryrun_live_ab.py:184; the modules in control_modules_naming_the_block construct, edit or remove the block); no trial, loaded phase or run against a real frozen configuration has exercised it."
+ },
+ "serving_manifest": {
+  "b049307": {
+   "artifact": "absent",
+   "config_llama_cpp_serving_manifest_sha256": null
+  },
+  "head": {
+   "bytes": 20011,
+   "canonical_sha256": "1edea9b072b9c87ed9d4a0b4d7ad69b8e768d0a10d09d99efc4e64324ad68b0c",
+   "carries_no_home_token": true,
+   "code": "experiments/live_ab/lab_serving_manifest.py (added; harness entry)",
+   "config_llama_cpp_serving_manifest_sha256": "1edea9b072b9c87ed9d4a0b4d7ad69b8e768d0a10d09d99efc4e64324ad68b0c",
+   "config_value_equals_canonical_digest": true,
+   "file_is_canonical_json_plus_newline": true,
+   "file_sha256": "8c59dc0059dab3446e9aa57082571c96e04d189485f6fd407c623b93994d98fd",
+   "launcher_sha256": "35231ad4e83623e4aef72267f155a78bcf960f609ded6cf587dcb3a09f52eac3",
+   "libraries": 9
+  },
+  "path": "results/live_ab/freeze/serving_manifest.json"
+ },
+ "solo_run_suites": {
+  "all_passed": true,
+  "completed_total": 1696,
+  "deviation_from_the_contract_command": "-v added to each discover command (for skip reasons); nothing else",
+  "order": [
+   "live_ab",
+   "live_ab_controls",
+   "live_ab_serving",
+   "live_ab_tools",
+   "live_ab_validation"
+  ],
+  "planned_total": 1696,
+  "python": "<HOME>/ICLR-WinRatioAgentEvals/.venv/bin/python",
+  "runs": [
+   {
+    "argv": [
+     "<HOME>/ICLR-WinRatioAgentEvals/.venv/bin/python",
+     "-m",
+     "unittest",
+     "discover",
+     "-v",
+     "-s",
+     "experiments/live_ab",
+     "-p",
+     "tests_*.py"
+    ],
+    "child_rusage": {
+     "max_rss_bytes_darwin": 220725248,
+     "system_s": 10.035,
+     "user_s": 113.105
+    },
+    "cwd": "<REPO>",
+    "end_utc": "2026-09-24T16:42:47Z",
+    "fixture_uses": {
+     "compilers": [],
+     "distinct_output_sets": [],
+     "events": {},
+     "linkers": [],
+     "log": "eb1c_sm_fixture_uses.jsonl",
+     "uses": 0
+    },
+    "host_after": {
+     "battery": [
+      "-InternalBattery-0 (id=27263075)\t100%; charged; 0:00 remaining present: true"
+     ],
+     "disk_free_bytes_repo_volume": 85850005504,
+     "load_average": "{ 2.94 2.90 2.73 }",
+     "memory_bytes": 34359738368,
+     "ncpu": 10,
+     "processes": 1213,
+     "reading": "an observation at utc; not a capacity reservation",
+     "utc": "2026-09-24T16:42:47Z",
+     "vm_free_inactive_speculative_bytes": 11075371008,
+     "watched_processes_outside_the_suite": []
+    },
+    "host_before": {
+     "battery": [
+      "-InternalBattery-0 (id=27263075)\t100%; charged; 0:00 remaining present: true"
+     ],
+     "disk_free_bytes_repo_volume": 85852344320,
+     "load_average": "{ 3.13 2.81 2.66 }",
+     "memory_bytes": 34359738368,
+     "ncpu": 10,
+     "processes": 1209,
+     "reading": "an observation at utc; not a capacity reservation",
+     "utc": "2026-09-24T16:39:04Z",
+     "vm_free_inactive_speculative_bytes": 10948722688,
+     "watched_processes_outside_the_suite": []
+    },
+    "plan": {
+     "import_failures": [],
+     "per_module": {
+      "tests_lab_chain": 70,
+      "tests_lab_design": 345,
+      "tests_lab_e2e": 42,
+      "tests_lab_hostcheck": 117,
+      "tests_lab_isolation": 33,
+      "tests_lab_serving": 73,
+      "tests_lab_stats": 70,
+      "tests_local_stream": 16
+     },
+     "planned": 766
+    },
+    "result": {
+     "completed_equals_planned": true,
+     "exit": 0,
+     "failure_headers": [],
+     "passed": true,
+     "planned": 766,
+     "ran": 766,
+     "ran_line": "Ran 766 tests in 222.332s",
+     "runner_seconds": 222.332,
+     "script_summary_line": null,
+     "skips": [
+      {
+       "reason": "'pinned sources not present on this host'",
+       "test": "tests_lab_design.Stage1RegressionFixtureTests.test_counts_match_the_stage1_receipt_for_these_exact_sources"
+      }
+     ],
+     "verdict_counts": {
+      "skipped": 1
+     },
+     "verdict_line": "OK (skipped=1)"
+    },
+    "sampler": {
+     "every_s": 2.0,
+     "pids_attributed_to_the_suite_tree": 40,
+     "reading": "watched processes never seen in the suite's own process tree at any sample (every 2s); sampled, not continuous",
+     "samples": 109,
+     "watched_outside_the_tree": [],
+     "watched_patterns": [
+      "unittest",
+      "tests_",
+      "llama-server",
+      "llama_server",
+      "lab_orchestrator",
+      "lab_mock_server",
+      "run_smoke",
+      "run_live_ab",
+      "ninja",
+      "cmake",
+      "mlx_lm",
+      "ollama",
+      "vllm"
+     ]
+    },
+    "start_utc": "2026-09-24T16:39:04Z",
+    "stderr_bytes": 137061,
+    "stderr_sha256": "ae7ec780deda665e646f3f37336f76c40aef7698bc781eabc42fc2183f0e172b",
+    "stderr_tail": [
+     "----------------------------------------------------------------------",
+     "Ran 766 tests in 222.332s",
+     "",
+     "OK (skipped=1)"
+    ],
+    "stdout_bytes": 1542,
+    "stdout_sha256": "0e95801c0231ffde655abc2c51d3e557864c2da9658f042252f3aa701d2bcfa5",
+    "stdout_tail": [
+     "[signature gate] DEVIATION from section 3: lab_server.restart: extra keyword-only parameter(s) ['previous_props_sha256', 'golden', 'sampling', 'timeout_s', 'previous_pid', 'restart_index', 'serving_manifest_path', 'serving_manifest_sha256', 'recompute_gguf_sha256'] beyond section 3",
+     "[signature gate] DEVIATION from section 3: lab_server.start: extra keyword-only parameter(s) ['golden_props', 'golden', 'sampling', 'timeout_s', 'recompute_gguf_sha256', 'serving_manifest_path', 'serving_manifest_sha256', 'mode', 'kind', 'restart_index'] beyond section 3"
+    ],
+    "suite": "live_ab",
+    "timed_out": false,
+    "wall_seconds": 223.106
+   },
+   {
+    "argv": [
+     "<HOME>/ICLR-WinRatioAgentEvals/.venv/bin/python",
+     "-m",
+     "unittest",
+     "discover",
+     "-v",
+     "-s",
+     "experiments/live_ab_controls",
+     "-p",
+     "tests_*.py"
+    ],
+    "child_rusage": {
+     "max_rss_bytes_darwin": 282476544,
+     "system_s": 103.277,
+     "user_s": 578.563
+    },
+    "cwd": "<REPO>",
+    "end_utc": "2026-09-24T17:30:57Z",
+    "fixture_uses": {
+     "compilers": [
+      "Apple clang version 21.0.0 (clang-2100.1.1.101)"
+     ],
+     "distinct_output_sets": [
+      {
+       "libeb1c-base.0.1.0.dylib": "1da59ce411953f7101d01152130b4a4c0490c671d29af372917f74e863633c12",
+       "libeb1c-core.0.dylib": "85653080c073758584a4a1757db326630bb021df8e7021969934bbafc74a1c16",
+       "llama-server": "1ec41938dc0281f5c77d5ee8ff59a02abe319c861dc9b98c26730b5b86898668"
+      }
+     ],
+     "events": {
+      "cache_verified": 95
+     },
+     "linkers": [
+      "@(#)PROGRAM:ld PROJECT:ld-1267"
+     ],
+     "log": "eb1c_sm_fixture_uses.jsonl",
+     "uses": 95
+    },
+    "host_after": {
+     "battery": [
+      "-InternalBattery-0 (id=27263075)\t100%; charged; 0:00 remaining present: true"
+     ],
+     "disk_free_bytes_repo_volume": 86427594752,
+     "load_average": "{ 2.83 2.82 2.72 }",
+     "memory_bytes": 34359738368,
+     "ncpu": 10,
+     "processes": 1231,
+     "reading": "an observation at utc; not a capacity reservation",
+     "utc": "2026-09-24T17:30:57Z",
+     "vm_free_inactive_speculative_bytes": 13041795072,
+     "watched_processes_outside_the_suite": []
+    },
+    "host_before": {
+     "battery": [
+      "-InternalBattery-0 (id=27263075)\t100%; charged; 0:00 remaining present: true"
+     ],
+     "disk_free_bytes_repo_volume": 85849989120,
+     "load_average": "{ 2.94 2.90 2.73 }",
+     "memory_bytes": 34359738368,
+     "ncpu": 10,
+     "processes": 1213,
+     "reading": "an observation at utc; not a capacity reservation",
+     "utc": "2026-09-24T16:42:48Z",
+     "vm_free_inactive_speculative_bytes": 11074748416,
+     "watched_processes_outside_the_suite": []
+    },
+    "plan": {
+     "import_failures": [],
+     "per_module": {
+      "tests_delta_citations": 7,
+      "tests_eb1_cap_estimand": 28,
+      "tests_eb1_entry": 32,
+      "tests_eb1_receipt_attribution": 29,
+      "tests_eb1_server": 60,
+      "tests_eb1_supervision": 64,
+      "tests_eb5_resolution": 35,
+      "tests_lab_load_resolution": 27,
+      "tests_sm_entry": 15,
+      "tests_sm_manifest": 71,
+      "tests_subset_review_fixes": 25
+     },
+     "planned": 393
+    },
+    "result": {
+     "completed_equals_planned": true,
+     "exit": 0,
+     "failure_headers": [],
+     "passed": true,
+     "planned": 393,
+     "ran": 393,
+     "ran_line": "Ran 393 tests in 2888.837s",
+     "runner_seconds": 2888.837,
+     "script_summary_line": null,
+     "skips": [],
+     "verdict_counts": {},
+     "verdict_line": "OK"
+    },
+    "sampler": {
+     "every_s": 2.0,
+     "pids_attributed_to_the_suite_tree": 499,
+     "reading": "watched processes never seen in the suite's own process tree at any sample (every 2s); sampled, not continuous",
+     "samples": 1397,
+     "watched_outside_the_tree": [],
+     "watched_patterns": [
+      "unittest",
+      "tests_",
+      "llama-server",
+      "llama_server",
+      "lab_orchestrator",
+      "lab_mock_server",
+      "run_smoke",
+      "run_live_ab",
+      "ninja",
+      "cmake",
+      "mlx_lm",
+      "ollama",
+      "vllm"
+     ]
+    },
+    "start_utc": "2026-09-24T16:42:48Z",
+    "stderr_bytes": 67151,
+    "stderr_sha256": "478e720339dfe36dec422bcb6f90a6fea61c82e31d9d177c5e97f09a3cf56517",
+    "stderr_tail": [
+     "----------------------------------------------------------------------",
+     "Ran 393 tests in 2888.837s",
+     "",
+     "OK"
+    ],
+    "stdout_bytes": 0,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_tail": [],
+    "suite": "live_ab_controls",
+    "timed_out": false,
+    "wall_seconds": 2889.416
+   },
+   {
+    "argv": [
+     "<HOME>/ICLR-WinRatioAgentEvals/.venv/bin/python",
+     "-m",
+     "unittest",
+     "discover",
+     "-v",
+     "-s",
+     "experiments/live_ab_serving",
+     "-p",
+     "tests_*.py"
+    ],
+    "child_rusage": {
+     "max_rss_bytes_darwin": 35799040,
+     "system_s": 0.342,
+     "user_s": 0.303
+    },
+    "cwd": "<REPO>",
+    "end_utc": "2026-09-24T17:31:00Z",
+    "fixture_uses": {
+     "compilers": [],
+     "distinct_output_sets": [],
+     "events": {},
+     "linkers": [],
+     "log": "eb1c_sm_fixture_uses.jsonl",
+     "uses": 0
+    },
+    "host_after": {
+     "battery": [
+      "-InternalBattery-0 (id=27263075)\t100%; charged; 0:00 remaining present: true"
+     ],
+     "disk_free_bytes_repo_volume": 86427144192,
+     "load_average": "{ 2.68 2.79 2.71 }",
+     "memory_bytes": 34359738368,
+     "ncpu": 10,
+     "processes": 1231,
+     "reading": "an observation at utc; not a capacity reservation",
+     "utc": "2026-09-24T17:31:00Z",
+     "vm_free_inactive_speculative_bytes": 12580765696,
+     "watched_processes_outside_the_suite": []
+    },
+    "host_before": {
+     "battery": [
+      "-InternalBattery-0 (id=27263075)\t100%; charged; 0:00 remaining present: true"
+     ],
+     "disk_free_bytes_repo_volume": 86427590656,
+     "load_average": "{ 2.68 2.79 2.71 }",
+     "memory_bytes": 34359738368,
+     "ncpu": 10,
+     "processes": 1231,
+     "reading": "an observation at utc; not a capacity reservation",
+     "utc": "2026-09-24T17:30:57Z",
+     "vm_free_inactive_speculative_bytes": 13042925568,
+     "watched_processes_outside_the_suite": []
+    },
+    "plan": {
+     "import_failures": [],
+     "per_module": {
+      "tests_build_config_snapshot": 17,
+      "tests_config_contract": 8,
+      "tests_dependency_closure": 43,
+      "tests_durable_linkage_delta": 6,
+      "tests_loader_call_sites": 41,
+      "tests_source_tree_three_checks": 3,
+      "tests_supervisor_entry": 75
+     },
+     "planned": 193
+    },
+    "result": {
+     "completed_equals_planned": true,
+     "exit": 0,
+     "failure_headers": [],
+     "passed": true,
+     "planned": 193,
+     "ran": 193,
+     "ran_line": "Ran 193 tests in 2.136s",
+     "runner_seconds": 2.136,
+     "script_summary_line": null,
+     "skips": [],
+     "verdict_counts": {},
+     "verdict_line": "OK"
+    },
+    "sampler": {
+     "every_s": 2.0,
+     "pids_attributed_to_the_suite_tree": 7,
+     "reading": "watched processes never seen in the suite's own process tree at any sample (every 2s); sampled, not continuous",
+     "samples": 2,
+     "watched_outside_the_tree": [],
+     "watched_patterns": [
+      "unittest",
+      "tests_",
+      "llama-server",
+      "llama_server",
+      "lab_orchestrator",
+      "lab_mock_server",
+      "run_smoke",
+      "run_live_ab",
+      "ninja",
+      "cmake",
+      "mlx_lm",
+      "ollama",
+      "vllm"
+     ]
+    },
+    "start_utc": "2026-09-24T17:30:57Z",
+    "stderr_bytes": 39878,
+    "stderr_sha256": "9be25c3f94002c4d91cdd35e4d9f706153c77fc257af8b2dbe335d974f8e5e25",
+    "stderr_tail": [
+     "----------------------------------------------------------------------",
+     "Ran 193 tests in 2.136s",
+     "",
+     "OK"
+    ],
+    "stdout_bytes": 46133,
+    "stdout_sha256": "cbf2b51682b1a62964d3d021ea1a974824397a7a7bfddd4f1b0698f70cb32580",
+    "stdout_tail": [
+     "observation active: True | lifecycle_complete: True | reason: None",
+     "written: <TMP>/sup_entry_ob6hdqzl/results/SMOKE_RECEIPT_smoke_4167e395ccfd.json"
+    ],
+    "suite": "live_ab_serving",
+    "timed_out": false,
+    "wall_seconds": 2.546
+   },
+   {
+    "argv": [
+     "<HOME>/ICLR-WinRatioAgentEvals/.venv/bin/python",
+     "-m",
+     "unittest",
+     "discover",
+     "-v",
+     "-s",
+     "experiments/live_ab_tools",
+     "-p",
+     "tests_*.py"
+    ],
+    "child_rusage": {
+     "max_rss_bytes_darwin": 193609728,
+     "system_s": 27.96,
+     "user_s": 31.629
+    },
+    "cwd": "<REPO>",
+    "end_utc": "2026-09-24T17:32:07Z",
+    "fixture_uses": {
+     "compilers": [],
+     "distinct_output_sets": [],
+     "events": {},
+     "linkers": [],
+     "log": "eb1c_sm_fixture_uses.jsonl",
+     "uses": 0
+    },
+    "host_after": {
+     "battery": [
+      "-InternalBattery-0 (id=27263075)\t100%; charged; 0:00 remaining present: true"
+     ],
+     "disk_free_bytes_repo_volume": 86385086464,
+     "load_average": "{ 3.12 2.92 2.76 }",
+     "memory_bytes": 34359738368,
+     "ncpu": 10,
+     "processes": 1226,
+     "reading": "an observation at utc; not a capacity reservation",
+     "utc": "2026-09-24T17:32:07Z",
+     "vm_free_inactive_speculative_bytes": 12944064512,
+     "watched_processes_outside_the_suite": []
+    },
+    "host_before": {
+     "battery": [
+      "-InternalBattery-0 (id=27263075)\t100%; charged; 0:00 remaining present: true"
+     ],
+     "disk_free_bytes_repo_volume": 86427131904,
+     "load_average": "{ 2.68 2.79 2.71 }",
+     "memory_bytes": 34359738368,
+     "ncpu": 10,
+     "processes": 1229,
+     "reading": "an observation at utc; not a capacity reservation",
+     "utc": "2026-09-24T17:31:00Z",
+     "vm_free_inactive_speculative_bytes": 12580225024,
+     "watched_processes_outside_the_suite": []
+    },
+    "plan": {
+     "import_failures": [],
+     "per_module": {
+      "tests_engineering_cap_amendment": 10,
+      "tests_harness_pin_successor": 34,
+      "tests_patch_state_amendment": 14,
+      "tests_repair_amendment_v2": 79
+     },
+     "planned": 137
+    },
+    "result": {
+     "completed_equals_planned": true,
+     "exit": 0,
+     "failure_headers": [],
+     "passed": true,
+     "planned": 137,
+     "ran": 137,
+     "ran_line": "Ran 137 tests in 66.760s",
+     "runner_seconds": 66.76,
+     "script_summary_line": null,
+     "skips": [
+      {
+       "reason": "'the three pinned roster sources are not on this host (set LIVE_AB_SOURCES_DIR)'",
+       "test": "tests_repair_amendment_v2.RealSourcesTests.test_the_recorded_similarity_maxima_are_reproduced"
+      }
+     ],
+     "verdict_counts": {
+      "skipped": 1
+     },
+     "verdict_line": "OK (skipped=1)"
+    },
+    "sampler": {
+     "every_s": 2.0,
+     "pids_attributed_to_the_suite_tree": 37,
+     "reading": "watched processes never seen in the suite's own process tree at any sample (every 2s); sampled, not continuous",
+     "samples": 33,
+     "watched_outside_the_tree": [
+      {
+       "attribution": "orphan_started_during_the_suite",
+       "command_head": "<HOME>/ICLR-WinRatioAgentEvals/.venv/bin/python -c import time; time.sleep(3.5)  # tests_pinsucc_orphan",
+       "pid": 25572,
+       "ppid": 1,
+       "started_utc": "2026-09-24T17:31:31Z"
+      }
+     ],
+     "watched_patterns": [
+      "unittest",
+      "tests_",
+      "llama-server",
+      "llama_server",
+      "lab_orchestrator",
+      "lab_mock_server",
+      "run_smoke",
+      "run_live_ab",
+      "ninja",
+      "cmake",
+      "mlx_lm",
+      "ollama",
+      "vllm"
+     ]
+    },
+    "start_utc": "2026-09-24T17:31:00Z",
+    "stderr_bytes": 24922,
+    "stderr_sha256": "9d9d0c8471ea9bd2cf3f1134578cf9a91bcced184b5e7f9bfcdb7739056af43a",
+    "stderr_tail": [
+     "----------------------------------------------------------------------",
+     "Ran 137 tests in 66.760s",
+     "",
+     "OK (skipped=1)"
+    ],
+    "stdout_bytes": 0,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_tail": [],
+    "suite": "live_ab_tools",
+    "timed_out": false,
+    "wall_seconds": 66.853
+   },
+   {
+    "argv": [
+     "<HOME>/ICLR-WinRatioAgentEvals/.venv/bin/python",
+     "experiments/live_ab_validation/tests_validation.py"
+    ],
+    "child_rusage": {
+     "max_rss_bytes_darwin": 109133824,
+     "system_s": 0.212,
+     "user_s": 12.711
+    },
+    "cwd": "<REPO>",
+    "end_utc": "2026-09-24T17:32:20Z",
+    "fixture_uses": {
+     "compilers": [],
+     "distinct_output_sets": [],
+     "events": {},
+     "linkers": [],
+     "log": "eb1c_sm_fixture_uses.jsonl",
+     "uses": 0
+    },
+    "host_after": {
+     "battery": [
+      "-InternalBattery-0 (id=27263075)\t100%; charged; 0:00 remaining present: true"
+     ],
+     "disk_free_bytes_repo_volume": 86384820224,
+     "load_average": "{ 3.32 2.97 2.78 }",
+     "memory_bytes": 34359738368,
+     "ncpu": 10,
+     "processes": 1225,
+     "reading": "an observation at utc; not a capacity reservation",
+     "utc": "2026-09-24T17:32:20Z",
+     "vm_free_inactive_speculative_bytes": 12958531584,
+     "watched_processes_outside_the_suite": []
+    },
+    "host_before": {
+     "battery": [
+      "-InternalBattery-0 (id=27263075)\t100%; charged; 0:00 remaining present: true"
+     ],
+     "disk_free_bytes_repo_volume": 86385086464,
+     "load_average": "{ 3.12 2.92 2.76 }",
+     "memory_bytes": 34359738368,
+     "ncpu": 10,
+     "processes": 1226,
+     "reading": "an observation at utc; not a capacity reservation",
+     "utc": "2026-09-24T17:32:07Z",
+     "vm_free_inactive_speculative_bytes": 12879233024,
+     "watched_processes_outside_the_suite": []
+    },
+    "plan": {
+     "import_failures": [],
+     "per_module": {
+      "tests_validation": 207
+     },
+     "planned": 207
+    },
+    "result": {
+     "completed_equals_planned": true,
+     "exit": 0,
+     "failure_headers": [],
+     "passed": true,
+     "planned": 207,
+     "ran": 207,
+     "ran_line": "Ran 207 tests in 12.833s",
+     "runner_seconds": 12.833,
+     "script_summary_line": "ran=207 failures=0 errors=0 skipped=6",
+     "skips": [
+      {
+       "reason": "'the compiled author reference is not built here'",
+       "test": "__main__.TestCrosscheckRepairAndWidthDiagnostic.test_the_diagnostic_refuses_a_foreign_reference_module"
+      },
+      {
+       "reason": "'the compiled author reference is not built here'",
+       "test": "__main__.TestCrosscheckRepairAndWidthDiagnostic.test_the_repaired_boundary_matches_the_authors_exactly"
+      },
+      {
+       "reason": "\"the authors' compiled boundary module is not built for this interpreter: <REPO>/experiments/live_ab_validation/reference/_build/boundaries.cpython-312-darwin.so is missing. Rebuild ",
+       "test": "__main__.TestVendoredAuthorReference.test_crosscheck_reproduces_the_theorem_2_centre_and_clock"
+      },
+      {
+       "reason": "\"the authors' compiled boundary module is not built for this interpreter: <REPO>/experiments/live_ab_validation/reference/_build/boundaries.cpython-312-darwin.so is missing. Rebuild ",
+       "test": "__main__.TestVendoredAuthorReference.test_out_of_range_scores_are_refused"
+      },
+      {
+       "reason": "\"the authors' compiled boundary module is not built for this interpreter: <REPO>/experiments/live_ab_validation/reference/_build/boundaries.cpython-312-darwin.so is missing. Rebuild ",
+       "test": "__main__.TestVendoredAuthorReference.test_the_crosscheck_stitching_disagreement_is_recorded"
+      },
+      {
+       "reason": "\"reference not built for this interpreter: the authors' compiled boundary module is not built for this interpreter: <REPO>/experiments/live_ab_validation/reference/_build/boundaries.",
+       "test": "__main__.TestVendoredAuthorReference.test_the_reference_imports_and_is_the_authors_callable"
+      }
+     ],
+     "verdict_counts": {
+      "expected failures": 2,
+      "skipped": 6
+     },
+     "verdict_line": "OK (skipped=6, expected failures=2)"
+    },
+    "sampler": {
+     "every_s": 2.0,
+     "pids_attributed_to_the_suite_tree": 7,
+     "reading": "watched processes never seen in the suite's own process tree at any sample (every 2s); sampled, not continuous",
+     "samples": 7,
+     "watched_outside_the_tree": [],
+     "watched_patterns": [
+      "unittest",
+      "tests_",
+      "llama-server",
+      "llama_server",
+      "lab_orchestrator",
+      "lab_mock_server",
+      "run_smoke",
+      "run_live_ab",
+      "ninja",
+      "cmake",
+      "mlx_lm",
+      "ollama",
+      "vllm"
+     ]
+    },
+    "start_utc": "2026-09-24T17:32:07Z",
+    "stderr_bytes": 35796,
+    "stderr_sha256": "67966cffcb6cac812f95cb75833697eb779bab921ae896159b8ef835a14afe85",
+    "stderr_tail": [
+     "----------------------------------------------------------------------",
+     "Ran 207 tests in 12.833s",
+     "",
+     "OK (skipped=6, expected failures=2)"
+    ],
+    "stdout_bytes": 39,
+    "stdout_sha256": "5163507b4f23914810dbc3eec6e9e697f889bb0172a2c97061bd0f873c4cc5e4",
+    "stdout_tail": [
+     "",
+     "ran=207 failures=0 errors=0 skipped=6"
+    ],
+    "suite": "live_ab_validation",
+    "timed_out": false,
+    "wall_seconds": 13.191
+   }
+  ],
+  "solo_evidence": {
+   "foreign": [],
+   "orphans_started_during_a_suite": [
+    "<HOME>/ICLR-WinRatioAgentEvals/.venv/bin/python -c import time; time.sleep(3.5)  # tests_pinsucc_orphan"
+   ],
+   "solo": true,
+   "solo_strict": false
+  }
+ },
+ "status": "PROPOSED pre-outcome pin successor for root review; not a freeze",
+ "supersedes": [
+  {
+   "byte_identical": true,
+   "head_when_written": "988baf7",
+   "path": "results/live_ab/HARNESS_PIN_SUCCESSOR_20260924_1217.json",
+   "present_at_head": true,
+   "sha256": "25010726114a05415c519a5c4ab297d75f8bdeeca9a0f8d91930dc6c170f2462",
+   "sha256_at_head": "25010726114a05415c519a5c4ab297d75f8bdeeca9a0f8d91930dc6c170f2462",
+   "why": "the subset fix answering the two reviews of 988baf7 changes harness files (lab_orchestrator, lab_eventlog, lab_verify_log, build_live_ab_results); that receipt pins the 988baf7 harness and stays as written"
+  },
+  {
+   "byte_identical": true,
+   "head_when_written": "03fe0ca",
+   "path": "results/live_ab/HARNESS_PIN_SUCCESSOR_20260924_1635.json",
+   "present_at_head": true,
+   "sha256": "7e5cb1c3f333562d1b91cbdb31d8cb7e68a0e17126c69237fc5dc538023d6db5",
+   "sha256_at_head": "7e5cb1c3f333562d1b91cbdb31d8cb7e68a0e17126c69237fc5dc538023d6db5",
+   "why": "the same harness pins (03fe0ca), but its suites were neither all green nor solo: live_ab failed the stochastic tests_lab_design.CoinTests.test_coin_balance_10k (10,000 coins outside [4850, 5150], about a 0.3% false failure rate; lab_coin unchanged since b049307), and a foreign real llama-server of another project ran on the host during it; this receipt re-runs the suites on a quiet host"
+  }
+ ],
+ "synchronized_amendment": {
+  "commit": "474f9d82aae2b3979910d8a99d8305b5d7bc44c1",
+  "head_equals_its_written_values": {
+   "ARCHITECTURE_FINAL.md": true,
+   "cells.json": true,
+   "config.json": true,
+   "protocol_FINAL.md": true,
+   "rule_block": true,
+   "serving_manifest_canonical": true,
+   "serving_manifest_file": true
+  },
+  "receipt": "results/live_ab/REPAIR_AMENDMENT_V2_RECEIPT_20260924_0927.json",
+  "receipt_sha256": "66efcb8b64b3e54d890ac70c77686e0678255fe6cba78347fa3a30878e12feff"
+ },
+ "this_is_not_a_freeze": "no freeze bundle exists; nothing here approves a freeze, a loaded stage or a trial"
+}

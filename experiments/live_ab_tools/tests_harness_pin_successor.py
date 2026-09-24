@@ -444,16 +444,20 @@ class FixtureTests(unittest.TestCase):
 class SupersedesTests(unittest.TestCase):
 
     def test_the_superseded_receipt_is_the_committed_bytes_and_a_change_refuses(self):
-        path = REPO / hps.SUPERSEDES['path']
-        data = path.read_bytes()
-        rec, problems = hps.supersedes_record(data)
-        self.assertEqual((rec['byte_identical'], problems), (True, []))
-        self.assertEqual(rec['sha256_at_head'], hps.SUPERSEDES['sha256'])
-        rec, problems = hps.supersedes_record(data + b' ')
-        self.assertEqual((rec['byte_identical'], problems),
-                         (False, ['superseded_receipt_changed']))
-        rec, problems = hps.supersedes_record(None)
-        self.assertEqual((rec['present_at_head'], problems), (False, []))
+        self.assertEqual([e['path'].rsplit('/', 1)[1] for e in hps.SUPERSEDES],
+                         ['HARNESS_PIN_SUCCESSOR_20260924_1217.json',
+                          'HARNESS_PIN_SUCCESSOR_20260924_1635.json'])
+        for entry in hps.SUPERSEDES:
+            with self.subTest(receipt=entry['path']):
+                data = (REPO / entry['path']).read_bytes()
+                rec, problems = hps.supersedes_record(entry, data)
+                self.assertEqual((rec['byte_identical'], problems), (True, []))
+                self.assertEqual(rec['sha256_at_head'], entry['sha256'])
+                rec, problems = hps.supersedes_record(entry, data + b' ')
+                self.assertEqual((rec['byte_identical'], problems),
+                                 (False, ['superseded_receipt_changed:%s' % entry['path']]))
+                rec, problems = hps.supersedes_record(entry, None)
+                self.assertEqual((rec['present_at_head'], problems), (False, []))
 
     def test_the_disclosed_red_runs_name_their_result_and_disposition(self):
         self.assertGreaterEqual(len(hps.DISCLOSED_RED_RUNS), 1)
