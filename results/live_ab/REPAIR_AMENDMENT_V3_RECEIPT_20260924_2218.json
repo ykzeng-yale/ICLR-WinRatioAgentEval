@@ -1,0 +1,1094 @@
+{
+ "authority": "root: reviews/eb1_eb5_decision_eligibility_ruling_20260924_1605.md items 1 and 2; reviews/eb1_eb5_invalid_decision_summary_20260924_1905.md; reviews/decision_receipt_metadata_ruling_20260924_0324.md; reviews/restart_cap_estimand_ruling_20260923_2114.md (quoted in this tool's docstring)",
+ "code_checked_at_run_time": {
+  "facts": {
+   "builder_labels": {
+    "ABORT_INCOMPLETE_LABEL": "incomplete: aborted before any decision; a crossing logged after the abort point was not acted on (no decision; not a null result, not an abstention)",
+    "DECISION_INVALID_LABEL": "LIVE_DECISION_INVALID (harness defect)",
+    "PROVISIONAL_LABEL": "provisional: the logged decision has no chained external receipt (no finalized claim)",
+    "RESTART_CAP_INCOMPLETE_LABEL": "incomplete: restart cap before any decision (no decision; not a null result, not an abstention)"
+   },
+   "code_abort_owed_fields": [
+    "decision_logged",
+    "open_arrivals",
+    "reason",
+    "source"
+   ],
+   "code_abort_sources": [
+    "supervision",
+    "abort_raised",
+    "run_loop_backstop",
+    "close_with_open_work",
+    "resolution_verdict",
+    "look_guard"
+   ],
+   "code_anchor_commit_problems": [
+    "repo_unreadable",
+    "anchor_outside_repo",
+    "commit_absent",
+    "not_on_pushed_branch",
+    "anchor_file_absent",
+    "anchor_file_mismatch"
+   ],
+   "code_point_reasons": [
+    "abort_owed",
+    "infrastructure",
+    "receipt_mismatch",
+    "server_identity",
+    "server_restart_cap",
+    "server_start_failed",
+    "unresolved_worker"
+   ],
+   "crossing_after_the_point": {
+    "action": "deploy_candidate",
+    "eligible": false,
+    "index": 1,
+    "n": 6,
+    "reason": "abort_owed",
+    "reason_text": "a terminal abort was owed before this look (abort_owed, written before its drain)",
+    "reference_action": "deploy_candidate",
+    "seq": 6,
+    "trigger": "reveal",
+    "verdict": "not_acted_on"
+   },
+   "crossing_before_the_point": {
+    "action": "deploy_candidate",
+    "eligible": true,
+    "index": 0,
+    "n": 4,
+    "reason": null,
+    "reference_action": "deploy_candidate",
+    "seq": 4,
+    "trigger": "reveal",
+    "verdict": "missed"
+   },
+   "effective_state_after_a_later_resolution": "alive_unresolved",
+   "lost_window_without_a_read_counter": [
+    {
+     "client_usage_sum": {
+      "predicted": 2,
+      "prompt": 3
+     },
+     "counter_delta": {
+      "predicted": null,
+      "prompt": null
+     },
+     "counters_lost": true,
+     "reconciliation_defect": false,
+     "residual": {
+      "predicted": null,
+      "prompt": null
+     },
+     "server_id": "coder",
+     "window": "restart",
+     "window_from_seq": 0,
+     "window_to_seq": 2
+    }
+   ],
+   "no_decision_point_of_an_abort_owed": {
+    "abort_reason": "harness_defect",
+    "reason": "abort_owed",
+    "seq": 5,
+    "source": "run_loop_backstop"
+   },
+   "row_31_sources": [
+    "supervision",
+    "abort_raised",
+    "run_loop_backstop",
+    "close_with_open_work",
+    "resolution_verdict",
+    "look_guard"
+   ],
+   "supervision_state_pending_abort": "harness_defect",
+   "verifier_names_in_code": {
+    "NOT_ACTED_ON_abort_before_decision": true,
+    "NOT_ACTED_ON_restart_cap_before_decision": true,
+    "abort_point_missing": true,
+    "decision_after_cap": true,
+    "decision_after_no_decision_point": true
+   }
+  },
+  "gate": {
+   "abort_owed_is_trial_only_and_durable_in_the_prose": true,
+   "an_unresolved_worker_is_a_no_decision_point": true,
+   "an_unresolved_worker_stays_unresolved": true,
+   "anchor_commit_problems_named_in_12_4": true,
+   "builder_labels_quoted_verbatim_in_16": true,
+   "crossing_after_the_point_not_acted_on_with_its_reason": true,
+   "crossing_before_the_point_missed_is_a_defect": true,
+   "decision_receipt_commit_check_is_wired": true,
+   "no_decision_point_reads_abort_owed": true,
+   "null_fields_are_nullable_in_the_schema": true,
+   "point_reasons_are_the_code_and_6_4_names_each": true,
+   "row_31_names_exactly_the_abort_owed_fields": true,
+   "row_31_names_exactly_the_abort_sources": true,
+   "summary_decision_is_the_result_and_logged_decision_beside_it": true,
+   "supervision_state_replays_abort_owed": true,
+   "unread_counter_delta_is_null": true,
+   "verifier_rule_names_are_the_code": true
+  }
+ },
+ "code_the_prose_describes": [
+  "lab_eventlog: no_decision_point, decision_eligibility, INELIGIBLE_REASONS, CROSSING_VERDICTS, ABORT_SOURCES, ABORT_OWED_FIELDS, WORKER_RESOLVED_FIELDS, RESOLUTION_PROBLEMS, EVENT_SCHEMA (abort_owed, usage_reconciliation, deposit_sealed)",
+  "lab_orchestrator: World.owe_abort, World.write_abort_owed, World._look_eligibility, World._write_one_look, supervise_down, supervised_restart, resume_servers, health_poll, the run loop (abort_raised, run_loop_backstop), close_trial (close_with_open_work, resolution_verdict), supervision_state, effective_worker_states, phase_resolution_verdict, resolve_previous_workers, assert_resolved_before_interrupt, resolve_worker / _resolution_body, seal_deposit, reconciliation_windows, anchor_commit_problem, decision_evidence_verdict, judge_receipt_line, World.anchor_commit_check",
+  "lab_verify_log: reference_rule.agreement (_check_decision_eligibility: decision_after_no_decision_point, abort_point_missing, NOT_ACTED_ON_* INFO rows, the missed crossing), server.lifecycle decision_after_cap, workers.resolved",
+  "build_live_ab_results: eligibility_object, decision_object (first match wins), DECISION_INVALID_LABEL, RESTART_CAP_INCOMPLETE_LABEL, ABORT_INCOMPLETE_LABEL, PROVISIONAL_LABEL, build (summary decision = primary_result, logged_decision)"
+ ],
+ "convention": "deterministic-path",
+ "dependent_hashes_that_do_not_move": [
+  "config_sha256 and harness_file_sha256[config.json] (config.json not written)",
+  "harness_file_sha256 of every file of the harness pin",
+  "rule_block_sha256",
+  "llama_cpp.serving_manifest_sha256 and the serving-manifest artifact"
+ ],
+ "dependent_hashes_that_move": {
+  "architecture_sha256": "moves (ARCHITECTURE is under design/, outside the harness pin)",
+  "cells.json": "moves (the successor history)",
+  "protocol_sha256": "moves; recorded as the new successor above (a bundle member not recomputed at run time, lab_common.BUNDLE_MEMBERS_NOT_RECOMPUTED)"
+ },
+ "documents_amended": [
+  "experiments/live_ab/design/ARCHITECTURE_FINAL.md",
+  "experiments/live_ab/design/protocol_FINAL.md"
+ ],
+ "documents_not_written": [
+  "experiments/live_ab/config.json"
+ ],
+ "generated_utc": "2026-09-24T22:18:40Z",
+ "insertions": [
+  {
+   "anchor": "path whose tokenized form is not the golden `model_path` refuses the invocation with the preflight code\n`golden_objects`.\n",
+   "bytes": 1516,
+   "document": "protocol",
+   "key": "protocol.5_3",
+   "section": "### 5.3 Server supervision",
+   "section_upper_bound": "### 5.4 Sampling parameters",
+   "sha256": "afa511a74f8211188a24ad0e661b1f9bfa640ea340005583e6ea71ae367cff35",
+   "side": "after",
+   "text": "\n*Amendment 2026-09-24, v3 (pre-outcome; root `reviews/eb1_eb5_decision_eligibility_ruling_20260924_1605.md` item 1, and\n`reviews/restart_cap_estimand_ruling_20260923_2114.md`).* **Every owed abort is written before its drain.** Case (a)\nabove is one instance of the rule of 6.4 of this date: the moment supervision owes a terminal abort, a durable\n`abort_owed` (12.2 row 31, `source` `supervision`) is written, before any open attempt is drained, and no look\nafter it carries a decision. Supervision owes one at the `server_down` that requires a fourth restart\n(`server_restart_cap`; the point of the cap is that `server_down` itself); at a supervised restart or a start at\nresume that fails at `gguf`, `serving_manifest`, `identity` or `smoke` (the abort of that stage, as above); at a\nrestarted server whose `/props` differ from the previous start's (`server_identity`); at a restart or start call\nthe harness refused, or an exception it did not convert (`harness_defect`); and when the frozen health threshold\nor cap is missing (`harness_defect`; preflight refuses that before seq 0). A restart, or a start at resume, that\nnever becomes healthy (`launch`, `health`) owes the `server_unrecoverable` pause, not an abort, and writes no\n`abort_owed`. A resumed invocation rebuilds what the chain still owes, `abort_owed` included, so an abort owed\nbefore a crash inside its drain is still owed after it. The cap, the three cases, the margins, the alpha\nallocation, the observations and the stop rules are unchanged.\n"
+  },
+  {
+   "anchor": "`unresolved_worker` abort names in its `resolution` record the reason it superseded (14.6).\n",
+   "bytes": 3824,
+   "document": "protocol",
+   "key": "protocol.6_4",
+   "section": "### 6.4 Failure-to-outcome table: every mode, one outcome",
+   "section_upper_bound": "## 7. Pairing, the filtration",
+   "sha256": "6174e875edaedff8acc0b184259b953568f09a6d00e8228175a7548acdf2dcf8",
+   "side": "after",
+   "text": "\n*Amendment 2026-09-24, v3 (pre-outcome; root `reviews/eb1_eb5_decision_eligibility_ruling_20260924_1605.md`\nitems 1 and 2, and `reviews/eb1_eb5_invalid_decision_summary_20260924_1905.md`).*\n**Decision eligibility: one durable classification.** \"An abort can only remove decisions, never create one\" is\nenforced from the chain alone. A look (a `monitor_update`) is **eligible** to carry the decision only when, in\nthe chain before it, there is no `decision`, it is not a `drain` look, and the trial's **no-decision point**\ndoes not precede it. The point\n(`lab_eventlog.no_decision_point`) is the earliest of: the `server_down` that requires a fourth restart\n(`server_restart_cap`, 5.3); a `server_start_failed` that owes an abort - a first start (before any\n`invocation_started`) at any stage, any other start or restart at a stage other than `launch` and `health` -\n(`server_start_failed`); a `server_restarted` whose `/props` differ from the previous start's\n(`server_identity`); the trigger of an automatic abort - a response or a reveal with a receipt mismatch\n(`receipt_mismatch`), the reveal that completes ten consecutive reveals of one invocation classed\n`episode_timeout`, `worker_died` or `interrupted` (`infrastructure`); a `worker_resolved` that does not resolve\nits worker (`unresolved_worker`, 14.6); and an `abort_owed` (`abort_owed`, 12.2 row 31). **Every abort path\nwrites `abort_owed` before its drain reveals anything**: supervision (`supervision`, 5.3); every `AbortTrial`\nthat reaches the run loop - the automatic aborts, a failed first start, and any other code that raises it\n(`abort_raised`); the run loop's catch of a server exception outside supervision (`run_loop_backstop`); the\nclose of an ended trial that finds an attempt still open and no decision, which closes as an abort, never as an\nended trial whose drain could decide (`close_with_open_work`); and the resolution verdict of 14.6\n(`resolution_verdict`, written after the drain, before the terminal record). If a look ever finds an abort owed\nin memory that no path has written, the look writes it first (`look_guard`) and records a finding. The point is\na function of the chain before it, so the orchestrator (before it writes each look), the verifier\n(`reference_rule.agreement`) and the results builder (`decision.json`) classify every look identically, with one\nfunction (`lab_eventlog.decision_eligibility`). Every look is still logged exactly as without the abort, with its\nband and the reference rule's shadow; only the `decision` event is withheld. The reference rule's first crossing\nis kept unfiltered, as a diagnostic beside every look and its classification, and is given one verdict. At a look\nthat is not eligible, with no decision, it is **not acted on**: an INFO row of the verifier\n(`NOT_ACTED_ON_restart_cap_before_decision` or `NOT_ACTED_ON_abort_before_decision`) naming the concrete reason\n(what closed the prefix and at which seq, and for an `abort_owed` the abort and its source), never a\ndisagreement. At an **eligible** look with no decision it is a **defect** (`LIVE_DECISION_INVALID`), however the\ntrial ended: a later abort does not exempt a crossing missed before its point. A decision logged after the point\nis `LIVE_DECISION_INVALID` (`decision_after_no_decision_point`; the cap's own case is `server.lifecycle`\n`decision_after_cap`), and so is a logged decision the reference rule's first crossing does not agree with (kind\nand `n`, 8.9). A `trial_aborted` whose reason (or the reason an `unresolved_worker` abort superseded) no earlier\n`abort_owed` names FAILs (`abort_point_missing`). The classification reads no score and changes no margin, alpha\nallocation, observation, band, first crossing or stop rule: it only states which logged look may carry the\ndecision. How each case is reported: 16 item 17.\n"
+  },
+  {
+   "anchor": "are: a trial chain, and the program chain beside P8. These additions are made before any freeze.\n",
+   "bytes": 1752,
+   "document": "protocol",
+   "key": "protocol.12_2",
+   "section": "### 12.2 Event schema",
+   "section_upper_bound": "### 12.3 The hash rule",
+   "sha256": "9501724ffb6a9cfa81ae00def406cdcb796e314719ba13383a384f333ba187c3",
+   "side": "after",
+   "text": "\n*Amendment 2026-09-24, v3 (pre-outcome; root `reviews/eb1_eb5_decision_eligibility_ruling_20260924_1605.md` item 2,\n`reviews/restart_cap_estimand_ruling_20260923_2114.md` and\n`reviews/decision_receipt_metadata_ruling_20260924_0324.md`): row 31, and rows 24, 26 and 29.*\n\n| # | type | body (main fields) | D |\n|---|---|---|---|\n| 31 | `abort_owed` | `reason` (the abort owed, a reason of `trial_aborted`); `source` (`supervision`, `abort_raised`, `run_loop_backstop`, `close_with_open_work`, `resolution_verdict`, `look_guard`); `decision_logged` (whether a decision precedes it: then the abort truncates the follow-up only); `open_arrivals` (the arrivals the drain still has to reveal). The durable no-decision point of every abort path (6.4), written once per reason, before the drain | yes |\n\nA value that was not observed is recorded `null`, never as 0 and never as the digest of an empty file.\n`usage_reconciliation` (#24): in a window whose counters were lost (a `server_down` cut it, or it has no exact\nscrape), the counter deltas are the last counters read in that window, or `null` for both when none was read\n(13.1). `worker_resolved` (#29): when the spool cannot be read at the moment of resolution, its bytes and SHA-256\nare `null`, and the resolution verdict of 14.6 fails (`spool_unreadable`). `deposit_sealed` (#26): a spool that\ncannot be read enters the deposit digest as `null`; so does a resolved worker's spool that was not read at its\nresolution or is now shorter than its resolution offset, which is also listed in `late_unread`, with `null` for\na byte count that was not observed. `anchor_receipt` (#20) of a decision is chained only once its pushed commit\nis bound to its anchor (12.4). Row 31 is written on a trial chain only.\n"
+  },
+  {
+   "anchor": "external evidence at all is accepted; any line that claims some is checked in full.\n",
+   "bytes": 1542,
+   "document": "protocol",
+   "key": "protocol.12_4",
+   "section": "### 12.4 Anchoring: mechanics",
+   "section_upper_bound": "### 12.5 What the anchors prove, and what they do not",
+   "sha256": "961404cdc3aa2f5f885b6983244d6d6c023e4d895ccb0a89af173f2c072aaaac",
+   "side": "after",
+   "text": "\n*Amendment 2026-09-24, v3 (pre-outcome; root `reviews/decision_receipt_metadata_ruling_20260924_0324.md`: \"verify\nthe pushed commit/anchor-head evidence\").* **The pushed commit is bound to its anchor.** Before an `ok` line\nbound to a decision anchor request is chained as that decision's receipt (outside a MOCK tree, and in a MOCK tree\nfor any line that claims external evidence), the orchestrator reads the anchor repository locally, with read-only\n`git` and no network: the anchor file lies inside the repository (`anchor_outside_repo`); the commit the line\nnames exists (`commit_absent`); it is an ancestor of `refs/remotes/origin/<branch>`, the repository's own record\nof its last push of the frozen anchor branch (`not_on_pushed_branch`); `git show <commit>:<anchor file>`\n(`anchors/anchor_<anchor_seq>.json`) exists (`anchor_file_absent`) and hashes to the digest of this anchor's own\nfile object (`anchor_file_mismatch`); a `git` that cannot run is `repo_unreadable`. Any of these makes the line\n`conflict` (`anchor_receipt_rejected`, 12.2 row 30): it resolves nothing, the decision stays provisional, its\nanchor stays pending under the timeout of 6.4 row 26, and the problem is kept in the invocation's findings. Only\na line that passes is chained with the SHA-256 of the anchor file, of the comment body and of `node_id`. The\nsentence above still holds: nothing reads the remote to show that the push or the comment exists; the evidence\nof the push is the anchor repository's own record of it, and no timestamp authority is added.\n"
+  },
+  {
+   "anchor": "trial totals are `null` with the reason `unknown_usage` whenever any call's usage is unknown.\n",
+   "bytes": 525,
+   "document": "protocol",
+   "key": "protocol.13_1",
+   "section": "### 13.1 Usage accounting for every try",
+   "section_upper_bound": "### 13.2 The sampler receipt and the golden objects",
+   "sha256": "e339761d6e1c98bfe776a2d19ab139a9e0dddea577ced106695f253842b6430b",
+   "side": "after",
+   "text": "\n*Amendment 2026-09-24, v3 (pre-outcome; root `reviews/restart_cap_estimand_ruling_20260923_2114.md`: \"Reconciliation\nmust include smoke/restart counter windows and unknown usage\").* A server count that was never observed is\nunknown, never 0: in a reconciliation window whose counters were lost (12.2 row 24), the counter deltas are the\nlast counters read in that window, or `null` when none was read, and the residual is `null`; such a window is\nreported unreconciled (6.4 row 20), never reconciled against a guessed count.\n"
+  },
+  {
+   "anchor": "is `operator_discretion` does not apply to them.\n",
+   "bytes": 2060,
+   "document": "protocol",
+   "key": "protocol.14_6",
+   "section": "### 14.6 Trial order, unconditional execution, inspection between trials, pauses and aborts",
+   "section_upper_bound": "### 14.7 The operator is an AI agent session",
+   "sha256": "d1da1bd60b4e2a82b0a2ef01ac69613ecd8f9cd698f7747c924d4d27ea959a4b",
+   "side": "after",
+   "text": "\n*Amendment 2026-09-24, v3 (pre-outcome; root `reviews/eb1_eb5_decision_eligibility_ruling_20260924_1605.md`\nitems 1 and 2, and `reviews/restart_cap_estimand_ruling_20260923_2114.md`).* **The close of an abort begins with its\npoint.** Before the bounded drain of an abort, `abort_owed` (12.2 row 31) is written unless the chain already\ncarries it for that reason, so the looks of the drain are not eligible to carry a decision (6.4). The close of an\nended trial that finds an attempt still open and no decision closes as an abort (`close_with_open_work`), never\nas an ended trial.\nWhen the resolution verdict does not pass, the `abort_owed` of `unresolved_worker` is written after the drain,\nbefore the terminal record, which names the reason it superseded. **An unresolved worker stays unresolved across\nresume.** A worker recorded `alive_unresolved` or `liveness_unknown` is a no-decision point from that record on\n(6.4), and the phase can no longer complete: for each attempt the verdict and the verifier read the first state\nthat does not resolve its worker, if there is one, whatever is recorded later. A resumed invocation that finds an\nearlier worker it cannot resolve (its kill not confirmed, or its liveness unreadable) first records it durably as\nfound, `worker_resolved` with `alive_unresolved` or `liveness_unknown` (not repeated when the attempt's last\nrecord already says so), and then refuses (`invocation_ended` with status `refused` and the counts), revealing,\nstarting and dispatching nothing. A later resume must confirm that process gone before its attempt is revealed\nas interrupted (the attempt's last record must resolve it), but the earlier unresolved record is never undone:\nthe close is `trial_aborted(unresolved_worker)`. **An unread spool is recorded unread.** A spool that could not be\nread when its worker was resolved is recorded with `null` bytes and a `null` SHA-256, never the size and digest\nof an empty file, and the verdict fails (`spool_unreadable`); the deposit seal records such a spool as `null`\n(12.2 rows 26 and 29).\n"
+  },
+  {
+   "anchor": "    episode, whether its completion tokens are complete, a lower bound or unknown (13.1).\n",
+   "bytes": 1573,
+   "document": "protocol",
+   "key": "protocol.16",
+   "section": "## 16. What is reported whatever the outcome",
+   "section_upper_bound": "## Appendix A.",
+   "sha256": "609bf9a813f7819af6e0cda0906807c0fac5feae5339760009bcee1610ace3f8",
+   "side": "after",
+   "text": "17. *(Amendment 2026-09-24, v3, pre-outcome; root\n    `reviews/eb1_eb5_decision_eligibility_ruling_20260924_1605.md` and\n    `reviews/eb1_eb5_invalid_decision_summary_20260924_1905.md`.)* the **decision eligibility** of 6.4: the\n    no-decision point with its reason and seq, every look with its classification and concrete reason, and the\n    reference rule's unfiltered first crossing with its verdict (`decision.json` `eligibility`). The result\n    reported for the trial is, first match wins: `LIVE_DECISION_INVALID (harness defect)` - a decision logged\n    after the point, a logged decision the reference rule does not agree with, or a crossing at an eligible look\n    with no decision; `incomplete: restart cap before any decision (no decision; not a null result, not an\n    abstention)` - case (a) of 5.3 with no decision; `incomplete: aborted before any decision; a crossing\n    logged after the abort point was not acted on (no decision; not a null result, not an abstention)` - with\n    the crossing not acted on and its reason; `provisional: the logged decision has no chained external receipt\n    (no finalized claim)` - a valid decision without its chained external receipt; else the logged decision, or\n    `none` with no decision and no crossing. **Only the last is reportable**: an invalid decision is never\n    reportable. The program summary's decision is always this result, and whenever it is not reportable the\n    logged decision is kept beside it (`logged_decision`); the logged event stays in the chain and under\n    `decision` in `decision.json`.\n"
+  },
+  {
+   "anchor": "only by `lab_eventlog.decision_receipt` (protocol 12.4).\n",
+   "bytes": 1941,
+   "document": "architecture",
+   "key": "architecture.4_4",
+   "section": "### 4.4 Trial chain",
+   "section_upper_bound": "### 4.5 `what_was_known`",
+   "sha256": "bc17af79e26ce6476347668748d00e3b8b43089aa5f85acd5e71b0d6f1fecbec",
+   "side": "after",
+   "text": "\n*Amendment 2026-09-24, v3 (pre-outcome; root `reviews/eb1_eb5_decision_eligibility_ruling_20260924_1605.md`,\n`reviews/eb1_eb5_invalid_decision_summary_20260924_1905.md` and\n`reviews/decision_receipt_metadata_ruling_20260924_0324.md`): row T35, and rows T23, T28, T29b and T33.*\n\n| # | type | D | body fields |\n|---|---|---|---|\n| T35 | `abort_owed` | D | *(protocol 6.4 and 12.2 row 31)* `reason` enum (the reasons of T31 `trial_aborted`); `source` enum[`supervision`,`abort_raised`,`run_loop_backstop`,`close_with_open_work`,`resolution_verdict`,`look_guard`]; `decision_logged` bool; `open_arrivals` [int]. Trial chain only. Written by `lab_orchestrator.World.owe_abort` / `write_abort_owed`, once per reason, before the abort's drain; read by `lab_eventlog.no_decision_point` and replayed by `lab_orchestrator.supervision_state` |\n\nT28 `usage_reconciliation` `counter_delta` values are int? (null in a lost-counter window whose counters were never\nread); T33 `spool_bytes_at_resolution` int? and `spool_sha256_at_resolution` hex64? (null when the spool could not\nbe read at resolution); T29b `late_unread` rows carry `bytes_at_resolution` int? and `bytes_found` int?. The pure\nfunction `lab_eventlog.decision_eligibility(...)`, over `lab_eventlog.no_decision_point(...)`, is THE\nclassification of every look (protocol 6.4): `lab_orchestrator.World` calls it before it writes each T19 look and\ndecides only at an eligible one; `lab_verify_log` calls it for the FAIL-level check `reference_rule.agreement`\n(rules `decision_after_no_decision_point`, `abort_point_missing` and the missed crossing; INFO rows\n`NOT_ACTED_ON_restart_cap_before_decision` and `NOT_ACTED_ON_abort_before_decision`); `build_live_ab_results`\nwrites it to `decision.json` (`eligibility`). A T23 receipt of a decision is chained only after\n`lab_orchestrator.anchor_commit_problem` finds its pushed commit bound to its anchor in the anchor repository\n(protocol 12.4).\n"
+  },
+  {
+   "anchor": "| 9b | `LOOK` | ",
+   "bytes": 548,
+   "document": "architecture",
+   "key": "architecture.7_1.row_9c",
+   "section": "### 7.1 States and transitions",
+   "section_upper_bound": "### 7.2 What is fsynced, and when",
+   "sha256": "808e62f89b684c21ff30546dba98448229fb668e87759a2736a2161da440d5c2",
+   "side": "after-line",
+   "text": "| 9c | any | *(Amendment 2026-09-24, v3; root `reviews/eb1_eb5_decision_eligibility_ruling_20260924_1605.md`; protocol 6.4)* before any `monitor_update` is written (rows 2a, 4a, 7, 8, 10, 12), `lab_eventlog.decision_eligibility` over the chain so far finds the look not eligible (a decision is logged, a `drain` look, or a no-decision point precedes it) | the `monitor_update` is written exactly as without the abort; `decide()` is not called and no `decision` is appended; a crossing there is not acted on | as the row that wrote the look | \u2014 |\n"
+  },
+  {
+   "anchor": "| 21b | `CLOSING`, `ABORTED` | ",
+   "bytes": 699,
+   "document": "architecture",
+   "key": "architecture.7_1.row_21c",
+   "section": "### 7.1 States and transitions",
+   "section_upper_bound": "### 7.2 What is fsynced, and when",
+   "sha256": "7fa4dd885310007ae50a5a89c1f0e25bfbefe0270a0a1369883964bd8de01874",
+   "side": "after-line",
+   "text": "| 21c | any | *(Amendment 2026-09-24, v3; root `reviews/eb1_eb5_decision_eligibility_ruling_20260924_1605.md` items 1 and 2)* a terminal abort becomes owed: supervision owes one (rows 20, 20a, 21a), an `AbortTrial` reaches the run loop, the run loop catches a server exception outside supervision, or the close of an ended trial finds an attempt open and no decision (the resolution verdict of row 21b writes its own after the drain) | `abort_owed` (D) with its `reason`, `source` and open arrivals, once per reason, BEFORE the drain reveals anything (protocol 6.4); every later look is not eligible (row 9c); a resumed invocation replays it and still owes the abort | `ABORTED` / as before | \u2014 |\n"
+  }
+ ],
+ "negative_control": {
+  "config_variant_refused": true,
+  "every_moved_variant_refused_on_placement": true,
+  "gate": {
+   "config_variant_refused": true,
+   "every_moved_variant_refused_on_placement": true,
+   "real_documents_unchanged": true,
+   "scratch_copies_unchanged": true,
+   "v2_split_variant_refused": true,
+   "vocabulary_variant_refused": true
+  },
+  "how": "postconditions() -- the predicate main() applies before writing -- on scratch copies in a temporary directory, removed afterwards; one variant per insertion, moved just outside its section, and three more: a byte of config.json changed, the 12.2 text put inside amendment v2's 12.2 text, the 6.4 text also put into vocabulary section 1",
+  "real_documents_unchanged": true,
+  "scratch_copies_unchanged": true,
+  "v2_split_variant_refused": true,
+  "variants": {
+   "config_byte_changed": {
+    "accepted": false,
+    "failed_checks": [
+     "config_json_byte_identical",
+     "three_way_contract_after"
+    ],
+    "refused": true,
+    "sha256": {
+     "architecture": "2ec71980de5b6a74df586c5790e6eac7c54dbd79342ae69dab1a01a0bb458190",
+     "config": "f86701191151c81771a1f10f232e4414acf44952c328d55d4c51b941c6b5e7d9",
+     "protocol": "73dd0573955b2ef586e120f2b44558eb0227c70bbca9cbf9225ec4fb5583500c"
+    }
+   },
+   "moved.architecture.4_4": {
+    "accepted": false,
+    "failed_checks": [
+     "every_insertion_inside_its_section_beside_its_anchor"
+    ],
+    "refused": true,
+    "sha256": {
+     "architecture": "1aa7a424dfa0af6f5a9a5dc6e7cf43a798769c8477f914df1dc0e5229c70b7f1",
+     "config": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+     "protocol": "73dd0573955b2ef586e120f2b44558eb0227c70bbca9cbf9225ec4fb5583500c"
+    }
+   },
+   "moved.architecture.7_1.row_21c": {
+    "accepted": false,
+    "failed_checks": [
+     "every_insertion_inside_its_section_beside_its_anchor"
+    ],
+    "refused": true,
+    "sha256": {
+     "architecture": "69c373ce3a38f75624d754710bb068dd447afe739629d50e0b5221b00c4dd1f6",
+     "config": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+     "protocol": "73dd0573955b2ef586e120f2b44558eb0227c70bbca9cbf9225ec4fb5583500c"
+    }
+   },
+   "moved.architecture.7_1.row_9c": {
+    "accepted": false,
+    "failed_checks": [
+     "every_insertion_inside_its_section_beside_its_anchor"
+    ],
+    "refused": true,
+    "sha256": {
+     "architecture": "b31542566569f5acf998e72820f483cc7c02e66007280c97ecc6870259bdff39",
+     "config": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+     "protocol": "73dd0573955b2ef586e120f2b44558eb0227c70bbca9cbf9225ec4fb5583500c"
+    }
+   },
+   "moved.protocol.12_2": {
+    "accepted": false,
+    "failed_checks": [
+     "every_insertion_inside_its_section_beside_its_anchor"
+    ],
+    "refused": true,
+    "sha256": {
+     "architecture": "2ec71980de5b6a74df586c5790e6eac7c54dbd79342ae69dab1a01a0bb458190",
+     "config": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+     "protocol": "5f017623bd292054f4e2f4c83831fadcf8d6f6a85976f8f5dd542cfcbdd65278"
+    }
+   },
+   "moved.protocol.12_4": {
+    "accepted": false,
+    "failed_checks": [
+     "every_insertion_inside_its_section_beside_its_anchor"
+    ],
+    "refused": true,
+    "sha256": {
+     "architecture": "2ec71980de5b6a74df586c5790e6eac7c54dbd79342ae69dab1a01a0bb458190",
+     "config": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+     "protocol": "41e39a487b20eccb386253508a8c2f969aa4531d50586b0dd86e03eb27a6851c"
+    }
+   },
+   "moved.protocol.13_1": {
+    "accepted": false,
+    "failed_checks": [
+     "every_insertion_inside_its_section_beside_its_anchor"
+    ],
+    "refused": true,
+    "sha256": {
+     "architecture": "2ec71980de5b6a74df586c5790e6eac7c54dbd79342ae69dab1a01a0bb458190",
+     "config": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+     "protocol": "78296d642e5c1c17ea6bad9d5b81bb448a1cd6a5e482ed63825754b6570a6003"
+    }
+   },
+   "moved.protocol.14_6": {
+    "accepted": false,
+    "failed_checks": [
+     "every_insertion_inside_its_section_beside_its_anchor"
+    ],
+    "refused": true,
+    "sha256": {
+     "architecture": "2ec71980de5b6a74df586c5790e6eac7c54dbd79342ae69dab1a01a0bb458190",
+     "config": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+     "protocol": "f766fcca1550f59c374108430982d4e4a1f9a4ecf884423d4eb9244b08cfddc3"
+    }
+   },
+   "moved.protocol.16": {
+    "accepted": false,
+    "failed_checks": [
+     "every_insertion_inside_its_section_beside_its_anchor"
+    ],
+    "refused": true,
+    "sha256": {
+     "architecture": "2ec71980de5b6a74df586c5790e6eac7c54dbd79342ae69dab1a01a0bb458190",
+     "config": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+     "protocol": "9ab3ad1e7735163d639122e1a2e4b1acb9147595547db45dd13721b816ff5512"
+    }
+   },
+   "moved.protocol.5_3": {
+    "accepted": false,
+    "failed_checks": [
+     "every_insertion_inside_its_section_beside_its_anchor"
+    ],
+    "refused": true,
+    "sha256": {
+     "architecture": "2ec71980de5b6a74df586c5790e6eac7c54dbd79342ae69dab1a01a0bb458190",
+     "config": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+     "protocol": "bced3b29b1a62db43e06fc71708e4f625f421cf863e475386815ac1f5d8e1344"
+    }
+   },
+   "moved.protocol.6_4": {
+    "accepted": false,
+    "failed_checks": [
+     "every_insertion_inside_its_section_beside_its_anchor"
+    ],
+    "refused": true,
+    "sha256": {
+     "architecture": "2ec71980de5b6a74df586c5790e6eac7c54dbd79342ae69dab1a01a0bb458190",
+     "config": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+     "protocol": "99113393451fc798dd0ae7669e3d0fdd677e33fab11fdac628cca56633910d32"
+    }
+   },
+   "v2_text_split": {
+    "accepted": false,
+    "failed_checks": [
+     "every_insertion_inside_its_section_beside_its_anchor",
+     "v2_insertions_intact"
+    ],
+    "refused": true,
+    "sha256": {
+     "architecture": "2ec71980de5b6a74df586c5790e6eac7c54dbd79342ae69dab1a01a0bb458190",
+     "config": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+     "protocol": "0d4d0a953f44514ec17dfd5578bb35ee3f83b5e48bca13ff44d1a9ebb04de336"
+    }
+   },
+   "vocabulary_section_1_touched": {
+    "accepted": false,
+    "failed_checks": [
+     "every_insertion_inside_its_section_beside_its_anchor",
+     "reverting_the_insertions_reproduces_each_preimage",
+     "vocabulary_sections_1_3_11_byte_identical"
+    ],
+    "refused": true,
+    "sha256": {
+     "architecture": "2ec71980de5b6a74df586c5790e6eac7c54dbd79342ae69dab1a01a0bb458190",
+     "config": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+     "protocol": "d521e7b7bf40a4a5ab645bee607795a62b6406ccc936d16925784bc86095e423"
+    }
+   }
+  },
+  "variants_run": 13,
+  "vocabulary_variant_refused": true
+ },
+ "nothing_executed": "no CPU simulation, model, server, build or network request; text edits, digests, git reads, and the pure functions of the harness on synthetic in-memory chains",
+ "postcondition_checked": {
+  "architecture_sha256": "2ec71980de5b6a74df586c5790e6eac7c54dbd79342ae69dab1a01a0bb458190",
+  "config_bytes": 16136,
+  "config_sha256": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+  "configuration_blocks_byte_identical": true,
+  "cr_bytes_after": {
+   "architecture": 0,
+   "config": 0,
+   "protocol": 0
+  },
+  "every_insertion_inside_its_section_beside_its_anchor": {
+   "architecture.4_4": true,
+   "architecture.7_1.row_21c": true,
+   "architecture.7_1.row_9c": true,
+   "protocol.12_2": true,
+   "protocol.12_4": true,
+   "protocol.13_1": true,
+   "protocol.14_6": true,
+   "protocol.16": true,
+   "protocol.5_3": true,
+   "protocol.6_4": true
+  },
+  "gate": {
+   "architecture_and_protocol_changed": true,
+   "config_json_byte_identical": true,
+   "configuration_blocks_byte_identical": true,
+   "every_insertion_inside_its_section_beside_its_anchor": true,
+   "no_cr_byte_after": true,
+   "reverting_the_insertions_reproduces_each_preimage": true,
+   "rule_block_after_is_the_pin": true,
+   "three_way_contract_after": true,
+   "v2_insertions_intact": true,
+   "vocabulary_sections_1_3_11_byte_identical": true
+  },
+  "insertion_placement": {
+   "architecture.4_4": {
+    "directly_beside_the_anchor": true,
+    "insert_at": 130534,
+    "inside_its_section": true,
+    "occurrences": 1,
+    "section": [
+     115592,
+     132476
+    ],
+    "section_ends_at_its_upper_bound": true
+   },
+   "architecture.7_1.row_21c": {
+    "directly_beside_the_anchor": true,
+    "insert_at": 169541,
+    "inside_its_section": true,
+    "occurrences": 1,
+    "section": [
+     158248,
+     172140
+    ],
+    "section_ends_at_its_upper_bound": true
+   },
+   "architecture.7_1.row_9c": {
+    "directly_beside_the_anchor": true,
+    "insert_at": 162973,
+    "inside_its_section": true,
+    "occurrences": 1,
+    "section": [
+     158248,
+     172140
+    ],
+    "section_ends_at_its_upper_bound": true
+   },
+   "protocol.12_2": {
+    "directly_beside_the_anchor": true,
+    "insert_at": 237519,
+    "inside_its_section": true,
+    "occurrences": 1,
+    "section": [
+     226210,
+     241006
+    ],
+    "section_ends_at_its_upper_bound": true
+   },
+   "protocol.12_4": {
+    "directly_beside_the_anchor": true,
+    "insert_at": 252942,
+    "inside_its_section": true,
+    "occurrences": 1,
+    "section": [
+     244803,
+     254485
+    ],
+    "section_ends_at_its_upper_bound": true
+   },
+   "protocol.13_1": {
+    "directly_beside_the_anchor": true,
+    "insert_at": 264541,
+    "inside_its_section": true,
+    "occurrences": 1,
+    "section": [
+     258736,
+     265067
+    ],
+    "section_ends_at_its_upper_bound": true
+   },
+   "protocol.14_6": {
+    "directly_beside_the_anchor": true,
+    "insert_at": 289523,
+    "inside_its_section": true,
+    "occurrences": 1,
+    "section": [
+     282484,
+     291584
+    ],
+    "section_ends_at_its_upper_bound": true
+   },
+   "protocol.16": {
+    "directly_beside_the_anchor": true,
+    "insert_at": 302044,
+    "inside_its_section": true,
+    "occurrences": 1,
+    "section": [
+     297241,
+     303958
+    ],
+    "section_ends_at_its_upper_bound": true
+   },
+   "protocol.5_3": {
+    "directly_beside_the_anchor": true,
+    "insert_at": 91725,
+    "inside_its_section": true,
+    "occurrences": 1,
+    "section": [
+     83440,
+     93242
+    ],
+    "section_ends_at_its_upper_bound": true
+   },
+   "protocol.6_4": {
+    "directly_beside_the_anchor": true,
+    "insert_at": 149274,
+    "inside_its_section": true,
+    "occurrences": 1,
+    "section": [
+     132230,
+     153104
+    ],
+    "section_ends_at_its_upper_bound": true
+   }
+  },
+  "protocol_bytes": 358607,
+  "protocol_sha256": "73dd0573955b2ef586e120f2b44558eb0227c70bbca9cbf9225ec4fb5583500c",
+  "reverting_the_insertions_reproduces_each_preimage": {
+   "architecture": true,
+   "protocol": true
+  },
+  "rule_block_sha256_after": "cbfd1792d09c43754eeeab3b282e92e99c76e4f878cd82d00c827f6a90fa7607",
+  "three_way_contract_after": {
+   "architecture_block_equals_protocol_block": true,
+   "block_bytes": 16136,
+   "block_sha256": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+   "config_equals_architecture_block": true,
+   "cr_bytes": {
+    "architecture": 0,
+    "config": 0,
+    "protocol": 0
+   },
+   "holds": true
+  },
+  "v2_insertions_intact": {
+   "architecture.2_1": true,
+   "architecture.2_2": true,
+   "architecture.3_16.note": true,
+   "architecture.3_16.row": true,
+   "architecture.4_4": true,
+   "architecture.6_1.prompts": true,
+   "architecture.6_1.server_supervision": true,
+   "architecture.6_3": true,
+   "architecture.7_1.row_14c": true,
+   "architecture.7_1.row_1b": true,
+   "architecture.7_1.row_20a": true,
+   "architecture.7_1.rows_21a_21b": true,
+   "config.prompts": true,
+   "config.server_supervision": true,
+   "protocol.12_2": true,
+   "protocol.12_4": true,
+   "protocol.13_1": true,
+   "protocol.14_3": true,
+   "protocol.14_6": true,
+   "protocol.16": true,
+   "protocol.2_2": true,
+   "protocol.2_4_item_6": true,
+   "protocol.5_3": true,
+   "protocol.5_8": true,
+   "protocol.6_4": true,
+   "protocol.appendix_b.prompts": true,
+   "protocol.appendix_b.server_supervision": true
+  },
+  "vocabulary_sections_1_3_11_byte_identical": {
+   "1": true,
+   "11": true,
+   "3": true
+  }
+ },
+ "precondition_checked": {
+  "anchors": {
+   "architecture.4_4": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "offset": 130534,
+    "text_already_present": 0
+   },
+   "architecture.7_1.row_21c": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "offset": 167052,
+    "text_already_present": 0
+   },
+   "architecture.7_1.row_9c": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "offset": 161032,
+    "text_already_present": 0
+   },
+   "protocol.12_2": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "offset": 232179,
+    "text_already_present": 0
+   },
+   "protocol.12_4": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "offset": 245850,
+    "text_already_present": 0
+   },
+   "protocol.13_1": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "offset": 255907,
+    "text_already_present": 0
+   },
+   "protocol.14_6": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "offset": 280364,
+    "text_already_present": 0
+   },
+   "protocol.16": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "offset": 290825,
+    "text_already_present": 0
+   },
+   "protocol.5_3": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "offset": 91725,
+    "text_already_present": 0
+   },
+   "protocol.6_4": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "offset": 147758,
+    "text_already_present": 0
+   }
+  },
+  "architecture_sha256": "e7ea9c0fb7a28c6bdb47bb4085dcddba41144bd134d7b3a9b026ad7c9a30c86a",
+  "cells_current_successor": "6c0ebf2faa7515ff27f01188d9f1e487c928c63373f451dea51f06a8cdacaab9",
+  "cells_original_pin": "3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0dd7d2c2",
+  "cells_prior_successors": [
+   {
+    "entry_canonical_sha256": "06d606dc055340ec2c2607a16c98a4af866e2b27956929a27009084997c3942c",
+    "sha256": "b1ff97cc163ce7ea121ebd578a4c37de09d5ed7223f2029e5d56118cdc790822"
+   },
+   {
+    "entry_canonical_sha256": "d2857b0d6e292f944f07ac4a5da360dff18df0ecaf617cecff07dd760749d312",
+    "sha256": "d63717a5519f650394db8aca7eb33d7a15ccfedbaffe78600d9ea3fb7b76294d"
+   },
+   {
+    "entry_canonical_sha256": "33fa39c17e4b63e40e2ebb8241c56ab04866267ec3878ab11037699d0bebabe2",
+    "sha256": "0e1bcb710ce2c13a06a243a7c3034d6bec55389d4de45dce569a7dee15af0284"
+   },
+   {
+    "entry_canonical_sha256": "ca1be58e4119a7a2bf95354899c9c4120b4b293d1b6cd84427677aa4405941db",
+    "sha256": "f75de3235ae0431b727cf7c24b09927204a1da8c5424e14ea428dbfea256f48b"
+   },
+   {
+    "entry_canonical_sha256": "c29dd214f9e160639b13c9638da020b0453ef760002312b23c91e85fe224dd86",
+    "sha256": "7f6664770b0d88ac5904967d9b8e2225d20932942824cd689278a03a2ee45e53"
+   },
+   {
+    "entry_canonical_sha256": "41719e17ce181ed5a014a02c317ae51356fdf87088a953a0a08e4550dace3495",
+    "sha256": "64ace6d3e37732b372fd316055208e9deaab4d4e0722708563c8ebcc1579e82b"
+   }
+  ],
+  "cells_round_trips": true,
+  "cells_sha256": "6b31bf20a07cbc4b0c162fb0d309826d88ab5b95b36f9cd3e1d86500d7ff8df5",
+  "config_bytes": 16136,
+  "config_sha256": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+  "cr_bytes": {
+   "architecture": 0,
+   "cells": 0,
+   "config": 0,
+   "protocol": 0
+  },
+  "gate_anchors": {
+   "every_anchor_inside_its_section": true,
+   "every_anchor_once": true,
+   "inserted_text_form": true,
+   "no_anchor_error": true
+  },
+  "gate_pins": {
+   "architecture_is_the_reviewed_preimage": true,
+   "cells_current_successor_is_the_prior_successor": true,
+   "cells_is_the_reviewed_preimage": true,
+   "cells_original_pin_untouched": true,
+   "cells_prior_successor_count": true,
+   "cells_prior_successors_are_the_recorded_entries": true,
+   "cells_round_trips": true,
+   "cells_successor_supersedes_the_original": true,
+   "config_is_the_reviewed_preimage": true,
+   "no_cr_byte": true,
+   "protocol_is_the_reviewed_preimage": true,
+   "rule_block_before_is_the_pin": true,
+   "three_way_contract_before": true
+  },
+  "head": "9f0aff6ded9dc0d55fcb63345811e637389a735a",
+  "inserted_text_form": {
+   "ok": true,
+   "per_insertion": {
+    "architecture.4_4": {
+     "contains_no_anchor": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 115,
+     "no_backtick_fence": true,
+     "no_heading_line": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": []
+    },
+    "architecture.7_1.row_21c": {
+     "contains_no_anchor": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 0,
+     "no_backtick_fence": true,
+     "no_heading_line": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": [
+      "\u2014"
+     ]
+    },
+    "architecture.7_1.row_9c": {
+     "contains_no_anchor": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 0,
+     "no_backtick_fence": true,
+     "no_heading_line": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": [
+      "\u2014"
+     ]
+    },
+    "protocol.12_2": {
+     "contains_no_anchor": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 115,
+     "no_backtick_fence": true,
+     "no_heading_line": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": []
+    },
+    "protocol.12_4": {
+     "contains_no_anchor": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 113,
+     "no_backtick_fence": true,
+     "no_heading_line": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": []
+    },
+    "protocol.13_1": {
+     "contains_no_anchor": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 116,
+     "no_backtick_fence": true,
+     "no_heading_line": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": []
+    },
+    "protocol.14_6": {
+     "contains_no_anchor": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 116,
+     "no_backtick_fence": true,
+     "no_heading_line": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": []
+    },
+    "protocol.16": {
+     "contains_no_anchor": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 112,
+     "no_backtick_fence": true,
+     "no_heading_line": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": []
+    },
+    "protocol.5_3": {
+     "contains_no_anchor": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 119,
+     "no_backtick_fence": true,
+     "no_heading_line": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": []
+    },
+    "protocol.6_4": {
+     "contains_no_anchor": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 113,
+     "no_backtick_fence": true,
+     "no_heading_line": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": []
+    }
+   }
+  },
+  "protocol_sha256": "6c0ebf2faa7515ff27f01188d9f1e487c928c63373f451dea51f06a8cdacaab9",
+  "rule_block_sha256_before": "cbfd1792d09c43754eeeab3b282e92e99c76e4f878cd82d00c827f6a90fa7607",
+  "three_way_contract_before": {
+   "architecture_block_equals_protocol_block": true,
+   "block_bytes": 16136,
+   "block_sha256": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+   "config_equals_architecture_block": true,
+   "cr_bytes": {
+    "architecture": 0,
+    "config": 0,
+    "protocol": 0
+   },
+   "holds": true
+  }
+ },
+ "predecessor_amendment_v2": {
+  "commit": "474f9d82aae2b3979910d8a99d8305b5d7bc44c1",
+  "gate": {
+   "v2_commit_is_an_ancestor_of_head": true,
+   "v2_insertions_whole_in_the_preimages": true,
+   "v2_receipt_is_committed_in_474f9d8": true,
+   "v2_receipt_is_the_pinned_bytes": true,
+   "v2_wrote_the_preimages": true
+  },
+  "insertions_whole_before": {
+   "architecture.2_1": true,
+   "architecture.2_2": true,
+   "architecture.3_16.note": true,
+   "architecture.3_16.row": true,
+   "architecture.4_4": true,
+   "architecture.6_1.prompts": true,
+   "architecture.6_1.server_supervision": true,
+   "architecture.6_3": true,
+   "architecture.7_1.row_14c": true,
+   "architecture.7_1.row_1b": true,
+   "architecture.7_1.row_20a": true,
+   "architecture.7_1.rows_21a_21b": true,
+   "config.prompts": true,
+   "config.server_supervision": true,
+   "protocol.12_2": true,
+   "protocol.12_4": true,
+   "protocol.13_1": true,
+   "protocol.14_3": true,
+   "protocol.14_6": true,
+   "protocol.16": true,
+   "protocol.2_2": true,
+   "protocol.2_4_item_6": true,
+   "protocol.5_3": true,
+   "protocol.5_8": true,
+   "protocol.6_4": true,
+   "protocol.appendix_b.prompts": true,
+   "protocol.appendix_b.server_supervision": true
+  },
+  "receipt": "results/live_ab/REPAIR_AMENDMENT_V2_RECEIPT_20260924_0927.json",
+  "receipt_sha256": "66efcb8b64b3e54d890ac70c77686e0678255fe6cba78347fa3a30878e12feff",
+  "status": "kept: write-once, not edited and not superseded; v3 adds insertions to the documents v2 wrote",
+  "written_by_v2": {
+   "architecture_sha256": "e7ea9c0fb7a28c6bdb47bb4085dcddba41144bd134d7b3a9b026ad7c9a30c86a",
+   "cells_sha256": "6b31bf20a07cbc4b0c162fb0d309826d88ab5b95b36f9cd3e1d86500d7ff8df5",
+   "config_sha256": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+   "protocol_sha256": "6c0ebf2faa7515ff27f01188d9f1e487c928c63373f451dea51f06a8cdacaab9"
+  }
+ },
+ "prepared_by": "prepared and checked by AI agent sessions; not human peer review or author sign-off",
+ "prior_versions_retained": {
+  "architecture_sha256": "e7ea9c0fb7a28c6bdb47bb4085dcddba41144bd134d7b3a9b026ad7c9a30c86a",
+  "cells_sha256": "6b31bf20a07cbc4b0c162fb0d309826d88ab5b95b36f9cd3e1d86500d7ff8df5",
+  "config_bytes": 16136,
+  "config_sha256": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+  "note": "each is recoverable byte-exactly by `git show <reviewed_revision>:<path>` and by deleting every inserted text",
+  "protocol_sha256": "6c0ebf2faa7515ff27f01188d9f1e487c928c63373f451dea51f06a8cdacaab9",
+  "reviewed_revision": "474f9d82aae2b3979910d8a99d8305b5d7bc44c1",
+  "revision_at_run": "9f0aff6ded9dc0d55fcb63345811e637389a735a"
+ },
+ "runs_after_this_receipt": "the suites run after this receipt are recorded in the commit that adds it and in the owner report",
+ "runs_of_this_step_before_this_receipt": [
+  {
+   "command": "python -m unittest discover -s experiments/live_ab_tools -p 'tests_*.py'",
+   "head": "9f0aff6",
+   "id": "base_tools",
+   "result": "Ran 137 tests in 62.476s; OK (skipped=1)",
+   "utc": "2026-09-24T21:13:15Z"
+  },
+  {
+   "command": "python -m unittest discover -s experiments/live_ab -p 'tests_*.py'",
+   "head": "9f0aff6",
+   "id": "base_live",
+   "result": "Ran 766 tests in 222.619s; OK (skipped=1)",
+   "utc": "2026-09-24T21:14:17Z"
+  },
+  {
+   "command": "python -m unittest discover -s experiments/live_ab_serving -p 'tests_*.py'",
+   "head": "9f0aff6",
+   "id": "base_serving",
+   "result": "Ran 193 tests in 2.267s; OK",
+   "utc": "2026-09-24T21:18:01Z"
+  },
+  {
+   "command": "python experiments/live_ab_validation/tests_validation.py",
+   "head": "9f0aff6",
+   "id": "base_validation",
+   "result": "Ran 207 tests in 12.167s; OK (skipped=6, expected failures=2)",
+   "utc": "2026-09-24T21:18:03Z"
+  },
+  {
+   "command": "python -m unittest discover -s experiments/live_ab_controls -p 'tests_*.py'",
+   "head": "9f0aff6",
+   "id": "base_controls",
+   "note": "the untracked v3 tool, verifier and witness files, and from 21:35Z the uncommitted tests_validation.py edit, were in the tree during this run (tests_delta_citations scans added lines)",
+   "result": "Ran 426 tests in 3216.382s; OK",
+   "utc": "2026-09-24T21:18:15Z"
+  },
+  {
+   "command": "in-process probe of repair_amendment_v3 (inserted_text_form, anchor_facts, code_checks, insert_all, postconditions, negative_control; nothing written)",
+   "id": "probe1",
+   "result": "FAILED inserted_text_form: four prose lines over 120 characters (6.4 122, 12.2 153, 14.6 122, 16 125); code gate all true; postconditions ok; negative control 13 variants, all refused",
+   "utc": "2026-09-24T21:30:48Z"
+  },
+  {
+   "command": "the same probe after rewrapping",
+   "id": "probe2",
+   "result": "FAILED inserted_text_form: one line of 16 item 17 at 135 characters; code gate all true; postconditions ok; negative control 13 of 13 refused",
+   "utc": "2026-09-24T21:31:38Z"
+  },
+  {
+   "command": "the same probe after rewrapping item 17",
+   "id": "probe3",
+   "result": "inserted_text_form ok (max 119); code gate all true; postconditions ok",
+   "utc": "2026-09-24T21:32:31Z"
+  },
+  {
+   "command": "python -m unittest tests_repair_amendment_v3 (in experiments/live_ab_tools)",
+   "id": "dev1",
+   "result": "Ran 36 tests; FAILED (errors=1): VerifierTests.setUpClass TypeError, a path built with % before the join (fixed)",
+   "utc": "2026-09-24T22:12:06Z"
+  },
+  {
+   "command": "python -m unittest -v tests_repair_amendment_v3",
+   "id": "dev2",
+   "result": "Ran 40 tests in 5.575s; OK (skipped=1: no commit adds a v3 receipt yet)",
+   "utc": "2026-09-24T22:12:17Z"
+  },
+  {
+   "command": "mutation sweep: 10 mutants of repair_amendment_v3.py, 5 of verify_repair_amendment_v3.py, each a temporary copy beside the originals, the witness module run against each",
+   "id": "mutation1",
+   "result": "14 of 15 killed; SURVIVED: V4, the verifier not checking the demoted entry's changing commit; M7 was killed by a crash of the mutant (a broken format string), not by a witness; the original after the sweep: 40 ran, 0 failures, 0 errors",
+   "utc": "2026-09-24T22:12:56Z"
+  },
+  {
+   "command": "the sweep again, after adding VerifierTests.test_each_cells_sub_check_of_the_verifier_can_fail and rewriting M7",
+   "id": "mutation2",
+   "result": "NOT VALID EVIDENCE: 15 of 15 'killed', but the new witness failed on the original too (original: 41 ran, failures=1)",
+   "utc": "2026-09-24T22:14:41Z"
+  },
+  {
+   "command": "python -m unittest tests_repair_amendment_v3.VerifierTests.test_each_cells_sub_check_of_the_verifier_can_fail",
+   "id": "dev3",
+   "result": "Ran 1 test; FAILED (failures=1): 13 != 12, the verifier has the sub-check first_six_unchanged the witness did not list (added)",
+   "utc": "2026-09-24T22:16:18Z"
+  },
+  {
+   "command": "the sweep again",
+   "id": "mutation3",
+   "result": "15 of 15 killed (M1-M10, V1-V5); the original after the sweep: 41 ran, failures=0, errors=0 (skipped=1)",
+   "utc": "2026-09-24T22:16:28Z"
+  }
+ ],
+ "schema": "live_ab.repair_amendment_receipt.v3",
+ "successor_provenance": {
+  "demoted_successor": "6c0ebf2faa7515ff27f01188d9f1e487c928c63373f451dea51f06a8cdacaab9",
+  "demoted_successor_commit_verified": "474f9d82aae2b3979910d8a99d8305b5d7bc44c1",
+  "gate_cells": {
+   "cells_unchanged_outside_superseded_by": true
+  },
+  "gate_successor_commit": {
+   "prior_successor_commit_carries_the_prior_successor": true
+  },
+  "new_successor": "73dd0573955b2ef586e120f2b44558eb0227c70bbca9cbf9225ec4fb5583500c",
+  "original_pin_untouched": "3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0dd7d2c2",
+  "prior_successors_now": 7
+ },
+ "this_is_not_a_freeze": true,
+ "written": {
+  "architecture_sha256": "2ec71980de5b6a74df586c5790e6eac7c54dbd79342ae69dab1a01a0bb458190",
+  "cells_sha256": "192804a4c1538df64a9902430d158e5174269fe2a6c77d8a0be2345304622e58",
+  "config_bytes": 16136,
+  "config_sha256": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+  "gate": {
+   "config_on_disk_unchanged": true,
+   "documents_read_back_equal_computed": true,
+   "no_harness_file_changed": true
+  },
+  "harness_entries_changed": [],
+  "harness_files_after": 34,
+  "harness_files_before": 34,
+  "protocol_sha256": "73dd0573955b2ef586e120f2b44558eb0227c70bbca9cbf9225ec4fb5583500c",
+  "read_back_equals_computed": true,
+  "rule_block_sha256_on_disk": "cbfd1792d09c43754eeeab3b282e92e99c76e4f878cd82d00c827f6a90fa7607",
+  "three_way_contract_on_disk": {
+   "architecture_block_equals_protocol_block": true,
+   "block_bytes": 16136,
+   "block_sha256": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+   "config_equals_architecture_block": true,
+   "cr_bytes": {
+    "architecture": 0,
+    "config": 0,
+    "protocol": 0
+   },
+   "holds": true
+  }
+ }
+}

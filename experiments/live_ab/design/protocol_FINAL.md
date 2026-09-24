@@ -1041,6 +1041,21 @@ mismatched golden file, a golden `model_path` that is not tokenized, a runtime `
 path whose tokenized form is not the golden `model_path` refuses the invocation with the preflight code
 `golden_objects`.
 
+*Amendment 2026-09-24, v3 (pre-outcome; root `reviews/eb1_eb5_decision_eligibility_ruling_20260924_1605.md` item 1, and
+`reviews/restart_cap_estimand_ruling_20260923_2114.md`).* **Every owed abort is written before its drain.** Case (a)
+above is one instance of the rule of 6.4 of this date: the moment supervision owes a terminal abort, a durable
+`abort_owed` (12.2 row 31, `source` `supervision`) is written, before any open attempt is drained, and no look
+after it carries a decision. Supervision owes one at the `server_down` that requires a fourth restart
+(`server_restart_cap`; the point of the cap is that `server_down` itself); at a supervised restart or a start at
+resume that fails at `gguf`, `serving_manifest`, `identity` or `smoke` (the abort of that stage, as above); at a
+restarted server whose `/props` differ from the previous start's (`server_identity`); at a restart or start call
+the harness refused, or an exception it did not convert (`harness_defect`); and when the frozen health threshold
+or cap is missing (`harness_defect`; preflight refuses that before seq 0). A restart, or a start at resume, that
+never becomes healthy (`launch`, `health`) owes the `server_unrecoverable` pause, not an abort, and writes no
+`abort_owed`. A resumed invocation rebuilds what the chain still owes, `abort_owed` included, so an abort owed
+before a crash inside its drain is still owed after it. The cap, the three cases, the margins, the alpha
+allocation, the observations and the stop rules are unchanged.
+
 ### 5.4 Sampling parameters
 
 Every request body contains exactly: `model` (alias), `messages`, `temperature: 0.7`, `top_p: 0.95`, `top_k: 0`,
@@ -1566,6 +1581,44 @@ after a logged and externally receipted decision, that decision stands at its or
 is truncated and counted; while the decision awaits its blocking receipt, it is provisional and the existing
 receipt and pause rules of 12.4 and row 26 apply. An abort still only removes decisions, never creates one. An
 `unresolved_worker` abort names in its `resolution` record the reason it superseded (14.6).
+
+*Amendment 2026-09-24, v3 (pre-outcome; root `reviews/eb1_eb5_decision_eligibility_ruling_20260924_1605.md`
+items 1 and 2, and `reviews/eb1_eb5_invalid_decision_summary_20260924_1905.md`).*
+**Decision eligibility: one durable classification.** "An abort can only remove decisions, never create one" is
+enforced from the chain alone. A look (a `monitor_update`) is **eligible** to carry the decision only when, in
+the chain before it, there is no `decision`, it is not a `drain` look, and the trial's **no-decision point**
+does not precede it. The point
+(`lab_eventlog.no_decision_point`) is the earliest of: the `server_down` that requires a fourth restart
+(`server_restart_cap`, 5.3); a `server_start_failed` that owes an abort - a first start (before any
+`invocation_started`) at any stage, any other start or restart at a stage other than `launch` and `health` -
+(`server_start_failed`); a `server_restarted` whose `/props` differ from the previous start's
+(`server_identity`); the trigger of an automatic abort - a response or a reveal with a receipt mismatch
+(`receipt_mismatch`), the reveal that completes ten consecutive reveals of one invocation classed
+`episode_timeout`, `worker_died` or `interrupted` (`infrastructure`); a `worker_resolved` that does not resolve
+its worker (`unresolved_worker`, 14.6); and an `abort_owed` (`abort_owed`, 12.2 row 31). **Every abort path
+writes `abort_owed` before its drain reveals anything**: supervision (`supervision`, 5.3); every `AbortTrial`
+that reaches the run loop - the automatic aborts, a failed first start, and any other code that raises it
+(`abort_raised`); the run loop's catch of a server exception outside supervision (`run_loop_backstop`); the
+close of an ended trial that finds an attempt still open and no decision, which closes as an abort, never as an
+ended trial whose drain could decide (`close_with_open_work`); and the resolution verdict of 14.6
+(`resolution_verdict`, written after the drain, before the terminal record). If a look ever finds an abort owed
+in memory that no path has written, the look writes it first (`look_guard`) and records a finding. The point is
+a function of the chain before it, so the orchestrator (before it writes each look), the verifier
+(`reference_rule.agreement`) and the results builder (`decision.json`) classify every look identically, with one
+function (`lab_eventlog.decision_eligibility`). Every look is still logged exactly as without the abort, with its
+band and the reference rule's shadow; only the `decision` event is withheld. The reference rule's first crossing
+is kept unfiltered, as a diagnostic beside every look and its classification, and is given one verdict. At a look
+that is not eligible, with no decision, it is **not acted on**: an INFO row of the verifier
+(`NOT_ACTED_ON_restart_cap_before_decision` or `NOT_ACTED_ON_abort_before_decision`) naming the concrete reason
+(what closed the prefix and at which seq, and for an `abort_owed` the abort and its source), never a
+disagreement. At an **eligible** look with no decision it is a **defect** (`LIVE_DECISION_INVALID`), however the
+trial ended: a later abort does not exempt a crossing missed before its point. A decision logged after the point
+is `LIVE_DECISION_INVALID` (`decision_after_no_decision_point`; the cap's own case is `server.lifecycle`
+`decision_after_cap`), and so is a logged decision the reference rule's first crossing does not agree with (kind
+and `n`, 8.9). A `trial_aborted` whose reason (or the reason an `unresolved_worker` abort superseded) no earlier
+`abort_owed` names FAILs (`abort_point_missing`). The classification reads no score and changes no margin, alpha
+allocation, observation, band, first crossing or stop rule: it only states which logged look may carry the
+decision. How each case is reported: 16 item 17.
 
 ---
 
@@ -2536,6 +2589,24 @@ closed list of preflight check codes shared by `invocation_refused` (#2) and `pr
 `golden_objects` (5.3). Rows 28 and 29 are written on a trial chain only. Row 30 is written wherever anchor events
 are: a trial chain, and the program chain beside P8. These additions are made before any freeze.
 
+*Amendment 2026-09-24, v3 (pre-outcome; root `reviews/eb1_eb5_decision_eligibility_ruling_20260924_1605.md` item 2,
+`reviews/restart_cap_estimand_ruling_20260923_2114.md` and
+`reviews/decision_receipt_metadata_ruling_20260924_0324.md`): row 31, and rows 24, 26 and 29.*
+
+| # | type | body (main fields) | D |
+|---|---|---|---|
+| 31 | `abort_owed` | `reason` (the abort owed, a reason of `trial_aborted`); `source` (`supervision`, `abort_raised`, `run_loop_backstop`, `close_with_open_work`, `resolution_verdict`, `look_guard`); `decision_logged` (whether a decision precedes it: then the abort truncates the follow-up only); `open_arrivals` (the arrivals the drain still has to reveal). The durable no-decision point of every abort path (6.4), written once per reason, before the drain | yes |
+
+A value that was not observed is recorded `null`, never as 0 and never as the digest of an empty file.
+`usage_reconciliation` (#24): in a window whose counters were lost (a `server_down` cut it, or it has no exact
+scrape), the counter deltas are the last counters read in that window, or `null` for both when none was read
+(13.1). `worker_resolved` (#29): when the spool cannot be read at the moment of resolution, its bytes and SHA-256
+are `null`, and the resolution verdict of 14.6 fails (`spool_unreadable`). `deposit_sealed` (#26): a spool that
+cannot be read enters the deposit digest as `null`; so does a resolved worker's spool that was not read at its
+resolution or is now shorter than its resolution offset, which is also listed in `late_unread`, with `null` for
+a byte count that was not observed. `anchor_receipt` (#20) of a decision is chained only once its pushed commit
+is bound to its anchor (12.4). Row 31 is written on a trial chain only.
+
 **Program-chain event types** (12.1; bodies in `ARCHITECTURE_FINAL.md` §4.3, rows P1-P12). All are durable and all
 carry a blocking receipt:
 
@@ -2678,6 +2749,21 @@ pause of 6.4 row 26, instead of requesting it again without end. What this does 
 the remote that the push or the comment exists. In a MOCK tree only (a dry run), a receipt that claims no
 external evidence at all is accepted; any line that claims some is checked in full.
 
+*Amendment 2026-09-24, v3 (pre-outcome; root `reviews/decision_receipt_metadata_ruling_20260924_0324.md`: "verify
+the pushed commit/anchor-head evidence").* **The pushed commit is bound to its anchor.** Before an `ok` line
+bound to a decision anchor request is chained as that decision's receipt (outside a MOCK tree, and in a MOCK tree
+for any line that claims external evidence), the orchestrator reads the anchor repository locally, with read-only
+`git` and no network: the anchor file lies inside the repository (`anchor_outside_repo`); the commit the line
+names exists (`commit_absent`); it is an ancestor of `refs/remotes/origin/<branch>`, the repository's own record
+of its last push of the frozen anchor branch (`not_on_pushed_branch`); `git show <commit>:<anchor file>`
+(`anchors/anchor_<anchor_seq>.json`) exists (`anchor_file_absent`) and hashes to the digest of this anchor's own
+file object (`anchor_file_mismatch`); a `git` that cannot run is `repo_unreadable`. Any of these makes the line
+`conflict` (`anchor_receipt_rejected`, 12.2 row 30): it resolves nothing, the decision stays provisional, its
+anchor stays pending under the timeout of 6.4 row 26, and the problem is kept in the invocation's findings. Only
+a line that passes is chained with the SHA-256 of the anchor file, of the comment body and of `node_id`. The
+sentence above still holds: nothing reads the remote to show that the push or the comment exists; the evidence
+of the push is the anchor repository's own record of it, and no timestamp authority is added.
+
 ### 12.5 What the anchors prove, and what they do not
 
 **They prove:** that a chain prefix with head `upto_h` existed **no later than** the server time of its receipt, to
@@ -2797,6 +2883,12 @@ record when its worker is resolved or killed is **unfinished**: its delivery is 
 never 0, and it is never counted as unsent. The exposure ledger keeps the calls of an arrival that was never
 revealed in their own `unrevealed` cell; a cell with unknown usage marks its tokens as a lower bound, and the
 trial totals are `null` with the reason `unknown_usage` whenever any call's usage is unknown.
+
+*Amendment 2026-09-24, v3 (pre-outcome; root `reviews/restart_cap_estimand_ruling_20260923_2114.md`: "Reconciliation
+must include smoke/restart counter windows and unknown usage").* A server count that was never observed is
+unknown, never 0: in a reconciliation window whose counters were lost (12.2 row 24), the counter deltas are the
+last counters read in that window, or `null` when none was read, and the residual is `null`; such a window is
+reported unreconciled (6.4 row 20), never reconciled against a guessed count.
 
 ### 13.2 The sampler receipt and the golden objects
 
@@ -3059,6 +3151,27 @@ runs. The four automatic aborts that the amendment of 6.4 of this date adds - `t
 `trial_aborted(receipt_mismatch)` of 5.3 - are automatic aborts of 6.4, so the rule above that every other abort
 is `operator_discretion` does not apply to them.
 
+*Amendment 2026-09-24, v3 (pre-outcome; root `reviews/eb1_eb5_decision_eligibility_ruling_20260924_1605.md`
+items 1 and 2, and `reviews/restart_cap_estimand_ruling_20260923_2114.md`).* **The close of an abort begins with its
+point.** Before the bounded drain of an abort, `abort_owed` (12.2 row 31) is written unless the chain already
+carries it for that reason, so the looks of the drain are not eligible to carry a decision (6.4). The close of an
+ended trial that finds an attempt still open and no decision closes as an abort (`close_with_open_work`), never
+as an ended trial.
+When the resolution verdict does not pass, the `abort_owed` of `unresolved_worker` is written after the drain,
+before the terminal record, which names the reason it superseded. **An unresolved worker stays unresolved across
+resume.** A worker recorded `alive_unresolved` or `liveness_unknown` is a no-decision point from that record on
+(6.4), and the phase can no longer complete: for each attempt the verdict and the verifier read the first state
+that does not resolve its worker, if there is one, whatever is recorded later. A resumed invocation that finds an
+earlier worker it cannot resolve (its kill not confirmed, or its liveness unreadable) first records it durably as
+found, `worker_resolved` with `alive_unresolved` or `liveness_unknown` (not repeated when the attempt's last
+record already says so), and then refuses (`invocation_ended` with status `refused` and the counts), revealing,
+starting and dispatching nothing. A later resume must confirm that process gone before its attempt is revealed
+as interrupted (the attempt's last record must resolve it), but the earlier unresolved record is never undone:
+the close is `trial_aborted(unresolved_worker)`. **An unread spool is recorded unread.** A spool that could not be
+read when its worker was resolved is recorded with `null` bytes and a `null` SHA-256, never the size and digest
+of an empty file, and the verdict fails (`spool_unreadable`); the deposit seal records such a spool as `null`
+(12.2 rows 26 and 29).
+
 ### 14.7 The operator is an AI agent session; blinding is procedural
 
 The operator is an AI agent session with file access to the whole run; it **could** read the plaintext chain. Blinding
@@ -3178,6 +3291,22 @@ and "wrong-direction" ones - **in the same format and with the same prominence**
     external receipt, which is labelled provisional); in case (a) the crossing that was not acted on; the cap's
     effect on completion and exposure (arrivals of the frozen order not run, follow-up arrivals not run); and, per
     episode, whether its completion tokens are complete, a lower bound or unknown (13.1).
+17. *(Amendment 2026-09-24, v3, pre-outcome; root
+    `reviews/eb1_eb5_decision_eligibility_ruling_20260924_1605.md` and
+    `reviews/eb1_eb5_invalid_decision_summary_20260924_1905.md`.)* the **decision eligibility** of 6.4: the
+    no-decision point with its reason and seq, every look with its classification and concrete reason, and the
+    reference rule's unfiltered first crossing with its verdict (`decision.json` `eligibility`). The result
+    reported for the trial is, first match wins: `LIVE_DECISION_INVALID (harness defect)` - a decision logged
+    after the point, a logged decision the reference rule does not agree with, or a crossing at an eligible look
+    with no decision; `incomplete: restart cap before any decision (no decision; not a null result, not an
+    abstention)` - case (a) of 5.3 with no decision; `incomplete: aborted before any decision; a crossing
+    logged after the abort point was not acted on (no decision; not a null result, not an abstention)` - with
+    the crossing not acted on and its reason; `provisional: the logged decision has no chained external receipt
+    (no finalized claim)` - a valid decision without its chained external receipt; else the logged decision, or
+    `none` with no decision and no crossing. **Only the last is reportable**: an invalid decision is never
+    reportable. The program summary's decision is always this result, and whenever it is not reportable the
+    logged decision is kept beside it (`logged_decision`); the logged event stays in the chain and under
+    `decision` in `decision.json`.
 
 The results index separates: **observations; the prespecified live analysis; owner-side descriptive readings; excluded
 methods.** The PR body is regenerated from the governing report at each hand-off. **No statement says or implies that

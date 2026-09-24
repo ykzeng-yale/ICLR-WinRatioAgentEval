@@ -1518,7 +1518,7 @@ Administrative provenance repair only: no scientific parameter, seed, horizon, e
 decision rule, result label or execution pin changes.
 
 **Update 2026-09-23: the count above is stale; the pin is not.** "Moved twice" was true when this
-amendment was written. Since then `cells.json` has recorded five more successors of that file. The
+amendment was written. Since then `cells.json` has recorded six more successors of that file. The
 first three are Appendix B-only synchronisations of the #11 configuration block with `config.json`:
 `0e1bcb71…` (`host_work_root`, root ruling 2026-09-23 03:51), `f75de323…` (the sandbox-profile and
 licence evidence pins, root ruling 2026-09-23 03:48) and `7f666477…` (the scoped
@@ -1537,8 +1537,15 @@ Appendix B changes too, byte-identically with `config.json`. It inserts dated pa
 5.3, 5.8, 6.4, 12.2, 12.4, 13.1, 14.3, 14.6 and 16, among them four new automatic aborts and root's three
 restart-cap cases for reporting a decision. Every other change is an insertion, and sections 1, 3 and 11 stay
 byte-identical. A predecessor of the same amendment (`25014221…`, then `5d108b4a…`, branch
-`session60/repair-amend`) was withdrawn and never applied; neither digest was demoted into the history. That
-makes seven moves in all.
+`session60/repair-amend`) was withdrawn and never applied; neither digest was demoted into the history. The
+sixth, `73dd0573…`, is not an Appendix B change either: it is the pre-outcome amendment v3 of the same repair
+subset (root 2026-09-24 16:05, `reviews/eb1_eb5_decision_eligibility_ruling_20260924_1605.md`; 19:05, the
+invalid-decision summary; 03:24, the pushed-commit evidence; 2026-09-23 21:14, unknown usage). It inserts dated
+paragraphs into sections 5.3, 6.4, 12.2, 12.4, 13.1, 14.6 and 16 that describe what the code of the subset now
+does: one durable decision-eligibility classification, the pushed commit of a decision receipt bound to its
+anchor, `null` for a value never observed, and an unresolved worker that stays unresolved across resume. It is
+insertions only: `config.json`, the Appendix B block and sections 1, 3 and 11 stay byte-identical. That makes
+eight moves in all.
 They are written truncated for the reason given above. The full digests, reasons and rulings are in
 `cells.json` under `provenance.vocabulary_alignment.superseded_by`, and so is each changing commit
 once a later commit has resolved it. The

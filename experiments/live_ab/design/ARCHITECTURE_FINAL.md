@@ -1764,6 +1764,26 @@ it as the FAIL-level check `workers.resolved`, checks T4, T7, T8, T32 and `compl
 the FAIL-level check `server.lifecycle`, and its FAIL-level check `switch.phase` counts a decision as receipted
 only by `lab_eventlog.decision_receipt` (protocol 12.4).
 
+*Amendment 2026-09-24, v3 (pre-outcome; root `reviews/eb1_eb5_decision_eligibility_ruling_20260924_1605.md`,
+`reviews/eb1_eb5_invalid_decision_summary_20260924_1905.md` and
+`reviews/decision_receipt_metadata_ruling_20260924_0324.md`): row T35, and rows T23, T28, T29b and T33.*
+
+| # | type | D | body fields |
+|---|---|---|---|
+| T35 | `abort_owed` | D | *(protocol 6.4 and 12.2 row 31)* `reason` enum (the reasons of T31 `trial_aborted`); `source` enum[`supervision`,`abort_raised`,`run_loop_backstop`,`close_with_open_work`,`resolution_verdict`,`look_guard`]; `decision_logged` bool; `open_arrivals` [int]. Trial chain only. Written by `lab_orchestrator.World.owe_abort` / `write_abort_owed`, once per reason, before the abort's drain; read by `lab_eventlog.no_decision_point` and replayed by `lab_orchestrator.supervision_state` |
+
+T28 `usage_reconciliation` `counter_delta` values are int? (null in a lost-counter window whose counters were never
+read); T33 `spool_bytes_at_resolution` int? and `spool_sha256_at_resolution` hex64? (null when the spool could not
+be read at resolution); T29b `late_unread` rows carry `bytes_at_resolution` int? and `bytes_found` int?. The pure
+function `lab_eventlog.decision_eligibility(...)`, over `lab_eventlog.no_decision_point(...)`, is THE
+classification of every look (protocol 6.4): `lab_orchestrator.World` calls it before it writes each T19 look and
+decides only at an eligible one; `lab_verify_log` calls it for the FAIL-level check `reference_rule.agreement`
+(rules `decision_after_no_decision_point`, `abort_point_missing` and the missed crossing; INFO rows
+`NOT_ACTED_ON_restart_cap_before_decision` and `NOT_ACTED_ON_abort_before_decision`); `build_live_ab_results`
+writes it to `decision.json` (`eligibility`). A T23 receipt of a decision is chained only after
+`lab_orchestrator.anchor_commit_problem` finds its pushed commit bound to its anchor in the anchor repository
+(protocol 12.4).
+
 ### 4.5 `what_was_known`
 
 Always computed by the harness, never typed by a human:
@@ -2158,6 +2178,7 @@ a 5 s timer, (5) take the transition the table below prescribes.
 | 9 | `LOOK` | `decide()` returns `None`, one episode still running | — | `PARTIAL` | — |
 | 9a | `LOOK` | `decide()` returns `None`, both revealed | — | `IDLE` | — |
 | 9b | `LOOK` | `decide()` returns a `Decision` | `decision` (**D**); request the decision anchor, `blocking=True` | `DECIDED` | — |
+| 9c | any | *(Amendment 2026-09-24, v3; root `reviews/eb1_eb5_decision_eligibility_ruling_20260924_1605.md`; protocol 6.4)* before any `monitor_update` is written (rows 2a, 4a, 7, 8, 10, 12), `lab_eventlog.decision_eligibility` over the chain so far finds the look not eligible (a decision is logged, a `drain` look, or a no-decision point precedes it) | the `monitor_update` is written exactly as without the abort; `decide()` is not called and no `decision` is appended; a crossing there is not acted on | as the row that wrote the look | — |
 | 10 | `PARTIAL` | as rows 7, 7a, 7b, 8, 8a, 8b for the remaining episode | — | `LOOK` | — |
 | 11 | `DECIDED` | always | stop enrolling; request anchor if not yet requested | `DRAINING` | — |
 | 12 | `DRAINING` | a pre-decision episode is still in flight | let it finish under its original assignment; on its `episode_final`: `episode_revealed` (**D**, `post_decision=false`); `monitor.update` and `monitor_update(trigger='drain')` are still written, **but `decide()` is not called again** (the decision prefix is closed at the crossing) | `DRAINING` | — |
@@ -2176,6 +2197,7 @@ a 5 s timer, (5) take the transition the table below prescribes.
 | 21 | any | 10 consecutive revealed arrivals with `error_class` in {`episode_timeout`,`worker_died`,`interrupted`} or all tries of a call failed, counted in **reveal order** | `trial_aborted(infrastructure)` (D) | `ABORTED` | — |
 | 21a | any | *(Amendment 2026-09-24; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` item 4, and `reviews/restart_cap_estimand_ruling_20260923_2114.md`)* `server_down` on a server whose supervised restart attempts in this trial (`server_restarted` plus `server_start_failed` with `kind` `restart`, counted from the chain) already equal `server_supervision.max_supervised_restarts_per_server_per_trial` (3) | nothing is restarted and nothing new is dispatched; the open attempts drain (the `episode_hard_cap_s` kill still applies) and are revealed (D); every worker is resolved (row 21b); then `trial_aborted(server_restart_cap)` (D) with `completion` + blocking anchor. The case is fixed by the chain at that `server_down` (protocol 5.3): (a) no decision yet → none is taken afterwards, a crossing look is logged unchanged and not acted on; (b) a decision with its chained external receipt → it stands at its `tau`, the follow-up is truncated and counted; (c) a decision awaiting its receipt → the abort waits in `ANCHOR_BLOCK` (row 14c) and is taken only after the receipt, else row 14a pauses with the abort still owed. No replacement trial, no extra pair | `ABORTED` / `PAUSED` | **yes** |
 | 21b | `CLOSING`, `ABORTED` | *(Amendment 2026-09-24; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` item 3)* before the terminal record, after the bounded drain, the idle observation of every held server and the deposit seal: `phase_resolution_verdict` does not pass (a worker not confirmed exited, a started call with no terminal event under an unresolved worker, a spool grown or changed past its resolution offset, a held server busy or unobserved) | no `trial_ended`: `trial_aborted(unresolved_worker)` (D) + blocking anchor, whose `resolution` lists every unresolved attempt and unfinished call (usage `null`) and names the reason it superseded | `ABORTED` | **yes** |
+| 21c | any | *(Amendment 2026-09-24, v3; root `reviews/eb1_eb5_decision_eligibility_ruling_20260924_1605.md` items 1 and 2)* a terminal abort becomes owed: supervision owes one (rows 20, 20a, 21a), an `AbortTrial` reaches the run loop, the run loop catches a server exception outside supervision, or the close of an ended trial finds an attempt open and no decision (the resolution verdict of row 21b writes its own after the drain) | `abort_owed` (D) with its `reason`, `source` and open arrivals, once per reason, BEFORE the drain reveals anything (protocol 6.4); every later look is not eligible (row 9c); a resumed invocation replays it and still owes the abort | `ABORTED` / as before | — |
 | 22 | any | `MonitorError` / `EnclosureError`, **including one raised inside `lab_reference_rule`** | `trial_paused(monitor_exception)` (D); no decision is ever taken by hand. An exception from the reference rule is additionally a `decision_code_defect` candidate (protocol 6.4 rows 17 and 24) and is never closed by a re-freeze | `PAUSED` | — |
 | 22b | any | `shadow.mismatch` is true at any evaluation | `trial_paused(monitor_mismatch)` (D) **before any decision is acted on** (protocol 8.9) | `PAUSED` | — |
 | 23 | any | operator graceful stop | finish the pending pair, reveal, look, then `trial_paused(planned)` (D) | `PAUSED` | — |
