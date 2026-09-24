@@ -1,0 +1,2127 @@
+{
+ "authority": "root: reviews/prerun_bundle_go_nogo_20260923_2040.md items 2 and 4; reviews/restart_cap_estimand_ruling_20260923_2114.md; reviews/serving_manifest_binding_ruling_20260924_0153.md; reviews/eb1_receipt_attribution_review_20260924_0254.md; reviews/decision_receipt_metadata_ruling_20260924_0324.md (quoted in this tool's docstring)",
+ "code_the_prose_describes": [
+  "lab_eventlog: restart_cap_required_seq, restart_cap_case, decision_receipt, decision_receipt_problems, completion_record, COMPLETION, RESOLUTION, WORKER_RESOLVED_FIELDS, ANCHOR_RECEIPT_REJECTED_FIELDS, E_ABORT_REASON, E_PREFLIGHT",
+  "lab_orchestrator: supervise_down, supervised_restart, raise_pending, _write_one_look, the ANCHOR_BLOCK transition, start_servers, resume_servers, START_FAILURE_REASON, judge_receipt_line, decision_evidence_verdict, ingest_receipts, phase_resolution_verdict, close_trial, usage_of_lines, exposure_recount, preflight (golden_objects, serving_manifest, supervision)",
+  "lab_server.start / restart (stages); lab_serving_manifest (artifact, runtime_facts, verify_before_launch, props_build_info_problems)",
+  "lab_verify_log: server.lifecycle, workers.resolved, switch.phase",
+  "build_live_ab_results: decision_object, RESTART_CAP_INCOMPLETE_LABEL, PROVISIONAL_LABEL, completion_tokens_status",
+  "lab_prepare.run_reference_sweep and lab_load (the load ledger)"
+ ],
+ "conformance_prompts": {
+  "1_selection_rule": {
+   "authorship": "written by the implementing AI agent session (session 60 repair lane), itself a language model, not by hand; neither served model (incumbent or candidate) nor any other served model was run, and no output of any served model was consulted",
+   "fields": "id (oodp/1..oodp/4), benchmark (out_of_design: any value other than \"mbpp\" selects the signature-and-docstring branch of experiments/local_stream/agent.py build_user_prompt, which reads only benchmark and prompt and needs no reference solution), entry_point, prompt (the signature line plus a docstring, nothing else). extract_code reads only the response text; the format-conformance rule of 2.4 item 6 needs a code block, not only the fallback of extract_code",
+   "length": "prompt at most 600 characters; the task is chosen so that a correct answer is one short function, far below max_tokens 1024. That bound is a design judgement: no answer was written or generated to measure it",
+   "mechanical_distinctness": "for every prompt of the three pinned roster sources (mbpp_sanitized \"prompt\", mbpp_full \"text\", humaneval \"prompt\", all records) and the six smoke tasks: lab_data.normalize_prompt(candidate) != normalize_prompt(source); and token-set Jaccard similarity of the two normalized forms (split on spaces) strictly below 0.50. The entry point is the name of no function defined in any source record (mbpp code, humaneval prompt and entry_point). Checked by this tool at run time; a failure refuses the amendment",
+   "order": "the rule is stated ahead of the texts in this tool and in its receipts; that it was fixed before the texts were written is the implementing session's attestation, NOT a recorded fact: the rule and the texts entered the repository in the same file and the same commit (1349619, withdrawn branch session60/repair-amend); this v2 copies both verbatim",
+   "outcome_blindness": "no success, conformance, latency, token or other observation of any model on any prompt was used to write, choose or order them (root 20:40 item 2; protocol 5.8 \"Success outcomes of these runs are never used for any design choice\")",
+   "task_shape": "a short, self-contained Python function task that needs only the standard library (no import is required); one function; no tests, no examples, no doctest, no reference solution (correctness is never computed, protocol_FINAL.md 2.4 item 6)",
+   "threshold_fixed_before_checking": 0.5
+  },
+  "2_texts": [
+   {
+    "benchmark": "out_of_design",
+    "entry_point": "interleave_words",
+    "id": "oodp/1",
+    "prompt": "def interleave_words(left: str, right: str) -> str:\n    \"\"\"Return one sentence that alternates the words of two sentences.\n\n    Words are separated by single spaces, and an empty sentence has no words.\n    Take the first word of left, then the first word of right, then the second\n    word of left, and so on. When one sentence has no words left, append the\n    remaining words of the other in their original order. Join the result with\n    single spaces.\n    \"\"\"\n"
+   },
+   {
+    "benchmark": "out_of_design",
+    "entry_point": "covered_length",
+    "id": "oodp/2",
+    "prompt": "def covered_length(stretches: list) -> int:\n    \"\"\"Return the total length of a ruler covered by the given stretches.\n\n    Each item of stretches is a pair (start, end) of integers with start <= end.\n    It covers the part of the ruler from start to end, a length of end - start.\n    Parts covered by more than one stretch are counted once. An empty list\n    covers a length of 0.\n    \"\"\"\n"
+   },
+   {
+    "benchmark": "out_of_design",
+    "entry_point": "most_named",
+    "id": "oodp/3",
+    "prompt": "def most_named(ballots: list) -> str:\n    \"\"\"Return the option named on the most ballots.\n\n    Each ballot is a non-empty string naming one option. When several options\n    share the highest count, return the one whose first ballot comes earliest\n    in the list. Return an empty string when there are no ballots.\n    \"\"\"\n"
+   },
+   {
+    "benchmark": "out_of_design",
+    "entry_point": "rotate_digits",
+    "id": "oodp/4",
+    "prompt": "def rotate_digits(text: str, k: int) -> str:\n    \"\"\"Return text with every character from 0 to 9 replaced by a digit.\n\n    A digit d becomes the digit (d + k) % 10. All other characters are\n    unchanged. k is a non-negative integer.\n    \"\"\"\n"
+   }
+  ],
+  "3_mechanical_check_results": {
+   "all_pass": true,
+   "distinct_among_themselves": true,
+   "fields_are_exactly": true,
+   "gate": {
+    "distinct_among_themselves": true,
+    "every_prompt_passes": true,
+    "fields_are_exactly": true,
+    "ids_are_oodp_1_to_4": true,
+    "no_smoke_task_missing": true
+   },
+   "ids_are_oodp_1_to_4": true,
+   "per_prompt": [
+    {
+     "build_user_prompt_takes_the_non_mbpp_branch": true,
+     "closest_smoke_task": "mbpp_full/39",
+     "closest_source_uid": "humaneval/70",
+     "entry_point": "interleave_words",
+     "entry_point_defined_in_a_source": false,
+     "gate": {
+      "build_user_prompt_takes_the_non_mbpp_branch": true,
+      "entry_point_defined_in_no_source": true,
+      "max_jaccard_below_threshold": true,
+      "max_jaccard_smoke_tasks_below_threshold": true,
+      "normalized_equal_to_no_source": true,
+      "shape_ok": true,
+      "sources_compared": true
+     },
+     "id": "oodp/1",
+     "max_jaccard": 0.209677,
+     "max_jaccard_smoke_tasks": 0.118644,
+     "normalized_equal_to": [],
+     "passes": true,
+     "prompt_sha256": "246df9f8b0e21c2467d5bd868724e30eb795b066dcef0fbfae1bf940409bd4a9",
+     "shape": {
+      "ascii_only": true,
+      "body_is_the_docstring_only": true,
+      "chars": 464,
+      "no_decorator": true,
+      "no_example_or_assert": true,
+      "no_import": true,
+      "ok": true,
+      "one_function_named_entry_point": true,
+      "parses": true
+     },
+     "sources_compared": 1565,
+     "user_message_sha256": "4c860be9bfd07123f0772eecec2525fad4f37ab8196ffa608326739c94877da0"
+    },
+    {
+     "build_user_prompt_takes_the_non_mbpp_branch": true,
+     "closest_smoke_task": "mbpp_full/966",
+     "closest_source_uid": "mbpp_full/262",
+     "entry_point": "covered_length",
+     "entry_point_defined_in_a_source": false,
+     "gate": {
+      "build_user_prompt_takes_the_non_mbpp_branch": true,
+      "entry_point_defined_in_no_source": true,
+      "max_jaccard_below_threshold": true,
+      "max_jaccard_smoke_tasks_below_threshold": true,
+      "normalized_equal_to_no_source": true,
+      "shape_ok": true,
+      "sources_compared": true
+     },
+     "id": "oodp/2",
+     "max_jaccard": 0.217391,
+     "max_jaccard_smoke_tasks": 0.159091,
+     "normalized_equal_to": [],
+     "passes": true,
+     "prompt_sha256": "56727df607ef19e1e097a27893f001429dcdf37738b0c69c28e5325d04e544dc",
+     "shape": {
+      "ascii_only": true,
+      "body_is_the_docstring_only": true,
+      "chars": 389,
+      "no_decorator": true,
+      "no_example_or_assert": true,
+      "no_import": true,
+      "ok": true,
+      "one_function_named_entry_point": true,
+      "parses": true
+     },
+     "sources_compared": 1565,
+     "user_message_sha256": "603f427088bf34048f8d16ad138709b7615d9ef071fefa2b4dc552c911008d69"
+    },
+    {
+     "build_user_prompt_takes_the_non_mbpp_branch": true,
+     "closest_smoke_task": "mbpp_full/39",
+     "closest_source_uid": "humaneval/12",
+     "entry_point": "most_named",
+     "entry_point_defined_in_a_source": false,
+     "gate": {
+      "build_user_prompt_takes_the_non_mbpp_branch": true,
+      "entry_point_defined_in_no_source": true,
+      "max_jaccard_below_threshold": true,
+      "max_jaccard_smoke_tasks_below_threshold": true,
+      "normalized_equal_to_no_source": true,
+      "shape_ok": true,
+      "sources_compared": true
+     },
+     "id": "oodp/3",
+     "max_jaccard": 0.207547,
+     "max_jaccard_smoke_tasks": 0.09434,
+     "normalized_equal_to": [],
+     "passes": true,
+     "prompt_sha256": "75efd88eca219db071b3ecf4037e2d6ef98d5d81c3e48b4e0a7a950538b59a7a",
+     "shape": {
+      "ascii_only": true,
+      "body_is_the_docstring_only": true,
+      "chars": 322,
+      "no_decorator": true,
+      "no_example_or_assert": true,
+      "no_import": true,
+      "ok": true,
+      "one_function_named_entry_point": true,
+      "parses": true
+     },
+     "sources_compared": 1565,
+     "user_message_sha256": "fe7e5b56360843dbfe83721635754c4ecaa7ece49d4d541ad6a74f180ac940cf"
+    },
+    {
+     "build_user_prompt_takes_the_non_mbpp_branch": true,
+     "closest_smoke_task": "mbpp_full/39",
+     "closest_source_uid": "humaneval/151",
+     "entry_point": "rotate_digits",
+     "entry_point_defined_in_a_source": false,
+     "gate": {
+      "build_user_prompt_takes_the_non_mbpp_branch": true,
+      "entry_point_defined_in_no_source": true,
+      "max_jaccard_below_threshold": true,
+      "max_jaccard_smoke_tasks_below_threshold": true,
+      "normalized_equal_to_no_source": true,
+      "shape_ok": true,
+      "sources_compared": true
+     },
+     "id": "oodp/4",
+     "max_jaccard": 0.188679,
+     "max_jaccard_smoke_tasks": 0.125,
+     "normalized_equal_to": [],
+     "passes": true,
+     "prompt_sha256": "ec0ee7b277105813535278327519225800eec6c7439a005aa915a04916ddba3f",
+     "shape": {
+      "ascii_only": true,
+      "body_is_the_docstring_only": true,
+      "chars": 242,
+      "no_decorator": true,
+      "no_example_or_assert": true,
+      "no_import": true,
+      "ok": true,
+      "one_function_named_entry_point": true,
+      "parses": true
+     },
+     "sources_compared": 1565,
+     "user_message_sha256": "847e30327f14c4a1d34481efc04932747ceef17c715887485afe73be89694199"
+    }
+   ],
+   "smoke_tasks": [
+    "mbpp_full/39",
+    "mbpp_full/122",
+    "mbpp_full/522",
+    "mbpp_full/547",
+    "mbpp_full/869",
+    "mbpp_full/966"
+   ],
+   "smoke_tasks_missing_from_sources": [],
+   "source_counts": {
+    "humaneval": 164,
+    "mbpp_full": 974,
+    "mbpp_sanitized": 427
+   },
+   "source_facts": {
+    "humaneval": {
+     "bytes": 44877,
+     "file": "HumanEval.jsonl.gz",
+     "matches_config_pin": true,
+     "records": 164,
+     "sha256": "b796127e635a67f93fb35c04f4cb03cf06f38c8072ee7cee8833d7bee06979ef"
+    },
+    "mbpp_full": {
+     "bytes": 563743,
+     "file": "mbpp.jsonl",
+     "matches_config_pin": true,
+     "records": 974,
+     "sha256": "ccf64ceae9c5403bf50a044cb6d505bfd2a2963ee58338ba268fd65beab92a9f"
+    },
+    "mbpp_sanitized": {
+     "bytes": 255053,
+     "file": "sanitized-mbpp.json",
+     "matches_config_pin": true,
+     "records": 427,
+     "sha256": "ca95deaa9a01ef0a6f439f88bcf0dd3db3563d22f22aad6cae04ebb9a8d8c8e9"
+    }
+   }
+  }
+ },
+ "convention": "deterministic-path",
+ "dependent_hashes_that_do_not_move": [
+  "rule_block_sha256",
+  "receipt_mask_sha256",
+  "monitor.winstats_sha256",
+  "environment_lock_sha256",
+  "engineering_acquisition (== run_smoke.BOUND_LIMITS)",
+  "harness_file_sha256 of every .py file"
+ ],
+ "dependent_hashes_that_move": {
+  "architecture_sha256": "moves (ARCHITECTURE is under design/, outside the harness pin)",
+  "config_sha256 / harness_file_sha256[config.json]": "moves against b049307, as any config byte change must; no freeze exists, so nothing frozen is invalidated. Both prospective launch records (PROSPECTIVE_LAUNCH_RECORD_20260923_1922.json and _2030.json) pin the old config.json digest, and run_smoke.verify_acquisition_code refuses a launch with either of them, by design. FINITE_COSTED_PLAN_DRAFT_v2r3 also pins the old digest, but nothing consumes that pin with a refusal: its pin is stale, not enforced. New dependent records are needed (not written here; the old ones are write-once and kept)",
+  "protocol_sha256": "moves; recorded as the new successor above",
+  "serving_manifest_sha256": "null -> the artifact digest (this amendment)"
+ },
+ "documents_amended_in_lockstep": [
+  "experiments/live_ab/config.json",
+  "experiments/live_ab/design/ARCHITECTURE_FINAL.md",
+  "experiments/live_ab/design/protocol_FINAL.md"
+ ],
+ "generated_utc": "2026-09-24T09:27:08Z",
+ "insertions": [
+  {
+   "anchor": "  \"prefreeze\": {\"format_conformance_min\": 9,\n",
+   "bytes": 2038,
+   "document": "config",
+   "inside_json_fence": false,
+   "key": "config.prompts",
+   "section": null,
+   "section_upper_bound": null,
+   "sha256": "f3fe4d3570dbde77159e7aacc84db8e2ece14266f9cc195f8ec155d0378baf74",
+   "side": "after",
+   "text": "                \"conformance_prompts\": [\n                  {\"id\": \"oodp/1\", \"benchmark\": \"out_of_design\", \"entry_point\": \"interleave_words\",\n                   \"prompt\": \"def interleave_words(left: str, right: str) -> str:\\n    \\\"\\\"\\\"Return one sentence that alternates the words of two sentences.\\n\\n    Words are separated by single spaces, and an empty sentence has no words.\\n    Take the first word of left, then the first word of right, then the second\\n    word of left, and so on. When one sentence has no words left, append the\\n    remaining words of the other in their original order. Join the result with\\n    single spaces.\\n    \\\"\\\"\\\"\\n\"},\n                  {\"id\": \"oodp/2\", \"benchmark\": \"out_of_design\", \"entry_point\": \"covered_length\",\n                   \"prompt\": \"def covered_length(stretches: list) -> int:\\n    \\\"\\\"\\\"Return the total length of a ruler covered by the given stretches.\\n\\n    Each item of stretches is a pair (start, end) of integers with start <= end.\\n    It covers the part of the ruler from start to end, a length of end - start.\\n    Parts covered by more than one stretch are counted once. An empty list\\n    covers a length of 0.\\n    \\\"\\\"\\\"\\n\"},\n                  {\"id\": \"oodp/3\", \"benchmark\": \"out_of_design\", \"entry_point\": \"most_named\",\n                   \"prompt\": \"def most_named(ballots: list) -> str:\\n    \\\"\\\"\\\"Return the option named on the most ballots.\\n\\n    Each ballot is a non-empty string naming one option. When several options\\n    share the highest count, return the one whose first ballot comes earliest\\n    in the list. Return an empty string when there are no ballots.\\n    \\\"\\\"\\\"\\n\"},\n                  {\"id\": \"oodp/4\", \"benchmark\": \"out_of_design\", \"entry_point\": \"rotate_digits\",\n                   \"prompt\": \"def rotate_digits(text: str, k: int) -> str:\\n    \\\"\\\"\\\"Return text with every character from 0 to 9 replaced by a digit.\\n\\n    A digit d becomes the digit (d + k) % 10. All other characters are\\n    unchanged. k is a non-negative integer.\\n    \\\"\\\"\\\"\\n\"}],\n"
+  },
+  {
+   "anchor": "  \"hardware_allowlist\": [\"arm64-darwin\"],",
+   "bytes": 119,
+   "document": "config",
+   "inside_json_fence": false,
+   "key": "config.server_supervision",
+   "section": null,
+   "section_upper_bound": null,
+   "sha256": "54a2a504b760f1939ece147e819498612eba9a363687bbe39ab374f3a434a48c",
+   "side": "before",
+   "text": "  \"server_supervision\": {\"max_supervised_restarts_per_server_per_trial\": 3, \"on_exceeding\": \"abort_trial_incomplete\"},\n"
+  },
+  {
+   "anchor": "  \"prefreeze\": {\"format_conformance_min\": 9,\n",
+   "bytes": 2038,
+   "document": "architecture",
+   "inside_json_fence": true,
+   "key": "architecture.6_1.prompts",
+   "section": "### 6.1 Full key list",
+   "section_upper_bound": "### 6.2 The rule block",
+   "sha256": "f3fe4d3570dbde77159e7aacc84db8e2ece14266f9cc195f8ec155d0378baf74",
+   "side": "after",
+   "text": "                \"conformance_prompts\": [\n                  {\"id\": \"oodp/1\", \"benchmark\": \"out_of_design\", \"entry_point\": \"interleave_words\",\n                   \"prompt\": \"def interleave_words(left: str, right: str) -> str:\\n    \\\"\\\"\\\"Return one sentence that alternates the words of two sentences.\\n\\n    Words are separated by single spaces, and an empty sentence has no words.\\n    Take the first word of left, then the first word of right, then the second\\n    word of left, and so on. When one sentence has no words left, append the\\n    remaining words of the other in their original order. Join the result with\\n    single spaces.\\n    \\\"\\\"\\\"\\n\"},\n                  {\"id\": \"oodp/2\", \"benchmark\": \"out_of_design\", \"entry_point\": \"covered_length\",\n                   \"prompt\": \"def covered_length(stretches: list) -> int:\\n    \\\"\\\"\\\"Return the total length of a ruler covered by the given stretches.\\n\\n    Each item of stretches is a pair (start, end) of integers with start <= end.\\n    It covers the part of the ruler from start to end, a length of end - start.\\n    Parts covered by more than one stretch are counted once. An empty list\\n    covers a length of 0.\\n    \\\"\\\"\\\"\\n\"},\n                  {\"id\": \"oodp/3\", \"benchmark\": \"out_of_design\", \"entry_point\": \"most_named\",\n                   \"prompt\": \"def most_named(ballots: list) -> str:\\n    \\\"\\\"\\\"Return the option named on the most ballots.\\n\\n    Each ballot is a non-empty string naming one option. When several options\\n    share the highest count, return the one whose first ballot comes earliest\\n    in the list. Return an empty string when there are no ballots.\\n    \\\"\\\"\\\"\\n\"},\n                  {\"id\": \"oodp/4\", \"benchmark\": \"out_of_design\", \"entry_point\": \"rotate_digits\",\n                   \"prompt\": \"def rotate_digits(text: str, k: int) -> str:\\n    \\\"\\\"\\\"Return text with every character from 0 to 9 replaced by a digit.\\n\\n    A digit d becomes the digit (d + k) % 10. All other characters are\\n    unchanged. k is a non-negative integer.\\n    \\\"\\\"\\\"\\n\"}],\n"
+  },
+  {
+   "anchor": "  \"hardware_allowlist\": [\"arm64-darwin\"],",
+   "bytes": 119,
+   "document": "architecture",
+   "inside_json_fence": true,
+   "key": "architecture.6_1.server_supervision",
+   "section": "### 6.1 Full key list",
+   "section_upper_bound": "### 6.2 The rule block",
+   "sha256": "54a2a504b760f1939ece147e819498612eba9a363687bbe39ab374f3a434a48c",
+   "side": "before",
+   "text": "  \"server_supervision\": {\"max_supervised_restarts_per_server_per_trial\": 3, \"on_exceeding\": \"abort_trial_incomplete\"},\n"
+  },
+  {
+   "anchor": "  \"prefreeze\": {\"format_conformance_min\": 9,\n",
+   "bytes": 2038,
+   "document": "protocol",
+   "inside_json_fence": true,
+   "key": "protocol.appendix_b.prompts",
+   "section": "## Appendix B.",
+   "section_upper_bound": "## Appendix C.",
+   "sha256": "f3fe4d3570dbde77159e7aacc84db8e2ece14266f9cc195f8ec155d0378baf74",
+   "side": "after",
+   "text": "                \"conformance_prompts\": [\n                  {\"id\": \"oodp/1\", \"benchmark\": \"out_of_design\", \"entry_point\": \"interleave_words\",\n                   \"prompt\": \"def interleave_words(left: str, right: str) -> str:\\n    \\\"\\\"\\\"Return one sentence that alternates the words of two sentences.\\n\\n    Words are separated by single spaces, and an empty sentence has no words.\\n    Take the first word of left, then the first word of right, then the second\\n    word of left, and so on. When one sentence has no words left, append the\\n    remaining words of the other in their original order. Join the result with\\n    single spaces.\\n    \\\"\\\"\\\"\\n\"},\n                  {\"id\": \"oodp/2\", \"benchmark\": \"out_of_design\", \"entry_point\": \"covered_length\",\n                   \"prompt\": \"def covered_length(stretches: list) -> int:\\n    \\\"\\\"\\\"Return the total length of a ruler covered by the given stretches.\\n\\n    Each item of stretches is a pair (start, end) of integers with start <= end.\\n    It covers the part of the ruler from start to end, a length of end - start.\\n    Parts covered by more than one stretch are counted once. An empty list\\n    covers a length of 0.\\n    \\\"\\\"\\\"\\n\"},\n                  {\"id\": \"oodp/3\", \"benchmark\": \"out_of_design\", \"entry_point\": \"most_named\",\n                   \"prompt\": \"def most_named(ballots: list) -> str:\\n    \\\"\\\"\\\"Return the option named on the most ballots.\\n\\n    Each ballot is a non-empty string naming one option. When several options\\n    share the highest count, return the one whose first ballot comes earliest\\n    in the list. Return an empty string when there are no ballots.\\n    \\\"\\\"\\\"\\n\"},\n                  {\"id\": \"oodp/4\", \"benchmark\": \"out_of_design\", \"entry_point\": \"rotate_digits\",\n                   \"prompt\": \"def rotate_digits(text: str, k: int) -> str:\\n    \\\"\\\"\\\"Return text with every character from 0 to 9 replaced by a digit.\\n\\n    A digit d becomes the digit (d + k) % 10. All other characters are\\n    unchanged. k is a non-negative integer.\\n    \\\"\\\"\\\"\\n\"}],\n"
+  },
+  {
+   "anchor": "  \"hardware_allowlist\": [\"arm64-darwin\"],",
+   "bytes": 119,
+   "document": "protocol",
+   "inside_json_fence": true,
+   "key": "protocol.appendix_b.server_supervision",
+   "section": "## Appendix B.",
+   "section_upper_bound": "## Appendix C.",
+   "sha256": "54a2a504b760f1939ece147e819498612eba9a363687bbe39ab374f3a434a48c",
+   "side": "before",
+   "text": "  \"server_supervision\": {\"max_supervised_restarts_per_server_per_trial\": 3, \"on_exceeding\": \"abort_trial_incomplete\"},\n"
+  },
+  {
+   "anchor": "   | `props_build_info` | `/props.build_info`, which must contain the commit prefix |\n",
+   "bytes": 3038,
+   "document": "protocol",
+   "inside_json_fence": false,
+   "key": "protocol.2_2",
+   "section": "### 2.2 Serving software and the manifest fields that are pinned",
+   "section_upper_bound": "### 2.3 Models",
+   "sha256": "fd60771a276abb4287894f816c4854a198b10b54e4344572a5fb479ea78e3dba",
+   "side": "after",
+   "text": "\n   *Amendment 2026-09-24 (pre-outcome; root `reviews/serving_manifest_binding_ruling_20260924_0153.md` and\n   `reviews/decision_receipt_metadata_ruling_20260924_0324.md`):*\n   the serving manifest is **one tracked, write-once artifact**,\n   `results/live_ab/freeze/serving_manifest.json`, the file `serving_manifest.json` of the freeze tree\n   `<results root>/freeze`; no other location is read, and a runtime or configuration key that names another one\n   refuses. Its bytes are its canonical JSON plus one newline; it must be a regular file (a symlink refuses); the\n   SHA-256 of its canonical JSON is `llama_cpp.serving_manifest_sha256` of Appendix B, and a null or malformed\n   digest refuses: the artifact's own digest is never taken as the expectation. It was assembled for this\n   amendment from the durable build of item 1 (`work/llama.cpp-build/build` of the checkout that runs the\n   trials, declared in `results/live_ab/CANDIDATE_INSTRUMENT_MANIFEST_DURABLE.json`) by reading metadata only\n   (`otool`, `nm` and file bytes; nothing was executed or built), with every path tokenized as that checkout\n   sees it (`<REPO>/...`, `<RESULTS>/...`); a manifest assembled from another checkout names the build\n   differently and refuses there. Besides the fields of the table it records the launcher's tokenized path and\n   digest, the whole dependency closure (each edge of the recursive resolution under the launch context the\n   server gets, each member's bytes and SHA-256), the build options of the build's `CMakeCache.txt`, and the\n   path, bytes and SHA-256 of each provenance file (the durable-build receipt, the build and configure logs,\n   `CMakeCache.txt`, `common/build-info.cpp`, the lifecycle patch). **Re-verification, at preflight of every\n   invocation (resume included) and at every server start and supervised restart (5.3):** the artifact is read\n   again and its digest compared with the configuration; then the launcher's path and SHA-256, the closure\n   (re-derived from the Mach-O load commands, every member re-hashed: a member added, removed, moved or changed\n   refuses), `LC_RPATH`, the embedded Metal library (the one member carrying `__DATA,__ggml_metallib`, its\n   container and section digests), the provenance files (re-read and re-hashed) and the build string of\n   `build-info.cpp` are **measured** and compared field by field; once the started server answers, its actual\n   `/props.build_info` is compared with `props_build_info`. The launch context is part of the closure: the\n   server runs in its launcher's directory, and the frozen launch environment has no `GGML_*` or `DYLD_*`\n   variable, so such a variable in the orchestrator's environment refuses. A Metal library that is not\n   embedded is not modelled and refuses. A refusal is the preflight code `serving_manifest` (6.4 row 21) or, at\n   a start or restart, `server_start_failed` at stage `serving_manifest` (5.3). What this does not establish:\n   which bytes the GPU executes; every check is on files and on the server's own answer.\n"
+  },
+  {
+   "anchor": "   neither computed nor looked at. The prompts and the extractor were developed on the incumbent's model family and are\n   not changed.\n",
+   "bytes": 762,
+   "document": "protocol",
+   "inside_json_fence": false,
+   "key": "protocol.2_4_item_6",
+   "section": "### 2.4 T3 candidate: selection criteria and preflight rules",
+   "section_upper_bound": "### 2.5 Arms",
+   "sha256": "511c58a1dfba941e98677af0102e871a925c5ed2921facec67c4008481f907c7",
+   "side": "after",
+   "text": "\n   *Amendment 2026-09-24 (pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` item 2):* in the\n   sentence above, \"the prompts ... were developed on the incumbent's model family\" applies to the **six smoke tasks\n   only**. The four out-of-design prompts of 5.8 (`prefreeze.conformance_prompts`) were written by the\n   implementing AI agent session, without running either served model (incumbent or candidate) and without\n   consulting any output of a served model; they were developed on neither model family. Their selection rule is\n   stated ahead of the texts in the amendment tool and its receipts (5.8); that the rule was fixed before the texts\n   were written is the session's attestation, not a recorded fact. The extractor is unchanged.\n"
+  },
+  {
+   "anchor": "enters the reconciliation identity of 13.1. `/metrics` scrape points: 13.1.\n",
+   "bytes": 7599,
+   "document": "protocol",
+   "inside_json_fence": false,
+   "key": "protocol.5_3",
+   "section": "### 5.3 Server supervision",
+   "section_upper_bound": "### 5.4 Sampling parameters",
+   "sha256": "e4d04f1622efe41cb3ca94caa054dfd956271a47bf139444e3d14436753787b3",
+   "side": "after",
+   "text": "\n*Amendment 2026-09-24 (pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` items 1 and 4, and\n`reviews/restart_cap_estimand_ruling_20260923_2114.md`).*\n**Restart cap.** At most **three** supervised restarts per server per\ntrial: `server_supervision` = `{\"max_supervised_restarts_per_server_per_trial\": 3, \"on_exceeding\":\n\"abort_trial_incomplete\"}`, a top-level config key outside the rule block. Every non-simulated invocation reads\nit, and `execution.health_failures_to_down`, before seq 0; either one absent or malformed refuses the invocation\n(`preflight_rule_failed`): there is no default cap. At every health poll a server whose process has exited is\n`server_down` (detected by exit); otherwise `/health` is polled, and `health_failures_to_down` consecutive\nfailures are `server_down`. Before `server_down` is written every open spool is ingested; then the old process\nis stopped (`server_stopped`). Every supervised restart **attempt** counts towards the cap, whether it succeeds\n(`server_restarted`) or fails (`server_start_failed` with `kind = restart`); the count is rebuilt from the chain\non resume. When a `server_down` finds the server's attempts already at three, a fourth restart would be\nrequired: nothing is restarted, no new arrival is dispatched, the open attempts drain through the ordinary loop\n(the `episode_hard_cap_s` kill still applies) and are revealed, every worker is resolved (14.6), and the trial\nends `trial_aborted(server_restart_cap)`, a **new automatic abort** (6.4). Every enrolled pair, attempt, band\nendpoint, failure, unknown usage and missingness record is kept. **No replacement trial, no extra pair, no alpha\ntransfer, no margin change.** The cap was fixed without looking at any success or cost outcome.\n\n**What a cap abort means depends on where the chain stands** when the `server_down` that required the fourth\nrestart is written (root's ruling of 21:14; `lab_eventlog.restart_cap_case` fixes the case from the chain alone):\n\n- **(a) Before a valid decision** (`before_decision`): no new deploy or harm decision is made. A look logged\n  during the abort's drain is logged exactly as it would be without the cap, and if it crosses, no `decision` is\n  appended; the report names that crossing as not acted on. The trial is reported **incomplete**, with its\n  enrolled prefix, band endpoints, attempts, failures, unknown usage and missingness. It is not a null result and\n  not a valid abstention: a crash may be arm-related, so it is never reclassified as favourable, unfavourable or\n  null.\n- **(b) After a valid, logged and externally receipted decision** (`after_receipted_decision`): the decision\n  stands at its original `tau` and is reported. The follow-up cohort is truncated, and every arrival that did not\n  run is counted and reported. No band, score, `n`, decision time or claim of the earlier prefix is revised.\n- **(c) While a logged decision awaits its blocking receipt** (`decision_provisional`): the decision is\n  provisional, not a finalized external decision. The owed abort is not taken while the receipt is pending: the\n  trial stays in the anchor wait, the servers stay supervised, and nothing post-switch is dispatched. When the\n  existing receipt rule of 12.4 succeeds, the abort is taken before any `traffic_switch`, and the decision is\n  reported as in (b), at its original `tau`, labelled as receipted after the cap bound. When the receipt cannot\n  be obtained (the decision anchor comes back failed, or the wait of 6.4 row 26 runs out), the existing rule\n  applies: `trial_paused(anchor_unavailable)`, with the abort still owed after the pause. A decision that is\n  never receipted is reported as provisional, never as a finalized claim.\n\n\"Externally receipted\" means the decision's blocking anchor with its chained external receipt of 12.4 (the\namendment of 12.4 of this date), including the server time of claim 3 of 1.4. A logged decision without such a\nreceipt is reported as provisional in every trial, capped or not.\n\n**Cap invariance.** The cap reads no outcome, score, band or coin. It changes nothing in the reference monitor,\nthe alpha allocation, the success margin, the scoring, the enrollment-indexed band or the first crossing: every\n`monitor_update` is written exactly as it would be without the cap, `lab_monitor`, `lab_reference_rule`,\n`lab_coin`, `lab_design` and `lab_enclosure` are not changed by the repair, and case (a) only withholds a\ndecision. It does change **operational completion and observed exposure**, and both are reported: every\nterminal record carries `completion` (12.2), with the case, the decision's receipt state and seq, the receipt's\nserver time, the arrivals of the frozen order that ran and did not run, and the follow-up arrivals that ran and\ndid not run. The verifier recounts it (`server.lifecycle`).\n\n**Real start, and refusal instead of a placeholder.** Every first start, start at resume and supervised restart\ngoes through `lab_server.start`, in stages: `gguf` (the GGUF file named explicitly for the server is read, and\nits bytes and SHA-256 are measured against `servers.<id>.bytes` and `sha256_expected`, never copied from the\nconfiguration; preflight also refuses a frozen entry whose `sha256_recomputed` differs from `sha256_expected`),\n`serving_manifest` (the artifact of 2.2,\nre-verified against the runtime before the launch), `launch`, `health` (healthy only when `/health` answers 200\nand the child is the port's only listener), `identity` (first the server's actual `/props.build_info` against\nthe manifest, a difference being recorded at stage `serving_manifest`; then the full `/props`, `model_path`\ntokenized, against the tokenized golden object of the freeze bundle) and `smoke` (`SERVER_SMOKE`, compared with\nthe golden `generation_settings` under the mask of 13.2; its `usage` and `timings` keys must be present). A\nfailure at any stage is recorded durably as `server_start_failed` (12.2 row 28), the child is stopped, and no\nsuccess-valued `server_started` or `server_restarted` is written: no comparison flag is written true unless the\ncomparison was made, and no placeholder digest is written. What follows, by stage, **under rules that existed\nbefore this amendment**: a `gguf`, `serving_manifest` or `identity` failure is 6.4 row 6\n(`trial_aborted(server_identity)`); a smoke receipt that differs from the golden object is\n`trial_aborted(receipt_mismatch)` (6.4 row 12); a supervised restart that never becomes healthy is the\n`server_unrecoverable` pause of 14.6. **New automatic aborts** added by this amendment (6.4): a `SERVER_SMOKE`\nthat yields no receipt (no HTTP 200 JSON object, `smoke_transport`; a `usage` or `timings` key missing,\n`smoke_no_usage`) also ends the trial as `trial_aborted(receipt_mismatch)`; a **first** start that fails at\n`launch` or `health` dispatches nothing and ends the trial as `trial_aborted(infrastructure)`, and a crash between\nthe failure record and the abort is resumed into that abort. A start at resume follows the restart rules. A\nstart call the harness refused, or an exception it did not anticipate, ends the trial as\n`trial_aborted(harness_defect)`.\n\n**Golden objects, before seq 0.** On every non-simulated path the golden files are read from the freeze tree,\ntheir canonical digests recomputed and compared with the config tables; a null, missing, unreadable or\nmismatched golden file, a golden `model_path` that is not tokenized, a runtime `golden` override, or a `--gguf`\npath whose tokenized form is not the golden `model_path` refuses the invocation with the preflight code\n`golden_objects`.\n"
+  },
+  {
+   "anchor": "quantities used are durations, memory, receipt equality, template facts and the yes/no extractability of a code block.\n",
+   "bytes": 1694,
+   "document": "protocol",
+   "inside_json_fence": false,
+   "key": "protocol.5_8",
+   "section": "### 5.8 Pre-freeze out-of-design phase",
+   "section_upper_bound": "## 6. Outcomes, the hierarchy",
+   "sha256": "681c96a4763277cd69484cb7a42b3fad84bc1a6dbfe7d64c168db71179370435",
+   "side": "after",
+   "text": "\n*Amendment 2026-09-24 (pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` item 2).* The four\nout-of-design prompts are stored at `prefreeze.conformance_prompts` (ids `oodp/1` to `oodp/4`), byte-identically in\n`config.json`, ARCHITECTURE 6.1 and Appendix B. They are not hand-written: an implementing AI agent session wrote\nthem. Their selection rule is stated ahead of the texts in the amendment tool\n(`experiments/live_ab_tools/repair_amendment_v2.py`) and in its receipt\n(`results/live_ab/REPAIR_AMENDMENT_V2_RECEIPT_<UTC>.json`); the same rule and texts were first recorded by a\npredecessor amendment that was withdrawn and never applied (branch `session60/repair-amend`, named in that\nreceipt). That the rule was fixed before the texts were written is the session's attestation, not a recorded\nfact, since the rule and the texts entered the repository in one commit. The rule: short, self-contained Python\nfunction tasks that need only the standard library, in the signature-and-docstring form that\n`build_user_prompt` sends on its non-MBPP branch, with no tests, no examples and no reference solution\n(correctness is never computed, 2.4 item 6); each mechanically distinct under `normalize_prompt` from every\nprompt of the three pinned sources and from the six smoke tasks, with token-set Jaccard similarity below 0.5 to\neach of them. **No observed outcome was used to choose them**: neither served model (incumbent or candidate)\nwas run, and no success, conformance, latency or other output of any served model was consulted. They are not\nroster tasks and carry no task uid. With the six smoke tasks they are the ten prompts of the format-conformance\nrule of 2.4 item 6.\n"
+  },
+  {
+   "anchor": "one**; every abort is reported with the band endpoints at the abort (14.6).\n",
+   "bytes": 1743,
+   "document": "protocol",
+   "inside_json_fence": false,
+   "key": "protocol.6_4",
+   "section": "### 6.4 Failure-to-outcome table: every mode, one outcome",
+   "section_upper_bound": "## 7. Pairing, the filtration",
+   "sha256": "57c4381f8dced75e229f1f88941b3277bb3c022a013e0b5f078561953fb7608b",
+   "side": "after",
+   "text": "\n*Amendment 2026-09-24 (pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` items 1, 3 and 4, and\n`reviews/restart_cap_estimand_ruling_20260923_2114.md`).*\n**New automatic, deterministic aborts.** This amendment adds four\ntriggers that did not exist before it: `trial_aborted(server_restart_cap)` when a fourth supervised restart of a\nserver would be required (5.3); `trial_aborted(unresolved_worker)` when the resolution verdict of 14.6 does not\npass where a terminal record would otherwise be written; `trial_aborted(infrastructure)` when the first start of a\nserver fails at `launch` or `health` (5.3), a second trigger of that reason beside the ten-failure rule; and\n`trial_aborted(receipt_mismatch)` when a `SERVER_SMOKE` yields no receipt at all (`smoke_transport`,\n`smoke_no_usage`; 5.3). Each is automatic, is reported under its own reason and is never\n`operator_discretion` (14.6). In the post-decision phase an `unresolved_worker` or `receipt_mismatch` abort is\ntreated as the aborts listed under \"Aborts in the post-decision phase\" above: the follow-up cohort is truncated\nand the logged, receipted decision stands. A first-start abort cannot occur there, because it precedes every\ndispatch. A `server_restart_cap` abort follows the three cases of 5.3: before a valid decision it prevents one;\nafter a logged and externally receipted decision, that decision stands at its original `tau` and the follow-up\nis truncated and counted; while the decision awaits its blocking receipt, it is provisional and the existing\nreceipt and pause rules of 12.4 and row 26 apply. An abort still only removes decisions, never creates one. An\n`unresolved_worker` abort names in its `resolution` record the reason it superseded (14.6).\n"
+  },
+  {
+   "anchor": "| 27 | `invocation_ended`, `trial_ended` / `trial_aborted` | status and reason; exposure ledger by phase and arm; reconciliation totals; terminal failures by arm; longest span without a receipt; `what_was_known`; final head | yes + blocking anchor |\n",
+   "bytes": 2858,
+   "document": "protocol",
+   "inside_json_fence": false,
+   "key": "protocol.12_2",
+   "section": "### 12.2 Event schema",
+   "section_upper_bound": "### 12.3 The hash rule",
+   "sha256": "c63c518ff33510be88cf32a427e8696bc17b44d55877c12a367410f1dd751e98",
+   "side": "after",
+   "text": "| 28 | `server_start_failed` | *(Amendment 2026-09-24, pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` item 1)* server id; `kind` (`start`, `restart`); `stage` (`gguf`, `serving_manifest`, `launch`, `health`, `identity`, `smoke`); `findings` (closed codes); pid (0 when no process existed); return code or null; argv hash; `/props` hash or null; load seconds; `restart_index` (0 for a start). Written instead of, never beside, a success-valued #3 or #6 for the same attempt (5.3) | yes |\n| 29 | `worker_resolved` | *(Amendment 2026-09-24, pre-outcome; same review, item 3)* arrival, attempt, pid, `state` (`exited`, `killed_reaped`, `liveness_unknown`, `alive_unresolved`), return code or null, spool bytes and spool SHA-256 at resolution (the offset the deposit is sealed to, 14.6) | yes |\n| 30 | `anchor_receipt_rejected` | *(Amendment 2026-09-24, pre-outcome; root `reviews/eb1_receipt_attribution_review_20260924_0254.md` and `reviews/decision_receipt_metadata_ruling_20260924_0324.md`)* the receipt line's `request_id` when it is one (32 lowercase hex), else null; `reason` (`unknown_request`, `stale`, `malformed`, `duplicate`, `conflict`); SHA-256 and byte length of the line as it stays in the receipt spool. The line is attributed to no anchor (12.4) | yes |\n\n*Amendment 2026-09-24 (pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` items 1, 3 and 4,\nand the rulings of 21:14, 02:54 and 03:24), to rows 2, 14, 19, 20, 26 and 27 and to P6 and P8.*\n`episode_revealed` (#14) also carries\n`usage_complete` and `unknown_usage_calls` (13.1). `anchor` (#19) also carries the `request_id` of the durable\nanchor request it was sent as; `anchor_receipt` (#20) also carries the `request_id` it answered and, on a verified\ndecision receipt only, the SHA-256 of the committed anchor file, of the echoed comment body and of the response's\n`node_id` (12.4). `deposit_sealed` (#26) lists as `late_unread` every spool found past its resolution offset. The\nreason of `trial_aborted` (#27) may also be `server_restart_cap` (5.3) or `unresolved_worker` (14.6), both\nautomatic aborts of 6.4. Every terminal record (#27) also carries `completion` (the restart-cap case of 5.3, the\ndecision's receipt state, the arrivals that ran and did not run, the follow-up that ran and did not run) and\n`resolution` (the verdict of 14.6, every unresolved attempt, every unfinished call with usage `null`, every spool\nfound past its offset, the servers observed idle, and the reason an `unresolved_worker` abort superseded). The\nclosed list of preflight check codes shared by `invocation_refused` (#2) and `preflight_refused` (P6) gains\n`golden_objects` (5.3). Rows 28 and 29 are written on a trial chain only. Row 30 is written wherever anchor events\nare: a trial chain, and the program chain beside P8. These additions are made before any freeze.\n"
+  },
+  {
+   "anchor": "    because its URLs lack the real account and repository names).\n",
+   "bytes": 3138,
+   "document": "protocol",
+   "inside_json_fence": false,
+   "key": "protocol.12_4",
+   "section": "### 12.4 Anchoring: mechanics",
+   "section_upper_bound": "### 12.5 What the anchors prove, and what they do not",
+   "sha256": "b95c1ee5142c66728d90796ed44bb974009cbb0d58b0351291a031b3c60942c1",
+   "side": "after",
+   "text": "\n*Amendment 2026-09-24 (pre-outcome; root `reviews/eb1_receipt_attribution_review_20260924_0254.md` and\n`reviews/decision_receipt_metadata_ruling_20260924_0324.md`): receipt attribution.*\n12.4 has **no timestamp authority**, and this\namendment adds none. Every line of the receipt spool (`anchor_spool/receipts.jsonl`) becomes **exactly one**\nchain event: `anchor_receipt`, `anchor_failed` or `anchor_receipt_rejected` (12.2 row 30). A line is attributed\nto an anchor **only** when its `request_id` (32 lowercase hex) names a durable anchor request\n(`anchor_spool/requests.jsonl`, written with the chained `anchor`, which carries the same id) and that request\nagrees with the chained `anchor` of its `anchor_seq`. Otherwise the line is rejected and never credited to the\nnewest anchor: `malformed` (not a JSON object, no such id, a field the chain cannot hold, or a decision receipt\nmissing evidence), `unknown_request`, `duplicate` (the exact bytes that already resolved that anchor), `stale`\n(another line for an earlier, resolved anchor), `conflict` (another line for the newest resolved anchor, a\nrequest that disagrees with its anchor, or decision evidence that disagrees with itself or with its request).\n**No unknown or stale row becomes a receipt.** A rejected line resolves nothing: its anchor stays pending and\nthe existing timeout of 6.4 row 26 applies. The line stays in the spool unaltered, and the chain carries its\nSHA-256 and length. A resumed invocation re-reads the spool and does not chain again a line the chain holds.\n**The decision receipt.** An `ok` line bound to a `decision` anchor request is the decision's external receipt\nonly if it carries: the push (`pushed`, a 40-hex commit, the frozen anchor branch); the SHA-256 of the anchor\nfile of that request (the anchor head: `upto_seq`, `upto_h`, the segment SHA-256); the comment's `id` and\n`node_id`; parsable `created_at` and `updated_at`; the SHA-256 of the exact comment body of item 3 (trial id,\n`upto_seq`, `upto_h`, segment SHA-256); and the raw API response, whose SHA-256 is `receipt_sha256` and whose\nown `id`, `node_id`, `created_at`, `updated_at` and `body` equal the row's. Evidence missing is `malformed`;\nevidence inconsistent is `conflict`, including `updated_at` earlier than `created_at`, the only ordering read.\nNo wall-clock equality and no latency window is imposed. The chained `anchor_receipt` then carries\n`created_at`, the server time of claim 3 of 1.4. The decision is **externally receipted** (claim 3 of 1.4, the\ngate of item 5, the cases of 5.3) only by such a receipt of one of its own blocking decision anchors; until\nthen it is provisional, and neither `traffic_switch` nor any post-decision assignment is written. A receipt\nchained for the pending decision anchor that still does not qualify marks that anchor failed, which is the\npause of 6.4 row 26, instead of requesting it again without end. What this does **not** perform: any read of\nthe remote that the push or the comment exists. In a MOCK tree only (a dry run), a receipt that claims no\nexternal evidence at all is accepted; any line that claims some is checked in full.\n"
+  },
+  {
+   "anchor": "uses**. **Tokens are never converted into money, energy or \"compute\"**; prompt tokens stay visible.\n",
+   "bytes": 1093,
+   "document": "protocol",
+   "inside_json_fence": false,
+   "key": "protocol.13_1",
+   "section": "### 13.1 Usage accounting for every try",
+   "section_upper_bound": "### 13.2 The sampler receipt and the golden objects",
+   "sha256": "dff9a36d002bd6d1c0d43dda448b0d1b92041c20d2a0c668596954363261b84b",
+   "side": "after",
+   "text": "\n*Amendment 2026-09-24 (pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` item 3).* Every\n`episode_revealed` also carries `usage_complete` and `unknown_usage_calls`: `usage_complete` is true only when\nevery call the attempt started before its reveal has a response with a usage receipt, and `unknown_usage_calls`\ncounts the calls that have none (a failed try, whose usage the client never knows, or a call without any terminal\nline). `completion_tokens` stays the known tokens; it is reported as a lower bound whenever `usage_complete` is\nfalse and as unknown for a reveal that carries no flag, never as a complete count. A call left without a terminal\nrecord when its worker is resolved or killed is **unfinished**: its delivery is unknown, its usage is `null`,\nnever 0, and it is never counted as unsent. The exposure ledger keeps the calls of an arrival that was never\nrevealed in their own `unrevealed` cell; a cell with unknown usage marks its tokens as a lower bound, and the\ntrial totals are `null` with the reason `unknown_usage` whenever any call's usage is unknown.\n"
+  },
+  {
+   "anchor": "| **reporting thresholds (N16)** | ",
+   "bytes": 944,
+   "document": "protocol",
+   "inside_json_fence": false,
+   "key": "protocol.14_3",
+   "section": "### 14.3 Immutability, and the two classes of code",
+   "section_upper_bound": "### 14.4 The harness-only re-freeze",
+   "sha256": "26df6ab48455823e8609c28f642868ec12f1e446282bd1fb289e820cb4f172e3",
+   "side": "after-line",
+   "text": "\n*Amendment 2026-09-24 (pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` items 2 and 4, and\n`reviews/restart_cap_estimand_ruling_20260923_2114.md`).*\nThe config key `server_supervision` (the restart cap of 5.3), the\nfour prompts at `prefreeze.conformance_prompts` (5.8), the three restart-cap cases of 5.3 and the rule of 14.6\nthat every worker is resolved before a terminal record join this list: none may be amended after the first\noutcome. `server_supervision` lies outside the rule block, so it is bound by `config_sha256` and by the harness\npin of `config.json`, not by `rule_block_sha256`: the rule-block digest does not cover it, and that digest being\nunchanged shows nothing about this key or about any protocol text. The serving manifest's digest,\n`llama_cpp.serving_manifest_sha256`, is a value of `config.json`, which is already immutable (decision-defining\ncode, below); the artifact it names is write-once (2.2).\n"
+  },
+  {
+   "anchor": "abort. **An aborted trial is reported, never restarted**; no decision other than one already logged is claimed.\n",
+   "bytes": 2832,
+   "document": "protocol",
+   "inside_json_fence": false,
+   "key": "protocol.14_6",
+   "section": "### 14.6 Trial order, unconditional execution, inspection between trials, pauses and aborts",
+   "section_upper_bound": "### 14.7 The operator is an AI agent session",
+   "sha256": "43587a7aeb48c1ac5ffd1cfc381ce1b58153afe7d45e233df805a92660e272f1",
+   "side": "after",
+   "text": "\n*Amendment 2026-09-24 (pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` items 1, 3 and 4, and\n`reviews/restart_cap_estimand_ruling_20260923_2114.md`).*\n**Every worker is resolved before a terminal record.** A worker\nprocess is a used send permit until its exit is confirmed: the orchestrator has no gate that can revoke a live\nworker's request. Each worker is therefore polled after its reveal until its exit is confirmed, and recorded by a\ndurable `worker_resolved` (12.2 row 29) with `state` `exited` or `killed_reaped`; a worker whose kill cannot be\nconfirmed within the bound is recorded `alive_unresolved`, one whose liveness cannot be read `liveness_unknown`,\nand an unresolved record is never undone later. The pair boundary waits for both workers to be resolved, not only\nrevealed. An abort or a pause first runs a bounded drain (the `episode_hard_cap_s` kill still applies) and keeps\nits own reason. Before `trial_ended` or `trial_aborted` is written, every open attempt is revealed, every worker is\nresolved or recorded unresolved, every server still held is observed idle, the deposit seals each spool at its\nrecorded resolution offset (bytes found later are listed and never read), and a pure resolution verdict is taken\nover the chain, the spools and the server observation. If it does not pass, the terminal record is\n`trial_aborted(unresolved_worker)`; its `resolution` lists every unresolved attempt and every unfinished call\n(usage `null`, 13.1) and names the abort reason it superseded. On resume an earlier worker is identified by its\npid and its process identity; a live orphan's process group is killed and confirmed gone before its attempt is\nrevealed as interrupted, or else the invocation is refused. The verifier checks the same rules\n(`workers.resolved`, FAIL level). This is truthful failure accounting: it does not prove that no request is sent\nafter the terminal snapshot, and unresolved work makes the phase incomplete, never zero. `worker_resolved` is a\ntrial-chain event. For the pre-freeze stages of 5.8, the loaded reference sweep resolves its background load\nstreams through the durable ledger of `lab_load` (an intent before every request, one terminal line after it)\nand is recorded incomplete unless every load source is resolved; it does not take the resolution verdict above.\nThe resolution rule of any stage driver that starts worker processes is fixed with that driver, before its stage\nruns. The four automatic aborts that the amendment of 6.4 of this date adds - `trial_aborted(unresolved_worker)`,\n`trial_aborted(server_restart_cap)`, and the first-start `trial_aborted(infrastructure)` and the no-receipt\n`trial_aborted(receipt_mismatch)` of 5.3 - are automatic aborts of 6.4, so the rule above that every other abort\nis `operator_discretion` does not apply to them.\n"
+  },
+  {
+   "anchor": "    **nothing is rerun to obtain a different answer**; deferred items listed as deferred.\n",
+   "bytes": 667,
+   "document": "protocol",
+   "inside_json_fence": false,
+   "key": "protocol.16",
+   "section": "## 16. What is reported whatever the outcome",
+   "section_upper_bound": "## Appendix A.",
+   "sha256": "2be89011fd4880e5ad70ac593885d166e2496d4d8eff7d24fd02c75489713fef",
+   "side": "after",
+   "text": "16. *(Amendment 2026-09-24, pre-outcome; root\n    `reviews/restart_cap_estimand_ruling_20260923_2114.md`.)* the **restart-cap\n    case** of 5.3 (`none`, `before_decision`, `after_receipted_decision`, `decision_provisional`) with the\n    decision's receipt state; whether the decision is reportable (not in case (a), and not when it lacks its chained\n    external receipt, which is labelled provisional); in case (a) the crossing that was not acted on; the cap's\n    effect on completion and exposure (arrivals of the frozen order not run, follow-up arrivals not run); and, per\n    episode, whether its completion tokens are complete, a lower bound or unknown (13.1).\n"
+  },
+  {
+   "anchor": "| `lab_server.py` | G4 | ",
+   "bytes": 487,
+   "document": "architecture",
+   "inside_json_fence": false,
+   "key": "architecture.2_1",
+   "section": "### 2.1 `experiments/live_ab/`",
+   "section_upper_bound": "### 2.2 `results/live_ab/`",
+   "sha256": "443aa59763d5b7b3b9d4226944d54818e85f24a703961b15ed4f61918f80fb60",
+   "side": "after-line",
+   "text": "| `lab_serving_manifest.py` | G4 | *(Amendment 2026-09-24, pre-outcome; root `reviews/serving_manifest_binding_ruling_20260924_0153.md`)* the serving manifest of protocol 2.2 item 2: the one write-once artifact `results/live_ab/freeze/serving_manifest.json`, its assembly from the durable build and its re-verification against the runtime at every invocation, start and restart; the dependency closure of `experiments/live_ab_serving/dependency_closure.py` transcribed verbatim (3.16) |\n"
+  },
+  {
+   "anchor": "    golden_generation_settings_coder.json, golden_generation_settings_t3.json\n",
+   "bytes": 104,
+   "document": "architecture",
+   "inside_json_fence": false,
+   "key": "architecture.2_2",
+   "section": "### 2.2 `results/live_ab/`",
+   "section_upper_bound": "### 2.3 `work/live_ab/`",
+   "sha256": "e2704a6fb709ba59051688c06998d8cfc4d534b51fbb5ba64cf940d11fb3b696",
+   "side": "after",
+   "text": "    serving_manifest.json        # protocol 2.2 item 2: written once (amendment 2026-09-24, root 01:53)\n"
+  },
+  {
+   "anchor": "| lab_server | x | ",
+   "bytes": 105,
+   "document": "architecture",
+   "inside_json_fence": false,
+   "key": "architecture.3_16.row",
+   "section": "### 3.16 Import isolation matrix",
+   "section_upper_bound": "### 3.17 `lab_hostcheck.py`",
+   "sha256": "627d4eb301e082e20e52c6bb586180a28b5f1d2a11da9c2ce2bff48ebbe4c62e",
+   "side": "after-line",
+   "text": "| lab_serving_manifest | x | . | . | . | . | . | x | . | . | . | . | . | . | . | . | . | . | . | . | . |\n"
+  },
+  {
+   "anchor": "| build_live_ab_results | x | ",
+   "bytes": 688,
+   "document": "architecture",
+   "inside_json_fence": false,
+   "key": "architecture.3_16.note",
+   "section": "### 3.16 Import isolation matrix",
+   "section_upper_bound": "### 3.17 `lab_hostcheck.py`",
+   "sha256": "d2be554a9aa5c2dedea7f444740f54f5f06228d75526576820cab0029b038983",
+   "side": "after-line",
+   "text": "\n*Amendment 2026-09-24 (pre-outcome; root `reviews/serving_manifest_binding_ruling_20260924_0153.md`):\nthe row `lab_serving_manifest`.*\nThe module holds the serving manifest of protocol 2.2 item 2 (2.1). It may import the standard library and\n`lab_common` only. `lab_server` and `lab_orchestrator` may import it (the matrix has no column for it;\n`tests_lab_isolation.py` names both edges), and `dryrun_live_ab` imports it to deposit a mock manifest. The\ndependency closure it carries is transcribed verbatim from `experiments/live_ab_serving/dependency_closure.py`,\nwhich it does not import; `experiments/live_ab_controls/tests_sm_manifest.py` keeps the two equal statement by\nstatement.\n"
+  },
+  {
+   "anchor": "| T31 | `trial_ended` / `trial_aborted` | ",
+   "bytes": 2906,
+   "document": "architecture",
+   "inside_json_fence": false,
+   "key": "architecture.4_4",
+   "section": "### 4.4 Trial chain",
+   "section_upper_bound": "### 4.5 `what_was_known`",
+   "sha256": "f8f1a48c30b3fe40471cd727ce43df9b914e67f8d652998b8885b25e3052e787",
+   "side": "after-line",
+   "text": "| T32 | `server_start_failed` | D | *(Amendment 2026-09-24, pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` item 1; protocol 5.3 and 12.2 row 28)* `server_id` enum; `kind` enum[`start`,`restart`]; `stage` enum[`gguf`,`serving_manifest`,`launch`,`health`,`identity`,`smoke`]; `findings` [enum] (closed codes: `lab_server.IDENTITY_FINDINGS`, `lab_client.RECEIPT_FINDINGS`, `lab_server.START_FINDINGS`); `pid` int; `returncode` int?; `argv_sha256` hex64; `props_sha256` hex64?; `load_seconds` float; `restart_index` int (0 for a start). Trial chain only. The record is carried by `lab_common.ServerStartFailed(LabError).record`; it is written instead of, never beside, a success-valued T4 or T8 |\n| T33 | `worker_resolved` | D | *(Amendment 2026-09-24, pre-outcome; same review, item 3; protocol 14.6 and 12.2 row 29)* `arrival` int; `attempt` int; `pid` int; `state` enum[`exited`,`killed_reaped`,`liveness_unknown`,`alive_unresolved`]; `returncode` int?; `spool_bytes_at_resolution` int; `spool_sha256_at_resolution` hex64. Trial chain only |\n| T34 | `anchor_receipt_rejected` | D | *(Amendment 2026-09-24, pre-outcome; root `reviews/eb1_receipt_attribution_review_20260924_0254.md` and `reviews/decision_receipt_metadata_ruling_20260924_0324.md`; protocol 12.4 and 12.2 row 30)* `request_id` hex32?; `reason` enum[`unknown_request`,`stale`,`malformed`,`duplicate`,`conflict`]; `raw_sha256` hex64; `raw_bytes` int. Neither trial-only nor program-only: written wherever anchor events are (also beside P8) |\n\n*Amendment 2026-09-24 (pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` items 1, 3 and 4,\nand the rulings of 21:14, 02:54 and 03:24), to rows T3, T17, T22, T23, T29b and T31 and to P6.*\nT17 `episode_revealed` gains\n`usage_complete` bool and `unknown_usage_calls` int; T22 `anchor` gains `request_id` hex32 (optional in the\nschema); T23 `anchor_receipt` gains `request_id` hex32, `anchor_file_sha256` hex64?, `comment_body_sha256` hex64?\nand `node_id_sha256` hex64? (all optional; the last three non-null only on a verified decision receipt); T29b\n`deposit_sealed` gains `late_unread` [obj] (optional); T31 `trial_ended` / `trial_aborted` gains `completion` obj\nand `resolution` obj (optional in the schema, written on every terminal record), and its `reason` gains\n`server_restart_cap` and `unresolved_worker` (automatic aborts, protocol 6.4). The preflight check enum shared by\nT3 `invocation_refused` and P6 `preflight_refused` gains `golden_objects`. The pure function\n`phase_resolution_verdict(...)` is evaluated before every terminal record of a trial; `lab_verify_log` mirrors\nit as the FAIL-level check `workers.resolved`, checks T4, T7, T8, T32 and `completion` against protocol 5.3 as\nthe FAIL-level check `server.lifecycle`, and its FAIL-level check `switch.phase` counts a decision as receipted\nonly by `lab_eventlog.decision_receipt` (protocol 12.4).\n"
+  },
+  {
+   "anchor": "code** (`refreeze.scope == [\"reporting_code\"]`), never a config key.\n",
+   "bytes": 530,
+   "document": "architecture",
+   "inside_json_fence": false,
+   "key": "architecture.6_3",
+   "section": "### 6.3 Keys that may never be amended after the first design outcome",
+   "section_upper_bound": "## 7. Orchestrator state machine",
+   "sha256": "a757f6aaa82acdd11699a6ccf18afcc084a0cf16f22197d71aba7740b91600f5",
+   "side": "after",
+   "text": "\n*Amendment 2026-09-24 (pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` items 2 and 4, and\n`reviews/serving_manifest_binding_ruling_20260924_0153.md`;\nprotocol 14.3):* this list gains `server_supervision` (top level, outside the rule block: bound by\n`config_sha256` and `harness_file_sha256[config.json]`, not by `rule_block_sha256`),\n`prefreeze.conformance_prompts` and `llama_cpp.serving_manifest_sha256`, the canonical digest of the write-once\nartifact `results/live_ab/freeze/serving_manifest.json` (2.2).\n\n"
+  },
+  {
+   "anchor": "| 1a | `PREFLIGHT` | ",
+   "bytes": 1040,
+   "document": "architecture",
+   "inside_json_fence": false,
+   "key": "architecture.7_1.row_1b",
+   "section": "### 7.1 States and transitions",
+   "section_upper_bound": "### 7.2 What is fsynced, and when",
+   "sha256": "b76c9f301f3fb55240a22d55a56c9ff46a5e4121707b16a8506a063ce6c3e56e",
+   "side": "after-line",
+   "text": "| 1b | `PREFLIGHT` | *(Amendment 2026-09-24, pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` item 1, and `reviews/serving_manifest_binding_ruling_20260924_0153.md`)* on a non-simulated path: a golden file is null, missing, unreadable or does not match its config digest, a golden `model_path` is not tokenized, a `--gguf` path does not tokenize to the golden `model_path`, or a runtime `golden` override is present (check `golden_objects`); the artifact `results/live_ab/freeze/serving_manifest.json` is missing, not a regular canonical file, not the file of `llama_cpp.serving_manifest_sha256` (null refuses) or does not re-verify against the runtime (check `serving_manifest`); `server_supervision` or `execution.health_failures_to_down` is absent or malformed (`preflight_rule_failed`) | before seq 0 append `preflight_refused` with the check to the **program** chain (D), at a later invocation `invocation_refused` (protocol 6.4 row 21); no server is started and nothing success-valued is written | `ABORTED` | \u2014 |\n"
+  },
+  {
+   "anchor": "| 14b | `ANCHOR_BLOCK` | ",
+   "bytes": 1007,
+   "document": "architecture",
+   "inside_json_fence": false,
+   "key": "architecture.7_1.row_14c",
+   "section": "### 7.1 States and transitions",
+   "section_upper_bound": "### 7.2 What is fsynced, and when",
+   "sha256": "4af68fc2a32f4ab2b8164818c4af97f815d7a17f1f0303fabd56ae25bed387f0",
+   "side": "after-line",
+   "text": "| 14c | `ANCHOR_BLOCK` | *(Amendment 2026-09-24, pre-outcome; root `reviews/eb1_receipt_attribution_review_20260924_0254.md` and `reviews/decision_receipt_metadata_ruling_20260924_0324.md`; protocol 12.4)* a receipt spool line arrives, or a supervision outcome is owed | exactly one chain event per line (D): `anchor_receipt` only when the line's `request_id` is bound to that anchor's durable request and, for the decision anchor, it carries the full external evidence of protocol 12.4; otherwise `anchor_failed` or `anchor_receipt_rejected`, and the anchor stays pending. The servers stay supervised. Row 14 is taken only once `lab_eventlog.decision_receipt` finds the decision receipted; a supervision outcome owed while the decision was provisional is taken then, before any switch (protocol 5.3 case (c)); a decision anchor that came back failed, or no receipt within `blocking_wait_minutes`, is row 14a with the outcome still owed | `ANCHOR_BLOCK` / `POST_DECISION` / `PAUSED` / `ABORTED` | **yes** |\n"
+  },
+  {
+   "anchor": "| 20 | any | ",
+   "bytes": 1009,
+   "document": "architecture",
+   "inside_json_fence": false,
+   "key": "architecture.7_1.row_20a",
+   "section": "### 7.1 States and transitions",
+   "section_upper_bound": "### 7.2 What is fsynced, and when",
+   "sha256": "728c704cc29812f70f26706ae7ad56ffa88dd24980ccead11708053cac00649a",
+   "side": "after-line",
+   "text": "| 20a | any | *(Amendment 2026-09-24; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` item 1)* `lab_server.start` or `lab_server.restart` raises `ServerStartFailed` | `server_start_failed` (D) with the exception's record, never a success-valued T4 or T8; then the rule for its stage (protocol 5.3): `gguf`, `serving_manifest` or `identity` \u2192 `trial_aborted(server_identity)` (D); `smoke` \u2192 `trial_aborted(receipt_mismatch)` (D), both when the smoke receipt differs from the golden object and when none was obtained (`smoke_transport`, `smoke_no_usage`; the latter is a new automatic abort, protocol 6.4); `launch` or `health` on a supervised restart or a start at resume \u2192 `trial_paused(server_unrecoverable)` (D), on the first start \u2192 `trial_aborted(infrastructure)` (D; a new automatic abort, protocol 6.4). A refused start call or an exception the start did not convert \u2192 `trial_aborted(harness_defect)` (D). A failed restart counts towards the cap (row 21a) | `ABORTED` / `PAUSED` | \u2014 |\n"
+  },
+  {
+   "anchor": "| 21 | any | ",
+   "bytes": 1889,
+   "document": "architecture",
+   "inside_json_fence": false,
+   "key": "architecture.7_1.rows_21a_21b",
+   "section": "### 7.1 States and transitions",
+   "section_upper_bound": "### 7.2 What is fsynced, and when",
+   "sha256": "d42caff963149a14ca4c613cee528256c19998d53f28442510b2ce435a918e34",
+   "side": "after-line",
+   "text": "| 21a | any | *(Amendment 2026-09-24; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` item 4, and `reviews/restart_cap_estimand_ruling_20260923_2114.md`)* `server_down` on a server whose supervised restart attempts in this trial (`server_restarted` plus `server_start_failed` with `kind` `restart`, counted from the chain) already equal `server_supervision.max_supervised_restarts_per_server_per_trial` (3) | nothing is restarted and nothing new is dispatched; the open attempts drain (the `episode_hard_cap_s` kill still applies) and are revealed (D); every worker is resolved (row 21b); then `trial_aborted(server_restart_cap)` (D) with `completion` + blocking anchor. The case is fixed by the chain at that `server_down` (protocol 5.3): (a) no decision yet \u2192 none is taken afterwards, a crossing look is logged unchanged and not acted on; (b) a decision with its chained external receipt \u2192 it stands at its `tau`, the follow-up is truncated and counted; (c) a decision awaiting its receipt \u2192 the abort waits in `ANCHOR_BLOCK` (row 14c) and is taken only after the receipt, else row 14a pauses with the abort still owed. No replacement trial, no extra pair | `ABORTED` / `PAUSED` | **yes** |\n| 21b | `CLOSING`, `ABORTED` | *(Amendment 2026-09-24; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` item 3)* before the terminal record, after the bounded drain, the idle observation of every held server and the deposit seal: `phase_resolution_verdict` does not pass (a worker not confirmed exited, a started call with no terminal event under an unresolved worker, a spool grown or changed past its resolution offset, a held server busy or unobserved) | no `trial_ended`: `trial_aborted(unresolved_worker)` (D) + blocking anchor, whose `resolution` lists every unresolved attempt and unfinished call (usage `null`) and names the reason it superseded | `ABORTED` | **yes** |\n"
+  }
+ ],
+ "negative_control": {
+  "every_variant_refused_on_placement": true,
+  "gate": {
+   "every_variant_refused_on_placement": true,
+   "real_documents_unchanged": true,
+   "scratch_copies_unchanged": true
+  },
+  "how": "postconditions() -- the predicate main() applies before writing -- on scratch copies in a temporary directory, removed afterwards; one variant per insertion into ARCHITECTURE or the protocol, moved just outside its bound (config.json has no section to leave)",
+  "real_documents_unchanged": true,
+  "scratch_copies_unchanged": true,
+  "variants": {
+   "architecture.2_1": {
+    "accepted": false,
+    "inside_its_section": false,
+    "refused": true,
+    "reverting_the_changes_reproduces_the_preimage": true,
+    "sha256": "93905976722f8f023efb8d6c98ea4530d26285cbff3aabd7b4defdb0bb31e349"
+   },
+   "architecture.2_2": {
+    "accepted": false,
+    "inside_its_section": false,
+    "refused": true,
+    "reverting_the_changes_reproduces_the_preimage": true,
+    "sha256": "9381c1f74aedff897e37dbb8305c77dbc4a780e8ffbfdffd19b49ae7b6b9033d"
+   },
+   "architecture.3_16.note": {
+    "accepted": false,
+    "inside_its_section": false,
+    "refused": true,
+    "reverting_the_changes_reproduces_the_preimage": true,
+    "sha256": "b30736756ffecc94eab74918689566389adb79294f77a3fae84bd4b4b21c74b8"
+   },
+   "architecture.3_16.row": {
+    "accepted": false,
+    "inside_its_section": false,
+    "refused": true,
+    "reverting_the_changes_reproduces_the_preimage": true,
+    "sha256": "0c3b6b2bc2f845ae1752c4c730216c747eee21f8fa81d95c20b30339d76445e6"
+   },
+   "architecture.4_4": {
+    "accepted": false,
+    "inside_its_section": false,
+    "refused": true,
+    "reverting_the_changes_reproduces_the_preimage": true,
+    "sha256": "0db046f89355278094c7beef7f61c00f80fbfe72322b6b553993bed487f1583b"
+   },
+   "architecture.6_1.prompts": {
+    "accepted": false,
+    "inside_its_section": false,
+    "refused": true,
+    "reverting_the_changes_reproduces_the_preimage": true,
+    "sha256": "27f73c650c3a8292c304f1f79a7cd1040e6aa9c34379fb784f6376726a676e04"
+   },
+   "architecture.6_1.server_supervision": {
+    "accepted": false,
+    "inside_its_section": false,
+    "refused": true,
+    "reverting_the_changes_reproduces_the_preimage": true,
+    "sha256": "34ef0fb147dc84e9c03bed6dfefd331050b0d64c200beb22988309d18fa3ff74"
+   },
+   "architecture.6_3": {
+    "accepted": false,
+    "inside_its_section": false,
+    "refused": true,
+    "reverting_the_changes_reproduces_the_preimage": true,
+    "sha256": "2efc557bbc1347e8700d3f8eeb2a62b0d5db4c6f6e4bd6718bb1d3fec5f8e0b2"
+   },
+   "architecture.7_1.row_14c": {
+    "accepted": false,
+    "inside_its_section": false,
+    "refused": true,
+    "reverting_the_changes_reproduces_the_preimage": true,
+    "sha256": "fbad10b88c052e5c12ee552bf4715f41cbb525474cc8363364e644cccd77d592"
+   },
+   "architecture.7_1.row_1b": {
+    "accepted": false,
+    "inside_its_section": false,
+    "refused": true,
+    "reverting_the_changes_reproduces_the_preimage": true,
+    "sha256": "d72e3eac0d590a3c61583cea8afc620ddbbac4b51be8e0ee7bdd6345f24907de"
+   },
+   "architecture.7_1.row_20a": {
+    "accepted": false,
+    "inside_its_section": false,
+    "refused": true,
+    "reverting_the_changes_reproduces_the_preimage": true,
+    "sha256": "699c5b0a356b6225548d9417d866c110b75789e1ad6f2f7abbbb7fd82e51c47b"
+   },
+   "architecture.7_1.rows_21a_21b": {
+    "accepted": false,
+    "inside_its_section": false,
+    "refused": true,
+    "reverting_the_changes_reproduces_the_preimage": true,
+    "sha256": "0a632d3ba6cfe7f08b90cf2f8f955b12463496faf8dd27ff90aa9b46dbfc1f5f"
+   },
+   "protocol.12_2": {
+    "accepted": false,
+    "inside_its_section": false,
+    "refused": true,
+    "reverting_the_changes_reproduces_the_preimage": true,
+    "sha256": "93e19ae475e46efc39e672787c0d7ebe558d982db62ac5429edbe6317595b8cf"
+   },
+   "protocol.12_4": {
+    "accepted": false,
+    "inside_its_section": false,
+    "refused": true,
+    "reverting_the_changes_reproduces_the_preimage": true,
+    "sha256": "476dbe6bcfa2f0767e8dbc45bac5c47c1081bcd3e2cdb3e81679c90e0c16b29a"
+   },
+   "protocol.13_1": {
+    "accepted": false,
+    "inside_its_section": false,
+    "refused": true,
+    "reverting_the_changes_reproduces_the_preimage": true,
+    "sha256": "ebb7309700bc7f2976baab2a5dd91fae2ac0beb7cfa85d2afb088081af385aa7"
+   },
+   "protocol.14_3": {
+    "accepted": false,
+    "inside_its_section": false,
+    "refused": true,
+    "reverting_the_changes_reproduces_the_preimage": true,
+    "sha256": "9b44cc99c783db02880ebd37070cebb262db2751da0a59e9fb017580f383229b"
+   },
+   "protocol.14_6": {
+    "accepted": false,
+    "inside_its_section": false,
+    "refused": true,
+    "reverting_the_changes_reproduces_the_preimage": true,
+    "sha256": "9763740cdb97d8ae6bdd7f73d9890d946b7417c313a4450193c312b58b9f6a42"
+   },
+   "protocol.16": {
+    "accepted": false,
+    "inside_its_section": false,
+    "refused": true,
+    "reverting_the_changes_reproduces_the_preimage": true,
+    "sha256": "6aee8d7257de7f14c9efd1f4824e730013a622f0e7577ef836dfb40c1279b8a1"
+   },
+   "protocol.2_2": {
+    "accepted": false,
+    "inside_its_section": false,
+    "refused": true,
+    "reverting_the_changes_reproduces_the_preimage": true,
+    "sha256": "ca2e8cf08ffe906742274be8ee1fc792ca2895a85cc2470943b20acd3f07b2a7"
+   },
+   "protocol.2_4_item_6": {
+    "accepted": false,
+    "inside_its_section": false,
+    "refused": true,
+    "reverting_the_changes_reproduces_the_preimage": true,
+    "sha256": "b853edc6bd590894eb466ad39f6c1b37e7ae813bafd2677477500110f0317a76"
+   },
+   "protocol.5_3": {
+    "accepted": false,
+    "inside_its_section": false,
+    "refused": true,
+    "reverting_the_changes_reproduces_the_preimage": true,
+    "sha256": "f8a53e44d1a384d837407133fbfffc051dcb5adba9845e943dd712b675e444c3"
+   },
+   "protocol.5_8": {
+    "accepted": false,
+    "inside_its_section": false,
+    "refused": true,
+    "reverting_the_changes_reproduces_the_preimage": true,
+    "sha256": "369dd7c2c49c92e232b914d2199c8fae8783e1eef9adbe4e0d44e3f4a3fdf939"
+   },
+   "protocol.6_4": {
+    "accepted": false,
+    "inside_its_section": false,
+    "refused": true,
+    "reverting_the_changes_reproduces_the_preimage": true,
+    "sha256": "996cd8e89179573fefa03086896977421d19e0242a853edc2bebfc82e46c0a39"
+   },
+   "protocol.appendix_b.prompts": {
+    "accepted": false,
+    "inside_its_section": false,
+    "refused": true,
+    "reverting_the_changes_reproduces_the_preimage": true,
+    "sha256": "858a874648c92e37841024aa32b8373083bc2b28fac8bd57732ad986405229cc"
+   },
+   "protocol.appendix_b.server_supervision": {
+    "accepted": false,
+    "inside_its_section": false,
+    "refused": true,
+    "reverting_the_changes_reproduces_the_preimage": true,
+    "sha256": "4af7dd504a4002cc956fa6e882dbb0e0e0061c68a992edf61303c2f7a0b32570"
+   }
+  },
+  "variants_run": 25
+ },
+ "nothing_executed": "no CPU simulation, model, server, build or network request; text edits, digests, local reads of the three pinned roster sources, git reads, and read-only otool/nm/file reads of the durable build in the main checkout",
+ "postcondition_checked": {
+  "architecture_sha256": "e7ea9c0fb7a28c6bdb47bb4085dcddba41144bd134d7b3a9b026ad7c9a30c86a",
+  "config": {
+   "added_keys": [
+    "prefreeze.conformance_prompts",
+    "server_supervision.max_supervised_restarts_per_server_per_trial",
+    "server_supervision.on_exceeding"
+   ],
+   "changed_keys": [
+    "llama_cpp.serving_manifest_sha256"
+   ],
+   "conformance_prompts_equal_the_tool_texts": true,
+   "engineering_acquisition_equals_run_smoke_BOUND_LIMITS": true,
+   "gate": {
+    "conformance_prompts_equal_the_tool_texts": true,
+    "engineering_acquisition_equals_run_smoke_BOUND_LIMITS": true,
+    "exactly_the_three_keys_added": true,
+    "no_key_removed": true,
+    "only_the_serving_manifest_digest_changed": true,
+    "pinned_subtrees_unchanged": true,
+    "reverting_the_changes_reproduces_the_prior_config": true,
+    "rule_block_after_is_the_pin": true,
+    "rule_block_before_is_the_pin": true,
+    "server_supervision_is_the_contract_value": true,
+    "serving_manifest_digest_is_the_artifact": true,
+    "serving_manifest_digest_was_null": true
+   },
+   "ok": true,
+   "removed_keys": [],
+   "reverting_the_changes_reproduces_the_prior_config": true,
+   "rule_block_sha256_after": "cbfd1792d09c43754eeeab3b282e92e99c76e4f878cd82d00c827f6a90fa7607",
+   "rule_block_sha256_before": "cbfd1792d09c43754eeeab3b282e92e99c76e4f878cd82d00c827f6a90fa7607",
+   "server_supervision_is_the_contract_value": true,
+   "serving_manifest_sha256_after": "1edea9b072b9c87ed9d4a0b4d7ad69b8e768d0a10d09d99efc4e64324ad68b0c",
+   "serving_manifest_sha256_before": null,
+   "subtrees_unchanged": {
+    "anchor": true,
+    "engineering_acquisition": true,
+    "environment_lock_sha256": true,
+    "execution": true,
+    "hardware_allowlist": true,
+    "integrity_label_rule": true,
+    "llama_args": true,
+    "llama_cpp (without serving_manifest_sha256)": true,
+    "monitor": true,
+    "pause_thresholds": true,
+    "plumbing_fail_conditions": true,
+    "receipt": true,
+    "refreeze": true,
+    "roster": true,
+    "sampling": true,
+    "sandbox": true,
+    "servers": true
+   }
+  },
+  "config_bytes": 16136,
+  "config_sha256": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+  "cr_bytes_after": {
+   "architecture": 0,
+   "config": 0,
+   "protocol": 0
+  },
+  "every_insertion_inside_its_section_beside_its_anchor": {
+   "architecture.2_1": true,
+   "architecture.2_2": true,
+   "architecture.3_16.note": true,
+   "architecture.3_16.row": true,
+   "architecture.4_4": true,
+   "architecture.6_1.prompts": true,
+   "architecture.6_1.server_supervision": true,
+   "architecture.6_3": true,
+   "architecture.7_1.row_14c": true,
+   "architecture.7_1.row_1b": true,
+   "architecture.7_1.row_20a": true,
+   "architecture.7_1.rows_21a_21b": true,
+   "config.prompts": true,
+   "config.server_supervision": true,
+   "protocol.12_2": true,
+   "protocol.12_4": true,
+   "protocol.13_1": true,
+   "protocol.14_3": true,
+   "protocol.14_6": true,
+   "protocol.16": true,
+   "protocol.2_2": true,
+   "protocol.2_4_item_6": true,
+   "protocol.5_3": true,
+   "protocol.5_8": true,
+   "protocol.6_4": true,
+   "protocol.appendix_b.prompts": true,
+   "protocol.appendix_b.server_supervision": true
+  },
+  "gate": {
+   "config": true,
+   "every_document_changed": true,
+   "every_insertion_inside_its_section_beside_its_anchor": true,
+   "every_replacement_once_inside_its_fence": true,
+   "no_cr_byte_after": true,
+   "reverting_the_changes_reproduces_each_preimage": true,
+   "three_way_contract_after": true,
+   "vocabulary_sections_1_3_11_byte_identical": true
+  },
+  "insertion_placement": {
+   "architecture.2_1": {
+    "directly_beside_the_anchor": true,
+    "insert_at": 11858,
+    "inside_its_section": true,
+    "occurrences": 1,
+    "section": [
+     10370,
+     14011
+    ],
+    "section_ends_at_its_upper_bound": true
+   },
+   "architecture.2_2": {
+    "directly_beside_the_anchor": true,
+    "insert_at": 14562,
+    "inside_its_section": true,
+    "occurrences": 1,
+    "section": [
+     14011,
+     15335
+    ],
+    "section_ends_at_its_upper_bound": true
+   },
+   "architecture.3_16.note": {
+    "directly_beside_the_anchor": true,
+    "insert_at": 96550,
+    "inside_its_section": true,
+    "occurrences": 1,
+    "section": [
+     94238,
+     99080
+    ],
+    "section_ends_at_its_upper_bound": true
+   },
+   "architecture.3_16.row": {
+    "directly_beside_the_anchor": true,
+    "insert_at": 95840,
+    "inside_its_section": true,
+    "occurrences": 1,
+    "section": [
+     94238,
+     99080
+    ],
+    "section_ends_at_its_upper_bound": true
+   },
+   "architecture.4_4": {
+    "directly_beside_the_anchor": true,
+    "insert_at": 127628,
+    "inside_its_section": true,
+    "occurrences": 1,
+    "section": [
+     115592,
+     130535
+    ],
+    "section_ends_at_its_upper_bound": true
+   },
+   "architecture.6_1.prompts": {
+    "directly_beside_the_anchor": true,
+    "fence": [
+     137230,
+     153367
+    ],
+    "insert_at": 150517,
+    "inside_its_section": true,
+    "inside_the_json_fence": true,
+    "occurrences": 1,
+    "section": [
+     136717,
+     153372
+    ],
+    "section_ends_at_its_upper_bound": true
+   },
+   "architecture.6_1.server_supervision": {
+    "directly_beside_the_anchor": true,
+    "fence": [
+     137230,
+     153367
+    ],
+    "insert_at": 153110,
+    "inside_its_section": true,
+    "inside_the_json_fence": true,
+    "occurrences": 1,
+    "section": [
+     136717,
+     153372
+    ],
+    "section_ends_at_its_upper_bound": true
+   },
+   "architecture.6_3": {
+    "directly_beside_the_anchor": true,
+    "insert_at": 155463,
+    "inside_its_section": true,
+    "occurrences": 1,
+    "section": [
+     154349,
+     155998
+    ],
+    "section_ends_at_its_upper_bound": true
+   },
+   "architecture.7_1.row_14c": {
+    "directly_beside_the_anchor": true,
+    "insert_at": 162089,
+    "inside_its_section": true,
+    "occurrences": 1,
+    "section": [
+     156307,
+     168952
+    ],
+    "section_ends_at_its_upper_bound": true
+   },
+   "architecture.7_1.row_1b": {
+    "directly_beside_the_anchor": true,
+    "insert_at": 156637,
+    "inside_its_section": true,
+    "occurrences": 1,
+    "section": [
+     156307,
+     168952
+    ],
+    "section_ends_at_its_upper_bound": true
+   },
+   "architecture.7_1.row_20a": {
+    "directly_beside_the_anchor": true,
+    "insert_at": 163921,
+    "inside_its_section": true,
+    "occurrences": 1,
+    "section": [
+     156307,
+     168952
+    ],
+    "section_ends_at_its_upper_bound": true
+   },
+   "architecture.7_1.rows_21a_21b": {
+    "directly_beside_the_anchor": true,
+    "insert_at": 165163,
+    "inside_its_section": true,
+    "occurrences": 1,
+    "section": [
+     156307,
+     168952
+    ],
+    "section_ends_at_its_upper_bound": true
+   },
+   "config.prompts": {
+    "directly_beside_the_anchor": true,
+    "insert_at": 13286,
+    "inside_its_section": true,
+    "occurrences": 1
+   },
+   "config.server_supervision": {
+    "directly_beside_the_anchor": true,
+    "insert_at": 15879,
+    "inside_its_section": true,
+    "occurrences": 1
+   },
+   "protocol.12_2": {
+    "directly_beside_the_anchor": true,
+    "insert_at": 229321,
+    "inside_its_section": true,
+    "occurrences": 1,
+    "section": [
+     220870,
+     233914
+    ],
+    "section_ends_at_its_upper_bound": true
+   },
+   "protocol.12_4": {
+    "directly_beside_the_anchor": true,
+    "insert_at": 242712,
+    "inside_its_section": true,
+    "occurrences": 1,
+    "section": [
+     237711,
+     245851
+    ],
+    "section_ends_at_its_upper_bound": true
+   },
+   "protocol.13_1": {
+    "directly_beside_the_anchor": true,
+    "insert_at": 254814,
+    "inside_its_section": true,
+    "occurrences": 1,
+    "section": [
+     250102,
+     255908
+    ],
+    "section_ends_at_its_upper_bound": true
+   },
+   "protocol.14_3": {
+    "directly_beside_the_anchor": true,
+    "insert_at": 268052,
+    "inside_its_section": true,
+    "occurrences": 1,
+    "section": [
+     266320,
+     269836
+    ],
+    "section_ends_at_its_upper_bound": true
+   },
+   "protocol.14_6": {
+    "directly_beside_the_anchor": true,
+    "insert_at": 277532,
+    "inside_its_section": true,
+    "occurrences": 1,
+    "section": [
+     273325,
+     280365
+    ],
+    "section_ends_at_its_upper_bound": true
+   },
+   "protocol.16": {
+    "directly_beside_the_anchor": true,
+    "insert_at": 290158,
+    "inside_its_section": true,
+    "occurrences": 1,
+    "section": [
+     286022,
+     291166
+    ],
+    "section_ends_at_its_upper_bound": true
+   },
+   "protocol.2_2": {
+    "directly_beside_the_anchor": true,
+    "insert_at": 43160,
+    "inside_its_section": true,
+    "occurrences": 1,
+    "section": [
+     40509,
+     48355
+    ],
+    "section_ends_at_its_upper_bound": true
+   },
+   "protocol.2_4_item_6": {
+    "directly_beside_the_anchor": true,
+    "insert_at": 54282,
+    "inside_its_section": true,
+    "occurrences": 1,
+    "section": [
+     51264,
+     55657
+    ],
+    "section_ends_at_its_upper_bound": true
+   },
+   "protocol.5_3": {
+    "directly_beside_the_anchor": true,
+    "insert_at": 84126,
+    "inside_its_section": true,
+    "occurrences": 1,
+    "section": [
+     83440,
+     91726
+    ],
+    "section_ends_at_its_upper_bound": true
+   },
+   "protocol.5_8": {
+    "directly_beside_the_anchor": true,
+    "insert_at": 116274,
+    "inside_its_section": true,
+    "occurrences": 1,
+    "section": [
+     115437,
+     121796
+    ],
+    "section_ends_at_its_upper_bound": true
+   },
+   "protocol.6_4": {
+    "directly_beside_the_anchor": true,
+    "insert_at": 146015,
+    "inside_its_section": true,
+    "occurrences": 1,
+    "section": [
+     130714,
+     147764
+    ],
+    "section_ends_at_its_upper_bound": true
+   },
+   "protocol.appendix_b.prompts": {
+    "directly_beside_the_anchor": true,
+    "fence": [
+     294365,
+     310502
+    ],
+    "insert_at": 307652,
+    "inside_its_section": true,
+    "inside_the_json_fence": true,
+    "occurrences": 1,
+    "section": [
+     293560,
+     310507
+    ],
+    "section_ends_at_its_upper_bound": true
+   },
+   "protocol.appendix_b.server_supervision": {
+    "directly_beside_the_anchor": true,
+    "fence": [
+     294365,
+     310502
+    ],
+    "insert_at": 310245,
+    "inside_its_section": true,
+    "inside_the_json_fence": true,
+    "occurrences": 1,
+    "section": [
+     293560,
+     310507
+    ],
+    "section_ends_at_its_upper_bound": true
+   }
+  },
+  "protocol_bytes": 345815,
+  "protocol_sha256": "6c0ebf2faa7515ff27f01188d9f1e487c928c63373f451dea51f06a8cdacaab9",
+  "replacement_sites": {
+   "architecture.6_1.serving_manifest_sha256": {
+    "inside_its_fence": true,
+    "occurrences": 1,
+    "ok": true,
+    "other_occurrences": 0
+   },
+   "config.serving_manifest_sha256": {
+    "inside_its_fence": true,
+    "occurrences": 1,
+    "ok": true,
+    "other_occurrences": 0
+   },
+   "protocol.appendix_b.serving_manifest_sha256": {
+    "inside_its_fence": true,
+    "occurrences": 1,
+    "ok": true,
+    "other_occurrences": 0
+   }
+  },
+  "reverting_the_changes_reproduces_each_preimage": {
+   "architecture": true,
+   "config": true,
+   "protocol": true
+  },
+  "three_way_contract_after": {
+   "architecture_block_equals_protocol_block": true,
+   "block_bytes": 16136,
+   "block_sha256": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+   "config_equals_architecture_block": true,
+   "cr_bytes": {
+    "architecture": 0,
+    "config": 0,
+    "protocol": 0
+   },
+   "holds": true
+  },
+  "vocabulary_sections_1_3_11_byte_identical": {
+   "1": true,
+   "11": true,
+   "3": true
+  }
+ },
+ "precondition_checked": {
+  "anchors": {
+   "architecture.2_1": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "offset": 11858,
+    "text_already_present": 0
+   },
+   "architecture.2_2": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "offset": 14075,
+    "text_already_present": 0
+   },
+   "architecture.3_16.note": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "offset": 95854,
+    "text_already_present": 0
+   },
+   "architecture.3_16.row": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "offset": 95249,
+    "text_already_present": 0
+   },
+   "architecture.4_4": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "offset": 126244,
+    "text_already_present": 0
+   },
+   "architecture.6_1.prompts": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "inside_the_json_fence": true,
+    "offset": 146165,
+    "text_already_present": 0
+   },
+   "architecture.6_1.server_supervision": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "inside_the_json_fence": true,
+    "offset": 146720,
+    "text_already_present": 0
+   },
+   "architecture.6_3": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "offset": 148954,
+    "text_already_present": 0
+   },
+   "architecture.7_1.row_14c": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "offset": 154010,
+    "text_already_present": 0
+   },
+   "architecture.7_1.row_1b": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "offset": 149598,
+    "text_already_present": 0
+   },
+   "architecture.7_1.row_20a": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "offset": 154835,
+    "text_already_present": 0
+   },
+   "architecture.7_1.rows_21a_21b": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "offset": 155068,
+    "text_already_present": 0
+   },
+   "config.prompts": {
+    "anchor_occurrences": 1,
+    "offset": 13224,
+    "text_already_present": 0
+   },
+   "config.server_supervision": {
+    "anchor_occurrences": 1,
+    "offset": 13779,
+    "text_already_present": 0
+   },
+   "protocol.12_2": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "offset": 214485,
+    "text_already_present": 0
+   },
+   "protocol.12_4": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "offset": 225018,
+    "text_already_present": 0
+   },
+   "protocol.13_1": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "offset": 233982,
+    "text_already_present": 0
+   },
+   "protocol.14_3": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "offset": 246127,
+    "text_already_present": 0
+   },
+   "protocol.14_6": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "offset": 254663,
+    "text_already_present": 0
+   },
+   "protocol.16": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "offset": 264457,
+    "text_already_present": 0
+   },
+   "protocol.2_2": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "offset": 43160,
+    "text_already_present": 0
+   },
+   "protocol.2_4_item_6": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "offset": 51244,
+    "text_already_present": 0
+   },
+   "protocol.5_3": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "offset": 80326,
+    "text_already_present": 0
+   },
+   "protocol.5_8": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "offset": 104875,
+    "text_already_present": 0
+   },
+   "protocol.6_4": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "offset": 132922,
+    "text_already_present": 0
+   },
+   "protocol.appendix_b.prompts": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "inside_the_json_fence": true,
+    "offset": 281222,
+    "text_already_present": 0
+   },
+   "protocol.appendix_b.server_supervision": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "inside_the_json_fence": true,
+    "offset": 281777,
+    "text_already_present": 0
+   }
+  },
+  "architecture_is_the_reviewed_preimage": true,
+  "architecture_sha256": "727003c1efe2b210fff0cf7d0a60ca30f53948516171b863548849676b1242ab",
+  "cells_current_successor": "64ace6d3e37732b372fd316055208e9deaab4d4e0722708563c8ebcc1579e82b",
+  "cells_is_the_reviewed_preimage": true,
+  "cells_original_pin": "3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0dd7d2c2",
+  "cells_prior_successors": 5,
+  "cells_round_trips": true,
+  "cells_sha256": "5c4a28f76a066d110205335b66c7df12a0c5d70045ad24fecace0ebec75e7784",
+  "config_bytes": 13917,
+  "config_is_the_reviewed_preimage": true,
+  "config_sha256": "e4d42f5d442dde7e709222e0a4ad4985de0f20604061fec01f2e3ea95f75d824",
+  "cr_bytes": {
+   "architecture": 0,
+   "cells": 0,
+   "config": 0,
+   "protocol": 0
+  },
+  "gate_anchors": {
+   "every_anchor_inside_its_section": true,
+   "every_anchor_once": true,
+   "every_replacement_site_once_inside_its_fence": true,
+   "inserted_text_form": true,
+   "no_anchor_error": true
+  },
+  "gate_pins": {
+   "architecture_is_the_reviewed_preimage": true,
+   "cells_current_successor_is_the_prior_successor": true,
+   "cells_is_the_reviewed_preimage": true,
+   "cells_original_pin_untouched": true,
+   "cells_prior_successor_count": true,
+   "cells_round_trips": true,
+   "cells_successor_supersedes_the_original": true,
+   "config_is_the_reviewed_preimage": true,
+   "no_cr_byte": true,
+   "protocol_is_the_reviewed_preimage": true,
+   "rule_block_before_is_the_pin": true,
+   "three_way_contract_before": true
+  },
+  "head": "79bb1abcbaf3061ad2747ddf3802ff3182a8a029",
+  "inserted_text_form": {
+   "ok": true,
+   "per_insertion": {
+    "architecture.2_1": {
+     "contains_no_anchor": true,
+     "contains_no_replaced_bytes": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 0,
+     "no_backtick_fence": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": []
+    },
+    "architecture.2_2": {
+     "contains_no_anchor": true,
+     "contains_no_replaced_bytes": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 103,
+     "no_backtick_fence": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": []
+    },
+    "architecture.3_16.note": {
+     "contains_no_anchor": true,
+     "contains_no_replaced_bytes": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 111,
+     "no_backtick_fence": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": []
+    },
+    "architecture.3_16.row": {
+     "contains_no_anchor": true,
+     "contains_no_replaced_bytes": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 0,
+     "no_backtick_fence": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": []
+    },
+    "architecture.4_4": {
+     "contains_no_anchor": true,
+     "contains_no_replaced_bytes": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 113,
+     "no_backtick_fence": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": []
+    },
+    "architecture.6_1.prompts": {
+     "contains_no_anchor": true,
+     "contains_no_replaced_bytes": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 0,
+     "no_backtick_fence": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": []
+    },
+    "architecture.6_1.server_supervision": {
+     "contains_no_anchor": true,
+     "contains_no_replaced_bytes": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 0,
+     "no_backtick_fence": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": []
+    },
+    "architecture.6_3": {
+     "contains_no_anchor": true,
+     "contains_no_replaced_bytes": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 111,
+     "no_backtick_fence": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": []
+    },
+    "architecture.7_1.row_14c": {
+     "contains_no_anchor": true,
+     "contains_no_replaced_bytes": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 0,
+     "no_backtick_fence": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": []
+    },
+    "architecture.7_1.row_1b": {
+     "contains_no_anchor": true,
+     "contains_no_replaced_bytes": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 0,
+     "no_backtick_fence": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": [
+      "\u2014"
+     ]
+    },
+    "architecture.7_1.row_20a": {
+     "contains_no_anchor": true,
+     "contains_no_replaced_bytes": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 0,
+     "no_backtick_fence": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": [
+      "\u2014",
+      "\u2192"
+     ]
+    },
+    "architecture.7_1.rows_21a_21b": {
+     "contains_no_anchor": true,
+     "contains_no_replaced_bytes": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 0,
+     "no_backtick_fence": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": [
+      "\u2192"
+     ]
+    },
+    "config.prompts": {
+     "contains_no_anchor": true,
+     "contains_no_replaced_bytes": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 0,
+     "no_backtick_fence": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": []
+    },
+    "config.server_supervision": {
+     "contains_no_anchor": true,
+     "contains_no_replaced_bytes": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 0,
+     "no_backtick_fence": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": []
+    },
+    "protocol.12_2": {
+     "contains_no_anchor": true,
+     "contains_no_replaced_bytes": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 114,
+     "no_backtick_fence": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": []
+    },
+    "protocol.12_4": {
+     "contains_no_anchor": true,
+     "contains_no_replaced_bytes": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 111,
+     "no_backtick_fence": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": []
+    },
+    "protocol.13_1": {
+     "contains_no_anchor": true,
+     "contains_no_replaced_bytes": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 113,
+     "no_backtick_fence": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": []
+    },
+    "protocol.14_3": {
+     "contains_no_anchor": true,
+     "contains_no_replaced_bytes": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 112,
+     "no_backtick_fence": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": []
+    },
+    "protocol.14_6": {
+     "contains_no_anchor": true,
+     "contains_no_replaced_bytes": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 115,
+     "no_backtick_fence": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": []
+    },
+    "protocol.16": {
+     "contains_no_anchor": true,
+     "contains_no_replaced_bytes": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 116,
+     "no_backtick_fence": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": []
+    },
+    "protocol.2_2": {
+     "contains_no_anchor": true,
+     "contains_no_replaced_bytes": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 113,
+     "no_backtick_fence": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": []
+    },
+    "protocol.2_4_item_6": {
+     "contains_no_anchor": true,
+     "contains_no_replaced_bytes": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 116,
+     "no_backtick_fence": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": []
+    },
+    "protocol.5_3": {
+     "contains_no_anchor": true,
+     "contains_no_replaced_bytes": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 114,
+     "no_backtick_fence": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": []
+    },
+    "protocol.5_8": {
+     "contains_no_anchor": true,
+     "contains_no_replaced_bytes": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 115,
+     "no_backtick_fence": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": []
+    },
+    "protocol.6_4": {
+     "contains_no_anchor": true,
+     "contains_no_replaced_bytes": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 114,
+     "no_backtick_fence": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": []
+    },
+    "protocol.appendix_b.prompts": {
+     "contains_no_anchor": true,
+     "contains_no_replaced_bytes": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 0,
+     "no_backtick_fence": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": []
+    },
+    "protocol.appendix_b.server_supervision": {
+     "contains_no_anchor": true,
+     "contains_no_replaced_bytes": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 0,
+     "no_backtick_fence": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": []
+    }
+   }
+  },
+  "protocol_is_the_reviewed_preimage": true,
+  "protocol_sha256": "64ace6d3e37732b372fd316055208e9deaab4d4e0722708563c8ebcc1579e82b",
+  "replacement_sites_before": {
+   "architecture.6_1.serving_manifest_sha256": {
+    "inside_its_fence": true,
+    "occurrences": 1,
+    "ok": true,
+    "other_occurrences": 0
+   },
+   "config.serving_manifest_sha256": {
+    "inside_its_fence": true,
+    "occurrences": 1,
+    "ok": true,
+    "other_occurrences": 0
+   },
+   "protocol.appendix_b.serving_manifest_sha256": {
+    "inside_its_fence": true,
+    "occurrences": 1,
+    "ok": true,
+    "other_occurrences": 0
+   }
+  },
+  "rule_block_sha256_before": "cbfd1792d09c43754eeeab3b282e92e99c76e4f878cd82d00c827f6a90fa7607",
+  "three_way_contract_before": {
+   "architecture_block_equals_protocol_block": true,
+   "block_bytes": 13917,
+   "block_sha256": "e4d42f5d442dde7e709222e0a4ad4985de0f20604061fec01f2e3ea95f75d824",
+   "config_equals_architecture_block": true,
+   "cr_bytes": {
+    "architecture": 0,
+    "config": 0,
+    "protocol": 0
+   },
+   "holds": true
+  }
+ },
+ "prepared_by": "prepared and checked by AI agent sessions; not human peer review or author sign-off",
+ "prior_versions_retained": {
+  "architecture_sha256": "727003c1efe2b210fff0cf7d0a60ca30f53948516171b863548849676b1242ab",
+  "cells_sha256": "5c4a28f76a066d110205335b66c7df12a0c5d70045ad24fecace0ebec75e7784",
+  "config_bytes": 13917,
+  "config_sha256": "e4d42f5d442dde7e709222e0a4ad4985de0f20604061fec01f2e3ea95f75d824",
+  "note": "the four documents are unchanged on this branch since the reviewed revision; each is recoverable byte-exactly by `git show <reviewed_revision>:<path>`, and by reverting the replacement and deleting every inserted text",
+  "protocol_sha256": "64ace6d3e37732b372fd316055208e9deaab4d4e0722708563c8ebcc1579e82b",
+  "reviewed_revision": "b049307ff62153a054f61b6179291ba987de2ba1",
+  "revision_at_run": "79bb1abcbaf3061ad2747ddf3802ff3182a8a029"
+ },
+ "replacement": {
+  "bound_exactly": "in each of config.json, the ARCHITECTURE 6.1 fence and the Appendix B fence the bytes \"serving_manifest_sha256\": null} occur exactly once, inside the fence, and become \"serving_manifest_sha256\": \"1edea9b072b9c87ed9d4a0b4d7ad69b8e768d0a10d09d99efc4e64324ad68b0c\"}; the flattened key diff has exactly this one changed key (null before); reverting it and deleting the insertions reproduces each b049307 pre-image byte for byte",
+  "key": "llama_cpp.serving_manifest_sha256",
+  "new_value": "1edea9b072b9c87ed9d4a0b4d7ad69b8e768d0a10d09d99efc4e64324ad68b0c",
+  "old_value": null,
+  "sites": [
+   {
+    "document": "config",
+    "inside_json_fence": false,
+    "key": "config.serving_manifest_sha256",
+    "new": "\"serving_manifest_sha256\": \"1edea9b072b9c87ed9d4a0b4d7ad69b8e768d0a10d09d99efc4e64324ad68b0c\"}",
+    "new_sha256": "354a1f9d491c7ffd9a7f67ee9f709d33e6e17d9bbb7eb37913d199733279cfef",
+    "old": "\"serving_manifest_sha256\": null}",
+    "old_sha256": "3e5116007bf73df16473ff9ab61bc94eb1573300039df1a47f5ecbee87c37fb7",
+    "section": null
+   },
+   {
+    "document": "architecture",
+    "inside_json_fence": true,
+    "key": "architecture.6_1.serving_manifest_sha256",
+    "new": "\"serving_manifest_sha256\": \"1edea9b072b9c87ed9d4a0b4d7ad69b8e768d0a10d09d99efc4e64324ad68b0c\"}",
+    "new_sha256": "354a1f9d491c7ffd9a7f67ee9f709d33e6e17d9bbb7eb37913d199733279cfef",
+    "old": "\"serving_manifest_sha256\": null}",
+    "old_sha256": "3e5116007bf73df16473ff9ab61bc94eb1573300039df1a47f5ecbee87c37fb7",
+    "section": "### 6.1 Full key list"
+   },
+   {
+    "document": "protocol",
+    "inside_json_fence": true,
+    "key": "protocol.appendix_b.serving_manifest_sha256",
+    "new": "\"serving_manifest_sha256\": \"1edea9b072b9c87ed9d4a0b4d7ad69b8e768d0a10d09d99efc4e64324ad68b0c\"}",
+    "new_sha256": "354a1f9d491c7ffd9a7f67ee9f709d33e6e17d9bbb7eb37913d199733279cfef",
+    "old": "\"serving_manifest_sha256\": null}",
+    "old_sha256": "3e5116007bf73df16473ff9ab61bc94eb1573300039df1a47f5ecbee87c37fb7",
+    "section": "## Appendix B."
+   }
+  ],
+  "why_not_an_insertion": "the key llama_cpp.serving_manifest_sha256 exists in the pre-image with the value null (\"null = pinned in the pre-freeze phase\", Appendix B heading and Appendix A); root 01:53 requires the digest IN the config, so the value is replaced, not a key added. Deleting a key to insert it again would be a removal plus an insertion of the same key"
+ },
+ "schema": "live_ab.repair_amendment_receipt.v2",
+ "server_supervision": {
+  "fixed_without_outcomes": "no success or cost outcome exists; none was looked at",
+  "placement": "a NEW top-level key, outside the rule block (not under execution.auto_abort or plumbing_fail_conditions, which rule_block_sha256 hashes); bound by config_sha256 and harness_file_sha256[config.json]. The rule-block keys are byte-unchanged (digest cbfd1792); that digest covers neither this key nor any protocol text",
+  "reportability": "root 21:14, three cases (protocol 5.3): before a valid decision, none is made and the trial is incomplete; after a logged and externally receipted decision, it stands at its original tau and the follow-up is truncated and counted; while the decision awaits its blocking receipt, it is provisional and the existing receipt / pause rules apply",
+  "value": {
+   "max_supervised_restarts_per_server_per_trial": 3,
+   "on_exceeding": "abort_trial_incomplete"
+  },
+  "what_counts": "each supervised restart ATTEMPT per server per trial: a server_restarted, or a server_start_failed with kind \"restart\"; rebuilt from the chain on resume (lab_eventlog.restart_cap_required_seq, lab_orchestrator.supervision_state)"
+ },
+ "serving_manifest": {
+  "artifact": "results/live_ab/freeze/serving_manifest.json",
+  "assembled_as_seen_from": {
+   "main_checkout_checks": {
+    "gate": {
+     "declaration_is_the_pinned_bytes_in_both": true,
+     "durable_launcher_present": true,
+     "is_the_pinned_root": true,
+     "no_loader_environment": true,
+     "provenance_files_equal_this_checkout": true,
+     "root_definitions_hold": true
+    },
+    "loader_environment": [],
+    "root": "<HOME>/ICLR-WinRatioAgentEvals",
+    "root_problems": [],
+    "tracked_provenance": {
+     "experiments/live_ab_serving/live_ab_slot_lifecycle.patch": {
+      "equal": true,
+      "sha256_main": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184",
+      "sha256_this_checkout": "88975d3790fd831d219b4e2a558184cb8cfa2e9e18b6c620edba33a23b79e184"
+     },
+     "results/live_ab/CANDIDATE_INSTRUMENT_MANIFEST_DURABLE.json": {
+      "equal": true,
+      "sha256_main": "bc180e4e85b3563564dffb8e4ad6ef3c8818c549c4f7cfc1c17b3869c13c2096",
+      "sha256_this_checkout": "bc180e4e85b3563564dffb8e4ad6ef3c8818c549c4f7cfc1c17b3869c13c2096"
+     },
+     "results/live_ab/DURABLE_REBUILD_20260923T192024Z.json": {
+      "equal": true,
+      "sha256_main": "bcdcc6a7b4c57bc81c4a0c21d940e272a344773d318a0476d23418072234fe85",
+      "sha256_this_checkout": "bcdcc6a7b4c57bc81c4a0c21d940e272a344773d318a0476d23418072234fe85"
+     },
+     "results/live_ab/DURABLE_REBUILD_20260923T192024Z_build.log": {
+      "equal": true,
+      "sha256_main": "b14953d38bb7183b58cc47c9ec7c7a6fa4b921f2c0681b027aa186fae10df8d9",
+      "sha256_this_checkout": "b14953d38bb7183b58cc47c9ec7c7a6fa4b921f2c0681b027aa186fae10df8d9"
+     },
+     "results/live_ab/DURABLE_REBUILD_20260923T192024Z_configure.log": {
+      "equal": true,
+      "sha256_main": "ffbb78ba0509f127ff40b7ed01e282c03f2ce6365fa4bc9a7d866558bc536ada",
+      "sha256_this_checkout": "ffbb78ba0509f127ff40b7ed01e282c03f2ce6365fa4bc9a7d866558bc536ada"
+     }
+    }
+   },
+   "repo_root": "<HOME>/ICLR-WinRatioAgentEvals",
+   "why": "the trials run from the main checkout; lab_common tokenizes paths from its own location, so the same files are <REPO>/work/llama.cpp-build/... there but <HOME>/ICLR-WinRatioAgentEvals/work/... from any other checkout. assemble_serving_manifest.repo_roots rebinds the three token roots to the main checkout for the assembly and every check"
+  },
+  "dry_check_after_writing": {
+   "as_seen_from": "<HOME>/ICLR-WinRatioAgentEvals",
+   "expected": "llama_cpp.serving_manifest_sha256 of the written config.json",
+   "function": "lab_serving_manifest.verify_before_launch (preflight at every invocation, lab_server.start at every start and restart)",
+   "labels": []
+  },
+  "durable_build": {
+   "build_receipt": "results/live_ab/DURABLE_REBUILD_20260923T192024Z.json",
+   "declaration": "results/live_ab/CANDIDATE_INSTRUMENT_MANIFEST_DURABLE.json",
+   "declaration_sha256": "bc180e4e85b3563564dffb8e4ad6ef3c8818c549c4f7cfc1c17b3869c13c2096",
+   "launcher": "work/llama.cpp-build/build/bin/llama-server"
+  },
+  "evidence": {
+   "assembly_problems": [],
+   "bytes": 20011,
+   "declared": {
+    "launcher": {
+     "bytes": 33472,
+     "path": "<REPO>/work/llama.cpp-build/build/bin/llama-server",
+     "sha256": "35231ad4e83623e4aef72267f155a78bcf960f609ded6cf587dcb3a09f52eac3"
+    },
+    "libraries": {
+     "<REPO>/work/llama.cpp-build/build/bin/libggml-base.0.24.0.dylib": "19fe34f3997f908122e4d74f9a16e15de9d53445345f1774c849767c1e1f321b",
+     "<REPO>/work/llama.cpp-build/build/bin/libggml-blas.0.24.0.dylib": "07fec714cad379ea0593ec88ff4118f8a39dd496c77d28a15e0ea4076031c01d",
+     "<REPO>/work/llama.cpp-build/build/bin/libggml-cpu.0.24.0.dylib": "c2ed19a6ea799849aab747321ea07ef8211c90c3a8078bbe69b05d3d1bdd2bee",
+     "<REPO>/work/llama.cpp-build/build/bin/libggml-metal.0.24.0.dylib": "fceb6ba00f28c4004b66d8e65a3fd4350ce33f773b20a435fea1ec9313f5d37b",
+     "<REPO>/work/llama.cpp-build/build/bin/libggml.0.24.0.dylib": "145bad33a11be7d0c9c3e9d7d56af04031e37280d75a60015f73882769aec79a",
+     "<REPO>/work/llama.cpp-build/build/bin/libllama-common.0.4.1.dylib": "7d605efa6d32b8c08da4968a96ff5997bcc7a2bd6f92f2e836d498369d0e5f34",
+     "<REPO>/work/llama.cpp-build/build/bin/libllama-server-impl.dylib": "baceaef2b2ac2e95d68eff4c1ff59426a4a22ed411ac2fff7b5970d3a6708d8b",
+     "<REPO>/work/llama.cpp-build/build/bin/libllama.0.4.1.dylib": "ebe3d9d96ae05ea387fee18985636345b42bfb1d65e4afdae7768d2a0277e70f",
+     "<REPO>/work/llama.cpp-build/build/bin/libmtmd.0.4.1.dylib": "eaa01688087b245c53c3e600f1a06280d6f784976f9e1d43b0b8c9f5096c936f"
+    },
+    "rebuild_receipt_sha256": "bcdcc6a7b4c57bc81c4a0c21d940e272a344773d318a0476d23418072234fe85"
+   },
+   "gate": {
+    "assembled": true,
+    "assembly_is_deterministic": true,
+    "build_receipt_is_the_declared_receipt": true,
+    "commit_is_the_config_commit": true,
+    "launcher_is_the_declared_launcher": true,
+    "libraries_are_the_declared_closure": true,
+    "mutated_copy_refused_at_runtime": true,
+    "mutated_copy_refused_by_digest": true,
+    "refused_as_seen_from_another_checkout": true,
+    "reverifies_at_once_from_the_main_checkout": true,
+    "scratch_copy_verifies_before_launch": true
+   },
+   "libraries": 9,
+   "metal_library_kind": "embedded",
+   "mutated_copy": {
+    "against_its_own_digest": [
+     "build",
+     "closure",
+     "library_sha256:libggml-base.0.24.0.dylib"
+    ],
+    "against_the_real_digest": [
+     "digest"
+    ],
+    "mutation": "the digest of libraries[0] changed in one hex digit, consistently in libraries, closure.files and build.receipt_members",
+    "sha256_canonical": "a5b77ddd7e614dbdc3e2a8f69b74660ef686f832a9c24c05c638d4a6409a935f",
+    "structure_problems": []
+   },
+   "reverify_as_seen_from_another_checkout": [
+    "build",
+    "build_log_sha256",
+    "closure",
+    "closure_unresolved",
+    "cmake_options",
+    "compiler_version",
+    "configure_log_sha256",
+    "edge_missing:@rpath/libggml-base.0.dylib",
+    "edge_missing:@rpath/libggml-blas.0.dylib",
+    "edge_missing:@rpath/libggml-cpu.0.dylib",
+    "edge_missing:@rpath/libggml-metal.0.dylib",
+    "edge_missing:@rpath/libggml.0.dylib",
+    "edge_missing:@rpath/libllama-common.0.dylib",
+    "edge_missing:@rpath/libllama-server-impl.dylib",
+    "edge_missing:@rpath/libllama.0.dylib",
+    "edge_missing:@rpath/libmtmd.0.dylib",
+    "launch_context",
+    "launcher_path",
+    "library_missing:libggml-base.0.24.0.dylib",
+    "library_missing:libggml-blas.0.24.0.dylib",
+    "library_missing:libggml-cpu.0.24.0.dylib",
+    "library_missing:libggml-metal.0.24.0.dylib",
+    "library_missing:libggml.0.24.0.dylib",
+    "library_missing:libllama-common.0.4.1.dylib",
+    "library_missing:libllama-server-impl.dylib",
+    "library_missing:libllama.0.4.1.dylib",
+    "library_missing:libmtmd.0.4.1.dylib",
+    "library_missing:llama-server",
+    "metal_library",
+    "props_build_info",
+    "provenance:provenance_unreadable:build_info_source",
+    "provenance:provenance_unreadable:build_log",
+    "provenance:provenance_unreadable:build_receipt",
+    "provenance:provenance_unreadable:cmake_cache",
+    "provenance:provenance_unreadable:configure_log",
+    "provenance:provenance_unreadable:patch",
+    "resolved_rpath",
+    "sdk_version"
+   ],
+   "reverify_as_seen_from_the_main_checkout": [],
+   "reverify_as_seen_from_this_checkout": [
+    "build",
+    "closure",
+    "closure_unresolved",
+    "edge_missing:@rpath/libggml-base.0.dylib",
+    "edge_missing:@rpath/libggml-blas.0.dylib",
+    "edge_missing:@rpath/libggml-cpu.0.dylib",
+    "edge_missing:@rpath/libggml-metal.0.dylib",
+    "edge_missing:@rpath/libggml.0.dylib",
+    "edge_missing:@rpath/libllama-common.0.dylib",
+    "edge_missing:@rpath/libllama-server-impl.dylib",
+    "edge_missing:@rpath/libllama.0.dylib",
+    "edge_missing:@rpath/libmtmd.0.dylib",
+    "launch_context",
+    "launcher_path",
+    "library_missing:libggml-base.0.24.0.dylib",
+    "library_missing:libggml-blas.0.24.0.dylib",
+    "library_missing:libggml-cpu.0.24.0.dylib",
+    "library_missing:libggml-metal.0.24.0.dylib",
+    "library_missing:libggml.0.24.0.dylib",
+    "library_missing:libllama-common.0.4.1.dylib",
+    "library_missing:libllama-server-impl.dylib",
+    "library_missing:libllama.0.4.1.dylib",
+    "library_missing:libmtmd.0.4.1.dylib",
+    "library_missing:llama-server",
+    "metal_library",
+    "props_build_info",
+    "provenance:provenance_unreadable:build_info_source",
+    "provenance:provenance_unreadable:cmake_cache",
+    "resolved_rpath"
+   ],
+   "scratch_copy_sha256_canonical": "1edea9b072b9c87ed9d4a0b4d7ad69b8e768d0a10d09d99efc4e64324ad68b0c",
+   "scratch_copy_verify_before_launch": [],
+   "second_assembly_problems": [],
+   "second_assembly_sha256": "1edea9b072b9c87ed9d4a0b4d7ad69b8e768d0a10d09d99efc4e64324ad68b0c",
+   "sha256_canonical": "1edea9b072b9c87ed9d4a0b4d7ad69b8e768d0a10d09d99efc4e64324ad68b0c"
+  },
+  "sha256_canonical": "1edea9b072b9c87ed9d4a0b4d7ad69b8e768d0a10d09d99efc4e64324ad68b0c",
+  "what_this_is_not": "no server was started and nothing was executed or built: otool/nm metadata reads and file hashing only; the check does not show which bytes the GPU executes",
+  "written": {
+   "gate": {
+    "verifies_before_launch_from_the_main_checkout": true,
+    "written_once_and_reads_back": true
+   },
+   "path": "results/live_ab/freeze/serving_manifest.json",
+   "verify_before_launch_from_the_main_checkout": [],
+   "write": "written once (O_CREAT|O_EXCL), read back"
+  }
+ },
+ "successor_provenance": {
+  "demoted_successor": "64ace6d3e37732b372fd316055208e9deaab4d4e0722708563c8ebcc1579e82b",
+  "demoted_successor_commit_verified": "48f4d70fbd580df282b551506448457a09ab514d",
+  "gate_cells": {
+   "cells_unchanged_outside_superseded_by": true
+  },
+  "gate_successor_commit": {
+   "prior_successor_commit_carries_the_prior_successor": true
+  },
+  "new_successor": "6c0ebf2faa7515ff27f01188d9f1e487c928c63373f451dea51f06a8cdacaab9",
+  "original_pin_untouched": "3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0dd7d2c2",
+  "prior_successors_now": 6,
+  "withdrawn_predecessor_not_in_the_history": "neither 25014221 nor 5d108b4a (the withdrawn predecessor's protocol digests) was demoted into prior_successors: this run starts from the b049307 cells.json, so the history reads 64ace6d3 -> this successor"
+ },
+ "this_is_not_a_freeze": true,
+ "withdrawn_predecessor": {
+  "branch": "session60/repair-amend",
+  "commits": [
+   "134961944cec6e83f2b27586cda3d1f42ba40b72",
+   "ff152e9ee8975b4a6cc47e6f1a54a416da07b9bc"
+  ],
+  "documents_it_produced": {
+   "correction_run": {
+    "architecture_sha256": "78a4a1c72f00c594ef091227f8dbf99e300f856b82e50eed76c73e740bae6846",
+    "cells_sha256": "c9504a22e63238e9b76e60bf61f6ae58300e5f87407d7f90b66dd61392d90cee",
+    "config_sha256": "c323e0f26e7cba68355083a104e6397097f446f5e4532eb23edea57952ebd850",
+    "protocol_sha256": "5d108b4a1a8d076fdd79b973834b8f3b3e4604526a9d90e943329c9cbf2fc2b8"
+   },
+   "first_run": {
+    "architecture_sha256": "4e8546f236cf0211b9d8bb9375e42cc410f8d084fbd7c72dcee3e9ec9955d156",
+    "cells_sha256": "af4ed3b9620d29a058528cd6b8ec544c127af135972a7143a05748b566b3cf59",
+    "config_sha256": "c323e0f26e7cba68355083a104e6397097f446f5e4532eb23edea57952ebd850",
+    "protocol_sha256": "25014221bbba4a4d67e8bde845d401318d7db6fc04375ec3f7d875532b754a0c"
+   }
+  },
+  "history": "preserved: branch session60/repair-amend is not merged and not edited; its two receipts stay on it byte-unchanged; neither of its protocol digests (25014221, 5d108b4a) enters the successor history of cells.json",
+  "receipts": [
+   {
+    "commit": "134961944cec6e83f2b27586cda3d1f42ba40b72",
+    "path": "results/live_ab/REPAIR_AMENDMENT_RECEIPT_20260923_2151.json",
+    "sha256": "6729de69f66ed7cea7b6f8c8eb8370d9612ab4be7f094288ee5c2cc445715a19"
+   },
+   {
+    "commit": "ff152e9ee8975b4a6cc47e6f1a54a416da07b9bc",
+    "path": "results/live_ab/REPAIR_AMENDMENT_CORRECTION_RECEIPT_20260923_2242.json",
+    "sha256": "9feea2ac87b086810f38062bd039186a93d352aae1dbcc1d5e0a73ad9451a291"
+   }
+  ],
+  "status": "withdrawn, not applied",
+  "verified_from_git": {
+   "ancestry": {
+    "134961944cec6e83f2b27586cda3d1f42ba40b72": false,
+    "ff152e9ee8975b4a6cc47e6f1a54a416da07b9bc": false
+   },
+   "gate": {
+    "correction_receipt_is_the_pinned_bytes": true,
+    "first_receipt_is_the_pinned_bytes": true,
+    "predecessor_not_merged_into_this_branch": true
+   },
+   "receipts": [
+    {
+     "is_the_pinned_bytes": true,
+     "path": "results/live_ab/REPAIR_AMENDMENT_RECEIPT_20260923_2151.json",
+     "sha256_found": "6729de69f66ed7cea7b6f8c8eb8370d9612ab4be7f094288ee5c2cc445715a19"
+    },
+    {
+     "is_the_pinned_bytes": true,
+     "path": "results/live_ab/REPAIR_AMENDMENT_CORRECTION_RECEIPT_20260923_2242.json",
+     "sha256_found": "9feea2ac87b086810f38062bd039186a93d352aae1dbcc1d5e0a73ad9451a291"
+    }
+   ]
+  },
+  "what_is_reused": "its tool, witnesses and verifier as the starting point of this v2, its four conformance prompts and their selection rule verbatim (re-checked here), its configuration insertions byte for byte, and its successor demotion of 64ace6d3 with commit 48f4d70",
+  "why_withdrawn": "its protocol 5.3 made a decision logged before a restart-cap abort \"not reportable\" (the repair contract's provisional default); root's ruling reviews/restart_cap_estimand_ruling_20260923_2114.md withdrew that wording and fixed three phase-aware cases instead; its prose also described code that had not been delivered (worker_resolved on the _prefreeze chain, a stage-completion resolution verdict) and it carried no serving manifest"
+ },
+ "written": {
+  "architecture_sha256": "e7ea9c0fb7a28c6bdb47bb4085dcddba41144bd134d7b3a9b026ad7c9a30c86a",
+  "artifact_file_sha256": "8c59dc0059dab3446e9aa57082571c96e04d189485f6fd407c623b93994d98fd",
+  "artifact_sha256_canonical": "1edea9b072b9c87ed9d4a0b4d7ad69b8e768d0a10d09d99efc4e64324ad68b0c",
+  "cells_sha256": "6b31bf20a07cbc4b0c162fb0d309826d88ab5b95b36f9cd3e1d86500d7ff8df5",
+  "config_bytes": 16136,
+  "config_digest_on_disk": "1edea9b072b9c87ed9d4a0b4d7ad69b8e768d0a10d09d99efc4e64324ad68b0c",
+  "config_sha256": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+  "dry_check_on_disk": [],
+  "gate": {
+   "documents_read_back_equal_computed": true,
+   "dry_check_against_the_config_on_disk": true
+  },
+  "harness_entries_changed": [
+   "config.json"
+  ],
+  "harness_file_sha256_config_after": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+  "harness_file_sha256_config_before": "e4d42f5d442dde7e709222e0a4ad4985de0f20604061fec01f2e3ea95f75d824",
+  "harness_files_after": 34,
+  "harness_files_before": 34,
+  "protocol_sha256": "6c0ebf2faa7515ff27f01188d9f1e487c928c63373f451dea51f06a8cdacaab9",
+  "read_back_equals_computed": true,
+  "rule_block_sha256_on_disk": "cbfd1792d09c43754eeeab3b282e92e99c76e4f878cd82d00c827f6a90fa7607",
+  "three_way_contract_on_disk": {
+   "architecture_block_equals_protocol_block": true,
+   "block_bytes": 16136,
+   "block_sha256": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+   "config_equals_architecture_block": true,
+   "cr_bytes": {
+    "architecture": 0,
+    "config": 0,
+    "protocol": 0
+   },
+   "holds": true
+  }
+ }
+}

@@ -124,7 +124,7 @@
               "fallback": "none_T3_deferred"}
   },
   "llama_cpp": {"commit": "4fea119de30f6a923992780f6fd5ccb0bee5d47d",
-                "build_flags_sha256": null, "serving_manifest_sha256": null},
+                "build_flags_sha256": null, "serving_manifest_sha256": "1edea9b072b9c87ed9d4a0b4d7ad69b8e768d0a10d09d99efc4e64324ad68b0c"},
   "llama_args": ["-np", "2", "-c", "16384", "--no-kv-unified", "-ngl", "99", "--jinja", "--metrics",
                  "--no-context-shift", "--offline", "--no-cache-prompt", "--cache-ram", "0",
                  "--slot-prompt-similarity", "0.0", "--host", "127.0.0.1", "--log-timestamps"],
@@ -207,11 +207,21 @@
                           "t4_payload_non_identity"],
     "repeat_same_condition_stops_program": true},
   "prefreeze": {"format_conformance_min": 9,
+                "conformance_prompts": [
+                  {"id": "oodp/1", "benchmark": "out_of_design", "entry_point": "interleave_words",
+                   "prompt": "def interleave_words(left: str, right: str) -> str:\n    \"\"\"Return one sentence that alternates the words of two sentences.\n\n    Words are separated by single spaces, and an empty sentence has no words.\n    Take the first word of left, then the first word of right, then the second\n    word of left, and so on. When one sentence has no words left, append the\n    remaining words of the other in their original order. Join the result with\n    single spaces.\n    \"\"\"\n"},
+                  {"id": "oodp/2", "benchmark": "out_of_design", "entry_point": "covered_length",
+                   "prompt": "def covered_length(stretches: list) -> int:\n    \"\"\"Return the total length of a ruler covered by the given stretches.\n\n    Each item of stretches is a pair (start, end) of integers with start <= end.\n    It covers the part of the ruler from start to end, a length of end - start.\n    Parts covered by more than one stretch are counted once. An empty list\n    covers a length of 0.\n    \"\"\"\n"},
+                  {"id": "oodp/3", "benchmark": "out_of_design", "entry_point": "most_named",
+                   "prompt": "def most_named(ballots: list) -> str:\n    \"\"\"Return the option named on the most ballots.\n\n    Each ballot is a non-empty string naming one option. When several options\n    share the highest count, return the one whose first ballot comes earliest\n    in the list. Return an empty string when there are no ballots.\n    \"\"\"\n"},
+                  {"id": "oodp/4", "benchmark": "out_of_design", "entry_point": "rotate_digits",
+                   "prompt": "def rotate_digits(text: str, k: int) -> str:\n    \"\"\"Return text with every character from 0 to 9 replaced by a digit.\n\n    A digit d becomes the digit (d + k) % 10. All other characters are\n    unchanged. k is a non-negative integer.\n    \"\"\"\n"}],
                 "calibration_plan": {"repetitions": 5, "smoke_tasks": 6, "workflows": 2,
                                      "models": 2, "concurrency_levels": 2, "episodes": 240},
                 "side_by_side_compression_C": {"T1": null, "T2": null, "T3": null, "T4": null}},
   "engineering_acquisition": {"wall_seconds_total": 600, "cleanup_reserve_seconds": 90,
                               "dispatch_cutoff_seconds": 510, "diagnostic_byte_budget": 8388608,
                               "seconds_per_request": 120, "total_generated_tokens": 2048},
+  "server_supervision": {"max_supervised_restarts_per_server_per_trial": 3, "on_exceeding": "abort_trial_incomplete"},
   "hardware_allowlist": ["arm64-darwin"], "environment_lock_sha256": "842a7a19d738604fbe665231a593a11f12cc02abfe9b1dc4034bc3817a9081ac"
 }

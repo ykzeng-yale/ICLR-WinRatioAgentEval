@@ -160,6 +160,7 @@ Modules are imported by bare name, exactly as `experiments/local_stream/` does. 
 | `lab_enclosure.py` | G3 | enclosure arithmetic, pair scores, certificates |
 | `lab_client.py` | G4 | spooling llama.cpp client with the pilot's `chat()` interface |
 | `lab_server.py` | G4 | llama-server start / identity / health / `/metrics` |
+| `lab_serving_manifest.py` | G4 | *(Amendment 2026-09-24, pre-outcome; root `reviews/serving_manifest_binding_ruling_20260924_0153.md`)* the serving manifest of protocol 2.2 item 2: the one write-once artifact `results/live_ab/freeze/serving_manifest.json`, its assembly from the durable build and its re-verification against the runtime at every invocation, start and restart; the dependency closure of `experiments/live_ab_serving/dependency_closure.py` transcribed verbatim (3.16) |
 | `lab_hostcheck.py` | G5 | **the host quiescence gate of protocol 5.7**: enumerates foreign accelerator consumers, refuses trial start on a contended host, and reports in-trial foreign load. Observes only — it never signals, kills or throttles anything (3.17) |
 | `lab_mock_server.py` | G4 | scripted stand-in for llama-server (no model) |
 | `lab_worker.py` | G4 | one-episode worker process, spool writer, execution lock |
@@ -189,6 +190,7 @@ results/live_ab/
     arrival_order_T1.json ... arrival_order_T4.json
     golden_props_coder.json, golden_props_t3.json
     golden_generation_settings_coder.json, golden_generation_settings_t3.json
+    serving_manifest.json        # protocol 2.2 item 2: written once (amendment 2026-09-24, root 01:53)
     radius_table.csv             # generated, never hand-typed
     derivation.json              # every pre-freeze-decided value with its rule and inputs
   _prefreeze/events/seg_0000.jsonl ...        # smoke, calibration, rehearsal chain
@@ -1468,12 +1470,22 @@ through `lab_common.add_import_paths()`.
 | lab_enclosure | x | x | . | . | x | . | x | . | . | . | . | . | — | . | . | . | . | . | . | . |
 | lab_client | x | . | . | x | . | . | x | . | . | . | . | . | . | . | — | . | . | . | . | . |
 | lab_server | x | . | . | x | . | . | x | . | . | . | . | . | . | . | . | — | . | . | . | . |
+| lab_serving_manifest | x | . | . | . | . | . | x | . | . | . | . | . | . | . | . | . | . | . | . | . |
 | lab_hostcheck | x | . | . | . | . | . | x | . | . | . | . | . | . | . | . | . | — | . | . | . |
 | lab_mock_server | x | . | . | . | . | . | . | . | . | . | . | . | . | . | . | . | . | . | . | . |
 | lab_worker | x | . | . | x | . | (s) | x | . | x | . | . | . | . | . | x | . | . | — | . | . |
 | lab_orchestrator | x | . | . | x | . | . | x | x | x | x | x | x | x | x | . | x | x | . | — | . |
 | lab_anchor | x | . | . | x | . | . | x | . | . | . | . | . | . | . | . | . | . | . | . | — |
 | build_live_ab_results | x | x | x | . | x | . | x | x | . | . | . | x | x | x | . | . | . | . | . | . |
+
+*Amendment 2026-09-24 (pre-outcome; root `reviews/serving_manifest_binding_ruling_20260924_0153.md`):
+the row `lab_serving_manifest`.*
+The module holds the serving manifest of protocol 2.2 item 2 (2.1). It may import the standard library and
+`lab_common` only. `lab_server` and `lab_orchestrator` may import it (the matrix has no column for it;
+`tests_lab_isolation.py` names both edges), and `dryrun_live_ab` imports it to deposit a mock manifest. The
+dependency closure it carries is transcribed verbatim from `experiments/live_ab_serving/dependency_closure.py`,
+which it does not import; `experiments/live_ab_controls/tests_sm_manifest.py` keeps the two equal statement by
+statement.
 
 `lab_hostcheck`'s row is deliberately as narrow as `lab_server`'s: standard library plus `lab_common`,
 nothing else. It is imported by the orchestrator and by nothing below it, so the gate cannot see a monitor
@@ -1733,6 +1745,24 @@ Integrity labels and terminal-failure counts are `INFO` and never stop the progr
 | T29c | `publication_withheld` | D | `segment_index` int; `pattern_class` enum — protocol 12.4 item 6: a scanner hit in a segment withholds that segment from the anchor branch while anchoring continues; the segment stays in the deposit with its anchored hash and **no sanitized copy is ever produced** |
 | T30 | `invocation_ended` | D | `status` enum; `counts` obj |
 | T31 | `trial_ended` / `trial_aborted` | D + blocking anchor | `status` enum; `reason` enum?; `phase` enum; `exposure_ledger` obj (per phase x arm); `reconciliation_totals` obj; `terminal_failures_by_arm` obj; `n_torn_recoveries` int; `longest_unreceipted_span_s` float; `what_was_known` obj; `final_head` hex64 |
+| T32 | `server_start_failed` | D | *(Amendment 2026-09-24, pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` item 1; protocol 5.3 and 12.2 row 28)* `server_id` enum; `kind` enum[`start`,`restart`]; `stage` enum[`gguf`,`serving_manifest`,`launch`,`health`,`identity`,`smoke`]; `findings` [enum] (closed codes: `lab_server.IDENTITY_FINDINGS`, `lab_client.RECEIPT_FINDINGS`, `lab_server.START_FINDINGS`); `pid` int; `returncode` int?; `argv_sha256` hex64; `props_sha256` hex64?; `load_seconds` float; `restart_index` int (0 for a start). Trial chain only. The record is carried by `lab_common.ServerStartFailed(LabError).record`; it is written instead of, never beside, a success-valued T4 or T8 |
+| T33 | `worker_resolved` | D | *(Amendment 2026-09-24, pre-outcome; same review, item 3; protocol 14.6 and 12.2 row 29)* `arrival` int; `attempt` int; `pid` int; `state` enum[`exited`,`killed_reaped`,`liveness_unknown`,`alive_unresolved`]; `returncode` int?; `spool_bytes_at_resolution` int; `spool_sha256_at_resolution` hex64. Trial chain only |
+| T34 | `anchor_receipt_rejected` | D | *(Amendment 2026-09-24, pre-outcome; root `reviews/eb1_receipt_attribution_review_20260924_0254.md` and `reviews/decision_receipt_metadata_ruling_20260924_0324.md`; protocol 12.4 and 12.2 row 30)* `request_id` hex32?; `reason` enum[`unknown_request`,`stale`,`malformed`,`duplicate`,`conflict`]; `raw_sha256` hex64; `raw_bytes` int. Neither trial-only nor program-only: written wherever anchor events are (also beside P8) |
+
+*Amendment 2026-09-24 (pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` items 1, 3 and 4,
+and the rulings of 21:14, 02:54 and 03:24), to rows T3, T17, T22, T23, T29b and T31 and to P6.*
+T17 `episode_revealed` gains
+`usage_complete` bool and `unknown_usage_calls` int; T22 `anchor` gains `request_id` hex32 (optional in the
+schema); T23 `anchor_receipt` gains `request_id` hex32, `anchor_file_sha256` hex64?, `comment_body_sha256` hex64?
+and `node_id_sha256` hex64? (all optional; the last three non-null only on a verified decision receipt); T29b
+`deposit_sealed` gains `late_unread` [obj] (optional); T31 `trial_ended` / `trial_aborted` gains `completion` obj
+and `resolution` obj (optional in the schema, written on every terminal record), and its `reason` gains
+`server_restart_cap` and `unresolved_worker` (automatic aborts, protocol 6.4). The preflight check enum shared by
+T3 `invocation_refused` and P6 `preflight_refused` gains `golden_objects`. The pure function
+`phase_resolution_verdict(...)` is evaluated before every terminal record of a trial; `lab_verify_log` mirrors
+it as the FAIL-level check `workers.resolved`, checks T4, T7, T8, T32 and `completion` against protocol 5.3 as
+the FAIL-level check `server.lifecycle`, and its FAIL-level check `switch.phase` counts a decision as receipted
+only by `lab_eventlog.decision_receipt` (protocol 12.4).
 
 ### 4.5 `what_was_known`
 
@@ -1958,7 +1988,7 @@ phase (protocol Appendix A) and no `null` may survive into the freeze bundle.
               "fallback": "none_T3_deferred"}
   },
   "llama_cpp": {"commit": "4fea119de30f6a923992780f6fd5ccb0bee5d47d",
-                "build_flags_sha256": null, "serving_manifest_sha256": null},
+                "build_flags_sha256": null, "serving_manifest_sha256": "1edea9b072b9c87ed9d4a0b4d7ad69b8e768d0a10d09d99efc4e64324ad68b0c"},
   "llama_args": ["-np", "2", "-c", "16384", "--no-kv-unified", "-ngl", "99", "--jinja", "--metrics",
                  "--no-context-shift", "--offline", "--no-cache-prompt", "--cache-ram", "0",
                  "--slot-prompt-similarity", "0.0", "--host", "127.0.0.1", "--log-timestamps"],
@@ -2041,12 +2071,22 @@ phase (protocol Appendix A) and no `null` may survive into the freeze bundle.
                           "t4_payload_non_identity"],
     "repeat_same_condition_stops_program": true},
   "prefreeze": {"format_conformance_min": 9,
+                "conformance_prompts": [
+                  {"id": "oodp/1", "benchmark": "out_of_design", "entry_point": "interleave_words",
+                   "prompt": "def interleave_words(left: str, right: str) -> str:\n    \"\"\"Return one sentence that alternates the words of two sentences.\n\n    Words are separated by single spaces, and an empty sentence has no words.\n    Take the first word of left, then the first word of right, then the second\n    word of left, and so on. When one sentence has no words left, append the\n    remaining words of the other in their original order. Join the result with\n    single spaces.\n    \"\"\"\n"},
+                  {"id": "oodp/2", "benchmark": "out_of_design", "entry_point": "covered_length",
+                   "prompt": "def covered_length(stretches: list) -> int:\n    \"\"\"Return the total length of a ruler covered by the given stretches.\n\n    Each item of stretches is a pair (start, end) of integers with start <= end.\n    It covers the part of the ruler from start to end, a length of end - start.\n    Parts covered by more than one stretch are counted once. An empty list\n    covers a length of 0.\n    \"\"\"\n"},
+                  {"id": "oodp/3", "benchmark": "out_of_design", "entry_point": "most_named",
+                   "prompt": "def most_named(ballots: list) -> str:\n    \"\"\"Return the option named on the most ballots.\n\n    Each ballot is a non-empty string naming one option. When several options\n    share the highest count, return the one whose first ballot comes earliest\n    in the list. Return an empty string when there are no ballots.\n    \"\"\"\n"},
+                  {"id": "oodp/4", "benchmark": "out_of_design", "entry_point": "rotate_digits",
+                   "prompt": "def rotate_digits(text: str, k: int) -> str:\n    \"\"\"Return text with every character from 0 to 9 replaced by a digit.\n\n    A digit d becomes the digit (d + k) % 10. All other characters are\n    unchanged. k is a non-negative integer.\n    \"\"\"\n"}],
                 "calibration_plan": {"repetitions": 5, "smoke_tasks": 6, "workflows": 2,
                                      "models": 2, "concurrency_levels": 2, "episodes": 240},
                 "side_by_side_compression_C": {"T1": null, "T2": null, "T3": null, "T4": null}},
   "engineering_acquisition": {"wall_seconds_total": 600, "cleanup_reserve_seconds": 90,
                               "dispatch_cutoff_seconds": 510, "diagnostic_byte_budget": 8388608,
                               "seconds_per_request": 120, "total_generated_tokens": 2048},
+  "server_supervision": {"max_supervised_restarts_per_server_per_trial": 3, "on_exceeding": "abort_trial_incomplete"},
   "hardware_allowlist": ["arm64-darwin"], "environment_lock_sha256": "842a7a19d738604fbe665231a593a11f12cc02abfe9b1dc4034bc3817a9081ac"
 }
 ```
@@ -2077,6 +2117,14 @@ and 8 (audit B1).
 at every invocation compares the on-disk config's sha256 with `trial_started.config_sha256` and refuses on
 any difference not covered by a chained `refreeze_authorization` — which can only ever cover **reporting
 code** (`refreeze.scope == ["reporting_code"]`), never a config key.
+
+*Amendment 2026-09-24 (pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` items 2 and 4, and
+`reviews/serving_manifest_binding_ruling_20260924_0153.md`;
+protocol 14.3):* this list gains `server_supervision` (top level, outside the rule block: bound by
+`config_sha256` and `harness_file_sha256[config.json]`, not by `rule_block_sha256`),
+`prefreeze.conformance_prompts` and `llama_cpp.serving_manifest_sha256`, the canonical digest of the write-once
+artifact `results/live_ab/freeze/serving_manifest.json` (2.2).
+
 ---
 
 ## 7. Orchestrator state machine
@@ -2091,6 +2139,7 @@ a 5 s timer, (5) take the transition the table below prescribes.
 |---|---|---|---|---|---|
 | 1 | `PREFLIGHT` | process start | `preflight()`; take `RunLock` | `OPENING` | — |
 | 1a | `PREFLIGHT` | any check fails | append `preflight_refused` to the **program** chain (D) | `ABORTED` | — |
+| 1b | `PREFLIGHT` | *(Amendment 2026-09-24, pre-outcome; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` item 1, and `reviews/serving_manifest_binding_ruling_20260924_0153.md`)* on a non-simulated path: a golden file is null, missing, unreadable or does not match its config digest, a golden `model_path` is not tokenized, a `--gguf` path does not tokenize to the golden `model_path`, or a runtime `golden` override is present (check `golden_objects`); the artifact `results/live_ab/freeze/serving_manifest.json` is missing, not a regular canonical file, not the file of `llama_cpp.serving_manifest_sha256` (null refuses) or does not re-verify against the runtime (check `serving_manifest`); `server_supervision` or `execution.health_failures_to_down` is absent or malformed (`preflight_rule_failed`) | before seq 0 append `preflight_refused` with the check to the **program** chain (D), at a later invocation `invocation_refused` (protocol 6.4 row 21); no server is started and nothing success-valued is written | `ABORTED` | — |
 | 2 | `OPENING` | chain does not exist | `trial_started` (D); `server_started` per server (D); request `trial_started` anchor, `blocking=True` | `OPENING.wait` | — |
 | 2a | `OPENING` | chain exists | `read_chain`; `log_recovery` if torn (D); `invocation_started` (D); `plan_resume`; emit orphan reveals / `orphan_rejected` / interrupted reveals (each D), in arrival order; replay the monitor to `monitor_prefix` | `IDLE`/`PARTIAL`/`POST_DECISION` per plan | — |
 | 2b | `OPENING` | drift not covered by a chained authorization | `invocation_refused` (D) | `ABORTED` | — |
@@ -2116,13 +2165,17 @@ a 5 s timer, (5) take the transition the table below prescribes.
 | 14 | `ANCHOR_BLOCK` | `anchor_receipt` for the decision anchor | `traffic_switch` (**D**) | `POST_DECISION` | **yes**: no post-decision dispatch before this receipt |
 | 14a | `ANCHOR_BLOCK` | no receipt within `blocking_wait_minutes` | `trial_paused(anchor_unavailable)` (D) | `PAUSED` | — |
 | 14b | `ANCHOR_BLOCK` | `kind == 'horizon_no_decision'` | no switch; go to `CLOSING` after the receipt | `CLOSING` | **yes** |
+| 14c | `ANCHOR_BLOCK` | *(Amendment 2026-09-24, pre-outcome; root `reviews/eb1_receipt_attribution_review_20260924_0254.md` and `reviews/decision_receipt_metadata_ruling_20260924_0324.md`; protocol 12.4)* a receipt spool line arrives, or a supervision outcome is owed | exactly one chain event per line (D): `anchor_receipt` only when the line's `request_id` is bound to that anchor's durable request and, for the decision anchor, it carries the full external evidence of protocol 12.4; otherwise `anchor_failed` or `anchor_receipt_rejected`, and the anchor stays pending. The servers stay supervised. Row 14 is taken only once `lab_eventlog.decision_receipt` finds the decision receipted; a supervision outcome owed while the decision was provisional is taken then, before any switch (protocol 5.3 case (c)); a decision anchor that came back failed, or no receipt within `blocking_wait_minutes`, is row 14a with the outcome still owed | `ANCHOR_BLOCK` / `POST_DECISION` / `PAUSED` / `ABORTED` | **yes** |
 | 15 | `POST_DECISION` | a worker is free and arrivals remain | `arm_assigned_by_decision` (**D**); job file; spawn; `episode_started` | `POST_DECISION` | — |
 | 16 | `POST_DECISION` | `episode_final` ingested | `episode_revealed` (**D**, `post_decision=true`); **no monitor update, no look** | `POST_DECISION` | — |
 | 17 | `POST_DECISION` | every 50 arrivals | drain both workers; `metrics_scrape(quiescent)` (D) | `POST_DECISION` | — |
 | 18 | `POST_DECISION` | no arrivals remain and nothing in flight | — | `CLOSING` | — |
 | 19 | any | `ReceiptMismatch` or served-alias mismatch | finish and reveal the episode (ITT), then `trial_aborted(receipt_mismatch)` (D) before the next dispatch | `ABORTED` | — |
 | 20 | any | `server_restarted.props != golden` | `trial_aborted(server_identity)` (D) | `ABORTED` | — |
+| 20a | any | *(Amendment 2026-09-24; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` item 1)* `lab_server.start` or `lab_server.restart` raises `ServerStartFailed` | `server_start_failed` (D) with the exception's record, never a success-valued T4 or T8; then the rule for its stage (protocol 5.3): `gguf`, `serving_manifest` or `identity` → `trial_aborted(server_identity)` (D); `smoke` → `trial_aborted(receipt_mismatch)` (D), both when the smoke receipt differs from the golden object and when none was obtained (`smoke_transport`, `smoke_no_usage`; the latter is a new automatic abort, protocol 6.4); `launch` or `health` on a supervised restart or a start at resume → `trial_paused(server_unrecoverable)` (D), on the first start → `trial_aborted(infrastructure)` (D; a new automatic abort, protocol 6.4). A refused start call or an exception the start did not convert → `trial_aborted(harness_defect)` (D). A failed restart counts towards the cap (row 21a) | `ABORTED` / `PAUSED` | — |
 | 21 | any | 10 consecutive revealed arrivals with `error_class` in {`episode_timeout`,`worker_died`,`interrupted`} or all tries of a call failed, counted in **reveal order** | `trial_aborted(infrastructure)` (D) | `ABORTED` | — |
+| 21a | any | *(Amendment 2026-09-24; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` item 4, and `reviews/restart_cap_estimand_ruling_20260923_2114.md`)* `server_down` on a server whose supervised restart attempts in this trial (`server_restarted` plus `server_start_failed` with `kind` `restart`, counted from the chain) already equal `server_supervision.max_supervised_restarts_per_server_per_trial` (3) | nothing is restarted and nothing new is dispatched; the open attempts drain (the `episode_hard_cap_s` kill still applies) and are revealed (D); every worker is resolved (row 21b); then `trial_aborted(server_restart_cap)` (D) with `completion` + blocking anchor. The case is fixed by the chain at that `server_down` (protocol 5.3): (a) no decision yet → none is taken afterwards, a crossing look is logged unchanged and not acted on; (b) a decision with its chained external receipt → it stands at its `tau`, the follow-up is truncated and counted; (c) a decision awaiting its receipt → the abort waits in `ANCHOR_BLOCK` (row 14c) and is taken only after the receipt, else row 14a pauses with the abort still owed. No replacement trial, no extra pair | `ABORTED` / `PAUSED` | **yes** |
+| 21b | `CLOSING`, `ABORTED` | *(Amendment 2026-09-24; root `reviews/prerun_bundle_go_nogo_20260923_2040.md` item 3)* before the terminal record, after the bounded drain, the idle observation of every held server and the deposit seal: `phase_resolution_verdict` does not pass (a worker not confirmed exited, a started call with no terminal event under an unresolved worker, a spool grown or changed past its resolution offset, a held server busy or unobserved) | no `trial_ended`: `trial_aborted(unresolved_worker)` (D) + blocking anchor, whose `resolution` lists every unresolved attempt and unfinished call (usage `null`) and names the reason it superseded | `ABORTED` | **yes** |
 | 22 | any | `MonitorError` / `EnclosureError`, **including one raised inside `lab_reference_rule`** | `trial_paused(monitor_exception)` (D); no decision is ever taken by hand. An exception from the reference rule is additionally a `decision_code_defect` candidate (protocol 6.4 rows 17 and 24) and is never closed by a re-freeze | `PAUSED` | — |
 | 22b | any | `shadow.mismatch` is true at any evaluation | `trial_paused(monitor_mismatch)` (D) **before any decision is acted on** (protocol 8.9) | `PAUSED` | — |
 | 23 | any | operator graceful stop | finish the pending pair, reveal, look, then `trial_paused(planned)` (D) | `PAUSED` | — |

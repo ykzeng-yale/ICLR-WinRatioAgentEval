@@ -1518,7 +1518,7 @@ Administrative provenance repair only: no scientific parameter, seed, horizon, e
 decision rule, result label or execution pin changes.
 
 **Update 2026-09-23: the count above is stale; the pin is not.** "Moved twice" was true when this
-amendment was written. Since then `cells.json` has recorded four more successors of that file. The
+amendment was written. Since then `cells.json` has recorded five more successors of that file. The
 first three are Appendix B-only synchronisations of the #11 configuration block with `config.json`:
 `0e1bcb71…` (`host_work_root`, root ruling 2026-09-23 03:51), `f75de323…` (the sandbox-profile and
 licence evidence pins, root ruling 2026-09-23 03:48) and `7f666477…` (the scoped
@@ -1527,7 +1527,18 @@ an Appendix B change: it is one paragraph inserted into section 2.2 item 1 only,
 state of the llama.cpp checkout and the three recorded checks that replace, for that checkout, the
 empty-status requirement (root disposition 2026-09-23 18:29 and issue #11 at 18:48, the narrow
 patch-state route). It leaves the Appendix B block and sections 1, 3 and 11, the sections this pin
-reads, byte-identical. That makes six moves in all.
+reads, byte-identical. The fifth, `6c0ebf2f…`, is not Appendix-B-only either: it is the one
+synchronized pre-outcome amendment of the session-60 EB1+EB5 repair subset (root 2026-09-23 20:40,
+`reviews/prerun_bundle_go_nogo_20260923_2040.md` items 2 and 4; 21:14, the restart-cap estimand; 2026-09-24
+01:53, the serving manifest; 02:54 and 03:24, receipt attribution). It adds the four out-of-design conformance
+prompts and the `server_supervision` restart cap to the configuration block, and it replaces the one value
+`llama_cpp.serving_manifest_sha256`, null before, with the digest of the write-once serving-manifest artifact, so
+Appendix B changes too, byte-identically with `config.json`. It inserts dated paragraphs into sections 2.2, 2.4,
+5.3, 5.8, 6.4, 12.2, 12.4, 13.1, 14.3, 14.6 and 16, among them four new automatic aborts and root's three
+restart-cap cases for reporting a decision. Every other change is an insertion, and sections 1, 3 and 11 stay
+byte-identical. A predecessor of the same amendment (`25014221…`, then `5d108b4a…`, branch
+`session60/repair-amend`) was withdrawn and never applied; neither digest was demoted into the history. That
+makes seven moves in all.
 They are written truncated for the reason given above. The full digests, reasons and rulings are in
 `cells.json` under `provenance.vocabulary_alignment.superseded_by`, and so is each changing commit
 once a later commit has resolved it. The
