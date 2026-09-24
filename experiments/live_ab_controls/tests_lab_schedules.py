@@ -3,7 +3,10 @@
 Root 2026-09-23 20:40 item 2 (``reviews/prerun_bundle_go_nogo_20260923_2040.md:17``): the drivers must
 consume a frozen schedule.  These controls prove the schedules are deterministic, balanced as stated,
 write-once, and refused on reload after a single flipped byte; every positive control has a negative one.
-No server, request or outcome is involved.
+Each negative control names the guard that must refuse it (``assertRaisesRegex`` on that guard's
+message), so a guard whose mutation another guard happens to catch is still controlled on its own.  The
+one guard without a control is the stage-5 partition check, which is implied by the per-pair checks
+before it (``lab_schedules.check_stage5``).  No server, request or outcome is involved.
 """
 from __future__ import annotations
 
@@ -14,6 +17,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 HERE = Path(__file__).resolve().parent
 LIVE = HERE.parent / 'live_ab'
@@ -41,6 +45,31 @@ def reseal(schedule: dict) -> dict:
     """Re-digest a mutated schedule, so a check refuses on its INVARIANT, not on the digest."""
     body = {k: v for k, v in schedule.items() if k != 'schedule_sha256'}
     return dict(body, schedule_sha256=lab_common.sha256_canonical(body))
+
+
+def _row(m: dict, row_id: str) -> dict:
+    return next(r for r in m['rows'] if r['row_id'] == row_id)
+
+
+def flip(m: dict, unit: dict, *, flag_only: bool = False) -> None:
+    """Swap a stage-5 pair's orientation consistently (flag, episode order, positions), or, with
+    ``flag_only``, the flag alone."""
+    unit['candidate_at_position_1'] = not unit['candidate_at_position_1']
+    if flag_only:
+        return
+    unit['episodes'].reverse()
+    for position, ep in enumerate(unit['episodes'], start=1):
+        _row(m, ep)['position'], _row(m, ep)['worker_index'] = position, position - 1
+
+
+def grid(m: dict) -> dict:
+    """``{(contrast, task, repetition): unit}``."""
+    return {(u['contrast'], u['task_uid'], u['repetition']): u for u in m['units']}
+
+
+def first_count(m: dict, contrast: str, **where) -> int:
+    return sum(1 for u in m['units'] if u['contrast'] == contrast and u['candidate_at_position_1']
+               and all(u[k] == v for k, v in where.items()))
 
 
 class Stage4Tests(unittest.TestCase):
@@ -95,30 +124,59 @@ class Stage4Tests(unittest.TestCase):
                     lab_schedules.stage4_schedule(CFG, BASE, bad)
 
     def test_negative_each_invariant_refuses_its_mutation(self) -> None:
+        """Each mutation is refused BY ITS OWN GUARD (the regex is that guard's message)."""
         good = s4()
         mutations = {}
         m = copy.deepcopy(good)                       # an episode moved to another repetition
         next(r for r in m['rows'] if r['kind'] == 'episode')['repetition'] = 2
-        mutations['coordinate'] = m
+        mutations['coordinate'] = (m, 'does not cover the 6 x 5 coordinates')
+        m = copy.deepcopy(good)                       # an episode carrying another cell's arm
+        next(r for r in m['rows'] if r['kind'] == 'episode' and r['server'] == 'coder')['server'] = 't3'
+        mutations['arm'] = (m, "carries another cell's arm")
         m = copy.deepcopy(good)                       # a pair that is not disjoint
         pairs = [u for u in m['units'] if u['kind'] == 'pair']
         pairs[1]['episodes'][0] = pairs[0]['episodes'][0]
-        mutations['overlapping_pair'] = m
+        mutations['overlapping_pair'] = (m, 'names episode .* inconsistently')
         m = copy.deepcopy(good)                       # a unit missing from the consumption order
         m['consumption_order'].pop(10)
-        mutations['consumption'] = m
+        mutations['consumption'] = (m, 'consumption_order is not')
+        m = copy.deepcopy(good)                       # the same ids, units consumed against seq
+        n = len(m['consumption_order'])
+        m['consumption_order'][8:n - 2] = m['consumption_order'][8:n - 2][::-1]
+        mutations['consumption_against_seq'] = (m, 'consumption_order is not')
+        m = copy.deepcopy(good)                       # the whole order reversed: server starts LAST
+        m['consumption_order'].reverse()
+        mutations['consumption_reversed'] = (m, 'consumption_order is not')
+        m = copy.deepcopy(good)                       # a server start after a /props GET, consistently
+        i = next(k for k, r in enumerate(m['rows']) if r['row_id'] == 's4.srv.start.t3')
+        m['rows'].insert(3, m['rows'].pop(i))
+        m['consumption_order'] = [r['row_id'] for r in m['rows'][:8]] + m['consumption_order'][8:]
+        mutations['server_start_not_first'] = (m, 'server_start rows')
+        m = copy.deepcopy(good)                       # two starts of one server, none of the other
+        _row(m, 's4.srv.start.t3')['server'] = 'coder'
+        mutations['server_start_twice'] = (m, 'not one per server')
+        m = copy.deepcopy(good)                       # an episode row filed after the tail rows
+        i = next(k for k, r in enumerate(m['rows']) if r['kind'] == 'episode')
+        m['rows'].append(m['rows'].pop(i))
+        mutations['episodes_not_contiguous'] = (m, 'not one contiguous block')
         m = copy.deepcopy(good)                       # a repeated execution slot
         m['units'][0]['seq'] = m['units'][1]['seq']
-        mutations['seq'] = m
+        mutations['seq'] = (m, 'not a permutation of 1..180')
         m = copy.deepcopy(good)                       # SERVER_SMOKE dropped although OD14 says yes
         m['rows'] = [r for r in m['rows'] if r['kind'] != 'server_smoke']
-        mutations['smoke'] = m
+        mutations['smoke'] = (m, 'SERVER_SMOKE rows, OD14 gives 2')
         m = copy.deepcopy(good)                       # a timeout other than OD1's
         next(r for r in m['rows'] if r['kind'] == 'episode')['request_timeout_s'] = 240
-        mutations['timeout'] = m
-        for name, bad in mutations.items():
+        mutations['timeout'] = (m, 'disagrees with OD1/OD2')
+        m = copy.deepcopy(good)                       # retries other than OD2's (timeout intact)
+        next(r for r in m['rows'] if r['kind'] == 'episode')['max_connection_retries'] = 2
+        mutations['retries'] = (m, 'disagrees with OD1/OD2')
+        m = copy.deepcopy(good)                       # a wire cap that is not 600 x tries + smoke
+        m['counts']['wire_attempt_cap'] = 603
+        mutations['wire_cap'] = (m, 'wire cap is not 600')
+        for name, (bad, guard) in mutations.items():
             with self.subTest(mutation=name):
-                with self.assertRaises(lab_schedules.ScheduleRefused):
+                with self.assertRaisesRegex(lab_schedules.ScheduleRefused, guard):
                     lab_schedules.check_stage4(reseal(bad))
 
 
@@ -152,29 +210,89 @@ class Stage5Tests(unittest.TestCase):
         self.assertIsNone(sch['request_timeout_s']['value'])
 
     def test_negative_orientation_and_link_mutations_are_refused(self) -> None:
+        """Each mutation is refused BY ITS OWN GUARD (the regex is that guard's message)."""
         stage4 = s4()
         good = s5(stage4=stage4)
+        g = grid(good)
+        tasks = good['smoke_tasks']
         mutations = {}
         m = copy.deepcopy(good)                        # flip one pair's orientation: 16/14
-        u = next(x for x in m['units'] if x['contrast'] == 'T2' and not x['candidate_at_position_1'])
-        u['candidate_at_position_1'] = True
-        u['episodes'].reverse()
-        for position, ep in enumerate(u['episodes'], start=1):
-            row = next(r for r in m['rows'] if r['row_id'] == ep)
-            row['position'], row['worker_index'] = position, position - 1
-        mutations['16_14'] = m
+        flip(m, next(x for x in m['units'] if x['contrast'] == 'T2'
+                     and not x['candidate_at_position_1']))
+        mutations['16_14'] = (m, 'root fixes 15/15')
+        # 4/2 across two repetitions of ONE task: 15/15 and every task count unchanged
+        c, t, r1, r2 = next((c, t, a, b) for c in lab_schedules.CONTRASTS for t in tasks
+                            for a in range(1, 6) for b in range(1, 6)
+                            if not g[(c, t, a)]['candidate_at_position_1']
+                            and g[(c, t, b)]['candidate_at_position_1'])
+        m = copy.deepcopy(good)
+        for rep in (r1, r2):
+            flip(m, grid(m)[(c, t, rep)])
+        self.assertEqual((first_count(m, c), first_count(m, c, task_uid=t)),
+                         (15, first_count(good, c, task_uid=t)))
+        mutations['repetition_4_2'] = (m, 'repetition %d is not 3/3' % r1)
+        # a task at 1 (or 4) candidate-first inside ONE repetition: every repetition still 3/3
+        c, rep, t1, t2 = next((c, r, a, b) for c in lab_schedules.CONTRASTS for r in range(1, 6)
+                              for a in tasks for b in tasks
+                              if g[(c, a, r)]['candidate_at_position_1']
+                              and not g[(c, b, r)]['candidate_at_position_1']
+                              and first_count(good, c, task_uid=a) == 2
+                              and first_count(good, c, task_uid=b) == 2)
+        m = copy.deepcopy(good)
+        for task in (t1, t2):
+            flip(m, grid(m)[(c, task, rep)])
+        self.assertEqual(first_count(m, c, repetition=rep), 3)
+        mutations['task_1'] = (m, 'task %s is not 2 or 3 candidate-first' % t1)
+        # flags swapped on a 2 x 2 rectangle WITHOUT moving any episode: every count unchanged
+        c, a, b, r1, r2 = next((c, a, b, x, y) for c in lab_schedules.CONTRASTS for a in tasks
+                               for b in tasks for x in range(1, 6) for y in range(1, 6)
+                               if g[(c, a, x)]['candidate_at_position_1']
+                               and not g[(c, a, y)]['candidate_at_position_1']
+                               and not g[(c, b, x)]['candidate_at_position_1']
+                               and g[(c, b, y)]['candidate_at_position_1'])
+        m = copy.deepcopy(good)
+        for key in ((c, a, r1), (c, a, r2), (c, b, r1), (c, b, r2)):
+            flip(m, grid(m)[key], flag_only=True)
+        mutations['flag_without_positions'] = (m, 'orientation flag disagrees')
         m = copy.deepcopy(good)                        # a solo link to a concurrency-2 row
         cand2 = next(r['row_id'] for r in stage4['rows'] if r['kind'] == 'episode'
                      and r['concurrency'] == 2)
         next(r for r in m['rows'] if r['kind'] == 'episode')['solo_link'] = cand2
-        mutations['link'] = m
+        mutations['link'] = (m, 'solo link')
         m = copy.deepcopy(good)                        # a pair of two candidates
         eps = [r for r in m['rows'] if r['kind'] == 'episode']
         eps[1]['arm'] = 'candidate'
-        mutations['arms'] = m
-        for name, bad in mutations.items():
+        mutations['arms'] = (m, 'not one episode of each arm')
+        m = copy.deepcopy(good)                        # one unit id used by pairs of two contrasts
+        u1 = next(u for u in m['units'] if u['contrast'] == 'T1')
+        u2 = next(u for u in m['units'] if u['contrast'] == 'T2')
+        m['consumption_order'][m['consumption_order'].index(u2['unit_id'])] = u1['unit_id']
+        for ep in u2['episodes']:
+            _row(m, ep)['unit_id'] = u1['unit_id']
+        u2['unit_id'] = u1['unit_id']
+        mutations['unit_id_repeated'] = (m, 'a unit id repeats')
+        m = copy.deepcopy(good)                        # a repeated execution slot
+        m['units'][0]['seq'] = m['units'][1]['seq']
+        mutations['seq'] = (m, 'not a permutation of 1..120')
+        m = copy.deepcopy(good)                        # retries other than OD2's
+        next(r for r in m['rows'] if r['kind'] == 'episode')['max_connection_retries'] = 2
+        mutations['retries'] = (m, 'disagrees with OD2')
+        m = copy.deepcopy(good)                        # a pair missing from the consumption order
+        m['consumption_order'].pop(3)
+        mutations['consumption'] = (m, 'consumption_order is not')
+        m = copy.deepcopy(good)                        # the same ids, pairs consumed against seq
+        m['consumption_order'][:120] = m['consumption_order'][:120][::-1]
+        mutations['consumption_against_seq'] = (m, 'consumption_order is not')
+        m = copy.deepcopy(good)                        # stage 5 starts no server
+        m['rows'].append({'row_id': 's5.srv.start.coder', 'kind': 'server_start', 'server': 'coder'})
+        m['consumption_order'].append('s5.srv.start.coder')
+        mutations['server_start'] = (m, 'server_start rows')
+        m = copy.deepcopy(good)                        # a wire cap that is not 420 x tries
+        m['counts']['wire_attempt_cap'] = 421
+        mutations['wire_cap'] = (m, 'wire cap is not 420')
+        for name, (bad, guard) in mutations.items():
             with self.subTest(mutation=name):
-                with self.assertRaises(lab_schedules.ScheduleRefused):
+                with self.assertRaisesRegex(lab_schedules.ScheduleRefused, guard):
                     lab_schedules.check_stage5(reseal(bad), stage4)
 
     def test_negative_stage5_refuses_another_stage4_or_other_decisions(self) -> None:
@@ -190,6 +308,31 @@ class Stage5Tests(unittest.TestCase):
         sch = s5(stage4=stage4)
         with self.assertRaises(lab_schedules.ScheduleRefused):
             lab_schedules.check_stage5(sch, s4(base=BASE + 1))
+
+
+class RuledDecisionTests(unittest.TestCase):
+    """A RULED open decision must cite a resolvable reviews/<file>.md:<line>; free text is refused."""
+
+    def setUp(self) -> None:
+        self.tmp = Path(tempfile.mkdtemp(prefix='ruled_'))
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        (self.tmp / 'reviews').mkdir()
+        (self.tmp / 'reviews' / 'RULING_FIXTURE.md').write_text('a\nb\n', 'utf-8')
+
+    def ruled(self, source: str) -> dict:
+        return {od: dict(entry, status='RULED', source=source) for od, entry in ODS.items()}
+
+    def test_a_resolvable_citation_is_accepted_as_ruled(self) -> None:
+        with mock.patch.object(lab_schedules, 'REPO_ROOT', self.tmp):
+            self.assertEqual(s4(ods=self.ruled('reviews/RULING_FIXTURE.md:2'))['status'], 'RULED')
+
+    def test_negative_a_ruled_entry_without_a_resolvable_citation_is_refused(self) -> None:
+        with mock.patch.object(lab_schedules, 'REPO_ROOT', self.tmp):
+            for bad in ('root said so', 'reviews/RULING_FIXTURE.md:3', 'reviews/NOPE.md:1',
+                        'reviews/RULING_FIXTURE.md:1 (fixture)', 'results/RULING_FIXTURE.md:1'):
+                with self.subTest(source=bad):
+                    with self.assertRaises(lab_schedules.ScheduleRefused):
+                        lab_schedules.check_open_decisions(self.ruled(bad))
 
 
 class DeterminismTests(unittest.TestCase):
@@ -250,6 +393,13 @@ class WriteOnceTests(unittest.TestCase):
                 with self.assertRaises(lab_schedules.ScheduleRefused):
                     lab_schedules.load_schedule(bad, expected_file_sha256=digest)
                 bad.unlink()
+
+    def test_negative_a_non_canonical_serialization_is_refused_on_reload(self) -> None:
+        """Same content, same schedule_sha256, other bytes: only the canonical-bytes guard sees it."""
+        path = self.tmp / 'STAGE4_SCHEDULE.json'
+        path.write_text(json.dumps(s4(), indent=1), 'utf-8')
+        with self.assertRaisesRegex(lab_schedules.ScheduleRefused, 'not the canonical serialization'):
+            lab_schedules.load_schedule(path)
 
     def test_negative_an_unchecked_schedule_is_not_written(self) -> None:
         bad = copy.deepcopy(s4())

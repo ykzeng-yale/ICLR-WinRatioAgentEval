@@ -2,11 +2,14 @@
 
 Root, 2026-09-23 20:40 (``reviews/prerun_bundle_go_nogo_20260923_2040.md:17``, item 2): complete the
 missing executable drivers and "show each driver consumes the frozen schedule".  The plan rows say the
-schedules do not exist: stage 5 "orientation: deterministic prospective 15/15 schedule, NOT YET WRITTEN"
-(``results/live_ab/FINITE_COSTED_PLAN_DRAFT_v2r3_20260923.json`` ``stage_5_orientation``), and stage 4's
-driver "is not identified at HEAD".  This module writes the two schedules and nothing else: it starts
-no server, sends no request and reads no outcome.  A driver consumes a schedule by iterating its
-``consumption_order``; every row id it will ever touch is in the file before the first request.
+schedules do not exist: ``stage_5_orientation`` is "deterministic 15/15 schedule: NOT YET WRITTEN"
+(``results/live_ab/FINITE_COSTED_PLAN_DRAFT_v2r3_20260923.json:214``), and stage 4's driver "is not
+identified at HEAD" (same file, line 357).  This module writes the two schedules and nothing else: it
+starts no server, sends no request and reads no outcome.  A driver consumes a schedule by iterating its
+``consumption_order``; every row id it will ever touch is in the file before the first request, and the
+checks REQUIRE that order to be exactly: the session rows in file order (stage 4: opening with one
+``server_start`` per server), then the units in ``seq`` order, then the tail rows -- a reordered or
+reversed ``consumption_order`` is refused even when it names the same ids.
 
 STAGE 4 -- duration calibration (protocol 5.8(3), ``protocol_FINAL.md:1209-1214``; plan stage 4 rows):
 8 cells = {single_shot, self_test_repair} x {coder, t3} x concurrency {1, 2}, 30 episodes each
@@ -46,7 +49,9 @@ OPEN DECISIONS, carried as explicit parameters, never defaulted (plan ``open_dec
 ``PLAN_PROPOSED_OPEN_DECISIONS`` holds the plan's ``default_on_explicit_acceptance`` values, each
 labelled PROPOSED; the plan itself says "adopted only on explicit root acceptance of this plan; root
 silence adopts nothing".  A schedule written with them says ``status: PROPOSED`` unless a ruling
-citation is supplied.
+citation is supplied.  An entry marked ``RULED`` must give as ``source`` a ``reviews/<file>.md:<line>``
+citation that resolves to an existing line of an existing file under the repository's ``reviews/``;
+that is all the check performs (it does not read the line or decide that it rules on the OD).
 * OD1 -- pre-``c_max`` request timeout and censoring: 180 s; a call that hits it is right-censored,
   ``c_max`` is reported censored, nothing is promoted, and stage 5 does not start.
 * OD2 -- trial retry rules in stages 1-5: ``no_retries`` (one wire attempt per logical call): wire caps
@@ -63,6 +68,7 @@ the file's byte digest, so a flipped byte is refused on reload.
 from __future__ import annotations
 
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Mapping, Optional
@@ -72,6 +78,8 @@ import numpy
 HERE = Path(__file__).resolve().parent
 if str(HERE) not in sys.path:                                  # pragma: no cover
     sys.path.insert(0, str(HERE))
+#: The repository root, where a RULED entry's ``reviews/<file>.md:<line>`` source must resolve.
+REPO_ROOT = HERE.parents[1]
 
 import lab_common                                              # noqa: E402
 
@@ -120,8 +128,8 @@ class ScheduleRefused(lab_common.LabError):
 def check_open_decisions(open_decisions: Optional[Mapping]) -> dict:
     """[pure] Refuse unless OD1, OD2 and OD14 are all given with allowed values; return a copy.
 
-    Each entry carries a ``status`` (``PROPOSED`` or ``RULED``) and a ``source``; a ``RULED`` entry
-    must name its ruling in ``source``.
+    Each entry carries a ``status`` (``PROPOSED`` or ``RULED``) and a ``source``; a ``RULED`` entry's
+    ``source`` must be a resolvable ``reviews/<file>.md:<line>`` citation (``_check_ruling_source``).
     """
     if not isinstance(open_decisions, Mapping):
         raise ScheduleRefused('open decisions OD1, OD2 and OD14 must be passed explicitly (the plan '
@@ -134,6 +142,8 @@ def check_open_decisions(open_decisions: Optional[Mapping]) -> dict:
         if not isinstance(entry, dict) or entry.get('status') not in ('PROPOSED', 'RULED') \
                 or not isinstance(entry.get('source'), str) or not entry['source']:
             raise ScheduleRefused('%s needs a status in {PROPOSED, RULED} and a source' % (od,))
+        if entry['status'] == 'RULED':
+            _check_ruling_source(od, entry['source'])
         for key, allowed in OD_CHOICES[od].items():
             value = entry.get(key)
             if allowed == 'int >= 1':
@@ -142,6 +152,52 @@ def check_open_decisions(open_decisions: Optional[Mapping]) -> dict:
             elif value not in allowed:
                 raise ScheduleRefused('%s.%s = %r is not one of %r' % (od, key, value, allowed))
     return out
+
+
+_RULING_CITATION = re.compile(r'reviews/([A-Za-z0-9][A-Za-z0-9_.-]*\.md):([1-9][0-9]*)')
+
+
+def _check_ruling_source(od: str, source: str) -> None:
+    """Refuse unless ``source`` is exactly ``reviews/<file>.md:<line>`` naming an existing line of an
+    existing file directly under ``REPO_ROOT/reviews``.  It does NOT check what the line says."""
+    m = _RULING_CITATION.fullmatch(source)
+    if m is None:
+        raise ScheduleRefused('%s is RULED but its source %r is not a reviews/<file>.md:<line> citation'
+                              % (od, source))
+    try:
+        lines = (REPO_ROOT / 'reviews' / m.group(1)).read_bytes().split(b'\n')
+    except OSError:
+        raise ScheduleRefused('%s cites reviews/%s, which does not exist' % (od, m.group(1))) from None
+    if lines and lines[-1] == b'':
+        lines.pop()
+    if int(m.group(2)) > len(lines):
+        raise ScheduleRefused('%s cites line %s of reviews/%s, which has %d lines'
+                              % (od, m.group(2), m.group(1), len(lines)))
+
+
+def _consumption_failures(schedule: Mapping, units: list, *, server_starts: int) -> Optional[str]:
+    """[pure] Why ``consumption_order`` is not exactly: the non-episode rows before the episode block
+    (file order), then every unit in ``seq`` order, then the non-episode rows after it -- or None.
+    ``server_starts`` rows must open the session (stage 4) or be absent (stage 5)."""
+    rows = schedule['rows']
+    kinds = [r['kind'] for r in rows]
+    ep = [i for i, k in enumerate(kinds) if k == 'episode']
+    if not ep or ep != list(range(ep[0], ep[-1] + 1)):
+        return 'the episode rows are not one contiguous block'
+    head, tail = rows[:ep[0]], rows[ep[-1] + 1:]
+    starts = [r for r in rows if r['kind'] == 'server_start']
+    if len(starts) != server_starts or [r['kind'] for r in head[:server_starts]] != \
+            ['server_start'] * server_starts:
+        return ('%d server_start rows, %d required, all before any other row'
+                % (len(starts), server_starts))
+    if server_starts and sorted(r['server'] for r in starts) != sorted(MODELS):
+        return 'the server_start rows are not one per server'
+    by_seq = [u['unit_id'] for u in sorted(units, key=lambda u: u['seq'])]
+    want = [r['row_id'] for r in head] + by_seq + [r['row_id'] for r in tail]
+    if list(schedule['consumption_order']) != want:
+        return ('consumption_order is not the session rows, then the units in seq order, then the '
+                'tail rows')
+    return None
 
 
 def _calibration_inputs(cfg: Mapping) -> tuple[list, dict]:
@@ -336,9 +392,9 @@ def check_stage4(schedule: Mapping) -> None:
     want_smoke = 2 if ods['OD14']['server_smoke'] == 'server_smoke_per_start' else 0
     if len(smoke) != want_smoke:
         raise ScheduleRefused('%d SERVER_SMOKE rows, OD14 gives %d' % (len(smoke), want_smoke))
-    session_ids = [r['row_id'] for r in rows if r['kind'] != 'episode']
-    if sorted(schedule['consumption_order']) != sorted(session_ids + unit_ids):
-        raise ScheduleRefused('consumption_order does not name every session row and unit once')
+    why = _consumption_failures(schedule, units, server_starts=len(MODELS))
+    if why is not None:
+        raise ScheduleRefused(why)
     if schedule['counts']['wire_attempt_cap'] != 600 * (retries + 1) + want_smoke:
         raise ScheduleRefused('the wire cap is not 600 x tries + SERVER_SMOKE')
 
@@ -464,6 +520,8 @@ def check_stage5(schedule: Mapping, stage4: Optional[Mapping] = None) -> None:
     if len(episodes) != 240 or len(units) != 120:
         raise ScheduleRefused('%d episodes / %d pairs, protocol 5.8(4) gives 240 / 120'
                               % (len(episodes), len(units)))
+    if len({u['unit_id'] for u in units}) != len(units):
+        raise ScheduleRefused('a unit id repeats; a driver consuming by id would run a pair twice')
     tasks = schedule['smoke_tasks']
     coords = {(t, r) for t in tasks for r in range(1, REPETITIONS + 1)}
     ep_by_id = {e['row_id']: e for e in episodes}
@@ -500,6 +558,9 @@ def check_stage5(schedule: Mapping, stage4: Optional[Mapping] = None) -> None:
                 raise ScheduleRefused('pair %s orientation flag disagrees with its positions'
                                       % (u['unit_id'],))
             covered.extend(u['episodes'])
+    # Defence in depth, IMPLIED by the checks above (each named episode exists, carries its pair's
+    # unit_id, contrast and coordinate, and the 120 pairs have 120 distinct contrast/coordinates), so no
+    # schedule that passes them can fail this one and it has no separate negative control.
     if sorted(covered) != sorted(ep_by_id):
         raise ScheduleRefused('the pairs are not a partition of the 240 episodes')
     if sorted(u['seq'] for u in units) != list(range(1, 121)):
@@ -507,9 +568,9 @@ def check_stage5(schedule: Mapping, stage4: Optional[Mapping] = None) -> None:
     retries = _RETRIES[ods['OD2']['retries']]
     if any(e['max_connection_retries'] != retries for e in episodes):
         raise ScheduleRefused('an episode disagrees with OD2')
-    session_ids = [r['row_id'] for r in rows if r['kind'] != 'episode']
-    if sorted(schedule['consumption_order']) != sorted(session_ids + [u['unit_id'] for u in units]):
-        raise ScheduleRefused('consumption_order does not name every pair and session row once')
+    why = _consumption_failures(schedule, units, server_starts=0)
+    if why is not None:
+        raise ScheduleRefused(why)
     if schedule['counts']['wire_attempt_cap'] != 420 * (retries + 1):
         raise ScheduleRefused('the wire cap is not 420 x tries')
     if stage4 is not None:
