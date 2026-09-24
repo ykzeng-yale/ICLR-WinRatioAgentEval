@@ -4,19 +4,28 @@ Root 2026-09-23 20:40 item 3 (``reviews/prerun_bundle_go_nogo_20260923_2040.md:1
 loaded phase must demonstrate all permitted workers resolved before its terminal acceptance; preserve
 any unresolved attempt as a failed/incomplete phase."
 
-``lab_mock_server`` has no streaming (``understand_eb5.md`` Sec. 5, control C7), so these controls run
-a TEST-ONLY SSE stub on loopback (``_SseStub``): real sockets, real ``requests``, no model.  Every
-control has a negative control that must be refused or must detect the defect.
+``lab_mock_server`` has no streaming endpoint, so the controls that need a real socket and real
+``requests`` run a TEST-ONLY SSE stub on loopback (``_SseStub``), no model.  DEVIATION, recorded for
+root: the repair contract's hard rule allows network only as loopback to ``lab_mock_server``; this stub
+is a second loopback server.  It was disclosed in the EB5 commit but not stopped and reported as the
+contract asks; it is reported now.  The controls added after the 2026-09-23 review use in-process
+sessions instead (``_FakeSession``, a ``socket.socketpair``): no server, no port.
+
+Every guard has a negative control that must be refused or must detect the defect, and the resolution
+reasons are checked as EXACT SETS per state (``ResolutionReasonTests``), so removing any one reason's
+guard changes the set even where another reason would still leave the source unresolved.
 """
 from __future__ import annotations
 
 import http.server
 import json
 import shutil
+import socket
 import sys
 import tempfile
 import threading
 import time
+import types
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -28,6 +37,7 @@ if str(LIVE) not in sys.path:
 
 import requests                                                # noqa: E402
 
+import lab_common                                              # noqa: E402
 import lab_data                                                # noqa: E402
 import lab_load                                                # noqa: E402
 import lab_prepare                                             # noqa: E402
@@ -275,6 +285,11 @@ class GateTests(_Base):
         return untracked
 
     def test_a_stop_between_the_gate_and_the_post_is_tracked(self) -> None:
+        """What is guaranteed is NOT "no POST after the stop" (the EB5 commit message said so, and
+        that was false): the one POST already permitted IS made after the stop.  Guaranteed: no POST
+        without a prior durable intent, no new permit after the stop, and the late POST is tracked
+        and keeps the phase unresolved (root item 3: "This is not a proof that late sends cannot
+        happen")."""
         stub = self.stub('clean')
         Held, entered, go = self._held_session()
         src = self.source(stub, join=0.3, session_factory=Held)
@@ -282,15 +297,18 @@ class GateTests(_Base):
         self.assertTrue(entered.wait(5))
         self.assertEqual(len(stub.posts), 0)                       # gate passed, POST not made
         self.assertEqual([r['kind'] for r in _ledger(self.tmp / 'srcA.jsonl')], ['load_intent'])
+        t_stop = time.monotonic()
         res = src.stop()                                           # stop lands here
         self.assertFalse(res['resolved'])
         self.assertEqual(res['unterminated_intents'], ['srcA/gen_000000'])
         go.set()                                                   # the permitted POST goes out
         self.assertTrue(_wait(lambda: not src._thread.is_alive()))
         self.assertEqual(len(stub.posts), 1)
+        self.assertGreater(stub.posts[0][0], t_stop, 'the permitted POST is made AFTER the stop')
         self.assertEqual(self.untracked_posts(stub, self.tmp / 'srcA.jsonl'), 0)
         time.sleep(0.3)
-        self.assertEqual(len(stub.posts), 1, 'no POST after the stop snapshot')
+        self.assertEqual(len(stub.posts), 1, 'no second POST: the gate grants no permit after the '
+                                             'stop')
         rows = _ledger(self.tmp / 'srcA.jsonl')
         self.assertEqual([r['kind'] for r in rows], ['load_intent', 'load_terminal'])
         self.assertEqual(rows[1]['state'], 'abandoned_by_stop')
@@ -392,6 +410,311 @@ class LedgerAndLifetimeTests(_Base):
         self.assertFalse(res['resolved'])
         with self.assertRaises(lab_prepare.PreparationRefused):
             self.sweep(Broken())
+
+
+# ------------------------------------------------------------------------------------------------
+# In-process sessions: no server, no port (added after the 2026-09-23 review).
+class _FakeResp:
+    """A complete stream: one content chunk, a usage chunk, ``[DONE]``."""
+    status_code = 200
+
+    def iter_lines(self):
+        time.sleep(0.005)
+        return iter([b'data: {"choices":[{"delta":{"content":"a"}}]}',
+                     b'data: {"choices":[],"usage":' + json.dumps(USAGE).encode() + b'}',
+                     b'data: [DONE]'])
+
+    def close(self) -> None:
+        pass
+
+
+class _FakeSession:
+    """``post`` returns ``_FakeResp``; with ``hold``, the FIRST post blocks until ``go`` is set."""
+
+    def __init__(self, *, hold: bool = False, on_post=None, resp_factory=_FakeResp) -> None:
+        self.hold, self.on_post, self.resp_factory = hold, on_post, resp_factory
+        self.entered, self.go = threading.Event(), threading.Event()
+        self.posts = 0
+
+    def __call__(self):                                   # used as the session_factory
+        return self
+
+    def post(self, *a, **kw):
+        self.posts += 1
+        if self.on_post is not None:
+            self.on_post()
+        if self.hold and self.posts == 1:
+            self.entered.set()
+            self.go.wait(10)
+        return self.resp_factory()
+
+
+REASONS = {'stop() has not been called': 'not_stopped', 'still alive': 'alive',
+           'have no terminal line': 'unterminated', 'never forgotten': 'unresolved_at_stop',
+           'ledger is missing': 'ledger_missing', 'ledger is incomplete': 'ledger_incomplete',
+           'in-memory record disagree': 'ledger_disagrees'}
+
+
+def reason_set(res: dict) -> set:
+    out = set()
+    for text in res['reasons']:
+        keys = [v for k, v in REASONS.items() if k in text]
+        assert len(keys) == 1, text
+        out.add(keys[0])
+    return out
+
+
+class _InProc(_Base):
+    def fake_source(self, session: _FakeSession, *, name: str = 'srcF', join: float = 0.3):
+        src = lab_load.StreamingHttpLoad(base_url='http://127.0.0.1:9', model='m', prompt='p',
+                                         source_id=name, ledger_path=self.tmp / (name + '.jsonl'),
+                                         stop_join_timeout_s=join, session_factory=session)
+        self.addCleanup(lambda: (session.go.set(), src._thread and src._thread.join(5)))
+        return src
+
+    def ran_clean(self, name: str = 'srcF'):
+        session = _FakeSession()
+        src = self.fake_source(session, name=name)
+        src.start(lambda gid, t: None)
+        self.assertTrue(_wait(lambda: src.generations >= 1))
+        return src
+
+
+class ResolutionReasonTests(_InProc):
+    """Every reason of ``StreamingHttpLoad.resolution`` on its own condition, as an EXACT set."""
+
+    def test_never_started_is_only_not_stopped(self) -> None:
+        src = self.fake_source(_FakeSession())
+        res = src.resolution()
+        self.assertEqual((res['resolved'], reason_set(res)), (False, {'not_stopped'}))
+
+    def test_blocked_then_finished_later(self) -> None:
+        session = _FakeSession(hold=True)
+        src = self.fake_source(session)
+        src.start(lambda gid, t: None)
+        self.assertTrue(session.entered.wait(5))
+        res = src.stop()
+        self.assertEqual(reason_set(res),
+                         {'alive', 'unterminated', 'unresolved_at_stop', 'ledger_incomplete'})
+        session.go.set()
+        self.assertTrue(_wait(lambda: not src._thread.is_alive()))
+        later = src.resolution()
+        self.assertEqual((later['resolved'], reason_set(later)), (False, {'unresolved_at_stop'}))
+
+    def test_clean_stop_then_each_durable_ledger_defect_alone(self) -> None:
+        src = self.ran_clean()
+        res = src.stop()
+        self.assertEqual((res['resolved'], res['reasons']), (True, []))
+        path = self.tmp / 'srcF.jsonl'
+        good = path.read_bytes()
+
+        def rec(kind, **kw):
+            return json.dumps(dict({'schema': lab_load.LOAD_LEDGER_SCHEMA, 'kind': kind,
+                                    'gid': 'srcF/injected'}, **kw)).encode() + b'\n'
+        cases = {'torn_line': (good + b'{"schema"', {'ledger_incomplete'}),
+                 'extra_complete_pair': (good + rec('load_intent')
+                                         + rec('load_terminal', state='done'),
+                                         {'ledger_disagrees'}),
+                 'missing': (None, {'ledger_missing'})}
+        for name, (data, want) in cases.items():
+            with self.subTest(defect=name):
+                if data is None:
+                    path.unlink()
+                else:
+                    path.write_bytes(data)
+                got = src.resolution()
+                self.assertEqual((got['resolved'], reason_set(got)), (False, want))
+                path.write_bytes(good)
+                self.assertTrue(src.resolution()['resolved'])     # restored: resolved again
+
+    def test_a_thread_alive_after_a_clean_stop_is_only_alive(self) -> None:
+        src = self.ran_clean()
+        self.assertTrue(src.stop()['resolved'])
+        src._thread = types.SimpleNamespace(is_alive=lambda: True,   # e.g. a thread not joined
+                                            join=lambda timeout=None: None)
+        res = src.resolution()
+        self.assertEqual((res['resolved'], reason_set(res)), (False, {'alive'}))
+
+
+class LateResponseAbortTests(_InProc):
+    """A stop that lands while ``post()`` is in progress has no response to abort; the worker must
+    abort the response itself when ``post()`` returns (``_one_generation``, ``stop_landed``)."""
+
+    def _run(self, patch_abort: bool) -> tuple:
+        a, b = socket.socketpair()
+        self.addCleanup(b.close)
+        self.addCleanup(a.close)
+
+        class _SockResp:                    # headers received, body never arrives
+            status_code = 200
+            raw = types.SimpleNamespace(_fp=types.SimpleNamespace(fp=types.SimpleNamespace(
+                raw=types.SimpleNamespace(_sock=a))))
+
+            def iter_lines(self):
+                while True:
+                    try:
+                        data = a.recv(4096)
+                    except OSError:
+                        return
+                    if not data:
+                        return
+                    yield from data.split(b'\n')
+
+            def close(self):
+                pass
+        session = _FakeSession(hold=True, resp_factory=_SockResp)
+        src = self.fake_source(session, join=0.2)
+        src.start(lambda gid, t: None)
+        self.assertTrue(session.entered.wait(5))
+        ctx = mock.patch.object(lab_load, '_abort_response', lambda resp: 'disabled_by_test') \
+            if patch_abort else mock.MagicMock()
+        with ctx:
+            self.assertEqual(src.stop()['stop_records'][0]['aborted_live_responses'], [])
+            session.go.set()                                      # post() returns AFTER the stop
+            ended = _wait(lambda: not src._thread.is_alive(), timeout=1.5)
+        return src, a, b, ended
+
+    def test_the_late_response_is_aborted_by_the_worker(self) -> None:
+        src, a, b, ended = self._run(patch_abort=False)
+        self.assertTrue(ended, 'the worker must not block on a response that arrived after stop()')
+        b.settimeout(2.0)
+        self.assertEqual(b.recv(1), b'', 'the socket was shut down')
+        last = _ledger(self.tmp / 'srcF.jsonl')[-1]
+        self.assertEqual((last['kind'], last['state'], last['after_stop']),
+                         ('load_terminal', 'abandoned_by_stop', True))
+
+    def test_negative_without_the_abort_the_worker_blocks(self) -> None:
+        src, a, b, ended = self._run(patch_abort=True)
+        self.assertFalse(ended)
+        self.assertTrue(src._thread.is_alive())
+        b.close()                                                 # release it
+        self.assertTrue(_wait(lambda: not src._thread.is_alive()))
+
+
+class DurableIntentTests(_InProc):
+    def test_the_intent_is_fsynced_before_the_post(self) -> None:
+        syncs, at_post = [], []
+        real = lab_common.fullsync
+        session = _FakeSession(on_post=lambda: at_post.append(len(syncs)))
+        with mock.patch.object(lab_common, 'fullsync', lambda fd: (syncs.append(fd), real(fd))):
+            src = self.fake_source(session)
+            src.start(lambda gid, t: None)
+            self.assertTrue(_wait(lambda: len(at_post) >= 2))
+            src.stop()
+        self.assertEqual(at_post[0], 1, 'exactly the first intent is durable before the first POST')
+        self.assertEqual(at_post[1], 3, 'intent, terminal, intent: all durable before POST 2')
+
+    def test_negative_a_non_durable_append_is_detected(self) -> None:
+        syncs, at_post = [], []
+        real_append = lab_common.append_line_durable
+        session = _FakeSession(on_post=lambda: at_post.append(len(syncs)))
+        with mock.patch.object(lab_common, 'fullsync', lambda fd: syncs.append(fd)), \
+                mock.patch.object(lab_common, 'append_line_durable',
+                                  lambda fd, line, durable: real_append(fd, line, durable=False)):
+            src = self.fake_source(session)
+            src.start(lambda gid, t: None)
+            self.assertTrue(_wait(lambda: len(at_post) >= 1))
+            src.stop()
+        self.assertEqual(at_post[0], 0)
+
+
+class SweepAcceptanceTests(_InProc):
+    """EB5 acceptance binds to REAL, TRACKED load (review 2026-09-23, finding 2)."""
+
+    def sweep_with(self, sources, observer=_observer, sweep_fn=None, name='sweep.jsonl'):
+        return lab_prepare.run_reference_sweep(
+            [], {}, ledger_path=self.tmp / name, load_observer=observer, enforce_tmpdir=False,
+            sweep_fn=sweep_fn or _stub_sweep(), load_sources=sources)
+
+    def test_a_tracked_resolved_source_is_accepted(self) -> None:
+        out = self.sweep_with([self.ran_clean()])
+        self.assertTrue(out['receipt']['completed'])
+        self.assertGreaterEqual(out['receipt']['load_resolution'][0]['intents'], 1)
+
+    def test_negative_a_fixture_handed_over_while_the_real_load_runs_is_refused(self) -> None:
+        """The reviewer's reproduction, without a network: a real source is blocked in post() with
+        an unterminated intent while a ScriptedLoad is handed over.  It was accepted."""
+        session = _FakeSession(hold=True)
+        real = self.fake_source(session, name='real')
+        real.start(lambda gid, t: None)
+        self.assertTrue(session.entered.wait(5))
+        with self.assertRaisesRegex(lab_prepare.PreparationRefused, 'made no tracked load POST'):
+            self.sweep_with([lab_load.ScriptedLoad([])])
+        self.assertFalse(real.resolution()['resolved'])
+
+    def test_negative_a_source_that_never_sent_is_refused(self) -> None:
+        never = self.fake_source(_FakeSession(), name='never')
+        self.assertTrue(never.stop()['resolved'])                 # resolved, but no load at all
+        with self.assertRaisesRegex(lab_prepare.PreparationRefused, 'made no tracked load POST'):
+            self.sweep_with([never])
+
+    def test_negative_an_observer_whose_source_is_not_handed_over_is_refused_first(self) -> None:
+        observed = self.ran_clean(name='observed')
+        other = self.ran_clean(name='other')
+        obs = lab_load.ContinuousLoadObserver(observed)
+        attempted = []
+        with self.assertRaisesRegex(lab_prepare.PreparationRefused, 'not among load_sources'):
+            self.sweep_with([other], observer=obs.observe,
+                            sweep_fn=lambda *a, **k: attempted.append(1) or [])
+        self.assertEqual(attempted, [])
+        self.assertFalse((self.tmp / 'sweep.jsonl').exists())
+        # positive control of the binding: with the observed source handed over the sweep starts
+        # (and is then refused for coverage: a client-stream observer never certifies)
+        with self.assertRaises(lab_prepare.PreparationRefused) as ctx:
+            self.sweep_with([observed, other], observer=obs.observe, name='sweep2.jsonl')
+        self.assertNotIn('not among load_sources', str(ctx.exception))
+        kinds = [r.get('schema') for r in _ledger(self.tmp / 'sweep2.jsonl')]
+        self.assertIn(lab_data.ATTEMPT_RECORD_SCHEMA, kinds)
+
+    def test_a_failed_sweep_still_stops_every_source(self) -> None:
+        class Spy:
+            kind, source_id = 'spy', 'spy'
+
+            def __init__(self):
+                self.stops = 0
+
+            def stop(self):
+                self.stops += 1
+
+            def resolution(self):
+                return {'source_id': 'spy', 'kind': 'spy', 'resolved': self.stops > 0,
+                        'intents': 1, 'reasons': []}
+        spies = [Spy(), Spy()]
+
+        def failing(tasks, cfg, *, on_progress=None, on_attempt=None):
+            raise RuntimeError('the sweep failed')
+        with self.assertRaises(lab_prepare.PreparationRefused) as ctx:
+            self.sweep_with(spies, sweep_fn=failing)
+        self.assertEqual([s.stops for s in spies], [1, 1])
+        self.assertIn('"load_resolution"', str(ctx.exception))
+
+    def test_stop_and_resolve_treats_a_raising_stop_and_a_non_dict_as_unresolved(self) -> None:
+        class Raises:
+            source_id = 'raises'
+
+            def stop(self):
+                raise RuntimeError('stop failed')
+
+            def resolution(self):
+                return {'resolved': True, 'intents': 1}
+
+        class NotADict:
+            source_id = 'nondict'
+
+            def stop(self):
+                return None
+
+            def resolution(self):
+                return True
+        got = lab_prepare.stop_and_resolve([Raises(), NotADict()])
+        self.assertEqual([type(r) for r in got], [dict, dict])
+        self.assertEqual([r['resolved'] for r in got], [False, False])
+        self.assertIn('stop() raised RuntimeError', got[0]['reasons'][0])
+        self.assertIn('returned bool', got[1]['reasons'][0])
+        for src in (Raises(), NotADict()):
+            with self.subTest(source=src.source_id):
+                with self.assertRaisesRegex(lab_prepare.PreparationRefused, 'not resolved'):
+                    self.sweep_with([src], name=src.source_id + '.jsonl')
 
 
 if __name__ == '__main__':
