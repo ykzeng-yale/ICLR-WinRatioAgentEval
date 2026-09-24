@@ -2,12 +2,13 @@
 
 HOW THE CASES RUN
   Everything is read from git objects of this repository at fixed, immutable revisions:
-  PREDECESSOR (b049307, the reviewed head), AMENDMENT_COMMIT (474f9d8) and E2E_REV (a289fa5,
-  the last commit before the tool).  The end-to-end cases run the tool on a sparse, shared
-  clone of the repository checked out at E2E_REV under a temporary directory, so the working
-  tree of this checkout is never written and the cases stay valid after later commits.  A
-  "mutated predecessor" is a real commit made in that clone with git plumbing (b049307 with
-  one blob changed); nothing is pushed or committed here.
+  PREDECESSOR (b049307, the reviewed head), AMENDMENT_COMMIT (474f9d8), E2E_REV (a289fa5,
+  the last commit before the tool) and AMENDMENT_V3_COMMIT (56df17f, amendment v3).  The
+  end-to-end cases run the tool on a sparse, shared clone of the repository checked out at
+  E2E_REV or at 56df17f under a temporary directory, so the working tree of this checkout is
+  never written and the cases stay valid after later commits.  A "mutated predecessor" (and
+  every other mutant commit) is a real commit made in that clone with git plumbing (one blob
+  changed or added); nothing is pushed or committed here.
 
 NEGATIVE CONTROLS (each must refuse or report the defect):
   * one mutated blob changes the canonical digest and the tool refuses (predecessor_digest),
@@ -26,7 +27,15 @@ NEGATIVE CONTROLS (each must refuse or report the defect):
   * a watched process outside a suite's tree that is not an orphan it started is
     ``foreign`` and makes the run not solo (a live sampler flags a real one);
   * a dirty working tree refuses; a second write to the same receipt path refuses;
-    ``--no-suites`` into results/live_ab refuses.
+    ``--no-suites`` into results/live_ab refuses;
+  * amendment v3 (56df17f): one byte of the protocol changed after it, a v3 receipt whose
+    written protocol digest is not the blob at its commit, a v3 receipt copied onto a289fa5
+    without its commit, and a v3 receipt naming another v2 receipt digest each refuse
+    (``amendment_receipt_disagrees`` / ``amendment_chain:v3`` / ``amendment_chain_link:v3``);
+  * a superseded receipt whose recorded successor map is not the git blobs at the head it
+    recorded refuses (``superseded_map_does_not_reproduce``);
+  * a missing, unparsable, empty or row-incomplete ``--runs-of-this-step`` file refuses and
+    main() writes nothing.
 
 Nothing here runs a model, a llama-server, a llama.cpp build or a network request.  The
 fixture cases compile the C test double under temporary roots (root 07:03 item 1).
@@ -80,6 +89,22 @@ def make_clone(dest: Path, rev: str = E2E_REV) -> Path:
     git('sparse-checkout', 'set', *SPARSE, cwd=dest)
     git('checkout', '-q', '--detach', rev, cwd=dest)
     return dest
+
+
+def commit_with(clone: Path, parent: str, blobs: dict) -> str:
+    """A commit in ``clone``: ``parent`` with each ``rel -> bytes`` of ``blobs`` written
+    (git plumbing only; nothing is checked out or pushed)."""
+    env = dict(hps.git_env(), GIT_INDEX_FILE=str(clone / '.git' / 'mutant_index'),
+               GIT_AUTHOR_NAME='t', GIT_AUTHOR_EMAIL='t@t', GIT_COMMITTER_NAME='t',
+               GIT_COMMITTER_EMAIL='t@t')
+    git('read-tree', parent, cwd=clone, env=env)
+    for rel, data in blobs.items():
+        oid = git('hash-object', '-w', '--stdin', cwd=clone, stdin=data).decode().strip()
+        git('update-index', '--add', '--cacheinfo', '100644,%s,%s' % (oid, rel), cwd=clone,
+            env=env)
+    tree = git('write-tree', cwd=clone, env=env).decode().strip()
+    return git('commit-tree', tree, '-p', parent, '-m', 'mutant', cwd=clone,
+               env=env).decode().strip()
 
 
 def mutated_predecessor(clone: Path, rel: str) -> str:
@@ -446,7 +471,8 @@ class SupersedesTests(unittest.TestCase):
     def test_the_superseded_receipt_is_the_committed_bytes_and_a_change_refuses(self):
         self.assertEqual([e['path'].rsplit('/', 1)[1] for e in hps.SUPERSEDES],
                          ['HARNESS_PIN_SUCCESSOR_20260924_1217.json',
-                          'HARNESS_PIN_SUCCESSOR_20260924_1635.json'])
+                          'HARNESS_PIN_SUCCESSOR_20260924_1635.json',
+                          'HARNESS_PIN_SUCCESSOR_20260924_1732.json'])
         for entry in hps.SUPERSEDES:
             with self.subTest(receipt=entry['path']):
                 data = (REPO / entry['path']).read_bytes()
@@ -465,6 +491,79 @@ class SupersedesTests(unittest.TestCase):
             for key in ('when', 'suite', 'result', 'disposition'):
                 self.assertTrue(row.get(key), key)
         self.assertIn('FAILED (failures=2)', hps.DISCLOSED_RED_RUNS[0]['result'])
+        self.assertEqual({r['kind'] for r in hps.DISCLOSED_RED_RUNS},
+                         {'red_run', 'review_finding'})
+        # the history root named: 79bb1ab, the 03fe0ca pre-commit C6 pair, the 1635 coin
+        # failure and host, root 19:05 with its fix commit, and the v3 step
+        text = json.dumps(hps.DISCLOSED_RED_RUNS)
+        for fragment in ('79bb1ab', 'test_c6_mutation_the_kill_fails', 'test_coin_balance_10k',
+                         '28762', 'probe1 FAILED', 'V4', 'SM8AtTheRestart'):
+            self.assertIn(fragment, text)
+        (finding,) = [r for r in hps.DISCLOSED_RED_RUNS if '1905' in r['when']]
+        self.assertEqual((finding['kind'], finding['fix_commits']), ('review_finding',
+                                                                     ['9f0aff6']))
+
+    def test_the_delta_since_the_superseded_receipt_reproduces_and_a_forged_map_refuses(self):
+        head = hps.GitTree(REPO, 'HEAD')
+        smap = hps.harness_map(head)
+        sup = [hps.supersedes_record(e, head.read(e['path']))[0] for e in hps.SUPERSEDES]
+        since, problems = hps.since_superseded(REPO, head, smap, sup)
+        self.assertEqual(problems, [])
+        self.assertEqual(since['receipt'], hps.SUPERSEDES[-1]['path'])
+        self.assertTrue(since['superseded_map_reproduces_from_git'])
+        self.assertTrue(all(r['diff_applied_to_old_gives_new']
+                            for r in since['harness_entries_moved'].values()))
+        target = hps.SUPERSEDES[-1]['path']
+
+        class Forged(hps.GitTree):
+            def read(self, path):
+                data = super().read(path)
+                if path == target:
+                    obj = json.loads(data)
+                    m = obj['harness_pin']['successor']['map']
+                    m['lab_monitor.py'] = '0' * 64
+                    data = json.dumps(obj).encode()
+                return data
+        forged = Forged(REPO, 'HEAD')
+        since, problems = hps.since_superseded(REPO, forged, smap, sup)
+        # the forged map also claims lab_monitor.py moved, which no git diff reproduces
+        self.assertEqual(problems, ['superseded_map_does_not_reproduce',
+                                    'since_superseded_diff_does_not_reproduce'])
+        self.assertFalse(since['superseded_map_reproduces_from_git'])
+        self.assertFalse(since['harness_entries_moved']['lab_monitor.py'][
+            'diff_applied_to_old_gives_new'])
+        none, problems = hps.since_superseded(REPO, head, smap, [])
+        self.assertEqual((none['receipt'], problems), (None, []))
+
+
+class RunsOfThisStepTests(unittest.TestCase):
+
+    def test_rows_are_kept_and_every_malformed_file_refuses(self):
+        tok = hps.make_tokenizer(REPO)
+        with tempfile.TemporaryDirectory() as tmp:
+            good = Path(tmp) / 'good.json'
+            rows = [{'id': 'r1', 'utc': '2026-09-24T23:00:00Z', 'command': 'python -m x',
+                     'result': 'Ran 1 test, FAILED (failures=1)', 'note': str(REPO)}]
+            good.write_text(json.dumps(rows))
+            sec, problems = hps.load_runs_of_this_step(good, tok)
+            self.assertEqual(problems, [])
+            self.assertEqual(sec['rows'][0]['result'], 'Ran 1 test, FAILED (failures=1)')
+            self.assertEqual(sec['rows'][0]['note'], '<REPO>')
+            self.assertEqual(sec['source_sha256'], hps.sha256(good.read_bytes()))
+            self.assertEqual(hps.load_runs_of_this_step(None, tok),
+                             ('not given in this invocation', []))
+            bad = {'missing': None, 'unparsable': b'[{', 'empty': b'[]',
+                   'not_a_list': json.dumps(rows[0]).encode(),
+                   'no_result': json.dumps([dict(rows[0], result='')]).encode(),
+                   'no_utc': json.dumps([{k: v for k, v in rows[0].items()
+                                          if k != 'utc'}]).encode()}
+            for name, data in bad.items():
+                with self.subTest(case=name):
+                    path = Path(tmp) / (name + '.json')
+                    if data is not None:
+                        path.write_bytes(data)
+                    self.assertEqual(hps.load_runs_of_this_step(path, tok),
+                                     (None, ['runs_of_this_step_malformed']))
 
 
 class SuiteParseTests(unittest.TestCase):
@@ -597,8 +696,15 @@ class EndToEndTests(_Clone):
                          {'config.json': 'f158969e', 'ARCHITECTURE_FINAL.md': 'e7ea9c0f',
                           'protocol_FINAL.md': '6c0ebf2f', 'cells.json': '6b31bf20'})
         self.assertEqual(r['serving_manifest']['head']['canonical_sha256'][:8], '1edea9b0')
-        self.assertTrue(all(r['synchronized_amendment']['head_equals_its_written_values']
-                            .values()))
+        am = r['amendments']
+        self.assertTrue(am['head_equals_the_latest_written_values'])
+        self.assertTrue(all(am['head_equals_the_latest_written_values'].values()))
+        self.assertEqual(set(am['latest_writer'].values()), {'v2'})
+        self.assertEqual([(c['name'], c['present_at_head']) for c in am['chain']],
+                         [('v2', True), ('v3', False)])
+        self.assertEqual(r['since_the_superseded_receipt']['receipt'], None)
+        self.assertEqual(r['runs_of_this_step_before_this_receipt'],
+                         'not given in this invocation')
         self.assertEqual(r['server_supervision']['landed_in_commits'], [hps.AMENDMENT_COMMIT])
         self.assertEqual(len(r['prior_observations_not_reissued']['records']), 7)
         self.assertEqual(r['solo_run_suites'], 'not run in this invocation (--no-suites)')
@@ -612,6 +718,17 @@ class EndToEndTests(_Clone):
             self.assertEqual(rc, 0)
             (name,) = os.listdir(out)
             self.assertRegex(name, r'^HARNESS_PIN_SUCCESSOR_\d{8}_\d{4}\.json$')
+
+    def test_negative_a_malformed_runs_file_exits_2_and_writes_nothing(self):
+        with tempfile.TemporaryDirectory() as out, tempfile.TemporaryDirectory() as tmp:
+            runs = Path(tmp) / 'runs.json'
+            runs.write_text('[{"id": "r1"}]')
+            with redirect_stderr(io.StringIO()) as err:
+                rc = hps.main(['--repo', str(self.clone), '--no-suites', '--out-dir', out,
+                               '--runs-of-this-step', str(runs)])
+            self.assertEqual(rc, 2)
+            self.assertIn('runs_of_this_step_malformed', err.getvalue())
+            self.assertEqual(os.listdir(out), [])
 
     def test_negative_no_suites_into_results_refuses(self):
         results = self.clone / 'results' / 'live_ab'
@@ -644,6 +761,89 @@ class EndToEndTests(_Clone):
             hps.build_receipt(self.clone, mutant, run_suites=False)
         self.assertIn('predecessor_digest', cm.exception.problems)
         self.assertIn('decision_module_changed', cm.exception.problems)
+
+
+class EndToEndV3Tests(_Clone):
+    """The tool on a sparse clone at AMENDMENT_V3_COMMIT (56df17f), and mutant commits on it."""
+    REV = hps.AMENDMENT_V3_COMMIT
+    PROTOCOL = 'experiments/live_ab/design/protocol_FINAL.md'
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.tmp = Path(os.path.realpath(tempfile.mkdtemp(prefix='pinsucc_test_')))
+        cls.clone = make_clone(cls.tmp / 'clone', cls.REV)
+
+    def at(self, rev: str) -> None:
+        git('checkout', '-q', '--detach', rev, cwd=self.clone)
+        self.addCleanup(git, 'checkout', '-q', '--detach', self.REV, cwd=self.clone)
+
+    def refused(self, rev: str) -> list:
+        self.at(rev)
+        with self.assertRaises(hps.Refused) as cm:
+            hps.build_receipt(self.clone, hps.PREDECESSOR, run_suites=False)
+        return cm.exception.problems
+
+    def v3_receipt(self) -> dict:
+        return json.loads(git('show', '%s:%s' % (self.REV, hps.AMENDMENT_V3_RECEIPT_REL),
+                              cwd=self.clone))
+
+    def test_the_receipt_at_amendment_v3(self):
+        r = hps.build_receipt(self.clone, hps.PREDECESSOR, run_suites=False)
+        self.assertEqual({k: v['head'][:8] for k, v in r['documents'].items()},
+                         {'config.json': 'f158969e', 'ARCHITECTURE_FINAL.md': '2ec71980',
+                          'protocol_FINAL.md': '73dd0573', 'cells.json': '192804a4'})
+        am = r['amendments']
+        self.assertEqual([(c['name'], c['present_at_head'], c['added_in_commits'])
+                          for c in am['chain']],
+                         [('v2', True, [hps.AMENDMENT_COMMIT]),
+                          ('v3', True, [hps.AMENDMENT_V3_COMMIT])])
+        self.assertTrue(all(am['head_equals_the_latest_written_values'].values()))
+        self.assertEqual(am['latest_writer']['protocol_FINAL.md'], 'v3')
+        self.assertEqual(am['latest_writer']['serving_manifest_canonical'], 'v2')
+        self.assertTrue(all(am['chain'][1]['names_its_predecessor'][k] for k in (
+            'equals_the_predecessor_receipt_at_head', 'equals_the_predecessor_commit',
+            'equal_the_predecessor_written_values')))
+        hist = am['document_pin_history']['protocol_FINAL.md']['pins']
+        self.assertEqual([(p['at'][:2], p['sha256'][:8]) for p in hist],
+                         [('b0', '64ace6d3'), ('v2', '6c0ebf2f'), ('v3', '73dd0573'),
+                          ('he', '73dd0573')])
+        self.assertFalse(am['document_pin_history']['config.json']['pins'][2][
+            'moved_from_the_previous_step'])
+        since = r['since_the_superseded_receipt']
+        self.assertEqual(since['receipt'], hps.SUPERSEDES[-1]['path'])
+        self.assertTrue(since['superseded_map_reproduces_from_git'])
+        self.assertEqual(sorted(since['documents_moved']),
+                         ['ARCHITECTURE_FINAL.md', 'cells.json', 'protocol_FINAL.md'])
+        self.assertIn('lab_eventlog.py', since['harness_entries_moved'])
+        self.assertTrue(r['cells_vocabulary_successor']['holds'])
+
+    def test_negative_a_document_changed_after_v3_refuses(self):
+        data = bytearray(git('show', '%s:%s' % (self.REV, self.PROTOCOL), cwd=self.clone))
+        data[100] ^= 0x01
+        problems = self.refused(commit_with(self.clone, self.REV, {self.PROTOCOL: bytes(data)}))
+        self.assertIn('amendment_receipt_disagrees', problems)
+
+    def test_negative_a_v3_receipt_that_is_not_the_blob_at_its_commit_refuses(self):
+        rec = self.v3_receipt()
+        rec['written']['protocol_sha256'] = '0' * 64
+        problems = self.refused(commit_with(self.clone, self.REV, {
+            hps.AMENDMENT_V3_RECEIPT_REL: json.dumps(rec).encode()}))
+        self.assertIn('amendment_chain:v3', problems)
+        self.assertIn('amendment_receipt_disagrees', problems)
+
+    def test_negative_a_v3_receipt_copied_in_without_its_commit_refuses(self):
+        data = git('show', '%s:%s' % (self.REV, hps.AMENDMENT_V3_RECEIPT_REL), cwd=self.clone)
+        problems = self.refused(commit_with(self.clone, E2E_REV,
+                                            {hps.AMENDMENT_V3_RECEIPT_REL: data}))
+        self.assertIn('amendment_chain:v3', problems)
+        self.assertIn('amendment_receipt_disagrees', problems)
+
+    def test_negative_a_v3_receipt_naming_another_v2_receipt_refuses(self):
+        rec = self.v3_receipt()
+        rec['predecessor_amendment_v2']['receipt_sha256'] = 'f' * 64
+        problems = self.refused(commit_with(self.clone, self.REV, {
+            hps.AMENDMENT_V3_RECEIPT_REL: json.dumps(rec).encode()}))
+        self.assertEqual(problems, ['amendment_chain_link:v3'])
 
 
 if __name__ == '__main__':

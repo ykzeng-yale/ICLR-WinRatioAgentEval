@@ -1,6 +1,7 @@
 """The harness pin successor of the EB1+EB5 subset: exact old/new pins, prior observations kept.
 
     harness_pin_successor.py [--repo DIR] [--predecessor REV] [--out-dir DIR] [--no-suites]
+                             [--runs-of-this-step FILE]
 
 Root 20:40 (``reviews/prerun_bundle_go_nogo_20260923_2040.md:16``, EB1 route (a)): "The
 orchestrator is in the harness pin: record the pre-outcome pin successor and preserve the old
@@ -28,7 +29,12 @@ WHAT IT COMPUTES, WITHOUT EDITING ANY EXISTING FILE (every value from git object
 4. REUSED_FILES (``experiments/local_stream``) digests at both revisions (must be unchanged);
    the five decision-defining modules byte-unchanged; the rule block (must be RULE_BLOCK at both
    revisions); config.json, ARCHITECTURE_FINAL.md, protocol_FINAL.md, cells.json and the real
-   serving manifest old/new, cross-checked against the synchronized amendment's receipt.
+   serving manifest old/new, cross-checked against the pre-outcome amendments (AMENDMENTS: v2
+   474f9d8, v3 56df17f) whose receipts HEAD carries: each receipt added by its own commit, an
+   ancestor of HEAD; each digest it says it wrote equal to the blob at that commit; v3 naming
+   the v2 receipt and v2's written digests; and each HEAD value equal to the value written by
+   the LATEST amendment that records it (``amendments``; the pin history of every document
+   b049307 -> v2 -> v3 -> HEAD from git blobs).
 5. The prior observations that are NOT reissued (PRIOR_OBSERVATIONS): each file's sha256, and
    every 64-hex value it carries classified against the b049307/HEAD digests of the tracked
    files (which of its pins moved, which did not, which were already historical at b049307).
@@ -47,8 +53,17 @@ WHAT IT COMPUTES, WITHOUT EDITING ANY EXISTING FILE (every value from git object
    it), which the exclusion check of 6 then searches the freeze tree for as well (review of
    988baf7, reviewer 2 finding 6: those digests were recorded nowhere).
 8. The receipts this one SUPERSEDES (SUPERSEDES: path, SHA-256, why; each stays byte-identical)
-   and every red run of the subset before it that the commits and that receipt did not
-   report (DISCLOSED_RED_RUNS; review of 988baf7, reviewer 2 finding 5).
+   and every red run of the subset so far, with the root findings answered since the review
+   of 988baf7 and their fix commits (DISCLOSED_RED_RUNS; review of 988baf7, reviewer 2 finding
+   5; root 16:05 "the revised pin must include the failure history and exact changed bytes").
+9. The exact changed bytes since the LATEST superseded receipt HEAD carries (``since_the_
+   superseded_receipt``): its successor map re-derived from the git blobs at the head it
+   recorded (it must reproduce), and per harness entry or document moved since then the same
+   diff record as 3 (commits, diff digest, ``git apply`` reproduction).
+10. With ``--runs-of-this-step FILE``: the runs of the step that made this receipt, made before
+   the tool ran (a JSON list; each row ``id``, ``utc``, ``command``, ``result``, any other
+   keys kept), copied in with the file's SHA-256 -- every run, pass or fail; a malformed file
+   REFUSES.
 
 It writes ONE write-once receipt ``<out-dir>/HARNESS_PIN_SUCCESSOR_<UTC>.json``.  The default
 out-dir is ``results/live_ab``; ``--no-suites`` is refused there, so a receipt in results always
@@ -108,6 +123,28 @@ VOCABULARY_ORIGINAL = '3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0
 SERVING_MANIFEST_REL = RESULTS_REL + '/freeze/serving_manifest.json'
 AMENDMENT_COMMIT = '474f9d82aae2b3979910d8a99d8305b5d7bc44c1'
 AMENDMENT_RECEIPT_REL = RESULTS_REL + '/REPAIR_AMENDMENT_V2_RECEIPT_20260924_0927.json'
+AMENDMENT_V3_COMMIT = '56df17f72b17744d89564d0bf05f3fa84f4b8e1d'
+AMENDMENT_V3_RECEIPT_REL = RESULTS_REL + '/REPAIR_AMENDMENT_V3_RECEIPT_20260924_2218.json'
+#: The pre-outcome amendments of the subset, oldest first: the commit that wrote each, its
+#: write-once receipt, and which key of the receipt's ``written`` carries which pin.  v3
+#: (reviews/eb1_eb5_summary_repair_interim_20260924_2208.md: "finish and commit amendment v3
+#: ... and issue a fresh pin receipt") inserts text into ARCHITECTURE and the protocol, moves
+#: cells.json, writes no config.json and no serving manifest; v2 stays as written.
+AMENDMENTS = (
+    {'name': 'v2', 'commit': AMENDMENT_COMMIT, 'receipt': AMENDMENT_RECEIPT_REL,
+     'keys': {'config.json': 'config_sha256', 'ARCHITECTURE_FINAL.md': 'architecture_sha256',
+              'protocol_FINAL.md': 'protocol_sha256', 'cells.json': 'cells_sha256',
+              'rule_block': 'rule_block_sha256_on_disk',
+              'serving_manifest_canonical': 'artifact_sha256_canonical',
+              'serving_manifest_file': 'artifact_file_sha256'},
+     'names_predecessor': None},
+    {'name': 'v3', 'commit': AMENDMENT_V3_COMMIT, 'receipt': AMENDMENT_V3_RECEIPT_REL,
+     'keys': {'config.json': 'config_sha256', 'ARCHITECTURE_FINAL.md': 'architecture_sha256',
+              'protocol_FINAL.md': 'protocol_sha256', 'cells.json': 'cells_sha256',
+              'rule_block': 'rule_block_sha256_on_disk'},
+     'names_predecessor': {'name': 'v2', 'field': 'predecessor_amendment_v2',
+                           'written_field': 'written_by_v2'}},
+)
 #: Decision-defining modules the restart cap must not touch (root 21:14, cap invariance).
 DECISION_MODULES = ('lab_coin.py', 'lab_design.py', 'lab_enclosure.py', 'lab_monitor.py',
                     'lab_reference_rule.py')
@@ -163,14 +200,27 @@ SUPERSEDES = (
              '(10,000 coins outside [4850, 5150], about a 0.3% false failure rate; lab_coin '
              'unchanged since b049307), and a foreign real llama-server of another project '
              'ran on the host during it; this receipt re-runs the suites on a quiet host')},
+    {'path': RESULTS_REL + '/HARNESS_PIN_SUCCESSOR_20260924_1732.json',
+     'sha256': '198eae6a3ddb912e555073306b38abfaebc22b1e1db305435e66a1b24dc0cf16',
+     'head_when_written': '591ebcd',
+     'why': ('it pins the 591ebcd harness (canonical 0f20e087) and the amendment-v2 documents; '
+             'since then 7ebffad (root 16:05) and 9f0aff6 (root 19:05) changed harness files '
+             '(lab_eventlog, lab_orchestrator, lab_verify_log, build_live_ab_results, '
+             'tests_lab_chain) and amendment v3 (56df17f) moved ARCHITECTURE_FINAL.md, '
+             'protocol_FINAL.md and cells.json; root 22:08: it "does not pin 9f0aff6"; its '
+             'suites (all passed, solo) stay the observation of the 591ebcd tree only')},
 )
 
-#: Red runs of the subset BEFORE this successor, which the commit messages 79bb1ab..988baf7
-#: and the superseded receipt did not report (review of 988baf7, reviewer 2 finding 5).  Each
-#: is an observation of an earlier run, named with the log it left where one is kept (the
-#: session's scratch logs are not tracked; their SHA-256 identifies the bytes read).
+#: Every red run of the subset so far (review of 988baf7, reviewer 2 finding 5; root 16:05:
+#: "the revised pin must include the failure history"), and the root findings answered since
+#: that review with their fix commits (``kind`` review_finding).  Each row is an observation of
+#: an earlier run or review, named with the log it left where one is kept (the session's
+#: scratch logs are not tracked; their SHA-256 identifies the bytes read).  A red run that a
+#: commit message already reported is listed again here, so this list is the whole history.
+#: A run meant to fail (a pre-fix negative control) is a red run too and says so.
 DISCLOSED_RED_RUNS = (
-    {'when': '2026-09-24 03:06-03:43 local, integration solo run at 79bb1ab',
+    {'kind': 'red_run',
+     'when': '2026-09-24 03:06-03:43 local, integration solo run at 79bb1ab',
      'suite': 'live_ab_controls', 'result': 'Ran 357 tests, FAILED (failures=2)',
      'failures': ['tests_eb5_resolution.C3GarbageSpoolLine.test_c3_mutation_no_kill_keeps_'
                   'sending_and_is_refused (AssertionError: pid_alive after obs.close(); a '
@@ -182,21 +232,24 @@ DISCLOSED_RED_RUNS = (
      'log_sha256': 'e3f2b645cba6c95a84099c5234f32d109e21838a66ba6bd9a98b1bc09ce4c37f',
      'disposition': 'both controls repaired by the subset fix (K1, K2); the second '
                     'run of the same suite at 79bb1ab was OK'},
-    {'when': 'review of 988baf7 (reviewer 2), solo runs in a clone of 988baf7',
+    {'kind': 'red_run',
+     'when': 'review of 988baf7 (reviewer 2), solo runs in a clone of 988baf7',
      'suite': 'live_ab_controls (single controls)',
      'result': ('C3 mutation control failed 8 of 20, C6 mutation control failed 5 of 6 '
                 '(ProcessLookupError at its killpg), C2 mutation control failed 1 of 6 '
                 '("2 != 1"), the whole tests_eb5_resolution module failed 2 of 3'),
      'log_sha256': None,
      'disposition': 'the three controls made deterministic by the subset fix (K1)'},
-    {'when': 'review of 988baf7 (reviewer 1), an independent clone of 988baf7',
+    {'kind': 'red_run',
+     'when': 'review of 988baf7 (reviewer 1), an independent clone of 988baf7',
      'suite': 'live_ab_controls',
      'result': ('C6 mutation control ERROR 3 of 3 (ProcessLookupError); other non-passes of '
                 'a contended run were host_not_quiescent refusals caused by a concurrent '
                 'suite and passed on quiet solo reruns'),
      'log_sha256': None,
      'disposition': 'repaired by the subset fix (K1)'},
-    {'when': '2026-09-24 14:0x UTC, this session, the pre-fix clone of 988baf7',
+    {'kind': 'red_run',
+     'when': '2026-09-24 14:0x UTC, this session, the pre-fix clone of 988baf7',
      'suite': 'live_ab_controls (single controls, solo)',
      'result': ('C3 mutation control failed 2 of 6, C6 mutation control failed 2 of 4, C2 '
                 'mutation control failed 0 of 4'),
@@ -206,6 +259,148 @@ DISCLOSED_RED_RUNS = (
          'c6': ['a10d3174f90e42e6d11a03ebf58c2ff70ea79dfbf7d09e3e819abfb8f240fa90',
                 'ed81c61b4cdb36bc50232344fe4bc5b68df70dea5377ba79b6f7ed12fcf5bb92']},
      'disposition': 'the reproduction the K1 repair started from'},
+    {'kind': 'red_run',
+     'when': '2026-09-24 14:52-15:25 UTC (10:52-11:25 local), the subset fix before its '
+             'commit 03fe0ca (run r1)',
+     'suite': 'live_ab_controls',
+     'result': ('Ran 393 tests in 1942.083s, FAILED (failures=2): tests_eb5_resolution.'
+                'C6DispatcherExitsMidEpisode test_c6_mutation_no_resolution_reveals_a_live_'
+                'orphan (the orphan was answered by the resumed server) and test_c6_mutation_'
+                'the_kill_fails_so_the_resume_refuses (the interrupted reveal refused after '
+                'the new alive_unresolved record); live_ab 766 OK (skipped=1), live_ab_tools '
+                '137 OK (skipped=1), live_ab_serving 193 OK, validation 207 OK'),
+     'log_sha256': {'controls': '1d59865ed879412ec30123ed30fb5af3d766901b1e34a061a2b5de108793b125',
+                    'summary': 'acad0c909656fba311e427845ee5b462cb17d77e8b365abd62ca5eefa585799b'},
+     'disposition': ('both controls repaired inside 03fe0ca (commit message: "both repaired '
+                     'here, tests_eb5_resolution + the new module then 67 OK")')},
+    {'kind': 'red_run',
+     'when': '2026-09-24 15:44-16:35 UTC, the suites of receipt HARNESS_PIN_SUCCESSOR_20260924_'
+             '1635 at 03fe0ca (commit 591ebcd)',
+     'suite': 'live_ab (and the solo evidence of all five suites)',
+     'result': ('live_ab Ran 766, FAILED (failures=1): tests_lab_design.CoinTests.test_coin_'
+                'balance_10k (10,000 coins outside [4850, 5150]); solo=False: a foreign real '
+                'llama-server of another project (pids 28762, 31001, started 15:38:48 and '
+                '15:45:00 UTC) and a foreign shell of this session were sampled; the other '
+                'four suites OK'),
+     'log_sha256': {'tool_stdout': 'c0a30e4676f2e7daf383636b61d612ae73cbb7aa572596a79ccce6b5'
+                                   'abce31f9'},
+     'disposition': ('not repaired: a stochastic self-test of the unchanged lab_coin (about a '
+                     '0.3% false failure rate per run; lab_coin and the test are the b049307 '
+                     'blobs); the receipt stays as written and was superseded by the 1732 '
+                     're-run (all passed, solo); any later failure of it is recorded again')},
+    {'kind': 'review_finding',
+     'when': 'root 16:05 ruling (reviews/eb1_eb5_decision_eligibility_ruling_20260924_1605.md, '
+             'main 78df9e5) on 988baf7',
+     'suite': 'source review (not a test run)',
+     'result': ('two high findings supported: (1) a non-cap predecision owed abort could still '
+                'reach take_decision during its drain; (2) the orchestrator, the verifier and '
+                'the results builder used different decision-eligibility rules'),
+     'log_sha256': None,
+     'fix_commits': ['03fe0ca', '7ebffad'],
+     'disposition': ('03fe0ca: no_decision_point for the cap, supervision-owed and triggered '
+                     'aborts; 7ebffad: every abort path writes a durable abort_owed before its '
+                     'drain, one lab_eventlog.decision_eligibility used by all three paths, '
+                     'controls tests_decision_eligibility (26) with before/after ordering, '
+                     'unresolved worker across resume and the normal eligible crossing')},
+    {'kind': 'red_run',
+     'when': '2026-09-24 13:49-14:03 local (17:49-18:03 UTC), the root 16:05 step before 7ebffad '
+             '(wip1, wip3)',
+     'suite': 'live_ab tests_lab_chain+tests_lab_isolation; live_ab_controls '
+              'tests_decision_eligibility (first version)',
+     'result': ('wip1 Ran 103, FAILED (failures=1): SchemaTests count 53 != 52 (the schema '
+                'grew by abort_owed; the test was updated); wip3 Ran 25, FAILED (failures=2): '
+                'two helper errors in the new test (fixed); wip2 60 OK and wip4 9 OK'),
+     'log_sha256': {'wip1': '12bc05af75ebd48bddb66f06105835c083b9a10b73b0e4ea24041a8f4f0927ea',
+                    'wip3': 'f459aab7e9e639f859773e0c6fde48272e85933fc2403c066d0e26a8511ac014'},
+     'disposition': 'test updates inside 7ebffad; production bytes not involved'},
+    {'kind': 'red_run',
+     'when': '2026-09-24 14:03 local (18:03 UTC), before1: the new tests_decision_eligibility '
+             'on a git archive of 159e747 (a pre-fix negative control, meant to fail)',
+     'suite': 'live_ab_controls tests_decision_eligibility',
+     'result': 'Ran 25 in 174.0s, FAILED (failures=13, errors=22, skipped=3)',
+     'log_sha256': {'before1': '7e80d90fafed596480a7abff827359f1eacdd74ee255550725b54d3ccbbb519d'},
+     'disposition': ('expected: the backstop, refused-restart and hook drain crossings read '
+                     'reference_rule.agreement LIVE_DECISION_INVALID at 159e747 with no '
+                     'abort_owed; the unresolved-worker resume controls already passed there')},
+    {'kind': 'red_run',
+     'when': '2026-09-24 18:03-19:01 UTC, full1 of the root 16:05 step (before 7ebffad)',
+     'suite': 'live_ab_controls',
+     'result': ('Ran 418 in 3173.1s, FAILED (failures=1): tests_eb1_supervision.HealthPollTests.'
+                'test_the_restart_count_reaches_the_cap_and_the_next_down_restarts_nothing '
+                '(the event tail now ends with the cap\'s abort_owed); live_ab 766 OK '
+                '(skipped=1), tools 137 OK (skipped=1), serving 193 OK, validation 207 OK'),
+     'log_sha256': {'controls': 'e6108f45b0012ab4c3deb839249fdca04de55c8ef75ffc44609e43ed26dcc048'},
+     'disposition': 'deterministic; the test updated inside 7ebffad (fix1: 90 OK)'},
+    {'kind': 'red_run',
+     'when': '2026-09-24 19:06-19:57 UTC, full2 of the root 16:05 step on the bytes committed as '
+             '7ebffad',
+     'suite': 'live_ab_controls',
+     'result': ('Ran 419 in 3068.4s, FAILED (failures=2): tests_eb1_receipt_attribution.'
+                'ProdCaseBExternalReceipt.test_e2_the_same_across_a_pause_and_resume_with_the_'
+                'anchor_carried_over (the real host gate refused three resumes: detector '
+                'baseline-active, mediaanalysisd active) and tests_sm_entry.SM8AtTheRestart.'
+                'test_sm8_a_library_changed_before_the_restart_refuses_it (entry exit 0 != 1, '
+                'empty stdout); both passed in full1 on the same production bytes'),
+     'log_sha256': {
+         'controls': 'd02aa09b6be69294658828e869260c7538b016f4d9a9bd2144c7bd468947d7a7',
+         'rerun_sm8': ['07e93dd58cc2e4fceb3cc2b18684627d217639bfe0a61ad6dfab433c457eeced',
+                       '4fc307e0bc491d1a2f082e7e3006218436fd7cbac2d2ccc911afc680d3f2796d',
+                       '69bb881a30d25b1eb2a4a3a985c8255e7eae2fd87019a44f14a672b2ae0ebaa0'],
+         'rerun_e2': ['ce1e77d09630d5877cc944c91d797fab6483df542eec2da1d47e69d8697f0247',
+                      '7e97b3515a6998571b96f1221032fb0ce6984bc085a2d6ce12da7fc3b724e710'],
+         'runs_txt': '7d6dca38e13066ddc5cb85ab6dbb3a7ac0e33dbbc96e89cf88a8c28c71840748'},
+     'disposition': ('NOT repaired and NOT diagnosed: solo reruns SM8AtTheRestart 3 of 3 OK and '
+                     'ProdCaseBExternalReceipt 2 of 2 OK; e2 is the real host gate refusing on '
+                     'a busy host (a named detector); the SM8 exit 0 is unexplained and stays '
+                     'an open intermittent failure of that control')},
+    {'kind': 'review_finding',
+     'when': 'root 19:05 (reviews/eb1_eb5_invalid_decision_summary_20260924_1905.md, main '
+             '75c10af) on 03fe0ca at 159e747',
+     'suite': 'source review (not a test run)',
+     'result': ('blocking: build_live_ab_results.decision_object set primary_result '
+                'LIVE_DECISION_INVALID but reportable=True for a decision after a non-cap '
+                'no-decision point, and program_summary.json published the logged '
+                'deploy_candidate with reportable true'),
+     'log_sha256': None,
+     'fix_commits': ['9f0aff6'],
+     'disposition': ('fixed in 9f0aff6: one precedence, invalid first; reportable only for a '
+                     'valid logged decision; the summary decision is always primary_result; '
+                     'controls tests_invalid_decision_summary (7) over the complete results '
+                     'path; root 22:08 (main 76f5e71): "the 19:05 leak is repaired in the '
+                     'committed source path"')},
+    {'kind': 'red_run',
+     'when': '2026-09-24 16:22-16:27 local (20:22-20:27 UTC), the root 19:05 step before '
+             '9f0aff6 (the probe and before1, pre-fix reproductions meant to fail)',
+     'suite': 'scratch probe; live_ab_controls tests_invalid_decision_summary on the unfixed '
+              'builder',
+     'result': ('probe: refused_988baf7 and identity_988baf7 summaries decision deploy_'
+                'candidate, reportable True (root\'s finding reproduced); before1 Ran 7, FAILED '
+                '(failures=6)'),
+     'log_sha256': {
+         'probe_script': 'ede64b8ad33e856b91e29cb1acbba8bbfd8e07c3685826a3447149c0c89f2b77',
+         'before1': '03f69bdd6d762085dbafa85ede1d7134416dc29343c9f1d4613819c115cecac4'},
+     'disposition': 'expected; fix1 7 OK, run2 live_ab_controls 426 OK'},
+    {'kind': 'red_run',
+     'when': '2026-09-24 21:30-22:16 UTC, the amendment-v3 step before 56df17f',
+     'suite': 'repair_amendment_v3 probes; live_ab_tools tests_repair_amendment_v3; the '
+              'mutation sweeps',
+     'result': ('probe1 FAILED inserted_text_form (four prose lines over 120 characters); '
+                'probe2 FAILED (one line 135 characters); dev1 Ran 36, FAILED (errors=1: a '
+                'path bug in VerifierTests.setUpClass); mutation1 14 of 15 killed, V4 (the '
+                'verifier ignoring the demoted entry\'s commit) SURVIVED, M7 killed only by a '
+                'crash; mutation2 NOT VALID EVIDENCE (the new witness failed on the original, '
+                '41 ran, failures=1); dev3 Ran 1, FAILED (13 != 12 sub-checks)'),
+     'log_sha256': {'probe1': '0edd595acebac201d0a1bf8093067c9677ed2dd05e5d888fb3294435672387c8',
+                    'probe2': '0c353b7676d06dae67b55b7fc7e802c4b6815c551d373ec52fa969a3b5d9b982',
+                    'dev1': '7168ac2ea48ecc1460f8fb62223db3b3999a24bd342d723f0eaa812e0e3ea53b',
+                    'mutation1': '102f8d5fc161e9becee850aa313fff228205b9f9c0e43836ba64da3ee33738cd',
+                    'mutation2': '438b5ed7a604fe8cb21dae08cfcd64a2a744866f5632cb9db9364688fc43e49f',
+                    'dev3': '2a46ccea288cc0c0c213b8f2714ee0e2a166a66c6e1c0e698268131dc373791a',
+                    'summary': '07185b7ee72056a9a907fbb5a3505d2e011ef666164190591402aa0f611aa52e'},
+     'disposition': ('repaired inside 56df17f: prose rewrapped (probe3 ok), path fixed (dev2 '
+                     '40 OK), witness added for V4 and M7 rewritten, sub-check listed; '
+                     'mutation3 15 of 15 killed, original 41 ran 0 failures; the receipt '
+                     'REPAIR_AMENDMENT_V3_RECEIPT_20260924_2218 lists every one of these runs')},
 )
 
 #: The unified-diff form whose bytes are hashed (every option fixed; see git_env()).
@@ -803,6 +998,191 @@ def supersedes_record(entry: Mapping, data: bytes | None) -> tuple[dict, list]:
                  and not rec['byte_identical'] else [])
 
 
+def is_ancestor(repo: Path, rev: str, of: str) -> bool:
+    res = subprocess.run(['git', '-C', str(repo), 'merge-base', '--is-ancestor', rev, of],
+                         capture_output=True, env=git_env(), timeout=120, check=False)
+    return res.returncode == 0
+
+
+def amendment_chain(repo: Path, head: GitTree, current: Mapping) -> tuple[dict, list]:
+    """[read-only] The pre-outcome amendments (AMENDMENTS, oldest first) whose receipt HEAD
+    carries, checked against git; ``current`` maps each pin label of AMENDMENTS[*]['keys'] to
+    its HEAD value.  Per amendment present: the receipt's SHA-256; the commits that ADDED it
+    (must be exactly its own commit, an ancestor of HEAD); every value its ``written`` records
+    (none may be absent); each document digest it records equal to the blob at its own commit;
+    for v3, the v2 receipt digest, commit and written digests it names equal to v2's.  Then
+    ``head_equals_the_latest_written_values``: per label, the HEAD value equals the value of
+    the LATEST present amendment recording that label (a document v3 did not write is compared
+    with v2).  Problems: ``amendment_chain:<name>``, ``amendment_chain_link:<name>``,
+    ``amendment_receipt_disagrees`` (also when no amendment receipt is present at all)."""
+    problems, rows, latest = [], [], {}
+    for am in AMENDMENTS:
+        data = head.read(am['receipt'])
+        row = {'name': am['name'], 'commit': am['commit'], 'receipt': am['receipt'],
+               'present_at_head': data is not None}
+        if data is None:
+            rows.append(row)
+            continue
+        written = json.loads(data).get('written') or {}
+        added = git(repo, 'log', '--diff-filter=A', '--format=%H', head.rev, '--',
+                    am['receipt']).decode().split()
+        known = resolve(repo, am['commit']) == am['commit']
+        at = GitTree(repo, am['commit']) if known else None
+        values = {label: written.get(key) for label, key in am['keys'].items()}
+        blobs = {}
+        for label in am['keys']:
+            if label in DOCUMENTS and at is not None:
+                blob = at.read(DOCUMENTS[label][0])
+                blobs[label] = blob and sha256(blob)
+        row.update({
+            'receipt_sha256': sha256(data), 'receipt_bytes': len(data),
+            'added_in_commits': added,
+            'commit_is_an_ancestor_of_head': known and is_ancestor(repo, am['commit'], head.rev),
+            'written': values,
+            'document_blobs_at_its_commit': blobs,
+            'written_equals_the_blob_at_its_commit': {
+                label: blobs.get(label) is not None and blobs[label] == values[label]
+                for label in am['keys'] if label in DOCUMENTS}})
+        if added != [am['commit']] or not row['commit_is_an_ancestor_of_head'] or \
+                any(v is None for v in values.values()) or \
+                not all(row['written_equals_the_blob_at_its_commit'].values()):
+            problems.append('amendment_chain:%s' % am['name'])
+        link = am.get('names_predecessor')
+        if link:
+            prev = next((r for r in rows if r['name'] == link['name']), {})
+            named = json.loads(data).get(link['field']) or {}
+            named_written = named.get(link['written_field']) or {}
+            prev_keys = next(a['keys'] for a in AMENDMENTS if a['name'] == link['name'])
+            prev_written = {prev_keys[lb]: v for lb, v in (prev.get('written') or {}).items()}
+            row['names_its_predecessor'] = {
+                'predecessor': link['name'],
+                'predecessor_present_at_head': bool(prev.get('present_at_head')),
+                'receipt_sha256_named': named.get('receipt_sha256'),
+                'equals_the_predecessor_receipt_at_head':
+                    named.get('receipt_sha256') is not None
+                    and named.get('receipt_sha256') == prev.get('receipt_sha256'),
+                'commit_named': named.get('commit'),
+                'equals_the_predecessor_commit':
+                    named.get('commit') is not None and named.get('commit') == prev.get('commit'),
+                'written_digests_named': named_written,
+                'equal_the_predecessor_written_values': bool(named_written) and all(
+                    prev_written.get(k) == v for k, v in named_written.items())}
+            if not all(row['names_its_predecessor'][k] for k in (
+                    'predecessor_present_at_head', 'equals_the_predecessor_receipt_at_head',
+                    'equals_the_predecessor_commit', 'equal_the_predecessor_written_values')):
+                problems.append('amendment_chain_link:%s' % am['name'])
+        for label, value in values.items():
+            latest[label] = (am['name'], value)
+        rows.append(row)
+    agreement = {label: current.get(label) is not None and current.get(label) == value
+                 for label, (_n, value) in latest.items()}
+    if not agreement or not all(agreement.values()):
+        problems.append('amendment_receipt_disagrees')
+    return {'chain': rows,
+            'latest_writer': {label: name for label, (name, _v) in sorted(latest.items())},
+            'head_equals_the_latest_written_values': agreement}, problems
+
+
+def document_pin_history(repo: Path, old: GitTree, head: GitTree) -> dict:
+    """[read-only] Per DOCUMENTS entry: its SHA-256 and byte length at b049307, at the commit of
+    every amendment of AMENDMENTS that is an ancestor of HEAD, and at HEAD -- from git blobs,
+    never from a receipt -- and at which of those steps it moved."""
+    steps = [('b049307', old)]
+    for am in AMENDMENTS:
+        if resolve(repo, am['commit']) == am['commit'] and is_ancestor(repo, am['commit'],
+                                                                         head.rev):
+            steps.append((am['name'] + ' ' + am['commit'][:7], GitTree(repo, am['commit'])))
+    steps.append(('head', head))
+    out = {}
+    for label, (rel, _expected) in DOCUMENTS.items():
+        pins = []
+        for name, tree in steps:
+            blob = tree.read(rel)
+            pins.append({'at': name, 'rev': tree.rev, 'sha256': blob and sha256(blob),
+                         'bytes': blob and len(blob)})
+        for prev, row in zip(pins, pins[1:]):
+            row['moved_from_the_previous_step'] = row['sha256'] != prev['sha256']
+        out[label] = {'path': rel, 'pins': pins}
+    return out
+
+
+def since_superseded(repo: Path, head: GitTree, smap: Mapping,
+                     supersedes: list) -> tuple[dict, list]:
+    """[read-only] The exact changed bytes since the LATEST superseded receipt (last entry of
+    ``supersedes`` present and byte-identical at HEAD): its successor harness map re-derived
+    from the git blobs of the head it recorded (``superseded_map_reproduces_from_git``; else
+    ``superseded_map_does_not_reproduce``), and a diff record (diff_entry) per harness entry
+    that moved since, and per DOCUMENTS entry whose digest differs from the one it recorded."""
+    last = next((e for e in reversed(supersedes) if e.get('byte_identical')), None)
+    if last is None:
+        return {'receipt': None, 'reading': 'no superseded receipt is present at HEAD'}, []
+    data = json.loads(head.read(last['path']) or b'{}')
+    hp = data.get('harness_pin', {}).get('successor', {})
+    rev = hp.get('rev') or (data.get('repository') or {}).get('head')
+    prior_map = hp.get('map') or {}
+    problems = []
+    if not rev or resolve(repo, rev) != rev:
+        return {'receipt': last['path'], 'recorded_head': rev,
+                'reading': 'the head it recorded is not in this repository'}, \
+            ['superseded_head_missing']
+    then = GitTree(repo, rev)
+    reproduces = harness_map(then) == prior_map
+    if not reproduces:
+        problems.append('superseded_map_does_not_reproduce')
+    moved = sorted(n for n in set(prior_map) | set(smap) if prior_map.get(n) != smap.get(n))
+    harness = {n: diff_entry(repo, then, head, '%s/%s' % (LIVE_REL, n)) for n in moved}
+    docs = {}
+    for label, (rel, _e) in DOCUMENTS.items():
+        recorded = ((data.get('documents') or {}).get(label) or {}).get('head')
+        now = head.read(rel)
+        if recorded != (now and sha256(now)):
+            docs[label] = dict(diff_entry(repo, then, head, rel), recorded_in_it=recorded)
+    if not all(r['diff_applied_to_old_gives_new'] for r in list(harness.values())
+               + list(docs.values())):
+        problems.append('since_superseded_diff_does_not_reproduce')
+    return {'receipt': last['path'], 'receipt_sha256': last['sha256_at_head'],
+            'recorded_head': rev,
+            'recorded_canonical_sha256': hp.get('canonical_sha256'),
+            'superseded_map_reproduces_from_git': reproduces,
+            'head_canonical_sha256': sha256_canonical(dict(smap)),
+            'harness_entries_moved': harness,
+            'harness_entries_unchanged': len([n for n in smap if prior_map.get(n) == smap[n]]),
+            'documents_moved': docs}, problems
+
+
+RUN_ROW_KEYS = ('id', 'utc', 'command', 'result')
+
+
+def load_runs_of_this_step(path: Path | None, tokenize: Callable[[str], str]) -> tuple[object,
+                                                                                       list]:
+    """[read-only] ``--runs-of-this-step``: a JSON list of objects, each with non-empty string
+    RUN_ROW_KEYS (other keys kept), strings tokenized.  ``(section, problems)``; a missing,
+    unreadable or malformed file is ``runs_of_this_step_malformed``."""
+    if path is None:
+        return 'not given in this invocation', []
+    try:
+        raw = Path(path).read_bytes()
+        rows = json.loads(raw)
+    except (OSError, ValueError):
+        return None, ['runs_of_this_step_malformed']
+    if not isinstance(rows, list) or not rows or not all(
+            isinstance(r, dict) and all(isinstance(r.get(k), str) and r[k].strip()
+                                        for k in RUN_ROW_KEYS) for r in rows):
+        return None, ['runs_of_this_step_malformed']
+
+    def tok(v: object) -> object:
+        if isinstance(v, str):
+            return tokenize(v)
+        if isinstance(v, list):
+            return [tok(x) for x in v]
+        if isinstance(v, dict):
+            return {k: tok(x) for k, x in v.items()}
+        return v
+    return {'source_sha256': sha256(raw), 'rows': [tok(r) for r in rows],
+            'reading': ('every run of the step that made this receipt, pass or fail, made '
+                        'before the tool ran; the tool run itself is solo_run_suites')}, []
+
+
 def fixture_uses(log: Path, start_utc: str, end_utc: str) -> dict:
     """[read-only] The lines of the fixture's uses log (``sm_fixture._log_use``) written in
     ``[start_utc, end_utc]``: how often a suite used the compiled test double, how (a verified
@@ -1221,7 +1601,8 @@ def worktree_state(repo: Path) -> tuple[list, list]:
     return entries, problems
 
 
-def build_receipt(repo: Path, predecessor: str, *, run_suites: bool) -> dict:
+def build_receipt(repo: Path, predecessor: str, *, run_suites: bool,
+                  runs_of_this_step: Path | None = None) -> dict:
     repo = Path(repo).resolve()
     tokenize = make_tokenizer(repo)
     problems: list = []
@@ -1325,19 +1706,12 @@ def build_receipt(repo: Path, predecessor: str, *, run_suites: bool) -> dict:
                       and vocab['superseded_by'] == docs['protocol_FINAL.md']['head'])
     if not vocab['holds']:
         problems.append('cells_successor')
-    amend = json.loads(head.read(AMENDMENT_RECEIPT_REL) or b'{}').get('written', {})
-    agreement = {
-        'config.json': amend.get('config_sha256') == docs['config.json']['head'],
-        'ARCHITECTURE_FINAL.md':
-            amend.get('architecture_sha256') == docs['ARCHITECTURE_FINAL.md']['head'],
-        'protocol_FINAL.md': amend.get('protocol_sha256') == docs['protocol_FINAL.md']['head'],
-        'cells.json': amend.get('cells_sha256') == docs['cells.json']['head'],
-        'rule_block': amend.get('rule_block_sha256_on_disk') == rb['head'],
-        'serving_manifest_canonical': amend.get('artifact_sha256_canonical') == mcanon,
-        'serving_manifest_file': amend.get('artifact_file_sha256') == sm['head']['file_sha256'],
-    }
-    if not all(agreement.values()):
-        problems.append('amendment_receipt_disagrees')
+    current = {label: docs[label]['head'] for label in DOCUMENTS}
+    current.update({'rule_block': rb['head'], 'serving_manifest_canonical': mcanon,
+                    'serving_manifest_file': sm['head']['file_sha256']})
+    amendments, aproblems = amendment_chain(repo, head, current)
+    problems += aproblems
+    amendments['document_pin_history'] = document_pin_history(repo, old, head)
     sup_block = cfg_new.get('server_supervision')
     landed = git(repo, 'log', '--format=%H', '-S"server_supervision"',
                  '%s..%s' % (old.rev, head.rev), '--', CONFIG_REL).decode().split()
@@ -1422,6 +1796,10 @@ def build_receipt(repo: Path, predecessor: str, *, run_suites: bool) -> dict:
         rec, sproblems = supersedes_record(entry, head.read(entry['path']))
         supersedes.append(rec)
         problems += sproblems
+    since, sproblems = since_superseded(repo, head, smap, supersedes)
+    problems += sproblems
+    step_runs, rproblems = load_runs_of_this_step(runs_of_this_step, tokenize)
+    problems += rproblems
 
     commits = [ln.split('\t', 1) for ln in git(
         repo, 'log', '--reverse', '--topo-order', '--format=%H%x09%s',
@@ -1450,6 +1828,14 @@ def build_receipt(repo: Path, predecessor: str, *, run_suites: bool) -> dict:
             'reviews/restart_cap_estimand_ruling_20260923_2114.md (main ebcd637) item 2 (exact '
             'EB1/EB5 code and controls with old/new hashes, no loaded run)',
             'reviews/eb1_fixture_and_wip_delta_20260924_0703.md (main ccdda96) items 1 and 3',
+            'reviews/eb1_eb5_pin_interim_audit_20260924_1304.md (main f0cb14c)',
+            'reviews/eb1_eb5_decision_eligibility_ruling_20260924_1605.md (main 78df9e5; "the '
+            'revised pin must include the failure history and exact changed bytes")',
+            'reviews/eb1_eb5_invalid_decision_summary_20260924_1905.md (main 75c10af; "Re-pin '
+            'after changing the builder and rerun only affected controls plus the already '
+            'planned final solo receipt")',
+            'reviews/eb1_eb5_summary_repair_interim_20260924_2208.md (main 76f5e71; "finish and '
+            'commit amendment v3 ... and issue a fresh pin receipt")',
         ],
         'run_started_utc': started,
         'repository': {
@@ -1500,10 +1886,7 @@ def build_receipt(repo: Path, predecessor: str, *, run_suites: bool) -> dict:
         'rule_block': rb,
         'serving_manifest': sm,
         'cells_vocabulary_successor': vocab,
-        'synchronized_amendment': {'commit': AMENDMENT_COMMIT, 'receipt': AMENDMENT_RECEIPT_REL,
-                                   'receipt_sha256': sha256(head.read(AMENDMENT_RECEIPT_REL)
-                                                            or b''),
-                                   'head_equals_its_written_values': agreement},
+        'amendments': amendments,
         'server_supervision': supervision,
         'other_files_changed_by_the_subset': subset,
         'prior_observations_not_reissued': {
@@ -1513,7 +1896,13 @@ def build_receipt(repo: Path, predecessor: str, *, run_suites: bool) -> dict:
         },
         'compiled_c_test_double': fixture,
         'supersedes': supersedes,
+        'since_the_superseded_receipt': since,
         'disclosed_red_runs_before_this_successor': list(DISCLOSED_RED_RUNS),
+        'disclosed_red_runs_counts': {
+            'red_runs': sum(1 for r in DISCLOSED_RED_RUNS if r.get('kind') == 'red_run'),
+            'review_findings': sum(1 for r in DISCLOSED_RED_RUNS
+                                   if r.get('kind') == 'review_finding')},
+        'runs_of_this_step_before_this_receipt': step_runs,
         'nothing_executed': ('no model, llama-server, llama.cpp build or network request; the '
                              'C test double compiled under temporary roots; the suites start '
                              'their own loopback mocks'),
@@ -1579,6 +1968,7 @@ def main(argv: list | None = None) -> int:
     ap.add_argument('--predecessor', default=PREDECESSOR)
     ap.add_argument('--out-dir', default=None)
     ap.add_argument('--no-suites', action='store_true')
+    ap.add_argument('--runs-of-this-step', default=None)
     args = ap.parse_args(argv)
     repo = Path(args.repo).resolve()
     out_dir = Path(args.out_dir).resolve() if args.out_dir else repo / RESULTS_REL
@@ -1588,7 +1978,9 @@ def main(argv: list | None = None) -> int:
         if out_dir == (repo / RESULTS_REL).resolve() and \
                 repo not in Path(__file__).resolve().parents:
             raise Refused(['tool_not_in_repo'])
-        receipt = build_receipt(repo, args.predecessor, run_suites=not args.no_suites)
+        receipt = build_receipt(repo, args.predecessor, run_suites=not args.no_suites,
+                                runs_of_this_step=(Path(args.runs_of_this_step)
+                                                   if args.runs_of_this_step else None))
         out = out_dir / ('HARNESS_PIN_SUCCESSOR_%s.json'
                          % time.strftime('%Y%m%d_%H%M', time.gmtime()))
         if out.exists():
