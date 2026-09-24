@@ -316,9 +316,12 @@ SERVER_STARTED_FIELDS: dict[str, FieldSpec] = {
 #: The failure record of a server start or supervised restart (repair contract EB1).  It is
 #: exactly ``lab_common.ServerStartFailed.record``: the orchestrator appends what
 #: ``lab_server.start`` raised, and writes nothing it did not observe.  ``pid`` is 0 and
-#: ``returncode`` null when the failure came before a process existed (stages ``gguf`` and
-#: ``serving_manifest``, or a launch the OS refused); ``props_sha256`` is null unless a
-#: tokenized ``/props`` object was obtained.
+#: ``returncode`` null when the failure came before a process existed (stage ``gguf``, stage
+#: ``serving_manifest`` before the launch, or a launch the OS refused); ``props_sha256`` is
+#: null unless a tokenized ``/props`` object was obtained.  Stage ``serving_manifest`` with
+#: the findings ``build_info`` and ``serving_manifest`` is the one manifest check that needs
+#: the running server -- its actual ``/props.build_info`` against the manifest's (root 01:53)
+#: -- and carries the child's pid, stopped.
 SERVER_START_FAILED_FIELDS: dict[str, FieldSpec] = {
     'server_id': E_SERVER, 'kind': E_SERVER_START_KIND, 'stage': E_SERVER_START_STAGE,
     'findings': _L(E_SERVER_START_FINDING), 'pid': _I(), 'returncode': _N(_I()),

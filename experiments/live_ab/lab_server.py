@@ -20,7 +20,15 @@ No threads: health is polled by the orchestrator's loop.  **No test in this repo
 starts a real llama-server**; the identity logic is factored into the pure
 :func:`identity_findings` / :func:`assert_identity` so that it can be exercised against the
 mock, and :func:`start` is exercised by ``experiments/live_ab_controls`` with a launcher that
-is a shell script, never a model.
+is never a model: a few lines of C compiled by the controls (``sm_fixture``), linking two tiny
+libraries so that the serving-manifest check re-derives a real closure, which ``exec``s the
+mock shim.
+
+**The serving manifest is re-verified at every start and restart** (protocol 2.2 item 2,
+5.3; root's 01:53 ruling ``reviews/serving_manifest_binding_ruling_20260924_0153.md``):
+:func:`start` reads THE artifact ``<freeze tree>/serving_manifest.json`` itself and
+``lab_serving_manifest`` measures every runtime fact against it before the launch, and the
+server's actual ``/props.build_info`` once it answers.
 
 **The lifecycle is route (a) of root's 20:40 decision** (``reviews/
 prerun_bundle_go_nogo_20260923_2040.md`` item 1): :func:`start` either returns a body every
@@ -47,6 +55,7 @@ from typing import Any, Literal
 import requests
 
 import lab_common
+import lab_serving_manifest
 
 #: The counters of protocol 13.1 / ARCHITECTURE_FINAL.md 8.1, keyed by their Prometheus name.
 METRIC_NAMES: dict[str, str] = {
@@ -82,8 +91,11 @@ START_STAGES: tuple[str, ...] = ('gguf', 'serving_manifest', 'launch', 'health',
 #: 200 with the child itself the port's only listener -- within ``timeout_s``.
 #: ``smoke_transport``: the smoke completion did not arrive as an HTTP 200 JSON object.
 #: ``smoke_no_usage``: a key the event schema's closed USAGE / TIMINGS sets require was
-#: absent -- never replaced by 0.  ``serving_manifest``: the frozen serving manifest was
-#: absent or did not re-verify (protocol 5.3, P:918).
+#: absent -- never replaced by 0.  ``serving_manifest``: the frozen serving manifest did not
+#: re-verify (protocol 5.3, P:918; root 01:53): ``lab_serving_manifest.verify_before_launch``
+#: before the launch, or the server's actual ``/props.build_info`` against the manifest's once
+#: it answers -- the one serving-manifest fact that needs the running server, recorded under
+#: the same stage with the finding ``build_info`` beside ``serving_manifest``.
 START_FINDINGS: tuple[str, ...] = ('process_exited', 'health_timeout', 'smoke_transport',
                                    'smoke_no_usage', 'serving_manifest')
 
@@ -106,13 +118,6 @@ SMOKE_USAGE_KEYS: tuple[str, ...] = ('prompt_tokens', 'completion_tokens', 'tota
 SMOKE_TIMINGS_INT_KEYS: tuple[str, ...] = ('cache_n', 'prompt_n', 'predicted_n')
 SMOKE_TIMINGS_FLOAT_KEYS: tuple[str, ...] = ('prompt_ms', 'predicted_ms',
                                              'predicted_per_second')
-
-#: The members the frozen serving manifest of protocol 2.2 must carry for :func:`start` to
-#: re-verify it.  The other protocol-2.2 fields (``metal_library``, ``resolved_rpath``, the
-#: cmake/compiler/SDK strings and log digests) are bound by the manifest's frozen digest
-#: only; nothing here recomputes them -- stated, not implied.
-SERVING_MANIFEST_REQUIRED: tuple[str, ...] = ('llama_cpp_commit', 'launcher_sha256',
-                                              'libraries', 'props_build_info')
 
 SMOKE_PROMPT: str = 'Reply with the single word: pong'
 
@@ -381,92 +386,6 @@ def metrics(base_url: str, *, timeout: float = 5.0, tries: int = 3) -> dict:
 
 
 # --------------------------------------------------------------------------- #
-# the serving manifest (protocol 2.2 item 2, re-verified at every start: P:452, P:918)
-# --------------------------------------------------------------------------- #
-def serving_manifest_problems(spec: ServerSpec, manifest: Mapping | None,
-                              expected_sha256: str | None) -> list[str]:
-    """Re-verify the frozen serving manifest against the launcher this start will exec.
-
-    Returns sorted problem LABELS (for the private record and the tests), ``[]`` when every
-    check below passed; the chain only ever carries the one closed code
-    ``serving_manifest``.  What is PERFORMED, in order:
-
-    1. ``manifest`` is an object and ``expected_sha256`` is a 64-hex digest (``absent``);
-    2. ``sha256_canonical(manifest) == expected_sha256`` -- the frozen
-       ``llama_cpp.serving_manifest_sha256`` (``digest``);
-    3. it carries every :data:`SERVING_MANIFEST_REQUIRED` member (``missing:<key>``);
-    4. ``llama_cpp_commit`` equals ``spec.llama_commit`` (``commit``) and
-       ``props_build_info`` contains its 7-character prefix (``props_build_info``);
-    5. ``spec.llama_bin`` is an ABSOLUTE path to a regular file (``launcher_not_explicit``,
-       ``launcher_missing``) whose recomputed SHA-256 is ``launcher_sha256``
-       (``launcher_sha256``);
-    6. ``libraries`` is a non-empty list (``libraries_empty``) of ``{name, sha256}`` entries
-       (``library_entry``); each is resolved BY BASE NAME in the directory of the resolved
-       launcher -- the ``@rpath`` of a llama.cpp build at the pinned commit, where the thin
-       launcher and its nine libraries sit side by side (protocol 2.2, P:436) -- and its
-       recomputed SHA-256 must equal the entry's (``library_missing:<name>``,
-       ``library_sha256:<name>``).
-
-    What is NOT performed: re-deriving the dependency closure from the Mach-O load commands
-    (``experiments/live_ab_serving/dependency_closure.py`` owns that and this module may not
-    import it), so the COMPLETENESS of ``libraries`` is bound by the frozen digest alone; and
-    ``metal_library``, ``resolved_rpath`` and the build strings are not recomputed."""
-    problems: list[str] = []
-    if not isinstance(manifest, Mapping) or not isinstance(expected_sha256, str) \
-            or not _HEX64_RE.match(expected_sha256):
-        return ['absent']
-    try:
-        digest = lab_common.sha256_canonical(dict(manifest))
-    except (TypeError, ValueError):
-        digest = ''
-    if digest != expected_sha256:
-        problems.append('digest')
-    for key in SERVING_MANIFEST_REQUIRED:
-        if key not in manifest:
-            problems.append('missing:%s' % key)
-    if 'llama_cpp_commit' in manifest and manifest.get('llama_cpp_commit') != spec.llama_commit:
-        problems.append('commit')
-    if 'props_build_info' in manifest \
-            and spec.llama_commit[:7] not in str(manifest.get('props_build_info') or ''):
-        problems.append('props_build_info')
-    launcher = Path(str(spec.llama_bin))
-    if not launcher.is_absolute():
-        problems.append('launcher_not_explicit')
-        launcher_dir = None
-    elif not launcher.is_file():
-        problems.append('launcher_missing')
-        launcher_dir = None
-    else:
-        launcher_dir = Path(os.path.realpath(str(launcher))).parent
-        try:
-            if lab_common.sha256_file(launcher) != manifest.get('launcher_sha256'):
-                problems.append('launcher_sha256')
-        except OSError:
-            problems.append('launcher_missing')
-    libraries = manifest.get('libraries')
-    if not isinstance(libraries, list) or not libraries:
-        problems.append('libraries_empty')
-        libraries = []
-    for entry in libraries:
-        if not isinstance(entry, Mapping) or not isinstance(entry.get('name'), str) \
-                or not isinstance(entry.get('sha256'), str) or not entry.get('name'):
-            problems.append('library_entry')
-            continue
-        name = Path(str(entry['name'])).name
-        if launcher_dir is None:
-            continue                     # already refused above; nothing to resolve against
-        target = launcher_dir / name
-        try:
-            if not target.is_file():
-                problems.append('library_missing:%s' % name)
-            elif lab_common.sha256_file(target) != entry['sha256']:
-                problems.append('library_sha256:%s' % name)
-        except OSError:
-            problems.append('library_missing:%s' % name)
-    return sorted(set(problems))
-
-
-# --------------------------------------------------------------------------- #
 # lifecycle
 # --------------------------------------------------------------------------- #
 def _golden_part(golden: object, name: str, default: object) -> object:
@@ -480,7 +399,7 @@ def _golden_part(golden: object, name: str, default: object) -> object:
 def start(spec: ServerSpec, *, golden_props: Mapping | None = None,
           golden: object | None = None, sampling: Mapping | None = None,
           timeout_s: float = 600.0, recompute_gguf_sha256: bool = True,
-          serving_manifest: Mapping | None = None,
+          serving_manifest_path: str | Path | None = None,
           serving_manifest_sha256: str | None = None,
           mode: str = 'trial', kind: str = 'start', restart_index: int = 0) -> dict:
     """Launch the frozen argv and return the ``server_started`` body (event schema T4), or
@@ -489,8 +408,14 @@ def start(spec: ServerSpec, *, golden_props: Mapping | None = None,
     The stages run in the order of :data:`START_STAGES`; the first that fails ends the start:
 
     * ``gguf`` -- :func:`assert_gguf` (bytes and recomputed SHA-256);
-    * ``serving_manifest`` -- :func:`serving_manifest_problems`; an ABSENT manifest is a
-      failure of this stage, never a skip (P:918: re-verified at every start and restart);
+    * ``serving_manifest`` -- ``lab_serving_manifest.verify_before_launch`` of THE artifact
+      at ``serving_manifest_path`` (which must be ``<freeze tree>/serving_manifest.json``)
+      against ``serving_manifest_sha256`` (the configuration's digest; null refuses), and of
+      every runtime fact -- launcher path and digest, the dependency closure re-resolved from
+      the load commands, ``LC_RPATH``, the embedded Metal library, the build provenance files
+      -- against it (P:452, P:918, root 01:53: re-verified at every start and restart; an
+      absent path or artifact is a failure of this stage, never a skip).  The problem labels
+      ride on the raised exception as ``labels``; the chain carries only the closed code;
     * ``launch`` -- the OS refused the exec, or the child exited before it was healthy
       (``process_exited``, with the child's return code; never ``build_info``);
     * ``health`` -- the child is healthy only when ``/health`` on the frozen port answers
@@ -501,9 +426,12 @@ def start(spec: ServerSpec, *, golden_props: Mapping | None = None,
       fix, reviewers 1 and 2: a launcher that never bound the port used to get a
       success-valued body from the listener that did).  An unreadable listener table is
       not "ours" either: the stage keeps polling and times out;
-    * ``identity`` -- :func:`identity_findings` on the RAW ``/props`` (a probe that fails is
-      ``props_mismatch``), the full TOKENIZED object against ``golden_props``, and the raw
-      ``build_info`` against the manifest's ``props_build_info``;
+    * ``identity`` -- first the server's ACTUAL ``/props.build_info`` against the manifest's
+      ``props_build_info`` (``lab_serving_manifest.props_build_info_problems``; a difference
+      is recorded as stage ``serving_manifest`` with findings ``build_info`` and
+      ``serving_manifest``, the child's pid, and the child stopped), then
+      :func:`identity_findings` on the RAW ``/props`` (a probe that fails is
+      ``props_mismatch``) and the full TOKENIZED object against ``golden_props``;
     * ``smoke`` -- one SERVER_SMOKE completion projected onto the schema's closed USAGE /
       TIMINGS sets; a missing key is ``smoke_no_usage`` (never 0), a transport failure
       ``smoke_transport``, and the receipt is compared finding for finding with ``golden``.
@@ -520,7 +448,12 @@ def start(spec: ServerSpec, *, golden_props: Mapping | None = None,
     ``BaseException`` that is not an ``Exception`` (an interrupt) still stops the child and
     propagates unchanged.
 
-    Refused before any side effect, with ``PreflightError``: ``mode='trial'`` (the default,
+    The child runs in its launcher's directory (``lab_serving_manifest.server_cwd``): ggml's
+    backend search includes the working directory, and the manifest's closure binds that one.
+
+    Refused before any side effect, with ``PreflightError``: a ``gguf_path`` or ``log_path``
+    that is not absolute (it would name another file in the server's working directory);
+    ``mode='trial'`` (the default,
     every trial start and restart) without ``golden_props``, ``golden`` and ``sampling`` --
     there is no placeholder smoke; ``mode='trial'`` with ``recompute_gguf_sha256=False``,
     which would put the configuration's digest in the body as if it had been observed (EB1
@@ -545,6 +478,10 @@ def start(spec: ServerSpec, *, golden_props: Mapping | None = None,
         raise lab_common.PreflightError(
             'lab_server.start: a trial start recomputes the GGUF SHA-256; a copied digest '
             'is not an observation')
+    if not Path(str(spec.gguf_path)).is_absolute() or not Path(str(spec.log_path)).is_absolute():
+        raise lab_common.PreflightError(
+            'lab_server.start: the weights and log paths must be absolute; the server runs '
+            'in its launcher directory')
     argv = server_argv(spec)
     record: dict[str, Any] = {
         'server_id': spec.server_id, 'kind': kind, 'stage': None, 'findings': [],
@@ -552,7 +489,7 @@ def start(spec: ServerSpec, *, golden_props: Mapping | None = None,
         'props_sha256': None, 'load_seconds': 0.0, 'restart_index': int(restart_index)}
 
     def fail(stage: str, findings: list[str], proc: subprocess.Popen | None = None,
-             **extra: Any) -> None:
+             labels: list[str] | None = None, **extra: Any) -> None:
         if proc is not None:
             record['pid'] = int(proc.pid)
             stopped = stop(proc.pid)
@@ -561,7 +498,9 @@ def start(spec: ServerSpec, *, golden_props: Mapping | None = None,
         record.update(extra)
         record['stage'] = stage
         record['findings'] = sorted(set(findings))
-        raise lab_common.ServerStartFailed(record)
+        err = lab_common.ServerStartFailed(record)
+        err.labels = sorted(set(labels or []))       # private detail, never in the chain
+        raise err
 
     # -- gguf ------------------------------------------------------------------
     try:
@@ -571,8 +510,13 @@ def start(spec: ServerSpec, *, golden_props: Mapping | None = None,
     except OSError:
         fail('gguf', ['gguf_sha256'])
     # -- serving manifest ------------------------------------------------------
-    if serving_manifest_problems(spec, serving_manifest, serving_manifest_sha256):
-        fail('serving_manifest', ['serving_manifest'])
+    # THE artifact, read now from its fixed path, and every runtime fact measured now
+    # (lab_serving_manifest.verify_before_launch); nothing is taken from a cached copy.
+    manifest, labels = lab_serving_manifest.verify_before_launch(
+        serving_manifest_path if serving_manifest_path is not None else '',
+        serving_manifest_sha256, launcher=spec.llama_bin, llama_commit=spec.llama_commit)
+    if labels:
+        fail('serving_manifest', ['serving_manifest'], labels=labels)
     # -- launch ----------------------------------------------------------------
     t0 = time.perf_counter()
     try:
@@ -580,7 +524,8 @@ def start(spec: ServerSpec, *, golden_props: Mapping | None = None,
         logf = open(str(spec.log_path), 'ab')
         try:
             proc = subprocess.Popen(argv, stdout=logf, stderr=subprocess.STDOUT,
-                                    stdin=subprocess.DEVNULL, start_new_session=True)
+                                    stdin=subprocess.DEVNULL, start_new_session=True,
+                                    cwd=lab_serving_manifest.server_cwd(spec.llama_bin))
         finally:
             logf.close()
     except OSError:
@@ -624,12 +569,16 @@ def start(spec: ServerSpec, *, golden_props: Mapping | None = None,
             props_sha = lab_common.sha256_canonical(props_tok)
         except (lab_common.UntokenizablePath, ValueError, TypeError):
             props_tok, props_sha = None, None
+        # The server's ACTUAL build string against the manifest's (protocol 2.2's
+        # ``props_build_info``; root 01:53): the one serving-manifest fact that needs the
+        # running server.  Recorded under the serving_manifest stage.
+        observed = lab_serving_manifest.props_build_info_problems(manifest, props)
+        if observed:
+            fail('serving_manifest', ['build_info', 'serving_manifest'], proc,
+                 labels=observed, load_seconds=load_seconds, props_sha256=props_sha)
         findings = identity_findings(spec, props, models, golden_props)
         if props_tok is None:
             findings.append('model_path')
-        if isinstance(serving_manifest, Mapping) \
-                and props.get('build_info') != serving_manifest.get('props_build_info'):
-            findings.append('build_info')
         if findings:
             fail('identity', findings, proc, load_seconds=load_seconds,
                  props_sha256=props_sha)
@@ -950,7 +899,7 @@ def restart(spec: ServerSpec, golden_props: Mapping, *,
             previous_props_sha256: str | None = None, golden: object | None = None,
             sampling: Mapping | None = None, timeout_s: float = 600.0,
             previous_pid: int | None = None, restart_index: int = 1,
-            serving_manifest: Mapping | None = None,
+            serving_manifest_path: str | Path | None = None,
             serving_manifest_sha256: str | None = None,
             recompute_gguf_sha256: bool = True) -> dict:
     """A supervised restart with the identical argv (protocol 5.3): the CALLER has already
@@ -980,7 +929,7 @@ def restart(spec: ServerSpec, golden_props: Mapping, *,
         raise lab_common.PreflightError('lab_server.restart: restart_index starts at 1')
     body = start(spec, golden_props=golden_props, golden=golden, sampling=sampling,
                  timeout_s=timeout_s, recompute_gguf_sha256=recompute_gguf_sha256,
-                 serving_manifest=serving_manifest,
+                 serving_manifest_path=serving_manifest_path,
                  serving_manifest_sha256=serving_manifest_sha256, mode='trial',
                  kind='restart', restart_index=int(restart_index))
     body['props_equal_previous'] = bool(body['props_sha256'] == previous_props_sha256)

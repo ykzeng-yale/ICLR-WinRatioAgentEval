@@ -7,12 +7,15 @@ refused, so no check here can pass by being unable to fail.
 
 What runs, and what does not:
 
-* ``lab_server.start`` / ``restart`` launch a real child process, but the "launcher" is a
-  two-line shell script that is never a model: by default it ``exec``s
-  ``eb1c_llama_shim.py``, so the CHILD ITSELF binds the frozen port and serves ``/health``,
-  ``/props``, ``/v1/models`` and the smoke completion through ``lab_mock_server`` (the
-  scenario is written to the shim's state directory by :func:`served`); a few tests use a
-  bare ``exit 3`` launcher.  ``lab_server.start`` accepts a server only when the child is
+* ``lab_server.start`` / ``restart`` launch a real child process, but the "launcher" is
+  never a model: it is the compiled ``sm_fixture`` launcher (a Mach-O linking two tiny
+  libraries, so the serving-manifest check re-derives a real closure; root 01:53), which
+  ``exec``s ``eb1c_llama_shim.py``, so the CHILD ITSELF binds the frozen port and serves
+  ``/health``, ``/props``, ``/v1/models`` and the smoke completion through
+  ``lab_mock_server`` (the scenario is written to the shim's state directory by
+  :func:`served`); a launch that dies is the shim's ``exit_before_listen`` directive.  Every
+  start re-verifies THE serving-manifest artifact of the host's freeze tree, assembled from
+  that build by ``lab_serving_manifest.assemble``.  ``lab_server.start`` accepts a server only when the child is
   the port's one listener (EB1 fix, reviewers 1 and 2), so the fixture that used to answer
   from a thread of THIS process beside an ``exec sleep 30`` child -- the "two servers on one
   port" case -- is gone; :func:`mock_server` (an in-thread listener) remains only as the
@@ -57,7 +60,9 @@ import lab_eventlog                                                     # noqa: 
 import lab_mock_server                                                  # noqa: E402
 import lab_orchestrator as orch                                         # noqa: E402
 import lab_server                                                       # noqa: E402
+import lab_serving_manifest                                             # noqa: E402
 import lab_verify_log                                                   # noqa: E402
+import sm_fixture                                                       # noqa: E402
 from lab_common import sha256_canonical, sha256_file, sha256_text      # noqa: E402
 
 COMMIT = '4fea119de30f6a923992780f6fd5ccb0bee5d47d'
@@ -118,39 +123,32 @@ def mock_server(scenario: dict, port: int = 0):
 
 
 class Host:
-    """A temporary 'host': a dummy GGUF, a shell-script launcher, one library beside it and
-    the serving manifest that names them.  The default launcher ``exec``s the EB1c shim, which
-    serves the scenario :func:`served` wrote to ``state`` on the port of the argv it got."""
+    """A temporary 'host': a dummy GGUF, the compiled ``sm_fixture`` build (a launcher and
+    two libraries: a Mach-O closure the manifest check re-derives, with an embedded Metal
+    section) and THE serving-manifest artifact of a freeze tree, assembled from that build.
+    The launcher ``exec``s the EB1c shim, which serves the scenario :func:`served` wrote to
+    ``state`` on the port of the argv it got."""
 
-    def __init__(self, root: Path, *, launcher_body: str | None = None) -> None:
-        self.root = root
-        self.bin = root / 'build' / 'bin'
-        self.bin.mkdir(parents=True)
-        self.state = root / 'shim_state'
+    def __init__(self, root: Path) -> None:
+        self.root = Path(os.path.realpath(str(root)))
+        self.state = self.root / 'shim_state'
         self.state.mkdir(parents=True)
-        self.gguf = root / 'weights.gguf'
+        self.gguf = self.root / 'weights.gguf'
         self.gguf.write_bytes(b'GGUF' + b'\0' * 252)
-        self.launcher = self.bin / 'llama-server'
-        self.write_launcher(launcher_body if launcher_body is not None else
-                            "%s='%s' exec '%s' '%s' \"$@\""
-                            % (shim.STATE_ENV, self.state, sys.executable,
-                               HERE / 'eb1c_llama_shim.py'))
-        self.lib = self.bin / 'libfake.0.dylib'
-        self.lib.write_bytes(b'not a real library')
-        self.manifest = {
-            'llama_cpp_commit': COMMIT,
-            'launcher_sha256': sha256_file(self.launcher),
-            'libraries': [{'name': 'libfake.0.dylib', 'sha256': sha256_file(self.lib)}],
-            'props_build_info': 'b6000-4fea119d',
-        }
-
-    def write_launcher(self, body: str) -> None:
-        self.launcher.write_text('#!/bin/sh\n%s\n' % body, encoding='utf-8')
-        self.launcher.chmod(self.launcher.stat().st_mode | stat.S_IXUSR)
+        self.build = sm_fixture.Build(self.root / 'host', state=self.state)
+        self.launcher = self.build.launcher
+        self.freeze = self.root / 'results' / 'freeze'
+        self.manifest_path = lab_serving_manifest.artifact_path(self.freeze)
+        self.manifest_sha = self.build.write_manifest(self.freeze)
 
     @property
-    def manifest_sha(self) -> str:
-        return sha256_canonical(self.manifest)
+    def manifest(self) -> dict:
+        return json.loads(self.manifest_path.read_text('utf-8'))
+
+    def replace_manifest(self, manifest: dict) -> str:
+        """Replace THE artifact (a test's own tree) and return the new canonical digest."""
+        self.manifest_path.unlink()
+        return lab_serving_manifest.write_artifact(self.manifest_path, manifest)
 
     def spec(self, port: int, **kw) -> lab_server.ServerSpec:
         scenario = basic_scenario()
@@ -168,12 +166,16 @@ class Host:
         sc['props'] = dict(sc['props'], model_path=str(self.gguf))
         return sc
 
+    def manifest_kw(self) -> dict:
+        return {'serving_manifest_path': self.manifest_path,
+                'serving_manifest_sha256': self.manifest_sha}
+
 
 class ServerCase(unittest.TestCase):
     """Every test gets a fresh host and must leave no child behind."""
 
     def setUp(self) -> None:
-        self.tmp = Path(tempfile.mkdtemp(prefix='eb1_'))
+        self.tmp = Path(os.path.realpath(tempfile.mkdtemp(prefix='eb1_')))
         self.addCleanup(shutil.rmtree, self.tmp, True)
         self.host = Host(self.tmp)
         self.children_before = set(lab_server._CHILDREN)
@@ -193,8 +195,7 @@ class ServerCase(unittest.TestCase):
     def start(self, spec, scenario, **kw):
         golden = kw.pop('golden', None) or self.golden(scenario)
         params = dict(golden_props=golden['props'], golden=golden, sampling=dict(SAMPLING),
-                      timeout_s=10.0, serving_manifest=self.host.manifest,
-                      serving_manifest_sha256=self.host.manifest_sha)
+                      timeout_s=10.0, **self.host.manifest_kw())
         params.update(kw)
         return lab_server.start(spec, **params)
 
@@ -203,6 +204,7 @@ class ServerCase(unittest.TestCase):
             fn(*args, **kw)
         record = caught.exception.record
         lab_eventlog.validate_event('server_start_failed', record)
+        self.labels = list(getattr(caught.exception, 'labels', []))
         return record
 
 
@@ -243,9 +245,9 @@ class StartTests(ServerCase):
                          sha256_canonical(lab_server.tokenized_props(sc['props'])))
 
     def test_a_child_that_exits_before_healthy_is_process_exited_not_build_info(self):
-        self.host.write_launcher('exit 3')
-        self.host.manifest['launcher_sha256'] = sha256_file(self.host.launcher)
-        rec = self.failure(self.start, self.host.spec(free_port()), self.host.scenario())
+        sc = dict(self.host.scenario(), _shim={'exit_before_listen': 3})
+        with served(self.host, sc) as (port, _srv):
+            rec = self.failure(self.start, self.host.spec(port), sc)
         self.assertEqual((rec['stage'], rec['findings']), ('launch', ['process_exited']))
         self.assertEqual(rec['returncode'], 3)
         self.assertNotIn('build_info', rec['findings'])
@@ -274,37 +276,61 @@ class StartTests(ServerCase):
                 self.assertFalse((self.tmp / 'logs' / 'llama.log').exists())
 
     def test_the_serving_manifest_is_reverified_and_an_absent_one_refused(self):
+        """Root 01:53 at the start stage: THE artifact, its config digest and the runtime
+        facts, before any launch; every refusal is stage serving_manifest, pid 0."""
         spec = self.host.spec(free_port())
-        self.assertEqual(lab_server.serving_manifest_problems(
-            spec, self.host.manifest, self.host.manifest_sha), [], 'the control passes')
-        bad_lib = copy.deepcopy(self.host.manifest)
-        bad_lib['libraries'][0]['sha256'] = '1' * 64
+        self.assertEqual(lab_serving_manifest.verify_before_launch(
+            self.host.manifest_path, self.host.manifest_sha, launcher=spec.llama_bin,
+            llama_commit=COMMIT)[1], [], 'the control passes')
+        other = dict(self.host.manifest, llama_cpp_commit='0' * 40)
         cases = {
-            'absent': (None, None),
-            'digest': (self.host.manifest, '2' * 64),
-            'commit': (dict(self.host.manifest, llama_cpp_commit='0' * 40), None),
-            'library_sha256:libfake.0.dylib': (bad_lib, None),
-            'libraries_empty': (dict(self.host.manifest, libraries=[]), None),
+            'artifact_path': {'serving_manifest_path': None},
+            'artifact_path ': {'serving_manifest_path': self.host.freeze / 'other.json'},
+            'digest': {'serving_manifest_sha256': '2' * 64},
+            'config_digest_null': {'serving_manifest_sha256': None},
+            'commit': {'serving_manifest_path': 'REPLACE', 'manifest': other},
         }
-        for label, (manifest, digest) in cases.items():
+        for label, kw in cases.items():
             with self.subTest(label=label):
-                digest = digest or (sha256_canonical(manifest) if manifest else None)
-                self.assertIn(label, lab_server.serving_manifest_problems(
-                    spec, manifest, digest))
-                rec = self.failure(self.start, spec, self.host.scenario(),
-                                   serving_manifest=manifest,
-                                   serving_manifest_sha256=digest)
+                params = self.host.manifest_kw()
+                if kw.get('serving_manifest_path') == 'REPLACE':
+                    params['serving_manifest_sha256'] = self.host.replace_manifest(
+                        kw['manifest'])
+                else:
+                    params.update(kw)
+                before = dict(lab_server._CHILDREN)
+                rec = self.failure(self.start, spec, self.host.scenario(), **params)
                 self.assertEqual((rec['stage'], rec['findings'], rec['pid']),
                                  ('serving_manifest', ['serving_manifest'], 0))
+                self.assertIn(label.strip(), self.labels)
+                self.assertEqual(dict(lab_server._CHILDREN), before, 'nothing launched')
+        # a missing artifact
+        self.host.manifest_path.unlink()
+        rec = self.failure(self.start, spec, self.host.scenario())
+        self.assertEqual((rec['stage'], rec['pid']), ('serving_manifest', 0))
+        self.assertIn('artifact_missing', self.labels)
+
+    def test_a_library_changed_after_assembly_is_refused_before_launch(self):
+        sc = self.host.scenario()
+        with served(self.host, sc) as (port, _srv):
+            body = self.start(self.host.spec(port), sc)        # control: it starts
+            lab_server.stop(body['pid'])
+            sm_fixture.flip(self.host.build.core, sm_fixture.CORE_MARKER)
+            rec = self.failure(self.start, self.host.spec(port), sc)
+        self.assertEqual((rec['stage'], rec['findings'], rec['pid']),
+                         ('serving_manifest', ['serving_manifest'], 0))
+        self.assertIn('library_sha256:libeb1c-core.0.dylib', self.labels)
 
     def test_an_edited_launcher_or_a_bare_launcher_name_is_refused(self):
         spec = self.host.spec(free_port())
-        self.host.write_launcher('exec sleep 31')                  # one byte moved
-        self.assertIn('launcher_sha256', lab_server.serving_manifest_problems(
-            spec, self.host.manifest, self.host.manifest_sha))
+        sm_fixture.flip(self.host.launcher, sm_fixture.LAUNCHER_MARKER)   # one byte moved
+        self.assertIn('launcher_sha256', lab_serving_manifest.verify_before_launch(
+            self.host.manifest_path, self.host.manifest_sha, launcher=spec.llama_bin,
+            llama_commit=COMMIT)[1])
         bare = self.host.spec(free_port(), llama_bin=Path('llama-server'))
-        self.assertIn('launcher_not_explicit', lab_server.serving_manifest_problems(
-            bare, self.host.manifest, self.host.manifest_sha))
+        self.assertIn('launcher_not_explicit', lab_serving_manifest.verify_before_launch(
+            self.host.manifest_path, self.host.manifest_sha, launcher=bare.llama_bin,
+            llama_commit=COMMIT)[1])
 
 
 # --------------------------------------------------------------------------- #
@@ -459,8 +485,7 @@ class RestartTests(ServerCase):
             spec = self.host.spec(port)
             first = self.start(spec, sc)
             kw = dict(golden=golden, sampling=dict(SAMPLING), timeout_s=10.0,
-                      serving_manifest=self.host.manifest,
-                      serving_manifest_sha256=self.host.manifest_sha)
+                      **self.host.manifest_kw())
             before = set(lab_server._CHILDREN)
             with self.assertRaises(lab_common.PreflightError):
                 lab_server.restart(spec, golden['props'], previous_pid=first['pid'],
@@ -490,9 +515,7 @@ class RestartTests(ServerCase):
                                previous_pid=1 << 22,
                                previous_props_sha256='4' * 64, golden=golden,
                                sampling=dict(SAMPLING), timeout_s=0.5,
-                               serving_manifest=self.host.manifest,
-                               serving_manifest_sha256=self.host.manifest_sha,
-                               restart_index=3)
+                               restart_index=3, **self.host.manifest_kw())
         self.assertEqual((rec['kind'], rec['restart_index'], rec['stage']),
                          ('restart', 3, 'health'))
 
@@ -520,8 +543,7 @@ class TrialModeTests(ServerCase):
 
     def test_trial_mode_refuses_without_golden_or_sampling(self):
         spec = self.host.spec(free_port())
-        base = dict(serving_manifest=self.host.manifest,
-                    serving_manifest_sha256=self.host.manifest_sha)
+        base = self.host.manifest_kw()
         golden = self.golden(self.host.scenario())
         for missing in ('golden_props', 'golden', 'sampling'):
             with self.subTest(missing=missing):
@@ -538,8 +560,7 @@ class TrialModeTests(ServerCase):
         sc = self.host.scenario()
         with served(self.host, sc) as (port, _srv):
             body = lab_server.start(self.host.spec(port), mode='capture', timeout_s=10.0,
-                                    serving_manifest=self.host.manifest,
-                                    serving_manifest_sha256=self.host.manifest_sha)
+                                    **self.host.manifest_kw())
             lab_server.stop(body['pid'])
         self.assertIsNone(body['props_matches_golden'])
         self.assertIsNone(body['smoke'])
@@ -570,9 +591,10 @@ class ForeignListenerTests(ServerCase):
 
     def test_a_child_that_cannot_bind_a_held_port_is_process_exited(self):
         """The reviewer's repro: a launch that never binds and exits 7, beside a listener."""
-        self.host.write_launcher('sleep 1.0; exit 7')
-        self.host.manifest['launcher_sha256'] = sha256_file(self.host.launcher)
         sc = self.host.scenario()
+        (self.host.state / 'scenarios.json').write_text(json.dumps([dict(
+            sc, _shim={'exit_before_listen': 7, 'exit_before_listen_after_s': 1.0})]),
+            encoding='utf-8')
         with mock_server(sc) as (port, _srv):
             rec = self.failure(self.start, self.host.spec(port), sc, timeout_s=10.0)
         self.assertEqual((rec['stage'], rec['findings'], rec['returncode']),
@@ -693,23 +715,29 @@ class MalformedAnswerTests(ServerCase):
 
 
 class ManifestBuildInfoTests(ServerCase):
-    """Reviewer 2 finding 3: the raw ``build_info`` is compared with the manifest's
-    ``props_build_info`` -- a check the per-field commit-prefix test does not make."""
+    """Reviewer 2 finding 3 and root 01:53: the server's ACTUAL ``/props.build_info`` is
+    compared with the manifest's ``props_build_info`` -- a check the per-field commit-prefix
+    test does not make.  Since the serving-manifest binding it is recorded under the
+    ``serving_manifest`` stage (the one manifest fact that needs the running server)."""
 
     def test_a_build_string_other_than_the_manifests_is_refused(self):
         sc = self.host.scenario()
-        other = dict(self.host.manifest, props_build_info='b6001-4fea119d')
+        sc['props'] = dict(sc['props'], build_info='b6001-4fea119d')
         spec = self.host.spec(free_port())
-        self.assertEqual(lab_server.serving_manifest_problems(
-            spec, other, sha256_canonical(other)), [],
-            'the manifest itself re-verifies: the commit prefix is in both strings')
+        self.assertEqual(self.host.manifest['props_build_info'], sm_fixture.BUILD_INFO)
+        self.assertEqual(lab_serving_manifest.verify_before_launch(
+            self.host.manifest_path, self.host.manifest_sha, launcher=spec.llama_bin,
+            llama_commit=COMMIT)[1], [], 'the manifest itself re-verifies before the launch')
         self.assertNotIn('build_info', lab_server.identity_findings(
             spec, sc['props'], None, None), 'the per-field check alone passes it')
         with served(self.host, sc) as (port, _unused):
-            rec = self.failure(self.start, self.host.spec(port), sc,
-                               serving_manifest=other,
-                               serving_manifest_sha256=sha256_canonical(other))
-        self.assertEqual((rec['stage'], rec['findings']), ('identity', ['build_info']))
+            rec = self.failure(self.start, self.host.spec(port), sc)
+        self.assertEqual((rec['stage'], rec['findings']),
+                         ('serving_manifest', ['build_info', 'serving_manifest']))
+        self.assertGreater(rec['pid'], 0)
+        self.assertEqual(lab_server.exit_status(rec['pid']), rec['returncode'],
+                         'the child was stopped')
+        self.assertEqual(self.labels, ['props_build_info_observed'])
         # control: the manifest's own string (the fixture's) starts -- test_a_good_start
 
 
@@ -723,21 +751,18 @@ class CopiedDigestTests(ServerCase):
         with self.assertRaises(lab_common.PreflightError):
             lab_server.start(spec, golden_props=golden['props'], golden=golden,
                              sampling=dict(SAMPLING), recompute_gguf_sha256=False,
-                             serving_manifest=self.host.manifest,
-                             serving_manifest_sha256=self.host.manifest_sha)
+                             **self.host.manifest_kw())
         self.assertEqual(dict(lab_server._CHILDREN), before)
         with self.assertRaises(lab_common.PreflightError):
             lab_server.restart(spec, golden['props'], previous_pid=1 << 22,
                                previous_props_sha256='4' * 64, golden=golden,
                                sampling=dict(SAMPLING), recompute_gguf_sha256=False,
-                               serving_manifest=self.host.manifest,
-                               serving_manifest_sha256=self.host.manifest_sha)
+                               **self.host.manifest_kw())
         self.assertEqual(dict(lab_server._CHILDREN), before)
         # control: recomputing, the wrong digest is observed and refused at stage gguf
         rec = self.failure(lab_server.start, spec, golden_props=golden['props'],
                            golden=golden, sampling=dict(SAMPLING),
-                           serving_manifest=self.host.manifest,
-                           serving_manifest_sha256=self.host.manifest_sha)
+                           **self.host.manifest_kw())
         self.assertEqual((rec['stage'], rec['findings']), ('gguf', ['gguf_sha256']))
 
 
@@ -877,7 +902,7 @@ class PreflightTests(unittest.TestCase):
         self.assertEqual([r['item'] for r in rows], ['golden_props_model_path.coder'])
 
     def test_a_missing_serving_manifest_is_refused(self):
-        (self.tree.freeze / orch.SERVING_MANIFEST_FILE).unlink()
+        lab_serving_manifest.artifact_path(self.tree.freeze).unlink()
         with self.sim():
             codes, items = self.refusal(self.tree.ctx(sim=True))
         self.assertIn('serving_manifest', codes)
@@ -1067,7 +1092,10 @@ class StartServersTests(unittest.TestCase):
 
         def fake_start(spec, **kw):
             calls.append((spec.server_id, kw['mode'], kw['golden_props'] is not None,
-                          kw['serving_manifest'] is not None))
+                          kw['serving_manifest_path'] == lab_serving_manifest.artifact_path(
+                              self.tree.results.absolute() / 'freeze')
+                          and kw['serving_manifest_sha256'] == self.tree.built['cfg'][
+                              'llama_cpp']['serving_manifest_sha256']))
             return bodies[spec.server_id]
         with mock.patch.object(orch.lab_server, 'start', fake_start):
             self.world.start_servers()

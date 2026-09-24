@@ -16,6 +16,11 @@ started and reaps exactly this process (no intermediate parent survives a ``kill
 
 What it performs:
 
+* **The launcher** is, since the serving-manifest binding (root 01:53), the compiled
+  ``sm_fixture`` launcher (a Mach-O whose closure the runtime re-derives), which reads the
+  interpreter, this script and the state directory from its ``.conf`` and ``exec``s this
+  script with its argv unchanged, setting ``EB1C_SHIM_STATE``; the ``/bin/sh`` form above is
+  the EB1c original and is refused by the manifest check (a script has no load commands).
 * **The argv is parsed strictly.**  Every flag of ``server_argv`` is known; any other token,
   a missing value, or a missing ``--port``/``--alias`` exits 2 before anything listens, so a
   launch line that drifted from the frozen one surfaces as ``process_exited`` at the launch
@@ -30,13 +35,17 @@ What it performs:
   ``main``) and a fault matcher; what it lacked was a notion of "which start is this", and
   that belongs to the launcher, not to the server.
 * An entry may carry a ``_shim`` object, removed before the mock sees the scenario:
-  ``{"exit_before_listen": CODE}`` exits CODE without binding (a launch that dies at once);
+  ``{"exit_before_listen": CODE}`` exits CODE without binding (a launch that dies at once;
+  with ``"exit_before_listen_after_s": S`` it first sleeps S seconds);
   ``{"never_listen": true}`` sleeps without binding until signalled (a server that never
   answers ``/health``); ``{"exit_after_responses": N, "exit_code": CODE}`` serves normally
   and ``os._exit(CODE)``s right AFTER the N-th completion response (the smoke counts) has been
-  written -- a process that dies between pairs, with no request in flight.  The last one
-  wraps the mock's completion handler in this process; ``lab_mock_server``'s own ``exit``
-  fault dies BEFORE answering, so it cannot express "answered, then died".
+  written -- a process that dies between pairs, with no request in flight; with
+  ``"flip_before_exit": {"path": P, "marker": M}`` it first XORs one byte inside the text M
+  of the file P (the serving-manifest controls: a library changed between a start and the
+  supervised restart).  The last one wraps the mock's completion handler in this process;
+  ``lab_mock_server``'s own ``exit`` fault dies BEFORE answering, so it cannot express
+  "answered, then died".
 * Every launch is recorded in ``launches.jsonl`` as ``{start, pid, argv, scenario_index,
   scenario_sha256}`` BEFORE it serves, so a control can map every pid in the chain to the
   scenario that process was scripted to serve, and can prove no launched pid outlives the run.
@@ -126,10 +135,20 @@ def _record_launch(state: Path, argv: list[str]) -> tuple[int, dict]:
     return start, entry
 
 
-def _exit_after_responses(mock_module, n: int, code: int) -> None:
+def _flip(spec: dict) -> None:
+    """XOR one byte inside ``spec['marker']`` (text) of the file ``spec['path']``."""
+    path = Path(str(spec['path']))
+    data = bytearray(path.read_bytes())
+    at = data.find(str(spec['marker']).encode('utf-8'))
+    if at >= 0:
+        data[at + 5] ^= 0x01
+        path.write_bytes(bytes(data))
+
+
+def _exit_after_responses(mock_module, n: int, code: int, flip: dict | None = None) -> None:
     """Wrap the mock's completion handler so that the process exits right after the
     ``n``-th completion response has been written (a real exit: nothing is flushed or
-    closed, as when a server process dies)."""
+    closed, as when a server process dies); ``flip`` is applied first (:func:`_flip`)."""
     import threading
     handler = mock_module._Handler
     original = handler._complete
@@ -146,6 +165,8 @@ def _exit_after_responses(mock_module, n: int, code: int) -> None:
             served[0] += 1
             done = served[0] >= n
         if done:
+            if flip:
+                _flip(flip)
             os._exit(code)
 
     handler._complete = _complete
@@ -167,6 +188,7 @@ def main(argv: list[str] | None = None) -> int:
             fh.write('eb1c_llama_shim start=%d pid=%d shim=%s\n'
                      % (start, os.getpid(), json.dumps(shim, sort_keys=True)))
     if 'exit_before_listen' in shim:
+        time.sleep(float(shim.get('exit_before_listen_after_s') or 0.0))
         return int(shim['exit_before_listen'])
     if shim.get('never_listen'):
         while True:                     # until lab_server.stop signals the process group
@@ -176,7 +198,7 @@ def main(argv: list[str] | None = None) -> int:
     import lab_mock_server
     if shim.get('exit_after_responses'):
         _exit_after_responses(lab_mock_server, int(shim['exit_after_responses']),
-                              int(shim.get('exit_code', 9)))
+                              int(shim.get('exit_code', 9)), shim.get('flip_before_exit'))
     return lab_mock_server.main(['--scenario', str(scenario_path),
                                  '--port', str(int(flags['--port'])),
                                  '--alias', flags['--alias']])

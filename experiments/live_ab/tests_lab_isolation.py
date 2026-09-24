@@ -46,7 +46,12 @@ MATRIX: dict[str, set[str]] = {
     'lab_monitor': {'numpy', 'winstats', 'lab_common', 'lab_enclosure'},
     'lab_enclosure': {'numpy', 'winstats', 'lab_common'},
     'lab_client': {'requests', 'lab_common'},
-    'lab_server': {'requests', 'lab_common'},
+    'lab_server': {'requests', 'lab_common', 'lab_serving_manifest'},
+    # lab_serving_manifest (root 01:53, session 60 repair): the serving manifest of protocol
+    # 2.2 item 2 and the dependency closure transcribed from live_ab_serving.  Standard
+    # library plus lab_common; imported by lab_server and the orchestrator.  Not yet a row of
+    # ARCHITECTURE_FINAL.md 3.16 -- the synchronized amendment adds it.
+    'lab_serving_manifest': {'lab_common'},
     'lab_mock_server': set(),
     'lab_worker': {'requests', 'lab_common', 'lab_client', 'lab_data', 'agent',
                    'sandbox', 'verify', 'data', 'common'},
@@ -56,7 +61,8 @@ MATRIX: dict[str, set[str]] = {
     'lab_hostcheck': {'lab_common'},
     'lab_orchestrator': {'requests', 'lab_common', 'lab_eventlog', 'lab_data',
                          'lab_design', 'lab_coin', 'lab_monitor', 'lab_enclosure',
-                         'lab_reference_rule', 'lab_server', 'lab_hostcheck'},
+                         'lab_reference_rule', 'lab_server', 'lab_hostcheck',
+                         'lab_serving_manifest'},
     'lab_anchor': {'requests', 'lab_common'},
     'build_live_ab_results': {'numpy', 'pandas', 'winstats', 'lab_common',
                               'lab_eventlog', 'lab_monitor', 'lab_enclosure',
@@ -407,6 +413,38 @@ SIGNATURES: dict[str, dict[str, tuple]] = {
                     ('sampling', None, PO)),
         'stop': fn(('pid', None, PO), ('grace_s', '10.0', KW)),
         'restart': fn(('spec', None, PO), ('golden_props', None, PO)),
+    },
+    # The serving manifest (root 01:53).  Not a section-3 module: this table is its own
+    # public contract, pinned so that lab_server, the orchestrator and the assembler tool
+    # cannot drift away from it silently.
+    'lab_serving_manifest': {
+        'MANIFEST_SCHEMA': CONST, 'ARTIFACT_NAME': CONST, 'FREEZE_DIR_NAME': CONST,
+        'TRACKED_RELPATH': CONST, 'CONFIG_DIGEST_KEY': CONST, 'PROVENANCE_ROLES': CONST,
+        'MANIFEST_KEYS': CONST, 'SCHEMA': CONST, 'ManifestError': CONST,
+        'artifact_path': fn(('freeze_dir', None, PO)),
+        'read_artifact': fn(('path', None, PO)),
+        'digest_problems': fn(('found', None, PO), ('expected', None, PO)),
+        'verify_artifact': fn(('path', None, PO), ('expected_sha256', None, PO)),
+        'write_artifact': fn(('path', None, PO), ('manifest', None, PO)),
+        'override_problems': fn(('cfg', None, PO), ('results_root', None, PO)),
+        'server_cwd': fn(('launcher', None, PO)),
+        # derive_closure / verify_closure are TRANSCRIBED from live_ab_serving; their
+        # agreement with the original is tests_sm_manifest's AST comparison, not this table.
+        'derive_closure': CONST, 'verify_closure': CONST,
+        'runtime_facts': fn(('manifest', None, PO), ('launcher', None, KW),
+                            ('environ', 'None', KW), ('readers', 'None', KW)),
+        'recorded_facts': fn(('manifest', None, PO)),
+        'compare_facts': fn(('manifest', None, PO), ('measured', None, PO)),
+        'runtime_problems': fn(('manifest', None, PO), ('launcher', None, KW),
+                               ('llama_commit', None, KW), ('environ', 'None', KW),
+                               ('readers', 'None', KW)),
+        'verify_before_launch': fn(('path', None, PO), ('expected_sha256', None, PO),
+                                   ('launcher', None, KW), ('llama_commit', None, KW),
+                                   ('environ', 'None', KW), ('readers', 'None', KW)),
+        'props_build_info_problems': fn(('manifest', None, PO), ('props', None, PO)),
+        'assemble': fn(('launcher', None, PO), ('provenance', None, PO),
+                       ('llama_commit', None, KW), ('environ', 'None', KW),
+                       ('readers', 'None', KW)),
     },
     'lab_mock_server': {
         'make_server': fn(('scenario', None, PO), ('port', '0', KW)),

@@ -49,6 +49,7 @@ import lab_hostcheck
 import lab_monitor
 import lab_reference_rule
 import lab_server
+import lab_serving_manifest
 from lab_common import (AbortTrial, ChainError, MonitorError, PauseTrial, PreflightError,
                         SpoolError, TrialPaths, canonical_json, sha256_bytes,
                         sha256_canonical, sha256_file, sha256_text, tokenize_path,
@@ -759,9 +760,11 @@ class RunContext:
     mc: MonitorConfig
     servers: dict
     golden: dict
-    #: The frozen serving manifest object read from the freeze tree (``None`` when it is
-    #: absent or does not match its frozen digest, which preflight then refuses).
-    serving_manifest: dict | None = None
+    #: THE serving-manifest artifact of this invocation's freeze tree,
+    #: ``<results_root>/freeze/serving_manifest.json`` (``lab_serving_manifest.artifact_path``;
+    #: root 01:53).  Its path only: preflight and every ``lab_server.start`` / ``restart``
+    #: read and re-verify the file itself, so no copy taken earlier is ever compared.
+    serving_manifest_path: Path | None = None
 
 
 class RunLock:
@@ -870,7 +873,7 @@ MEMBER_REFUSAL: dict[str, str] = {
 
 
 # ---------------------------------------------------------------------------
-# the golden objects and the serving manifest: READ FROM THE FREEZE TREE
+# the golden objects: READ FROM THE FREEZE TREE (the serving manifest: lab_serving_manifest)
 # ---------------------------------------------------------------------------
 #: ARCHITECTURE_FINAL.md 2.2 (lines 190-191) deposits the golden objects of protocol 13.2
 #: in the freeze tree as ``golden_props_<server>.json`` and
@@ -881,15 +884,6 @@ GOLDEN_FILES: dict[str, str] = {
     'golden_props_sha256': 'golden_props_%s.json',
     'golden_generation_settings_sha256': 'golden_generation_settings_%s.json',
 }
-
-#: The frozen serving manifest of protocol 2.2 item 2, whose canonical digest
-#: ``config.llama_cpp.serving_manifest_sha256`` records.  PROPOSED NAME (repair lane EB1a):
-#: ARCHITECTURE_FINAL.md 2.2 lists no file for it although protocol 2.2 makes the manifest a
-#: part of the freeze bundle that is re-verified at every server start (P:452, P:918), and
-#: ``lab_server.start`` needs the object, not only its digest.  The amendment lane must add
-#: it to the 2.2 listing; until then this constant is the one place that names it.
-SERVING_MANIFEST_FILE: str = 'serving_manifest.json'
-
 
 def _read_json_object(path: Path) -> tuple[dict | None, str]:
     """``(object, digest)``: the canonical digest of a JSON object file, or ``(None,
@@ -959,21 +953,6 @@ def load_golden_objects(freeze_dir: Path, cfg: Mapping,
     return golden, rows
 
 
-def load_serving_manifest(freeze_dir: Path, cfg: Mapping) -> tuple[dict | None, list[dict]]:
-    """The frozen serving manifest object and its drift rows: the configuration's
-    ``llama_cpp.serving_manifest_sha256`` null, the file missing or unreadable, or its
-    canonical digest different -- each is a row under ``serving_manifest_sha256``."""
-    want = ((frozen_cfg(cfg).get('llama_cpp') or {}).get('serving_manifest_sha256'))
-    obj, found = _read_json_object(Path(freeze_dir) / SERVING_MANIFEST_FILE)
-    if not _hex64(want):
-        return None, [{'item': 'serving_manifest_sha256',
-                       'expected': lab_common.MEMBER_ABSENT, 'found': found}]
-    if obj is None or found != want:
-        return None, [{'item': 'serving_manifest_sha256', 'expected': str(want),
-                       'found': found}]
-    return obj, []
-
-
 def observed_sandbox_profile_sha256() -> str | None:
     """The sha256 of the seatbelt profile THIS host would actually enforce, or None.
 
@@ -1041,8 +1020,11 @@ def observed_bundle_members(freeze_dir: Path, *, trial: str | None = None,
         # the freeze tree (repair contract EB1 item 7).  This used to copy the configuration's
         # own digests into the observation, so the drift row compared the config with
         # itself: a golden file that was missing, unreadable or edited could never drift.
-        _, manifest_found = _read_json_object(freeze_dir / SERVING_MANIFEST_FILE)
-        if manifest_found != lab_common.MEMBER_ABSENT:
+        # The manifest is read by lab_serving_manifest.read_artifact (a regular file whose
+        # bytes are its canonical JSON); anything else is absent here.
+        _, manifest_found, manifest_bad = lab_serving_manifest.read_artifact(
+            lab_serving_manifest.artifact_path(freeze_dir.absolute()))
+        if not manifest_bad and manifest_found:
             out['serving_manifest_sha256'] = manifest_found
         receipt = cfg.get('receipt') or {}
         server_names = {str(k) for k in (cfg.get('servers') or {})}
@@ -1292,10 +1274,30 @@ def preflight(ctx: RunContext) -> dict:
     if golden_rows:
         failed.append('golden_objects')
         drift.extend(golden_rows)
-    manifest, manifest_rows = load_serving_manifest(freeze_dir, cfg)
-    if manifest_rows:
+    # --- the serving manifest (protocol 2.2 item 2; root 01:53) ---------------------
+    # THE artifact is ``<results_root>/freeze/serving_manifest.json`` and nothing else:
+    # a runtime or configuration key that would name another location, a context whose
+    # path differs, a missing / symlinked / non-canonical file, a null configuration
+    # digest or a different canonical digest refuses before seq 0 (lab_serving_manifest).
+    # The runtime facts are re-verified against it below, on the real path.
+    sm_path = lab_serving_manifest.artifact_path(
+        Path(rt['results_root']).absolute() / 'freeze')
+    want_manifest = (cfg.get('llama_cpp') or {}).get(lab_serving_manifest.CONFIG_DIGEST_KEY)
+    sm_labels = list(lab_serving_manifest.override_problems(ctx.cfg, rt['results_root']))
+    if getattr(ctx, 'serving_manifest_path', None) is not None \
+            and Path(str(ctx.serving_manifest_path)) != sm_path:
+        sm_labels.append('context_path')
+    manifest, manifest_found, artifact_labels = lab_serving_manifest.verify_artifact(
+        sm_path, want_manifest)
+    if artifact_labels:
+        drift.append({'item': 'serving_manifest_sha256',
+                      'expected': (str(want_manifest) if _hex64(want_manifest)
+                                   else lab_common.MEMBER_ABSENT),
+                      'found': manifest_found or lab_common.MEMBER_ABSENT})
+    for label in sm_labels + artifact_labels:
         failed.append('serving_manifest')
-        drift.extend(manifest_rows)
+        _drift(_drift_label('serving_manifest.%s' % label),
+               sha256_text('serving manifest re-verifies'), sha256_text(label))
     # --- supervision (repair contract EB1 items 1-2) ------------------------------------
     # Every invocation that starts a server supervises it, and supervision has two frozen
     # inputs: the restart cap (root 20:40 item 4, config.server_supervision) and the
@@ -1330,11 +1332,12 @@ def preflight(ctx: RunContext) -> dict:
     if WORLD_FACTORY is None:
         # Each server's weights and the launcher, explicitly named, against the frozen
         # values: the GGUF bytes and recomputed SHA-256 of the servers block (protocol 2.3:
-        # the cache blob name is not proof of its content) and the serving manifest's
-        # launcher and library digests (lab_server.serving_manifest_problems says exactly
-        # what that re-verification performs).  ``lab_server.start`` repeats both at every
-        # start; this is the pre-seq-0 refusal of protocol 6.4 row 21.
-        want_manifest = (cfg.get('llama_cpp') or {}).get('serving_manifest_sha256')
+        # the cache blob name is not proof of its content) and every runtime fact of the
+        # serving manifest -- launcher path and digest, the closure re-resolved from the
+        # load commands, LC_RPATH, the embedded Metal library, the re-hashed build
+        # provenance (lab_serving_manifest.runtime_problems says exactly what it performs).
+        # ``lab_server.start`` repeats both at every start and restart; this is the
+        # pre-seq-0 refusal of protocol 6.4 row 21, at EVERY invocation, resume included.
         for sid, spec in sorted(servers.items()):
             row = _gguf_drift(sid, spec)
             if row is not None:
@@ -1355,8 +1358,8 @@ def preflight(ctx: RunContext) -> dict:
                        else lab_common.MEMBER_ABSENT,
                        str(recomputed) if _hex64(recomputed) else lab_common.MEMBER_ABSENT)
             if manifest is not None:
-                for label in lab_server.serving_manifest_problems(spec, manifest,
-                                                                  want_manifest):
+                for label in lab_serving_manifest.runtime_problems(
+                        manifest, launcher=spec.llama_bin, llama_commit=spec.llama_commit):
                     failed.append('serving_manifest')
                     _drift(_drift_label('serving_manifest.%s.%s' % (sid, label)),
                            sha256_text('serving manifest re-verifies'), sha256_text(label))
@@ -2317,9 +2320,9 @@ class World:
         """The frozen inputs every ``lab_server.start`` / ``restart`` of one server gets."""
         golden = self.ctx.golden.get(server_id)
         return {'golden': golden, 'sampling': dict(self.cfg.get('sampling') or {}),
-                'serving_manifest': self.ctx.serving_manifest,
+                'serving_manifest_path': self.ctx.serving_manifest_path,
                 'serving_manifest_sha256': (self.cfg.get('llama_cpp') or {}).get(
-                    'serving_manifest_sha256')}
+                    lab_serving_manifest.CONFIG_DIGEST_KEY)}
 
     def _start_one(self, server_id: str) -> dict:
         """``lab_server.start`` in trial mode; on success the returned body is appended as
@@ -4430,7 +4433,10 @@ def make_context(trial: str, cfg: dict, *, results_root: Path, work_root: Path,
     golden, _ = load_golden_objects(freeze_dir, fcfg, servers)
     if simulated_path(rt) and rt.get('golden') is not None:
         golden = dict(rt['golden'])
-    serving_manifest, _ = load_serving_manifest(freeze_dir, fcfg)
+    # THE serving-manifest artifact: fixed under the results root, never the runtime
+    # ``freeze_dir`` (preflight refuses a runtime freeze_dir that is not this one).
+    serving_manifest_path = lab_serving_manifest.artifact_path(
+        Path(results_root).absolute() / 'freeze')
     mc = MonitorConfig.from_config(fcfg, trial)
     rt.setdefault('config_sha256', sha256_file(freeze_dir / 'config.json'))
     rt.setdefault('order_sha256', sha256_file(order_path))
@@ -4441,7 +4447,7 @@ def make_context(trial: str, cfg: dict, *, results_root: Path, work_root: Path,
     return RunContext(trial=trial, inv=inv or uuid.uuid4().hex, cfg=cfg,
                       bundle_sha=str(rt['bundle_sha']), paths=paths, order=list(order),
                       tasks=tasks, mc=mc, servers=servers, golden=golden,
-                      serving_manifest=serving_manifest)
+                      serving_manifest_path=serving_manifest_path)
 
 
 def _arg_value(args: Sequence[str], flag: str, default: int) -> int:
@@ -4495,8 +4501,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument('--gguf', action='append', default=[], metavar='SERVER=PATH')
     args = ap.parse_args(argv)
     cfg = json.loads(Path(args.config).read_text(encoding='utf-8'))
-    results_root = Path(args.results or lab_common.RESULTS_ROOT)
-    work_root = Path(args.work or lab_common.WORK_ROOT)
+    # Absolute: the server runs in its launcher's directory (lab_serving_manifest.
+    # server_cwd), so a relative log path would name another file there, and THE serving
+    # manifest is the absolute <results_root>/freeze/serving_manifest.json.
+    results_root = Path(args.results or lab_common.RESULTS_ROOT).absolute()
+    work_root = Path(args.work or lab_common.WORK_ROOT).absolute()
     rt = cfg.setdefault('_runtime', {})
     rt['results_root'] = str(results_root)
     rt['work_root'] = str(work_root)

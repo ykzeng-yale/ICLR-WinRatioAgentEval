@@ -13,11 +13,14 @@ What runs:
   manifest, supervision config), the real host-quiescence gate (``ps``/``lsof``, read only),
   the real ``lab_server.start`` / ``restart`` / ``stop`` on a real child process, the real
   supervisor, the real worker processes (``lab_worker.main``) and the real verifier CLI.
-* **The "llama-server" is** ``eb1c_llama_shim.py`` behind a two-line ``/bin/sh`` launcher: it
-  accepts exactly the frozen argv of ``lab_server.server_argv`` and ``exec``s into
-  ``lab_mock_server.main`` (unchanged) on the frozen port, serving the scenario of its start
-  count.  The launcher and a dummy library beside it are what the temporary serving manifest
-  pins; the "weights" are a dummy GGUF whose bytes and SHA-256 are the temporary config's
+* **The "llama-server" is** ``eb1c_llama_shim.py`` behind the compiled ``sm_fixture``
+  launcher (a Mach-O linking two tiny libraries; since root's 01:53 serving-manifest ruling
+  every start re-derives that closure from its load commands): it accepts exactly the frozen
+  argv of ``lab_server.server_argv`` and ``exec``s into ``lab_mock_server.main`` (unchanged)
+  on the frozen port, serving the scenario of its start count.  THE serving manifest of the
+  temporary freeze tree is ``lab_serving_manifest.assemble`` of that build, written at the
+  fixed ``<results>/freeze/serving_manifest.json``; the "weights" are a dummy GGUF whose
+  bytes and SHA-256 are the temporary config's
   ``servers.coder`` values; the mock serves the dummy's ABSOLUTE path as ``model_path``, so
   the realpath check and the tokenization of ``lab_server.tokenized_props`` both run.
 * **The anchor** is ``lab_anchor.py --mock-receipt`` (no git, no network), as in the dry runs.
@@ -111,7 +114,9 @@ import lab_hostcheck                                                    # noqa: 
 import lab_mock_server                                                  # noqa: E402
 import lab_orchestrator as orch                                         # noqa: E402
 import lab_server                                                       # noqa: E402
+import lab_serving_manifest                                             # noqa: E402
 import lab_verify_log                                                   # noqa: E402
+import sm_fixture                                                       # noqa: E402
 from lab_common import canonical_json, sha256_canonical, sha256_file, sha256_text  # noqa: E402
 
 PY = sys.executable
@@ -119,6 +124,7 @@ LIVE_CFG: dict = json.loads((LIVE / 'config.json').read_text(encoding='utf-8'))
 LABSBX: str = lab_common.prescribed_tmpdir(LIVE_CFG)
 TRIAL = 'T4'
 BUILD_INFO = 'b6000-%s' % str(LIVE_CFG['llama_cpp']['commit'])[:8]
+assert BUILD_INFO == sm_fixture.BUILD_INFO   # the build string the fixture's build-info.cpp gives
 RECOVERY_S = 10
 RUN_TIMEOUT_S = 240.0
 #: The fault that kills a mock process on its first task call and never on the smoke: the
@@ -187,9 +193,10 @@ def child_env() -> dict:
 # the temporary host and freeze tree
 # --------------------------------------------------------------------------- #
 class EntryTree:
-    """One control's world: a temporary host (dummy GGUF, sh launcher of the shim, a dummy
-    library, the shim's state directory, a relocated lock root) and a freeze tree built by
-    ``dryrun_live_ab.build_mock_freeze`` and then bound to that host."""
+    """One control's world: a temporary host (dummy GGUF, the compiled ``sm_fixture`` build
+    whose launcher execs the shim, the shim's state directory, a relocated lock root) and a
+    freeze tree built by ``dryrun_live_ab.build_mock_freeze`` and then bound to that host --
+    including THE serving manifest assembled from that build."""
 
     def __init__(self, name: str, *, n_pairs: int = 3, shim_as: str | None = None,
                  trial: str = TRIAL, freeze_kw: dict | None = None) -> None:
@@ -212,25 +219,20 @@ class EntryTree:
         self.gguf = self.host / 'weights' / 'coder-dummy.gguf'
         self.gguf.parent.mkdir(parents=True)
         self.gguf.write_bytes(b'GGUF' + (b'eb1c dummy weights, not a model\n' * 32))
-        self.launcher = self.bin / 'llama-server'
-        self.launcher.write_text(
-            "#!/bin/sh\n%s='%s' exec '%s' '%s' \"$@\"\n"
-            % (shim.STATE_ENV, self.state, PY, HERE / 'eb1c_llama_shim.py'), encoding='utf-8')
-        self.launcher.chmod(0o755)
-        self.lib = self.bin / 'libmock.0.dylib'
-        self.lib.write_bytes(b'eb1c: not a library, only a digest the manifest pins\n')
         #: the script name a launched shim's command line carries (cleanup, orphan checks)
         self.shim_token = shim_as or 'eb1c_llama_shim'
+        shim_script = HERE / 'eb1c_llama_shim.py'
+        self.fixture = sm_fixture.Build(self.host / 'llama', state=self.state)
+        self.launcher = self.fixture.launcher
+        self.lib = self.fixture.core
         if shim_as is not None:
             # the shim under another script name -- C10 gives it a name the host gate's
             # runner list matches (``llama-server.py``: lab_hostcheck.match_consumer reads
             # the dotted token's head), so a surviving shim IS a foreign llama-server to
             # the gate, exactly as a real orphaned llama-server would be
-            alias = self.bin / shim_as
-            os.symlink(HERE / 'eb1c_llama_shim.py', alias)
-            self.launcher.write_text(
-                "#!/bin/sh\n%s='%s' exec '%s' '%s' \"$@\"\n"
-                % (shim.STATE_ENV, self.state, PY, alias), encoding='utf-8')
+            shim_script = self.bin / shim_as
+            os.symlink(HERE / 'eb1c_llama_shim.py', shim_script)
+            self.fixture.set_shim(shim_script)
         self.port = free_port()
         self.anchor = None
         self.proc: subprocess.Popen | None = None
@@ -284,13 +286,13 @@ class EntryTree:
         cfg['servers']['coder'].update({'port': self.port, 'bytes': size,
                                         'sha256_expected': digest,
                                         'sha256_recomputed': digest})
-        manifest = {'mock': True, 'llama_cpp_commit': str(cfg['llama_cpp']['commit']),
-                    'launcher_sha256': sha256_file(self.launcher),
-                    'libraries': [{'name': self.lib.name, 'sha256': sha256_file(self.lib)}],
-                    'props_build_info': BUILD_INFO}
-        (self.freeze / orch.SERVING_MANIFEST_FILE).write_text(
-            canonical_json(manifest) + '\n', encoding='utf-8')
-        cfg['llama_cpp']['serving_manifest_sha256'] = sha256_canonical(manifest)
+        # THE serving manifest of this tree: assembled from the compiled build by
+        # lab_serving_manifest.assemble and written at the fixed path (the mock tree's own
+        # mock artifact is removed first: the artifact is write-once).
+        lab_serving_manifest.artifact_path(self.freeze).unlink()
+        cfg['llama_cpp']['serving_manifest_sha256'] = self.fixture.write_manifest(self.freeze)
+        cfg.setdefault('mock_overrides', {})['llama_cpp.serving_manifest_sha256'] = (
+            'the sm_fixture test-double build (serving-manifest binding, root 01:53)')
         # the golden objects, TOKENIZED by the one rule (lab_server.tokenized_props)
         # (``golden_raw``: C8d's defect -- the RAW object deposited as golden, never tokenized)
         self.golden_props = (dict(good['props']) if golden_raw

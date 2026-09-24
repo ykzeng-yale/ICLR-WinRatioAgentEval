@@ -44,6 +44,7 @@ import lab_design
 import lab_eventlog
 import lab_monitor
 import lab_orchestrator
+import lab_serving_manifest
 import lab_verify_log
 from lab_common import canonical_json, sha256_canonical, sha256_file, sha256_text
 from lab_orchestrator import World, make_context, run_trial
@@ -135,14 +136,14 @@ def _mock_task(uid: str, benchmark: str, stratum: str) -> dict:
 
 
 def mock_serving_manifest(cfg: Mapping) -> dict:
-    """A MOCK serving manifest carrying every member ``lab_server.start`` re-verifies.  Its
-    launcher and library digests name no file on any host, so a real start against it would
-    fail its ``serving_manifest`` stage -- which is the point: it exists to be digested."""
+    """A MOCK serving manifest: the schema of ``lab_serving_manifest`` and ``mock: true``,
+    and nothing a runtime could match.  It exists to be DEPOSITED at the one fixed path and
+    digested into the configuration, as a real freeze does; ``lab_serving_manifest.
+    structure_problems`` refuses any manifest marked mock, so a real start or a real-path
+    preflight against this tree fails its ``serving_manifest`` stage -- which is the point."""
     commit = str(cfg['llama_cpp']['commit'])
-    return {'mock': True, 'llama_cpp_commit': commit,
-            'launcher_sha256': sha256_text('mock-launcher'),
-            'libraries': [{'name': 'libmock.0.dylib', 'sha256': sha256_text('mock-library')}],
-            'props_build_info': 'mock-%s' % commit[:7]}
+    return {'schema': lab_serving_manifest.MANIFEST_SCHEMA, 'mock': True,
+            'llama_cpp_commit': commit, 'props_build_info': 'mock-%s' % commit[:7]}
 
 
 def mock_golden_props(cfg: Mapping, server_id: str) -> dict:
@@ -214,10 +215,13 @@ def build_mock_freeze(root: Path, *, n_pairs: int, trial: str, delta: float | No
     # reads these files and compares (repair contract EB1 item 7), so a mock tree that only
     # carried invented digests would be a mock of a BROKEN freeze.  Their content is marked
     # mock; a simulated invocation never launches a server against them.
+    # (A mock tree is rebuilt in place by some tests; the artifact is write-once, so the
+    # builder removes its OWN previous mock copy first.  A real freeze is never rebuilt.)
     manifest = mock_serving_manifest(cfg)
-    (freeze / lab_orchestrator.SERVING_MANIFEST_FILE).write_text(
-        canonical_json(manifest) + '\n', encoding='utf-8')
-    cfg['llama_cpp']['serving_manifest_sha256'] = sha256_canonical(manifest)
+    manifest_path = lab_serving_manifest.artifact_path(freeze.absolute())
+    manifest_path.unlink(missing_ok=True)
+    cfg['llama_cpp']['serving_manifest_sha256'] = lab_serving_manifest.write_artifact(
+        manifest_path, manifest)
     for server_id in cfg['servers']:
         cfg['servers'][server_id]['sha256_recomputed'] = \
             cfg['servers'][server_id]['sha256_expected']
