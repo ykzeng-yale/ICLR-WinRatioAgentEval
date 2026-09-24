@@ -81,6 +81,7 @@ def run_reference_sweep(tasks: Sequence[dict], cfg: dict, *,
                         on_progress: Optional[Callable] = None,
                         enforce_tmpdir: bool = True,
                         sweep_fn: Callable = lab_data.sweep_references,
+                        load_sources: Optional[Sequence[Any]] = None,
                         ) -> Dict[str, Any]:
     """The finite preparation sweep, with retention wired and load enforced.
 
@@ -90,6 +91,15 @@ def run_reference_sweep(tasks: Sequence[dict], cfg: dict, *,
     report the covering window identifiers and the timing resolution, and
     ``require_load`` may be cleared ONLY for offline plumbing tests, never for a
     roster-producing run.
+
+    ``load_sources`` (EB5, root 2026-09-23 20:40 item 3): the objects that GENERATE
+    the load -- each with ``stop()`` and ``resolution()`` (``lab_load``). A loaded
+    sweep must hand them over, because terminal acceptance requires "all permitted
+    workers resolved": when the sweep ends (or fails) this entry point stops every
+    source and accepts (``completed=True``) only if every one reports
+    ``resolved`` -- every load intent has a terminal line in its durable ledger and
+    no source thread is alive or was alive at its stop. Otherwise the sweep is
+    refused as incomplete, with each source's resolution in the refusal.
     """
     if require_load and load_observer is None:
         raise PreparationRefused(
@@ -97,6 +107,22 @@ def run_reference_sweep(tasks: Sequence[dict], cfg: dict, *,
             "trial's load regime, and no load observer was supplied. An unloaded "
             'sweep yields a LARGER roster with correct-looking counts, and the '
             'deposited artifact cannot distinguish it afterwards. Refusing.')
+    # EB5: a check that cannot be performed is a refusal, never a pass. A loaded
+    # sweep whose load generators are not handed over cannot show that every
+    # permitted load POST resolved, so it is refused BEFORE the first attempt
+    # rather than after a whole sweep.
+    sources = list(load_sources or ())
+    if require_load and not sources:
+        raise PreparationRefused(
+            'a loaded reference sweep must be given its load_sources so that every '
+            'load intent and source thread can be shown resolved before acceptance '
+            '(EB5, root 2026-09-23 20:40 item 3). Refusing.')
+    for src in sources:
+        if not callable(getattr(src, 'stop', None)) or \
+                not callable(getattr(src, 'resolution', None)):
+            raise PreparationRefused(
+                'load source %r has no stop()/resolution(); its POSTs cannot be shown '
+                'resolved. Refusing.' % (type(src).__name__,))
 
     # TMPDIR ENFORCEMENT AT THE REAL ENTRY POINT, root 2026-09-21 20:43: "The new
     # assertion currently has no callers: adding a helper alone did not yet
@@ -191,8 +217,13 @@ def run_reference_sweep(tasks: Sequence[dict], cfg: dict, *,
     except Exception as exc:
         outcome.update(completed=False, error='%s: %s' % (type(exc).__name__, exc),
                        records_retained=ledger.count - started,
+                       load_resolution=stop_and_resolve(sources),
                        ended_utc=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()))
         raise PreparationRefused(lab_common.canonical_json(outcome)) from exc
+
+    # EB5: the sweep is over, so the load it ran under is stopped here and every
+    # permitted load POST must be accounted for BEFORE anything is accepted.
+    resolution = stop_and_resolve(sources)
 
     # Root: "invalid coverage must never produce COMPLETED preparation or a
     # scientific task exclusion." A missing or unusable observation is not a
@@ -203,9 +234,21 @@ def run_reference_sweep(tasks: Sequence[dict], cfg: dict, *,
             'raw attempts are retained; this preparation is NOT completed and no '
             'task is excluded on account of it. Stop and diagnose.'
             % (len(invalid_coverage), invalid_coverage[:2]))
+    unresolved = [r for r in resolution if r.get('resolved') is not True]
+    if unresolved:
+        outcome.update(completed=False,
+                       error='unresolved load: %d of %d source(s)' % (len(unresolved),
+                                                                     len(resolution)),
+                       records_retained=ledger.count - started, load_resolution=resolution,
+                       ended_utc=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()))
+        raise PreparationRefused(
+            'EB5: %d load source(s) are not resolved (a load intent without a terminal '
+            'line, or a source thread alive at its stop). The sweep is preserved as '
+            'INCOMPLETE and is not accepted: %s'
+            % (len(unresolved), lab_common.canonical_json(outcome)))
     outcome.update(completed=True, exclusions=len(exclusions),
                    records_retained=ledger.count - started,
-                   load_coverage_records=len(coverage),
+                   load_coverage_records=len(coverage), load_resolution=resolution,
                    ended_utc=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()))
     # Retention must be demonstrable, not assumed: every exclusion's digest has to
     # reconstruct from what the ledger actually holds.
@@ -229,6 +272,34 @@ def run_reference_sweep(tasks: Sequence[dict], cfg: dict, *,
             % (len(unreconstructed), unreconstructed[:3]))
     outcome['all_digests_reconstruct_from_ledger'] = True
     return {'exclusions': exclusions, 'receipt': outcome, 'coverage': coverage}
+
+
+def stop_and_resolve(sources: Sequence[Any]) -> List[Dict[str, Any]]:
+    """Stop every load source and return its ``resolution()``; never raises.
+
+    A source whose ``stop()`` or ``resolution()`` raises, or answers anything but a
+    dict with ``resolved is True``, is recorded as UNRESOLVED with the reason: an
+    unknown state is not a resolved one.
+    """
+    out: List[Dict[str, Any]] = []
+    for src in sources:
+        name = getattr(src, 'source_id', None) or type(src).__name__
+        try:
+            src.stop()
+        except Exception as exc:
+            out.append({'source_id': name, 'resolved': False,
+                        'reasons': ['stop() raised %s: %s' % (type(exc).__name__, exc)]})
+            continue
+        try:
+            res = src.resolution()
+        except Exception as exc:
+            res = {'source_id': name, 'resolved': False,
+                   'reasons': ['resolution() raised %s: %s' % (type(exc).__name__, exc)]}
+        if not isinstance(res, dict):
+            res = {'source_id': name, 'resolved': False,
+                   'reasons': ['resolution() returned %s' % (type(res).__name__,)]}
+        out.append(res)
+    return out
 
 
 # ---------------------------------------------------------------------------

@@ -53,12 +53,48 @@ Root ruled that neither this empirical maximum nor an arbitrary pre-registered
 constant is an accepted endpoint-error guarantee.  It is retained as a diagnostic
 of this process's own scheduling, and it is not put forward as a bound on
 delivery or observation error.
+
+EB5: EVERY LOAD POST IS TRACKED, AND A STOP NEVER FORGETS A LIVE THREAD
+------------------------------------------------------------------------
+Root, 2026-09-23 20:40 item 3 (``reviews/prerun_bundle_go_nogo_20260923_2040.md:18``):
+"A successful loaded phase must demonstrate all permitted workers resolved before
+its terminal acceptance; preserve any unresolved attempt as a failed/incomplete
+phase."  At b049307 ``StreamingHttpLoad`` had no durable intent, no per-request
+record and no usage; ``stop()`` joined for 10 s and then set ``_thread = None``
+unconditionally, so a thread still blocked in ``post`` was forgotten
+(``understand_eb5.md`` Sec. 4).  Now, per source:
+
+* a durable ``load_intent`` line (``LOAD_LEDGER_SCHEMA``, fsynced) is written under
+  ``_gate`` AFTER checking the terminal flag and BEFORE the POST; ``stop()`` sets
+  that flag under the same lock, so no POST can start without an intent, and no
+  intent can be written after the stop snapshot.  A worker that passed the gate
+  just before the stop still POSTs -- the gate cannot prevent that without holding
+  the lock across the POST -- but that POST is TRACKED: its intent is on disk and
+  it stays unterminated or unresolved until the thread ends (the ``run_smoke.py``
+  send-permit shape, ``experiments/live_ab_serving/run_smoke.py:1840-1859``);
+* exactly one ``load_terminal`` line follows each intent: ``done`` (``[DONE]``
+  seen), ``error``, or ``abandoned_by_stop``, with ``usage`` parsed from the
+  stream's usage chunk or ``null`` with ``usage_null_reason`` -- never 0;
+* ``stop()`` aborts every live response by SHUTTING DOWN ITS SOCKET (a
+  ``Response.close()`` from another thread waits behind the reader's buffer lock:
+  measured 19.5 s on this host with requests 2.34.2 / urllib3 2.8.0), joins, and
+  records a still-alive thread as unresolved; the thread object is kept, and the
+  unresolved stop record is never cleared (JitterProbe's repair, applied here);
+* ``resolution()`` reports stop state, liveness, intents without terminals, the
+  durable ledger re-read from disk, and ``resolved``.
+  ``lab_prepare.run_reference_sweep`` refuses ``completed=True`` unless every
+  source it was handed is resolved.
+What this does NOT establish: that the SERVER stopped decoding when the client
+socket closed.  Server-side slot release is a separate check (``understand_eb5.md``
+Sec. 5 verdict item 4: ``/metrics requests_processing == 0``); it is not done here.
 """
 
 from __future__ import annotations
 
 import json
 import math
+import os
+import socket
 import sys
 import threading
 import time
@@ -106,9 +142,108 @@ DEFAULT_RING_CAPACITY = 200_000
 #: after the last token. Liveness is a property of the arrivals, not of a thread.
 DEFAULT_MAX_ARRIVAL_STALENESS_S = 5.0
 
+#: The durable per-source load ledger (EB5).  One JSON line per intent and per terminal.
+LOAD_LEDGER_SCHEMA = 'live_ab/load_ledger-v1'
+LOAD_RESOLUTION_SCHEMA = 'live_ab/load_resolution-v1'
+LOAD_TERMINAL_STATES = ('done', 'error', 'abandoned_by_stop')
+#: How long ``stop()`` waits for the source thread after aborting its live response.
+DEFAULT_STOP_JOIN_TIMEOUT_S = 10.0
+
 
 class LoadRefused(Exception):
     """The observer cannot stand behind an observation, so it produces none."""
+
+
+def parse_usage(usage: Any) -> Tuple[Optional[Dict[str, int]], Optional[str]]:
+    """``(usage, None)`` for a well-formed usage object, else ``(None, reason)``.
+
+    Well-formed: ``completion_tokens`` present, and every one of ``prompt_tokens``,
+    ``completion_tokens``, ``total_tokens`` that is present is a nonnegative int.
+    A malformed usage object is NOT zero usage; it is unknown usage with a reason.
+    """
+    if not isinstance(usage, dict):
+        return None, 'usage chunk carries no usage object'
+    out: Dict[str, int] = {}
+    for key in ('prompt_tokens', 'completion_tokens', 'total_tokens'):
+        value = usage.get(key)
+        if value is None:
+            continue
+        if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+            return None, 'malformed usage chunk: %s is %r' % (key, value)
+        out[key] = value
+    if 'completion_tokens' not in out:
+        return None, 'malformed usage chunk: no completion_tokens'
+    return out, None
+
+
+def read_load_ledger(path: 'str | Path') -> Dict[str, Any]:
+    """Re-read a load ledger from disk and say whether it is COMPLETE.
+
+    Complete means: no torn tail, every line a well-formed ledger record, no
+    duplicate intent or terminal, no terminal without an intent, and every intent
+    followed by exactly one terminal.  Anything else is reported, not repaired.
+    """
+    data = Path(path).read_bytes()
+    lines = data.split(b'\n')
+    tail = lines.pop()
+    intents: Dict[str, Dict[str, Any]] = {}
+    terminals: Dict[str, Dict[str, Any]] = {}
+    malformed: List[int] = []
+    duplicates: List[str] = []
+    orphans: List[str] = []
+    for i, raw in enumerate(lines):
+        try:
+            rec = json.loads(raw.decode('utf-8'))
+        except (UnicodeDecodeError, ValueError):
+            malformed.append(i)
+            continue
+        if not isinstance(rec, dict) or rec.get('schema') != LOAD_LEDGER_SCHEMA \
+                or not isinstance(rec.get('gid'), str):
+            malformed.append(i)
+            continue
+        gid = rec['gid']
+        if rec.get('kind') == 'load_intent':
+            if gid in intents:
+                duplicates.append(gid)
+            intents[gid] = rec
+        elif rec.get('kind') == 'load_terminal' and rec.get('state') in LOAD_TERMINAL_STATES:
+            if gid in terminals:
+                duplicates.append(gid)
+            if gid not in intents:
+                orphans.append(gid)
+            terminals[gid] = rec
+        else:
+            malformed.append(i)
+    unterminated = sorted(set(intents) - set(terminals))
+    complete = not (tail or malformed or duplicates or orphans or unterminated)
+    return {'complete': complete, 'intents': len(intents), 'terminals': len(terminals),
+            'unterminated': unterminated, 'orphan_terminals': sorted(orphans),
+            'duplicates': sorted(duplicates), 'malformed_lines': malformed,
+            'torn_tail_bytes': len(tail),
+            'usage_null': sorted(g for g, t in terminals.items() if t.get('usage') is None),
+            'bytes': len(data), 'sha256': lab_common.sha256_bytes(data)}
+
+
+def _abort_response(resp: Any) -> str:
+    """Wake a thread blocked reading ``resp`` without taking the reader's lock.
+
+    ``Response.close()`` from a second thread waits for the BufferedReader lock the
+    blocked reader holds (measured 19.5 s, module docstring), so ``stop()`` would
+    hang exactly when it is needed.  Shutting down the socket makes the blocked
+    ``recv`` return at once; the reading thread then closes the response itself.
+    Returns what was done, for the stop record.  Best effort by construction: the
+    attribute path is urllib3 2.x's, and a response without it is reported, not
+    assumed closed.
+    """
+    try:
+        sock = resp.raw._fp.fp.raw._sock
+    except Exception:
+        return 'no_socket_found'
+    try:
+        sock.shutdown(socket.SHUT_RDWR)
+    except OSError as exc:
+        return 'socket_shutdown_failed:%s' % (type(exc).__name__,)
+    return 'socket_shutdown'
 
 
 def _finite(x: object) -> Optional[float]:
@@ -453,17 +588,31 @@ class ScriptedLoad:
     def __init__(self, script: Sequence[Tuple[str, float]]) -> None:
         self.script = list(script)
         self._sink: Optional[Callable[[str, float], None]] = None
+        self._stop_called = False
 
     def start(self, sink: Callable[[str, float], None]) -> None:
         self._sink = sink
         for gid, t in self.script:
             sink(gid, t)
 
-    def stop(self) -> None:
+    def stop(self) -> Dict[str, Any]:
         self._sink = None
+        self._stop_called = True
+        return self.resolution()
 
     def healthy(self) -> bool:
         return True
+
+    def resolution(self) -> Dict[str, Any]:
+        """A fixture has no thread and makes no POST, so there is nothing to
+        resolve beyond having been stopped.  Said as that, not as evidence."""
+        reasons = [] if self._stop_called else ['stop() has not been called']
+        return {'schema': LOAD_RESOLUTION_SCHEMA, 'source_id': None, 'kind': self.kind,
+                'stop_called': self._stop_called, 'thread_alive': False, 'intents': 0,
+                'terminals': 0, 'unterminated_intents': [], 'usage_unknown': [],
+                'usage_complete': True, 'stop_records': [], 'ledger': None,
+                'resolved': not reasons, 'reasons': reasons,
+                'note': 'scripted fixture: no thread, no POST'}
 
 
 class StreamingHttpLoad:
@@ -477,6 +626,11 @@ class StreamingHttpLoad:
     Declared deviation: these load requests set ``stream: true`` while the trial's
     own client sends ``stream: false``.  The offered work is identical; the reply
     transport is not.  See the module docstring.
+
+    EB5 (module docstring): every POST is preceded by a durable ``load_intent``
+    written under ``_gate`` after the terminal check, and followed by exactly one
+    ``load_terminal``.  A source has ONE lifetime and ONE ledger file, created
+    exclusively; ``ledger_path`` is required before any POST.
     """
 
     kind = 'streaming_http'
@@ -485,7 +639,9 @@ class StreamingHttpLoad:
                  max_tokens: int = 1024, request_timeout_s: float = 300.0,
                  source_id: Optional[str] = None,
                  clock: Callable[[], float] = time.monotonic,
-                 session_factory: Optional[Callable[[], Any]] = None) -> None:
+                 session_factory: Optional[Callable[[], Any]] = None,
+                 ledger_path: 'Optional[str | Path]' = None,
+                 stop_join_timeout_s: float = DEFAULT_STOP_JOIN_TIMEOUT_S) -> None:
         if not str(base_url).startswith('http://127.0.0.1') and \
                 not str(base_url).startswith('http://localhost'):
             # The same loopback restriction lab_client enforces: a load generator
@@ -516,6 +672,18 @@ class StreamingHttpLoad:
         # its identity rather than leaving it to a composition layer that may
         # not exist.
         self.source_id = str(source_id) if source_id else ('src_' + uuid4().hex[:8])
+        # EB5 state.  `_gate` serialises the terminal flag, the ledger and the
+        # in-memory intent/terminal maps; the POST itself runs outside it.
+        self.ledger_path: Optional[Path] = Path(ledger_path) if ledger_path is not None else None
+        self.stop_join_timeout_s = float(stop_join_timeout_s)
+        self._gate = threading.Lock()
+        self._terminal = False
+        self._stop_called = False
+        self._ledger_fd: Optional[int] = None
+        self._intents: Dict[str, Dict[str, Any]] = {}
+        self._terminals: Dict[str, Dict[str, Any]] = {}
+        self._live: Dict[str, Any] = {}
+        self._stop_records: List[Dict[str, Any]] = []      # never cleared
 
     @property
     def errors(self) -> List[str]:
@@ -541,13 +709,17 @@ class StreamingHttpLoad:
                     'max_tokens_is_a_cap_not_a_count': True}
 
     def healthy(self) -> bool:
-        """False once the worker has stopped or recorded an error.
+        """False once the worker has stopped, been told to stop, or recorded an error.
 
         An unhealthy source does not silently degrade into a quiet one: the
-        observer reports no windows, and no coverage is certified.
+        observer reports no windows, and no coverage is certified.  A thread that
+        is still alive after ``stop()`` is NOT healthy load: it is unresolved.
         """
         with self._lock:
             if self._errors:
+                return False
+        with self._gate:
+            if self._terminal:
                 return False
         return self._thread is not None and self._thread.is_alive()
 
@@ -557,8 +729,47 @@ class StreamingHttpLoad:
         import requests                                        # pragma: no cover
         return requests.Session()                              # pragma: no cover
 
+    # -- the durable ledger (caller holds _gate) ------------------------------
+    def _open_ledger(self) -> None:
+        if self._ledger_fd is not None:
+            return
+        if self.ledger_path is None:
+            raise LoadRefused('no durable load ledger was configured (ledger_path); a '
+                              'load POST without a durable intent is not permitted (EB5)')
+        try:
+            self._ledger_fd = os.open(str(self.ledger_path),
+                                      os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_APPEND, 0o644)
+        except FileExistsError:
+            raise LoadRefused('the load ledger %s already exists; one source lifetime '
+                              'writes one new ledger' % (self.ledger_path.name,)) from None
+
+    def _append_ledger(self, rec: Dict[str, Any]) -> None:
+        self._open_ledger()
+        assert self._ledger_fd is not None
+        lab_common.append_line_durable(self._ledger_fd, lab_common.canonical_json(rec),
+                                       durable=True)
+
+    # -- the gate ---------------------------------------------------------------
+    def _permit(self, gid: str, body_sha256: str) -> bool:
+        """THE SEND GATE.  Under ``_gate``: refuse once the terminal flag is set;
+        otherwise write the durable intent and only then return True.  A failed
+        append raises, so no POST follows an intent that is not on disk."""
+        with self._gate:
+            if self._terminal:
+                return False
+            rec = {'schema': LOAD_LEDGER_SCHEMA, 'kind': 'load_intent',
+                   'source_id': self.source_id, 'gid': gid, 'seq': len(self._intents) + 1,
+                   'body_sha256': body_sha256, 'max_tokens': self.max_tokens,
+                   't_monotonic': time.monotonic()}
+            self._append_ledger(rec)
+            self._intents[gid] = rec
+            return True
+
     def _one_generation(self, session: Any, gid: str,
-                        sink: Callable[[str, float], None]) -> None:
+                        sink: Callable[[str, float], None]) -> bool:
+        """One tracked generation.  Returns False, having sent nothing, when the gate
+        refuses; True once the POST was permitted (its terminal line is written
+        whatever happens next).  Re-raises a failure that was not caused by stop()."""
         body = {
             'model': self.model,
             'messages': [{'role': 'user', 'content': self.prompt}],
@@ -567,44 +778,100 @@ class StreamingHttpLoad:
             'temperature': 0.0,
             'seed': 0,
         }
-        resp = session.post(self.base_url + '/v1/chat/completions', json=body,
-                            stream=True, timeout=self.request_timeout_s)
-        status = getattr(resp, 'status_code', None)
-        if status is not None and int(status) >= 400:
-            raise LoadRefused('load generation %s returned HTTP %s' % (gid, status))
-        for line in resp.iter_lines():
-            if self._stop.is_set():
-                break
-            if not line:
-                continue
-            # Stamp the clock FIRST, before any parsing: the stamp is the
-            # measurement and parsing is not part of it.
-            t = self._clock()
-            text = line.decode('utf-8', 'replace') if isinstance(line, bytes) else str(line)
-            if not text.startswith('data:'):
-                continue
-            if text.strip() == 'data: [DONE]':
-                break
-            # DEFECT 3 OF ROOT'S REVIEW, 2026-09-22
-            # (reviews/live_load_review_20260922_0237.md finding 3): "_one_generation
-            # accepts every non-DONE data: line without parsing its contents. A
-            # two-line mock response containing only role metadata and an empty
-            # choices/usage event produced two 'arrivals'."
-            #
-            # Correct. An OpenAI-compatible stream opens with a role-only delta
-            # (emitted when the slot is assigned, before any token is decoded) and
-            # closes with a usage/finish chunk (emitted after the last token). Both
-            # were counted as production, which lengthens every window at exactly
-            # the two ends where the claim is weakest. Non-token events are now
-            # counted SEPARATELY and never reach the sink.
-            kind, ok = classify_stream_chunk(text)
-            if not ok:
+        if not self._permit(gid, lab_common.sha256_canonical(body)):
+            return False
+        usage: Optional[Dict[str, int]] = None
+        usage_reason: Optional[str] = 'no usage chunk received'
+        saw_done = False
+        raised: Optional[BaseException] = None
+        resp: Any = None
+        try:
+            resp = session.post(self.base_url + '/v1/chat/completions', json=body,
+                                stream=True, timeout=self.request_timeout_s)
+            with self._gate:
+                self._live[gid] = resp
+                stop_landed = self._terminal
+            if stop_landed:
+                # stop() ran while this POST was being made, so it had no response
+                # to abort. Abort it here; the terminal line says abandoned_by_stop.
+                _abort_response(resp)
+            status = getattr(resp, 'status_code', None)
+            if status is not None and int(status) >= 400:
+                raise LoadRefused('load generation %s returned HTTP %s' % (gid, status))
+            for line in resp.iter_lines():
+                if self._stop.is_set():
+                    break
+                if not line:
+                    continue
+                # Stamp the clock FIRST, before any parsing: the stamp is the
+                # measurement and parsing is not part of it.
+                t = self._clock()
+                text = line.decode('utf-8', 'replace') if isinstance(line, bytes) else str(line)
+                if not text.startswith('data:'):
+                    continue
+                if text.strip() == 'data: [DONE]':
+                    saw_done = True
+                    break
+                # EB5: the usage chunk is RECORDED (never counted as production).
+                try:
+                    obj = json.loads(text[len('data:'):].strip())
+                except ValueError:
+                    obj = None
+                if isinstance(obj, dict) and 'usage' in obj and obj['usage'] is not None:
+                    usage, usage_reason = parse_usage(obj['usage'])
+                # DEFECT 3 OF ROOT'S REVIEW, 2026-09-22
+                # (reviews/live_load_review_20260922_0237.md finding 3): "_one_generation
+                # accepts every non-DONE data: line without parsing its contents. A
+                # two-line mock response containing only role metadata and an empty
+                # choices/usage event produced two 'arrivals'."
+                #
+                # Correct. An OpenAI-compatible stream opens with a role-only delta
+                # (emitted when the slot is assigned, before any token is decoded) and
+                # closes with a usage/finish chunk (emitted after the last token). Both
+                # were counted as production, which lengthens every window at exactly
+                # the two ends where the claim is weakest. Non-token events are now
+                # counted SEPARATELY and never reach the sink.
+                kind, ok = classify_stream_chunk(text)
+                if not ok:
+                    with self._lock:
+                        self._nontoken_events[kind] = self._nontoken_events.get(kind, 0) + 1
+                    continue
                 with self._lock:
-                    self._nontoken_events[kind] = self._nontoken_events.get(kind, 0) + 1
-                continue
-            with self._lock:
-                self._token_events += 1
-            sink(gid, t)
+                    self._token_events += 1
+                sink(gid, t)
+        except Exception as exc:                       # recorded below, then re-raised
+            raised = exc
+        finally:
+            with self._gate:
+                self._live.pop(gid, None)
+                stopped = self._terminal or self._stop.is_set()
+                if saw_done:
+                    state = 'done'
+                elif stopped:
+                    state = 'abandoned_by_stop'
+                else:
+                    state = 'error'
+                error = None
+                if state == 'error':
+                    error = ('%s: %s' % (type(raised).__name__, raised) if raised is not None
+                             else 'stream ended without [DONE]')
+                reason = None
+                if usage is None:
+                    reason = '%s (terminal state %s)' % (usage_reason, state)
+                rec = {'schema': LOAD_LEDGER_SCHEMA, 'kind': 'load_terminal',
+                       'source_id': self.source_id, 'gid': gid, 'state': state,
+                       'usage': usage, 'usage_null_reason': reason, 'error': error,
+                       'after_stop': self._stop_called, 't_monotonic': time.monotonic()}
+                self._append_ledger(rec)
+                self._terminals[gid] = rec
+            if resp is not None:
+                try:
+                    resp.close()                       # this thread's own reader: safe
+                except Exception:
+                    pass
+        if raised is not None and state == 'error':
+            raise raised
+        return True
 
     def _loop(self, sink: Callable[[str, float], None]) -> None:
         session = self._session()
@@ -612,11 +879,13 @@ class StreamingHttpLoad:
         while not self._stop.is_set():
             gid = '%s/gen_%06d' % (self.source_id, index)
             try:
-                self._one_generation(session, gid, sink)
+                sent = self._one_generation(session, gid, sink)
             except Exception as exc:
                 with self._lock:
                     self._errors.append('%s: %s' % (type(exc).__name__, exc))
                 return
+            if not sent:
+                return                                 # the gate refused: terminal
             with self._lock:
                 self._generations += 1
             index += 1
@@ -624,16 +893,92 @@ class StreamingHttpLoad:
     def start(self, sink: Callable[[str, float], None]) -> None:
         if self._thread is not None:
             raise LoadRefused('the load source is already running')
+        if self._stop_called:
+            raise LoadRefused('a stopped load source is not restarted; one source '
+                              'lifetime writes one ledger')
+        with self._gate:
+            self._open_ledger()                        # refuse BEFORE any thread exists
         self._stop.clear()
         self._thread = threading.Thread(target=self._loop, args=(sink,),
                                         name='lab_load_http', daemon=True)
         self._thread.start()
 
-    def stop(self) -> None:
+    def stop(self) -> Dict[str, Any]:
+        """Close the gate, abort live responses, join, and never forget a live thread.
+
+        The first version joined for 10 s and then set ``_thread = None``
+        unconditionally, so a thread still blocked in ``post`` or ``iter_lines`` was
+        forgotten and ``healthy()`` read exactly as after a clean stop
+        (``understand_eb5.md`` Sec. 4).  Returns ``resolution()``.
+        """
         self._stop.set()
-        if self._thread is not None:
-            self._thread.join(timeout=10.0)
+        with self._gate:
+            self._terminal = True
+            self._stop_called = True
+            live = list(self._live.items())
+        aborted = [{'gid': gid, 'abort': _abort_response(resp)} for gid, resp in live]
+        thread = self._thread
+        alive = False
+        if thread is not None:
+            thread.join(timeout=self.stop_join_timeout_s)
+            alive = thread.is_alive()
+        with self._gate:
+            unterminated = sorted(set(self._intents) - set(self._terminals))
+            self._stop_records.append({
+                't_monotonic': time.monotonic(), 'thread_alive': alive,
+                'unterminated_intents': unterminated, 'aborted_live_responses': aborted,
+                'join_timeout_s': self.stop_join_timeout_s,
+                'resolved_at_stop': not alive and not unterminated})
+        if not alive:
             self._thread = None
+        return self.resolution()
+
+    def resolution(self) -> Dict[str, Any]:
+        """Is every POST of this source accounted for, and is its thread gone?
+
+        ``resolved`` requires: ``stop()`` called; the thread not alive; every
+        intent terminated; no ``stop()`` that found the source unresolved (never
+        forgotten, even if the thread ended later); and the DURABLE ledger, re-read
+        from disk, complete and in agreement with the in-memory record.
+        ``usage_complete`` is descriptive: unknown usage is null with a reason and
+        does not by itself block resolution.
+        """
+        with self._gate:
+            intents = dict(self._intents)
+            terminals = dict(self._terminals)
+            records = [dict(r) for r in self._stop_records]
+            stop_called = self._stop_called
+        thread = self._thread
+        alive = thread is not None and thread.is_alive()
+        unterminated = sorted(set(intents) - set(terminals))
+        ledger = None
+        if self.ledger_path is not None and self.ledger_path.exists():
+            ledger = read_load_ledger(self.ledger_path)
+        reasons: List[str] = []
+        if not stop_called:
+            reasons.append('stop() has not been called; a running source is not resolved')
+        if alive:
+            reasons.append('the source thread is still alive: a permitted POST may be in '
+                           'flight or still be made')
+        if unterminated:
+            reasons.append('%d load intent(s) have no terminal line' % (len(unterminated),))
+        if any(not r['resolved_at_stop'] for r in records):
+            reasons.append('the source was UNRESOLVED at a stop(); that is never forgotten')
+        if intents and ledger is None:
+            reasons.append('the durable load ledger is missing')
+        if ledger is not None:
+            if not ledger['complete']:
+                reasons.append('the durable load ledger is incomplete')
+            if (ledger['intents'], ledger['terminals']) != (len(intents), len(terminals)):
+                reasons.append('the durable ledger and the in-memory record disagree')
+        usage_unknown = sorted(g for g, t in terminals.items() if t.get('usage') is None)
+        return {'schema': LOAD_RESOLUTION_SCHEMA, 'source_id': self.source_id,
+                'kind': self.kind, 'stop_called': stop_called, 'thread_alive': alive,
+                'intents': len(intents), 'terminals': len(terminals),
+                'unterminated_intents': unterminated, 'usage_unknown': usage_unknown,
+                'usage_complete': not usage_unknown and not unterminated,
+                'stop_records': records, 'ledger': ledger,
+                'resolved': not reasons, 'reasons': reasons}
 
 
 # ---------------------------------------------------------------------------

@@ -2196,9 +2196,12 @@ class PreparationWiringTests(unittest.TestCase):
                     'active_windows': [
                         {'start': 99.0, 'end': 101.0, 'identity': 'slot0/req_a'},
                         {'start': 99.0, 'end': 101.0, 'identity': 'slot1/req_b'}]}
+        # EB5 (root 2026-09-23 20:40 item 3): a loaded sweep hands over its load
+        # sources; this fixture's source is a script with no thread and no POST.
         res = lab_prepare.run_reference_sweep(
             [], {}, ledger_path=self.tmp / 'l.jsonl', load_observer=observer,
-            enforce_tmpdir=False, sweep_fn=self._stub_sweep())
+            enforce_tmpdir=False, sweep_fn=self._stub_sweep(),
+            load_sources=[lab_load.ScriptedLoad([])])
         self.assertEqual(len(res['coverage']), 1)
         self.assertEqual(res['coverage'][0]['observation']['window_id'], 'w1')
         # The RAW attempt is stored first and UNMODIFIED; coverage is a separate
@@ -2869,9 +2872,13 @@ class ContinuousLoadObserverTests(unittest.TestCase):
             def post(self, *a, **kw):
                 return _Resp()
 
+        # EB5 (root 2026-09-23 20:40 item 3): a load POST needs a durable ledger.
+        tmp = Path(tempfile.mkdtemp(prefix='ldg_'))
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
         src = lab_load.StreamingHttpLoad(base_url='http://127.0.0.1:8193',
                                          model='m', prompt='p',
-                                         session_factory=_Session)
+                                         session_factory=_Session,
+                                         ledger_path=tmp / 'load.jsonl')
         got = []
         src._one_generation(_Session(), 'g0', lambda gid, t: got.append((gid, t)))
         self.assertEqual(got, [])
@@ -2981,7 +2988,8 @@ class ContinuousLoadObserverTests(unittest.TestCase):
         with self.assertRaises(lab_prepare.PreparationRefused):
             lab_prepare.run_reference_sweep(
                 [], {}, ledger_path=tmp / 'l.jsonl', load_observer=obs.observe,
-                enforce_tmpdir=False, sweep_fn=wiring._stub_sweep())
+                enforce_tmpdir=False, sweep_fn=wiring._stub_sweep(),
+                load_sources=[obs.source])              # EB5: sources handed over
         rows = [json.loads(x) for x in
                 (tmp / 'l.jsonl').read_text('utf-8').splitlines() if x.strip()]
         kinds = [r.get('schema') for r in rows]
@@ -3019,9 +3027,12 @@ class ContinuousLoadObserverTests(unittest.TestCase):
             def post(self, *a, **kw):
                 return _Resp()
 
+        tmp = Path(tempfile.mkdtemp(prefix='ldg_'))     # EB5: the durable ledger
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
         src = lab_load.StreamingHttpLoad(
             base_url='http://127.0.0.1:8193', model='m', prompt='p',
-            clock=lambda: next(clock), session_factory=_Session)
+            clock=lambda: next(clock), session_factory=_Session,
+            ledger_path=tmp / 'load.jsonl')
         got = []
         src._one_generation(_Session(), 'g0', lambda gid, t: got.append((gid, t)))
         self.assertEqual(got, [('g0', 10.0), ('g0', 10.1)])
@@ -3031,9 +3042,12 @@ class ContinuousLoadObserverTests(unittest.TestCase):
             def post(self, *a, **kw):
                 raise OSError('connection refused')
 
+        tmp = Path(tempfile.mkdtemp(prefix='ldg_'))     # EB5: the durable ledger
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
         src = lab_load.StreamingHttpLoad(base_url='http://127.0.0.1:8193',
                                          model='m', prompt='p',
-                                         session_factory=_Session)
+                                         session_factory=_Session,
+                                         ledger_path=tmp / 'load.jsonl')
         src._loop(lambda gid, t: None)
         self.assertFalse(src.healthy())
         self.assertTrue(src.errors)
@@ -3220,7 +3234,8 @@ class LoadObserverSecondReviewTests(unittest.TestCase):
             with self.assertRaises(lab_prepare.PreparationRefused):
                 lab_prepare.run_reference_sweep(
                     [], {}, ledger_path=tmp / 'l.jsonl', load_observer=observer,
-                    enforce_tmpdir=False, sweep_fn=wiring._stub_sweep())
+                    enforce_tmpdir=False, sweep_fn=wiring._stub_sweep(),
+                    load_sources=[lab_load.ScriptedLoad([])])   # EB5
         rows = [json.loads(x) for x in
                 (tmp / 'l.jsonl').read_text('utf-8').splitlines() if x.strip()]
         kinds = [r.get('schema') for r in rows]
