@@ -12,7 +12,7 @@ reads the realized roster (``lab_design`` shape: ``{'S1': [...], 'S2': [...]}``)
 parameter, and the explicit outcome-model choices below; it writes a write-once table and a
 write-once manifest.  It never runs by import and nothing in the test suite runs the real grid.
 
-THE SPECIFICATION, item by item (``experiments/live_ab/design/protocol_FINAL.md:2242-2259``):
+THE SPECIFICATION, item by item (``experiments/live_ab/design/protocol_FINAL.md:2238-2259``):
 
 1. Tasks and strata are the realized roster's; the arrival order of each replicate is drawn by EXACTLY
    the code path of protocol 3.4 / ``lab_design._generate`` (S1 permutation, S2 permutation, whole-pair
@@ -42,7 +42,11 @@ THE SPECIFICATION, item by item (``experiments/live_ab/design/protocol_FINAL.md:
    ``crosscheck_per_cell`` of its own replicates through ``MonitorState``/``decide``/
    ``lab_enclosure.pair_enclosure`` and refuses to write if any disagrees.
 5. Cells, exhaustive: ``w x q x s x N_P x trial`` = 4 x 3 x 3 x 3 x 4 = 432; 4,000 replicates per cell,
-   20,000 for T4 (3,456,000 in all).  ``enumerate_cells`` builds them without simulating anything.
+   20,000 for T4 (3,456,000 in all).  ``enumerate_cells`` builds them without simulating anything, and
+   ``check_grid`` -- called by ``run_replay`` on every full run -- compares them with
+   ``PROTOCOL_11_5_ITEM_5``, the item restated as literals apart from the ``GRID_*`` tuples
+   ``enumerate_cells`` iterates, and with the literal totals 432 and 3,456,000; so an edited grid tuple is
+   refused at the production entry point, not only by a unit test.
 6. Output: per cell the counts and rates of DEPLOY / HARM_RETAIN / ABSTAIN, each with a pointwise Wilson
    95% interval, and the Q1 / median / Q3 of the crossing prefix (all crossings, and per decision kind;
    ``numpy.percentile`` method ``linear``; null when no replicate crossed).  Every row is written.
@@ -61,8 +65,8 @@ replicate, fixed: the three order permutations; ``integers(0, 2, size=N_P)`` coi
 ``random((N_P, 2))`` success uniforms (candidate column 0); ``integers(0, pool, size=(N_P, 2))`` cost
 indices.
 
-PROPOSED, NEEDS ROOT -- the outcome model protocol 11.5 does not define (not on the OD list;
-``scratchpad understand_drivers.md`` Sec. 1 "Sec. 11.5 extended replay", root item 2).  Item 2 draws
+PROPOSED, NEEDS ROOT -- the outcome model protocol 11.5 does not define (not on the plan's OD list;
+root item 2, ``reviews/prerun_bundle_go_nogo_20260923_2040.md:17``).  Item 2 draws
 success from "the arm's pilot" and item 3 resamples latency "jointly from the pilot tasks in which both
 workflows succeeded".  Neither is defined for:
 
@@ -82,12 +86,23 @@ other key: nothing is defaulted.  The owner's PROPOSAL is ``PROPOSED_OPEN_MODEL`
   as the candidate's pilot (``w`` applied), which imports the coder's per-task difficulty into Granite.
 * ``T3.cost_pair`` and ``T4.cost_pair = independent_single_shot_successes``: the two latencies are drawn
   independently, with replacement, from the single_shot latencies of pilot tasks where single_shot
-  succeeded.  At ``s = 0`` both arms are then exchangeable, so the rows are exact-null rows for the rule.
-  Alternative ``same_task_single_shot_duplicate``: one draw used twice (tier 1 always ties).
+  succeeded.  Alternative ``same_task_single_shot_duplicate``: one draw used twice (tier 1 always ties).
+
+EXCHANGEABILITY AT ``s = 0`` HOLDS FOR T4 ONLY.  T4's two arms are one workflow: both draw success from the
+same single_shot pilot (READING R3) and latency from one pool, so at ``s = 0`` the arms are exchangeable
+and the T4 ``s = 0`` rows are exact A/A rows for the rule.  T3's are NOT: under the proposal the
+candidate is iid Bernoulli(r) on every S1 task while the incumbent is ``w*y_t + (1-w)*r``, which depends
+on the task, so the two laws differ (``tests_lab_replay.ExchangeabilityTests``: equal means, unequal
+variances, on a synthetic pilot).  ``E[D]`` on S1 is ``w * (r - mean of y over the roster's S1)``, zero
+only when the roster's S1 has the pilot's success rate (the realized roster excludes tasks, so in
+general it does not); T3 ``s = 0`` rows are therefore not A/A rows.
 
 Under the proposal the T3 rows carry NO information about Granite: they describe the frozen rule under
 a candidate that differs from the coder only by the success shift ``s``.  The manifest records the value
 passed, ``status: PROPOSED`` unless a ``ruling`` citation is supplied, the alternatives, and this text.
+A ``ruling`` must be a ``reviews/<file>.md:<line>`` citation that resolves to an existing line of an
+existing file under the repository's ``reviews/`` (root-owned); anything else is refused.  That is ALL
+the check performs: whether the cited line rules on this outcome model is for root to confirm.
 
 A second item this module cannot settle, also PROPOSED: the fixed horizons 295 and 495 are cells on the
 realized roster, but a roster with fewer pairs than 495 (roster S1 has 295) cannot enroll 495 pairs by
@@ -107,6 +122,7 @@ import csv
 import hashlib
 import json
 import math
+import re
 import sys
 import time
 from dataclasses import dataclass
@@ -118,6 +134,8 @@ import numpy
 HERE = Path(__file__).resolve().parent
 if str(HERE) not in sys.path:                                  # pragma: no cover
     sys.path.insert(0, str(HERE))
+#: The repository root, where a ``ruling`` citation (``reviews/<file>.md:<line>``) must resolve.
+REPO_ROOT = HERE.parents[1]
 
 import lab_common                                              # noqa: E402
 import lab_design                                              # noqa: E402
@@ -148,8 +166,15 @@ GRID_FIXED_N_P: tuple[int, ...] = (295, 495)
 N_P_ROLES: tuple[str, ...] = ('fixed_295', 'fixed_495', 'realized')
 REPLICATES: int = 4000
 REPLICATES_T4: int = 20000
-GRID_CELLS: int = 432
-GRID_REPLICATES: int = 3 * 108 * REPLICATES + 108 * REPLICATES_T4      # 3,456,000
+GRID_CELLS: int = 432                        # literal, not derived from the tuples above
+GRID_REPLICATES: int = 3_456_000             # literal: 3 x 108 x 4,000 + 108 x 20,000
+#: protocol 11.5 item 5 (``design/protocol_FINAL.md:2253-2254``) restated as LITERALS, independent of the
+#: ``GRID_*`` tuples ``enumerate_cells`` iterates, so ``check_grid`` compares the grid with the protocol
+#: and not with itself (``tests_lab_replay.GridEnumerationTests`` reads these values back out of the
+#: protocol text).
+PROTOCOL_11_5_ITEM_5: dict = {
+    'trials': ('T1', 'T2', 'T3', 'T4'), 'w': (0.3, 0.5, 0.7, 1.0), 'q': (0.25, 0.45, 0.60),
+    's': (0.0, -0.02, -0.03), 'fixed_n_p': (295, 495), 'replicates': 4000, 'replicates_T4': 20000}
 
 #: protocol 11.5 item 4, the frozen values the replay must see in config.json; any other value is a
 #: different rule and the replay refuses (it "cannot change any rule parameter").
@@ -184,8 +209,11 @@ PROPOSAL_TEXT: str = (
     'PROPOSED, needs root: protocol 11.5 items 2-3 define outcomes only for arms with a pilot and '
     'cost pairs of two distinct piloted workflows. T3 candidate success: coder single_shot pilot S1 '
     'rate (w not applied), q on S2, plus s. T3 and T4 cost pairs: two independent draws from single_shot '
-    'latencies of pilot tasks where single_shot succeeded (exchangeable arms at s = 0). Under this '
-    'proposal T3 rows carry no information about the T3 candidate model.')
+    'latencies of pilot tasks where single_shot succeeded. At s = 0 the arms are exchangeable for T4 '
+    'only (T4 s = 0 rows are A/A rows); T3 arms are not exchangeable (the candidate is iid at the pilot '
+    'rate, the incumbent follows the per-task pilot outcome), and T3 s = 0 rows are null in mean only '
+    'when the roster S1 has the pilot S1 success rate. Under this proposal T3 rows carry no information '
+    'about the T3 candidate model.')
 
 READINGS: tuple[dict, ...] = (
     {'id': 'R1', 'status': 'READING', 'text': 'the shift s is added to the per-task success probability '
@@ -251,10 +279,40 @@ def enumerate_cells(realized_n_p: int) -> list[dict]:
 
 
 def check_grid(cells: Sequence[Mapping], realized_n_p: int) -> None:
-    """[pure] Raise unless ``cells`` is exactly ``enumerate_cells(realized_n_p)``: no cell dropped,
-    added, duplicated, re-ordered or given another replicate count."""
-    want = enumerate_cells(realized_n_p)
+    """[pure] Raise unless ``cells`` is the protocol 11.5 item 5 grid.
+
+    Two comparisons.  (1) Against the PROTOCOL, not against ``enumerate_cells``: exactly ``GRID_CELLS``
+    (432) cells and ``GRID_REPLICATES`` (3,456,000) replicates, literal numbers; each (trial, w, q, s,
+    N_P role) of the product of ``PROTOCOL_11_5_ITEM_5`` exactly once; each cell's ``N_P`` its role's
+    (295, 495 or ``realized_n_p``) and its replicate count 4,000 (20,000 for T4).  An edited ``GRID_*``
+    tuple or replicate constant therefore fails here, where ``run_replay`` calls it.  (2) Against
+    ``enumerate_cells(realized_n_p)``: the fixed ordinal order the seed rule uses -- no cell re-ordered.
+    """
     got = [dict(c) for c in cells]
+    lit = PROTOCOL_11_5_ITEM_5
+    if len(got) != GRID_CELLS:
+        raise ReplayRefused('the grid has %d cells, protocol 11.5 item 5 has %d'
+                            % (len(got), GRID_CELLS))
+    planned = sum(int(c.get('replicates', 0)) for c in got)
+    if planned != GRID_REPLICATES:
+        raise ReplayRefused('the grid plans %d replicates, protocol 11.5 item 5 plans %d'
+                            % (planned, GRID_REPLICATES))
+    horizon = {'fixed_295': lit['fixed_n_p'][0], 'fixed_495': lit['fixed_n_p'][1],
+               'realized': realized_n_p}
+    protocol_keys = {(t, w, q, s, role) for t in lit['trials'] for role in horizon
+                     for w in lit['w'] for q in lit['q'] for s in lit['s']}
+    keys = [(c.get('trial'), c.get('w'), c.get('q'), c.get('s'), c.get('n_p_role')) for c in got]
+    if len(set(keys)) != len(keys) or set(keys) != protocol_keys:
+        raise ReplayRefused('the grid cells are not the protocol 11.5 item 5 product, each once '
+                            '(%d distinct of %d; %d not in the protocol)'
+                            % (len(set(keys)), len(keys), len(set(keys) - protocol_keys)))
+    for c in got:
+        reps = lit['replicates_T4'] if c['trial'] == 'T4' else lit['replicates']
+        if c.get('n_p') != horizon[c['n_p_role']] or c.get('replicates') != reps:
+            raise ReplayRefused('cell %r has N_P %r and %r replicates; protocol 11.5 item 5 gives %r '
+                                'and %r' % (c.get('cell_id'), c.get('n_p'), c.get('replicates'),
+                                            horizon[c['n_p_role']], reps))
+    want = enumerate_cells(realized_n_p)
     if len(got) != len(want):
         raise ReplayRefused('the grid has %d cells, protocol 11.5 item 5 has %d'
                             % (len(got), len(want)))
@@ -754,6 +812,34 @@ def _file_sha256(path: Path) -> str:
     return lab_common.sha256_file(path)
 
 
+_RULING_CITATION = re.compile(r'reviews/([A-Za-z0-9][A-Za-z0-9_.-]*\.md):([1-9][0-9]*)')
+
+
+def check_ruling_citation(ruling: str) -> str:
+    """Refuse unless ``ruling`` is exactly ``reviews/<file>.md:<line>`` naming an existing line of an
+    existing file directly under ``REPO_ROOT/reviews`` (root-owned).  Returns ``ruling``.
+
+    What this PERFORMS: the citation resolves.  What it does NOT: read the line, or decide that it is a
+    root ruling on this outcome model -- a resolvable citation of an unrelated line passes, which is
+    why the manifest records the citation for root to confirm and says so.
+    """
+    m = _RULING_CITATION.fullmatch(ruling) if isinstance(ruling, str) else None
+    if m is None:
+        raise ReplayRefused('a ruling must be cited as reviews/<file>.md:<line> and nothing else, got '
+                            '%r' % (ruling,))
+    path = REPO_ROOT / 'reviews' / m.group(1)
+    try:
+        lines = path.read_bytes().split(b'\n')
+    except OSError:
+        raise ReplayRefused('the cited ruling file reviews/%s does not exist' % (m.group(1),)) from None
+    if lines and lines[-1] == b'':
+        lines.pop()
+    if int(m.group(2)) > len(lines):
+        raise ReplayRefused('reviews/%s has %d lines; the ruling cites line %s'
+                            % (m.group(1), len(lines), m.group(2)))
+    return ruling
+
+
 def run_replay(roster: Mapping, pilot: Pilot, cfg: Mapping, *, realized_n_p: int,
                out_dir: 'str | Path', open_model: Optional[Mapping],
                cells: Optional[Sequence[Mapping]] = None, crosscheck_per_cell: int = 2,
@@ -765,6 +851,8 @@ def run_replay(roster: Mapping, pilot: Pilot, cfg: Mapping, *, realized_n_p: int
     """
     started = time.monotonic()
     started_utc = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+    if ruling is not None:
+        check_ruling_citation(ruling)             # before anything runs; RULED needs a real citation
     if isinstance(realized_n_p, bool) or not isinstance(realized_n_p, int):
         raise ReplayRefused('realized_n_p must be an int')
     if realized_n_p != roster_rule_pairs(roster):
@@ -821,7 +909,11 @@ def run_replay(roster: Mapping, pilot: Pilot, cfg: Mapping, *, realized_n_p: int
                  'rows_simulated': sum(1 for r in rows if r['status'] == 'SIMULATED'),
                  'rows_not_simulable': sum(1 for r in rows if r['status'] == 'NOT_SIMULABLE')},
         'open_outcome_model': {'value': given, 'status': status, 'needs': None if ruling else 'root',
-                               'ruling': ruling, 'proposal': PROPOSED_OPEN_MODEL,
+                               'ruling': ruling,
+                               'ruling_check': ('the citation resolves to an existing line of a file '
+                                                'under reviews/; whether that line rules on this model '
+                                                'is not checked here' if ruling else None),
+                               'proposal': PROPOSED_OPEN_MODEL,
                                'proposal_text': PROPOSAL_TEXT,
                                'alternatives': {k: list(v) for k, v in OPEN_MODEL_CHOICES.items()},
                                'equals_proposal': all(PROPOSED_OPEN_MODEL.get(k) == v
@@ -871,7 +963,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     ap.add_argument('--out-dir', required=True)
     ap.add_argument('--open-model', required=True,
                     help="'proposed' for PROPOSED_OPEN_MODEL (recorded as PROPOSED), or a JSON object")
-    ap.add_argument('--ruling', default=None, help='citation of a root ruling on the open model')
+    ap.add_argument('--ruling', default=None,
+                    help='reviews/<file>.md:<line> citation of a root ruling on the open model')
     ap.add_argument('--crosscheck-per-cell', type=int, default=2)
     args = ap.parse_args(argv)
     open_model = dict(PROPOSED_OPEN_MODEL) if args.open_model == 'proposed' \
