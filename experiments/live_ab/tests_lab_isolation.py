@@ -65,6 +65,9 @@ MATRIX: dict[str, set[str]] = {
     # frozen band/decision and the 3.4 order code path, nothing that serves, dispatches or anchors.
     'lab_replay': {'numpy', 'winstats', 'lab_common', 'lab_design', 'lab_enclosure',
                    'lab_monitor'},
+    # Pre-freeze stage 4/5 schedules (protocol 5.8 items 3-4; root 2026-09-23 20:40 item 2):
+    # deterministic, write-once files, nothing that serves, dispatches or reads an outcome.
+    'lab_schedules': {'numpy', 'lab_common'},
 }
 LAB_NAMES = frozenset(set(MATRIX) | {'dryrun_live_ab'})
 
@@ -537,6 +540,21 @@ SIGNATURES: dict[str, dict[str, tuple]] = {
                          ('crosscheck_per_cell', '2', KW), ('ruling', 'None', KW)),
         'verify_manifest': fn(('out_dir', None, PO)),
         'main': fn(('argv', 'None', PO)),
+    },
+    # Not a section-3 module: the stage 4/5 schedule contract (protocol 5.8 items 3-4).
+    'lab_schedules': {
+        'STAGE4_SEED_TAG': CONST, 'STAGE5_SEED_TAG': CONST, 'OD_CHOICES': CONST,
+        'PLAN_PROPOSED_OPEN_DECISIONS': CONST, 'ScheduleRefused': CONST,
+        'check_open_decisions': fn(('open_decisions', None, PO)),
+        'stage4_cells': fn(),
+        'stage4_schedule': fn(('cfg', None, PO), ('design_seed_base', None, PO),
+                              ('open_decisions', None, PO)),
+        'check_stage4': fn(('schedule', None, PO)),
+        'stage5_schedule': fn(('cfg', None, PO), ('design_seed_base', None, PO),
+                              ('open_decisions', None, PO), ('stage4', None, PO)),
+        'check_stage5': fn(('schedule', None, PO), ('stage4', 'None', PO)),
+        'write_schedule': fn(('schedule', None, PO), ('path', None, PO)),
+        'load_schedule': fn(('path', None, PO), ('expected_file_sha256', 'None', KW)),
     },
 }
 
