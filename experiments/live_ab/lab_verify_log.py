@@ -78,6 +78,11 @@ CHECK_SEVERITY: dict[str, str] = {
     # was never answered, or whose restarts exceed the frozen cap is not a chain a decision
     # may be read from.  See `_check_server_lifecycle`.
     'server.lifecycle': 'FAIL',
+    # repair contract EB5 (root 20:40 item 3; root 21:15 item 3): every permitted worker
+    # resolved before the terminal record, unknown usage never read as zero.  A FAIL, because
+    # a trial_ended over a live or unaccounted worker claims a complete phase that is not.
+    # See `_check_workers_resolved`.
+    'workers.resolved': 'FAIL',
 }
 
 # Which verifier FAILs mean what between trials (protocol 6.4 rows 22a/22b, audit M5).
@@ -92,7 +97,7 @@ CONDITION_LIST_A: frozenset[str] = frozenset(
 _PLUMBING_PREFIXES: tuple[str, ...] = ('chain.', 'schema.', 'order.', 'coin.', 'episode.',
                                        'calls.', 'switch.', 'usage.', 'anchor.',
                                        'program.', 'worktree.', 't4.', 'host.',
-                                       'server.')
+                                       'server.', 'workers.')
 _PLUMBING_EXTRA: frozenset[str] = frozenset({'monitor.replay', 'monitor.cadence',
                                              'monitor.shadow',
                                              'reference_rule.agreement'})
@@ -1307,6 +1312,10 @@ def _verify_trial(trial: str, freeze_bundle_sha256: str, *, mode: str = 'full',
     _check_server_lifecycle(col, events, cfg,
                             [int(a) for slot in slots for a in slot['arrivals']])
 
+    # ---- workers.resolved (repair contract EB5) --------------------------------
+    _check_workers_resolved(col, events,
+                            None if wroot is None else Path(wroot) / trial / 'spools')
+
     # ---- integrity.table (INFO) ---------------------------------------------
     terminal_by_arm = {arm: 0 for arm in ARMS}
     for ev in reveals:
@@ -1403,37 +1412,255 @@ def _recount_exposure(events: Sequence[Mapping]) -> dict:
 
     ``tokens_are_lower_bound`` is set whenever a call in that cell consumed tokens the
     chain cannot report, so the ledger states its own incompleteness instead of presenting
-    an unknown as a zero."""
+    an unknown as a zero.
+
+    Repair contract EB5: the calls of an arrival that has no ``episode_revealed`` are kept in
+    the ``unrevealed`` cell (their episodes, the usage of their responses, their unknown-usage
+    calls) instead of being dropped; a response the chain carries after its arrival's reveal
+    is added to that arrival's cell; ``totals`` holds the whole trial, its token sums ``null``
+    with ``null_reason: 'unknown_usage'`` when any call's usage is unknown.  Written
+    separately from ``lab_orchestrator.exposure_recount`` and compared byte for byte."""
+    phases = ('randomizing', 'post_decision')
     out: dict = {phase: {arm: {'episodes': 0, 'wall_seconds': 0.0, 'prompt_tokens': 0,
                                'completion_tokens': 0, 'unknown_usage_calls': 0,
                                'tokens_are_lower_bound': False}
                          for arm in ARMS}
-                 for phase in ('randomizing', 'post_decision')}
+                 for phase in phases}
     arm_of_arrival: dict[int, str] = {}
     phase_of_arrival: dict[int, str] = {}
+    reveal_seq: dict[int, int] = {}
+    started_arrivals: set[int] = set()
     for ev in events:
-        if ev['type'] == 'episode_revealed':
+        if ev['type'] == 'episode_started':
+            started_arrivals.add(int(ev['body']['arrival']))
+        elif ev['type'] == 'episode_revealed':
             a = int(ev['body']['arrival'])
             arm = ev['body']['arm']
             phase = 'post_decision' if ev['body'].get('post_decision') else 'randomizing'
             arm_of_arrival[a] = arm
             phase_of_arrival[a] = phase
+            reveal_seq.setdefault(a, int(ev['seq']))
             row = out[phase][arm]
             row['episodes'] += 1
             row['wall_seconds'] += float(ev['body']['outcome']['latency_s'])
             row['prompt_tokens'] += int(ev['body']['outcome']['prompt_tokens'])
             row['completion_tokens'] += int(ev['body']['outcome']['completion_tokens'])
+    hidden = {'episodes': 0, 'prompt_tokens': 0, 'completion_tokens': 0,
+              'unknown_usage_calls': 0, 'tokens_are_lower_bound': False}
+    for ev in events:
+        if ev['type'] != 'llm_response':
+            continue
+        a = int(ev['body']['arrival'])
+        usage = ev['body'].get('usage') or {}
+        p_tok = int(usage.get('prompt_tokens') or 0)
+        c_tok = int(usage.get('completion_tokens') or 0)
+        if a not in arm_of_arrival:
+            hidden['prompt_tokens'] += p_tok
+            hidden['completion_tokens'] += c_tok
+        elif int(ev['seq']) > reveal_seq[a]:
+            cell = out[phase_of_arrival[a]][arm_of_arrival[a]]
+            cell['prompt_tokens'] += p_tok
+            cell['completion_tokens'] += c_tok
     for a in _unknown_usage_requests(events).values():
         arm = arm_of_arrival.get(a)
         phase = phase_of_arrival.get(a)
         if arm is not None and phase is not None:
             out[phase][arm]['unknown_usage_calls'] += 1
-    for phase in out:
+        else:
+            hidden['unknown_usage_calls'] += 1
+            started_arrivals.add(int(a))
+    hidden['episodes'] = len([a for a in started_arrivals if a not in arm_of_arrival])
+    hidden['tokens_are_lower_bound'] = hidden['unknown_usage_calls'] > 0
+    for phase in phases:
         for arm in out[phase]:
             out[phase][arm]['wall_seconds'] = round(out[phase][arm]['wall_seconds'], 6)
             out[phase][arm]['tokens_are_lower_bound'] = \
                 out[phase][arm]['unknown_usage_calls'] > 0
+    every = [out[phase][arm] for phase in phases for arm in ARMS] + [hidden]
+    n_unknown = 0
+    p_sum = c_sum = 0
+    for cell in every:
+        n_unknown += int(cell['unknown_usage_calls'])
+        p_sum += int(cell['prompt_tokens'])
+        c_sum += int(cell['completion_tokens'])
+    out['unrevealed'] = hidden
+    out['totals'] = {'prompt_tokens': p_sum if n_unknown == 0 else None,
+                     'completion_tokens': c_sum if n_unknown == 0 else None,
+                     'unknown_usage_calls': n_unknown,
+                     'null_reason': None if n_unknown == 0 else 'unknown_usage'}
     return out
+
+
+#: The worker states that resolve a worker (``lab_eventlog.WORKER_RESOLVED_STATES``).
+_RESOLVED = frozenset(lab_eventlog.WORKER_RESOLVED_STATES)
+#: The reveal classes that end an attempt WITHOUT the worker's own final line: each must
+#: follow a ``worker_resolved`` of its attempt (the SpoolError/kill/reap order of EB5).
+_TERMINAL_REVEALS = frozenset({'worker_died', 'episode_timeout', 'interrupted'})
+
+
+def _resolution_recount(events: Sequence[Mapping], servers: Sequence[Mapping],
+                        late: Sequence[Mapping]) -> dict:
+    """The verifier's own reading of ``lab_orchestrator.phase_resolution_verdict`` over the
+    chain BEFORE a terminal record: the unresolved attempts and the unfinished calls from the
+    chain, the spool and server rules from the terminal record's own ``late_spools`` and
+    ``servers`` (the verifier observes no server; the spools it re-reads separately, rule 5
+    of :func:`_check_workers_resolved`).  Written separately and compared field by field."""
+    last: dict[int, str] = {}
+    for ev in events:
+        if ev['type'] == 'worker_resolved' and int(ev['body']['attempt']) == 1:
+            a = int(ev['body']['arrival'])
+            # an unresolved record is never undone by a later resolution
+            if a not in last or last[a] in _RESOLVED:
+                last[a] = str(ev['body']['state'])
+    arrivals: list[int] = []
+    for ev in events:
+        if ev['type'] == 'episode_started':
+            a = int(ev['body']['arrival'])
+            if a not in arrivals:
+                arrivals.append(a)
+    problems: list[str] = []
+    unresolved = [{'arrival': a, 'attempt': 1, 'state': last.get(a, 'no_record')}
+                  for a in sorted(arrivals) if last.get(a) not in _RESOLVED]
+    if unresolved:
+        problems.append('worker_unresolved')
+    answered = {str(e['body']['request_id']) for e in events
+                if e['type'] in ('llm_response', 'llm_error')}
+    unfinished: list[dict] = []
+    listed: set[str] = set()
+    worst = False
+    for ev in events:
+        if ev['type'] != 'llm_request':
+            continue
+        rid = str(ev['body']['request_id'])
+        if rid in answered or rid in listed:
+            continue
+        listed.add(rid)
+        a = int(ev['body']['arrival'])
+        attempt = int(ev['body']['attempt'])
+        wstate = last.get(a, 'no_record') if attempt == 1 else 'no_record'
+        unfinished.append({'arrival': a, 'attempt': attempt, 'request_id': rid,
+                           'worker_state': wstate, 'usage': None})
+        worst = worst or wstate not in _RESOLVED
+    if worst:
+        problems.append('call_unresolved')
+    for row in late:
+        found = row.get('bytes_found')
+        at = int(row.get('bytes_at_resolution') or 0)
+        if found is None:
+            problems.append('spool_unreadable')
+            continue
+        if int(found) > at:
+            problems.append('spool_grew')
+        if int(found) <= at:
+            problems.append('spool_changed')
+    for row in servers:
+        if row.get('observed'):
+            if row.get('requests_processing') != 0 or row.get('slots_busy') != 0:
+                problems.append('server_busy')
+        elif row.get('held'):
+            problems.append('server_unobserved')
+    ordered = [p for p in lab_eventlog.RESOLUTION_PROBLEMS if p in set(problems)]
+    return {'verdict': 'FAIL' if ordered else 'PASS', 'problems': ordered,
+            'unresolved_attempts': unresolved, 'unfinished_calls': unfinished}
+
+
+def _check_workers_resolved(col: _Collector, events: Sequence[Mapping],
+                            spool_dir: Path | None) -> None:
+    """``workers.resolved`` (FAIL; repair contract EB5, root 20:40 item 3: "A successful loaded
+    phase must demonstrate all permitted workers resolved before its terminal acceptance";
+    root 21:15 item 3).  What it performs, on the chain alone unless stated:
+
+    1. ``usage_fields``: every ``episode_revealed`` carries ``usage_complete`` /
+       ``unknown_usage_calls`` equal to a recount over the chain before it (the arrival's
+       ``llm_request`` ids without an ``llm_response`` or a usage-known ``llm_error``).
+    2. ``reveal_before_resolution``: an attempt that had an ``episode_started`` and is
+       revealed ``worker_died`` / ``episode_timeout`` / ``interrupted`` has a
+       ``worker_resolved`` at a LOWER seq than that reveal -- never an ``interrupted`` over a
+       worker nobody resolved (the SpoolError path, the resume of a live orphan).
+    3. ``resolution_record``: every terminal record carries ``resolution``, and its
+       ``verdict``, ``problems``, ``unresolved_attempts`` and ``unfinished_calls`` equal
+       :func:`_resolution_recount` over the chain before it (with the record's own
+       ``servers`` and ``late_spools``).
+    4. ``ended_unresolved`` / ``wrong_reason``: a ``trial_ended`` whose recount does not PASS
+       FAILs -- the acceptance was taken over an unresolved worker, a call of one, a spool
+       read past its resolution, or a busy server; a ``trial_aborted`` whose recount does
+       not PASS must carry reason ``unresolved_worker``.
+    5. ``spool_after_resolution`` (only with a work root): every resolved attempt's spool on
+       disk is still exactly ``spool_bytes_at_resolution`` long and its bytes hash to
+       ``spool_sha256_at_resolution`` -- the re-check after the terminal anchor.
+
+    What it does NOT perform: it observes no process and no server; the record's ``servers``
+    observation and a ``worker_resolved`` state are the orchestrator's (its ``kill`` and its
+    probe of pid and process identity are exercised by ``tests_eb5_resolution``)."""
+    check = 'workers.resolved'
+    events = list(events)
+    had_start = {int(e['body']['arrival']) for e in events if e['type'] == 'episode_started'}
+    asked: dict[int, set] = {}
+    known: dict[int, set] = {}
+    resolved_seen: set[int] = set()
+    for ev in events:
+        etype = ev['type']
+        body = ev['body']
+        if etype == 'llm_request':
+            asked.setdefault(int(body['arrival']), set()).add(str(body['request_id']))
+        elif etype == 'llm_response' or (etype == 'llm_error' and body.get('usage_known')):
+            known.setdefault(int(body['arrival']), set()).add(str(body['request_id']))
+        elif etype == 'worker_resolved':
+            resolved_seen.add(int(body['arrival']))
+        elif etype == 'episode_revealed':
+            a = int(body['arrival'])
+            want = len(asked.get(a, set()) - known.get(a, set()))
+            if body.get('unknown_usage_calls') != want \
+                    or body.get('usage_complete') is not (want == 0):
+                col.add(check, {'rule': 'usage_fields', 'arrival': a, 'recount': want},
+                        seq=ev['seq'])
+            cls = (body.get('outcome') or {}).get('error_class')
+            if cls in _TERMINAL_REVEALS and a in had_start and a not in resolved_seen:
+                col.add(check, {'rule': 'reveal_before_resolution', 'arrival': a,
+                                'error_class': str(cls)}, seq=ev['seq'])
+    for i, ev in enumerate(events):
+        if ev['type'] not in ('trial_ended', 'trial_aborted'):
+            continue
+        logged = ev['body'].get('resolution')
+        if not isinstance(logged, Mapping):
+            col.add(check, {'rule': 'resolution_record',
+                            'error': 'the terminal record carries no resolution'},
+                    seq=ev['seq'])
+            continue
+        recount = _resolution_recount(events[:i], list(logged.get('servers') or []),
+                                      list(logged.get('late_spools') or []))
+        differs = sorted(k for k in recount if canonical_json(recount[k])
+                         != canonical_json(logged.get(k)))
+        if differs:
+            col.add(check, {'rule': 'resolution_record', 'fields': ','.join(differs)},
+                    seq=ev['seq'])
+        if recount['verdict'] != 'PASS':
+            if ev['type'] == 'trial_ended':
+                col.add(check, {'rule': 'ended_unresolved',
+                                'problems': ','.join(recount['problems'])}, seq=ev['seq'])
+            elif ev['body'].get('reason') != 'unresolved_worker':
+                col.add(check, {'rule': 'wrong_reason',
+                                'reason': str(ev['body'].get('reason')),
+                                'problems': ','.join(recount['problems'])}, seq=ev['seq'])
+    if spool_dir is not None:
+        last: dict[int, Mapping] = {}
+        for ev in events:
+            if ev['type'] == 'worker_resolved' and ev['body']['state'] in _RESOLVED:
+                last[int(ev['body']['arrival'])] = ev['body']
+        for a in sorted(last):
+            rec = last[a]
+            path = Path(spool_dir) / ('ep_%d_%d.jsonl' % (a, int(rec['attempt'])))
+            try:
+                raw = path.read_bytes() if path.exists() else b''
+            except OSError:
+                raw = None
+            at = int(rec['spool_bytes_at_resolution'])
+            if raw is None or len(raw) != at \
+                    or sha256_bytes(raw[:at]) != rec['spool_sha256_at_resolution']:
+                col.add(check, {'rule': 'spool_after_resolution', 'arrival': a,
+                                'bytes_at_resolution': at,
+                                'bytes_found': None if raw is None else len(raw)})
+    col.ok(check)
 
 
 def _finish(col: _Collector, trial: str, mode: str) -> VerifyReport:

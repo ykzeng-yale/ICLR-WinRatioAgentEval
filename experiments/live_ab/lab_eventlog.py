@@ -181,9 +181,12 @@ E_PROGRAM_PAUSE = _E('plumbing_fail', 'power', 'disk', 'anchor_unavailable',
                      'worktree_drift', 'operator_discretion')
 # `server_restart_cap` (repair contract EB1; root 20:40 item 4): a fourth supervised restart
 # of one server in one trial would have been required.  The trial is reported incomplete.
+# `unresolved_worker` (repair contract EB5; root 20:40 item 3, 21:15 item 3: "Unresolved
+# workers/usage make the phase incomplete, not zero"): the resolution verdict
+# (`lab_orchestrator.phase_resolution_verdict`) did not pass before the terminal record.
 E_ABORT_REASON = _E('server_identity', 'receipt_mismatch', 'infrastructure',
                     'chain_unreadable', 'harness_defect', 'disk', 'operator_discretion',
-                    'worktree_drift', 'server_restart_cap')
+                    'worktree_drift', 'server_restart_cap', 'unresolved_worker')
 # `golden_objects` (repair contract EB1; root 20:40 item 1): a golden file of protocol 13.2
 # that is null in the configuration, missing, unreadable or digest-mismatched, or a runtime
 # `golden` override on a path that is not simulated.
@@ -397,6 +400,53 @@ COMPLETION = _O({
     'decision_receipt_seq': _N(_I()), 'decision_receipt_server_time': _N(_ISO()),
     'arrivals_total': _I(), 'arrivals_run': _I(), 'arrivals_not_run': _I(),
     'follow_up_run': _I(), 'follow_up_not_run': _N(_I()),
+})
+
+#: How the process of one worker ended, as its orchestrator established it (repair contract
+#: EB5; root 20:40 item 3, 21:15 item 3).  ``exited`` -- the process was seen to have exited
+#: (its own exit, or a pid found gone on resume); ``killed_reaped`` -- it was killed and its
+#: exit then confirmed; ``liveness_unknown`` -- whether it still runs could not be read;
+#: ``alive_unresolved`` -- a kill was sent and its exit could NOT be confirmed within the
+#: bound.  Only the first two RESOLVE a worker (:data:`WORKER_RESOLVED_STATES`); a worker is a
+#: used send permit until then, because the orchestrator has no gate that can revoke a live
+#: worker's POST (understand_eb5 section 2).
+WORKER_STATES: tuple[str, ...] = ('exited', 'killed_reaped', 'liveness_unknown',
+                                  'alive_unresolved')
+WORKER_RESOLVED_STATES: frozenset[str] = frozenset({'exited', 'killed_reaped'})
+E_WORKER_STATE = _E(*WORKER_STATES)
+#: ``worker_resolved`` (durable, trial-only): the one record of a worker's end.  The spool's
+#: size and digest AT that moment are the offset the deposit is sealed to; bytes found past it
+#: later are listed as late and never read (``deposit_sealed.late_unread``).
+WORKER_RESOLVED_FIELDS: dict[str, FieldSpec] = {
+    'arrival': _I(), 'attempt': _I(), 'pid': _I(), 'state': E_WORKER_STATE,
+    'returncode': _N(_I()), 'spool_bytes_at_resolution': _I(),
+    'spool_sha256_at_resolution': _H64(),
+}
+#: The closed problem codes of the resolution verdict, one per rule of
+#: ``lab_orchestrator.phase_resolution_verdict`` (and of the verifier's ``workers.resolved``).
+RESOLUTION_PROBLEMS: tuple[str, ...] = ('worker_unresolved', 'call_unresolved',
+                                        'spool_grew', 'spool_changed', 'spool_unreadable',
+                                        'server_busy', 'server_unobserved')
+E_RESOLUTION_PROBLEM = _E(*RESOLUTION_PROBLEMS)
+#: ``trial_ended.resolution`` / ``trial_aborted.resolution`` (optional in the schema so that
+#: chains written before EB5 still parse; the orchestrator writes it on every terminal record
+#: and the verifier's ``workers.resolved`` FAILs a terminal record without it): the verdict
+#: taken before the terminal record, every attempt that is not resolved, every started call
+#: with no terminal event (usage ``null``, never 0), every spool found past its resolution
+#: offset, the server observation after the clients were resolved, and the abort reason an
+#: ``unresolved_worker`` verdict superseded.
+RESOLUTION = _O({
+    'verdict': _E('PASS', 'FAIL'), 'problems': _L(E_RESOLUTION_PROBLEM),
+    'unresolved_attempts': _L(_O({'arrival': _I(), 'attempt': _I(),
+                                  'state': _E('no_record', *WORKER_STATES)})),
+    'unfinished_calls': _L(_O({'arrival': _I(), 'attempt': _I(), 'request_id': _H32(),
+                               'worker_state': _E('no_record', *WORKER_STATES),
+                               'usage': _N(USAGE)})),
+    'late_spools': _L(_O({'arrival': _I(), 'attempt': _I(), 'bytes_at_resolution': _I(),
+                          'bytes_found': _N(_I())})),
+    'servers': _L(_O({'server_id': E_SERVER, 'held': _B(), 'observed': _B(),
+                      'requests_processing': _N(_I()), 'slots_busy': _N(_I())})),
+    'superseded_reason': _N(E_ABORT_REASON),
 })
 
 
@@ -639,7 +689,14 @@ EVENT_SCHEMA: dict[str, dict[str, FieldSpec]] = {
                        'partner_state_at_verify': _N(E_PARTNER_STATE)}),
         'certified_ell': _F(), 'tokens_known': _I(), 'recovered_orphan': _B(),
         'post_decision': _B(),
+        # repair contract EB5 (root 21:15 item 3): whether every call this attempt started
+        # before the reveal has a usage receipt, and how many do not.  ``outcome.
+        # completion_tokens`` stays the KNOWN tokens (it is not scored, protocol 1249) and is
+        # a lower bound whenever ``usage_complete`` is false -- never a complete count.
+        'usage_complete': _B(), 'unknown_usage_calls': _I(),
     },
+    # repair contract EB5: how a worker process ended (``WORKER_RESOLVED_FIELDS``).
+    'worker_resolved': dict(WORKER_RESOLVED_FIELDS),
     'orphan_rejected': {'arrival': _I(), 'attempt': _I(), 'check_failed': E_ORPHAN_CHECK,
                         'record_sha256': _N(_H64()), 'spool_sha256': _H64()},
     'monitor_update': {
@@ -687,8 +744,13 @@ EVENT_SCHEMA: dict[str, dict[str, FieldSpec]] = {
         'residual': _O({'prompt': _N(_I()), 'predicted': _N(_I())}),
         'reconciliation_defect': _B(), 'counters_lost': _B(),
     },
+    # ``late_unread`` (repair contract EB5): every spool found longer than its worker's
+    # resolution offset; the deposit is sealed to the offset and the later bytes are unread.
     'deposit_sealed': {'deposit_sha256': _H64(), 'deposit_bytes': _I(),
-                       'n_records': _I(), 'n_spools': _I()},
+                       'n_records': _I(), 'n_spools': _I(),
+                       'late_unread': _opt(_L(_O({'arrival': _I(), 'attempt': _I(),
+                                                  'bytes_at_resolution': _I(),
+                                                  'bytes_found': _I()})))},
     'publication_withheld': {'segment_index': _I(), 'pattern_class': E_PATTERN_CLASS},
     'invocation_ended': {'status': E_INVOCATION_STATUS, 'counts': INT_MAP},
     'trial_ended': {
@@ -697,6 +759,7 @@ EVENT_SCHEMA: dict[str, dict[str, FieldSpec]] = {
         'terminal_failures_by_arm': INT_MAP, 'n_torn_recoveries': _I(),
         'longest_unreceipted_span_s': _F(), 'what_was_known': WHAT_WAS_KNOWN,
         'final_head': _H64(), 'completion': _opt(COMPLETION),
+        'resolution': _opt(RESOLUTION),
     },
     'trial_aborted': {
         'status': _E('aborted'), 'reason': _N(E_ABORT_REASON), 'phase': E_PHASE,
@@ -704,6 +767,7 @@ EVENT_SCHEMA: dict[str, dict[str, FieldSpec]] = {
         'terminal_failures_by_arm': INT_MAP, 'n_torn_recoveries': _I(),
         'longest_unreceipted_span_s': _F(), 'what_was_known': WHAT_WAS_KNOWN,
         'final_head': _H64(), 'completion': _opt(COMPLETION),
+        'resolution': _opt(RESOLUTION),
     },
 }
 
@@ -719,8 +783,8 @@ TRIAL_ONLY_TYPES: frozenset[str] = frozenset({
     'server_down', 'server_stopped', 'server_start_failed',
     'pair_enrolled', 'coin_drawn', 'arm_assigned_by_decision', 'episode_started',
     'job_accepted', 'llm_request', 'llm_response', 'llm_error', 'episode_revealed',
-    'orphan_rejected', 'monitor_update', 'decision', 'traffic_switch', 'trial_paused',
-    'trial_resumed', 'operator_action', 'usage_reconciliation', 'deposit_sealed',
+    'worker_resolved', 'orphan_rejected', 'monitor_update', 'decision', 'traffic_switch',
+    'trial_paused', 'trial_resumed', 'operator_action', 'usage_reconciliation', 'deposit_sealed',
     'publication_withheld', 'invocation_ended', 'trial_ended', 'trial_aborted'})
 
 

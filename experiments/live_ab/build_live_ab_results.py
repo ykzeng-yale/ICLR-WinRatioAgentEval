@@ -120,6 +120,15 @@ def episode_rows(events: Sequence[Mapping]) -> list[dict]:
                    started.get(int(b['arrival']), {}).get('started_after_resume', False)),
                'overlap_s': float(b['overlap']['seconds_with_partner'])}
         row.update({k: out[k] for k in sorted(out)})
+        # repair contract EB5 (root 21:15 item 3): ``completion_tokens`` is the KNOWN tokens
+        # (not scored, protocol 1249); it is never presented as a complete count when a call
+        # of the episode has no usage receipt.  A chain written before EB5 carries no flag:
+        # its count is labelled ``unknown`` too, never ``complete``.
+        complete = b.get('usage_complete')
+        row['usage_complete'] = complete
+        row['unknown_usage_calls'] = b.get('unknown_usage_calls')
+        row['completion_tokens_status'] = ('complete' if complete is True else
+                                           'lower_bound' if complete is False else 'unknown')
         rows.append(row)
     return rows
 
