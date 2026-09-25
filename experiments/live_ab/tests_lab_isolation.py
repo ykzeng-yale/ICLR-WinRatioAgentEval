@@ -67,6 +67,11 @@ MATRIX: dict[str, set[str]] = {
     'build_live_ab_results': {'numpy', 'pandas', 'winstats', 'lab_common',
                               'lab_eventlog', 'lab_monitor', 'lab_enclosure',
                               'lab_reference_rule'},
+    # lab_shard_receipt: the incremental immutable completed-shard receipt (root 22:20,
+    # design_notes/DESIGN_PROPOSAL.md section 3 item 1).  A thin layer over lab_common's
+    # write-once/durable primitives, deliberately free of any protocol-specific stage logic,
+    # so it imports nothing else in the lab namespace.
+    'lab_shard_receipt': {'lab_common'},
 }
 LAB_NAMES = frozenset(set(MATRIX) | {'dryrun_live_ab'})
 
@@ -523,6 +528,20 @@ SIGNATURES: dict[str, dict[str, tuple]] = {
                     ('results_root', None, KW), ('work_root', None, KW),
                     ('out_dir', None, KW), ('mock', 'False', KW)),
         'main': fn(('argv', 'None', PO)),
+    },
+    # lab_shard_receipt (design_notes/DESIGN_PROPOSAL.md section 3 item 1): the write-once
+    # completed-shard receipt every stage 1-6 / 11.5 driver reuses.  Not a section-3 module;
+    # this table is its own public contract, pinned so a driver cannot drift away from the
+    # required receipt shape silently.
+    'lab_shard_receipt': {
+        'SCHEMA': CONST, 'OUTCOMES': CONST, 'REQUIRED_FIELDS': CONST,
+        'REQUIRED_PIN_KEYS': CONST, 'ShardReceiptError': CONST,
+        'shard_id': fn(('driver', None, PO), ('schedule_row', None, PO)),
+        'validate_receipt': fn(('receipt', None, PO)),
+        'write_shard_receipt': fn(('dir', None, PO), ('receipt', None, PO)),
+        'completed_shards': fn(('dir', None, PO)),
+        'verify_shards': fn(('dir', None, PO), ('schedule_rows', None, PO),
+                            ('root_for_outputs', None, PO)),
     },
 }
 
