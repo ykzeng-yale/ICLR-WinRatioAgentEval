@@ -1,14 +1,14 @@
 # Session 60 results index (aggregated; updated by the 30-minute coordination loop)
 
-Last updated: 2026-09-25, through branch head `8a84153` of `session60/repair-eb1` (SM8 receipt generated 15:03:23Z) and root main `780ddb9` (review of 13:15 UTC). Owner: session `iclr-winratioagentevals-60`. All work is on `session60/*` branches and returned by pull request; the root session owns the manuscript, the release archives and integration. No commercial or proprietary model was called by this session; all fresh executions use open-weight models only (EXPERIMENT_POLICY.md on main).
+Last updated: 2026-09-25, through tag `session60-eb1-eb5-subset-v1` (the commit that adds this text, on `session60/repair-eb1`), receipt `results/live_ab/HARNESS_PIN_SUCCESSOR_20260925_2009.json` (commit `c12e19f`, all 5 suites green 1889/1889 at the committed `98ce004`) with its companion `results/live_ab/DELIVERY_STEP_RUNS_20260925_2014.json` (commit `eee9287`), and root's review chain on origin/main through `166e3e0` (the 19:15 UTC review, `reviews/sm8_superseding_receipt_interim_20260925_1920.md`, narrated in the new subsection below), superseding `780ddb9` (13:15 UTC) as the latest root review on main at this writing. Owner: session `iclr-winratioagentevals-60`. Work is on `session60/*` branches and is delivered as exact commits named in issue comments, under root's direct-integration policy (`DIRECT_INTEGRATION_POLICY.md` on main); no new pull request is used. The four legacy pull requests (#5, #7, #8, #10) were merged on 2026-09-19 and are history. The root session owns the manuscript, the release archives and integration. No commercial or proprietary model was called by this session; all fresh executions use open-weight models only (EXPERIMENT_POLICY.md on main).
 
-**How to read this index.** "Integrated" means the root session copied or re-derived the material into its own files and reviewed it; it never means a pull request was merged wholesale. Numbers marked *descriptive* are counts and means of retained records. Numbers marked *model-dependent* are owner intervals whose assumptions the designs do not establish; the root paper **excludes** them. Current root state: main `780ddb9` (13:15 UTC on 25 Sept, the bounded v4 review with the SM8 blocker). Root reports full-project arXiv readiness of 75/100 (change 0) and bounded-v1 of 90/100 separately. The remaining 25 points are prospective study and independent acceptance 10 (Session60/root), expanded final QA 5 (root) and author checks 10 (Yukang).
+**How to read this index.** "Integrated" means the root session copied or re-derived the material into its own files and reviewed it; it never means a branch or a legacy pull request was accepted wholesale: the four legacy PRs are merged on main, but methods root excluded stay excluded from paper and release claims (root `EXPERIMENT_QUEUE.md`). Numbers marked *descriptive* are counts and means of retained records. Numbers marked *model-dependent* are owner intervals whose assumptions the designs do not establish; the root paper **excludes** them. Current root state: main `780ddb9` (13:15 UTC on 25 Sept, the bounded v4 review with the SM8 blocker). Root reports full-project arXiv readiness of 75/100 (change 0) and bounded-v1 of 90/100 separately. The remaining 25 points are prospective study and independent acceptance 10 (Session60/root), expanded final QA 5 (root) and author checks 10 (Yukang).
 
 ## Deliverables and their disposition
 
 | # | Deliverable | Where | Last delivery head | Root disposition |
 |---|---|---|---|---|
-| 1 | Library fix for issue #4 in `src/wincs.py` (exact boundary laws, shift-invariant certified bounds, hedged betting CS, robust inversion, zero-count endpoint normalization) | PR #5, `session60/wincs-fix` | 5e91fcd | Root verification is limited to the zero-count betting endpoint arithmetic (Round 12: 3,465 ternary and 1,911 Bernoulli endpoint cases). The generic projection and width methods of the library remain separately unapproved and excluded from the paper, and the root does not import this interval implementation. PR open, not merged. |
+| 1 | Library fix for issue #4 in `src/wincs.py` (exact boundary laws, shift-invariant certified bounds, hedged betting CS, robust inversion, zero-count endpoint normalization) | PR #5, `session60/wincs-fix` | 5e91fcd | Root verification is limited to the zero-count betting endpoint arithmetic (Round 12: 3,465 ternary and 1,911 Bernoulli endpoint cases). The generic projection and width methods of the library remain separately unapproved and excluded from the paper, and the root does not import this interval implementation. PR #5 was merged on 2026-09-19 (merge `d433841`) as legacy history; the excluded methods stay excluded. |
 | 2 | Sequential all-pairs U-statistic reference baseline (issue #3) | PR #7, `session60/contrib` | 88d6434 (accepted subset from ac17f59) | **Integrated (subset) in Round 10; issue #3 closed.** The other material on the branch (decision evidence on archived trajectories, replay, positioning notes, issue #6 fixes) is delivered but not integrated. |
 | 3 | Open-model coding stream (issues #1/#2) | PR #8, `session60/local-stream` | c1da1c3 (Round 10 repair); report corrections 01f2381 | **Observations integrated in Rounds 11-12 with the root's own running-conditional-mean analysis and a descriptive same-task comparison.** Owner intervals excluded. Round 12 report corrections accepted in Round 13. |
 | 4 | Open-model tau2-bench airline collection (issues #1/#2) | PR #8, same branch | 55fb1e5 (owner handoff); report corrections 01f2381 | **Integrated in Round 12 as descriptive batch-collection results plus an optional observed-array replay illustration.** Owner intervals and sensitivity-derived decisions excluded. Round 12 report corrections accepted in Round 13. |
@@ -3645,8 +3645,10 @@ its no-flip control) or, after the fix, `SM8ForcedInterleaving`:
   - M1 (double flip), M2, M6, M7 and M8: refuted.
   - M4 and M5 (cached digest, tolerated change): not exercised in the red and not supported. In every attempt where a
     restart ran after the change, the restart refused it.
-- **Rate:** 1 red of this kind in 30 pre-fix attempts. Earlier, SM8 was red in 3 of 4 integrated suite runs and 1 of 6
-  solo runs. **Why the integrated runs were redder is not established.**
+- **Rate:** 1 red of this kind in 30 pre-fix attempts. The 1503 receipt also said "3 of 4 integrated suite runs and 1 of
+  6 solo runs"; **that denominator was incomplete** (green integrated runs were omitted). The superseding receipt
+  `SM8_DIAGNOSIS_20260925_1732.json` counts **3 red of 14** integrated full-suite runs and **2 red of 46** solo attempts on
+  the pre-fix SM8 bytes (key `rates`). **Why the integrated runs were redder is not established.**
 - **Fix `292a8a9`, test double and test only.** It changes `eb1c_llama_shim.py` and `tests_sm_entry.py` and adds
   `sm8_attempts.py`. The receipt says the production files are byte-identical to `90219f2`, and records six
   production digests under `pins`. What changed:
@@ -3697,7 +3699,79 @@ The latest root review on main predates both `292a8a9` and `8a84153`. The EB2–
 host window are outside this subset and remain open. Readiness is 75/100 (Δ0), with bounded-v1 at 90/100. Trial,
 calibration, alpha **0**; freeze **16/26** (root 13:15, citing the owner report of 12:55:12 UTC).
 
-## Open requests" section (from its heading to the end of the file). -->
+### 2026-09-25 · SM8 repaired and corrected, the pin tool's binary blind spot, and receipt R
+
+**`86e6e27`** answered two findings of the adversarial review of the 1503 diagnosis, test-control files only, no
+production change (root 16:15). It strengthens `SM8Case.assertFlipPrecedesTheRestart` to also assert that no
+`llm_response` answers a call sent before the `server_down` (the first process answered no task completion), and it
+asserts the control's own exit and full lifecycle, which the control had never checked.
+
+**The superseding SM8 receipt `results/live_ab/SM8_DIAGNOSIS_20260925_1732.json` (`e7470c7`)** answers the adversarial
+review of the 1503 receipt: all nine findings reproduced, eight corrected or fixed here, the ninth (an owed
+integrated run on the fixed code) left OWED for receipt R. Its `rates` key gives, on the pre-fix SM8 bytes: **3 red of
+14** integrated full-suite runs (`comply full2`, `v4 full1`, `v4 full2`) and **2 red of 46** solo
+`SM8AtTheRestart` attempts (1 of 6 earlier, 1 of 30 in the diagnosis loop, 0 of 10 in the review); why the integrated
+runs are redder is still not established. Its `interruption_incident` key records a **two-writer incident**: the
+owner's 16:26Z relay of root 16:15 accidentally started a second instance of this fix step; the original instance
+(running since about 15:55Z) saw the other's edits and reported them, and the owner stopped the whole SM8 workflow at
+16:35Z. One attempt tree was interrupted mid-run (its `SM8c` control had finished, entry exit 0; its `SM8` test was
+killed with no stdout and no verdict, not counted). A listing of every changed file in the work area and the shared
+fixture-use log after 15:55Z shows nothing from the second instance; the owner named the original instance the sole
+writer.
+
+**A separate stop, not in the SM8 receipt.** The `86e6e27` fix step itself stopped at 16:47Z on an Anthropic account
+usage limit (HTTP 429, weekly) before it could build the superseding SM8 receipt; a successor step, on a different
+model tier, built, verified and committed `results/live_ab/SM8_DIAGNOSIS_20260925_1732.json` (`e7470c7`). This is
+recorded only in the companion `results/live_ab/DELIVERY_STEP_RUNS_20260925_2014.json`
+(`process_events_of_the_day_not_in_R`), not in the SM8 receipt's own `interruption_incident` key, which covers only
+the earlier two-writer incident above.
+
+**Root reviewed the diagnosis twice.** At **16:15** (`reviews/sm8_diagnosis_interim_20260925_1615.md`) root
+independently checked the 1503 receipt's 29 preserved artifacts, found two of its own prose summaries contradicted by
+its own retained data (an incomplete "3 of 4" denominator; a miscounted "all 27 green chains"), required both
+corrected in a superseding write-once receipt, and resolved the closing-stop question (see Open requests, below). At
+**19:15** (`reviews/sm8_superseding_receipt_interim_20260925_1920.md`) root independently reproduced every byte count,
+member count and digest of the superseding receipt's three archives (1,946 members across 1,286 + 45 + 615, all
+matching), confirmed `86e6e27` touches no production file, and ruled on the refused delivery run below.
+
+**The delivery step's own runs before R were red or refused, and R omits them.** R's
+`runs_of_this_step_before_this_receipt` key reads "not given in this invocation"; these runs are instead carried by
+the write-once companion `results/live_ab/DELIVERY_STEP_RUNS_20260925_2014.json` (`eee9287`), a disclosed deviation
+from root's 19:15 instruction to keep them "in R" (root's decision on this is awaited). The companion's
+`runs_of_the_delivery_step_before_R` lists, in order:
+- **D1, the killed 17:37Z start** (17:37:10Z to about 17:40:33Z): the pin tool was started, then killed by the step
+  itself before any suite finished, once it found that an uncommitted patch was needed; stdout and stderr are both
+  empty, no receipt and no draft were written.
+- **D1t** (ended 17:42:25Z): with that patch applied uncommitted, the pin tool's own test module ran 51 tests, OK
+  (skipped=1).
+- **D1p**: the mutation-partition tests ran 3, OK (reported by the step; no log file was preserved for this one row).
+- **D2, the green-but-refused 17:42Z run** (17:42:45Z to 18:45:14Z), at `e7470c7` with the same uncommitted patch: all
+  5 suites green, **1885/1885** planned = completed (`live_ab_controls` 476 OK, every SM8 verdict green), but the pin
+  tool itself then **REFUSED to write a receipt**, `subset_diff_does_not_reproduce`: its `DIFF_ARGV` lacked
+  `--binary`, so `git diff` could not reproduce the `.tar.gz` archives added at `8a84153` and `e7470c7` well enough for
+  its own `git apply` check. The refused draft (not under `results/`) hashes to
+  `28b5ff675c814f6d6e24535974481345c3ccc7a0346c4ce47ad928580c438432`. This run is not a pinned delivery: it ran
+  uncommitted tool code and wrote no receipt.
+- **F**: with `--binary` reverted, 4 new tests failed; restored, 55 tests OK (skipped=1) (reported in the `98ce004`
+  commit message; no separate log kept).
+
+**`98ce004`** adds `--binary` to `DIFF_ARGV`, the minimal fix root's 19:15 ruling authorized, verified by run F above.
+
+**Receipt R** (`results/live_ab/HARNESS_PIN_SUCCESSOR_20260925_2009.json`, commit `c12e19f`) is one run of every
+suite at the clean, committed `98ce004`, all five green, **1889/1889 planned = completed**, `solo=false` (the sampler
+caught the owner's own issue-posting shell): `live_ab` 766 OK (skipped=1) in 222.976 s; `live_ab_controls` 476 OK in
+3540.075 s; `live_ab_serving` 193 OK in 2.145 s; `live_ab_tools` 239 OK (skipped=2) in 166.319 s; `live_ab_validation`
+215 OK (skipped=6, expected failures=2) in 14.429 s. Its `mutation_partition_of_the_final_verification_of_8f0b4ae`
+carries the reconciled partition (109 specified, 108 run, 98 killed [96 by the right control, 2 by host-gate
+refusal], 10 survived [1 equivalent, 9 non-equivalent over 7 guards]) in a committed file for the first time.
+
+**Doc-only H** is this commit, tagged `session60-eb1-eb5-subset-v1` by the owner immediately after it. It retargets
+`experiments/live_ab_controls/REPRODUCE_EB1_EB5_SUBSET.md` and this index from `c001354`/`…_0027` to the tag and
+receipt R.
+
+**What remains, unchanged by R and H:** root's own explicit review of this exact final head (root 13:15 ranked
+request 3's second clause) and root's decision on the companion-file deviation; the EB2–EB4 drivers, the named ODs
+and a real host window, all outside this subset; trial, calibration and alpha remain **0**.
 
 ## Open requests
 
@@ -3714,17 +3788,32 @@ calibration, alpha **0**; freeze **16/26** (root 13:15, citing the owner report 
    - (3) Complete receipt R, doc-only H and the immutable delivery only after reconciling this red control and all
      failure and mutation counts. Then submit the exact final head for explicit pre-run review.
 
-   *Status.* Requests (1) and (2) are answered on the branch by `292a8a9` and
-   `results/live_ab/SM8_DIAGNOSIS_20260925_1503.json` (at `8a84153`), which root has not yet reviewed. Request (3) is
-   pending for three reasons:
-   - the full suites have not been run at `292a8a9`;
-   - the harness pin that moved at `bdee21b` has no receipt;
-   - the attempt-7 control failure is recorded in the SM8 receipt without a named cause (its stdout, by the digest the
-     receipt records, is a host-gate refusal; R is to carry it).
+   *Status: DELIVERED, awaiting root's explicit final-head review.* Requests (1) and (2), answered by `292a8a9` and
+   `results/live_ab/SM8_DIAGNOSIS_20260925_1503.json` (at `8a84153`), were reviewed by root at 16:15
+   (`reviews/sm8_diagnosis_interim_20260925_1615.md`) and, after the test-control repair `86e6e27` and the superseding
+   receipt `results/live_ab/SM8_DIAGNOSIS_20260925_1732.json` (at `e7470c7`), again at 19:15
+   (`reviews/sm8_superseding_receipt_interim_20260925_1920.md`). The three reasons request (3) was pending are each
+   answered:
+   - the full suites are now run on the fixed code: receipt R (`results/live_ab/HARNESS_PIN_SUCCESSOR_20260925_2009.json`,
+     commit `c12e19f`) is one green run of all 5 suites (1889/1889) at the committed `98ce004`, which is after `86e6e27`
+     and `e7470c7`; this is the integrated run finding 2 of the 1732 receipt's `review_findings` marked OWED;
+   - the harness pin that moved at `bdee21b` is covered: R's `harness_pin.successor` is the `98ce004` map, and
+     `bdee21b` lies on R's `repository.commits_predecessor_to_head` between the two pins;
+   - the attempt-7 control failure now has a named cause: the 1732 receipt records it as a host-gate refusal, the same
+     kind as attempts 6 and 8 (`checked_against_the_1503_trees_reading` and the no-flip-control statement, key
+     `pre_fix_control_shared_the_race`).
+
+   Receipt R omits the delivery step's own earlier runs (its `runs_of_this_step_before_this_receipt` key reads "not
+   given in this invocation"); they are carried instead by the write-once companion
+   `results/live_ab/DELIVERY_STEP_RUNS_20260925_2014.json` (commit `eee9287`), a disclosed deviation from root's 19:15
+   instruction to keep them "in R" (see the new subsection below). Doc-only H (this commit, tag
+   `session60-eb1-eb5-subset-v1`) is delivered alongside R. What remains of request (3) is root's own explicit review of
+   this exact final head, and root's decision on the companion-file deviation.
 2. **Reproduction guide retargeted** (root 10:10, `reviews/eb1_eb5_reproduction_path_interim_20260925_1010.md`, main
    `161966e`). State the final immutable subset's checkout head, receipt, expected counts and input requirements in
    `experiments/live_ab_controls/REPRODUCE_EB1_EB5_SUBSET.md`, so that a reader does not reproduce only `c001354` and
-   `…_0027` by mistake. *Status:* pending.
+   `…_0027` by mistake. *Status: DELIVERED, awaiting root review.* This commit retargets the guide's current target to
+   tag `session60-eb1-eb5-subset-v1` and receipt R, with `c001354`/`…_0027` kept as labelled history.
 3. **One new write-once superseding receipt** (root 07:10, `reviews/predecision_abort_reporting_ruling_20260925_0710.md`,
    main `9790043`). It follows v4 and keeps `…_0027` with its `solo=false`. It must carry:
    - root's 22:08 preflight refusal and every other failed attempt;
@@ -3732,8 +3821,13 @@ calibration, alpha **0**; freeze **16/26** (root 13:15, citing the owner report 
    - missingness, resource use and actual timestamps;
    - a mutually exclusive mutation partition, reconciled from the existing logs.
 
-   *Status:* pending (this is receipt R). The reconciled partition exists only in the issue #11 comment of 07:27 UTC on
-   25 Sept, not in a committed file.
+   *Status: DELIVERED as receipt R* (`results/live_ab/HARNESS_PIN_SUCCESSOR_20260925_2009.json`, commit `c12e19f`).
+   The mutation partition is now in a committed file: R's `mutation_partition_of_the_final_verification_of_8f0b4ae.counts`
+   gives 109 specified, 108 run, 98 killed (96 by the right control, 2 by host-gate refusal), 10 survived (1 equivalent,
+   9 non-equivalent over 7 guards), matching the issue #11 comment of 07:27 UTC on 25 Sept. R omits its own delivery
+   step's earlier runs and timestamps (`runs_of_this_step_before_this_receipt`: "not given in this invocation"); those
+   are carried by the companion `results/live_ab/DELIVERY_STEP_RUNS_20260925_2014.json` (commit `eee9287`) instead of
+   inside R itself, a disclosed deviation from root's 19:15 wording (see the new subsection below).
 4. **One immutable EB1+EB5 subset, for explicit root review before any loaded, design or trial episode** (root 21:14,
    01:10, 10:10, 13:15). *Status:* pending. No interim review so far is trial clearance.
 5. **Beyond the subset** (root 20:40 items 2–4, `reviews/prerun_bundle_go_nogo_20260923_2040.md`; root 21:14 item 3,
@@ -3748,15 +3842,18 @@ calibration, alpha **0**; freeze **16/26** (root 13:15, citing the owner report 
    EB5 stays open until a loaded phase shows, on the production path, that every permitted worker was resolved (root
    20:40 item 3). *Status:* not started in this subset.
 
-**From session 60 to the root** (open):
-- The SM8 receipt's `observation_for_root_not_changed` asks for a ruling. A held server that exits after the last
-  health poll, once every call of the last pair was answered, is recorded only by the closing stop (`server_stopped`,
-  return code 9) and never as `server_down`. No episode is affected, and production is unchanged. Should a closing stop
-  that finds a crash return code be recorded as a `server_down`? The owner's default in the 15:07 UTC comment is no
-  production change for the subset (comment only).
+**From session 60 to the root** (resolved):
+- The SM8 receipt's `observation_for_root_not_changed` asked for a ruling on the closing-stop question: whether a
+  held server that exits after the last health poll, once every call of the last pair was answered and is recorded
+  only by the closing stop (`server_stopped`, return code 9, never `server_down`), should be recorded as a
+  `server_down`. **Resolved by root 16:15** (`reviews/sm8_diagnosis_interim_20260925_1615.md`): keep the observed
+  nonzero `server_stopped` return code in the chain and receipt; no production event reinterpretation, no statistical-
+  rule amendment. Restated in the superseding SM8 receipt's `closing_stop_disposition`
+  (`results/live_ab/SM8_DIAGNOSIS_20260925_1732.json`, commit `e7470c7`). A later live case with a missing outcome or
+  resource/usage record is assessed separately.
 
-**Root-side open items** (unchanged): disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no
-whole-PR approval is implied by any integration).
+**Legacy pull requests:** none open. PRs #5, #7, #8 and #10 were merged on 2026-09-19 and are history; merging implies
+no approval of methods root excluded from the paper and release.
 
 **Author-only items** (Yukang): root's reviews now call the ICLR release "historical" and count the author's remaining
 work as "author checks 10 (Yukang)" (root 10:10, `reviews/eb1_eb5_reproduction_path_interim_20260925_1010.md`). The

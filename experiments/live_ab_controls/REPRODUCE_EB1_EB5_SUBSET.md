@@ -2,12 +2,27 @@
 
 Written 2026-09-25 by session 60 for root's 22:08 and 01:10 requests
 (`reviews/eb1_eb5_summary_repair_interim_20260924_2208.md`, main 76f5e71;
-`reviews/eb1_eb5_v3_pin_interim_20260925_0110.md`, main bb093d7). Subset head:
-`c0013548e9c0fbf02489065b856f11e3918e8b05` (branch `session60/repair-eb1`); its harness bytes are
-the `79e60d4` pin of `results/live_ab/HARNESS_PIN_SUCCESSOR_20260925_0027.json` (section 8).
-Every statement below is something session 60 ran (runs R01-R23, UTC, listed in section 11) or
-read (file and line at `c001354`; for `tests_eb1_entry.py`, at the commit that adds this file).
-What was not verified is said where it matters and collected in section 12.
+`reviews/eb1_eb5_v3_pin_interim_20260925_0110.md`, main bb093d7), and retargeted the same day for root's 10:10
+request (`reviews/eb1_eb5_reproduction_path_interim_20260925_1010.md`, main `161966e`: state the final subset's
+checkout head, receipt, expected counts and input requirements, so a reader does not reproduce only `c001354` and
+the `…_0027` receipt by mistake).
+
+**Current target.** Tag `session60-eb1-eb5-subset-v1` — the commit that adds this text, on branch
+`session60/repair-eb1` — is the checkout head. Its harness bytes are the `98ce004` pin of receipt
+`results/live_ab/HARNESS_PIN_SUCCESSOR_20260925_2009.json` (commit `c12e19f`; section 8), which supersedes the
+`…_0027` receipt below. Receipt R omits the delivery step's own runs before it was written; those are in the
+write-once companion `results/live_ab/DELIVERY_STEP_RUNS_20260925_2014.json` (commit `eee9287`) instead — see
+`results/SESSION60_RESULTS_INDEX.md`. The input requirements are exactly those of sections 2-6 below, unchanged by
+the retarget.
+
+**History kept below, labelled by commit.** Sections 1-6, 9-12 and most of section 7 describe runs R01-R23 (UTC,
+listed in section 11) against the earlier checkout heads `9f0aff6` and `c001354`, pinned by the now-superseded
+receipt `results/live_ab/HARNESS_PIN_SUCCESSOR_20260925_0027.json` (`79e60d4`). Nothing in those sections changed:
+the mechanisms, the untracked inputs, the interpreter and the host gate are the same at the current target, and the
+runs remain what session 60 actually did. Section 8 is retargeted to R; a new run confirming the current head
+against R is appended there. Every statement below is something session 60 ran (runs R01-R25, UTC, listed in
+section 11) or read (file and line at `c001354` unless said otherwise; for `tests_eb1_entry.py`, at the commit that
+adds this file). What was not verified is said where it matters and collected in section 12.
 
 ## 1. Why root's sparse run refused
 
@@ -212,17 +227,31 @@ From the repository root, with `PY` the Python 3.12 venv of section 4:
     $PY experiments/live_ab_validation/tests_validation.py
     $PY -m unittest discover -v -s experiments/live_ab_controls -p tests_invalid_decision_summary.py
 
-| suite | latest solo receipt `..._1732` (solo=true, 591ebcd) | receipt `..._0027` (solo=false, 79e60d4) | c001354 commit message | fresh full clone at c001354 |
-|---|---|---|---|---|
-| live_ab | 766 OK (skipped=1), 222.332 s | 766 OK (skipped=1), 227.248 s | 766 OK (skipped=1) | R11: 766 OK (skipped=1), 224.230 s |
-| live_ab_controls | 393 OK, 2888.837 s | 426 OK, 2065.791 s | 442 OK, 3184.690 s (at 2113dbd) | R15: 442, FAILED (failures=5, the host gate, section 6), 3146.396 s; R18: the 32 of `tests_eb1_entry` OK, 386.373 s |
-| live_ab_serving | 193 OK, 2.136 s | 193 OK, 2.239 s | 193 OK | R14: 193 OK, 2.265 s |
-| live_ab_tools | 137 OK (skipped=1), 66.760 s | 186 OK (skipped=1), 124.871 s | 187 OK (skipped=1) | R14: 187 OK, 122.574 s; R19 (no `work/`): 187 OK (skipped=1), 121.989 s |
-| validation | 207 OK (skipped=6, expected failures=2), 12.833 s | 211 OK (skipped=6, expected failures=2), 12.260 s | 211 OK (skipped=6, expected failures=2) | R14: same, 12.288 s |
-| seven summary controls | - | - | - | R06: 7 OK, 79.475 s |
+| suite | latest solo receipt `..._1732` (solo=true, 591ebcd) | receipt `..._0027` (solo=false, 79e60d4) | c001354 commit message | fresh full clone at c001354 | **receipt R** (`..._2009`, solo=false, 98ce004) |
+|---|---|---|---|---|---|
+| live_ab | 766 OK (skipped=1), 222.332 s | 766 OK (skipped=1), 227.248 s | 766 OK (skipped=1) | R11: 766 OK (skipped=1), 224.230 s | **766 OK (skipped=1), 222.976 s** |
+| live_ab_controls | 393 OK, 2888.837 s | 426 OK, 2065.791 s | 442 OK, 3184.690 s (at 2113dbd) | R15: 442, FAILED (failures=5, the host gate, section 6), 3146.396 s; R18: the 32 of `tests_eb1_entry` OK, 386.373 s | **476 OK, 3540.075 s** |
+| live_ab_serving | 193 OK, 2.136 s | 193 OK, 2.239 s | 193 OK | R14: 193 OK, 2.265 s | **193 OK, 2.145 s** |
+| live_ab_tools | 137 OK (skipped=1), 66.760 s | 186 OK (skipped=1), 124.871 s | 187 OK (skipped=1) | R14: 187 OK, 122.574 s; R19 (no `work/`): 187 OK (skipped=1), 121.989 s | **239 OK (skipped=2), 166.319 s** |
+| validation | 207 OK (skipped=6, expected failures=2), 12.833 s | 211 OK (skipped=6, expected failures=2), 12.260 s | 211 OK (skipped=6, expected failures=2) | R14: same, 12.288 s | **215 OK (skipped=6, expected failures=2), 14.429 s** |
+| seven summary controls | - | - | - | R06: 7 OK, 79.475 s | (folded into the 476 of `live_ab_controls` above) |
+| **total** | | | | | **1889 planned = completed, all 5 suites green** |
 
 Counts grew with the subset (the 1732 receipt predates `7ebffad`, `9f0aff6`, `2113dbd`,
 `c001354`); the commit that adds this file adds 16 controls (its message has their runs).
+
+**Update 2026-09-25, the R step.** Receipt R's column above is one run of every suite at the clean, committed
+`98ce004` (`results/live_ab/HARNESS_PIN_SUCCESSOR_20260925_2009.json`, commit `c12e19f`); it is the **planned =
+completed count a reproduction of the current target should expect**, superseding both the `..._0027` column and
+the v4-step guidance below for anything at or after `98ce004`. Counts moved again since the v4 step: `86e6e27`
+strengthens the SM8 precondition and its no-flip control (test-control file only), and `98ce004` fixes the pin
+tool's own `DIFF_ARGV` (the delivery step's D1t run of `tests_harness_pin_successor.py` alone, with an uncommitted
+predecessor of that fix applied, found 51 tests, OK skipped=1; see `results/SESSION60_RESULTS_INDEX.md` for the
+delivery-step runs). `live_ab_tools`' skip count is now 2, not 1: the owner's `RealSourcesTests` skip is
+still there ("the three pinned roster sources are not on this host"), plus a new one from the mutation-partition
+test the pin tool's own suite added (`MUTATION_LOGS_8F0B4AE`, the verifier's log directory, an owner-session
+environment variable this reproduction does not set). `live_ab_validation`'s 6 skips are still the unbuilt compiled
+author reference.
 
 **Update 2026-09-25, the v4 step (root 07:10, `reviews/predecision_abort_reporting_ruling_20260925_0710.md`).**
 The counts in this table are observations at the receipts and commits each column names, not the
@@ -252,6 +281,93 @@ real worker entry past its lock check and ignores any later failure
 (`experiments/live_ab/tests_lab_isolation.py:943-958`). It is not a failure.
 
 ## 8. Recomputing the pin receipt's hashes from git blobs
+
+Needs only `git` and a stock `python3`; neither the pin tool nor harness code. The script is unchanged between the
+current target and the history below: only `RECEIPT` changes.
+
+### Current: retargeted to receipt R at the tag
+
+From the root of a full clone at tag `session60-eb1-eb5-subset-v1` (the commit that adds this text):
+
+    /usr/bin/python3 - <<'EOF'
+    import hashlib, json, subprocess, sys
+    RECEIPT = 'results/live_ab/HARNESS_PIN_SUCCESSOR_20260925_2009.json'
+    def git(*args):
+        return subprocess.run(('git',) + args, capture_output=True, check=True).stdout
+    def sha(data):
+        return hashlib.sha256(data).hexdigest()
+    def canonical(obj):  # lab_common.sha256_canonical, restated
+        return sha(json.dumps(obj, sort_keys=True, separators=(',', ':'), ensure_ascii=False,
+                              allow_nan=False).encode('utf-8'))
+    def blob(rev, path):
+        return git('cat-file', 'blob', '%s:%s' % (rev, path))
+    def harness_map(rev):  # lab_common.HARNESS_FILES: top-level experiments/live_ab/*.py + config.json
+        paths = git('ls-tree', '--name-only', rev, 'experiments/live_ab/').decode().splitlines()
+        names = [p.rsplit('/', 1)[1] for p in paths if p.endswith('.py') or p.endswith('/config.json')]
+        return {n: sha(blob(rev, 'experiments/live_ab/' + n)) for n in names}
+    raw = git('show', 'HEAD:' + RECEIPT)
+    print('receipt sha256', sha(raw))
+    r = json.loads(raw)
+    ok = True
+    for side in ('predecessor', 'successor'):
+        pin = r['harness_pin'][side]
+        got = harness_map(pin['rev'])
+        same = got == pin['map'] and canonical(got) == pin['canonical_sha256']
+        ok &= same
+        print(side, pin['rev'][:7], len(got), 'entries, canonical', canonical(got), 'matches' if same else 'DIFFERS')
+    head = harness_map('HEAD')
+    same = head == r['harness_pin']['successor']['map']
+    ok &= same
+    print('HEAD', git('rev-parse', '--short', 'HEAD').decode().strip(), 'harness map equals the successor pin:', same)
+    revs = {'b049307': r['repository']['predecessor'], 'head': r['repository']['head']}
+    for label, doc in sorted(r['documents'].items()):
+        for side, rev in revs.items():
+            got = sha(blob(rev, doc['path']))
+            ok &= got == doc[side]
+            print('document', label, side, got[:12], 'matches' if got == doc[side] else 'DIFFERS')
+    reused = r['reused_files']
+    for side, rev in revs.items():
+        got = {n: sha(blob(rev, reused['dir'] + '/' + n)) for n in reused[side]}
+        ok &= got == reused[side]
+        print('reused', side, 'matches' if got == reused[side] else 'DIFFERS', canonical(got)[:12])
+    print('ALL MATCH' if ok else 'SOMETHING DIFFERS')
+    sys.exit(0 if ok else 1)
+    EOF
+
+R24 output (`/usr/bin/python3` 3.9.6, run at `eee9287`, the head this commit is added to; this commit itself
+touches no `experiments/live_ab/*.py` or `config.json` byte, so the tagged commit gives the identical harness map;
+exit 0):
+
+    receipt sha256 3745631750c3913f40069185971be8b3c2bd44e4538ab2fdc07cbdc7773da101
+    predecessor b049307 33 entries, canonical 5675cc5ef970328834314480ec33d0edf237f38c1a3d977d3d22e93dc71f3fee matches
+    successor 98ce004 34 entries, canonical f9a7703f5e868ea925a8a4aae11825ded22dee732761fa11db66b7f42b794c43 matches
+    HEAD eee9287 harness map equals the successor pin: True
+    document ARCHITECTURE_FINAL.md b049307 727003c1efe2 matches
+    document ARCHITECTURE_FINAL.md head 4c762f2122c3 matches
+    document cells.json b049307 5c4a28f76a06 matches
+    document cells.json head 4796161929f4 matches
+    document config.json b049307 e4d42f5d442d matches
+    document config.json head f158969ecf02 matches
+    document protocol_FINAL.md b049307 64ace6d3e377 matches
+    document protocol_FINAL.md head c46718faedc1 matches
+    reused b049307 matches 0c1760f33c19
+    reused head matches 0c1760f33c19
+    ALL MATCH
+
+`HEAD ... equals the successor pin: True` shows that no harness byte has moved between `98ce004` (R's own head) and
+the current worktree head `eee9287`, so this doc-only commit (and the tag it gets) writes no new pin receipt.
+**The harness map at HEAD equals R's successor map**, as required.
+
+Negative control R25, `RECEIPT` set back to the now-superseded
+`results/live_ab/HARNESS_PIN_SUCCESSOR_20260925_0027.json` (receipt sha256 `889c36c6...`): re-running the script
+above with that swap reproduces that receipt's own pins (successor `79e60d4`, canonical `b0a45e31...`, both matching)
+and prints `HEAD eee9287 harness map equals the successor pin: False` and `SOMETHING DIFFERS`, exit 1 — the harness
+moved again (`bdee21b` through `98ce004`) after `…_0027` was written, so that superseded receipt no longer describes
+the current head. This verdict is what this H step reconfirmed directly by re-running the full script above; the
+session's own R25 log digest (`819d67e8d164368b`, section 11) was captured from a narrower prior check of the same
+swap and does not reproduce byte-for-byte from the full script as printed here, unlike R24's digest, which does.
+
+### History: at `c001354`, against the superseded `…_0027` receipt
 
 Needs only `git` and a stock `python3` (R16 used `/usr/bin/python3` 3.9.6); neither the pin tool
 nor harness code. From the root of a full clone at `c001354`:
@@ -406,6 +522,11 @@ and the C test double only. Logs kept by the session (first 16 hex of their sha2
 | R22 | 08:26:44 | kill matrix of `repro_inputs` and the hook | 11 of 11 killed | `e8cdc7bdb7032ce3` |
 | R23a | 08:27:04 | sparse clone c001354 + the three new control files, summary module | `ERROR: setUpModule`, 6 inputs named, Ran 0 | `652b855012d0f05d` |
 | R23b | 08:27 | `repro_inputs.py` CLI: sparse / shallow / full | exit 1 (9 named) / exit 1 (4 commits) / exit 0 | `9c1f72aaf668756e` |
+| R24 | 20:19 | pin recompute (section 8) retargeted to receipt R, in this worktree at `eee9287`, `/usr/bin/python3` 3.9.6 | ALL MATCH, exit 0 | `18942dacb81ebae3` |
+| R25 | 20:19 | same worktree, negative control against the superseded `…_0027` receipt | SOMETHING DIFFERS, exit 1 (expected) | `819d67e8d164368b` |
+
+R24 and R25 are the H step's own runs (this doc-only commit), in the `session60/repair-eb1` worktree rather than a
+fresh clone; both are read-only git-object recomputes, not suite runs, so a fresh-clone re-check was not required.
 
 ## 12. Not verified
 
