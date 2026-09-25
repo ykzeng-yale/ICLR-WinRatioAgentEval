@@ -3,9 +3,10 @@
 HOW THE CASES RUN
   Everything is read from git objects of this repository at fixed, immutable revisions:
   PREDECESSOR (b049307, the reviewed head), AMENDMENT_COMMIT (474f9d8), E2E_REV (a289fa5,
-  the last commit before the tool) and AMENDMENT_V3_COMMIT (56df17f, amendment v3).  The
-  end-to-end cases run the tool on a sparse, shared clone of the repository checked out at
-  E2E_REV or at 56df17f under a temporary directory, so the working tree of this checkout is
+  the last commit before the tool), AMENDMENT_V3_COMMIT (56df17f, amendment v3) and
+  AMENDMENT_V4_COMMIT (90219f2, amendment v4).  The end-to-end cases run the tool on a sparse,
+  shared clone of the repository checked out at E2E_REV, 56df17f or 90219f2 under a temporary
+  directory, so the working tree of this checkout is
   never written and the cases stay valid after later commits.  A "mutated predecessor" (and
   every other mutant commit) is a real commit made in that clone with git plumbing (one blob
   changed or added); nothing is pushed or committed here.
@@ -16,6 +17,10 @@ NEGATIVE CONTROLS (each must refuse or report the defect):
   * a predecessor git cannot resolve refuses (predecessor_missing), and main() exits 2
     writing nothing;
   * an altered diff, or the diff applied to altered old bytes, does not reproduce the new file;
+  * a binary file added to the subset (outside the harness) reproduces end to end from its
+    diff (DIFF_ARGV carries --binary; e7470c7's sm8_diagnosis tar.gz archives are the real
+    fixture), and a corrupted binary patch does not reproduce
+    (``subset_diff_does_not_reproduce``);
   * an injected GIT_DIFF_OPTS changes even the tool's own argv output, and injected git
     configuration a plain ``git diff``; neither changes the tool's digest;
   * a rule-block edit moves the rule-block digest, an edit outside the block does not;
@@ -32,6 +37,15 @@ NEGATIVE CONTROLS (each must refuse or report the defect):
     written protocol digest is not the blob at its commit, a v3 receipt copied onto a289fa5
     without its commit, and a v3 receipt naming another v2 receipt digest each refuse
     (``amendment_receipt_disagrees`` / ``amendment_chain:v3`` / ``amendment_chain_link:v3``);
+  * amendment v4 (90219f2): a v4 receipt naming another v3 receipt digest, and a v4 receipt
+    copied onto 56df17f without its commit, each refuse (``amendment_chain_link:v4`` /
+    ``amendment_chain:v4``, ``amendment_receipt_disagrees``);
+  * the mutation partition of the final verification of 8f0b4ae: the owner's 05:18 headline
+    counts, one entry in two classes, a specified entry in no class, an equivalent dropped, a
+    guard without its 2113dbd control, and a rerun-counted entry outside the right-control
+    kills each refuse (``mutation_partition:...``); with MUTATION_LOGS_8F0B4AE naming the
+    verifier's log directory the constant is recomputed from the logs, and a copy of the logs
+    with one verdict flipped does not reproduce it;
   * a superseded receipt whose recorded successor map is not the git blobs at the head it
     recorded refuses (``superseded_map_does_not_reproduce``);
   * a missing, unparsable, empty or row-incomplete ``--runs-of-this-step`` file refuses and
@@ -258,6 +272,34 @@ class DiffTests(unittest.TestCase):
         self.assertFalse(hps.diff_reproduces(old + b'# changed\n', new, diff, path))
         self.assertFalse(hps.diff_reproduces(old, new + b'\n', diff, path))
 
+    def test_a_binary_file_reproduces_from_its_diff(self):
+        """DIFF_ARGV must carry --binary: without it, git diff emits only "Binary files ...
+        differ" for an added binary file and diff_reproduces can never recreate the bytes.
+        Real fixture: the sm8_diagnosis tar.gz archives added at e7470c7, whose subset diff
+        the tool refused (subset_diff_does_not_reproduce) before this fix."""
+        path = 'results/live_ab/sm8_diagnosis/20260925_1732/earlier_runs_logs.tar.gz'
+        old_tree = hps.GitTree(REPO, 'e7470c7~1')
+        new_tree = hps.GitTree(REPO, 'e7470c7')
+        diff = hps.unified_diff(REPO, old_tree.rev, new_tree.rev, path)
+        self.assertIn(b'GIT binary patch', diff)
+        row = hps.diff_entry(REPO, old_tree, new_tree, path)
+        self.assertEqual(row['status'], 'added')
+        self.assertTrue(row['diff_applied_to_old_gives_new'])
+
+    def test_negative_a_corrupted_binary_patch_does_not_reproduce(self):
+        path = 'results/live_ab/sm8_diagnosis/20260925_1732/earlier_runs_logs.tar.gz'
+        old_tree = hps.GitTree(REPO, 'e7470c7~1')
+        new_tree = hps.GitTree(REPO, 'e7470c7')
+        old, new = old_tree.read(path), new_tree.read(path)
+        diff = hps.unified_diff(REPO, old_tree.rev, new_tree.rev, path)
+        self.assertTrue(hps.diff_reproduces(old, new, diff, path))
+        at = diff.index(b'\nliteral ')
+        body_start = diff.index(b'\n', at + 1) + 1
+        corrupt_at = body_start + 5
+        corrupted = diff[:corrupt_at] + bytes([diff[corrupt_at] ^ 1]) + diff[corrupt_at + 1:]
+        self.assertNotEqual(corrupted, diff)
+        self.assertFalse(hps.diff_reproduces(old, new, corrupted, path))
+
     def test_the_digest_ignores_injected_git_environment(self):
         """GIT_DIFF_OPTS overrides --unified even on the tool's own command line, and
         injected configuration changes a plain git diff; neither reaches the digest."""
@@ -277,6 +319,71 @@ class DiffTests(unittest.TestCase):
         with mock.patch.dict(os.environ, inject):
             self.assertEqual(hps.unified_diff(REPO, self.old.rev, self.new.rev, path), ours)
             self.assertNotIn('GIT_DIFF_OPTS', hps.git_env())
+
+
+class BinaryDiffFixtureTests(unittest.TestCase):
+    """A fresh, throwaway git repository (not REPO): a real base commit and a real commit
+    adding a binary file, exercising GitTree, unified_diff and diff_reproduces end to end on
+    genuinely-committed bytes -- the path that needed --binary in DIFF_ARGV.  (The real
+    fixture is DiffTests: the sm8_diagnosis tar.gz archives added at e7470c7, refused
+    subset_diff_does_not_reproduce before this fix; this class isolates the same defect from
+    that history so it stays provable independent of it.)"""
+
+    def test_a_freshly_committed_binary_file_reproduces_end_to_end(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp)
+            env = dict(hps.git_env(), GIT_AUTHOR_NAME='t', GIT_AUTHOR_EMAIL='t@t',
+                      GIT_COMMITTER_NAME='t', GIT_COMMITTER_EMAIL='t@t')
+            git('init', '-q', str(repo), cwd=repo)
+            (repo / 'README.md').write_text('base\n')
+            git('add', 'README.md', cwd=repo, env=env)
+            git('commit', '-q', '-m', 'base', cwd=repo, env=env)
+            base = git('rev-parse', 'HEAD', cwd=repo, env=env).decode().strip()
+
+            path = 'results/fixture/added.bin'
+            blob = (bytes(range(256)) * 40) + b'\x00binary\x00' * 5
+            (repo / 'results' / 'fixture').mkdir(parents=True)
+            (repo / path).write_bytes(blob)
+            git('add', path, cwd=repo, env=env)
+            git('commit', '-q', '-m', 'add a binary file', cwd=repo, env=env)
+            head = git('rev-parse', 'HEAD', cwd=repo, env=env).decode().strip()
+
+            old_tree, new_tree = hps.GitTree(repo, base), hps.GitTree(repo, head)
+            diff = hps.unified_diff(repo, old_tree.rev, new_tree.rev, path)
+            self.assertIn(b'GIT binary patch', diff)
+            row = hps.diff_entry(repo, old_tree, new_tree, path)
+            self.assertEqual(row['status'], 'added')
+            self.assertEqual(row['new_sha256'], hps.sha256(blob))
+            self.assertTrue(row['diff_applied_to_old_gives_new'])
+
+    def test_negative_a_corrupted_committed_binary_patch_does_not_reproduce(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp)
+            env = dict(hps.git_env(), GIT_AUTHOR_NAME='t', GIT_AUTHOR_EMAIL='t@t',
+                      GIT_COMMITTER_NAME='t', GIT_COMMITTER_EMAIL='t@t')
+            git('init', '-q', str(repo), cwd=repo)
+            (repo / 'README.md').write_text('base\n')
+            git('add', 'README.md', cwd=repo, env=env)
+            git('commit', '-q', '-m', 'base', cwd=repo, env=env)
+            base = git('rev-parse', 'HEAD', cwd=repo, env=env).decode().strip()
+
+            path = 'results/fixture/added.bin'
+            blob = (bytes(range(256)) * 40) + b'\x00binary\x00' * 5
+            (repo / 'results' / 'fixture').mkdir(parents=True)
+            (repo / path).write_bytes(blob)
+            git('add', path, cwd=repo, env=env)
+            git('commit', '-q', '-m', 'add a binary file', cwd=repo, env=env)
+            head = git('rev-parse', 'HEAD', cwd=repo, env=env).decode().strip()
+
+            old_tree, new_tree = hps.GitTree(repo, base), hps.GitTree(repo, head)
+            diff = hps.unified_diff(repo, old_tree.rev, new_tree.rev, path)
+            self.assertTrue(hps.diff_reproduces(None, blob, diff, path))
+            at = diff.index(b'\nliteral ')
+            body_start = diff.index(b'\n', at + 1) + 1
+            corrupt_at = body_start + 5
+            corrupted = diff[:corrupt_at] + bytes([diff[corrupt_at] ^ 1]) + diff[corrupt_at + 1:]
+            self.assertNotEqual(corrupted, diff)
+            self.assertFalse(hps.diff_reproduces(None, blob, corrupted, path))
 
 
 class RuleBlockTests(unittest.TestCase):
@@ -472,7 +579,8 @@ class SupersedesTests(unittest.TestCase):
         self.assertEqual([e['path'].rsplit('/', 1)[1] for e in hps.SUPERSEDES],
                          ['HARNESS_PIN_SUCCESSOR_20260924_1217.json',
                           'HARNESS_PIN_SUCCESSOR_20260924_1635.json',
-                          'HARNESS_PIN_SUCCESSOR_20260924_1732.json'])
+                          'HARNESS_PIN_SUCCESSOR_20260924_1732.json',
+                          'HARNESS_PIN_SUCCESSOR_20260925_0027.json'])
         for entry in hps.SUPERSEDES:
             with self.subTest(receipt=entry['path']):
                 data = (REPO / entry['path']).read_bytes()
@@ -513,14 +621,50 @@ class SupersedesTests(unittest.TestCase):
         rows = hps.DISCLOSED_RED_RUNS
         text = json.dumps(rows)
         for fragment in ('f1a136fe', '20 mutants, 19 killed', 'setUpClass', 'sparse worktree',
-                         '105 mutants', 'W6, R6f, E6, E3/E17, E18, C8, E12', 'kill matrix 1',
-                         'errors=28'):
+                         '109 mutant entries specified', 'W6, W6s, E3r, E17, E6, E12, E18, R6f, '
+                         'C8', 'kill matrix 1', 'errors=28'):
             self.assertIn(fragment, text)
         (root0254,) = [r for r in rows if '0254' in r['when']]
         self.assertEqual((root0254['kind'], root0254['fix_commits']),
                          ('review_finding', ['e9bfb18']))
         (attempt,) = [r for r in rows if '2208' in r['when']]
         self.assertEqual(attempt['kind'], 'red_run')
+        for row in rows:
+            for key in ('when', 'suite', 'result', 'disposition'):
+                self.assertTrue(row.get(key), key)
+
+    def test_the_history_carries_the_steps_after_2113dbd(self):
+        """Root 07:10: the new receipt "must include the externally recorded 22:08 root
+        preflight refusal and other failed attempts"; root 10:10: "Preserve all failed runs".
+        The rows of root 07:10 (finding 9 ruled (b), the 05:18 headline), the reproduction
+        step (f54d215), the root 07:10 code step (bdee21b) and the amendment-v4 step (90219f2),
+        each red run by its result line, and the 05:18 headline named as double-counted."""
+        rows = hps.DISCLOSED_RED_RUNS
+        text = json.dumps(rows)
+        ruling = [r for r in rows if 'predecision_abort_reporting_ruling_20260925_0710' in
+                  r['when'] or 'the same ruling' in r['when']]
+        self.assertEqual([(r['kind'], r['fix_commits']) for r in ruling],
+                         [('review_finding', ['bdee21b', '90219f2']), ('review_finding', [])])
+        for step, fragments in (
+                ('f54d215', ('R01', 'StopIteration', 'Ran 678 in 207.034s, FAILED (errors=28',
+                             'failures=14, errors=2', 'Ran 442 in 3146.396s, FAILED '
+                             '(failures=5', 'R17', 'R23a')),
+                ('bdee21b', ('Ran 15 in 73.227s, FAILED (failures=13, errors=23)',
+                             'Ran 474 in 3369.621s, FAILED (failures=2)', 'ModuleNotFoundError',
+                             'Ran 2 in 52.142s, FAILED')),
+                ('90219f2', ('Ran 38, FAILED (failures=3, skipped=1)', 'T9', 'V6',
+                             'Ran 474 in 3382.069s, FAILED (failures=1)'))):
+            with self.subTest(step=step):
+                found = [r for r in rows if r['kind'] == 'red_run' and step in r['when']]
+                self.assertEqual(len(found), 1, 'one red_run row of the %s step' % step)
+                row = found[0]
+                for fragment in fragments:
+                    self.assertIn(fragment, row['result'])
+        self.assertIn('OPEN, UNDIAGNOSED', text)
+        (verification,) = [r for r in rows if 'final adversarial verification of 8f0b4ae, in '
+                           in r['when']]
+        self.assertIn('DOUBLE-COUNTED', verification['headline_as_first_reported'])
+        self.assertIn('98 + 7 + 2 = 107, not 105', verification['headline_as_first_reported'])
         for row in rows:
             for key in ('when', 'suite', 'result', 'disposition'):
                 self.assertTrue(row.get(key), key)
@@ -556,6 +700,151 @@ class SupersedesTests(unittest.TestCase):
             'diff_applied_to_old_gives_new'])
         none, problems = hps.since_superseded(REPO, head, smap, [])
         self.assertEqual((none['receipt'], problems), (None, []))
+
+
+def partition_from_logs(logs: Path) -> dict:
+    """The partition recomputed from the verifier's own files under ``logs`` (spec3.json, the
+    three result streams, the per-mutant logs under logs/logs): each entry's recorded verdict;
+    a kill whose own log shows the real host gate refusing the run is host-gate only unless the
+    solo rerun of the same edit (``<id>r``) was killed; equivalence and guards are the
+    constant's judgement (the logs record verdicts, not equivalence)."""
+    streams = {'mut_run1.out': 'mut_%s.log', 'mut_results2.jsonl': 'mut2_%s.log',
+               'mut_run3.out': 'mut_%s.log'}
+    spec = [s['id'] for s in json.loads((logs / 'spec3.json').read_text('utf-8'))]
+    rows = {}
+    for name, pattern in streams.items():
+        for line in (logs / name).read_text('utf-8').splitlines():
+            if line.startswith('{'):
+                row = json.loads(line)
+                row['_log'] = pattern % row['id']
+                rows[row['id']] = row
+    host, right, survived = {}, [], []
+    for i in spec:
+        row = rows.get(i)
+        if row is None:
+            continue
+        if row['verdict'] == 'SURVIVED':
+            survived.append(i)
+            continue
+        log = logs / 'logs' / row['_log']
+        text = log.read_text('utf-8') if log.is_file() else ''
+        rerun = rows.get(i + 'r')
+        if ('host gate' in text or 'host_not_quiescent' in text) and not (
+                rerun and rerun['verdict'] == 'KILLED'):
+            host[i] = hps.sha256(log.read_bytes())
+        else:
+            right.append(i)
+    eq = hps.MUTATION_PARTITION_8F0B4AE['equivalent']
+    return {'logs': {n: hps.sha256((logs / n).read_bytes())
+                     for n in ('spec3.json',) + tuple(streams)},
+            'specified': spec, 'not_run': sorted(i for i in spec if i not in rows),
+            'killed_by_the_right_control': right,
+            'killed_only_by_the_host_gate': host,
+            'survived_equivalent': [i for i in survived if i in eq],
+            'survived_non_equivalent': sorted(i for i in survived if i not in eq)}
+
+
+class PartitionTests(unittest.TestCase):
+    """Root 07:10: the 05:18 mutation headline "double-counts two"; the receipt carries a
+    mutually exclusive partition reconciled from the verifier's logs."""
+    P = hps.MUTATION_PARTITION_8F0B4AE
+
+    def edited(self, **changes) -> dict:
+        p = json.loads(json.dumps(self.P))
+        p.update(changes)
+        return p
+
+    def test_the_constant_is_an_exclusive_exhaustive_partition(self):
+        self.assertEqual(hps.partition_problems(self.P), [])
+        c = self.P['counts']
+        self.assertEqual((c['specified'], c['run'], c['killed'], c['survived']),
+                         (109, 108, 98, 10))
+        self.assertEqual(c['killed_by_the_right_control'] + c['killed_only_by_the_host_gate'],
+                         c['killed'])
+        self.assertEqual(c['survived_equivalent'] + c['survived_non_equivalent'], c['survived'])
+        self.assertEqual((sorted(self.P['killed_only_by_the_host_gate']),
+                          sorted(self.P['equivalent']), list(self.P['not_run'])),
+                         (['E3', 'R8g'], ['R8g', 'S10'], ['E6c']))
+        self.assertEqual(len(set(self.P['survived_non_equivalent'].values())), 7)
+        # the seven guards are the seven classes 2113dbd added
+        src = (REPO / 'experiments/live_ab_controls/tests_guard_controls.py').read_text('utf-8')
+        for cls in self.P['guards_controlled_by_2113dbd'].values():
+            self.assertIn('class %s(' % cls, src)
+
+    def test_negative_the_0518_headline_and_each_broken_partition_refuse(self):
+        h = self.P['headline_0518']
+        self.assertFalse(hps.headline_is_a_partition(h['total'], h['killed'],
+                                                     h['non_equivalent'], h['equivalent']))
+        self.assertTrue(hps.headline_is_a_partition(108, 96, 2, 1, 9))
+        headline_counts = dict(self.P['counts'], specified=105, killed=98,
+                               survived_non_equivalent=7)
+        right = list(self.P['killed_by_the_right_control'])
+        cases = {
+            'the 05:18 counts': (self.edited(counts=headline_counts),
+                                 ['mutation_partition:count:specified',
+                                  'mutation_partition:count:survived_non_equivalent']),
+            'E3 also a right-control kill': (
+                self.edited(killed_by_the_right_control=right + ['E3']),
+                ['mutation_partition:classes_overlap',
+                 'mutation_partition:count:killed',
+                 'mutation_partition:count:killed_by_the_right_control']),
+            'E6c run but in no class': (
+                self.edited(not_run={}),
+                ['mutation_partition:classes_not_the_run', 'mutation_partition:count:not_run',
+                 'mutation_partition:count:run']),
+            'R8g not equivalent': (
+                self.edited(equivalent={'S10': 'x'}),
+                ['mutation_partition:count:equivalent']),
+            'an equivalent among the right-control kills': (
+                self.edited(equivalent=dict(self.P['equivalent'], S1='x')),
+                ['mutation_partition:equivalents', 'mutation_partition:count:equivalent']),
+            'a guard without its control': (
+                self.edited(guards_controlled_by_2113dbd={
+                    k: v for k, v in self.P['guards_controlled_by_2113dbd'].items()
+                    if k != 'look_guard'}),
+                ['mutation_partition:guards']),
+            'S6 rerun-counted but not a right-control kill': (
+                self.edited(killed_by_the_right_control=[i for i in right if i != 'S6'],
+                            not_run=dict(self.P['not_run'], S6='x'),
+                            counts=dict(self.P['counts'], killed=97, run=107, not_run=2,
+                                        killed_by_the_right_control=95)),
+                ['mutation_partition:rerun_counted_outside_the_right_control'])}
+        for label, (p, expected) in cases.items():
+            with self.subTest(case=label):
+                self.assertEqual(hps.partition_problems(p), expected)
+
+    @unittest.skipUnless(os.environ.get('MUTATION_LOGS_8F0B4AE'),
+                         'MUTATION_LOGS_8F0B4AE (the verifier\'s log directory, kept by the '
+                         'owner session, not tracked) is not set')
+    def test_the_constant_is_the_partition_of_the_verifier_logs(self):
+        logs = Path(os.environ['MUTATION_LOGS_8F0B4AE'])
+        got = partition_from_logs(logs)
+        self.assertEqual(got['logs'], self.P['logs'])
+        self.assertEqual(got['specified'], self.P['specified'])
+        self.assertEqual(got['not_run'], sorted(self.P['not_run']))
+        self.assertEqual(got['killed_by_the_right_control'],
+                         self.P['killed_by_the_right_control'])
+        self.assertEqual(got['killed_only_by_the_host_gate'],
+                         {i: r['log_sha256'] for i, r in
+                          self.P['killed_only_by_the_host_gate'].items()})
+        self.assertEqual(got['survived_equivalent'], self.P['survived_equivalent'])
+        self.assertEqual(got['survived_non_equivalent'],
+                         sorted(self.P['survived_non_equivalent']))
+        # negative control: the same reading of a copy whose E3r row says KILLED does not
+        # reproduce the constant (E3 then counts as a right-control kill, E3r leaves the
+        # survivors)
+        with tempfile.TemporaryDirectory() as tmp:
+            copy = Path(tmp) / 'logs'
+            shutil.copytree(str(logs), str(copy), ignore=shutil.ignore_patterns(
+                'clone', 'clone2', 'ro', 'r6f'))
+            run3 = copy / 'mut_run3.out'
+            run3.write_text(run3.read_text('utf-8').replace(
+                '{"id": "E3r", "verdict": "SURVIVED"', '{"id": "E3r", "verdict": "KILLED"'),
+                'utf-8')
+            flipped = partition_from_logs(copy)
+            self.assertNotEqual(flipped['logs'], self.P['logs'])
+            self.assertIn('E3', flipped['killed_by_the_right_control'])
+            self.assertNotIn('E3r', flipped['survived_non_equivalent'])
 
 
 class RunsOfThisStepTests(unittest.TestCase):
@@ -723,7 +1012,7 @@ class EndToEndTests(_Clone):
         self.assertTrue(all(am['head_equals_the_latest_written_values'].values()))
         self.assertEqual(set(am['latest_writer'].values()), {'v2'})
         self.assertEqual([(c['name'], c['present_at_head']) for c in am['chain']],
-                         [('v2', True), ('v3', False)])
+                         [('v2', True), ('v3', False), ('v4', False)])
         self.assertEqual(r['since_the_superseded_receipt']['receipt'], None)
         self.assertEqual(r['runs_of_this_step_before_this_receipt'],
                          'not given in this invocation')
@@ -815,10 +1104,10 @@ class EndToEndV3Tests(_Clone):
                          {'config.json': 'f158969e', 'ARCHITECTURE_FINAL.md': '2ec71980',
                           'protocol_FINAL.md': '73dd0573', 'cells.json': '192804a4'})
         am = r['amendments']
-        self.assertEqual([(c['name'], c['present_at_head'], c['added_in_commits'])
+        self.assertEqual([(c['name'], c['present_at_head'], c.get('added_in_commits'))
                           for c in am['chain']],
                          [('v2', True, [hps.AMENDMENT_COMMIT]),
-                          ('v3', True, [hps.AMENDMENT_V3_COMMIT])])
+                          ('v3', True, [hps.AMENDMENT_V3_COMMIT]), ('v4', False, None)])
         self.assertTrue(all(am['head_equals_the_latest_written_values'].values()))
         self.assertEqual(am['latest_writer']['protocol_FINAL.md'], 'v3')
         self.assertEqual(am['latest_writer']['serving_manifest_canonical'], 'v2')
@@ -832,7 +1121,8 @@ class EndToEndV3Tests(_Clone):
         self.assertFalse(am['document_pin_history']['config.json']['pins'][2][
             'moved_from_the_previous_step'])
         since = r['since_the_superseded_receipt']
-        self.assertEqual(since['receipt'], hps.SUPERSEDES[-1]['path'])
+        # the 0027 receipt is not in 56df17f: the latest superseded receipt there is 1732
+        self.assertEqual(since['receipt'], hps.SUPERSEDES[2]['path'])
         self.assertTrue(since['superseded_map_reproduces_from_git'])
         self.assertEqual(sorted(since['documents_moved']),
                          ['ARCHITECTURE_FINAL.md', 'cells.json', 'protocol_FINAL.md'])
@@ -866,6 +1156,84 @@ class EndToEndV3Tests(_Clone):
         problems = self.refused(commit_with(self.clone, self.REV, {
             hps.AMENDMENT_V3_RECEIPT_REL: json.dumps(rec).encode()}))
         self.assertEqual(problems, ['amendment_chain_link:v3'])
+
+
+class EndToEndV4Tests(_Clone):
+    """The tool on a sparse clone at AMENDMENT_V4_COMMIT (90219f2), and mutant commits on it."""
+    REV = hps.AMENDMENT_V4_COMMIT
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.tmp = Path(os.path.realpath(tempfile.mkdtemp(prefix='pinsucc_test_')))
+        cls.clone = make_clone(cls.tmp / 'clone', cls.REV)
+
+    def refused(self, rev: str) -> list:
+        git('checkout', '-q', '--detach', rev, cwd=self.clone)
+        self.addCleanup(git, 'checkout', '-q', '--detach', self.REV, cwd=self.clone)
+        with self.assertRaises(hps.Refused) as cm:
+            hps.build_receipt(self.clone, hps.PREDECESSOR, run_suites=False)
+        return cm.exception.problems
+
+    def v4_receipt(self) -> bytes:
+        return git('show', '%s:%s' % (self.REV, hps.AMENDMENT_V4_RECEIPT_REL), cwd=self.clone)
+
+    def test_the_receipt_at_amendment_v4(self):
+        r = hps.build_receipt(self.clone, hps.PREDECESSOR, run_suites=False)
+        self.assertEqual({k: v['head'][:8] for k, v in r['documents'].items()},
+                         {'config.json': 'f158969e', 'ARCHITECTURE_FINAL.md': '4c762f21',
+                          'protocol_FINAL.md': 'c46718fa', 'cells.json': '47961619'})
+        am = r['amendments']
+        self.assertEqual([(c['name'], c['present_at_head'], c.get('added_in_commits'))
+                          for c in am['chain']],
+                         [('v2', True, [hps.AMENDMENT_COMMIT]),
+                          ('v3', True, [hps.AMENDMENT_V3_COMMIT]),
+                          ('v4', True, [hps.AMENDMENT_V4_COMMIT])])
+        self.assertTrue(all(am['head_equals_the_latest_written_values'].values()))
+        self.assertEqual(am['latest_writer']['protocol_FINAL.md'], 'v4')
+        self.assertEqual(am['latest_writer']['serving_manifest_canonical'], 'v2')
+        link = am['chain'][2]['names_its_predecessor']
+        self.assertEqual((link['predecessor'], link['commit_named']),
+                         ('v3', hps.AMENDMENT_V3_COMMIT))
+        self.assertTrue(all(link[k] for k in (
+            'equals_the_predecessor_receipt_at_head', 'equals_the_predecessor_commit',
+            'equal_the_predecessor_written_values')))
+        hist = am['document_pin_history']['protocol_FINAL.md']['pins']
+        self.assertEqual([(p['at'][:2], p['sha256'][:8]) for p in hist],
+                         [('b0', '64ace6d3'), ('v2', '6c0ebf2f'), ('v3', '73dd0573'),
+                          ('v4', 'c46718fa'), ('he', 'c46718fa')])
+        since = r['since_the_superseded_receipt']
+        self.assertEqual(since['receipt'], hps.SUPERSEDES[-1]['path'])
+        self.assertEqual(since['recorded_head'][:7], '79e60d4')
+        self.assertTrue(since['superseded_map_reproduces_from_git'])
+        self.assertEqual(sorted(since['harness_entries_moved']), ['build_live_ab_results.py'])
+        self.assertEqual(sorted(since['documents_moved']),
+                         ['ARCHITECTURE_FINAL.md', 'cells.json', 'protocol_FINAL.md'])
+        self.assertTrue(r['cells_vocabulary_successor']['holds'])
+        self.assertTrue(r['mutation_partition_of_the_final_verification_of_8f0b4ae'][
+            'checked']['exclusive_and_exhaustive'])
+
+    def test_negative_a_v4_receipt_naming_another_v3_receipt_refuses(self):
+        rec = json.loads(self.v4_receipt())
+        rec['predecessor_amendment_v3']['receipt_sha256'] = 'f' * 64
+        problems = self.refused(commit_with(self.clone, self.REV, {
+            hps.AMENDMENT_V4_RECEIPT_REL: json.dumps(rec).encode()}))
+        self.assertEqual(problems, ['amendment_chain_link:v4'])
+
+    def test_negative_a_double_counting_partition_refuses_the_receipt(self):
+        broken = json.loads(json.dumps(hps.MUTATION_PARTITION_8F0B4AE))
+        broken['killed_by_the_right_control'].append('E3')
+        with mock.patch.object(hps, 'MUTATION_PARTITION_8F0B4AE', broken):
+            with self.assertRaises(hps.Refused) as cm:
+                hps.build_receipt(self.clone, hps.PREDECESSOR, run_suites=False)
+        self.assertEqual(cm.exception.problems,
+                         ['mutation_partition:classes_overlap', 'mutation_partition:count:killed',
+                          'mutation_partition:count:killed_by_the_right_control'])
+
+    def test_negative_a_v4_receipt_copied_in_without_its_commit_refuses(self):
+        problems = self.refused(commit_with(self.clone, hps.AMENDMENT_V3_COMMIT,
+                                            {hps.AMENDMENT_V4_RECEIPT_REL: self.v4_receipt()}))
+        self.assertIn('amendment_chain:v4', problems)
+        self.assertIn('amendment_receipt_disagrees', problems)
 
 
 if __name__ == '__main__':

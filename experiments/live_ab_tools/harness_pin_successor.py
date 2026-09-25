@@ -30,11 +30,11 @@ WHAT IT COMPUTES, WITHOUT EDITING ANY EXISTING FILE (every value from git object
    the five decision-defining modules byte-unchanged; the rule block (must be RULE_BLOCK at both
    revisions); config.json, ARCHITECTURE_FINAL.md, protocol_FINAL.md, cells.json and the real
    serving manifest old/new, cross-checked against the pre-outcome amendments (AMENDMENTS: v2
-   474f9d8, v3 56df17f) whose receipts HEAD carries: each receipt added by its own commit, an
-   ancestor of HEAD; each digest it says it wrote equal to the blob at that commit; v3 naming
-   the v2 receipt and v2's written digests; and each HEAD value equal to the value written by
-   the LATEST amendment that records it (``amendments``; the pin history of every document
-   b049307 -> v2 -> v3 -> HEAD from git blobs).
+   474f9d8, v3 56df17f, v4 90219f2) whose receipts HEAD carries: each receipt added by its own
+   commit, an ancestor of HEAD; each digest it says it wrote equal to the blob at that commit;
+   v3 naming the v2 receipt and v2's written digests, v4 naming v3's; and each HEAD value equal
+   to the value written by the LATEST amendment that records it (``amendments``; the pin
+   history of every document b049307 -> v2 -> v3 -> v4 -> HEAD from git blobs).
 5. The prior observations that are NOT reissued (PRIOR_OBSERVATIONS): each file's sha256, and
    every 64-hex value it carries classified against the b049307/HEAD digests of the tracked
    files (which of its pins moved, which did not, which were already historical at b049307).
@@ -55,7 +55,11 @@ WHAT IT COMPUTES, WITHOUT EDITING ANY EXISTING FILE (every value from git object
 8. The receipts this one SUPERSEDES (SUPERSEDES: path, SHA-256, why; each stays byte-identical)
    and every red run of the subset so far, with the root findings answered since the review
    of 988baf7 and their fix commits (DISCLOSED_RED_RUNS; review of 988baf7, reviewer 2 finding
-   5; root 16:05 "the revised pin must include the failure history and exact changed bytes").
+   5; root 16:05 "the revised pin must include the failure history and exact changed bytes"),
+   and the mutually exclusive mutation partition of the final adversarial verification of
+   8f0b4ae reconciled from its logs (MUTATION_PARTITION_8F0B4AE; root 07:10: the 05:18
+   headline "double-counts two"), refused unless it is exclusive and exhaustive
+   (``partition_problems``).
 9. The exact changed bytes since the LATEST superseded receipt HEAD carries (``since_the_
    superseded_receipt``): its successor map re-derived from the git blobs at the head it
    recorded (it must reproduce), and per harness entry or document moved since then the same
@@ -125,11 +129,16 @@ AMENDMENT_COMMIT = '474f9d82aae2b3979910d8a99d8305b5d7bc44c1'
 AMENDMENT_RECEIPT_REL = RESULTS_REL + '/REPAIR_AMENDMENT_V2_RECEIPT_20260924_0927.json'
 AMENDMENT_V3_COMMIT = '56df17f72b17744d89564d0bf05f3fa84f4b8e1d'
 AMENDMENT_V3_RECEIPT_REL = RESULTS_REL + '/REPAIR_AMENDMENT_V3_RECEIPT_20260924_2218.json'
+AMENDMENT_V4_COMMIT = '90219f2437c7b4d6ef9e4c3869a242365412c0a7'
+AMENDMENT_V4_RECEIPT_REL = RESULTS_REL + '/REPAIR_AMENDMENT_V4_RECEIPT_20260925_1120.json'
 #: The pre-outcome amendments of the subset, oldest first: the commit that wrote each, its
 #: write-once receipt, and which key of the receipt's ``written`` carries which pin.  v3
 #: (reviews/eb1_eb5_summary_repair_interim_20260924_2208.md: "finish and commit amendment v3
 #: ... and issue a fresh pin receipt") inserts text into ARCHITECTURE and the protocol, moves
-#: cells.json, writes no config.json and no serving manifest; v2 stays as written.
+#: cells.json, writes no config.json and no serving manifest; v2 stays as written.  v4
+#: (reviews/predecision_abort_reporting_ruling_20260925_0710.md: "a narrow v4 additive
+#: pre-outcome amendment ... Preserve v2/v3") inserts protocol 16 item 18 and ARCHITECTURE
+#: 3.15, moves cells.json, writes no config.json and no serving manifest; v2 and v3 stay.
 AMENDMENTS = (
     {'name': 'v2', 'commit': AMENDMENT_COMMIT, 'receipt': AMENDMENT_RECEIPT_REL,
      'keys': {'config.json': 'config_sha256', 'ARCHITECTURE_FINAL.md': 'architecture_sha256',
@@ -144,6 +153,12 @@ AMENDMENTS = (
               'rule_block': 'rule_block_sha256_on_disk'},
      'names_predecessor': {'name': 'v2', 'field': 'predecessor_amendment_v2',
                            'written_field': 'written_by_v2'}},
+    {'name': 'v4', 'commit': AMENDMENT_V4_COMMIT, 'receipt': AMENDMENT_V4_RECEIPT_REL,
+     'keys': {'config.json': 'config_sha256', 'ARCHITECTURE_FINAL.md': 'architecture_sha256',
+              'protocol_FINAL.md': 'protocol_sha256', 'cells.json': 'cells_sha256',
+              'rule_block': 'rule_block_sha256_on_disk'},
+     'names_predecessor': {'name': 'v3', 'field': 'predecessor_amendment_v3',
+                           'written_field': 'written_by_v3'}},
 )
 #: Decision-defining modules the restart cap must not touch (root 21:14, cap invariance).
 DECISION_MODULES = ('lab_coin.py', 'lab_design.py', 'lab_enclosure.py', 'lab_monitor.py',
@@ -209,6 +224,18 @@ SUPERSEDES = (
              'tests_lab_chain) and amendment v3 (56df17f) moved ARCHITECTURE_FINAL.md, '
              'protocol_FINAL.md and cells.json; root 22:08: it "does not pin 9f0aff6"; its '
              'suites (all passed, solo) stay the observation of the 591ebcd tree only')},
+    {'path': RESULTS_REL + '/HARNESS_PIN_SUCCESSOR_20260925_0027.json',
+     'sha256': '889c36c6f7b419f39d20f292bef2186f30b5f745a1202ffd9fcced05151c9300',
+     'head_when_written': '79e60d4',
+     'why': ('it pins the 79e60d4 harness (canonical b0a45e31) and the amendment-v3 documents; '
+             'since then bdee21b (root 07:10, choice (b)) changed build_live_ab_results.py (a '
+             'harness entry), amendment v4 (90219f2) moved ARCHITECTURE_FINAL.md, '
+             'protocol_FINAL.md and cells.json, and 2113dbd, c001354, f54d215, bdee21b and '
+             '90219f2 added controls and tools; its failure history lacked rows (the final '
+             'verification of 8f0b4ae, finding 8: root 02:54, the discarded 11:41 pin run, the '
+             '988baf7 witness survivor, root\'s 22:08 attempt); root 01:10 accepted it as '
+             'disclosed engineering-test evidence with solo=false, which it keeps: its suites '
+             '(1,782 of 1,782 passed, not solo) stay the observation of the 79e60d4 tree only')},
 )
 
 #: Every red run of the subset so far (review of 988baf7, reviewer 2 finding 5; root 16:05:
@@ -221,7 +248,9 @@ SUPERSEDES = (
 #: runs of the owner and of the reviews known to the session, and every root finding against
 #: the subset's own code (from 8df2558 on).  The 0027 receipt called this list the whole
 #: history but lacked four of them (the final verification of 8f0b4ae, finding 8); they are the
-#: rows after the v3 step, with that verification and the step answering it.
+#: rows after the v3 step, with that verification and the step answering it.  The rows after
+#: 2113dbd: root 07:10 (finding 9 ruled (b); the 05:18 headline arithmetic), the reproduction
+#: step (f54d215), the root 07:10 code step (bdee21b) and the amendment-v4 step (90219f2).
 DISCLOSED_RED_RUNS = (
     {'kind': 'red_run',
      'when': '2026-09-24 03:06-03:43 local, integration solo run at 79bb1ab',
@@ -449,25 +478,45 @@ DISCLOSED_RED_RUNS = (
                 'preflight_rule_failed, reused_file_sha256 and sandbox_profile_sha256 drift: '
                 'the sparse checkout omitted runtime material)'),
      'log_sha256': None,
-     'disposition': ('root\'s own attempt, not a run of the full checkout, and not reproduced '
-                     'there; the 0027 receipt quoted 22:08 only for its source finding.  The '
-                     'full-checkout, untracked-input reproduction path root 01:10 asks for '
-                     '(with this sparse-preflight refusal) is still owed')},
+     'disposition': ('root\'s own attempt, not a run of the full checkout; the 0027 receipt '
+                     'quoted 22:08 only for its source finding.  Explained and reproduced by '
+                     'f54d215 (runs R01, R02 below: a fresh sparse clone of 9f0aff6 without the '
+                     'five tracked files of experiments/local_stream/, so the mock bundle '
+                     'pinned {} and the literal sandbox profile; the same seven controls 7 OK '
+                     'once that directory is present, and in full clones); root 10:10 (main '
+                     '161966e): "source-consistent and independently checked at the '
+                     'committed-byte level", without reproducing R01-R25')},
     # -- the final adversarial verification of 8f0b4ae and the step answering it ---------------
     {'kind': 'red_run',
      'when': '2026-09-25 (UTC, finished before 05:18), the final adversarial verification of '
              '8f0b4ae, in clones of 8f0b4ae (the worktree unmodified)',
      'suite': 'mutation runs over live_ab_controls, then live_ab, live_ab_tools, live_ab_serving',
-     'result': ('105 mutants over the rulings 2114, 0153, 0254, 0324, 0703, 1605, 1905: 98 '
-                'killed by the right control; 3 killed only by the real host gate refusing a '
-                'run (E3, S6, R8g: a parallel runner or mediaanalysisd), E3 re-run solo '
-                'SURVIVED and S6 was killed by SM8AtTheRestart; 2 equivalent survivors (S10, '
-                'R8g); 7 non-equivalent SURVIVED (W6, R6f, E6, E3/E17, E18, C8, E12): with all '
-                'seven applied, controls 426 OK, live_ab 766 OK (skipped=1), tools 186 OK '
-                '(skipped=1), serving 193 OK.  Its first combined live_ab run FAILED (Ran 678, '
-                'errors=28: tests_lab_design and the import of tests_lab_serving) in a clone '
-                'without the untracked work/local_stream data; 766 OK once that data was '
-                'copied in'),
+     'result': ('reconciled from its logs (MUTATION_PARTITION_8F0B4AE; root 07:10), mutually '
+                'exclusive: 109 mutant entries specified over the rulings 2114, 0153, 0254, '
+                '0324, 0703, 1605, 1905, 108 run (E6c never run); 98 recorded KILLED = 96 by '
+                'the right control (S6 counted after its solo rerun S6r, which '
+                'SM8AtTheRestart killed with "2 != 1") + 2 recorded only because the real '
+                'host gate refused the run (E3, whose solo rerun E3r SURVIVED; R8g, an '
+                'equivalent mutant); 10 SURVIVED = 1 equivalent (S10) + 9 non-equivalent '
+                'entries (W6, W6s, E3r, E17, E6, E12, E18, R6f, C8) over 7 distinct guards '
+                '(W6/W6s and E3r/E17 share guards); equivalent mutants in total 2 (S10, R8g).  '
+                'With the seven guards mutated at once: controls 426 OK, live_ab 766 OK '
+                '(skipped=1), tools 186 OK (skipped=1), serving 193 OK.  Its first combined '
+                'live_ab run FAILED (Ran 678, errors=28: tests_lab_design and the import of '
+                'tests_lab_serving) in a clone without the untracked work/local_stream data; '
+                '766 OK once that data was copied in'),
+     'headline_as_first_reported': (
+         'the owner\'s 05:18 UTC issue-11 comment: "105 mutants, 98 killed ... 98 were killed '
+         'by the right control ... 2 survivors are equivalent ... 7 survivors are not '
+         'equivalent" (105 total, 98 killed, 7 non-equivalent, 2 equivalent), and this row as '
+         'first written at c001354 ("105 '
+         'mutants ... 98 killed by the right control; 3 killed only by the real host gate ... '
+         '7 non-equivalent SURVIVED"): DOUBLE-COUNTED.  98 + 7 + 2 = 107, not 105; E3 and R8g '
+         'are inside the 98 killed and again inside the 7 guards and the 2 equivalents; 105 '
+         'was the specification before the reruns E3r, S6r, W6s, E6c; the 98 included the '
+         'rerun S6r and counted E3 and R8g, which only the host gate killed; "7" counted '
+         'guards, not the 9 surviving non-equivalent entries.  Corrected by the owner at 07:27 '
+         'UTC; no mutant was re-run for this accounting'),
      'log_sha256': {
          'mut_run1': 'd924b5db5ae7d8f2d3d8b91e7600df0a667fa90268c82074488ac6707ac1f4b0',
          'mut_run2': '43657be94d729c38a0479ced4f3ae733eedee400b75b15c642e32019df418a49',
@@ -482,7 +531,9 @@ DISCLOSED_RED_RUNS = (
                      '(2113dbd) gives each a control and its mutation; no production byte '
                      'changed.  Its finding 9 (a predecision non-cap abort with no crossing is '
                      'published none, reportable true, as protocol 16 item 17 prescribes; the '
-                     'cap value is in no built output) is left for a root ruling')},
+                     'cap value is in no built output) went to root, who ruled (b) at 07:10 '
+                     '(the review_finding row below, fixed by bdee21b and amendment v4 '
+                     '90219f2); its finding 8 is the rows above')},
     {'kind': 'red_run',
      'when': '2026-09-25 05:29-05:52 UTC, the step answering that verification (2113dbd)',
      'suite': ('live_ab_controls tests_guard_controls against the verifier\'s source mutants in a '
@@ -505,14 +556,223 @@ DISCLOSED_RED_RUNS = (
      'disposition': ('expected; on 8f0b4ae plus the module: dev1-dev3 16 OK, dev4 (with '
                      'tests_delta_citations) 23 OK; full live_ab_controls at 2113dbd '
                      '05:53-06:46 UTC: Ran 442 tests in 3184.690s, OK')},
+    # -- after 2113dbd: root 07:10, the reproduction step, the v4 code and amendment steps ------
+    {'kind': 'review_finding',
+     'when': 'root 07:10 UTC (reviews/predecision_abort_reporting_ruling_20260925_0710.md, main '
+             '9790043) on 2113dbd and c001354: finding 9 of the final verification of 8f0b4ae',
+     'suite': 'source review (not a test run)',
+     'result': ('choice (b): build_live_ab_results.decision_object published primary_result '
+                "'none', reportable=True for a trial aborted before any decision by a non-cap "
+                'cause with no crossing (amendment-v3 protocol 16 item 17 permitted it): a '
+                'pre-outcome reporting-rule defect; such a trial is incomplete and not '
+                'reportable, and the effective restart cap and its config binding were in no '
+                'result/provenance output'),
+     'log_sha256': None,
+     'fix_commits': ['bdee21b', '90219f2'],
+     'disposition': ('bdee21b: decision_object precedence (invalid first; the cap label; a '
+                     'crossing not acted on; NEW the predecision-abort label and the '
+                     'incomplete-chain label; reportable none only at a normal end at the '
+                     'frozen full horizon), normal_end with 13 closed reasons, restart_cap '
+                     'cap_value and binding in decision.json and program_summary.json; controls '
+                     'tests_predecision_abort_reporting (16).  90219f2: amendment v4 (protocol '
+                     '16 item 18, ARCHITECTURE 3.15), receipt REPAIR_AMENDMENT_V4_RECEIPT_'
+                     '20260925_1120.json (0b4e4108...)')},
+    {'kind': 'review_finding',
+     'when': 'root 07:10 UTC (the same ruling): the owner\'s 05:18 mutation headline',
+     'suite': 'arithmetic of a reported summary (not a test run)',
+     'result': ('"it says 105 mutants, 98 killed, seven non-equivalent survivors and two '
+                'equivalent survivors, which as written double-counts two unless they belong '
+                'within another category.  Reconcile from existing logs; no repeat merely for '
+                'this accounting"'),
+     'log_sha256': None,
+     'fix_commits': [],
+     'disposition': ('reconciled from the verifier\'s logs by this receipt\'s step '
+                     '(MUTATION_PARTITION_8F0B4AE, checked exclusive and exhaustive by '
+                     'partition_problems; the reconciliation run is in the runs of this step): '
+                     '109 specified, 108 run, 98 killed = 96 + 2 host-gate-only, 10 survived = '
+                     '1 + 9 over 7 guards, 2 equivalent; the headline double-counted E3 and '
+                     'R8g; the owner corrected it at 07:27 UTC; no mutant re-run')},
+    {'kind': 'red_run',
+     'when': '2026-09-25 07:02-08:27 UTC, the reproduction step (f54d215), fresh clones of '
+             '9f0aff6 and c001354 outside the owner checkout',
+     'suite': ('the summary controls, live_ab, tests_lab_design, live_ab_controls, the host gate, '
+               'the pin recompute, the C test double, repro_inputs'),
+     'result': ('R01 sparse clone 9f0aff6, summary module: setUpClass StopIteration, Ran 0, '
+                'FAILED (errors=1); R02 its program chain: preflight_refused [harness_file_sha, '
+                'preflight_rule_failed], drift reused_file_sha256 + sandbox_profile_sha256; '
+                'R08b host gate probe during R15: refused on R15\'s own mock llama-server; R09 '
+                'live_ab with no work/: Ran 678 in 207.034s, FAILED (errors=28, skipped=1); '
+                'R12 tests_lab_design with mbpp.jsonl unreachable: Ran 345, FAILED '
+                '(failures=14, errors=2, skipped=1); R15 live_ab_controls in the clone: Ran 442 '
+                'in 3146.396s, FAILED (failures=5: C10, C1, C2b, C4, C4b of tests_eb1_entry, '
+                'each host_not_quiescent, offending detector baseline-active, mediaanalysisd '
+                'busy).  Meant to fail: R17 the pin recompute against the 1732 receipt, '
+                'SOMETHING DIFFERS, exit 1; R20 sm_fixture.compiled() without clang, '
+                'FileNotFoundError; R22 kill matrix of repro_inputs, 11 of 11 killed; R23a '
+                'sparse clone + the three new control files: ERROR setUpModule '
+                '(MissingReproductionInputs, 6 inputs named), Ran 0; R23b the CLI on a sparse '
+                'and a shallow clone: exit 1 (9 named, 4 commits)'),
+     'log_sha256': {
+         'R01': '797506ef4d74b60c8ce9830707d48d39a6615b8552d0c53b0477643cfb452762',
+         'R02': '26c5e1e481e37cfc9135dd18832aed4a7b1eb8d43dad71c86c45334599d81d92',
+         'R08b': 'f9c67c9a5fbc5f5280bcef717cecda0abe81cac8f6678a49a08ec62a4f7beebf',
+         'R09': '3a0f80724895aa8b11bf8ec7f7761f19d794d571848375cea5ae91ddc94482f7',
+         'R12': '87e514c3a4b5dc1920cfbd06c22818a66f8577ffe7b63f5b18b42e3240838a53',
+         'R15': 'b9eef8cda325f30535ba9dadeb1f1d5819709bf782f9f7f41fdcb0ee13189c5d',
+         'R17': '1704a76e345f57665b78282f462a859f8eef823b3d5f2fc3c7176cb6884cff6c',
+         'R20': '1bda59ad0504ce991ee0a03c214d832d3fdbd3275f4c49495a28fc784d1e9c86',
+         'R22': 'e8cdc7bdb7032ce32ea4d147756f8d1daf9e6b303e074f507f8771c4b7b472b5',
+         'R23a': '652b855012d0f05d4eea9f5ff514a1828bc9ee8da28dcb87ab684e5a91287da3',
+         'R23b': '9c1f72aaf668756ec72df848bb2b7a1e7b4bcf9dd001510d6598baea4086bc8c'},
+     'disposition': ('environment-only, none a defect of the subset\'s code: R01/R02 reproduce '
+                     'root\'s 22:08 refusal (experiments/local_stream/ absent); R09/R12 lack '
+                     'the untracked inputs; R15 is the real host gate refusing on a busy host '
+                     '(R18 re-ran tests_eb1_entry alone: Ran 32 in 386.373s, OK).  R01-R23b, '
+                     'green and red, are listed with their logs in experiments/live_ab_controls/'
+                     'REPRODUCE_EB1_EB5_SUBSET.md section 11, R24/R25 (all OK, live_ab_controls '
+                     '458) in the f54d215 commit message; repro_inputs.py names each missing '
+                     'input')},
+    {'kind': 'red_run',
+     'when': '2026-09-25 ~09:46-11:18 UTC, the root 07:10 code step before bdee21b',
+     'suite': ('live_ab_controls tests_predecision_abort_reporting, its kill matrix, the full '
+               'suites (full1) and SM8AtTheRestart alone'),
+     'result': ('before1, the new module on the unfixed builder (a pre-fix negative control, '
+                'meant to fail): Ran 15 in 73.227s, FAILED (failures=13, errors=23); fix2 Ran '
+                '16 in 76.058s, FAILED (failures=1: the horizon_unknown case kept '
+                'monitor.n_max); kill matrix, 28 builder mutants in 4 clones (meant to fail): '
+                '28 of 28 killed; full1 live_ab_controls Ran 474 in 3369.621s, FAILED '
+                '(failures=2): tests_invalid_decision_summary SummaryPathControls.test_control_'
+                'a_valid_eligible_decision_stays_reportable (its whole-row comparison met the '
+                'three provenance keys 07:10 added) and tests_sm_entry.SM8AtTheRestart.'
+                'test_sm8_a_library_changed_before_the_restart_refuses_it (entry exit 0 != '
+                '1); three SM8 invocations from the worktree root were mistaken '
+                '(ModuleNotFoundError tests_sm_entry, Ran 1, errors=1 each, no test ran; logs '
+                'not kept); sm8_1 from experiments/live_ab_controls: Ran 2 in 52.142s, FAILED '
+                '(failures=1, the same exit 0 != 1)'),
+     'log_sha256': {
+         'before1': '4c645afd260dbdb715f0d7bca0c5f97e46068f60cbfcc34c6c079aacb0758f2c',
+         'fix2': 'abf5f7ef7c7660431e6740bb484cad15b54724473be13f0db540db10f7feccac',
+         'killmatrix_c1': '83e89c3a588d8ecc4c06a3b228ba5c92654c45a8d1ee019baa70502e27d3dc1a',
+         'killmatrix_c2': 'd6399e2e9a3ff77e629ba3406fd571d76aac40a76bb415a81cbdee10f3e6306b',
+         'killmatrix_c3': '3de1859effe5bf7a446d9ba3e687de3997518468675aee351449ca7183f1ba15',
+         'killmatrix_c4': 'bb4398a478dadeaf5e417a344cea5964e86741c5504465d7fb92f778d56e88ef',
+         'full1_controls': 'f129eb1e533244059b2d2996ca69499b647c2cf9d2c2b59047536c40a0e60cf7',
+         'sm8_1': '2e831cd488eaf752cffe7e5620a1ac3a67b2a354609b326b2013037aa361ebe8'},
+     'disposition': ('fix3 16 OK; the summary control edited in place inside bdee21b (summ1 7 '
+                     'OK); full1 live_ab 766 OK (skipped=1), serving 193 OK, tools 187 OK '
+                     '(skipped=1), validation 211 OK; sm8_2 and sm8_3 Ran 2 OK: SM8 NOT '
+                     'repaired, NOT diagnosed (the next row)')},
+    {'kind': 'red_run',
+     'when': '2026-09-25 ~10:04-12:24 UTC, the amendment-v4 step before 90219f2',
+     'suite': ('live_ab_tools tests_repair_amendment_v4 and its mutation sweeps, the unedited '
+               'v3 witness, the full suites (full2)'),
+     'result': ('v4dev1 Ran 38, FAILED (failures=3, skipped=1): a recompiled mutant\'s '
+                'getsource read the wrong lines, and the reason-list check filtered by '
+                'membership; '
+                'mutation1, 11 tool + 6 verifier mutants: 15 of 17 killed, T9 (the ASCII clause '
+                'of the text form) and V6 (a verifier negative control replaced by False) '
+                'SURVIVED; the UNEDITED v3 witness on the v4 documents: test_control_the_'
+                'pristine_pre_images_are_amended FAILED (ARCH differs; why it was edited); the '
+                'independent verifier\'s 6 negative controls failed as meant; full2 '
+                'live_ab_controls Ran 474 in 3382.069s, FAILED (failures=1): tests_sm_entry.'
+                'SM8AtTheRestart.test_sm8_a_library_changed_before_the_restart_refuses_it, '
+                'entry exit 0 != 1 again'),
+     'log_sha256': {
+         'v4dev1': '90013193eb42ccc354ef7debb61b71f4288b5059598ddd2608f6efe219455049',
+         'mutation1': '31687cb67db10356394f6de6ba14f076f789b1e55093850b8bd202faec9b10b0',
+         'v3_witness_unedited': '28d7ed75a02951a83349fc0dc66cd565be2ce6a0ce4e209d3fbeeaac9e9f5562',
+         'verifier_pre_commit': '0cd08ca65db089b3a44fb9d56768fdd82873f92e3d2328a3b8fd80e567250319',
+         'full2_controls': 'a6886edeab1db6eb497388c215cc19130508a1b7490b4d7c3bcaa79af7215dd7'},
+     'disposition': ('witnesses added (v4dev2/v4dev3 OK; mutation2 killed T9 and V6, '
+                     '730ab966...); the v3 witness edited in place inside 90219f2; full2 '
+                     'live_ab 766 OK (skipped=1), serving 193 OK, tools 227 OK (skipped=2), '
+                     'validation 215 OK.  SM8AtTheRestart exit 0 != 1 stays an OPEN, '
+                     'UNDIAGNOSED intermittent failure of that control: red in 7ebffad full2, '
+                     'bdee21b full1, sm8_1 and 90219f2 full2; green in 3 of 3 solo reruns at '
+                     '7ebffad and in sm8_2, sm8_3; the orchestrator subprocess it drives never '
+                     'reaches the results builder')},
 )
+
+#: The mutation partition of the final adversarial verification of 8f0b4ae, reconciled from its
+#: own logs (root 07:10: "a clarified mutually exclusive partition ... Reconcile from existing
+#: logs; no repeat merely for this accounting").  Read from the verifier's mutant specification
+#: (spec3.json) and its three result streams (one JSON row per mutant run: mut_run1.out,
+#: mut_results2.jsonl, mut_run3.out), each named by the SHA-256 of the bytes read; a kill is
+#: "host gate only" when the mutant's own log shows the REAL host gate refusing the run (the
+#: control's host-gate assertion or host_not_quiescent) and no solo rerun of the same edit was
+#: killed.  Every entry is listed by id so partition_problems can check that the classes are
+#: mutually exclusive and exhaustive and that each stated count is the size of its class.
+MUTATION_PARTITION_8F0B4AE = {
+    'verification': ('the final adversarial verification of 8f0b4ae, clones of 8f0b4ae, finished '
+                     'before 05:18 UTC 2026-09-25 (the red_run row of DISCLOSED_RED_RUNS)'),
+    'logs': {'spec3.json': '05e86a155dfc68609137ed9537be2fd708e86ca5da3cdf4e61cca88168b9b09a',
+             'mut_run1.out': 'd924b5db5ae7d8f2d3d8b91e7600df0a667fa90268c82074488ac6707ac1f4b0',
+             'mut_results2.jsonl': ('43657be94d729c38a0479ced4f3ae733eedee400b75b15c642e32019'
+                                    'df418a49'),
+             'mut_run3.out': '41f870cbb519af5144e5debd990724d0bca9de132431781732a3510575b623ad'},
+    'specified': (
+        'E1 E2 E3 E4 E5 E5b E6 E7a E7b E7c E7d E7e E7f E7g E7h E7i E7j E7k E8 E9 E10 E11 E12 E13 '
+        'E15 E16 E17 E18 B1 B2 B3 B4 B5 B6 B7 B9 B10 B11 B12 R1 R2 R3 R4 R5 R6a R6b R6c R6d R6e '
+        'R6f R6g R6h R6i R6j R6k R6l R7a R7b R7c R8a R8b R8c R8d R8e R8f R8g R8h R8i R10 R11 C1 '
+        'C2 C3 C4 C5 C6 C7 C8 C9 S1 S2 S3 S4 S5 S6 S7 S8 S9 S10 S11 S12 W1 W2 W4 W5 W6 W7 M1 M2 '
+        'M4 M5 M6 M7 M8 F1 E3r S6r W6s E6c').split(),
+    'not_run': {'E6c': 'a rerun of E6 (close_with_open_work removed) that was specified and never '
+                       'run'},
+    'killed_by_the_right_control': (
+        'E1 E2 E4 E5 E5b E7a E7b E7c E7d E7e E7f E7g E7h E7i E7j E7k E8 E9 E10 E11 E13 E15 E16 '
+        'B1 B2 B3 B4 B5 B6 B7 B9 B10 B11 B12 R1 R2 R3 R4 R5 R6a R6b R6c R6d R6e R6g R6h R6i R6j '
+        'R6k R6l R7a R7b R7c R8a R8b R8c R8d R8e R8f R8h R8i R10 R11 C1 C2 C3 C4 C5 C6 C7 C9 S1 '
+        'S2 S3 S4 S5 S6 S7 S8 S9 S11 S12 W1 W2 W4 W5 W7 M1 M2 M4 M5 M6 M7 M8 F1 S6r').split(),
+    'counted_after_a_solo_rerun': {
+        'S6': ('its run was refused by the real host gate (mut2_S6.log: host_not_quiescent, '
+               'baseline-active); the same edit rerun alone, S6r, was killed by tests_sm_entry.'
+               'SM8AtTheRestart with "2 != 1" (not the intermittent "0 != 1")')},
+    'killed_only_by_the_host_gate': {
+        'E3': {'log': 'mut_E3.log',
+               'log_sha256': '5bc17ecbdec807db596294ca547ac30f9a9f25edb5f76eebc3929d35cdd67f77',
+               'line': "AssertionError: True is not false : host gate",
+               'solo_rerun': 'E3r', 'solo_rerun_verdict': 'SURVIVED'},
+        'R8g': {'log': 'mut2_R8g.log',
+                'log_sha256': '529db8cae575331bb2ed48affb8ae1af132e28ba958483976d1e171693888c5b',
+                'line': "AssertionError: True is not false : host gate",
+                'solo_rerun': None, 'solo_rerun_verdict': None}},
+    'survived_equivalent': ['S10'],
+    'survived_non_equivalent': {
+        'W6': 'unresolved_seen stops follow-up dispatch',
+        'W6s': 'unresolved_seen stops follow-up dispatch',
+        'E3r': 'look_guard', 'E17': 'look_guard',
+        'E6': 'close_with_open_work', 'E12': 'abort_point_missing ordering',
+        'E18': 'abort_owed once per reason', 'R6f': 'decision receipt on the frozen branch',
+        'C8': 'nothing restarts during an owed-abort drain'},
+    'equivalent': {
+        'S10': 'launcher digest ignored: redundant with the closure check (survived)',
+        'R8g': ('anchor_mismatch removed: can never differ at its only caller (recorded killed '
+                'only by the host gate)')},
+    'guards_controlled_by_2113dbd': {
+        'unresolved_seen stops follow-up dispatch': 'UnresolvedFollowUpInProcess',
+        'look_guard': 'LookGuardInProcess',
+        'close_with_open_work': 'CloseWithOpenWorkInProcess',
+        'abort_point_missing ordering': 'LateAbortPointTests',
+        'abort_owed once per reason': 'TwoOwedReasonsInProcess',
+        'decision receipt on the frozen branch': 'FrozenBranchTests',
+        'nothing restarts during an owed-abort drain': 'NoRestartDuringOwedAbortInProcess'},
+    'counts': {'specified': 109, 'run': 108, 'not_run': 1, 'killed': 98,
+               'killed_by_the_right_control': 96, 'killed_only_by_the_host_gate': 2,
+               'survived': 10, 'survived_equivalent': 1, 'survived_non_equivalent': 9,
+               'distinct_non_equivalent_guards': 7, 'equivalent': 2},
+    'headline_0518': {'total': 105, 'killed': 98, 'non_equivalent': 7, 'equivalent': 2,
+                      'reading': ('the owner\'s 05:18 headline double-counted: 98 + 7 + 2 = '
+                                  '107 != 105 (see the verification row)')},
+}
+
 
 #: The unified-diff form whose bytes are hashed (every option fixed; see git_env()).
 DIFF_ARGV = ('-c', 'core.quotePath=true', '-c', 'diff.noprefix=false',
              '-c', 'diff.mnemonicPrefix=false', '-c', 'diff.suppressBlankEmpty=false',
              'diff', '--no-color', '--no-ext-diff', '--no-textconv', '--full-index',
              '--no-renames', '--no-relative', '--diff-algorithm=myers', '--indent-heuristic',
-             '--inter-hunk-context=0', '--src-prefix=a/', '--dst-prefix=b/', '--unified=3')
+             '--inter-hunk-context=0', '--src-prefix=a/', '--dst-prefix=b/', '--unified=3',
+             '--binary')
 
 SUITES = (
     ('live_ab', ['-m', 'unittest', 'discover', '-v', '-s', 'experiments/live_ab',
@@ -1100,6 +1360,60 @@ def supersedes_record(entry: Mapping, data: bytes | None) -> tuple[dict, list]:
     rec['byte_identical'] = data is not None and rec['sha256_at_head'] == entry['sha256']
     return rec, (['superseded_receipt_changed:%s' % entry['path']] if data is not None
                  and not rec['byte_identical'] else [])
+
+
+def partition_problems(p: Mapping) -> list:
+    """[pure] ``[]`` when ``p`` (MUTATION_PARTITION_8F0B4AE's form) is a mutually exclusive,
+    exhaustive partition: the specified ids unique; run = specified minus not_run; the four
+    classes killed_by_the_right_control, killed_only_by_the_host_gate, survived_equivalent and
+    survived_non_equivalent pairwise disjoint with union = run; every rerun-counted id among the
+    right-control kills; the equivalents exactly survived_equivalent plus the equivalent
+    host-gate-only kills; the guards of the non-equivalent survivors exactly the guards
+    2113dbd controls; and each stated count the size of its class.  Else the names of what
+    fails, each ``mutation_partition:<what>``."""
+    bad = []
+    spec = list(p.get('specified') or [])
+    run = [i for i in spec if i not in (p.get('not_run') or {})]
+    classes = {'killed_by_the_right_control': list(p.get('killed_by_the_right_control') or []),
+               'killed_only_by_the_host_gate': list(p.get('killed_only_by_the_host_gate') or {}),
+               'survived_equivalent': list(p.get('survived_equivalent') or []),
+               'survived_non_equivalent': list(p.get('survived_non_equivalent') or {})}
+    members = [i for ids in classes.values() for i in ids]
+    if len(set(spec)) != len(spec):
+        bad.append('specified_not_unique')
+    if not set(p.get('not_run') or {}) <= set(spec):
+        bad.append('not_run_not_specified')
+    if len(set(members)) != len(members):
+        bad.append('classes_overlap')
+    if sorted(set(members)) != sorted(run):
+        bad.append('classes_not_the_run')
+    if not set(p.get('counted_after_a_solo_rerun') or {}) <= set(
+            classes['killed_by_the_right_control']):
+        bad.append('rerun_counted_outside_the_right_control')
+    eq = set(p.get('equivalent') or {})
+    if not eq <= set(classes['survived_equivalent']) | set(
+            classes['killed_only_by_the_host_gate']) or \
+            not set(classes['survived_equivalent']) <= eq:
+        bad.append('equivalents')
+    guards = set((p.get('survived_non_equivalent') or {}).values())
+    if guards != set(p.get('guards_controlled_by_2113dbd') or {}):
+        bad.append('guards')
+    killed = classes['killed_by_the_right_control'] + classes['killed_only_by_the_host_gate']
+    survived = classes['survived_equivalent'] + classes['survived_non_equivalent']
+    sizes = {'specified': len(spec), 'run': len(run), 'not_run': len(p.get('not_run') or {}),
+             'killed': len(killed), 'survived': len(survived), 'equivalent': len(eq),
+             'distinct_non_equivalent_guards': len(guards)}
+    sizes.update({k: len(v) for k, v in classes.items()})
+    for key, size in sorted(sizes.items()):
+        if (p.get('counts') or {}).get(key) != size:
+            bad.append('count:%s' % key)
+    return ['mutation_partition:%s' % b for b in bad]
+
+
+def headline_is_a_partition(total: int, *parts: int) -> bool:
+    """[pure] Whether mutually exclusive parts can make up ``total`` (a headline that says
+    total T with parts a, b, c... double-counts when they add to more than T)."""
+    return sum(parts) == total
 
 
 def is_ancestor(repo: Path, rev: str, of: str) -> bool:
@@ -1904,6 +2218,16 @@ def build_receipt(repo: Path, predecessor: str, *, run_suites: bool,
     problems += sproblems
     step_runs, rproblems = load_runs_of_this_step(runs_of_this_step, tokenize)
     problems += rproblems
+    partition = dict(MUTATION_PARTITION_8F0B4AE)
+    problems += partition_problems(partition)
+    headline = partition['headline_0518']
+    partition['checked'] = {
+        'exclusive_and_exhaustive': not partition_problems(partition),
+        'headline_0518_is_a_partition': headline_is_a_partition(
+            headline['total'], headline['killed'], headline['non_equivalent'],
+            headline['equivalent']),
+        'reading': ('partition_problems ran on this constant (a failure refuses the receipt); '
+                    'the headline check sums the 05:18 parts against its total')}
 
     commits = [ln.split('\t', 1) for ln in git(
         repo, 'log', '--reverse', '--topo-order', '--format=%H%x09%s',
@@ -1940,6 +2264,16 @@ def build_receipt(repo: Path, predecessor: str, *, run_suites: bool,
             'planned final solo receipt")',
             'reviews/eb1_eb5_summary_repair_interim_20260924_2208.md (main 76f5e71; "finish and '
             'commit amendment v3 ... and issue a fresh pin receipt")',
+            'reviews/eb1_eb5_v3_pin_interim_20260925_0110.md (main bb093d7; the 0027 receipt '
+            'keeps its non-solo label; "deliver one immutable completed subset with the exact '
+            'final code/config/seed pins, all attempts/failures/missingness")',
+            'reviews/predecision_abort_reporting_ruling_20260925_0710.md (main 9790043; "issue '
+            'one new write-once superseding receipt after v4/code/control changes, retaining '
+            'the ..._0027 receipt"; the 22:08 refusal and other failed attempts; the mutually '
+            'exclusive mutation partition)',
+            'reviews/eb1_eb5_reproduction_path_interim_20260925_1010.md (main 161966e; '
+            '"Preserve all failed runs, missingness and original observations in the new '
+            'write-once superseding receipt")',
         ],
         'run_started_utc': started,
         'repository': {
@@ -2006,6 +2340,7 @@ def build_receipt(repo: Path, predecessor: str, *, run_suites: bool,
             'red_runs': sum(1 for r in DISCLOSED_RED_RUNS if r.get('kind') == 'red_run'),
             'review_findings': sum(1 for r in DISCLOSED_RED_RUNS
                                    if r.get('kind') == 'review_finding')},
+        'mutation_partition_of_the_final_verification_of_8f0b4ae': partition,
         'runs_of_this_step_before_this_receipt': step_runs,
         'nothing_executed': ('no model, llama-server, llama.cpp build or network request; the '
                              'C test double compiled under temporary roots; the suites start '
