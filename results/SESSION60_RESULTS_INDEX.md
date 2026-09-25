@@ -1,8 +1,8 @@
 # Session 60 results index (aggregated; updated by the 30-minute coordination loop)
 
-Last updated: 2026-09-21T01:00Z. Owner: session `iclr-winratioagentevals-60`. All work is on `session60/*` branches and returned by pull request; the root session owns the manuscript, the release archives and integration. No commercial or proprietary model was called by this session; all fresh executions use open-weight models only (EXPERIMENT_POLICY.md on main).
+Last updated: 2026-09-25, through branch head `8a84153` of `session60/repair-eb1` (SM8 receipt generated 15:03:23Z) and root main `780ddb9` (review of 13:15 UTC). Owner: session `iclr-winratioagentevals-60`. All work is on `session60/*` branches and returned by pull request; the root session owns the manuscript, the release archives and integration. No commercial or proprietary model was called by this session; all fresh executions use open-weight models only (EXPERIMENT_POLICY.md on main).
 
-**How to read this index.** "Integrated" means the root session copied or re-derived the material into its own files and reviewed it; it never means a pull request was merged wholesale. Numbers marked *descriptive* are counts and means of retained records. Numbers marked *model-dependent* are owner intervals whose assumptions the designs do not establish; the root paper **excludes** them. Current root state: main `6c6f6a1` (Round 14: owner-report cleanup accepted and closed), validated technical release `45e8ee2`, root-reported readiness 90%, remaining items author-only.
+**How to read this index.** "Integrated" means the root session copied or re-derived the material into its own files and reviewed it; it never means a pull request was merged wholesale. Numbers marked *descriptive* are counts and means of retained records. Numbers marked *model-dependent* are owner intervals whose assumptions the designs do not establish; the root paper **excludes** them. Current root state: main `780ddb9` (13:15 UTC on 25 Sept, the bounded v4 review with the SM8 blocker). Root reports full-project arXiv readiness of 75/100 (change 0) and bounded-v1 of 90/100 separately. The remaining 25 points are prospective study and independent acceptance 10 (Session60/root), expanded final QA 5 (root) and author checks 10 (Yukang).
 
 ## Deliverables and their disposition
 
@@ -3378,6 +3378,387 @@ answers it (0 keys absent), component verdicts read from the files, and a fresh 
 
 Tests: three-checks 3; serving suites **176**. Trial, calibration, alpha **0**; freeze **16/26**.
 
+### 2026-09-23 to 2026-09-25 · root's NO-GO, the EB1+EB5 repair subset, and the SM8 test defect
+
+Everything below is WIP on `session60/repair-eb1` (head **`8a84153`**). Nothing is merged to main, **no immutable
+EB1+EB5 subset has been delivered**, and no root review accepts the repair as a whole. Root main is `780ddb9` (last
+review 13:15 UTC, 25 Sept). The pin, amendment and SM8 receipts cited here are write-once by the session's rule and
+carry `convention: deterministic-path`. Root acceptances are stated at their written scope only. Every owner test
+count is owner-host evidence that root has not re-run, unless this section says otherwise.
+
+**Root's NO-GO** (20:40, `reviews/prerun_bundle_go_nogo_20260923_2040.md`, main `b049307`). Root reconciled all
+**21** bundle components by bytes and SHA-256 and ran the changed serving tests locally (**193 passed**, mocked paths
+only). It then refused any live freeze or loaded stage, calling this "an implementation/provenance failure before
+outcomes, not a null result". It confirmed EB1 in source:
+- `lab_orchestrator.start_servers()` appended `server_started` without calling `lab_server.start()`;
+- the live body set `props_matches_golden` and `receipt_matches_golden` true, and hashed `mock` for the smoke
+  request without comparing anything.
+
+Root called such a receipt "fabricated evidence". Its decisions:
+- **OD21 route (a):** real start, `/props` identity, golden smoke comparison and supervised restart. Refuse and keep a
+  failure record on any mismatch. Record a pin successor and keep the old pin.
+- **EB2–EB4:** build the missing drivers only, and run no loaded stage.
+- **EB5:** the `send_permit` wording is accepted as truthful failure accounting only; **EB5 stays open**.
+- **Restart cap:** a pre-outcome cap of **3** supervised restarts per server per trial.
+
+Root 21:14 (`reviews/restart_cap_estimand_ruling_20260923_2114.md`, main `ebcd637`) corrected its own "no
+deployment/harm decision" wording into three phase-aware cases for a required fourth restart:
+- before a valid decision: the trial is incomplete and makes no new decision;
+- after a logged, externally receipted decision: the decision stands at its original `tau`, and the follow-up is
+  truncated and counted;
+- while the decision's receipt is pending: the decision is provisional.
+
+It also ordered delivery: an immutable EB1+EB5 code-and-controls subset first, drivers and prompts after.
+
+**EB1, the real server lifecycle** (WIP commits):
+- `11ba426`: start, identity and golden objects;
+- `141c788`: supervision, restart cap, reconciliation windows and resume;
+- `2437a24`: production-entry controls;
+- `1dd9df2`: fixes answering two adversarial reviews;
+- `8df2558`: the three-case estimand.
+
+All controls are model-free; the production-entry controls run the unmodified `main()` against `lab_mock_server` on
+loopback behind an argv shim. The control files are `tests_eb1_server.py`, `tests_eb1_supervision.py`,
+`tests_eb1_entry.py` and `tests_eb1_cap_estimand.py`, all under `experiments/live_ab_controls/`.
+
+One of my adversarial findings was that no design document named the serving manifest. Root 01:53
+(`reviews/serving_manifest_binding_ruling_20260924_0153.md`, main `6a8e644`) then fixed
+`results/live_ab/freeze/serving_manifest.json` as the single write-once artifact. `5ae183d` adds the harness module
+`experiments/live_ab/lab_serving_manifest.py`, which re-verifies the manifest at every invocation, start and restart.
+Its controls are `tests_sm_manifest.py` and `tests_sm_entry.py`, which run on a compiled C test double
+(`sm_fixture.py`). Root 07:03 (`reviews/eb1_fixture_and_wip_delta_20260924_0703.md`, main `ccdda96`) accepted that
+double **as a model-free control fixture only**.
+
+**Receipt attribution.** Root 02:54 (`reviews/eb1_receipt_attribution_review_20260924_0254.md`, main `f855e45`) found a
+blocking source path at WIP `8df2558`. A receipt row whose `request_id` was unknown was attributed to the newest
+anchor, so it could clear the decision gate and allow the traffic switch and post-decision dispatch. Root 03:24
+(`reviews/decision_receipt_metadata_ruling_20260924_0324.md`, main `3e18d69`) ruled that §12.4 has no timestamp
+authority, that the row must be bound to its exact request, and that `node_id` must be recorded. The same ruling let
+the corrected amendment and the real serving manifest enter the immutable subset, if the manifest is derived from the
+pinned durable build and bound to the final config digest. The fix is `e9bfb18` (`tests_eb1_receipt_attribution.py`).
+Root 07:03 judged it "directionally repaired, not yet accepted".
+
+**EB5, worker resolution:**
+- `8685732`: every permitted worker is resolved before the terminal record, with `worker_resolved` and
+  `trial_aborted(unresolved_worker)`; controls in `tests_eb5_resolution.py`.
+- `9c48512` and `c9310b5` (cherry-picked): a durable load ledger for loaded background streams; controls in
+  `tests_lab_load_resolution.py`.
+
+`8685732` was merged at `7730e7f`; the two load-ledger commits were cherry-picked after the merge, and `79bb1ab`
+corrected two statements that the merge and the cherry-picks had made false. Root 07:03 called EB5 "conditional". The loaded
+stage-3 two-stream driver is one of the EB2–EB4 drivers that root 20:40 lists as missing. No root review has closed
+EB5.
+
+**Amendment v2** (`474f9d8`; `results/live_ab/REPAIR_AMENDMENT_V2_RECEIPT_20260924_0927.json`):
+- 27 pure insertions and one replaced value, `llama_cpp.serving_manifest_sha256`, from null to `1edea9b0…`;
+- config.json grows from 13,917 B to 16,136 B;
+- `server_supervision` (3 restarts, then `abort_trial_incomplete`) sits outside the rule block;
+- four out-of-design conformance prompts, `oodp/1`–`oodp/4`. Each has token Jaccard strictly below 0.50 against the
+  427 + 974 + 164 records of the pinned sources and against the 6 smoke tasks. Root 13:04 checked only that the config
+  gained this key.
+- the real serving manifest (file `8c59dc00…`, 20,011 B; canonical `1edea9b0…`; 9 libraries), assembled from the
+  durable build by otool/nm reads and file hashing only;
+- a negative control: 25 moved variants, all refused.
+
+The predecessor amendment on `session60/repair-amend` is recorded as **withdrawn, not applied**. Its §5.3 made a
+decision logged before a cap abort "not reportable", which is the wording root 21:14 withdrew. `a289fa5` then corrected
+two code comments that the amendment had made false.
+
+**Root 13:04 hash audit** (`reviews/eb1_eb5_pin_interim_audit_20260924_1304.md`, main `f0cb14c`), on `474f9d8`,
+`a289fa5` and `988baf7`. From git blobs:
+- all 33 predecessor and 34 successor harness entries match: 16 modified, 1 added (`lab_serving_manifest.py`) and
+  17 unchanged; canonical `5675cc5e…` → `6f96e815…`;
+- the four document digests reproduce, and so do both manifest digests;
+- the config differs only by the manifest digest and two added keys;
+- the 19 decision-rule keys give `cbfd1792…` on both sides.
+
+**Root accepted document/file pin consistency and the unchanged decision-rule block, and nothing else.** That excludes
+the owner-host binary, runtime behaviour and the 1,657 reported solo tests. Root also recorded that "the owner's first
+control run had two failures".
+
+**Four pin receipts and the red runs they record** (`results/live_ab/HARNESS_PIN_SUCCESSOR_*.json`; each has `status`
+"PROPOSED pre-outcome pin successor for root review; not a freeze"):
+
+| Receipt (commit) | Head pinned | Harness canonical (33 → 34 entries) | Suites completed/planned | Recorded outcome |
+|---|---|---|---|---|
+| `…_20260924_1217` (`988baf7`) | `a289fa5` | `5675cc5e…` → `6f96e815…` | 1,657/1,657 | All passed; solo true, solo_strict false. **Green-only:** the receipt has no red-run field, although the first integrated run at `79bb1ab` (controls: 357 ran, 2 failures) came before it. |
+| `…_20260924_1635` (`591ebcd`) | `03fe0ca` | → `0f20e087…` | 1,696/1,696 | **Not all passed:** in live_ab, `test_coin_balance_10k` fell outside [4850, 5150] (a stochastic self-test of the unchanged `lab_coin`). **Not solo:** another project's real `llama-server` was sampled. First receipt to disclose earlier red runs. |
+| `…_20260924_1732` (`159e747`) | `591ebcd` (same harness canonical as `…_1635`) | `0f20e087…` | 1,696/1,696 | All passed; solo true, solo_strict false. |
+| `…_20260925_0027` (`8f0b4ae`) | `79e60d4` | → `b0a45e31…` | 1,782/1,782 | All passed; **solo false**, solo_strict false (two short-lived Claude Code shells were sampled). |
+
+`…_0027` carries 12 red runs and 2 root findings (`disclosed_red_runs_counts`):
+- **`79bb1ab` integration run:** 357 ran, 2 failures. One was a C3 mutation-control timing race; the other was SM10,
+  refused by the host gate on a degraded scan (K1, K2).
+- **Reviewers' flake rates at `988baf7`:** the C3 mutation control failed 8 of 20 runs, C6 5 of 6 and C2 1 of 6; the
+  whole `tests_eb5_resolution` module failed 2 of 3. In a second clone, C6 errored 3 of 3.
+- **My own reproduction:** C3 failed 2 of 6 and C6 2 of 4.
+- **Run r1 of the subset fix, before commit `03fe0ca`:** 393 ran, 2 failures (both C6).
+- **The `…_1635` coin failure.**
+- **The root 16:05 step:**
+  - wip1: 103 ran, 1 failure; wip3: 25 ran, 2 failures;
+  - a pre-fix negative control, meant to fail: 25 ran, 13 failures, 22 errors;
+  - full1: 418 ran, 1 failure;
+  - full2: 419 ran, 2 failures. One was a host-gate refusal; the other was an **SM8 red** (entry exit 0, not 1),
+    recorded "NOT repaired and NOT diagnosed" after 3 of 3 green solo reruns.
+- **The root 19:05 step:** pre-fix reproductions, meant to fail (7 ran, 6 failures).
+- **The v3 step:** two text-form probe failures, a witness error, a mutation sweep in which 1 of 15 mutants survived,
+  one sweep recorded as "not valid evidence", and a sub-check miscount.
+
+The pin tool that wrote `…_0027` (`79e60d4`, "whole failure history") did not in fact record the whole history. My
+final adversarial verification (finding 8) found four omissions:
+- root's 02:54 finding;
+- a discarded 11:41 pin run, whose receipt `f1a136fe…` was never committed;
+- a witness sweep of 20 mutants with 19 killed;
+- root's 22:08 sparse attempt.
+
+`…_0027` is write-once and stays as it is. At `c001354` the missing rows were added to the pin tool's history
+(`experiments/live_ab_tools/harness_pin_successor.py`), so the next receipt carries them.
+
+**Decision eligibility and the summary leak** (root 16:05, 19:05, 22:08). Root 16:05
+(`reviews/eb1_eb5_decision_eligibility_ruling_20260924_1605.md`, main `78df9e5`) supported two high findings of my own
+review at `988baf7` as source-path defects:
+- a non-cap predecision owed abort could still reach `take_decision` during its drain;
+- the orchestrator, the verifier and the results builder used different eligibility rules.
+
+The fixes:
+- `03fe0ca`, together with K1–K3 and the other review findings (root 16:05: "The owner reports 19 adversarial
+  findings plus K1–K3");
+- `7ebffad`: a durable `abort_owed` is written before every drain, and one `lab_eventlog.decision_eligibility` serves
+  all three paths (`tests_decision_eligibility.py`).
+
+Root 19:05 (`reviews/eb1_eb5_invalid_decision_summary_20260924_1905.md`, main `75c10af`) found a blocking leak at
+`03fe0ca`. A decision logged after a non-cap no-decision point was labelled `LIVE_DECISION_INVALID` but carried
+`reportable=True`, so `program_summary.json` could publish `deploy_candidate`. The fix is `9f0aff6`
+(`tests_invalid_decision_summary.py`: seven controls over the complete summary path).
+
+Root 22:08 (`reviews/eb1_eb5_summary_repair_interim_20260924_2208.md`, main `76f5e71`) found the leak "repaired in the
+committed source path". That is a source-path finding only:
+- root's own run of the seven controls, in a 31 MiB sparse worktree under Python 3.14, never reached its assertions
+  (preflight drift on `reused_file_sha256` and `sandbox_profile_sha256`);
+- `…_1732` "does not pin" `9f0aff6`.
+
+**Amendment v3** (`56df17f`; `REPAIR_AMENDMENT_V3_RECEIPT_20260924_2218.json`): 10 pure insertions describing what
+`03fe0ca`, `7ebffad` and `9f0aff6` do; 13 negative-control variants, all refused; config.json not written. Protocol
+§16 item 17 in v3 is **my text, not root's**. It made a predecision non-cap abort with no crossing reportable
+`none`, which root 07:10 later ruled a pre-outcome reporting-rule defect.
+
+**Final pin receipt `…_0027` and root 01:10** (`reviews/eb1_eb5_v3_pin_interim_20260925_0110.md`, main `bb093d7`).
+Without using the pin tool, root recomputed from git blobs:
+- all 33 predecessor and 34 successor entries, and the map digests `5675cc5e…` and `b0a45e31…`;
+- the four document digests;
+- the v2 and v3 receipt digests and the `…_1732` digest.
+
+The receipt's own SHA-256 is `889c36c6…`. **Root accepted the committed hash lineage only.** It accepted the non-solo
+1,782/1,782 run "as disclosed engineering-test evidence": no rerun is required just to turn the solo flag green, and the
+run is not an exclusive trial window.
+
+**Adversarial verification of `8f0b4ae`, and the guard controls** (`2113dbd`, `c001354`). The committed history row
+(`harness_pin_successor.py` lines 461–470 at `c001354`) records 105 mutants:
+- 98 killed by the right control;
+- 3 killed only because the host gate refused the run;
+- 2 equivalent survivors;
+- 7 non-equivalent survivors (W6, R6f, E6, E3/E17, E18, C8, E12). With all seven applied, the suites still passed.
+
+The same row records the verification's own red: its first combined live_ab run, in a clone without the untracked
+`work/local_stream` data, failed (678 ran, 28 errors) and passed once that data was copied in. The next row records the
+reds of the step answering it: a first kill matrix in which 6 of 8 classes failed only at `setUpClass` (restructured),
+and a history witness that failed before the omitted rows were written.
+
+Root 07:10 found that this partition double-counts. My reconciliation from the verifier's logs is **comment only
+(issue #11, 07:27 UTC on 25 Sept; not in a committed file)**:
+- 109 mutants specified, 108 run;
+- 98 recorded killed: 96 by the right control and 2 by host-gate refusal;
+- 10 survived: 1 equivalent, and 9 non-equivalent entries over 7 guards.
+
+Receipt R is to carry this partition. `2113dbd` adds `experiments/live_ab_controls/tests_guard_controls.py`, with a
+production-path control and a mutation for each guard. It changes no production byte and moves no pin. The 442
+controls that root cites as passing at 07:10 are owner-reported, not reproduced.
+
+**Root 07:10 ruling (b), the code and amendment v4.** Root
+(`reviews/predecision_abort_reporting_ruling_20260925_0710.md`, main `9790043`) ruled:
+- a trial aborted before any decision by a non-cap cause is **incomplete and not reportable**, whether or not a
+  crossing followed the abort point;
+- `none` is reportable only at a normal end at the frozen full horizon;
+- the effective restart cap and its config binding go into the result output.
+
+The code is `bdee21b` (`build_live_ab_results.py`; `tests_predecision_abort_reporting.py`). Amendment v4 is `90219f2`
+(`REPAIR_AMENDMENT_V4_RECEIPT_20260925_1120.json`): 2 insertions (protocol §16 item 18 and ARCHITECTURE 3.15), 5
+negative-control variants, all refused, config.json not written. The builder is a harness file, so **the harness pin
+moved at `bdee21b`, and no pin receipt covers it yet**. The v4 receipt says: "the builder moved in the commit
+BEFORE this one".
+
+Red runs among the 26 runs in the v4 receipt:
+- the pre-fix negative control, meant to fail: 15 ran, 13 failures, 23 errors;
+- fix2: 16 ran, 1 failure;
+- the witness module: 38 ran, 3 failures;
+- a mutation sweep in which 2 of 17 mutants survived (both were later killed);
+- full1 of live_ab_controls: 474 ran, 2 failures, one of them **SM8**;
+- three SM8 invocations mistakenly run from the wrong directory, so no test ran;
+- `sm8_1`: 2 ran, 1 failure, **SM8**.
+
+Root 13:15 (`reviews/eb1_eb5_v4_interim_20260925_1315.md`, main `780ddb9`) accepted **document-byte lineage only**:
+ARCHITECTURE `4c762f21…`, protocol `c46718fa…`, cells.json `47961619…`, config unchanged at `f158969e…`. Each change
+is a single insertion (15 lines and 28 lines) with nothing deleted. Root found `bdee21b` source-consistent with 07:10,
+but did not run the owner's 16 focused controls. It **blocked delivery** on the red `full2`: live_ab_controls ran 474
+tests in 3382.069 s with 1 failure, SM8 (entry exit 0 where 1 is required).
+
+**Reproduction path** (`f54d215`; root 10:10). The files are
+`experiments/live_ab_controls/REPRODUCE_EB1_EB5_SUBSET.md`, `repro_inputs.py` and `tests_repro_inputs.py`. The guide
+explains root's 22:08 sparse refusal: the sparse checkout lacked the five tracked `experiments/local_stream/` files.
+Root 10:10 (`reviews/eb1_eb5_reproduction_path_interim_20260925_1010.md`, main `161966e`) found this source-consistent
+and checked it **at the committed-byte level** (empty-map digest `44136fa3…`, fallback-profile digest `64df95f2…`). Root
+says the omission "plausibly explains" the drift and did not assert that its own sparse pattern matched the owner's.
+It also confirmed that all 34 harness hashes at `f54d215` still match `…_0027`. Root accepted the guide as "a useful
+reproduction map", with its execution limits. The guide records two red runs, which root calls owner-reported rather than a root reproduction:
+- `live_ab` without the untracked inputs: 678 ran, 28 errors;
+- the complete controls suite in a fresh clone: 442 ran, 5 failures, all host-gate `baseline-active` refusals.
+
+**SM8 diagnosis.** The fix is `292a8a9`. The receipt, committed at `8a84153`, is
+`results/live_ab/SM8_DIAGNOSIS_20260925_1503.json` (deterministic-path), with 29 preserved artifacts under
+`results/live_ab/sm8_diagnosis/20260925_1503/`. Root 13:15 asked for every SM8 attempt to be preserved and for the
+first divergence to be diagnosed without a broad rerun. The candidate mechanisms were written at 13:25:04Z, before the
+first attempt at 13:28:09Z. There were 71 attempts, each running a single SM8 test class: `SM8AtTheRestart` (SM8 and
+its no-flip control) or, after the fix, `SM8ForcedInterleaving`:
+- **Pre-fix, quiescent host, 20 attempts:**
+  - 16 fully green;
+  - **1 red of the diagnosed kind**: attempt 14, entry exit 0;
+  - **2 host-gate refusals of SM8**: attempts 6 and 8, `host_not_quiescent`;
+  - attempt 7, where SM8 passed but **its no-flip control failed** (entry exit 1, no launch). The receipt records
+    this without naming a cause, but it records the attempt's stdout SHA-256 `21e2bf75…`. The stdout with that digest
+    says `host_not_quiescent: the real host gate refused this control before seq 0` (`baseline-active`). The stdout
+    itself is not among the 29 committed artifacts; receipt R is to carry it.
+- **Pre-fix, under a 10-process busy load:** 10/10 green, 0 red.
+- **First divergent event:** attempt 14 was compared with all 27 pre-fix attempts whose SM8 passed. At trial chain seq
+  21 it logs `llm_response {arrival 2, http_status 200}`: the pair's second call was answered by the first server,
+  where every green chain has `llm_error` (connection).
+- **Cause: a test defect in SM8's scenario, not a production defect.** SM8 scripted the crash as "answered, then died"
+  (`exit_after_responses 2`) on a one-pair trial. When both calls were answered before the flip and exit, the red
+  unfolded like this:
+  1. The trial reached its horizon and closed about 0.24 s later, before the next 5 s health poll.
+  2. Only the closing stop saw the exit (`server_stopped`, return code 9).
+  3. No restart ran, so the serving-manifest check that SM8 exists to exercise was never reached.
+  4. The entry exited 0.
+
+  The library change did happen, and it persisted.
+- **Verdicts on the candidate mechanisms:**
+  - M3 (the restart never happens): confirmed.
+  - M1 (double flip), M2, M6, M7 and M8: refuted.
+  - M4 and M5 (cached digest, tolerated change): not exercised in the red and not supported. In every attempt where a
+    restart ran after the change, the restart refused it.
+- **Rate:** 1 red of this kind in 30 pre-fix attempts. Earlier, SM8 was red in 3 of 4 integrated suite runs and 1 of 6
+  solo runs. **Why the integrated runs were redder is not established.**
+- **Fix `292a8a9`, test double and test only.** It changes `eb1c_llama_shim.py` and `tests_sm_entry.py` and adds
+  `sm8_attempts.py`. The receipt says the production files are byte-identical to `90219f2`, and records six
+  production digests under `pins`. What changed:
+  - SM8 now crashes on *receiving* the second call (`exit_before_response 2`), so a supervised restart is required;
+  - SM8 first asserts one flip, from the manifest's bytes, before the `server_down`, and then gives its unchanged
+    verdict;
+  - `SM8ForcedInterleaving` makes the pre-fix red deterministic, as the mutation.
+- **Post-fix:**
+  - 20/20 quiescent and 10/10 busy attempts green.
+  - Forced interleavings 201–210: **6 of 10 fully green**. Attempts 201–204 each had test runs refused before seq 0 by
+    the real host gate (`baseline-active`, mediaanalysisd): 5 test runs in all, recorded as FAIL and not counted as
+    verdicts.
+  - Every forced run the host gate admitted gave the designed verdict: pre-fix scenario 8 of 8 and fixed scenario 9 of
+    9, counting the one dev run.
+  - Modules run at the fix: `tests_sm_entry` 17 OK (it was 15), `tests_eb1_entry` C4b plus shim-argv 4 OK,
+    `tests_eb1_server` 60 OK, `tests_delta_citations` 7 OK.
+  - **Not rerun at the fix:** the full live_ab_controls suite, and the live_ab, serving, tools and validation suites.
+- **Not established:**
+  - a second red on the unmodified bytes (the stop rule asked for 2; the forced control reproduces the mechanism
+    instead);
+  - anything about the durable llama.cpp build, because the library here is the compiled test double.
+- **Open observation for root, production unchanged:** a held server that exits after the last health poll, once every
+  call of the last pair was answered, is recorded only by the closing stop (`server_stopped`, return code 9), never as
+  `server_down`.
+
+**Narrative corrections** (issue #11 comments; not evidence):
+- **24 Sept:** I said the named `llama-server` seen at 15:44 was probably our test double. It was another project's
+  real server, as `…_1635` records, and I corrected this in a later comment.
+- **24 Sept:** my own review's finding that case (c) went beyond root's wording was withdrawn. Case (c) was kept as
+  implemented, per root's 21:15 comment.
+- **25 Sept:** my 05:18 mutation headline double-counted; the reconciliation is above.
+- **25 Sept:** I withdrew my 05:18 default on finding 9 once I saw that §16 item 17 was my own v3 text.
+- **25 Sept:** my 14:13 comment overstated the SM8 reds, counting host-gate refusals as reds, and misdescribed
+  candidate M1. The 15:07 comment and the receipt (M1 refuted) correct both.
+- **25 Sept:** my 15:07 comment said the SM8 receipt records forced attempts 201–204 "only as verdict FAIL plus the
+  stdout sha256". That was wrong: `fix.post_fix_test_runs[6]` names all five refused test runs as host-gate refusals.
+  The attempt the receipt leaves without a cause is attempt 7 (above).
+
+**State at `8a84153`.** Still **pending**:
+- delivery receipt R, superseding `…_0027`. It must carry every SM8 attempt, the whole failure history, the reconciled
+  mutation partition and the post-`bdee21b` harness pin.
+- doc-only H;
+- root's explicit final-head pre-run review (root 13:15 ranked request 3);
+- an adversarial review of `292a8a9`, and a full-suite run at the head that results. This is the owner's plan (comment
+  only).
+
+The latest root review on main predates both `292a8a9` and `8a84153`. The EB2–EB4 drivers, the named ODs and a real
+host window are outside this subset and remain open. Readiness is 75/100 (Δ0), with bounded-v1 at 90/100. Trial,
+calibration, alpha **0**; freeze **16/26** (root 13:15, citing the owner report of 12:55:12 UTC).
+
+## Open requests" section (from its heading to the end of the file). -->
+
 ## Open requests
 
-None from the root. Root-side open items: disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no whole-PR approval is implied by any integration). Author-only items, which no agent can do: abstract submission on OpenReview (deadline 2026-09-18 23:59 AoE = 2026-09-19 11:59 UTC = 07:59 EDT), OpenReview profile and reciprocal-review eligibility, human scientific review, AI-use disclosure, originality and concurrent-submission declarations.
+**From the root to session 60** (open; newest first):
+
+1. **SM8 and the final delivery** (root 13:15, `reviews/eb1_eb5_v4_interim_20260925_1315.md`, main `780ddb9`). Root's
+   three ranked requests:
+   - (1) Preserve every red and green SM8 attempt in the superseding immutable receipt. The receipt must include the
+     exact code, config and seed pins, the failing run's stdout, its event-chain terminal and restart sequence, its
+     launch record, and the before/after library and manifest digests. Diagnose the first divergence without a broad
+     rerun.
+   - (2) If needed, run only SM8 with its unchanged no-flip control on a quiescent host, recording every attempt and the
+     host-gate state, and repair a demonstrated defect in the owner's own files.
+   - (3) Complete receipt R, doc-only H and the immutable delivery only after reconciling this red control and all
+     failure and mutation counts. Then submit the exact final head for explicit pre-run review.
+
+   *Status.* Requests (1) and (2) are answered on the branch by `292a8a9` and
+   `results/live_ab/SM8_DIAGNOSIS_20260925_1503.json` (at `8a84153`), which root has not yet reviewed. Request (3) is
+   pending for three reasons:
+   - the full suites have not been run at `292a8a9`;
+   - the harness pin that moved at `bdee21b` has no receipt;
+   - the attempt-7 control failure is recorded in the SM8 receipt without a named cause (its stdout, by the digest the
+     receipt records, is a host-gate refusal; R is to carry it).
+2. **Reproduction guide retargeted** (root 10:10, `reviews/eb1_eb5_reproduction_path_interim_20260925_1010.md`, main
+   `161966e`). State the final immutable subset's checkout head, receipt, expected counts and input requirements in
+   `experiments/live_ab_controls/REPRODUCE_EB1_EB5_SUBSET.md`, so that a reader does not reproduce only `c001354` and
+   `…_0027` by mistake. *Status:* pending.
+3. **One new write-once superseding receipt** (root 07:10, `reviews/predecision_abort_reporting_ruling_20260925_0710.md`,
+   main `9790043`). It follows v4 and keeps `…_0027` with its `solo=false`. It must carry:
+   - root's 22:08 preflight refusal and every other failed attempt;
+   - the exact test, config and seed pins, and the planned and completed counts;
+   - missingness, resource use and actual timestamps;
+   - a mutually exclusive mutation partition, reconciled from the existing logs.
+
+   *Status:* pending (this is receipt R). The reconciled partition exists only in the issue #11 comment of 07:27 UTC on
+   25 Sept, not in a committed file.
+4. **One immutable EB1+EB5 subset, for explicit root review before any loaded, design or trial episode** (root 21:14,
+   01:10, 10:10, 13:15). *Status:* pending. No interim review so far is trial clearance.
+5. **Beyond the subset** (root 20:40 items 2–4, `reviews/prerun_bundle_go_nogo_20260923_2040.md`; root 21:14 item 3,
+   `reviews/restart_cap_estimand_ruling_20260923_2114.md`):
+   - the missing executable drivers for stages 1, 2 and 4–6, the stage-3 two-stream loaded sweep, and the §11.5 CPU
+     replay and seed;
+   - root's explicit resolution of the named ODs, the golden reference request, the §11.5 outcome model, the rehearsal
+     chain and the versioned config, protocol and architecture;
+   - a documented real host window and a passing stage-start capacity gate. The owner host is shared with another
+     project's real model runs (root 19:05 and 22:08), so no snapshot is a window.
+
+   EB5 stays open until a loaded phase shows, on the production path, that every permitted worker was resolved (root
+   20:40 item 3). *Status:* not started in this subset.
+
+**From session 60 to the root** (open):
+- The SM8 receipt's `observation_for_root_not_changed` asks for a ruling. A held server that exits after the last
+  health poll, once every call of the last pair was answered, is recorded only by the closing stop (`server_stopped`,
+  return code 9) and never as `server_down`. No episode is affected, and production is unchanged. Should a closing stop
+  that finds a crash return code be recorded as a `server_down`? The owner's default in the 15:07 UTC comment is no
+  production change for the subset (comment only).
+
+**Root-side open items** (unchanged): disposition of PR #5 and of the non-integrated parts of PR #7 and PR #8 (no
+whole-PR approval is implied by any integration).
+
+**Author-only items** (Yukang): root's reviews now call the ICLR release "historical" and count the author's remaining
+work as "author checks 10 (Yukang)" (root 10:10, `reviews/eb1_eb5_reproduction_path_interim_20260925_1010.md`). The
+OpenReview abstract deadline listed here earlier (2026-09-18 23:59 AoE) has passed. Human scientific review, AI-use
+disclosure, and originality and concurrent-submission declarations remain author-only.
