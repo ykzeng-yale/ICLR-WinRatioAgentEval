@@ -31,7 +31,9 @@ The controls, each with its negative control:
   restarts and verifies).  The process flips the library and dies on RECEIVING the pair's
   first call (``exit_before_response``), so that call's arrival waits on the server and a
   supervised restart is required before the trial can end; the shim's ``flips.jsonl``
-  proves the change was made once, persisted, and preceded the ``server_down``.  The SM8
+  proves the change was made once, persisted, and preceded the ``server_down``, and the
+  chain proves the first process answered no task completion (so SM8 itself, not only
+  its forced interleaving, fails a reversion to the pre-fix scenario).  The SM8
   diagnosis (``results/live_ab/SM8_DIAGNOSIS_*.json``) found the intermittent red of the
   pre-fix scenario (``exit_after_responses``: answered, then died): when both calls of the
   only pair were answered before the exit, the trial reached its horizon and closed before
@@ -297,7 +299,17 @@ class SM8Case(SMCase):
         """The precondition of SM8, checked BEFORE its verdict: the shim changed the library
         exactly once, from the manifest's bytes, the change is still on disk, and it was made
         before the ``server_down`` whose restart must refuse it; that ``server_down`` had an
-        arrival in flight, so the restart could not be skipped.  Returns the flip record."""
+        arrival in flight, so the restart could not be skipped; and the first process answered
+        no task completion -- no ``llm_response`` answers a call SENT before the
+        ``server_down`` (worker ``t_send_ns`` and chain ``t_mono_ns``, one monotonic clock;
+        before the ``server_down`` no other process existed to answer it).  That last check is
+        what separates the fixed scenario from the pre-fix one: ``exit_after_responses``
+        answered one call before the ``server_down`` in every green pre-fix SM8 run the SM8
+        diagnosis preserved (and both calls, with no ``server_down`` at all, in its red),
+        while every preserved run of the fixed scenario answered none; without it the
+        precondition passed a reversion to
+        ``exit_after_responses`` (review of the SM8 diagnosis, finding 3; the receipt that
+        supersedes ``SM8_DIAGNOSIS_20260925_1503.json``).  Returns the flip record."""
         rows = flips(t)
         self.assertEqual(len(rows), 1, 'exactly one library change: %r' % (rows,))
         (row,) = rows
@@ -315,6 +327,9 @@ class SM8Case(SMCase):
                         'an arrival waited on the server: the restart was required')
         self.assertLess(int(row['t_mono_ns']), int(downs[0]['t_mono_ns']),
                         'the change precedes the server_down (one monotonic clock)')
+        answered = [e['body']['arrival'] for e in of(t.chain(), 'llm_response')
+                    if int(e['body']['t_send_ns']) < int(downs[0]['t_mono_ns'])]
+        self.assertEqual(answered, [], 'the first process answered no task completion')
         return row
 
 
@@ -345,6 +360,12 @@ class SM8AtTheRestart(SM8Case):
         self.assertIn(('server_restarted',), lifecycle(t.chain()))
         self.assertEqual(of(t.chain(), 'server_start_failed'), [])
         self.assertEqual(len(t.launches()), 2)
+        # the restarted trial ENDED: exit 0 and the whole lifecycle every preserved run of the
+        # fixed control showed (the pre-fix control never asserted the entry's exit)
+        self.assertEqual(t.returncode, 0, t.stdout)
+        self.assertEqual(lifecycle(t.chain()), [
+            ('server_started',), ('server_down', 'exit'), ('server_stopped',),
+            ('server_restarted',), ('server_stopped',), ('trial_ended',)])
         self.assertNoOrphans(t)
 
 
