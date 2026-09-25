@@ -1,0 +1,1479 @@
+{
+ "archives": {
+  "results/live_ab/sm8_diagnosis/20260925_1732/diagnosis_1503_attempts.tar.gz": {
+   "bytes": 1890234,
+   "member_digests_rule": "sha256 of the lines \"<member sha256>  <member name>\\n\" in member-name order",
+   "member_digests_sha256": "2ec6e30eb51d0dcb0e4f8782351eec18cb146776ddbdb12ed4b20007bac175a2",
+   "members": 1286,
+   "sha256": "49af600e04fb4c1367741207f87fde9ff328dde509208c27e0571a5f82075bc1"
+  },
+  "results/live_ab/sm8_diagnosis/20260925_1732/earlier_runs_logs.tar.gz": {
+   "bytes": 43220,
+   "member_digests_rule": "sha256 of the lines \"<member sha256>  <member name>\\n\" in member-name order",
+   "member_digests_sha256": "c2ec4fab630c74dfae5a1249fe7d91610d6fd5fad69d0608c08a261538d3e480",
+   "members": 45,
+   "sha256": "b789f005cd61aa68f6ce4c0258d5abc13d6c15b2f00dd9e724421db55352132a"
+  },
+  "results/live_ab/sm8_diagnosis/20260925_1732/this_step_runs.tar.gz": {
+   "bytes": 844928,
+   "member_digests_rule": "sha256 of the lines \"<member sha256>  <member name>\\n\" in member-name order",
+   "member_digests_sha256": "48742260990b32b7086754f0b154cb117c89b60463cf32d2efe72c043a9067c3",
+   "members": 615,
+   "sha256": "b66485c2e39d7d0f81c87cbab97cb1f7a43f772d020898303c1fa22076b83a64"
+  }
+ },
+ "archives_manifest": {
+  "path": "results/live_ab/sm8_diagnosis/20260925_1732/MANIFEST.json",
+  "sha256": "362754ecf9dcae176634d1f2c4c1dd07c9dbaacfa9fe7a3a97942fc5a0ca1a70",
+  "what": "every member of the three archives: name, bytes, SHA-256, file mtime"
+ },
+ "archives_reading": {
+  "diagnosis_1503_attempts.tar.gz": "all 71 attempts of the 1503 receipt: stdout.log, attempt.json, the per-tree digest records (trees/<name>.json), every tree's trial chain segments and shim state (launches, scenarios, flips); the six attempts.jsonl ledgers (71 rows), the loop logs and CANDIDATES.txt. Every attempts[].stdout_sha256 of the 1503 receipt matches its archived stdout.log (mismatches: [], missing: []). Also a copy of the loop tool the work area names sm8_attempts_as_run_attempts_1_on.py (as found; the 1503 receipt says the version of attempts 1-8 was not preserved byte-exact, and this copy is not claimed to be it)",
+  "earlier_runs_logs.tar.gz": "every log of integrated_runs / solo_runs that exists (the pin-tool runs' output exists only as the digest in its committed receipt), their run records, and the review's ledgers and scripts (review_runs/)",
+  "this_step_runs.tar.gz": "every attempt of this step: stdout, attempt.json, tree digest records, trial chains and shim state; the WHOLE SM8* trees of the two integrated runs; the scripts that made them"
+ },
+ "attempts_run_on_a_non_quiescent_host": {
+  "later_forced_attempts": "205-210: 1-minute load 2.1-3.0 but 5-minute 12.5 -> 5.3, still decaying",
+  "loads": [
+   {
+    "index": 1,
+    "label": "forced_dev",
+    "loadavg_before": [
+     15.52,
+     23.79,
+     17.65
+    ],
+    "soft_gate_clean_before": true,
+    "start_utc": "2026-09-25T14:05:31.842Z",
+    "verdicts": {
+     "test_control_the_same_crash_without_the_change_restarts": "not_run",
+     "test_sm8_a_library_changed_before_the_restart_refuses_it": "not_run",
+     "test_the_fixed_scenario_forced_refuses_the_restart": "ok",
+     "test_the_pre_fix_scenario_forced_never_reaches_the_restart_check": "ok"
+    }
+   },
+   {
+    "index": 201,
+    "label": "forced",
+    "loadavg_before": [
+     16.91,
+     22.69,
+     17.26
+    ],
+    "soft_gate_clean_before": true,
+    "start_utc": "2026-09-25T14:45:22.986Z",
+    "verdicts": {
+     "test_control_the_same_crash_without_the_change_restarts": "not_run",
+     "test_sm8_a_library_changed_before_the_restart_refuses_it": "not_run",
+     "test_the_fixed_scenario_forced_refuses_the_restart": "ok",
+     "test_the_pre_fix_scenario_forced_never_reaches_the_restart_check": "FAIL"
+    }
+   },
+   {
+    "index": 202,
+    "label": "forced",
+    "loadavg_before": [
+     8.85,
+     19.44,
+     16.39
+    ],
+    "soft_gate_clean_before": true,
+    "start_utc": "2026-09-25T14:46:18.325Z",
+    "verdicts": {
+     "test_control_the_same_crash_without_the_change_restarts": "not_run",
+     "test_sm8_a_library_changed_before_the_restart_refuses_it": "not_run",
+     "test_the_fixed_scenario_forced_refuses_the_restart": "ok",
+     "test_the_pre_fix_scenario_forced_never_reaches_the_restart_check": "FAIL"
+    }
+   },
+   {
+    "index": 203,
+    "label": "forced",
+    "loadavg_before": [
+     5.48,
+     16.69,
+     15.56
+    ],
+    "soft_gate_clean_before": true,
+    "start_utc": "2026-09-25T14:47:13.494Z",
+    "verdicts": {
+     "test_control_the_same_crash_without_the_change_restarts": "not_run",
+     "test_sm8_a_library_changed_before_the_restart_refuses_it": "not_run",
+     "test_the_fixed_scenario_forced_refuses_the_restart": "FAIL",
+     "test_the_pre_fix_scenario_forced_never_reaches_the_restart_check": "FAIL"
+    }
+   },
+   {
+    "index": 204,
+    "label": "forced",
+    "loadavg_before": [
+     4.71,
+     15.27,
+     15.08
+    ],
+    "soft_gate_clean_before": true,
+    "start_utc": "2026-09-25T14:47:45.351Z",
+    "verdicts": {
+     "test_control_the_same_crash_without_the_change_restarts": "not_run",
+     "test_sm8_a_library_changed_before_the_restart_refuses_it": "not_run",
+     "test_the_fixed_scenario_forced_refuses_the_restart": "FAIL",
+     "test_the_pre_fix_scenario_forced_never_reaches_the_restart_check": "ok"
+    }
+   },
+   {
+    "index": 205,
+    "label": "forced",
+    "loadavg_before": [
+     2.92,
+     12.52,
+     14.06
+    ],
+    "soft_gate_clean_before": true,
+    "start_utc": "2026-09-25T14:48:59.335Z",
+    "verdicts": {
+     "test_control_the_same_crash_without_the_change_restarts": "not_run",
+     "test_sm8_a_library_changed_before_the_restart_refuses_it": "not_run",
+     "test_the_fixed_scenario_forced_refuses_the_restart": "ok",
+     "test_the_pre_fix_scenario_forced_never_reaches_the_restart_check": "ok"
+    }
+   },
+   {
+    "index": 206,
+    "label": "forced",
+    "loadavg_before": [
+     2.19,
+     9.45,
+     12.67
+    ],
+    "soft_gate_clean_before": true,
+    "start_utc": "2026-09-25T14:50:44.490Z",
+    "verdicts": {
+     "test_control_the_same_crash_without_the_change_restarts": "not_run",
+     "test_sm8_a_library_changed_before_the_restart_refuses_it": "not_run",
+     "test_the_fixed_scenario_forced_refuses_the_restart": "ok",
+     "test_the_pre_fix_scenario_forced_never_reaches_the_restart_check": "ok"
+    }
+   },
+   {
+    "index": 207,
+    "label": "forced",
+    "loadavg_before": [
+     2.14,
+     7.92,
+     11.84
+    ],
+    "soft_gate_clean_before": true,
+    "start_utc": "2026-09-25T14:51:51.408Z",
+    "verdicts": {
+     "test_control_the_same_crash_without_the_change_restarts": "not_run",
+     "test_sm8_a_library_changed_before_the_restart_refuses_it": "not_run",
+     "test_the_fixed_scenario_forced_refuses_the_restart": "ok",
+     "test_the_pre_fix_scenario_forced_never_reaches_the_restart_check": "ok"
+    }
+   },
+   {
+    "index": 208,
+    "label": "forced",
+    "loadavg_before": [
+     2.68,
+     6.93,
+     11.18
+    ],
+    "soft_gate_clean_before": true,
+    "start_utc": "2026-09-25T14:52:58.204Z",
+    "verdicts": {
+     "test_control_the_same_crash_without_the_change_restarts": "not_run",
+     "test_sm8_a_library_changed_before_the_restart_refuses_it": "not_run",
+     "test_the_fixed_scenario_forced_refuses_the_restart": "ok",
+     "test_the_pre_fix_scenario_forced_never_reaches_the_restart_check": "ok"
+    }
+   },
+   {
+    "index": 209,
+    "label": "forced",
+    "loadavg_before": [
+     2.97,
+     6.1,
+     10.52
+    ],
+    "soft_gate_clean_before": true,
+    "start_utc": "2026-09-25T14:54:04.944Z",
+    "verdicts": {
+     "test_control_the_same_crash_without_the_change_restarts": "not_run",
+     "test_sm8_a_library_changed_before_the_restart_refuses_it": "not_run",
+     "test_the_fixed_scenario_forced_refuses_the_restart": "ok",
+     "test_the_pre_fix_scenario_forced_never_reaches_the_restart_check": "ok"
+    }
+   },
+   {
+    "index": 210,
+    "label": "forced",
+    "loadavg_before": [
+     2.38,
+     5.31,
+     9.9
+    ],
+    "soft_gate_clean_before": true,
+    "start_utc": "2026-09-25T14:55:11.531Z",
+    "verdicts": {
+     "test_control_the_same_crash_without_the_change_restarts": "not_run",
+     "test_sm8_a_library_changed_before_the_restart_refuses_it": "not_run",
+     "test_the_fixed_scenario_forced_refuses_the_restart": "ok",
+     "test_the_pre_fix_scenario_forced_never_reaches_the_restart_check": "ok"
+    }
+   }
+  ],
+  "marked": "forced_dev 1 and forced 201-204: 1-minute load 15.5, 16.9, 8.9, 5.5, 4.7, decaying after the busy probes (fixed_busy stopped its 10 loops at 14:44:41Z; 201 started 14:45:22Z). The loop's soft gate read clean before each, yet the controls' real gate refused tests in 201-204 (baseline-active); root's quiescent-host condition was not met for them",
+  "rerun": "this step ran SM8ForcedInterleaving 3 times at the fixed test code with no busy probe (new_forced): fixed scenario ok 3 of 3, pre-fix scenario ok 3 of 3, 1-minute load before [3.13, 3.82, 3.52]"
+ },
+ "authority": "root, reviews/eb1_eb5_v4_interim_20260925_1315.md (origin/main), ranked request (1) preserve every red and green SM8 attempt, (2) a bounded targeted control on a quiescent host, (3) reconcile the red control before receipt R; and the session's adversarial review of the SM8 diagnosis (2026-09-25, nine findings, reproduced below). Model-free: no model, no llama-server, no build, no network beyond 127.0.0.1 (lab_mock_server behind the compiled sm_fixture test double).",
+ "cause_reproduced_on_the_pre_fix_shim": {
+  "every_SM8_tree_has_attempt_14s_signature": true,
+  "reading": "with the window widened, the pre-fix scenario gives the diagnosed red every time: SM8 FAIL 3 of 3, and the no-flip control FAIL 3 of 3 (see pre_fix_control_shared_the_race). This is a perturbed reproduction, not the unmodified bytes; the unmodified bytes went red 2 red of 46 solo SM8AtTheRestart attempts: earlier 1 of 6, the diagnosis loop 1 of 30 (2 of those lost SM8 to a host-gate refusal, no verdict), the review 0 of 10 in the solo loops.",
+  "runs": {
+   "assertion_lines": {
+    "AssertionError: ('server_restarted',) not found in [('server_started',), ('server_stopped',), ('trial_ended',)]": 3,
+    "AssertionError: 0 != 1 :": 3,
+    "self.assertEqual(t.run(), 1, t.stdout)": 3,
+    "self.assertIn(('server_restarted',), lifecycle(t.chain()))": 3
+   },
+   "attempts": 3,
+   "control": "FAIL 3 of 3",
+   "exit_codes": {
+    "1": 3
+   },
+   "files_sha256": [
+    "ac4257fbdaa8cc4d4230c32ab53e5c81d550ad1e1658e111c595f05bf02df76d  experiments/live_ab_controls/tests_sm_entry.py",
+    "18522e2c92d811be7c602ecdc2a25f2f57d54d3c5fae716e244b175aaf2e692a  experiments/live_ab_controls/eb1c_llama_shim.py",
+    "9d3f954d4d997c563d742d881aa74e7bd8e0cf9b50193cf85a674706a93166d6  experiments/live_ab_controls/sm_fixture.py",
+    "f83aa3673237f9c48cbb808e92f3e95899931139baac1338e3984aab313a75b7  experiments/live_ab_controls/tests_eb1_entry.py",
+    "ed6ff9f38f52688654f520ff88ec5d403fe462265006f102fe0e0ebd650f1edb  experiments/live_ab_controls/sm8_attempts.py",
+    "8e86b43e2a6b29402c91793ec863930929a9a9b25a64007e9893f4cfb891008e  experiments/live_ab/lab_orchestrator.py",
+    "c1d62da548108fb15684bc1b2902ea5c65f42147e9aeddc58e1f53a46efdb7ce  experiments/live_ab/lab_server.py"
+   ],
+   "forced_fixed_scenario": "not run",
+   "forced_pre_fix_scenario": "not run",
+   "loadavg_1min_before": [
+    4.58,
+    4.4,
+    3.65
+   ],
+   "sm8": "FAIL 3 of 3",
+   "soft_gate_clean_before": [
+    true,
+    true,
+    true
+   ],
+   "tree_head": "90219f2437c7b4d6ef9e4c3869a242365412c0a7",
+   "tree_porcelain": [
+    " M experiments/live_ab_controls/eb1c_llama_shim.py",
+    "?? experiments/live_ab_controls/sm8_attempts.py"
+   ]
+  },
+  "tree_signatures": [
+   {
+    "entry_returncode": 0,
+    "flip_target_bytes_changed": true,
+    "flip_target_written": true,
+    "lifecycle": [
+     "server_started",
+     "server_stopped",
+     "trial_ended"
+    ],
+    "server_stopped_returncodes": [
+     9
+    ],
+    "task_completions_answered_by_first_pid": 2,
+    "tree": "attempt_01/trees/SM8"
+   },
+   {
+    "entry_returncode": 0,
+    "flip_target_bytes_changed": false,
+    "flip_target_written": false,
+    "lifecycle": [
+     "server_started",
+     "server_stopped",
+     "trial_ended"
+    ],
+    "server_stopped_returncodes": [
+     9
+    ],
+    "task_completions_answered_by_first_pid": 2,
+    "tree": "attempt_01/trees/SM8c"
+   },
+   {
+    "entry_returncode": 0,
+    "flip_target_bytes_changed": true,
+    "flip_target_written": true,
+    "lifecycle": [
+     "server_started",
+     "server_stopped",
+     "trial_ended"
+    ],
+    "server_stopped_returncodes": [
+     9
+    ],
+    "task_completions_answered_by_first_pid": 2,
+    "tree": "attempt_02/trees/SM8"
+   },
+   {
+    "entry_returncode": 0,
+    "flip_target_bytes_changed": false,
+    "flip_target_written": false,
+    "lifecycle": [
+     "server_started",
+     "server_stopped",
+     "trial_ended"
+    ],
+    "server_stopped_returncodes": [
+     9
+    ],
+    "task_completions_answered_by_first_pid": 2,
+    "tree": "attempt_02/trees/SM8c"
+   },
+   {
+    "entry_returncode": 0,
+    "flip_target_bytes_changed": true,
+    "flip_target_written": true,
+    "lifecycle": [
+     "server_started",
+     "server_stopped",
+     "trial_ended"
+    ],
+    "server_stopped_returncodes": [
+     9
+    ],
+    "task_completions_answered_by_first_pid": 2,
+    "tree": "attempt_03/trees/SM8"
+   },
+   {
+    "entry_returncode": 0,
+    "flip_target_bytes_changed": false,
+    "flip_target_written": false,
+    "lifecycle": [
+     "server_started",
+     "server_stopped",
+     "trial_ended"
+    ],
+    "server_stopped_returncodes": [
+     9
+    ],
+    "task_completions_answered_by_first_pid": 2,
+    "tree": "attempt_03/trees/SM8c"
+   }
+  ],
+  "what": "90219f2 (the pre-fix bytes) plus ONE perturbation, mutation SLOW: a 50 ms sleep between the N-th response being written and the flip/exit -- it widens the window the cause names and changes nothing else"
+ },
+ "closing_stop_disposition": "root 16:15 (reviews/sm8_diagnosis_interim_20260925_1615.md): the closing-stop question of the 1503 observation_for_root_not_changed is resolved narrowly -- when every call of the final pair was answered and no restart was owed before a normal trial end, the observed nonzero server_stopped.returncode is kept in the chain and receipt; no production change, no event reinterpretation, no amendment. A later live case with a missing outcome or resource/usage record is assessed separately.",
+ "convention": "deterministic-path",
+ "first_divergent_event": {
+  "attempt_26_first_call_outcomes": {
+   "1": "llm_error connection",
+   "2": "llm_response 200"
+  },
+  "event": "the SECOND llm_response of the only pair before any server_down: both task calls answered by the first process (pid 91505) -- task_completions_answered_by_first_pid 2 in red attempt 14 against 1 in each of the 27 greens. The 1503 wording (\"seq 21: llm_response {arrival 2, call_index 0, http_status 200}, in NO green chain\") is wrong as worded: green attempt 26 (busy10) has llm_response for arrival 2 (its arrival 1 got the connection error).",
+  "red": "pre-fix attempt 14 (2026-09-25T13:43:29.737Z-13:44:23Z), tree SM8",
+  "unchanged": "compared_with, consequence_chain, not_divergences, worker_side of the 1503 receipt"
+ },
+ "fix": {
+  "checked_against_the_1503_trees": {
+   "busy10/SM8: 1 answered before the server_down": 10,
+   "busy10/SM8c: 1 answered before the server_down": 10,
+   "fixed_busy10/SM8: 0 answered before the server_down": 10,
+   "fixed_busy10/SM8c: 0 answered before the server_down": 10,
+   "fixed_quiescent/SM8: 0 answered before the server_down": 20,
+   "fixed_quiescent/SM8c: 0 answered before the server_down": 20,
+   "forced/SM8fx: no server_down": 10,
+   "forced/SM8fy: 0 answered before the server_down": 8,
+   "forced/SM8fy: no server_down": 2,
+   "forced_dev/SM8fx: no server_down": 1,
+   "forced_dev/SM8fy: 0 answered before the server_down": 1,
+   "quiescent/SM8: 1 answered before the server_down": 17,
+   "quiescent/SM8: no server_down": 3,
+   "quiescent/SM8c: 1 answered before the server_down": 19,
+   "quiescent/SM8c: no server_down": 1
+  },
+  "checked_against_the_1503_trees_reading": "the new precondition over every preserved tree of the 1503 attempts: 0 answered in every post-fix SM8/SM8c/SM8fy tree that has a server_down, 1 answered in every pre-fix tree that has one (none in the red SM8 tree of attempt 14 and in three trees refused before seq 0 by the host gate: SM8 of attempts 6 and 8, SM8c of attempt 7)",
+  "commit": "86e6e27",
+  "files_sha256_at_the_commit": {
+   "experiments/live_ab_controls/eb1c_llama_shim.py": "b88ede71737138cd3a18338bb47db18b33f1374e9988d068dd5ea9b4b79f2ace",
+   "experiments/live_ab_controls/sm8_attempts.py": "2e612b69ba23ac790d2ca8a1495d210a3d70bf72296d6b913bfc828cc925b49a",
+   "experiments/live_ab_controls/sm_fixture.py": "9d3f954d4d997c563d742d881aa74e7bd8e0cf9b50193cf85a674706a93166d6",
+   "experiments/live_ab_controls/tests_eb1_entry.py": "f83aa3673237f9c48cbb808e92f3e95899931139baac1338e3984aab313a75b7",
+   "experiments/live_ab_controls/tests_sm_entry.py": "9e1b6d1d16fe3e2d2157dc07d6ee6fa40ac3329a15500804180ad0d08ba89c61"
+  },
+  "mutations": {
+   "A": "tests_sm_entry: SM8Case.crash_scenarios back to exit_after_responses 2",
+   "B": "lab_server.start: a restart tolerates serving-manifest problems (the review's restart-check mutation)",
+   "C": "eb1c_llama_shim: exit_before_response answers the call, flushes, then counts, flips and exits",
+   "D": "lab_orchestrator.main: a trial that ENDED exits 4, not 0",
+   "SLOW": "eb1c_llama_shim at 90219f2: time.sleep(0.05) after the N-th response is written, before the flip and exit (a perturbation of the pre-fix bytes)",
+   "applied_by": "fixsm8/mutate.py in this_step_runs.tar.gz (each replacement must match exactly once); every clone's porcelain and file digests are in its runs/<label>/tree_state.txt and files.sha256"
+  },
+  "production_files_changed": [],
+  "runner": "every attempt of this step ran through sm8_attempts.py loop/child. In the mutation clones old_mutA..new_mutD, in the preslow clone and for new_sm8 the runner was a draft variant (sha256 ed6ff9f3..., fixsm8/sm8_attempts_runner_variant.py in this_step_runs.tar.gz) that only ADDS --test discover, --preserve-prefix and --timeout-s; with their defaults it runs the child exactly as the committed tool (2e612b69) does. The variant was withdrawn (root 16:15: no full suite in this step); new_forced and new_mutB ran the committed tool",
+  "test": "tests_sm_entry.SM8Case.assertFlipPrecedesTheRestart also asserts that no llm_response answers a call SENT before the server_down (worker t_send_ns < chain t_mono_ns of the server_down: before it no other process existed to answer): the first process answered no task completion. SM8AtTheRestart.test_control_the_same_crash_without_the_change_restarts also asserts the entry exit 0 and the whole lifecycle [server_started, server_down(exit), server_stopped, server_restarted, server_stopped, trial_ended] (every preserved post-fix control run had exactly that).",
+  "tested_bytes": "new_sm8, new_mutA, new_mutC and new_mutD ran tests_sm_entry.py before a docstring-only edit (sha256 6ea09ef7...; the diff to the committed 9e1b6d1d... is three docstring lines of assertFlipPrecedesTheRestart); new_forced and new_mutB ran the committed bytes. Each run records its files in runs/<label>/files.sha256 and each clone's whole diff in fixsm8/clones_<label>.diff",
+  "this_step_runs": {
+   "new_forced": {
+    "assertion_lines": {},
+    "attempts": 3,
+    "control": "not run",
+    "exit_codes": {
+     "0": 3
+    },
+    "files_sha256": [
+     "9e1b6d1d16fe3e2d2157dc07d6ee6fa40ac3329a15500804180ad0d08ba89c61  experiments/live_ab_controls/tests_sm_entry.py",
+     "b88ede71737138cd3a18338bb47db18b33f1374e9988d068dd5ea9b4b79f2ace  experiments/live_ab_controls/eb1c_llama_shim.py",
+     "9d3f954d4d997c563d742d881aa74e7bd8e0cf9b50193cf85a674706a93166d6  experiments/live_ab_controls/sm_fixture.py",
+     "f83aa3673237f9c48cbb808e92f3e95899931139baac1338e3984aab313a75b7  experiments/live_ab_controls/tests_eb1_entry.py",
+     "2e612b69ba23ac790d2ca8a1495d210a3d70bf72296d6b913bfc828cc925b49a  experiments/live_ab_controls/sm8_attempts.py",
+     "8e86b43e2a6b29402c91793ec863930929a9a9b25a64007e9893f4cfb891008e  experiments/live_ab/lab_orchestrator.py",
+     "c1d62da548108fb15684bc1b2902ea5c65f42147e9aeddc58e1f53a46efdb7ce  experiments/live_ab/lab_server.py"
+    ],
+    "forced_fixed_scenario": "ok 3 of 3",
+    "forced_pre_fix_scenario": "ok 3 of 3",
+    "loadavg_1min_before": [
+     3.13,
+     3.82,
+     3.52
+    ],
+    "sm8": "not run",
+    "soft_gate_clean_before": [
+     true,
+     true,
+     true
+    ],
+    "tree_head": "bebeb5a9b023a8eb9236bd6482d06580c529c6fb",
+    "tree_porcelain": [
+     " M experiments/live_ab_controls/tests_sm_entry.py"
+    ]
+   },
+   "new_mutA": {
+    "assertion_lines": {
+     "AssertionError: Lists differ: [1] != []": 3,
+     "self.assertEqual(answered, [], 'the first process answered no task completion')": 3,
+     "self.assertFlipPrecedesTheRestart(t)": 3
+    },
+    "attempts": 3,
+    "control": "ok 3 of 3",
+    "exit_codes": {
+     "1": 3
+    },
+    "files_sha256": [
+     "261f880cf169f5fcc6b299ad0837595e3dfb69965b7dfa550fab1c46bf568c0c  experiments/live_ab_controls/tests_sm_entry.py",
+     "b88ede71737138cd3a18338bb47db18b33f1374e9988d068dd5ea9b4b79f2ace  experiments/live_ab_controls/eb1c_llama_shim.py",
+     "9d3f954d4d997c563d742d881aa74e7bd8e0cf9b50193cf85a674706a93166d6  experiments/live_ab_controls/sm_fixture.py",
+     "f83aa3673237f9c48cbb808e92f3e95899931139baac1338e3984aab313a75b7  experiments/live_ab_controls/tests_eb1_entry.py",
+     "ed6ff9f38f52688654f520ff88ec5d403fe462265006f102fe0e0ebd650f1edb  experiments/live_ab_controls/sm8_attempts.py",
+     "8e86b43e2a6b29402c91793ec863930929a9a9b25a64007e9893f4cfb891008e  experiments/live_ab/lab_orchestrator.py"
+    ],
+    "forced_fixed_scenario": "not run",
+    "forced_pre_fix_scenario": "not run",
+    "loadavg_1min_before": [
+     2.2,
+     2.03,
+     2.21
+    ],
+    "sm8": "FAIL 3 of 3",
+    "soft_gate_clean_before": [
+     true,
+     true,
+     true
+    ],
+    "tree_head": "bebeb5a9b023a8eb9236bd6482d06580c529c6fb",
+    "tree_porcelain": [
+     " M experiments/live_ab_controls/sm8_attempts.py",
+     " M experiments/live_ab_controls/tests_sm_entry.py"
+    ]
+   },
+   "new_mutB": {
+    "assertion_lines": {
+     "AssertionError: 2 != 1 :": 3,
+     "self.assertEqual(t.returncode, 1, t.stdout)": 3
+    },
+    "attempts": 3,
+    "control": "ok 3 of 3",
+    "exit_codes": {
+     "1": 3
+    },
+    "files_sha256": [
+     "9e1b6d1d16fe3e2d2157dc07d6ee6fa40ac3329a15500804180ad0d08ba89c61  experiments/live_ab_controls/tests_sm_entry.py",
+     "b88ede71737138cd3a18338bb47db18b33f1374e9988d068dd5ea9b4b79f2ace  experiments/live_ab_controls/eb1c_llama_shim.py",
+     "9d3f954d4d997c563d742d881aa74e7bd8e0cf9b50193cf85a674706a93166d6  experiments/live_ab_controls/sm_fixture.py",
+     "f83aa3673237f9c48cbb808e92f3e95899931139baac1338e3984aab313a75b7  experiments/live_ab_controls/tests_eb1_entry.py",
+     "2e612b69ba23ac790d2ca8a1495d210a3d70bf72296d6b913bfc828cc925b49a  experiments/live_ab_controls/sm8_attempts.py",
+     "8e86b43e2a6b29402c91793ec863930929a9a9b25a64007e9893f4cfb891008e  experiments/live_ab/lab_orchestrator.py",
+     "fd8834b30acbca1ca023aa02d6ab51dbc48306d4d11fd2a4b4e64423599ab620  experiments/live_ab/lab_server.py"
+    ],
+    "forced_fixed_scenario": "not run",
+    "forced_pre_fix_scenario": "not run",
+    "loadavg_1min_before": [
+     3.39,
+     2.89,
+     4.04
+    ],
+    "sm8": "FAIL 3 of 3",
+    "soft_gate_clean_before": [
+     true,
+     true,
+     true
+    ],
+    "tree_head": "bebeb5a9b023a8eb9236bd6482d06580c529c6fb",
+    "tree_porcelain": [
+     " M experiments/live_ab/lab_server.py",
+     " M experiments/live_ab_controls/tests_sm_entry.py"
+    ]
+   },
+   "new_mutC": {
+    "assertion_lines": {
+     "AssertionError: Lists differ: [1] != []": 3,
+     "self.assertEqual(answered, [], 'the first process answered no task completion')": 3,
+     "self.assertFlipPrecedesTheRestart(t)": 3
+    },
+    "attempts": 3,
+    "control": "ok 3 of 3",
+    "exit_codes": {
+     "1": 3
+    },
+    "files_sha256": [
+     "6ea09ef77690e63a490e63ba7f94c80e662798fb6f7d11e553781920e008fb8d  experiments/live_ab_controls/tests_sm_entry.py",
+     "fb8d7adafcf21f26e2a88d409e19df141745da92029f4bf321c24336136696fe  experiments/live_ab_controls/eb1c_llama_shim.py",
+     "9d3f954d4d997c563d742d881aa74e7bd8e0cf9b50193cf85a674706a93166d6  experiments/live_ab_controls/sm_fixture.py",
+     "f83aa3673237f9c48cbb808e92f3e95899931139baac1338e3984aab313a75b7  experiments/live_ab_controls/tests_eb1_entry.py",
+     "ed6ff9f38f52688654f520ff88ec5d403fe462265006f102fe0e0ebd650f1edb  experiments/live_ab_controls/sm8_attempts.py",
+     "8e86b43e2a6b29402c91793ec863930929a9a9b25a64007e9893f4cfb891008e  experiments/live_ab/lab_orchestrator.py"
+    ],
+    "forced_fixed_scenario": "not run",
+    "forced_pre_fix_scenario": "not run",
+    "loadavg_1min_before": [
+     1.84,
+     1.82,
+     2.02
+    ],
+    "sm8": "FAIL 3 of 3",
+    "soft_gate_clean_before": [
+     true,
+     true,
+     true
+    ],
+    "tree_head": "bebeb5a9b023a8eb9236bd6482d06580c529c6fb",
+    "tree_porcelain": [
+     " M experiments/live_ab_controls/eb1c_llama_shim.py",
+     " M experiments/live_ab_controls/sm8_attempts.py",
+     " M experiments/live_ab_controls/tests_sm_entry.py"
+    ]
+   },
+   "new_mutD": {
+    "assertion_lines": {
+     "AssertionError: 4 != 0 :": 2,
+     "self.assertEqual(t.returncode, 0, t.stdout)": 2
+    },
+    "attempts": 2,
+    "control": "FAIL 2 of 2",
+    "exit_codes": {
+     "1": 2
+    },
+    "files_sha256": [
+     "6ea09ef77690e63a490e63ba7f94c80e662798fb6f7d11e553781920e008fb8d  experiments/live_ab_controls/tests_sm_entry.py",
+     "b88ede71737138cd3a18338bb47db18b33f1374e9988d068dd5ea9b4b79f2ace  experiments/live_ab_controls/eb1c_llama_shim.py",
+     "9d3f954d4d997c563d742d881aa74e7bd8e0cf9b50193cf85a674706a93166d6  experiments/live_ab_controls/sm_fixture.py",
+     "f83aa3673237f9c48cbb808e92f3e95899931139baac1338e3984aab313a75b7  experiments/live_ab_controls/tests_eb1_entry.py",
+     "ed6ff9f38f52688654f520ff88ec5d403fe462265006f102fe0e0ebd650f1edb  experiments/live_ab_controls/sm8_attempts.py",
+     "96b3f82bb7040441bfb96406c54a67f5c4c589a6f72e62f583a0684df86ebf61  experiments/live_ab/lab_orchestrator.py"
+    ],
+    "forced_fixed_scenario": "not run",
+    "forced_pre_fix_scenario": "not run",
+    "loadavg_1min_before": [
+     3.2,
+     3.39
+    ],
+    "sm8": "not run",
+    "soft_gate_clean_before": [
+     true,
+     true
+    ],
+    "tree_head": "bebeb5a9b023a8eb9236bd6482d06580c529c6fb",
+    "tree_porcelain": [
+     " M experiments/live_ab/lab_orchestrator.py",
+     " M experiments/live_ab_controls/sm8_attempts.py",
+     " M experiments/live_ab_controls/tests_sm_entry.py"
+    ]
+   },
+   "new_sm8": {
+    "assertion_lines": {},
+    "attempts": 5,
+    "control": "ok 5 of 5",
+    "exit_codes": {
+     "0": 5
+    },
+    "files_sha256": [
+     "6ea09ef77690e63a490e63ba7f94c80e662798fb6f7d11e553781920e008fb8d  experiments/live_ab_controls/tests_sm_entry.py",
+     "b88ede71737138cd3a18338bb47db18b33f1374e9988d068dd5ea9b4b79f2ace  experiments/live_ab_controls/eb1c_llama_shim.py",
+     "9d3f954d4d997c563d742d881aa74e7bd8e0cf9b50193cf85a674706a93166d6  experiments/live_ab_controls/sm_fixture.py",
+     "f83aa3673237f9c48cbb808e92f3e95899931139baac1338e3984aab313a75b7  experiments/live_ab_controls/tests_eb1_entry.py",
+     "ed6ff9f38f52688654f520ff88ec5d403fe462265006f102fe0e0ebd650f1edb  experiments/live_ab_controls/sm8_attempts.py",
+     "8e86b43e2a6b29402c91793ec863930929a9a9b25a64007e9893f4cfb891008e  experiments/live_ab/lab_orchestrator.py"
+    ],
+    "forced_fixed_scenario": "not run",
+    "forced_pre_fix_scenario": "not run",
+    "loadavg_1min_before": [
+     2.45,
+     2.5,
+     2.92,
+     2.62,
+     2.52
+    ],
+    "sm8": "ok 5 of 5",
+    "soft_gate_clean_before": [
+     true,
+     true,
+     true,
+     true,
+     true
+    ],
+    "tree_head": "bebeb5a9b023a8eb9236bd6482d06580c529c6fb",
+    "tree_porcelain": [
+     " M experiments/live_ab_controls/sm8_attempts.py",
+     " M experiments/live_ab_controls/tests_sm_entry.py"
+    ]
+   },
+   "old_mutA": {
+    "assertion_lines": {},
+    "attempts": 3,
+    "control": "ok 3 of 3",
+    "exit_codes": {
+     "0": 3
+    },
+    "files_sha256": [
+     "68b6f63c5e01476f3a34cd5479427d9602b2aa188202199890f898ac260b5bf6  experiments/live_ab_controls/tests_sm_entry.py",
+     "b88ede71737138cd3a18338bb47db18b33f1374e9988d068dd5ea9b4b79f2ace  experiments/live_ab_controls/eb1c_llama_shim.py",
+     "9d3f954d4d997c563d742d881aa74e7bd8e0cf9b50193cf85a674706a93166d6  experiments/live_ab_controls/sm_fixture.py",
+     "f83aa3673237f9c48cbb808e92f3e95899931139baac1338e3984aab313a75b7  experiments/live_ab_controls/tests_eb1_entry.py",
+     "ed6ff9f38f52688654f520ff88ec5d403fe462265006f102fe0e0ebd650f1edb  experiments/live_ab_controls/sm8_attempts.py",
+     "8e86b43e2a6b29402c91793ec863930929a9a9b25a64007e9893f4cfb891008e  experiments/live_ab/lab_orchestrator.py"
+    ],
+    "forced_fixed_scenario": "not run",
+    "forced_pre_fix_scenario": "not run",
+    "loadavg_1min_before": [
+     2.79,
+     2.68,
+     2.23
+    ],
+    "sm8": "ok 3 of 3",
+    "soft_gate_clean_before": [
+     true,
+     true,
+     true
+    ],
+    "tree_head": "bebeb5a9b023a8eb9236bd6482d06580c529c6fb",
+    "tree_porcelain": [
+     " M experiments/live_ab_controls/sm8_attempts.py",
+     " M experiments/live_ab_controls/tests_sm_entry.py"
+    ]
+   },
+   "old_mutC": {
+    "assertion_lines": {},
+    "attempts": 3,
+    "control": "ok 3 of 3",
+    "exit_codes": {
+     "0": 3
+    },
+    "files_sha256": [
+     "bf1f2aeae7709228cffa59e4a7782d9122f2522602eacc718d8b3ee4eed474c9  experiments/live_ab_controls/tests_sm_entry.py",
+     "fb8d7adafcf21f26e2a88d409e19df141745da92029f4bf321c24336136696fe  experiments/live_ab_controls/eb1c_llama_shim.py",
+     "9d3f954d4d997c563d742d881aa74e7bd8e0cf9b50193cf85a674706a93166d6  experiments/live_ab_controls/sm_fixture.py",
+     "f83aa3673237f9c48cbb808e92f3e95899931139baac1338e3984aab313a75b7  experiments/live_ab_controls/tests_eb1_entry.py",
+     "ed6ff9f38f52688654f520ff88ec5d403fe462265006f102fe0e0ebd650f1edb  experiments/live_ab_controls/sm8_attempts.py",
+     "8e86b43e2a6b29402c91793ec863930929a9a9b25a64007e9893f4cfb891008e  experiments/live_ab/lab_orchestrator.py"
+    ],
+    "forced_fixed_scenario": "not run",
+    "forced_pre_fix_scenario": "not run",
+    "loadavg_1min_before": [
+     2.56,
+     2.46,
+     2.03
+    ],
+    "sm8": "ok 3 of 3",
+    "soft_gate_clean_before": [
+     true,
+     true,
+     true
+    ],
+    "tree_head": "bebeb5a9b023a8eb9236bd6482d06580c529c6fb",
+    "tree_porcelain": [
+     " M experiments/live_ab_controls/eb1c_llama_shim.py",
+     " M experiments/live_ab_controls/sm8_attempts.py"
+    ]
+   },
+   "old_mutD": {
+    "assertion_lines": {},
+    "attempts": 2,
+    "control": "ok 2 of 2",
+    "exit_codes": {
+     "0": 2
+    },
+    "files_sha256": [
+     "bf1f2aeae7709228cffa59e4a7782d9122f2522602eacc718d8b3ee4eed474c9  experiments/live_ab_controls/tests_sm_entry.py",
+     "b88ede71737138cd3a18338bb47db18b33f1374e9988d068dd5ea9b4b79f2ace  experiments/live_ab_controls/eb1c_llama_shim.py",
+     "9d3f954d4d997c563d742d881aa74e7bd8e0cf9b50193cf85a674706a93166d6  experiments/live_ab_controls/sm_fixture.py",
+     "f83aa3673237f9c48cbb808e92f3e95899931139baac1338e3984aab313a75b7  experiments/live_ab_controls/tests_eb1_entry.py",
+     "ed6ff9f38f52688654f520ff88ec5d403fe462265006f102fe0e0ebd650f1edb  experiments/live_ab_controls/sm8_attempts.py",
+     "96b3f82bb7040441bfb96406c54a67f5c4c589a6f72e62f583a0684df86ebf61  experiments/live_ab/lab_orchestrator.py"
+    ],
+    "forced_fixed_scenario": "not run",
+    "forced_pre_fix_scenario": "not run",
+    "loadavg_1min_before": [
+     2.71,
+     3.68
+    ],
+    "sm8": "not run",
+    "soft_gate_clean_before": [
+     true,
+     true
+    ],
+    "tree_head": "bebeb5a9b023a8eb9236bd6482d06580c529c6fb",
+    "tree_porcelain": [
+     " M experiments/live_ab/lab_orchestrator.py",
+     " M experiments/live_ab_controls/sm8_attempts.py"
+    ]
+   },
+   "preslow_r": {
+    "assertion_lines": {
+     "AssertionError: ('server_restarted',) not found in [('server_started',), ('server_stopped',), ('trial_ended',)]": 3,
+     "AssertionError: 0 != 1 :": 3,
+     "self.assertEqual(t.run(), 1, t.stdout)": 3,
+     "self.assertIn(('server_restarted',), lifecycle(t.chain()))": 3
+    },
+    "attempts": 3,
+    "control": "FAIL 3 of 3",
+    "exit_codes": {
+     "1": 3
+    },
+    "files_sha256": [
+     "ac4257fbdaa8cc4d4230c32ab53e5c81d550ad1e1658e111c595f05bf02df76d  experiments/live_ab_controls/tests_sm_entry.py",
+     "18522e2c92d811be7c602ecdc2a25f2f57d54d3c5fae716e244b175aaf2e692a  experiments/live_ab_controls/eb1c_llama_shim.py",
+     "9d3f954d4d997c563d742d881aa74e7bd8e0cf9b50193cf85a674706a93166d6  experiments/live_ab_controls/sm_fixture.py",
+     "f83aa3673237f9c48cbb808e92f3e95899931139baac1338e3984aab313a75b7  experiments/live_ab_controls/tests_eb1_entry.py",
+     "ed6ff9f38f52688654f520ff88ec5d403fe462265006f102fe0e0ebd650f1edb  experiments/live_ab_controls/sm8_attempts.py",
+     "8e86b43e2a6b29402c91793ec863930929a9a9b25a64007e9893f4cfb891008e  experiments/live_ab/lab_orchestrator.py",
+     "c1d62da548108fb15684bc1b2902ea5c65f42147e9aeddc58e1f53a46efdb7ce  experiments/live_ab/lab_server.py"
+    ],
+    "forced_fixed_scenario": "not run",
+    "forced_pre_fix_scenario": "not run",
+    "loadavg_1min_before": [
+     4.58,
+     4.4,
+     3.65
+    ],
+    "sm8": "FAIL 3 of 3",
+    "soft_gate_clean_before": [
+     true,
+     true,
+     true
+    ],
+    "tree_head": "90219f2437c7b4d6ef9e4c3869a242365412c0a7",
+    "tree_porcelain": [
+     " M experiments/live_ab_controls/eb1c_llama_shim.py",
+     "?? experiments/live_ab_controls/sm8_attempts.py"
+    ]
+   }
+  }
+ },
+ "generated_utc": "2026-09-25T17:32:45Z",
+ "integrated_runs_on_the_pre_fix_sm8_bytes": {
+  "counted_by_the_1503_receipt": [
+   "comply full1",
+   "comply full2",
+   "v4 full1",
+   "v4 full2"
+  ],
+  "excluded": "subsetfix r1 (393 tests, 2026-09-24T15:25Z, SM8 not among its two failures): it ran before 03fe0ca was committed, so its sm_fixture bytes are not established",
+  "runs": [
+   {
+    "argv_tail": [
+     "unittest",
+     "discover",
+     "-v",
+     "-s",
+     "experiments/live_ab_controls",
+     "-p",
+     "tests_*.py"
+    ],
+    "end_utc": "2026-09-24T16:34:31Z",
+    "head": "03fe0ca13a4d3acc2ddc022672120d3bb136e2f6",
+    "in_1503_count": false,
+    "receipt": "results/live_ab/HARNESS_PIN_SUCCESSOR_20260924_1635.json",
+    "receipt_sha256": "7e5cb1c3f333562d1b91cbdb31d8cb7e68a0e17126c69237fc5dc538023d6db5",
+    "result": "Ran 393 tests in 2768.740s | OK",
+    "run": "pin-tool suite run of receipt 1635",
+    "sm8": "green",
+    "sm8_evidence": "the run passed (-v, 393 of 393 planned tests, tests_sm_entry 15 in the plan); its unittest output is recorded only by digest and tail in the committed receipt",
+    "start_utc": "2026-09-24T15:48:22Z",
+    "stderr_bytes": 67151,
+    "stderr_sha256": "89b64da9ec6c7b597d871c7688dae4abb8cde38131194056f6aca8a087880704",
+    "tests_eb1_entry": "35259026",
+    "tests_sm_entry_in_plan": 15,
+    "tree": "clean checkout of 03fe0ca (receipt repository.head; working_tree_porcelain [])"
+   },
+   {
+    "argv_tail": [
+     "unittest",
+     "discover",
+     "-v",
+     "-s",
+     "experiments/live_ab_controls",
+     "-p",
+     "tests_*.py"
+    ],
+    "end_utc": "2026-09-24T17:30:57Z",
+    "head": "591ebcd7dd5a7d8ae1605300b9e4c645ac64b3bb",
+    "in_1503_count": false,
+    "receipt": "results/live_ab/HARNESS_PIN_SUCCESSOR_20260924_1732.json",
+    "receipt_sha256": "198eae6a3ddb912e555073306b38abfaebc22b1e1db305435e66a1b24dc0cf16",
+    "result": "Ran 393 tests in 2888.837s | OK",
+    "run": "pin-tool suite run of receipt 1732",
+    "sm8": "green",
+    "sm8_evidence": "the run passed (-v, 393 of 393 planned tests, tests_sm_entry 15 in the plan); its unittest output is recorded only by digest and tail in the committed receipt",
+    "start_utc": "2026-09-24T16:42:48Z",
+    "stderr_bytes": 67151,
+    "stderr_sha256": "478e720339dfe36dec422bcb6f90a6fea61c82e31d9d177c5e97f09a3cf56517",
+    "tests_eb1_entry": "35259026",
+    "tests_sm_entry_in_plan": 15,
+    "tree": "591ebcd; porcelain lists only the pin tool and its test as modified"
+   },
+   {
+    "failures": [
+     "test_the_restart_count_reaches_the_cap_and_the_next_down_restarts_nothing"
+    ],
+    "in_1503_count": true,
+    "log": "repair/comply/logs/full1_live_ab_controls.log",
+    "log_bytes": 1503,
+    "log_created_utc": "2026-09-24T18:08:50Z",
+    "log_modified_utc": "2026-09-24T19:01:43Z",
+    "log_sha256": "e6108f45b0012ab4c3deb839249fdca04de55c8ef75ffc44609e43ed26dcc048",
+    "result": "Ran 418 tests in 3173.073s | FAILED (failures=1)",
+    "run": "comply full1",
+    "sm8": "green",
+    "sm8_evidence": "not among the FAIL/ERROR headers of a non-verbose discover run whose pattern includes tests_sm_entry.py (an import failure would be an ERROR)",
+    "tests_eb1_entry": "35259026",
+    "tree": "the owner worktree at 159e747 with the compliance step uncommitted (committed as 7ebffad); run by repair/comply/logs/suites.sh after live_ab, tools, serving"
+   },
+   {
+    "failures": [
+     "test_e2_the_same_across_a_pause_and_resume_with_the_anchor_carried_over",
+     "test_sm8_a_library_changed_before_the_restart_refuses_it"
+    ],
+    "in_1503_count": true,
+    "log": "repair/comply/logs/full2_live_ab_controls.log",
+    "log_bytes": 2796,
+    "log_created_utc": "2026-09-24T19:06:38Z",
+    "log_modified_utc": "2026-09-24T19:57:47Z",
+    "log_sha256": "d02aa09b6be69294658828e869260c7538b016f4d9a9bd2144c7bd468947d7a7",
+    "result": "Ran 419 tests in 3068.403s | FAILED (failures=2)",
+    "run": "comply full2",
+    "sm8": "RED",
+    "sm8_evidence": "FAIL block: AssertionError: 0 != 1 : ",
+    "tests_eb1_entry": "35259026",
+    "tree": "the owner worktree, the compliance step final bytes (committed as 7ebffad)"
+   },
+   {
+    "failures": [],
+    "in_1503_count": false,
+    "log": "eb1_1905/run2_controls.log",
+    "log_bytes": 669,
+    "log_created_utc": "2026-09-24T20:30:14Z",
+    "log_modified_utc": "2026-09-24T21:01:23Z",
+    "log_sha256": "56f9701ec4d09f91383c872e37dcf83e8979f0104f918091bfa161101a189993",
+    "result": "Ran 426 tests in 1868.475s | OK",
+    "run": "eb1_1905 run2",
+    "sm8": "green",
+    "sm8_evidence": "not among the FAIL/ERROR headers of a non-verbose discover run whose pattern includes tests_sm_entry.py (an import failure would be an ERROR)",
+    "tests_eb1_entry": "35259026",
+    "tree": "the owner worktree at 7ebffad with the root 19:05 fix uncommitted (committed as 9f0aff6 at 21:05:29Z); disclosed in HARNESS_PIN_SUCCESSOR_20260925_0027.json disclosed_red_runs_before_this_successor[12] as \"run2 live_ab_controls 426 OK\""
+   },
+   {
+    "failures": [],
+    "in_1503_count": false,
+    "log": "v3logs/base_controls.log",
+    "log_bytes": 621,
+    "log_created_utc": "2026-09-24T21:18:15Z",
+    "log_modified_utc": "2026-09-24T22:11:52Z",
+    "log_sha256": "19ba691ba69beb8bf1ea5fb53332f01271959c96a378a0cc3e5571c97ffe8d96",
+    "result": "Ran 426 tests in 3216.382s | OK",
+    "run": "v3 base",
+    "sm8": "green",
+    "sm8_evidence": "not among the FAIL/ERROR headers of a non-verbose discover run whose pattern includes tests_sm_entry.py (an import failure would be an ERROR)",
+    "tests_eb1_entry": "35259026",
+    "tree": "head 9f0aff6 (the log's START line); recorded in REPAIR_AMENDMENT_V3_RECEIPT_20260924_2218.json"
+   },
+   {
+    "failures": [],
+    "in_1503_count": false,
+    "log": "v3logs/after_controls.log",
+    "log_bytes": 621,
+    "log_created_utc": "2026-09-24T22:24:26Z",
+    "log_modified_utc": "2026-09-24T23:17:59Z",
+    "log_sha256": "aa106cb57d098831ce530214796eedbf5a6b663e80d9f9fb917825105d66558a",
+    "result": "Ran 426 tests in 3212.216s | OK",
+    "run": "v3 after",
+    "sm8": "green",
+    "sm8_evidence": "not among the FAIL/ERROR headers of a non-verbose discover run whose pattern includes tests_sm_entry.py (an import failure would be an ERROR)",
+    "tests_eb1_entry": "35259026",
+    "tree": "head 9f0aff6 (the log's START line) with the amendment v3 changes uncommitted (committed as 56df17f at 23:18:17Z)"
+   },
+   {
+    "argv_tail": [
+     "unittest",
+     "discover",
+     "-v",
+     "-s",
+     "experiments/live_ab_controls",
+     "-p",
+     "tests_*.py"
+    ],
+    "end_utc": "2026-09-25T00:24:53Z",
+    "head": "79e60d47f692256354f111b67bddcf9e5d9ddb6a",
+    "in_1503_count": false,
+    "receipt": "results/live_ab/HARNESS_PIN_SUCCESSOR_20260925_0027.json",
+    "receipt_sha256": "889c36c6f7b419f39d20f292bef2186f30b5f745a1202ffd9fcced05151c9300",
+    "result": "Ran 426 tests in 2065.791s | OK",
+    "run": "pin-tool suite run of receipt 0027",
+    "sm8": "green",
+    "sm8_evidence": "the run passed (-v, 426 of 426 planned tests, tests_sm_entry 15 in the plan); its unittest output is recorded only by digest and tail in the committed receipt",
+    "start_utc": "2026-09-24T23:50:26Z",
+    "stderr_bytes": 73851,
+    "stderr_sha256": "16480fb1dbbc44d783f0e4cb0f57c5943be48165e32e75480f2a57b3ee3a7651",
+    "tests_eb1_entry": "35259026",
+    "tests_sm_entry_in_plan": 15,
+    "tree": "clean checkout of 79e60d4 (receipt repository.head; working_tree_porcelain [])"
+   },
+   {
+    "failures": [],
+    "in_1503_count": false,
+    "log": "final_fix/logs/full_controls1.log",
+    "log_bytes": 545,
+    "log_created_utc": "2026-09-25T05:53:10Z",
+    "log_modified_utc": "2026-09-25T06:46:15Z",
+    "log_sha256": "4339180030c460a68e24669a67b291ba5a8918333497a37d0587d980739d6bf7",
+    "result": "Ran 442 tests in 3184.690s | OK",
+    "run": "final_fix full_controls1",
+    "sm8": "green",
+    "sm8_evidence": "not among the FAIL/ERROR headers of a non-verbose discover run whose pattern includes tests_sm_entry.py (an import failure would be an ERROR)",
+    "tests_eb1_entry": "35259026",
+    "tree": "a clone at 8f0b4ae (final_fix/head) plus untracked tests_guard_controls.py and zz_repro_* probes; its SM8 files hash to the pre-fix pins today"
+   },
+   {
+    "failures": [],
+    "in_1503_count": false,
+    "log": "repair/review_tmp/final/logs/combined_live_ab_controls.log",
+    "log_bytes": 529,
+    "log_created_utc": "2026-09-25T04:59:40Z",
+    "log_modified_utc": "2026-09-25T04:59:40Z",
+    "log_sha256": "481884f463c2ba2e24d1d34b5d83f94440bb632c567e57951f289496cd61edc0",
+    "result": "Ran 426 tests in 3066.285s | OK",
+    "run": "review final full_controls (clean clone)",
+    "sm8": "green",
+    "sm8_evidence": "not among the FAIL/ERROR headers of a non-verbose discover run whose pattern includes tests_sm_entry.py (an import failure would be an ERROR)",
+    "tests_eb1_entry": "35259026",
+    "tree": "a clean clone at 8f0b4ae (repair/review_tmp/final/clone or clone2; git status porcelain empty, unlike the ro clone which carries the same untracked zz_repro_* probes as final_fix); tests_sm_entry/eb1c_llama_shim/sm_fixture hash to the pre-fix pins"
+   },
+   {
+    "failures": [
+     "test_c10_the_resume_passes_the_real_gate_and_stops_the_orphan_first",
+     "test_c1_positive_run_passes_the_verifier",
+     "test_c2b_the_server_reports_the_tokenized_path_not_its_absolute_one",
+     "test_c4_crash_then_supervised_restart",
+     "test_c4b_exit_between_pairs_is_restarted_before_the_next_pair"
+    ],
+    "in_1503_count": false,
+    "log": "repro_eb1eb5/logs/run15_full_c001354_live_ab_controls.log",
+    "log_bytes": 82425,
+    "log_created_utc": "2026-09-25T07:23:37Z",
+    "log_modified_utc": "2026-09-25T08:16:04Z",
+    "log_sha256": "b9eef8cda325f30535ba9dadeb1f1d5819709bf782f9f7f41fdcb0ee13189c5d",
+    "result": "Ran 442 tests in 3146.396s | FAILED (failures=5)",
+    "run": "repro run15",
+    "sm8": "green",
+    "sm8_evidence": "verbose line: ... ok",
+    "tests_eb1_entry": "35259026",
+    "tree": "a full clone at c001354 (repro_eb1eb5/full); SM8 files unchanged since its checkout at 07:05:27Z; its tests_eb1_entry.py was modified at 08:26:50Z, after the run ended"
+   },
+   {
+    "failures": [],
+    "in_1503_count": false,
+    "log": "repro_eb1eb5/logs/run25_wt_live_ab_controls.log",
+    "log_bytes": 79120,
+    "log_created_utc": "2026-09-25T08:33:56Z",
+    "log_modified_utc": "2026-09-25T09:27:12Z",
+    "log_sha256": "6fca143b9813727edda6838a35e4b40795301b410458ac4df17309ba93c764e7",
+    "result": "Ran 458 tests in 3195.768s | OK",
+    "run": "repro run25",
+    "sm8": "green",
+    "sm8_evidence": "verbose line: ... ok",
+    "tests_eb1_entry": "f83aa367 if the uncommitted f54d215 edit was already made (not recorded)",
+    "tree": "the owner worktree at c001354 with the f54d215 changes uncommitted (its 458 tests include the 16 tests_repro_inputs tests f54d215 adds; committed at 09:30:11Z)"
+   },
+   {
+    "failures": [
+     "test_control_a_valid_eligible_decision_stays_reportable",
+     "test_sm8_a_library_changed_before_the_restart_refuses_it"
+    ],
+    "in_1503_count": true,
+    "log": "v4/full1/live_ab_controls.log",
+    "log_bytes": 2594,
+    "log_created_utc": "2026-09-25T10:15:21Z",
+    "log_modified_utc": "2026-09-25T11:11:31Z",
+    "log_sha256": "f129eb1e533244059b2d2996ca69499b647c2cf9d2c2b59047536c40a0e60cf7",
+    "result": "Ran 474 tests in 3369.621s | FAILED (failures=2)",
+    "run": "v4 full1",
+    "sm8": "RED",
+    "sm8_evidence": "FAIL block: AssertionError: 0 != 1 : ",
+    "tests_eb1_entry": "f83aa367",
+    "tree": "f54d215 plus the uncommitted bdee21b changes; v4/full1/summary.txt porcelain names no SM8 file"
+   },
+   {
+    "failures": [
+     "test_sm8_a_library_changed_before_the_restart_refuses_it"
+    ],
+    "in_1503_count": true,
+    "log": "v4/full2/live_ab_controls.log",
+    "log_bytes": 1246,
+    "log_created_utc": "2026-09-25T11:25:18Z",
+    "log_modified_utc": "2026-09-25T12:21:40Z",
+    "log_sha256": "a6886edeab1db6eb497388c215cc19130508a1b7490b4d7c3bcaa79af7215dd7",
+    "result": "Ran 474 tests in 3382.069s | FAILED (failures=1)",
+    "run": "v4 full2",
+    "sm8": "RED",
+    "sm8_evidence": "FAIL block: AssertionError: 0 != 1 : ",
+    "tests_eb1_entry": "f83aa367",
+    "tree": "bdee21b plus the uncommitted v4 amendment files (committed as 90219f2); v4/full2/summary.txt porcelain names no SM8 file"
+   }
+  ],
+  "scope": "every live_ab_controls full-suite run from 03fe0ca (2026-09-24T15:44:23Z, where sm_fixture.py last changed) to the diagnosis: tests_sm_entry.py, eb1c_llama_shim.py and sm_fixture.py are byte-identical (the pre-fix pins below) at every commit 03fe0ca..90219f2. Found by listing every unittest log in the session work area modified after 2026-09-24T15:00Z and every suite run recorded in a committed pin receipt. A run is counted on the commits before and after it; for worktree runs the SM8 files at run time were not hashed, but no commit in the range changes them and the v4 summaries record a porcelain that names none of them.",
+  "sm8_red": [
+   "comply full2",
+   "v4 full1",
+   "v4 full2"
+  ],
+  "sm8_red_count": "3 of 14"
+ },
+ "interruption_incident": {
+  "effect_on_runs": "the stop killed this step's chain1 during preslow attempt 1 (started 16:34:45Z): its control SM8c had finished (entry exit 0, tree preserved 16:35:18Z) and its SM8 test was running; no stdout or ledger row was written, so it has NO verdict and is not counted. Its temporary tree, left in /private/tmp/labsbx by the kill, was copied to runs/preslow/loop/attempt_01/trees/SM8_interrupted_leftover and then removed; no process of it was alive. chain1b (new_mutB) had not started. chain3 re-ran preslow (as preslow_r), new_forced and new_mutB.",
+  "interrupted_attempt_trees": [
+   {
+    "entry_returncode": 0,
+    "flip_target_bytes_changed": false,
+    "flip_target_written": false,
+    "lifecycle": [
+     "server_started",
+     "server_stopped",
+     "trial_ended"
+    ],
+    "server_stopped_returncodes": [
+     9
+    ],
+    "task_completions_answered_by_first_pid": 2,
+    "tree": "attempt_01/trees/SM8c"
+   }
+  ],
+  "results_the_other_instance_reported": "the owner relayed chain1 results the other instance read from this step's logs; the counts here are computed from the logs themselves, not from that report",
+  "what": "two instances of this fix step ran at once. The owner's 16:26Z update (relaying root 16:15) accidentally started a second instance of the step's agent; the original instance, running since about 15:55Z, saw the other's edits and reported it, and at 16:35Z the owner stopped the whole SM8 workflow. The owner then named the instance that received the 16:26Z update as the only writer. The owner reports the other instance committed nothing and did not touch the owner worktree after these edits began; a listing of every file in the session work area and /private/tmp/labsbx changed after 15:55Z shows no attempt directory, test log, ledger or temporary test tree other than this step's own; and the shared fixture-use log /private/tmp/labsbx/eb1c_sm_fixture_uses.jsonl, appended by every control that builds the compiled test double, has no entry between 15:55:28Z (the review's last) and 16:11:05Z, and its 40 entries from 16:11:05Z to 16:35:18Z are exactly chain1's (22 test processes: 17 two-test attempts, 4 one-test attempts, the interrupted one). One file in this step's own directory was written by the other instance: tmp/wt_now.diff (16:33:08Z, 3,986 B, sha256 f5a803d6e748260989b34f15a8a14ef00db91fbd8361755781fbb5870b76a6e4), a copy of the owner-worktree diff at that moment (not used here)."
+ },
+ "observation_for_root_not_changed": "A held server whose process exits after the last health poll, once every call of the last pair was answered, is recorded only by the closing stop (server_stopped with return code 9) and never as server_down. This follows protocol 5.3's 5 s poll and the EB1c boundary check at IDLE, which the horizon path (DECIDED) does not visit; no episode is affected (every call was answered before the exit) and no process is started after it, so no serving-manifest check is owed. Production is unchanged; named so root can rule whether a closing stop that finds a crash return code should be a server_down.",
+ "pins": {
+  "fix_commit_files": {
+   "experiments/live_ab_controls/eb1c_llama_shim.py": "b88ede71737138cd3a18338bb47db18b33f1374e9988d068dd5ea9b4b79f2ace",
+   "experiments/live_ab_controls/sm8_attempts.py": "2e612b69ba23ac790d2ca8a1495d210a3d70bf72296d6b913bfc828cc925b49a",
+   "experiments/live_ab_controls/sm_fixture.py": "9d3f954d4d997c563d742d881aa74e7bd8e0cf9b50193cf85a674706a93166d6",
+   "experiments/live_ab_controls/tests_eb1_entry.py": "f83aa3673237f9c48cbb808e92f3e95899931139baac1338e3984aab313a75b7",
+   "experiments/live_ab_controls/tests_sm_entry.py": "9e1b6d1d16fe3e2d2157dc07d6ee6fa40ac3329a15500804180ad0d08ba89c61"
+  },
+  "history_prefix8": {
+   "03fe0ca": {
+    "eb1c_llama_shim.py": "71ececb3",
+    "sm_fixture.py": "9d3f954d",
+    "tests_eb1_entry.py": "35259026",
+    "tests_sm_entry.py": "ac4257fb"
+   },
+   "5ae183d": {
+    "eb1c_llama_shim.py": "71ececb3",
+    "sm_fixture.py": "c610aae4",
+    "tests_eb1_entry.py": "19cea60c",
+    "tests_sm_entry.py": "ac4257fb"
+   },
+   "86e6e27": {
+    "eb1c_llama_shim.py": "b88ede71",
+    "sm_fixture.py": "9d3f954d",
+    "tests_eb1_entry.py": "f83aa367",
+    "tests_sm_entry.py": "9e1b6d1d"
+   },
+   "90219f2": {
+    "eb1c_llama_shim.py": "71ececb3",
+    "sm_fixture.py": "9d3f954d",
+    "tests_eb1_entry.py": "f83aa367",
+    "tests_sm_entry.py": "ac4257fb"
+   },
+   "f54d215": {
+    "eb1c_llama_shim.py": "71ececb3",
+    "sm_fixture.py": "9d3f954d",
+    "tests_eb1_entry.py": "f83aa367",
+    "tests_sm_entry.py": "ac4257fb"
+   }
+  },
+  "pre_fix_bytes_identical_at": "before the fix 292a8a9, tests_sm_entry.py and eb1c_llama_shim.py last changed at 5ae183d, sm_fixture.py at 03fe0ca (2026-09-24T15:44:23Z); all three identical at every commit 03fe0ca..90219f2",
+  "pre_fix_sha256": {
+   "experiments/live_ab_controls/eb1c_llama_shim.py": "71ececb3a4b43b2e290fe4affb2f74fb2042867fa8492a0371c02285195b1da0",
+   "experiments/live_ab_controls/sm_fixture.py": "9d3f954d4d997c563d742d881aa74e7bd8e0cf9b50193cf85a674706a93166d6",
+   "experiments/live_ab_controls/tests_sm_entry.py": "ac4257fbdaa8cc4d4230c32ab53e5c81d550ad1e1658e111c595f05bf02df76d"
+  },
+  "tests_eb1_entry_per_run": "35259026 (03fe0ca..c001354) for every run up to repro run15; f83aa367 (f54d215..) for v4 full1/full2, v4 sm8_1-3 and the diagnosis; repro run25 ran with f54d215 uncommitted (f83aa367 if that edit was already made); per run in the runs tables",
+  "tests_eb1_entry_sha256": {
+   "35259026": "35259026dc22667245c4647bd31c250dcff75b602f0737eefeb9031010156142",
+   "f83aa367": "f83aa3673237f9c48cbb808e92f3e95899931139baac1338e3984aab313a75b7"
+  }
+ },
+ "post_fix_integrated_run": {
+  "reading": "until that run exists, the post-fix evidence is the design (the first process exits on RECEIVING the first task call, so no call is answered and the restart is required), the forced interleavings, SM8's precondition, which now FAILS whenever the first process answers a task completion (finding 3), and the restart-check mutation control. Solo greens cannot separate fixed from unfixed code at the pre-fix solo rate (2 red of 46 solo SM8AtTheRestart attempts: earlier 1 of 6, the diagnosis loop 1 of 30 (2 of those lost SM8 to a host-gate refusal, no verdict), the review 0 of 10).",
+  "ruling": "root 16:15, reviews/sm8_diagnosis_interim_20260925_1615.md (origin/main 03e98ec): one passing, final-code-pinned integrated run, plus the deterministic pre-fix/fixed forced controls, the restart-check mutation control, complete corrected attempt provenance and unchanged production hashes, is enough for this repaired control; a second broad run only to collect another green is not required; any new unexplained red is a blocker to diagnose, not a reason to rerun",
+  "status": "OWED: no live_ab_controls full suite ran in this step",
+  "will_come_from": "receipt R's run of every suite once at the final head (the owner's instruction for this step, relaying the ruling: no full suite here, so the hour is not spent twice). The code this receipt describes is final at 86e6e27 (test-control file only)."
+ },
+ "pre_fix_control_shared_the_race": {
+  "post_fix_control": "now asserts exit 0 and the whole lifecycle ending in trial_ended",
+  "statement": "the pre-fix no-flip control scripted the same \"answered, then died\" crash, so its greens were not independent of SM8's race. It never went red on the unperturbed bytes (integrated failures naming it: []; solo: []; diagnosis loop non-ok: ['attempt 7 (host-gate refusal)']) while SM8 did at least 5 times; with the window widened (mutation SLOW) it failed FAIL 3 of 3. The difference is consistent with the flip's file I/O being the window (the control does no flip) -- not measured."
+ },
+ "production_sha256_unchanged": {
+  "experiments/live_ab/config.json": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+  "experiments/live_ab/lab_hostcheck.py": "23d3efe772b1b354816aecce6591f3f7fec05acbd558a3ce4a1fd5f30d6bca37",
+  "experiments/live_ab/lab_mock_server.py": "6576afee392a1a3f2973802a880c00c38838841e6ad172aedf66628b43446ce0",
+  "experiments/live_ab/lab_orchestrator.py": "8e86b43e2a6b29402c91793ec863930929a9a9b25a64007e9893f4cfb891008e",
+  "experiments/live_ab/lab_server.py": "c1d62da548108fb15684bc1b2902ea5c65f42147e9aeddc58e1f53a46efdb7ce",
+  "experiments/live_ab/lab_serving_manifest.py": "6407603cc8d52ae1db60370474b91f28fab551626161c939566f26efecb7e3e6"
+ },
+ "production_sha256_unchanged_reading": "each equals the 1503 receipt pins.production_sha256_unchanged_by_this_work (checked: True); files under experiments/live_ab/ that git diff 90219f2..86e6e27 changes: []",
+ "rates": {
+  "integrated_pre_fix": "3 red of 14 full-suite runs (comply full2, v4 full1, v4 full2)",
+  "solo_pre_fix": "2 red of 46 solo SM8AtTheRestart attempts: earlier 1 of 6, the diagnosis loop 1 of 30 (2 of those lost SM8 to a host-gate refusal, no verdict), the review 0 of 10",
+  "what_the_1503_receipt_said": "pre-fix: 1 red of this kind in 30 attempts here (20 quiescent, 10 under a 10-process busy load); earlier: 3 of 4 integrated suite runs and 1 of 6 solo runs. Why the integrated runs were redder is NOT established",
+  "why_integrated_runs_are_redder": "NOT established. The counts are consistent with a timing window that is wider under the integrated suite: the pre-fix red needs both calls answered in the window between the second response being written and os._exit, and in SM8 that window holds the flip (read, hash, rewrite and re-read of the 33,448 B libeb1c-core.0.dylib); see pre_fix_control_shared_the_race. That is a hypothesis; it was not measured."
+ },
+ "restart_check_mutation_control": {
+  "result": "SM8 FAIL 3 of 3; control ok 3 of 3; assertion lines {'self.assertEqual(t.returncode, 1, t.stdout)': 3, 'AssertionError: 2 != 1 :': 3}",
+  "the_reviews_run": "the review ran the same mutation against the 292a8a9 test code: review_runs mutB (['mutB_sm8 {\"test_control_the_same_crash_without_the_change_restarts\": \"ok\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"FAIL\"} mode=other', 'mutB_sm8 {\"test_control_the_same_crash_without_the_change_restarts\": \"ok\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"FAIL\"} mode=other', 'mutB_sm8 {\"test_control_the_same_crash_without_the_change_restarts\": \"ok\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"FAIL\"} mode=other'])",
+  "what": "mutation B against the FINAL test code (new_mutB): the restart no longer refuses a serving-manifest problem, so a production defect of exactly the kind SM8 exists to catch"
+ },
+ "review_findings": [
+  {
+   "change": "integrated_runs_on_the_pre_fix_sm8_bytes and solo_runs_on_the_pre_fix_sm8_bytes list every run with its tree, UTC, digest and how its SM8 verdict is known; rates recomputes both rates; every log that exists is archived (earlier_runs_logs.tar.gz).",
+   "claim": "green integrated runs on the byte-identical SM8 files are missing from earlier_runs; \"3 of 4 integrated\" is wrong",
+   "id": 1,
+   "reproduced": true,
+   "reproduction": "All five logs the review named exist with the digests it gave (v3 base 19ba691b, v3 after aa106cb5, final_fix full_controls1 43391800, repro run15 b9eef8cd, repro run25 6fca143b), each green for SM8. Listing every log and pin receipt found five more the review did not name: eb1_1905 run2 (426 OK, 56f9701e), the suite runs of the pin receipts 1635, 1732 and 0027 (their unittest output is in the committed receipts only as a digest and tail; the 1503 receipt named 1732 and 0027 but did not count their runs), and a clean-clone full_controls run at 8f0b4ae found only by this step's own independent provenance check, not by the original review or by this receipt's first draft (repair/review_tmp/final/logs/combined_live_ab_controls.log, 426 OK, 481884f4, 2026-09-25T04:59:40Z). Of 14 integrated runs, SM8 was red in 3 (comply full2, v4 full1, v4 full2).",
+   "severity": "medium",
+   "status": "corrected in this receipt"
+  },
+  {
+   "change": "none in this step, by root's 16:15 ruling (post_fix_integrated_run): the integrated run is owed and comes from receipt R. A --test discover mode for sm8_attempts.py was drafted for it and withdrawn before commit (fix.runner)",
+   "claim": "the fix was never checked in the integrated suite; 30 green solo loops cannot tell fixed from unfixed code",
+   "id": 2,
+   "reproduced": true,
+   "reproduction": "the 1503 receipt lists the full suites under not_run, and no live_ab_controls full-suite log exists in the session work area after v4 full2 (12:21:41Z); the pre-fix solo red rate is 2 red of 46 solo SM8AtTheRestart attempts: earlier 1 of 6, the diagnosis loop 1 of 30 (2 of those lost SM8 to a host-gate refusal, no verdict), the review 0 of 10",
+   "severity": "medium",
+   "status": "OWED (receipt R)"
+  },
+  {
+   "change": "the answered-before-the-server_down assertion (fix.test), commit 86e6e27",
+   "claim": "the SM8 precondition does not catch a reversion to exit_after_responses; only the forced class does",
+   "control_fails_before_passes_after": "after: new_mutA SM8 FAIL 3 of 3, new_mutC SM8 FAIL 3 of 3 (assertion lines {'self.assertFlipPrecedesTheRestart(t)': 3, \"self.assertEqual(answered, [], 'the first process answered no task completion')\": 3, 'AssertionError: Lists differ: [1] != []': 3} / {'self.assertFlipPrecedesTheRestart(t)': 3, \"self.assertEqual(answered, [], 'the first process answered no task completion')\": 3, 'AssertionError: Lists differ: [1] != []': 3}); unmutated: new_sm8 SM8 ok 5 of 5, control ok 5 of 5; new_forced fixed ok 3 of 3, pre-fix ok 3 of 3",
+   "id": 3,
+   "not_done": "SM8ForcedInterleaving was not merged into the SM8AtTheRestart class: SM8 now fails the reversion by itself, and the module and the full suite run both classes",
+   "reproduced": true,
+   "reproduction": "old_mutA (bebeb5a test code, mutation A): SM8 ok 3 of 3; old_mutC (mutation C): SM8 ok 3 of 3 -- the unchanged precondition passes both reversions",
+   "severity": "low",
+   "status": "fixed"
+  },
+  {
+   "change": "first_divergent_event restated",
+   "claim": "the named divergent event occurs in green attempt 26",
+   "id": 4,
+   "reproduced": true,
+   "reproduction": "the 1503 attempts[] busy10 index 26 trees.SM8.first_call_outcomes = {\"1\": \"llm_error connection\", \"2\": \"llm_response 200\"}",
+   "severity": "low",
+   "status": "corrected in this receipt"
+  },
+  {
+   "change": "cause_reproduced_on_the_pre_fix_shim (my runs; the review ran the same perturbation, runs preslow in review_runs)",
+   "claim": "the deterministic reproduction used the post-fix shim, not the pre-fix bytes",
+   "id": 5,
+   "reproduced": true,
+   "reproduction": "the 1503 fix.controls[0] forces the pre-fix SCENARIO with the post-fix shim (hold_until_written exists only in 292a8a9)",
+   "severity": "low",
+   "status": "done"
+  },
+  {
+   "change": "control assertions (fix.test), commit 86e6e27",
+   "claim": "the pre-fix control shared the race; the post-fix control never asserts the entry's exit code",
+   "control_fails_before_passes_after": "after: new_mutD control FAIL 2 of 2 ({'self.assertEqual(t.returncode, 0, t.stdout)': 2, 'AssertionError: 4 != 0 :': 2}); unmutated control ok 5 of 5",
+   "id": 6,
+   "reproduced": true,
+   "reproduction": "preslow control FAIL 3 of 3; old_mutD (bebeb5a test code, a normal end exits 4): control ok 2 of 2 -- the unchanged control passes a wrong exit",
+   "severity": "low",
+   "status": "fixed"
+  },
+  {
+   "change": "pins",
+   "claim": "sm_fixture last changed at 03fe0ca, not 5ae183d; tests_eb1_entry changed at f54d215, one pin cannot cover every run",
+   "id": 7,
+   "reproduced": true,
+   "reproduction": "pins.history_prefix8 (git show <c>:<file> | sha256)",
+   "severity": "low",
+   "status": "corrected in this receipt"
+  },
+  {
+   "change": "archives (diagnosis_1503_attempts.tar.gz, earlier_runs_logs.tar.gz)",
+   "claim": "only 5 of 71 attempts are in the repository",
+   "id": 8,
+   "reproduced": true,
+   "reproduction": "git ls-files results/live_ab/sm8_diagnosis lists 29 files for attempts 6, 13, 14, 101 and 206",
+   "severity": "low",
+   "status": "done"
+  },
+  {
+   "change": "attempts_run_on_a_non_quiescent_host",
+   "claim": "the forced loop started 41 s after the busy probe; 201-204 ran on a loaded host",
+   "id": 9,
+   "reproduced": true,
+   "reproduction": "attempts_run_on_a_non_quiescent_host.loads (from the 1503 attempts[])",
+   "severity": "low",
+   "status": "marked in this receipt"
+  }
+ ],
+ "runs_of_this_step": "every run of this step is in fix.this_step_runs, red or green, host-gate refusals included: chain1 (16:10:54Z-16:35Z) new_sm8, old_mutA, new_mutA, old_mutC, new_mutC, old_mutD, new_mutD, then preslow attempt 1 INTERRUPTED (interruption_incident); chain1b (new_mutB, queued behind chain1) never started; chain3 re-ran what was interrupted or never ran: preslow_r, new_forced, new_mutB. No full suite ran. Nothing else was run before this receipt was written.",
+ "schema": "live_ab/sm8_diagnosis-v2",
+ "solo_runs_on_the_pre_fix_sm8_bytes": {
+  "diagnosis_loop": "the 1503 receipt attempts[] phase pre_fix: 30 attempts, SM8 red of the diagnosed kind in [14], SM8 lost to a host-gate refusal in [6, 8]",
+  "earlier_solo_runs": [
+   {
+    "failures": [],
+    "in_1503_count": true,
+    "log": "repair/comply/logs/rerun_sm8_1.log",
+    "log_bytes": 101,
+    "log_created_utc": "2026-09-24T19:58:32Z",
+    "log_modified_utc": "2026-09-24T19:59:36Z",
+    "log_sha256": "07e93dd58cc2e4fceb3cc2b18684627d217639bfe0a61ad6dfab433c457eeced",
+    "result": "Ran 2 tests in 64.138s | OK",
+    "run": "comply rerun_sm8_1",
+    "sm8": "green",
+    "sm8_evidence": "not among the FAIL/ERROR headers of a non-verbose discover run whose pattern includes tests_sm_entry.py (an import failure would be an ERROR)",
+    "tests_eb1_entry": "35259026",
+    "tree": "as comply full2"
+   },
+   {
+    "failures": [],
+    "in_1503_count": true,
+    "log": "repair/comply/logs/rerun_sm8_2.log",
+    "log_bytes": 101,
+    "log_created_utc": "2026-09-24T19:59:36Z",
+    "log_modified_utc": "2026-09-24T20:00:40Z",
+    "log_sha256": "4fc307e0bc491d1a2f082e7e3006218436fd7cbac2d2ccc911afc680d3f2796d",
+    "result": "Ran 2 tests in 63.886s | OK",
+    "run": "comply rerun_sm8_2",
+    "sm8": "green",
+    "sm8_evidence": "not among the FAIL/ERROR headers of a non-verbose discover run whose pattern includes tests_sm_entry.py (an import failure would be an ERROR)",
+    "tests_eb1_entry": "35259026",
+    "tree": "as comply full2"
+   },
+   {
+    "failures": [],
+    "in_1503_count": true,
+    "log": "repair/comply/logs/rerun_sm8_3.log",
+    "log_bytes": 101,
+    "log_created_utc": "2026-09-24T20:00:40Z",
+    "log_modified_utc": "2026-09-24T20:01:44Z",
+    "log_sha256": "69bb881a30d25b1eb2a4a3a985c8255e7eae2fd87019a44f14a672b2ae0ebaa0",
+    "result": "Ran 2 tests in 63.804s | OK",
+    "run": "comply rerun_sm8_3",
+    "sm8": "green",
+    "sm8_evidence": "not among the FAIL/ERROR headers of a non-verbose discover run whose pattern includes tests_sm_entry.py (an import failure would be an ERROR)",
+    "tests_eb1_entry": "35259026",
+    "tree": "as comply full2"
+   },
+   {
+    "failures": [
+     "test_sm8_a_library_changed_before_the_restart_refuses_it"
+    ],
+    "in_1503_count": true,
+    "log": "v4/sm8_1.log",
+    "log_bytes": 770,
+    "log_created_utc": "2026-09-25T11:15:35Z",
+    "log_modified_utc": "2026-09-25T11:16:27Z",
+    "log_sha256": "2e831cd488eaf752cffe7e5620a1ac3a67b2a354609b326b2013037aa361ebe8",
+    "result": "Ran 2 tests in 52.142s | FAILED (failures=1)",
+    "run": "v4 sm8_1",
+    "sm8": "RED",
+    "sm8_evidence": "FAIL block: AssertionError: 0 != 1 : ",
+    "tests_eb1_entry": "f83aa367",
+    "tree": "as v4 full1"
+   },
+   {
+    "failures": [],
+    "in_1503_count": true,
+    "log": "v4/sm8_2.log",
+    "log_bytes": 101,
+    "log_created_utc": "2026-09-25T11:16:27Z",
+    "log_modified_utc": "2026-09-25T11:17:32Z",
+    "log_sha256": "7035dd3c09158042942461a4b078154ee0078b6254c07276cb512a822360683d",
+    "result": "Ran 2 tests in 64.223s | OK",
+    "run": "v4 sm8_2",
+    "sm8": "green",
+    "sm8_evidence": "not among the FAIL/ERROR headers of a non-verbose discover run whose pattern includes tests_sm_entry.py (an import failure would be an ERROR)",
+    "tests_eb1_entry": "f83aa367",
+    "tree": "as v4 full1"
+   },
+   {
+    "failures": [],
+    "in_1503_count": true,
+    "log": "v4/sm8_3.log",
+    "log_bytes": 101,
+    "log_created_utc": "2026-09-25T11:17:32Z",
+    "log_modified_utc": "2026-09-25T11:18:36Z",
+    "log_sha256": "8afaf80eb84774009b07ae3e076d7e9f1f9589eac5d95f3122920c43794967a9",
+    "result": "Ran 2 tests in 63.928s | OK",
+    "run": "v4 sm8_3",
+    "sm8": "green",
+    "sm8_evidence": "not among the FAIL/ERROR headers of a non-verbose discover run whose pattern includes tests_sm_entry.py (an import failure would be an ERROR)",
+    "tests_eb1_entry": "f83aa367",
+    "tree": "as v4 full1"
+   }
+  ],
+  "the_reviews_runs": {
+   "mutA": {
+    "by_tag_and_verdicts": [
+     "mutA_forced {\"test_the_fixed_scenario_forced_refuses_the_restart\": \"FAIL\", \"test_the_pre_fix_scenario_forced_never_reaches_the_restart_check\": \"ok\"} mode=not_run",
+     "mutA_forced {\"test_the_fixed_scenario_forced_refuses_the_restart\": \"FAIL\", \"test_the_pre_fix_scenario_forced_never_reaches_the_restart_check\": \"ok\"} mode=not_run",
+     "mutA_forced {\"test_the_fixed_scenario_forced_refuses_the_restart\": \"FAIL\", \"test_the_pre_fix_scenario_forced_never_reaches_the_restart_check\": \"ok\"} mode=not_run",
+     "mutA_sm8 {\"test_control_the_same_crash_without_the_change_restarts\": \"FAIL\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"ok\"} mode=ok",
+     "mutA_sm8 {\"test_control_the_same_crash_without_the_change_restarts\": \"FAIL\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"ok\"} mode=ok",
+     "mutA_sm8 {\"test_control_the_same_crash_without_the_change_restarts\": \"ok\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"ok\"} mode=ok",
+     "mutA_sm8 {\"test_control_the_same_crash_without_the_change_restarts\": \"ok\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"ok\"} mode=ok"
+    ],
+    "heads": [
+     "8a841534a9e330072ba83abe8737229668a96a5c"
+    ],
+    "ledger": "repair/review_tmp/sm8/runs/mutA/ledger.jsonl",
+    "ledger_sha256": "54ec2e43e67aaa92a1cf0c9ddf872fe4b6414efbcfefefc597177b1afabfe7e7",
+    "rows": 7
+   },
+   "mutB": {
+    "by_tag_and_verdicts": [
+     "mutB_sm8 {\"test_control_the_same_crash_without_the_change_restarts\": \"ok\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"FAIL\"} mode=other",
+     "mutB_sm8 {\"test_control_the_same_crash_without_the_change_restarts\": \"ok\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"FAIL\"} mode=other",
+     "mutB_sm8 {\"test_control_the_same_crash_without_the_change_restarts\": \"ok\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"FAIL\"} mode=other"
+    ],
+    "heads": [
+     "8a841534a9e330072ba83abe8737229668a96a5c"
+    ],
+    "ledger": "repair/review_tmp/sm8/runs/mutB/ledger.jsonl",
+    "ledger_sha256": "dc58c448180ed896759ad01677136db1fac1e605630a81c4115497f355b14a15",
+    "rows": 3
+   },
+   "mutC": {
+    "by_tag_and_verdicts": [
+     "mutC_forced {\"test_the_fixed_scenario_forced_refuses_the_restart\": \"FAIL\", \"test_the_pre_fix_scenario_forced_never_reaches_the_restart_check\": \"ok\"} mode=not_run",
+     "mutC_forced {\"test_the_fixed_scenario_forced_refuses_the_restart\": \"FAIL\", \"test_the_pre_fix_scenario_forced_never_reaches_the_restart_check\": \"ok\"} mode=not_run",
+     "mutC_sm8 {\"test_control_the_same_crash_without_the_change_restarts\": \"ok\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"ok\"} mode=ok",
+     "mutC_sm8 {\"test_control_the_same_crash_without_the_change_restarts\": \"ok\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"ok\"} mode=ok",
+     "mutC_sm8 {\"test_control_the_same_crash_without_the_change_restarts\": \"ok\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"ok\"} mode=ok"
+    ],
+    "heads": [
+     "8a841534a9e330072ba83abe8737229668a96a5c"
+    ],
+    "ledger": "repair/review_tmp/sm8/runs/mutC/ledger.jsonl",
+    "ledger_sha256": "7d643d01e2622f9b4eddcf500a185badb92dc8662df7c7a8860e2976521ed275",
+    "rows": 5
+   },
+   "post": {
+    "by_tag_and_verdicts": [
+     "post {\"test_control_the_same_crash_without_the_change_restarts\": \"ok\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"ok\"} mode=ok",
+     "post {\"test_control_the_same_crash_without_the_change_restarts\": \"ok\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"ok\"} mode=ok",
+     "post {\"test_control_the_same_crash_without_the_change_restarts\": \"ok\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"ok\"} mode=ok",
+     "post {\"test_control_the_same_crash_without_the_change_restarts\": \"ok\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"ok\"} mode=ok",
+     "post {\"test_control_the_same_crash_without_the_change_restarts\": \"ok\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"ok\"} mode=ok",
+     "post {\"test_control_the_same_crash_without_the_change_restarts\": \"ok\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"ok\"} mode=ok",
+     "post {\"test_control_the_same_crash_without_the_change_restarts\": \"ok\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"ok\"} mode=ok",
+     "post {\"test_control_the_same_crash_without_the_change_restarts\": \"ok\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"ok\"} mode=ok",
+     "post {\"test_control_the_same_crash_without_the_change_restarts\": \"ok\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"ok\"} mode=ok",
+     "post {\"test_control_the_same_crash_without_the_change_restarts\": \"ok\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"ok\"} mode=ok"
+    ],
+    "heads": [
+     "8a841534a9e330072ba83abe8737229668a96a5c"
+    ],
+    "ledger": "repair/review_tmp/sm8/runs/post/ledger.jsonl",
+    "ledger_sha256": "6bcbfad913cdea68b98f1adb30c828a3339351103ae0d0b88254a287ea4a8bbb",
+    "rows": 10
+   },
+   "pre": {
+    "by_tag_and_verdicts": [
+     "pre {\"test_control_the_same_crash_without_the_change_restarts\": \"ok\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"ok\"} mode=ok",
+     "pre {\"test_control_the_same_crash_without_the_change_restarts\": \"ok\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"ok\"} mode=ok",
+     "pre {\"test_control_the_same_crash_without_the_change_restarts\": \"ok\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"ok\"} mode=ok",
+     "pre {\"test_control_the_same_crash_without_the_change_restarts\": \"ok\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"ok\"} mode=ok",
+     "pre {\"test_control_the_same_crash_without_the_change_restarts\": \"ok\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"ok\"} mode=ok",
+     "pre {\"test_control_the_same_crash_without_the_change_restarts\": \"ok\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"ok\"} mode=ok",
+     "pre {\"test_control_the_same_crash_without_the_change_restarts\": \"ok\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"ok\"} mode=ok",
+     "pre {\"test_control_the_same_crash_without_the_change_restarts\": \"ok\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"ok\"} mode=ok",
+     "pre {\"test_control_the_same_crash_without_the_change_restarts\": \"ok\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"ok\"} mode=ok",
+     "pre {\"test_control_the_same_crash_without_the_change_restarts\": \"ok\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"ok\"} mode=ok"
+    ],
+    "heads": [
+     "90219f2437c7b4d6ef9e4c3869a242365412c0a7"
+    ],
+    "ledger": "repair/review_tmp/sm8/runs/pre/ledger.jsonl",
+    "ledger_sha256": "70fd03df4e5ca1d759957b611b5cabaf2d84e26fc0048892fd025823db4770e7",
+    "rows": 10
+   },
+   "preslow": {
+    "by_tag_and_verdicts": [
+     "preslow {\"test_control_the_same_crash_without_the_change_restarts\": \"FAIL\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"FAIL\"} mode=exit_0_not_1",
+     "preslow {\"test_control_the_same_crash_without_the_change_restarts\": \"FAIL\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"FAIL\"} mode=exit_0_not_1",
+     "preslow {\"test_control_the_same_crash_without_the_change_restarts\": \"FAIL\", \"test_sm8_a_library_changed_before_the_restart_refuses_it\": \"FAIL\"} mode=exit_0_not_1"
+    ],
+    "heads": [
+     "90219f2437c7b4d6ef9e4c3869a242365412c0a7"
+    ],
+    "ledger": "repair/review_tmp/sm8/runs/preslow/ledger.jsonl",
+    "ledger_sha256": "b2309b21fed154cd13a798fb471bd9fa02d84e56a585f437cd4c240ea734ff60",
+    "rows": 3
+   }
+  },
+  "the_reviews_runs_note": "the review ran these in its own clones; their ledgers are in earlier_runs_logs.tar.gz under review_runs/; their rows give the counts the review reported"
+ },
+ "supersedes": {
+  "commit": "8a84153",
+  "corrected": [
+   "earlier_runs and cause.rate_observed: incomplete (finding 1) -> integrated_runs_on_the_pre_fix_sm8_bytes, solo_runs_on_the_pre_fix_sm8_bytes, rates",
+   "first_divergent_event.event: misworded (finding 4) -> first_divergent_event",
+   "pins.pre_fix_bytes_identical_at \"last changed at 5ae183d\" and the single tests_eb1_entry pin (finding 7) -> pins",
+   "fix.controls[0] as the proof of the cause on pre-fix code (finding 5) -> cause_reproduced_on_the_pre_fix_shim",
+   "attempts 201-204 and forced_dev 1: their load was recorded but they were not flagged as run on a non-quiescent host (finding 9) -> attempts_run_on_a_non_quiescent_host",
+   "what_this_does_not_establish[3] \"full suites not run at the fix\" (finding 2) -> post_fix_integrated_run: still OWED, to come from receipt R's run"
+  ],
+  "path": "results/live_ab/SM8_DIAGNOSIS_20260925_1503.json",
+  "sha256": "2dffad8ee171699574dfb8c363b7130d666852848529795de809f70862a8411f",
+  "stands_unchanged": [
+   "attempts[] (71 records) and attempt_summary: every stdout digest matches the archived stdout (see archives)",
+   "preserved_artifacts (29 files; the review recomputed all 29)",
+   "candidate_mechanisms_written_before_running, cause.statement and cause.kind (test defect, no production defect demonstrated)",
+   "fix.commit 292a8a9 and its forced interleavings",
+   "observation_for_root_not_changed (carried over below, unchanged)"
+  ]
+ },
+ "what_this_does_not_establish": [
+  "why the integrated runs were redder than the solo runs (rates.why_integrated_runs_are_redder is a hypothesis)",
+  "post-fix integrated reliability: the final-code-pinned integrated run is OWED and comes from receipt R (post_fix_integrated_run)",
+  "anything about the durable llama.cpp build: the library is the compiled sm_fixture test double",
+  "any suite at the fix commit: the fix changes one test-control file; what ran after this receipt was written is in the commit message that adds it"
+ ],
+ "what_this_is": "The answer to the adversarial review of the SM8 diagnosis (receipt results/live_ab/SM8_DIAGNOSIS_20260925_1503.json, commit 8a84153; fix 292a8a9): every finding was reproduced first (all nine reproduced), and each is corrected here or in the test fix commit 86e6e27, except finding 2, whose post-fix integrated run is OWED and comes from receipt R's run at the final head (root 16:15). This receipt SUPERSEDES the 1503 receipt for the statements listed under supersedes.corrected; the 1503 receipt stays in the repository unchanged (write-once) and its attempt records, preserved artifacts and cause stand."
+}
