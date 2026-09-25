@@ -40,12 +40,30 @@ What it performs:
   ``{"never_listen": true}`` sleeps without binding until signalled (a server that never
   answers ``/health``); ``{"exit_after_responses": N, "exit_code": CODE}`` serves normally
   and ``os._exit(CODE)``s right AFTER the N-th completion response (the smoke counts) has been
-  written -- a process that dies between pairs, with no request in flight; with
-  ``"flip_before_exit": {"path": P, "marker": M}`` it first XORs one byte inside the text M
-  of the file P (the serving-manifest controls: a library changed between a start and the
-  supervised restart).  The last one wraps the mock's completion handler in this process;
-  ``lab_mock_server``'s own ``exit`` fault dies BEFORE answering, so it cannot express
-  "answered, then died".
+  written -- a process that dies between pairs, with no request in flight;
+  ``{"exit_before_response": N, "exit_code": CODE}`` ``os._exit(CODE)``s on RECEIVING the
+  N-th completion request (the smoke counts), before answering it: that request's caller is
+  necessarily left without an answer.  With ``"flip_before_exit": {"path": P, "marker": M}``
+  either one first XORs one byte inside the text M of the file P (the serving-manifest
+  controls: a library changed between a start and the supervised restart) and appends what
+  it did to ``$EB1C_SHIM_STATE/flips.jsonl`` (fsync'd before the exit: path, whether the
+  marker was found, the file's SHA-256 before and after, pid, ``t_mono_ns``/``t_wall_ns``).
+  In both the count, the flip and the exit are ONE critical section: exactly one thread
+  flips and exits, and any other completion that reaches it meanwhile blocks there and dies
+  with the process.  ``"hold_until_written": K`` (after-responses) / ``"hold_until_received":
+  K`` (before-response) make the exiting thread first wait, up to 10 s, until K completion
+  responses have been written / K completion requests received -- the forced interleavings
+  of ``tests_sm_entry.SM8ForcedInterleaving``.  These wrap the mock's completion handler in
+  this process; ``lab_mock_server``'s own ``exit`` fault dies BEFORE answering and cannot
+  flip, and it cannot express "answered, then died".
+
+  Why SM8 uses ``exit_before_response`` (SM8 diagnosis, ``results/live_ab/
+  SM8_DIAGNOSIS_*.json``): with ``exit_after_responses`` the process may answer BOTH calls
+  of SM8's only pair before it exits; nothing then needs the server, the trial reaches its
+  horizon and closes about 0.24 s later -- before the next 5 s health poll and without a pair
+  boundary -- so no supervised restart ever runs and the entry exits 0 with the changed
+  library never checked.  A process that dies on receiving a call leaves that call's arrival
+  waiting on the server, so a supervised restart is required before the trial can end.
 * Every launch is recorded in ``launches.jsonl`` as ``{start, pid, argv, scenario_index,
   scenario_sha256}`` BEFORE it serves, so a control can map every pid in the chain to the
   scenario that process was scripted to serve, and can prove no launched pid outlives the run.
@@ -135,41 +153,109 @@ def _record_launch(state: Path, argv: list[str]) -> tuple[int, dict]:
     return start, entry
 
 
-def _flip(spec: dict) -> None:
-    """XOR one byte inside ``spec['marker']`` (text) of the file ``spec['path']``."""
+FLIPS_FILE: str = 'flips.jsonl'
+#: How long an exiting thread waits for a ``hold_until_*`` count before exiting anyway.
+HOLD_TIMEOUT_S: float = 10.0
+
+
+def _flip(spec: dict, state: Path | None = None) -> dict:
+    """XOR one byte inside ``spec['marker']`` (text) of the file ``spec['path']`` and return
+    what was done; with ``state`` the record is also appended to ``state/flips.jsonl`` and
+    fsync'd, so a control can prove the change was made, once, and when.  A missing marker
+    changes nothing and is recorded as ``marker_found: false`` (never silently skipped)."""
     path = Path(str(spec['path']))
     data = bytearray(path.read_bytes())
+    before = hashlib.sha256(bytes(data)).hexdigest()
     at = data.find(str(spec['marker']).encode('utf-8'))
     if at >= 0:
         data[at + 5] ^= 0x01
         path.write_bytes(bytes(data))
+    row = {'path': str(path), 'marker_found': at >= 0, 'sha256_before': before,
+           'sha256_after': hashlib.sha256(path.read_bytes()).hexdigest(), 'pid': os.getpid(),
+           't_mono_ns': time.monotonic_ns(), 't_wall_ns': time.time_ns()}
+    if state is not None:
+        with open(Path(state) / FLIPS_FILE, 'a', encoding='utf-8') as fh:
+            fh.write(json.dumps(row, sort_keys=True) + '\n')
+            fh.flush()
+            os.fsync(fh.fileno())
+    return row
 
 
-def _exit_after_responses(mock_module, n: int, code: int, flip: dict | None = None) -> None:
-    """Wrap the mock's completion handler so that the process exits right after the
-    ``n``-th completion response has been written (a real exit: nothing is flushed or
-    closed, as when a server process dies); ``flip`` is applied first (:func:`_flip`)."""
+def _wrap_exit(mock_module, n: int, code: int, *, before_response: bool,
+               flip: dict | None = None, state: Path | None = None,
+               hold_until: int | None = None) -> None:
+    """Wrap the mock's completion handler so that the process exits (a real ``os._exit``:
+    nothing is flushed or closed, as when a server process dies) right AFTER the ``n``-th
+    completion response has been written (``before_response=False``) or on RECEIVING the
+    ``n``-th completion request, before answering it (``before_response=True``).  ``flip``
+    is applied first (:func:`_flip`, recorded under ``state``).
+
+    The count, the flip and the exit are one critical section under ``lock``: the thread
+    that reaches ``n`` flips and exits while holding it, so no second thread can flip (the
+    pre-fix wrapper released the lock first; two completions finishing together could then
+    both enter ``_flip``, one truncating the file while the other read it).  ``hold_until``
+    makes that thread first wait (``HOLD_TIMEOUT_S`` at most) until ``hold_until``
+    responses have been written (after-response) or requests received (before-response);
+    those counts are kept under a separate condition, taken BEFORE ``lock``, so a thread
+    that then blocks on ``lock`` has already been counted."""
     import threading
     handler = mock_module._Handler
     original = handler._complete
     lock = threading.Lock()
-    served = [0]
+    seen = threading.Condition()
+    counted = [0]
+    progressed = [0]
+
+    def _progress() -> None:
+        with seen:
+            progressed[0] += 1
+            seen.notify_all()
+
+    def _exit_now() -> None:
+        if hold_until:
+            with seen:
+                seen.wait_for(lambda: progressed[0] >= int(hold_until), HOLD_TIMEOUT_S)
+        if flip:
+            _flip(flip, state)
+        os._exit(code)
 
     def _complete(self, body):
+        if before_response:
+            _progress()
+            with lock:
+                counted[0] += 1
+                if counted[0] >= n:
+                    _exit_now()
+            original(self, body)
+            return
         original(self, body)
         try:
             self.wfile.flush()
         except OSError:
             pass
+        _progress()
         with lock:
-            served[0] += 1
-            done = served[0] >= n
-        if done:
-            if flip:
-                _flip(flip)
-            os._exit(code)
+            counted[0] += 1
+            if counted[0] >= n:
+                _exit_now()
 
     handler._complete = _complete
+
+
+def _exit_after_responses(mock_module, n: int, code: int, flip: dict | None = None,
+                          state: Path | None = None, hold_until: int | None = None) -> None:
+    """The process exits right after the ``n``-th completion response has been written
+    (:func:`_wrap_exit`)."""
+    _wrap_exit(mock_module, n, code, before_response=False, flip=flip, state=state,
+               hold_until=hold_until)
+
+
+def _exit_before_response(mock_module, n: int, code: int, flip: dict | None = None,
+                          state: Path | None = None, hold_until: int | None = None) -> None:
+    """The process exits on receiving the ``n``-th completion request, before answering it
+    (:func:`_wrap_exit`)."""
+    _wrap_exit(mock_module, n, code, before_response=True, flip=flip, state=state,
+               hold_until=hold_until)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -198,7 +284,12 @@ def main(argv: list[str] | None = None) -> int:
     import lab_mock_server
     if shim.get('exit_after_responses'):
         _exit_after_responses(lab_mock_server, int(shim['exit_after_responses']),
-                              int(shim.get('exit_code', 9)), shim.get('flip_before_exit'))
+                              int(shim.get('exit_code', 9)), shim.get('flip_before_exit'),
+                              state, shim.get('hold_until_written'))
+    elif shim.get('exit_before_response'):
+        _exit_before_response(lab_mock_server, int(shim['exit_before_response']),
+                              int(shim.get('exit_code', 9)), shim.get('flip_before_exit'),
+                              state, shim.get('hold_until_received'))
     return lab_mock_server.main(['--scenario', str(scenario_path),
                                  '--port', str(int(flags['--port'])),
                                  '--alias', flags['--alias']])

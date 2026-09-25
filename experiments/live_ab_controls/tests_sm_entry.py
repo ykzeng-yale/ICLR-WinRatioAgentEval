@@ -28,7 +28,16 @@ The controls, each with its negative control:
   start is ``server_start_failed(start, serving_manifest, [build_info, serving_manifest])``;
 * SM8 a library changed between the first start and the supervised restart: the restart is
   refused at its ``serving_manifest`` stage (control: the same crash without the change
-  restarts and verifies);
+  restarts and verifies).  The process flips the library and dies on RECEIVING the pair's
+  first call (``exit_before_response``), so that call's arrival waits on the server and a
+  supervised restart is required before the trial can end; the shim's ``flips.jsonl``
+  proves the change was made once, persisted, and preceded the ``server_down``.  The SM8
+  diagnosis (``results/live_ab/SM8_DIAGNOSIS_*.json``) found the intermittent red of the
+  pre-fix scenario (``exit_after_responses``: answered, then died): when both calls of the
+  only pair were answered before the exit, the trial reached its horizon and closed before
+  the next 5 s health poll, no restart ever ran and the entry exited 0.
+  :class:`SM8ForcedInterleaving` forces that interleaving: the pre-fix scenario then exits
+  0 every time (the check is never reached), the fixed one refuses every time;
 * SM9 at a RESUME: a paused trial whose library changed is refused before the resumed
   invocation starts anything (control: the same resume without the change starts a server);
 * SM10 the two self-comparison mutants of ``sm_mutant_entry``: each makes the control it
@@ -56,6 +65,7 @@ for _p in (LIVE, HERE):
         sys.path.insert(0, str(_p))
 
 import dryrun_live_ab as dry                                            # noqa: E402
+import eb1c_llama_shim as shim                                          # noqa: E402
 import lab_serving_manifest as sm                                       # noqa: E402
 import sm_fixture                                                       # noqa: E402
 import tests_eb1_entry as entry                                         # noqa: E402
@@ -254,20 +264,68 @@ class SM7ActualBuildInfo(SMCase):
         # control: the same tree shape with the manifest's own string starts (SM1, C1)
 
 
-class SM8AtTheRestart(SMCase):
+def flips(t: entry.EntryTree) -> list:
+    """The shim's record of every library change it made (``eb1c_llama_shim._flip``)."""
+    path = t.state / shim.FLIPS_FILE
+    if not path.exists():
+        return []
+    return [json.loads(line) for line in path.read_text('utf-8').splitlines() if line.strip()]
 
-    def crash_scenarios(self, t: entry.EntryTree, flip: bool) -> list:
+
+def manifest_library_sha256(t: entry.EntryTree, name: str) -> str:
+    """THE serving manifest's recorded SHA-256 of the closure member named ``name``."""
+    manifest, _digest, problems = sm.read_artifact(sm.artifact_path(t.freeze))
+    assert problems == [], problems
+    (row,) = [r for r in manifest['libraries'] if str(r['name']).endswith('/' + name)]
+    return str(row['sha256'])
+
+
+class SM8Case(SMCase):
+    """The SM8 scenario and its precondition (shared by SM8 and its forced interleavings)."""
+
+    def crash_scenarios(self, t: entry.EntryTree, flip: bool, **shim_extra) -> list:
+        """The first process dies on RECEIVING the pair's first call (the smoke is the first
+        completion), before answering it; the restart serves the good scenario."""
         first = dict(t.good_scenario)
-        first['_shim'] = {'exit_after_responses': 2, 'exit_code': 9}
+        first['_shim'] = {'exit_before_response': 2, 'exit_code': 9, **shim_extra}
         if flip:
             first['_shim']['flip_before_exit'] = {
                 'path': str(t.fixture.core), 'marker': sm_fixture.CORE_MARKER.decode()}
         return [first, t.good_scenario]
 
+    def assertFlipPrecedesTheRestart(self, t: entry.EntryTree) -> dict:
+        """The precondition of SM8, checked BEFORE its verdict: the shim changed the library
+        exactly once, from the manifest's bytes, the change is still on disk, and it was made
+        before the ``server_down`` whose restart must refuse it; that ``server_down`` had an
+        arrival in flight, so the restart could not be skipped.  Returns the flip record."""
+        rows = flips(t)
+        self.assertEqual(len(rows), 1, 'exactly one library change: %r' % (rows,))
+        (row,) = rows
+        self.assertIs(row['marker_found'], True)
+        self.assertEqual(row['sha256_before'],
+                         manifest_library_sha256(t, 'libeb1c-core.0.dylib'),
+                         'the change starts from the manifest\'s bytes')
+        self.assertNotEqual(row['sha256_after'], row['sha256_before'])
+        self.assertEqual(entry.sha256_file(t.fixture.core), row['sha256_after'],
+                         'the changed library is what the restart found on disk')
+        downs = of(t.chain(), 'server_down')
+        self.assertEqual(len(downs), 1, 'the crash was observed as a server_down: %r'
+                         % (lifecycle(t.chain()),))
+        self.assertTrue(downs[0]['body']['inflight'],
+                        'an arrival waited on the server: the restart was required')
+        self.assertLess(int(row['t_mono_ns']), int(downs[0]['t_mono_ns']),
+                        'the change precedes the server_down (one monotonic clock)')
+        return row
+
+
+class SM8AtTheRestart(SM8Case):
+
     def test_sm8_a_library_changed_before_the_restart_refuses_it(self):
         t = self.tree('SM8')
         t.set_scenarios(self.crash_scenarios(t, flip=True))
-        self.assertEqual(t.run(), 1, t.stdout)
+        t.run()
+        self.assertFlipPrecedesTheRestart(t)
+        self.assertEqual(t.returncode, 1, t.stdout)
         self.assertEqual(lifecycle(t.chain()), [
             ('server_started',), ('server_down', 'exit'), ('server_stopped',),
             ('server_start_failed', 'restart', 'serving_manifest', ('serving_manifest',)),
@@ -281,9 +339,68 @@ class SM8AtTheRestart(SMCase):
         t = self.tree('SM8c')
         t.set_scenarios(self.crash_scenarios(t, flip=False))
         t.run()
+        self.assertEqual(flips(t), [], 'the control changes no library')
+        (down,) = of(t.chain(), 'server_down')
+        self.assertTrue(down['body']['inflight'], 'the same required restart')
         self.assertIn(('server_restarted',), lifecycle(t.chain()))
         self.assertEqual(of(t.chain(), 'server_start_failed'), [])
         self.assertEqual(len(t.launches()), 2)
+        self.assertNoOrphans(t)
+
+
+class SM8ForcedInterleaving(SM8Case):
+    """The interleaving of the SM8 red, FORCED by the shim (``hold_until_*``): both calls of
+    the only pair reach the first process before it flips and exits.
+
+    * the PRE-FIX scenario (``exit_after_responses: 2``: answered, then died) held until both
+      responses are written: nothing needs the server any more, the horizon closes the trial
+      before a health poll, the exit is seen only by the closing stop (``server_stopped``
+      with return code 9) and no restart runs -- exit 0 although the library changed.  This
+      is the diagnosed red made deterministic; it is the mutation the fixed scenario is
+      measured against;
+    * the FIXED scenario (``exit_before_response: 2``) held until both requests are
+      received: neither is answered, both arrivals wait on the server, the restart is
+      required and refuses the changed library -- exit 1."""
+
+    def test_the_pre_fix_scenario_forced_never_reaches_the_restart_check(self):
+        t = self.tree('SM8fx')
+        first = dict(t.good_scenario)
+        first['_shim'] = {'exit_after_responses': 2, 'exit_code': 9, 'hold_until_written': 3,
+                          'flip_before_exit': {'path': str(t.fixture.core),
+                                               'marker': sm_fixture.CORE_MARKER.decode()}}
+        t.set_scenarios([first, t.good_scenario])
+        t.run()
+        (row,) = flips(t)
+        self.assertEqual(entry.sha256_file(t.fixture.core), row['sha256_after'])
+        self.assertNotEqual(row['sha256_after'],
+                            manifest_library_sha256(t, 'libeb1c-core.0.dylib'),
+                            'the library DID change')
+        self.assertEqual(t.returncode, 0, 'the red: ' + t.stdout)
+        self.assertEqual(lifecycle(t.chain()), [('server_started',), ('server_stopped',),
+                                                ('trial_ended',)])
+        (stopped,) = of(t.chain(), 'server_stopped')
+        self.assertEqual(stopped['body']['returncode'], 9,
+                         'the exit was seen only by the closing stop')
+        self.assertEqual(sorted(e['body']['arrival'] for e in of(t.chain(), 'llm_response')),
+                         [1, 2], 'both calls answered by the first process')
+        self.assertEqual(of(t.chain(), 'llm_error'), [], 'no call waited on the server')
+        self.assertEqual(len(t.launches()), 1, 'no restart ran')
+        self.assertNoOrphans(t)
+
+    def test_the_fixed_scenario_forced_refuses_the_restart(self):
+        t = self.tree('SM8fy')
+        t.set_scenarios(self.crash_scenarios(t, flip=True, hold_until_received=3))
+        t.run()
+        self.assertFlipPrecedesTheRestart(t)
+        (down,) = of(t.chain(), 'server_down')
+        self.assertEqual(sorted(r['arrival'] for r in down['body']['inflight']), [1, 2],
+                         'both calls reached the first process and neither was answered')
+        self.assertEqual(t.returncode, 1, t.stdout)
+        self.assertEqual(lifecycle(t.chain()), [
+            ('server_started',), ('server_down', 'exit'), ('server_stopped',),
+            ('server_start_failed', 'restart', 'serving_manifest', ('serving_manifest',)),
+            ('trial_aborted', 'server_identity')])
+        self.assertEqual(len(t.launches()), 1, 'the restart launched nothing')
         self.assertNoOrphans(t)
 
 
