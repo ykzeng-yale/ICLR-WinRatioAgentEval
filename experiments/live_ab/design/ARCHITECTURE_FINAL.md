@@ -1452,6 +1452,21 @@ program chain** (`erratum`, program-chain row P10), with both outputs deposited 
 **`lab_reference_rule`**, the failure rules, the config) is **not repairable**, is recorded as
 `decision_code_defect` (P11) and drops claims 2-5 and 7 of the affected trials (protocol 6.4 row 24).
 
+*Amendment 2026-09-25, v4 (pre-outcome; root `reviews/predecision_abort_reporting_ruling_20260925_0710.md`;
+protocol 16 item 18).* `decision.json` also carries `normal_end` (`build_live_ab_results.normal_end_reading`): the
+terminal record, its seq and abort reason, its resolution verdict, the frozen horizon and the chain's `n_pairs_max`,
+the pairs enrolled, the last look, the no-decision point, and the closed reasons the chain is not a normal end at the
+frozen full horizon (`trial_not_started`, `no_terminal_record`, `trial_aborted`, `events_after_terminal_record`,
+`resolution_absent`, `resolution_not_pass`, `no_decision_point_in_chain`, `horizon_unknown`,
+`horizon_not_the_chain_horizon`, `enrolment_short_of_horizon`, `no_look`, `last_look_short_of_horizon`,
+`last_look_not_all_collapsed`); and `restart_cap.cap_value` with `restart_cap.binding`
+(`build_live_ab_results.restart_cap_binding`: the value `lab_common.server_supervision_cap` reads, the
+`server_supervision` block and its canonical SHA-256, `freeze/config.json` and the SHA-256 of its bytes, the chain's
+`trial_started.config_sha256` and whether they agree). `program_summary.json` carries `restart_cap` (the same
+binding) and, per trial, `restart_cap_value`, `restart_cap_config_matches_chain`, `abort_reason`,
+`crossing_not_acted_on` when a crossing was not acted on, and `incomplete_reasons` with either label of protocol 16
+item 18. The builder reads the chain-borne terminal evidence only; it may not import the verifier (3.16).
+
 ### 3.16 Import isolation matrix (enforced by `tests_lab_isolation.py`)
 
 Rows are modules, columns are permitted imports. `.` = forbidden, `x` = permitted, `(s)` = permitted only

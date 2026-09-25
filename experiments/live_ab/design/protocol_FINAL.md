@@ -3307,6 +3307,34 @@ and "wrong-direction" ones - **in the same format and with the same prominence**
     reportable. The program summary's decision is always this result, and whenever it is not reportable the
     logged decision is kept beside it (`logged_decision`); the logged event stays in the chain and under
     `decision` in `decision.json`.
+18. *(Amendment 2026-09-25, v4, pre-outcome; root
+    `reviews/predecision_abort_reporting_ruling_20260925_0710.md`, choice (b).)* **An abort before any decision is
+    incomplete.** Item 17 is amended as follows, and nothing else in it changes. With no logged decision, a trial
+    whose terminal record is `trial_aborted` is incomplete and not reportable, whatever its cause and whether or
+    not a crossing was logged after its no-decision point: it is not a null result and not an abstention. Its
+    result is `incomplete: aborted before any decision (no decision; not a null result, not an abstention)`;
+    the cap keeps its own label of item 17 (case (a) of 5.3), and a crossing logged after the point and not
+    acted on keeps its label of item 17. The concrete abort reason is kept beside the result, never inside the
+    label (`decision.json` `normal_end`, the program summary's `abort_reason`), and so is any crossing that was
+    not acted on (`crossing_not_acted_on`). With no logged decision and no terminal abort, a chain that is not a
+    normal end at the frozen full horizon - no terminal record, a `trial_ended` short of `N_P`, a resolution of
+    14.6 that did not pass, a no-decision point in the chain - is `incomplete: no decision and no normal end at
+    the frozen full horizon (no decision; not a null result, not an abstention)`, not reportable. With no logged
+    decision, `none` is reportable only for a `trial_ended` whose resolution passed, at the frozen full horizon
+    (`N_P` pairs enrolled, `N_P` the chain's `n_pairs_max`, and the last look at `N_P` with every pair
+    collapsed), with no no-decision point and no crossing. The results builder reads that from the chain; it
+    does not run the verifier, whose FAIL is reported as before. At that look the frozen rule of 8.4 logs
+    `horizon_no_decision`, so a normal full-horizon trial with no crossing reports that logged result. The order
+    of item 17 is now, first match wins: `LIVE_DECISION_INVALID (harness defect)`; the cap's label; the label of
+    a crossing not acted on; the two labels of this item, the abort first; the provisional label; the logged
+    decision, or `none` as just stated. A decision logged before a later abort keeps every rule of items 16
+    and 17: its receipt, its provisional state and its truncated follow-up. The effective restart cap and its
+    binding are reported for every trial (`decision.json` `restart_cap.cap_value` and `restart_cap.binding`;
+    the program summary's `restart_cap`, and `restart_cap_value` per trial): the value the one reader of 5.3
+    reads from `server_supervision` of the frozen `config.json`, the block and its canonical SHA-256, the file
+    and the SHA-256 of its bytes, and whether that is the `config_sha256` the chain's `trial_started`
+    recorded. This is reporting provenance only: the cap of three and its behaviour are unchanged. No score,
+    decision threshold, margin, alpha allocation, enrollment or stop rule changes.
 
 The results index separates: **observations; the prespecified live analysis; owner-side descriptive readings; excluded
 methods.** The PR body is regenerated from the governing report at each hand-off. **No statement says or implies that

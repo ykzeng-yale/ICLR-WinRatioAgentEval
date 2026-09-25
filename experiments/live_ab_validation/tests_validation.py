@@ -2913,7 +2913,7 @@ class PinSuccessorAmendmentTests(unittest.TestCase):
     REPO = HERE.parent.parent
 
     ORIGINAL = '3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0dd7d2c2'
-    # EIGHT transitions now, preserved additively and never collapsed:
+    # NINE transitions now, preserved additively and never collapsed:
     #   ORIGINAL        -> ENCLOSURE        (coordinator ruling 60)
     #   ENCLOSURE       -> APPENDIX_B       (hardware_allowlist / environment_lock pins)
     #   APPENDIX_B      -> HOST_WORK_ROOT   (host_work_root, the canonical lock pin)
@@ -2942,6 +2942,12 @@ class PinSuccessorAmendmentTests(unittest.TestCase):
     #                                        prose into 5.3, 6.4, 12.2, 12.4, 13.1, 14.6
     #                                        and 16; config.json and Appendix B
     #                                        byte-identical)
+    #   REPAIR_V3       -> REPAIR_V4        (NOT an Appendix B change: the narrow
+    #                                        pre-outcome amendment v4 of the same subset
+    #                                        -- root 2026-09-25 07:10, choice (b): pure
+    #                                        insertions, protocol 16 item 18 and one
+    #                                        paragraph of ARCHITECTURE 3.15; config.json
+    #                                        and Appendix B byte-identical)
     ENCLOSURE = 'b1ff97cc163ce7ea121ebd578a4c37de09d5ed7223f2029e5d56118cdc790822'
     APPENDIX_B = 'd63717a5519f650394db8aca7eb33d7a15ccfedbaffe78600d9ea3fb7b76294d'
     HOST_WORK_ROOT = '0e1bcb710ce2c13a06a243a7c3034d6bec55389d4de45dce569a7dee15af0284'
@@ -2950,12 +2956,14 @@ class PinSuccessorAmendmentTests(unittest.TestCase):
     PATCH_STATE = '64ace6d3e37732b372fd316055208e9deaab4d4e0722708563c8ebcc1579e82b'
     REPAIR = '6c0ebf2faa7515ff27f01188d9f1e487c928c63373f451dea51f06a8cdacaab9'
     REPAIR_V3 = '73dd0573955b2ef586e120f2b44558eb0227c70bbca9cbf9225ec4fb5583500c'
-    PREVIOUS = REPAIR
-    CURRENT = REPAIR_V3
+    REPAIR_V4 = 'c46718faedc19280eb5ccd7d2eb55daaa43632b9d17b6ec3fb9441e8ce3f365f'
+    PREVIOUS = REPAIR_V3
+    CURRENT = REPAIR_V4
     EVIDENCE_PINS_COMMIT = '855a40636d4a84d64edee91052652eac6999a1a1'
     ENGINEERING_CAPS_COMMIT = '0e05d9658b15c6248a41b094db99e31231943d55'
     PATCH_STATE_COMMIT = '48f4d70fbd580df282b551506448457a09ab514d'
     REPAIR_COMMIT = '474f9d82aae2b3979910d8a99d8305b5d7bc44c1'
+    REPAIR_V3_COMMIT = '56df17f72b17744d89564d0bf05f3fa84f4b8e1d'
 
     # -- the successor history, pinned WHOLE (review finding config 3) ----------
     # The finding: "PinSuccessorAmendmentTests does not check that the successor
@@ -2971,7 +2979,8 @@ class PinSuccessorAmendmentTests(unittest.TestCase):
     # (live_ab_tools/patch_state_amendment.py step 5); [5] as the repair
     # amendment wrote it (live_ab_tools/repair_amendment_v2.py step 7, which demotes
     # exactly as its withdrawn predecessor repair_amendment.py did); [6] as the
-    # repair amendment v3 wrote it (live_ab_tools/repair_amendment_v3.py step 6):
+    # repair amendment v3 wrote it (live_ab_tools/repair_amendment_v3.py step 6); [7] as
+    # the repair amendment v4 wrote it (live_ab_tools/repair_amendment_v4.py step 6):
     PRIOR_ENTRY_DIGESTS = (
         '06d606dc055340ec2c2607a16c98a4af866e2b27956929a27009084997c3942c',  # ENCLOSURE
         'd2857b0d6e292f944f07ac4a5da360dff18df0ecaf617cecff07dd760749d312',  # APPENDIX_B
@@ -2980,11 +2989,13 @@ class PinSuccessorAmendmentTests(unittest.TestCase):
         'c29dd214f9e160639b13c9638da020b0453ef760002312b23c91e85fe224dd86',  # ENGINEERING_CAPS
         '41719e17ce181ed5a014a02c317ae51356fdf87088a953a0a08e4550dace3495',  # PATCH_STATE
         '121790d25e83616b3ec6fda47b7b83398f8ad8f7f2cb917e61dc5aab6b513958',  # REPAIR
+        '6750b2cb368ad8fc137c76f70d4d3dedc1740f1b5f665b9e76605c52b6b4adcd',  # REPAIR_V3
     )
-    # The four amendment tools demote the same way: the successor object moves into
+    # The five amendment tools demote the same way: the successor object moves into
     # prior_successors minus the keys below (engineering_cap_amendment.py step 4,
     # patch_state_amendment.py step 5, repair_amendment_v2.py step 7,
-    # repair_amendment_v3.py step 6), and gains the two changing-commit fields.
+    # repair_amendment_v3.py step 6, repair_amendment_v4.py step 6), and gains the two
+    # changing-commit fields.
     DEMOTION_MOVED_KEYS = ('prior_successors', 'changing_commit_note',
                            'correction_to_the_owner_report')
     DEMOTION_ADDED_KEYS = ('changing_commit_of_this_successor', 'changing_commit_note')
@@ -3017,16 +3028,21 @@ class PinSuccessorAmendmentTests(unittest.TestCase):
         (6, '90989efa58ba5f1dd272a19a575a15145ee5747ea306d54f312428cd0382712e',
          '2c9741d3f4d31dd46de7b6e267cc82643fa8d43a4c328568a28f2a577ddcdfd7',
          REPAIR_COMMIT),
+        # the repair amendment v4 demoted REPAIR_V3. Pre-image: cells.json at 56df17f, the
+        # commit that wrote it (unchanged on the branch since)
+        (7, '832f33a144cf18ed1b560d3683dba0ddbd70f00c5dc4271ff60ebdc7447e41bd',
+         'e45952c1223fb63c6f4a7488b5e5aede46137f595702106d16593dd3d5bf2849',
+         REPAIR_V3_COMMIT),
     )
     # correction_to_the_owner_report, which moved WHOLE to the new successor at
-    # each demotion (the same value all four times):
+    # each demotion (the same value all five times):
     PRE_AMENDMENT_CORRECTION_DIGEST = (
         'b0519448f3757eecf8487cd17c65d9f41940d2ec836c328c49b18a77c71ff87c')
     # Each demoted successor's old changing_commit_note, a promise that "this
     # newest successor's own commit is recorded the same way" later, is NOT kept
     # verbatim anywhere in cells.json. It was replaced by the note that keeps the
-    # promise, and it remains recoverable only from git (0e05d96~1, 0194a59, b049307
-    # and 474f9d8).
+    # promise, and it remains recoverable only from git (0e05d96~1, 0194a59, b049307,
+    # 474f9d8 and 56df17f).
     # This test does not claim otherwise.
 
     @staticmethod
@@ -3119,7 +3135,7 @@ class PinSuccessorAmendmentTests(unittest.TestCase):
         # WHOLE, which the shallow checks do not establish on their own: each
         # entry equals its recorded canonical digest; for each demotion, the
         # entries before it are the history as it stood then, and the demoted
-        # entry ([3], then [4], [5], [6]) is the successor as it stood then minus the
+        # entry ([3], then [4], [5], [6], [7]) is the successor as it stood then minus the
         # documented moved keys, plus the two changing-commit fields.
         self.assertEqual(self._history_failures(self._va(cfg)['superseded_by']), [])
 
@@ -3130,7 +3146,7 @@ class PinSuccessorAmendmentTests(unittest.TestCase):
         # Every superseded successor is kept, in order. The enclosure entry is
         # substantive history root ruled on and must never be dropped when a
         # later amendment lands on top of it.
-        self.assertEqual(len(prior), 7)
+        self.assertEqual(len(prior), 8)
         self.assertEqual(prior[0]['sha256'], self.ENCLOSURE)
         self.assertIn('enclosure', prior[0]['reason'].lower())
         self.assertIn('ruling 60', prior[0]['ruling'])
@@ -3172,6 +3188,13 @@ class PinSuccessorAmendmentTests(unittest.TestCase):
         self.assertIn('NOT Appendix-B-only', prior[6]['reason'])
         self.assertEqual(prior[6]['changing_commit_of_this_successor'],
                          self.REPAIR_COMMIT)
+        # the repair v3 successor, demoted when the repair amendment v4 landed on top of
+        # it. That 56df17f's protocol_FINAL.md hashes to REPAIR_V3 was checked with git by
+        # the amendment tool; this test pins the recorded value.
+        self.assertEqual(prior[7]['sha256'], self.REPAIR_V3)
+        self.assertIn('amendment v3', prior[7]['reason'])
+        self.assertEqual(prior[7]['changing_commit_of_this_successor'],
+                         self.REPAIR_V3_COMMIT)
 
     # -- negative controls for the history check: it must be able to fail ------
     def test_a_STUBBED_history_fails(self):
@@ -3186,7 +3209,7 @@ class PinSuccessorAmendmentTests(unittest.TestCase):
                                   for e in sb['prior_successors']]
         self._shallow_history_checks(sb['prior_successors'])
         fails = self._history_failures(sb)
-        for i in range(7):
+        for i in range(8):
             self.assertIn(f'prior_successors[{i}] is not the entry as recorded', fails)
 
     def test_a_FALSIFIED_but_complete_history_fails(self):
@@ -3195,7 +3218,7 @@ class PinSuccessorAmendmentTests(unittest.TestCase):
         for e in sb['prior_successors']:
             e['supersedes'] = '0' * 64
         self.assertEqual(len([f for f in self._history_failures(sb)
-                              if 'is not the entry as recorded' in f]), 7)
+                              if 'is not the entry as recorded' in f]), 8)
 
     def test_a_DROPPED_entry_fails(self):
         cfg, _, _ = self._inputs()
@@ -3204,7 +3227,7 @@ class PinSuccessorAmendmentTests(unittest.TestCase):
         self.assertNotEqual(self._history_failures(sb), [])
 
     def test_a_moved_key_left_behind_in_the_demoted_entry_fails(self):
-        for i in (3, 4, 5, 6):
+        for i in (3, 4, 5, 6, 7):
             with self.subTest(demoted=i):
                 cfg, _, _ = self._inputs()
                 sb = self._va(cfg)['superseded_by']
@@ -3216,16 +3239,17 @@ class PinSuccessorAmendmentTests(unittest.TestCase):
 
     # -- the second demotion (ENGINEERING_CAPS -> prior[4]) is checked, too -------
     def test_a_REPLACED_rather_than_demoted_successor_fails(self):
-        """The repair v3 successor overwrote the repair (v2) one instead of moving it
-        into the history: six entries, the seventh missing. (Before the repair
-        amendment v3 this read "5 entries, recorded 6", and before the repair amendment
-        "4 entries, recorded 5"; the count moved by one each time the recorded history
-        grew by one, and the control is otherwise unchanged.)"""
+        """The repair v4 successor overwrote the repair v3 one instead of moving it
+        into the history: seven entries, the eighth missing. (Before the repair
+        amendment v4 this read "6 entries, recorded 7", before v3 "5 entries, recorded
+        6", and before the repair amendment "4 entries, recorded 5"; the count moved by
+        one each time the recorded history grew by one, and the control is otherwise
+        unchanged.)"""
         cfg, _, _ = self._inputs()
         sb = self._va(cfg)['superseded_by']
         sb['prior_successors'].pop()
         fails = self._history_failures(sb)
-        self.assertIn('prior_successors has 6 entries, recorded 7', fails)
+        self.assertIn('prior_successors has 7 entries, recorded 8', fails)
 
     def test_a_demotion_that_kept_the_nested_history_fails(self):
         """The engineering-cap successor moved in with its own prior_successors
@@ -3358,6 +3382,53 @@ class PinSuccessorAmendmentTests(unittest.TestCase):
         self.assertIn('prior_successors[6] is not the pre-amendment successor minus the '
                       'documented moved keys', fails)
 
+    # -- the fifth demotion (REPAIR_V3 -> prior[7]) is checked, too --------------
+    def test_a_demotion_that_kept_the_nested_history_fails_for_prior_7(self):
+        """The repair v3 successor moved in with its own prior_successors still
+        inside it."""
+        import copy
+        cfg, _, _ = self._inputs()
+        sb = self._va(cfg)['superseded_by']
+        sb['prior_successors'][7]['prior_successors'] = copy.deepcopy(
+            sb['prior_successors'][:7])
+        fails = self._history_failures(sb)
+        self.assertIn("prior_successors[7] still carries moved key 'prior_successors'", fails)
+        self.assertIn('prior_successors[7] is not the entry as recorded', fails)
+
+    def test_an_edited_demoted_repair_v3_entry_fails(self):
+        cfg, _, _ = self._inputs()
+        sb = self._va(cfg)['superseded_by']
+        e = sb['prior_successors'][7]
+        e['reason'] = e['reason'].replace('amendment v3', 'amendment v2', 1)
+        fails = self._history_failures(sb)
+        self.assertIn('prior_successors[7] is not the entry as recorded', fails)
+        self.assertIn('prior_successors[7] is not the pre-amendment successor minus the '
+                      'documented moved keys', fails)
+
+    def test_a_wrong_or_unexplained_changing_commit_for_prior_7_fails(self):
+        cfg, _, _ = self._inputs()
+        sb = self._va(cfg)['superseded_by']
+        sb['prior_successors'][7]['changing_commit_of_this_successor'] = (
+            self.REPAIR_COMMIT)
+        self.assertIn('prior_successors[7] does not name its changing commit',
+                      self._history_failures(sb))
+        cfg, _, _ = self._inputs()
+        sb = self._va(cfg)['superseded_by']
+        sb['prior_successors'][7]['changing_commit_note'] = 'resolved later'
+        self.assertIn('prior_successors[7] does not say how its commit was resolved',
+                      self._history_failures(sb))
+
+    def test_a_reordered_tail_fails_the_fifth_demotion_check(self):
+        cfg, _, _ = self._inputs()
+        sb = self._va(cfg)['superseded_by']
+        p = sb['prior_successors']
+        p[6], p[7] = p[7], p[6]
+        fails = self._history_failures(sb)
+        self.assertIn('prior_successors[0..6] is not the history as it stood before '
+                      'prior_successors[7] was demoted', fails)
+        self.assertIn('prior_successors[7] is not the pre-amendment successor minus the '
+                      'documented moved keys', fails)
+
     def test_a_reordered_history_fails_both_demotion_checks(self):
         cfg, _, _ = self._inputs()
         sb = self._va(cfg)['superseded_by']
@@ -3410,7 +3481,7 @@ class PinSuccessorAmendmentTests(unittest.TestCase):
         self.assertEqual(sorted(fails), sorted(
             f'successor {h[:8]} is not named in the amendment'
             for h in (self.HOST_WORK_ROOT, self.EVIDENCE_PINS, self.ENGINEERING_CAPS,
-                      self.PATCH_STATE, self.REPAIR, self.CURRENT)))
+                      self.PATCH_STATE, self.REPAIR, self.REPAIR_V3, self.CURRENT)))
 
     def test_the_amendment_without_the_newest_successor_fails(self):
         """Negative control: the update paragraph with the repair v3 successor's

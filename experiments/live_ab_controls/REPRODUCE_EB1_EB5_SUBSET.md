@@ -223,6 +223,17 @@ From the repository root, with `PY` the Python 3.12 venv of section 4:
 
 Counts grew with the subset (the 1732 receipt predates `7ebffad`, `9f0aff6`, `2113dbd`,
 `c001354`); the commit that adds this file adds 16 controls (its message has their runs).
+
+**Update 2026-09-25, the v4 step (root 07:10, `reviews/predecision_abort_reporting_ruling_20260925_0710.md`).**
+The counts in this table are observations at the receipts and commits each column names, not the
+counts a reproduction of the delivered subset should expect: the v4 step added controls
+(`tests_predecision_abort_reporting`, in `bdee21b`), the amendment-v4 witnesses
+(`tests_repair_amendment_v4`) and validation pin tests (in the amendment-v4 commit), so the
+`live_ab_controls`, `live_ab_tools` and validation counts moved. The expected count of each suite
+is the planned = completed count the delivery pin receipt records (the write-once receipt that
+supersedes `HARNESS_PIN_SUCCESSOR_20260925_0027.json`); compare with that receipt, not with this
+table. Likewise section 8 recomputes the `0027` receipt at `c001354`: `bdee21b` moved
+`build_live_ab_results.py`, so at a later head recompute the delivery receipt instead.
 The owner's tools skip is `RealSourcesTests` ("the three pinned roster sources are not on this
 host (set LIVE_AB_SOURCES_DIR)"); it looks in `LIVE_AB_SOURCES_DIR`, `work/local_stream/data` and
 `work/live_ab/sources`, not in `/tmp`

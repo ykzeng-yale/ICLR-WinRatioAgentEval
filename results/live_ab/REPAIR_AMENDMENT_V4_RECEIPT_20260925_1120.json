@@ -1,0 +1,815 @@
+{
+ "authority": "root: reviews/predecision_abort_reporting_ruling_20260925_0710.md, choice (b), and its cap provenance (quoted in this tool's docstring)",
+ "code_checked_at_run_time": {
+  "facts": {
+   "binding": {
+    "config_sha256_matches_chain": true,
+    "server_supervision": {
+     "max_supervised_restarts_per_server_per_trial": 3,
+     "on_exceeding": "abort_trial_incomplete"
+    },
+    "value": 3
+   },
+   "ended_short": [
+    "incomplete: no decision and no normal end at the frozen full horizon (no decision; not a null result, not an abstention)",
+    false,
+    [
+     "enrolment_short_of_horizon",
+     "no_look"
+    ]
+   ],
+   "labels": {
+    "ABORT_INCOMPLETE_LABEL": "incomplete: aborted before any decision; a crossing logged after the abort point was not acted on (no decision; not a null result, not an abstention)",
+    "DECISION_INVALID_LABEL": "LIVE_DECISION_INVALID (harness defect)",
+    "INCOMPLETE_CHAIN_LABEL": "incomplete: no decision and no normal end at the frozen full horizon (no decision; not a null result, not an abstention)",
+    "PREDECISION_ABORT_LABEL": "incomplete: aborted before any decision (no decision; not a null result, not an abstention)",
+    "PROVISIONAL_LABEL": "provisional: the logged decision has no chained external receipt (no finalized claim)",
+    "RESTART_CAP_INCOMPLETE_LABEL": "incomplete: restart cap before any decision (no decision; not a null result, not an abstention)"
+   },
+   "non_cap_abort_no_decision": {
+    "decision_label": "not reportable: trial_aborted(harness_defect) at seq 2 before any decision (no-decision point abort_owed at seq 1, abort harness_defect from run_loop_backstop)",
+    "primary_result": "incomplete: aborted before any decision (no decision; not a null result, not an abstention)",
+    "reportable": false
+   },
+   "normal_end": [
+    [],
+    [
+     "trial_aborted"
+    ],
+    [
+     "resolution_not_pass"
+    ],
+    [
+     "no_decision_point_in_chain"
+    ],
+    [
+     "horizon_not_the_chain_horizon",
+     "enrolment_short_of_horizon",
+     "last_look_short_of_horizon"
+    ]
+   ],
+   "not_normal_end_reasons": [
+    "trial_not_started",
+    "no_terminal_record",
+    "trial_aborted",
+    "events_after_terminal_record",
+    "resolution_absent",
+    "resolution_not_pass",
+    "no_decision_point_in_chain",
+    "horizon_unknown",
+    "horizon_not_the_chain_horizon",
+    "enrolment_short_of_horizon",
+    "no_look",
+    "last_look_short_of_horizon",
+    "last_look_not_all_collapsed"
+   ],
+   "open_chain": [
+    "incomplete: no decision and no normal end at the frozen full horizon (no decision; not a null result, not an abstention)",
+    false,
+    [
+     "no_terminal_record",
+     "enrolment_short_of_horizon",
+     "no_look"
+    ]
+   ],
+   "precedence_offsets": [
+    7221,
+    7340,
+    7577,
+    7956,
+    8767,
+    9048
+   ],
+   "reasons_listed_in_3_15": [
+    "trial_not_started",
+    "no_terminal_record",
+    "trial_aborted",
+    "events_after_terminal_record",
+    "resolution_absent",
+    "resolution_not_pass",
+    "no_decision_point_in_chain",
+    "horizon_unknown",
+    "horizon_not_the_chain_horizon",
+    "enrolment_short_of_horizon",
+    "no_look",
+    "last_look_short_of_horizon",
+    "last_look_not_all_collapsed"
+   ]
+  },
+  "gate": {
+   "a_non_cap_abort_without_a_decision_is_the_abort_label": true,
+   "a_normal_end_holds_and_each_condition_refuses_it": true,
+   "an_open_or_short_chain_is_the_incomplete_label": true,
+   "closed_reasons_named_in_3_15_in_the_code_order": true,
+   "dotted_names_exist": true,
+   "new_branches_require_no_logged_decision": true,
+   "new_labels_quoted_verbatim_in_16": true,
+   "precedence_in_the_code_is_the_order_of_16": true,
+   "row_keys_are_written_by_build": true,
+   "the_cap_and_its_binding_are_read_from_the_configuration": true
+  }
+ },
+ "code_the_prose_describes": [
+  "build_live_ab_results: PREDECISION_ABORT_LABEL, INCOMPLETE_CHAIN_LABEL, NOT_NORMAL_END_REASONS, AFTER_TERMINAL_TYPES, CONFIG_REL, frozen_horizon, restart_cap_binding, normal_end_reading, restart_cap_reading (cap_value, binding), decision_object (first match wins: invalid, the cap, a crossing not acted on, the abort, the incomplete chain, provisional, the logged decision or none; normal_end), build (the summary rows: restart_cap_value, restart_cap_config_matches_chain, abort_reason, crossing_not_acted_on, incomplete_reasons; the program restart_cap)",
+  "lab_common: server_supervision_cap, SERVER_SUPERVISION_KEY, sha256_canonical",
+  "the verifier (lab_verify_log) is unchanged: it classifies no reportability"
+ ],
+ "convention": "deterministic-path",
+ "dependent_hashes_that_do_not_move": [
+  "config_sha256 and harness_file_sha256[config.json] (config.json not written)",
+  "harness_file_sha256 of every file of the harness pin (the builder moved in the commit BEFORE this one; this tool writes no harness file)",
+  "rule_block_sha256",
+  "llama_cpp.serving_manifest_sha256 and the serving-manifest artifact"
+ ],
+ "dependent_hashes_that_move": {
+  "architecture_sha256": "moves (ARCHITECTURE is under design/, outside the harness pin)",
+  "cells.json": "moves (the successor history)",
+  "protocol_sha256": "moves; recorded as the new successor above (a bundle member not recomputed at run time, lab_common.BUNDLE_MEMBERS_NOT_RECOMPUTED)"
+ },
+ "documents_amended": [
+  "experiments/live_ab/design/ARCHITECTURE_FINAL.md",
+  "experiments/live_ab/design/protocol_FINAL.md"
+ ],
+ "documents_not_written": [
+  "experiments/live_ab/config.json"
+ ],
+ "generated_utc": "2026-09-25T11:20:01Z",
+ "insertions": [
+  {
+   "anchor": "    `decision` in `decision.json`.\n",
+   "bytes": 2998,
+   "document": "protocol",
+   "key": "protocol.16",
+   "section": "## 16. What is reported whatever the outcome",
+   "section_upper_bound": "## Appendix A.",
+   "sha256": "7df38910fb13d602c61613142dca7963c0f75eeca68ed4e1de9cec22bc2e8767",
+   "side": "after",
+   "text": "18. *(Amendment 2026-09-25, v4, pre-outcome; root\n    `reviews/predecision_abort_reporting_ruling_20260925_0710.md`, choice (b).)* **An abort before any decision is\n    incomplete.** Item 17 is amended as follows, and nothing else in it changes. With no logged decision, a trial\n    whose terminal record is `trial_aborted` is incomplete and not reportable, whatever its cause and whether or\n    not a crossing was logged after its no-decision point: it is not a null result and not an abstention. Its\n    result is `incomplete: aborted before any decision (no decision; not a null result, not an abstention)`;\n    the cap keeps its own label of item 17 (case (a) of 5.3), and a crossing logged after the point and not\n    acted on keeps its label of item 17. The concrete abort reason is kept beside the result, never inside the\n    label (`decision.json` `normal_end`, the program summary's `abort_reason`), and so is any crossing that was\n    not acted on (`crossing_not_acted_on`). With no logged decision and no terminal abort, a chain that is not a\n    normal end at the frozen full horizon - no terminal record, a `trial_ended` short of `N_P`, a resolution of\n    14.6 that did not pass, a no-decision point in the chain - is `incomplete: no decision and no normal end at\n    the frozen full horizon (no decision; not a null result, not an abstention)`, not reportable. With no logged\n    decision, `none` is reportable only for a `trial_ended` whose resolution passed, at the frozen full horizon\n    (`N_P` pairs enrolled, `N_P` the chain's `n_pairs_max`, and the last look at `N_P` with every pair\n    collapsed), with no no-decision point and no crossing. The results builder reads that from the chain; it\n    does not run the verifier, whose FAIL is reported as before. At that look the frozen rule of 8.4 logs\n    `horizon_no_decision`, so a normal full-horizon trial with no crossing reports that logged result. The order\n    of item 17 is now, first match wins: `LIVE_DECISION_INVALID (harness defect)`; the cap's label; the label of\n    a crossing not acted on; the two labels of this item, the abort first; the provisional label; the logged\n    decision, or `none` as just stated. A decision logged before a later abort keeps every rule of items 16\n    and 17: its receipt, its provisional state and its truncated follow-up. The effective restart cap and its\n    binding are reported for every trial (`decision.json` `restart_cap.cap_value` and `restart_cap.binding`;\n    the program summary's `restart_cap`, and `restart_cap_value` per trial): the value the one reader of 5.3\n    reads from `server_supervision` of the frozen `config.json`, the block and its canonical SHA-256, the file\n    and the SHA-256 of its bytes, and whether that is the `config_sha256` the chain's `trial_started`\n    recorded. This is reporting provenance only: the cap of three and its behaviour are unchanged. No score,\n    decision threshold, margin, alpha allocation, enrollment or stop rule changes.\n"
+  },
+  {
+   "anchor": "`decision_code_defect` (P11) and drops claims 2-5 and 7 of the affected trials (protocol 6.4 row 24).\n",
+   "bytes": 1506,
+   "document": "architecture",
+   "key": "architecture.3_15",
+   "section": "### 3.15 `build_live_ab_results.py`",
+   "section_upper_bound": "### 3.16 Import isolation matrix",
+   "sha256": "ce531222ccfc0c980d78d2ae96f2ee1798067c344e28199c4601f46f04be021b",
+   "side": "after",
+   "text": "\n*Amendment 2026-09-25, v4 (pre-outcome; root `reviews/predecision_abort_reporting_ruling_20260925_0710.md`;\nprotocol 16 item 18).* `decision.json` also carries `normal_end` (`build_live_ab_results.normal_end_reading`): the\nterminal record, its seq and abort reason, its resolution verdict, the frozen horizon and the chain's `n_pairs_max`,\nthe pairs enrolled, the last look, the no-decision point, and the closed reasons the chain is not a normal end at the\nfrozen full horizon (`trial_not_started`, `no_terminal_record`, `trial_aborted`, `events_after_terminal_record`,\n`resolution_absent`, `resolution_not_pass`, `no_decision_point_in_chain`, `horizon_unknown`,\n`horizon_not_the_chain_horizon`, `enrolment_short_of_horizon`, `no_look`, `last_look_short_of_horizon`,\n`last_look_not_all_collapsed`); and `restart_cap.cap_value` with `restart_cap.binding`\n(`build_live_ab_results.restart_cap_binding`: the value `lab_common.server_supervision_cap` reads, the\n`server_supervision` block and its canonical SHA-256, `freeze/config.json` and the SHA-256 of its bytes, the chain's\n`trial_started.config_sha256` and whether they agree). `program_summary.json` carries `restart_cap` (the same\nbinding) and, per trial, `restart_cap_value`, `restart_cap_config_matches_chain`, `abort_reason`,\n`crossing_not_acted_on` when a crossing was not acted on, and `incomplete_reasons` with either label of protocol 16\nitem 18. The builder reads the chain-borne terminal evidence only; it may not import the verifier (3.16).\n"
+  }
+ ],
+ "negative_control": {
+  "config_variant_refused": true,
+  "every_moved_variant_refused_on_placement": true,
+  "gate": {
+   "config_variant_refused": true,
+   "every_moved_variant_refused_on_placement": true,
+   "real_documents_unchanged": true,
+   "scratch_copies_unchanged": true,
+   "v3_split_variant_refused": true,
+   "vocabulary_variant_refused": true
+  },
+  "how": "postconditions() -- the predicate main() applies before writing -- on scratch copies in a temporary directory, removed afterwards; one variant per insertion, moved just outside its section, and three more: a byte of config.json changed, the 16 text put inside amendment v3's item 17, the 16 text also put into vocabulary section 1",
+  "real_documents_unchanged": true,
+  "scratch_copies_unchanged": true,
+  "v3_split_variant_refused": true,
+  "variants": {
+   "config_byte_changed": {
+    "accepted": false,
+    "failed_checks": [
+     "config_json_byte_identical",
+     "three_way_contract_after"
+    ],
+    "refused": true,
+    "sha256": {
+     "architecture": "4c762f2122c39c2a9698e09eaca1f1a10805c868c9163a3ca12323788506e4c8",
+     "config": "f86701191151c81771a1f10f232e4414acf44952c328d55d4c51b941c6b5e7d9",
+     "protocol": "c46718faedc19280eb5ccd7d2eb55daaa43632b9d17b6ec3fb9441e8ce3f365f"
+    }
+   },
+   "moved.architecture.3_15": {
+    "accepted": false,
+    "failed_checks": [
+     "every_insertion_inside_its_section_beside_its_anchor"
+    ],
+    "refused": true,
+    "sha256": {
+     "architecture": "53fbede06fcc347fb71ec5ea3df1c0396d327daf4153592103563a0440d650fa",
+     "config": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+     "protocol": "c46718faedc19280eb5ccd7d2eb55daaa43632b9d17b6ec3fb9441e8ce3f365f"
+    }
+   },
+   "moved.protocol.16": {
+    "accepted": false,
+    "failed_checks": [
+     "every_insertion_inside_its_section_beside_its_anchor"
+    ],
+    "refused": true,
+    "sha256": {
+     "architecture": "4c762f2122c39c2a9698e09eaca1f1a10805c868c9163a3ca12323788506e4c8",
+     "config": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+     "protocol": "9b52c79a7bfa558e8e8e880440b255d0f3f414c14c91f22fe077211562e27cd4"
+    }
+   },
+   "v3_text_split": {
+    "accepted": false,
+    "failed_checks": [
+     "every_insertion_inside_its_section_beside_its_anchor",
+     "v3_insertions_intact"
+    ],
+    "refused": true,
+    "sha256": {
+     "architecture": "4c762f2122c39c2a9698e09eaca1f1a10805c868c9163a3ca12323788506e4c8",
+     "config": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+     "protocol": "1204f83b6ad71f5f71ac93994560019c6ba4ae870165a7c40cbe0cf7bbb2114a"
+    }
+   },
+   "vocabulary_section_1_touched": {
+    "accepted": false,
+    "failed_checks": [
+     "every_insertion_inside_its_section_beside_its_anchor",
+     "reverting_the_insertions_reproduces_each_preimage",
+     "vocabulary_sections_1_3_11_byte_identical"
+    ],
+    "refused": true,
+    "sha256": {
+     "architecture": "4c762f2122c39c2a9698e09eaca1f1a10805c868c9163a3ca12323788506e4c8",
+     "config": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+     "protocol": "2731239de6c2bc3dd052848811fd65a1124c877132b92b07cefd1f3f5c5da298"
+    }
+   }
+  },
+  "variants_run": 5,
+  "vocabulary_variant_refused": true
+ },
+ "nothing_executed": "no CPU simulation, model, server, build or network request; text edits, digests, git reads, and the functions of the results builder on synthetic in-memory chains",
+ "postcondition_checked": {
+  "architecture_sha256": "4c762f2122c39c2a9698e09eaca1f1a10805c868c9163a3ca12323788506e4c8",
+  "config_bytes": 16136,
+  "config_sha256": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+  "configuration_blocks_byte_identical": true,
+  "cr_bytes_after": {
+   "architecture": 0,
+   "config": 0,
+   "protocol": 0
+  },
+  "every_insertion_inside_its_section_beside_its_anchor": {
+   "architecture.3_15": true,
+   "protocol.16": true
+  },
+  "gate": {
+   "architecture_and_protocol_changed": true,
+   "config_json_byte_identical": true,
+   "configuration_blocks_byte_identical": true,
+   "every_insertion_inside_its_section_beside_its_anchor": true,
+   "no_cr_byte_after": true,
+   "reverting_the_insertions_reproduces_each_preimage": true,
+   "rule_block_after_is_the_pin": true,
+   "three_way_contract_after": true,
+   "v2_insertions_intact": true,
+   "v3_insertions_intact": true,
+   "vocabulary_sections_1_3_11_byte_identical": true
+  },
+  "insertion_placement": {
+   "architecture.3_15": {
+    "directly_beside_the_anchor": true,
+    "insert_at": 94237,
+    "inside_its_section": true,
+    "occurrences": 1,
+    "section": [
+     91475,
+     95744
+    ],
+    "section_ends_at_its_upper_bound": true
+   },
+   "protocol.16": {
+    "directly_beside_the_anchor": true,
+    "insert_at": 303617,
+    "inside_its_section": true,
+    "occurrences": 1,
+    "section": [
+     297241,
+     306956
+    ],
+    "section_ends_at_its_upper_bound": true
+   }
+  },
+  "protocol_bytes": 361605,
+  "protocol_sha256": "c46718faedc19280eb5ccd7d2eb55daaa43632b9d17b6ec3fb9441e8ce3f365f",
+  "reverting_the_insertions_reproduces_each_preimage": {
+   "architecture": true,
+   "protocol": true
+  },
+  "rule_block_sha256_after": "cbfd1792d09c43754eeeab3b282e92e99c76e4f878cd82d00c827f6a90fa7607",
+  "three_way_contract_after": {
+   "architecture_block_equals_protocol_block": true,
+   "block_bytes": 16136,
+   "block_sha256": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+   "config_equals_architecture_block": true,
+   "cr_bytes": {
+    "architecture": 0,
+    "config": 0,
+    "protocol": 0
+   },
+   "holds": true
+  },
+  "v2_insertions_intact": {
+   "architecture.2_1": true,
+   "architecture.2_2": true,
+   "architecture.3_16.note": true,
+   "architecture.3_16.row": true,
+   "architecture.4_4": true,
+   "architecture.6_1.prompts": true,
+   "architecture.6_1.server_supervision": true,
+   "architecture.6_3": true,
+   "architecture.7_1.row_14c": true,
+   "architecture.7_1.row_1b": true,
+   "architecture.7_1.row_20a": true,
+   "architecture.7_1.rows_21a_21b": true,
+   "config.prompts": true,
+   "config.server_supervision": true,
+   "protocol.12_2": true,
+   "protocol.12_4": true,
+   "protocol.13_1": true,
+   "protocol.14_3": true,
+   "protocol.14_6": true,
+   "protocol.16": true,
+   "protocol.2_2": true,
+   "protocol.2_4_item_6": true,
+   "protocol.5_3": true,
+   "protocol.5_8": true,
+   "protocol.6_4": true,
+   "protocol.appendix_b.prompts": true,
+   "protocol.appendix_b.server_supervision": true
+  },
+  "v3_insertions_intact": {
+   "architecture.4_4": true,
+   "architecture.7_1.row_21c": true,
+   "architecture.7_1.row_9c": true,
+   "protocol.12_2": true,
+   "protocol.12_4": true,
+   "protocol.13_1": true,
+   "protocol.14_6": true,
+   "protocol.16": true,
+   "protocol.5_3": true,
+   "protocol.6_4": true
+  },
+  "vocabulary_sections_1_3_11_byte_identical": {
+   "1": true,
+   "11": true,
+   "3": true
+  }
+ },
+ "precondition_checked": {
+  "anchors": {
+   "architecture.3_15": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "offset": 94237,
+    "text_already_present": 0
+   },
+   "protocol.16": {
+    "anchor_occurrences": 1,
+    "inside_its_section": true,
+    "offset": 303617,
+    "text_already_present": 0
+   }
+  },
+  "architecture_sha256": "2ec71980de5b6a74df586c5790e6eac7c54dbd79342ae69dab1a01a0bb458190",
+  "cells_current_successor": "73dd0573955b2ef586e120f2b44558eb0227c70bbca9cbf9225ec4fb5583500c",
+  "cells_original_pin": "3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0dd7d2c2",
+  "cells_prior_successors": [
+   {
+    "entry_canonical_sha256": "06d606dc055340ec2c2607a16c98a4af866e2b27956929a27009084997c3942c",
+    "sha256": "b1ff97cc163ce7ea121ebd578a4c37de09d5ed7223f2029e5d56118cdc790822"
+   },
+   {
+    "entry_canonical_sha256": "d2857b0d6e292f944f07ac4a5da360dff18df0ecaf617cecff07dd760749d312",
+    "sha256": "d63717a5519f650394db8aca7eb33d7a15ccfedbaffe78600d9ea3fb7b76294d"
+   },
+   {
+    "entry_canonical_sha256": "33fa39c17e4b63e40e2ebb8241c56ab04866267ec3878ab11037699d0bebabe2",
+    "sha256": "0e1bcb710ce2c13a06a243a7c3034d6bec55389d4de45dce569a7dee15af0284"
+   },
+   {
+    "entry_canonical_sha256": "ca1be58e4119a7a2bf95354899c9c4120b4b293d1b6cd84427677aa4405941db",
+    "sha256": "f75de3235ae0431b727cf7c24b09927204a1da8c5424e14ea428dbfea256f48b"
+   },
+   {
+    "entry_canonical_sha256": "c29dd214f9e160639b13c9638da020b0453ef760002312b23c91e85fe224dd86",
+    "sha256": "7f6664770b0d88ac5904967d9b8e2225d20932942824cd689278a03a2ee45e53"
+   },
+   {
+    "entry_canonical_sha256": "41719e17ce181ed5a014a02c317ae51356fdf87088a953a0a08e4550dace3495",
+    "sha256": "64ace6d3e37732b372fd316055208e9deaab4d4e0722708563c8ebcc1579e82b"
+   },
+   {
+    "entry_canonical_sha256": "121790d25e83616b3ec6fda47b7b83398f8ad8f7f2cb917e61dc5aab6b513958",
+    "sha256": "6c0ebf2faa7515ff27f01188d9f1e487c928c63373f451dea51f06a8cdacaab9"
+   }
+  ],
+  "cells_round_trips": true,
+  "cells_sha256": "192804a4c1538df64a9902430d158e5174269fe2a6c77d8a0be2345304622e58",
+  "config_bytes": 16136,
+  "config_sha256": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+  "cr_bytes": {
+   "architecture": 0,
+   "cells": 0,
+   "config": 0,
+   "protocol": 0
+  },
+  "gate_anchors": {
+   "every_anchor_inside_its_section": true,
+   "every_anchor_once": true,
+   "inserted_text_form": true,
+   "no_anchor_error": true
+  },
+  "gate_pins": {
+   "architecture_is_the_reviewed_preimage": true,
+   "cells_current_successor_is_the_prior_successor": true,
+   "cells_is_the_reviewed_preimage": true,
+   "cells_original_pin_untouched": true,
+   "cells_prior_successor_count": true,
+   "cells_prior_successors_are_the_recorded_entries": true,
+   "cells_round_trips": true,
+   "cells_successor_supersedes_the_original": true,
+   "config_is_the_reviewed_preimage": true,
+   "no_cr_byte": true,
+   "protocol_is_the_reviewed_preimage": true,
+   "rule_block_before_is_the_pin": true,
+   "three_way_contract_before": true
+  },
+  "head": "bdee21b3ecf1ebbb0cc070ffd0ba3125d5b41670",
+  "inserted_text_form": {
+   "ok": true,
+   "per_insertion": {
+    "architecture.3_15": {
+     "contains_no_anchor": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 117,
+     "no_backtick_fence": true,
+     "no_heading_line": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": []
+    },
+    "protocol.16": {
+     "contains_no_anchor": true,
+     "cr_bytes": 0,
+     "ends_with_a_newline": true,
+     "max_prose_line_chars": 114,
+     "no_backtick_fence": true,
+     "no_heading_line": true,
+     "no_trailing_whitespace": true,
+     "non_ascii": []
+    }
+   }
+  },
+  "protocol_sha256": "73dd0573955b2ef586e120f2b44558eb0227c70bbca9cbf9225ec4fb5583500c",
+  "rule_block_sha256_before": "cbfd1792d09c43754eeeab3b282e92e99c76e4f878cd82d00c827f6a90fa7607",
+  "three_way_contract_before": {
+   "architecture_block_equals_protocol_block": true,
+   "block_bytes": 16136,
+   "block_sha256": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+   "config_equals_architecture_block": true,
+   "cr_bytes": {
+    "architecture": 0,
+    "config": 0,
+    "protocol": 0
+   },
+   "holds": true
+  }
+ },
+ "predecessor_amendment_v3": {
+  "amendment_v2_kept": {
+   "insertions_whole_before": {
+    "architecture.2_1": true,
+    "architecture.2_2": true,
+    "architecture.3_16.note": true,
+    "architecture.3_16.row": true,
+    "architecture.4_4": true,
+    "architecture.6_1.prompts": true,
+    "architecture.6_1.server_supervision": true,
+    "architecture.6_3": true,
+    "architecture.7_1.row_14c": true,
+    "architecture.7_1.row_1b": true,
+    "architecture.7_1.row_20a": true,
+    "architecture.7_1.rows_21a_21b": true,
+    "config.prompts": true,
+    "config.server_supervision": true,
+    "protocol.12_2": true,
+    "protocol.12_4": true,
+    "protocol.13_1": true,
+    "protocol.14_3": true,
+    "protocol.14_6": true,
+    "protocol.16": true,
+    "protocol.2_2": true,
+    "protocol.2_4_item_6": true,
+    "protocol.5_3": true,
+    "protocol.5_8": true,
+    "protocol.6_4": true,
+    "protocol.appendix_b.prompts": true,
+    "protocol.appendix_b.server_supervision": true
+   },
+   "receipt": "results/live_ab/REPAIR_AMENDMENT_V2_RECEIPT_20260924_0927.json",
+   "receipt_sha256": "66efcb8b64b3e54d890ac70c77686e0678255fe6cba78347fa3a30878e12feff"
+  },
+  "commit": "56df17f72b17744d89564d0bf05f3fa84f4b8e1d",
+  "gate": {
+   "v2_insertions_whole_in_the_preimages": true,
+   "v2_receipt_is_the_pinned_bytes": true,
+   "v3_commit_is_an_ancestor_of_head": true,
+   "v3_insertions_whole_in_the_preimages": true,
+   "v3_receipt_is_committed_in_its_commit": true,
+   "v3_receipt_is_the_pinned_bytes": true,
+   "v3_wrote_the_preimages": true
+  },
+  "insertions_whole_before": {
+   "architecture.4_4": true,
+   "architecture.7_1.row_21c": true,
+   "architecture.7_1.row_9c": true,
+   "protocol.12_2": true,
+   "protocol.12_4": true,
+   "protocol.13_1": true,
+   "protocol.14_6": true,
+   "protocol.16": true,
+   "protocol.5_3": true,
+   "protocol.6_4": true
+  },
+  "receipt": "results/live_ab/REPAIR_AMENDMENT_V3_RECEIPT_20260924_2218.json",
+  "receipt_sha256": "cd71949e8c460c159e5bde5b4a3d9a843acb3cd116845b6fc91b6042dae6527a",
+  "status": "kept: write-once, not edited and not superseded; v4 adds two insertions to the documents v3 wrote",
+  "written_by_v3": {
+   "architecture_sha256": "2ec71980de5b6a74df586c5790e6eac7c54dbd79342ae69dab1a01a0bb458190",
+   "cells_sha256": "192804a4c1538df64a9902430d158e5174269fe2a6c77d8a0be2345304622e58",
+   "config_sha256": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+   "protocol_sha256": "73dd0573955b2ef586e120f2b44558eb0227c70bbca9cbf9225ec4fb5583500c"
+  }
+ },
+ "prepared_by": "prepared and checked by AI agent sessions; not human peer review or author sign-off",
+ "prior_versions_retained": {
+  "architecture_sha256": "2ec71980de5b6a74df586c5790e6eac7c54dbd79342ae69dab1a01a0bb458190",
+  "cells_sha256": "192804a4c1538df64a9902430d158e5174269fe2a6c77d8a0be2345304622e58",
+  "config_bytes": 16136,
+  "config_sha256": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+  "note": "each is recoverable byte-exactly by `git show <reviewed_revision>:<path>` and by deleting every inserted text",
+  "protocol_sha256": "73dd0573955b2ef586e120f2b44558eb0227c70bbca9cbf9225ec4fb5583500c",
+  "reviewed_revision": "56df17f72b17744d89564d0bf05f3fa84f4b8e1d",
+  "revision_at_run": "bdee21b3ecf1ebbb0cc070ffd0ba3125d5b41670"
+ },
+ "runs_after_this_receipt": "the suites run after this receipt are recorded in the commit that adds it and in the owner report",
+ "runs_of_this_step_before_this_receipt": [
+  {
+   "log_sha256_prefix": "4c645afd",
+   "note": "expected: the controls fail before the fix; the 9f0aff6 builder published none/reportable for the 4 incomplete chains",
+   "result": "Ran 15 in 73.227s, FAILED (failures=13, errors=23)",
+   "run": "before1",
+   "utc": "2026-09-25T09:46Z",
+   "what": "tests_predecision_abort_reporting (15) at the unfixed builder (f54d215 blob in place)"
+  },
+  {
+   "log_sha256_prefix": "74d01969",
+   "note": "",
+   "result": "Ran 15 in 77.107s, OK",
+   "run": "fix1",
+   "utc": "2026-09-25T09:48:17Z",
+   "what": "tests_predecision_abort_reporting (15)"
+  },
+  {
+   "log_sha256_prefix": "a081756c",
+   "note": "",
+   "result": "rows as asserted; pre-fix none/True for 4",
+   "run": "probe1",
+   "utc": "2026-09-25T09:50Z",
+   "what": "scratch script printing the built rows of the 10 chains"
+  },
+  {
+   "log_sha256_prefix": "abf5f7ef",
+   "note": "the horizon_unknown case kept monitor.n_max (the mock config carries it); fixed in the test",
+   "result": "Ran 16 in 76.058s, FAILED (failures=1)",
+   "run": "fix2",
+   "utc": "2026-09-25T09:51:47Z",
+   "what": "tests_predecision_abort_reporting (16, normal-end condition test added)"
+  },
+  {
+   "log_sha256_prefix": "571a4ee0",
+   "note": "",
+   "result": "Ran 16 in 77.037s, OK",
+   "run": "fix3",
+   "utc": "2026-09-25T09:53:12Z",
+   "what": "tests_predecision_abort_reporting (16)"
+  },
+  {
+   "log_sha256_prefix": "83e89c3a d6399e2e 3de1859e bb4398a4",
+   "note": "",
+   "result": "unmutated 16 OK (121.686s); 28 of 28 killed",
+   "run": "kill_matrix",
+   "utc": "2026-09-25T09:55:43Z-10:11Z",
+   "what": "28 exact-once builder mutants against tests_predecision_abort_reporting, 4 clones"
+  },
+  {
+   "log_sha256_prefix": "15c0ecaa",
+   "note": "",
+   "result": "form ok, anchors ok, code gate 10 True, postconditions ok",
+   "run": "probe_v4_1",
+   "utc": "2026-09-25T10:04Z",
+   "what": "in-process probe of repair_amendment_v4 (form, anchors, code gate, postconditions)"
+  },
+  {
+   "log_sha256_prefix": "90013193",
+   "note": "two behaviour witnesses (a recompiled mutant read the wrong source lines: padded) and the reason-list code check filtered by membership, so a code list missing a reason passed (tool and verifier now compare the whole listed parenthesis)",
+   "result": "Ran 38 in 12.430s, FAILED (failures=3, skipped=1)",
+   "run": "v4dev1",
+   "utc": "2026-09-25T10:06:36Z",
+   "what": "tests_repair_amendment_v4 (38)"
+  },
+  {
+   "log_sha256_prefix": "51539379",
+   "note": "",
+   "result": "Ran 38 in 6.449s, OK (skipped=1)",
+   "run": "v4dev2",
+   "utc": "2026-09-25T10:07:18Z",
+   "what": "tests_repair_amendment_v4 (38)"
+  },
+  {
+   "log_sha256_prefix": "31687cb6",
+   "note": "two witnesses added",
+   "result": "unmutated 38 OK; 15 of 17 killed; SURVIVED: T9 (ASCII clause of the text form), V6 (a verifier negative control replaced by False)",
+   "run": "mutation1",
+   "utc": "2026-09-25T10:08Z-10:10:12Z",
+   "what": "11 tool + 6 verifier mutants against tests_repair_amendment_v4"
+  },
+  {
+   "log_sha256_prefix": "d14d1c9e",
+   "note": "",
+   "result": "Ran 40 in 3.929s, OK (skipped=1)",
+   "run": "v4dev3",
+   "utc": "2026-09-25T10:10:30Z",
+   "what": "tests_repair_amendment_v4 (40)"
+  },
+  {
+   "log_sha256_prefix": "730ab966",
+   "note": "",
+   "result": "unmutated 40 OK; T9 killed; V6 killed",
+   "run": "mutation2",
+   "utc": "2026-09-25T10:10:54Z",
+   "what": "T9 and V6 against the new witnesses"
+  },
+  {
+   "log_sha256_prefix": "f6c811e7",
+   "note": "",
+   "result": "Ran 7 in 0.345s, OK",
+   "run": "cit1",
+   "utc": "2026-09-25T10:11:22Z",
+   "what": "tests_delta_citations"
+  },
+  {
+   "log_sha256_prefix": "4200d1ac",
+   "note": "",
+   "result": "Ran 16 in 0.381s, OK",
+   "run": "repro1",
+   "utc": "2026-09-25T10:11:22Z",
+   "what": "tests_repro_inputs"
+  },
+  {
+   "log_sha256_prefix": "13cbd6c3",
+   "note": "",
+   "result": "Ran 766 in 224.910s, OK (skipped=1)",
+   "run": "full1.live_ab",
+   "utc": "2026-09-25T10:11:35Z-10:15:21Z",
+   "what": "live_ab (code/controls bytes, v4 tool files set aside)"
+  },
+  {
+   "log_sha256_prefix": "f129eb1e",
+   "note": "tests_invalid_decision_summary whole-row comparison with the 7ebffad row (edited in place, bdee21b); tests_sm_entry SM8AtTheRestart exit 0 != 1 (the intermittent disclosed at 7ebffad, undiagnosed)",
+   "result": "Ran 474 in 3369.621s, FAILED (failures=2)",
+   "run": "full1.live_ab_controls",
+   "utc": "2026-09-25T10:15:21Z-11:11:32Z",
+   "what": "live_ab_controls"
+  },
+  {
+   "log_sha256_prefix": "93392aed",
+   "note": "",
+   "result": "Ran 193 in 2.275s, OK",
+   "run": "full1.live_ab_serving",
+   "utc": "2026-09-25T11:11:32Z",
+   "what": "live_ab_serving"
+  },
+  {
+   "log_sha256_prefix": "ccb88a94",
+   "note": "",
+   "result": "Ran 187 in 128.758s, OK (skipped=1)",
+   "run": "full1.live_ab_tools",
+   "utc": "2026-09-25T11:11:34Z-11:13:43Z",
+   "what": "live_ab_tools"
+  },
+  {
+   "log_sha256_prefix": "136076a8",
+   "note": "",
+   "result": "Ran 211 in 12.346s, OK (skipped=6, expected failures=2)",
+   "run": "full1.validation",
+   "utc": "2026-09-25T11:13:43Z",
+   "what": "validation"
+  },
+  {
+   "log_sha256_prefix": "ecd709f1",
+   "note": "",
+   "result": "Ran 7 in 78.689s, OK",
+   "run": "summ1",
+   "utc": "2026-09-25T11:14:16Z",
+   "what": "tests_invalid_decision_summary (edited)"
+  },
+  {
+   "log_sha256_prefix": "",
+   "note": "wrong working directory",
+   "result": "ModuleNotFoundError tests_sm_entry, Ran 1, errors=1 each; no test ran",
+   "run": "sm8_mistaken",
+   "utc": "2026-09-25T11:15:35Z",
+   "what": "SM8AtTheRestart x3 from the worktree root"
+  },
+  {
+   "log_sha256_prefix": "2e831cd4",
+   "note": "exit 0 != 1 again; undiagnosed",
+   "result": "Ran 2 in 52.142s, FAILED (failures=1)",
+   "run": "sm8_1",
+   "utc": "2026-09-25T11:15Z",
+   "what": "tests_sm_entry.SM8AtTheRestart solo"
+  },
+  {
+   "log_sha256_prefix": "7035dd3c",
+   "note": "",
+   "result": "Ran 2 in 64.223s, OK",
+   "run": "sm8_2",
+   "utc": "2026-09-25T11:16Z",
+   "what": "tests_sm_entry.SM8AtTheRestart solo"
+  },
+  {
+   "log_sha256_prefix": "8afaf80e",
+   "note": "",
+   "result": "Ran 2 in 63.928s, OK",
+   "run": "sm8_3",
+   "utc": "2026-09-25T11:17Z",
+   "what": "tests_sm_entry.SM8AtTheRestart solo"
+  },
+  {
+   "log_sha256_prefix": "",
+   "note": "",
+   "result": "committed",
+   "run": "commit",
+   "utc": "2026-09-25T11:18Z",
+   "what": "bdee21b code and controls"
+  },
+  {
+   "log_sha256_prefix": "854c9087",
+   "note": "",
+   "result": "Ran 40 in 3.724s, OK (skipped=1)",
+   "run": "v4dev4",
+   "utc": "2026-09-25T11:19:29Z",
+   "what": "tests_repair_amendment_v4 (40) at bdee21b"
+  }
+ ],
+ "schema": "live_ab.repair_amendment_receipt.v4",
+ "successor_provenance": {
+  "demoted_successor": "73dd0573955b2ef586e120f2b44558eb0227c70bbca9cbf9225ec4fb5583500c",
+  "demoted_successor_commit_verified": "56df17f72b17744d89564d0bf05f3fa84f4b8e1d",
+  "gate_cells": {
+   "cells_unchanged_outside_superseded_by": true
+  },
+  "gate_successor_commit": {
+   "prior_successor_commit_carries_the_prior_successor": true
+  },
+  "new_successor": "c46718faedc19280eb5ccd7d2eb55daaa43632b9d17b6ec3fb9441e8ce3f365f",
+  "original_pin_untouched": "3c76e8ebfee7f62f239b391191fb30db6adebcfe22931844e273268e0dd7d2c2",
+  "prior_successors_now": 8
+ },
+ "this_is_not_a_freeze": true,
+ "written": {
+  "architecture_sha256": "4c762f2122c39c2a9698e09eaca1f1a10805c868c9163a3ca12323788506e4c8",
+  "cells_sha256": "4796161929f460dddb851c293e039bd40f5bff64fa858c2a3055c4aa095ed7e2",
+  "config_bytes": 16136,
+  "config_sha256": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+  "gate": {
+   "config_on_disk_unchanged": true,
+   "documents_read_back_equal_computed": true,
+   "no_harness_file_changed": true
+  },
+  "harness_entries_changed": [],
+  "harness_files_after": 34,
+  "harness_files_before": 34,
+  "protocol_sha256": "c46718faedc19280eb5ccd7d2eb55daaa43632b9d17b6ec3fb9441e8ce3f365f",
+  "read_back_equals_computed": true,
+  "rule_block_sha256_on_disk": "cbfd1792d09c43754eeeab3b282e92e99c76e4f878cd82d00c827f6a90fa7607",
+  "three_way_contract_on_disk": {
+   "architecture_block_equals_protocol_block": true,
+   "block_bytes": 16136,
+   "block_sha256": "f158969ecf02de47953cec8b6f9216a4a673e746e45851b882d30c5a221cefa7",
+   "config_equals_architecture_block": true,
+   "cr_bytes": {
+    "architecture": 0,
+    "config": 0,
+    "protocol": 0
+   },
+   "holds": true
+  }
+ }
+}
