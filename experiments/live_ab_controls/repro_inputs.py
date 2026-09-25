@@ -71,6 +71,8 @@ HISTORY: dict[str, str] = {
     'b049307ff62153a054f61b6179291ba987de2ba1':
         'tests_decision_eligibility (skips) and tests_delta_citations.BASE (fails)',
     '988baf7ab3f65b9bf4318e5eb12001c49d6387d9': 'tests_delta_citations.PRE_FIX (fails)',
+    '9f0aff6ded9dc0d55fcb63345811e637389a735a':
+        'tests_predecision_abort_reporting.PRE_FIX (its mutation control skips without it)',
 }
 #: ``work/local_stream/data/tasks.json`` as ``experiments/local_stream/data.py`` builds it from the
 #: two S1 sources (reproduced byte-exactly offline, REPRODUCE_EB1_EB5_SUBSET.md).

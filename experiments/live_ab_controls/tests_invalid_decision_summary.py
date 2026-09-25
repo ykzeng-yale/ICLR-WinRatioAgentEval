@@ -356,8 +356,15 @@ class SummaryPathControls(unittest.TestCase):
         self.assertEqual((dobj['eligibility']['crossing']['verdict'], dobj['decision_status']),
                          ('acted_on', 'receipted'))
         if self.pre_fix is not None:
-            self.assertEqual(self.rows('control', 'pre_fix')[0], self.rows('control')[0],
+            # root 07:10 (reviews/predecision_abort_reporting_ruling_20260925_0710.md) added three
+            # provenance keys to every row (the effective cap, its binding, the abort reason);
+            # everything else of the row is the 7ebffad row
+            added = ('restart_cap_value', 'restart_cap_config_matches_chain', 'abort_reason')
+            now = self.rows('control')[0]
+            self.assertEqual(self.rows('control', 'pre_fix')[0],
+                             {k: v for k, v in now.items() if k not in added},
                              'the repair changes nothing for a valid decision')
+            self.assertEqual([now[k] for k in added], [3, True, None])
 
     def test_control_a_missed_eligible_crossing_before_the_boundary_still_fails(self):
         run = self.runs['missed']

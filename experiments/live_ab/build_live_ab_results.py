@@ -228,6 +228,33 @@ ABORT_INCOMPLETE_LABEL: str = ('incomplete: aborted before any decision; a cross
 #: (``logged_decision``) -- at 03fe0ca / 7ebffad a decision after a non-cap point was labelled
 #: invalid with ``reportable`` true, and the summary published the logged kind.
 DECISION_INVALID_LABEL: str = 'LIVE_DECISION_INVALID (harness defect)'
+#: Root's 07:10 ruling (``reviews/predecision_abort_reporting_ruling_20260925_0710.md``, choice
+#: (b)): "a trial aborted before any decision by a non-cap cause, with no crossing, is incomplete
+#: and not reportable as a scientific no-decision/abstention result" -- at 9f0aff6 such a chain
+#: reached the last branch of :func:`decision_object` and was published ``none``, reportable
+#: (finding 9 of the final verification of 8f0b4ae).  The concrete abort reason is kept beside it
+#: (``normal_end.abort_reason``, the summary's ``abort_reason``), never inside the label.
+PREDECISION_ABORT_LABEL: str = ('incomplete: aborted before any decision (no decision; not a null '
+                                'result, not an abstention)')
+#: Root 07:10: "A genuinely reportable ``none`` requires a verifier-valid normal terminal at the
+#: frozen full horizon with no eligible crossing; an open or incomplete chain must not masquerade
+#: as that outcome."  No decision, no terminal abort, and the chain is not a normal end at the
+#: frozen full horizon (:func:`normal_end_reading`: open, paused, ended short of the horizon, a
+#: resolution that did not pass, a no-decision point in the chain).
+INCOMPLETE_CHAIN_LABEL: str = ('incomplete: no decision and no normal end at the frozen full '
+                               'horizon (no decision; not a null result, not an abstention)')
+#: The closed reasons of :func:`normal_end_reading`, in the order it tests them.
+NOT_NORMAL_END_REASONS: tuple[str, ...] = (
+    'trial_not_started', 'no_terminal_record', 'trial_aborted', 'events_after_terminal_record',
+    'resolution_absent', 'resolution_not_pass', 'no_decision_point_in_chain', 'horizon_unknown',
+    'horizon_not_the_chain_horizon', 'enrolment_short_of_horizon', 'no_look',
+    'last_look_short_of_horizon', 'last_look_not_all_collapsed')
+#: What may follow a terminal record in a normal chain: its own blocking anchor and the answer to
+#: it (``lab_orchestrator._w_close_trial``: ``request_anchor`` then ``wait_for_receipt``).
+AFTER_TERMINAL_TYPES: frozenset[str] = frozenset({'anchor', 'anchor_receipt', 'anchor_failed',
+                                                  'anchor_receipt_rejected'})
+#: Where the builder reads the frozen configuration, relative to ``results_root`` (:func:`build`).
+CONFIG_REL: str = 'freeze/config.json'
 
 
 def terminal_event(events: Sequence[Mapping]) -> Mapping | None:
@@ -236,11 +263,143 @@ def terminal_event(events: Sequence[Mapping]) -> Mapping | None:
                  if e['type'] in ('trial_ended', 'trial_aborted')), None)
 
 
-def restart_cap_reading(events: Sequence[Mapping], cfg: Mapping) -> dict:
+def frozen_horizon(cfg: Mapping) -> int | None:
+    """[pure] The frozen full horizon ``N_P`` of the configuration: ``monitor.n_max``, else
+    ``roster.n_pairs`` -- the rule of ``lab_reference_rule._monitor_constants`` (no default; None
+    when neither is an int)."""
+    cfg = dict(cfg or {})
+    n = (cfg.get('monitor') or {}).get('n_max')
+    if n is None:
+        n = (cfg.get('roster') or {}).get('n_pairs')
+    return int(n) if isinstance(n, int) and not isinstance(n, bool) else None
+
+
+def restart_cap_binding(events: Sequence[Mapping], cfg: Mapping, *,
+                        config_path: str | None = None,
+                        config_sha256: str | None = None) -> dict:
+    """[pure] Root 07:10: "Include the effective cap value and its config binding in the
+    immutable result/provenance output ... so the case classification can be audited without
+    guessing which cap was applied" -- reporting provenance only; the cap and its behaviour are
+    unchanged.  ``value`` is what ``lab_common.server_supervision_cap`` (the one reader the
+    orchestrator and the verifier use) returns for this configuration, or None with its
+    ``error`` when it refuses; the ``server_supervision`` block itself and its canonical
+    SHA-256; the configuration file it was read from (``config_path`` relative to the results
+    root, ``config_sha256`` of its bytes; None when the caller passed no file) and the
+    ``config_sha256`` the chain's ``trial_started`` recorded, with whether the two agree (None
+    when either is absent)."""
+    cfg = dict(cfg or {})
+    try:
+        value: int | None = lab_common.server_supervision_cap(cfg)
+        error: str | None = None
+    except lab_common.FrozenMismatch as e:
+        value, error = None, str(e)
+    block = cfg.get(lab_common.SERVER_SUPERVISION_KEY)
+    started = next((e for e in events if e['type'] == 'trial_started'), None)
+    chain_sha = None if started is None else (started['body'] or {}).get('config_sha256')
+    return {
+        'value': value, 'error': error,
+        'key': '%s.max_supervised_restarts_per_server_per_trial'
+               % lab_common.SERVER_SUPERVISION_KEY,
+        'reader': 'lab_common.server_supervision_cap',
+        'server_supervision': None if block is None else json.loads(json.dumps(block)),
+        'server_supervision_sha256': (None if block is None
+                                      else lab_common.sha256_canonical(block)),
+        'config_path': config_path, 'config_sha256': config_sha256,
+        'chain_config_sha256': chain_sha,
+        'config_sha256_matches_chain': (None if config_sha256 is None or chain_sha is None
+                                        else config_sha256 == chain_sha),
+    }
+
+
+def normal_end_reading(events: Sequence[Mapping], cfg: Mapping,
+                       point: Mapping | None) -> dict:
+    """[pure] Whether the chain is a NORMAL END AT THE FROZEN FULL HORIZON (root 07:10: "A
+    genuinely reportable ``none`` requires a verifier-valid normal terminal at the frozen full
+    horizon with no eligible crossing"), and the concrete terminal facts kept beside every
+    result: the terminal record, its seq, its abort reason, its resolution verdict.
+
+    ``normal_end_at_full_horizon`` is true only when none of :data:`NOT_NORMAL_END_REASONS`
+    holds: a ``trial_started``; a terminal record that is ``trial_ended`` (not
+    ``trial_aborted``, not absent) followed by nothing but its own anchor and receipt; its
+    ``resolution`` present with verdict ``PASS`` (the record the verifier's
+    ``workers.resolved`` reads); no no-decision point ``point`` in the chain (an owed or
+    triggered abort, the cap, an unresolved worker: :func:`lab_eventlog.no_decision_point`);
+    the frozen horizon :func:`frozen_horizon` known and equal to the chain's
+    ``trial_started.n_pairs_max``; that many distinct pairs enrolled; and the last look at
+    ``n`` = the horizon with every pair collapsed.
+
+    What it does NOT do: the builder may not import the verifier (ARCHITECTURE 3.15/3.16), so
+    this reads the chain-borne evidence the verifier's checks read and runs no verifier check;
+    a chain the verifier FAILs is reported by the verifier.  The frozen rule logs
+    ``horizon_no_decision`` at the horizon look (``lab_monitor.decide``, protocol 8.4), so a
+    chain the orchestrator wrote that meets every condition carries that decision: with no
+    decision the reference rule's horizon action is a crossing at an eligible look, which
+    :func:`decision_object` reports ``LIVE_DECISION_INVALID`` (``missed``) before this reading
+    is consulted."""
+    evs = list(events)
+    cfg = dict(cfg or {})
+    term = terminal_event(evs)
+    started = next((e for e in evs if e['type'] == 'trial_started'), None)
+    horizon = frozen_horizon(cfg)
+    chain_horizon = None if started is None else (started['body'] or {}).get('n_pairs_max')
+    pairs = {int(e['body']['pair']) for e in evs if e['type'] == 'pair_enrolled'
+             and not e['body'].get('re_enrolled')}
+    looks = [e for e in evs if e['type'] == 'monitor_update']
+    last = looks[-1] if looks else None
+    resolution = None if term is None else (term['body'] or {}).get('resolution')
+    after = ([] if term is None else
+             sorted({str(e['type']) for e in evs if int(e['seq']) > int(term['seq'])
+                     and e['type'] not in AFTER_TERMINAL_TYPES}))
+    held = {
+        'trial_not_started': started is None,
+        'no_terminal_record': term is None,
+        'trial_aborted': term is not None and term['type'] == 'trial_aborted',
+        'events_after_terminal_record': bool(after),
+        'resolution_absent': term is not None and not isinstance(resolution, Mapping),
+        'resolution_not_pass': (isinstance(resolution, Mapping)
+                                and resolution.get('verdict') != 'PASS'),
+        'no_decision_point_in_chain': point is not None,
+        'horizon_unknown': horizon is None,
+        'horizon_not_the_chain_horizon': horizon is not None and chain_horizon != horizon,
+        'enrolment_short_of_horizon': horizon is None or len(pairs) < horizon,
+        'no_look': last is None,
+        'last_look_short_of_horizon': (last is not None and (
+            horizon is None or int(last['body']['n']) < horizon)),
+        'last_look_not_all_collapsed': (last is not None and int(last['body']['n_collapsed'])
+                                        != int(last['body']['n'])),
+    }
+    reasons = [r for r in NOT_NORMAL_END_REASONS if held[r]]
+    return {
+        'normal_end_at_full_horizon': not reasons,
+        'reasons': reasons,
+        'terminal': None if term is None else str(term['type']),
+        'terminal_seq': None if term is None else int(term['seq']),
+        'abort_reason': (None if term is None or term['type'] != 'trial_aborted'
+                         else (term['body'] or {}).get('reason')),
+        'resolution_verdict': (resolution.get('verdict') if isinstance(resolution, Mapping)
+                               else None),
+        'events_after_terminal_record': after,
+        'horizon': horizon, 'chain_n_pairs_max': chain_horizon,
+        'pairs_enrolled': len(pairs),
+        'last_look': (None if last is None else
+                      {'seq': int(last['seq']), 'n': int(last['body']['n']),
+                       'n_collapsed': int(last['body']['n_collapsed'])}),
+        'no_decision_point': None if point is None else dict(point),
+        'reads': ('the chain-borne terminal evidence; the verifier is not run here (the '
+                  'builder may not import it)'),
+    }
+
+
+def restart_cap_reading(events: Sequence[Mapping], cfg: Mapping, *,
+                        config_path: str | None = None,
+                        config_sha256: str | None = None) -> dict:
     """[pure] The restart-cap case of a chain under the frozen configuration's cap, the
     decision's receipt state, and the terminal record's ``completion`` (arrivals not run,
     follow-up not run; recounted by the verifier's ``server.lifecycle``), or None when the
-    chain has no terminal record carrying one."""
+    chain has no terminal record carrying one.  Root 07:10: ``cap_value`` -- the effective cap
+    the case was classified under -- and ``binding`` (:func:`restart_cap_binding`: the
+    ``server_supervision`` block, its digest, the configuration file and the chain's record of
+    it)."""
     cfg = dict(cfg or {})
     try:
         cap: int | None = lab_common.server_supervision_cap(cfg)
@@ -257,7 +416,10 @@ def restart_cap_reading(events: Sequence[Mapping], cfg: Mapping) -> dict:
             'decision_after_cap_seq': cc['decision_after_cap_seq'],
             'completion': (dict(term['body']['completion'])
                            if term is not None and term['body'].get('completion')
-                           else None)}
+                           else None),
+            'cap_value': cap,
+            'binding': restart_cap_binding(events, cfg, config_path=config_path,
+                                           config_sha256=config_sha256)}
 
 
 def eligibility_object(events: Sequence[Mapping], cfg: Mapping, trial: str) -> dict:
@@ -280,7 +442,9 @@ def eligibility_object(events: Sequence[Mapping], cfg: Mapping, trial: str) -> d
         reference_actions=[lk.action for lk in looks])
 
 
-def decision_object(events: Sequence[Mapping], cfg: Mapping, trial: str) -> dict:
+def decision_object(events: Sequence[Mapping], cfg: Mapping, trial: str, *,
+                    config_path: str | None = None,
+                    config_sha256: str | None = None) -> dict:
     """The logged decision, with the reference rule's own result beside it.
 
     The builder does not decide: it prints what the chain carries and whether the second
@@ -301,9 +465,15 @@ def decision_object(events: Sequence[Mapping], cfg: Mapping, trial: str) -> dict
     2. :data:`RESTART_CAP_INCOMPLETE_LABEL` -- case (a) with no decision;
     3. :data:`ABORT_INCOMPLETE_LABEL` -- no decision, and the reference rule's crossing is at a
        look the classification makes NOT eligible (not acted on, with its concrete reason);
+    3a. :data:`PREDECISION_ABORT_LABEL` -- no decision, no crossing not acted on, and the
+       terminal record is a ``trial_aborted`` (root 07:10, choice (b); the cap's own case is 2);
+    3b. :data:`INCOMPLETE_CHAIN_LABEL` -- no decision, and the chain is not a normal end at the
+       frozen full horizon (:func:`normal_end_reading`: open, paused, ended short of the
+       horizon, a resolution that did not pass, a no-decision point in the chain);
     4. :data:`PROVISIONAL_LABEL` -- a valid decision without its chained external receipt
        (any case);
-    5. the logged decision's kind, or ``none`` with no decision and no crossing.
+    5. the logged decision's kind, or ``none`` with no decision and no crossing -- which,
+       after 3a and 3b, only a normal end at the frozen full horizon reaches (root 07:10).
 
     ``reportable`` is true ONLY in 5, where the result IS the logged decision (root 19:05:
     "for any invalid post-boundary decision ... set ``reportable = false``, and make the
@@ -311,10 +481,17 @@ def decision_object(events: Sequence[Mapping], cfg: Mapping, trial: str) -> dict
     non-reportable result.  The logged event always stays under ``decision``, whatever the
     result; :func:`build` makes the summary's ``decision`` the ``primary_result`` and keeps the
     logged kind beside it (``logged_decision``) whenever it is not reportable.
-    ``eligibility`` carries the whole classification: every look, eligible or not, and why."""
+    ``eligibility`` carries the whole classification: every look, eligible or not, and why.
+    ``normal_end`` (root 07:10) carries the terminal record, its concrete abort reason and why
+    the chain is or is not a normal end at the frozen full horizon; a crossing not acted on is
+    kept separately in ``crossing_not_acted_on``.  A decision logged before a later abort keeps
+    its rules unchanged (3a and 3b require that no decision was logged).  ``restart_cap``
+    carries the effective cap and its configuration binding (``config_path`` /
+    ``config_sha256``: the file :func:`build` read, when it passes one)."""
     logged = next((dict(e['body'], seq=int(e['seq'])) for e in events
                    if e['type'] == 'decision'), None)
-    cap = restart_cap_reading(events, cfg)
+    cap = restart_cap_reading(events, cfg, config_path=config_path,
+                              config_sha256=config_sha256)
     reference = lab_reference_rule.decide_from_chain(list(events), dict(cfg), trial)
     replayed = lab_monitor.replay(list(events), dict(cfg), trial)
     updates = [e for e in events if e['type'] == 'monitor_update']
@@ -332,6 +509,7 @@ def decision_object(events: Sequence[Mapping], cfg: Mapping, trial: str) -> dict
     elig = eligibility_object(events, cfg, trial)
     point = elig['exclusion']
     crossing = elig['crossing']
+    end = normal_end_reading(events, cfg, point)
     if logged is None and crossing is not None and crossing['verdict'] == 'not_acted_on':
         # the reference rule's first crossing is at a look the shared classification makes
         # NOT eligible: not acted on, with its concrete reason -- never a disagreement
@@ -376,11 +554,29 @@ def decision_object(events: Sequence[Mapping], cfg: Mapping, trial: str) -> dict
         # a crossing logged after an abort's point with no decision: not acted on (the
         # verifier's INFO), never a disagreement
         primary, reportable = ABORT_INCOMPLETE_LABEL, False
+    elif logged is None and end['terminal'] == 'trial_aborted':
+        # root 07:10 (b): an abort before any decision leaves the planned study incomplete --
+        # not a null result, not an abstention -- whatever its cause; the concrete reason is
+        # kept beside the result (``normal_end``), not in the label
+        primary, reportable = PREDECISION_ABORT_LABEL, False
+        label = ('not reportable: trial_aborted(%s) at seq %d before any decision (no-decision '
+                 'point %s)' % (end['abort_reason'], end['terminal_seq'],
+                                'none in the chain' if point is None else '%s at seq %d%s' % (
+                                    point['reason'], int(point['seq']),
+                                    '' if point.get('abort_reason') is None else
+                                    ', abort %s from %s' % (point['abort_reason'],
+                                                            point.get('source')))))
+    elif logged is None and not end['normal_end_at_full_horizon']:
+        # root 07:10: an open or incomplete chain must not masquerade as the reportable ``none``
+        primary, reportable = INCOMPLETE_CHAIN_LABEL, False
+        label = ('not reportable: no decision, and not a normal end at the frozen full horizon '
+                 '(%s)' % ', '.join(end['reasons']))
     elif logged is not None and cap['decision_status'] != 'receipted':
         primary, reportable = PROVISIONAL_LABEL, False
         label = PROVISIONAL_LABEL
     else:
-        # the only reportable result: the valid logged decision (or none with no crossing)
+        # the only reportable result: the valid logged decision, or none with no crossing --
+        # with no decision only a normal end at the frozen full horizon gets here (root 07:10)
         primary = logged['kind'] if logged else 'none'
         reportable = True
         if cap['case'] in ('after_receipted_decision', 'decision_provisional') \
@@ -405,6 +601,7 @@ def decision_object(events: Sequence[Mapping], cfg: Mapping, trial: str) -> dict
         'decision_status': cap['decision_status'],
         'restart_cap': cap,
         'crossing_not_acted_on': not_acted_on,
+        'normal_end': end,
         'eligibility': elig,
         'margin_delta': float(dict(cfg)['monitor']['delta']),
         'alpha_gate': float(dict(cfg)['monitor']['alpha_gate']),
@@ -929,8 +1126,12 @@ def build(trials: Sequence[str], bundle_sha: str, *, results_root: Path, work_ro
     results_root = Path(results_root)
     work_root = Path(work_root)
     out_dir = Path(out_dir)
-    cfg_path = results_root / 'freeze' / 'config.json'
+    cfg_path = results_root / CONFIG_REL
     cfg = _read(cfg_path) if cfg_path.exists() else {}
+    # root 07:10: the configuration the cap was read from, bound by its bytes' digest (the
+    # chain's ``trial_started.config_sha256`` is the same digest of the same file)
+    cfg_sha = sha256_file(cfg_path) if cfg_path.exists() else None
+    cfg_rel = CONFIG_REL if cfg_path.exists() else None
     mock = bool(mock or cfg.get('mock') or cfg.get('mock_overrides'))
     reads: dict = {}
     for trial in trials:
@@ -951,7 +1152,7 @@ def build(trials: Sequence[str], bundle_sha: str, *, results_root: Path, work_ro
         pairs = pair_rows(events, cfg)
         episodes = episode_rows(events)
         # ONE decision object: decision.json and the summary row below are the same reading
-        dobj = decision_object(events, cfg, trial)
+        dobj = decision_object(events, cfg, trial, config_path=cfg_rel, config_sha256=cfg_sha)
         files = {
             'monitor_table.csv': _write_csv(tdir / 'monitor_table.csv',
                                             monitor_rows(events), mock),
@@ -987,18 +1188,36 @@ def build(trials: Sequence[str], bundle_sha: str, *, results_root: Path, work_ro
             'decision': dobj['primary_result'],
             'restart_cap_case': dobj['restart_cap']['case'],
             'reportable': dobj['reportable'],
+            # root 07:10: the effective cap the case was classified under, and whether the
+            # configuration it was read from is the one the chain recorded; the concrete abort
+            # reason of the terminal record (null unless trial_aborted), kept beside the result
+            'restart_cap_value': dobj['restart_cap']['cap_value'],
+            'restart_cap_config_matches_chain':
+                dobj['restart_cap']['binding']['config_sha256_matches_chain'],
+            'abort_reason': dobj['normal_end']['abort_reason'],
         }
         if not dobj['reportable']:
-            # an invalid decision, case (a), a crossing not acted on, or a decision without
-            # its chained external receipt: the logged decision (if any) is kept beside the
-            # result -- never as the result
+            # an invalid decision, case (a), a crossing not acted on, an incomplete chain, or a
+            # decision without its chained external receipt: the logged decision (if any) is
+            # kept beside the result -- never as the result
             summary['trials'][trial]['logged_decision'] = logged_kind
+        if dobj['crossing_not_acted_on'] is not None:
+            # root 07:10: "any not-acted-on crossing retained separately"
+            summary['trials'][trial]['crossing_not_acted_on'] = {
+                k: dobj['crossing_not_acted_on'].get(k)
+                for k in ('kind', 'n', 'seq', 'no_decision_reason', 'no_decision_seq')}
+        if dobj['primary_result'] in (PREDECISION_ABORT_LABEL, INCOMPLETE_CHAIN_LABEL):
+            summary['trials'][trial]['incomplete_reasons'] = list(dobj['normal_end']['reasons'])
         completion = dobj['restart_cap']['completion']
         if completion is not None:
             summary['trials'][trial].update({
                 'arrivals_not_run': completion['arrivals_not_run'],
                 'follow_up_not_run': completion['follow_up_not_run']})
         summary['files'][trial] = files
+    # root 07:10: the effective restart cap and its configuration binding, once for the program
+    # (each trial row carries the value and whether its chain recorded this configuration)
+    summary['restart_cap'] = restart_cap_binding([], cfg, config_path=cfg_rel,
+                                                 config_sha256=cfg_sha)
     summary['program_alpha'] = float(cfg.get('monitor', {}).get('alpha_program', 0.05))
     summary['statement'] = (
         'no selection among the trials is made and no combined claim is formed, so by the '
