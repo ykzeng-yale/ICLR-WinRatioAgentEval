@@ -1,0 +1,121 @@
+{
+ "archive": {
+  "bytes": 80972,
+  "members": [
+   {
+    "bytes": 0,
+    "name": "deliver_1/stdout.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   },
+   {
+    "bytes": 0,
+    "name": "deliver_1/stderr.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   },
+   {
+    "bytes": 10208,
+    "name": "deliver_1/pintool_tests.log",
+    "sha256": "6b12e9640af00ef45fbebac84d66932020d683ef020461c9145e7e86790cebe1"
+   },
+   {
+    "bytes": 0,
+    "name": "deliver_2/stdout.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   },
+   {
+    "bytes": 150,
+    "name": "deliver_2/stderr.log",
+    "sha256": "0cc6de2d9f97c2e377b914cf4e5ba5429f456e067d76bd36481187614ca97eae"
+   },
+   {
+    "bytes": 271326,
+    "name": "deliver_2/refused_draft_20260925_1745Z.json",
+    "sha256": "28b5ff675c814f6d6e24535974481345c3ccc7a0346c4ce47ad928580c438432"
+   },
+   {
+    "bytes": 350,
+    "name": "deliver_2/run_20260925_1930Z.log",
+    "sha256": "62839cee5aff34b75304e4afe0f0f86d3bf33fa9dfea883ebb4a98d6d007b333"
+   },
+   {
+    "bytes": 59646,
+    "name": "interrupted_pins_delivery_132055.patch",
+    "sha256": "27335f53a9e3d55faa7d83eb4c766ab59da721837cb3b00c68f39f81e247b361"
+   }
+  ],
+  "path": "results/live_ab/delivery_step_runs/20260925_2014/delivery_attempts.tar.gz",
+  "reading": "tar.gz, deterministic member headers (mtime 0, uid/gid 0); member digests are of the original files",
+  "sha256": "fd310c6dda1e8a2a4789ff917eec88385a2b5ce0184946bc508aeba01a82a463"
+ },
+ "completes": {
+  "commit": "c12e19f",
+  "receipt": "results/live_ab/HARNESS_PIN_SUCCESSOR_20260925_2009.json",
+  "sha256": "3745631750c3913f40069185971be8b3c2bd44e4538ab2fdc07cbdc7773da101"
+ },
+ "convention": "deterministic-path",
+ "generated_utc": "2026-09-25T20:14:06Z",
+ "owner_error_disclosed": "The step that wrote R reported that R records the 17:37Z killed start and the 17:42Z green-but-refused run. It does not; the owner found the omission by reading R before pushing. Nothing had been pushed.",
+ "process_events_of_the_day_not_in_R": [
+  "The SM8 fix step (commit 86e6e27 at 16:47Z) stopped on an Anthropic account usage limit (HTTP 429, weekly limit) before building the superseding SM8 receipt. A successor step on a different model tier built, verified and committed it (e7470c7). The earlier two-writer incident (16:26-16:35Z) is recorded in results/live_ab/SM8_DIAGNOSIS_20260925_1732.json key interruption_incident; this 429 stop is not recorded there."
+ ],
+ "runs_of_the_delivery_step_before_R": [
+  {
+   "command": "python experiments/live_ab_tools/harness_pin_successor.py --out-dir <work area>/deliver_1",
+   "id": "D1",
+   "logs": [
+    "deliver_1/stdout.log",
+    "deliver_1/stderr.log"
+   ],
+   "result": "KILLED by the step after about 3 minutes, before any suite finished: it had found that the uncommitted interrupted patch (interrupted_pins_delivery_132055.patch, in the archive) was needed. stdout and stderr are empty (0 bytes); no receipt and no draft. Times are the log files' creation and the directory modification times.",
+   "utc": "2026-09-25T17:37:10Z (start) to about 17:40:33Z (killed)"
+  },
+  {
+   "command": "python -m unittest -v experiments.live_ab_tools.tests_harness_pin_successor (with the interrupted patch applied, uncommitted)",
+   "id": "D1t",
+   "logs": [
+    "deliver_1/pintool_tests.log"
+   ],
+   "result": "Ran 51 tests in 111.762s, OK (skipped=1)",
+   "utc": "ended 2026-09-25T17:42:25Z"
+  },
+  {
+   "command": "MUTATION_LOGS_8F0B4AE=<verifier logs> python -m unittest -v experiments.live_ab_tools.tests_harness_pin_successor.PartitionTests",
+   "id": "D1p",
+   "result": "reported: Ran 3 tests, OK. No log file was kept; this row is the step's report only.",
+   "utc": "between D1t and D2 (reported by the step; no log preserved)"
+  },
+  {
+   "command": "python experiments/live_ab_tools/harness_pin_successor.py --out-dir <work area>/deliver_2, at HEAD e7470c7 WITH UNCOMMITTED edits to experiments/live_ab_tools/harness_pin_successor.py and tests_harness_pin_successor.py (the interrupted patch)",
+   "id": "D2",
+   "logs": [
+    "deliver_2/stdout.log",
+    "deliver_2/stderr.log",
+    "deliver_2/refused_draft_20260925_1745Z.json"
+   ],
+   "refused_draft_sha256": "28b5ff675c814f6d6e24535974481345c3ccc7a0346c4ce47ad928580c438432",
+   "result": "All 5 suites green, 1885/1885 planned = completed: live_ab 766 OK (skipped=1); live_ab_controls 476 OK (every SM8AtTheRestart and SM8ForcedInterleaving verdict green); live_ab_serving 193 OK; live_ab_tools 235 OK (skipped=2); tests_validation.py 215 OK (skipped=6, expected failures=2). The tool then REFUSED to write: subset_diff_does_not_reproduce. Cause: DIFF_ARGV lacked --binary, so the .tar.gz archives added at 8a84153 and e7470c7 could not be rebuilt by git apply. Fixed and tested at 98ce004. This run is NOT a pinned delivery: its tools suite ran uncommitted code, and it wrote no receipt.",
+   "utc": "2026-09-25T17:42:45Z to 18:45:14Z"
+  },
+  {
+   "command": "python -m unittest -v experiments.live_ab_tools.tests_harness_pin_successor, with --binary reverted and then restored",
+   "id": "F",
+   "result": "reported in the 98ce004 commit message: 4 new tests FAILED with --binary reverted; Ran 55 tests, OK (skipped=1) with it. No separate log was kept.",
+   "utc": "before commit 98ce004"
+  },
+  {
+   "command": "python experiments/live_ab_tools/harness_pin_successor.py (default out-dir results/live_ab), at the committed 98ce004 with a clean tree",
+   "id": "R",
+   "logs": [
+    "deliver_2/run_20260925_1930Z.log"
+   ],
+   "result": "wrote results/live_ab/HARNESS_PIN_SUCCESSOR_20260925_2009.json: all 5 suites green, 1889/1889 (see R's solo_run_suites); solo=false (the sampler caught the owner's own issue-posting shell)",
+   "utc": "2026-09-25T19:03:16Z to 20:09:16Z"
+  }
+ ],
+ "schema": "live_ab/delivery_step_runs-v1",
+ "what_this_does_not_establish": [
+  "anything beyond the logs named; D1p and F are the steps' reports without preserved logs",
+  "root acceptance of R or of this companion; root reviews the final head"
+ ],
+ "what_this_is": "A write-once companion to the delivery pin receipt results/live_ab/HARNESS_PIN_SUCCESSOR_20260925_2009.json (commit c12e19f, sha256 3745631750c3913f40069185971be8b3c2bd44e4538ab2fdc07cbdc7773da101). It carries the runs of the delivery step that came BEFORE that receipt was written. Root 19:15 required these runs to be kept \"in R\" (reviews/sm8_superseding_receipt_interim_20260925_1920.md on origin/main). R was written without the pin tool option --runs-of-this-step, so its key runs_of_this_step_before_this_receipt reads \"not given in this invocation\". The tool writes a receipt only from a fresh run of every suite (--no-suites is refused under results/), so adding them to R itself would need another hour-long run of every suite. R is left byte-unchanged. This record carries the runs instead, with the original logs in one archive. Whether this suffices or R must be regenerated is root's decision."
+}
