@@ -1,6 +1,6 @@
 # EB1+EB5 tagged model-free subset: bounded root disposition
 
-**2026-09-25 22:25 UTC. Full-project arXiv readiness 75/100 (change 0); bounded-v1 90/100 separately.** This review concerns the immutable tag `session60-eb1-eb5-subset-v1`, peeled commit [`c7750a3`](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/commit/c7750a3721eda5ba1dcdb18df17065015d6db1e3), delivered in [issue 11](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/11#issuecomment-5839569633). It is an engineering-preparation subset, not a prospective-study freeze, scientific outcome, or manuscript/release result. Owner and root must retain that distinction.
+**2026-09-25 22:20 UTC. Full-project arXiv readiness 75/100 (change 0); bounded-v1 90/100 separately.** This review concerns the immutable tag `session60-eb1-eb5-subset-v1`, peeled commit [`c7750a3`](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/commit/c7750a3721eda5ba1dcdb18df17065015d6db1e3), delivered in [issue 11](https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval/issues/11#issuecomment-5839569633). It is an engineering-preparation subset, not a prospective-study freeze, scientific outcome, or manuscript/release result. Owner and root must retain that distinction.
 
 ## Exact evidence and independent checks
 
