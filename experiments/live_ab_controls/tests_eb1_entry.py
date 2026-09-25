@@ -116,6 +116,7 @@ import lab_orchestrator as orch                                         # noqa: 
 import lab_server                                                       # noqa: E402
 import lab_serving_manifest                                             # noqa: E402
 import lab_verify_log                                                   # noqa: E402
+import repro_inputs                                                     # noqa: E402
 import sm_fixture                                                       # noqa: E402
 from lab_common import canonical_json, sha256_canonical, sha256_file, sha256_text  # noqa: E402
 
@@ -141,12 +142,24 @@ def setUpModule() -> None:
     """Protocol 5.7 item 2: the workers refuse any TMPDIR but the prescribed one, and every
     ``<TMP>`` token (spool paths, the golden ``model_path``) must resolve identically in this
     process, the orchestrator and the workers -- so the module runs under it, as
-    ``tests_lab_serving.WorkerTests`` does, and restores the ambient one afterwards."""
+    ``tests_lab_serving.WorkerTests`` does, and restores the ambient one afterwards.
+
+    Then it requires what every mock-tree preflight of these modules reads and git may not have
+    put in the checkout (``repro_inputs``, suite ``mock_preflight``: the five reused pilot files
+    and an observable seatbelt profile) and fails the module NAMING each missing one, with the
+    ambient TMPDIR restored.  Root 22:08's sparse run of the summary controls lacked
+    ``experiments/local_stream/`` and died later, on a ``StopIteration`` in ``setUpClass``,
+    behind ``reused_file_sha256`` / ``sandbox_profile_sha256`` drift that named no file."""
     os.makedirs(LABSBX, exist_ok=True)
     _saved_env['TMPDIR'] = os.environ.get('TMPDIR')
     _saved_env['tempdir'] = tempfile.tempdir
     os.environ['TMPDIR'] = LABSBX
     tempfile.tempdir = LABSBX
+    try:
+        repro_inputs.require(repro_inputs.REPO, 'mock_preflight')
+    except repro_inputs.MissingReproductionInputs:
+        tearDownModule()
+        raise
 
 
 def tearDownModule() -> None:
