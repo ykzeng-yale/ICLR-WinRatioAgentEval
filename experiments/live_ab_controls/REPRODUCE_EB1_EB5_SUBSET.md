@@ -7,8 +7,9 @@ request (`reviews/eb1_eb5_reproduction_path_interim_20260925_1010.md`, main `161
 checkout head, receipt, expected counts and input requirements, so a reader does not reproduce only `c001354` and
 the `…_0027` receipt by mistake).
 
-**Current target.** Tag `session60-eb1-eb5-subset-v1` — the commit that adds this text, on branch
-`session60/repair-eb1` — is the checkout head. Its harness bytes are the `98ce004` pin of receipt
+**Current target.** Tag `session60-eb1-eb5-subset-v1` (peeled commit `c7750a3`, on branch `session60/repair-eb1`),
+which root 22:20 (`reviews/eb1_eb5_final_subset_bounded_review_20260925_2220.md`, main `e37ed01`) accepted as the bounded model-free subset, or
+its doc-only successor (the commit that adds this sentence, correcting section 2); both have the same harness bytes. Its harness bytes are the `98ce004` pin of receipt
 `results/live_ab/HARNESS_PIN_SUCCESSOR_20260925_2009.json` (commit `c12e19f`; section 8), which supersedes the
 `…_0027` receipt below. Receipt R omits the delivery step's own runs before it was written; those are in the
 write-once companion `results/live_ab/DELIVERY_STEP_RUNS_20260925_2014.json` (commit `eee9287`) instead — see
@@ -75,13 +76,15 @@ Side effect: a `setUpClass` failure skips `tearDownClass`, so R01 left its five 
 (`eb1b_*`) under `/private/tmp/labsbx`; they were removed by hand. With the hook of section 9 the
 module fails in `setUpModule` before any tree exists (R23a left none).
 
-## 2. Required checkout
+## 2. Checkout
 
-A FULL clone at the subset commit; not sparse, not shallow, not a tarball:
+A FULL clone; not sparse, not shallow, not a tarball. **Current checkout:** the tag `session60-eb1-eb5-subset-v1`
+(peeled commit `c7750a3721eda5ba1dcdb18df17065015d6db1e3`) or its doc-only successor on `session60/repair-eb1`; section 8
+checks that the harness bytes equal receipt R's pin:
 
     git clone <repository> repo
     cd repo
-    git checkout --detach c0013548e9c0fbf02489065b856f11e3918e8b05
+    git checkout --detach session60-eb1-eb5-subset-v1
     git sparse-checkout list                 # prints nothing (else: git sparse-checkout disable)
     git rev-parse --is-shallow-repository    # prints false
 
@@ -90,6 +93,10 @@ A shallow clone passes with a silent skip: R07 (`git clone --depth 1`, c001354)
 `test_negative_control_the_7ebffad_builder_publishes_the_invalid_decision` ("git history is not
 available", `tests_invalid_decision_summary.py:318`). That is not a reproduction. The controls
 read four commits (`repro_inputs.HISTORY`): `7ebffad`, `159e747`, `b049307`, `988baf7`.
+
+**Historical, not the current target:** runs R01-R23 below used
+`git checkout --detach c0013548e9c0fbf02489065b856f11e3918e8b05` (`c001354`, pinned by the superseded `…_0027`
+receipt). The command is kept as their record only (root 22:20 asked for this label).
 
 ## 3. Untracked inputs (`work/` is git-ignored)
 
@@ -287,7 +294,7 @@ current target and the history below: only `RECEIPT` changes.
 
 ### Current: retargeted to receipt R at the tag
 
-From the root of a full clone at tag `session60-eb1-eb5-subset-v1` (the commit that adds this text):
+From the root of a full clone at tag `session60-eb1-eb5-subset-v1` (`c7750a3`) or its doc-only successor:
 
     /usr/bin/python3 - <<'EOF'
     import hashlib, json, subprocess, sys
@@ -334,8 +341,8 @@ From the root of a full clone at tag `session60-eb1-eb5-subset-v1` (the commit t
     sys.exit(0 if ok else 1)
     EOF
 
-R24 output (`/usr/bin/python3` 3.9.6, run at `eee9287`, the head this commit is added to; this commit itself
-touches no `experiments/live_ab/*.py` or `config.json` byte, so the tagged commit gives the identical harness map;
+R24 output (`/usr/bin/python3` 3.9.6, run at `eee9287`, the head `c7750a3` was added to; `c7750a3` and its doc-only successor
+touch no `experiments/live_ab/*.py` or `config.json` byte, so the tagged commit gives the identical harness map;
 exit 0):
 
     receipt sha256 3745631750c3913f40069185971be8b3c2bd44e4538ab2fdc07cbdc7773da101

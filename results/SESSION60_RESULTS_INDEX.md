@@ -1,8 +1,8 @@
 # Session 60 results index (aggregated; updated by the 30-minute coordination loop)
 
-Last updated: 2026-09-25, through tag `session60-eb1-eb5-subset-v1` (the commit that adds this text, on `session60/repair-eb1`), receipt `results/live_ab/HARNESS_PIN_SUCCESSOR_20260925_2009.json` (commit `c12e19f`, all 5 suites green 1889/1889 at the committed `98ce004`) with its companion `results/live_ab/DELIVERY_STEP_RUNS_20260925_2014.json` (commit `eee9287`), and root's review chain on origin/main through `166e3e0` (the 19:15 UTC review, `reviews/sm8_superseding_receipt_interim_20260925_1920.md`, narrated in the new subsection below), superseding `780ddb9` (13:15 UTC) as the latest root review on main at this writing. Owner: session `iclr-winratioagentevals-60`. Work is on `session60/*` branches and is delivered as exact commits named in issue comments, under root's direct-integration policy (`DIRECT_INTEGRATION_POLICY.md` on main); no new pull request is used. The four legacy pull requests (#5, #7, #8, #10) were merged on 2026-09-19 and are history. The root session owns the manuscript, the release archives and integration. No commercial or proprietary model was called by this session; all fresh executions use open-weight models only (EXPERIMENT_POLICY.md on main).
+Last updated: 2026-09-25, through tag `session60-eb1-eb5-subset-v1` (`c7750a3`) and its doc-only successor (the commit that adds this text, on `session60/repair-eb1`), receipt `results/live_ab/HARNESS_PIN_SUCCESSOR_20260925_2009.json` (commit `c12e19f`, all 5 suites green 1889/1889 at the committed `98ce004`) with its companion `results/live_ab/DELIVERY_STEP_RUNS_20260925_2014.json` (commit `eee9287`), and root's review chain on origin/main through `e37ed01` (the 22:20 UTC bounded final-head review, `reviews/eb1_eb5_final_subset_bounded_review_20260925_2220.md`, which accepts the tagged subset as model-free engineering preparation only). Owner: session `iclr-winratioagentevals-60`. Work is on `session60/*` branches and is delivered as exact commits named in issue comments, under root's direct-integration policy (`DIRECT_INTEGRATION_POLICY.md` on main); no new pull request is used. The four legacy pull requests (#5, #7, #8, #10) were merged on 2026-09-19 and are history. The root session owns the manuscript, the release archives and integration. No commercial or proprietary model was called by this session; all fresh executions use open-weight models only (EXPERIMENT_POLICY.md on main).
 
-**How to read this index.** "Integrated" means the root session copied or re-derived the material into its own files and reviewed it; it never means a branch or a legacy pull request was accepted wholesale: the four legacy PRs are merged on main, but methods root excluded stay excluded from paper and release claims (root `EXPERIMENT_QUEUE.md`). Numbers marked *descriptive* are counts and means of retained records. Numbers marked *model-dependent* are owner intervals whose assumptions the designs do not establish; the root paper **excludes** them. Current root state: main `780ddb9` (13:15 UTC on 25 Sept, the bounded v4 review with the SM8 blocker). Root reports full-project arXiv readiness of 75/100 (change 0) and bounded-v1 of 90/100 separately. The remaining 25 points are prospective study and independent acceptance 10 (Session60/root), expanded final QA 5 (root) and author checks 10 (Yukang).
+**How to read this index.** "Integrated" means the root session copied or re-derived the material into its own files and reviewed it; it never means a branch or a legacy pull request was accepted wholesale: the four legacy PRs are merged on main, but methods root excluded stay excluded from paper and release claims (root `EXPERIMENT_QUEUE.md`). Numbers marked *descriptive* are counts and means of retained records. Numbers marked *model-dependent* are owner intervals whose assumptions the designs do not establish; the root paper **excludes** them. Current root state: main `e37ed01` (22:20 UTC on 25 Sept, `reviews/eb1_eb5_final_subset_bounded_review_20260925_2220.md`), which accepts tag `session60-eb1-eb5-subset-v1` (`c7750a3`) as a bounded model-free engineering subset only: no freeze, no loaded, design or trial episode, no live outcome, no paper or release change. Root reports full-project arXiv readiness of 75/100 (change 0) and bounded-v1 of 90/100 separately. The remaining 25 points are prospective collection and independent acceptance 10 (Session60/root), expanded final QA 5 (root) and author checks 10 (Yukang: science, arXiv account/category/endorsement, rights and agreements).
 
 ## Deliverables and their disposition
 
@@ -3380,7 +3380,7 @@ Tests: three-checks 3; serving suites **176**. Trial, calibration, alpha **0**; 
 
 ### 2026-09-23 to 2026-09-25 · root's NO-GO, the EB1+EB5 repair subset, and the SM8 test defect
 
-Everything below is WIP on `session60/repair-eb1` (head **`8a84153`**). Nothing is merged to main, **no immutable
+*(Written at about 15:30 UTC on 25 Sept and kept as written; the next subsection and root's 22:20 acceptance supersede the state it describes.)* Everything below is WIP on `session60/repair-eb1` (head **`8a84153`**). Nothing is merged to main, **no immutable
 EB1+EB5 subset has been delivered**, and no root review accepts the repair as a whole. Root main is `780ddb9` (last
 review 13:15 UTC, 25 Sept). The pin, amendment and SM8 receipts cited here are write-once by the session's rule and
 carry `convention: deterministic-path`. Root acceptances are stated at their written scope only. Every owner test
@@ -3765,13 +3765,31 @@ caught the owner's own issue-posting shell): `live_ab` 766 OK (skipped=1) in 222
 carries the reconciled partition (109 specified, 108 run, 98 killed [96 by the right control, 2 by host-gate
 refusal], 10 survived [1 equivalent, 9 non-equivalent over 7 guards]) in a committed file for the first time.
 
-**Doc-only H** is this commit, tagged `session60-eb1-eb5-subset-v1` by the owner immediately after it. It retargets
+**Doc-only H** is `c7750a3`, tagged `session60-eb1-eb5-subset-v1` by the owner at 21:02 UTC. It retargets
 `experiments/live_ab_controls/REPRODUCE_EB1_EB5_SUBSET.md` and this index from `c001354`/`…_0027` to the tag and
 receipt R.
 
-**What remains, unchanged by R and H:** root's own explicit review of this exact final head (root 13:15 ranked
-request 3's second clause) and root's decision on the companion-file deviation; the EB2–EB4 drivers, the named ODs
-and a real host window, all outside this subset; trial, calibration and alpha remain **0**.
+**What remained at delivery:** root's own explicit review of the exact final head and root's decision on the
+companion-file deviation (both answered at 22:20, next subsection); the EB2–EB4 drivers, the named ODs and a real
+host window, all outside this subset; trial, calibration and alpha remain **0**.
+
+### 2026-09-25 22:20 · root accepts the tagged subset, bounded
+
+Root's 22:20 review (`reviews/eb1_eb5_final_subset_bounded_review_20260925_2220.md`, main `e37ed01`) **accepts the exact tag `session60-eb1-eb5-subset-v1`
+(`c7750a3`) as a bounded EB1+EB5 model-free engineering subset** and closes the binary-diff pin and SM8 receipt
+request. Root independently recomputed receipt R's SHA-256, its 33/34-entry harness maps, the four document byte/hash
+pairs, all 139 changed-file byte/hash pairs and per-file `git diff --binary` records, and the companion and its eight
+archive members, and ran four focused binary-diff controls in a detached checkout of the tag. The 1,889/1,889 suite
+run is **owner-reported, not re-executed by root**, and non-solo; it is accepted only as bounded engineering evidence.
+The companion `results/live_ab/DELIVERY_STEP_RUNS_20260925_2014.json` is the preservation record of the earlier
+attempts and must travel with R in any later provenance package. This is **not** a freeze, a live outcome, blanket
+acceptance of every claim in the 139-file delta, or a paper or release change.
+
+Root's ranked next actions: (1) this doc-only successor, correcting the guide's section-2 "required checkout" and
+this index's stale "current root state" (no full-suite rerun for text); (2) the EB2–EB4 model-free drivers and EB5
+loaded-phase preparation, with exact code/config/seed pins and incremental immutable completed-shard receipts;
+(3) named server/capacity evidence and the remaining freeze inputs for explicit root review before any loaded,
+design or trial episode.
 
 ## Open requests
 
@@ -3788,7 +3806,7 @@ and a real host window, all outside this subset; trial, calibration and alpha re
    - (3) Complete receipt R, doc-only H and the immutable delivery only after reconciling this red control and all
      failure and mutation counts. Then submit the exact final head for explicit pre-run review.
 
-   *Status: DELIVERED, awaiting root's explicit final-head review.* Requests (1) and (2), answered by `292a8a9` and
+   *Status: CLOSED by root 22:20* (`reviews/eb1_eb5_final_subset_bounded_review_20260925_2220.md`). How it was answered: requests (1) and (2), answered by `292a8a9` and
    `results/live_ab/SM8_DIAGNOSIS_20260925_1503.json` (at `8a84153`), were reviewed by root at 16:15
    (`reviews/sm8_diagnosis_interim_20260925_1615.md`) and, after the test-control repair `86e6e27` and the superseding
    receipt `results/live_ab/SM8_DIAGNOSIS_20260925_1732.json` (at `e7470c7`), again at 19:15
@@ -3806,14 +3824,15 @@ and a real host window, all outside this subset; trial, calibration and alpha re
    Receipt R omits the delivery step's own earlier runs (its `runs_of_this_step_before_this_receipt` key reads "not
    given in this invocation"); they are carried instead by the write-once companion
    `results/live_ab/DELIVERY_STEP_RUNS_20260925_2014.json` (commit `eee9287`), a disclosed deviation from root's 19:15
-   instruction to keep them "in R" (see the new subsection below). Doc-only H (this commit, tag
-   `session60-eb1-eb5-subset-v1`) is delivered alongside R. What remains of request (3) is root's own explicit review of
-   this exact final head, and root's decision on the companion-file deviation.
+   instruction to keep them "in R" (see the new subsection below). Doc-only H (`c7750a3`, tag
+   `session60-eb1-eb5-subset-v1`) was delivered alongside R. Root 22:20 reviewed that exact head and accepted the
+   companion as the preservation record, which must travel with R.
 2. **Reproduction guide retargeted** (root 10:10, `reviews/eb1_eb5_reproduction_path_interim_20260925_1010.md`, main
    `161966e`). State the final immutable subset's checkout head, receipt, expected counts and input requirements in
    `experiments/live_ab_controls/REPRODUCE_EB1_EB5_SUBSET.md`, so that a reader does not reproduce only `c001354` and
-   `…_0027` by mistake. *Status: DELIVERED, awaiting root review.* This commit retargets the guide's current target to
-   tag `session60-eb1-eb5-subset-v1` and receipt R, with `c001354`/`…_0027` kept as labelled history.
+   `…_0027` by mistake. *Status: DONE.* `c7750a3` retargeted the guide's current target to
+   tag `session60-eb1-eb5-subset-v1` and receipt R, with `c001354`/`…_0027` kept as labelled history. Root 22:20 found
+   section 2 still calling `c001354` the "required checkout"; the doc-only successor that adds this sentence fixes it.
 3. **One new write-once superseding receipt** (root 07:10, `reviews/predecision_abort_reporting_ruling_20260925_0710.md`,
    main `9790043`). It follows v4 and keeps `…_0027` with its `solo=false`. It must carry:
    - root's 22:08 preflight refusal and every other failed attempt;
@@ -3827,9 +3846,11 @@ and a real host window, all outside this subset; trial, calibration and alpha re
    9 non-equivalent over 7 guards), matching the issue #11 comment of 07:27 UTC on 25 Sept. R omits its own delivery
    step's earlier runs and timestamps (`runs_of_this_step_before_this_receipt`: "not given in this invocation"); those
    are carried by the companion `results/live_ab/DELIVERY_STEP_RUNS_20260925_2014.json` (commit `eee9287`) instead of
-   inside R itself, a disclosed deviation from root's 19:15 wording (see the new subsection below).
+   inside R itself, a disclosed deviation from root's 19:15 wording. *Root 22:20: CLOSED; the companion is the
+   preservation record and must travel with R.*
 4. **One immutable EB1+EB5 subset, for explicit root review before any loaded, design or trial episode** (root 21:14,
-   01:10, 10:10, 13:15). *Status:* pending. No interim review so far is trial clearance.
+   01:10, 10:10, 13:15). *Status: ACCEPTED by root 22:20* as a bounded model-free engineering subset (tag
+   `session60-eb1-eb5-subset-v1`, `c7750a3`). It is not a freeze and not trial clearance.
 5. **Beyond the subset** (root 20:40 items 2–4, `reviews/prerun_bundle_go_nogo_20260923_2040.md`; root 21:14 item 3,
    `reviews/restart_cap_estimand_ruling_20260923_2114.md`):
    - the missing executable drivers for stages 1, 2 and 4–6, the stage-3 two-stream loaded sweep, and the §11.5 CPU
@@ -3838,6 +3859,10 @@ and a real host window, all outside this subset; trial, calibration and alpha re
      chain and the versioned config, protocol and architecture;
    - a documented real host window and a passing stage-start capacity gate. The owner host is shared with another
      project's real model runs (root 19:05 and 22:08), so no snapshot is a window.
+
+   Root 22:20 ranks the next work: (2) the EB2–EB4 model-free drivers and EB5 loaded-phase preparation, with exact
+   code/config/seed pins and incremental immutable completed-shard receipts; (3) named server/capacity evidence and the
+   remaining freeze inputs, for explicit root review before any loaded, design or trial episode.
 
    EB5 stays open until a loaded phase shows, on the production path, that every permitted worker was resolved (root
    20:40 item 3). *Status:* not started in this subset.
@@ -3855,7 +3880,6 @@ and a real host window, all outside this subset; trial, calibration and alpha re
 **Legacy pull requests:** none open. PRs #5, #7, #8 and #10 were merged on 2026-09-19 and are history; merging implies
 no approval of methods root excluded from the paper and release.
 
-**Author-only items** (Yukang): root's reviews now call the ICLR release "historical" and count the author's remaining
-work as "author checks 10 (Yukang)" (root 10:10, `reviews/eb1_eb5_reproduction_path_interim_20260925_1010.md`). The
-OpenReview abstract deadline listed here earlier (2026-09-18 23:59 AoE) has passed. Human scientific review, AI-use
-disclosure, and originality and concurrent-submission declarations remain author-only.
+**Author-only items** (Yukang): root 22:20 counts author checks 10: scientific review, arXiv account, category and
+endorsement, and rights and agreements (`reviews/eb1_eb5_final_subset_bounded_review_20260925_2220.md`). The author submits; no upload or attestation is
+inferred. The OpenReview abstract deadline listed here earlier (2026-09-18 23:59 AoE) has passed.
