@@ -1,0 +1,388 @@
+{
+ "derived": {
+  "flip_target_bytes_changed": true,
+  "flip_target_written": true,
+  "lifecycle": [
+   "server_started",
+   "server_down",
+   "server_stopped",
+   "server_start_failed",
+   "trial_aborted"
+  ],
+  "task_completions_answered_by_first_pid": 1
+ },
+ "end_utc": "2026-09-25T13:43:19.376Z",
+ "events": [
+  {
+   "dt_ms": 0.0,
+   "seq": 0,
+   "type": "trial_started"
+  },
+  {
+   "dt_ms": 856.632,
+   "pid": 91084,
+   "seq": 1,
+   "type": "server_started"
+  },
+  {
+   "dt_ms": 861.203,
+   "seq": 2,
+   "type": "metrics_scrape"
+  },
+  {
+   "dt_ms": 11032.682,
+   "seq": 3,
+   "type": "foreign_load_detected"
+  },
+  {
+   "dt_ms": 11038.559,
+   "seq": 4,
+   "type": "anchor"
+  },
+  {
+   "dt_ms": 11106.311,
+   "seq": 5,
+   "type": "anchor_receipt"
+  },
+  {
+   "dt_ms": 11114.778,
+   "seq": 6,
+   "type": "metrics_scrape"
+  },
+  {
+   "dt_ms": 11118.88,
+   "seq": 7,
+   "type": "pair_enrolled"
+  },
+  {
+   "dt_ms": 11123.607,
+   "seq": 8,
+   "type": "coin_drawn"
+  },
+  {
+   "dt_ms": 11128.709,
+   "seq": 9,
+   "type": "monitor_update"
+  },
+  {
+   "dt_ms": 11142.464,
+   "seq": 10,
+   "type": "episode_started"
+  },
+  {
+   "dt_ms": 11156.636,
+   "seq": 11,
+   "type": "episode_started"
+  },
+  {
+   "dt_ms": 11159.827,
+   "seq": 12,
+   "type": "server_health"
+  },
+  {
+   "dt_ms": 11221.316,
+   "seq": 13,
+   "type": "job_accepted"
+  },
+  {
+   "arrival": 1,
+   "call_index": 0,
+   "dt_ms": 11224.841,
+   "seq": 14,
+   "try_index": 0,
+   "type": "llm_request"
+  },
+  {
+   "dt_ms": 11225.461,
+   "seq": 15,
+   "type": "monitor_update"
+  },
+  {
+   "dt_ms": 11225.606,
+   "seq": 16,
+   "type": "job_accepted"
+  },
+  {
+   "arrival": 1,
+   "call_index": 0,
+   "client_seconds": 0.005249875597655773,
+   "dt_ms": 11296.653,
+   "http_status": 200,
+   "seq": 17,
+   "t_recv_ns": 5491343005640208,
+   "type": "llm_response"
+  },
+  {
+   "dt_ms": 11296.997,
+   "seq": 18,
+   "type": "monitor_update"
+  },
+  {
+   "dt_ms": 11297.077,
+   "seq": 19,
+   "type": "episode_revealed"
+  },
+  {
+   "dt_ms": 11301.253,
+   "seq": 20,
+   "type": "monitor_update"
+  },
+  {
+   "arrival": 2,
+   "call_index": 0,
+   "dt_ms": 11301.391,
+   "seq": 21,
+   "try_index": 0,
+   "type": "llm_request"
+  },
+  {
+   "dt_ms": 11301.599,
+   "seq": 22,
+   "type": "monitor_update"
+  },
+  {
+   "arrival": 2,
+   "call_index": 0,
+   "client_seconds": 0.003903375007212162,
+   "dt_ms": 11301.641,
+   "error_class": "connection",
+   "http_status": null,
+   "seq": 23,
+   "type": "llm_error",
+   "will_retry": true
+  },
+  {
+   "dt_ms": 11301.836,
+   "seq": 24,
+   "type": "worker_resolved"
+  },
+  {
+   "detected_by": "exit",
+   "dt_ms": 16167.506,
+   "inflight": [
+    {
+     "arm": "candidate",
+     "arrival": 2
+    }
+   ],
+   "returncode": 9,
+   "seq": 25,
+   "type": "server_down"
+  },
+  {
+   "dt_ms": 16172.887,
+   "pid": 91084,
+   "returncode": 9,
+   "seq": 26,
+   "type": "server_stopped"
+  },
+  {
+   "dt_ms": 16355.961,
+   "findings": [
+    "serving_manifest"
+   ],
+   "kind": "restart",
+   "pid": 0,
+   "restart_index": 1,
+   "returncode": null,
+   "seq": 27,
+   "stage": "serving_manifest",
+   "type": "server_start_failed"
+  },
+  {
+   "dt_ms": 16360.088,
+   "seq": 28,
+   "type": "abort_owed"
+  },
+  {
+   "arrival": 2,
+   "call_index": 0,
+   "dt_ms": 23299.364,
+   "seq": 29,
+   "try_index": 1,
+   "type": "llm_request"
+  },
+  {
+   "dt_ms": 23300.498,
+   "seq": 30,
+   "type": "monitor_update"
+  },
+  {
+   "arrival": 2,
+   "call_index": 0,
+   "client_seconds": 0.0015659993514418602,
+   "dt_ms": 23300.622,
+   "error_class": "connection",
+   "http_status": null,
+   "seq": 31,
+   "type": "llm_error",
+   "will_retry": true
+  },
+  {
+   "dt_ms": 23301.09,
+   "seq": 32,
+   "type": "episode_revealed"
+  },
+  {
+   "dt_ms": 23306.293,
+   "seq": 33,
+   "type": "monitor_update"
+  },
+  {
+   "dt_ms": 23373.886,
+   "seq": 34,
+   "type": "worker_resolved"
+  },
+  {
+   "dt_ms": 23382.196,
+   "seq": 35,
+   "type": "metrics_scrape"
+  },
+  {
+   "dt_ms": 23386.602,
+   "seq": 36,
+   "type": "usage_reconciliation"
+  },
+  {
+   "dt_ms": 23399.096,
+   "seq": 37,
+   "type": "deposit_sealed"
+  },
+  {
+   "dt_ms": 23402.506,
+   "seq": 38,
+   "type": "invocation_ended"
+  },
+  {
+   "dt_ms": 23406.742,
+   "reason": "server_identity",
+   "seq": 39,
+   "type": "trial_aborted"
+  },
+  {
+   "dt_ms": 23411.209,
+   "seq": 40,
+   "type": "anchor"
+  },
+  {
+   "dt_ms": 23529.096,
+   "seq": 41,
+   "type": "anchor_receipt"
+  }
+ ],
+ "flip_target": "libeb1c-core.0.dylib",
+ "flip_target_after": {
+  "inode": 60148203,
+  "mtime_ns": 1790343787012753025,
+  "sha256": "819ddfd2836199ba6561524f4690ec0a8fe6bcd5aaf5a7bf547b772f369740dd"
+ },
+ "flip_target_before": {
+  "inode": 60148203,
+  "mtime_ns": 1790261754320949292,
+  "sha256": "85653080c073758584a4a1757db326630bb021df8e7021969934bbafc74a1c16"
+ },
+ "launches": [
+  {
+   "pid": 91084,
+   "scenario_index": 0,
+   "scenario_sha256": "f53769bda0e19192331504f43bdc287d993ed0aba47134db9f57b92d4f9a7e00",
+   "start": 0,
+   "t_wall": 1790343776.346028
+  }
+ ],
+ "llama_logs": {
+  "llama_52955.log": "eb1c_llama_shim start=0 pid=91084 shim={\"exit_after_responses\": 2, \"exit_code\": 9, \"flip_before_exit\": {\"marker\": \"eb1c-core-marker-0123456789\", \"path\": \"/private/tmp/labsbx/eb1c_SM8_ugkjtivo/host/llama/build/bin/libeb1c-core.0.dylib\"}}\n"
+ },
+ "returncode": 1,
+ "serving_manifest_after": "3844337ac390c63167741681c00f4330f3b5f09624ac8134f57543679e25a9ff",
+ "serving_manifest_before": "3844337ac390c63167741681c00f4330f3b5f09624ac8134f57543679e25a9ff",
+ "spool": [
+  {
+   "arrival": 1,
+   "dt_ms": 11210.825,
+   "kind": "job_accepted",
+   "pid": 91111
+  },
+  {
+   "arrival": 1,
+   "call_index": 0,
+   "dt_ms": 11216.896,
+   "kind": "call_started",
+   "pid": 91111,
+   "t_send_ns": 11216.875,
+   "try_index": 0
+  },
+  {
+   "arrival": 2,
+   "dt_ms": 11217.861,
+   "kind": "job_accepted",
+   "pid": 91112
+  },
+  {
+   "arrival": 2,
+   "call_index": 0,
+   "dt_ms": 11227.2,
+   "kind": "call_started",
+   "pid": 91112,
+   "t_send_ns": 11227.184,
+   "try_index": 0
+  },
+  {
+   "arrival": 1,
+   "call_index": 0,
+   "dt_ms": 11236.393,
+   "http_status": 200,
+   "kind": "call_response",
+   "pid": 91111,
+   "t_recv_ns": 11236.347,
+   "try_index": 0
+  },
+  {
+   "arrival": 2,
+   "dt_ms": 11239.63,
+   "error_class": "connection",
+   "http_status": null,
+   "kind": "call_error",
+   "pid": 91112,
+   "t_recv_ns": 11239.629
+  },
+  {
+   "arrival": 1,
+   "dt_ms": 11266.123,
+   "kind": "sandbox_exec",
+   "pid": 91111
+  },
+  {
+   "arrival": 1,
+   "dt_ms": 11274.914,
+   "kind": "episode_final",
+   "pid": 91111
+  },
+  {
+   "arrival": 2,
+   "call_index": 0,
+   "dt_ms": 23258.84,
+   "kind": "call_started",
+   "pid": 91112,
+   "t_send_ns": 23258.746,
+   "try_index": 1
+  },
+  {
+   "arrival": 2,
+   "dt_ms": 23264.773,
+   "error_class": "connection",
+   "http_status": null,
+   "kind": "call_error",
+   "pid": 91112,
+   "t_recv_ns": 23264.768
+  },
+  {
+   "arrival": 2,
+   "dt_ms": 23282.441,
+   "kind": "episode_final",
+   "pid": 91112
+  }
+ ],
+ "start_utc": "2026-09-25T13:42:45.271Z",
+ "tree": "SM8"
+}

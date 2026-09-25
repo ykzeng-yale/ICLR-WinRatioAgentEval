@@ -1,0 +1,124 @@
+{
+ "flip_target": "/private/tmp/labsbx/eb1c_SM8_ugkjtivo/host/llama/build/bin/libeb1c-core.0.dylib",
+ "port": 52955,
+ "preserved_utc": "2026-09-25T13:43:19.462Z",
+ "root": "/private/tmp/labsbx/eb1c_SM8_ugkjtivo",
+ "runs": [
+  {
+   "after": {
+    "bin": {
+     "libeb1c-base.0.1.0.dylib": {
+      "bytes": 33400,
+      "ctime_ns": 1790343765127406892,
+      "inode": 60148204,
+      "mtime_ns": 1790261754286150512,
+      "path": "/private/tmp/labsbx/eb1c_SM8_ugkjtivo/host/llama/build/bin/libeb1c-base.0.1.0.dylib",
+      "sha256": "1da59ce411953f7101d01152130b4a4c0490c671d29af372917f74e863633c12"
+     },
+     "libeb1c-base.0.dylib": {
+      "bytes": 33400,
+      "ctime_ns": 1790343765127406892,
+      "inode": 60148204,
+      "mtime_ns": 1790261754286150512,
+      "path": "/private/tmp/labsbx/eb1c_SM8_ugkjtivo/host/llama/build/bin/libeb1c-base.0.dylib",
+      "sha256": "1da59ce411953f7101d01152130b4a4c0490c671d29af372917f74e863633c12",
+      "symlink_to": "libeb1c-base.0.1.0.dylib"
+     },
+     "libeb1c-core.0.dylib": {
+      "bytes": 33448,
+      "ctime_ns": 1790343787012753025,
+      "inode": 60148203,
+      "mtime_ns": 1790343787012753025,
+      "path": "/private/tmp/labsbx/eb1c_SM8_ugkjtivo/host/llama/build/bin/libeb1c-core.0.dylib",
+      "sha256": "819ddfd2836199ba6561524f4690ec0a8fe6bcd5aaf5a7bf547b772f369740dd"
+     },
+     "llama-server": {
+      "bytes": 34096,
+      "ctime_ns": 1790343765127184100,
+      "inode": 60148202,
+      "mtime_ns": 1790261754363163931,
+      "path": "/private/tmp/labsbx/eb1c_SM8_ugkjtivo/host/llama/build/bin/llama-server",
+      "sha256": "1ec41938dc0281f5c77d5ee8ff59a02abe319c861dc9b98c26730b5b86898668"
+     },
+     "llama-server.conf": {
+      "bytes": 290,
+      "ctime_ns": 1790343765127495225,
+      "inode": 60148206,
+      "mtime_ns": 1790343765127495225,
+      "path": "/private/tmp/labsbx/eb1c_SM8_ugkjtivo/host/llama/build/bin/llama-server.conf",
+      "sha256": "69bc36d4b1348c0767294f5591e7fa90a5a8119b6be0d6d8302bb1c0adb443ec"
+     }
+    },
+    "serving_manifest": {
+     "bytes": 5116,
+     "ctime_ns": 1790343765267762737,
+     "inode": 60148229,
+     "mtime_ns": 1790343765267762737,
+     "path": "/private/tmp/labsbx/eb1c_SM8_ugkjtivo/results/freeze/serving_manifest.json",
+     "sha256": "3844337ac390c63167741681c00f4330f3b5f09624ac8134f57543679e25a9ff"
+    },
+    "utc": "2026-09-25T13:43:19.377Z"
+   },
+   "before": {
+    "bin": {
+     "libeb1c-base.0.1.0.dylib": {
+      "bytes": 33400,
+      "ctime_ns": 1790343765127406892,
+      "inode": 60148204,
+      "mtime_ns": 1790261754286150512,
+      "path": "/private/tmp/labsbx/eb1c_SM8_ugkjtivo/host/llama/build/bin/libeb1c-base.0.1.0.dylib",
+      "sha256": "1da59ce411953f7101d01152130b4a4c0490c671d29af372917f74e863633c12"
+     },
+     "libeb1c-base.0.dylib": {
+      "bytes": 33400,
+      "ctime_ns": 1790343765127406892,
+      "inode": 60148204,
+      "mtime_ns": 1790261754286150512,
+      "path": "/private/tmp/labsbx/eb1c_SM8_ugkjtivo/host/llama/build/bin/libeb1c-base.0.dylib",
+      "sha256": "1da59ce411953f7101d01152130b4a4c0490c671d29af372917f74e863633c12",
+      "symlink_to": "libeb1c-base.0.1.0.dylib"
+     },
+     "libeb1c-core.0.dylib": {
+      "bytes": 33448,
+      "ctime_ns": 1790343765127303684,
+      "inode": 60148203,
+      "mtime_ns": 1790261754320949292,
+      "path": "/private/tmp/labsbx/eb1c_SM8_ugkjtivo/host/llama/build/bin/libeb1c-core.0.dylib",
+      "sha256": "85653080c073758584a4a1757db326630bb021df8e7021969934bbafc74a1c16"
+     },
+     "llama-server": {
+      "bytes": 34096,
+      "ctime_ns": 1790343765127184100,
+      "inode": 60148202,
+      "mtime_ns": 1790261754363163931,
+      "path": "/private/tmp/labsbx/eb1c_SM8_ugkjtivo/host/llama/build/bin/llama-server",
+      "sha256": "1ec41938dc0281f5c77d5ee8ff59a02abe319c861dc9b98c26730b5b86898668"
+     },
+     "llama-server.conf": {
+      "bytes": 290,
+      "ctime_ns": 1790343765127495225,
+      "inode": 60148206,
+      "mtime_ns": 1790343765127495225,
+      "path": "/private/tmp/labsbx/eb1c_SM8_ugkjtivo/host/llama/build/bin/llama-server.conf",
+      "sha256": "69bc36d4b1348c0767294f5591e7fa90a5a8119b6be0d6d8302bb1c0adb443ec"
+     }
+    },
+    "serving_manifest": {
+     "bytes": 5116,
+     "ctime_ns": 1790343765267762737,
+     "inode": 60148229,
+     "mtime_ns": 1790343765267762737,
+     "path": "/private/tmp/labsbx/eb1c_SM8_ugkjtivo/results/freeze/serving_manifest.json",
+     "sha256": "3844337ac390c63167741681c00f4330f3b5f09624ac8134f57543679e25a9ff"
+    },
+    "utc": "2026-09-25T13:42:45.271Z"
+   },
+   "end_utc": "2026-09-25T13:43:19.376Z",
+   "entry_pid": 91002,
+   "returncode": 1,
+   "start_utc": "2026-09-25T13:42:45.271Z",
+   "stdout": ""
+  }
+ ],
+ "tree": "SM8"
+}
