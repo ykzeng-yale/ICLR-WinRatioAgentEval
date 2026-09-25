@@ -503,6 +503,28 @@ class SupersedesTests(unittest.TestCase):
         self.assertEqual((finding['kind'], finding['fix_commits']), ('review_finding',
                                                                      ['9f0aff6']))
 
+    def test_the_history_carries_what_the_0027_receipt_omitted(self):
+        """The final adversarial verification of 8f0b4ae (its finding 8): the 0027 receipt called
+        its list the whole failure history but omitted root 02:54 (a blocking finding against
+        8df2558), the discarded 11:41 pin run of 988baf7 (receipt f1a136fe...), that commit's
+        witness-sweep survivor, and root's 22:08 reproduction attempt that failed at setUpClass.
+        They are rows now, and so are that verification and the red runs of the step answering
+        it, so the next receipt carries them."""
+        rows = hps.DISCLOSED_RED_RUNS
+        text = json.dumps(rows)
+        for fragment in ('f1a136fe', '20 mutants, 19 killed', 'setUpClass', 'sparse worktree',
+                         '105 mutants', 'W6, R6f, E6, E3/E17, E18, C8, E12', 'kill matrix 1',
+                         'errors=28'):
+            self.assertIn(fragment, text)
+        (root0254,) = [r for r in rows if '0254' in r['when']]
+        self.assertEqual((root0254['kind'], root0254['fix_commits']),
+                         ('review_finding', ['e9bfb18']))
+        (attempt,) = [r for r in rows if '2208' in r['when']]
+        self.assertEqual(attempt['kind'], 'red_run')
+        for row in rows:
+            for key in ('when', 'suite', 'result', 'disposition'):
+                self.assertTrue(row.get(key), key)
+
     def test_the_delta_since_the_superseded_receipt_reproduces_and_a_forged_map_refuses(self):
         head = hps.GitTree(REPO, 'HEAD')
         smap = hps.harness_map(head)

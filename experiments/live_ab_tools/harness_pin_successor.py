@@ -217,7 +217,11 @@ SUPERSEDES = (
 #: an earlier run or review, named with the log it left where one is kept (the session's
 #: scratch logs are not tracked; their SHA-256 identifies the bytes read).  A red run that a
 #: commit message already reported is listed again here, so this list is the whole history.
-#: A run meant to fail (a pre-fix negative control) is a red run too and says so.
+#: A run meant to fail (a pre-fix negative control) is a red run too and says so.  Scope: the
+#: runs of the owner and of the reviews known to the session, and every root finding against
+#: the subset's own code (from 8df2558 on).  The 0027 receipt called this list the whole
+#: history but lacked four of them (the final verification of 8f0b4ae, finding 8); they are the
+#: rows after the v3 step, with that verification and the step answering it.
 DISCLOSED_RED_RUNS = (
     {'kind': 'red_run',
      'when': '2026-09-24 03:06-03:43 local, integration solo run at 79bb1ab',
@@ -401,6 +405,106 @@ DISCLOSED_RED_RUNS = (
                      '40 OK), witness added for V4 and M7 rewritten, sub-check listed; '
                      'mutation3 15 of 15 killed, original 41 ran 0 failures; the receipt '
                      'REPAIR_AMENDMENT_V3_RECEIPT_20260924_2218 lists every one of these runs')},
+    # -- omitted from the 0027 receipt (final verification of 8f0b4ae, finding 8) -------------
+    {'kind': 'review_finding',
+     'when': 'root 02:54 (reviews/eb1_receipt_attribution_review_20260924_0254.md, main f855e45) '
+             'on 8df2558',
+     'suite': 'source review (not a test run)',
+     'result': ('blocking: World.ingest_receipts attributed a receipt row whose request_id it '
+                'did not know to the newest anchor, so an unmatched success-valued row could '
+                'clear the decision gate (traffic_switch, post-decision dispatch)'),
+     'log_sha256': None,
+     'fix_commits': ['e9bfb18'],
+     'disposition': ('fixed in e9bfb18: judge_receipt_line on every raw spool line, '
+                     'anchor_receipt_rejected for an unknown, stale, malformed, duplicate or '
+                     'conflicting row, no newest-anchor fallback, a decision receipt bound to '
+                     'its exact request with its external evidence (tests_eb1_receipt_'
+                     'attribution); root 07:03 (main ccdda96): it "closes the particular source '
+                     'path"')},
+    {'kind': 'red_run',
+     'when': '2026-09-24 11:41 (as the 988baf7 commit message gives it), the first complete '
+             'pin run of 988baf7',
+     'suite': 'the five suites and the host sampler of harness_pin_successor',
+     'result': ('the same green counts as the committed 1217 run, but its receipt (sha256 '
+                'f1a136fe...) was discarded, never committed: its sampler counted the orphan '
+                'the C10 control makes on purpose (its llama-server.py) as a foreign process'),
+     'log_sha256': None,
+     'disposition': ('the sampler attribution of that orphan was added and tested inside '
+                     '988baf7; the 1217 receipt is the re-run (solo True, solo_strict False)')},
+    {'kind': 'red_run',
+     'when': '2026-09-24, the witness mutation sweep of 988baf7 (scratch clone, restored)',
+     'suite': 'live_ab_tools tests_harness_pin_successor',
+     'result': ('20 mutants, 19 killed, 1 SURVIVED: the diff argv without its explicit a/ b/ '
+                'prefixes'),
+     'log_sha256': None,
+     'disposition': ('judged equivalent in 988baf7 (git already uses a/ b/ under the forced '
+                     'configuration of DIFF_ARGV); no witness added')},
+    {'kind': 'red_run',
+     'when': 'root 22:08 (reviews/eb1_eb5_summary_repair_interim_20260924_2208.md, main '
+             "76f5e71), root's reproduction attempt at 9f0aff6",
+     'suite': ('live_ab_controls tests_invalid_decision_summary (the seven controls) in a 31 MiB '
+               'sparse worktree, local Python 3.14'),
+     'result': ('did not reach its assertions: setUpClass expected a crossing, but the mock tree '
+                'aborted before its first trial event (program preflight harness_file_sha / '
+                'preflight_rule_failed, reused_file_sha256 and sandbox_profile_sha256 drift: '
+                'the sparse checkout omitted runtime material)'),
+     'log_sha256': None,
+     'disposition': ('root\'s own attempt, not a run of the full checkout, and not reproduced '
+                     'there; the 0027 receipt quoted 22:08 only for its source finding.  The '
+                     'full-checkout, untracked-input reproduction path root 01:10 asks for '
+                     '(with this sparse-preflight refusal) is still owed')},
+    # -- the final adversarial verification of 8f0b4ae and the step answering it ---------------
+    {'kind': 'red_run',
+     'when': '2026-09-25 (UTC, finished before 05:18), the final adversarial verification of '
+             '8f0b4ae, in clones of 8f0b4ae (the worktree unmodified)',
+     'suite': 'mutation runs over live_ab_controls, then live_ab, live_ab_tools, live_ab_serving',
+     'result': ('105 mutants over the rulings 2114, 0153, 0254, 0324, 0703, 1605, 1905: 98 '
+                'killed by the right control; 3 killed only by the real host gate refusing a '
+                'run (E3, S6, R8g: a parallel runner or mediaanalysisd), E3 re-run solo '
+                'SURVIVED and S6 was killed by SM8AtTheRestart; 2 equivalent survivors (S10, '
+                'R8g); 7 non-equivalent SURVIVED (W6, R6f, E6, E3/E17, E18, C8, E12): with all '
+                'seven applied, controls 426 OK, live_ab 766 OK (skipped=1), tools 186 OK '
+                '(skipped=1), serving 193 OK.  Its first combined live_ab run FAILED (Ran 678, '
+                'errors=28: tests_lab_design and the import of tests_lab_serving) in a clone '
+                'without the untracked work/local_stream data; 766 OK once that data was '
+                'copied in'),
+     'log_sha256': {
+         'mut_run1': 'd924b5db5ae7d8f2d3d8b91e7600df0a667fa90268c82074488ac6707ac1f4b0',
+         'mut_run2': '43657be94d729c38a0479ced4f3ae733eedee400b75b15c642e32019df418a49',
+         'mut_run3': '41f870cbb519af5144e5debd990724d0bca9de132431781732a3510575b623ad',
+         'mutant_specs': '05e86a155dfc68609137ed9537be2fd708e86ca5da3cdf4e61cca88168b9b09a',
+         'combined_summary': '4ba7c7694796915b38a2543ddd650f5473136296fddcf4990b06f73c81e727d8',
+         'combined_live_ab_failed': ('e53476ef08f19dc4888fbebd7d675ad6e736119e748c965525c48247'
+                                     '692c7940'),
+         'combined_live_ab_ok': '9e918cce730f603f09bc6075af6a457f38941ab1990e61625692e13cd9bd79fb',
+         'flaky_reruns': '3fb0dfa7f2856233ecbc0ff2cf8ef80e94a620c7cb687b051b1b703bae926522'},
+     'disposition': ('the seven guards were correct and uncontrolled: tests_guard_controls '
+                     '(2113dbd) gives each a control and its mutation; no production byte '
+                     'changed.  Its finding 9 (a predecision non-cap abort with no crossing is '
+                     'published none, reportable true, as protocol 16 item 17 prescribes; the '
+                     'cap value is in no built output) is left for a root ruling')},
+    {'kind': 'red_run',
+     'when': '2026-09-25 05:29-05:52 UTC, the step answering that verification (2113dbd)',
+     'suite': ('live_ab_controls tests_guard_controls against the verifier\'s source mutants in a '
+               'clone (pre-fix negative controls, meant to fail)'),
+     'result': ('kill matrix 1: 8 of 8 classes failed, 6 of them only at setUpClass (the in-test '
+                'mutation refused before the unmutated control ran; restructured); kill matrix '
+                '2: 8 of 8 killed, E3/E17 case B by a ValueError (made an assertion); kill 3 '
+                '(E3, E17) by assertion; kill matrix 4 on the committed bytes: 8 of 8 killed, '
+                'each positive control by its own assertion; then the witness of these rows '
+                'before they were written: Ran 1, FAILED (failures=1, f1a136fe not found)'),
+     'log_sha256': {
+         'killmatrix1': '7a608b180d8b8623b60bf9086e87ecfcc9b7821be9f3cde199721aeb1b4f1e43',
+         'killmatrix2': 'e055d90d0a1d5dfdc60d25f1276439be94869860f4079553849ff270a358ea0e',
+         'kill3_E3': '5c4e7ddf85c98f43cd13adb79cc9f2a7d92fffa6a53faa20bfa76c36401efa16',
+         'kill3_E17': 'edd9bb1caf602a341b78f3d346b5984b3378b213c2fe72d43a866cdea6e9bbcb',
+         'killmatrix4': '03453bb6b7374174528ca368e817441ee9427b6fba6bdeaf0a983512cd45b015',
+         'full_controls': '4339180030c460a68e24669a67b291ba5a8918333497a37d0587d980739d6bf7',
+         'history_witness_before': ('a50d8c324b819c45ae6c977f0d54f8f4e55dced60f337f5a7dc0a3fb'
+                                    '3f23709d')},
+     'disposition': ('expected; on 8f0b4ae plus the module: dev1-dev3 16 OK, dev4 (with '
+                     'tests_delta_citations) 23 OK; full live_ab_controls at 2113dbd '
+                     '05:53-06:46 UTC: Ran 442 tests in 3184.690s, OK')},
 )
 
 #: The unified-diff form whose bytes are hashed (every option fixed; see git_env()).
