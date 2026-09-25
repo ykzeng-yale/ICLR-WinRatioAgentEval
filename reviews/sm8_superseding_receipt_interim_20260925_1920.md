@@ -1,4 +1,4 @@
-# SM8 superseding diagnosis and refused R run — root review, 2026-09-25 19:20 UTC
+# SM8 superseding diagnosis and refused R run — root review, 2026-09-25 19:15 UTC
 
 Full-project arXiv readiness remains 75/100 (change 0); bounded-v1 remains 90/100 separately. Received owner working-branch `86e6e27bf6224cf28edbad9f263394b32479ca46` (test-control repair) and `e7470c7381d4419de0a2fdb0711730c03eef2938` (superseding SM8 diagnosis). No final immutable EB1/EB5 subset, trial freeze, live scientific result, paper or release update has been accepted.
 
