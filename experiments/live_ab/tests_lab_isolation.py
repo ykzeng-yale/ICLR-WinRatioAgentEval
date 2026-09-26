@@ -84,6 +84,12 @@ MATRIX: dict[str, set[str]] = {
     # own -- so it imports nothing else in the lab namespace, and nothing in the lab namespace
     # (in particular `lab_design`) imports it back.
     'lab_prefreeze': {'lab_common', 'lab_eventlog', 'lab_shard_receipt'},
+    # Stage-1 golden/conformance driver (design_notes/DESIGN_PROPOSAL.md section 3 item 4,
+    # authorized against lab_mock_server only by root's 2026-09-26 07:18 bounded review). Speaks
+    # HTTP directly to the server surface (never through lab_client, which stays byte-identical)
+    # and reuses lab_server.tokenized_props/SMOKE_PROMPT for the golden-object shape, plus
+    # lab_prefreeze for its chain/shard-receipt wiring -- nothing else in the lab namespace.
+    'lab_stage1': {'requests', 'lab_common', 'lab_server', 'lab_prefreeze'},
 }
 LAB_NAMES = frozenset(set(MATRIX) | {'dryrun_live_ab'})
 
@@ -627,6 +633,42 @@ SIGNATURES: dict[str, dict[str, tuple]] = {
                            ('schedule_row', None, PO), ('pins', None, KW), ('inputs', None, KW),
                            ('outputs', None, KW), ('start_utc', None, KW), ('end_utc', None, KW),
                            ('outcome', None, KW), ('harness_pin_delta', '()', KW)),
+    },
+    # Stage-1 golden/conformance driver (design_notes/DESIGN_PROPOSAL.md section 3 item 4): its
+    # own public contract, pinned so the mock-only refusal, the golden write-once shape and the
+    # conformance counter cannot drift silently.
+    'lab_stage1': {
+        'GOLDEN_FILE_PATTERNS': CONST, 'Stage1Error': CONST, 'RealServerNotApproved': CONST,
+        'assert_mock_target': fn(('base_url', None, PO), ('target_kind', None, PO)),
+        'capture_reference': fn(('base_url', None, PO), ('server_id', None, PO),
+                                ('sampling', None, KW), ('target_kind', None, KW),
+                                ('seed', '1', KW), ('session', 'None', KW),
+                                ('timeout_s', '120.0', KW)),
+        'write_golden_objects': fn(('freeze_dir', None, PO), ('server_id', None, PO),
+                                   ('captured', None, PO)),
+        'golden_shard': fn(('base_url', None, KW), ('server_id', None, KW),
+                          ('freeze_dir', None, KW), ('receipts_dir', None, KW),
+                          ('inv', None, KW), ('target_kind', None, KW), ('sampling', None, KW),
+                          ('pins', None, KW), ('prefreeze_root', 'None', KW), ('seed', '1', KW),
+                          ('session', 'None', KW), ('subtree', "'stage1_golden'", KW),
+                          ('create', 'True', KW)),
+        'contains_code_block': fn(('text', None, PO)),
+        'probe_prompt': fn(('base_url', None, PO), ('prompt_id', None, PO),
+                          ('prompt_text', None, PO), ('target_kind', None, KW),
+                          ('sampling', None, KW), ('seed', '1', KW), ('session', 'None', KW),
+                          ('timeout_s', '120.0', KW)),
+        'run_conformance_probe': fn(('base_url', None, PO), ('prompts', None, PO),
+                                    ('target_kind', None, KW), ('sampling', None, KW),
+                                    ('threshold', None, KW), ('seed', '1', KW),
+                                    ('session', 'None', KW)),
+        'conformance_shard': fn(('base_url', None, KW), ('prompts', None, KW),
+                               ('server_id', None, KW), ('receipts_dir', None, KW),
+                               ('inv', None, KW), ('target_kind', None, KW),
+                               ('sampling', None, KW), ('threshold', None, KW),
+                               ('pins', None, KW), ('out_dir', 'None', KW),
+                               ('prefreeze_root', 'None', KW), ('seed', '1', KW),
+                               ('session', 'None', KW), ('subtree', "'stage1_conformance'", KW),
+                               ('create', 'True', KW)),
     },
 }
 
