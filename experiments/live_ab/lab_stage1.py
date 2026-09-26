@@ -181,6 +181,69 @@ all closed here:
    it.  `tests_stage1.GuardBeforeResumeTests` now carries a dedicated test doing exactly that for
    both the threshold check and the new sampling check.
 
+**2026-09-26 16:20 repair (root's independent interim review,
+`reviews/stage1_exact_type_gate_interim_20260926_1620.md`).**  One more HIGH finding, in the same
+"caller-controlled frozen value" defect class as every repair above, closed here:
+
+1. **Python coercion/equality admitted JSON-distinct caller values.**  `_assert_frozen_sampling`
+   used to compare `dict(sampling) != dict(frozen)`, and `_assert_frozen_threshold` used to cast
+   `int(threshold)` before comparing.  Python equates `False == 0`, `0 == False` and `1024.0 ==
+   1024`, and `int(9.5) == 9 == int('9')` -- all four distinguishable in canonical JSON, none of
+   them distinguishable by a bare `!=` or an `int(...)` cast.  Root's witnesses (each reproduced
+   here first as a FAILING test against this file's pre-repair logic, via the PUBLIC
+   `run_conformance_probe` entry point, through a request-COUNTING session so a guard that let
+   one request slip through before raising would still be caught): `top_k=False` in place of
+   frozen `0`, `cache_prompt=0` in place of frozen `false`, and `max_tokens=1024.0` in place of
+   frozen integer `1024` were each accepted by `_assert_frozen_sampling`; `threshold=9.5` and
+   `threshold='9'` were each accepted by `_assert_frozen_threshold` (which also cast the
+   threshold to `int` a second time inside `_verdict`, so a `9.5` that somehow reached it would
+   still have been silently treated as `9`).
+   Fix: :func:`_reject_non_exact_json` walks a value recursively and refuses (`SamplingRefused`)
+   at the first node that is not an EXACT JSON-representable type -- `type(x) is` exactly one of
+   `NoneType`/`bool`/`int`/`float`/`str`/`dict`/`list`, never a subclass of any of these (a `str`
+   subclass, an `int` subclass, a `dict`/Mapping subclass whose own `__eq__` this driver must not
+   trust) and never a `tuple` (the stdlib `json` module serializes a tuple exactly like a list,
+   which would hide the type difference from a canonical-JSON-string comparison alone) or any
+   other object; a `float` NaN/Infinity is refused the same way (JSON has no literal for either).
+   :func:`_json_exact_equal` then compares two already-walked values requiring `type(a) is
+   type(b)` at every node before falling back to `==`, so `False`/`0` and `1024.0`/`1024` no
+   longer compare equal across type.  `_assert_frozen_sampling` also now requires `type(sampling)
+   is dict` at the top level (never a Mapping/dict subclass) before it ever runs the walk or the
+   comparison, and never mutates the caller's mapping (it only reads it).  `_assert_frozen_
+   threshold` now requires `type(threshold) is int` (rejecting `bool` -- `type(True) is bool`,
+   never `int` -- and any `int` subclass) AND `threshold == frozen`, with NO cast of any kind;
+   `_frozen_conformance_threshold` itself now requires `type(raw) is int` from config.json (a
+   "genuine int", never a bool or an int subclass standing in for one).  Every `int(threshold)`
+   cast is removed, including inside `_verdict` and inside `run_conformance_probe`'s/
+   `conformance_shard`'s own bookkeeping, since by the time any of them run `threshold` is
+   already exactly the frozen int.
+2. **The same caller-controlled-cast defect extended to `run_conformance_probe`'s own prompt-set
+   guard.**  `ids = [str(p['id']) for p in prompts]` and `str(p['prompt']) != want` cast a
+   caller-supplied id/text to `str` before ever comparing it, so a non-`str` id/text that merely
+   *stringifies* to the predeclared value (or a `str` subclass overriding `__eq__`) could pass
+   silently; `conformance_shard`'s own `ordered_prompts = [(str(p['id']), str(p['prompt'])) ...]`
+   applied the identical casts before folding the pair into the resume pins, so a type-drifted
+   `prompts` at an otherwise-unchanged `pins` could resume a stale receipt without ever reaching
+   `run_conformance_probe`'s check on that call.  Fix: the new :func:`_validated_prompt_items`
+   refuses (`PromptSetRefused`) unless `prompts` is a `list`/`tuple` of exactly ten exact `dict`
+   entries, each with an exact-`str` `'id'` and `'prompt'` (never an `int`, a `bool`, a numeric
+   string, or a `str` subclass) -- called by both `run_conformance_probe` and `conformance_shard`
+   (the latter before folding `prompts` into its resume pins, the same "before any resume"
+   placement the `target_kind`/`threshold`/`sampling` guards already use), replacing every
+   `str(p['id'])`/`str(p['prompt'])` cast on caller-supplied prompt data.
+3. **`probe_prompt`'s scope, made explicit.**  Per this review's own ruling, `probe_prompt` may
+   remain an explicitly labelled single-request diagnostic: unlike :func:`run_conformance_probe`,
+   it yields no ten-prompt PASS/FAIL verdict (`'verdict'` is never a key of its return value) and
+   writes no shard or receipt of its own (it has exactly one production caller,
+   `run_conformance_probe`, which performs the full frozen-set/text check before ever calling
+   it) -- its docstring now says this in exactly those terms. It still calls `assert_mock_target`
+   and the typed `_assert_frozen_sampling` before any request, unchanged.
+
+Every finding above was reproduced as a FAILING test against this file's pre-repair logic before
+being fixed (`tests_stage1.RootSixteenTwentyWitnessReproductionTests`), each through a public
+entry point and a request-counting session/mock server, never only the private guard functions
+called directly, per this review's own instruction.
+
 Prepared and checked by AI agent sessions; not human peer review or author sign-off
 (protocol 14.7).
 """
@@ -188,6 +251,7 @@ from __future__ import annotations
 
 import ast
 import json
+import math
 import re
 import tempfile
 import warnings
@@ -239,28 +303,43 @@ class RealServerNotApproved(Stage1Error):
 
 
 class PromptSetRefused(Stage1Error):
-    """`run_conformance_probe`'s `prompts` was not exactly ten items, was not exactly
-    config.json's predeclared ten ids (:func:`_predeclared_prompt_ids`), or supplied text for a
-    predeclared id -- any of the four inline `prefreeze.conformance_prompts` OR any of the six
-    `roster.smoke_tasks` (root's 2026-09-26 13:20 review, finding 1, closing the gap left by
-    root's 2026-09-26 10:19 review, finding 2: the six smoke ids used to be entirely
-    unchecked here) -- that disagrees with its predeclared text (:func:`_predeclared_conformance_text`)."""
+    """`run_conformance_probe`'s `prompts` was not a `list`/`tuple` of exactly ten exact `dict`
+    entries (root's 2026-09-26 16:20 review: never a generator/other iterable, and never a
+    Mapping/dict subclass standing in for one), each with an exact-`str` `'id'`/`'prompt'` (never
+    an `int`, a `bool`, a numeric string, or a `str` subclass overriding `__eq__`,
+    :func:`_validated_prompt_items`), was not exactly config.json's predeclared ten ids
+    (:func:`_predeclared_prompt_ids`), or supplied text for a predeclared id -- any of the four
+    inline `prefreeze.conformance_prompts` OR any of the six `roster.smoke_tasks` (root's
+    2026-09-26 13:20 review, finding 1, closing the gap left by root's 2026-09-26 10:19 review,
+    finding 2: the six smoke ids used to be entirely unchecked here) -- that disagrees with its
+    predeclared text (:func:`_predeclared_conformance_text`).  `conformance_shard` applies the
+    same :func:`_validated_prompt_items` check before folding `prompts` into its resume pins, not
+    only inside `run_conformance_probe`."""
 
 
 class ThresholdRefused(Stage1Error):
-    """`threshold` disagreed with the frozen, non-amendable `config.json`
-    `prefreeze.format_conformance_min` (protocol 2.4 item 6 / `protocol_FINAL.md:3018,3773`;
-    root's 2026-09-26 13:20 review, finding 2).  `run_conformance_probe` and `conformance_shard`
-    both refuse any other value, before any request or resume."""
+    """`threshold` was not a genuine `int` (`type(threshold) is int`, so a `bool`, an `int`
+    subclass, a `float` such as `9.5`, or a numeric string such as `'9'` is refused outright,
+    root's 2026-09-26 16:20 review, closing the `int(threshold)`-cast gap in the 13:20 repair
+    below) equal to the frozen, non-amendable `config.json` `prefreeze.format_conformance_min`
+    (protocol 2.4 item 6 / `protocol_FINAL.md:3018,3773`; root's 2026-09-26 13:20 review, finding
+    2).  `run_conformance_probe` and `conformance_shard` both refuse any other value, before any
+    request or resume."""
 
 
 class SamplingRefused(Stage1Error):
-    """`sampling` disagreed with the frozen, non-amendable `config.json` top-level `sampling`
-    object (protocol_FINAL.md:3018, "every sampling parameter"; independent adversarial review
-    of the 2026-09-26 13:20 repair).  Every public entry point that accepts a `sampling` keyword
-    argument -- :func:`capture_reference`, :func:`probe_prompt`, :func:`run_conformance_probe`,
-    :func:`golden_shard`, :func:`conformance_shard` -- refuses any other value, before any
-    request or resume, the same discipline :class:`ThresholdRefused` already applies."""
+    """`sampling` was not an exact `dict` (never a Mapping/dict subclass whose own `__eq__` this
+    driver must not trust) EXACT-TYPED-JSON-equal to the frozen, non-amendable `config.json`
+    top-level `sampling` object (protocol_FINAL.md:3018, "every sampling parameter"; independent
+    adversarial review of the 2026-09-26 13:20 repair, tightened by root's 2026-09-26 16:20
+    review: a bare `!=`/`dict(...) != dict(...)` comparison let `top_k=False` stand in for frozen
+    `0`, `cache_prompt=0` for frozen `false`, and `max_tokens=1024.0` for frozen integer `1024`,
+    since Python's own `==` treats each pair as equal -- :func:`_reject_non_exact_json` /
+    :func:`_json_exact_equal` close this).  Every public entry point that accepts a `sampling`
+    keyword argument -- :func:`capture_reference`, :func:`probe_prompt`,
+    :func:`run_conformance_probe`, :func:`golden_shard`, :func:`conformance_shard` -- refuses any
+    other value, before any request or resume, the same discipline :class:`ThresholdRefused`
+    already applies."""
 
 
 #: Path to the ONE real first-block extractor this driver's conformance predicate defers to,
@@ -866,7 +945,15 @@ def probe_prompt(base_url, prompt_id, prompt_text, *, target_kind, sampling, see
     exactly one caller in this repository, :func:`run_conformance_probe`, which performs the full
     frozen-set/text check (:func:`_predeclared_prompt_ids`/:func:`_predeclared_conformance_text`)
     on every prompt before calling this per-request primitive.  Classified PROVABLY IRRELEVANT to
-    the frozen-gate concern rather than duplicated here."""
+    the frozen-gate concern rather than duplicated here.
+
+    **`probe_prompt` may remain an explicitly labelled single-request diagnostic (root's
+    2026-09-26 16:20 review): it yields no ten-prompt PASS/FAIL verdict -- `'verdict'` is never a
+    key of its return value -- and it writes no shard or receipt of its own.**  It still enforces
+    the mock/loopback-only target (`assert_mock_target`) and the typed frozen `sampling`
+    (`_assert_frozen_sampling`) before any request, exactly like every other public entry point of
+    this module; `tests_stage1.py` asserts both halves of this directly (no `'verdict'` key, and
+    no file/receipt appears under a fresh, isolated directory after a call)."""
     assert_mock_target(base_url, target_kind)
     _assert_frozen_sampling(sampling)
     sess = session if session is not None else requests
@@ -934,40 +1021,56 @@ def _verdict(n_with_code_block, threshold) -> str:
     hardcoded `'PASS' if 9 >= 9 else 'FAIL'` as a literal Python expression and never imported or
     called anything in this module, so it proved nothing about the real boundary check (an
     independent adversarial review's finding 3); `tests_stage1.MutationControlTests` now calls
-    this function itself."""
-    return 'PASS' if int(n_with_code_block) >= int(threshold) else 'FAIL'
+    this function itself.  `threshold` is used AS GIVEN, with no `int(...)` cast (root's
+    2026-09-26 16:20 review: the old `int(threshold)` cast here meant a `9.5` that somehow reached
+    this function would still have been silently treated as `9`) -- every caller of this function
+    already passes a `threshold` that :func:`_assert_frozen_threshold` has verified is a genuine
+    `int` equal to the frozen value, so this function must not re-loosen that type."""
+    return 'PASS' if int(n_with_code_block) >= threshold else 'FAIL'
 
 
 def _frozen_conformance_threshold() -> int:
     """[pure-ish] `config.json`'s own `prefreeze.format_conformance_min` -- protocol 2.4 item 6's
     "non-amendable success margin" (`protocol_FINAL.md:3018,3773`), read through
     `lab_common.harness_config()` (already in this module's MATRIX row), never hardcoded here so
-    this module cannot itself drift from root's frozen value.  Refuses (:class:`Stage1Error`) if
-    config.json no longer declares it as an int, so a config drift is caught here rather than
+    this module cannot itself drift from root's frozen value.  Refuses (:class:`Stage1Error`)
+    unless config.json declares it as a GENUINE `int` -- `type(raw) is int` (root's 2026-09-26
+    16:20 review: an `isinstance` check alone would still accept a `bool` masquerading as an int,
+    or an `int` subclass, either of which config.json's own JSON parse never actually produces,
+    but this function must not rely on that) -- so a config drift is caught here rather than
     silently comparing against `None` or a wrong type."""
     cfg = lab_common.harness_config()
     raw = (cfg.get('prefreeze') or {}).get('format_conformance_min')
-    if not isinstance(raw, int) or isinstance(raw, bool):
+    if type(raw) is not int:
         raise Stage1Error(
-            f'config.json prefreeze.format_conformance_min must be an int; got {raw!r}')
+            f'config.json prefreeze.format_conformance_min must be a genuine int; got {raw!r} '
+            f'(type {type(raw).__name__})')
     return raw
 
 
 def _assert_frozen_threshold(threshold) -> int:
-    """[pure-ish] Refuse (:class:`ThresholdRefused`) unless `threshold` equals
-    :func:`_frozen_conformance_threshold`'s value exactly -- root's 2026-09-26 13:20 ruling,
-    finding 2: "the non-amendable success margin is caller-controlled".  Root's witness: with all
-    ten HTTP responses forced to 500 (zero conforming), `run_conformance_probe` returned PASS
-    when called with `threshold=0`, because the caller-supplied threshold was never checked
-    against config.json's own frozen value.  Called before any request or resume in both
-    :func:`run_conformance_probe` and :func:`conformance_shard`.  Returns the frozen value so a
-    caller of either function need not read config.json a second time."""
+    """[pure-ish] Refuse (:class:`ThresholdRefused`) unless `threshold` is a GENUINE `int` --
+    `type(threshold) is int`, so a `bool` (`type(True) is bool`, never `int`, even though
+    `True == 1`) or any `int` subclass is refused regardless of its value -- AND equals
+    :func:`_frozen_conformance_threshold`'s value exactly, with NO cast of any kind (root's
+    2026-09-26 16:20 review: the previous `int(threshold) != frozen` cast made `threshold=9.5`
+    and `threshold='9'` both compare equal to frozen `9`, since `int(9.5) == 9 == int('9')`,
+    although neither is JSON-equal to the frozen integer).  This is root's 2026-09-26 13:20
+    ruling, finding 2: "the non-amendable success margin is caller-controlled", strengthened.
+    Root's original witness: with all ten HTTP responses forced to 500 (zero conforming),
+    `run_conformance_probe` returned PASS when called with `threshold=0`, because the
+    caller-supplied threshold was never checked against config.json's own frozen value.  Called
+    before any request or resume in both :func:`run_conformance_probe` and
+    :func:`conformance_shard`.  Returns the frozen value so a caller of either function need not
+    read config.json a second time."""
     frozen = _frozen_conformance_threshold()
-    if int(threshold) != frozen:
+    if type(threshold) is not int or threshold != frozen:
         raise ThresholdRefused(
-            f'threshold={threshold!r} disagrees with the frozen, non-amendable config.json '
-            f'prefreeze.format_conformance_min={frozen!r} (protocol 2.4 item 6); lab_stage1 '
-            'never accepts a different conformance margin, before any request or resume.')
+            f'threshold={threshold!r} (type {type(threshold).__name__}) disagrees with the '
+            f'frozen, non-amendable config.json prefreeze.format_conformance_min={frozen!r} '
+            '(protocol 2.4 item 6); lab_stage1 requires an exact int equal to the frozen value '
+            '(never a bool, an int subclass, a float, or a numeric string), before any request '
+            'or resume.')
     return frozen
 
 
@@ -986,28 +1089,149 @@ def _frozen_sampling() -> dict:
     return dict(raw)
 
 
+def _reject_non_exact_json(value, path, exc) -> None:
+    """[pure] Walk `value` recursively and raise `exc` (a :class:`Stage1Error` subclass) at the
+    FIRST node that is not an EXACT JSON-representable type -- `type(x) is` exactly one of
+    `NoneType`/`bool`/`int`/`float`/`str`/`dict`/`list`, NEVER a subclass of any of these (a
+    `str` subclass, an `int` subclass, a `dict`/Mapping subclass whose own `__eq__` this driver
+    must not trust to report the truth) and NEVER a `tuple` -- the stdlib `json` module
+    serializes a tuple exactly like a list (`json.dumps((1, 2)) == json.dumps([1, 2])`), which
+    would silently hide this type difference from a canonical-JSON-string comparison alone -- or
+    any other object.  A `float` NaN or Infinity is also refused: JSON has no literal for either,
+    and the stdlib `json` module only accepts them via its own permissive `allow_nan=True`
+    default, silently producing non-standard output no real HTTP JSON body could ever carry.
+    Root's 2026-09-26 16:20 review names exactly these categories (NaN, Infinity, tuples, custom
+    objects, Mapping subclasses with an overriding `__eq__`, `str` subclasses) as values that
+    must be refused rather than risk comparing them as if they might accidentally equal a frozen
+    value.  Never mutates `value`.  `path` is a dotted/indexed label used only for the message."""
+    t = type(value)
+    if value is None or t is bool or t is int or t is str:
+        return
+    if t is float:
+        if math.isnan(value) or math.isinf(value):
+            raise exc(f'{path}: NaN/Infinity is not a JSON-representable value ({value!r})')
+        return
+    if t is dict:
+        for k, v in value.items():
+            if type(k) is not str:
+                raise exc(f'{path}: dict key {k!r} (type {type(k).__name__}) is not an exact '
+                          'str')
+            _reject_non_exact_json(v, f'{path}.{k}', exc)
+        return
+    if t is list:
+        for i, v in enumerate(value):
+            _reject_non_exact_json(v, f'{path}[{i}]', exc)
+        return
+    raise exc(
+        f'{path}: value {value!r} has type {t.__name__}, which is not an exact JSON-'
+        'representable type (expected exactly one of NoneType/bool/int/float/str/dict/list, '
+        'never a subclass of any of these, and never a tuple)')
+
+
+def _json_exact_equal(a, b) -> bool:
+    """[pure] True iff `a` and `b` carry the same JSON type at EVERY node (`bool` is never
+    treated `== int`, `int` is never treated `== float`, `None` matches only `None`) and are
+    then structurally equal -- the fix for root's 2026-09-26 16:20 HIGH finding against the old
+    bare `dict(sampling) != dict(frozen)` comparison, which inherited Python's own cross-type
+    numeric equality (`False == 0`, `0 == False` and `1024.0 == 1024` are all `True` in Python,
+    though canonical JSON tells each pair apart).  Callers pass both sides through
+    :func:`_reject_non_exact_json` FIRST, so by the time this runs neither side can be a tuple, a
+    NaN/Infinity float, or a subclass of any JSON scalar/container type; this function only needs
+    to re-check `type(a) is type(b)` at each node to catch the bool/int/float distinctions
+    Python's own `==` would otherwise erase.  Never mutates either argument."""
+    if type(a) is not type(b):
+        return False
+    if type(a) is dict:
+        if set(a.keys()) != set(b.keys()):
+            return False
+        return all(_json_exact_equal(a[k], b[k]) for k in a)
+    if type(a) is list:
+        if len(a) != len(b):
+            return False
+        return all(_json_exact_equal(x, y) for x, y in zip(a, b))
+    return a == b
+
+
 def _assert_frozen_sampling(sampling) -> dict:
-    """[pure-ish] Refuse (:class:`SamplingRefused`) unless `sampling` equals
-    :func:`_frozen_sampling`'s value exactly -- independent adversarial review of the 2026-09-26
-    13:20 repair: "sampling (including max_tokens) is entirely caller-controlled and
+    """[pure-ish] Refuse (:class:`SamplingRefused`) unless `sampling` is an exact `dict` (never a
+    Mapping/`dict` subclass whose own `__eq__` this driver must not trust, root's 2026-09-26
+    16:20 review) that is EXACT-TYPED-JSON-equal to :func:`_frozen_sampling`'s value -- the same
+    key set, and at every value an exact JSON-type match before equality (:func:`_json_exact_
+    equal`, via :func:`_reject_non_exact_json` first) -- independent adversarial review of the
+    2026-09-26 13:20 repair: "sampling (including max_tokens) is entirely caller-controlled and
     unvalidated, in every public entry point."  Live witness: `run_conformance_probe` with
     `sampling={'temperature': 1.9, 'max_tokens': 3}` (missing every other frozen key) returned a
     PASS verdict with no refusal, and `capture_reference` wrote that same rogue sampling straight
     into the golden `generation_settings` object every later trial receipt is compared against
-    (protocol 13.2).  Called before any request in :func:`capture_reference`,
-    :func:`probe_prompt`, :func:`run_conformance_probe`, and before any resume in
-    :func:`golden_shard`/:func:`conformance_shard` -- the same placement
+    (protocol 13.2).  Root's 2026-09-26 16:20 review then showed the fix that followed was itself
+    too loose: a bare `!=` on two plain dicts lets `top_k=False` stand in for frozen `0`,
+    `cache_prompt=0` for frozen `false`, and `max_tokens=1024.0` for frozen integer `1024`, since
+    Python's own `==` treats each pair as equal.  Called before any request in
+    :func:`capture_reference`, :func:`probe_prompt`, :func:`run_conformance_probe`, and before
+    any resume in :func:`golden_shard`/:func:`conformance_shard` -- the same placement
     :func:`_assert_frozen_threshold` already uses.  Returns the frozen value so a caller need not
-    read config.json a second time."""
+    read config.json a second time.  Never mutates the caller's `sampling`."""
     frozen = _frozen_sampling()
-    got = dict(sampling)
-    if got != frozen:
+    if type(sampling) is not dict:
         raise SamplingRefused(
-            f'sampling={got!r} disagrees with the frozen, non-amendable config.json '
+            'sampling must be an exact dict (never a Mapping/dict subclass whose own __eq__ '
+            f'this driver must not trust); got {type(sampling).__name__}')
+    _reject_non_exact_json(sampling, 'sampling', SamplingRefused)
+    if not _json_exact_equal(sampling, frozen):
+        raise SamplingRefused(
+            f'sampling={sampling!r} disagrees with the frozen, non-amendable config.json '
             f'sampling={frozen!r} (protocol_FINAL.md:3018, "every sampling parameter" is '
-            'non-amendable, the same freeze class as the prompts and the threshold); lab_stage1 '
-            'never accepts a different sampling block, before any request or resume.')
+            'non-amendable, the same freeze class as the prompts and the threshold), checked as '
+            'EXACT TYPED canonical JSON: the same key set, and at every value an exact JSON-type '
+            'match (a bool is never accepted where the frozen value is an int or vice versa, an '
+            'int is never accepted where the frozen value is a float or vice versa) before '
+            'equality; lab_stage1 never accepts a different sampling block, before any request '
+            'or resume.')
     return frozen
+
+
+def _validated_prompt_items(prompts) -> list:
+    """[pure] Refuse (:class:`PromptSetRefused`) unless `prompts` is a `list` or `tuple` (never a
+    generator or other one-shot iterable, and never a `str`/mapping standing in for a sequence)
+    of EXACTLY TEN exact `dict` entries (never a Mapping/`dict` subclass whose own `__eq__` this
+    driver must not trust), each carrying an exact-`str` `'id'` and an exact-`str` `'prompt'`
+    (never an `int`, a `bool`, a numeric string, or a `str` subclass overriding `__eq__`) --
+    root's 2026-09-26 16:20 review, extending the same "caller-controlled cast" defect class
+    already closed for `sampling`/`threshold` to `run_conformance_probe`'s OWN prompt-set guard,
+    which used to build `ids = [str(p['id']) for p in prompts]` and compare `str(p['prompt']) !=
+    want` -- casts that let a non-`str` id/prompt that merely *stringifies* to a predeclared
+    value pass silently -- and to :func:`conformance_shard`'s prompt-pin folding, which applied
+    the identical `str(...)` casts to build its `ordered_prompts` resume pin BEFORE ever reaching
+    this check, so a type-drifted `prompts` at an otherwise-unchanged caller `pins` could resume a
+    stale receipt without this call's `run_conformance_probe` ever validating it.
+
+    Called BEFORE any request or resume wherever `prompts` is used (the same "guard first"
+    placement `assert_mock_target`/`_assert_frozen_threshold`/`_assert_frozen_sampling` already
+    use).  Returns the validated items as a plain `list` of the SAME dict objects, never copied
+    or mutated, so a caller can still read `p['id']`/`p['prompt']` directly and exactly-once."""
+    if not isinstance(prompts, (list, tuple)):
+        raise PromptSetRefused(
+            'run_conformance_probe/conformance_shard requires prompts to be a list or tuple of '
+            f'exactly ten dicts; got {type(prompts).__name__}')
+    items = list(prompts)
+    if len(items) != 10:
+        raise PromptSetRefused(
+            f'run_conformance_probe requires exactly ten prompts (protocol 5.8); got '
+            f'{len(items)}')
+    for p in items:
+        if type(p) is not dict:
+            raise PromptSetRefused(
+                'each prompt entry must be an exact dict (never a Mapping/dict subclass whose '
+                f'own __eq__ this driver must not trust); got {type(p).__name__}')
+        if type(p.get('id')) is not str:
+            raise PromptSetRefused(
+                f"prompt entry {p!r} 'id' must be an exact str; got "
+                f"{type(p.get('id')).__name__}")
+        if type(p.get('prompt')) is not str:
+            raise PromptSetRefused(
+                f"prompt entry {p!r} 'prompt' must be an exact str; got "
+                f"{type(p.get('prompt')).__name__}")
+    return items
 
 
 def run_conformance_probe(base_url, prompts, *, target_kind, sampling, threshold, seed=1,
@@ -1045,12 +1269,8 @@ def run_conformance_probe(base_url, prompts, *, target_kind, sampling, threshold
     assert_mock_target(base_url, target_kind)
     _assert_frozen_threshold(threshold)
     _assert_frozen_sampling(sampling)
-    prompts = list(prompts)
-    if len(prompts) != 10:
-        raise PromptSetRefused(
-            f'run_conformance_probe requires exactly ten prompts (protocol 5.8); got '
-            f'{len(prompts)}')
-    ids = [str(p['id']) for p in prompts]
+    prompts = _validated_prompt_items(prompts)
+    ids = [p['id'] for p in prompts]
     if len(set(ids)) != len(ids):
         raise PromptSetRefused(f'run_conformance_probe prompt ids must be distinct; got {ids}')
     predeclared = _predeclared_prompt_ids()
@@ -1063,8 +1283,8 @@ def run_conformance_probe(base_url, prompts, *, target_kind, sampling, threshold
             f'{missing}')
     declared_text = _predeclared_conformance_text()
     for p in prompts:
-        want = declared_text.get(str(p['id']))
-        if want is not None and str(p['prompt']) != want:
+        want = declared_text.get(p['id'])
+        if want is not None and p['prompt'] != want:
             raise PromptSetRefused(
                 f"run_conformance_probe prompt {p['id']!r} text disagrees with its predeclared "
                 'text (config.json prefreeze.conformance_prompts, or the derived mbpp_full '
@@ -1076,7 +1296,7 @@ def run_conformance_probe(base_url, prompts, *, target_kind, sampling, threshold
     return {
         'n_prompts': len(rows),
         'n_with_code_block': n_with_code_block,
-        'threshold': int(threshold),
+        'threshold': threshold,
         'verdict': _verdict(n_with_code_block, threshold),
         'per_prompt': rows,
     }
@@ -1109,7 +1329,14 @@ def conformance_shard(*, base_url, prompts, server_id, receipts_dir, inv, target
     finding one already on disk.  The resume pins also fold in the exact ORDERED `(id, prompt)`
     pairs of `prompts` (root's 2026-09-26 10:19 review, finding 1): a changed prompt text, a
     changed id, or a changed order at an otherwise-unchanged caller `pins` now raises
-    `lab_shard_receipt.ResumeMismatch` on resume rather than silently reusing the stale receipt --
+    `lab_shard_receipt.ResumeMismatch` on resume rather than silently reusing the stale receipt.
+    `prompts` is validated by :func:`_validated_prompt_items` (root's 2026-09-26 16:20 review)
+    BEFORE the ordered pairs are built and BEFORE the resume check, so a `prompts` that is not a
+    list/tuple of exactly ten exact dicts with exact-`str` `'id'`/`'prompt'` is refused
+    (:class:`PromptSetRefused`) here too, not only inside `run_conformance_probe` on a fresh
+    attempt -- closing the gap where the old `str(p['id'])`/`str(p['prompt'])` casts used to build
+    this same ordered-pairs pin from a type-drifted `prompts` that could then resume a stale
+    receipt without ever reaching `run_conformance_probe`'s own check on that call.
     `run_conformance_probe` itself is called only after the resume check (or not at all, if
     resumed), so its own :class:`PromptSetRefused` guard runs on every FRESH attempt but is never
     reached, and never needs to be, on a legitimate resume.  The resume pins also fold in three
@@ -1127,14 +1354,14 @@ def conformance_shard(*, base_url, prompts, server_id, receipts_dir, inv, target
     assert_mock_target(base_url, target_kind)
     _assert_frozen_threshold(threshold)
     _assert_frozen_sampling(sampling)
+    prompts = _validated_prompt_items(prompts)
     schedule_row = {'unit': 'conformance_probe', 'server_id': str(server_id)}
-    prompts = list(prompts)
     output_rel = {}
     if out_dir is not None:
         output_rel['report'] = 'conformance_%s.json' % server_id
-    ordered_prompts = [(str(p['id']), str(p['prompt'])) for p in prompts]
+    ordered_prompts = [(p['id'], p['prompt']) for p in prompts]
     resume_pins = _effective_pins(pins, sampling=dict(sampling), seed=int(seed),
-                                  threshold=int(threshold), prompts=ordered_prompts,
+                                  threshold=threshold, prompts=ordered_prompts,
                                   extract_code_source_sha256=_AGENT_PY_SHA256,
                                   mbpp_entry_point_source_sha256=_DATA_PY_SHA256,
                                   smoke_prompt_source_sha256=_MBPP_FULL_SOURCE['sha256'])

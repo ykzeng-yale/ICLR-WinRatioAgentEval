@@ -1462,5 +1462,237 @@ class RootThirteenTwentyWitnessReproductionTests(unittest.TestCase):
                     threshold=0)
 
 
+class _CountingSession:
+    """A `requests`-compatible stand-in that counts every `get`/`post` call and then raises --
+    used to prove a guard refuses BEFORE any network call reaches it (root's 2026-09-26 16:20
+    review: "Use a mock server that counts requests, and assert zero requests"), stronger than a
+    closed port alone: even against a REAL running mock server, `calls` staying at zero is
+    positive evidence the guard fired first, not merely that a request happened to fail to
+    connect.  Distinct from :class:`_ExplodingSession` above only in that it counts."""
+
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def get(self, *a, **k):
+        self.calls += 1
+        raise AssertionError('a frozen-value guard must refuse before any GET request')
+
+    def post(self, *a, **k):
+        self.calls += 1
+        raise AssertionError('a frozen-value guard must refuse before any POST request')
+
+
+class RootSixteenTwentyWitnessReproductionTests(unittest.TestCase):
+    """Reproduces, as FAILING tests against the pre-repair `8062e13` code, root's 2026-09-26
+    16:20 HIGH finding (`reviews/stage1_exact_type_gate_interim_20260926_1620.md`): Python's own
+    cross-type equality (`False == 0`, `0 == False`, `1024.0 == 1024`) and `int(...)` casts
+    (`int(9.5) == 9`, `int('9') == 9`) let a caller-supplied `sampling`/`threshold` that is
+    JSON-DISTINCT from the frozen value pass `lab_stage1`'s own guards. Each witness goes through
+    `run_conformance_probe`, a PUBLIC entry point (never only the private
+    `_assert_frozen_sampling`/`_assert_frozen_threshold` guard functions directly), against a REAL
+    running mock server reached through a request-COUNTING session (:class:`_CountingSession`) --
+    so a refusal that let even one request slip through before raising would still be caught.
+    Every witness asserts `session.calls == 0`: refused before any request (none of these calls
+    ever reach a shard/resume path at all, so "before resume" is vacuously satisfied here; see
+    :class:`GuardBeforeResumeTests` and :class:`RootTenNineteenWitnessReproductionTests` for the
+    resume-shaped half of this discipline, already covered for `target_kind`/`threshold`/
+    `sampling`). Run against the pinned `8062e13` code, each of these five silently accepts the
+    caller's value and goes on to dial the mock server, at which point the counting session's
+    `post` raises `AssertionError` in place of the `SamplingRefused`/`ThresholdRefused` this test
+    expects -- that mismatch (an unexpected `AssertionError` where a specific refusal type was
+    asserted, i.e. this test ERRORS rather than passing) IS the reproduction; once the repair
+    lands, each of these five raises the correct refusal with `session.calls` still at zero."""
+
+    @staticmethod
+    def _mock_url(stack) -> str:
+        model_path = str(lab_common.REPO_ROOT / 'work' / 'live_ab' / 'models' / 'coder.gguf')
+        scenario = _scenario(model_path)
+        return stack.enter_context(mock_server(scenario))
+
+    def test_witness_top_k_false_in_place_of_frozen_zero(self) -> None:
+        with contextlib.ExitStack() as stack:
+            base_url = self._mock_url(stack)
+            counting = _CountingSession()
+            rogue = dict(SAMPLING, top_k=False)
+            with self.assertRaises(
+                    lab_stage1.SamplingRefused,
+                    msg="root witness (16:20): top_k=False in place of frozen 0 -- Python's "
+                        'False == 0 must not let this through'):
+                lab_stage1.run_conformance_probe(
+                    base_url, CONFORMANCE_PROMPTS_10, target_kind='mock', sampling=rogue,
+                    threshold=9, session=counting)
+            self.assertEqual(counting.calls, 0, 'must be refused before any request')
+
+    def test_witness_cache_prompt_zero_in_place_of_frozen_false(self) -> None:
+        with contextlib.ExitStack() as stack:
+            base_url = self._mock_url(stack)
+            counting = _CountingSession()
+            rogue = dict(SAMPLING, cache_prompt=0)
+            with self.assertRaises(
+                    lab_stage1.SamplingRefused,
+                    msg='root witness (16:20): cache_prompt=0 in place of frozen false -- '
+                        "Python's 0 == False must not let this through"):
+                lab_stage1.run_conformance_probe(
+                    base_url, CONFORMANCE_PROMPTS_10, target_kind='mock', sampling=rogue,
+                    threshold=9, session=counting)
+            self.assertEqual(counting.calls, 0, 'must be refused before any request')
+
+    def test_witness_max_tokens_float_in_place_of_frozen_int(self) -> None:
+        with contextlib.ExitStack() as stack:
+            base_url = self._mock_url(stack)
+            counting = _CountingSession()
+            rogue = dict(SAMPLING, max_tokens=1024.0)
+            with self.assertRaises(
+                    lab_stage1.SamplingRefused,
+                    msg='root witness (16:20): max_tokens=1024.0 in place of frozen integer '
+                        "1024 -- Python's 1024.0 == 1024 must not let this through"):
+                lab_stage1.run_conformance_probe(
+                    base_url, CONFORMANCE_PROMPTS_10, target_kind='mock', sampling=rogue,
+                    threshold=9, session=counting)
+            self.assertEqual(counting.calls, 0, 'must be refused before any request')
+
+    def test_witness_threshold_nine_point_five(self) -> None:
+        with contextlib.ExitStack() as stack:
+            base_url = self._mock_url(stack)
+            counting = _CountingSession()
+            with self.assertRaises(
+                    lab_stage1.ThresholdRefused,
+                    msg="root witness (16:20): threshold=9.5 -- int(9.5) == 9 must not let this "
+                        'through'):
+                lab_stage1.run_conformance_probe(
+                    base_url, CONFORMANCE_PROMPTS_10, target_kind='mock', sampling=SAMPLING,
+                    threshold=9.5, session=counting)
+            self.assertEqual(counting.calls, 0, 'must be refused before any request')
+
+    def test_witness_threshold_string_nine(self) -> None:
+        with contextlib.ExitStack() as stack:
+            base_url = self._mock_url(stack)
+            counting = _CountingSession()
+            with self.assertRaises(
+                    lab_stage1.ThresholdRefused,
+                    msg="root witness (16:20): threshold='9' -- int('9') == 9 must not let this "
+                        'through'):
+                lab_stage1.run_conformance_probe(
+                    base_url, CONFORMANCE_PROMPTS_10, target_kind='mock', sampling=SAMPLING,
+                    threshold='9', session=counting)
+            self.assertEqual(counting.calls, 0, 'must be refused before any request')
+
+
+class ExactTypeGateExtraTests(unittest.TestCase):
+    """Root's 2026-09-26 16:20 review's extra required controls, beyond the five witnesses above:
+    a bool-for-int case on a DIFFERENT sampling key than the witness's `top_k`, an `int` subclass
+    threshold, `True` as a threshold, a `str`-subclass prompt text, a `dict`-subclass sampling
+    whose own `__eq__` always reports `True`, and a frozen-value positive control that still
+    PASSes 10 of 10 through a real mock server."""
+
+    def test_negative_bool_for_int_on_a_different_sampling_key_is_refused(self) -> None:
+        # `mirostat` is frozen at int 0; `False == 0` in Python, so a bare `!=` on the whole dict
+        # would have let this through even though `type(False) is not int`.
+        rogue = dict(SAMPLING, mirostat=False)
+        with self.assertRaises(lab_stage1.SamplingRefused):
+            lab_stage1.run_conformance_probe(
+                'http://127.0.0.1:1', CONFORMANCE_PROMPTS_10, target_kind='mock', sampling=rogue,
+                threshold=9)
+
+    def test_negative_int_subclass_threshold_is_refused(self) -> None:
+        class _IntSub(int):
+            pass
+        with self.assertRaises(lab_stage1.ThresholdRefused):
+            lab_stage1.run_conformance_probe(
+                'http://127.0.0.1:1', CONFORMANCE_PROMPTS_10, target_kind='mock',
+                sampling=SAMPLING, threshold=_IntSub(9))
+
+    def test_negative_true_as_threshold_is_refused(self) -> None:
+        with self.assertRaises(lab_stage1.ThresholdRefused):
+            lab_stage1.run_conformance_probe(
+                'http://127.0.0.1:1', CONFORMANCE_PROMPTS_10, target_kind='mock',
+                sampling=SAMPLING, threshold=True)
+
+    def test_negative_str_subclass_prompt_text_is_refused(self) -> None:
+        class _StrSub(str):
+            pass
+        tampered = [dict(p) for p in CONFORMANCE_PROMPTS_10]
+        tampered[0]['prompt'] = _StrSub(tampered[0]['prompt'])  # same content, different type
+        with self.assertRaises(lab_stage1.PromptSetRefused):
+            lab_stage1.run_conformance_probe(
+                'http://127.0.0.1:1', tampered, target_kind='mock', sampling=SAMPLING,
+                threshold=9)
+
+    def test_negative_dict_subclass_sampling_with_always_true_eq_is_refused(self) -> None:
+        class _AlwaysEqualDict(dict):
+            def __eq__(self, other):
+                return True
+
+            def __ne__(self, other):
+                return False
+
+            def __hash__(self):
+                return 0
+
+        rogue = _AlwaysEqualDict(temperature=99.0)  # deliberately wrong; __eq__ lies
+        self.assertEqual(rogue, {'anything': 'at all'},
+                         "sanity: this dict subclass's __eq__ always reports True")
+        with self.assertRaises(lab_stage1.SamplingRefused):
+            lab_stage1.run_conformance_probe(
+                'http://127.0.0.1:1', CONFORMANCE_PROMPTS_10, target_kind='mock', sampling=rogue,
+                threshold=9)
+
+    def test_positive_frozen_value_control_still_passes_ten_of_ten(self) -> None:
+        model_path = str(lab_common.REPO_ROOT / 'work' / 'live_ab' / 'models' / 'coder.gguf')
+        scenario = _scenario(model_path)
+        with mock_server(scenario) as base_url:
+            report = lab_stage1.run_conformance_probe(
+                base_url, CONFORMANCE_PROMPTS_10, target_kind='mock', sampling=SAMPLING,
+                threshold=9)
+        self.assertEqual(report['n_with_code_block'], 10)
+        self.assertEqual(report['threshold'], 9)
+        self.assertIs(type(report['threshold']), int)
+        self.assertEqual(report['verdict'], 'PASS')
+
+
+class ProbePromptScopeTests(unittest.TestCase):
+    """Root's 2026-09-26 16:20 review: `probe_prompt` may remain an explicitly labelled
+    single-request diagnostic -- it must yield no ten-prompt PASS/FAIL verdict and write no
+    shard/receipt of its own -- while still enforcing the mock/loopback target and the typed
+    frozen sampling."""
+
+    def test_positive_probe_prompt_returns_no_verdict_field(self) -> None:
+        model_path = str(lab_common.REPO_ROOT / 'work' / 'live_ab' / 'models' / 'coder.gguf')
+        scenario = _scenario(model_path)
+        with mock_server(scenario) as base_url:
+            row = lab_stage1.probe_prompt(
+                base_url, 'mbpp_full/1', 'irrelevant prompt text', target_kind='mock',
+                sampling=SAMPLING)
+        self.assertNotIn('verdict', row, 'probe_prompt must never produce a ten-prompt verdict')
+
+    def test_positive_probe_prompt_writes_no_shard_or_receipt(self) -> None:
+        model_path = str(lab_common.REPO_ROOT / 'work' / 'live_ab' / 'models' / 'coder.gguf')
+        scenario = _scenario(model_path)
+        receipts_dir = _tmpdir(self)
+        with mock_server(scenario) as base_url:
+            row = lab_stage1.probe_prompt(
+                base_url, 'mbpp_full/1', 'irrelevant prompt text', target_kind='mock',
+                sampling=SAMPLING)
+        self.assertNotIn('verdict', row)
+        self.assertEqual(list(receipts_dir.iterdir()), [],
+                         'probe_prompt takes no receipts_dir argument at all and must write no '
+                         'shard/receipt anywhere -- a fresh isolated directory it never even '
+                         'receives stays empty')
+        self.assertEqual(sr.completed_shards(receipts_dir), frozenset(),
+                         'probe_prompt must record no completed-shard receipt')
+
+    def test_negative_probe_prompt_still_refuses_a_real_target(self) -> None:
+        with self.assertRaises(lab_stage1.RealServerNotApproved):
+            lab_stage1.probe_prompt(
+                'http://127.0.0.1:1', 'mbpp_full/1', 'irrelevant prompt text',
+                target_kind='real', sampling=SAMPLING)
+
+    def test_negative_probe_prompt_still_enforces_typed_frozen_sampling(self) -> None:
+        with self.assertRaises(lab_stage1.SamplingRefused):
+            lab_stage1.probe_prompt(
+                'http://127.0.0.1:1', 'mbpp_full/1', 'irrelevant prompt text',
+                target_kind='mock', sampling=dict(SAMPLING, top_k=False))
+
+
 if __name__ == '__main__':
     unittest.main()
