@@ -299,6 +299,17 @@ SUPERSEDES = (
              'stage-1 repair (e6a8d7d: ordered-prompt binding, the frozen conformance '
              'predicate, the mock guard before resume) changed the harness again; its suites '
              'stay the observation of the b229060 tree only')},
+    {'path': RESULTS_REL + '/HARNESS_PIN_SUCCESSOR_20260926_1605.json',
+     'sha256': 'b0ac324557d69bf245394f08b99034c2584c1fa71533134e9f881ff92208151b',
+     'head_when_written': 'e3b8b43',
+     'why': ('it pins the e3b8b43 harness (canonical 88a54077) that root 19:20 validated only as '
+             'bounded engineering provenance (solo=false), NOT as stage-1 conformance science; '
+             'its runs-of-this-step input is deposited at results/live_ab/pin_inputs/'
+             'HARNESS_PIN_SUCCESSOR_20260926_1535.runs_of_this_step.json and its red and '
+             'refused earlier attempts at results/live_ab/RED_PIN_RUN_20260926_1227.json and '
+             'results/live_ab/REFUSED_PIN_RUN_20260926_1354.json; since e3b8b43 the typed '
+             'frozen-value repair (86d0542, ddb3153; root 16:20) changed the harness again; '
+             'its suites stay the observation of the e3b8b43 tree only')},
 )
 
 #: Every red run of the subset so far (review of 988baf7, reviewer 2 finding 5; root 16:05:
@@ -2669,6 +2680,16 @@ def main(argv: list | None = None) -> int:
         if out_dir == (repo / RESULTS_REL).resolve() and \
                 repo not in Path(__file__).resolve().parents:
             raise Refused(['tool_not_in_repo'])
+        if not args.no_suites:
+            # Preflight: a committed receipt that SUPERSEDES does not name makes build_receipt
+            # refuse, but only after every suite has run (the 7185bf3 attempt spent 68 minutes
+            # of host time on a receipt that could not be written,
+            # results/live_ab/REFUSED_PIN_RUN_20260926_1938.json).  The same guard, read from the
+            # committed tree, refuses here before any suite starts.  build_receipt keeps its own
+            # check unchanged.
+            early = superseded_receipts_incomplete(GitTree(repo, 'HEAD'), SUPERSEDES)
+            if early:
+                raise Refused(['refused_before_any_suite'] + early)
         receipt = build_receipt(repo, args.predecessor, run_suites=not args.no_suites,
                                 runs_of_this_step=(Path(args.runs_of_this_step)
                                                    if args.runs_of_this_step else None),

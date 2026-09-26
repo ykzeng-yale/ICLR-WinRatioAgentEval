@@ -588,7 +588,8 @@ class SupersedesTests(unittest.TestCase):
                           'HARNESS_PIN_SUCCESSOR_20260925_0027.json',
                           'HARNESS_PIN_SUCCESSOR_20260925_2009.json',
                           'HARNESS_PIN_SUCCESSOR_20260926_0600.json',
-                          'HARNESS_PIN_SUCCESSOR_20260926_0958.json'])
+                          'HARNESS_PIN_SUCCESSOR_20260926_0958.json',
+                          'HARNESS_PIN_SUCCESSOR_20260926_1605.json'])
         for entry in hps.SUPERSEDES:
             with self.subTest(receipt=entry['path']):
                 data = (REPO / entry['path']).read_bytes()
@@ -721,12 +722,15 @@ class SupersededReceiptsGuardTests(unittest.TestCase):
         self.assertEqual(hps.superseded_receipts_incomplete(head, hps.SUPERSEDES), [])
         # the 0600 receipt (drivers steps 1-3, ced7a13) is the reason this step named it: with
         # it missing the guard is not vacuously green, it actually refuses (root 07:18)
-        self.assertEqual(len(hps.SUPERSEDES), 7)
-        self.assertEqual(hps.SUPERSEDES[-2]['path'],
+        self.assertEqual(len(hps.SUPERSEDES), 8)
+        self.assertEqual(hps.SUPERSEDES[-3]['path'],
                          'results/live_ab/HARNESS_PIN_SUCCESSOR_20260926_0600.json')
         # the 0958 receipt (step 4, b229060; root 10:19) is the reason the next step named it
-        self.assertEqual(hps.SUPERSEDES[-1]['path'],
+        self.assertEqual(hps.SUPERSEDES[-2]['path'],
                          'results/live_ab/HARNESS_PIN_SUCCESSOR_20260926_0958.json')
+        # the 1605 receipt (e3b8b43; root 19:20) -- its omission refused the 7185bf3 attempt
+        self.assertEqual(hps.SUPERSEDES[-1]['path'],
+                         'results/live_ab/HARNESS_PIN_SUCCESSOR_20260926_1605.json')
 
     def test_negative_removing_the_2009_entry_by_monkeypatch_refuses_and_names_it(self):
         without_2009 = tuple(e for e in hps.SUPERSEDES
@@ -777,8 +781,10 @@ class SupersededReceiptsGuardTests(unittest.TestCase):
                              if not e['path'].endswith(('HARNESS_PIN_SUCCESSOR_20260926_0600.'
                                                         'json',
                                                         'HARNESS_PIN_SUCCESSOR_20260926_0958.'
+                                                        'json',
+                                                        'HARNESS_PIN_SUCCESSOR_20260926_1605.'
                                                         'json')))
-        self.assertEqual(len(through_2009), len(hps.SUPERSEDES) - 2)
+        self.assertEqual(len(through_2009), len(hps.SUPERSEDES) - 3)
         head = hps.GitTree(REPO, 'HEAD')
         smap = hps.harness_map(head)
         sup = [hps.supersedes_record(e, head.read(e['path']))[0] for e in through_2009]
@@ -794,9 +800,11 @@ class SupersededReceiptsGuardTests(unittest.TestCase):
         head = hps.GitTree(REPO, 'HEAD')
         smap = hps.harness_map(head)
         through_0600 = tuple(e for e in hps.SUPERSEDES
-                             if not e['path'].endswith('HARNESS_PIN_SUCCESSOR_20260926_0958.'
-                                                       'json'))
-        self.assertEqual(len(through_0600), len(hps.SUPERSEDES) - 1)
+                             if not e['path'].endswith(('HARNESS_PIN_SUCCESSOR_20260926_0958.'
+                                                        'json',
+                                                        'HARNESS_PIN_SUCCESSOR_20260926_1605.'
+                                                        'json')))
+        self.assertEqual(len(through_0600), len(hps.SUPERSEDES) - 2)
         sup = [hps.supersedes_record(e, head.read(e['path']))[0] for e in through_0600]
         since, problems = hps.since_superseded(REPO, head, smap, sup)
         self.assertEqual(problems, [])
@@ -804,17 +812,105 @@ class SupersededReceiptsGuardTests(unittest.TestCase):
                          'results/live_ab/HARNESS_PIN_SUCCESSOR_20260926_0600.json')
         self.assertEqual(since['recorded_head'][:7], 'ced7a13')
 
-    def test_since_the_superseded_receipt_selects_0958_at_b229060(self):
-        """With 0958 named, it (not 0600) is the latest superseded receipt HEAD carries, and its
-        recorded head is b229060 (the receipt root 10:19 accepted as a run receipt only)."""
+    def test_negative_removing_the_1605_entry_by_monkeypatch_refuses_and_names_it(self):
+        """The entry the typed-gate step adds: without it the guard refuses exactly as the
+        7185bf3 attempt was refused (results/live_ab/REFUSED_PIN_RUN_20260926_1938.json)."""
+        without_1605 = tuple(e for e in hps.SUPERSEDES
+                             if not e['path'].endswith('HARNESS_PIN_SUCCESSOR_20260926_1605.'
+                                                       'json'))
+        self.assertEqual(len(without_1605), len(hps.SUPERSEDES) - 1)
+        with mock.patch.object(hps, 'SUPERSEDES', without_1605):
+            head = hps.GitTree(REPO, 'HEAD')
+            problems = hps.superseded_receipts_incomplete(head, hps.SUPERSEDES)
+        self.assertEqual(problems,
+                         ['superseded_receipts_incomplete:results/live_ab/'
+                          'HARNESS_PIN_SUCCESSOR_20260926_1605.json'])
+
+    def test_since_the_superseded_receipt_selects_1605_at_e3b8b43(self):
+        """With 1605 named, it (not 0958) is the latest superseded receipt HEAD carries, and its
+        recorded head is e3b8b43 (the receipt root 19:20 validated as provenance only)."""
         head = hps.GitTree(REPO, 'HEAD')
         smap = hps.harness_map(head)
         sup = [hps.supersedes_record(e, head.read(e['path']))[0] for e in hps.SUPERSEDES]
         since, problems = hps.since_superseded(REPO, head, smap, sup)
         self.assertEqual(problems, [])
         self.assertEqual(since['receipt'],
+                         'results/live_ab/HARNESS_PIN_SUCCESSOR_20260926_1605.json')
+        self.assertEqual(since['recorded_head'][:7], 'e3b8b43')
+
+    def test_since_the_superseded_receipt_selects_0958_at_b229060(self):
+        """Coverage kept (not weakened): restricted to the entries named before 1605, the
+        latest superseded receipt is 0958 and its recorded head is b229060 (the receipt root
+        10:19 accepted as a run receipt only)."""
+        head = hps.GitTree(REPO, 'HEAD')
+        smap = hps.harness_map(head)
+        through_0958 = tuple(e for e in hps.SUPERSEDES
+                             if not e['path'].endswith('HARNESS_PIN_SUCCESSOR_20260926_1605.'
+                                                       'json'))
+        self.assertEqual(len(through_0958), len(hps.SUPERSEDES) - 1)
+        sup = [hps.supersedes_record(e, head.read(e['path']))[0] for e in through_0958]
+        since, problems = hps.since_superseded(REPO, head, smap, sup)
+        self.assertEqual(problems, [])
+        self.assertEqual(since['receipt'],
                          'results/live_ab/HARNESS_PIN_SUCCESSOR_20260926_0958.json')
         self.assertEqual(since['recorded_head'][:7], 'b229060')
+
+
+class PreflightSupersededTests(unittest.TestCase):
+    """``main()`` refuses a suite run BEFORE any suite starts when a committed receipt is not
+    named in SUPERSEDES (the 7185bf3 attempt ran 68 minutes of suites first and was then
+    refused: results/live_ab/REFUSED_PIN_RUN_20260926_1938.json).  ``run_suite`` is replaced by
+    a function that fails the test if it is ever called."""
+
+    def _no_suite(self, *a, **kw):
+        raise AssertionError('a suite ran although the preflight should have refused')
+
+    def test_negative_a_missing_supersedes_entry_refuses_before_any_suite(self):
+        without_1605 = tuple(e for e in hps.SUPERSEDES
+                             if not e['path'].endswith('HARNESS_PIN_SUCCESSOR_20260926_1605.'
+                                                       'json'))
+        out = tempfile.mkdtemp(prefix='pinsucc_preflight_')
+        self.addCleanup(shutil.rmtree, out, True)
+        err = io.StringIO()
+        with mock.patch.object(hps, 'SUPERSEDES', without_1605), \
+                mock.patch.object(hps, 'run_suite', side_effect=self._no_suite) as rs, \
+                mock.patch.object(hps, 'build_receipt',
+                                  side_effect=AssertionError('build_receipt was reached')), \
+                redirect_stderr(err):
+            rc = hps.main(['--repo', str(REPO), '--out-dir', out])
+        self.assertEqual(rc, 2)
+        self.assertEqual(rs.call_count, 0)
+        self.assertIn('REFUSED: refused_before_any_suite, superseded_receipts_incomplete:'
+                      'results/live_ab/HARNESS_PIN_SUCCESSOR_20260926_1605.json', err.getvalue())
+        self.assertEqual(os.listdir(out), [])
+
+    def test_positive_a_complete_supersedes_passes_the_preflight_to_build_receipt(self):
+        out = tempfile.mkdtemp(prefix='pinsucc_preflight_')
+        self.addCleanup(shutil.rmtree, out, True)
+        err = io.StringIO()
+        with mock.patch.object(hps, 'build_receipt',
+                               side_effect=hps.Refused(['sentinel_reached_build_receipt'])), \
+                redirect_stderr(err):
+            rc = hps.main(['--repo', str(REPO), '--out-dir', out])
+        self.assertEqual(rc, 2)
+        self.assertIn('sentinel_reached_build_receipt', err.getvalue())
+        self.assertNotIn('refused_before_any_suite', err.getvalue())
+
+    def test_no_suites_is_not_preflighted(self):
+        without_1605 = tuple(e for e in hps.SUPERSEDES
+                             if not e['path'].endswith('HARNESS_PIN_SUCCESSOR_20260926_1605.'
+                                                       'json'))
+        out = tempfile.mkdtemp(prefix='pinsucc_preflight_')
+        self.addCleanup(shutil.rmtree, out, True)
+        err = io.StringIO()
+        with mock.patch.object(hps, 'SUPERSEDES', without_1605), \
+                mock.patch.object(hps, 'build_receipt',
+                                  side_effect=hps.Refused(['sentinel_reached_build_receipt'])), \
+                redirect_stderr(err):
+            rc = hps.main(['--repo', str(REPO), '--no-suites', '--out-dir', out])
+        self.assertEqual(rc, 2)
+        self.assertIn('sentinel_reached_build_receipt', err.getvalue())
+        self.assertNotIn('refused_before_any_suite', err.getvalue())
 
 
 def partition_from_logs(logs: Path) -> dict:
