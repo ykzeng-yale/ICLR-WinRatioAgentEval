@@ -94,14 +94,92 @@ the pinned `b229060` tree, all repaired in this commit and none by weakening an 
    `config.json:87` `roster.smoke_tasks` ids plus the four `config.json:209-218`
    `prefreeze.conformance_prompts` ids (:func:`_predeclared_prompt_ids`) -- and, for any id
    among the four inline `conformance_prompts`, whose submitted text disagrees with
-   `config.json`'s own text for that id (:func:`_predeclared_conformance_text`).  The six smoke
-   tasks' own prompt text comes from the MBPP roster, which this module cannot read (out of its
-   MATRIX row); any drift there is instead caught by the prompt-binding fix above, on resume.
+   `config.json`'s own text for that id (:func:`_predeclared_conformance_text`).  **As of the
+   2026-09-26 13:20 repair below, this text check covers all ten predeclared ids, not only the
+   four**; the sentence that used to stand here (the six smoke tasks' text "comes from the MBPP
+   roster, which this module cannot read... any drift there is instead caught by the
+   prompt-binding fix above, on resume") was root's next finding, not a closed gap -- see below.
 3. **Guard before resume.**  `assert_mock_target` is now the first statement of both
    `golden_shard` and `conformance_shard`, before either function's own `lab_prefreeze.
    resume_shard` call -- so a `target_kind='real'` (or a `target_kind='mock'` with a
    non-loopback `base_url`) call is refused even when a matching mock receipt already exists on
    disk with otherwise-unchanged pins, rather than being handed that receipt.
+
+**2026-09-26 13:20 repair (root's independent interim review,
+`reviews/stage1_repair_frozen_gate_interim_20260926_1320.md`).**  Two more HIGH findings against
+the pinned `e6a8d7d` tree (the commit above), both repaired here and neither by weakening an
+assertion or excluding what a check names:
+
+1. **Six smoke-task prompt texts.** `_predeclared_conformance_text` used to cover only the four
+   inline `prefreeze.conformance_prompts` and said the six `roster.smoke_tasks` texts could not
+   be reached from this module.  Root's witness: with all ten predeclared ids kept, replacing
+   `mbpp_full/39`'s submitted text with `'def unrelated(x): return 99'` still returned PASS.  The
+   fix DERIVES each smoke id's exact prompt text from its pinned MBPP source
+   (:data:`_MBPP_FULL_SOURCE`, replicated from `lab_data.SOURCES['mbpp_full']`) through the SAME
+   frozen path a real episode's prompt goes through: `lab_data._mbpp_task`'s prompt/entry-point
+   extraction (replicated, `lab_data` is out of this module's MATRIX row), the REAL
+   `data.mbpp_entry_point` (:func:`_load_pilot_mbpp_entry_point`, its own pinned AST node) and the
+   REAL `agent.build_user_prompt`/`signature_line` (:func:`_load_agent_ast_functions`, extended
+   from the 10:19 repair's `extract_code` loader to load these two names from the SAME pinned
+   `agent.py` into the SAME namespace, so `build_user_prompt` can call `signature_line` exactly as
+   it does in the real module) -- never a reimplementation, and never `import data`/`import
+   agent` (both PILOT, out of this module's MATRIX row).  `_predeclared_conformance_text` now
+   merges these six derived texts with the four config texts, so `run_conformance_probe`'s
+   existing per-prompt check (unchanged code) covers all ten.  The mbpp_full source's bytes and
+   sha256 are checked against their pin (:func:`_load_mbpp_full_records`) before any record is
+   read, and `data.py`'s sha256 is checked (:func:`_load_pilot_mbpp_entry_point`) before its
+   AST is executed; either mismatch refuses (:class:`Stage1Error`) before any request or resume.
+   `conformance_shard`'s resume pins additionally carry the two new sources' pinned sha256
+   alongside the existing `extract_code_source_sha256`, as provenance on top of those runtime
+   checks (see :func:`conformance_shard`'s own docstring).
+2. **Non-amendable threshold.** `run_conformance_probe` used to accept an arbitrary `threshold`
+   and never compared it to config.json.  Root's witness: `threshold=0` with all ten mock
+   responses forced to HTTP 500 (zero conforming) still returned PASS.  :func:`_assert_frozen_
+   threshold` now refuses (:class:`ThresholdRefused`) any `threshold` that disagrees with
+   config.json's own `prefreeze.format_conformance_min` (frozen at 9, protocol 2.4 item 6),
+   called before any request in `run_conformance_probe` and before any resume in
+   `conformance_shard`.  The signature of both functions is unchanged (`threshold` stays a
+   caller-supplied keyword argument, per `tests_lab_isolation.SIGNATURES`); it is now checked
+   against the frozen value rather than accepted as-is.
+
+**Independent adversarial review of the 13:20 repair (same day).**  One more HIGH finding, in the
+same defect class as both findings above, plus two MEDIUM test-coverage gaps and one LOW gap,
+all closed here:
+
+1. **Sampling was entirely caller-controlled.** `protocol_FINAL.md:3018`'s execution row names
+   "every sampling parameter" non-amendable -- the same freeze class as the prompts and the
+   threshold -- yet no entry point compared a caller's `sampling` to config.json's own frozen
+   `sampling` block. Live witness: `run_conformance_probe` with `sampling={'temperature': 1.9,
+   'max_tokens': 3}` (missing every other frozen key) returned a PASS verdict with no refusal,
+   and `capture_reference` wrote that same rogue sampling straight into the golden
+   `generation_settings` object every later trial receipt is compared against
+   (`protocol 13.2`).  :func:`_assert_frozen_sampling` now refuses (:class:`SamplingRefused`)
+   any `sampling` that is not byte-for-byte equal to `config.json`'s own top-level `sampling`
+   object, called immediately after `assert_mock_target` (and, where present, after
+   `_assert_frozen_threshold`) in every one of the five public entry points that accept a
+   `sampling` argument: :func:`capture_reference`, :func:`probe_prompt`,
+   :func:`run_conformance_probe`, :func:`golden_shard` and :func:`conformance_shard` -- in the
+   latter two, before either function's own `lab_prefreeze.resume_shard` call, exactly mirroring
+   where :func:`_assert_frozen_threshold` already sits in :func:`conformance_shard`. No
+   function's signature changes (`sampling` stays a caller-supplied keyword argument).
+2. **Two mutation-testing coverage gaps (MEDIUM), no production change.** A mutant that deletes
+   the byte/sha256 digest comparison in :func:`_load_mbpp_full_records` survived the whole suite,
+   because the suite's only "changed source" negative control used a 1-record fixture that the
+   downstream record-count check already catches on its own, never exercising the digest
+   comparison in isolation; `tests_stage1.SmokePromptDerivationTests` now also carries a
+   same-byte-length, same-974-record-count tamper (one ASCII letter of one record's `text`
+   substituted for a different letter) that only the digest check can catch.  A mutant that
+   truncated `run_conformance_probe`'s predeclared-text comparison to the first 30 characters
+   also survived, because every existing tamper differs from the real text within its first 30
+   characters; `tests_stage1.SmokePromptDerivationTests` now also carries a tamper that is
+   byte-identical to a predeclared text for its entire length except its last character.
+3. **One ordering coverage gap (LOW), no production change.** No test isolated "`threshold` is
+   checked strictly before `conformance_shard`'s own `resume_shard` call" the way
+   `tests_stage1.GuardBeforeResumeTests` already isolates the `target_kind` guard's ordering (by
+   monkeypatching `lab_prefreeze.resume_shard` to raise if reached at all); one test failing
+   only incidentally, via an unrelated sampling-triggered `ResumeMismatch`, was standing in for
+   it.  `tests_stage1.GuardBeforeResumeTests` now carries a dedicated test doing exactly that for
+   both the threshold check and the new sampling check.
 
 Prepared and checked by AI agent sessions; not human peer review or author sign-off
 (protocol 14.7).
@@ -109,7 +187,10 @@ Prepared and checked by AI agent sessions; not human peer review or author sign-
 from __future__ import annotations
 
 import ast
+import json
 import re
+import tempfile
+import warnings
 from collections.abc import Mapping
 from datetime import datetime, timezone
 from pathlib import Path
@@ -160,8 +241,26 @@ class RealServerNotApproved(Stage1Error):
 class PromptSetRefused(Stage1Error):
     """`run_conformance_probe`'s `prompts` was not exactly ten items, was not exactly
     config.json's predeclared ten ids (:func:`_predeclared_prompt_ids`), or supplied text for a
-    predeclared out-of-design id (:func:`_predeclared_conformance_text`) that disagrees with
-    config.json's own text for it (root's 2026-09-26 10:19 review, finding 2)."""
+    predeclared id -- any of the four inline `prefreeze.conformance_prompts` OR any of the six
+    `roster.smoke_tasks` (root's 2026-09-26 13:20 review, finding 1, closing the gap left by
+    root's 2026-09-26 10:19 review, finding 2: the six smoke ids used to be entirely
+    unchecked here) -- that disagrees with its predeclared text (:func:`_predeclared_conformance_text`)."""
+
+
+class ThresholdRefused(Stage1Error):
+    """`threshold` disagreed with the frozen, non-amendable `config.json`
+    `prefreeze.format_conformance_min` (protocol 2.4 item 6 / `protocol_FINAL.md:3018,3773`;
+    root's 2026-09-26 13:20 review, finding 2).  `run_conformance_probe` and `conformance_shard`
+    both refuse any other value, before any request or resume."""
+
+
+class SamplingRefused(Stage1Error):
+    """`sampling` disagreed with the frozen, non-amendable `config.json` top-level `sampling`
+    object (protocol_FINAL.md:3018, "every sampling parameter"; independent adversarial review
+    of the 2026-09-26 13:20 repair).  Every public entry point that accepts a `sampling` keyword
+    argument -- :func:`capture_reference`, :func:`probe_prompt`, :func:`run_conformance_probe`,
+    :func:`golden_shard`, :func:`conformance_shard` -- refuses any other value, before any
+    request or resume, the same discipline :class:`ThresholdRefused` already applies."""
 
 
 #: Path to the ONE real first-block extractor this driver's conformance predicate defers to,
@@ -176,57 +275,230 @@ _AGENT_PY_PATH: Path = lab_common.LS_DIR / 'agent.py'
 #: .load_golden_objects`'s own rejection, mirrored by :func:`capture_reference`).
 _AGENT_PY_SHA256: str = '3cf2056330c72ebd5d2884f48d6ec2daa706fcc685ad67e3c2609d809ff75b64'
 
-_extract_code_impl = None  # cache for :func:`_real_extract_code`, populated on first use
+_agent_ast_cache: dict | None = None  # cache for :func:`_load_agent_ast_functions`
 
 
-def _load_real_extract_code():
-    """[pure-ish] Load the REAL `experiments/local_stream/agent.extract_code` -- plus the two
-    module-level patterns it closes over, `_CODE_BLOCK` and `_SPECIAL_TOKENS` -- from
-    `_AGENT_PY_PATH`'s own AST nodes and return the callable, never `import agent` (out of this
-    module's MATRIX row: `agent`/`sandbox`/`verify`/`data`/`common` are the PILOT group, and
-    `lab_data.py:394-395`'s "replicate rather than import" discipline this module's own
-    docstring already follows for `_CODE_BLOCK_RE` is extended here from a pattern to a callable).
-    Of the three ways root's review offered to call the exact function -- subprocess a small
-    driver script, monkeypatch `sys.modules` with a stub `common`/`sandbox`/`verify` so `import
-    agent` succeeds, or parse and exec only the wanted AST nodes -- this picks the third: it is
-    the only one that adds no subprocess boundary (a `capture_reference`/`probe_prompt` call
-    already crosses no process boundary) and no stand-in modules whose behavior could itself
-    silently diverge from a real `agent` import; it costs re-parsing one small file once per
-    process, cached in :data:`_extract_code_impl` after the first call.  Refuses
-    (:class:`Stage1Error`) before executing anything if the file's sha256 no longer matches the
-    pinned :data:`_AGENT_PY_SHA256`."""
+def _load_agent_ast_functions() -> dict:
+    """[pure-ish] Load the REAL `experiments/local_stream/agent` names this driver depends on --
+    `extract_code` (the first-block extractor, root's 2026-09-26 10:19 ruling, finding 2) AND
+    `build_user_prompt`/`signature_line` (the exact template path a real episode's MBPP/smoke-
+    task user message goes through, root's 2026-09-26 13:20 ruling, finding 1) -- plus the two
+    module-level patterns `extract_code` closes over, all from `_AGENT_PY_PATH`'s own AST nodes,
+    executed into ONE shared namespace so `build_user_prompt` can call `signature_line` exactly
+    as it does inside the real module.  Never `import agent` (out of this module's MATRIX row:
+    `agent`/`sandbox`/`verify`/`data`/`common` are the PILOT group, and `lab_data.py:394-395`'s
+    "replicate rather than import" discipline this module's own docstring already follows for
+    `_CODE_BLOCK_RE` is extended here from a pattern to three callables sharing one namespace).
+
+    Of the three ways root's reviews offered to call an exact pilot function -- subprocess a
+    small driver script, monkeypatch `sys.modules` with a stub `common`/`sandbox`/`verify` so
+    `import agent` succeeds, or parse and exec only the wanted AST nodes -- this picks the third,
+    the same choice `_load_real_extract_code` (this function's predecessor) already made: it adds
+    no subprocess boundary and no stand-in modules whose behavior could itself silently diverge
+    from a real `agent` import; it costs re-parsing one small file once per process, cached in
+    :data:`_agent_ast_cache` after the first call.  Refuses (:class:`Stage1Error`) before
+    executing anything if the file's sha256 no longer matches the pinned :data:`_AGENT_PY_SHA256`,
+    or if any of the five wanted top-level names is missing."""
     actual = lab_common.sha256_file(_AGENT_PY_PATH)
     if actual != _AGENT_PY_SHA256:
         raise Stage1Error(
             f'{_AGENT_PY_PATH} sha256 {actual!r} does not match the pinned '
-            f'{_AGENT_PY_SHA256!r}; refusing to load the real extract_code from a drifted '
+            f'{_AGENT_PY_SHA256!r}; refusing to load real agent.py names from a drifted '
             'pilot file (update _AGENT_PY_SHA256 only after confirming the change deliberately, '
-            'and only alongside a fresh review of this predicate)')
+            'and only alongside a fresh review of every predicate/derivation that depends on it)')
     source = _AGENT_PY_PATH.read_text('utf-8')
     tree = ast.parse(source, filename=str(_AGENT_PY_PATH))
-    wanted_names = {'_CODE_BLOCK', '_SPECIAL_TOKENS'}
+    wanted_assigns = {'_CODE_BLOCK', '_SPECIAL_TOKENS'}
     nodes = [n for n in tree.body if isinstance(n, ast.Assign)
-            and any(isinstance(t, ast.Name) and t.id in wanted_names for t in n.targets)]
-    fn_node = next((n for n in tree.body
-                    if isinstance(n, ast.FunctionDef) and n.name == 'extract_code'), None)
-    if fn_node is None or len(nodes) != len(wanted_names):
+            and any(isinstance(t, ast.Name) and t.id in wanted_assigns for t in n.targets)]
+    wanted_fns = {'extract_code', 'build_user_prompt', 'signature_line'}
+    fn_nodes = [n for n in tree.body
+               if isinstance(n, ast.FunctionDef) and n.name in wanted_fns]
+    if len(nodes) != len(wanted_assigns) or len(fn_nodes) != len(wanted_fns):
         raise Stage1Error(
-            f'{_AGENT_PY_PATH} no longer defines the expected extract_code/_CODE_BLOCK/'
-            '_SPECIAL_TOKENS shape this loader depends on')
-    nodes.append(fn_node)
-    namespace: dict = {'re': re}
-    exec(compile(ast.Module(body=nodes, type_ignores=[]), '<agent.extract_code>', 'exec'),
-        namespace)
-    return namespace['extract_code']
+            f'{_AGENT_PY_PATH} no longer defines the expected extract_code/build_user_prompt/'
+            'signature_line/_CODE_BLOCK/_SPECIAL_TOKENS shape this loader depends on')
+    nodes.extend(fn_nodes)
+    namespace: dict = {'re': re, 'ast': ast, 'warnings': warnings}
+    exec(compile(ast.Module(body=nodes, type_ignores=[]), '<agent.py (pinned AST nodes)>',
+                'exec'), namespace)
+    return namespace
 
 
 def _real_extract_code(text) -> str:
     """[pure-ish, cached] The REAL `experiments/local_stream/agent.extract_code(text)`; see
-    :func:`_load_real_extract_code` for how it is loaded and pinned."""
-    global _extract_code_impl
-    if _extract_code_impl is None:
-        _extract_code_impl = _load_real_extract_code()
-    return _extract_code_impl(text)
+    :func:`_load_agent_ast_functions` for how it is loaded and pinned."""
+    global _agent_ast_cache
+    if _agent_ast_cache is None:
+        _agent_ast_cache = _load_agent_ast_functions()
+    return _agent_ast_cache['extract_code'](text)
+
+
+def _real_build_user_prompt(pilot_task: Mapping) -> str:
+    """[pure-ish, cached] The REAL `experiments/local_stream/agent.build_user_prompt(task)` --
+    the exact template path a real episode's user message goes through (protocol 5.8/2.4; root's
+    2026-09-26 13:20 ruling, finding 1) -- see :func:`_load_agent_ast_functions`."""
+    global _agent_ast_cache
+    if _agent_ast_cache is None:
+        _agent_ast_cache = _load_agent_ast_functions()
+    return _agent_ast_cache['build_user_prompt'](dict(pilot_task))
+
+
+#: `experiments/local_stream/data.py`'s own AST-pinned `mbpp_entry_point` (root's 2026-09-26
+#: 13:20 ruling, finding 1): the ONE real rule for which def in an MBPP reference becomes a
+#: smoke task's entry point, never a reimplementation.  `data` is PILOT (out of this module's
+#: MATRIX row), loaded the same "pin, then verify before trusting" way as `_AGENT_PY_PATH`.
+_DATA_PY_PATH: Path = lab_common.LS_DIR / 'data.py'
+
+#: `lab_common.sha256_file(_DATA_PY_PATH)` at the moment this repair was written.
+_DATA_PY_SHA256: str = 'ae630675f43786bcf7483ff90d4c641ab9a6c7c16202de456d96b03f19321405'
+
+
+def _load_pilot_mbpp_entry_point():
+    """[pure-ish] Load the REAL `experiments/local_stream/data.mbpp_entry_point` (plus the two
+    regex patterns it closes over) from its own pinned AST node, never `import data` -- the same
+    discipline :func:`_load_agent_ast_functions` uses for `agent.py`.  Deliberately NOT cached
+    across calls, unlike :func:`_load_agent_ast_functions`: this loader backs the mbpp-source-
+    drift negative control (`tests_stage1.py`'s changed-source-file test), and a persistent cache
+    would let an earlier, unrelated call's successful load silently paper over a later drifted-
+    file scenario within the same process.  The file is a few KB; one read plus one sha256 costs
+    nothing that matters at the rate this driver derives smoke-task prompts."""
+    actual = lab_common.sha256_file(_DATA_PY_PATH)
+    if actual != _DATA_PY_SHA256:
+        raise Stage1Error(
+            f'{_DATA_PY_PATH} sha256 {actual!r} does not match the pinned {_DATA_PY_SHA256!r}; '
+            'refusing to derive smoke-task prompt texts through a drifted pilot file')
+    source = _DATA_PY_PATH.read_text('utf-8')
+    tree = ast.parse(source, filename=str(_DATA_PY_PATH))
+    wanted_assigns = {'_ASSERT_NAME', '_DEF_NAME'}
+    nodes = [n for n in tree.body if isinstance(n, ast.Assign)
+            and any(isinstance(t, ast.Name) and t.id in wanted_assigns for t in n.targets)]
+    fn_node = next((n for n in tree.body
+                    if isinstance(n, ast.FunctionDef) and n.name == 'mbpp_entry_point'), None)
+    if fn_node is None or len(nodes) != len(wanted_assigns):
+        raise Stage1Error(
+            f'{_DATA_PY_PATH} no longer defines the expected mbpp_entry_point/_ASSERT_NAME/'
+            '_DEF_NAME shape this loader depends on')
+    nodes.append(fn_node)
+    namespace: dict = {'re': re}
+    exec(compile(ast.Module(body=nodes, type_ignores=[]), '<data.py (pinned AST nodes)>',
+                'exec'), namespace)
+    return namespace['mbpp_entry_point']
+
+
+def _pilot_mbpp_entry_point(rec: Mapping) -> str:
+    """[pure-ish] The REAL `experiments/local_stream/data.mbpp_entry_point(rec)`; see
+    :func:`_load_pilot_mbpp_entry_point` for how it is loaded and pinned (never cached)."""
+    return _load_pilot_mbpp_entry_point()(rec)
+
+
+#: Replicated from `lab_data.py:130-143` (`SOURCES['mbpp_full']`), never imported: `lab_data` is
+#: not in this module's MATRIX row.  `tests_stage1.py` pins this dict equal to
+#: `lab_data.SOURCES['mbpp_full']`.
+_MBPP_FULL_SOURCE: dict = {
+    'filename': 'mbpp.jsonl',
+    'bytes': 563743,
+    'sha256': 'ccf64ceae9c5403bf50a044cb6d505bfd2a2963ee58338ba268fd65beab92a9f',
+    'records': 974,
+    'aliases': ('mbpp.jsonl', 'mbpp_full.jsonl'),
+}
+
+#: Replicated from `lab_data.py:146-150` (`CACHE_SEARCH_DIRS`), same reason as above.  A plain
+#: module-level tuple (not derived only from `lab_common.REPO_ROOT`), so a test can monkeypatch
+#: it to an isolated temp directory for the source-drift negative control without ever touching
+#: the real cache under `work/local_stream/data`.
+_MBPP_FULL_CACHE_SEARCH_DIRS: tuple[Path, ...] = (
+    lab_common.REPO_ROOT / 'work' / 'local_stream' / 'data',
+    Path('/tmp/claude-501'),
+    Path(tempfile.gettempdir()),
+)
+
+
+def _find_mbpp_full_source() -> "Path | None":
+    """[pure-ish] The same search order as `lab_data._find_cached` restricted to `mbpp_full`
+    (replicated, not imported -- see this module's docstring)."""
+    for directory in _MBPP_FULL_CACHE_SEARCH_DIRS:
+        for alias in _MBPP_FULL_SOURCE['aliases']:
+            candidate = Path(directory) / alias
+            try:
+                if candidate.is_file():
+                    return candidate
+            except OSError:
+                continue
+    return None
+
+
+def _load_mbpp_full_records() -> list:
+    """The full pinned mbpp_full record list, bytes-and-sha256 verified BEFORE anything is
+    parsed (root's 2026-09-26 13:20 ruling, finding 1: "check the source file's sha256 against
+    its pin ... REFUSE on any mismatch, before any request or resume").  Deliberately NOT cached
+    across calls -- see :func:`_load_pilot_mbpp_entry_point`'s docstring for why."""
+    path = _find_mbpp_full_source()
+    if path is None:
+        raise Stage1Error(
+            'no cached copy of the pinned mbpp_full source (%s) was found under any of %s; '
+            'refusing to derive the six smoke-task prompt texts without it'
+            % (_MBPP_FULL_SOURCE['filename'],
+              [str(d) for d in _MBPP_FULL_CACHE_SEARCH_DIRS]))
+    raw = path.read_bytes()
+    got_bytes, got_sha256 = len(raw), lab_common.sha256_bytes(raw)
+    if got_bytes != _MBPP_FULL_SOURCE['bytes'] or got_sha256 != _MBPP_FULL_SOURCE['sha256']:
+        raise Stage1Error(
+            'mbpp_full source at %s: expected %d bytes sha256 %s, found %d bytes sha256 %s; '
+            'refusing to derive smoke-task prompt texts from a drifted source'
+            % (path, _MBPP_FULL_SOURCE['bytes'], _MBPP_FULL_SOURCE['sha256'], got_bytes,
+              got_sha256))
+    records = [json.loads(line) for line in raw.decode('utf-8').splitlines() if line.strip()]
+    if len(records) != _MBPP_FULL_SOURCE['records']:
+        raise Stage1Error(
+            'mbpp_full source at %s: expected %d records, found %d'
+            % (path, _MBPP_FULL_SOURCE['records'], len(records)))
+    return records
+
+
+def _derive_smoke_prompt_text(uid: str, records: list) -> str:
+    """[pure] The exact prompt text a real episode would send for smoke-task `uid` (an
+    `mbpp_full/<n>` id), through the FROZEN normalization/template path: the same prompt/entry-
+    point/reference extraction `lab_data._mbpp_task` applies to a raw `mbpp_full` record
+    (`lab_data.py:404-419`, replicated here rather than imported -- `lab_data` is out of this
+    module's MATRIX row), the REAL `data.mbpp_entry_point` (:func:`_pilot_mbpp_entry_point`), and
+    the REAL `agent.build_user_prompt`/`signature_line` (:func:`_real_build_user_prompt`) -- the
+    same three steps `lab_data.to_pilot_task` + `agent.build_user_prompt` apply to a real
+    `mbpp_full` task in a real episode (`lab_data.py:460-475`; `agent.py:69-74`).  Refuses
+    (:class:`Stage1Error`) if `uid` is not an `mbpp_full/<n>` id, or names a `task_id` absent
+    from `records`."""
+    m = re.match(r'^mbpp_full/([0-9]+)$', str(uid))
+    if not m:
+        raise Stage1Error(f'{uid!r} is not an mbpp_full/<n> smoke-task id')
+    task_id = int(m.group(1))
+    rec = next((r for r in records if int(r['task_id']) == task_id), None)
+    if rec is None:
+        raise Stage1Error(
+            f'mbpp_full task_id {task_id} (smoke id {uid!r}) is not present in the pinned '
+            'mbpp_full source; refusing to derive its prompt text')
+    raw_prompt = rec['prompt'] if 'prompt' in rec else rec['text']
+    prompt = (raw_prompt or '').strip()
+    reference = rec.get('code') or ''
+    entry_point = _pilot_mbpp_entry_point(
+        {'test_list': list(rec.get('test_list') or []), 'code': reference})
+    pilot_task = {'benchmark': 'mbpp', 'prompt': prompt, 'entry_point': entry_point,
+                 'reference': reference}
+    return _real_build_user_prompt(pilot_task)
+
+
+def _predeclared_smoke_prompt_texts() -> dict[str, str]:
+    """[pure-ish] `{id: prompt text}` for the six `config.json:87` `roster.smoke_tasks` ids,
+    DERIVED from their pinned MBPP source through the frozen normalization/template path
+    (:func:`_derive_smoke_prompt_text`) -- root's 2026-09-26 13:20 ruling, finding 1.  Before
+    this repair `_predeclared_conformance_text` covered only the four inline
+    `prefreeze.conformance_prompts` and intentionally left these six unchecked; this closes that
+    gap.  Refuses (:class:`Stage1Error`) on a missing/drifted mbpp_full source, a drifted
+    `data.py`/`agent.py` pilot file, or a smoke id absent from the source -- before any request
+    or resume, the same way :func:`_predeclared_prompt_ids` already refuses on a config drift."""
+    cfg = lab_common.harness_config()
+    smoke_ids = tuple((cfg.get('roster') or {}).get('smoke_tasks') or ())
+    records = _load_mbpp_full_records()
+    return {uid: _derive_smoke_prompt_text(uid, records) for uid in smoke_ids}
 
 
 def _predeclared_prompt_ids() -> frozenset[str]:
@@ -250,13 +522,24 @@ def _predeclared_prompt_ids() -> frozenset[str]:
 
 
 def _predeclared_conformance_text() -> dict[str, str]:
-    """[pure-ish] `{id: prompt text}` for the four `config.json:209-218`
-    `prefreeze.conformance_prompts` only -- the one predeclared quarter of the ten-prompt set
-    whose text this module can check directly, since the other six (the smoke tasks) come from
-    the MBPP roster, which this module does not import (out of its MATRIX row)."""
+    """[pure-ish] `{id: prompt text}` for all TEN predeclared conformance-probe ids of protocol
+    5.8: the four `config.json:209-218` `prefreeze.conformance_prompts` (read straight from
+    config.json) PLUS the six `config.json:87` `roster.smoke_tasks`
+    (:func:`_predeclared_smoke_prompt_texts`, DERIVED from their pinned MBPP source through the
+    frozen normalization/template path).
+
+    Before root's 2026-09-26 13:20 review this function covered only the four inline prompts and
+    said the six smoke texts "come from the MBPP roster, which this module does not import" --
+    true of a plain `import lab_data`, but not of the source-hash-pinned AST-node approach
+    :func:`_derive_smoke_prompt_text` uses (the same approach already used for `extract_code`).
+    Root's witness: with all ten predeclared ids kept but `mbpp_full/39`'s submitted text
+    replaced with `'def unrelated(x): return 99'`, `run_conformance_probe` returned PASS, because
+    the six smoke ids were never checked here.  They are now."""
     cfg = lab_common.harness_config()
     conformance = (cfg.get('prefreeze') or {}).get('conformance_prompts') or []
-    return {p['id']: p['prompt'] for p in conformance if isinstance(p, Mapping) and 'id' in p}
+    out = {p['id']: p['prompt'] for p in conformance if isinstance(p, Mapping) and 'id' in p}
+    out.update(_predeclared_smoke_prompt_texts())
+    return out
 
 
 def assert_mock_target(base_url: str, target_kind: str) -> None:
@@ -305,6 +588,7 @@ def capture_reference(base_url, server_id, *, sampling, target_kind, seed=1, ses
     design_notes/DESIGN_PROPOSAL.md section 4 -- confusing the two is exactly the mistake that
     section warns against)."""
     assert_mock_target(base_url, target_kind)
+    _assert_frozen_sampling(sampling)
     sess = session if session is not None else requests
     root = str(base_url).rstrip('/')
     try:
@@ -466,6 +750,7 @@ def golden_shard(*, base_url, server_id, freeze_dir, receipts_dir, inv, target_k
     when a matching mock receipt already exists on disk with otherwise-unchanged pins, rather
     than being handed that receipt."""
     assert_mock_target(base_url, target_kind)
+    _assert_frozen_sampling(sampling)
     schedule_row = {'unit': 'golden_capture', 'server_id': str(server_id)}
     freeze_path = Path(freeze_dir)
     output_rel = {
@@ -574,8 +859,16 @@ def probe_prompt(base_url, prompt_id, prompt_text, *, target_kind, sampling, see
     from a fenced-but-empty first block, rather than collapsing both into one bit.  `usage` (the
     response's own token-usage object, or `None` when the mock/server omitted it) and
     `content_sha256` are kept on every ok_transport response so a later real stage-1 run
-    preserves the original per-prompt response and usage, not merely the pass/fail verdict."""
+    preserves the original per-prompt response and usage, not merely the pass/fail verdict.
+
+    `prompt_id`/`prompt_text` are NOT checked here against the predeclared ten (root's 2026-09-26
+    13:20 review, finding 3's enumeration): this function makes no PASS/FAIL verdict and has
+    exactly one caller in this repository, :func:`run_conformance_probe`, which performs the full
+    frozen-set/text check (:func:`_predeclared_prompt_ids`/:func:`_predeclared_conformance_text`)
+    on every prompt before calling this per-request primitive.  Classified PROVABLY IRRELEVANT to
+    the frozen-gate concern rather than duplicated here."""
     assert_mock_target(base_url, target_kind)
+    _assert_frozen_sampling(sampling)
     sess = session if session is not None else requests
     root = str(base_url).rstrip('/')
     body: dict = {'model': 'lab_stage1_conformance_probe',
@@ -645,6 +938,78 @@ def _verdict(n_with_code_block, threshold) -> str:
     return 'PASS' if int(n_with_code_block) >= int(threshold) else 'FAIL'
 
 
+def _frozen_conformance_threshold() -> int:
+    """[pure-ish] `config.json`'s own `prefreeze.format_conformance_min` -- protocol 2.4 item 6's
+    "non-amendable success margin" (`protocol_FINAL.md:3018,3773`), read through
+    `lab_common.harness_config()` (already in this module's MATRIX row), never hardcoded here so
+    this module cannot itself drift from root's frozen value.  Refuses (:class:`Stage1Error`) if
+    config.json no longer declares it as an int, so a config drift is caught here rather than
+    silently comparing against `None` or a wrong type."""
+    cfg = lab_common.harness_config()
+    raw = (cfg.get('prefreeze') or {}).get('format_conformance_min')
+    if not isinstance(raw, int) or isinstance(raw, bool):
+        raise Stage1Error(
+            f'config.json prefreeze.format_conformance_min must be an int; got {raw!r}')
+    return raw
+
+
+def _assert_frozen_threshold(threshold) -> int:
+    """[pure-ish] Refuse (:class:`ThresholdRefused`) unless `threshold` equals
+    :func:`_frozen_conformance_threshold`'s value exactly -- root's 2026-09-26 13:20 ruling,
+    finding 2: "the non-amendable success margin is caller-controlled".  Root's witness: with all
+    ten HTTP responses forced to 500 (zero conforming), `run_conformance_probe` returned PASS
+    when called with `threshold=0`, because the caller-supplied threshold was never checked
+    against config.json's own frozen value.  Called before any request or resume in both
+    :func:`run_conformance_probe` and :func:`conformance_shard`.  Returns the frozen value so a
+    caller of either function need not read config.json a second time."""
+    frozen = _frozen_conformance_threshold()
+    if int(threshold) != frozen:
+        raise ThresholdRefused(
+            f'threshold={threshold!r} disagrees with the frozen, non-amendable config.json '
+            f'prefreeze.format_conformance_min={frozen!r} (protocol 2.4 item 6); lab_stage1 '
+            'never accepts a different conformance margin, before any request or resume.')
+    return frozen
+
+
+def _frozen_sampling() -> dict:
+    """[pure-ish] `config.json`'s own top-level `sampling` object -- protocol_FINAL.md:3018's
+    "every sampling parameter" (non-amendable), read through `lab_common.harness_config()`
+    (already in this module's MATRIX row), never hardcoded here so this module cannot itself
+    drift from root's frozen value.  Refuses (:class:`Stage1Error`) if config.json no longer
+    declares it as a non-empty JSON object, so a config drift is caught here rather than silently
+    comparing against `None` or an empty mapping (which would make every `sampling` refuse, or
+    -- worse -- every `sampling` agree)."""
+    cfg = lab_common.harness_config()
+    raw = cfg.get('sampling')
+    if not isinstance(raw, Mapping) or not raw:
+        raise Stage1Error(f'config.json sampling must be a non-empty JSON object; got {raw!r}')
+    return dict(raw)
+
+
+def _assert_frozen_sampling(sampling) -> dict:
+    """[pure-ish] Refuse (:class:`SamplingRefused`) unless `sampling` equals
+    :func:`_frozen_sampling`'s value exactly -- independent adversarial review of the 2026-09-26
+    13:20 repair: "sampling (including max_tokens) is entirely caller-controlled and
+    unvalidated, in every public entry point."  Live witness: `run_conformance_probe` with
+    `sampling={'temperature': 1.9, 'max_tokens': 3}` (missing every other frozen key) returned a
+    PASS verdict with no refusal, and `capture_reference` wrote that same rogue sampling straight
+    into the golden `generation_settings` object every later trial receipt is compared against
+    (protocol 13.2).  Called before any request in :func:`capture_reference`,
+    :func:`probe_prompt`, :func:`run_conformance_probe`, and before any resume in
+    :func:`golden_shard`/:func:`conformance_shard` -- the same placement
+    :func:`_assert_frozen_threshold` already uses.  Returns the frozen value so a caller need not
+    read config.json a second time."""
+    frozen = _frozen_sampling()
+    got = dict(sampling)
+    if got != frozen:
+        raise SamplingRefused(
+            f'sampling={got!r} disagrees with the frozen, non-amendable config.json '
+            f'sampling={frozen!r} (protocol_FINAL.md:3018, "every sampling parameter" is '
+            'non-amendable, the same freeze class as the prompts and the threshold); lab_stage1 '
+            'never accepts a different sampling block, before any request or resume.')
+    return frozen
+
+
 def run_conformance_probe(base_url, prompts, *, target_kind, sampling, threshold, seed=1,
                           session=None) -> dict:
     """The format-conformance counter of protocol_FINAL.md:585-587: "**Format-conformance rule
@@ -657,23 +1022,29 @@ def run_conformance_probe(base_url, prompts, *, target_kind, sampling, threshold
     `prompts` is an iterable of `{'id': ..., 'prompt': ...}` mappings; the caller assembles the
     full ten-prompt set (the six smoke tasks plus the four `config.json:209-218`
     `prefreeze.conformance_prompts`), but this function no longer trusts that blindly (root's
-    2026-09-26 10:19 review, finding 2): before any request is sent, it REFUSES
-    (:class:`PromptSetRefused`) unless `prompts` is exactly ten items, its ids are exactly
-    config.json's predeclared ten (:func:`_predeclared_prompt_ids`), and any id among the four
-    inline `conformance_prompts` carries exactly config.json's own text for it
+    2026-09-26 10:19 review, finding 2, extended by the 13:20 review, finding 1): before any
+    request is sent, `assert_mock_target` runs first, then it REFUSES (:class:`PromptSetRefused`)
+    unless `prompts` is exactly ten items, its ids are exactly config.json's predeclared ten
+    (:func:`_predeclared_prompt_ids`), and EVERY one of the ten -- the four inline
+    `conformance_prompts` AND the six `roster.smoke_tasks`, DERIVED from their pinned MBPP source
+    through the frozen normalization/template path -- carries exactly its predeclared text
     (:func:`_predeclared_conformance_text`) -- never a rerouted/duplicated/truncated probe list,
-    and never a silently-substituted out-of-design prompt.  `threshold` is `config.json`'s own
-    `prefreeze.format_conformance_min` (named non-amendable, `protocol_FINAL.md:3018,3773`),
-    passed by the caller rather than hardcoded here, so this module never silently adopts or
-    drifts from root's frozen value.  Counting is :func:`_count_conforming` (root's 10:19
-    `conforms` predicate, never transport success or fence-presence alone) and the verdict is
-    :func:`_verdict` (never rounded up); both are separate, directly-testable pure functions
-    rather than inlined here.
+    and never a silently-substituted out-of-design OR smoke prompt.  `threshold` must equal
+    `config.json`'s own `prefreeze.format_conformance_min` (named non-amendable,
+    `protocol_FINAL.md:3018,3773`) exactly, checked by :func:`_assert_frozen_threshold`
+    (:class:`ThresholdRefused` otherwise, root's 2026-09-26 13:20 review, finding 2) before any
+    request -- this module never silently adopts or accepts a different conformance margin.
+    Counting is :func:`_count_conforming` (root's 10:19 `conforms` predicate, never transport
+    success or fence-presence alone) and the verdict is :func:`_verdict` (never rounded up); both
+    are separate, directly-testable pure functions rather than inlined here.
 
     Returns `{'n_prompts', 'n_with_code_block', 'threshold', 'verdict' ('PASS'/'FAIL'),
     'per_prompt': [<probe_prompt result>, ...]}` (the `n_with_code_block` member name is
     unchanged for compatibility with existing callers/receipts; its value is now the count of
     `conforms`, per :func:`_count_conforming`)."""
+    assert_mock_target(base_url, target_kind)
+    _assert_frozen_threshold(threshold)
+    _assert_frozen_sampling(sampling)
     prompts = list(prompts)
     if len(prompts) != 10:
         raise PromptSetRefused(
@@ -695,8 +1066,9 @@ def run_conformance_probe(base_url, prompts, *, target_kind, sampling, threshold
         want = declared_text.get(str(p['id']))
         if want is not None and str(p['prompt']) != want:
             raise PromptSetRefused(
-                f"run_conformance_probe prompt {p['id']!r} text disagrees with config.json's "
-                'own prefreeze.conformance_prompts text for it')
+                f"run_conformance_probe prompt {p['id']!r} text disagrees with its predeclared "
+                'text (config.json prefreeze.conformance_prompts, or the derived mbpp_full '
+                'smoke-task text)')
     rows = [probe_prompt(base_url, p['id'], p['prompt'], target_kind=target_kind,
                         sampling=sampling, seed=seed, session=session)
            for p in prompts]
@@ -730,20 +1102,31 @@ def conformance_shard(*, base_url, prompts, server_id, receipts_dir, inv, target
     :func:`golden_shard` re-reads its own write through `lab_prefreeze.resume_shard`.
 
     `assert_mock_target` is called FIRST, before any resume check (root's 2026-09-26 10:19
-    review, finding 3), the same fix :func:`golden_shard` documents.  The resume pins also fold
-    in the exact ORDERED `(id, prompt)` pairs of `prompts` (root's 2026-09-26 10:19 review,
-    finding 1): a changed prompt text, a changed id, or a changed order at an otherwise-unchanged
-    caller `pins` now raises `lab_shard_receipt.ResumeMismatch` on resume rather than silently
-    reusing the stale receipt -- `run_conformance_probe` itself is called only after the resume
-    check (or not at all, if resumed), so its own :class:`PromptSetRefused` guard runs on every
-    FRESH attempt but is never reached, and never needs to be, on a legitimate resume.  The
-    resume pins also fold in :data:`_AGENT_PY_SHA256` (`extract_code_source_sha256`) -- the
-    pinned identity of the REAL first-block extractor :func:`conforms` defers to (finding 2) --
-    so a receipt recorded under one pinned extractor and later resumed under a different one
-    (after a reviewed change to `_AGENT_PY_SHA256`) is refused rather than silently reused under
-    the new extractor's semantics; this is provenance on top of, not instead of, the hard runtime
-    check :func:`_load_real_extract_code` already performs against the file on disk."""
+    review, finding 3), the same fix :func:`golden_shard` documents.  `threshold` is then checked
+    against the frozen, non-amendable config.json margin (:func:`_assert_frozen_threshold`,
+    :class:`ThresholdRefused` otherwise, root's 2026-09-26 13:20 review, finding 2) -- also before
+    any resume, so a caller cannot obtain a stale receipt under a changed threshold merely by
+    finding one already on disk.  The resume pins also fold in the exact ORDERED `(id, prompt)`
+    pairs of `prompts` (root's 2026-09-26 10:19 review, finding 1): a changed prompt text, a
+    changed id, or a changed order at an otherwise-unchanged caller `pins` now raises
+    `lab_shard_receipt.ResumeMismatch` on resume rather than silently reusing the stale receipt --
+    `run_conformance_probe` itself is called only after the resume check (or not at all, if
+    resumed), so its own :class:`PromptSetRefused` guard runs on every FRESH attempt but is never
+    reached, and never needs to be, on a legitimate resume.  The resume pins also fold in three
+    static source-identity pins (root's 2026-09-26 13:20 review, finding 1):
+    :data:`_AGENT_PY_SHA256` (`extract_code_source_sha256`, the pinned identity of the REAL
+    first-block extractor :func:`conforms` defers to, finding 2 of the 10:19 review),
+    :data:`_DATA_PY_SHA256` (`mbpp_entry_point_source_sha256`) and :data:`_MBPP_FULL_SOURCE`'s
+    `sha256` (`smoke_prompt_source_sha256`) -- the pinned identities of the two pilot/roster
+    sources :func:`_predeclared_smoke_prompt_texts` derives the six smoke prompts from.  A
+    receipt recorded under one pinned source and later resumed after a REVIEWED change to any of
+    these three constants is refused rather than silently reused under the new source's
+    semantics; this is provenance on top of, not instead of, the hard runtime hash checks
+    :func:`_load_agent_ast_functions`/:func:`_load_pilot_mbpp_entry_point`/
+    :func:`_load_mbpp_full_records` already perform against the files on disk."""
     assert_mock_target(base_url, target_kind)
+    _assert_frozen_threshold(threshold)
+    _assert_frozen_sampling(sampling)
     schedule_row = {'unit': 'conformance_probe', 'server_id': str(server_id)}
     prompts = list(prompts)
     output_rel = {}
@@ -752,7 +1135,9 @@ def conformance_shard(*, base_url, prompts, server_id, receipts_dir, inv, target
     ordered_prompts = [(str(p['id']), str(p['prompt'])) for p in prompts]
     resume_pins = _effective_pins(pins, sampling=dict(sampling), seed=int(seed),
                                   threshold=int(threshold), prompts=ordered_prompts,
-                                  extract_code_source_sha256=_AGENT_PY_SHA256)
+                                  extract_code_source_sha256=_AGENT_PY_SHA256,
+                                  mbpp_entry_point_source_sha256=_DATA_PY_SHA256,
+                                  smoke_prompt_source_sha256=_MBPP_FULL_SOURCE['sha256'])
     resumed = lab_prefreeze.resume_shard(
         receipts_dir, 'stage1_conformance', schedule_row, expected_pins=resume_pins,
         expected_output_paths=list(output_rel.values()),

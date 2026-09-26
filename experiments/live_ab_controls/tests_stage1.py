@@ -45,9 +45,25 @@ import lab_shard_receipt as sr                                           # noqa:
 import lab_stage1                                                        # noqa: E402
 
 REPO_ROOT = LIVE.parent.parent
-SAMPLING = {'temperature': 0.7, 'top_p': 0.95, 'top_k': 0, 'min_p': 0.0, 'typical_p': 1.0,
-           'repeat_penalty': 1.0, 'presence_penalty': 0.0, 'frequency_penalty': 0.0,
-           'mirostat': 0, 'max_tokens': 64}
+
+#: The REAL frozen sampling block (independent adversarial review of the 2026-09-26 13:20 repair:
+#: `lab_stage1._assert_frozen_sampling` now refuses any `sampling` that is not byte-for-byte equal
+#: to `config.json`'s own top-level `sampling` object, the same freeze class as the threshold and
+#: the prompts), read straight from config.json -- the same `lab_common.harness_config()` source
+#: `lab_stage1._frozen_sampling` reads -- rather than a hand-copied literal that could itself
+#: drift from it.  Previously this constant was a hand-shortened stand-in (`max_tokens: 64` only,
+#: missing `cache_prompt`/`stream`/`verbose`) that every positive-path test in this file passed as
+#: `sampling`; it would now be refused by the fix above, so it is replaced with the real value.
+#: `lab_mock_server` never actually generates `max_tokens` worth of output (it copies the field
+#: straight into `generation_settings.n_predict`, `lab_mock_server.py:381-382`, and returns a
+#: fixed scripted completion regardless), so this change costs this suite nothing in runtime.
+SAMPLING = dict(lab_common.harness_config()['sampling'])
+
+#: A caller-supplied `sampling` that disagrees with the frozen config value in both directions
+#: (a changed field, missing fields) -- the live witness an independent adversarial review used
+#: to reproduce the sampling gap: `run_conformance_probe`/`capture_reference` used to accept this
+#: with no refusal at all.
+ROGUE_SAMPLING = {'temperature': 1.9, 'max_tokens': 3}
 
 
 def _scenario(model_path: str, *, model_alias: str = 'mock-alias', **overrides) -> dict:
@@ -115,22 +131,106 @@ def _tmpdir(case: unittest.TestCase) -> Path:
     return d
 
 
+def _independent_mbpp_full_records() -> list:
+    """Independently load every mbpp_full record -- its own file search/parse, deliberately NOT
+    calling anything in `lab_stage1` -- an independent oracle, the same discipline
+    `_real_extract_code` below already uses for the code extractor.  Search order mirrors
+    `lab_data.CACHE_SEARCH_DIRS` / `lab_stage1._MBPP_FULL_CACHE_SEARCH_DIRS` (a shared, pinned
+    convention, not the computation under test); the parsing and hashing here are this file's
+    own, separate code."""
+    aliases = ('mbpp.jsonl', 'mbpp_full.jsonl')
+    search_dirs = (lab_common.REPO_ROOT / 'work' / 'local_stream' / 'data',
+                  Path('/tmp/claude-501'), Path(tempfile.gettempdir()))
+    path = None
+    for directory in search_dirs:
+        for alias in aliases:
+            candidate = directory / alias
+            if candidate.is_file():
+                path = candidate
+                break
+        if path is not None:
+            break
+    if path is None:
+        raise unittest.SkipTest('no cached mbpp_full source found for the independent oracle')
+    raw = path.read_bytes()
+    expected_sha256 = 'ccf64ceae9c5403bf50a044cb6d505bfd2a2963ee58338ba268fd65beab92a9f'
+    got_sha256 = lab_common.sha256_bytes(raw)
+    if len(raw) != 563743 or got_sha256 != expected_sha256:
+        raise unittest.SkipTest(
+            f'cached mbpp_full source at {path} does not match the pinned bytes/sha256 '
+            f'({len(raw)} bytes, sha256 {got_sha256}); skipping the independent oracle rather '
+            'than deriving from an unpinned source')
+    return [json.loads(line) for line in raw.decode('utf-8').splitlines() if line.strip()]
+
+
+def _independent_pilot_functions() -> dict:
+    """Independently load `data.mbpp_entry_point` and `agent.{build_user_prompt,
+    signature_line}` from their own pinned AST nodes -- separate parses of `data.py`/`agent.py`,
+    never calling `lab_stage1._load_agent_ast_functions`/`_load_pilot_mbpp_entry_point` -- so a
+    cross-check against `lab_stage1`'s own derivation is not comparing a function with itself."""
+    agent_src = (REPO_ROOT / 'experiments' / 'local_stream' / 'agent.py').read_text('utf-8')
+    agent_tree = ast.parse(agent_src)
+    wanted_fns = {'build_user_prompt', 'signature_line'}
+    fn_nodes = [n for n in agent_tree.body
+               if isinstance(n, ast.FunctionDef) and n.name in wanted_fns]
+    namespace: dict = {'re': re, 'ast': ast, 'warnings': __import__('warnings')}
+    exec(compile(ast.Module(body=fn_nodes, type_ignores=[]), '<agent independent oracle>',
+                'exec'), namespace)
+
+    data_src = (REPO_ROOT / 'experiments' / 'local_stream' / 'data.py').read_text('utf-8')
+    data_tree = ast.parse(data_src)
+    wanted_assigns = {'_ASSERT_NAME', '_DEF_NAME'}
+    assign_nodes = [n for n in data_tree.body if isinstance(n, ast.Assign)
+                    and any(isinstance(t, ast.Name) and t.id in wanted_assigns
+                           for t in n.targets)]
+    entry_fn = next(n for n in data_tree.body
+                    if isinstance(n, ast.FunctionDef) and n.name == 'mbpp_entry_point')
+    data_namespace: dict = {'re': re}
+    exec(compile(ast.Module(body=assign_nodes + [entry_fn], type_ignores=[]),
+                '<data independent oracle>', 'exec'), data_namespace)
+    return {'build_user_prompt': namespace['build_user_prompt'],
+           'mbpp_entry_point': data_namespace['mbpp_entry_point']}
+
+
+def _independent_smoke_prompt_texts() -> dict:
+    """Independently DERIVE the six smoke-task prompt texts (root's 2026-09-26 13:20 review,
+    finding 1), calling nothing in `lab_stage1`: its own mbpp_full source load
+    (:func:`_independent_mbpp_full_records`) and its own AST-loaded pilot functions
+    (:func:`_independent_pilot_functions`).  Used to cross-check `lab_stage1._predeclared_
+    smoke_prompt_texts` is not merely accepting its own output."""
+    cfg = lab_common.harness_config()
+    smoke_ids = list(cfg['roster']['smoke_tasks'])
+    records = _independent_mbpp_full_records()
+    fns = _independent_pilot_functions()
+    out = {}
+    for uid in smoke_ids:
+        task_id = int(uid.split('/')[-1])
+        rec = next(r for r in records if int(r['task_id']) == task_id)
+        raw_prompt = rec['prompt'] if 'prompt' in rec else rec['text']
+        prompt = (raw_prompt or '').strip()
+        reference = rec.get('code') or ''
+        entry_point = fns['mbpp_entry_point'](
+            {'test_list': list(rec.get('test_list') or []), 'code': reference})
+        pilot_task = {'benchmark': 'mbpp', 'prompt': prompt, 'entry_point': entry_point,
+                     'reference': reference}
+        out[uid] = fns['build_user_prompt'](pilot_task)
+    return out
+
+
 def _predeclared_conformance_prompts() -> list:
     """The REAL exactly-ten predeclared ids of protocol 5.8, read straight from config.json (the
     same `lab_common.harness_config()` source `lab_stage1._predeclared_prompt_ids` reads): the
-    six `roster.smoke_tasks` ids (arbitrary-but-fixed prompt text this control invents, since the
-    real MBPP prompt text for these ids is out of `lab_stage1`'s MATRIX row and out of this
-    control's reach too) plus the four `prefreeze.conformance_prompts` ids WITH THEIR REAL text
-    from config.json (`lab_stage1.run_conformance_probe` checks these four's text directly, so a
-    fixture with invented text for them would be refused rather than exercising the counter).
-    Order here is deliberately config.json's own smoke-then-conformance order; a test that wants
-    a *different* order builds its own list from this one's items."""
+    six `roster.smoke_tasks` ids WITH THEIR REAL, DERIVED text (root's 2026-09-26 13:20 review,
+    finding 1 -- `lab_stage1.run_conformance_probe` now checks these six's text directly, so a
+    fixture with invented text for them would be refused rather than exercising the counter; see
+    `SmokePromptDerivationTests` for the negative control that proves this) plus the four
+    `prefreeze.conformance_prompts` ids WITH THEIR REAL text from config.json.  Order here is
+    deliberately config.json's own smoke-then-conformance order; a test that wants a *different*
+    order builds its own list from this one's items."""
     cfg = lab_common.harness_config()
     smoke_ids = list(cfg['roster']['smoke_tasks'])
-    prompts = [{'id': uid,
-               'prompt': 'def f_%s(x):\n    """Return x unchanged, task %s."""\n'
-                         % (uid.replace('/', '_'), uid)}
-              for uid in smoke_ids]
+    smoke_text = lab_stage1._predeclared_smoke_prompt_texts()
+    prompts = [{'id': uid, 'prompt': smoke_text[uid]} for uid in smoke_ids]
     prompts += [{'id': p['id'], 'prompt': p['prompt']}
                for p in cfg['prefreeze']['conformance_prompts']]
     return prompts
@@ -397,9 +497,14 @@ class ShardResumeTests(unittest.TestCase):
     def test_negative_changed_sampling_with_unchanged_pins_is_refused(self) -> None:
         """Adversarial review finding 1: two `golden_shard` calls with an IDENTICAL caller-
         supplied `pins` but a DIFFERENT `sampling` must not silently resume a stale receipt --
-        reproduced empirically before this fix (`temperature` 0.7 vs 0.9999 resumed with no
+        reproduced empirically before that fix (`temperature` 0.7 vs 0.9999 resumed with no
         error at all, the second call's `base_url` -- pointed at a closed local port -- never
-        even dialed)."""
+        even dialed).  As of the STRONGER independent-adversarial-review fix
+        (`lab_stage1._assert_frozen_sampling`), any `sampling` that disagrees with config.json's
+        own frozen block -- including this one -- is now refused with `SamplingRefused` before
+        the resume check even runs, never reaching `lab_prefreeze.resume_shard`, the same
+        strengthening `ThresholdRefused` already made over a bare `ResumeMismatch` for
+        `threshold`."""
         model_path = str(lab_common.REPO_ROOT / 'work' / 'live_ab' / 'models' / 'coder.gguf')
         scenario = _scenario(model_path)
         freeze_dir = _tmpdir(self)
@@ -413,11 +518,12 @@ class ShardResumeTests(unittest.TestCase):
                 pins=pins, prefreeze_root=prefreeze_root)
         self.assertEqual(first['outcome'], 'success')
         changed_sampling = dict(SAMPLING, temperature=0.9999)
-        with self.assertRaises(sr.ResumeMismatch):
+        with self.assertRaises(lab_stage1.SamplingRefused):
             lab_stage1.golden_shard(
                 base_url='http://127.0.0.1:1', server_id='coder', freeze_dir=freeze_dir,
                 receipts_dir=receipts_dir, inv=_inv(), target_kind='mock',
-                sampling=changed_sampling, pins=pins, prefreeze_root=prefreeze_root)
+                sampling=changed_sampling, pins=pins, prefreeze_root=prefreeze_root,
+                session=_ExplodingSession())
 
     def test_positive_unchanged_sampling_and_seed_still_resume(self) -> None:
         # the companion positive case: the fix above must not turn every resume into a refusal
@@ -440,7 +546,14 @@ class ShardResumeTests(unittest.TestCase):
 
     def test_conformance_shard_refuses_changed_sampling_or_threshold_with_unchanged_pins(
             self) -> None:
-        """The same finding-1 fix, for `conformance_shard`'s own `sampling`/`threshold`."""
+        """The same finding-1 (10:19) fix, for `conformance_shard`'s own `sampling` -- STRENGTHENED
+        by the independent-adversarial-review fix (`lab_stage1._assert_frozen_sampling`):
+        a `sampling` that disagrees with config.json's own frozen block is now refused outright
+        with `SamplingRefused` before the resume check even runs, never reaching
+        `lab_prefreeze.resume_shard`, rather than merely producing a `ResumeMismatch` against a
+        pin that happened to record the old value.  And, for `threshold`, the STRONGER
+        2026-09-26 13:20 fix (finding 2): `threshold=8` is likewise refused outright by
+        :func:`lab_stage1._assert_frozen_threshold` before the resume check even runs."""
         model_path = str(lab_common.REPO_ROOT / 'work' / 'live_ab' / 'models' / 'coder.gguf')
         scenario = _scenario(model_path)
         receipts_dir = _tmpdir(self)
@@ -453,18 +566,18 @@ class ShardResumeTests(unittest.TestCase):
                 receipts_dir=receipts_dir, inv=_inv(), target_kind='mock', sampling=SAMPLING,
                 threshold=9, pins=pins, out_dir=out_dir, prefreeze_root=prefreeze_root)
         self.assertEqual(first['outcome'], 'success')
-        with self.assertRaises(sr.ResumeMismatch):
+        with self.assertRaises(lab_stage1.SamplingRefused):
             lab_stage1.conformance_shard(
                 base_url='http://127.0.0.1:1', prompts=CONFORMANCE_PROMPTS_10,
                 server_id='coder', receipts_dir=receipts_dir, inv=_inv(), target_kind='mock',
                 sampling=dict(SAMPLING, temperature=0.9999), threshold=9, pins=pins,
-                out_dir=out_dir, prefreeze_root=prefreeze_root)
-        with self.assertRaises(sr.ResumeMismatch):
+                out_dir=out_dir, prefreeze_root=prefreeze_root, session=_ExplodingSession())
+        with self.assertRaises(lab_stage1.ThresholdRefused):
             lab_stage1.conformance_shard(
                 base_url='http://127.0.0.1:1', prompts=CONFORMANCE_PROMPTS_10,
                 server_id='coder', receipts_dir=receipts_dir, inv=_inv(), target_kind='mock',
                 sampling=SAMPLING, threshold=8, pins=pins, out_dir=out_dir,
-                prefreeze_root=prefreeze_root)
+                prefreeze_root=prefreeze_root, session=_ExplodingSession())
 
     def test_conformance_shard_resume_follows_the_same_discipline(self) -> None:
         model_path = str(lab_common.REPO_ROOT / 'work' / 'live_ab' / 'models' / 'coder.gguf')
@@ -719,6 +832,257 @@ class PromptSetGuardTests(unittest.TestCase):
         self.assertEqual(ids, frozenset(p['id'] for p in CONFORMANCE_PROMPTS_10))
 
 
+class SmokePromptDerivationTests(unittest.TestCase):
+    """Root's 2026-09-26 13:20 review, finding 1: the six `roster.smoke_tasks` prompt texts must
+    be DERIVED from their pinned MBPP source through the frozen normalization/template path and
+    checked, never left as arbitrary invented text.  Every positive check here is cross-checked
+    against an INDEPENDENT re-derivation (:func:`_independent_smoke_prompt_texts`, its own
+    mbpp_full parse and its own separate AST loads of `data.py`/`agent.py`) so this class cannot
+    pass merely by calling `lab_stage1` and checking it agrees with itself."""
+
+    def test_positive_lab_stage1_derivation_matches_an_independent_oracle(self) -> None:
+        mine = lab_stage1._predeclared_smoke_prompt_texts()
+        oracle = _independent_smoke_prompt_texts()
+        self.assertEqual(mine, oracle,
+                         'lab_stage1._predeclared_smoke_prompt_texts must agree with an '
+                         'independently re-derived set of the same six prompts')
+        self.assertEqual(len(mine), 6)
+
+    def test_positive_the_correct_derived_smoke_texts_are_accepted(self) -> None:
+        # CONFORMANCE_PROMPTS_10 already carries the real derived six plus the real four; this
+        # states the acceptance explicitly as its own positive control, independent of the
+        # ids-only check PromptSetGuardTests already makes.
+        model_path = str(lab_common.REPO_ROOT / 'work' / 'live_ab' / 'models' / 'coder.gguf')
+        scenario = _scenario(model_path)
+        with mock_server(scenario) as base_url:
+            report = lab_stage1.run_conformance_probe(
+                base_url, CONFORMANCE_PROMPTS_10, target_kind='mock', sampling=SAMPLING,
+                threshold=9)
+        self.assertEqual(report['n_prompts'], 10)
+        self.assertEqual(report['verdict'], 'PASS')
+
+    def test_negative_roots_witness_altered_mbpp_full_39_text_is_refused(self) -> None:
+        """Root's EXACT witness: with all ten predeclared ids kept, replace `mbpp_full/39`'s
+        submitted text with `'def unrelated(x): return 99'`.  Pre-repair this returned PASS with
+        no refusal; post-repair it must raise `PromptSetRefused` before any request (a closed
+        port as `base_url` proves no network request is needed to detect it)."""
+        tampered = [dict(p) for p in CONFORMANCE_PROMPTS_10]
+        for p in tampered:
+            if p['id'] == 'mbpp_full/39':
+                p['prompt'] = 'def unrelated(x): return 99'
+        self.assertEqual(len(tampered), 10)
+        with self.assertRaises(lab_stage1.PromptSetRefused):
+            lab_stage1.run_conformance_probe(
+                'http://127.0.0.1:1', tampered, target_kind='mock', sampling=SAMPLING,
+                threshold=9)
+
+    def test_negative_a_long_shared_prefix_tamper_is_still_refused(self) -> None:
+        """Mutation-testing coverage gap (independent adversarial review): a mutant that
+        truncates `run_conformance_probe`'s predeclared-text comparison to the first 30
+        characters (`str(p['prompt'])[:30] != want[:30]`) survives the whole suite, because every
+        existing tamper (`'A DIFFERENT PROMPT'`, `'def unrelated(x): return 99'`) differs from
+        the real text within its first 30 characters.  This tamper is byte-identical to the real
+        predeclared text for its ENTIRE length except its last character, so only a full-string
+        comparison catches it (independently verified against a mutant that truncates the
+        comparison to the first 30 characters; see this repair's commit message)."""
+        uid, text = next((k, v) for k, v in lab_stage1._predeclared_conformance_text().items()
+                         if len(v) > 60)
+        tampered_text = text[:-1] + ('!' if not text.endswith('!') else '?')
+        self.assertNotEqual(tampered_text, text)
+        self.assertEqual(tampered_text[:30], text[:30],
+                         'the tamper must share at least the first 30 characters with the real '
+                         'text, or it would already be caught by a prefix-only comparison')
+        tampered = [dict(p) for p in CONFORMANCE_PROMPTS_10]
+        for p in tampered:
+            if p['id'] == uid:
+                p['prompt'] = tampered_text
+        self.assertEqual(len(tampered), 10)
+        with self.assertRaises(lab_stage1.PromptSetRefused):
+            lab_stage1.run_conformance_probe(
+                'http://127.0.0.1:1', tampered, target_kind='mock', sampling=SAMPLING,
+                threshold=9)
+
+    def test_negative_a_changed_mbpp_full_source_is_refused(self) -> None:
+        """The source file's sha256 is checked against its pin before any smoke text is derived.
+        A source at the right filename but the wrong bytes/sha256 must refuse, not silently
+        derive prompts from drifted content."""
+        tmp = _tmpdir(self)
+        (tmp / 'mbpp.jsonl').write_bytes(b'{"task_id": 39, "text": "tampered", "code": '
+                                        b'"def x():\\n    pass\\n", "test_list": []}\n')
+        original = lab_stage1._MBPP_FULL_CACHE_SEARCH_DIRS
+        lab_stage1._MBPP_FULL_CACHE_SEARCH_DIRS = (tmp,)
+        self.addCleanup(setattr, lab_stage1, '_MBPP_FULL_CACHE_SEARCH_DIRS', original)
+        with self.assertRaises(lab_stage1.Stage1Error):
+            lab_stage1._predeclared_smoke_prompt_texts()
+
+    def test_negative_a_same_length_same_record_count_tamper_is_refused_by_digest_alone(
+            self) -> None:
+        """Mutation-testing coverage gap (independent adversarial review): a mutant that deletes
+        the byte/sha256 digest comparison in `_load_mbpp_full_records` survives the whole suite,
+        because the only existing "changed source" negative control
+        (`test_negative_a_changed_mbpp_full_source_is_refused`, above) uses a 1-record fixture
+        that the DOWNSTREAM record-count check ("expected 974 records, found 1") already catches
+        on its own -- the digest comparison itself is never exercised in isolation.  This fixture
+        keeps the pinned byte length (563743) AND record count (974) IDENTICAL to the real
+        source: one ASCII letter of one record's `text` field is substituted for a different
+        ASCII letter, so it parses as 974 well-formed JSON lines and would be silently accepted
+        by a version of `_load_mbpp_full_records` with the digest check removed, while the real
+        (checked) code must still refuse on the sha256 mismatch alone."""
+        real = lab_stage1._find_mbpp_full_source()
+        if real is None:
+            self.skipTest('no cached mbpp_full source found under any pinned search dir')
+        raw = real.read_bytes()
+        self.assertEqual(len(raw), lab_stage1._MBPP_FULL_SOURCE['bytes'])
+        self.assertEqual(lab_common.sha256_bytes(raw), lab_stage1._MBPP_FULL_SOURCE['sha256'])
+        pat = b'"text": "'
+        idx = raw.index(pat) + len(pat)
+        ch = raw[idx:idx + 1]
+        tampered = bytearray(raw)
+        tampered[idx] = ord('X') if ch != b'X' else ord('Y')
+        tampered = bytes(tampered)
+        self.assertEqual(len(tampered), len(raw), 'the tamper must not change the byte length')
+        self.assertNotEqual(lab_common.sha256_bytes(tampered), lab_stage1._MBPP_FULL_SOURCE[
+            'sha256'])
+        lines = [ln for ln in tampered.decode('utf-8').splitlines() if ln.strip()]
+        self.assertEqual(len(lines), lab_stage1._MBPP_FULL_SOURCE['records'],
+                         'the tamper must not change the record count -- it must be caught by '
+                         'the digest check alone, not by the downstream record-count check')
+        for ln in lines:
+            json.loads(ln)  # every line must still be well-formed JSON
+        tmp = _tmpdir(self)
+        (tmp / 'mbpp.jsonl').write_bytes(tampered)
+        original = lab_stage1._MBPP_FULL_CACHE_SEARCH_DIRS
+        lab_stage1._MBPP_FULL_CACHE_SEARCH_DIRS = (tmp,)
+        self.addCleanup(setattr, lab_stage1, '_MBPP_FULL_CACHE_SEARCH_DIRS', original)
+        with self.assertRaises(lab_stage1.Stage1Error):
+            lab_stage1._load_mbpp_full_records()
+
+    def test_negative_a_missing_mbpp_full_source_is_refused(self) -> None:
+        tmp = _tmpdir(self)
+        original = lab_stage1._MBPP_FULL_CACHE_SEARCH_DIRS
+        lab_stage1._MBPP_FULL_CACHE_SEARCH_DIRS = (tmp,)
+        self.addCleanup(setattr, lab_stage1, '_MBPP_FULL_CACHE_SEARCH_DIRS', original)
+        with self.assertRaises(lab_stage1.Stage1Error):
+            lab_stage1._predeclared_smoke_prompt_texts()
+
+
+class ThresholdRefusalTests(unittest.TestCase):
+    """Root's 2026-09-26 13:20 review, finding 2: the non-amendable `prefreeze.
+    format_conformance_min` (frozen at 9) must be enforced, not merely accepted from the
+    caller.  Refused before any request (a closed port as `base_url` proves this)."""
+
+    def test_negative_threshold_zero_is_refused(self) -> None:
+        with self.assertRaises(lab_stage1.ThresholdRefused):
+            lab_stage1.run_conformance_probe(
+                'http://127.0.0.1:1', CONFORMANCE_PROMPTS_10, target_kind='mock',
+                sampling=SAMPLING, threshold=0)
+
+    def test_negative_threshold_eight_is_refused(self) -> None:
+        with self.assertRaises(lab_stage1.ThresholdRefused):
+            lab_stage1.run_conformance_probe(
+                'http://127.0.0.1:1', CONFORMANCE_PROMPTS_10, target_kind='mock',
+                sampling=SAMPLING, threshold=8)
+
+    def test_negative_threshold_ten_is_refused(self) -> None:
+        with self.assertRaises(lab_stage1.ThresholdRefused):
+            lab_stage1.run_conformance_probe(
+                'http://127.0.0.1:1', CONFORMANCE_PROMPTS_10, target_kind='mock',
+                sampling=SAMPLING, threshold=10)
+
+    def test_positive_threshold_nine_is_accepted(self) -> None:
+        model_path = str(lab_common.REPO_ROOT / 'work' / 'live_ab' / 'models' / 'coder.gguf')
+        scenario = _scenario(model_path)
+        with mock_server(scenario) as base_url:
+            report = lab_stage1.run_conformance_probe(
+                base_url, CONFORMANCE_PROMPTS_10, target_kind='mock', sampling=SAMPLING,
+                threshold=9)
+        self.assertEqual(report['verdict'], 'PASS')
+
+    def test_negative_roots_witness_threshold_zero_with_ten_http_500_no_longer_passes(
+            self) -> None:
+        """Root's EXACT witness: `threshold=0` with all ten mock responses forced to HTTP 500
+        (zero conforming).  Pre-repair this returned PASS; post-repair it must raise
+        `ThresholdRefused` before any request is sent (never reaching the transport layer, let
+        alone scoring zero conforming responses as a pass)."""
+        model_path = str(lab_common.REPO_ROOT / 'work' / 'live_ab' / 'models' / 'coder.gguf')
+        faults = [{'match': {}, 'do': 'http', 'status': 500}]
+        scenario = _scenario(model_path, faults=faults)
+        with mock_server(scenario) as base_url:
+            with self.assertRaises(lab_stage1.ThresholdRefused):
+                lab_stage1.run_conformance_probe(
+                    base_url, CONFORMANCE_PROMPTS_10, target_kind='mock', sampling=SAMPLING,
+                    threshold=0)
+
+
+class SamplingRefusalTests(unittest.TestCase):
+    """Independent adversarial review of the 2026-09-26 13:20 repair, HIGH finding: `sampling`
+    (including `max_tokens`) is a protocol-frozen, non-amendable value
+    (`protocol_FINAL.md:3018`, "every sampling parameter") -- the identical defect class already
+    fixed for `threshold` and `prompts` -- that no entry point checked against config.json's own
+    `sampling` block.  Live witness this class reproduces: `run_conformance_probe` with
+    `sampling={'temperature': 1.9, 'max_tokens': 3}` (missing every other frozen key) used to
+    return a PASS verdict with no refusal, and `capture_reference` used to write that same rogue
+    sampling straight into the golden `generation_settings` object every later trial receipt is
+    compared against (protocol 13.2).  Refused before any request (a closed port as `base_url`
+    proves this, the same discipline `ThresholdRefusalTests` above uses)."""
+
+    def test_negative_run_conformance_probe_rogue_sampling_is_refused(self) -> None:
+        with self.assertRaises(lab_stage1.SamplingRefused):
+            lab_stage1.run_conformance_probe(
+                'http://127.0.0.1:1', CONFORMANCE_PROMPTS_10, target_kind='mock',
+                sampling=ROGUE_SAMPLING, threshold=9)
+
+    def test_negative_capture_reference_rogue_sampling_is_refused(self) -> None:
+        with self.assertRaises(lab_stage1.SamplingRefused):
+            lab_stage1.capture_reference(
+                'http://127.0.0.1:1', 'coder', sampling=ROGUE_SAMPLING, target_kind='mock')
+
+    def test_negative_probe_prompt_rogue_sampling_is_refused(self) -> None:
+        with self.assertRaises(lab_stage1.SamplingRefused):
+            lab_stage1.probe_prompt(
+                'http://127.0.0.1:1', 'mbpp_full/1', 'irrelevant prompt text',
+                target_kind='mock', sampling=ROGUE_SAMPLING)
+
+    def test_negative_missing_frozen_keys_alone_is_refused(self) -> None:
+        # every frozen field present and correct EXCEPT one dropped key (`cache_prompt`) --
+        # proves the check is an exact match, not merely "the fields it bothers to look at agree"
+        partial = dict(SAMPLING)
+        del partial['cache_prompt']
+        with self.assertRaises(lab_stage1.SamplingRefused):
+            lab_stage1.run_conformance_probe(
+                'http://127.0.0.1:1', CONFORMANCE_PROMPTS_10, target_kind='mock',
+                sampling=partial, threshold=9)
+
+    def test_positive_the_frozen_sampling_is_accepted(self) -> None:
+        model_path = str(lab_common.REPO_ROOT / 'work' / 'live_ab' / 'models' / 'coder.gguf')
+        scenario = _scenario(model_path)
+        with mock_server(scenario) as base_url:
+            report = lab_stage1.run_conformance_probe(
+                base_url, CONFORMANCE_PROMPTS_10, target_kind='mock', sampling=SAMPLING,
+                threshold=9)
+            captured = lab_stage1.capture_reference(base_url, 'coder', sampling=SAMPLING,
+                                                    target_kind='mock')
+        self.assertEqual(report['verdict'], 'PASS')
+        self.assertIsInstance(captured['generation_settings'], dict)
+
+    def test_negative_roots_style_witness_rogue_sampling_no_longer_passes_or_writes_a_golden(
+            self) -> None:
+        """Live-reproduced independent-review witness, against a real running mock server (not
+        just a closed port): `run_conformance_probe` with the wild sampling used to return a PASS
+        verdict with no refusal at all, and `capture_reference` used to write it straight into
+        the golden `generation_settings`.  Both must now refuse."""
+        model_path = str(lab_common.REPO_ROOT / 'work' / 'live_ab' / 'models' / 'coder.gguf')
+        scenario = _scenario(model_path)
+        with mock_server(scenario) as base_url:
+            with self.assertRaises(lab_stage1.SamplingRefused):
+                lab_stage1.run_conformance_probe(
+                    base_url, CONFORMANCE_PROMPTS_10, target_kind='mock',
+                    sampling=ROGUE_SAMPLING, threshold=9)
+            with self.assertRaises(lab_stage1.SamplingRefused):
+                lab_stage1.capture_reference(base_url, 'coder', sampling=ROGUE_SAMPLING,
+                                             target_kind='mock')
+
+
 class _ExplodingSession:
     """A `session` double whose `get`/`post` raise immediately -- used to prove a refused call
     makes NO network request at all, stronger than merely observing no successful response."""
@@ -829,6 +1193,62 @@ class GuardBeforeResumeTests(unittest.TestCase):
                 sampling=SAMPLING, threshold=9, pins=pins, out_dir=out_dir,
                 prefreeze_root=prefreeze_root, session=_ExplodingSession())
         self.assertEqual(sr.completed_shards(receipts_dir), before)
+
+    def test_conformance_shard_checks_threshold_strictly_before_resume(self) -> None:
+        """LOW mutation-testing coverage gap (independent adversarial review): moving
+        `_assert_frozen_threshold` to AFTER `conformance_shard`'s own `resume_shard` call was
+        still "killed" by the suite, but only INCIDENTALLY, via an unrelated sampling-triggered
+        `ResumeMismatch` in `ShardResumeTests` -- no test isolated the ordering itself the way
+        this class already isolates the `target_kind` guard's ordering.  This monkeypatches
+        `lab_prefreeze.resume_shard` to raise `AssertionError` if it is EVER called, so a bad
+        `threshold` must be refused with `ThresholdRefused` before that call is reached at all --
+        not merely before a stale receipt happens to differ.  (Because `threshold` is already
+        folded into the resume pins, a real stale-receipt-under-a-changed-threshold scenario
+        cannot occur naturally, which is exactly why this direct monkeypatch, rather than a
+        second on-disk receipt, is the only way to isolate the ordering.)"""
+        def _boom(*_a, **_k):
+            raise AssertionError(
+                'lab_prefreeze.resume_shard must not be reached before the threshold check')
+        original = lab_prefreeze.resume_shard
+        lab_prefreeze.resume_shard = _boom
+        self.addCleanup(setattr, lab_prefreeze, 'resume_shard', original)
+        with self.assertRaises(lab_stage1.ThresholdRefused):
+            lab_stage1.conformance_shard(
+                base_url='http://127.0.0.1:1', prompts=CONFORMANCE_PROMPTS_10,
+                server_id='coder', receipts_dir=_tmpdir(self), inv=_inv(), target_kind='mock',
+                sampling=SAMPLING, threshold=8, pins=_pins(seed=1), out_dir=_tmpdir(self),
+                session=_ExplodingSession())
+
+    def test_golden_shard_checks_sampling_strictly_before_resume(self) -> None:
+        """The same dedicated-ordering discipline as the test above, for the NEW sampling check
+        (independent adversarial review, post-13:20 repair) in `golden_shard`."""
+        def _boom(*_a, **_k):
+            raise AssertionError(
+                'lab_prefreeze.resume_shard must not be reached before the sampling check')
+        original = lab_prefreeze.resume_shard
+        lab_prefreeze.resume_shard = _boom
+        self.addCleanup(setattr, lab_prefreeze, 'resume_shard', original)
+        with self.assertRaises(lab_stage1.SamplingRefused):
+            lab_stage1.golden_shard(
+                base_url='http://127.0.0.1:1', server_id='coder', freeze_dir=_tmpdir(self),
+                receipts_dir=_tmpdir(self), inv=_inv(), target_kind='mock',
+                sampling=ROGUE_SAMPLING, pins=_pins(seed=1), session=_ExplodingSession())
+
+    def test_conformance_shard_checks_sampling_strictly_before_resume(self) -> None:
+        """The same dedicated-ordering discipline, for `conformance_shard`'s NEW sampling
+        check."""
+        def _boom(*_a, **_k):
+            raise AssertionError(
+                'lab_prefreeze.resume_shard must not be reached before the sampling check')
+        original = lab_prefreeze.resume_shard
+        lab_prefreeze.resume_shard = _boom
+        self.addCleanup(setattr, lab_prefreeze, 'resume_shard', original)
+        with self.assertRaises(lab_stage1.SamplingRefused):
+            lab_stage1.conformance_shard(
+                base_url='http://127.0.0.1:1', prompts=CONFORMANCE_PROMPTS_10,
+                server_id='coder', receipts_dir=_tmpdir(self), inv=_inv(), target_kind='mock',
+                sampling=ROGUE_SAMPLING, threshold=9, pins=_pins(seed=1),
+                out_dir=_tmpdir(self), session=_ExplodingSession())
 
 
 class PromptBindingResumeTests(unittest.TestCase):
@@ -997,6 +1417,49 @@ class RootTenNineteenWitnessReproductionTests(unittest.TestCase):
                 server_id='coder', receipts_dir=receipts_dir, inv=_inv(), target_kind='real',
                 sampling=SAMPLING, threshold=9, pins=pins, out_dir=out_dir,
                 prefreeze_root=prefreeze_root)
+
+
+class RootThirteenTwentyWitnessReproductionTests(unittest.TestCase):
+    """Reproduces, as FAILING tests against the pre-repair `e6a8d7d` code, the two HIGH witnesses
+    of root's 2026-09-26 13:20 interim review
+    (`reviews/stage1_repair_frozen_gate_interim_20260926_1320.md`), before this repair is
+    applied.  Each assertion states the POST-repair requirement; run against `e6a8d7d`, both
+    fail (witness 1 with no exception raised at all -- `run_conformance_probe` returns PASS;
+    witness 2 the same) -- that non-raising IS the reproduction, independently confirmed by hand
+    against `e6a8d7d` before this repair was written (both witnesses returned `verdict == 'PASS'`
+    with no refusal). Once the repair lands these two tests pass."""
+
+    def test_witness_1_altered_smoke_text_must_be_refused_not_passed(self) -> None:
+        # root's witness: replace mbpp_full/39's text with 'def unrelated(x): return 99', keep
+        # all ten ids. Pre-repair: PASS, no refusal, no source/text check on the six smoke ids at
+        # all. Post-repair: PromptSetRefused, before any request (closed port).
+        tampered = [dict(p) for p in CONFORMANCE_PROMPTS_10]
+        for p in tampered:
+            if p['id'] == 'mbpp_full/39':
+                p['prompt'] = 'def unrelated(x): return 99'
+        with self.assertRaises(
+                lab_stage1.PromptSetRefused,
+                msg="root witness 1 (13:20): altered mbpp_full/39 text with all ten ids kept "
+                    'must be refused, not scored PASS'):
+            lab_stage1.run_conformance_probe(
+                'http://127.0.0.1:1', tampered, target_kind='mock', sampling=SAMPLING,
+                threshold=9)
+
+    def test_witness_2_threshold_zero_with_ten_http_500_must_be_refused_not_passed(self) -> None:
+        # root's witness: threshold=0 with all ten mock responses forced to HTTP 500 (zero
+        # conforming). Pre-repair: PASS (0 >= 0). Post-repair: ThresholdRefused, before any
+        # request -- the frozen margin is never amendable to 0.
+        model_path = str(lab_common.REPO_ROOT / 'work' / 'live_ab' / 'models' / 'coder.gguf')
+        faults = [{'match': {}, 'do': 'http', 'status': 500}]
+        scenario = _scenario(model_path, faults=faults)
+        with mock_server(scenario) as base_url:
+            with self.assertRaises(
+                    lab_stage1.ThresholdRefused,
+                    msg='root witness 2 (13:20): threshold=0 with ten HTTP-500 responses must '
+                        'be refused, not scored PASS for zero conforming responses'):
+                lab_stage1.run_conformance_probe(
+                    base_url, CONFORMANCE_PROMPTS_10, target_kind='mock', sampling=SAMPLING,
+                    threshold=0)
 
 
 if __name__ == '__main__':
