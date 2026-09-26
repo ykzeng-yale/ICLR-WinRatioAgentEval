@@ -1,0 +1,106 @@
+{
+ "archive": {
+  "bytes": 67817,
+  "members": [
+   {
+    "bytes": 291481,
+    "name": "HARNESS_PIN_SUCCESSOR_20260926_0909.json",
+    "sha256": "61ab6a531f9bb728edd13478b317219496051291918e2c80078e1d5b77a34e60"
+   },
+   {
+    "bytes": 0,
+    "name": "pin3_stderr.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   },
+   {
+    "bytes": 355,
+    "name": "pin3_stdout.log",
+    "sha256": "38fa96c53a6e82df6eb446421240462e0bf7c299f5cb1694eda0385555c19369"
+   }
+  ],
+  "path": "results/live_ab/red_pin_run/20260926_0909/red_step4_pin_run.tar.gz",
+  "reading": "tar.gz, deterministic member headers (mtime 0, uid/gid 0), sorted member names; member digests are of the original files",
+  "sha256": "0bf4736923891262fbae249773f7ab7c0a65f2721d6ffffd2a767c08928caef9"
+ },
+ "convention": "deterministic-path",
+ "first_cause": "live_ab_controls: FAIL tests_repro_inputs.HistoryListTests.test_every_commit_the_controls_read_is_listed. tests_stage1.LabClientByteIdentityTests read git show 878fa70:experiments/live_ab/lab_client.py, and 878fa70 is not in repro_inputs.HISTORY. The step-4 focused runs had not included tests_repro_inputs.",
+ "fix": "96aebd7 (experiments/live_ab_controls/tests_stage1.py only): lab_client.py is compared with the sha256 the accepted receipt HARNESS_PIN_SUCCESSOR_20260926_0600.json records; the mutation control patches the real lab_stage1._verdict. No harness byte changed.",
+ "generated_utc": "2026-09-26T09:17:39Z",
+ "links": {
+  "runs_input": {
+   "path": "results/live_ab/pin_inputs/HARNESS_PIN_SUCCESSOR_20260926_0831.runs_of_this_step.json",
+   "sha256": "28e9216470960b8605c9e80e5872d200ba055ac47b043017b3a81b0a4c34fc85"
+  },
+  "superseded_by_nothing": "the accepted HARNESS_PIN_SUCCESSOR_20260926_0600.json remains the latest receipt of record until a later successor is committed"
+ },
+ "run": {
+  "all_passed": false,
+  "completed_total": 2095,
+  "generated_utc": "2026-09-26T09:09:56Z",
+  "head": "2411e0ee9cf53d4e5c01af0991b6fa786c06787a",
+  "planned_total": 2095,
+  "run_started_utc": "2026-09-26T08:31:46Z",
+  "solo": false,
+  "suites": [
+   {
+    "completed": 766,
+    "end_utc": "2026-09-26T08:35:41Z",
+    "exit": 0,
+    "failure_headers": [],
+    "planned": 766,
+    "start_utc": "2026-09-26T08:31:58Z",
+    "suite": "live_ab",
+    "verdict_line": "OK (skipped=1)"
+   },
+   {
+    "completed": 677,
+    "end_utc": "2026-09-26T09:06:59Z",
+    "exit": 1,
+    "failure_headers": [
+     "FAIL: test_every_commit_the_controls_read_is_listed (tests_repro_inputs.HistoryListTests.test_every_commit_the_controls_read_is_listed)"
+    ],
+    "planned": 677,
+    "start_utc": "2026-09-26T08:35:41Z",
+    "suite": "live_ab_controls",
+    "verdict_line": "FAILED (failures=1)"
+   },
+   {
+    "completed": 193,
+    "end_utc": "2026-09-26T09:07:02Z",
+    "exit": 0,
+    "failure_headers": [],
+    "planned": 193,
+    "start_utc": "2026-09-26T09:07:00Z",
+    "suite": "live_ab_serving",
+    "verdict_line": "OK"
+   },
+   {
+    "completed": 244,
+    "end_utc": "2026-09-26T09:09:42Z",
+    "exit": 0,
+    "failure_headers": [],
+    "planned": 244,
+    "start_utc": "2026-09-26T09:07:02Z",
+    "suite": "live_ab_tools",
+    "verdict_line": "OK (skipped=2)"
+   },
+   {
+    "completed": 215,
+    "end_utc": "2026-09-26T09:09:55Z",
+    "exit": 0,
+    "failure_headers": [],
+    "planned": 215,
+    "start_utc": "2026-09-26T09:09:43Z",
+    "suite": "tests_validation.py",
+    "verdict_line": "OK (skipped=6, expected failures=2)"
+   }
+  ]
+ },
+ "schema": "live_ab/red_pin_run-v1",
+ "status": "failure-history record of a RED successor pin run; NOT a pin receipt of record",
+ "what_this_does_not_establish": [
+  "anything about the suites beyond the archived receipt and logs",
+  "root review; root reviews the next successor pin"
+ ],
+ "what_this_is": "The one step-4 successor pin run (harness_pin_successor.py --runs-of-this-step results/live_ab/pin_inputs/HARNESS_PIN_SUCCESSOR_20260926_0831.runs_of_this_step.json at head 2411e0e) finished with every suite completed = planned but NOT all passed; its receipt was therefore not committed. This record keeps that receipt and its logs byte-exact in the archive below, so the attempt stays in the failure history."
+}
