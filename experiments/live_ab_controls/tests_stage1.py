@@ -115,9 +115,28 @@ def _tmpdir(case: unittest.TestCase) -> Path:
     return d
 
 
-CONFORMANCE_PROMPTS_10 = [{'id': 'p%d' % i,
-                          'prompt': 'def f%d(x):\n    """Return x unchanged, task %d."""\n' % (i, i)}
-                         for i in range(10)]
+def _predeclared_conformance_prompts() -> list:
+    """The REAL exactly-ten predeclared ids of protocol 5.8, read straight from config.json (the
+    same `lab_common.harness_config()` source `lab_stage1._predeclared_prompt_ids` reads): the
+    six `roster.smoke_tasks` ids (arbitrary-but-fixed prompt text this control invents, since the
+    real MBPP prompt text for these ids is out of `lab_stage1`'s MATRIX row and out of this
+    control's reach too) plus the four `prefreeze.conformance_prompts` ids WITH THEIR REAL text
+    from config.json (`lab_stage1.run_conformance_probe` checks these four's text directly, so a
+    fixture with invented text for them would be refused rather than exercising the counter).
+    Order here is deliberately config.json's own smoke-then-conformance order; a test that wants
+    a *different* order builds its own list from this one's items."""
+    cfg = lab_common.harness_config()
+    smoke_ids = list(cfg['roster']['smoke_tasks'])
+    prompts = [{'id': uid,
+               'prompt': 'def f_%s(x):\n    """Return x unchanged, task %s."""\n'
+                         % (uid.replace('/', '_'), uid)}
+              for uid in smoke_ids]
+    prompts += [{'id': p['id'], 'prompt': p['prompt']}
+               for p in cfg['prefreeze']['conformance_prompts']]
+    return prompts
+
+
+CONFORMANCE_PROMPTS_10 = _predeclared_conformance_prompts()
 
 
 def _real_extract_code(text: str) -> str:
@@ -308,25 +327,27 @@ class ConformanceCounterTests(unittest.TestCase):
             'a fence after leading prose must still be found -- this would fail under `.match`')
 
     def test_negative_counts_code_block_presence_not_transport_success(self) -> None:
-        """Adversarial review finding 4: the counter must count `has_code_block`, never
-        `ok_transport` -- a materially weaker quantity `lab_mock_server`'s fixtures happen to
-        agree with (every successful mock response is fenced), which is exactly why the earlier
-        suite did not catch a `has_code_block` -> `ok_transport` field swap.  This exercises
-        `_count_conforming` directly against synthetic rows where the two fields disagree AND
-        the two counts differ (not merely which rows they pick), so a field-swap mutation cannot
+        """Adversarial review finding 4: the counter must count `conforms` (root's 2026-09-26
+        10:19 frozen predicate), never `ok_transport` -- a materially weaker quantity
+        `lab_mock_server`'s fixtures happen to agree with (every successful mock response is a
+        real fenced program), which is exactly why the earlier suite did not catch a
+        `has_code_block`/`conforms` -> `ok_transport` field swap.  This exercises
+        `_count_conforming` directly against synthetic rows where the fields disagree AND the
+        counts differ (not merely which rows they pick), so a field-swap mutation cannot
         coincidentally land on the same total."""
         rows = [
-            {'has_code_block': True, 'ok_transport': True},
-            {'has_code_block': False, 'ok_transport': True},   # transport ok, no fence
-            {'has_code_block': False, 'ok_transport': True},   # transport ok, no fence
-            {'has_code_block': True, 'ok_transport': False},   # pathological, must still count
+            {'has_code_block': True, 'conforms': True, 'ok_transport': True},
+            {'has_code_block': False, 'conforms': False, 'ok_transport': True},  # no fence
+            {'has_code_block': True, 'conforms': False, 'ok_transport': True},   # empty fence
+            {'has_code_block': True, 'conforms': True, 'ok_transport': False},  # pathological
         ]
-        # has_code_block count = 2; ok_transport count = 3 -- the two totals must differ, or a
-        # `has_code_block` -> `ok_transport` field swap could coincidentally pass anyway.
-        self.assertEqual(sum(1 for r in rows if r['has_code_block']), 2)
+        # conforms count = 2; has_code_block count = 3; ok_transport count = 3 -- all three
+        # totals must differ, or a field-swap mutation could coincidentally pass anyway.
+        self.assertEqual(sum(1 for r in rows if r['conforms']), 2)
+        self.assertEqual(sum(1 for r in rows if r['has_code_block']), 3)
         self.assertEqual(sum(1 for r in rows if r['ok_transport']), 3)
         self.assertEqual(lab_stage1._count_conforming(rows), 2,
-                         'must count has_code_block, never ok_transport')
+                         'must count conforms, never has_code_block or ok_transport')
 
     def test_pilot_code_block_pattern_matches_the_replicated_one(self) -> None:
         # lab_data.normalize_prompt is pinned against the pilot the same way
@@ -591,6 +612,391 @@ class ProtocolInterpretationTests(unittest.TestCase):
                         _real_extract_code(text).strip(), '',
                         f'{text!r}: contains_code_block said True but the real extract_code '
                         'returned an effectively empty program')
+
+
+class ConformancePredicateTests(unittest.TestCase):
+    """`lab_stage1.conforms`: root's 2026-09-26 10:19 frozen predicate (finding 2), the
+    conjunction of `contains_code_block` and the REAL `extract_code`'s non-whitespace output --
+    never either half alone."""
+
+    def test_negative_an_empty_first_fence_does_not_conform(self) -> None:
+        text = '```python\n\n```'
+        self.assertTrue(lab_stage1.contains_code_block(text),
+                        'sanity: the fence itself must still be detected')
+        self.assertEqual(_real_extract_code(text), '\n',
+                         'sanity: the real extractor must return only a newline for this text')
+        self.assertFalse(lab_stage1.conforms(text),
+                         'an empty first fence must not conform even though a fence is present')
+
+    def test_negative_an_empty_first_fence_does_not_conform_even_with_a_later_real_fence(
+            self) -> None:
+        # the empty FIRST block is what extract_code returns (it takes blocks[0]); valid code in
+        # a LATER fence must not rescue conformance.
+        text = '```python\n\n```\nSure, and here it is for real:\n```python\nprint(1)\n```'
+        self.assertTrue(lab_stage1.contains_code_block(text))
+        self.assertEqual(_real_extract_code(text), '\n',
+                         "the real extractor's blocks[0] is the EMPTY first fence, not the "
+                         'valid one that follows')
+        self.assertFalse(lab_stage1.conforms(text))
+
+    def test_negative_unfenced_prose_does_not_conform(self) -> None:
+        text = 'Sure, here is the answer: it is 42.'
+        self.assertNotEqual(_real_extract_code(text), '',
+                            "sanity: the real extractor's non-fence fallback branch returns "
+                            'non-empty text for this same unfenced response')
+        self.assertFalse(lab_stage1.conforms(text),
+                         'unfenced prose must not conform even though the real extractor '
+                         'returns non-empty text for it (its fallback branch, not a fence)')
+
+    def test_positive_a_normal_fenced_program_conforms(self) -> None:
+        text = '```python\ndef f(x):\n    return x\n```'
+        self.assertTrue(lab_stage1.contains_code_block(text))
+        self.assertNotEqual(_real_extract_code(text).strip(), '')
+        self.assertTrue(lab_stage1.conforms(text))
+
+    def test_positive_leading_prose_before_a_real_fence_still_conforms(self) -> None:
+        text = 'Sure, here is the code:\n```python\nprint(1)\n```'
+        self.assertTrue(lab_stage1.conforms(text))
+
+
+class PromptSetGuardTests(unittest.TestCase):
+    """`run_conformance_probe` REFUSES (`PromptSetRefused`) any `prompts` that is not exactly
+    ten items, or not exactly config.json's predeclared ten ids (root's 2026-09-26 10:19 review,
+    finding 2) -- checked BEFORE any request is sent, so none of these tests need a live server."""
+
+    def test_negative_nine_prompts_is_refused(self) -> None:
+        nine = CONFORMANCE_PROMPTS_10[:9]
+        with self.assertRaises(lab_stage1.PromptSetRefused):
+            lab_stage1.run_conformance_probe(
+                'http://127.0.0.1:1', nine, target_kind='mock', sampling=SAMPLING, threshold=9)
+
+    def test_negative_eleven_prompts_is_refused(self) -> None:
+        eleven = CONFORMANCE_PROMPTS_10 + [{'id': 'oodp/5', 'prompt': 'def g(x):\n    return x\n'}]
+        with self.assertRaises(lab_stage1.PromptSetRefused):
+            lab_stage1.run_conformance_probe(
+                'http://127.0.0.1:1', eleven, target_kind='mock', sampling=SAMPLING, threshold=9)
+
+    def test_negative_a_changed_prompt_set_is_refused(self) -> None:
+        # exactly ten items, but one id substituted for one outside the predeclared set
+        changed = CONFORMANCE_PROMPTS_10[:-1] + [{'id': 'oodp/999', 'prompt': 'def h(x):\n    return x\n'}]
+        self.assertEqual(len(changed), 10)
+        with self.assertRaises(lab_stage1.PromptSetRefused):
+            lab_stage1.run_conformance_probe(
+                'http://127.0.0.1:1', changed, target_kind='mock', sampling=SAMPLING,
+                threshold=9)
+
+    def test_negative_a_changed_declared_prompt_text_is_refused(self) -> None:
+        # same ten predeclared ids, but one of the four config-declared oodp prompts carries
+        # text that disagrees with config.json's own text for it
+        tampered = [dict(p) for p in CONFORMANCE_PROMPTS_10]
+        for p in tampered:
+            if p['id'] == 'oodp/1':
+                p['prompt'] = 'A DIFFERENT PROMPT'
+        with self.assertRaises(lab_stage1.PromptSetRefused):
+            lab_stage1.run_conformance_probe(
+                'http://127.0.0.1:1', tampered, target_kind='mock', sampling=SAMPLING,
+                threshold=9)
+
+    def test_negative_a_duplicate_id_is_refused(self) -> None:
+        dup = CONFORMANCE_PROMPTS_10[:-1] + [CONFORMANCE_PROMPTS_10[0]]
+        self.assertEqual(len(dup), 10)
+        with self.assertRaises(lab_stage1.PromptSetRefused):
+            lab_stage1.run_conformance_probe(
+                'http://127.0.0.1:1', dup, target_kind='mock', sampling=SAMPLING, threshold=9)
+
+    def test_positive_the_real_predeclared_ten_is_accepted(self) -> None:
+        model_path = str(lab_common.REPO_ROOT / 'work' / 'live_ab' / 'models' / 'coder.gguf')
+        scenario = _scenario(model_path)
+        with mock_server(scenario) as base_url:
+            report = lab_stage1.run_conformance_probe(
+                base_url, CONFORMANCE_PROMPTS_10, target_kind='mock', sampling=SAMPLING,
+                threshold=9)
+        self.assertEqual(report['n_prompts'], 10)
+
+    def test_positive_predeclared_ids_are_exactly_ten_from_config(self) -> None:
+        ids = lab_stage1._predeclared_prompt_ids()
+        self.assertEqual(len(ids), 10)
+        self.assertEqual(ids, frozenset(p['id'] for p in CONFORMANCE_PROMPTS_10))
+
+
+class _ExplodingSession:
+    """A `session` double whose `get`/`post` raise immediately -- used to prove a refused call
+    makes NO network request at all, stronger than merely observing no successful response."""
+
+    def get(self, *a, **k):
+        raise AssertionError('no network request may be made when the mock-only guard refuses '
+                             'before any resume/probe attempt')
+
+    def post(self, *a, **k):
+        raise AssertionError('no network request may be made when the mock-only guard refuses '
+                             'before any resume/probe attempt')
+
+
+class GuardBeforeResumeTests(unittest.TestCase):
+    """`assert_mock_target` fires BEFORE any resume return, in EVERY public shard entry point
+    (root's 2026-09-26 10:19 review, finding 3): a `target_kind='real'` or non-loopback
+    `base_url` call must raise even when a matching mock receipt already exists on disk with
+    otherwise-unchanged pins -- never silently handed that receipt -- and must make no network
+    request and write no new receipt."""
+
+    def test_golden_shard_refuses_a_real_target_before_resuming(self) -> None:
+        model_path = str(lab_common.REPO_ROOT / 'work' / 'live_ab' / 'models' / 'coder.gguf')
+        scenario = _scenario(model_path)
+        freeze_dir = _tmpdir(self)
+        receipts_dir = _tmpdir(self)
+        prefreeze_root = _tmpdir(self) / '_prefreeze'
+        pins = _pins(seed=1)
+        with mock_server(scenario) as base_url:
+            first = lab_stage1.golden_shard(
+                base_url=base_url, server_id='coder', freeze_dir=freeze_dir,
+                receipts_dir=receipts_dir, inv=_inv(), target_kind='mock', sampling=SAMPLING,
+                pins=pins, prefreeze_root=prefreeze_root)
+        self.assertEqual(first['outcome'], 'success')
+        before = sr.completed_shards(receipts_dir)
+        with self.assertRaises(lab_stage1.RealServerNotApproved):
+            lab_stage1.golden_shard(
+                base_url='https://external.invalid', server_id='coder', freeze_dir=freeze_dir,
+                receipts_dir=receipts_dir, inv=_inv(), target_kind='real', sampling=SAMPLING,
+                pins=pins, prefreeze_root=prefreeze_root, session=_ExplodingSession())
+        self.assertEqual(sr.completed_shards(receipts_dir), before,
+                         'a refused real-target call must write no new receipt')
+
+    def test_golden_shard_refuses_a_changed_non_loopback_target_before_resuming(self) -> None:
+        # the companion "changed target" control: target_kind='mock' but base_url is NOT
+        # loopback -- assert_mock_target's second, independent check must still fire first.
+        model_path = str(lab_common.REPO_ROOT / 'work' / 'live_ab' / 'models' / 'coder.gguf')
+        scenario = _scenario(model_path)
+        freeze_dir = _tmpdir(self)
+        receipts_dir = _tmpdir(self)
+        prefreeze_root = _tmpdir(self) / '_prefreeze'
+        pins = _pins(seed=1)
+        with mock_server(scenario) as base_url:
+            first = lab_stage1.golden_shard(
+                base_url=base_url, server_id='coder', freeze_dir=freeze_dir,
+                receipts_dir=receipts_dir, inv=_inv(), target_kind='mock', sampling=SAMPLING,
+                pins=pins, prefreeze_root=prefreeze_root)
+        self.assertEqual(first['outcome'], 'success')
+        before = sr.completed_shards(receipts_dir)
+        with self.assertRaises(lab_stage1.RealServerNotApproved):
+            lab_stage1.golden_shard(
+                base_url='http://example.com:8080', server_id='coder', freeze_dir=freeze_dir,
+                receipts_dir=receipts_dir, inv=_inv(), target_kind='mock', sampling=SAMPLING,
+                pins=pins, prefreeze_root=prefreeze_root, session=_ExplodingSession())
+        self.assertEqual(sr.completed_shards(receipts_dir), before)
+
+    def test_conformance_shard_refuses_a_real_target_before_resuming(self) -> None:
+        model_path = str(lab_common.REPO_ROOT / 'work' / 'live_ab' / 'models' / 'coder.gguf')
+        scenario = _scenario(model_path)
+        receipts_dir = _tmpdir(self)
+        out_dir = _tmpdir(self)
+        prefreeze_root = _tmpdir(self) / '_prefreeze'
+        pins = _pins(seed=1)
+        with mock_server(scenario) as base_url:
+            first = lab_stage1.conformance_shard(
+                base_url=base_url, prompts=CONFORMANCE_PROMPTS_10, server_id='coder',
+                receipts_dir=receipts_dir, inv=_inv(), target_kind='mock', sampling=SAMPLING,
+                threshold=9, pins=pins, out_dir=out_dir, prefreeze_root=prefreeze_root)
+        self.assertEqual(first['outcome'], 'success')
+        before = sr.completed_shards(receipts_dir)
+        with self.assertRaises(lab_stage1.RealServerNotApproved):
+            lab_stage1.conformance_shard(
+                base_url='https://external.invalid', prompts=CONFORMANCE_PROMPTS_10,
+                server_id='coder', receipts_dir=receipts_dir, inv=_inv(), target_kind='real',
+                sampling=SAMPLING, threshold=9, pins=pins, out_dir=out_dir,
+                prefreeze_root=prefreeze_root, session=_ExplodingSession())
+        self.assertEqual(sr.completed_shards(receipts_dir), before,
+                         'a refused real-target call must write no new receipt')
+
+    def test_conformance_shard_refuses_a_changed_non_loopback_target_before_resuming(
+            self) -> None:
+        model_path = str(lab_common.REPO_ROOT / 'work' / 'live_ab' / 'models' / 'coder.gguf')
+        scenario = _scenario(model_path)
+        receipts_dir = _tmpdir(self)
+        out_dir = _tmpdir(self)
+        prefreeze_root = _tmpdir(self) / '_prefreeze'
+        pins = _pins(seed=1)
+        with mock_server(scenario) as base_url:
+            first = lab_stage1.conformance_shard(
+                base_url=base_url, prompts=CONFORMANCE_PROMPTS_10, server_id='coder',
+                receipts_dir=receipts_dir, inv=_inv(), target_kind='mock', sampling=SAMPLING,
+                threshold=9, pins=pins, out_dir=out_dir, prefreeze_root=prefreeze_root)
+        self.assertEqual(first['outcome'], 'success')
+        before = sr.completed_shards(receipts_dir)
+        with self.assertRaises(lab_stage1.RealServerNotApproved):
+            lab_stage1.conformance_shard(
+                base_url='http://example.com:8080', prompts=CONFORMANCE_PROMPTS_10,
+                server_id='coder', receipts_dir=receipts_dir, inv=_inv(), target_kind='mock',
+                sampling=SAMPLING, threshold=9, pins=pins, out_dir=out_dir,
+                prefreeze_root=prefreeze_root, session=_ExplodingSession())
+        self.assertEqual(sr.completed_shards(receipts_dir), before)
+
+
+class PromptBindingResumeTests(unittest.TestCase):
+    """`conformance_shard`'s resume pins fold in the exact ordered `(id, prompt)` pairs (root's
+    2026-09-26 10:19 review, finding 1): changed text, changed id, or changed order at an
+    otherwise-unchanged caller `pins` must each be refused on resume; an unchanged resume is
+    still reused (the positive companion, so the fix does not turn every resume into a
+    refusal)."""
+
+    def _first(self, receipts_dir, out_dir, prefreeze_root, pins, base_url, prompts):
+        return lab_stage1.conformance_shard(
+            base_url=base_url, prompts=prompts, server_id='coder', receipts_dir=receipts_dir,
+            inv=_inv(), target_kind='mock', sampling=SAMPLING, threshold=9, pins=pins,
+            out_dir=out_dir, prefreeze_root=prefreeze_root)
+
+    def test_negative_changed_prompt_text_is_refused_on_resume(self) -> None:
+        model_path = str(lab_common.REPO_ROOT / 'work' / 'live_ab' / 'models' / 'coder.gguf')
+        scenario = _scenario(model_path)
+        receipts_dir, out_dir = _tmpdir(self), _tmpdir(self)
+        prefreeze_root = _tmpdir(self) / '_prefreeze'
+        pins = _pins(seed=1)
+        with mock_server(scenario) as base_url:
+            first = self._first(receipts_dir, out_dir, prefreeze_root, pins, base_url,
+                                CONFORMANCE_PROMPTS_10)
+        self.assertEqual(first['outcome'], 'success')
+        changed = [dict(CONFORMANCE_PROMPTS_10[0], prompt='A DIFFERENT PROMPT')] \
+            + CONFORMANCE_PROMPTS_10[1:]
+        with self.assertRaises(sr.ResumeMismatch):
+            self._first(receipts_dir, out_dir, prefreeze_root, pins, 'http://127.0.0.1:1',
+                       changed)
+
+    def test_negative_changed_prompt_id_is_refused_on_resume(self) -> None:
+        model_path = str(lab_common.REPO_ROOT / 'work' / 'live_ab' / 'models' / 'coder.gguf')
+        scenario = _scenario(model_path)
+        receipts_dir, out_dir = _tmpdir(self), _tmpdir(self)
+        prefreeze_root = _tmpdir(self) / '_prefreeze'
+        pins = _pins(seed=1)
+        with mock_server(scenario) as base_url:
+            first = self._first(receipts_dir, out_dir, prefreeze_root, pins, base_url,
+                                CONFORMANCE_PROMPTS_10)
+        self.assertEqual(first['outcome'], 'success')
+        # the id of position 0 changes (its text is unchanged) -- the resume pin's ordered
+        # (id, prompt) digest must still catch this even though the TEXT at every position is
+        # exactly what was recorded.
+        changed_id = [dict(CONFORMANCE_PROMPTS_10[0], id=CONFORMANCE_PROMPTS_10[0]['id'] + '-x')]\
+            + CONFORMANCE_PROMPTS_10[1:]
+        with self.assertRaises(sr.ResumeMismatch):
+            self._first(receipts_dir, out_dir, prefreeze_root, pins, 'http://127.0.0.1:1',
+                       changed_id)
+
+    def test_negative_changed_order_is_refused_on_resume(self) -> None:
+        model_path = str(lab_common.REPO_ROOT / 'work' / 'live_ab' / 'models' / 'coder.gguf')
+        scenario = _scenario(model_path)
+        receipts_dir, out_dir = _tmpdir(self), _tmpdir(self)
+        prefreeze_root = _tmpdir(self) / '_prefreeze'
+        pins = _pins(seed=1)
+        with mock_server(scenario) as base_url:
+            first = self._first(receipts_dir, out_dir, prefreeze_root, pins, base_url,
+                                CONFORMANCE_PROMPTS_10)
+        self.assertEqual(first['outcome'], 'success')
+        reordered = list(reversed(CONFORMANCE_PROMPTS_10))
+        self.assertEqual(frozenset(p['id'] for p in reordered),
+                         frozenset(p['id'] for p in CONFORMANCE_PROMPTS_10),
+                         'sanity: same set of ids, only the order differs')
+        with self.assertRaises(sr.ResumeMismatch):
+            self._first(receipts_dir, out_dir, prefreeze_root, pins, 'http://127.0.0.1:1',
+                       reordered)
+
+    def test_positive_an_unchanged_resume_is_still_reused(self) -> None:
+        model_path = str(lab_common.REPO_ROOT / 'work' / 'live_ab' / 'models' / 'coder.gguf')
+        scenario = _scenario(model_path)
+        receipts_dir, out_dir = _tmpdir(self), _tmpdir(self)
+        prefreeze_root = _tmpdir(self) / '_prefreeze'
+        pins = _pins(seed=1)
+        with mock_server(scenario) as base_url:
+            first = self._first(receipts_dir, out_dir, prefreeze_root, pins, base_url,
+                                CONFORMANCE_PROMPTS_10)
+        self.assertEqual(first['outcome'], 'success')
+        second = self._first(receipts_dir, out_dir, prefreeze_root, pins, 'http://127.0.0.1:1',
+                             list(CONFORMANCE_PROMPTS_10))  # a fresh, equal-by-value list
+        self.assertEqual(second, first)
+
+
+class RootTenNineteenWitnessReproductionTests(unittest.TestCase):
+    """Reproduces, as FAILING tests against the pinned pre-repair code (`b229060`), the three
+    HIGH witnesses of root's 2026-09-26 10:19 interim review
+    (`reviews/stage1_pin_and_conformance_interim_20260926_1019.md`), before any repair is
+    applied. Each assertion states the POST-repair requirement; run against the unfixed
+    ``lab_stage1``, each one fails (or errors, for the not-yet-existing ``conforms`` name) --
+    that failure IS the reproduction. Once the repair lands these same three tests pass."""
+
+    def test_witness_1_changed_prompt_text_silently_resumes_a_stale_receipt(self) -> None:
+        model_path = str(lab_common.REPO_ROOT / 'work' / 'live_ab' / 'models' / 'coder.gguf')
+        scenario = _scenario(model_path)
+        receipts_dir = _tmpdir(self)
+        out_dir = _tmpdir(self)
+        prefreeze_root = _tmpdir(self) / '_prefreeze'
+        pins = _pins(seed=1)
+        with mock_server(scenario) as base_url:
+            first = lab_stage1.conformance_shard(
+                base_url=base_url, prompts=CONFORMANCE_PROMPTS_10, server_id='coder',
+                receipts_dir=receipts_dir, inv=_inv(), target_kind='mock', sampling=SAMPLING,
+                threshold=9, pins=pins, out_dir=out_dir, prefreeze_root=prefreeze_root)
+        self.assertEqual(first['outcome'], 'success')
+        changed_prompts = [dict(CONFORMANCE_PROMPTS_10[0], prompt='A DIFFERENT PROMPT')] \
+            + CONFORMANCE_PROMPTS_10[1:]
+        # root's witness: this call, with UNCHANGED pins, returned the ORIGINAL receipt with no
+        # refusal and no network request. Post-repair it must instead raise ResumeMismatch.
+        with self.assertRaises(sr.ResumeMismatch,
+                               msg='root witness 1: changed prompt 0 text with unchanged pins '
+                                   'must be refused on resume, not silently reused'):
+            lab_stage1.conformance_shard(
+                base_url='http://127.0.0.1:1', prompts=changed_prompts, server_id='coder',
+                receipts_dir=receipts_dir, inv=_inv(), target_kind='mock', sampling=SAMPLING,
+                threshold=9, pins=pins, out_dir=out_dir, prefreeze_root=prefreeze_root)
+
+    def test_witness_2a_nine_prompts_at_threshold_nine_must_be_refused_not_passed(self) -> None:
+        model_path = str(lab_common.REPO_ROOT / 'work' / 'live_ab' / 'models' / 'coder.gguf')
+        scenario = _scenario(model_path)
+        nine = CONFORMANCE_PROMPTS_10[:9]
+        # root's witness: run_conformance_probe returned PASS for 9 of 9 mock prompts at
+        # threshold 9. Post-repair, a 9-prompt list must be REFUSED outright (only exactly ten,
+        # the predeclared set, is a legal probe), never silently scored as a 9-prompt run.
+        with mock_server(scenario) as base_url:
+            with self.assertRaises(
+                    lab_stage1.PromptSetRefused,
+                    msg='root witness 2a: a 9-prompt list must be refused, not scored PASS'):
+                lab_stage1.run_conformance_probe(
+                    base_url, nine, target_kind='mock', sampling=SAMPLING, threshold=9)
+
+    def test_witness_2b_empty_first_fence_must_not_conform(self) -> None:
+        # root's witness: contains_code_block('```python\n\n```') == True although the real
+        # extract_code returns only '\n' for it. Post-repair, the frozen predicate is the
+        # CONJUNCTION contains_code_block(...) AND real_extract_code(...).strip() != '' --
+        # exposed as `lab_stage1.conforms`, which does not exist on the pre-repair code (hence
+        # this errors with AttributeError there, which is this witness's reproduction).
+        text = '```python\n\n```'
+        self.assertTrue(lab_stage1.contains_code_block(text))
+        self.assertEqual(_real_extract_code(text), '\n')
+        self.assertFalse(lab_stage1.conforms(text),
+                         'root witness 2b: an empty first fence must not conform even though '
+                         'contains_code_block is True')
+
+    def test_witness_3_real_target_bypasses_the_mock_only_guard_on_resume(self) -> None:
+        model_path = str(lab_common.REPO_ROOT / 'work' / 'live_ab' / 'models' / 'coder.gguf')
+        scenario = _scenario(model_path)
+        receipts_dir = _tmpdir(self)
+        out_dir = _tmpdir(self)
+        prefreeze_root = _tmpdir(self) / '_prefreeze'
+        pins = _pins(seed=1)
+        with mock_server(scenario) as base_url:
+            first = lab_stage1.conformance_shard(
+                base_url=base_url, prompts=CONFORMANCE_PROMPTS_10, server_id='coder',
+                receipts_dir=receipts_dir, inv=_inv(), target_kind='mock', sampling=SAMPLING,
+                threshold=9, pins=pins, out_dir=out_dir, prefreeze_root=prefreeze_root)
+        self.assertEqual(first['outcome'], 'success')
+        # root's witness: target_kind='real', base_url='https://external.invalid', UNCHANGED
+        # pins -> returned the mock receipt rather than raising RealServerNotApproved. Post-
+        # repair the guard must fire BEFORE the resume return.
+        with self.assertRaises(
+                lab_stage1.RealServerNotApproved,
+                msg='root witness 3: a real target with unchanged pins must be refused before '
+                    'any resume return, not given the mock receipt'):
+            lab_stage1.conformance_shard(
+                base_url='https://external.invalid', prompts=CONFORMANCE_PROMPTS_10,
+                server_id='coder', receipts_dir=receipts_dir, inv=_inv(), target_kind='real',
+                sampling=SAMPLING, threshold=9, pins=pins, out_dir=out_dir,
+                prefreeze_root=prefreeze_root)
 
 
 if __name__ == '__main__':

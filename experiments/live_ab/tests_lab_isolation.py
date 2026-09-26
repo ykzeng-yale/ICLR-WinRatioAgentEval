@@ -88,7 +88,11 @@ MATRIX: dict[str, set[str]] = {
     # authorized against lab_mock_server only by root's 2026-09-26 07:18 bounded review). Speaks
     # HTTP directly to the server surface (never through lab_client, which stays byte-identical)
     # and reuses lab_server.tokenized_props/SMOKE_PROMPT for the golden-object shape, plus
-    # lab_prefreeze for its chain/shard-receipt wiring -- nothing else in the lab namespace.
+    # lab_prefreeze for its chain/shard-receipt wiring -- nothing else in the lab namespace. Root
+    # 2026-09-26 10:19's repair (finding 2) loads the REAL experiments/local_stream/agent
+    # .extract_code from its own pinned AST node (ast/re, both standard library) rather than
+    # `import agent` -- agent/sandbox/verify/data/common (PILOT) stay out of this row, exactly as
+    # this module's own docstring already required for the replicated _CODE_BLOCK_RE pattern.
     'lab_stage1': {'requests', 'lab_common', 'lab_server', 'lab_prefreeze'},
 }
 LAB_NAMES = frozenset(set(MATRIX) | {'dryrun_live_ab'})
@@ -639,6 +643,7 @@ SIGNATURES: dict[str, dict[str, tuple]] = {
     # conformance counter cannot drift silently.
     'lab_stage1': {
         'GOLDEN_FILE_PATTERNS': CONST, 'Stage1Error': CONST, 'RealServerNotApproved': CONST,
+        'PromptSetRefused': CONST,
         'assert_mock_target': fn(('base_url', None, PO), ('target_kind', None, PO)),
         'capture_reference': fn(('base_url', None, PO), ('server_id', None, PO),
                                 ('sampling', None, KW), ('target_kind', None, KW),
@@ -653,6 +658,7 @@ SIGNATURES: dict[str, dict[str, tuple]] = {
                           ('session', 'None', KW), ('subtree', "'stage1_golden'", KW),
                           ('create', 'True', KW)),
         'contains_code_block': fn(('text', None, PO)),
+        'conforms': fn(('text', None, PO)),
         'probe_prompt': fn(('base_url', None, PO), ('prompt_id', None, PO),
                           ('prompt_text', None, PO), ('target_kind', None, KW),
                           ('sampling', None, KW), ('seed', '1', KW), ('session', 'None', KW),

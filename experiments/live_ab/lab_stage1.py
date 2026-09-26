@@ -69,11 +69,46 @@ dependency of this module and stays untouched) -- the same defense-in-depth `lab
 already uses for its own load generator. Either check failing raises
 :class:`RealServerNotApproved`, naming exactly why.
 
+**2026-09-26 10:19 repair (root's independent interim review,
+`reviews/stage1_pin_and_conformance_interim_20260926_1019.md`).**  Three HIGH findings against
+the pinned `b229060` tree, all repaired in this commit and none by weakening an assertion:
+
+1. **Prompt binding.**  :func:`_effective_pins` folds `prompts` (the exact ordered
+   `(id, prompt)` pairs `conformance_shard` was called with) into the digested
+   `stage1_request` pin alongside `sampling`/`seed`/`threshold`, so a changed prompt text, a
+   changed id, or a changed order at an otherwise-unchanged `pins` now raises
+   `lab_shard_receipt.ResumeMismatch` on resume instead of silently returning the stale
+   receipt.  `golden_shard` has no prompt-shaped input (`capture_reference` always sends the
+   fixed `lab_server.SMOKE_PROMPT`), so nothing there needed folding in.
+2. **Conformance predicate.**  :func:`conforms` is the frozen rule root's ruling names: an
+   actual fenced code block (:func:`contains_code_block`, unchanged) AND the REAL first-block
+   extractor -- `experiments/local_stream/agent.extract_code`, loaded by :func:`_real_extract_code`
+   from its own pinned AST node (never `import agent`: `agent`/`sandbox`/`verify`/`data`/`common`
+   are not in this module's MATRIX row) -- returning non-whitespace output.  Neither half alone
+   is the rule: an empty first fence (`` ```python\n\n``` ``) has a code block but the real
+   extractor returns only `'\n'` for it (non-conforming); unfenced prose has non-empty real-
+   extractor output via its fallback branch but no fence (also non-conforming).
+   `_count_conforming`/`probe_prompt` now gate on `conforms`, never on fence-presence alone.
+   `run_conformance_probe` also now REFUSES (`PromptSetRefused`) any `prompts` whose length is
+   not exactly ten, or whose set of ids is not exactly config.json's predeclared ten -- the six
+   `config.json:87` `roster.smoke_tasks` ids plus the four `config.json:209-218`
+   `prefreeze.conformance_prompts` ids (:func:`_predeclared_prompt_ids`) -- and, for any id
+   among the four inline `conformance_prompts`, whose submitted text disagrees with
+   `config.json`'s own text for that id (:func:`_predeclared_conformance_text`).  The six smoke
+   tasks' own prompt text comes from the MBPP roster, which this module cannot read (out of its
+   MATRIX row); any drift there is instead caught by the prompt-binding fix above, on resume.
+3. **Guard before resume.**  `assert_mock_target` is now the first statement of both
+   `golden_shard` and `conformance_shard`, before either function's own `lab_prefreeze.
+   resume_shard` call -- so a `target_kind='real'` (or a `target_kind='mock'` with a
+   non-loopback `base_url`) call is refused even when a matching mock receipt already exists on
+   disk with otherwise-unchanged pins, rather than being handed that receipt.
+
 Prepared and checked by AI agent sessions; not human peer review or author sign-off
 (protocol 14.7).
 """
 from __future__ import annotations
 
+import ast
 import re
 from collections.abc import Mapping
 from datetime import datetime, timezone
@@ -120,6 +155,108 @@ class RealServerNotApproved(Stage1Error):
     """`target_kind` was not `'mock'`, or `base_url`'s host is not loopback.  This commit's
     authorization (root's 2026-09-26 07:18 review item 1) is scoped to `lab_mock_server` only;
     the real-server path is a separately reviewed, not-yet-approved step."""
+
+
+class PromptSetRefused(Stage1Error):
+    """`run_conformance_probe`'s `prompts` was not exactly ten items, was not exactly
+    config.json's predeclared ten ids (:func:`_predeclared_prompt_ids`), or supplied text for a
+    predeclared out-of-design id (:func:`_predeclared_conformance_text`) that disagrees with
+    config.json's own text for it (root's 2026-09-26 10:19 review, finding 2)."""
+
+
+#: Path to the ONE real first-block extractor this driver's conformance predicate defers to,
+#: never a reimplementation (root's 2026-09-26 10:19 ruling, finding 2).  `lab_common.LS_DIR` is
+#: already `REPO_ROOT / 'experiments' / 'local_stream'`.
+_AGENT_PY_PATH: Path = lab_common.LS_DIR / 'agent.py'
+
+#: `lab_common.sha256_file(_AGENT_PY_PATH)` at the moment this repair was written.  Loading
+#: `extract_code` from a file that no longer hashes to this must refuse rather than silently run
+#: an unpinned extractor -- the same "pin, then verify before trusting" discipline this module
+#: already applies to `lab_client.py` (module docstring) and to a golden `/props` (`lab_orchestrator
+#: .load_golden_objects`'s own rejection, mirrored by :func:`capture_reference`).
+_AGENT_PY_SHA256: str = '3cf2056330c72ebd5d2884f48d6ec2daa706fcc685ad67e3c2609d809ff75b64'
+
+_extract_code_impl = None  # cache for :func:`_real_extract_code`, populated on first use
+
+
+def _load_real_extract_code():
+    """[pure-ish] Load the REAL `experiments/local_stream/agent.extract_code` -- plus the two
+    module-level patterns it closes over, `_CODE_BLOCK` and `_SPECIAL_TOKENS` -- from
+    `_AGENT_PY_PATH`'s own AST nodes and return the callable, never `import agent` (out of this
+    module's MATRIX row: `agent`/`sandbox`/`verify`/`data`/`common` are the PILOT group, and
+    `lab_data.py:394-395`'s "replicate rather than import" discipline this module's own
+    docstring already follows for `_CODE_BLOCK_RE` is extended here from a pattern to a callable).
+    Of the three ways root's review offered to call the exact function -- subprocess a small
+    driver script, monkeypatch `sys.modules` with a stub `common`/`sandbox`/`verify` so `import
+    agent` succeeds, or parse and exec only the wanted AST nodes -- this picks the third: it is
+    the only one that adds no subprocess boundary (a `capture_reference`/`probe_prompt` call
+    already crosses no process boundary) and no stand-in modules whose behavior could itself
+    silently diverge from a real `agent` import; it costs re-parsing one small file once per
+    process, cached in :data:`_extract_code_impl` after the first call.  Refuses
+    (:class:`Stage1Error`) before executing anything if the file's sha256 no longer matches the
+    pinned :data:`_AGENT_PY_SHA256`."""
+    actual = lab_common.sha256_file(_AGENT_PY_PATH)
+    if actual != _AGENT_PY_SHA256:
+        raise Stage1Error(
+            f'{_AGENT_PY_PATH} sha256 {actual!r} does not match the pinned '
+            f'{_AGENT_PY_SHA256!r}; refusing to load the real extract_code from a drifted '
+            'pilot file (update _AGENT_PY_SHA256 only after confirming the change deliberately, '
+            'and only alongside a fresh review of this predicate)')
+    source = _AGENT_PY_PATH.read_text('utf-8')
+    tree = ast.parse(source, filename=str(_AGENT_PY_PATH))
+    wanted_names = {'_CODE_BLOCK', '_SPECIAL_TOKENS'}
+    nodes = [n for n in tree.body if isinstance(n, ast.Assign)
+            and any(isinstance(t, ast.Name) and t.id in wanted_names for t in n.targets)]
+    fn_node = next((n for n in tree.body
+                    if isinstance(n, ast.FunctionDef) and n.name == 'extract_code'), None)
+    if fn_node is None or len(nodes) != len(wanted_names):
+        raise Stage1Error(
+            f'{_AGENT_PY_PATH} no longer defines the expected extract_code/_CODE_BLOCK/'
+            '_SPECIAL_TOKENS shape this loader depends on')
+    nodes.append(fn_node)
+    namespace: dict = {'re': re}
+    exec(compile(ast.Module(body=nodes, type_ignores=[]), '<agent.extract_code>', 'exec'),
+        namespace)
+    return namespace['extract_code']
+
+
+def _real_extract_code(text) -> str:
+    """[pure-ish, cached] The REAL `experiments/local_stream/agent.extract_code(text)`; see
+    :func:`_load_real_extract_code` for how it is loaded and pinned."""
+    global _extract_code_impl
+    if _extract_code_impl is None:
+        _extract_code_impl = _load_real_extract_code()
+    return _extract_code_impl(text)
+
+
+def _predeclared_prompt_ids() -> frozenset[str]:
+    """[pure-ish] The exactly-ten predeclared conformance-probe ids of protocol 5.8: the six
+    `config.json:87` `roster.smoke_tasks` ids plus the four `config.json:209-218`
+    `prefreeze.conformance_prompts` ids -- read through `lab_common.harness_config()` (already
+    in this module's MATRIX row; no new dependency), never re-parsed from a second copy of
+    config.json.  Refuses (:class:`Stage1Error`) if config.json itself no longer declares
+    exactly ten distinct ids across the two lists, so a config drift is caught here rather than
+    silently shrinking or padding the set this driver refuses against."""
+    cfg = lab_common.harness_config()
+    smoke = tuple((cfg.get('roster') or {}).get('smoke_tasks') or ())
+    conformance = (cfg.get('prefreeze') or {}).get('conformance_prompts') or []
+    ood_ids = tuple(p['id'] for p in conformance if isinstance(p, Mapping) and 'id' in p)
+    ids = frozenset(smoke) | frozenset(ood_ids)
+    if len(ids) != 10 or len(smoke) + len(ood_ids) != 10:
+        raise Stage1Error(
+            f'config.json roster.smoke_tasks ({len(smoke)}) + prefreeze.conformance_prompts '
+            f'({len(ood_ids)}) must declare exactly ten DISTINCT ids; got {sorted(ids)}')
+    return ids
+
+
+def _predeclared_conformance_text() -> dict[str, str]:
+    """[pure-ish] `{id: prompt text}` for the four `config.json:209-218`
+    `prefreeze.conformance_prompts` only -- the one predeclared quarter of the ten-prompt set
+    whose text this module can check directly, since the other six (the smoke tasks) come from
+    the MBPP roster, which this module does not import (out of its MATRIX row)."""
+    cfg = lab_common.harness_config()
+    conformance = (cfg.get('prefreeze') or {}).get('conformance_prompts') or []
+    return {p['id']: p['prompt'] for p in conformance if isinstance(p, Mapping) and 'id' in p}
 
 
 def assert_mock_target(base_url: str, target_kind: str) -> None:
@@ -274,7 +411,10 @@ def _effective_pins(pins: Mapping, **request_fields) -> dict:
     caller's `pins` (design_notes' code/config/seed/data block) plus one extra key,
     `stage1_request`, a digest of every keyword field this call's OUTPUT also depends on
     (`golden_shard` passes `sampling`/`seed`; `conformance_shard` passes `sampling`/`seed`/
-    `threshold`).
+    `threshold`/`prompts` -- the exact ORDERED `(id, prompt)` pairs, root's 2026-09-26 10:19
+    review finding 1: without this, a changed prompt text/id/order at an unchanged caller `pins`
+    would resume the stale receipt with no error at all, the same class of gap this function's
+    `sampling`/`seed` folding already closed for the mutable-request-field case).
 
     Without this extra key, two calls with an IDENTICAL caller-supplied `pins` but a DIFFERENT
     `sampling` would resume the first call's stale receipt with no error at all -- exactly the
@@ -319,7 +459,13 @@ def golden_shard(*, base_url, server_id, freeze_dir, receipts_dir, inv, target_k
     `lab_server.start`'s own contract of raising without recording, and leaving the decision of
     whether/how to persist a failed attempt to this function's caller, exactly as
     `lab_server.start`'s caller (the orchestrator) is the one that appends
-    `server_start_failed`."""
+    `server_start_failed`.
+
+    `assert_mock_target` is called FIRST, before any resume check (root's 2026-09-26 10:19
+    review, finding 3): a `target_kind='real'` (or non-loopback `base_url`) call is refused even
+    when a matching mock receipt already exists on disk with otherwise-unchanged pins, rather
+    than being handed that receipt."""
+    assert_mock_target(base_url, target_kind)
     schedule_row = {'unit': 'golden_capture', 'server_id': str(server_id)}
     freeze_path = Path(freeze_dir)
     output_rel = {
@@ -374,18 +520,36 @@ def contains_code_block(text) -> bool:
     shows it returns non-empty precisely to make this divergence an executable, quantified fact
     rather than only this docstring's prose.
 
-    This is therefore an UNREVIEWED INTERPRETIVE SCOPE DECISION this commit makes and flags for
-    the record: root's 2026-09-26 07:18 bounded review authorized item 1's driver but did not
-    adjudicate which of these two readings the format-conformance gate should use.  This function
-    implements the stricter, fence-presence reading -- deliberately, since it is the one that can
-    actually fail a model that never emits fenced code -- and never the looser one; it is sound
-    in one direction only (`tests_stage1.ProtocolInterpretationTests` also checks that whenever
-    this function reports `True`, the real `extract_code` never reports an effectively empty
-    result), and root should confirm or override this choice before its PASS/FAIL verdict is
-    treated as a scientific outcome."""
+    This was an UNREVIEWED INTERPRETIVE SCOPE DECISION when this module first landed: root's
+    2026-09-26 07:18 bounded review authorized item 1's driver but had not yet adjudicated which
+    of these two readings the format-conformance gate should use.  Root's 2026-09-26 10:19 review
+    (finding 2) has since settled it: the frozen predicate is neither reading alone but their
+    CONJUNCTION -- see :func:`conforms`, which every counting path now uses instead of this
+    function alone.  `contains_code_block` itself is UNCHANGED (fence presence only; it is sound
+    in one direction only, per `tests_stage1.ProtocolInterpretationTests` -- whenever it reports
+    `True`, the real `extract_code` never reports an effectively empty result), and remains a
+    building block of :func:`conforms`, never the conformance gate by itself any more."""
     if not text:
         return False
     return _CODE_BLOCK_RE.search(str(text)) is not None
+
+
+def conforms(text) -> bool:
+    """[pure-ish] The frozen format-conformance predicate per root's 2026-09-26 10:19 ruling
+    (finding 2): `text` conforms iff it contains an actual fenced code block
+    (:func:`contains_code_block`) AND the REAL first-block extractor -- `experiments/
+    local_stream/agent.extract_code`, loaded from its own pinned AST node by
+    :func:`_real_extract_code`, never a reimplementation -- returns non-whitespace output.
+
+    Neither half is the rule by itself: an empty first fence (`` ```python\\n\\n``` ``) has a
+    code block `_CODE_BLOCK_RE` matches, but the real extractor returns only `'\\n'` for it
+    (`.strip()` empties it, so this reports `False`); unfenced prose has non-empty real-extractor
+    output through its non-fence fallback branch, but no fence at all (also `False`).  Only a
+    response with an actual fence whose first block extracts to something other than whitespace
+    reports `True`."""
+    if not contains_code_block(text):
+        return False
+    return _real_extract_code(str(text)).strip() != ''
 
 
 def probe_prompt(base_url, prompt_id, prompt_text, *, target_kind, sampling, seed=1,
@@ -397,11 +561,20 @@ def probe_prompt(base_url, prompt_id, prompt_text, *, target_kind, sampling, see
     prompts, not raw task text.
 
     Any transport failure (connection error, timeout, non-200, unparseable JSON, no `choices[0]
-    .message.content`) reports `ok_transport=False, has_code_block=False` -- a response that was
-    never received cannot contain an extractable code block, matching 5.8's own framing of
-    stage 1's quantities as "durations, memory, receipt equality, ... and the yes/no
+    .message.content`) reports `ok_transport=False, has_code_block=False, conforms=False` -- a
+    response that was never received cannot contain an extractable code block, matching 5.8's own
+    framing of stage 1's quantities as "durations, memory, receipt equality, ... and the yes/no
     extractability of a code block" (`protocol_FINAL.md:1335`) -- rather than raising and losing
-    the other nine prompts' results."""
+    the other nine prompts' results.
+
+    `has_code_block` (fence presence, :func:`contains_code_block`) is kept alongside the frozen
+    `conforms` (:func:`conforms`, root's 2026-09-26 10:19 conjunction) for the same reason
+    `_count_conforming`'s own docstring warns against conflating `has_code_block` with
+    `ok_transport`: keeping both raw signals lets a later reviewer tell a missing fence apart
+    from a fenced-but-empty first block, rather than collapsing both into one bit.  `usage` (the
+    response's own token-usage object, or `None` when the mock/server omitted it) and
+    `content_sha256` are kept on every ok_transport response so a later real stage-1 run
+    preserves the original per-prompt response and usage, not merely the pass/fail verdict."""
     assert_mock_target(base_url, target_kind)
     sess = session if session is not None else requests
     root = str(base_url).rstrip('/')
@@ -414,17 +587,18 @@ def probe_prompt(base_url, prompt_id, prompt_text, *, target_kind, sampling, see
     try:
         r = sess.post(root + '/v1/chat/completions', json=body, timeout=timeout_s)
     except requests.RequestException as exc:
-        out.update(ok_transport=False, has_code_block=False, status_code=None, error=str(exc))
+        out.update(ok_transport=False, has_code_block=False, conforms=False, status_code=None,
+                   error=str(exc))
         return out
     if r.status_code != 200:
-        out.update(ok_transport=False, has_code_block=False, status_code=r.status_code,
-                   error=f'HTTP {r.status_code}')
+        out.update(ok_transport=False, has_code_block=False, conforms=False,
+                   status_code=r.status_code, error=f'HTTP {r.status_code}')
         return out
     try:
         data = r.json()
     except ValueError as exc:
-        out.update(ok_transport=False, has_code_block=False, status_code=r.status_code,
-                   error=f'invalid JSON: {exc}')
+        out.update(ok_transport=False, has_code_block=False, conforms=False,
+                   status_code=r.status_code, error=f'invalid JSON: {exc}')
         return out
     content = None
     if isinstance(data, Mapping):
@@ -434,25 +608,30 @@ def probe_prompt(base_url, prompt_id, prompt_text, *, target_kind, sampling, see
             if isinstance(message, Mapping):
                 content = message.get('content')
     if content is None:
-        out.update(ok_transport=False, has_code_block=False, status_code=r.status_code,
-                   error='no choices[0].message.content in response')
+        out.update(ok_transport=False, has_code_block=False, conforms=False,
+                   status_code=r.status_code, error='no choices[0].message.content in response')
         return out
+    usage = data.get('usage') if isinstance(data, Mapping) else None
     out.update(ok_transport=True, has_code_block=contains_code_block(content),
-               status_code=r.status_code, error=None,
-               content_sha256=lab_common.sha256_text(str(content)))
+               conforms=conforms(content), status_code=r.status_code, error=None,
+               content_sha256=lab_common.sha256_text(str(content)),
+               usage=dict(usage) if isinstance(usage, Mapping) else None)
     return out
 
 
 def _count_conforming(rows) -> int:
-    """[pure] The number of `rows` (each a :func:`probe_prompt` result) whose `has_code_block` is
-    true -- NEVER `ok_transport`, a materially weaker quantity: `lab_mock_server` happens to wrap
-    every successful response body in a fence (`_build_response`, even the `kind='smoke'` `'pong'`
-    reply), so on scripted fixtures alone the two fields agree and a `has_code_block` -> `
-    ok_transport` field-swap bug would pass unnoticed.  Extracted to its own function precisely so
-    `tests_stage1.ConformanceCounterTests.test_negative_counts_code_block_presence_not_transport_
-    success` can pin this exact counting rule down against synthetic rows where the two fields
-    disagree, independent of the mock server's fixture choices."""
-    return sum(1 for row in rows if row['has_code_block'])
+    """[pure] The number of `rows` (each a :func:`probe_prompt` result) whose `conforms` is true
+    -- root's 2026-09-26 10:19 frozen predicate (:func:`conforms`: a fence AND the real
+    extractor's non-whitespace output), NEVER `ok_transport` (a materially weaker quantity:
+    `lab_mock_server` happens to wrap every successful response body in a real fenced program,
+    `_build_response`, even the `kind='smoke'` `'pong'` reply, so on scripted fixtures alone
+    `ok_transport` and `conforms` agree and a field-swap bug would pass unnoticed) and NEVER bare
+    `has_code_block` (fence presence alone is the reading root's 10:19 ruling rejected: it also
+    counts an empty first fence as conforming, which `conforms` does not).  Extracted to its own
+    function precisely so `tests_stage1.ConformanceCounterTests.test_negative_counts_code_block_
+    presence_not_transport_success` can pin this exact counting rule down against synthetic rows
+    where the fields disagree, independent of the mock server's fixture choices."""
+    return sum(1 for row in rows if row['conforms'])
 
 
 def _verdict(n_with_code_block, threshold) -> str:
@@ -475,18 +654,49 @@ def run_conformance_probe(base_url, prompts, *, target_kind, sampling, threshold
     for why this driver implements a stricter-than-fully-literal reading of that rule, flagged
     there for root, not adjudicated by the 07:18 bounded review.)
 
-    `prompts` is an iterable of `{'id': ..., 'prompt': ...}` mappings (the caller assembles the
-    full ten-prompt set -- the six smoke tasks plus the four `config.json:209-218`
-    `prefreeze.conformance_prompts` -- this function is agnostic to how many prompts it is given
-    or where they came from).  `threshold` is `config.json`'s own `prefreeze.
-    format_conformance_min` (named non-amendable, `protocol_FINAL.md:3018,3773`), passed by the
-    caller rather than hardcoded here, so this module never silently adopts or drifts from root's
-    frozen value.  Counting is :func:`_count_conforming` (never transport success) and the
-    verdict is :func:`_verdict` (never rounded up); both are separate, directly-testable pure
-    functions rather than inlined here.
+    `prompts` is an iterable of `{'id': ..., 'prompt': ...}` mappings; the caller assembles the
+    full ten-prompt set (the six smoke tasks plus the four `config.json:209-218`
+    `prefreeze.conformance_prompts`), but this function no longer trusts that blindly (root's
+    2026-09-26 10:19 review, finding 2): before any request is sent, it REFUSES
+    (:class:`PromptSetRefused`) unless `prompts` is exactly ten items, its ids are exactly
+    config.json's predeclared ten (:func:`_predeclared_prompt_ids`), and any id among the four
+    inline `conformance_prompts` carries exactly config.json's own text for it
+    (:func:`_predeclared_conformance_text`) -- never a rerouted/duplicated/truncated probe list,
+    and never a silently-substituted out-of-design prompt.  `threshold` is `config.json`'s own
+    `prefreeze.format_conformance_min` (named non-amendable, `protocol_FINAL.md:3018,3773`),
+    passed by the caller rather than hardcoded here, so this module never silently adopts or
+    drifts from root's frozen value.  Counting is :func:`_count_conforming` (root's 10:19
+    `conforms` predicate, never transport success or fence-presence alone) and the verdict is
+    :func:`_verdict` (never rounded up); both are separate, directly-testable pure functions
+    rather than inlined here.
 
     Returns `{'n_prompts', 'n_with_code_block', 'threshold', 'verdict' ('PASS'/'FAIL'),
-    'per_prompt': [<probe_prompt result>, ...]}`."""
+    'per_prompt': [<probe_prompt result>, ...]}` (the `n_with_code_block` member name is
+    unchanged for compatibility with existing callers/receipts; its value is now the count of
+    `conforms`, per :func:`_count_conforming`)."""
+    prompts = list(prompts)
+    if len(prompts) != 10:
+        raise PromptSetRefused(
+            f'run_conformance_probe requires exactly ten prompts (protocol 5.8); got '
+            f'{len(prompts)}')
+    ids = [str(p['id']) for p in prompts]
+    if len(set(ids)) != len(ids):
+        raise PromptSetRefused(f'run_conformance_probe prompt ids must be distinct; got {ids}')
+    predeclared = _predeclared_prompt_ids()
+    if frozenset(ids) != predeclared:
+        extra = sorted(frozenset(ids) - predeclared)
+        missing = sorted(predeclared - frozenset(ids))
+        raise PromptSetRefused(
+            'run_conformance_probe prompts must be exactly config.json\'s predeclared ten ids '
+            f'(roster.smoke_tasks + prefreeze.conformance_prompts); extra={extra} missing='
+            f'{missing}')
+    declared_text = _predeclared_conformance_text()
+    for p in prompts:
+        want = declared_text.get(str(p['id']))
+        if want is not None and str(p['prompt']) != want:
+            raise PromptSetRefused(
+                f"run_conformance_probe prompt {p['id']!r} text disagrees with config.json's "
+                'own prefreeze.conformance_prompts text for it')
     rows = [probe_prompt(base_url, p['id'], p['prompt'], target_kind=target_kind,
                         sampling=sampling, seed=seed, session=session)
            for p in prompts]
@@ -517,14 +727,32 @@ def conformance_shard(*, base_url, prompts, server_id, receipts_dir, inv, target
     itself) -- `lab_shard_receipt.validate_receipt` accepts an empty `outputs` mapping, and a
     probe run purely to exercise this driver need not always write a results file.  Returns the
     full validated receipt dict in both cases (resumed or freshly recorded), for the same reason
-    :func:`golden_shard` re-reads its own write through `lab_prefreeze.resume_shard`."""
+    :func:`golden_shard` re-reads its own write through `lab_prefreeze.resume_shard`.
+
+    `assert_mock_target` is called FIRST, before any resume check (root's 2026-09-26 10:19
+    review, finding 3), the same fix :func:`golden_shard` documents.  The resume pins also fold
+    in the exact ORDERED `(id, prompt)` pairs of `prompts` (root's 2026-09-26 10:19 review,
+    finding 1): a changed prompt text, a changed id, or a changed order at an otherwise-unchanged
+    caller `pins` now raises `lab_shard_receipt.ResumeMismatch` on resume rather than silently
+    reusing the stale receipt -- `run_conformance_probe` itself is called only after the resume
+    check (or not at all, if resumed), so its own :class:`PromptSetRefused` guard runs on every
+    FRESH attempt but is never reached, and never needs to be, on a legitimate resume.  The
+    resume pins also fold in :data:`_AGENT_PY_SHA256` (`extract_code_source_sha256`) -- the
+    pinned identity of the REAL first-block extractor :func:`conforms` defers to (finding 2) --
+    so a receipt recorded under one pinned extractor and later resumed under a different one
+    (after a reviewed change to `_AGENT_PY_SHA256`) is refused rather than silently reused under
+    the new extractor's semantics; this is provenance on top of, not instead of, the hard runtime
+    check :func:`_load_real_extract_code` already performs against the file on disk."""
+    assert_mock_target(base_url, target_kind)
     schedule_row = {'unit': 'conformance_probe', 'server_id': str(server_id)}
     prompts = list(prompts)
     output_rel = {}
     if out_dir is not None:
         output_rel['report'] = 'conformance_%s.json' % server_id
+    ordered_prompts = [(str(p['id']), str(p['prompt'])) for p in prompts]
     resume_pins = _effective_pins(pins, sampling=dict(sampling), seed=int(seed),
-                                  threshold=int(threshold))
+                                  threshold=int(threshold), prompts=ordered_prompts,
+                                  extract_code_source_sha256=_AGENT_PY_SHA256)
     resumed = lab_prefreeze.resume_shard(
         receipts_dir, 'stage1_conformance', schedule_row, expected_pins=resume_pins,
         expected_output_paths=list(output_rel.values()),
