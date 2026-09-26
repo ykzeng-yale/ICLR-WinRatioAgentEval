@@ -1,0 +1,105 @@
+{
+  "schema": "portable-handoff-v1",
+  "generated_utc": "2026-09-26T20:43:05Z",
+  "repository": "https://github.com/ykzeng-yale/ICLR-WinRatioAgentEval",
+  "main_before_transfer": "ef0a80e792f2fd1f0765d585df0f60d8ccf06810",
+  "owner_branch_at_snapshot": {
+    "name": "session60/drivers-eb2-eb4",
+    "commit": "819761324a0aebb8094ae56ba0bca6ff69506d85",
+    "observed_utc": "2026-09-26T20:40:19Z",
+    "note": "The 20:40 launcher start/result was still unconfirmed by the last 20:41:14 issue-11 check."
+  },
+  "readiness": {
+    "full_project_points": 75,
+    "full_project_denominator": 100,
+    "change_points": 0,
+    "bounded_v1_points": 90,
+    "bounded_v1_denominator": 100
+  },
+  "visible_chat": {
+    "path": "handoff/CHAT_HISTORY_VISIBLE_20260926.md.gz",
+    "user_messages": 194,
+    "assistant_messages": 691,
+    "last_message_utc": "2026-09-26T20:41:25.203Z",
+    "scope": "Visible user and assistant messages only; excludes tool outputs, private reasoning and system/developer text",
+    "redaction": "Two API-key strings redacted for public transfer."
+  },
+  "files": {
+    "README.md": {
+      "bytes": 5817,
+      "sha256": "9d0c88976d21fb57639362e1a87f37ec04e9a01bacf49779babdb2a2486fd668"
+    },
+    "DIRECT_INTEGRATION_POLICY.md": {
+      "bytes": 5737,
+      "sha256": "6af35f155d054eab3d471f6055c9b3e174459ea4328b7a52f44ada59ca29c566"
+    },
+    "FULL_PROJECT_PROGRESS.md": {
+      "bytes": 103576,
+      "sha256": "2b16821f8f160841444509ab4db7457637f41bfa274b1010b0fcc137d2dbe791"
+    },
+    "READINESS_TRACKER.md": {
+      "bytes": 64758,
+      "sha256": "b5af69543219ea6be5b7cf7d1561f61d96d54c3463b886ede538796bd101b57f"
+    },
+    "EXPERIMENT_POLICY.md": {
+      "bytes": 3107,
+      "sha256": "b9507c23004c65888250857c56dabc1728b1f1c4311c41f253004b0926eeb4f9"
+    },
+    "COORDINATION.md": {
+      "bytes": 95578,
+      "sha256": "96704550d29738388304cecb58313d09d0edecb7797e38ccf83bafc623e2c7e3"
+    },
+    "WORK_ALLOCATION.md": {
+      "bytes": 62588,
+      "sha256": "99e582b99279dc63232e3fcda30722adc2652640e2bc55cd53225119beb45a8b"
+    },
+    "EXPERIMENT_QUEUE.md": {
+      "bytes": 77285,
+      "sha256": "07c5a73454bdbe0a24171293465a0c19c7edf7bfbf5c9b15d0da17102848424a"
+    },
+    "PROJECT_STATUS.md": {
+      "bytes": 29172,
+      "sha256": "27e1316df0209862c7e0bcff6bf06d7058a6979054e99c364bec56affc2a3d48"
+    },
+    "arxiv/READ_ME.md": {
+      "bytes": 10040,
+      "sha256": "7f19bd6895f99036567c6f5f074a24cd20592d0bf26b62ec3f4fd5094e82fec3"
+    },
+    "arxiv/paper.pdf": {
+      "bytes": 536806,
+      "sha256": "0db00cb95897d7ac86d7b46d1ca294297622dabf6c6365d2788e9e849c5ba0e1"
+    },
+    "arxiv/main_paper.pdf": {
+      "bytes": 300004,
+      "sha256": "9b718fcbc8356f80e327ff24480e42c3273acc35cf010e5770b2a82294521c27"
+    },
+    "arxiv/supplement.pdf": {
+      "bytes": 452695,
+      "sha256": "a6273b5d147ba73a5f7ad601c3324daf96bb74271231038be4c57de716fe1c18"
+    },
+    "arxiv/arxiv_source.tar.gz": {
+      "bytes": 152601,
+      "sha256": "2dca10f583d1c003674eb24dae7d1be9beddd3cbc7f21151e6f34077e7eba35a"
+    },
+    "arxiv/reproducibility_code.zip": {
+      "bytes": 24242924,
+      "sha256": "42bc42967b7db6e4bbd4f126a1ba3599dedd5b5c9bc0ca5fce7eb5ff96b34f3b"
+    },
+    "arxiv/package_manifest.json": {
+      "bytes": 8758,
+      "sha256": "443805dc23d8c17ae95176a2444938de74558bca9a4a1f8a4806988bb711bbaf"
+    },
+    "handoff/PORTABLE_HANDOFF.md": {
+      "bytes": 16081,
+      "sha256": "a65c45e1978bfb2bdf788968dc63c471edaf041e2a1b019229bf091e4802ac44"
+    },
+    "handoff/ORIGINAL_IDEA_CONTEXT_20260917.md": {
+      "bytes": 25753,
+      "sha256": "4d4ae6da53e109a895f6985b66bc94e0ad6c7c789b974a7387fe00b44ac135a0"
+    },
+    "handoff/CHAT_HISTORY_VISIBLE_20260926.md.gz": {
+      "bytes": 126842,
+      "sha256": "ab7c5047b0a46c956c0475678a55f34837d91ec4b015dd8c5e67ba0c01d6655d"
+    }
+  }
+}

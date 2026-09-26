@@ -1,5 +1,7 @@
 # arXiv preprint handoff
 
+For a move to another laptop, begin with the [portable project handoff](../handoff/PORTABLE_HANDOFF.md), which links the current roadmap, live owner issues, visible conversation archive and transfer hashes. This guide describes the already prepared arXiv package; it does not authorize an upload.
+
 **Prepared September 19, 2026. Technical preparation verified; not uploaded, announced, accepted or certified by the author.** The active target is arXiv. The historical ICLR release remains unchanged in `submission/` at scientific baseline `45e8ee2`.
 
 ## Files and their use
