@@ -78,6 +78,12 @@ MATRIX: dict[str, set[str]] = {
     # dispatches or anchors.
     'lab_replay': {'numpy', 'winstats', 'lab_common', 'lab_design', 'lab_enclosure',
                    'lab_monitor', 'lab_shard_receipt'},
+    # The `_prefreeze` chain runner scaffold (design_notes/DESIGN_PROPOSAL.md section 3 item 3):
+    # a thin driver-facing layer over `lab_eventlog`'s own chain primitives and
+    # `lab_shard_receipt`'s own write-once receipt, with no protocol-specific stage logic of its
+    # own -- so it imports nothing else in the lab namespace, and nothing in the lab namespace
+    # (in particular `lab_design`) imports it back.
+    'lab_prefreeze': {'lab_common', 'lab_eventlog', 'lab_shard_receipt'},
 }
 LAB_NAMES = frozenset(set(MATRIX) | {'dryrun_live_ab'})
 
@@ -600,6 +606,27 @@ SIGNATURES: dict[str, dict[str, tuple]] = {
                          ('crosscheck_per_cell', '2', KW), ('ruling', 'None', KW)),
         'verify_manifest': fn(('out_dir', None, PO)),
         'main': fn(('argv', 'None', PO)),
+    },
+    # `_prefreeze` chain runner scaffold (design_notes/DESIGN_PROPOSAL.md section 3 item 3): its
+    # own public contract, pinned so a driver cannot drift away from the required phase gate,
+    # path safety or receipt shape silently.
+    'lab_prefreeze': {
+        'VALID_PHASES': CONST, 'PrefreezeError': CONST, 'UndefinedPhaseError': CONST,
+        'PrefreezePathError': CONST,
+        'prefreeze_root': fn(('root', 'None', PO)),
+        'prefreeze_events_dir': fn(('root', 'None', PO), ('subtree', 'None', KW)),
+        'PrefreezeChain.append': fn(('self', None, PO), ('etype', None, PO), ('body', None, PO),
+                                    ('durable', 'False', KW)),
+        'PrefreezeChain.close': fn(('self', None, PO), ('durable', 'True', KW)),
+        'open_prefreeze': fn(('phase', None, PO), ('inv', None, KW), ('root', 'None', KW),
+                             ('subtree', 'None', KW), ('create', 'False', KW)),
+        'resume_shard': fn(('receipts_dir', None, PO), ('driver', None, PO),
+                           ('schedule_row', None, PO), ('expected_pins', None, KW),
+                           ('expected_output_paths', None, KW), ('root_for_outputs', None, KW)),
+        'record_shard': fn(('receipts_dir', None, PO), ('driver', None, PO),
+                           ('schedule_row', None, PO), ('pins', None, KW), ('inputs', None, KW),
+                           ('outputs', None, KW), ('start_utc', None, KW), ('end_utc', None, KW),
+                           ('outcome', None, KW), ('harness_pin_delta', '()', KW)),
     },
 }
 
