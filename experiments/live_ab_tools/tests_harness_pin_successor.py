@@ -585,7 +585,8 @@ class SupersedesTests(unittest.TestCase):
                           'HARNESS_PIN_SUCCESSOR_20260924_1732.json',
                           'HARNESS_PIN_SUCCESSOR_20260925_0027.json',
                           'HARNESS_PIN_SUCCESSOR_20260925_2009.json',
-                          'HARNESS_PIN_SUCCESSOR_20260926_0600.json'])
+                          'HARNESS_PIN_SUCCESSOR_20260926_0600.json',
+                          'HARNESS_PIN_SUCCESSOR_20260926_0958.json'])
         for entry in hps.SUPERSEDES:
             with self.subTest(receipt=entry['path']):
                 data = (REPO / entry['path']).read_bytes()
@@ -718,9 +719,12 @@ class SupersededReceiptsGuardTests(unittest.TestCase):
         self.assertEqual(hps.superseded_receipts_incomplete(head, hps.SUPERSEDES), [])
         # the 0600 receipt (drivers steps 1-3, ced7a13) is the reason this step named it: with
         # it missing the guard is not vacuously green, it actually refuses (root 07:18)
-        self.assertEqual(len(hps.SUPERSEDES), 6)
-        self.assertEqual(hps.SUPERSEDES[-1]['path'],
+        self.assertEqual(len(hps.SUPERSEDES), 7)
+        self.assertEqual(hps.SUPERSEDES[-2]['path'],
                          'results/live_ab/HARNESS_PIN_SUCCESSOR_20260926_0600.json')
+        # the 0958 receipt (step 4, b229060; root 10:19) is the reason the next step named it
+        self.assertEqual(hps.SUPERSEDES[-1]['path'],
+                         'results/live_ab/HARNESS_PIN_SUCCESSOR_20260926_0958.json')
 
     def test_negative_removing_the_2009_entry_by_monkeypatch_refuses_and_names_it(self):
         without_2009 = tuple(e for e in hps.SUPERSEDES
@@ -748,15 +752,31 @@ class SupersededReceiptsGuardTests(unittest.TestCase):
                          ['superseded_receipts_incomplete:results/live_ab/'
                           'HARNESS_PIN_SUCCESSOR_20260926_0600.json'])
 
+    def test_negative_removing_the_0958_entry_by_monkeypatch_refuses_and_names_it(self):
+        """The entry the stage-1 repair step adds: without it, the guard refuses the next
+        receipt, exactly as observed before this entry was added (root 10:19)."""
+        without_0958 = tuple(e for e in hps.SUPERSEDES
+                             if not e['path'].endswith('HARNESS_PIN_SUCCESSOR_20260926_0958.'
+                                                       'json'))
+        self.assertEqual(len(without_0958), len(hps.SUPERSEDES) - 1)
+        with mock.patch.object(hps, 'SUPERSEDES', without_0958):
+            head = hps.GitTree(REPO, 'HEAD')
+            problems = hps.superseded_receipts_incomplete(head, hps.SUPERSEDES)
+        self.assertEqual(problems,
+                         ['superseded_receipts_incomplete:results/live_ab/'
+                          'HARNESS_PIN_SUCCESSOR_20260926_0958.json'])
+
     def test_since_the_superseded_receipt_selects_2009_at_98ce004_when_0600_is_not_yet_listed(
             self):
         """Coverage kept from before this step (without weakening it): restricted to the
         entries this repository named before 0600 was pinned, selection still lands on 2009 at
         98ce004."""
         through_2009 = tuple(e for e in hps.SUPERSEDES
-                             if not e['path'].endswith('HARNESS_PIN_SUCCESSOR_20260926_0600.'
-                                                       'json'))
-        self.assertEqual(len(through_2009), len(hps.SUPERSEDES) - 1)
+                             if not e['path'].endswith(('HARNESS_PIN_SUCCESSOR_20260926_0600.'
+                                                        'json',
+                                                        'HARNESS_PIN_SUCCESSOR_20260926_0958.'
+                                                        'json')))
+        self.assertEqual(len(through_2009), len(hps.SUPERSEDES) - 2)
         head = hps.GitTree(REPO, 'HEAD')
         smap = hps.harness_map(head)
         sup = [hps.supersedes_record(e, head.read(e['path']))[0] for e in through_2009]
@@ -767,16 +787,32 @@ class SupersededReceiptsGuardTests(unittest.TestCase):
         self.assertEqual(since['recorded_head'][:7], '98ce004')
 
     def test_since_the_superseded_receipt_selects_0600_at_ced7a13(self):
-        """Now that this step names the 0600 receipt, it (not 2009) is the latest superseded
-        receipt HEAD carries, and its recorded head is ced7a13 (root 07:18's accepted pin)."""
+        """Coverage kept (not weakened): restricted to the entries named before 0958, the latest
+        superseded receipt is 0600 and its recorded head is ced7a13 (root 07:18's accepted pin)."""
+        head = hps.GitTree(REPO, 'HEAD')
+        smap = hps.harness_map(head)
+        through_0600 = tuple(e for e in hps.SUPERSEDES
+                             if not e['path'].endswith('HARNESS_PIN_SUCCESSOR_20260926_0958.'
+                                                       'json'))
+        self.assertEqual(len(through_0600), len(hps.SUPERSEDES) - 1)
+        sup = [hps.supersedes_record(e, head.read(e['path']))[0] for e in through_0600]
+        since, problems = hps.since_superseded(REPO, head, smap, sup)
+        self.assertEqual(problems, [])
+        self.assertEqual(since['receipt'],
+                         'results/live_ab/HARNESS_PIN_SUCCESSOR_20260926_0600.json')
+        self.assertEqual(since['recorded_head'][:7], 'ced7a13')
+
+    def test_since_the_superseded_receipt_selects_0958_at_b229060(self):
+        """With 0958 named, it (not 0600) is the latest superseded receipt HEAD carries, and its
+        recorded head is b229060 (the receipt root 10:19 accepted as a run receipt only)."""
         head = hps.GitTree(REPO, 'HEAD')
         smap = hps.harness_map(head)
         sup = [hps.supersedes_record(e, head.read(e['path']))[0] for e in hps.SUPERSEDES]
         since, problems = hps.since_superseded(REPO, head, smap, sup)
         self.assertEqual(problems, [])
         self.assertEqual(since['receipt'],
-                         'results/live_ab/HARNESS_PIN_SUCCESSOR_20260926_0600.json')
-        self.assertEqual(since['recorded_head'][:7], 'ced7a13')
+                         'results/live_ab/HARNESS_PIN_SUCCESSOR_20260926_0958.json')
+        self.assertEqual(since['recorded_head'][:7], 'b229060')
 
 
 def partition_from_logs(logs: Path) -> dict:

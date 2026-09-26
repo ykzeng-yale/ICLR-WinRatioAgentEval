@@ -259,6 +259,17 @@ SUPERSEDES = (
              'runs_of_this_step.json; since ced7a13 the drivers step 4 work changed the '
              'harness again (the model-free stage-1 golden/conformance driver); its suites '
              'stay the observation of the ced7a13 tree only')},
+    {'path': RESULTS_REL + '/HARNESS_PIN_SUCCESSOR_20260926_0958.json',
+     'sha256': '052f141659b27533cc77f0582ce991169afc75595559226de87fa4b770bf6675',
+     'head_when_written': 'b229060',
+     'why': ('it pins the b229060 harness (canonical 5ec14626) that root 10:19 accepted only as '
+             'a bounded engineering run receipt, NOT the stage-1 conformance logic it pinned; '
+             'its runs-of-this-step input is deposited at results/live_ab/pin_inputs/'
+             'HARNESS_PIN_SUCCESSOR_20260926_0920.runs_of_this_step.json and its red first '
+             'attempt at results/live_ab/RED_PIN_RUN_20260926_0909.json; since b229060 the '
+             'stage-1 repair (e6a8d7d: ordered-prompt binding, the frozen conformance '
+             'predicate, the mock guard before resume) changed the harness again; its suites '
+             'stay the observation of the b229060 tree only')},
 )
 
 #: Every red run of the subset so far (review of 988baf7, reviewer 2 finding 5; root 16:05:
