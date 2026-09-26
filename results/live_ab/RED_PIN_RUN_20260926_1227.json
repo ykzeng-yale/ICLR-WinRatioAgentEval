@@ -1,0 +1,135 @@
+{
+ "archive": {
+  "bytes": 69753,
+  "members": [
+   {
+    "bytes": 296051,
+    "name": "HARNESS_PIN_SUCCESSOR_20260926_1227.json",
+    "sha256": "4853390f4798daa97c891f3e2cd024c506018a00d74b61b99e219350a649e058"
+   },
+   {
+    "bytes": 0,
+    "name": "pin_stderr.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   },
+   {
+    "bytes": 353,
+    "name": "pin_stdout.log",
+    "sha256": "4a383cd99d612949970f411598a830e168ca1cf7e9e3671356db00c2c7234c6e"
+   },
+   {
+    "bytes": 1048,
+    "name": "solo_diagnostic_rerun.log",
+    "sha256": "727b79a1b97bbaa30309c773a62040da2ab1433dd1632d2f5887bae167d76808"
+   }
+  ],
+  "path": "results/live_ab/red_pin_run/20260926_1227/red_stage1_repair_pin_run.tar.gz",
+  "reading": "tar.gz, deterministic member headers (mtime 0, uid/gid 0), sorted member names; member digests are of the original files",
+  "sha256": "86d9a25306ea7cbed55702ee717f00372567398c48eb0575b932bf6ed2dd209b"
+ },
+ "convention": "deterministic-path",
+ "diagnosis": {
+  "reading": "All three failing controls (tests_eb1_cap_estimand.ProdModelFileIdentity control; tests_eb1_entry.C10ResumeStopsTheOrphan x2) run lab_orchestrator main() through the REAL host-quiescence gate: quiet_host() polls it every 10 s up to its limit and then lets the run proceed, and run_entry() returns True when the run records a new host_not_quiescent refusal, on which these tests fail ('host gate'). The live_ab_controls suite took 3482 s against 1863 s in the green ..._0958 run, consistent with waits at the limit. Nothing in the delta since ..._0958 is read by these tests.",
+  "solo_diagnostic": {
+   "command": "python -m unittest -v tests_eb1_cap_estimand.ProdModelFileIdentity tests_eb1_entry.C10ResumeStopsTheOrphan (cwd experiments/live_ab_controls) at 4d78581",
+   "log_member": "solo_diagnostic_rerun.log",
+   "reading": "a green solo run does not explain the red (root 13:15 on SM8); it is recorded, not used as a verdict",
+   "result": "Ran 5 tests in 163.792s, OK",
+   "utc": "2026-09-26T12:27:57Z to 12:30:41Z"
+  },
+  "status": "PROBABLE, NOT PROVEN",
+  "why_not_proven": "harness_pin_successor.py keeps only each suite's stderr_tail (FAIL headers and summary) and the full output's sha256, so the tracebacks and assertion messages of the red run were not retained"
+ },
+ "generated_utc": "2026-09-26T12:32:44Z",
+ "links": {
+  "latest_receipt_of_record": "results/live_ab/HARNESS_PIN_SUCCESSOR_20260926_0958.json",
+  "runs_input": {
+   "path": "results/live_ab/pin_inputs/HARNESS_PIN_SUCCESSOR_20260926_1122.runs_of_this_step.json",
+   "sha256": "ab4dc5c3569050ac24eb87a960b8e0d4c45d71c8a707a2fd17fb9ce10139f5ed"
+  }
+ },
+ "next": "the pin tool is to keep every suite's full stdout/stderr write-once so a red is diagnosable; then one pin run",
+ "run": {
+  "all_passed": false,
+  "completed_total": 2122,
+  "generated_utc": "2026-09-26T12:27:21Z",
+  "head": "4d78581986723e071eb5f54a0d1054773e82646d",
+  "planned_total": 2122,
+  "run_started_utc": "2026-09-26T11:22:39Z",
+  "solo": true,
+  "solo_strict": true,
+  "suites": [
+   {
+    "completed": 766,
+    "end_utc": "2026-09-26T11:26:36Z",
+    "exit": 0,
+    "failure_headers": [],
+    "planned": 766,
+    "start_utc": "2026-09-26T11:22:52Z",
+    "stderr_sha256": "24c9d6bf7ac76df7d8b385b8a288effdda6f5f0e8e0723275f08acc9149d7dc0",
+    "suite": "live_ab",
+    "verdict_line": "OK (skipped=1)",
+    "wall_seconds": 224.201
+   },
+   {
+    "completed": 702,
+    "end_utc": "2026-09-26T12:24:39Z",
+    "exit": 1,
+    "failure_headers": [
+     "FAIL: test_control_the_correct_file_starts_with_its_measured_digest (tests_eb1_cap_estimand.ProdModelFileIdentity.test_control_the_correct_file_starts_with_its_measured_digest)",
+     "FAIL: test_c10_the_resume_passes_the_real_gate_and_stops_the_orphan_first (tests_eb1_entry.C10ResumeStopsTheOrphan.test_c10_the_resume_passes_the_real_gate_and_stops_the_orphan_first)",
+     "FAIL: test_mutation_the_pre_fix_gate_refuses_the_resume_and_leaves_the_orphan (tests_eb1_entry.C10ResumeStopsTheOrphan.test_mutation_the_pre_fix_gate_refuses_the_resume_and_leaves_the_orphan)"
+    ],
+    "planned": 702,
+    "start_utc": "2026-09-26T11:26:37Z",
+    "stderr_sha256": "033fd92690e7fac57d65bb29b7d883085e5df5b0e2bb5e79002dc87c36a575a4",
+    "suite": "live_ab_controls",
+    "verdict_line": "FAILED (failures=3)",
+    "wall_seconds": 3482.638
+   },
+   {
+    "completed": 193,
+    "end_utc": "2026-09-26T12:24:42Z",
+    "exit": 0,
+    "failure_headers": [],
+    "planned": 193,
+    "start_utc": "2026-09-26T12:24:40Z",
+    "stderr_sha256": "674b241a0ec89f7ee793a7fdf4f07ae604c8f33ab0c184757bee3d8a73a70248",
+    "suite": "live_ab_serving",
+    "verdict_line": "OK",
+    "wall_seconds": 2.546
+   },
+   {
+    "completed": 246,
+    "end_utc": "2026-09-26T12:27:08Z",
+    "exit": 0,
+    "failure_headers": [],
+    "planned": 246,
+    "start_utc": "2026-09-26T12:24:42Z",
+    "stderr_sha256": "b96cb9d3f4827cb3c20bb5eb3841fb875e1bd1e7aef52b08627c6d9e7261db4f",
+    "suite": "live_ab_tools",
+    "verdict_line": "OK (skipped=2)",
+    "wall_seconds": 145.554
+   },
+   {
+    "completed": 215,
+    "end_utc": "2026-09-26T12:27:21Z",
+    "exit": 0,
+    "failure_headers": [],
+    "planned": 215,
+    "start_utc": "2026-09-26T12:27:08Z",
+    "stderr_sha256": "818110d590db0bb396b695ad7b3318fe7a97f29a278c982f3fe604e778a1e5e4",
+    "suite": "tests_validation.py",
+    "verdict_line": "OK (skipped=6, expected failures=2)",
+    "wall_seconds": 12.694
+   }
+  ]
+ },
+ "schema": "live_ab/red_pin_run-v1",
+ "status": "failure-history record of a RED successor pin run; NOT a pin receipt of record",
+ "what_this_does_not_establish": [
+  "the cause of the three failures (tracebacks not retained)",
+  "root review"
+ ],
+ "what_this_is": "The one stage-1-repair successor pin run (harness_pin_successor.py --runs-of-this-step results/live_ab/pin_inputs/HARNESS_PIN_SUCCESSOR_20260926_1122.runs_of_this_step.json at head 4d78581) completed every planned test but was NOT all passed; its receipt was therefore not committed. This record keeps that receipt, the pin tool's stdout/stderr and the owner's later solo diagnostic run byte-exact in the archive below."
+}
