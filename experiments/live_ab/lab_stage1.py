@@ -1025,7 +1025,15 @@ def _verdict(n_with_code_block, threshold) -> str:
     2026-09-26 16:20 review: the old `int(threshold)` cast here meant a `9.5` that somehow reached
     this function would still have been silently treated as `9`) -- every caller of this function
     already passes a `threshold` that :func:`_assert_frozen_threshold` has verified is a genuine
-    `int` equal to the frozen value, so this function must not re-loosen that type."""
+    `int` equal to the frozen value, so this function must not re-loosen that type.  It also
+    refuses (:class:`ThresholdRefused`) any `threshold` that is not a genuine `int` itself, so a
+    later caller that skips the entry-point guard cannot reach a verdict with `9.5`, `'9'` or a
+    `bool` (the owner's follow-up to the 16:20 repair: without this check a re-added
+    `int(threshold)` here was unobservable by any test)."""
+    if type(threshold) is not int:
+        raise ThresholdRefused(
+            f'_verdict needs a genuine int threshold, got {type(threshold).__name__} '
+            f'{threshold!r}; no cast is applied')
     return 'PASS' if int(n_with_code_block) >= threshold else 'FAIL'
 
 

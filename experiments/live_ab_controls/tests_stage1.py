@@ -659,6 +659,28 @@ class MutationControlTests(unittest.TestCase):
                          'the off-by-one must flip the boundary verdict, or the positive '
                          'boundary control could not catch it')
 
+class VerdictHelperTypeTests(unittest.TestCase):
+    """Root's 2026-09-26 16:20 review named the verdict helper's own ``int(threshold)`` cast: a
+    ``9.5`` that reached it was treated as ``9``.  The entry-point guard now refuses such values
+    first, so a cast re-added inside ``lab_stage1._verdict`` would be unobservable through the
+    public paths.  These tests call the REAL helper directly: exact-``int`` thresholds give the
+    integer comparison, and every non-``int`` threshold is refused, never cast.  A re-added
+    ``int(threshold)`` makes ``_verdict(9, 9.5)`` return PASS and fails this test."""
+
+    def test_positive_the_genuine_int_boundary(self) -> None:
+        self.assertEqual(lab_stage1._verdict(9, 9), 'PASS')
+        self.assertEqual(lab_stage1._verdict(10, 9), 'PASS')
+        self.assertEqual(lab_stage1._verdict(8, 9), 'FAIL')
+
+    def test_negative_non_int_thresholds_are_refused_not_cast(self) -> None:
+        class SubInt(int):
+            pass
+        for bad in (9.5, 9.0, '9', True, SubInt(9), None):
+            with self.subTest(threshold=bad):
+                with self.assertRaises(lab_stage1.ThresholdRefused):
+                    lab_stage1._verdict(9, bad)
+
+
 class FailurePropagationTests(unittest.TestCase):
     """Adversarial review finding 5: the claimed failure-path contract -- "a capture/write
     failure propagates ... and writes NO receipt" -- was previously asserted only in
