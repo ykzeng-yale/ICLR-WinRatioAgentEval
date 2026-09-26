@@ -15,7 +15,9 @@ drifted from what the held module expected.
 Root, 2026-09-23 20:40 (``reviews/prerun_bundle_go_nogo_20260923_2040.md:17``, item 2): "complete
 only the missing executable drivers for stages 1, 2, 4-6, the stage-3 two-stream loaded sweep, and
 the Sec. 11.5 extended CPU replay/seed ... Do not run the loaded stages or repeat the accepted CPU
-grid while implementing them."
+grid while implementing them."  The plan row this module serves says the code and the seed were
+ABSENT
+(``results/live_ab/FINITE_COSTED_PLAN_DRAFT_v2r3_20260923.json`` stage 8, ``pins_and_missing_inputs``).
 
 WHAT IT IS.  A pure CPU simulator: no model, no server, no network, no clock in any decision.  It
 reads the realized roster (``lab_design`` shape: ``{'S1': [...], 'S2': [...]}``), the pilot table
@@ -36,23 +38,29 @@ file, not carried over from the held branch's now-stale citations):
    the code path of protocol 3.4 / ``lab_design._generate`` (S1 permutation, S2 permutation, whole-pair
    permutation, from one generator, in that order), but from the replicate's own seed.
    ``order_indices`` mirrors the draw sequence read directly out of ``lab_design.py`` on this branch
-   (``_generate`` at ``lab_design.py:61``, ``STRATA`` at ``lab_design.py:43``).  One fair coin per
-   enrolled pair, mapped as the production coin maps it (``config.json`` ``coin.map`` =
-   ``1->candidate_at_position_1``).
+   (``_generate`` at ``lab_design.py:61``, ``STRATA`` at ``lab_design.py:43``), and
+   ``tests_replay_core.OrderEqualityTests`` proves that, seeded with
+   ``SeedSequence([design_seed_base, trial_no])``, it reproduces ``lab_design.arrival_order`` uid
+   for uid (the held module's own ``tests_lab_replay.OrderEqualityTests`` claim, re-pointed at this
+   branch's port of that class).  One fair coin per enrolled pair, mapped as the production coin
+   maps it (``config.json`` ``coin.map`` = ``1->candidate_at_position_1``).
 2. Success.  S1 task under an arm with a pilot: with probability ``w`` the task's pilot outcome under
    that arm, else Bernoulli at the arm's pilot S1 rate (433/591 for both arms on the real pilot,
    verified against ``results/local_stream/episodes_flat.csv`` on this checkout).  S2 task:
    Bernoulli(``q``).  The candidate shift ``s`` is added to the candidate's probability and clipped
    to [0, 1].  READING R1 (stated, root may overrule): "the candidate's probability" is the per-task
    success probability of item 2, ``w*y + (1-w)*rate`` (S1) or ``q`` (S2), so the shift is applied to
-   that mixture and ONE uniform is compared with it.
+   that mixture and ONE uniform is compared with it.  This is the same law as the two-stage draw at
+   ``s = 0``; a two-stage draw that shifted the reused 0/1 outcome instead would attenuate the shift
+   by ``w * P(y = 0)`` and is not what the sentence says.
 3. Cost.  For a both-succeed pair of T1/T2, one pilot task in which both workflows succeeded is drawn
    uniformly and its two latencies are used jointly; the frozen tier rule (``winstats.compare`` with the
    hierarchy of ``lab_enclosure.tiers_from_config``: success, then cost at relative tolerance 0.05,
    eligible only on joint success) gives ``Z``.  ``D = s_cand - s_inc``.
-4. Rule.  The frozen band and decision of protocol 8.1-8.4, evaluated at the ``N_P`` completed prefixes.
-   The radius vector is ``lab_monitor.radius_table`` (the freeze-bundle deliverable, the same call
-   ``band`` makes) and ``decide_matrix`` is the vectorised form of ``lab_monitor.band`` +
+4. Rule.  The frozen band and decision of protocol 8.1-8.4, evaluated at the ``N_P`` completed prefixes
+   (item 4, protocol_FINAL.md:2459-2460: "Scores are complete at each pair resolution, so enclosures
+   are degenerate").  The radius vector is ``lab_monitor.radius_table`` (the freeze-bundle deliverable,
+   the same call ``band`` makes) and ``decide_matrix`` is the vectorised form of ``lab_monitor.band`` +
    ``lab_monitor.decide``; the controls prove element-wise equality of every endpoint and of the first
    decision with the scalar ``MonitorState`` path on random complete sequences, and each real cell
    re-runs ``crosscheck_per_cell`` of its own replicates through
@@ -101,10 +109,40 @@ them"):
   pilot server ``coder``, so it has no pilot; T4's two arms are the SAME workflow on the SAME pilot
   server, so a joint within-task draw would tie every both-succeed pair at tier 1).  The replay REFUSES
   unless the caller passes a value for every gap and no other key: nothing is defaulted.  The owner's
-  PROPOSAL is ``PROPOSED_OPEN_MODEL``, unchanged from the held module.
+  PROPOSAL is ``PROPOSED_OPEN_MODEL``, unchanged from the held module:
+
+  * ``T3.candidate.success = coder_single_shot_stratum_rate``: S1 probability = the coder single_shot
+    pilot S1 rate (433/591), ``w`` not applied (no task-level evidence exists for this model); S2 =
+    ``q``; plus ``s``.  Alternative ``coder_single_shot_task_proxy``: treat the coder's single_shot
+    task outcomes as the candidate's pilot (``w`` applied), which imports the coder's per-task
+    difficulty into Granite.
+  * ``T3.cost_pair`` and ``T4.cost_pair = independent_single_shot_successes``: the two latencies are
+    drawn independently, with replacement, from the single_shot latencies of pilot tasks where
+    single_shot succeeded.  Alternative ``same_task_single_shot_duplicate``: one draw used twice
+    (tier 1 always ties).
+
+  EXCHANGEABILITY AT ``s = 0`` HOLDS FOR T4 ONLY.  T4's two arms are one workflow: both draw success
+  from the same single_shot pilot (READING R3) and latency from one pool, so at ``s = 0`` the arms
+  are exchangeable and the T4 ``s = 0`` rows are exact A/A rows for the rule.  T3's are NOT: under the
+  proposal the candidate is iid Bernoulli(r) on every S1 task while the incumbent is
+  ``w*y_t + (1-w)*r``, which depends on the task, so the two laws differ
+  (``tests_replay_core.ExchangeabilityTests``: equal means, unequal variances, on a synthetic pilot,
+  re-pointed at this branch's port of the held ``tests_lab_replay.ExchangeabilityTests`` claim).
+  ``E[D]`` on S1 is ``w * (r - mean of y over the roster's S1)``, zero only when the roster's S1 has
+  the pilot's success rate (the realized roster excludes tasks, so in general it does not); T3
+  ``s = 0`` rows are therefore not A/A rows.
+
+  Under the proposal the T3 rows carry NO information about Granite: they describe the frozen rule
+  under a candidate that differs from the coder only by the success shift ``s``.  The manifest
+  records the value passed, ``status: PROPOSED`` unless a ``ruling`` citation is supplied, the
+  alternatives, and this text.  A ``ruling`` must be a ``reviews/<file>.md:<line>`` citation that
+  resolves to an existing line of an existing file under the repository's ``reviews/`` (root-owned);
+  anything else is refused.  That is ALL the check performs: whether the cited line rules on this
+  outcome model is for root to confirm.
 * NOT_SIMULABLE -- a fixed horizon (295 or 495) that exceeds the realized roster's pair count cannot be
   enrolled by the 3.4 code path.  Such rows are deposited with ``status: NOT_SIMULABLE`` and a reason,
-  never bootstrapped (``OPEN_ITEMS``).
+  never bootstrapped (``OPEN_ITEMS``).  READING R2: a horizon below the roster's pair count enrolls
+  the first ``N_P`` pairs of the full 3.4 order.
 
 WHAT IS NEW IN THIS PORT, relative to the held module (``ref:session60-repair-replay``): the held
 module wrote only a single monolithic write-once table + manifest pair per run, with no per-cell
