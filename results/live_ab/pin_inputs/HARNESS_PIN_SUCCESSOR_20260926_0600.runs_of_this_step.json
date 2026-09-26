@@ -1,0 +1,142 @@
+[
+  {
+    "id": "35c15f3_focused_tests",
+    "utc": "2026-09-25T19:47:22-04:00 (commit-authored local time; the commit message does not give a separate UTC run timestamp)",
+    "command": "unittest -v experiments/live_ab_controls/tests_shard_receipt.py; unittest discover -v -s experiments/live_ab -p 'tests_lab_isolation.py'; unittest -v experiments/live_ab_controls/tests_delta_citations.py (paraphrased: the commit message names these as 'the three focused commands named in this step' but does not spell out the exact CLI invocation text or per-suite counts)",
+    "result": "Commit message states verbatim: \"No full test suite was run -- only the three focused commands named in this step (tests_shard_receipt.py, tests_lab_isolation.py's discovery form, tests_delta_citations.py), all green.\" No per-suite Ran-N-tests counts are given in this message.",
+    "source": "git commit message body of 35c15f3"
+  },
+  {
+    "id": "c5817f9_tests_replay",
+    "utc": "2026-09-25T20:20:51-04:00",
+    "command": ".venv/bin/python -m unittest -v experiments/live_ab_controls/tests_replay.py",
+    "result": "Ran 30 tests in 0.475s, OK (was 22; +8 from the review fixes)",
+    "source": "git commit message body of c5817f9"
+  },
+  {
+    "id": "c5817f9_tests_lab_isolation",
+    "utc": "2026-09-25T20:20:51-04:00",
+    "command": ".venv/bin/python -m unittest discover -v -s experiments/live_ab -p 'tests_lab_isolation.py'",
+    "result": "Ran 33 tests in 0.516s, OK (unrelated pre-existing deviations printed for lab_data/lab_hostcheck/lab_server; none for lab_replay)",
+    "source": "git commit message body of c5817f9"
+  },
+  {
+    "id": "c5817f9_tests_shard_receipt",
+    "utc": "2026-09-25T20:20:51-04:00",
+    "command": ".venv/bin/python -m unittest -v experiments/live_ab_controls/tests_shard_receipt.py",
+    "result": "Ran 51 tests in 0.171s, OK",
+    "source": "git commit message body of c5817f9"
+  },
+  {
+    "id": "c5817f9_tests_delta_citations",
+    "utc": "2026-09-25T20:20:51-04:00",
+    "command": ".venv/bin/python -m unittest -v experiments/live_ab_controls/tests_delta_citations.py",
+    "result": "Ran 7 tests in 0.326s, OK",
+    "source": "git commit message body of c5817f9"
+  },
+  {
+    "id": "c4c1db9_unittest_module",
+    "utc": "2026-09-25T21:45:49-04:00 (commit-authored local time; no separate run timestamp given)",
+    "command": "unittest module verification for the pin-tool fix (exact CLI invocation text not spelled out in the commit message)",
+    "result": "Commit message states verbatim: \"No rerun of it and no full 5-suite run were performed for this commit; verification here is the unittest module only (58 tests, OK, skipped=1).\"",
+    "source": "git commit message body of c4c1db9"
+  },
+  {
+    "id": "2ff1977_tests_replay_and_shard_receipt",
+    "utc": "2026-09-25T23:19:36-04:00 (commit-authored local time); process note dates the interruption/restore at approximately 02:17Z-03:17Z",
+    "command": "tests_replay + tests_shard_receipt (combined; exact CLI invocation text not spelled out verbatim in the commit message)",
+    "result": "Commit message states verbatim: \"reran the focused tests before this commit: tests_replay + tests_shard_receipt 105 OK\"",
+    "source": "git commit message body of 2ff1977"
+  },
+  {
+    "id": "2ff1977_tests_lab_isolation",
+    "utc": "2026-09-25T23:19:36-04:00 (commit-authored local time)",
+    "command": "tests_lab_isolation (discover) (exact CLI invocation text not spelled out verbatim in the commit message; shorthand 'tests_lab_isolation (discover)' used there)",
+    "result": "Commit message states verbatim: \"tests_lab_isolation (discover) 33 OK\"",
+    "source": "git commit message body of 2ff1977"
+  },
+  {
+    "id": "2ff1977_tests_delta_citations",
+    "utc": "2026-09-25T23:19:36-04:00 (commit-authored local time)",
+    "command": "tests_delta_citations (exact CLI invocation text not spelled out verbatim in the commit message)",
+    "result": "Commit message states verbatim: \"tests_delta_citations 7 OK\"",
+    "source": "git commit message body of 2ff1977"
+  },
+  {
+    "id": "2ff1977_tests_harness_pin_successor",
+    "utc": "2026-09-25T23:19:36-04:00 (commit-authored local time)",
+    "command": "experiments.live_ab_tools.tests_harness_pin_successor (exact CLI invocation text not spelled out verbatim in the commit message)",
+    "result": "Commit message states verbatim: \"experiments.live_ab_tools.tests_harness_pin_successor 58 OK (skipped=1). No grid and no full suite was run.\"",
+    "source": "git commit message body of 2ff1977"
+  },
+  {
+    "id": "2bf6e9b_tests_replay_core_bundle",
+    "utc": "2026-09-26T00:23:00-04:00",
+    "command": ".venv/bin/python -m unittest -v experiments/live_ab_controls/tests_replay_core.py experiments/live_ab_controls/tests_replay.py experiments/live_ab_controls/tests_delta_citations.py",
+    "result": "Ran 93 tests in 11.688s / OK",
+    "source": "git commit message body of 2bf6e9b (this run's commits)"
+  },
+  {
+    "id": "2bf6e9b_tests_lab_isolation",
+    "utc": "2026-09-26T00:23:00-04:00",
+    "command": ".venv/bin/python -m unittest discover -v -s experiments/live_ab -p 'tests_lab_isolation.py'",
+    "result": "Ran 33 tests in 0.661s / OK",
+    "source": "git commit message body of 2bf6e9b (this run's commits)"
+  },
+  {
+    "id": "183cba1_tests_prefreeze",
+    "utc": "2026-09-26T01:00:53-04:00",
+    "command": ".venv/bin/python -m unittest -v experiments/live_ab_controls/tests_prefreeze.py",
+    "result": "Ran 23 tests in 0.066s, OK",
+    "source": "git commit message body of 183cba1 (this run's commits)"
+  },
+  {
+    "id": "183cba1_tests_lab_isolation",
+    "utc": "2026-09-26T01:00:53-04:00",
+    "command": ".venv/bin/python -m unittest discover -v -s experiments/live_ab -p 'tests_lab_isolation.py'",
+    "result": "Ran 33 tests in 1.072s, OK (lab_prefreeze now listed among other-group modules present; same pre-existing signature-gate deviation lines, none naming lab_prefreeze)",
+    "source": "git commit message body of 183cba1 (this run's commits)"
+  },
+  {
+    "id": "183cba1_tests_shard_receipt",
+    "utc": "2026-09-26T01:00:53-04:00",
+    "command": ".venv/bin/python -m unittest -v experiments/live_ab_controls/tests_shard_receipt.py",
+    "result": "Ran 65 tests in 0.284s, OK",
+    "source": "git commit message body of 183cba1 (this run's commits)"
+  },
+  {
+    "id": "ced7a13_tests_delta_citations",
+    "utc": "NOT STATED in the actual git commit message of ced7a13 (verified via git show -s --format=%B ced7a13: the message has a subject line only, no body). Timing given only in the task-supplied summary text, which does not give a UTC timestamp for this particular run either.",
+    "command": "cd wt-drivers && /Users/yukangzengcmac/ICLR-WinRatioAgentEvals/.venv/bin/python -m unittest -v experiments/live_ab_controls/tests_delta_citations.py (this exact command text is from the task-supplied summary text, NOT from ced7a13's own commit message)",
+    "result": "Task-supplied summary text states output ended \"Ran 7 tests in 0.388s\" / \"OK\". FLAG: this run is not documented anywhere in ced7a13's actual git commit message (confirmed empty body via git show); it is asserted only in the harness-supplied task summary, so it is recorded here as such rather than as something this receipt run independently witnessed.",
+    "source": "task-supplied summary text for the ced7a13 companion commit; explicitly NOT the git commit message (which has no body) -- this run's commits"
+  },
+  {
+    "id": "batch1_withheld_pre_repair",
+    "utc": "2026-09-26T00:27:56Z to 01:25:45Z",
+    "command": "harness_pin_successor.py --runs-of-this-step batch1_runs_of_this_step.json (sha256 a0de250d731cdeb91dc4a89766e49dd02bc7e7abd3d6854a8eea4d20088ce8e0) at c5817f9",
+    "result": "all 5 suites green 1970/1970 (live_ab 766 OK skipped=1; live_ab_controls 557 OK; live_ab_serving 193 OK; live_ab_tools 239 OK skipped=2; live_ab_validation 215 OK skipped=6 xfail=2), solo=false; receipt sha256 cfa3c7ce338c80a7278d1a672e894ddc4d4731588aea517c24d0e204c4c95e60 WITHHELD: supersedes lacked HARNESS_PIN_SUCCESSOR_20260925_2009.json (fixed at c4c1db9); kept by the owner outside the repository as pre-repair evidence per root 01:17 item 1. Companion: results/live_ab/PRE_REPAIR_PIN_RUN_20260926_0125.json, sha256 66a654728aa09a68c0e7dbc1805501069ca39f527ee44beb8358612e8ef496fc, committed at ced7a130fe6b950598b202540b4cdfc6d80001c0.",
+    "source": "task instructions for this step, cross-checked: HARNESS_PIN_SUCCESSOR_20260925_2009.json sha256 (3745631750c3913f40069185971be8b3c2bd44e4538ab2fdc07cbdc7773da101) and DELIVERY_STEP_RUNS_20260925_2014.json sha256 (e9daa69bbb3d074255f42193a80f89296394d4fc673bc4ee16b5b58fb5f6e12c) verified by direct shasum against the files in results/live_ab/ in this worktree; PRE_REPAIR_PIN_RUN_20260926_0125.json sha256 verified by direct shasum in this worktree"
+  },
+  {
+    "id": "root_0117_witness",
+    "utc": "2026-09-26T01:17:00Z (review document timestamp)",
+    "command": "N/A -- not a test invocation; this row cites a review document, not a command this session ran",
+    "result": "at c5817f9 a resumed replay with a changed seed reused the old row (cells_resumed=1); a regression test since 2ff1977",
+    "source": "reviews/driver_replay_resume_interim_20260926_0117.md on main (read via `git show origin/main:reviews/driver_replay_resume_interim_20260926_0117.md` in this worktree and confirmed to state this witness)"
+  },
+  {
+    "id": "resume_fix_step_stall",
+    "utc": "2026-09-26T02:17Z to about 03:17Z",
+    "command": "N/A -- not a test invocation; a process/incident note",
+    "result": "the resume-repair fix agent stalled on a blocked cleanup command leaving the review's M7 mutation in the worktree copy of lab_shard_receipt.py; the owner stopped the workflow, restored the file from the agent's backup, reran focused tests and committed 2ff1977; process event",
+    "source": "git commit message body of 2ff1977, process note paragraph"
+  },
+  {
+    "id": "port_first_attempt",
+    "utc": "2026-09-26 about 03:30Z",
+    "command": "N/A -- not a test invocation this session ran; a prior port attempt's own reported result",
+    "result": "first port step: 23 tests in 7 held classes, 1 failed (ExchangeabilityTests.test_the_text_restricts_the_exact_null_claim_to_t4: lab_replay docstring lacked the held T4-only exchangeability paragraph); not committed; a later step 3 build was interrupted by the owner's stop and redone",
+    "source": "task instructions for this step (this earlier attempt predates and is superseded by 2bf6e9b, which fixed the missing docstring paragraph and re-ran the full suite green -- see row 2bf6e9b_tests_replay_core_bundle above)"
+  }
+]
