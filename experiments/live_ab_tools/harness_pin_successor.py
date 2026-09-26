@@ -52,8 +52,11 @@ WHAT IT COMPUTES, WITHOUT EDITING ANY EXISTING FILE (every value from git object
    logged during the suite, with every output SHA-256 and the compiler and linker that built
    it), which the exclusion check of 6 then searches the freeze tree for as well (review of
    988baf7, reviewer 2 finding 6: those digests were recorded nowhere).
-8. The receipts this one SUPERSEDES (SUPERSEDES: path, SHA-256, why; each stays byte-identical)
-   and every red run of the subset so far, with the root findings answered since the review
+8. The receipts this one SUPERSEDES (SUPERSEDES: path, SHA-256, why; each stays byte-identical),
+   with a guard (``superseded_receipts_incomplete``) that REFUSES when a committed
+   ``results/live_ab/HARNESS_PIN_SUCCESSOR_*.json`` at HEAD names no SUPERSEDES entry (root
+   01:17 repair: a run at c5817f9 omitted the already-accepted ..._2009 receipt this way), and
+   every red run of the subset so far, with the root findings answered since the review
    of 988baf7 and their fix commits (DISCLOSED_RED_RUNS; review of 988baf7, reviewer 2 finding
    5; root 16:05 "the revised pin must include the failure history and exact changed bytes"),
    and the mutually exclusive mutation partition of the final adversarial verification of
@@ -236,6 +239,16 @@ SUPERSEDES = (
              '988baf7 witness survivor, root\'s 22:08 attempt); root 01:10 accepted it as '
              'disclosed engineering-test evidence with solo=false, which it keeps: its suites '
              '(1,782 of 1,782 passed, not solo) stay the observation of the 79e60d4 tree only')},
+    {'path': RESULTS_REL + '/HARNESS_PIN_SUCCESSOR_20260925_2009.json',
+     'sha256': '3745631750c3913f40069185971be8b3c2bd44e4538ab2fdc07cbdc7773da101',
+     'head_when_written': '98ce004',
+     'why': ('it pins the 98ce004 harness (canonical f9a7703f) of the accepted EB1+EB5 tagged '
+             'subset (root 22:20 on main, the bounded disposition of tag '
+             'session60-eb1-eb5-subset-v1); its preservation companion results/live_ab/'
+             'DELIVERY_STEP_RUNS_20260925_2014.json travels with it and is not itself '
+             'reissued; since 98ce004 this branch changed the harness again (the EB2-EB4 '
+             'driver work); its suites (1,889 of 1,889 passed, solo=false) stay the '
+             'observation of the 98ce004 tree only')},
 )
 
 #: Every red run of the subset so far (review of 988baf7, reviewer 2 finding 5; root 16:05:
@@ -1362,6 +1375,26 @@ def supersedes_record(entry: Mapping, data: bytes | None) -> tuple[dict, list]:
                  and not rec['byte_identical'] else [])
 
 
+def superseded_receipts_incomplete(head: GitTree, supersedes: Iterable[Mapping]) -> list:
+    """[read-only] ``['superseded_receipts_incomplete:<path>', ...]`` for every committed
+    ``results/live_ab/HARNESS_PIN_SUCCESSOR_*.json`` blob at HEAD whose path names no entry of
+    ``supersedes`` (root 01:17 repair: a run at c5817f9 wrote a receipt whose hard-coded
+    SUPERSEDES ended at the ..._0027 entry, so it never named the already-accepted ..._2009
+    receipt of the 98ce004 harness and measured ``since_the_superseded_receipt`` against 0027
+    instead).  This reads the committed tree directly, independent of what SUPERSEDES claims,
+    so a future omission is caught the same way.  The receipt this call is itself about to
+    write is never a committed blob at HEAD yet (write_once has not run), so it can never
+    trigger this guard against itself."""
+    known = {e['path'] for e in supersedes}
+    problems = []
+    for _mode, typ, name in head.entries(RESULTS_REL):
+        if typ == 'blob' and re.fullmatch(r'HARNESS_PIN_SUCCESSOR_\d{8}_\d{4}\.json', name):
+            path = '%s/%s' % (RESULTS_REL, name)
+            if path not in known:
+                problems.append('superseded_receipts_incomplete:%s' % path)
+    return sorted(problems)
+
+
 def partition_problems(p: Mapping) -> list:
     """[pure] ``[]`` when ``p`` (MUTATION_PARTITION_8F0B4AE's form) is a mutually exclusive,
     exhaustive partition: the specified ids unique; run = specified minus not_run; the four
@@ -2214,6 +2247,7 @@ def build_receipt(repo: Path, predecessor: str, *, run_suites: bool,
         rec, sproblems = supersedes_record(entry, head.read(entry['path']))
         supersedes.append(rec)
         problems += sproblems
+    problems += superseded_receipts_incomplete(head, SUPERSEDES)
     since, sproblems = since_superseded(repo, head, smap, supersedes)
     problems += sproblems
     step_runs, rproblems = load_runs_of_this_step(runs_of_this_step, tokenize)

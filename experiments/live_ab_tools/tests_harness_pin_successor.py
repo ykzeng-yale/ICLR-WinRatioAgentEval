@@ -48,6 +48,9 @@ NEGATIVE CONTROLS (each must refuse or report the defect):
     with one verdict flipped does not reproduce it;
   * a superseded receipt whose recorded successor map is not the git blobs at the head it
     recorded refuses (``superseded_map_does_not_reproduce``);
+  * a committed ``HARNESS_PIN_SUCCESSOR_*.json`` at HEAD that names no SUPERSEDES entry refuses
+    (``superseded_receipts_incomplete``), and ``since_the_superseded_receipt`` picks the ..._2009
+    receipt (head 98ce004) once it is listed;
   * a missing, unparsable, empty or row-incomplete ``--runs-of-this-step`` file refuses and
     main() writes nothing.
 
@@ -580,7 +583,8 @@ class SupersedesTests(unittest.TestCase):
                          ['HARNESS_PIN_SUCCESSOR_20260924_1217.json',
                           'HARNESS_PIN_SUCCESSOR_20260924_1635.json',
                           'HARNESS_PIN_SUCCESSOR_20260924_1732.json',
-                          'HARNESS_PIN_SUCCESSOR_20260925_0027.json'])
+                          'HARNESS_PIN_SUCCESSOR_20260925_0027.json',
+                          'HARNESS_PIN_SUCCESSOR_20260925_2009.json'])
         for entry in hps.SUPERSEDES:
             with self.subTest(receipt=entry['path']):
                 data = (REPO / entry['path']).read_bytes()
@@ -700,6 +704,39 @@ class SupersedesTests(unittest.TestCase):
             'diff_applied_to_old_gives_new'])
         none, problems = hps.since_superseded(REPO, head, smap, [])
         self.assertEqual((none['receipt'], problems), (None, []))
+
+
+class SupersededReceiptsGuardTests(unittest.TestCase):
+    """The ``superseded_receipts_incomplete`` guard (root 01:17 replay-resume interim repair
+    item: a run at c5817f9 wrote a receipt whose hard-coded SUPERSEDES ended at ..._0027, so it
+    never named the already-accepted ..._2009 receipt of the 98ce004 harness and measured
+    ``since_the_superseded_receipt`` against 0027 instead of 2009)."""
+
+    def test_positive_the_guard_passes_at_head_with_every_committed_receipt_named(self):
+        head = hps.GitTree(REPO, 'HEAD')
+        self.assertEqual(hps.superseded_receipts_incomplete(head, hps.SUPERSEDES), [])
+
+    def test_negative_removing_the_2009_entry_by_monkeypatch_refuses_and_names_it(self):
+        without_2009 = tuple(e for e in hps.SUPERSEDES
+                             if not e['path'].endswith('HARNESS_PIN_SUCCESSOR_20260925_2009.'
+                                                       'json'))
+        self.assertEqual(len(without_2009), len(hps.SUPERSEDES) - 1)
+        with mock.patch.object(hps, 'SUPERSEDES', without_2009):
+            head = hps.GitTree(REPO, 'HEAD')
+            problems = hps.superseded_receipts_incomplete(head, hps.SUPERSEDES)
+        self.assertEqual(problems,
+                         ['superseded_receipts_incomplete:results/live_ab/'
+                          'HARNESS_PIN_SUCCESSOR_20260925_2009.json'])
+
+    def test_since_the_superseded_receipt_selects_2009_at_98ce004(self):
+        head = hps.GitTree(REPO, 'HEAD')
+        smap = hps.harness_map(head)
+        sup = [hps.supersedes_record(e, head.read(e['path']))[0] for e in hps.SUPERSEDES]
+        since, problems = hps.since_superseded(REPO, head, smap, sup)
+        self.assertEqual(problems, [])
+        self.assertEqual(since['receipt'],
+                         'results/live_ab/HARNESS_PIN_SUCCESSOR_20260925_2009.json')
+        self.assertEqual(since['recorded_head'][:7], '98ce004')
 
 
 def partition_from_logs(logs: Path) -> dict:
@@ -1202,7 +1239,9 @@ class EndToEndV4Tests(_Clone):
                          [('b0', '64ace6d3'), ('v2', '6c0ebf2f'), ('v3', '73dd0573'),
                           ('v4', 'c46718fa'), ('he', 'c46718fa')])
         since = r['since_the_superseded_receipt']
-        self.assertEqual(since['receipt'], hps.SUPERSEDES[-1]['path'])
+        # the 2009 receipt is not committed yet at 90219f2: the latest superseded receipt
+        # present there is still 0027 (SUPERSEDES[3], not the current SUPERSEDES[-1])
+        self.assertEqual(since['receipt'], hps.SUPERSEDES[3]['path'])
         self.assertEqual(since['recorded_head'][:7], '79e60d4')
         self.assertTrue(since['superseded_map_reproduces_from_git'])
         self.assertEqual(sorted(since['harness_entries_moved']), ['build_live_ab_results.py'])
