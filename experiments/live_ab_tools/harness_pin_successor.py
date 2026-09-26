@@ -52,15 +52,31 @@ WHAT IT COMPUTES, WITHOUT EDITING ANY EXISTING FILE (every value from git object
    logged during the suite, with every output SHA-256 and the compiler and linker that built
    it), which the exclusion check of 6 then searches the freeze tree for as well (review of
    988baf7, reviewer 2 finding 6: those digests were recorded nowhere) -- and each suite's FULL
-   stdout and stderr, retained write-once next to the receipt as a deterministic gzip (mtime 0)
-   at ``pin_logs/<receipt stamp>/<suite>.std{out,err}.gz``, whether or not it passed, with the
-   compressed and uncompressed SHA-256/bytes of each recorded in its run (the uncompressed
-   digest equal to the ``stderr_sha256``/``stdout_sha256`` already kept); a red run of
-   RED_PIN_RUN_20260926_1227.json could not be diagnosed from the tail and digest alone, and a
-   write, read-back or digest failure REFUSES the whole receipt (``pin_log_*``), never silently
-   drops the log.  UNDECIDED, flagged for root rather than decided here: nothing ages these logs
-   out, and they are committed the same as the receipts (no ``.gitignore`` exclusion); from the
-   two most recent real receipts' recorded ``stdout_bytes``/``stderr_bytes`` a full five-suite
+   stdout and stderr, retained write-once as a deterministic gzip (mtime 0), whether or not the
+   suite passed, with the compressed and uncompressed SHA-256/bytes of each recorded in its run
+   (the uncompressed digest equal to the ``stderr_sha256``/``stdout_sha256`` already kept).
+   WHERE THE LOGS LIVE: DURING the run every log is written write-once under a fresh temporary
+   staging directory created outside ``--repo`` (never under it, checked), so a real five-suite
+   run against ``--out-dir`` inside the repository never makes ``git status`` see a new file
+   mid-run (the defect this fixes: the tool's own end-of-run tree check, comparing
+   ``worktree_state()`` before and after, used to see the untracked logs it had just written
+   into the tree and refuse the whole run as ``tree_changed_during_the_run``, even on an
+   otherwise clean pass).  Only AFTER that end-of-run tree check has passed, and every other
+   problem list is empty, are the logs promoted write-once into the tree at
+   ``<out-dir>/pin_logs/<receipt stamp>/<suite>.std{out,err}.gz``, next to the receipt this
+   same call is about to let main() write -- a receipt is never written without its logs there,
+   nor are the logs promoted without a receipt following.  On a REFUSED or otherwise
+   problem-carrying run the logs are never promoted into the tree at all: they stay retained,
+   at the staging location, beside the refused draft main() writes under its own temporary
+   directory, and main() prints where.  Promotion re-verifies the write-once digest at the
+   final path (identical bytes already there is a no-op; different bytes REFUSES,
+   ``pin_log_mismatch``), so retention is write-once end to end regardless of where a log
+   currently sits; a red run of RED_PIN_RUN_20260926_1227.json could not be diagnosed from the
+   tail and digest alone, and a write, read-back or digest failure REFUSES the whole receipt
+   (``pin_log_*``), never silently drops the log.  UNDECIDED, flagged for root rather than
+   decided here: nothing ages these logs out, and they are committed the same as the receipts
+   (no ``.gitignore`` exclusion); from the two most recent real receipts' recorded
+   ``stdout_bytes``/``stderr_bytes`` a full five-suite
    run is on the order of several hundred KB of retained gzip per run, permanently, at the
    observed cadence of this branch -- this keeps every red diagnosable (the point of this fix)
    but root should decide a retention or archival policy before it is routine.
@@ -834,10 +850,12 @@ SUITES = (
 )
 SUITE_TIMEOUT_S = 3 * 3600
 SAMPLE_EVERY_S = 2.0
-#: Where each suite's full stdout/stderr is retained, write-once, next to the receipt: one
-#: directory per receipt (``<out-dir>/pin_logs/<receipt stamp>/<suite>.std{out,err}.gz``).  A
-#: red run must be diagnosable from what is kept here, never from a rerun for a favourable
-#: count.
+#: Where each suite's full stdout/stderr ends up retained, write-once, next to the receipt: one
+#: directory per receipt (``<out-dir>/pin_logs/<receipt stamp>/<suite>.std{out,err}.gz``), only
+#: once the run has turned out clean (``pin_log_staging_root``/``promote_pin_log``: during the
+#: run itself the logs sit under a temporary staging root outside ``--repo``, never in the
+#: tree).  A red run must be diagnosable from what is kept here, never from a rerun for a
+#: favourable count.
 PIN_LOGS_DIRNAME = 'pin_logs'
 WATCH = ('unittest', 'tests_', 'llama-server', 'llama_server', 'lab_orchestrator',
          'lab_mock_server', 'run_smoke', 'run_live_ab', 'ninja', 'cmake', 'mlx_lm', 'ollama',
@@ -2101,6 +2119,23 @@ def worktree_state(repo: Path) -> tuple[list, list]:
     return entries, problems
 
 
+def pin_log_staging_root(repo: Path) -> Path:
+    """A fresh temporary directory for THIS run's suite logs, checked to sit outside ``repo`` --
+    ``git status`` on ``repo`` can never see it, however deep ``--out-dir`` sits inside the
+    repository.  This is the fix for the defect where a real run with ``--out-dir`` inside the
+    repository (``results/live_ab``) wrote each suite's retained log straight into the tree
+    mid-run; the tool's own end-of-run check (``worktree_state`` before vs. after) then saw
+    those new untracked files and refused the whole run as ``tree_changed_during_the_run``, on
+    an otherwise clean pass.  Logs written here are promoted into the tree, write-once, only
+    once that check has passed with no other problem either (``promote_pin_log``); a refused or
+    otherwise problem-carrying run leaves them here, never in the tree."""
+    root = Path(os.path.realpath(tempfile.mkdtemp(prefix='pinsucc_pinlogs_staging_')))
+    repo_r = Path(os.path.realpath(str(repo)))
+    if root == repo_r or repo_r in root.parents:
+        raise Refused(['pin_logs_staging_inside_repo'])
+    return root
+
+
 def build_receipt(repo: Path, predecessor: str, *, run_suites: bool,
                   runs_of_this_step: Path | None = None, out_dir: Path | None = None) -> dict:
     repo = Path(repo).resolve()
@@ -2435,10 +2470,15 @@ def build_receipt(repo: Path, predecessor: str, *, run_suites: bool,
         'prepared_by': ('Prepared and checked by AI agent sessions; not human peer review or '
                         'author sign-off (protocol 14.7).'),
     }
+    pin_logs_staging = None
     if run_suites:
         if out_dir is None:
             raise Refused(['pin_logs_out_dir_required'])
-        pin_logs_dir = Path(out_dir) / PIN_LOGS_DIRNAME / stamp
+        out_dir = Path(out_dir)
+        final_pin_logs_dir = out_dir / PIN_LOGS_DIRNAME / stamp
+        staging_root = pin_log_staging_root(repo)
+        pin_logs_dir = staging_root / PIN_LOGS_DIRNAME / stamp
+        pin_logs_staging = pin_logs_dir
         runs = [run_suite(repo, name, argv, tokenize, pin_logs_dir) for name, argv in SUITES]
         uses_log = Path(PRESCRIBED_LABSBX) / FIXTURE_USES_LOG
         used: set = set()
@@ -2471,17 +2511,50 @@ def build_receipt(repo: Path, predecessor: str, *, run_suites: bool,
             'pin_logs_reading': ('every suite\'s FULL stdout and stderr, gzip mtime 0, '
                                  'write-once at <this dir>/<suite>.std{out,err}.gz; '
                                  'stderr_tail/stdout_tail and the digests above are unchanged; '
-                                 'retained whether or not the suite passed; a write or '
-                                 'read-back failure refuses the whole receipt (pin_log_*)'),
+                                 'retained whether or not the suite passed; staged outside the '
+                                 'repository during the run and promoted here write-once only '
+                                 'once the run turns out clean; a write, read-back or promotion '
+                                 'failure refuses the whole receipt (pin_log_*)'),
         }
         entries_after, _ = worktree_state(repo)
         if resolve(repo, 'HEAD') != head.rev or entries_after != entries:
             problems.append('tree_changed_during_the_run')
+        if not problems:
+            # The run is otherwise clean: promote the write-once logs from staging into the
+            # tree, together with the receipt main() is about to write.  Never done on a
+            # refused or problem-carrying run (checked above) -- the tree check just re-read
+            # stays valid, since nothing has touched the repository between it and here.  A
+            # promotion refusal (``promote_pin_log``'s own write-once mismatch at the FINAL
+            # path -- e.g. a same-stamp/out_dir retry whose suite output is not byte-stable)
+            # must be caught here and folded into ``problems`` like any other refusal, NOT
+            # left to propagate out of this function on its own: unlike every other Refused
+            # this module raises, ``promote_pin_log``'s carries no draft, and left alone it
+            # would bypass the ``if problems:`` draft-attachment below entirely -- silently
+            # discarding the already fully-verified staged logs and skipping main()'s
+            # "refused pin logs kept at" reporting (root review finding (d) on this fix's own
+            # first draft).  ``pin_logs_staging`` is already set to ``pin_logs_dir`` above, so
+            # once folded in here it is preserved and named exactly like a refusal from the
+            # tree check would be.
+            try:
+                for row in runs:
+                    for stream in ('stdout', 'stderr'):
+                        staged = pin_logs_dir / ('%s.%s.gz' % (row['suite'], stream))
+                        final = final_pin_logs_dir / ('%s.%s.gz' % (row['suite'], stream))
+                        row['%s_log' % stream] = promote_pin_log(
+                            staged, final, row['%s_sha256' % stream], tokenize)
+            except Refused as exc:
+                problems += exc.problems
+            else:
+                receipt['solo_run_suites']['pin_logs_dir'] = tokenize(str(final_pin_logs_dir))
+                shutil.rmtree(str(staging_root), ignore_errors=True)
+                pin_logs_staging = None
     else:
         receipt['solo_run_suites'] = 'not run in this invocation (--no-suites)'
     receipt['generated_utc'] = utc()
     if problems:
-        raise Refused(problems, receipt)
+        draft = (receipt if pin_logs_staging is None
+                 else dict(receipt, pin_logs_staging_dir=str(pin_logs_staging)))
+        raise Refused(problems, draft)
     return receipt
 
 
@@ -2551,6 +2624,23 @@ def retain_pin_log(path: Path, raw: bytes, expected_sha256: str,
     return record
 
 
+def promote_pin_log(staged: Path, final: Path, expected_sha256: str,
+                    tokenize: Callable[[str], str]) -> dict:
+    """Move one suite's already-verified, staged log into its FINAL write-once location inside
+    the tree, together with the receipt main() is about to write (``build_receipt``: only once
+    the end-of-run tree check has passed and every other problem list is empty).  Re-derives
+    the raw bytes from the staged gzip member -- never trusts its compressed bytes directly --
+    and checks them against ``expected_sha256`` again before promoting.  Write-once at ``final``
+    with the exact same convention as a fresh ``retain_pin_log``: identical bytes already there
+    is a no-op, different bytes REFUSES (``pin_log_mismatch``) and leaves ``final`` untouched;
+    the staged copy is left alone either way (the caller removes the whole staging root once
+    every suite's logs have been promoted)."""
+    raw = gzip.decompress(staged.read_bytes())
+    if sha256(raw) != expected_sha256:
+        raise Refused(['pin_log_digest_mismatch:%s' % staged.name])
+    return retain_pin_log(final, raw, expected_sha256, tokenize)
+
+
 def write_once(path: Path, obj: Mapping) -> str:
     data = (json.dumps(obj, indent=1, sort_keys=True, ensure_ascii=False) + '\n').encode()
     fd = os.open(str(path), os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o644)
@@ -2591,8 +2681,21 @@ def main(argv: list | None = None) -> int:
         print('REFUSED: %s' % ', '.join(exc.problems), file=sys.stderr)
         if exc.draft is not None:
             fd, path = tempfile.mkstemp(prefix='pinsucc_refused_', suffix='.json')
+            draft = dict(exc.draft)
+            draft.pop('REFUSED', None)
+            staging = draft.pop('pin_logs_staging_dir', None)
+            if staging and Path(staging).is_dir():
+                # Never promoted into the tree (the run was refused) -- kept instead beside
+                # this same refused draft, so a red run stays diagnosable from what main()
+                # names here, not from a rerun for a favourable count.
+                logs_dest = Path(path).with_name(Path(path).stem + '_pin_logs')
+                shutil.move(staging, str(logs_dest))
+                if isinstance(draft.get('solo_run_suites'), dict):
+                    draft['solo_run_suites'] = dict(draft['solo_run_suites'],
+                                                    pin_logs_dir=str(logs_dest))
+                print('refused pin logs kept at: %s' % logs_dest, file=sys.stderr)
             with os.fdopen(fd, 'w') as fh:
-                json.dump(dict(exc.draft, REFUSED=exc.problems), fh, indent=1, sort_keys=True)
+                json.dump(dict(draft, REFUSED=exc.problems), fh, indent=1, sort_keys=True)
             print('refused draft (not a receipt): %s' % path, file=sys.stderr)
         return 2
     suites = receipt['solo_run_suites']

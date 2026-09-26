@@ -1445,8 +1445,21 @@ class EndToEndV4Tests(_Clone):
 
 
 #: Two tiny fixture suites (never the real five-suite discovery): one fails on purpose, with a
-#: distinctive assertion message the retained stderr log must keep; one passes.
-FAILING_FIXTURE_SUITE = '''\
+#: distinctive assertion message the retained stderr log must keep; one passes.  Both freeze
+#: unittest's own runner clock (``unittest.runner.time.perf_counter``, the value its "Ran N
+#: test in X.XXXs" line is formatted from) to a constant BEFORE running: this is DEFECT B's
+#: real mechanism, reproduced -- that line is not byte-stable run to run (see
+#: ``PinLogFixtureDeterminismTests`` below, which shows two real subprocess runs of the
+#: passing fixture differing before this freeze and identical after), so leaving it live would
+#: make any test that reruns "the same" suite in one shared, write-once destination flaky
+#: exactly like the real run's ``pin_log_mismatch:pass_suite.stderr.gz`` error.  This freezes
+#: the FIXTURE's own clock, never the tool's; the tool still retains whatever bytes the suite
+#: actually produced, byte-exact, unnormalised.
+FIXTURE_CLOCK_FREEZE = (
+    "import unittest.runner as _uttr\n"
+    "_uttr.time.perf_counter = lambda: 0.0\n"
+)
+FAILING_FIXTURE_SUITE = FIXTURE_CLOCK_FREEZE + '''\
 import unittest
 
 
@@ -1458,7 +1471,7 @@ class FixtureFailTests(unittest.TestCase):
 if __name__ == '__main__':
     unittest.main()
 '''
-PASSING_FIXTURE_SUITE = '''\
+PASSING_FIXTURE_SUITE = FIXTURE_CLOCK_FREEZE + '''\
 import unittest
 
 
@@ -1476,13 +1489,25 @@ class SoloRunSuitesPinLogTests(_Clone):
     """``build_receipt(..., run_suites=True)`` against two small fixture suites living OUTSIDE
     the clone (so the clone's tracked tree stays clean): the retained log of a failing suite
     keeps its traceback, the receipt's digests equal the decompressed log bytes, and
-    ``--no-suites`` stays as it was."""
+    ``--no-suites`` stays as it was.
+
+    DEFECT B (the real run's ``live_ab_tools`` error, ``harness_pin_successor.Refused: refused:
+    pin_log_mismatch:pass_suite.stderr.gz``): this class used to share ONE ``out_dir`` (made in
+    ``setUpClass``) and ONE frozen ``STAMP`` across every test, so two DIFFERENT tests -- not
+    just the one deliberately rebuilding twice -- promoted "the same" suite's write-once log to
+    the same final path.  unittest's own runner clock is not byte-stable run to run (its "Ran N
+    test in X.XXXs" line; see ``FIXTURE_CLOCK_FREEZE``), so a later test's build could carry
+    different bytes than an earlier test's and get refused for a reason that had nothing to do
+    with what that later test was checking.  Fixed two ways, together: (1) every test gets its
+    OWN ``out_dir`` (``setUp``, not ``setUpClass``), so no two tests ever share a promotion
+    target; (2) the fixture suites freeze their own runner clock, so even multiple builds
+    inside ONE test (``test_a_second_identical_build_is_a_no_op...``) reproduce byte-for-byte
+    when nothing about the suite changed."""
 
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
         cls.fixtures_dir = Path(os.path.realpath(tempfile.mkdtemp(prefix='pinsucc_fixtures_')))
-        cls.out_dir = Path(os.path.realpath(tempfile.mkdtemp(prefix='pinsucc_pinlogs_out_')))
         (cls.fixtures_dir / 'fail_suite.py').write_text(FAILING_FIXTURE_SUITE)
         (cls.fixtures_dir / 'pass_suite.py').write_text(PASSING_FIXTURE_SUITE)
         cls.suites = (('fail_suite', [str(cls.fixtures_dir / 'fail_suite.py')]),
@@ -1491,11 +1516,17 @@ class SoloRunSuitesPinLogTests(_Clone):
     @classmethod
     def tearDownClass(cls) -> None:
         shutil.rmtree(str(cls.fixtures_dir), ignore_errors=True)
-        shutil.rmtree(str(cls.out_dir), ignore_errors=True)
         super().tearDownClass()
 
-    #: A fixed stamp for every build() in this class, so two calls always land in the same
-    #: pin_logs directory (never flaky at a real minute boundary around a sub-second run).
+    def setUp(self) -> None:
+        #: One fresh out_dir per TEST (never per class): the fix for DEFECT B.  Two different
+        #: tests in this class must never promote a write-once log to the same final path.
+        self.out_dir = Path(os.path.realpath(tempfile.mkdtemp(prefix='pinsucc_pinlogs_out_')))
+        self.addCleanup(shutil.rmtree, str(self.out_dir), ignore_errors=True)
+
+    #: A fixed stamp for every build() in one test, so two calls within the SAME test always
+    #: land in the same pin_logs directory (never flaky at a real minute boundary around a
+    #: sub-second run).  Safe across tests only because each test now has its own out_dir.
     STAMP = '20260101_0000'
 
     def build(self, suites: tuple | None = None) -> dict:
@@ -1606,6 +1637,390 @@ class SoloRunSuitesPinLogTests(_Clone):
             # build_receipt() itself must not require it outside the run_suites branch)
             r2 = hps.build_receipt(self.clone, hps.PREDECESSOR, run_suites=False)
             self.assertEqual(r2['solo_run_suites'], 'not run in this invocation (--no-suites)')
+
+
+class PinLogTreeStagingTests(_Clone):
+    """DEFECT A end to end (the real run's own arrangement: ``--out-dir`` INSIDE the
+    repository, at ``results/live_ab``).  Before the fix, ``build_receipt(run_suites=True)``
+    against an in-clone out_dir refused every time with ``tree_changed_during_the_run``: the
+    suites' retained logs landed straight in the tree mid-run, and the tool's own end-of-run
+    ``worktree_state`` comparison then saw them.  Fixed by staging every log under a temporary
+    root OUTSIDE the repository during the run, and promoting it write-once into the tree only
+    once that check -- kept exactly as strict -- has already passed clean."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        cls.fixtures_dir = Path(os.path.realpath(tempfile.mkdtemp(prefix='pinsucc_treefix_')))
+        (cls.fixtures_dir / 'fail_suite.py').write_text(FAILING_FIXTURE_SUITE)
+        (cls.fixtures_dir / 'pass_suite.py').write_text(PASSING_FIXTURE_SUITE)
+        cls.suites = (('fail_suite', [str(cls.fixtures_dir / 'fail_suite.py')]),
+                      ('pass_suite', [str(cls.fixtures_dir / 'pass_suite.py')]))
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        shutil.rmtree(str(cls.fixtures_dir), ignore_errors=True)
+        super().tearDownClass()
+
+    def test_a_red_run_with_out_dir_inside_the_clone_leaves_the_tree_unchanged_and_stages_outside_it(
+            self):
+        """A RED run (one suite fails on purpose) with ``out_dir`` inside the clone: at 756d6f3
+        this refused with ``tree_changed_during_the_run`` regardless of the suites' own verdict
+        -- a red run is exactly the one that most needs its logs kept, and it was the one this
+        defect made impossible to produce inside the repository at all."""
+        out_dir = self.clone / 'results' / 'live_ab'
+        before, _ = hps.worktree_state(self.clone)
+        real_staging_root = hps.pin_log_staging_root
+        captured: dict = {}
+
+        def spying(repo):
+            root = real_staging_root(repo)
+            captured['root'] = root
+            return root
+
+        with mock.patch.object(hps, 'SUITES', self.suites), \
+                mock.patch.object(hps, 'pin_log_staging_root', side_effect=spying):
+            r = hps.build_receipt(self.clone, hps.PREDECESSOR, run_suites=True, out_dir=out_dir)
+        try:
+            self.assertFalse(r['solo_run_suites']['all_passed'], 'fail_suite must still be red')
+            self.assertIn('root', captured, 'the staging root must actually have been used')
+            clone_r = self.clone.resolve()
+            self.assertNotEqual(captured['root'], clone_r)
+            self.assertNotIn(clone_r, captured['root'].parents,
+                             'the staging root must sit OUTSIDE the clone')
+            self.assertFalse(captured['root'].exists(),
+                             'the staging root is removed once its logs are promoted')
+            after, _ = hps.worktree_state(self.clone)
+            # the tool's own tree check ran BEFORE the promotion below wrote anything into the
+            # tree; a pin_logs/ entry appearing only afterward is the intended outcome, not the
+            # defect (the defect was the check itself seeing it, which this asserts it did not)
+            self.assertEqual([e for e in after if 'pin_logs' not in e], before)
+            final_dir = out_dir / hps.PIN_LOGS_DIRNAME / r['receipt_stamp']
+            self.assertTrue((final_dir / 'fail_suite.stderr.gz').exists())
+            self.assertTrue((final_dir / 'pass_suite.stdout.gz').exists())
+        finally:
+            shutil.rmtree(str(out_dir / hps.PIN_LOGS_DIRNAME), ignore_errors=True)
+
+    def test_the_final_location_digests_equal_the_receipt(self):
+        out_dir = Path(os.path.realpath(tempfile.mkdtemp(prefix='pinsucc_treefix_out_')))
+        try:
+            with mock.patch.object(hps, 'SUITES', self.suites):
+                r = hps.build_receipt(self.clone, hps.PREDECESSOR, run_suites=True,
+                                      out_dir=out_dir)
+            final_dir = out_dir / hps.PIN_LOGS_DIRNAME / r['receipt_stamp']
+            for row in r['solo_run_suites']['runs']:
+                for stream in ('stdout', 'stderr'):
+                    path = final_dir / ('%s.%s.gz' % (row['suite'], stream))
+                    decompressed = gzip.decompress(path.read_bytes())
+                    self.assertEqual(hps.sha256(decompressed), row['%s_sha256' % stream])
+                    log = row['%s_log' % stream]
+                    self.assertEqual(log['uncompressed_sha256'], row['%s_sha256' % stream])
+                    self.assertEqual(log['uncompressed_bytes'], row['%s_bytes' % stream])
+                    self.assertEqual(log['compressed_sha256'], hps.sha256(path.read_bytes()))
+                    self.assertEqual(log['compressed_bytes'], len(path.read_bytes()))
+        finally:
+            shutil.rmtree(str(out_dir), ignore_errors=True)
+
+    def test_the_tree_change_check_still_fires_when_a_suite_itself_writes_an_untracked_file(
+            self):
+        """The tree check itself must stay exactly as strict: a suite that dirties the tree on
+        its own (never through pin_logs) must still refuse, staging notwithstanding."""
+        intruder = self.clone / 'experiments' / 'live_ab' / 'INTRUDER_9f2b.py'
+        dirty_suite = (
+            'import unittest, pathlib\n'
+            'class T(unittest.TestCase):\n'
+            '    def test_it_passes(self):\n'
+            '        pathlib.Path(%r).write_text("intruder")\n'
+            '        self.assertTrue(True)\n'
+            'if __name__ == "__main__":\n'
+            '    unittest.main()\n'
+        ) % str(intruder)
+        (self.fixtures_dir / 'dirty_suite.py').write_text(dirty_suite)
+        suites = (('dirty_suite', [str(self.fixtures_dir / 'dirty_suite.py')]),)
+        out_dir = Path(os.path.realpath(tempfile.mkdtemp(prefix='pinsucc_treefix_dirty_')))
+        try:
+            with mock.patch.object(hps, 'SUITES', suites):
+                with self.assertRaises(hps.Refused) as cm:
+                    hps.build_receipt(self.clone, hps.PREDECESSOR, run_suites=True,
+                                      out_dir=out_dir)
+            self.assertIn('tree_changed_during_the_run', cm.exception.problems)
+            self.assertIsNotNone(cm.exception.draft)
+            self.assertIn('pin_logs_staging_dir', cm.exception.draft)
+            staging = Path(cm.exception.draft['pin_logs_staging_dir'])
+            self.assertTrue(staging.is_dir(), 'refused logs must stay retained, not discarded')
+            self.assertFalse((out_dir / hps.PIN_LOGS_DIRNAME).exists(),
+                             'a refused run must never promote its logs into the tree')
+        finally:
+            intruder.unlink(missing_ok=True)
+            shutil.rmtree(str(out_dir), ignore_errors=True)
+
+
+class PinLogFixtureDeterminismTests(unittest.TestCase):
+    """DEFECT B's mechanism, isolated from ``SoloRunSuitesPinLogTests`` entirely: unittest's own
+    runner clock (the "Ran N test in X.XXXs" line) is not byte-stable run to run, and
+    ``FIXTURE_CLOCK_FREEZE`` is what makes the passing fixture reproduce byte-for-byte anyway --
+    the property ``SoloRunSuitesPinLogTests`` (and its per-test out_dir) relies on."""
+
+    #: The one line every fixture's ``test_it_passes`` body has; replacing it with something
+    #: that sleeps DURING the test (not at import time, which the runner's own clock never
+    #: measures) is how these cases make one real subprocess run visibly slower than another.
+    _PASS_LINE = '        self.assertTrue(True)\n'
+
+    def test_the_unfrozen_runner_clock_can_disagree_between_two_real_subprocess_runs(self):
+        """Not a claim that it ALWAYS disagrees on every machine (root's reading, unverified in
+        general) -- a direct demonstration of the mechanism: two real subprocess runs of "the
+        same" passing suite, without the freeze, need not produce identical stderr bytes,
+        because unittest formats a live elapsed-time reading into it."""
+        fixtures_dir = Path(os.path.realpath(tempfile.mkdtemp(prefix='pinsucc_clockfix_')))
+        try:
+            unfrozen = PASSING_FIXTURE_SUITE.replace(FIXTURE_CLOCK_FREEZE, '', 1)
+            self.assertIn(self._PASS_LINE, unfrozen)
+            slow = unfrozen.replace(
+                self._PASS_LINE,
+                '        import time\n        time.sleep(0.3)\n' + self._PASS_LINE, 1)
+            (fixtures_dir / 'pass_suite_fast.py').write_text(unfrozen)
+            (fixtures_dir / 'pass_suite_slow.py').write_text(slow)
+            fast_out = subprocess.run(
+                [sys.executable, str(fixtures_dir / 'pass_suite_fast.py')],
+                capture_output=True).stderr
+            slow_out = subprocess.run(
+                [sys.executable, str(fixtures_dir / 'pass_suite_slow.py')],
+                capture_output=True).stderr
+            self.assertNotEqual(fast_out, slow_out,
+                                'a suite that takes visibly longer WHILE THE TEST RUNS must '
+                                'format a different elapsed time into unittest\'s own "Ran N '
+                                'test in X.XXXs" line -- DEFECT B\'s exact mechanism')
+        finally:
+            shutil.rmtree(str(fixtures_dir), ignore_errors=True)
+
+    def test_the_frozen_fixture_reproduces_byte_for_byte_regardless_of_real_elapsed_time(self):
+        fixtures_dir = Path(os.path.realpath(tempfile.mkdtemp(prefix='pinsucc_clockfix2_')))
+        try:
+            self.assertIn(self._PASS_LINE, PASSING_FIXTURE_SUITE)
+            slow = PASSING_FIXTURE_SUITE.replace(
+                self._PASS_LINE,
+                '        import time\n        time.sleep(0.3)\n' + self._PASS_LINE, 1)
+            (fixtures_dir / 'pass_suite_fast.py').write_text(PASSING_FIXTURE_SUITE)
+            (fixtures_dir / 'pass_suite_slow.py').write_text(slow)
+            fast_out = subprocess.run(
+                [sys.executable, str(fixtures_dir / 'pass_suite_fast.py')],
+                capture_output=True).stderr
+            slow_out = subprocess.run(
+                [sys.executable, str(fixtures_dir / 'pass_suite_slow.py')],
+                capture_output=True).stderr
+            self.assertEqual(fast_out, slow_out,
+                             'freezing the fixture\'s own runner clock must make its retained '
+                             'stderr byte-identical even when the real elapsed time (WHILE THE '
+                             'TEST RUNS) differs')
+        finally:
+            shutil.rmtree(str(fixtures_dir), ignore_errors=True)
+
+    def test_two_separate_build_receipt_calls_sharing_one_out_dir_and_stamp_reproduce_the_real_error(
+            self):
+        """The exact reproduction of the real run's error, ``pin_log_mismatch:
+        pass_suite.stderr.gz``: ONE out_dir and ONE frozen stamp shared by two SEPARATE
+        ``build_receipt`` calls (``SoloRunSuitesPinLogTests``'s old, class-shared arrangement)
+        -- a suite whose output is not byte-stable across runs gets refused promoting the
+        second build's bytes onto the first's write-once path.  Deterministic, not
+        probabilistic: a counter file makes the SECOND run alone sleep long enough that
+        unittest's own unfrozen "Ran N test in X.XXXs" line cannot format the same digits as
+        the first run's, on any machine."""
+        tmp = Path(os.path.realpath(tempfile.mkdtemp(prefix='pinsucc_clockfix3_')))
+        try:
+            clone = make_clone(tmp / 'clone')
+            fixtures_dir = tmp / 'fixtures'
+            fixtures_dir.mkdir()
+            counter = tmp / 'counter.txt'
+            counter.write_text('0')
+            unfrozen = PASSING_FIXTURE_SUITE.replace(FIXTURE_CLOCK_FREEZE, '', 1)
+            self.assertIn(self._PASS_LINE, unfrozen)
+            # Only the SECOND real subprocess run of this exact script sleeps, and only WHILE
+            # its test method runs (the runner's own clock never measures import-time work) --
+            # a deterministic stand-in for whatever made the real second build's timing line
+            # disagree with the first's.
+            in_test = (
+                '        import time\n'
+                '        with open(%r) as _f:\n'
+                '            _n = int(_f.read().strip())\n'
+                '        with open(%r, "w") as _f:\n'
+                '            _f.write(str(_n + 1))\n'
+                '        if _n == 1:\n'
+                '            time.sleep(0.3)\n'
+            ) % (str(counter), str(counter))
+            (fixtures_dir / 'pass_suite.py').write_text(
+                unfrozen.replace(self._PASS_LINE, in_test + self._PASS_LINE, 1))
+            suites = (('pass_suite', [str(fixtures_dir / 'pass_suite.py')]),)
+            out_dir = tmp / 'out'
+            stamp = '20260101_0000'
+            real_strftime = time.strftime
+
+            def frozen(fmt, *a, **kw):
+                return stamp if fmt == '%Y%m%d_%H%M' else real_strftime(fmt, *a, **kw)
+
+            with mock.patch.object(hps, 'SUITES', suites), \
+                    mock.patch.object(hps.time, 'strftime', side_effect=frozen):
+                hps.build_receipt(clone, hps.PREDECESSOR, run_suites=True, out_dir=out_dir)
+                with self.assertRaises(hps.Refused) as cm:
+                    hps.build_receipt(clone, hps.PREDECESSOR, run_suites=True, out_dir=out_dir)
+            self.assertTrue(
+                any(p.startswith('pin_log_mismatch:pass_suite.') for p in cm.exception.problems),
+                cm.exception.problems)
+            # root review finding (d): this exact refusal -- a write-once mismatch caught
+            # only at the FINAL promotion, not during the run itself -- used to propagate
+            # straight out of build_receipt with draft=None, silently losing the staged,
+            # already-verified logs and skipping every bit of main()'s staging-preservation
+            # reporting.  Fail-before (at 756d6f3): cm.exception.draft is None here.
+            self.assertIsNotNone(
+                cm.exception.draft,
+                'finding (d): a promotion refusal must still carry a draft, exactly like '
+                'every other refusal build_receipt raises')
+            self.assertIn('pin_logs_staging_dir', cm.exception.draft)
+            staging = Path(cm.exception.draft['pin_logs_staging_dir'])
+            self.assertTrue(staging.is_dir(),
+                            'the staged, already-verified logs of the SECOND (refused) build '
+                            'must stay retained, not discarded')
+        finally:
+            shutil.rmtree(str(tmp), ignore_errors=True)
+
+
+class PromotionRefusalDraftTests(unittest.TestCase):
+    """Root review finding (d), isolated from DEFECT B's non-deterministic-clock mechanism
+    entirely: ANY write-once mismatch caught only at promotion time (not during the run
+    itself, e.g. a same out_dir/stamp reused for a genuinely different suite) must still
+    close out through the normal ``if problems: raise Refused(problems, draft)`` path in
+    ``build_receipt``, and ``main()`` must then preserve the staged copy exactly as it does
+    for a ``tree_changed_during_the_run`` refusal.  Before this fix, ``promote_pin_log``'s
+    ``Refused`` propagated out of ``build_receipt`` untouched (``draft=None``), bypassing the
+    draft-attachment code below it and every bit of ``main()``'s "refused pin logs kept at"
+    machinery (``PinLogTreeStagingTests`` exercises that machinery only for the OTHER
+    refusal path, ``tree_changed_during_the_run``, so it alone missed this)."""
+
+    def test_main_preserves_staged_pin_logs_on_a_promotion_refusal(self):
+        tmp = Path(os.path.realpath(tempfile.mkdtemp(prefix='pinsucc_mainpromo_')))
+        try:
+            clone = make_clone(tmp / 'clone')
+            fixtures_dir = tmp / 'fixtures'
+            fixtures_dir.mkdir()
+            (fixtures_dir / 'pass_suite.py').write_text(PASSING_FIXTURE_SUITE)
+            (fixtures_dir / 'other_suite.py').write_text(FAILING_FIXTURE_SUITE)
+            out_dir = tmp / 'out'
+            stamp = '20260101_0000'
+            real_strftime = time.strftime
+
+            def frozen(fmt, *a, **kw):
+                return stamp if fmt == '%Y%m%d_%H%M' else real_strftime(fmt, *a, **kw)
+
+            with mock.patch.object(hps, 'SUITES',
+                                   (('pass_suite', [str(fixtures_dir / 'pass_suite.py')]),)), \
+                    mock.patch.object(hps.time, 'strftime', side_effect=frozen):
+                with redirect_stdout(io.StringIO()):
+                    rc1 = hps.main(['--repo', str(clone), '--out-dir', str(out_dir)])
+            self.assertEqual(rc1, 0)
+            # the SAME out_dir and stamp, but 'pass_suite' now names a genuinely different
+            # script -- the exact write-once mismatch this fix must still report through.
+            with mock.patch.object(hps, 'SUITES',
+                                   (('pass_suite', [str(fixtures_dir / 'other_suite.py')]),)), \
+                    mock.patch.object(hps.time, 'strftime', side_effect=frozen):
+                with redirect_stderr(io.StringIO()) as err:
+                    rc2 = hps.main(['--repo', str(clone), '--out-dir', str(out_dir)])
+            self.assertEqual(rc2, 2)
+            out = err.getvalue()
+            self.assertIn('REFUSED: pin_log_mismatch:pass_suite.', out)
+            self.assertIn(
+                'refused pin logs kept at:', out,
+                'finding (d): a promotion refusal must reach main()\'s staging-preservation '
+                'path exactly like a tree_changed_during_the_run refusal does')
+            logs_line = [ln for ln in out.splitlines()
+                        if ln.startswith('refused pin logs kept at: ')][0]
+            logs_dest = Path(logs_line[len('refused pin logs kept at: '):])
+            self.assertTrue(logs_dest.is_dir())
+            kept = sorted(p.name for p in logs_dest.glob('*.gz'))
+            self.assertEqual(kept, ['pass_suite.stderr.gz', 'pass_suite.stdout.gz'],
+                             'the SECOND build\'s own staged, already-verified logs -- not '
+                             'discarded, not the first build\'s')
+            draft_line = [ln for ln in out.splitlines()
+                         if ln.startswith('refused draft (not a receipt): ')][0]
+            draft_path = Path(draft_line[len('refused draft (not a receipt): '):])
+            draft = json.loads(draft_path.read_text())
+            self.assertEqual(draft['solo_run_suites']['pin_logs_dir'], str(logs_dest))
+            draft_path.unlink(missing_ok=True)
+            shutil.rmtree(str(logs_dest), ignore_errors=True)
+        finally:
+            shutil.rmtree(str(tmp), ignore_errors=True)
+
+
+class PromotePinLogDigestReverificationTests(unittest.TestCase):
+    """``promote_pin_log`` must re-verify the staged bytes against ``expected_sha256`` BEFORE
+    ever writing to ``final`` -- not rely on ``retain_pin_log``'s own later
+    ``verify_pin_log`` call to catch a mismatch, because that call only checks AFTER
+    ``write_pin_log`` has already created ``final`` (write-once: a wrong-content ``final``
+    can then never be corrected).  A mutation that drops promote_pin_log's own check still
+    gets refused (retain_pin_log's write_pin_log/verify_pin_log still runs), so the
+    ``problems`` list alone cannot tell the two apart -- ``final`` actually existing
+    afterward is what distinguishes them."""
+
+    def test_negative_a_wrong_expected_digest_refuses_before_final_is_ever_created(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            staged = Path(tmp) / 'staged' / 'evil_suite.stdout.gz'
+            staged.parent.mkdir()
+            raw = b'the real bytes actually sitting in staging'
+            hps.write_pin_log(staged, raw)
+            final = Path(tmp) / 'final' / 'evil_suite.stdout.gz'
+            wrong_expected = hps.sha256(b'not the bytes staged at all')
+            with self.assertRaises(hps.Refused) as cm:
+                hps.promote_pin_log(staged, final, wrong_expected, str)
+            self.assertEqual(cm.exception.problems,
+                             ['pin_log_digest_mismatch:evil_suite.stdout.gz'])
+            self.assertFalse(
+                final.exists(),
+                'promote_pin_log must catch the mismatch BEFORE calling retain_pin_log -- '
+                'writing the wrong bytes write-once into the tree first and only detecting '
+                'the problem afterward can never be undone')
+
+
+class WorktreeStatePinLogsTests(_Clone):
+    """``worktree_state``/``OWN_FILES`` must never special-case anything under ``pin_logs/``:
+    an untracked file there is dirty like any other untracked file.  ``OWN_FILES`` names only
+    the two harness source files this tool may itself be mid-edit of; pin_logs entries are
+    ordinary tracked-tree content once promoted, and a stray one left by an earlier refused
+    or interrupted run must keep blocking a fresh run until someone looks at it."""
+
+    def test_an_untracked_file_under_pin_logs_is_not_excluded_from_the_dirty_check(self):
+        self.assertEqual(hps.worktree_state(self.clone), ([], []))
+        pin_logs_dir = (self.clone / 'results' / 'live_ab' / hps.PIN_LOGS_DIRNAME /
+                        '20260101_0000')
+        pin_logs_dir.mkdir(parents=True)
+        (pin_logs_dir / 'intruder.stdout.gz').write_bytes(b'not a real retained log')
+        try:
+            entries, problems = hps.worktree_state(self.clone)
+            self.assertEqual(len(entries), 1)
+            self.assertTrue(any(
+                p.startswith('working_tree_dirty:') and 'pin_logs' in p for p in problems),
+                'an untracked file under pin_logs/ must not be excluded from the dirty '
+                'check -- OWN_FILES names only the two harness source files, nothing else')
+        finally:
+            shutil.rmtree(str(self.clone / 'results' / 'live_ab' / hps.PIN_LOGS_DIRNAME),
+                          ignore_errors=True)
+
+
+class PinLogStagingRootTmpdirInsideRepoTests(_Clone):
+    """``pin_log_staging_root``'s "provably outside" check when the platform's own temp
+    directory happens to sit INSIDE the repository (e.g. a ``TMPDIR`` pointed there): zero
+    test coverage before this (root review finding (f))."""
+
+    def test_a_tempdir_inside_the_repo_is_refused_not_silently_accepted(self):
+        inside = self.clone / 'a_local_tmp'
+        inside.mkdir()
+        real_mkdtemp = tempfile.mkdtemp
+        try:
+            with mock.patch.object(
+                    hps.tempfile, 'mkdtemp',
+                    side_effect=lambda prefix='': real_mkdtemp(prefix=prefix, dir=str(inside))):
+                with self.assertRaises(hps.Refused) as cm:
+                    hps.pin_log_staging_root(self.clone)
+            self.assertEqual(cm.exception.problems, ['pin_logs_staging_inside_repo'])
+        finally:
+            shutil.rmtree(str(inside), ignore_errors=True)
 
 
 if __name__ == '__main__':
