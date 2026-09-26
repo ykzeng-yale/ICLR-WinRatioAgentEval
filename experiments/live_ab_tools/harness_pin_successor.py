@@ -51,7 +51,19 @@ WHAT IT COMPUTES, WITHOUT EDITING ANY EXISTING FILE (every value from git object
    compiled test double it actually executed (``fixture_uses``: the lines ``sm_fixture``
    logged during the suite, with every output SHA-256 and the compiler and linker that built
    it), which the exclusion check of 6 then searches the freeze tree for as well (review of
-   988baf7, reviewer 2 finding 6: those digests were recorded nowhere).
+   988baf7, reviewer 2 finding 6: those digests were recorded nowhere) -- and each suite's FULL
+   stdout and stderr, retained write-once next to the receipt as a deterministic gzip (mtime 0)
+   at ``pin_logs/<receipt stamp>/<suite>.std{out,err}.gz``, whether or not it passed, with the
+   compressed and uncompressed SHA-256/bytes of each recorded in its run (the uncompressed
+   digest equal to the ``stderr_sha256``/``stdout_sha256`` already kept); a red run of
+   RED_PIN_RUN_20260926_1227.json could not be diagnosed from the tail and digest alone, and a
+   write, read-back or digest failure REFUSES the whole receipt (``pin_log_*``), never silently
+   drops the log.  UNDECIDED, flagged for root rather than decided here: nothing ages these logs
+   out, and they are committed the same as the receipts (no ``.gitignore`` exclusion); from the
+   two most recent real receipts' recorded ``stdout_bytes``/``stderr_bytes`` a full five-suite
+   run is on the order of several hundred KB of retained gzip per run, permanently, at the
+   observed cadence of this branch -- this keeps every red diagnosable (the point of this fix)
+   but root should decide a retention or archival policy before it is routine.
 8. The receipts this one SUPERSEDES (SUPERSEDES: path, SHA-256, why; each stays byte-identical),
    with a guard (``superseded_receipts_incomplete``) that REFUSES when a committed
    ``results/live_ab/HARNESS_PIN_SUCCESSOR_*.json`` at HEAD names no SUPERSEDES entry (root
@@ -87,6 +99,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import gzip
 import hashlib
 import json
 import os
@@ -821,6 +834,11 @@ SUITES = (
 )
 SUITE_TIMEOUT_S = 3 * 3600
 SAMPLE_EVERY_S = 2.0
+#: Where each suite's full stdout/stderr is retained, write-once, next to the receipt: one
+#: directory per receipt (``<out-dir>/pin_logs/<receipt stamp>/<suite>.std{out,err}.gz``).  A
+#: red run must be diagnosable from what is kept here, never from a rerun for a favourable
+#: count.
+PIN_LOGS_DIRNAME = 'pin_logs'
 WATCH = ('unittest', 'tests_', 'llama-server', 'llama_server', 'lab_orchestrator',
          'lab_mock_server', 'run_smoke', 'run_live_ab', 'ninja', 'cmake', 'mlx_lm', 'ollama',
          'vllm')
@@ -1986,7 +2004,8 @@ def solo_verdict(runs: list) -> dict:
                                                       if row['attribution'] != 'foreign'})}
 
 
-def run_suite(repo: Path, name: str, argv: list, tokenize: Callable[[str], str]) -> dict:
+def run_suite(repo: Path, name: str, argv: list, tokenize: Callable[[str], str],
+             pin_logs_dir: Path) -> dict:
     plan = planned_counts(repo, argv)
     before = host_snapshot(repo, set(), tokenize)
     since = time.time()
@@ -2021,6 +2040,13 @@ def run_suite(repo: Path, name: str, argv: list, tokenize: Callable[[str], str])
         row['reason'] = tokenize(row['reason'])
     parsed['failure_headers'] = [tokenize(h) for h in parsed['failure_headers']]
     after = host_snapshot(repo, sampler.known, tokenize, since)
+    stderr_bytes, stdout_bytes = text.encode('utf-8'), stdout.encode('utf-8')
+    stderr_sha256, stdout_sha256 = sha256(stderr_bytes), sha256(stdout_bytes)
+    # retained whether or not the suite passed, so a red run is diagnosed from what is kept
+    stderr_log = retain_pin_log(pin_logs_dir / ('%s.stderr.gz' % name), stderr_bytes,
+                                stderr_sha256, tokenize)
+    stdout_log = retain_pin_log(pin_logs_dir / ('%s.stdout.gz' % name), stdout_bytes,
+                                stdout_sha256, tokenize)
     return {
         'suite': name,
         'argv': [tokenize(PY)] + argv,
@@ -2029,12 +2055,14 @@ def run_suite(repo: Path, name: str, argv: list, tokenize: Callable[[str], str])
         'timed_out': timed_out,
         'plan': plan,
         'result': parsed,
-        'stderr_sha256': sha256(text.encode('utf-8')),
-        'stderr_bytes': len(text.encode('utf-8')),
-        'stdout_sha256': sha256(stdout.encode('utf-8')),
-        'stdout_bytes': len(stdout.encode('utf-8')),
+        'stderr_sha256': stderr_sha256,
+        'stderr_bytes': len(stderr_bytes),
+        'stdout_sha256': stdout_sha256,
+        'stdout_bytes': len(stdout_bytes),
         'stderr_tail': [tokenize(ln) for ln in text.rstrip('\n').splitlines()[-4:]],
         'stdout_tail': [tokenize(ln) for ln in stdout.rstrip('\n').splitlines()[-2:]],
+        'stderr_log': stderr_log,
+        'stdout_log': stdout_log,
         'child_rusage': {'user_s': round(ru.ru_utime, 3), 'system_s': round(ru.ru_stime, 3),
                          'max_rss_bytes_darwin': ru.ru_maxrss},
         'host_before': before, 'host_after': after,
@@ -2074,11 +2102,14 @@ def worktree_state(repo: Path) -> tuple[list, list]:
 
 
 def build_receipt(repo: Path, predecessor: str, *, run_suites: bool,
-                  runs_of_this_step: Path | None = None) -> dict:
+                  runs_of_this_step: Path | None = None, out_dir: Path | None = None) -> dict:
     repo = Path(repo).resolve()
     tokenize = make_tokenizer(repo)
     problems: list = []
     started = utc()
+    #: Fixed once, at the start, so the receipt's own filename (main() uses this value, not a
+    #: fresh clock read) and its pin_logs directory always agree.
+    stamp = time.strftime('%Y%m%d_%H%M', time.gmtime())
     if resolve(repo, predecessor) is None:
         raise Refused(['predecessor_missing'])
     old = GitTree(repo, predecessor)
@@ -2331,6 +2362,7 @@ def build_receipt(repo: Path, predecessor: str, *, run_suites: bool,
             'write-once superseding receipt")',
         ],
         'run_started_utc': started,
+        'receipt_stamp': stamp,
         'repository': {
             'predecessor': old.rev, 'head': head.rev,
             'commits_predecessor_to_head': [{'commit': c[0], 'subject': c[1]} for c in commits],
@@ -2404,7 +2436,10 @@ def build_receipt(repo: Path, predecessor: str, *, run_suites: bool,
                         'author sign-off (protocol 14.7).'),
     }
     if run_suites:
-        runs = [run_suite(repo, name, argv, tokenize) for name, argv in SUITES]
+        if out_dir is None:
+            raise Refused(['pin_logs_out_dir_required'])
+        pin_logs_dir = Path(out_dir) / PIN_LOGS_DIRNAME / stamp
+        runs = [run_suite(repo, name, argv, tokenize, pin_logs_dir) for name, argv in SUITES]
         uses_log = Path(PRESCRIBED_LABSBX) / FIXTURE_USES_LOG
         used: set = set()
         for r in runs:
@@ -2432,6 +2467,12 @@ def build_receipt(repo: Path, predecessor: str, *, run_suites: bool,
             'completed_total': sum(r['result']['ran'] or 0 for r in runs),
             'deviation_from_the_contract_command': ('-v added to each discover command (for '
                                                     'skip reasons); nothing else'),
+            'pin_logs_dir': tokenize(str(pin_logs_dir)),
+            'pin_logs_reading': ('every suite\'s FULL stdout and stderr, gzip mtime 0, '
+                                 'write-once at <this dir>/<suite>.std{out,err}.gz; '
+                                 'stderr_tail/stdout_tail and the digests above are unchanged; '
+                                 'retained whether or not the suite passed; a write or '
+                                 'read-back failure refuses the whole receipt (pin_log_*)'),
         }
         entries_after, _ = worktree_state(repo)
         if resolve(repo, 'HEAD') != head.rev or entries_after != entries:
@@ -2442,6 +2483,72 @@ def build_receipt(repo: Path, predecessor: str, *, run_suites: bool,
     if problems:
         raise Refused(problems, receipt)
     return receipt
+
+
+def write_pin_log(path: Path, raw: bytes) -> str:
+    """Write ``raw`` at ``path`` as a deterministic gzip member (mtime 0, no filename embedded;
+    the same bytes in give the same bytes out, run to run and host to host, at a fixed
+    compresslevel -- checked directly by ``PinLogTests.test_the_gzip_member_is_deterministic``,
+    not assumed from a specific header byte).  Write-once, the same convention as ``write_once``
+    (``O_CREAT|O_EXCL``, flushed, fsynced, read back): a rewrite with the SAME bytes already
+    there is a no-op, a rewrite with DIFFERENT bytes REFUSES (``pin_log_mismatch``) and leaves
+    the file untouched.  Any other write failure (a missing directory that cannot be made, a
+    permission or disk error) also refuses, named (``pin_log_write_failed``), never raised as a
+    bare OSError.  Returns the sha256 of the compressed bytes."""
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        compressed = gzip.compress(raw, compresslevel=9, mtime=0)
+        try:
+            fd = os.open(str(path), os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o644)
+        except FileExistsError:
+            existing = path.read_bytes()
+            if existing != compressed:
+                raise Refused(['pin_log_mismatch:%s' % path.name]) from None
+            return sha256(existing)
+        with os.fdopen(fd, 'wb') as fh:
+            fh.write(compressed)
+            fh.flush()
+            os.fsync(fh.fileno())
+        on_disk = path.read_bytes()
+    except OSError as exc:
+        raise Refused(['pin_log_write_failed:%s' % path.name]) from exc
+    if on_disk != compressed:
+        raise Refused(['pin_log_mismatch:%s' % path.name])
+    return sha256(compressed)
+
+
+def verify_pin_log(path: Path, expected_sha256: str) -> dict:
+    """Read ``path`` back from disk -- never the bytes just written in memory -- and decompress
+    it; check its sha256 against ``expected_sha256`` (the ``stdout_sha256`` / ``stderr_sha256``
+    the tool already computed from the live run).  REFUSES when the file is missing
+    (``pin_log_missing``) or the decompressed digest does not match
+    (``pin_log_digest_mismatch``, also raised for bytes that do not even gunzip)."""
+    if not path.exists():
+        raise Refused(['pin_log_missing:%s' % path.name])
+    try:
+        on_disk = path.read_bytes()
+        decompressed = gzip.decompress(on_disk)
+    except OSError:
+        raise Refused(['pin_log_digest_mismatch:%s' % path.name]) from None
+    digest = sha256(decompressed)
+    if digest != expected_sha256:
+        raise Refused(['pin_log_digest_mismatch:%s' % path.name])
+    return {'compressed_sha256': sha256(on_disk), 'compressed_bytes': len(on_disk),
+            'uncompressed_sha256': digest, 'uncompressed_bytes': len(decompressed)}
+
+
+def retain_pin_log(path: Path, raw: bytes, expected_sha256: str,
+                   tokenize: Callable[[str], str]) -> dict:
+    """Retain one suite's FULL stdout or stderr write-once at ``path``, next to the receipt
+    (root: a red pin run could not be diagnosed because the tool kept only the stderr tail and
+    a digest, and the traceback was discarded).  Retained whether or not the suite passed.
+    Returns the run record's log entry: ``path`` (tokenized), the compressed sha256/bytes and
+    the uncompressed sha256/bytes -- equal to ``expected_sha256``, the digest the tool already
+    computed from the live run."""
+    write_pin_log(path, raw)
+    record = verify_pin_log(path, expected_sha256)
+    record['path'] = tokenize(str(path))
+    return record
 
 
 def write_once(path: Path, obj: Mapping) -> str:
@@ -2474,9 +2581,9 @@ def main(argv: list | None = None) -> int:
             raise Refused(['tool_not_in_repo'])
         receipt = build_receipt(repo, args.predecessor, run_suites=not args.no_suites,
                                 runs_of_this_step=(Path(args.runs_of_this_step)
-                                                   if args.runs_of_this_step else None))
-        out = out_dir / ('HARNESS_PIN_SUCCESSOR_%s.json'
-                         % time.strftime('%Y%m%d_%H%M', time.gmtime()))
+                                                   if args.runs_of_this_step else None),
+                                out_dir=out_dir)
+        out = out_dir / ('HARNESS_PIN_SUCCESSOR_%s.json' % receipt['receipt_stamp'])
         if out.exists():
             raise Refused(['write_once:%s' % out.name])
         digest = write_once(out, receipt)

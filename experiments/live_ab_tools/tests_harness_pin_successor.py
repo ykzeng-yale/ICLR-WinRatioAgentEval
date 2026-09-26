@@ -62,6 +62,7 @@ Prepared and checked by AI agent sessions; not human peer review or author sign-
 """
 from __future__ import annotations
 
+import gzip
 import io
 import json
 import os
@@ -70,6 +71,7 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import time
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
@@ -1102,6 +1104,97 @@ class WriteOnceTests(unittest.TestCase):
             self.assertEqual(json.loads(path.read_text()), {'a': 1})
 
 
+class PinLogTests(unittest.TestCase):
+    """``write_pin_log`` / ``verify_pin_log``: the write-once retention of a suite's full
+    stdout or stderr next to the receipt (root: RED_PIN_RUN_20260926_1227.json could not be
+    diagnosed because only the tail and a digest were kept and the traceback was discarded)."""
+
+    def test_the_gzip_member_is_deterministic(self):
+        raw = b'the same content, twice' * 5
+        with tempfile.TemporaryDirectory() as tmp:
+            a = hps.write_pin_log(Path(tmp) / 'a.gz', raw)
+            b = hps.write_pin_log(Path(tmp) / 'b.gz', raw)
+            self.assertEqual(a, b, 'mtime 0 makes the compressed bytes identical run to run')
+            self.assertEqual((Path(tmp) / 'a.gz').read_bytes(), (Path(tmp) / 'b.gz').read_bytes())
+            self.assertEqual(gzip.decompress((Path(tmp) / 'a.gz').read_bytes()), raw)
+
+    def test_an_identical_rewrite_is_a_no_op_and_different_bytes_refuse(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'x.stderr.gz'
+            first = hps.write_pin_log(path, b'the original bytes')
+            on_disk = path.read_bytes()
+            again = hps.write_pin_log(path, b'the original bytes')
+            self.assertEqual((first, again), (hps.sha256(on_disk), hps.sha256(on_disk)))
+            self.assertEqual(path.read_bytes(), on_disk, 'a matching rewrite changes nothing')
+            with self.assertRaises(hps.Refused) as cm:
+                hps.write_pin_log(path, b'different bytes entirely')
+            self.assertEqual(cm.exception.problems, ['pin_log_mismatch:x.stderr.gz'])
+            self.assertEqual(path.read_bytes(), on_disk, 'a refused rewrite leaves the file')
+
+    def test_negative_a_missing_log_refuses(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaises(hps.Refused) as cm:
+                hps.verify_pin_log(Path(tmp) / 'never_written.stdout.gz', 'a' * 64)
+            self.assertEqual(cm.exception.problems, ['pin_log_missing:never_written.stdout.gz'])
+
+    def test_negative_a_digest_mismatch_refuses(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'x.stdout.gz'
+            hps.write_pin_log(path, b'the real recorded bytes')
+            with self.assertRaises(hps.Refused) as cm:
+                hps.verify_pin_log(path, 'f' * 64)
+            self.assertEqual(cm.exception.problems, ['pin_log_digest_mismatch:x.stdout.gz'])
+            # a file that is not even gzip is the same refusal, not a bare exception
+            path.write_bytes(b'not gzip at all')
+            with self.assertRaises(hps.Refused) as cm2:
+                hps.verify_pin_log(path, hps.sha256(b'not gzip at all'))
+            self.assertEqual(cm2.exception.problems, ['pin_log_digest_mismatch:x.stdout.gz'])
+
+    def test_retain_pin_log_matches_the_already_computed_digest_and_tokenizes_its_path(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'live_ab.stderr.gz'
+            raw = b'traceback goes here\nAssertionError: boom\n'
+            record = hps.retain_pin_log(path, raw, hps.sha256(raw), str)
+            self.assertEqual(record['uncompressed_sha256'], hps.sha256(raw))
+            self.assertEqual(record['uncompressed_bytes'], len(raw))
+            self.assertEqual(record['compressed_sha256'], hps.sha256(path.read_bytes()))
+            self.assertEqual(record['compressed_bytes'], len(path.read_bytes()))
+            self.assertEqual(record['path'], str(path), 'tokenize() is applied to the path')
+
+    def test_negative_retain_pin_log_refuses_on_a_wrong_expected_digest(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'live_ab.stdout.gz'
+            with self.assertRaises(hps.Refused) as cm:
+                hps.retain_pin_log(path, b'abc', '0' * 64, str)
+            self.assertEqual(cm.exception.problems, ['pin_log_digest_mismatch:live_ab.stdout.gz'])
+
+    def test_negative_a_fresh_writes_readback_divergence_refuses_on_its_own(self):
+        """``write_pin_log`` re-reads the file it just wrote and compares it to the bytes it
+        meant to write, BEFORE ``verify_pin_log`` ever runs (a fail-before/pass-after control
+        for that specific check, independent of ``retain_pin_log``'s later re-verification: this
+        intercepts only ``write_pin_log``'s own post-write read, so a real, separate read of the
+        file afterwards -- unmocked -- shows the bytes on disk were correct all along)."""
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'a_suite.stdout.gz'
+            raw = b'the bytes actually meant for disk'
+            compressed = hps.gzip.compress(raw, compresslevel=9, mtime=0)
+            real_read_bytes = hps.Path.read_bytes
+
+            def lying_read_bytes(self_path, *a, **kw):
+                data = real_read_bytes(self_path, *a, **kw)
+                return data + b'\x00' if self_path == path else data
+
+            with mock.patch.object(hps.Path, 'read_bytes', new=lying_read_bytes):
+                with self.assertRaises(hps.Refused) as cm:
+                    hps.write_pin_log(path, raw)
+            self.assertEqual(cm.exception.problems, ['pin_log_mismatch:a_suite.stdout.gz'])
+            # the write itself succeeded; only the post-write readback check (not yet reached
+            # by verify_pin_log, which is a separate function) is what must have refused here
+            self.assertTrue(path.exists())
+            self.assertEqual(path.read_bytes(), compressed, "the on-disk bytes were fine -- "
+                             "only this test's patched read lied to write_pin_log's own check")
+
+
 class EndToEndTests(_Clone):
     """The tool on a sparse clone at E2E_REV (a clean tree whose HEAD is fixed)."""
 
@@ -1349,6 +1442,170 @@ class EndToEndV4Tests(_Clone):
                                             {hps.AMENDMENT_V4_RECEIPT_REL: self.v4_receipt()}))
         self.assertIn('amendment_chain:v4', problems)
         self.assertIn('amendment_receipt_disagrees', problems)
+
+
+#: Two tiny fixture suites (never the real five-suite discovery): one fails on purpose, with a
+#: distinctive assertion message the retained stderr log must keep; one passes.
+FAILING_FIXTURE_SUITE = '''\
+import unittest
+
+
+class FixtureFailTests(unittest.TestCase):
+    def test_it_fails_on_purpose(self):
+        assert False, "PINSUCC_FIXTURE_MARKER_9f2b"
+
+
+if __name__ == '__main__':
+    unittest.main()
+'''
+PASSING_FIXTURE_SUITE = '''\
+import unittest
+
+
+class FixturePassTests(unittest.TestCase):
+    def test_it_passes(self):
+        self.assertTrue(True)
+
+
+if __name__ == '__main__':
+    unittest.main()
+'''
+
+
+class SoloRunSuitesPinLogTests(_Clone):
+    """``build_receipt(..., run_suites=True)`` against two small fixture suites living OUTSIDE
+    the clone (so the clone's tracked tree stays clean): the retained log of a failing suite
+    keeps its traceback, the receipt's digests equal the decompressed log bytes, and
+    ``--no-suites`` stays as it was."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        cls.fixtures_dir = Path(os.path.realpath(tempfile.mkdtemp(prefix='pinsucc_fixtures_')))
+        cls.out_dir = Path(os.path.realpath(tempfile.mkdtemp(prefix='pinsucc_pinlogs_out_')))
+        (cls.fixtures_dir / 'fail_suite.py').write_text(FAILING_FIXTURE_SUITE)
+        (cls.fixtures_dir / 'pass_suite.py').write_text(PASSING_FIXTURE_SUITE)
+        cls.suites = (('fail_suite', [str(cls.fixtures_dir / 'fail_suite.py')]),
+                      ('pass_suite', [str(cls.fixtures_dir / 'pass_suite.py')]))
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        shutil.rmtree(str(cls.fixtures_dir), ignore_errors=True)
+        shutil.rmtree(str(cls.out_dir), ignore_errors=True)
+        super().tearDownClass()
+
+    #: A fixed stamp for every build() in this class, so two calls always land in the same
+    #: pin_logs directory (never flaky at a real minute boundary around a sub-second run).
+    STAMP = '20260101_0000'
+
+    def build(self, suites: tuple | None = None) -> dict:
+        real_strftime = time.strftime
+
+        def frozen(fmt: str, *a, **kw) -> str:
+            return self.STAMP if fmt == '%Y%m%d_%H%M' else real_strftime(fmt, *a, **kw)
+
+        with mock.patch.object(hps, 'SUITES', suites or self.suites), \
+                mock.patch.object(hps.time, 'strftime', side_effect=frozen):
+            return hps.build_receipt(self.clone, hps.PREDECESSOR, run_suites=True,
+                                     out_dir=self.out_dir)
+
+    def pin_logs_dir(self, receipt: dict) -> Path:
+        self.assertEqual(receipt['receipt_stamp'], self.STAMP)
+        return self.out_dir / hps.PIN_LOGS_DIRNAME / receipt['receipt_stamp']
+
+    def test_a_failing_fixtures_traceback_is_kept_in_the_retained_stderr_log(self):
+        r = self.build()
+        runs = {row['suite']: row for row in r['solo_run_suites']['runs']}
+        self.assertFalse(runs['fail_suite']['result']['passed'])
+        self.assertTrue(runs['pass_suite']['result']['passed'])
+        stderr_path = self.pin_logs_dir(r) / 'fail_suite.stderr.gz'
+        kept = gzip.decompress(stderr_path.read_bytes()).decode('utf-8')
+        self.assertIn('PINSUCC_FIXTURE_MARKER_9f2b', kept)
+        self.assertIn('AssertionError', kept)
+        self.assertIn('Traceback (most recent call last)', kept)
+
+    def test_the_receipts_digests_equal_the_decompressed_log_bytes(self):
+        r = self.build()
+        pin_logs_dir = self.pin_logs_dir(r)
+        for row in r['solo_run_suites']['runs']:
+            for stream in ('stdout', 'stderr'):
+                path = pin_logs_dir / ('%s.%s.gz' % (row['suite'], stream))
+                decompressed = gzip.decompress(path.read_bytes())
+                self.assertEqual(hps.sha256(decompressed), row['%s_sha256' % stream])
+                log = row['%s_log' % stream]
+                self.assertEqual(log['uncompressed_sha256'], row['%s_sha256' % stream])
+                self.assertEqual(log['uncompressed_bytes'], row['%s_bytes' % stream])
+                self.assertEqual(log['compressed_sha256'], hps.sha256(path.read_bytes()))
+                self.assertEqual(log['compressed_bytes'], len(path.read_bytes()))
+
+    def test_a_second_identical_build_is_a_no_op_and_a_changed_suite_refuses(self):
+        r1 = self.build()
+        r2 = self.build()
+        self.assertEqual(self.pin_logs_dir(r1), self.pin_logs_dir(r2))
+        for row in r2['solo_run_suites']['runs']:
+            self.assertIn('stderr_log', row)
+        # the suite named 'fail_suite' now runs the passing script: same name, same stamp,
+        # different bytes -- the write-once retention must refuse, not silently overwrite
+        changed_suites = (('fail_suite', [str(self.fixtures_dir / 'pass_suite.py')]),
+                          ('pass_suite', [str(self.fixtures_dir / 'pass_suite.py')]))
+        with self.assertRaises(hps.Refused) as cm:
+            self.build(suites=changed_suites)
+        self.assertTrue(any(p.startswith('pin_log_mismatch:fail_suite.')
+                            for p in cm.exception.problems), cm.exception.problems)
+
+    def test_negative_no_out_dir_refuses_before_any_suite_runs(self):
+        with mock.patch.object(hps, 'SUITES', self.suites):
+            with self.assertRaises(hps.Refused) as cm:
+                hps.build_receipt(self.clone, hps.PREDECESSOR, run_suites=True)
+        self.assertEqual(cm.exception.problems, ['pin_logs_out_dir_required'])
+
+    def test_the_receipt_stamp_and_its_pin_logs_dir_share_one_clock_read(self):
+        """``build_receipt`` must read the ``%Y%m%d_%H%M`` clock exactly once and use that same
+        ``stamp`` for both the receipt filename (``receipt_stamp``) and the pin_logs directory a
+        run's suites are retained under: a second, independent clock read for the directory
+        could disagree with the stamp at a minute boundary (the bug the shared ``stamp`` fixes).
+        A fail-before/pass-after control: reverting ``pin_logs_dir`` to a fresh
+        ``time.strftime(...)`` call reintroduces exactly this, and this test then fails, both on
+        the call count and on the directory actually written to."""
+        real_strftime = time.strftime
+        stamps = ['20270101_0000', '20270101_9999']
+        calls = {'n': 0}
+
+        def side_effect(fmt: str, *a, **kw) -> str:
+            if fmt == '%Y%m%d_%H%M':
+                i = min(calls['n'], len(stamps) - 1)
+                calls['n'] += 1
+                return stamps[i]
+            return real_strftime(fmt, *a, **kw)
+
+        with mock.patch.object(hps, 'SUITES', self.suites), \
+                mock.patch.object(hps.time, 'strftime', side_effect=side_effect):
+            r = hps.build_receipt(self.clone, hps.PREDECESSOR, run_suites=True,
+                                  out_dir=self.out_dir)
+        self.assertEqual(calls['n'], 1,
+                         'build_receipt must read the %Y%m%d_%H%M clock exactly once, not once '
+                         'per use (receipt filename vs. pin_logs directory)')
+        self.assertEqual(r['receipt_stamp'], stamps[0])
+        first_dir = self.out_dir / hps.PIN_LOGS_DIRNAME / stamps[0]
+        second_dir = self.out_dir / hps.PIN_LOGS_DIRNAME / stamps[1]
+        self.assertTrue((first_dir / 'fail_suite.stderr.gz').exists(),
+                        'the suites must have been retained under the SAME stamp as receipt_stamp')
+        self.assertFalse(second_dir.exists(),
+                         'a second, independent clock read for the directory would land here '
+                         'and disagree with receipt_stamp')
+
+    def test_no_suites_behaviour_is_unchanged(self):
+        with tempfile.TemporaryDirectory() as fresh_out:
+            r = hps.build_receipt(self.clone, hps.PREDECESSOR, run_suites=False,
+                                  out_dir=fresh_out)
+            self.assertEqual(r['solo_run_suites'], 'not run in this invocation (--no-suites)')
+            self.assertIn('receipt_stamp', r)
+            self.assertFalse((Path(fresh_out) / hps.PIN_LOGS_DIRNAME).exists(),
+                             'no suites ran, so no pin_logs directory is made')
+            # out_dir need not even be given when --no-suites (main() still passes one, but
+            # build_receipt() itself must not require it outside the run_suites branch)
+            r2 = hps.build_receipt(self.clone, hps.PREDECESSOR, run_suites=False)
+            self.assertEqual(r2['solo_run_suites'], 'not run in this invocation (--no-suites)')
 
 
 if __name__ == '__main__':
