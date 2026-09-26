@@ -72,6 +72,12 @@ MATRIX: dict[str, set[str]] = {
     # write-once/durable primitives, deliberately free of any protocol-specific stage logic,
     # so it imports nothing else in the lab namespace.
     'lab_shard_receipt': {'lab_common'},
+    # Protocol 11.5 extended CPU replay (design_notes/DESIGN_PROPOSAL.md section 3 item 2,
+    # hand-ported from ref:session60-repair-replay). Pure CPU: the frozen band/decision and the
+    # 3.4 order code path plus this branch's own write-once shard receipt, nothing that serves,
+    # dispatches or anchors.
+    'lab_replay': {'numpy', 'winstats', 'lab_common', 'lab_design', 'lab_enclosure',
+                   'lab_monitor', 'lab_shard_receipt'},
 }
 LAB_NAMES = frozenset(set(MATRIX) | {'dryrun_live_ab'})
 
@@ -542,6 +548,58 @@ SIGNATURES: dict[str, dict[str, tuple]] = {
         'completed_shards': fn(('dir', None, PO)),
         'verify_shards': fn(('dir', None, PO), ('schedule_rows', None, PO),
                             ('root_for_outputs', None, PO)),
+    },
+    # Not a section-3 module: the replay's own public contract (protocol 11.5), pinned so that
+    # the seed rule, the open-model parameter and the manifest/receipt entry points cannot drift
+    # silently. Hand-ported from ref:session60-repair-replay with the two PROPOSED/NOT_SIMULABLE
+    # gaps kept exactly as flagged there, plus this branch's own per-cell shard receipt (new
+    # relative to the held module, which predates lab_shard_receipt).
+    'lab_replay': {
+        'GRID_CELLS': CONST, 'GRID_REPLICATES': CONST, 'REPLAY_STREAM_TAG': CONST,
+        'SEED_RULE_TEXT': CONST, 'FROZEN_RULE': CONST, 'LABELS': CONST, 'DRIVER': CONST,
+        'OPEN_MODEL_CHOICES': CONST, 'PROPOSED_OPEN_MODEL': CONST, 'ReplayRefused': CONST,
+        'Pilot': fields('tasks', 'success', 'latency', 'sha256'),
+        'make_cell': fn(('ordinal', None, PO), ('trial', None, PO), ('w', None, PO),
+                        ('q', None, PO), ('s', None, PO), ('n_p', None, PO),
+                        ('n_p_role', None, PO), ('replicates', None, PO)),
+        'enumerate_cells': fn(('realized_n_p', None, PO)),
+        'check_grid': fn(('cells', None, PO), ('realized_n_p', None, PO)),
+        'check_ruling_citation': fn(('ruling', None, PO)),
+        'replicate_generator': fn(('design_seed_base', None, PO), ('ordinal', None, PO),
+                                  ('replicate', None, PO)),
+        'load_pilot_csv': fn(('path', None, PO)),
+        'outcome_model_gaps': fn(('cfg', None, PO), ('trial', None, PO)),
+        'check_open_model': fn(('cfg', None, PO), ('open_model', None, PO),
+                               ('trials', None, PO)),
+        'frozen_monitor_config': fn(('cfg', None, PO), ('trial', None, PO), ('n_p', None, PO)),
+        'radius_vector': fn(('mc', None, PO), ('n_p', None, PO)),
+        'build_trial_model': fn(('roster', None, PO), ('pilot', None, PO), ('cfg', None, PO),
+                                ('trial', None, PO), ('open_model', None, PO)),
+        'order_indices': fn(('generator', None, PO), ('n_s1', None, PO), ('n_s2', None, PO)),
+        'draw_replicate': fn(('model', None, PO), ('cell', None, PO), ('generator', None, PO),
+                             ('p_cand', None, PO), ('p_inc', None, PO)),
+        'pair_scores': fn(('success_c', None, PO), ('success_i', None, PO), ('lat_c', None, PO),
+                          ('lat_i', None, PO), ('tiers', None, PO)),
+        'band_matrix': fn(('scores', None, PO), ('radius', None, PO), ('mc', None, PO)),
+        'decide_matrix': fn(('z', None, PO), ('d', None, PO), ('radius', None, PO),
+                            ('mc', None, PO)),
+        'monitor_decision': fn(('success_c', None, PO), ('success_i', None, PO),
+                               ('lat_c', None, PO), ('lat_i', None, PO), ('mc', None, PO),
+                               ('tiers', None, PO), ('pending_looks', 'False', KW)),
+        'monitor_decision_from_scores': fn(('z', None, PO), ('d', None, PO), ('mc', None, PO)),
+        'wilson': fn(('x', None, PO), ('n', None, PO), ('z', '1.959963984540054', PO)),
+        'quartiles': fn(('values', None, PO)),
+        'run_cell': fn(('model', None, PO), ('cell', None, PO), ('mc', None, PO),
+                       ('design_seed_base', None, PO), ('crosscheck', '0', KW),
+                       ('replicates', 'None', KW)),
+        'roster_rule_pairs': fn(('roster', None, PO)),
+        'cell_shard_id': fn(('cell', None, PO)),
+        'run_replay': fn(('roster', None, PO), ('pilot', None, PO), ('cfg', None, PO),
+                         ('realized_n_p', None, KW), ('out_dir', None, KW),
+                         ('open_model', None, KW), ('cells', 'None', KW),
+                         ('crosscheck_per_cell', '2', KW), ('ruling', 'None', KW)),
+        'verify_manifest': fn(('out_dir', None, PO)),
+        'main': fn(('argv', 'None', PO)),
     },
 }
 
