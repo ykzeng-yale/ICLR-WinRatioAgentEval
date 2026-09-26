@@ -249,6 +249,16 @@ SUPERSEDES = (
              'reissued; since 98ce004 this branch changed the harness again (the EB2-EB4 '
              'driver work); its suites (1,889 of 1,889 passed, solo=false) stay the '
              'observation of the 98ce004 tree only')},
+    {'path': RESULTS_REL + '/HARNESS_PIN_SUCCESSOR_20260926_0600.json',
+     'sha256': 'e35c4e5e745b6e52e73c7651e2385dc9832e41a4b715bea02f43b9c1bc1f1724',
+     'head_when_written': 'ced7a13',
+     'why': ('it pins the ced7a13 harness (canonical 7881023e) accepted by root 07:18 as a '
+             'bounded non-solo engineering pin (drivers steps 1-3, the replay-resume repair '
+             'and the section 11.5 core-control port); its runs-of-this-step input is '
+             'deposited at results/live_ab/pin_inputs/HARNESS_PIN_SUCCESSOR_20260926_0600.'
+             'runs_of_this_step.json; since ced7a13 the drivers step 4 work changed the '
+             'harness again (the model-free stage-1 golden/conformance driver); its suites '
+             'stay the observation of the ced7a13 tree only')},
 )
 
 #: Every red run of the subset so far (review of 988baf7, reviewer 2 finding 5; root 16:05:
