@@ -105,6 +105,15 @@ the serving, tools and validation suites (R19) pass; tools then skips one test, 
 host. The complete controls suite was run only with `work/` present (R15); no control module
 reads these files (read: only `lab_data`, the pilot's `data.py` and `tests_local_stream` do).
 
+*Later, on branch `session60/drivers-eb2-eb4` (not part of the tagged subset):* since `8062e13`,
+`experiments/live_ab/lab_stage1.py` derives the six smoke prompt texts from `mbpp.jsonl` and
+searches the same directories as `lab_data.CACHE_SEARCH_DIRS`. So the controls module
+`experiments/live_ab_controls/tests_stage1.py` also needs `mbpp.jsonl` (row 3 below). Without it
+the module does not import: its `CONFORMANCE_PROMPTS_10` is derived at import time, so it stops
+with `lab_stage1.Stage1Error: no cached copy of the pinned mbpp_full source (mbpp.jsonl) ...`
+before any test runs (owner check, 2026-09-26, with the search directories pointed at a missing
+path in a scratch copy).
+
 | input | bytes | sha256 | read by |
 |---|---|---|---|
 | `work/local_stream/data/sanitized-mbpp.json` | 255053 | `ca95deaa9a01ef0a6f439f88bcf0dd3db3563d22f22aad6cae04ebb9a8d8c8e9` | `lab_data` (stratum S1) |
