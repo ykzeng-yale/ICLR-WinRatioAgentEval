@@ -1,0 +1,98 @@
+{
+ "archive": {
+  "bytes": 66011,
+  "members": [
+   {
+    "bytes": 285430,
+    "name": "HARNESS_PIN_SUCCESSOR_20260926_0125.json",
+    "sha256": "cfa3c7ce338c80a7278d1a672e894ddc4d4731588aea517c24d0e204c4c95e60"
+   },
+   {
+    "bytes": 0,
+    "name": "batch1_pin_stderr.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   },
+   {
+    "bytes": 366,
+    "name": "batch1_pin_stdout.log",
+    "sha256": "7afcee8c213589c03dceea270d31ed85d77adaf0aff6be294a15cb61ec4fb94b"
+   },
+   {
+    "bytes": 3323,
+    "name": "batch1_runs_of_this_step.json",
+    "sha256": "a0de250d731cdeb91dc4a89766e49dd02bc7e7abd3d6854a8eea4d20088ce8e0"
+   }
+  ],
+  "path": "results/live_ab/pre_repair_pin_run/20260926_0125/withheld_batch1.tar.gz",
+  "reading": "tar.gz, deterministic member headers (mtime 0, uid/gid 0), sorted member names; member digests are of the original files",
+  "sha256": "44735e080ec4441e3355b7933549bf3c18045cdde25f7a50d86ad119bb495c22"
+ },
+ "convention": "deterministic-path",
+ "generated_utc": "2026-09-26T05:03:42Z",
+ "links": {
+  "R_companion": {
+   "commit": "eee9287",
+   "path": "results/live_ab/DELIVERY_STEP_RUNS_20260925_2014.json",
+   "sha256": "e9daa69bbb3d074255f42193a80f89296394d4fc673bc4ee16b5b58fb5f6e12c",
+   "why": "R's own immutable write-once companion; retained byte-unchanged, not superseded by this record"
+  },
+  "superseded_receipt_R": {
+   "commit": "c12e19f",
+   "path": "results/live_ab/HARNESS_PIN_SUCCESSOR_20260925_2009.json",
+   "sha256": "3745631750c3913f40069185971be8b3c2bd44e4538ab2fdc07cbdc7773da101",
+   "why": "the receipt this withheld run's SUPERSEDES should have named, and now does after c4c1db9"
+  }
+ },
+ "process_events_after_the_run": [
+  {
+   "id": "resume_fix_stall",
+   "resolved_at": "2ff1977",
+   "resolved_by": "owner, before committing 2ff1977",
+   "utc": "2026-09-26T02:17:00Z to about 2026-09-26T03:17:00Z",
+   "what": "The replay-resume fix step's agent stalled at 02:17Z on a blocked cleanup command after applying its fixes, leaving the review's M7 mutation in the worktree copy of lab_shard_receipt.py. The owner stopped the workflow at about 03:17Z, restored the file from the agent's own backup (the only difference was that one line), and reran the focused tests before committing 2ff1977."
+  },
+  {
+   "failures": 1,
+   "fix_commit_subject": "Port all held section 11.5 simulation-core controls; restore the dropped T4-only exchangeability docstring (root 01:17 item 3)",
+   "fixed_at": "2bf6e9b",
+   "id": "first_port_attempt",
+   "what": "The first, uncommitted port of the held section 11.5 simulation-core controls stopped on 1 failing assertion requiring the T4-only exact-null exchangeability qualification that the step-2 hand-port (c5817f9) had omitted from its module docstring (tests_replay_core.ExchangeabilityTests.test_the_text_restricts_the_exact_null_claim_to_t4)."
+  }
+ ],
+ "run": {
+  "all_passed": true,
+  "commit_subject": "Step 2 of the drivers plan: section 11.5 CPU replay hand-ported from 72230b8, no grid run",
+  "completed_total": 1970,
+  "counts_source": "read from the withheld receipt's own solo_run_suites.runs[*].result and .plan fields (per-module plan totals sum to each suite's ran/planned count), not re-derived or estimated",
+  "end_utc": "2026-09-26T01:25:45Z",
+  "head": "c5817f9",
+  "per_suite_planned_equals_completed": {
+   "live_ab": 766,
+   "live_ab_controls": 557,
+   "live_ab_serving": 193,
+   "live_ab_tools": 239,
+   "live_ab_validation": 215
+  },
+  "planned_total": 1970,
+  "receipt_member": "HARNESS_PIN_SUCCESSOR_20260926_0125.json",
+  "receipt_sha256": "cfa3c7ce338c80a7278d1a672e894ddc4d4731588aea517c24d0e204c4c95e60",
+  "solo": false,
+  "solo_strict": false,
+  "start_utc": "2026-09-26T00:27:56Z"
+ },
+ "schema": "live_ab/pre_repair_pin_run-v1",
+ "status": "Pre-repair diagnostic evidence only. It documents the c5817f9 harness, which root 01:17 (reviews/driver_replay_resume_interim_20260926_0117.md) found defective in replay-resume provenance (a resumed replay with a changed seed silently reused the old row); that defect was fixed at 2ff1977. This record and its archive are NOT a pin receipt of record and establish nothing about the repaired code's outcome.",
+ "what_this_does_not_establish": [
+  "the scientific validity of the repaired replay-resume code or any outcome model",
+  "root acceptance of this record; root reviews the final head",
+  "a rerun of the withheld suites under the repaired code (none was performed for this record)"
+ ],
+ "what_this_is": "A write-once companion for the withheld batch-1 pin run at c5817f9. Root 04:17 (reviews/replay_resume_repair_interim_20260926_0417.md on origin/main) required that the next pin receipt carry the pre-repair run and the withheld pin-tool failure, with the withheld receipt and logs linked immutably, and that it retain R's immutable companion. This record and its archive are that companion; they are written once and not edited.",
+ "why_withheld": {
+  "cause": "The pin tool's SUPERSEDES tuple in experiments/live_ab_tools/harness_pin_successor.py was hard-coded ending at ..._0027, so this run's receipt did not list the already root-accepted results/live_ab/HARNESS_PIN_SUCCESSOR_20260925_2009.json, and the receipt's since_the_superseded_receipt field was measured from the 0027 receipt instead of from 2009.",
+  "disposition": "kept outside the worktree, never committed, precisely because of this defect",
+  "fix_commit_subject": "Pin tool: name the withheld ..._2009 receipt in SUPERSEDES, guard future omissions",
+  "fixed_and_guarded_at": "c4c1db9",
+  "guard_added": "superseded_receipts_incomplete, wired into build_receipt; SupersededReceiptsGuardTests (3 tests)"
+ }
+}
