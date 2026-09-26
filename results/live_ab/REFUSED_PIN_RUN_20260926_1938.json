@@ -1,0 +1,182 @@
+{
+ "archive": {
+  "bytes": 161271,
+  "members": [
+   {
+    "bytes": 30385,
+    "name": "pin_logs/20260926_1830/live_ab.stderr.gz",
+    "sha256": "3f65beedf8178ef25513dc8768bb5db512d4377e8eaf5ed0c6b39876e18f475c"
+   },
+   {
+    "bytes": 702,
+    "name": "pin_logs/20260926_1830/live_ab.stdout.gz",
+    "sha256": "c7bebde26a0d7258f131dc306aea8f6e43c2de135b0783ec10439f7c2f38f09b"
+   },
+   {
+    "bytes": 23468,
+    "name": "pin_logs/20260926_1830/live_ab_controls.stderr.gz",
+    "sha256": "d6f2250126dbeaae08b0bb804d9c5217ca7cb5c77af2cdb4c834ab99d9e69dc6"
+   },
+   {
+    "bytes": 20,
+    "name": "pin_logs/20260926_1830/live_ab_controls.stdout.gz",
+    "sha256": "f1b651238a58fe290baec6c5e32f3bdb1943dd2bd582f02569231f7a757c7837"
+   },
+   {
+    "bytes": 9114,
+    "name": "pin_logs/20260926_1830/live_ab_serving.stderr.gz",
+    "sha256": "b56106bae3fd829d9b4b05546cd80d87ad2a7d698bd6d39eac23513198ed274d"
+   },
+   {
+    "bytes": 4200,
+    "name": "pin_logs/20260926_1830/live_ab_serving.stdout.gz",
+    "sha256": "b59b752f7247ef4925c439b47bb23b2209dfbeb02b3b368fbee9fbbb455c8eb1"
+   },
+   {
+    "bytes": 8081,
+    "name": "pin_logs/20260926_1830/live_ab_tools.stderr.gz",
+    "sha256": "6ea5f9d7f6868fb5dd44cfbd85bb29984934d928ad1fd1df1760c28ee62f43b3"
+   },
+   {
+    "bytes": 20,
+    "name": "pin_logs/20260926_1830/live_ab_tools.stdout.gz",
+    "sha256": "f1b651238a58fe290baec6c5e32f3bdb1943dd2bd582f02569231f7a757c7837"
+   },
+   {
+    "bytes": 8004,
+    "name": "pin_logs/20260926_1830/live_ab_validation.stderr.gz",
+    "sha256": "aa769fe2ac0dcaaf718664b277298ad0641636cdc8490283e8241fc5981c4262"
+   },
+   {
+    "bytes": 56,
+    "name": "pin_logs/20260926_1830/live_ab_validation.stdout.gz",
+    "sha256": "b74b549b4e66e7ea522928b065a68cbab01fd62b12abf5b873cbc795b17220c3"
+   },
+   {
+    "bytes": 316,
+    "name": "pin_stderr.log",
+    "sha256": "2acbab188f6c71912fa74d96aeb0de4abfbb8585e89240e76cf716b61329407d"
+   },
+   {
+    "bytes": 0,
+    "name": "pin_stdout.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   },
+   {
+    "bytes": 324234,
+    "name": "refused_draft_20260926_1938.json",
+    "sha256": "ef2774ec12776d596691ab114b36d1f4eafb2b085b210a50fa5b9ec23070dd8f"
+   }
+  ],
+  "path": "results/live_ab/refused_pin_run/20260926_1938/refused_typed_gate_pin_run.tar.gz",
+  "reading": "tar.gz, deterministic member headers (mtime 0, uid/gid 0), sorted member names; member digests are of the original files; the pin logs sit under pin_logs/20260926_1830/ (the run stamp)",
+  "sha256": "70eab96f83697ca88499aaaa1476c7d50981ad90af994e239c2258822876320d"
+ },
+ "convention": "deterministic-path",
+ "diagnosis": {
+  "cause": "OWNER OMISSION. results/live_ab/HARNESS_PIN_SUCCESSOR_20260926_1605.json was committed at 70f0582 after the tool's hard-coded SUPERSEDES tuple was last updated (63b7b9a, which added ..._0958). The superseded_receipts_incomplete guard (c4c1db9) found the committed ..._1605 blob named by no SUPERSEDES entry and refused, as designed.",
+  "host_time": "The guard problem was known before the first suite started, but build_receipt only refuses after running every suite: 68 minutes of host time for a receipt that could not be written.",
+  "live_ab_tools_failures": "The four live_ab_tools failures are the same cause seen from the tool's own tests: SupersededReceiptsGuardTests.test_positive_the_guard_passes_at_head_with_every_committed_receipt_named fails at a head that carries ..._1605, and the three negative controls that remove one named entry (0600, 0958, 2009) fail because the guard already refuses for ..._1605 as well.",
+  "other_suites": "live_ab 766 OK (skipped=1), live_ab_controls 742 OK, live_ab_serving 193 OK, live_ab_validation 215 OK (skipped=6, expected failures=2).",
+  "since_measured_from": "..._0958 (recorded head b229060), because ..._1605 was not in SUPERSEDES",
+  "solo": "false: two foreign shells of a different Claude Code session on this host (parent pid 28870), started 18:45:45Z and 19:15:44Z; not this session's processes."
+ },
+ "generated_utc": "2026-09-26T19:39:14Z",
+ "links": {
+  "latest_receipt": "results/live_ab/HARNESS_PIN_SUCCESSOR_20260926_1605.json",
+  "previous_refused": "results/live_ab/REFUSED_PIN_RUN_20260926_1354.json",
+  "runs_input": {
+   "path": "results/live_ab/pin_inputs/HARNESS_PIN_SUCCESSOR_20260926_1805.runs_of_this_step.json",
+   "sha256": "020875aefeba236871d2f964c4f4cba870ef5735c8ad9bb38638c301a6a4b013"
+  }
+ },
+ "run": {
+  "all_passed": false,
+  "completed_total": 2185,
+  "head": "7185bf313b9fc4a851de9d6b173a2b9383a87884",
+  "planned_total": 2185,
+  "refused": [
+   "superseded_receipts_incomplete:results/live_ab/HARNESS_PIN_SUCCESSOR_20260926_1605.json"
+  ],
+  "solo_evidence": {
+   "foreign": [
+    {
+     "attribution": "foreign",
+     "command_head": "/bin/zsh -c source <HOME>/.claude/shell-snapshots/snapshot-zsh-1790178655558-jatqmz.sh 2>/dev/null || true && setopt NO_EXTENDED_GLOB NO_BAR",
+     "pid": 36480,
+     "ppid": 28870,
+     "started_utc": "2026-09-26T18:45:45Z"
+    },
+    {
+     "attribution": "foreign",
+     "command_head": "/bin/zsh -c source <HOME>/.claude/shell-snapshots/snapshot-zsh-1790178655558-jatqmz.sh 2>/dev/null || true && setopt NO_EXTENDED_GLOB NO_BAR",
+     "pid": 50922,
+     "ppid": 28870,
+     "started_utc": "2026-09-26T19:15:44Z"
+    }
+   ],
+   "orphans_started_during_a_suite": [],
+   "solo": false,
+   "solo_strict": false
+  },
+  "suites": [
+   {
+    "completed": 766,
+    "end_utc": "2026-09-26T18:34:00Z",
+    "failure_headers": [],
+    "planned": 766,
+    "start_utc": "2026-09-26T18:30:15Z",
+    "suite": "live_ab",
+    "verdict_line": "OK (skipped=1)"
+   },
+   {
+    "completed": 742,
+    "end_utc": "2026-09-26T19:32:45Z",
+    "failure_headers": [],
+    "planned": 742,
+    "start_utc": "2026-09-26T18:34:01Z",
+    "suite": "live_ab_controls",
+    "verdict_line": "OK"
+   },
+   {
+    "completed": 193,
+    "end_utc": "2026-09-26T19:32:48Z",
+    "failure_headers": [],
+    "planned": 193,
+    "start_utc": "2026-09-26T19:32:45Z",
+    "suite": "live_ab_serving",
+    "verdict_line": "OK"
+   },
+   {
+    "completed": 269,
+    "end_utc": "2026-09-26T19:37:51Z",
+    "failure_headers": [
+     "FAIL: test_negative_removing_the_0600_entry_by_monkeypatch_refuses_and_names_it (tests_harness_pin_successor.SupersededReceiptsGuardTests.test_negative_removing_the_0600_entry_by_monkeypatch_refuses_and_names_it)",
+     "FAIL: test_negative_removing_the_0958_entry_by_monkeypatch_refuses_and_names_it (tests_harness_pin_successor.SupersededReceiptsGuardTests.test_negative_removing_the_0958_entry_by_monkeypatch_refuses_and_names_it)",
+     "FAIL: test_negative_removing_the_2009_entry_by_monkeypatch_refuses_and_names_it (tests_harness_pin_successor.SupersededReceiptsGuardTests.test_negative_removing_the_2009_entry_by_monkeypatch_refuses_and_names_it)",
+     "FAIL: test_positive_the_guard_passes_at_head_with_every_committed_receipt_named (tests_harness_pin_successor.SupersededReceiptsGuardTests.test_positive_the_guard_passes_at_head_with_every_committed_receipt_named)"
+    ],
+    "planned": 269,
+    "start_utc": "2026-09-26T19:32:48Z",
+    "suite": "live_ab_tools",
+    "verdict_line": "FAILED (failures=4, skipped=2)"
+   },
+   {
+    "completed": 215,
+    "end_utc": "2026-09-26T19:38:05Z",
+    "failure_headers": [],
+    "planned": 215,
+    "start_utc": "2026-09-26T19:37:51Z",
+    "suite": "live_ab_validation",
+    "verdict_line": "OK (skipped=6, expected failures=2)"
+   }
+  ]
+ },
+ "schema": "live_ab/refused_pin_run-v1",
+ "status": "failure-history record of a pin run the tool REFUSED to write; NOT a pin receipt of record",
+ "what_this_does_not_establish": [
+  "a pin of the 7185bf3 harness (no receipt was written)",
+  "root review"
+ ],
+ "what_this_is": "The changed-code successor pin announced for 18:30Z (harness_pin_successor.py --runs-of-this-step results/live_ab/pin_inputs/HARNESS_PIN_SUCCESSOR_20260926_1805.runs_of_this_step.json at head 7185bf3, 18:30:01Z-19:38:05Z) ended with REFUSED and wrote only a refused draft. The tool kept the per-suite logs OUTSIDE the tree (the f21fcc1 staging) and named their location. The draft, the tool's stdout/stderr and those logs are archived byte-exact below."
+}
