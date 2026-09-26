@@ -53,7 +53,22 @@ What this module PERFORMS, and nothing else:
   identity/filename bijection above only holds for files :func:`write_shard_receipt` itself
   wrote, and this is the read-only check for a directory that may hold other files too --
   found alongside whatever else that file's content implies, never in place of it.  It never
-  writes anything, including to repair what it finds.
+  writes anything, including to repair what it finds.  An optional ``expected_pins`` maps a
+  shard id to the pins block a caller's CURRENT inputs would produce for it; a receipt whose own
+  ``pins`` disagree is flagged ``pins_mismatch`` (root's replay-resume-provenance finding,
+  `reviews/driver_replay_resume_interim_20260926_0117.md`: a resumed run's manifest can end up
+  declaring different inputs than the very receipts it reused).
+* :func:`verify_resume` -- the generic compare-on-resume check that :func:`completed_shards`
+  deliberately does not perform (it "reads or rewrites NOTHING").  A caller resuming a killed run
+  must call this, once per shard whose id :func:`completed_shards` already reports present,
+  BEFORE reading or reusing anything that shard produced and BEFORE writing any new manifest: it
+  reads and fully :func:`validate_receipt`s the receipt, then refuses (``ResumeMismatch``, naming
+  every field that differs) unless the receipt's own driver, exact schedule row, every pin the
+  caller currently expects (code/config/seed/data, and any extra pin a caller binds in, such as
+  an explicit outcome-model choice) and every declared output's hash RECOMPUTED from disk all
+  agree with what the caller passes in.  It never edits, deletes or repairs the receipt, and never
+  reruns anything in its place -- a caller whose inputs are meant to differ must use a new run
+  namespace (a fresh output directory), and every ``ResumeMismatch`` says so.
 
 Deliberately NOT here (design_notes/DESIGN_PROPOSAL.md section 3 item 1: "Keep it free of any
 protocol-specific stage logic"): no ``E_PHASE``/event-schema value, no stage 1-6 or 11.5
@@ -107,6 +122,14 @@ class ShardReceiptError(lab_common.LabError):
     """A receipt failed validation, or a shard id was asked for from a bad driver/row.  Root
     of every refusal this module raises; it is never a bare ``Exception``
     (``lab_common.py`` "every module raises only from this tree")."""
+
+
+class ResumeMismatch(ShardReceiptError):
+    """Raised only by :func:`verify_resume`: a shard already present on disk does not match the
+    caller's CURRENT schedule row, pins or declared outputs, so it must not be treated as done.
+    Never repairs, overwrites or deletes the mismatched receipt, and never triggers a silent
+    rerun -- the message always names what differs and says a caller whose inputs are meant to
+    change must use a NEW run namespace (a fresh output directory) instead."""
 
 
 def shard_id(driver: str, schedule_row: Mapping) -> str:
@@ -283,8 +306,30 @@ def completed_shards(dir: str | Path) -> frozenset[str]:
     return frozenset(p.stem for p in d.glob('*.json') if p.is_file())
 
 
+def _read_valid_receipt(path: Path) -> dict:
+    """Read, parse and :func:`validate_receipt` the receipt at ``path``.  Wraps any read or parse
+    failure as ``ShardReceiptError`` naming ``path``, so every caller here has exactly one
+    exception type to catch.  Shared by :func:`verify_shards` and :func:`verify_resume` so the
+    two never read a receipt two different ways."""
+    try:
+        obj = json.loads(path.read_text('utf-8'))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ShardReceiptError(f'{path}: unreadable or not valid JSON ({exc})') from exc
+    validate_receipt(obj)
+    return obj
+
+
+def _pin_mismatches(actual: Mapping, expected: Mapping) -> list[str]:
+    """[pure] The keys of ``expected`` that ``actual`` lacks or disagrees with, compared by
+    canonical JSON so key order inside one pin's value never causes a false mismatch.  Shared by
+    :func:`verify_resume` (raises) and :func:`verify_shards` (flags as a finding)."""
+    return [key for key, want in expected.items()
+           if key not in actual or lab_common.canonical_json(actual[key]) != lab_common.canonical_json(want)]
+
+
 def verify_shards(dir: str | Path, schedule_rows: Iterable[tuple[str, Mapping]],
-                  root_for_outputs: str | Path) -> list[dict]:
+                  root_for_outputs: str | Path, *,
+                  expected_pins: Mapping[str, Mapping] | None = None) -> list[dict]:
     """Read-only verifier.  ``schedule_rows`` is an iterable of ``(driver, schedule_row)``
     pairs -- exactly what :func:`shard_id` derives a receipt's own id from -- covering every row
     the frozen schedule expects a shard for.  Returns one finding dict per problem (key
@@ -303,7 +348,11 @@ def verify_shards(dir: str | Path, schedule_rows: Iterable[tuple[str, Mapping]],
     ``duplicate_receipt``/``orphan_receipt``/``output_hash_mismatch`` when those also apply to
     the same file, since a wrong file name is a distinct problem from what the content itself
     says, adversarial review Finding 4); ``malformed_receipt`` (unparseable JSON, or a receipt
-    :func:`validate_receipt` refuses).
+    :func:`validate_receipt` refuses); ``pins_mismatch`` (only when ``expected_pins`` names this
+    shard id: one or more of its receipt's ``pins`` keys disagree with what ``expected_pins``
+    gives for it -- a receipt already present is never enough by itself; a caller with its own
+    CURRENT code/config/seed/data pins, or an explicit outcome-model choice bound in as a pin,
+    must still agree with what was actually recorded, root's replay-resume-provenance finding).
     """
     d = Path(dir)
     root = Path(root_for_outputs)
@@ -316,10 +365,8 @@ def verify_shards(dir: str | Path, schedule_rows: Iterable[tuple[str, Mapping]],
     if d.is_dir():
         for path in sorted(d.glob('*.json')):
             try:
-                obj = json.loads(path.read_text('utf-8'))
-                validate_receipt(obj)
-            except (OSError, UnicodeDecodeError, json.JSONDecodeError,
-                    ShardReceiptError) as exc:
+                obj = _read_valid_receipt(path)
+            except ShardReceiptError as exc:
                 findings.append({'kind': 'malformed_receipt', 'file': str(path),
                                  'reason': str(exc)})
                 continue
@@ -338,6 +385,10 @@ def verify_shards(dir: str | Path, schedule_rows: Iterable[tuple[str, Mapping]],
             findings.append({'kind': 'orphan_receipt', 'shard_id': sid, 'file': str(files[0])})
             continue
         obj = json.loads(files[0].read_text('utf-8'))
+        if expected_pins is not None and sid in expected_pins:
+            bad = _pin_mismatches(obj.get('pins') or {}, expected_pins[sid])
+            if bad:
+                findings.append({'kind': 'pins_mismatch', 'shard_id': sid, 'pins': bad})
         for relpath, want in sorted(obj['outputs'].items()):
             full = root / relpath
             found = lab_common.sha256_file(full) if full.is_file() else None
@@ -349,3 +400,85 @@ def verify_shards(dir: str | Path, schedule_rows: Iterable[tuple[str, Mapping]],
         findings.append({'kind': 'missing_receipt', 'shard_id': sid})
 
     return findings
+
+
+def verify_resume(receipts_dir: str | Path, shard_id_: str, *, driver: str,
+                  schedule_row: Mapping, expected_pins: Mapping,
+                  expected_output_paths: Iterable[str], root_for_outputs: str | Path) -> dict:
+    """The generic compare-on-resume check :func:`completed_shards` deliberately does not
+    perform (it "reads or rewrites NOTHING").  A driver resuming a killed run must call this,
+    once per shard id :func:`completed_shards` already reports present, BEFORE reading or
+    reusing anything that shard produced and BEFORE writing any new manifest (root's
+    replay-resume-provenance finding, `reviews/driver_replay_resume_interim_20260926_0117.md`:
+    a resumed run's manifest ended up declaring a seed its own reused receipt did not).
+
+    Reads and fully :func:`validate_receipt`s ``<receipts_dir>/<shard_id_>.json``, then refuses
+    (``ResumeMismatch``, naming every problem found, never only the first) unless ALL of the
+    following hold:
+
+    * the file's own name and its content ``shard_id`` both equal ``shard_id_`` -- a receipt
+      found under the wrong name is exactly :func:`verify_shards`'s ``misnamed_receipt`` shape
+      and is not trusted here either;
+    * ``receipt['driver'] == driver`` and ``receipt['schedule_row']`` equals ``schedule_row``
+      by canonical JSON -- the EXACT schedule row, not merely a matching shard id (an id match
+      already implies a row match when the id came from :func:`shard_id`, but this call never
+      assumes the file on disk was produced that way);
+    * every key of ``expected_pins`` -- ordinarily code/config/seed/data, plus any extra pin a
+      caller binds in, such as an explicit outcome-model choice -- matches the receipt's own
+      ``pins`` by canonical JSON.  A changed seed, a changed config/pilot/roster digest, or a
+      changed outcome-model choice each surface here, as a named ``pins.<key>`` mismatch;
+    * the receipt's ``outputs`` keys are exactly ``expected_output_paths`` -- neither an
+      unexpected nor a missing declared output is trusted;
+    * every declared output's sha256 matches the actual file at ``root_for_outputs / <path>``,
+      RECOMPUTED from disk now (never merely trusted from what the receipt states) -- a row
+      flipped after its receipt was written is caught here, mirroring :func:`verify_shards`'s
+      own ``output_hash_mismatch``.
+
+    Never writes, deletes, repairs or reruns anything: on ANY mismatch the receipt on disk is
+    left byte-for-byte as it was, and the message tells the caller to use a NEW run namespace (a
+    fresh output directory) if these inputs are meant to differ -- never to resume, and never to
+    rerun silently, in this one.  Returns the validated receipt object when every check passes,
+    so the caller may then read its declared outputs as done.
+    """
+    path = Path(receipts_dir) / f'{shard_id_}.json'
+    if not path.is_file():
+        raise ResumeMismatch(
+            f'resume:{shard_id_}: no receipt file at {path} even though it was reported already '
+            'done; refusing to treat a vanished receipt as resumable')
+    try:
+        receipt = _read_valid_receipt(path)
+    except ShardReceiptError as exc:
+        raise ResumeMismatch(
+            f'resume:{shard_id_}: {exc}. The file at {path} is untouched -- repair or replace it '
+            'out of band, or use a new run namespace, before resuming') from None
+
+    problems: list[str] = []
+    if path.stem != shard_id_ or receipt['shard_id'] != shard_id_:
+        problems.append(f"file/content shard_id ({path.stem!r} / {receipt['shard_id']!r}) does "
+                        f'not both equal the expected {shard_id_!r} (misnamed_receipt shape)')
+    if receipt['driver'] != driver:
+        problems.append(f"driver {receipt['driver']!r} != the current driver {driver!r}")
+    if lab_common.canonical_json(receipt['schedule_row']) \
+            != lab_common.canonical_json(dict(schedule_row)):
+        problems.append('schedule_row differs from the current schedule row for this shard id')
+    for key in _pin_mismatches(receipt.get('pins') or {}, expected_pins):
+        problems.append(f"pins.{key} differs from the caller's current pins.{key}")
+    want_paths = frozenset(expected_output_paths)
+    got_paths = frozenset((receipt.get('outputs') or {}).keys())
+    if got_paths != want_paths:
+        problems.append(f'outputs paths {sorted(got_paths)} != the expected {sorted(want_paths)}')
+    else:
+        root = Path(root_for_outputs)
+        for relpath, want_sha in sorted(receipt['outputs'].items()):
+            full = root / relpath
+            found = lab_common.sha256_file(full) if full.is_file() else None
+            if found != want_sha:
+                problems.append(f'output {relpath!r} sha256 on disk is {found!r}, receipt names '
+                                f'{want_sha!r}')
+
+    if problems:
+        raise ResumeMismatch(
+            f'resume:{shard_id_}: ' + '; '.join(problems) + f'. The receipt at {path} is '
+            'untouched. Use a NEW run namespace (a fresh out_dir) if these inputs are meant to '
+            'change -- never silently rerun this shard in place.')
+    return receipt

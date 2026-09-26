@@ -46,6 +46,17 @@ separately rather than renumbering the five above):
    ``run_replay`` will accept a root ruling on the open outcome model) had no test at all in the
    first delivery, and was also missing from ``tests_lab_isolation.SIGNATURES['lab_replay']``
    (every other public name of the module is pinned there).
+8. ``ResumeProvenanceTests`` -- root's replay-resume-provenance finding
+   (`reviews/driver_replay_resume_interim_20260926_0117.md`): ``completed_shards`` returning only
+   filename stems let a resumed run reuse a shard whose receipt no longer matched the CURRENT
+   seed/config/pilot/roster/outcome-model or the row's own bytes on disk.  This class reproduces
+   root's exact witness (one T2 cell, 3 replicates, seed 60260919 -> 60260920, only the row and
+   receipt copied into a fresh output directory) as a regression test, then one negative control
+   per changed input the repair must catch, a positive control that an UNCHANGED resume still
+   reuses without rerunning, two controls on the read-only ``verify_manifest`` (root's item 3:
+   it must reject a mismatched or unverified shard, not only a table/script digest mismatch), and
+   a mutation control showing a presence-only resume -- exactly ``completed_shards`` used alone,
+   the pre-repair shape -- lets every one of those negative scenarios through silently.
 """
 from __future__ import annotations
 
@@ -552,6 +563,228 @@ class RulingCitationTests(unittest.TestCase):
                     open_model=dict(lab_replay.PROPOSED_OPEN_MODEL), ruling='not-a-citation',
                     cells=[lab_replay.make_cell(1, 'T2', 1.0, 0.6, 0.0, 206, 'realized', 3)])
             self.assertFalse(out.exists())
+
+
+# ==================================================================================================
+# 8. root's replay-resume-provenance finding: a resumed shard must be verified, not just present
+# ==================================================================================================
+class ResumeProvenanceTests(_Tmp):
+    """`reviews/driver_replay_resume_interim_20260926_0117.md`.  One T2 cell, 3 replicates,
+    mirroring root's own witness exactly, plus the T4 cell needed for the outcome-model control.
+    Every negative control checks BOTH that ``ResumeMismatch`` names the mismatch and that the
+    old rows/receipts are byte-for-byte unchanged (sha256 compared before/after)."""
+
+    T2_CELL = staticmethod(lambda: lab_replay.make_cell(1, 'T2', 1.0, 0.6, 0.0, 206, 'realized', 3))
+    T4_CELL = staticmethod(lambda: lab_replay.make_cell(2, 'T4', 0.5, 0.45, -0.03, 206, 'realized', 3))
+    T4_OPEN_MODEL_A = {'T4.cost_pair': 'independent_single_shot_successes'}
+    T4_OPEN_MODEL_B = {'T4.cost_pair': 'same_task_single_shot_duplicate'}
+
+    def _seeded_cfg(self, seed: int) -> dict:
+        cfg = json.loads(json.dumps(CFG))
+        cfg['design_seed_base'] = seed
+        return cfg
+
+    def _first_run(self, *, cell=None, cfg=None, pilot=None, roster=None, open_model=None):
+        cell = cell if cell is not None else self.T2_CELL()
+        cfg = cfg if cfg is not None else self._seeded_cfg(60260919)
+        pilot = pilot if pilot is not None else synthetic_pilot(self.tmp)
+        roster = roster if roster is not None else synthetic_roster()
+        out = self.tmp / ('first_%d' % len(list(self.tmp.iterdir())))
+        lab_replay.run_replay(roster, pilot, cfg, realized_n_p=206, out_dir=out,
+                              open_model=open_model, cells=[cell], crosscheck_per_cell=3)
+        return out, cell, cfg, pilot, roster
+
+    def _copy_rows_and_receipts(self, first: Path) -> Path:
+        resumed = self.tmp / ('resumed_%d' % len(list(self.tmp.iterdir())))
+        resumed.mkdir()
+        shutil.copytree(first / 'rows', resumed / 'rows')
+        shutil.copytree(first / 'receipts', resumed / 'receipts')
+        return resumed
+
+    @staticmethod
+    def _sha256_tree(d: Path) -> dict:
+        return {p.relative_to(d): lab_common.sha256_file(p) for p in sorted(d.rglob('*'))
+               if p.is_file()}
+
+    def test_root_witness_a_changed_seed_on_resume_is_refused_and_old_files_untouched(
+            self) -> None:
+        """Root's exact witness: seed 60260919 -> 60260920, one T2 cell, 3 replicates, only the
+        row and receipt copied into a fresh out dir.  Pre-repair (reproduced live against this
+        branch's own code at `c5817f9` before this commit): ``cells_resumed=1``,
+        ``cells_run_this_call=0``, the table byte-identical to the OLD-seed table, the new
+        manifest declaring 60260920 while the retained receipt still declared 60260919 -- and no
+        exception at all.  After the repair: refused before either file is read again."""
+        first, cell, cfg_a, pilot, roster = self._first_run(cfg=self._seeded_cfg(60260919))
+        resumed = self._copy_rows_and_receipts(first)
+        before = self._sha256_tree(resumed)
+        cfg_b = self._seeded_cfg(60260920)
+        with self.assertRaises(lab_shard_receipt.ResumeMismatch) as ctx:
+            lab_replay.run_replay(roster, pilot, cfg_b, realized_n_p=206, out_dir=resumed,
+                                  open_model=None, cells=[cell], crosscheck_per_cell=3)
+        self.assertIn('pins.seed', str(ctx.exception))
+        self.assertIn('run namespace', str(ctx.exception))
+        self.assertEqual(self._sha256_tree(resumed), before,
+                         'a refused resume must never touch the rows/receipts it copied in')
+        self.assertFalse((resumed / lab_replay.TABLE_NAME).exists())
+        self.assertFalse((resumed / lab_replay.MANIFEST_NAME).exists())
+
+    def test_negative_a_changed_config_input_on_resume_is_refused(self) -> None:
+        """A non-seed rule-block key (``execution.max_attempts``) changes ``pins.config`` without
+        touching the frozen rule parameters ``frozen_monitor_config`` itself compares."""
+        cfg_a = self._seeded_cfg(60260919)
+        first, cell, _, pilot, roster = self._first_run(cfg=cfg_a)
+        resumed = self._copy_rows_and_receipts(first)
+        before = self._sha256_tree(resumed)
+        cfg_b = json.loads(json.dumps(cfg_a))
+        cfg_b['execution']['max_attempts'] = cfg_a['execution']['max_attempts'] + 1
+        with self.assertRaises(lab_shard_receipt.ResumeMismatch) as ctx:
+            lab_replay.run_replay(roster, pilot, cfg_b, realized_n_p=206, out_dir=resumed,
+                                  open_model=None, cells=[cell], crosscheck_per_cell=3)
+        self.assertIn('pins.config', str(ctx.exception))
+        self.assertEqual(self._sha256_tree(resumed), before)
+
+    def test_negative_a_changed_pilot_input_on_resume_is_refused(self) -> None:
+        cfg = self._seeded_cfg(60260919)
+        pilot_a = synthetic_pilot(self.tmp, seed=3)
+        first, cell, _, _, roster = self._first_run(cfg=cfg, pilot=pilot_a)
+        resumed = self._copy_rows_and_receipts(first)
+        before = self._sha256_tree(resumed)
+        pilot_b = synthetic_pilot(self.tmp, seed=99)
+        self.assertNotEqual(pilot_a.sha256, pilot_b.sha256, 'the two pilots must actually differ')
+        with self.assertRaises(lab_shard_receipt.ResumeMismatch) as ctx:
+            lab_replay.run_replay(roster, pilot_b, cfg, realized_n_p=206, out_dir=resumed,
+                                  open_model=None, cells=[cell], crosscheck_per_cell=3)
+        self.assertIn('pins.data', str(ctx.exception))
+        self.assertEqual(self._sha256_tree(resumed), before)
+
+    def test_negative_a_changed_roster_input_on_resume_is_refused(self) -> None:
+        """One S2 uid swapped for another, pair COUNT unchanged (so ``realized_n_p`` still
+        matches) -- only the roster digest moves."""
+        cfg = self._seeded_cfg(60260919)
+        roster_a = synthetic_roster()
+        first, cell, _, pilot, _ = self._first_run(cfg=cfg, roster=roster_a)
+        resumed = self._copy_rows_and_receipts(first)
+        before = self._sha256_tree(resumed)
+        roster_b = {'S1': list(roster_a['S1']),
+                   'S2': ['mbpp_full/9999' if u == roster_a['S2'][0] else u
+                          for u in roster_a['S2']]}
+        self.assertEqual(len(roster_a['S2']), len(roster_b['S2']))
+        with self.assertRaises(lab_shard_receipt.ResumeMismatch) as ctx:
+            lab_replay.run_replay(roster_b, pilot, cfg, realized_n_p=206, out_dir=resumed,
+                                  open_model=None, cells=[cell], crosscheck_per_cell=3)
+        self.assertIn('pins.data', str(ctx.exception))
+        self.assertEqual(self._sha256_tree(resumed), before)
+
+    def test_negative_a_changed_outcome_model_on_resume_is_refused(self) -> None:
+        """A T4 cell with a different explicit ``open_model`` value on resume -- the value that
+        never entered ``schedule_row``/``cell_shard_id`` at all, so only a pin bound in for this
+        purpose can catch it."""
+        cfg = self._seeded_cfg(60260919)
+        first, cell, _, pilot, roster = self._first_run(cfg=cfg, cell=self.T4_CELL(),
+                                                        open_model=self.T4_OPEN_MODEL_A)
+        resumed = self._copy_rows_and_receipts(first)
+        before = self._sha256_tree(resumed)
+        with self.assertRaises(lab_shard_receipt.ResumeMismatch) as ctx:
+            lab_replay.run_replay(roster, pilot, cfg, realized_n_p=206, out_dir=resumed,
+                                  open_model=self.T4_OPEN_MODEL_B, cells=[cell],
+                                  crosscheck_per_cell=3)
+        self.assertIn('pins.open_model', str(ctx.exception))
+        self.assertEqual(self._sha256_tree(resumed), before)
+
+    def test_negative_flipped_row_bytes_on_resume_is_refused(self) -> None:
+        cfg = self._seeded_cfg(60260919)
+        first, cell, _, pilot, roster = self._first_run(cfg=cfg)
+        resumed = self._copy_rows_and_receipts(first)
+        sid = lab_replay.cell_shard_id(cell)
+        row_path = resumed / 'rows' / ('%s.json' % sid)
+        row = json.loads(row_path.read_text('utf-8'))
+        tampered = dict(row, status='TAMPERED')
+        row_path.write_text(lab_common.canonical_json(tampered))
+        before = self._sha256_tree(resumed)
+        with self.assertRaises(lab_shard_receipt.ResumeMismatch) as ctx:
+            lab_replay.run_replay(roster, pilot, cfg, realized_n_p=206, out_dir=resumed,
+                                  open_model=None, cells=[cell], crosscheck_per_cell=3)
+        self.assertIn('sha256', str(ctx.exception))
+        self.assertEqual(self._sha256_tree(resumed), before,
+                         'the refused resume must not touch the (already tampered) row either')
+
+    def test_positive_an_unchanged_resume_still_reuses_without_rerunning(self) -> None:
+        cfg = self._seeded_cfg(60260919)
+        first, cell, _, pilot, roster = self._first_run(cfg=cfg)
+        resumed = self._copy_rows_and_receipts(first)
+        before = self._sha256_tree(resumed)
+        real_run_cell = lab_replay.run_cell
+        calls = []
+        with mock.patch.object(lab_replay, 'run_cell',
+                               lambda *a, **k: calls.append(1) or real_run_cell(*a, **k)):
+            manifest = lab_replay.run_replay(roster, pilot, cfg, realized_n_p=206, out_dir=resumed,
+                                             open_model=None, cells=[cell], crosscheck_per_cell=3)
+        self.assertEqual(calls, [])
+        self.assertEqual(manifest['shard_receipts']['cells_resumed'], 1)
+        self.assertEqual(manifest['shard_receipts']['cells_run_this_call'], 0)
+        after = self._sha256_tree(resumed)
+        for relpath, digest in before.items():
+            self.assertEqual(after[relpath], digest,
+                             f'a successful resume must not rewrite the {relpath} it reused')
+
+    def test_negative_verify_manifest_rejects_a_manifest_disagreeing_with_its_own_shard(
+            self) -> None:
+        """Root's item 3: the read-only final verifier must reject a mismatched shard, not only a
+        table/script digest mismatch.  A manifest hand-edited to declare a different seed than the
+        receipts it sits beside (exactly the end state root's witness produced pre-repair) is
+        built directly here -- run_replay itself can no longer reach this state honestly, which is
+        the point of the repair -- and ``verify_manifest`` must still refuse it."""
+        cfg = self._seeded_cfg(60260919)
+        first, cell, _, pilot, roster = self._first_run(cfg=cfg)
+        lab_replay.verify_manifest(first)                          # positive: the real run passes
+        corrupted = self.tmp / 'corrupted'
+        shutil.copytree(first, corrupted)
+        manifest = json.loads((corrupted / lab_replay.MANIFEST_NAME).read_text('utf-8'))
+        manifest['seed']['design_seed_base'] = 60260920
+        (corrupted / lab_replay.MANIFEST_NAME).write_text(lab_common.canonical_json(manifest))
+        with self.assertRaises(lab_replay.ReplayRefused) as ctx:
+            lab_replay.verify_manifest(corrupted)
+        self.assertIn('shard finding', str(ctx.exception))
+
+    def test_negative_verify_manifest_rejects_a_missing_receipt(self) -> None:
+        cfg = self._seeded_cfg(60260919)
+        first, cell, _, pilot, roster = self._first_run(cfg=cfg)
+        lab_replay.verify_manifest(first)                          # positive control
+        sid = lab_replay.cell_shard_id(cell)
+        (first / 'receipts' / ('%s.json' % sid)).unlink()
+        with self.assertRaises(lab_replay.ReplayRefused):
+            lab_replay.verify_manifest(first)
+
+    def test_negative_a_mutant_presence_only_resume_reproduces_roots_witness_silently(
+            self) -> None:
+        """Mutation control: with the compare-on-resume step neutralized -- a stand-in for
+        exactly the pre-repair shape, ``shard_id in completed_shards(dir)`` and nothing else --
+        the SAME changed-seed scenario the first test refuses instead SUCCEEDS silently and
+        reproduces root's witness bit for bit: ``cells_resumed=1``, ``cells_run_this_call=0``, the
+        table byte-identical to the OLD-seed table, the new manifest declaring the new seed while
+        the retained receipt still declares the old one."""
+        first, cell, cfg_a, pilot, roster = self._first_run(cfg=self._seeded_cfg(60260919))
+        resumed = self._copy_rows_and_receipts(first)
+        cfg_b = self._seeded_cfg(60260920)
+
+        def presence_only(receipts_dir, shard_id_, **_ignored):
+            return json.loads((Path(receipts_dir) / f'{shard_id_}.json').read_text('utf-8'))
+
+        with mock.patch.object(lab_shard_receipt, 'verify_resume', presence_only):
+            manifest = lab_replay.run_replay(roster, pilot, cfg_b, realized_n_p=206,
+                                             out_dir=resumed, open_model=None, cells=[cell],
+                                             crosscheck_per_cell=3)
+        self.assertEqual(manifest['shard_receipts']['cells_resumed'], 1)
+        self.assertEqual(manifest['shard_receipts']['cells_run_this_call'], 0)
+        self.assertEqual((first / lab_replay.TABLE_NAME).read_bytes(),
+                         (resumed / lab_replay.TABLE_NAME).read_bytes(),
+                         'the mutant reuses the OLD-seed table under the NEW-seed manifest')
+        self.assertEqual(manifest['seed']['design_seed_base'], 60260920)
+        sid = lab_replay.cell_shard_id(cell)
+        receipt = json.loads((resumed / 'receipts' / ('%s.json' % sid)).read_text('utf-8'))
+        self.assertEqual(receipt['pins']['seed']['design_seed_base'], 60260919,
+                         'the mutant leaves the OLD-seed receipt in place under the NEW-seed '
+                         'manifest -- this is root\'s witness, reproduced under the mutant')
 
 
 # ==================================================================================================

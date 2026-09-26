@@ -317,6 +317,200 @@ class VerifyShardsTests(_TmpDirCase):
         kinds = [f['kind'] for f in findings]
         self.assertIn('malformed_receipt', kinds)
 
+    def test_positive_expected_pins_matching_the_receipt_gives_no_pins_finding(self) -> None:
+        row = _row(n=50)
+        receipt = self._write('stage4', row)
+        findings = sr.verify_shards(self.tmp / 'receipts', [('stage4', row)], self.tmp,
+                                    expected_pins={receipt['shard_id']: receipt['pins']})
+        self.assertEqual(findings, [])
+
+    def test_negative_expected_pins_disagreeing_with_the_receipt_is_flagged(self) -> None:
+        """root's replay-resume-provenance finding
+        (`reviews/driver_replay_resume_interim_20260926_0117.md`): the FINAL verifier, not only
+        the resume-time check, must reject a shard whose own receipt disagrees with a caller's
+        current pins -- here, a caller's current seed pin differing from what was recorded."""
+        row = _row(n=51)
+        receipt = self._write('stage4', row)
+        current_pins = dict(receipt['pins'], seed={'formula': 'a different seed formula entirely'})
+        findings = sr.verify_shards(self.tmp / 'receipts', [('stage4', row)], self.tmp,
+                                    expected_pins={receipt['shard_id']: current_pins})
+        kinds = {f['kind'] for f in findings}
+        self.assertIn('pins_mismatch', kinds)
+        mismatch = next(f for f in findings if f['kind'] == 'pins_mismatch')
+        self.assertIn('seed', mismatch['pins'])
+
+    def test_negative_expected_pins_naming_a_key_absent_from_the_receipt_is_flagged(self) -> None:
+        """Adversarial-review finding (`reviews/driver_replay_resume_interim_20260926_0117.md`
+        follow-up): an extra caller-bound pin such as ``open_model`` is not in
+        ``REQUIRED_PIN_KEYS``, so an old-format receipt written before that pin existed can
+        validate while its ``pins`` block simply has no such key at all -- a key entirely
+        MISSING, not merely disagreeing.  This is a distinct code path in
+        :func:`sr._pin_mismatches` from a present-but-different value (the test above): a
+        mutant that reads ``key in actual and ...`` instead of ``key not in actual or ...``
+        would treat an absent key as a silent match and this test alone catches that, while
+        the present-but-different test above would not."""
+        row = _row(n=53)
+        receipt = self._write('stage4', row)
+        self.assertNotIn('open_model', receipt['pins'])
+        current_pins = dict(receipt['pins'], open_model={'name': 'qwen2.5-coder-7b'})
+        findings = sr.verify_shards(self.tmp / 'receipts', [('stage4', row)], self.tmp,
+                                    expected_pins={receipt['shard_id']: current_pins})
+        kinds = {f['kind'] for f in findings}
+        self.assertIn('pins_mismatch', kinds)
+        mismatch = next(f for f in findings if f['kind'] == 'pins_mismatch')
+        self.assertIn('open_model', mismatch['pins'])
+
+    def test_negative_expected_pins_for_an_unwritten_shard_id_is_simply_ignored(self) -> None:
+        """``expected_pins`` only constrains shard ids it names; a shard id present in it but
+        absent on disk is still reported the ordinary way (``missing_receipt``), not silently."""
+        row = _row(n=52)
+        findings = sr.verify_shards(self.tmp / 'receipts', [('stage4', row)], self.tmp,
+                                    expected_pins={sr.shard_id('stage4', row): {'seed': {}}})
+        kinds = {f['kind'] for f in findings}
+        self.assertIn('missing_receipt', kinds)
+        self.assertNotIn('pins_mismatch', kinds)
+
+
+class VerifyResumeTests(_TmpDirCase):
+    """:func:`sr.verify_resume` -- the generic compare-on-resume check root's
+    replay-resume-provenance finding (`reviews/driver_replay_resume_interim_20260926_0117.md`)
+    requires every driver to call before treating an already-present shard as done.  Every
+    negative control below also checks the receipt file's bytes are untouched by the refused
+    call, and that :func:`sr.verify_resume` never reads the output file's bytes into anything it
+    returns -- it only recomputes and compares a hash."""
+
+    def _write(self, *, driver: str = 'stage4', row: dict | None = None,
+              output_bytes: bytes = b'the-output-bytes') -> tuple[dict, str]:
+        row = row if row is not None else _row()
+        out_path = self.tmp / 'out' / f"{sr.shard_id(driver, row)}.bin"
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_bytes(output_bytes)
+        relpath = f"out/{out_path.name}"
+        receipt = _receipt(driver=driver, row=row,
+                           outputs={relpath: lab_common.sha256_bytes(output_bytes)})
+        sr.write_shard_receipt(self.tmp / 'receipts', receipt)
+        return receipt, relpath
+
+    def test_positive_unchanged_inputs_resume_without_rerunning(self) -> None:
+        receipt, relpath = self._write()
+        got = sr.verify_resume(self.tmp / 'receipts', receipt['shard_id'], driver='stage4',
+                               schedule_row=receipt['schedule_row'], expected_pins=receipt['pins'],
+                               expected_output_paths=(relpath,), root_for_outputs=self.tmp)
+        self.assertEqual(got, receipt)
+
+    def test_negative_a_changed_pin_is_refused_and_the_receipt_is_untouched(self) -> None:
+        receipt, relpath = self._write()
+        path = self.tmp / 'receipts' / f"{receipt['shard_id']}.json"
+        before = lab_common.sha256_file(path)
+        bad_pins = dict(receipt['pins'], seed={'formula': 'CHANGED'})
+        with self.assertRaises(sr.ResumeMismatch) as ctx:
+            sr.verify_resume(self.tmp / 'receipts', receipt['shard_id'], driver='stage4',
+                             schedule_row=receipt['schedule_row'], expected_pins=bad_pins,
+                             expected_output_paths=(relpath,), root_for_outputs=self.tmp)
+        self.assertIn('pins.seed', str(ctx.exception))
+        self.assertIn('run namespace', str(ctx.exception))
+        self.assertEqual(lab_common.sha256_file(path), before,
+                         'a refused resume must never touch the old receipt')
+
+    def test_negative_a_pin_key_absent_from_the_receipt_is_refused_not_treated_as_a_match(
+            self) -> None:
+        """Same distinct code path as ``VerifyShardsTests``'s twin test above, for the resume
+        primitive itself: an old-format receipt with no ``open_model`` key at all in its
+        ``pins`` block (not merely a differing one) must still be refused when the caller's
+        current pins bind that extra key in. A mutant reading ``key in actual and ...`` instead
+        of ``key not in actual or ...`` in :func:`sr._pin_mismatches` would silently treat the
+        absent key as a match and let this resume through; this test, not the changed-value
+        test above, is what would catch that specific mutant."""
+        receipt, relpath = self._write()
+        self.assertNotIn('open_model', receipt['pins'])
+        path = self.tmp / 'receipts' / f"{receipt['shard_id']}.json"
+        before = lab_common.sha256_file(path)
+        bad_pins = dict(receipt['pins'], open_model={'name': 'qwen2.5-coder-7b'})
+        with self.assertRaises(sr.ResumeMismatch) as ctx:
+            sr.verify_resume(self.tmp / 'receipts', receipt['shard_id'], driver='stage4',
+                             schedule_row=receipt['schedule_row'], expected_pins=bad_pins,
+                             expected_output_paths=(relpath,), root_for_outputs=self.tmp)
+        self.assertIn('pins.open_model', str(ctx.exception))
+        self.assertEqual(lab_common.sha256_file(path), before,
+                         'a refused resume must never touch the old receipt')
+
+    def test_negative_a_different_schedule_row_is_refused(self) -> None:
+        receipt, relpath = self._write(row=_row(n=1))
+        with self.assertRaises(sr.ResumeMismatch) as ctx:
+            sr.verify_resume(self.tmp / 'receipts', receipt['shard_id'], driver='stage4',
+                             schedule_row=_row(n=2), expected_pins=receipt['pins'],
+                             expected_output_paths=(relpath,), root_for_outputs=self.tmp)
+        self.assertIn('schedule_row', str(ctx.exception))
+
+    def test_negative_a_different_driver_is_refused(self) -> None:
+        receipt, relpath = self._write(driver='stage4')
+        with self.assertRaises(sr.ResumeMismatch) as ctx:
+            sr.verify_resume(self.tmp / 'receipts', receipt['shard_id'], driver='stage5',
+                             schedule_row=receipt['schedule_row'], expected_pins=receipt['pins'],
+                             expected_output_paths=(relpath,), root_for_outputs=self.tmp)
+        self.assertIn('driver', str(ctx.exception))
+
+    def test_negative_flipped_output_bytes_are_refused_before_reuse(self) -> None:
+        receipt, relpath = self._write()
+        (self.tmp / relpath).write_bytes(b'TAMPERED bytes on disk')
+        with self.assertRaises(sr.ResumeMismatch) as ctx:
+            sr.verify_resume(self.tmp / 'receipts', receipt['shard_id'], driver='stage4',
+                             schedule_row=receipt['schedule_row'], expected_pins=receipt['pins'],
+                             expected_output_paths=(relpath,), root_for_outputs=self.tmp)
+        self.assertIn('sha256', str(ctx.exception))
+
+    def test_negative_an_unexpected_output_path_set_is_refused(self) -> None:
+        receipt, relpath = self._write()
+        with self.assertRaises(sr.ResumeMismatch) as ctx:
+            sr.verify_resume(self.tmp / 'receipts', receipt['shard_id'], driver='stage4',
+                             schedule_row=receipt['schedule_row'], expected_pins=receipt['pins'],
+                             expected_output_paths=('some/other/path.bin',),
+                             root_for_outputs=self.tmp)
+        self.assertIn('outputs paths', str(ctx.exception))
+
+    def test_negative_a_vanished_receipt_file_is_refused_not_treated_as_resumable(self) -> None:
+        row = _row()
+        sid = sr.shard_id('stage4', row)
+        with self.assertRaises(sr.ResumeMismatch) as ctx:
+            sr.verify_resume(self.tmp / 'receipts', sid, driver='stage4', schedule_row=row,
+                             expected_pins={}, expected_output_paths=(), root_for_outputs=self.tmp)
+        self.assertIn('no receipt file', str(ctx.exception))
+
+    def test_negative_a_malformed_receipt_is_refused_not_silently_trusted(self) -> None:
+        (self.tmp / 'receipts').mkdir(parents=True, exist_ok=True)
+        row = _row()
+        sid = sr.shard_id('stage4', row)
+        (self.tmp / 'receipts' / f'{sid}.json').write_text('{not json')
+        with self.assertRaises(sr.ResumeMismatch):
+            sr.verify_resume(self.tmp / 'receipts', sid, driver='stage4', schedule_row=row,
+                             expected_pins={}, expected_output_paths=(), root_for_outputs=self.tmp)
+
+    def test_negative_a_mutant_presence_only_resume_would_have_missed_every_control_above(
+            self) -> None:
+        """Mutation control: a stand-in for the PRE-REPAIR resume check that only asks
+        ``shard_id in completed_shards(dir)`` (root's replay-resume-provenance finding) instead
+        of calling :func:`sr.verify_resume`.  Reproduces, in isolation, why presence alone is not
+        enough: every negative control above is a scenario this mutant lets straight through."""
+        def presence_only_resume(dir, shard_id_, **_ignored) -> bool:
+            return shard_id_ in sr.completed_shards(dir)
+
+        receipt, relpath = self._write()
+        bad_pins = dict(receipt['pins'], seed={'formula': 'CHANGED'})
+        # the real control: refused
+        with self.assertRaises(sr.ResumeMismatch):
+            sr.verify_resume(self.tmp / 'receipts', receipt['shard_id'], driver='stage4',
+                             schedule_row=receipt['schedule_row'], expected_pins=bad_pins,
+                             expected_output_paths=(relpath,), root_for_outputs=self.tmp)
+        # the mutant: says yes anyway, with the very inputs the real control just refused
+        self.assertTrue(presence_only_resume(self.tmp / 'receipts', receipt['shard_id'],
+                                             driver='stage4', schedule_row=receipt['schedule_row'],
+                                             expected_pins=bad_pins,
+                                             expected_output_paths=(relpath,),
+                                             root_for_outputs=self.tmp),
+                        'a presence-only resume must be shown to pass exactly where the real '
+                        'compare-on-resume control refuses -- otherwise this mutation control '
+                        'proves nothing')
+
 
 class PathTraversalTests(_TmpDirCase):
     """Adversarial-review Finding 1: an unrestricted ``driver`` string could steer a receipt's

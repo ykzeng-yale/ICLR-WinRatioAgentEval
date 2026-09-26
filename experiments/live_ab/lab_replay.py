@@ -184,6 +184,13 @@ MANIFEST_NAME = 'REPLAY_11_5_MANIFEST.json'
 #: ``_SAFE_DRIVER_RE`` (``lab_shard_receipt.py``); named after the protocol section it serves.
 DRIVER: str = 'replay_11_5'
 
+#: The exact fields of one cell dict (:func:`make_cell`) that also appear, unchanged, in that
+#: cell's table row (:func:`run_cell`'s own ``base``) -- shared so a table row can be turned back
+#: into the schedule row that produced it (:func:`verify_manifest`) without a second, possibly
+#: drifting, list of the same field names.
+CELL_FIELDS: tuple[str, ...] = ('ordinal', 'cell_id', 'trial', 'w', 'q', 's', 'n_p', 'n_p_role',
+                                'replicates')
+
 #: protocol 11.5 item 5, exhaustively.  The nesting order of ``enumerate_cells`` is trial, N_P role,
 #: w, q, s; the 1-based position in that order is the cell ordinal the seed rule uses.
 GRID_TRIALS: tuple[str, ...] = ('T1', 'T2', 'T3', 'T4')
@@ -778,8 +785,7 @@ def run_cell(model: TrialModel, cell: Mapping, mc: lab_monitor.MonitorConfig,
     replicates through ``monitor_decision`` and REFUSES if any disagrees with ``decide_matrix``.
     """
     n_p = int(cell['n_p'])
-    base = {k: cell[k] for k in ('ordinal', 'cell_id', 'trial', 'w', 'q', 's', 'n_p', 'n_p_role',
-                                 'replicates')}
+    base = {k: cell[k] for k in CELL_FIELDS}
     if n_p > model.pairs_available:
         return dict(base, status='NOT_SIMULABLE', counts=None, rates=None, wilson95=None,
                     crossing_prefix=None, crosscheck=None, per_replicate_sha256=None,
@@ -863,9 +869,31 @@ def cell_shard_id(cell: Mapping) -> str:
     return lab_shard_receipt.shard_id(DRIVER, cell)
 
 
+def _cell_pins(cell: Mapping, *, config_sha256: str, design_seed_base: int, roster_sha256: str,
+              pilot_sha256: str, open_model_for_trial: Mapping) -> dict:
+    """[pure] The receipt ``pins`` block for one cell -- code/config/seed/data
+    (design_notes/DESIGN_PROPOSAL.md section 4: not a subset), plus the explicit outcome-model
+    choice this cell's trial was built with, BOUND IN as its own pin so a resume can compare
+    against it too (root's replay-resume-provenance finding,
+    `reviews/driver_replay_resume_interim_20260926_0117.md`: an unbound open-model choice could
+    silently change across a resume and never be caught).  Used both when a new cell's receipt is
+    written and when an already-present one is verified on resume
+    (:func:`lab_shard_receipt.verify_resume`), so the two computations can never independently
+    drift apart."""
+    return {
+        'code': _code_pins(),
+        'config': {'sha256': config_sha256},
+        'seed': {'design_seed_base': design_seed_base, 'stream_tag': REPLAY_STREAM_TAG,
+                'ordinal': cell['ordinal'], 'rule_sha256': lab_common.sha256_text(SEED_RULE_TEXT)},
+        'data': {'roster.json': roster_sha256, 'episodes_flat.csv': pilot_sha256},
+        'open_model': dict(sorted(open_model_for_trial.items())),
+    }
+
+
 def _cell_receipt(cell: Mapping, *, row_relpath: str, row_sha256: str, config_sha256: str,
                   design_seed_base: int, roster_sha256: str, pilot_sha256: str,
-                  start_utc: str, end_utc: str, outcome: str) -> dict:
+                  open_model_for_trial: Mapping, start_utc: str, end_utc: str,
+                  outcome: str) -> dict:
     """[pure] The write-once completed-shard receipt for one cell, in the shape
     ``lab_shard_receipt.validate_receipt`` requires (design_notes/DESIGN_PROPOSAL.md section 4: code,
     config, seed and data pins, not a subset)."""
@@ -874,13 +902,9 @@ def _cell_receipt(cell: Mapping, *, row_relpath: str, row_sha256: str, config_sh
         'shard_id': cell_shard_id(cell),
         'driver': DRIVER,
         'schedule_row': dict(cell),
-        'pins': {
-            'code': _code_pins(),
-            'config': {'sha256': config_sha256},
-            'seed': {'design_seed_base': design_seed_base, 'stream_tag': REPLAY_STREAM_TAG,
-                     'ordinal': cell['ordinal'], 'rule_sha256': lab_common.sha256_text(SEED_RULE_TEXT)},
-            'data': {'roster.json': roster_sha256, 'episodes_flat.csv': pilot_sha256},
-        },
+        'pins': _cell_pins(cell, config_sha256=config_sha256, design_seed_base=design_seed_base,
+                           roster_sha256=roster_sha256, pilot_sha256=pilot_sha256,
+                           open_model_for_trial=open_model_for_trial),
         'inputs': {'cell_id': cell['cell_id'], 'trial': cell['trial'], 'n_p': cell['n_p'],
                   'replicates': cell['replicates']},
         'outputs': {row_relpath: row_sha256},
@@ -971,7 +995,24 @@ def run_replay(roster: Mapping, pilot: Pilot, cfg: Mapping, *, realized_n_p: int
     for cell in grid:
         sid = cell_shard_id(cell)
         row_path = rows_dir / ('%s.json' % sid)
+        row_relpath = str(row_path.relative_to(out_dir))
+        open_model_for_cell = {k: v for k, v in given.items() if k.startswith(cell['trial'] + '.')}
         if sid in done:
+            # A shard already on disk is NEVER trusted on presence alone: verify_resume reads
+            # and validates its receipt, then refuses (naming exactly what differs) unless the
+            # exact schedule row, every current code/config/seed/data pin, the explicit
+            # outcome-model choice bound in as its own pin, and the row's own hash recomputed
+            # from disk all agree -- BEFORE the row below is read or reused and BEFORE any new
+            # manifest is written (root's replay-resume-provenance finding,
+            # `reviews/driver_replay_resume_interim_20260926_0117.md`).  A caller whose inputs
+            # are meant to differ must pass a new out_dir; this never repairs or reruns in place.
+            expected_pins = _cell_pins(
+                cell, config_sha256=config_sha256, design_seed_base=design_seed_base,
+                roster_sha256=roster_sha256, pilot_sha256=pilot.sha256,
+                open_model_for_trial=open_model_for_cell)
+            lab_shard_receipt.verify_resume(
+                receipts_dir, sid, driver=DRIVER, schedule_row=cell, expected_pins=expected_pins,
+                expected_output_paths=(row_relpath,), root_for_outputs=out_dir)
             row = json.loads(row_path.read_text('utf-8'))
         else:
             cell_started = _utc_now()
@@ -981,9 +1022,10 @@ def run_replay(roster: Mapping, pilot: Pilot, cfg: Mapping, *, realized_n_p: int
             row_sha256 = lab_common.write_json_atomic(row_path, row, durable=True)
             cell_ended = _utc_now()
             receipt = _cell_receipt(
-                cell, row_relpath=str(row_path.relative_to(out_dir)), row_sha256=row_sha256,
+                cell, row_relpath=row_relpath, row_sha256=row_sha256,
                 config_sha256=config_sha256, design_seed_base=design_seed_base,
                 roster_sha256=roster_sha256, pilot_sha256=pilot.sha256,
+                open_model_for_trial=open_model_for_cell,
                 start_utc=cell_started, end_utc=cell_ended,
                 outcome='success' if row['status'] in ('SIMULATED', 'NOT_SIMULABLE') else 'failure')
             lab_shard_receipt.write_shard_receipt(receipts_dir, receipt)
@@ -1047,7 +1089,18 @@ def run_replay(roster: Mapping, pilot: Pilot, cfg: Mapping, *, realized_n_p: int
 
 def verify_manifest(out_dir: 'str | Path') -> dict:
     """Recompute the output and script digests the manifest names; raise ``ReplayRefused`` on any
-    difference.  A flipped byte in the table, or a script edited after the run, is refused."""
+    difference.  A flipped byte in the table, or a script edited after the run, is refused.
+
+    Also (root's replay-resume-provenance finding,
+    `reviews/driver_replay_resume_interim_20260926_0117.md`): for every row of the table, rebuild
+    the schedule row and the pins the manifest's OWN recorded inputs (seed, config/roster/pilot
+    digests, open outcome model) imply, and pass them to
+    ``lab_shard_receipt.verify_shards(..., expected_pins=...)`` alongside the current code pins.
+    This rejects a shard whose OWN receipt disagrees with what this manifest declares -- exactly
+    root's witness shape, a manifest declaring one seed while a reused receipt still names another
+    -- and, through ``verify_shards`` itself, a shard that is missing, malformed, orphaned,
+    duplicated or output-hash-mismatched.  A table/script/seed-text digest match alone is no
+    longer accepted as sufficient."""
     out_dir = Path(out_dir)
     try:
         manifest = json.loads((out_dir / MANIFEST_NAME).read_text(encoding='utf-8'))
@@ -1063,6 +1116,30 @@ def verify_manifest(out_dir: 'str | Path') -> dict:
                             % (script_sha, manifest['script']['sha256']))
     if manifest['seed']['rule_sha256'] != lab_common.sha256_text(manifest['seed']['rule']):
         raise ReplayRefused('the seed rule text does not match its digest')
+
+    table = json.loads((out_dir / manifest['output']['file']).read_text('utf-8'))
+    design_seed_base = manifest['seed']['design_seed_base']
+    config_sha256 = manifest['inputs']['config_rule_block_sha256']
+    roster_sha256 = manifest['inputs']['roster_sha256']
+    pilot_sha256 = manifest['inputs']['pilot_sha256']
+    given = manifest['open_outcome_model']['value']
+    schedule_rows: list[tuple[str, Mapping]] = []
+    expected_pins: dict[str, Mapping] = {}
+    for row in table['rows']:
+        cell = {k: row[k] for k in CELL_FIELDS}
+        sid = cell_shard_id(cell)
+        schedule_rows.append((DRIVER, cell))
+        expected_pins[sid] = _cell_pins(
+            cell, config_sha256=config_sha256, design_seed_base=design_seed_base,
+            roster_sha256=roster_sha256, pilot_sha256=pilot_sha256,
+            open_model_for_trial={k: v for k, v in given.items()
+                                  if k.startswith(cell['trial'] + '.')})
+    findings = lab_shard_receipt.verify_shards(out_dir / 'receipts', schedule_rows, out_dir,
+                                               expected_pins=expected_pins)
+    if findings:
+        raise ReplayRefused('verify_manifest: %d shard finding(s) against this manifest\'s own '
+                            'recorded inputs, e.g. %r (%d total)'
+                            % (len(findings), findings[0], len(findings)))
     return manifest
 
 
