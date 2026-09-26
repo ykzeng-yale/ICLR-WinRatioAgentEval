@@ -1,0 +1,155 @@
+{
+ "archive": {
+  "bytes": 154339,
+  "members": [
+   {
+    "bytes": 30384,
+    "name": "pin_logs/20260926_1314/live_ab.stderr.gz",
+    "sha256": "21ad964dc8d8b4085fea46f00449a98a05b6c59038031a22352d11c44fd90e60"
+   },
+   {
+    "bytes": 701,
+    "name": "pin_logs/20260926_1314/live_ab.stdout.gz",
+    "sha256": "e889f1f7a7b4686eaaec106e4f737870bda325e71126f3ee096b949c33264b81"
+   },
+   {
+    "bytes": 22394,
+    "name": "pin_logs/20260926_1314/live_ab_controls.stderr.gz",
+    "sha256": "8c296fe456e4001d33cb530505c1138482f57226dac6ffa0ae2eff05123daefd"
+   },
+   {
+    "bytes": 20,
+    "name": "pin_logs/20260926_1314/live_ab_controls.stdout.gz",
+    "sha256": "f1b651238a58fe290baec6c5e32f3bdb1943dd2bd582f02569231f7a757c7837"
+   },
+   {
+    "bytes": 9114,
+    "name": "pin_logs/20260926_1314/live_ab_serving.stderr.gz",
+    "sha256": "d0ddf0274a6023859432a8f5e19ddc90ccc1a1232cec8e27a68965431fcae5d7"
+   },
+   {
+    "bytes": 4200,
+    "name": "pin_logs/20260926_1314/live_ab_serving.stdout.gz",
+    "sha256": "97e6e52a71c8cacdbc2227b39c77a8a5ca56d54d3f162aab18c23d456b332626"
+   },
+   {
+    "bytes": 7342,
+    "name": "pin_logs/20260926_1314/live_ab_tools.stderr.gz",
+    "sha256": "deb9b0d1dae9413e14efd869ffc20712de045baa7fa9e7bbd9baae6ad58c3156"
+   },
+   {
+    "bytes": 20,
+    "name": "pin_logs/20260926_1314/live_ab_tools.stdout.gz",
+    "sha256": "f1b651238a58fe290baec6c5e32f3bdb1943dd2bd582f02569231f7a757c7837"
+   },
+   {
+    "bytes": 8004,
+    "name": "pin_logs/20260926_1314/live_ab_validation.stderr.gz",
+    "sha256": "26ec83a9626579e5d27be797dc53f30b8e071350231fcb1b1b6fec7fc21b0279"
+   },
+   {
+    "bytes": 56,
+    "name": "pin_logs/20260926_1314/live_ab_validation.stdout.gz",
+    "sha256": "b74b549b4e66e7ea522928b065a68cbab01fd62b12abf5b873cbc795b17220c3"
+   },
+   {
+    "bytes": 147,
+    "name": "pin_stderr.log",
+    "sha256": "40f6e6bedf717497ebac5f02cc3dbab1343d309d8ef88d0ad57d2dccfafd91b4"
+   },
+   {
+    "bytes": 0,
+    "name": "pin_stdout.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   },
+   {
+    "bytes": 305058,
+    "name": "refused_draft_20260926_1354.json",
+    "sha256": "7ab4a202665ecd3198fe6abdd39576fc9bec516a6a1de44241bad6e5d5e2f23a"
+   }
+  ],
+  "path": "results/live_ab/refused_pin_run/20260926_1354/refused_stage1_repair_pin_run.tar.gz",
+  "reading": "tar.gz, deterministic member headers (mtime 0, uid/gid 0), sorted member names; member digests are of the original files",
+  "sha256": "7b4583197d862607fa360b19dcc7f421fa9fd95736d4da7c76cab0648ba296f6"
+ },
+ "convention": "deterministic-path",
+ "diagnosis_from_the_kept_logs": {
+  "live_ab_controls": "702 of 702 OK in this run: the three host-gate-dependent EB1 controls that failed at 12:27 passed here; the 12:27 cause stays unproven.",
+  "live_ab_tools_error": "ERROR in tests_harness_pin_successor.SoloRunSuitesPinLogTests.test_the_receipts_digests_equal_the_decompressed_log_bytes: Refused: refused: pin_log_mismatch:pass_suite.stderr.gz\n\n-----------------------. The test fixture builds twice with a frozen stamp into the same out-dir; the fixture suite's stderr contains unittest's timing line, which can differ between the two builds, so the write-once log check refuses the second build. A test-isolation defect in 6380900's tests, recorded verbatim in the archived live_ab_tools.stderr.gz.",
+  "tree_changed_during_the_run": "6380900 writes the per-suite logs into <out-dir>/pin_logs/<stamp>/ under results/live_ab, INSIDE the repository tree, while the run is in progress; the tool's own end-of-run worktree comparison then sees those new untracked files and refuses. Its tests used an out-dir outside the repository clone, so they did not exercise this."
+ },
+ "generated_utc": "2026-09-26T13:55:43Z",
+ "links": {
+  "latest_receipt_of_record": "results/live_ab/HARNESS_PIN_SUCCESSOR_20260926_0958.json",
+  "previous_red": "results/live_ab/RED_PIN_RUN_20260926_1227.json",
+  "runs_input": {
+   "path": "results/live_ab/pin_inputs/HARNESS_PIN_SUCCESSOR_20260926_1313.runs_of_this_step.json",
+   "sha256": "91db1ec98708201286f369842ae8b227e3e4c07a4fd6c857382d54accd1ebc46"
+  }
+ },
+ "run": {
+  "all_passed": false,
+  "completed_total": 2135,
+  "head": "8736aa3d8bbf5b6387a75dfe3a5c268096245849",
+  "planned_total": 2135,
+  "refused": [
+   "tree_changed_during_the_run"
+  ],
+  "suites": [
+   {
+    "completed": 766,
+    "end_utc": "2026-09-26T13:17:52Z",
+    "failure_headers": [],
+    "planned": 766,
+    "start_utc": "2026-09-26T13:14:18Z",
+    "suite": "live_ab",
+    "verdict_line": "OK (skipped=1)"
+   },
+   {
+    "completed": 702,
+    "end_utc": "2026-09-26T13:50:13Z",
+    "failure_headers": [],
+    "planned": 702,
+    "start_utc": "2026-09-26T13:17:52Z",
+    "suite": "live_ab_controls",
+    "verdict_line": "OK"
+   },
+   {
+    "completed": 193,
+    "end_utc": "2026-09-26T13:50:16Z",
+    "failure_headers": [],
+    "planned": 193,
+    "start_utc": "2026-09-26T13:50:13Z",
+    "suite": "live_ab_serving",
+    "verdict_line": "OK"
+   },
+   {
+    "completed": 259,
+    "end_utc": "2026-09-26T13:54:12Z",
+    "failure_headers": [
+     "ERROR: test_the_receipts_digests_equal_the_decompressed_log_bytes (tests_harness_pin_successor.SoloRunSuitesPinLogTests.test_the_receipts_digests_equal_the_decompressed_log_bytes)"
+    ],
+    "planned": 259,
+    "start_utc": "2026-09-26T13:50:16Z",
+    "suite": "live_ab_tools",
+    "verdict_line": "FAILED (errors=1, skipped=2)"
+   },
+   {
+    "completed": 215,
+    "end_utc": "2026-09-26T13:54:26Z",
+    "failure_headers": [],
+    "planned": 215,
+    "start_utc": "2026-09-26T13:54:12Z",
+    "suite": "tests_validation.py",
+    "verdict_line": "OK (skipped=6, expected failures=2)"
+   }
+  ]
+ },
+ "schema": "live_ab/refused_pin_run-v1",
+ "status": "failure-history record of a pin run the tool REFUSED to write; NOT a pin receipt of record",
+ "what_this_does_not_establish": [
+  "a pin of the e6a8d7d harness (no receipt was written)",
+  "root review"
+ ],
+ "what_this_is": "The second stage-1-repair pin run (harness_pin_successor.py --runs-of-this-step results/live_ab/pin_inputs/HARNESS_PIN_SUCCESSOR_20260926_1313.runs_of_this_step.json at head 8736aa3, 13:14:04Z-13:54:26Z) ended with REFUSED: tree_changed_during_the_run and wrote only a refused draft. The draft, the tool's stdout/stderr and the full per-suite logs the tool kept (the first run with 6380900's log retention) are archived byte-exact below."
+}
