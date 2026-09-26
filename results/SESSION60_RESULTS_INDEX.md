@@ -3843,6 +3843,25 @@ What remains blocked on root: the T3/T4 outcome model, the §11.5 grid itself, r
 named host window and capacity gate, and the freeze inputs root 05:14 lists (paired AB/BA, enrollment-indexed bounds,
 simultaneous alpha allocation, guardrails, stopped estimands, complete usage). Trial, calibration and alpha remain **0**.
 
+### 2026-09-26 (morning) · step 4, a red pin run, and the step-4 successor pin
+
+- **Root 07:18** (`reviews/drivers_successor_pin_bounded_review_20260926_0718.md`) accepted `HARNESS_PIN_SUCCESSOR_20260926_0600.json`
+  (`c46f73c`) as a bounded, non-solo engineering pin and authorized step 4 against `lab_mock_server` only. Its runs input
+  was then deposited unchanged (`878fa70`).
+- **Step 4** (`e62ff89`): `experiments/live_ab/lab_stage1.py`, the stage-1 golden capture (direct HTTP; `lab_client.py`
+  unchanged) and format-conformance counter (at least 9 of 10). Review: 6 findings, 5 fixed (one HIGH: resume ignored the
+  sampling settings and seed). Finding 2 is a protocol-interpretation question left to root: the literal "code block that
+  `extract_code` turns into a non-empty program" is nearly vacuous because `extract_code` falls back to almost any text;
+  the driver gates on a fenced block, and no stage-1 verdict is an outcome.
+- **A RED pin run** at `2411e0e`: 2,095 of 2,095 completed, 1 failure (`tests_repro_inputs.HistoryListTests`: a stage-1 test
+  read `git show 878fa70`, a commit not listed for reproduction). Its receipt was not committed; it and its logs are kept in
+  `results/live_ab/RED_PIN_RUN_20260926_0909.json` (`2417df8`). Fixed at `96aebd7` (test file only).
+- **Step-4 successor pin** (receipt `results/live_ab/HARNESS_PIN_SUCCESSOR_20260926_0958.json`): one run at `b229060`,
+  **2,096 of 2,096 completed; suite verdicts OK with nine skips and two expected failures**, **`solo=true`** (the first solo
+  pin of this branch). Harness 33 → 38; since `…_0600` only `lab_stage1.py` (added) and `tests_lab_isolation.py` moved. Its
+  10-row runs input is committed (`HARNESS_PIN_SUCCESSOR_20260926_0920.runs_of_this_step.json`) and cites the red run.
+  **Not yet reviewed by root.**
+
 ## Open requests
 
 **From the root to session 60** (open; newest first):
