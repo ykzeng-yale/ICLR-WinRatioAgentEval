@@ -1,0 +1,72 @@
+[
+ {
+  "id": "e62ff89_tests_stage1",
+  "utc": "2026-09-26 (step-4 fix step)",
+  "command": "python -m unittest experiments/live_ab_controls/tests_stage1.py",
+  "result": "Ran 27 tests, OK",
+  "source": "commit message of e62ff897032fe2485b674914487d88c55e4e9c5d"
+ },
+ {
+  "id": "e62ff89_tests_lab_isolation",
+  "utc": "2026-09-26 (step-4 fix step)",
+  "command": "python -m unittest discover -s experiments/live_ab -p 'tests_lab_isolation.py'",
+  "result": "Ran 33 tests, OK, no new signature deviation for lab_stage1",
+  "source": "commit message of e62ff897032fe2485b674914487d88c55e4e9c5d"
+ },
+ {
+  "id": "e62ff89_prefreeze_shard_citations",
+  "utc": "2026-09-26 (step-4 fix step)",
+  "command": "python -m unittest experiments/live_ab_controls/tests_prefreeze.py experiments/live_ab_controls/tests_shard_receipt.py experiments/live_ab_controls/tests_delta_citations.py",
+  "result": "Ran 95 tests, OK",
+  "source": "commit message of e62ff897032fe2485b674914487d88c55e4e9c5d"
+ },
+ {
+  "id": "c95484c_tool_tests",
+  "utc": "2026-09-26 (tool step)",
+  "command": "python -m unittest experiments.live_ab_tools.tests_harness_pin_successor",
+  "result": "the commit message states the updated and added tests but no count; see owner_rerun_tool_tests below",
+  "source": "commit message of c95484cf8770fb02d53dc8e040929051c28588ce"
+ },
+ {
+  "id": "red_step4_pin_run",
+  "utc": "2026-09-26T08:31Z to about 09:09Z",
+  "command": "harness_pin_successor.py --runs-of-this-step results/live_ab/pin_inputs/HARNESS_PIN_SUCCESSOR_20260926_0831.runs_of_this_step.json at 2411e0e",
+  "result": "RED: 2,095 of 2,095 completed, not all passed; live_ab_controls FAILED (failures=1): tests_repro_inputs.HistoryListTests.test_every_commit_the_controls_read_is_listed (tests_stage1 read git show 878fa70, not in repro_inputs.HISTORY). Receipt not committed; kept with its logs in results/live_ab/RED_PIN_RUN_20260926_0909.json (sha256 8d1778e05d79800a7eb5435d0f571c279e45784e8be815807ca500ffc5eba9bf, commit 2417df8e9edf2d9a409486c27ce0e41b37f84d9e).",
+  "source": "results/live_ab/RED_PIN_RUN_20260926_0909.json"
+ },
+ {
+  "id": "96aebd7_tests_stage1",
+  "utc": "2026-09-26 about 09:12Z",
+  "command": "python -m unittest experiments/live_ab_controls/tests_stage1.py",
+  "result": "Ran 28 tests, OK",
+  "source": "owner run, commit message of 96aebd7c9ab4f424c55a64b444229af51f5370bd"
+ },
+ {
+  "id": "96aebd7_tests_repro_inputs",
+  "utc": "2026-09-26 about 09:12Z",
+  "command": "python -m unittest experiments/live_ab_controls/tests_repro_inputs.py",
+  "result": "Ran 16 tests, OK",
+  "source": "owner run, commit message of 96aebd7c9ab4f424c55a64b444229af51f5370bd"
+ },
+ {
+  "id": "96aebd7_tests_delta_citations",
+  "utc": "2026-09-26 about 09:15Z",
+  "command": "python -m unittest experiments/live_ab_controls/tests_delta_citations.py",
+  "result": "Ran 7 tests, OK",
+  "source": "owner run, commit message of 96aebd7c9ab4f424c55a64b444229af51f5370bd"
+ },
+ {
+  "id": "owner_rerun_tool_tests",
+  "utc": "2026-09-26T09:18:04Z to 09:19:57Z",
+  "command": "python -m unittest experiments.live_ab_tools.tests_harness_pin_successor at 2417df8e9edf2d9a409486c27ce0e41b37f84d9e",
+  "result": "Ran 60 tests in 112.358s, OK (skipped=1)",
+  "source": "owner run (session 60)"
+ },
+ {
+  "id": "root_0718_acceptance",
+  "utc": "2026-09-26T07:18Z",
+  "command": "root review",
+  "result": "root accepted HARNESS_PIN_SUCCESSOR_20260926_0600.json as a bounded, non-solo engineering pin at ced7a13 and authorized step 4 (model-free, lab_mock_server only)",
+  "source": "reviews/drivers_successor_pin_bounded_review_20260926_0718.md on main"
+ }
+]
