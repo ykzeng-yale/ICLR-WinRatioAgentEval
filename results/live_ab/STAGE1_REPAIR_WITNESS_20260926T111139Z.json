@@ -1,0 +1,149 @@
+{
+  "authority": "`reviews/stage1_pin_and_conformance_interim_20260926_1019.md` (2026-09-26 10:19 UTC), root's three HIGH findings at pinned `b229060`, repaired at `e6a8d7d10acd570355e5f6f7f448dc947f5aa88d`",
+  "before_after": {
+    "W1_changed_prompt0_unchanged_pins": {
+      "after_e6a8d7d": {
+        "call": "conformance_shard(...) once, then again with prompts[0] changed, unchanged pins, target_kind=mock",
+        "error": "resume:stage1_conformance__97c9044f2db05514: pins.stage1_request differs from the caller's current pins.stage1_request. The receipt at /var/folders/kh/6x1yvf7x44734pr6jcxt3lmh0000gn/T/witness_engine_l",
+        "files_written_after_first_call": [
+          "stage1_conformance__97c9044f2db05514.json"
+        ],
+        "files_written_total": [
+          "stage1_conformance__97c9044f2db05514.json"
+        ],
+        "loopback_calls_attempted": 10,
+        "non_loopback_calls_blocked": [],
+        "outcome": "raised sr.ResumeMismatch",
+        "receipt1_sha256": "5acda9cd9a74e65c7cca2418a38bf4ec19922a3b86b59016873990b48a938226",
+        "returned_stale_receipt": false
+      },
+      "before_b229060": {
+        "call": "conformance_shard(...) once, then again with prompts[0] changed, unchanged pins, target_kind=mock",
+        "files_written_after_first_call": [
+          "stage1_conformance__97c9044f2db05514.json"
+        ],
+        "files_written_total": [
+          "stage1_conformance__97c9044f2db05514.json"
+        ],
+        "loopback_calls_attempted": 10,
+        "non_loopback_calls_blocked": [],
+        "outcome": "returned the stale receipt (no refusal)",
+        "receipt1_sha256": "251d6723e902418e9536006c2a53caf160d6cf34bf9c1ea8ee5bcc6facff7c14",
+        "returned_stale_receipt": true
+      }
+    },
+    "W2a_nine_of_nine_prompts": {
+      "after_e6a8d7d": {
+        "call": "run_conformance_probe(base_url, <9 prompts>, target_kind=mock, threshold=9)",
+        "error": "run_conformance_probe requires exactly ten prompts (protocol 5.8); got 9",
+        "loopback_calls_attempted": 0,
+        "non_loopback_calls_blocked": [],
+        "outcome": "raised lab_stage1.PromptSetRefused"
+      },
+      "before_b229060": {
+        "call": "run_conformance_probe(base_url, <9 prompts>, target_kind=mock, threshold=9)",
+        "loopback_calls_attempted": 9,
+        "n_prompts": 9,
+        "non_loopback_calls_blocked": [],
+        "outcome": "returned a verdict (no refusal)",
+        "verdict": "PASS"
+      }
+    },
+    "W2b_empty_first_fence": {
+      "after_e6a8d7d": {
+        "call": "contains_code_block('```python\\n\\n```') / conforms('```python\\n\\n```')",
+        "conforms": false,
+        "contains_code_block": true,
+        "loopback_calls_attempted": 0,
+        "real_extract_code_repr": "'\\n'"
+      },
+      "before_b229060": {
+        "call": "contains_code_block('```python\\n\\n```') / conforms('```python\\n\\n```')",
+        "conforms": null,
+        "conforms_error": "AttributeError: module 'lab_stage1' has no attribute 'conforms'",
+        "contains_code_block": true,
+        "loopback_calls_attempted": 0,
+        "real_extract_code_error": "AttributeError: module 'lab_stage1' has no attribute '_real_extract_code'",
+        "real_extract_code_repr": null
+      }
+    },
+    "W2c_unfenced_prose": {
+      "after_e6a8d7d": {
+        "call": "contains_code_block(<unfenced prose>) / conforms(<unfenced prose>)",
+        "conforms": false,
+        "contains_code_block": false,
+        "loopback_calls_attempted": 0,
+        "real_extract_code_repr": "'Sure, here is the answer: def f(x):\\n    return x + 1\\nThat defines the function without any fenced code block.\\n'",
+        "text_repr": "'Sure, here is the answer: def f(x):\\n    return x + 1\\nThat defines the function without any fenced code block.'"
+      },
+      "before_b229060": {
+        "call": "contains_code_block(<unfenced prose>) / conforms(<unfenced prose>)",
+        "conforms": null,
+        "conforms_error": "AttributeError: module 'lab_stage1' has no attribute 'conforms'",
+        "contains_code_block": false,
+        "loopback_calls_attempted": 0,
+        "real_extract_code_error": "AttributeError: module 'lab_stage1' has no attribute '_real_extract_code'",
+        "real_extract_code_repr": null,
+        "text_repr": "'Sure, here is the answer: def f(x):\\n    return x + 1\\nThat defines the function without any fenced code block.'"
+      }
+    },
+    "W3_real_target_external_url_unchanged_pins": {
+      "after_e6a8d7d": {
+        "call": "conformance_shard(...) [mock, records receipt] then conformance_shard(..., target_kind='real', base_url='https://external.invalid', unchanged pins)",
+        "error": "lab_stage1 is authorized (root's 2026-09-26 07:18 bounded review, reviews/drivers_successor_pin_bounded_review_20260926_0718.md, item 1) only against the loopback lab_mock_server; target_kind='real' n",
+        "files_written_after_mock_call": [
+          "stage1_conformance__97c9044f2db05514.json"
+        ],
+        "files_written_total": [
+          "stage1_conformance__97c9044f2db05514.json"
+        ],
+        "loopback_calls_attempted": 10,
+        "non_loopback_calls_blocked": [],
+        "outcome": "raised lab_stage1.RealServerNotApproved",
+        "receipt1_sha256": "fbf2c0b6403fcea09680621539a2108428da25ddb98d467a044b3b853f97ad77",
+        "returned_mock_receipt": false
+      },
+      "before_b229060": {
+        "call": "conformance_shard(...) [mock, records receipt] then conformance_shard(..., target_kind='real', base_url='https://external.invalid', unchanged pins)",
+        "files_written_after_mock_call": [
+          "stage1_conformance__97c9044f2db05514.json"
+        ],
+        "files_written_total": [
+          "stage1_conformance__97c9044f2db05514.json"
+        ],
+        "loopback_calls_attempted": 10,
+        "non_loopback_calls_blocked": [],
+        "outcome": "returned a receipt (no refusal)",
+        "receipt1_sha256": "9440abb5f0c7285c69f950c85dddddaea5011f78840cc97d86976c24d94293b9",
+        "returned_mock_receipt": true
+      }
+    }
+  },
+  "commits": {
+    "pre_repair_pinned": "b229060fc41f8df7dbded1594a6b522097c56f13",
+    "repair": "e6a8d7d10acd570355e5f6f7f448dc947f5aa88d"
+  },
+  "convention": "deterministic-path",
+  "generated_utc": "2026-09-26T11:11:39Z",
+  "loopback_guard": {
+    "method": "Every witness passes a LoopbackGuardSession as the driver's own session= argument. It intercepts every .get/.post, checks the URL host against an allowlist of 127.0.0.1/localhost/::1 BEFORE dispatch, and raises AssertionError instead of ever opening a socket for any other host; every attempted call (host included) is also recorded, so the observation below is that zero non-loopback calls were even attempted, not merely that none failed.",
+    "non_loopback_calls_blocked_after_repair": 0,
+    "non_loopback_calls_blocked_pre_repair": 0,
+    "result": "Zero non-loopback calls were attempted by any witness, against either commit. In both W1 and W3, the second (bad-input) call made zero further HTTP calls at all (loopback or otherwise) at both commits: pre-repair because it bypassed straight to the stale receipt, post-repair because it raised before reaching any request."
+  },
+  "schema": "live_ab/stage1_repair_witness-v1",
+  "what_this_does_not_establish": [
+    "no real server was contacted or approved; this is `lab_mock_server` only",
+    "no scientific stage-1 result: no golden capture, no real conformance verdict, no loaded model, no live outcome",
+    "no statement about the section 11.5 grid, which this witness does not run",
+    "no re-validation of the repair commit's own 196-test focused suite; this witness is an independent, much smaller supplement to it, not a replacement"
+  ],
+  "what_this_is": "A small, model-free, immutable witness of root\u2019s three 2026-09-26 10:19 HIGH findings (`reviews/stage1_pin_and_conformance_interim_20260926_1019.md`), run against `lab_mock_server` only, in two disposable detached worktrees (never `wt-drivers` itself): one at the pinned pre-repair commit and one at the repair commit. Each witness (W1, W2a, W2b, W2c, W3) is run once against each commit with the identical call, so the row pair is a direct fail-before/pass-after comparison, not a re-description of the repair.",
+  "witnesses_description": {
+    "W1_changed_prompt0_unchanged_pins": "Record a ten-prompt mock conformance receipt, then call again with prompt 0 changed to 'A DIFFERENT PROMPT' and unchanged caller pins. Must not silently resume the stale receipt.",
+    "W2a_nine_of_nine_prompts": "Call run_conformance_probe with 9 of 9 mock prompts at threshold 9. Must not verdict PASS for a wrong-sized, non-predeclared prompt set.",
+    "W2b_empty_first_fence": "Check contains_code_block/conforms on an empty first fence ('```python\\n\\n```'), whose real extractor output is only a newline. Must not conform.",
+    "W2c_unfenced_prose": "Check contains_code_block/conforms on unfenced prose that a fallback extractor would still return non-empty text for. Must not conform, because no fenced code block is present.",
+    "W3_real_target_external_url_unchanged_pins": "Record a mock conformance receipt, then call again with target_kind='real' and base_url='https://external.invalid', unchanged pins. Must not bypass the mock-only guard and return the mock receipt."
+  }
+}
