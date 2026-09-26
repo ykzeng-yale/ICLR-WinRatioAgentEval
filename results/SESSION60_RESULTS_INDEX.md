@@ -1,6 +1,6 @@
 # Session 60 results index (aggregated; updated by the 30-minute coordination loop)
 
-Last updated: 2026-09-26, through branch `session60/drivers-eb2-eb4` (the commit that adds this text, after the batch harness pin receipt `results/live_ab/HARNESS_PIN_SUCCESSOR_20260926_0600.json` at `c46f73c`) and root main `7c0c531` (the 07:18 UTC review, `reviews/drivers_successor_pin_bounded_review_20260926_0718.md`, which accepts that receipt as a bounded, non-solo engineering pin at `ced7a13`). Earlier: 2026-09-25, through tag `session60-eb1-eb5-subset-v1` (`c7750a3`) and its doc-only successor (the commit that adds this text, on `session60/repair-eb1`), receipt `results/live_ab/HARNESS_PIN_SUCCESSOR_20260925_2009.json` (commit `c12e19f`, all 5 suites green 1889/1889 at the committed `98ce004`) with its companion `results/live_ab/DELIVERY_STEP_RUNS_20260925_2014.json` (commit `eee9287`), and root's review chain on origin/main through `e37ed01` (the 22:20 UTC bounded final-head review, `reviews/eb1_eb5_final_subset_bounded_review_20260925_2220.md`, which accepts the tagged subset as model-free engineering preparation only). Owner: session `iclr-winratioagentevals-60`. Work is on `session60/*` branches and is delivered as exact commits named in issue comments, under root's direct-integration policy (`DIRECT_INTEGRATION_POLICY.md` on main); no new pull request is used. The four legacy pull requests (#5, #7, #8, #10) were merged on 2026-09-19 and are history. The root session owns the manuscript, the release archives and integration. No commercial or proprietary model was called by this session; all fresh executions use open-weight models only (EXPERIMENT_POLICY.md on main).
+Last updated: 2026-09-26 afternoon, through branch `session60/drivers-eb2-eb4` (the commit that adds this text, after the stage-1 frozen-gate repair `8062e13`, the pin-log repair `f21fcc1` merged at `fcc4969`, and the failure-history companions `RED_PIN_RUN_20260926_1227.json` (`d68167b`) and `REFUSED_PIN_RUN_20260926_1354.json` (`756d6f3`)) and root main `4c00ca2` (the 13:20 UTC review, `reviews/stage1_repair_frozen_gate_interim_20260926_1320.md`). Before that: 2026-09-26 morning, through the batch harness pin receipt `results/live_ab/HARNESS_PIN_SUCCESSOR_20260926_0600.json` at `c46f73c`) and root main `7c0c531` (the 07:18 UTC review, `reviews/drivers_successor_pin_bounded_review_20260926_0718.md`, which accepts that receipt as a bounded, non-solo engineering pin at `ced7a13`). Earlier: 2026-09-25, through tag `session60-eb1-eb5-subset-v1` (`c7750a3`) and its doc-only successor (the commit that adds this text, on `session60/repair-eb1`), receipt `results/live_ab/HARNESS_PIN_SUCCESSOR_20260925_2009.json` (commit `c12e19f`, all 5 suites green 1889/1889 at the committed `98ce004`) with its companion `results/live_ab/DELIVERY_STEP_RUNS_20260925_2014.json` (commit `eee9287`), and root's review chain on origin/main through `e37ed01` (the 22:20 UTC bounded final-head review, `reviews/eb1_eb5_final_subset_bounded_review_20260925_2220.md`, which accepts the tagged subset as model-free engineering preparation only). Owner: session `iclr-winratioagentevals-60`. Work is on `session60/*` branches and is delivered as exact commits named in issue comments, under root's direct-integration policy (`DIRECT_INTEGRATION_POLICY.md` on main); no new pull request is used. The four legacy pull requests (#5, #7, #8, #10) were merged on 2026-09-19 and are history. The root session owns the manuscript, the release archives and integration. No commercial or proprietary model was called by this session; all fresh executions use open-weight models only (EXPERIMENT_POLICY.md on main).
 
 **How to read this index.** "Integrated" means the root session copied or re-derived the material into its own files and reviewed it; it never means a branch or a legacy pull request was accepted wholesale: the four legacy PRs are merged on main, but methods root excluded stay excluded from paper and release claims (root `EXPERIMENT_QUEUE.md`). Numbers marked *descriptive* are counts and means of retained records. Numbers marked *model-dependent* are owner intervals whose assumptions the designs do not establish; the root paper **excludes** them. Current root state: main `e37ed01` (22:20 UTC on 25 Sept, `reviews/eb1_eb5_final_subset_bounded_review_20260925_2220.md`), which accepts tag `session60-eb1-eb5-subset-v1` (`c7750a3`) as a bounded model-free engineering subset only: no freeze, no loaded, design or trial episode, no live outcome, no paper or release change. Root reports full-project arXiv readiness of 75/100 (change 0) and bounded-v1 of 90/100 separately. The remaining 25 points are prospective collection and independent acceptance 10 (Session60/root), expanded final QA 5 (root) and author checks 10 (Yukang: science, arXiv account/category/endorsement, rights and agreements).
 
@@ -3860,7 +3860,38 @@ simultaneous alpha allocation, guardrails, stopped estimands, complete usage). T
   **2,096 of 2,096 completed; suite verdicts OK with nine skips and two expected failures**, **`solo=true`** (the first solo
   pin of this branch). Harness 33 → 38; since `…_0600` only `lab_stage1.py` (added) and `tests_lab_isolation.py` moved. Its
   10-row runs input is committed (`HARNESS_PIN_SUCCESSOR_20260926_0920.runs_of_this_step.json`) and cites the red run.
-  **Not yet reviewed by root.**
+  *Root 10:19* (`reviews/stage1_pin_and_conformance_interim_20260926_1019.md`) accepted it only as an engineering run
+  receipt, not as a review of the stage-1 logic (next section).
+
+### 2026-09-26 (midday) · two root reviews of stage 1, two failed repair pins, and the frozen-gate repair
+
+- **Root 10:19** (`reviews/stage1_pin_and_conformance_interim_20260926_1019.md`) found three HIGH stage-1 defects at
+  `b229060`: the prompt list was not bound into the resume pins; the conformance predicate (exactly ten predeclared
+  prompts, a fenced block AND the real `extract_code` returning non-whitespace); the mock-only guard ran after resume.
+  Repaired at `e6a8d7d` (the real `extract_code` is loaded from the source-hash-pinned `agent.py` AST); root's
+  counterexamples before and after are in `results/live_ab/STAGE1_REPAIR_WITNESS_20260926T111139Z.json` (`459c332`).
+- **Red repair pin** at `4d78581` (11:22–12:27Z): 2,122 of 2,122 completed; `live_ab_controls` FAILED 3 (three
+  host-gate-dependent EB1 controls). No receipt; kept in `results/live_ab/RED_PIN_RUN_20260926_1227.json` (`d68167b`).
+  Its cause is PROBABLE, NOT PROVEN: the tool then kept only stderr tails. The tool was changed to keep every suite's full
+  stdout/stderr (`6380900`).
+- **Refused repair pin** at `8736aa3` (13:14–13:54Z): 2,135 of 2,135 completed; `live_ab_controls` 702 OK; the tool
+  REFUSED (`tree_changed_during_the_run`) because `6380900` wrote its logs inside the tree during the run, and one new
+  tools test errored (`pin_log_mismatch`). No receipt; kept with its full logs in
+  `results/live_ab/REFUSED_PIN_RUN_20260926_1354.json` (`756d6f3`).
+- **Root 13:20** (`reviews/stage1_repair_frozen_gate_interim_20260926_1320.md`) accepted the AST-extractor approach and
+  the log keeping, and found two new HIGH defects at `e6a8d7d`: the six smoke prompt texts were not checked against the
+  pinned MBPP source, and the 9/10 threshold was caller-controlled.
+- **Frozen-gate repair** `8062e13`: the six smoke texts are derived from the pinned `mbpp_full` source (563,743 bytes)
+  through the real `data.mbpp_entry_point` and `agent.build_user_prompt` (both AST-loaded from source-hash-pinned
+  files); a changed text or source is refused before any request or resume. The threshold and, after the independent
+  review found it, **every sampling parameter** are now refused unless equal to `config.json`. Commit-message counts: 98,
+  33 and 88 tests OK.
+- **Pin-log repair** `f21fcc1` (branch `session60/pin-log-fix`, merged at `fcc4969`, no rebase): logs are staged
+  outside the repository until the tree check passes, then promoted write-once; the tree check is unchanged. The test
+  error's mechanism (unittest's runner clock line) was reproduced before the fix. Commit-message counts: 269 tests OK
+  (skipped=2), twice.
+- **Next:** one successor pin at the head that commits its runs input (all attempts of this step listed). Step 5 and
+  everything real-server, grid, loaded or trial stays held.
 
 ## Open requests
 
@@ -3938,7 +3969,7 @@ simultaneous alpha allocation, guardrails, stopped estimands, complete usage). T
    EB5 stays open until a loaded phase shows, on the production path, that every permitted worker was resolved (root
    20:40 item 3). *Status (2026-09-26):* model-free drivers steps 1–3, the replay-resume repair, the held-test port and a
    batch pin receipt are delivered on `session60/drivers-eb2-eb4` (section above); root 05:14 asks next for the exact pin
-   receipt, then rules on the remaining scientific and freeze gates. No loaded phase has run.
+   receipt, then rules on the remaining scientific and freeze gates. Later on 26 Sept: step 4, the step-4 pin, two root stage-1 reviews (10:19, 13:20) and their repairs, and two failed repair pins kept as companions (sections above). No loaded phase has run.
 
 **From session 60 to the root** (resolved):
 - The SM8 receipt's `observation_for_root_not_changed` asked for a ruling on the closing-stop question: whether a
