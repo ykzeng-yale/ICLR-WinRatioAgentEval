@@ -1,0 +1,58 @@
+[
+ {
+  "id": "e6a8d7d_tests_stage1_repro_citations",
+  "utc": "2026-09-26 (repair fix step)",
+  "command": "python -m unittest -v experiments/live_ab_controls/tests_stage1.py experiments/live_ab_controls/tests_repro_inputs.py experiments/live_ab_controls/tests_delta_citations.py",
+  "result": "Ran 75 tests, OK",
+  "source": "commit message of e6a8d7d10acd570355e5f6f7f448dc947f5aa88d"
+ },
+ {
+  "id": "e6a8d7d_tests_lab_isolation",
+  "utc": "2026-09-26 (repair fix step)",
+  "command": "python -m unittest discover -v -s experiments/live_ab -p 'tests_lab_isolation.py'",
+  "result": "Ran 33 tests, OK",
+  "source": "commit message of e6a8d7d10acd570355e5f6f7f448dc947f5aa88d"
+ },
+ {
+  "id": "e6a8d7d_prefreeze_shard",
+  "utc": "2026-09-26 (repair fix step)",
+  "command": "python -m unittest -v experiments/live_ab_controls/tests_prefreeze.py experiments/live_ab_controls/tests_shard_receipt.py",
+  "result": "Ran 88 tests, OK",
+  "source": "commit message of e6a8d7d10acd570355e5f6f7f448dc947f5aa88d"
+ },
+ {
+  "id": "witness_459c332",
+  "utc": "2026-09-26T11:11:39Z",
+  "command": "root 10:19 counterexamples W1, W2a, W2b, W2c, W3 at b229060 and e6a8d7d against lab_mock_server (loopback-enforced)",
+  "result": "before: stale receipt returned (W1), PASS on 9 prompts (W2a), guard bypassed on resume (W3); after: ResumeMismatch, PromptSetRefused, empty first fence and unfenced prose do not conform, RealServerNotApproved; recorded in results/live_ab/STAGE1_REPAIR_WITNESS_20260926T111139Z.json (sha256 c82a61af4eaf0d3278336d2491e135bb7865ac39b5558ba754ee77eae4991c72)",
+  "source": "commit 459c332e9ed58cc69d4513cda7e7efef86f61d21"
+ },
+ {
+  "id": "workflow_detached_commits",
+  "utc": "2026-09-26 about 11:05Z to 11:18Z",
+  "command": "process event",
+  "result": "the workflow repair and witness steps committed e6a8d7d and 459c332 on detached scratch worktrees (both children of 3e511bf, neither on the branch); the pin step had started in the branch worktree without the repair; the owner stopped the workflow before any pin tool ran, fast-forwarded the branch to e6a8d7d and merged 459c332 (2a3f00e), no rebase or cherry-pick",
+  "source": "owner (session 60); merge commit 2a3f00ef78bd2ab3fe503361e064bdbb3292e5c4"
+ },
+ {
+  "id": "owner_rerun_at_2a3f00e",
+  "utc": "2026-09-26 about 11:17Z",
+  "command": "tests_stage1 + tests_repro_inputs + tests_delta_citations; tests_lab_isolation (discover); tests_prefreeze + tests_shard_receipt",
+  "result": "Ran 75 tests OK; Ran 33 tests OK; Ran 88 tests OK",
+  "source": "owner run (session 60) at 2a3f00ef78bd2ab3fe503361e064bdbb3292e5c4"
+ },
+ {
+  "id": "63b7b9a_tool_tests",
+  "utc": "2026-09-26T11:19:58Z to 11:22:00Z",
+  "command": "python -m unittest experiments.live_ab_tools.tests_harness_pin_successor",
+  "result": "Ran 62 tests in 121.193s, OK (skipped=1)",
+  "source": "owner run, commit message of 63b7b9ad71085c0e5d5eef66fdfbffc5f0378f56"
+ },
+ {
+  "id": "root_1019_review",
+  "utc": "2026-09-26T10:19Z",
+  "command": "root review",
+  "result": "root accepted HARNESS_PIN_SUCCESSOR_20260926_0958.json only as a bounded engineering run receipt; found three HIGH stage-1 defects (prompt list not bound on resume; conformance predicate not the frozen rule; mock guard bypassed on resume) and ruled the gating reading: a fenced block whose real extract_code output is non-whitespace, on exactly the ten predeclared prompts",
+  "source": "reviews/stage1_pin_and_conformance_interim_20260926_1019.md on main"
+ }
+]
