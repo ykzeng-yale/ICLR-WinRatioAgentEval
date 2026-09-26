@@ -8,10 +8,8 @@ runs: ``lab_mock_server`` on a free loopback port, served in a thread for one te
 (the same pattern ``experiments/live_ab/tests_lab_serving.py`` already uses); no real model, no
 real ``llama-server``, no ``llama.cpp`` build, no network beyond that loopback and ``git show``
 (read-only).  :class:`MutationControlTests` goes one step further and proves the conformance
-counter's own boundary control can fail: it loads a deliberately broken copy of the verdict
-logic from a scratch file under the session's ``tmp_agents`` directory (never the worktree) and
-shows it disagrees with the real module on the exact 9-of-10 boundary
-:class:`ConformanceCounterTests` checks.
+counter's own boundary control can fail: it patches the real verdict comparison with an
+off-by-one and runs the exact 9-of-10 boundary scenario through the real counter.
 
 Outside the ``experiments/live_ab/tests_*.py`` glob on purpose (repair contract, placement).
 Prepared and checked by AI agent sessions; not human peer review or author sign-off
@@ -47,13 +45,6 @@ import lab_shard_receipt as sr                                           # noqa:
 import lab_stage1                                                        # noqa: E402
 
 REPO_ROOT = LIVE.parent.parent
-#: Where MutationControlTests writes its scratch mutant file: an environment-provided scratch
-#: directory (the harness that runs this file sets it to its own designated temp-file area) or,
-#: absent that, a fresh directory under the platform temp root -- never a path inside this
-#: worktree, since the mutant is not part of the harness this driver ships.
-TMP_AGENTS = Path(os.environ.get('LAB_STAGE1_MUTATION_SCRATCH_DIR')
-                 or tempfile.mkdtemp(prefix='lab_stage1_mutation_'))
-
 SAMPLING = {'temperature': 0.7, 'top_p': 0.95, 'top_k': 0, 'min_p': 0.0, 'typical_p': 1.0,
            'repeat_penalty': 1.0, 'presence_penalty': 0.0, 'frequency_penalty': 0.0,
            'mirostat': 0, 'max_tokens': 64}
@@ -481,65 +472,58 @@ class ShardResumeTests(unittest.TestCase):
 
 
 class LabClientByteIdentityTests(unittest.TestCase):
-    """``lab_client.py`` must stay byte-identical (root 07:18): its blob sha256 at the current
-    worktree HEAD equals its value at the pinned commit ``878fa70``."""
+    """``lab_client.py`` must stay byte-identical (root 07:18): its sha256 in this checkout equals
+    the value the root-accepted pin receipt
+    ``results/live_ab/HARNESS_PIN_SUCCESSOR_20260926_0600.json`` records in its successor harness
+    map.  Read from that committed receipt, not from git history, so a shallow or sparse
+    reproduction checks it too (the earlier form read an older commit with ``git show`` and was
+    refused by ``tests_repro_inputs.HistoryListTests``, which requires every commit a control reads
+    to be listed in ``repro_inputs.HISTORY``)."""
 
-    def test_lab_client_unchanged_since_878fa70(self) -> None:
-        pinned = subprocess.run(
-            ['git', '-C', str(REPO_ROOT), 'show', '878fa70:experiments/live_ab/lab_client.py'],
-            capture_output=True, check=True)
-        pinned_sha = lab_common.sha256_bytes(pinned.stdout)
-        current_sha = lab_common.sha256_file(LIVE / 'lab_client.py')
-        self.assertEqual(current_sha, pinned_sha,
-                         'lab_client.py must stay byte-identical to its state at 878fa70')
+    RECEIPT = lab_common.REPO_ROOT / 'results' / 'live_ab' / 'HARNESS_PIN_SUCCESSOR_20260926_0600.json'
+
+    def pinned_sha(self) -> str:
+        receipt = json.loads(self.RECEIPT.read_text('utf-8'))
+        return receipt['harness_pin']['successor']['map']['lab_client.py']
+
+    def test_lab_client_unchanged_since_the_accepted_pin(self) -> None:
+        self.assertEqual(lab_common.sha256_file(LIVE / 'lab_client.py'), self.pinned_sha(),
+                         'lab_client.py must stay byte-identical to the accepted pin')
+
+    def test_negative_a_changed_lab_client_would_be_caught(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            changed = Path(tmp) / 'lab_client.py'
+            changed.write_bytes((LIVE / 'lab_client.py').read_bytes() + b'\n# drift\n')
+            self.assertNotEqual(lab_common.sha256_file(changed), self.pinned_sha())
 
 
 class MutationControlTests(unittest.TestCase):
-    """Proves :class:`ConformanceCounterTests`'s boundary check is not vacuous: a deliberately
-    broken copy of the verdict comparison, loaded from a scratch file under the session's
-    ``tmp_agents`` directory (never the worktree -- the HARD RULES forbid mutating it), disagrees
-    with the REAL ``lab_stage1._verdict`` on the exact 9-of-10 boundary case the positive control
-    above checks.
+    """Proves :class:`ConformanceCounterTests`'s boundary check is not vacuous.  The REAL
+    ``lab_stage1._verdict`` is patched with an off-by-one (``>`` instead of ``>=``) and the exact
+    9-of-10 scenario of ``test_positive_nine_of_ten_passes_at_the_boundary`` is run through the
+    real ``run_conformance_probe`` against ``lab_mock_server``: it now reports FAIL, so that
+    positive control (which asserts PASS) would fail.  Nothing is written to disk.
 
-    An earlier version of this test hardcoded ``real_verdict = 'PASS' if 9 >= 9 else 'FAIL'`` as
-    a bare Python expression and never imported or called anything in ``lab_stage1`` -- it proved
-    nothing about the real module despite its docstring's claim (an independent adversarial
-    review's finding 3).  ``lab_stage1._verdict`` was extracted to its own function precisely so
-    this test could call it directly instead."""
+    Earlier versions hardcoded ``'PASS' if 9 >= 9 else 'FAIL'`` (an independent review's finding
+    3), and then compared a hand-written stand-in with the real function without running the
+    real counter through it; both proved less than they claimed."""
 
-    def test_a_broken_threshold_comparison_would_have_been_caught(self) -> None:
-        TMP_AGENTS.mkdir(parents=True, exist_ok=True)
-        mutant_path = TMP_AGENTS / 'mutant_stage1_conformance_verdict.py'
-        # The mutant reimplements ONLY the verdict comparison, with a deliberately wrong
-        # operator (`>` instead of `>=`) -- exactly the off-by-one this project's own review
-        # discipline calls out ("never rounding up"). It is never imported by, or wired into,
-        # lab_stage1 itself; it exists only so this test can show the boundary control would
-        # have failed against it.
-        mutant_path.write_text(
-            "def verdict(n_with_code_block, threshold):\n"
-            "    return 'PASS' if n_with_code_block > threshold else 'FAIL'\n",
-            encoding='utf-8')
-        import importlib.util
-        spec = importlib.util.spec_from_file_location('mutant_stage1_conformance_verdict',
-                                                       mutant_path)
-        mutant = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(mutant)
-
-        # the exact scenario ConformanceCounterTests.test_positive_nine_of_ten_passes_at_the_
-        # boundary checks: 9 of 10, threshold 9 -- calling the REAL module's own function, not a
-        # hand-copied literal expression.
-        real_verdict = lab_stage1._verdict(9, 9)
-        self.assertEqual(real_verdict, 'PASS')
-        mutant_verdict = mutant.verdict(9, 9)
-        self.assertEqual(mutant_verdict, 'FAIL',
-                         'fixture drift: the mutant must disagree with the real module at the '
-                         'boundary for this control to mean anything')
-        self.assertNotEqual(mutant_verdict, real_verdict,
-                            "the mutant's off-by-one silently turns a PASS into a FAIL at the "
-                            'boundary -- exactly the defect class '
-                            'ConformanceCounterTests.test_positive_nine_of_ten_passes_at_the_'
-                            'boundary exists to catch')
-
+    def test_an_off_by_one_verdict_is_caught_by_the_boundary_control(self) -> None:
+        self.assertEqual(lab_stage1._verdict(9, 9), 'PASS')
+        helper = ConformanceCounterTests('test_positive_nine_of_ten_passes_at_the_boundary')
+        model_path = str(lab_common.REPO_ROOT / 'work' / 'live_ab' / 'models' / 'coder.gguf')
+        scenario = helper._scenario_with_failed_tries(model_path, [3])  # exactly 1 of 10 fails
+        broken = lambda n, threshold: 'PASS' if n > threshold else 'FAIL'  # noqa: E731
+        from unittest import mock
+        with mock.patch.object(lab_stage1, '_verdict', broken):
+            with mock_server(scenario) as base_url:
+                report = lab_stage1.run_conformance_probe(
+                    base_url, CONFORMANCE_PROMPTS_10, target_kind='mock', sampling=SAMPLING,
+                    threshold=9)
+        self.assertEqual(report['n_with_code_block'], 9)
+        self.assertEqual(report['verdict'], 'FAIL',
+                         'the off-by-one must flip the boundary verdict, or the positive '
+                         'boundary control could not catch it')
 
 class FailurePropagationTests(unittest.TestCase):
     """Adversarial review finding 5: the claimed failure-path contract -- "a capture/write
