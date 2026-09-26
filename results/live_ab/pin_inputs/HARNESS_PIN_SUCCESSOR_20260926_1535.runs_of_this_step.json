@@ -1,0 +1,114 @@
+[
+ {
+  "id": "e6a8d7d_tests_stage1_repro_citations",
+  "utc": "2026-09-26 (repair fix step)",
+  "command": "python -m unittest -v experiments/live_ab_controls/tests_stage1.py experiments/live_ab_controls/tests_repro_inputs.py experiments/live_ab_controls/tests_delta_citations.py",
+  "result": "Ran 75 tests, OK",
+  "source": "commit message of e6a8d7d10acd570355e5f6f7f448dc947f5aa88d (carried from results/live_ab/pin_inputs/HARNESS_PIN_SUCCESSOR_20260926_1122.runs_of_this_step.json)"
+ },
+ {
+  "id": "e6a8d7d_tests_lab_isolation",
+  "utc": "2026-09-26 (repair fix step)",
+  "command": "python -m unittest discover -v -s experiments/live_ab -p 'tests_lab_isolation.py'",
+  "result": "Ran 33 tests, OK",
+  "source": "commit message of e6a8d7d10acd570355e5f6f7f448dc947f5aa88d (carried from results/live_ab/pin_inputs/HARNESS_PIN_SUCCESSOR_20260926_1122.runs_of_this_step.json)"
+ },
+ {
+  "id": "e6a8d7d_prefreeze_shard",
+  "utc": "2026-09-26 (repair fix step)",
+  "command": "python -m unittest -v experiments/live_ab_controls/tests_prefreeze.py experiments/live_ab_controls/tests_shard_receipt.py",
+  "result": "Ran 88 tests, OK",
+  "source": "commit message of e6a8d7d10acd570355e5f6f7f448dc947f5aa88d (carried from results/live_ab/pin_inputs/HARNESS_PIN_SUCCESSOR_20260926_1122.runs_of_this_step.json)"
+ },
+ {
+  "id": "witness_459c332",
+  "utc": "2026-09-26T11:11:39Z",
+  "command": "root 10:19 counterexamples W1, W2a, W2b, W2c, W3 at b229060 and e6a8d7d against lab_mock_server (loopback-enforced)",
+  "result": "before: stale receipt returned (W1), PASS on 9 prompts (W2a), guard bypassed on resume (W3); after: ResumeMismatch, PromptSetRefused, empty first fence and unfenced prose do not conform, RealServerNotApproved; recorded in results/live_ab/STAGE1_REPAIR_WITNESS_20260926T111139Z.json (sha256 c82a61af4eaf0d3278336d2491e135bb7865ac39b5558ba754ee77eae4991c72)",
+  "source": "commit 459c332e9ed58cc69d4513cda7e7efef86f61d21 (carried from results/live_ab/pin_inputs/HARNESS_PIN_SUCCESSOR_20260926_1122.runs_of_this_step.json)"
+ },
+ {
+  "id": "workflow_detached_commits",
+  "utc": "2026-09-26 about 11:05Z to 11:18Z",
+  "command": "process event",
+  "result": "the workflow repair and witness steps committed e6a8d7d and 459c332 on detached scratch worktrees (both children of 3e511bf, neither on the branch); the pin step had started in the branch worktree without the repair; the owner stopped the workflow before any pin tool ran, fast-forwarded the branch to e6a8d7d and merged 459c332 (2a3f00e), no rebase or cherry-pick",
+  "source": "owner (session 60); merge commit 2a3f00ef78bd2ab3fe503361e064bdbb3292e5c4 (carried from results/live_ab/pin_inputs/HARNESS_PIN_SUCCESSOR_20260926_1122.runs_of_this_step.json)"
+ },
+ {
+  "id": "owner_rerun_at_2a3f00e",
+  "utc": "2026-09-26 about 11:17Z",
+  "command": "tests_stage1 + tests_repro_inputs + tests_delta_citations; tests_lab_isolation (discover); tests_prefreeze + tests_shard_receipt",
+  "result": "Ran 75 tests OK; Ran 33 tests OK; Ran 88 tests OK",
+  "source": "owner run (session 60) at 2a3f00ef78bd2ab3fe503361e064bdbb3292e5c4 (carried from results/live_ab/pin_inputs/HARNESS_PIN_SUCCESSOR_20260926_1122.runs_of_this_step.json)"
+ },
+ {
+  "id": "63b7b9a_tool_tests",
+  "utc": "2026-09-26T11:19:58Z to 11:22:00Z",
+  "command": "python -m unittest experiments.live_ab_tools.tests_harness_pin_successor",
+  "result": "Ran 62 tests in 121.193s, OK (skipped=1)",
+  "source": "owner run, commit message of 63b7b9ad71085c0e5d5eef66fdfbffc5f0378f56 (carried from results/live_ab/pin_inputs/HARNESS_PIN_SUCCESSOR_20260926_1122.runs_of_this_step.json)"
+ },
+ {
+  "id": "root_1019_review",
+  "utc": "2026-09-26T10:19Z",
+  "command": "root review",
+  "result": "root accepted HARNESS_PIN_SUCCESSOR_20260926_0958.json only as a bounded engineering run receipt; found three HIGH stage-1 defects (prompt list not bound on resume; conformance predicate not the frozen rule; mock guard bypassed on resume) and ruled the gating reading: a fenced block whose real extract_code output is non-whitespace, on exactly the ten predeclared prompts",
+  "source": "reviews/stage1_pin_and_conformance_interim_20260926_1019.md on main (carried from results/live_ab/pin_inputs/HARNESS_PIN_SUCCESSOR_20260926_1122.runs_of_this_step.json)"
+ },
+ {
+  "id": "red_stage1_repair_pin_run",
+  "utc": "2026-09-26T11:22:38Z to 12:27:21Z",
+  "command": "harness_pin_successor.py --runs-of-this-step results/live_ab/pin_inputs/HARNESS_PIN_SUCCESSOR_20260926_1122.runs_of_this_step.json at 4d78581986723e071eb5f54a0d1054773e82646d",
+  "result": "RED: 2,122 of 2,122 completed, not all passed; live_ab_controls FAILED (failures=3): tests_eb1_cap_estimand.ProdModelFileIdentity.test_control_the_correct_file_starts_with_its_measured_digest; tests_eb1_entry.C10ResumeStopsTheOrphan (2 tests). Probable cause (not proven): real host-quiescence gate refusals. Receipt not committed; kept in results/live_ab/RED_PIN_RUN_20260926_1227.json (sha256 5581ba7622c035da64e9219faf465adf9c28c08fe667a9e63b1c4b2d8d7d6a50, commit d68167be09ec935905afdf44d4c3674ccb27f170)",
+  "source": "results/live_ab/RED_PIN_RUN_20260926_1227.json (carried from results/live_ab/pin_inputs/HARNESS_PIN_SUCCESSOR_20260926_1313.runs_of_this_step.json)"
+ },
+ {
+  "id": "solo_diagnostic_rerun_after_red",
+  "utc": "2026-09-26T12:27:57Z to 12:30:41Z",
+  "command": "python -m unittest -v tests_eb1_cap_estimand.ProdModelFileIdentity tests_eb1_entry.C10ResumeStopsTheOrphan (cwd experiments/live_ab_controls) at 4d78581986723e071eb5f54a0d1054773e82646d",
+  "result": "Ran 5 tests in 163.792s, OK; recorded as a diagnostic only, not as a verdict on the red run",
+  "source": "owner run; log in the RED_PIN_RUN_20260926_1227 archive (carried from results/live_ab/pin_inputs/HARNESS_PIN_SUCCESSOR_20260926_1313.runs_of_this_step.json)"
+ },
+ {
+  "id": "6380900_tool_tests",
+  "utc": "2026-09-26 (keep-logs fix step)",
+  "command": "python -m unittest -v experiments.live_ab_tools.tests_harness_pin_successor; python -m unittest experiments/live_ab_controls/tests_delta_citations.py",
+  "result": "Ran 75 tests, OK (skipped=1); Ran 7 tests, OK",
+  "source": "commit message of 6380900f704520848ea04e0356035a8a8f4ef7ea (carried from results/live_ab/pin_inputs/HARNESS_PIN_SUCCESSOR_20260926_1313.runs_of_this_step.json)"
+ },
+ {
+  "id": "refused_stage1_repair_pin_run",
+  "utc": "2026-09-26T13:14:04Z to 13:54:26Z",
+  "command": "experiments/live_ab_tools/harness_pin_successor.py --runs-of-this-step results/live_ab/pin_inputs/HARNESS_PIN_SUCCESSOR_20260926_1313.runs_of_this_step.json at 8736aa3d8bbf5b6387a75dfe3a5c268096245849",
+  "result": "REFUSED by the tool: tree_changed_during_the_run; 2,135 of 2,135 completed, all_passed false; live_ab 766 OK (skipped=1), live_ab_controls 702 OK, live_ab_serving 193 OK, live_ab_tools 259 FAILED (errors=1, skipped=2: SoloRunSuitesPinLogTests.test_the_receipts_digests_equal_the_decompressed_log_bytes, pin_log_mismatch:pass_suite.stderr.gz), tests_validation.py 215 OK (skipped=6, expected failures=2); no receipt written",
+  "source": "results/live_ab/REFUSED_PIN_RUN_20260926_1354.json (commit 756d6f3)"
+ },
+ {
+  "id": "root_1320_review",
+  "utc": "2026-09-26T13:20Z",
+  "command": "root review at e6a8d7d",
+  "result": "two HIGH findings: the six smoke prompt texts were not validated against the pinned MBPP source and frozen template path; the 9/10 threshold was caller-controlled (threshold=0 with ten HTTP-500 responses returned PASS)",
+  "source": "reviews/stage1_repair_frozen_gate_interim_20260926_1320.md on main (commit 4c00ca2)"
+ },
+ {
+  "id": "8062e13_stage1_frozen_gate",
+  "utc": "2026-09-26 (frozen-gate fix step, about 14:00Z to 15:15Z)",
+  "command": "tests_stage1 + tests_repro_inputs + tests_delta_citations; tests_lab_isolation (discover); tests_prefreeze + tests_shard_receipt",
+  "result": "98 OK; 33 OK; 88 OK (builder reported 87/33/88 before the review; the review found sampling caller-controlled (HIGH), two test-coverage gaps (MEDIUM) and one ordering gap (LOW), all fixed with fail-before/pass-after controls)",
+  "source": "commit message of 8062e1322408171f3e5ff6f1ee6171116b8ea7f6"
+ },
+ {
+  "id": "f21fcc1_pin_log_fix",
+  "utc": "2026-09-26 (pin-log fix step, about 14:00Z to 15:15Z)",
+  "command": "python -m unittest discover -v -s experiments/live_ab_tools (twice)",
+  "result": "Ran 269 tests in 293.350s OK (skipped=2); Ran 269 tests in 298.776s OK (skipped=2); defect A (logs inside the tree) and defect B (unittest runner clock bytes differ between builds) reproduced before the fix; review finding (promotion refusal lost the staged logs) fixed",
+  "source": "commit message of f21fcc136da3c4f0b7a4a25a9e28e1c831a7ec13"
+ },
+ {
+  "id": "owner_focused_at_fcc4969",
+  "utc": "2026-09-26T15:20:31Z to 15:27:00Z",
+  "command": "tests_stage1 + tests_repro_inputs + tests_delta_citations; tests_lab_isolation (discover); tests_prefreeze + tests_shard_receipt; python -m unittest discover -v -s experiments/live_ab_tools",
+  "result": "Ran 98 tests in 118.287s OK; Ran 33 tests in 0.531s OK; Ran 88 tests in 0.322s OK; Ran 269 tests in 270.261s OK (skipped=2)",
+  "source": "owner run (session 60) at merge fcc4969f4fa57953ae52502508128bab9b1c659a, after merging session60/pin-log-fix"
+ }
+]
